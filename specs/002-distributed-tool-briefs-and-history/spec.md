@@ -54,7 +54,7 @@ The capability must therefore distribute authorship to every registered source t
 - Distinguish scheduled, released, revised, stale, missing, and disputed report evidence and align any claimed market reaction strictly after the release timestamp.
 - Make each scheduled window prioritize the evidence that is actually available and decision-relevant at its cutoff.
 - Bound authoring cost by skipping unchanged work, limiting context to current structured artifacts, and enforcing per-profile budgets.
-- Migrate the existing 26-row `brief-history.jsonl` corpus without inventing missing per-tool or final narratives.
+- Migrate the existing `brief-history.jsonl` corpus in full, at whatever row count the frozen source file carries at migration time, without inventing missing per-tool or final narratives.
 
 ## Non-Goals
 
@@ -100,7 +100,7 @@ The capability must therefore distribute authorship to every registered source t
 3. **Bond Regime is an owning live-market model, not a static configuration page.** Its compact read is derived from exact-date adjusted credit ratios, duration-confound attribution, independent confirmation when available, nominal/real Treasury curves, common-date breakevens, and a seven-sleeve carry/rate/spread/convexity scenario model. Its brief may explain that read but cannot treat the two credit ratios as independent confirmations, publish restricted current-tab OAS/financial-conditions observations, convert a scenario estimate into a forecast, or recommend a sleeve when the read is indeterminate or no expression is policy-eligible and rankable.
 4. **Not every tool has a meaningful market recommendation.** Strategy Self-Improvement uses deterministic synthetic paths, Smart-Money uses illustrative filing data, and Waterfront Polo is off-theme. Their briefs can still provide tool-specific next actions and limitations, but they cannot be promoted into market recommendations without eligible evidence.
 5. **Exactly-once cannot mean one LLM call on every timer tick.** If inputs and policy are unchanged, another call creates cost and prose churn rather than new information. Exactly-once means one authoritative run reference and no duplicate content; unchanged validated briefs are carried forward by reference.
-6. **Legacy final history is incomplete.** The 26 deterministic history rows do not prove that a corresponding final narrative or per-tool brief existed for every row. Migration must preserve this absence explicitly.
+6. **Legacy final history is incomplete.** The deterministic history rows do not prove that a corresponding final narrative or per-tool brief existed for every row. Migration must preserve this absence explicitly.
 7. **Repository onboarding is not complete.** This specification can define the product contract, but no delivery or certification claim follows from its creation.
 8. **A window label is not session evidence.** `argWindow()` classifies the run by wall clock, while Tier A's tracked assets still resolve through daily rows. The pre-market payload can therefore describe the prior official close without observing the current pre-market tape.
 9. **The existing intraday owner is regular-session-only.** The Intraday Tape requests `includePrePost=false` and filters to 09:30-16:00. Its VWAP and volume profile are useful owning-model evidence, but they do not currently establish comparable extended-hours baselines.
@@ -356,7 +356,7 @@ The index contains no full narrative bodies. It records contract version, partit
 ### UC-007: Migrate legacy brief history without invention
 
 - **Actor:** Scheduler Operator and Risk And Audit Reviewer
-- **Preconditions:** The 26-row legacy history and repository commit history are available read-only.
+- **Preconditions:** The legacy history file and repository commit history are available read-only; the corpus row count is derived by freezing the source file rather than assumed in advance.
 - **Main Flow:**
   1. Each legacy row receives a deterministic source-row fingerprint and run reference.
   2. Available normalized tool reads are preserved with original timestamps and source labels.
@@ -364,7 +364,7 @@ The index contains no full narrative bodies. It records contract version, partit
   4. A final narrative is associated only when repository evidence proves the relationship.
   5. Counts, hashes, and timestamp coverage are reconciled before new writes switch to partitions.
 - **Alternative Flows:** Missing per-tool briefs, recommendations, or final narratives are marked unavailable; they are never reconstructed from hindsight.
-- **Postconditions:** All 26 source rows are accounted for and the legacy file remains an immutable migration source until parity is accepted.
+- **Postconditions:** Every source row in the frozen legacy file is accounted for and the legacy file remains an immutable migration source until parity is accepted.
 
 ### UC-008: Auto-discover a newly registered tool
 
@@ -484,7 +484,7 @@ The index contains no full narrative bodies. It records contract version, partit
 - **FR-047:** Final authorship must not load historical partitions by default; history is consulted only for an explicit lifecycle, change, or outcome question.
 - **FR-048:** Sealed historical partitions must be immutable and independently integrity-checkable.
 - **FR-049:** Indexes must be atomically updated with the publish set and reproducible from authoritative current/history records.
-- **FR-050:** Migration must account for all 26 legacy `brief-history.jsonl` rows by source hash, timestamp, window, and migration outcome.
+- **FR-050:** Migration must account for every legacy `brief-history.jsonl` row present in the frozen source file — a count derived at migration time, not fixed by this requirement — by source hash, timestamp, window, and migration outcome.
 - **FR-051:** Migration must preserve normalized read data that actually exists and mark unavailable any per-tool brief, recommendation, or final narrative that cannot be proven.
 - **FR-052:** Exact duplicate legacy content must be stored once and referenced from each original run occurrence.
 - **FR-053:** The legacy file must stop receiving new rows only after row-count, timestamp, and fingerprint parity passes; it remains an immutable migration source through acceptance.
@@ -751,10 +751,11 @@ Scenario: A research agent asks how one tool's recommendation changed this month
 ### BS-002-014: Legacy migration preserves evidence and gaps
 
 ```gherkin
-Scenario: The 26-row legacy history is migrated
+Scenario: The frozen legacy history is migrated at its derived row count
   Given each source row has a stable timestamp, window, and source-row fingerprint
+  And the migration freezes the source file and derives its row count from that frozen copy
   When migration and parity validation complete
-  Then all 26 rows are accounted for in run history
+  Then every row in the frozen source file is accounted for in run history
   And exact duplicate content is referenced rather than copied
   And unproven per-tool or final narratives are marked unavailable rather than reconstructed
 ```
@@ -1108,19 +1109,19 @@ Establish the shared domain and identity contracts before adding page-specific b
 ## Migration Contract For `brief-history.jsonl`
 
 1. Freeze the source file and record its byte length, row count, full-file fingerprint, and one fingerprint per row before transformation.
-2. Parse each of the 26 rows independently. A malformed row blocks migration rather than being skipped.
+2. Parse each frozen row independently. A malformed row blocks migration rather than being skipped.
 3. Map each row to a legacy BriefRun occurrence using its original timestamp and window.
 4. Preserve every normalized tool read actually present in the row with `migrationSource` and source-row fingerprint.
 5. Do not create historical ToolBriefs where no LLM-authored per-tool content exists.
 6. Associate a historical FinalBrief only when repository history proves the exact payload/run relationship; otherwise record `legacy-final-unavailable`.
-7. Collapse exact duplicate content into one content record while preserving all 26 run occurrences and their chronology.
+7. Collapse exact duplicate content into one content record while preserving every legacy run occurrence and its chronology.
 8. Write migrated records into canonical monthly partitions and build compact indexes.
-9. Prove parity for 26 source rows, timestamp/window coverage, row fingerprints, duplicate mappings, and every explicit unavailable field.
+9. Prove parity against the row count frozen in step 1, plus timestamp/window coverage, row fingerprints, duplicate mappings, and every explicit unavailable field.
 10. Keep the legacy file immutable and stop new legacy appends only after parity passes and the new current/partition/index set becomes authoritative.
 
 ## Cross-Feature Relationship To Spec 001
 
-`specs/001-causal-rotation-intelligence` is incomplete, is not currently a registered tool, and remains independently owned. Feature 002 has **no implementation dependency** on it, so `state.json.specDependsOn` is empty.
+`specs/001-causal-rotation-intelligence` remains independently owned. When this relationship was written it was incomplete and unregistered; it has since been recorded `done`, and `causal-rotation-lab` now appears in `tools.json`. Feature 002 still has **no implementation dependency** on it, so `state.json.specDependsOn` is empty, and the auto-discovery rules below govern its participation.
 
 The relationship is auto-discovery:
 
@@ -1133,9 +1134,9 @@ The relationship is auto-discovery:
 
 This is a sizable amendment to Feature 002, not a new standalone feature. The existing feature already owns registry-wide ToolModelRead normalization, per-tool briefing, final aggregation, history, provenance, and publication. MarketSessionEvidence is a shared evidence primitive inside that same read-to-brief contract, and its consumers are the already-declared live-market profiles and final aggregator.
 
-The amendment does not add Causal Rotation behavior, change Bond/FX or other owning-model formulas, or make those features prerequisites. It supplies source/time/session/report evidence that an eligible owner may use. Feature 002 remains `not_started`, so reconciling its active business truth before implementation is safer than splitting one coherent run contract across two specs.
+The amendment does not add Causal Rotation behavior, change Bond/FX or other owning-model formulas, or make those features prerequisites. It supplies source/time/session/report evidence that an eligible owner may use. Reconciling it into Feature 002's active business truth kept one coherent run contract in one place rather than splitting it across two specs.
 
-FR-092 through FR-132 and BS-002-019 through BS-002-030 are reconciled into the active `design.md` and the ten-scope plan rooted at `scopes/_index.md`. Those artifacts are the current design and planning authority. Feature 002 and all ten scopes remain `not_started`; implementation and certification have not begun.
+FR-092 through FR-132 and BS-002-019 through BS-002-030 are reconciled into the active `design.md` and the ten-scope plan rooted at `scopes/_index.md`. Those artifacts are the current design and planning authority. All ten scopes in `scopes/_index.md` are now recorded `Done` and the automated suite for this feature passes. Human acceptance has not been performed, and `state.json` currently carries `requiresRevalidation: true`, so no user-accepted claim follows from the recorded status.
 
 ## Assumptions And Open Questions
 
@@ -1178,7 +1179,7 @@ None of these questions changes the business invariants: no omission, no inventi
 - **AC-011 / BS-002-011:** Exhausted final retries expose no staged tool brief and leave the prior coherent set current.
 - **AC-012 / BS-002-012:** A push-only retry uses the same scoped commit and preserves unrelated dirty work.
 - **AC-013 / BS-002-013:** An agent answers one tool's monthly change question from the compact index and one per-tool partition without reading unrelated narratives.
-- **AC-014 / BS-002-014:** Migration accounts for all 26 source rows and marks unproven historical briefs unavailable.
+- **AC-014 / BS-002-014:** Migration accounts for every source row in the frozen legacy file — the count derived at migration time rather than fixed by this criterion — and marks unproven historical briefs unavailable.
 - **AC-015 / BS-002-015:** Recommendation invalidation appends an outcome while original recommendation content remains unchanged.
 - **AC-016 / BS-002-016:** Cost ceiling enforcement fails before publication rather than silently omitting a registered tool.
 - **AC-017 / BS-002-017:** Secret-bearing or instruction-shaped out-of-contract input is rejected before authorship and absent from all outputs and telemetry.
@@ -1224,8 +1225,8 @@ None of these questions changes the business invariants: no omission, no inventi
 - Released-report gaps were derived from `market-brief.config.json::macroEvents`, which stores schedule dates and narrative notes, and `rldata.js::putMacro`/`putEvents`, which do not currently establish a normalized actual/consensus/previous/revision/unit/release-reaction contract.
 - The four intended window priorities and existing low-noise/proxy/privacy rules were grounded in `.github/copilot-instructions.md` and `notes/market-brief.md` sections 1, 3, 5, 6, 6b, 6c, and 10.
 - Current final validation behavior was derived from `scripts/validate-brief-payload.mjs`.
-- Measured baseline on 2026-07-12: `brief-history.jsonl` = 26 rows / 194,012 bytes; `market-brief.payload.json` = 85,544 bytes; `market-brief.snapshot.json` = 37,140 bytes.
-- Spec 001 relationship was derived from its current `state.json`, which remains `not_started`, and from the absence of a Causal Rotation entry in the current 18-tool registry.
+- Measured baseline on 2026-07-12: `brief-history.jsonl` = 26 rows / 194,012 bytes; `market-brief.payload.json` = 85,544 bytes; `market-brief.snapshot.json` = 37,140 bytes. These are dated evidence snapshots of a corpus that grows with every scheduled run; active migration requirements derive the corpus size from the frozen source file and impose no permanent exact count.
+- Spec 001 relationship was derived on 2026-07-12 from its `state.json`, which was `not_started` at that time, and from the absence of a Causal Rotation entry in the then-current 18-tool registry. Both inputs have since changed: Spec 001 is recorded `done` and `causal-rotation-lab` is registered. The auto-discovery contract absorbs that change without a requirements amendment.
 - No external competitor capability claim is made in this specification; strategic analysis is limited to the observed repository alternatives.
 
 ## UI Wireframes

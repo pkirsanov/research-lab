@@ -120,6 +120,15 @@ A new tool that opens straight into a dense dashboard with no Simple cockpit is 
 - Project-owned rules remain in this file, `.github/bubbles-project.yaml`, and
   non-Bubbles prompts such as `.github/prompts/market-brief-update.prompt.md`.
   Framework refreshes must preserve those files.
+- Terminal work follows
+  [`terminal-discipline.instructions.md`](instructions/terminal-discipline.instructions.md),
+  which is project-owned and applies to every path: write files through the
+  editor tools rather than shell redirection, keep command output unfiltered
+  rather than piping it through `head`/`tail`, run the exact build-free Node
+  commands this repository declares rather than inventing a project CLI, and
+  treat each terminal call as a fresh shell that keeps no state from the last.
+  It carries no `bubbles-` prefix, so it is project-owned and a framework
+  refresh must preserve it.
 - Run Bubbles governance commands from the Research Lab repository root through
   `bash .github/bubbles/scripts/cli.sh ...`. Product verification remains
   build-free and uses the exact Node commands declared by this repository and

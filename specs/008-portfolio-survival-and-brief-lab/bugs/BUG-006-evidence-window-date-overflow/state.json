@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
   "featureName": "BUG-006 Evidence Window Date Overflow",
   "createdAt": "2026-08-25T19:27:30Z",
-  "lastUpdatedAt": "2026-08-26T04:20:11Z",
+  "lastUpdatedAt": "2026-08-26T04:49:39Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,18 +29,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.regression",
-    "currentPhase": "regression",
+    "activeAgent": "bubbles.simplify",
+    "currentPhase": "simplify",
     "currentPhaseStatus": "route_required",
-    "substate": "post_expansion_regression_complete",
+    "substate": "round_2_simplify_complete",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-26T04:20:11Z",
-    "completedAt": "2026-08-26T04:20:11Z",
+    "runStartedAt": "2026-08-26T04:49:39Z",
+    "completedAt": "2026-08-26T04:49:39Z",
     "currentScope": "01-bound-the-evidence-age-policy",
-    "nextRequiredOwner": "bubbles.simplify",
-    "nextRequiredTarget": "Scope 01 expanded product and regression-test surface",
-    "nextRequiredReason": "Review the expanded shared-validator delegation and repaired mutation-anchor surface for safe simplification while preserving the verified BUG-004, BUG-005, and BUG-006 behavior contracts.",
+    "nextRequiredOwner": "bubbles.gaps",
+    "nextRequiredTarget": "Scope 01 round-2 expanded-consumer gap review",
+    "nextRequiredReason": "The round-2 three-pass simplify review found the expanded shared-validator delegation, 100-year boundary coverage, TimeClip controls, and repaired mutation anchor already minimal and coherent. The persisted bugfix-fastlane registry places gaps immediately after simplify.",
     "completedPhaseClaims": [
       "plan",
       "implement",
@@ -204,11 +204,19 @@
     },
     {
       "id": "BUG-006-ROUTE-016",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.regression",
       "nextRequiredOwner": "bubbles.simplify",
       "target": "rlportfolio.js, rlportfoliobrief.js, tests/portfolio-foundation.unit.mjs, tests/portfolio-brief.functional.mjs, tests/portfolio-behavior-occurrence.unit.mjs",
       "reason": "The post-expansion regression re-evaluation is clean across the 104-test focused closure, both regression-quality modes, both load-bearing mutation controls, and the positive test/assertion-count delta. Review the expanded source and test surface for simplification without changing behavior or planner-owned, human-owned, or certification artifacts."
+    },
+    {
+      "id": "BUG-006-ROUTE-017",
+      "status": "pending",
+      "fromAgent": "bubbles.simplify",
+      "nextRequiredOwner": "bubbles.gaps",
+      "target": "Scope 01 round-2 expanded-consumer gap review",
+      "reason": "The round-2 simplify review found no safe product or test reduction: the shared validator remains the sole ceiling owner, composeBrief preserves the specified refusal order and Date expression, the boundary and TimeClip cases remain independently discriminating, and the repaired mutation anchor remains unique and load-bearing. Run the required gaps phase next under the persisted bugfix-fastlane phase order."
     }
   ],
   "reworkQueue": [],
@@ -403,6 +411,17 @@
       "provenanceMode": "specialist",
       "statusBefore": "in_progress",
       "runStartedAt": "2026-08-26T04:20:11Z"
+    },
+    {
+      "at": "2026-08-26T04:49:39Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "action": "round-2-expanded-surface-reviewed-no-change-and-routed",
+      "note": "Ran as the BUG-006 round-2 simplify owner after binding Research Lab through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:220. Reviewed only rlportfolio.js, rlportfoliobrief.js, tests/portfolio-foundation.unit.mjs, tests/portfolio-brief.functional.mjs, and tests/portfolio-behavior-occurrence.unit.mjs across reuse, quality, and efficiency. Found the shared validator, two-line composeBrief delegation, independent 36525/36526 and TimeClip controls, and derive-specific mutation anchor already minimal and coherent, so changed no product source or test. The three authorized carriers passed 98 of 98 with full-output sha256 3938f58a8e0ac3b9256147e8a837d0f8c5a60fbf57db1a0d18f6d2c5acee5d27; the exact composeBrief and BUG-004 mutation-anchor titles each passed 1 of 1. The grandfathered registry resolved simplify immediately before gaps. Completed inbound route BUG-006-ROUTE-016 and routed BUG-006-ROUTE-017 to bubbles.gaps. Kept the simplify completedPhaseClaims token singular and left packet, scope, Definition of Done, certification, human acceptance, commit, merge, and push unchanged.",
+      "phasesExecuted": ["simplify"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T04:49:39Z"
     }
   ],
   "addressedFindings": [

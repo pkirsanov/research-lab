@@ -2271,3 +2271,183 @@ artifact-lint capture covers 41 output lines with full-output sha256
 `2d2cf867d5ea68c59ce72e370616eb2a64347cc636bb0f08426a4a30efc2eddf`.
 The implementation-reality capture covers 37 output lines with full-output
 sha256 `9c851eac65b680e03ccb69610f27684130dfe888accc351cd353f78b39000399`.
+
+## Simplify Phase Round 2 - 2026-08-26 {#simplify-phase-round-2}
+
+**Phase:** simplify
+**Agent:** `bubbles.simplify`
+**Execution model:** `direct-authorized-runner`
+**Parent agent:** none
+**Claim Source:** interpreted
+**Interpretation:** `MINIMAL_NO_CHANGE` for the expanded Scope 01 source and
+test boundary. The review covered only `rlportfolio.js`,
+`rlportfoliobrief.js`, `tests/portfolio-foundation.unit.mjs`,
+`tests/portfolio-brief.functional.mjs`, and
+`tests/portfolio-behavior-occurrence.unit.mjs`. No product or test edit was
+made. The packet and scope remain `in_progress`; Definition of Done, human
+acceptance, and certification remain unchanged.
+
+### Three-Pass Review
+
+| Pass | Finding | Verdict |
+| --- | --- | --- |
+| Reuse | `rlportfolio.js::validatePolicy()` remains the sole owner of the `100 * 365 + 25` ceiling. `composeBrief()` delegates once and does not duplicate the ceiling or rebuild its refusal. The focused tests derive the boundary independently so production and test cannot share the same mistaken constant. | No missing abstraction or useful deduplication was found. |
+| Quality | The two-line `composeBrief()` delegation follows every existing local prerequisite and immediately precedes the first `maximumEvidenceAgeDays` read. It returns the frozen shared failure unchanged. The foundation and brief carriers separately prove the shipped `56`, `36525`, `36526`, non-finite, forward-TimeClip, backward-TimeClip, no-clamp, no-throw, and local-precedence contracts. The BUG-004 mutation anchor combines the shared pair with its uniquely following loop opener, removes only that pair in memory, and re-emits the loop. | The expanded code and tests are direct, discriminating, and maintainable as written. |
+| Efficiency | The round-2 cost is one call to the existing closed-policy validator before the unchanged Date calculation. That validator already owns its required object and key checks; a cheaper local comparison would duplicate only one invariant and bypass the rest. The new consumer code adds no separate loop, I/O, serialization, or Date calculation. | No runtime or test-harness optimization is justified. |
+
+### Rejected Simplification Candidates
+
+| Candidate | Why it was rejected |
+| --- | --- |
+| Remove the post-validation `isFinite(maxAgeDays)` branch in `composeBrief()`. | The design and scope explicitly preserve both policy-derived Date expressions. Removing the branch would change a pre-existing consumer expression and broaden this cleanup beyond the delivered two-line delegation without reducing current valid-policy work. |
+| Move shared policy validation ahead of the established local prerequisite sequence or evidence normalization. | The design fixes the insertion point to preserve local input, window, timestamp, and cutoff refusal precedence. Moving the call would reopen an already-tested ordering contract. |
+| Share the century boundary or refusal fixtures across production and both test carriers. | Independent derivation is the negative control for the product maximum. Coupling tests to a production export or one shared mutable fixture would make a common defect self-confirming. |
+| Shorten the repaired mutation anchor to the two-line validator pair alone. | Two identical pairs now exist. The loop opener is the discriminator that removes only the `deriveInterestSignals()` check and proves the loop survives while `composeBrief()` keeps its own delegation. |
+| Extract one-use helpers around either validator call. | A helper would add indirection without removing duplicated policy logic; the current two-line call sites make owner, order, and returned envelope visible. |
+
+### Focused Three-Carrier Confirmation
+
+**Command:** `timeout 420 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 round-2 simplify three-carrier confirmation" -- timeout 360 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 round-2 simplify three-carrier confirmation
+$ timeout 360 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs
+exit: 0
+lines: 598
+sha256: 3938f58a8e0ac3b9256147e8a837d0f8c5a60fbf57db1a0d18f6d2c5acee5d27
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+	---
+	duration_ms: 152.909741
+	type: 'test'
+	...
+# Subtest: BUG-004: an exact occurrence repeat is still refused as a duplicate
+ok 2 - BUG-004: an exact occurrence repeat is still refused as a duplicate
+	---
+	duration_ms: 62.295549
+	type: 'test'
+	...
+# Subtest: BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn
+ok 3 - BUG-004: a repeated same-day occurrence cannot buy relevance it did not earn
+	---
+	duration_ms: 156.064523
+	type: 'test'
+	...
+# Subtest: BUG-004: stored occurrence growth is bounded by the declared behaviour-event cap
+--- omitted 558 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 97 - SCN-008-042 immutable PortfolioDraft lifecycle preserves stable holdings and commits an honest empty revision
+	---
+	duration_ms: 108.58469
+	type: 'test'
+	...
+# Subtest: SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence
+ok 98 - SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence
+	---
+	duration_ms: 73.289288
+	type: 'test'
+	...
+1..98
+# tests 98
+# suites 0
+# pass 98
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 3573.330521
+```
+
+### Exact Expanded-Consumer And Mutation-Anchor Probes
+
+**Command:** `timeout 240 node --test --test-name-pattern='^BUG-006: composeBrief validates shared evidence-age policy before Date formatting$' tests/portfolio-brief.functional.mjs && timeout 240 node --test --test-name-pattern='^BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing$' tests/portfolio-behavior-occurrence.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✔ BUG-006: composeBrief validates shared evidence-age policy before Date formatting (33.865906ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 212.659279
+✔ BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing (59.136061ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 207.31251
+```
+
+### Workflow Routing
+
+**Command:** `timeout 180 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 round-2 simplify workflow routing" -- env BUBBLES_MODE_GRANDFATHER=1 timeout 120 bash .github/bubbles/scripts/mode-resolver.sh bugfix-fastlane`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 round-2 simplify workflow routing
+$ env BUBBLES_MODE_GRANDFATHER=1 timeout 120 bash .github/bubbles/scripts/mode-resolver.sh bugfix-fastlane
+exit: 0
+lines: 46
+sha256: 986156f2dbb912fa87df07d087705abebbe2af8d9db0959aa61484fc7b443022
+--- first 20 ---
+DEPRECATION (v7 grandfather): resolving removed v5 mode 'bugfix-fastlane' (v6 form: 'fix action:fastlane target:bug'). New work must use the v6 form.
+statusCeiling: done
+requiredGates: [G001, G002, G003, G004, G005, G006, G007, G008, G009, G010, G011, G012, G014, G015, G016, G018, G019, G020, G021, G022, G023, G024, G025, G026, G027, G028, G029, G033, G034, G035, G040, G044, G047, G048, G051, G055, G056, G057, G059, G060, G061, G094]
+constraints:
+	specReviewDefault: once-before-implement
+	specReviewDefaultScope: done-ceiling-delivery-modes
+	specReviewOptOutRequiresReason: true
+	requireCanonicalPlanningChain: true
+	planningChainAgents: [bubbles.analyst, bubbles.ux, bubbles.design, bubbles.plan]
+	sequentialSpecCompletion: true
+	crossAgentVerification: true
+	antiFabricationDetection: true
+	requireAllSpecialistsComplete: true
+	requireAllScopesDoneBeforeSpecDone: true
+	requirePerDodItemRawEvidence: true
+	requireTestsForAllRealScenarios: true
+	require100PercentBusinessLogicCoverage: true
+	requirePhaseScopeCoherence: true
+	requireImplementationRealityScan: true
+	requireNoDefaultsNoFallbacks: true
+--- omitted 6 line(s); sha256 above covers the full output ---
+--- last 20 ---
+	requireQualityLoopUntilCertifiedDone: true
+	restartLoopAtPhase: implement
+	blockedOnlyWhenValidateBlocked: true
+	requireNoSkippedTests: true
+	requireNoPreexistingFailingTests: true
+	requireNoInternalMocksExceptExternalDeps: true
+	requireGherkinE2eCoverage: true
+	requireAllDiscoveredBugsClosedInRun: true
+	requirePhaseEvidenceBeforeAdvance: true
+	blockOnMissingSpecialistExecution: true
+description: Focused bug loop with mandatory reproduction and verification. Loops until validate certifies the fix or returns a documented blocked verdict.
+transitionAudit:
+	profile: delivery-completion-v1
+	target: statusCeiling
+phaseOrder: [select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize]
+sessionBudget:
+	maxWallClockMinutes: 180
+	maxToolCalls: 350
+	maxSingleToolResultBytes: 50000
+	maxCumulativeToolResultBytes: 250000
+```
+
+The persisted registry places `gaps` immediately after `simplify`. Inbound
+route `BUG-006-ROUTE-016` is complete, and the next required owner is
+`bubbles.gaps` for the round-2 expanded-consumer gap review. This route does
+not promote the packet, scope, Definition of Done, human acceptance, or
+certification.

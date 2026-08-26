@@ -12,7 +12,7 @@ invariants:
   kind: cardinality
   enforcedBy: [ check ]
   provedBy:
-  - "tests/distributed-briefs.contract.mjs::SCN-002-003 added-source mutation derives 24 participants and 23 sources generically"
+  - "tests/distributed-briefs.contract.mjs::SCN-002-003 added-source mutation derives exactly one more participant and one more source generically"
 - id: INV-RL-UNAVAILABLE-READS-NOT-ACTIONABLE
   rule: "A ToolRead that is unavailable, non-live, or not applicable cannot become eligible for a market recommendation"
   kind: disjointness

@@ -371,3 +371,67 @@ test("Adversarial: SCN-008-054 every audited Feature 008 defect class remains lo
 
   assert.deepEqual(failures, [], `audited defect classes that are NOT load-bearing:\n  ${failures.join("\n  ")}\n\nper-case:\n  ${evidence.join("\n  ")}`);
 });
+
+const BUG_007_MUTATIONS = [
+  {
+    id: "BUG-007-NULL-PROTOTYPE-MAP",
+    defect: "the completion-category index regains Object.prototype inheritance",
+    module: "rlportfoliobrief.js",
+    find: "    var categoriesBySubject = Object.create(null);",
+    replace: "    var categoriesBySubject = {};",
+    carrier: "tests/portfolio-brief.functional.mjs",
+    title: "BUG-007: prototype-sensitive completion subjects are safe own keys"
+  },
+  {
+    id: "BUG-007-OWN-OWNER-LOOKUP",
+    defect: "an inherited owner entry is accepted as though the caller supplied it",
+    module: "rlportfoliobrief.js",
+    find: "Object.prototype.hasOwnProperty.call(owners, subjectId)",
+    replace: "true",
+    carrier: "tests/portfolio-brief.functional.mjs",
+    title: "BUG-007: own lookup semantics and RED cleanup preserve shared built-ins"
+  },
+  {
+    id: "BUG-007-NORMAL-LANE-ORDER",
+    defect: "watchlist is ranked ahead of held instead of preserving direct-authority order",
+    module: "rlportfoliobrief.js",
+    find: "  var LANE_ORDER = [\"held\", \"watchlist\", \"completedResearch\", \"inferredRelevance\"];",
+    replace: "  var LANE_ORDER = [\"watchlist\", \"held\", \"completedResearch\", \"inferredRelevance\"];",
+    carrier: "tests/portfolio-brief.functional.mjs",
+    title: "BUG-007: normal brief order and refusal precedence remain unchanged"
+  }
+];
+
+test("BUG-007: caller-key protections and normal ordering are load-bearing in memory", (t) => {
+  const workspace = mkdtempSync(join(tmpdir(), "rl-bug007-integrity-"));
+  t.after(() => rmSync(workspace, { recursive: true, force: true }));
+
+  const trackedPaths = [
+    "rlportfoliobrief.js",
+    "tests/portfolio-brief.functional.mjs",
+    "tests/portfolio-defect-injector.cjs",
+    "tests/portfolio-test-integrity.unit.mjs"
+  ];
+  const before = Object.fromEntries(trackedPaths.map((path) => [path, sha256(path)]));
+  const failures = [];
+
+  for (const entry of BUG_007_MUTATIONS) {
+    const marker = join(workspace, `${entry.id}.marker`);
+    writeFileSync(marker, "");
+    const shipped = runProtectiveTitle({ carrier: entry.carrier, title: entry.title, defect: null, marker });
+    const mutant = runProtectiveTitle({ carrier: entry.carrier, title: entry.title, defect: entry, marker });
+    const applications = readFileSync(marker, "utf8").trim().split("\n").filter(Boolean);
+
+    const problems = [];
+    if (shipped.tests !== 1) problems.push(`protective title resolved to ${shipped.tests} test(s), expected exactly 1`);
+    if (shipped.exitCode !== 0 || shipped.fail !== 0) problems.push(`shipped protection is not green (exit ${shipped.exitCode}, fail ${shipped.fail})`);
+    if (applications.length !== 1) problems.push(`in-memory substitution applied ${applications.length} time(s), expected exactly 1`);
+    if (mutant.tests !== 1) problems.push(`mutant title resolved to ${mutant.tests} test(s), expected exactly 1`);
+    if (mutant.exitCode === 0 || !(mutant.fail >= 1)) problems.push(`persistent test stayed green after removing protection (exit ${mutant.exitCode}, fail ${mutant.fail})`);
+    if (problems.length) failures.push(`${entry.id}: ${entry.defect}: ${problems.join("; ")}`);
+  }
+
+  const after = Object.fromEntries(trackedPaths.map((path) => [path, sha256(path)]));
+  assert.deepEqual(after, before, "in-memory BUG-007 mutations must not write product source or persistent tests");
+  assert.deepEqual(failures, [], `BUG-007 protections that are not load-bearing:\n  ${failures.join("\n  ")}`);
+});

@@ -24,6 +24,7 @@ test.afterAll(async () => {
 });
 const BRIEF_CONFIG = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.config.json'), 'utf8'));
 const BRIEF_SNAPSHOT = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.snapshot.json'), 'utf8'));
+const PORTFOLIO_POLICY = JSON.parse(readFileSync(resolve(ROOT, 'portfolio-survival-allocation.config.json'), 'utf8'));
 const WINDOWS = BRIEF_CONFIG.windows;
 const WINDOW_IDS = WINDOWS.map((entry) => entry.id);
 const NON_SNAPSHOT_WINDOW_ID = WINDOW_IDS.find((id) => id !== BRIEF_SNAPSHOT.window);
@@ -302,6 +303,142 @@ async function recordCompletion(page, { category, subject, source = 'completed-r
   await expect(page.locator('#confirmCompletion')).toBeEnabled();
   await page.locator('#confirmCompletion').click();
 }
+
+test('BUG-007: browser composer treats hostile keys as data and visible constructor remains operable', async ({ page }) => {
+  const pageErrors = [];
+  page.on('pageerror', (error) => pageErrors.push(`${error.name}: ${error.message}`));
+  await openBrief(page);
+  await importValid(page, 'BUG-007 constructor completion');
+
+  const browserMatrix = await page.evaluate(({ policy, windows }) => {
+    const hostileKeys = ['__proto__', 'constructor', 'toString'];
+    const day = '2026-07-15';
+    const descriptors = (target) => new Map(Reflect.ownKeys(target)
+      .map((key) => [key, Object.getOwnPropertyDescriptor(target, key)]));
+    const equalDescriptor = (left, right) => Boolean(left) === Boolean(right) && (!left || (
+      left.configurable === right.configurable && left.enumerable === right.enumerable &&
+      left.writable === right.writable && Object.is(left.value, right.value) &&
+      left.get === right.get && left.set === right.set
+    ));
+    const takeSnapshot = () => [
+      { name: 'Object.prototype', target: Object.prototype },
+      { name: 'Object', target: Object },
+      { name: 'Object.prototype.toString', target: Object.prototype.toString }
+    ].map((entry) => ({ ...entry, baseline: descriptors(entry.target) }));
+    const diff = (snapshot) => snapshot.flatMap((entry) => {
+      const current = descriptors(entry.target);
+      const keys = new Set([...entry.baseline.keys(), ...current.keys()]);
+      return [...keys]
+        .filter((key) => !equalDescriptor(entry.baseline.get(key), current.get(key)))
+        .map((key) => `${entry.name}.${String(key)}`);
+    });
+    const restore = (snapshot) => snapshot.forEach((entry) => {
+      const baselineKeys = new Set(entry.baseline.keys());
+      Reflect.ownKeys(entry.target).forEach((key) => {
+        if (!baselineKeys.has(key)) Reflect.deleteProperty(entry.target, key);
+      });
+      entry.baseline.forEach((descriptor, key) => Object.defineProperty(entry.target, key, descriptor));
+    });
+    const evidence = (id, subjectId, subjectKind) => ({
+      id, subjectId, subjectKind, observedAt: `${day}T13:00:00.000Z`, materiality: 0.8
+    });
+    const base = {
+      windows,
+      windowId: 'morning',
+      publishedAt: `${day}T15:05:00.000Z`,
+      composedAt: `${day}T15:40:00.000Z`,
+      holdings: [{ symbol: 'MSFT' }],
+      watchlist: ['BND'],
+      completions: [
+        { subjectId: 'ZZTOP', subjectKind: 'ticker', domain: 'semiconductors', category: 'ticker-research-completed', horizon: 'medium-term', completedAt: `${day}T12:00:00.000Z` },
+        { subjectId: 'QQQX', subjectKind: 'ticker', domain: 'semiconductors', category: 'risk-analysis-completed', horizon: 'medium-term', completedAt: '2026-07-14T12:00:00.000Z' }
+      ],
+      evidence: [
+        evidence('e-msft', 'MSFT', 'ticker'), evidence('e-bnd', 'BND', 'ticker'),
+        evidence('e-zztop', 'ZZTOP', 'ticker'), evidence('e-semi', 'semiconductors', 'domain')
+      ],
+      policy
+    };
+    const normal = window.RLPORTFOLIOBRIEF.composeBrief(base);
+    const cases = ['subjectId', 'domain'].flatMap((axis) => hostileKeys.map((key, index) => {
+      const hostileEvidenceId = `e-browser-b007-${axis}-${index}`;
+      const completions = axis === 'subjectId'
+        ? [
+            { subjectId: key, subjectKind: 'ticker', domain: 'ordinary-domain', category: 'ticker-research-completed', horizon: 'medium-term', completedAt: `${day}T12:00:00.000Z` },
+            { subjectId: 'ordinary-peer', subjectKind: 'ticker', domain: 'ordinary-domain', category: 'risk-analysis-completed', horizon: 'medium-term', completedAt: '2026-07-14T12:00:00.000Z' }
+          ]
+        : [
+            { subjectId: 'domain-alpha', subjectKind: 'ticker', domain: key, category: 'ticker-research-completed', horizon: 'medium-term', completedAt: `${day}T12:00:00.000Z` },
+            { subjectId: 'domain-beta', subjectKind: 'ticker', domain: key, category: 'risk-analysis-completed', horizon: 'medium-term', completedAt: '2026-07-14T12:00:00.000Z' }
+          ];
+      const snapshot = takeSnapshot();
+      let result = null;
+      let thrown = null;
+      let mutationBeforeCleanup = [];
+      let mutationAfterCleanup = [];
+      try {
+        try {
+          result = window.RLPORTFOLIOBRIEF.composeBrief({
+            ...base,
+            holdings: [],
+            watchlist: [],
+            completions,
+            evidence: [evidence(hostileEvidenceId, key, axis === 'subjectId' ? 'ticker' : 'domain')]
+          });
+        } catch (error) {
+          thrown = { name: error.name, message: error.message };
+        }
+        mutationBeforeCleanup = diff(snapshot);
+      } finally {
+        restore(snapshot);
+        mutationAfterCleanup = diff(snapshot);
+      }
+      const lane = axis === 'subjectId' ? 'completedResearch' : 'inferredRelevance';
+      const row = result?.ok ? result.value.lanes[lane].find((item) => item.subjectId === key) : null;
+      return {
+        axis, key, mutationAfterCleanup, mutationBeforeCleanup, resultOk: result?.ok === true,
+        rowEvidenceIds: row?.evidenceIds || null,
+        supportCount: row?.explanation?.whyShown || null,
+        thrown
+      };
+    }));
+    return {
+      cases,
+      normalLaneOrder: window.RLPORTFOLIOBRIEF.laneOrder,
+      normalOk: normal.ok,
+      normalSubjectOrder: normal.ok
+        ? window.RLPORTFOLIOBRIEF.laneOrder.flatMap((lane) => normal.value.lanes[lane].map((item) => item.subjectId))
+        : []
+    };
+  }, { policy: PORTFOLIO_POLICY, windows: WINDOWS });
+
+  expect(browserMatrix.normalOk).toBe(true);
+  expect(browserMatrix.normalLaneOrder).toEqual(['held', 'watchlist', 'completedResearch', 'inferredRelevance']);
+  expect(browserMatrix.normalSubjectOrder).toEqual(['MSFT', 'BND', 'ZZTOP', 'semiconductors']);
+  expect(browserMatrix.cases).toHaveLength(6);
+  expect(browserMatrix.cases.map((entry) => entry.mutationAfterCleanup)).toEqual(browserMatrix.cases.map(() => []));
+  expect(browserMatrix.cases.map((entry) => entry.mutationBeforeCleanup)).toEqual(browserMatrix.cases.map(() => []));
+  expect(browserMatrix.cases.map((entry) => entry.thrown)).toEqual(browserMatrix.cases.map(() => null));
+  expect(browserMatrix.cases.every((entry) => entry.resultOk && entry.rowEvidenceIds?.length === 1)).toBe(true);
+  for (const entry of browserMatrix.cases.filter((row) => row.axis === 'domain')) {
+    expect(entry.supportCount).toContain('2 explicitly completed research action');
+  }
+
+  await seedBars(page, 'constructor', [EVIDENCE_DAY]);
+  await selectWindow(page, BRIEF_SNAPSHOT.window);
+  await recordCompletion(page, { category: 'ticker-research-completed', subject: 'constructor' });
+  await rerender(page);
+
+  const visibleConstructor = page.locator(
+    '#briefLanes li[data-subject="constructor"], #briefNoAction li[data-no-action-subject="constructor"]'
+  );
+  await expect(visibleConstructor, 'the accepted constructor completion must remain visible or named as no-action')
+    .toHaveCount(1);
+  await expect(visibleConstructor).toBeVisible();
+  await expect(page.locator('#briefWindow')).toBeEnabled();
+  expect(pageErrors, 'the exported matrix and production completion flow must emit no uncaught page error')
+    .toEqual([]);
+});
 
 test('Regression: SCN-008-007 TP-05-07 a completed-research subject renders in its own lane with its qualification source', async ({ page }) => {
   await openBrief(page);

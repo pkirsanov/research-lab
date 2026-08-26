@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
   "featureName": "BUG-007 Compose Brief Prototype-Sensitive Keys",
   "createdAt": "2026-08-26T16:08:41Z",
-  "lastUpdatedAt": "2026-08-26T16:44:42Z",
+  "lastUpdatedAt": "2026-08-26T17:01:42Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,20 +29,20 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
     "currentPhaseStatus": "route_required",
-    "substate": "plan_reconciled",
+    "substate": "needs_reverification",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-26T16:41:19Z",
-    "completedAt": "2026-08-26T16:44:42Z",
+    "runStartedAt": "2026-08-26T17:01:42Z",
+    "completedAt": "2026-08-26T17:01:42Z",
     "currentScope": "01-harden-caller-keyed-brief-aggregation",
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "tests/portfolio-brief.functional.mjs, tests/portfolio-survival-brief.spec.mjs, tests/portfolio-test-integrity.unit.mjs",
-    "nextRequiredReason": "Author the persistent functional, browser, and in-memory mutation carriers first, then execute the six direct exported hostile composeBrief cases RED against unchanged rlportfoliobrief.js with cleanup proven before routing source implementation.",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "rlportfoliobrief.js",
+    "nextRequiredReason": "The three persistent carriers are authored and the exact focused command is discriminating against unchanged source: 30 compatibility and prior tests pass, while exactly four hostile-key titles fail on shared built-in mutation with cleanup proven. Implement the bounded null-prototype and own-membership repair before GREEN, browser, mutation, broader-regression, selftest, and validation work.",
     "completedPhaseClaims": ["design", "plan"],
-    "pendingTransitionRequests": ["BUG-007-ROUTE-003"],
+    "pendingTransitionRequests": ["BUG-007-ROUTE-004"],
     "scopeInventory": [
       {
         "scopeId": "01-harden-caller-keyed-brief-aggregation",
@@ -97,11 +97,19 @@
     },
     {
       "id": "BUG-007-ROUTE-003",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.plan",
       "nextRequiredOwner": "bubbles.test",
       "target": "tests/portfolio-brief.functional.mjs, tests/portfolio-survival-brief.spec.mjs, tests/portfolio-test-integrity.unit.mjs",
       "reason": "The authoritative one-scope plan now requires scenario-first RED for all six direct exported hostile subject/domain cases, normal order controls, no throw, no shared built-in mutation, unconditional cleanup, the real browser-visible constructor workflow, and an exact one-anchor in-memory mutation proof without tracked-source mutation. Author and execute those persistent tests before any rlportfoliobrief.js change."
+    },
+    {
+      "id": "BUG-007-ROUTE-004",
+      "status": "pending",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "rlportfoliobrief.js",
+      "reason": "Persistent functional, browser, and test-integrity carriers now exist. The exact focused RED executed all 34 functional tests: 30 passed, exactly four new hostile-key titles failed, and zero were skipped. Each hostile key mutated its inherited built-in target before the expected TypeError path, while finally cleanup completed. Apply only the planned null-prototype allocations and own-property reads, then return to bubbles.test for GREEN and broader verification."
     }
   ],
   "reworkQueue": [],
@@ -145,6 +153,17 @@
       "provenanceMode": "specialist",
       "statusBefore": "in_progress",
       "runStartedAt": "2026-08-26T16:41:19Z"
+    },
+    {
+      "at": "2026-08-26T17:01:42Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "persistent-carriers-authored-focused-red-discriminated-and-routed",
+      "note": "Confirmed Research Lab authority at control revision 233. Authored the planned persistent functional, real-browser, and in-memory mutation carriers. Executed the exact focused command twice against unchanged rlportfoliobrief.js, once directly and once through evidence-capture: 34 tests, 30 pass, exactly four new hostile-key failures, zero skipped/todo. The normal/refusal control and all prior tests passed. All six hostile subject/domain cases exposed the inherited built-in date-property mutation, and post-finally cleanup assertions passed before the RED mutation assertion. Scenario test resolution and regression-quality --bugfix passed for all three carriers. git diff confirmed rlportfoliobrief.js and tests/portfolio-defect-injector.cjs unchanged. Browser, mutation, broader regression, selftest, implementation reality, human acceptance, certification, and push were not run or changed. Routed the bounded source repair to bubbles.implement.",
+      "phasesExecuted": [],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T17:01:42Z"
     }
   ],
   "addressedFindings": [
@@ -168,15 +187,22 @@
       "owner": "bubbles.plan",
       "status": "addressed",
       "evidenceRef": "scopes.md"
+    },
+    {
+      "id": "SEC-B006-S1-PERSISTENT-RED",
+      "summary": "The three planned persistent carriers are authored. The exact focused command executes all six hostile cases and discriminates unchanged source while normal and prior controls pass, cleanup succeeds, and regression-quality checks accept every carrier.",
+      "owner": "bubbles.test",
+      "status": "addressed",
+      "evidenceRef": "report.md#tp-b007-000"
     }
   ],
   "unresolvedFindings": [
     {
-      "id": "SEC-B006-S1-PERSISTENT-RED",
-      "summary": "The three persistent test carriers remain unchanged and the required scenario-first RED has not been executed. Test ownership must author the six-case direct-export matrix, visible constructor workflow, and in-memory mutation adequacy before source implementation.",
-      "owner": "bubbles.test",
+      "id": "SEC-B006-S1-IMPLEMENTATION",
+      "summary": "Unchanged rlportfoliobrief.js still uses inherited caller-keyed aggregation and fails the persistent hostile-key matrix. Implement the bounded null-prototype allocations and own-property reads, then return to test ownership for GREEN and full verification.",
+      "owner": "bubbles.implement",
       "status": "route_required",
-      "evidenceRef": "test-plan.json"
+      "evidenceRef": "report.md#tp-b007-000"
     }
   ]
 }

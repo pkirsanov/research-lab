@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
   "featureName": "BUG-007 Compose Brief Prototype-Sensitive Keys",
   "createdAt": "2026-08-26T16:08:41Z",
-  "lastUpdatedAt": "2026-08-26T17:46:51Z",
+  "lastUpdatedAt": "2026-08-26T18:01:47Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,20 +29,20 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.test",
-    "currentPhase": "test",
+    "activeAgent": "bubbles.regression",
+    "currentPhase": "regression",
     "currentPhaseStatus": "route_required",
     "substate": "independently_verified",
     "executionModel": "direct-authorized-runner",
     "parentAgent": "bubbles.bug",
-    "runStartedAt": "2026-08-26T17:33:52Z",
-    "completedAt": "2026-08-26T17:46:51Z",
+    "runStartedAt": "2026-08-26T17:52:24Z",
+    "completedAt": "2026-08-26T18:01:47Z",
     "currentScope": "01-harden-caller-keyed-brief-aggregation",
-    "nextRequiredOwner": "bubbles.regression",
-    "nextRequiredTarget": "BUG-007 post-implementation source, three persistent carriers, and current test receipts",
-    "nextRequiredReason": "Current test ownership passed the focused functional carrier 34 of 34, in-memory mutation carrier 2 of 2, scenario browser carrier 19 of 19, exact eight-file Feature 008 browser matrix 95 of 95, canonical selftest 3426 of 3426, all six packet guards, implementation reality, scenario resolution, and bugfix regression quality. Regression owns the next independent post-test sweep; acceptance, TP-B007-011, certification, and terminal status remain open.",
-    "completedPhaseClaims": ["design", "plan", "implement", "test"],
-    "pendingTransitionRequests": ["BUG-007-ROUTE-006"],
+    "nextRequiredOwner": "bubbles.simplify",
+    "nextRequiredTarget": "BUG-007 bounded source and persistent carrier complexity review",
+    "nextRequiredReason": "Independent regression passed the focused functional carrier 34 of 34, in-memory mutation carrier 2 of 2, and real browser carrier 19 of 19; bugfix regression quality found zero violations or warnings, all 9 scenario links resolve, source/test bytes are unchanged, and the test-owned 16-identity scoped receipt closure is current. The global strict receipt checker remains truthfully red on 22 stale and 42 unknown unrelated historical identities. Simplify is the next registered bugfix-fastlane owner; acceptance, DoD, TP-B007-011, validation, certification, and terminal status remain open.",
+    "completedPhaseClaims": ["design", "plan", "implement", "test", "regression"],
+    "pendingTransitionRequests": ["BUG-007-ROUTE-007"],
     "scopeInventory": [
       {
         "scopeId": "01-harden-caller-keyed-brief-aggregation",
@@ -121,11 +121,19 @@
     },
     {
       "id": "BUG-007-ROUTE-006",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.test",
       "nextRequiredOwner": "bubbles.regression",
       "target": "BUG-007 post-implementation source, three persistent carriers, and current test receipts",
       "reason": "TP-B007-001 through TP-B007-010 pass in the current test session with 16 valid closure-bearing identities, zero stale or unknown BUG-007 identities, zero carrier skips or interception, and clean source/test integrity. Run the required independent regression phase before simplify and later quality ownership."
+    },
+    {
+      "id": "BUG-007-ROUTE-007",
+      "status": "pending",
+      "fromAgent": "bubbles.regression",
+      "nextRequiredOwner": "bubbles.simplify",
+      "target": "rlportfoliobrief.js and the three persistent BUG-007 carriers",
+      "reason": "The independent regression phase is clean across the exact 200-line implementation diff, 34-test functional carrier, 2-test in-memory mutation carrier, 19-test real-browser carrier, all 9 scenario links, shared Feature 008 composer contracts, and unchanged source/test bytes. Review the bounded source and carrier surface for simplification without changing behavior or planner-owned, human-owned, validation-owned, or certification artifacts."
     }
   ],
   "reworkQueue": [],
@@ -191,6 +199,17 @@
       "provenanceMode": "specialist",
       "statusBefore": "in_progress",
       "runStartedAt": "2026-08-26T17:33:52Z"
+    },
+    {
+      "at": "2026-08-26T18:01:47Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "independent-regression-clean-and-routed-to-simplify",
+      "note": "Confirmed Research Lab authority at control revision 240 and preserved the separate 49-path dirty parent Feature 008 scopes, reports, and root test-plan transaction at binary-patch sha256 37e28a7dd65839134fba81f550a1cfbf2a4ad4b9b184f5387fbac07469b0db9c. Reviewed the complete d49a2955b rlportfoliobrief.js diff and adjacent parent plus BUG-004, BUG-005, and BUG-006 contracts. Independently executed the focused functional carrier at 34 of 34, the in-memory mutation carrier at 2 of 2, and the real browser carrier at 19 of 19. Bugfix regression quality accepted all 3 carriers with zero violations or warnings, all 9 scenario links resolved, and pre/post sha256 plus Git diff checks proved source, all 3 carriers, and the shared injector unchanged. Canonical supersession reduced the test owner's 23 appends to 16 current identities; all 16 are closure-bearing, current-hash valid, exit-zero, single-owner/single-spec, and cover all 10 required row tags. The canonical global strict checker remains exit 1 with 147 total, 82 current, 18 valid, 22 stale, and 42 unknown identities; those unrelated historical identities were not refreshed. No source, test, parent Feature 008 artifact, user validation, DoD, structured Test Plan status, certification, terminal status, or push changed. Completed route 006 and routed route 007 to bubbles.simplify.",
+      "phasesExecuted": ["regression"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T17:52:24Z"
     }
   ],
   "addressedFindings": [
@@ -235,6 +254,13 @@
       "owner": "bubbles.test",
       "status": "addressed",
       "evidenceRef": "report.md#bug007-current-focused-functional"
+    },
+    {
+      "id": "SEC-B006-S1-REGRESSION",
+      "summary": "Independent regression found no source, behavior, ordering, caller-map ownership, built-in integrity, browser, cross-spec, carrier-quality, test-count, or byte-integrity regression; the scoped test receipt closure is current while unrelated global strict history remains truthfully red.",
+      "owner": "bubbles.regression",
+      "status": "addressed",
+      "evidenceRef": "report.md#bug007-regression-phase"
     }
   ],
   "unresolvedFindings": []

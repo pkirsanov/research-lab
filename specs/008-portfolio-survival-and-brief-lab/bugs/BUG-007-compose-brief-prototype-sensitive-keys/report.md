@@ -31,15 +31,26 @@
 - Verified 16 of 16 current BUG-007 receipt identities are closure-bearing and
   valid, with zero stale or unknown identities and all 10 required row tags.
 - Rechecked source syntax and diff whitespace with explicit clean sentinels.
+- Independently reviewed the 200-line `rlportfoliobrief.js` implementation diff
+  and the adjacent parent, BUG-004, BUG-005, and BUG-006 design contracts.
+- Independently reran the focused functional carrier at 34 of 34, the in-memory
+  mutation carrier at 2 of 2, and the real browser carrier at 19 of 19.
+- Revalidated all 3 persistent carriers through bugfix regression quality with
+  zero violations or warnings and resolved all 9 scenario links.
+- Verified the source, all 3 carriers, and the shared in-memory injector retained
+  their exact pre-run sha256 values and remained clean in Git.
+- Confirmed the test owner's scoped receipt closure is current at 16 of 16 while
+  the canonical global strict checker truthfully remains red with 22 stale and
+  42 unknown historical identities outside this bug boundary.
 - Kept the parent Feature 008 scope and root test-plan transaction untouched.
 
 ## Completion Statement
 
-The bounded implementation and test-owned obligations TP-B007-001 through
-TP-B007-010 are GREEN in the current session. The test phase routes to
-`bubbles.regression`; later quality phases, human acceptance, TP-B007-011, and
-validate-owned certification remain explicit gates. Packet status remains
-`in_progress`; no human-acceptance item, certification field, scope terminal
+The bounded implementation, test, and independent regression checks are GREEN
+at the current tree. Regression routes to `bubbles.simplify`; later quality
+phases, human acceptance, TP-B007-011, and validate-owned certification remain
+explicit gates. Packet status remains `in_progress`; no human-acceptance item,
+DoD checkbox, structured Test Plan status, certification field, scope terminal
 status, or spec terminal status is changed.
 
 ## Test Evidence
@@ -695,6 +706,283 @@ scoped assertion above covers every current identity produced for the required
 BUG-007 test rows and fails closed on any missing tag, stale input, unknown
 closure, or missing file.
 
+## Independent Regression Phase {#bug007-regression-phase}
+
+**Phase:** regression
+**Claim Source:** interpreted
+**Interpretation:** The delivered map-only repair is regression-free inside the
+declared BUG-007 boundary and its shared Feature 008 composer consumers. The
+fresh functional, mutation, and browser executions preserve normal ordering,
+own-versus-inherited lookup behavior, built-in integrity, no-throw behavior,
+and ordinary-key compatibility. Freshness inspection supports reuse of the
+test-owned broader Feature 008 and canonical-selftest receipts. This is not a
+claim that the repository-wide strict receipt ledger is clean.
+
+### Source Delta And Design Coherence
+
+**Phase:** regression
+**Executed:** YES
+**Commands:**
+
+- `timeout 30 git diff --no-ext-diff d49a2955b^ d49a2955b -- rlportfoliobrief.js`
+- `timeout 30 node --check rlportfoliobrief.js`
+- `timeout 30 git diff --check d49a2955b^ d49a2955b -- rlportfoliobrief.js`
+- `timeout 30 git diff --exit-code d49a2955b^ 8d1ae27b2 -- tests/portfolio-brief.functional.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-test-integrity.unit.mjs tests/portfolio-defect-injector.cjs`
+
+**Exit Codes:** `0, 0, 0, 0`
+**Claim Source:** executed
+
+```text
+# BUG-007 exact rlportfoliobrief diff
+$ timeout 30 git diff --no-ext-diff d49a2955b^ d49a2955b -- rlportfoliobrief.js
+exit: 0
+lines: 200
+sha256: e2305feeb60c0e869d1505ec12a659d618d58130be6c98aefdb4b94a6675bf01
+--- first changed allocation ---
+-    var seen = {};
++    var seen = Object.create(null);
+--- omitted region covered by the full-output sha256 ---
+--- final changed lookup ---
+-          deepLink: owners[subjectId] ? owners[subjectId].href : null,
++          deepLink: resolvedOwner ? resolvedOwner.href : null,
+NODE_CHECK_EXIT=0
+IMPLEMENTATION_DIFF_CHECK_EXIT=0
+IMPLEMENTATION_TEST_WINDOW_DIFF_EXIT=0
+```
+
+Inspection of the complete diff and current function found all ten named
+caller-keyed maps plus the nested date set inheritance-free. Every absence test
+over an affected map is own-property based. `owners` and `priorEvidenceIds` are
+resolved once through own membership before use. No route, signature, contract
+version, policy value, Date expression, error envelope, or output schema moved.
+
+The parent design still assigns ranking, why-shown projection, de-duplication,
+and lifecycle reduction to this composer. BUG-004 occurrence identity, BUG-005
+stale-domain semantics, and BUG-006 shared policy validation remain unchanged.
+Their persistent controls run in the focused functional or browser carriers.
+No cross-spec contradiction or route collision was found.
+
+### Fresh Functional And Mutation Closure
+
+**Phase:** regression
+**Executed:** YES
+**Commands:**
+
+- `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+- `timeout 240 node --test --test-reporter=spec tests/portfolio-brief.functional.mjs`
+- `timeout 240 node --test tests/portfolio-test-integrity.unit.mjs`
+
+**Exit Codes:** `0, 0, 0`
+**Claim Source:** executed
+
+```text
+# BUG-007 regression focused functional
+exit: 0
+lines: 214
+sha256: dad5d8c873b249a4a36ee6ebe38b977300a8d19e229b40e74fc32c58334b6d6b
+PASS BUG-007: normal brief order and refusal precedence remain unchanged
+PASS BUG-007: prototype-sensitive completion keys are safe own keys
+PASS BUG-007: prototype-sensitive completion subjects are safe own keys
+PASS BUG-007: prototype-sensitive completion domains are safe own keys
+PASS BUG-007: own lookup semantics and RED cleanup preserve shared built-ins
+tests 34
+pass 34
+fail 0
+skipped 0
+todo 0
+# BUG-007 regression mutation integrity
+PASS Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+PASS BUG-007: caller-key protections and normal ordering are load-bearing in memory
+tests 2
+pass 2
+fail 0
+skipped 0
+todo 0
+```
+
+The functional carrier directly checks the exact normal lane and subject order,
+representative local and shared-policy refusals, all six subject/domain hostile
+cases, descriptor-level built-in integrity before cleanup, no escaped throw,
+own and inherited `owners`, and own and inherited `priorEvidenceIds`. The
+mutation carrier independently makes the category map ordinary, accepts an
+inherited owner, and swaps held/watchlist order, one substitution at a time.
+Each mutant must turn its exact persistent title red while shipped source stays
+green.
+
+### Fresh Real-Browser Scenario
+
+**Phase:** regression
+**Executed:** YES
+**Commands:**
+
+- `timeout 30 npx --no-install playwright --version`
+- `timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+
+**Exit Codes:** `0, 0`
+**Claim Source:** executed
+
+```text
+Version 1.61.1
+# BUG-007 regression scenario browser
+exit: 0
+lines: 67
+sha256: a5d5be5f6a622010c971ceca9d7b449d1ac24662047f63bd8636e1a771447c69
+Running 19 tests using 1 worker
+PASS BUG-007: browser composer treats hostile keys as data and visible constructor remains operable
+PASS Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time
+PASS Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule
+PASS Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace
+19 passed (32.5s)
+```
+
+The named browser body invokes the UMD composer for all six hostile cases,
+checks exact normal order and descriptor-level built-in integrity, then records
+`constructor` through the production preview and confirm controls. It requires
+one visible lane or named no-action row, an enabled Brief control, and zero page
+errors.
+
+### Carrier Quality And Scenario Resolution
+
+**Phase:** regression
+**Executed:** YES
+**Commands:**
+
+- `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-brief.functional.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-test-integrity.unit.mjs`
+- `timeout 600 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --repo-root .`
+
+**Exit Codes:** `0, 0`
+**Claim Source:** executed
+
+```text
+BUBBLES REGRESSION QUALITY GUARD
+Repo: ~/research-lab
+Bugfix mode: true
+Scanning tests/portfolio-brief.functional.mjs
+Adversarial signal detected in tests/portfolio-brief.functional.mjs
+Scanning tests/portfolio-survival-brief.spec.mjs
+Asserts the current surface in tests/portfolio-survival-brief.spec.mjs
+Adversarial signal detected in tests/portfolio-survival-brief.spec.mjs
+Scanning tests/portfolio-test-integrity.unit.mjs
+Adversarial signal detected in tests/portfolio-test-integrity.unit.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 3
+Files with adversarial signals: 3
+[scenario-test-resolve] OK - 9 reference(s) resolved via literal-scan; 9 category comparison(s) not applicable (no test-discovery adapter declared)
+```
+
+The repository path is normalized to `~/research-lab` for committed PII
+hygiene. No guard verdict is otherwise rewritten.
+
+### Source, Test, Injector, And Parent-Transaction Integrity
+
+**Phase:** regression
+**Executed:** YES
+**Commands:** pre-run and post-run `sha256sum` over the five named paths, a
+post-run `git diff --exit-code` over those paths, and pre-run and post-run
+binary-patch hashes over the protected parent Feature 008 scopes, reports, and
+root `test-plan.json`.
+**Exit Codes:** all `0`
+**Claim Source:** executed
+
+```text
+d8fa7cf2a0fe437039f49cef2f84e97693a776088c086d6f86f21ca1f913e8c0  rlportfoliobrief.js
+a8d963a9feec48cb331eebc871f742f2784aa0676ca26d7ad211ef0d35d60b63  tests/portfolio-brief.functional.mjs
+d4db00741c5efee7f63acc630d012fc6400dd91fa963e3ab66082355629b3b46  tests/portfolio-survival-brief.spec.mjs
+e8f2eb90856588f5ec7cb4598b1d960f771d864c19135e1aa0967b8323594fce  tests/portfolio-test-integrity.unit.mjs
+dfa9231cab23bc0c97ccb601ece72d185743649a2de4801236f4c7a6489d0e2f  tests/portfolio-defect-injector.cjs
+POST-RUN: the same five sha256 values were observed
+SOURCE_TEST_DIFF_EXIT=0
+PARENT_PATCH_BEFORE=37e28a7dd65839134fba81f550a1cfbf2a4ad4b9b184f5387fbac07469b0db9c
+PARENT_PATCH_AFTER=37e28a7dd65839134fba81f550a1cfbf2a4ad4b9b184f5387fbac07469b0db9c
+PARENT_PATCH_MATCH=true
+```
+
+No source, persistent carrier, injector, parent scope, parent report, or parent
+root Test Plan byte changed during this phase.
+
+### Baseline And Coverage Delta
+
+**Phase:** regression
+**Claim Source:** interpreted
+**Interpretation:** Research Lab registers no instrumented line-coverage
+command, so this phase makes no percentage claim. It compares collected tests
+and exact scenario carriers at the unchanged source/test hashes. The test-owned
+95-test Feature 008 browser and 3426-check selftest receipts remain current in
+the independently hash-validated scoped closure and were not relabeled as this
+phase's executions.
+
+| Carrier | Test-owner baseline | Regression observation | Delta |
+| --- | ---: | ---: | ---: |
+| Focused functional | 34/34 | 34/34 fresh execution | 0 |
+| In-memory mutation | 2/2 | 2/2 fresh execution | 0 |
+| Scenario browser | 19/19 | 19/19 fresh execution | 0 |
+| Eight-file Feature 008 browser | 95/95 | 95/95 current input-bound receipt | 0 |
+| Canonical selftest | 3426/3426 | 3426/3426 current input-bound receipt | 0 |
+
+No assertion, test file, scenario link, skip marker, or persistent carrier was
+removed in the implementation/test commit window.
+
+### Scoped And Global Receipt Truth
+
+**Phase:** regression
+**Executed:** YES
+**Commands:** canonical identity projection over the BUG-007 test session,
+independent current-file sha256 verification of each latest closure,
+`test-leaf-receipt.sh resolve --names-only`, and the canonical global strict
+receipt checker.
+**Exit Codes:** `0, 0, 0, 1`
+**Claim Source:** executed
+
+```text
+SCOPED_RECEIPT_SESSION=BUG007-TEST-vscode-d037d272-238
+appendCount=23
+currentIdentities=16
+withClosure=16
+valid=16
+stale=0
+unknown=0
+nonzeroExit=0
+requiredTags=10
+missingRequiredTags=[]
+adapter=none
+# BUG-007 regression global strict receipt status
+exit: 1
+lines: 121
+sha256: 41d59b4be6b1951dd0b70f0d57d874b3a3c45819aeeb2bcc176e5144f5504921
+total=147
+current=82
+superseded=65
+withClosure=40
+valid=18
+stale=22
+unknown=42
+```
+
+The scoped closure is adequate for the test owner's BUG-007 claims: canonical
+supersession reduces 23 appends to 16 latest identities; every identity belongs
+to `bubbles.test` and this bug, has a non-empty current input closure, exits
+zero, and collectively carries TP-B007-001 through TP-B007-010. The configured
+test-leaf adapter is `none`, so no unavailable adapter receipt is treated as
+proof.
+
+The repository-wide strict checker is not clean. Its 22 stale receipts are
+earlier Feature 008 and BUG-006 command identities whose source, test, or report
+inputs changed; 42 current identities have no closure. Those identities are
+outside BUG-007 regression ownership. This phase neither refreshes nor rewrites
+them and does not convert global exit `1` into a pass.
+
+### Regression Verdict And Routing
+
+`REGRESSION_FREE` inside the BUG-007 work boundary. No failing current test,
+test-count decrease, weakened carrier, built-in mutation, escaped throw,
+ordinary-key incompatibility, caller-map ownership regression, ordering change,
+cross-spec contradiction, route collision, or source/test byte drift was found.
+
+Route `BUG-007-ROUTE-006` is complete. The required next owner is
+`bubbles.simplify` for the registered bugfix-fastlane complexity review. Human
+acceptance, DoD, scope/spec terminal status, TP-B007-011, validation, and
+certification remain untouched.
+
 ## Code Diff Evidence
 
 The implementation commit changes only `rlportfoliobrief.js` plus this BUG-007
@@ -742,19 +1030,16 @@ of `SEC-B006-S1`.
 
 ```yaml
 outcome: route_required
-currentOwner: bubbles.test
-nextRequiredOwner: bubbles.regression
+currentOwner: bubbles.regression
+nextRequiredOwner: bubbles.simplify
 bug: BUG-007-compose-brief-prototype-sensitive-keys
 addressedFindings:
   - SEC-B006-S1-IMPLEMENTATION
   - SEC-B006-S1-TEST
+  - SEC-B006-S1-REGRESSION
 unresolvedFindings: []
 evidence:
-  - report.md#bug007-current-focused-functional
-  - report.md#bug007-current-mutation-integrity
-  - report.md#bug007-current-scenario-browser
-  - report.md#bug007-current-feature-e2e
-  - report.md#bug007-current-selftest
+  - report.md#bug007-regression-phase
   - report.md#bug007-current-receipt-integrity
-reason: TP-B007-001 through TP-B007-010 pass with current receipts; regression is the next bugfix-fastlane owner while acceptance, TP-B007-011, certification, and terminal status remain open.
+reason: Independent regression is clean across the delivered source, all three persistent carriers, shared consumers, and scoped current receipts; simplify is the next registered owner while global strict receipt history, acceptance, TP-B007-011, certification, and terminal status remain truthfully unchanged.
 ```

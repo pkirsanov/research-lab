@@ -3172,3 +3172,240 @@ This is a framework-governance observation, not a BUG-006 stability defect.
 The authorized packet cannot change framework-managed workflow files or erase
 historical specialist claims. The packet remains `in_progress`, and the
 registered next phase remains the no-change `bubbles.devops` review.
+
+## DevOps Phase Round 2 - 2026-08-26 {#devops-phase-round-2}
+
+**Phase:** devops
+**Agent:** `bubbles.devops`
+**Execution model:** `direct-authorized-runner`
+**Parent agent:** none
+**Claim Source:** interpreted
+**Interpretation:** `NOT_APPLICABLE_NO_CHANGE`. BUG-006 introduces no package,
+configuration, workflow, deployment, service-lifecycle, port, secret,
+observability, runtime-operations, or artifact-generation obligation. No
+operational defect was found, so no product, test, workflow, package, config,
+deployment, or observability file changed. This phase did not invoke or claim a
+live deployment.
+
+### Repository Authority And Checkpoint
+
+**Claim Source:** executed
+
+The host adapter resolved this chat to Research Lab, and repository preflight
+committed the actionable repository decision before any local read:
+
+```text
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=<repo> source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:225 revision=225 repository=research-lab root=<repo>
+repositoryAlias=research-lab
+authority=explicit-repository-root
+transition=confirmed
+scopeKind=command
+scopeId=null
+targetKind=repository-root
+pathVisibility=local
+actionable=true
+```
+
+The requested checkpoint was current and the two authorized packet files were
+clean before this phase wrote them:
+
+```text
+811a73450
+checkpoint=811a73450 subject=docs(BUG-006): record stability verification
+```
+
+### Operational Change-Boundary Audit
+
+**Command:** current-session checkpoint audit over the exact operational path
+set, the two changed product modules, and the three changed test carriers
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-006 round-2 devops operational-boundary audit
+baseline=1e3a51f721d087b74cda91f780262073886c7dab
+checkpoint=811a73450
+actual-checkpoint=811a73450
+checkpoint-match=PASS
+operational-path=.github/workflows/pages.yml changed=no
+operational-path=package.json changed=no
+operational-path=package-lock.json changed=no
+operational-path=.npmrc changed=no
+operational-path=scripts/build-pages-site.mjs changed=no
+operational-path=scripts/validate-node-source-lock.mjs changed=no
+operational-path=.nojekyll changed=no
+operational-path=site-exclusions.json changed=no
+operational-path=tools.json changed=no
+operational-path=playwright.config.mjs changed=no
+operational-path=portfolio-survival-allocation.config.json changed=no
+operational-path=.github/bubbles-project.yaml changed=no
+changed-operational-token-scan=PASS matches=0
+changed-test-dependency-scan=PASS import-or-require-delta=0
+service-deploy-substrate=NOT_APPLICABLE absent
+pages-checkout-steps=2
+pages-artifact-path-steps=1
+pages-deploy-action-steps=1
+workflow-secret-references=0
+audit-result=PASS
+```
+
+The checkpoint delta is confined to `rlportfolio.js`,
+`rlportfoliobrief.js`, the three authorized test carriers, and this bug packet.
+The product delta is one private numeric ceiling, one comparison, and one call
+to the existing shared validator with a direct failed-result return. The test
+delta adds no import or `require()` boundary. The operational-token scan covers
+environment reads, network calls, sockets, timers, console emission,
+OpenTelemetry, Prometheus, trace propagation, secrets, listeners, hostnames,
+and host addresses.
+
+### Source-Lock Policy
+
+**Command:** `timeout 240 node scripts/validate-node-source-lock.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=manifest-range result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=manifest-wrong-version result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=scoped-registry result=REJECTED code=NPMRC-SCOPED-REGISTRY
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=lifecycle-relaxation result=REJECTED code=NPMRC-IGNORE-SCRIPTS
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=file-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=path-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=http-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=external-version-range result=REJECTED code=LOCK-PACKAGE-VERSION
+[node-source-lock] adversarial=extra-package result=REJECTED code=LOCK-GRAPH
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+```
+
+The scriptless private manifest, exact Playwright version, canonical npm
+registry, lockfile-v3 graph, SHA-512 integrity hashes, disabled lifecycle
+scripts, and rejection controls remain intact. No provisioning command was
+needed because BUG-006 changes neither the manifest nor lockfile.
+
+### Clean-Checkout Pages Semantics
+
+**Command:** `timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 round-2 devops Pages staging dry-run" -- timeout 240 node scripts/build-pages-site.mjs --dry-run`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 round-2 devops Pages staging dry-run
+$ timeout 240 node scripts/build-pages-site.mjs --dry-run
+exit: 0
+lines: 1
+sha256: a6e63c92b8c288fedda3d1816560dfb8c65b1f09ee3a223ff77ed20b6260cd7d
+--- output ---
+{"contractVersion":"pages-site-build-result/v1","dryRun":true,"registeredPages":29,"excludedPaths":12,"rootFiles":123,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/8839ab9c7d1bcc9b241dd2255a348313f4bd8837ebb98151d4458b0078cf958d","omittedOrphanIndexes":181}
+```
+
+The unchanged workflow retains two independent `actions/checkout@v4` steps.
+Its blocking verify job validates source locking and the checked-in site before
+the dependent deploy job performs a second clean checkout. That deploy job
+runs the unchanged site-staging script, uploads only `_site`, and invokes
+`actions/deploy-pages@v4`. The dry-run exercised the registered staging plan
+without writing `_site`. It did not trigger GitHub Actions or deploy a live
+site.
+
+BUG-006 changes root JavaScript already included by the existing static-site
+plan. It adds no page, registry entry, exclusion, generated asset, package
+script, workflow step, deployment parameter, or manual operator action.
+
+### Operations Obligation Matrix
+
+**Claim Source:** interpreted from the current command registry, Pages
+workflow, project config, source-lock files, exact checkpoint audit, and the two
+executed focused checks above.
+
+| Domain | Verdict | Current evidence |
+| --- | --- | --- |
+| Package and dependency provisioning | `NOT_APPLICABLE_NO_CHANGE` | `package.json`, `package-lock.json`, and `.npmrc` are unchanged. The source-lock validator passes with zero runtime dependencies and zero package scripts. |
+| Project and product configuration | `NOT_APPLICABLE_NO_CHANGE` | `.github/bubbles-project.yaml`, `config/domain-model.yaml`, and `portfolio-survival-allocation.config.json` are unchanged. The shipped evidence window remains `56`. |
+| CI and workflow | `NOT_APPLICABLE_NO_CHANGE` | `.github/workflows/pages.yml` is unchanged. BUG-006 adds no workflow permission, trigger, job, environment, cache, artifact, or deploy step. |
+| Deployment | `NOT_APPLICABLE_NO_CHANGE` | The repository has no manual deploy command or `deploy/` adapter. Existing clean-checkout GitHub Pages semantics are unchanged. No live deployment was attempted or claimed. |
+| Service lifecycle and ports | `NOT_APPLICABLE_NO_CHANGE` | The command registry declares no service lifecycle. No `Dockerfile`, Compose file, service, listener, port, hostname, or host-address delta exists. |
+| Secrets and credentials | `NOT_APPLICABLE_NO_CHANGE` | The product/test delta has no secret or environment-read token, the Pages workflow has zero `secrets.*` references, and no source-lock or workflow surface changed. |
+| Observability | `NOT_APPLICABLE_NO_CHANGE` | Project config declares no trace contract or observability adapter. BUG-006 adds no log, metric, trace, alert, retry, or runtime failure channel. |
+| Runtime operations | `NOT_APPLICABLE_NO_CHANGE` | The repair is synchronous local validation in already-deployed static JavaScript. It adds no process, network, timer, background task, storage, or recovery obligation. |
+| Artifact generation | `NOT_APPLICABLE_NO_CHANGE` | The unchanged registered Pages staging script already copies root JavaScript. Its dry-run plan passes; BUG-006 requires no new generated artifact or generation command. |
+
+### Workflow Routing
+
+**Command:** `timeout 120 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 round-2 devops bugfix-fastlane resolution" -- timeout 60 bash .github/bubbles/scripts/mode-resolver.sh --grandfather bugfix-fastlane`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 round-2 devops bugfix-fastlane resolution
+$ timeout 60 bash .github/bubbles/scripts/mode-resolver.sh --grandfather bugfix-fastlane
+exit: 0
+lines: 46
+sha256: 986156f2dbb912fa87df07d087705abebbe2af8d9db0959aa61484fc7b443022
+--- first 20 ---
+DEPRECATION (v7 grandfather): resolving removed v5 mode 'bugfix-fastlane' (v6 form: 'fix action:fastlane target:bug'). New work must use the v6 form.
+statusCeiling: done
+requiredGates: [G001, G002, G003, G004, G005, G006, G007, G008, G009, G010, G011, G012, G014, G015, G016, G018, G019, G020, G021, G022, G023, G024, G025, G026, G027, G028, G029, G033, G034, G035, G040, G044, G047, G048, G051, G055, G056, G057, G059, G060, G061, G094]
+constraints:
+	specReviewDefault: once-before-implement
+	specReviewDefaultScope: done-ceiling-delivery-modes
+	specReviewOptOutRequiresReason: true
+	requireCanonicalPlanningChain: true
+	planningChainAgents: [bubbles.analyst, bubbles.ux, bubbles.design, bubbles.plan]
+	sequentialSpecCompletion: true
+	crossAgentVerification: true
+	antiFabricationDetection: true
+	requireAllSpecialistsComplete: true
+	requireAllScopesDoneBeforeSpecDone: true
+	requirePerDodItemRawEvidence: true
+	requireTestsForAllRealScenarios: true
+	require100PercentBusinessLogicCoverage: true
+	requirePhaseScopeCoherence: true
+	requireImplementationRealityScan: true
+	requireNoDefaultsNoFallbacks: true
+--- omitted 6 line(s); sha256 above covers the full output ---
+--- last 20 ---
+	requireQualityLoopUntilCertifiedDone: true
+	restartLoopAtPhase: implement
+	blockedOnlyWhenValidateBlocked: true
+	requireNoSkippedTests: true
+	requireNoPreexistingFailingTests: true
+	requireNoInternalMocksExceptExternalDeps: true
+	requireGherkinE2eCoverage: true
+	requireAllDiscoveredBugsClosedInRun: true
+	requirePhaseEvidenceBeforeAdvance: true
+	blockOnMissingSpecialistExecution: true
+description: Focused bug loop with mandatory reproduction and verification. Loops until validate certifies the fix or returns a documented blocked verdict.
+transitionAudit:
+	profile: delivery-completion-v1
+	target: statusCeiling
+phaseOrder: [select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize]
+sessionBudget:
+	maxWallClockMinutes: 180
+	maxToolCalls: 350
+	maxSingleToolResultBytes: 50000
+	maxCumulativeToolResultBytes: 250000
+```
+
+Inbound route `BUG-006-ROUTE-020` is complete. The current persisted mode puts
+`security` immediately after `devops`, so `BUG-006-ROUTE-021` routes the still
+in-progress packet to `bubbles.security` for the round-2 security review.
+
+### Phase Result
+
+No DevOps finding exists. The owned result is
+`NOT_APPLICABLE_NO_CHANGE`. Only this report and execution-owned state fields
+changed. Packet and scope status remain `in_progress`; all Definition of Done
+items remain unchecked; human acceptance and certification remain untouched.
+No commit, merge, push, workflow dispatch, or live deployment was performed.

@@ -1,11 +1,18 @@
-# User Validation: BUG-020 — Filed, Nothing Delivered
+# User Validation: BUG-020 — Remedy Delivered
 
-This packet was filed by a `bubbles.stabilize` round. No scope has been started,
-no shipped file has been changed, and there is nothing yet to accept.
+This packet was filed by a `bubbles.stabilize` round with nothing delivered, and a
+remedy was later carried into shipped code. The remedy is commit `7577d5ad3`,
+"refuse an unrepresentable figure at its origin, at the display seam and in the
+header", which adds `RLTAX-FIGURE-UNREPRESENTABLE` to the refusal vocabulary in
+`rltaxrules.js` and consumes it in `rltax.js` and the route — each re-read at the
+audited commit rather than taken from the packet's prose. All 14 Definition of Done
+rows in `scopes.md` are ticked with none open. There is therefore delivered
+behaviour to exercise. The framing that previously stood here, saying there was
+none, was written at filing time and outlived the fix.
 
-The checklist below is what a human should be able to confirm **after** Scopes 1
-and 2 are delivered. It is recorded now so the acceptance criteria are fixed
-before the fix is written rather than after.
+The checklist below is what a human should be able to confirm now that Scopes 1
+and 2 are delivered. It was recorded at filing so the acceptance criteria were
+fixed before the fix was written rather than after.
 
 ## Automation Readiness
 

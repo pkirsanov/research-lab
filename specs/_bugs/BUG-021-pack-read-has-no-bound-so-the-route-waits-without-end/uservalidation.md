@@ -1,11 +1,21 @@
-# User Validation: BUG-021 — Filed, Nothing Delivered
+# User Validation: BUG-021 — Remedy Delivered
 
-This packet was filed by a `bubbles.stabilize` round. No scope has been started,
-no shipped file has been changed, and there is nothing yet to accept.
+This packet was filed by a `bubbles.stabilize` round with nothing delivered, and a
+remedy was later carried into shipped code. The remedy is commit `084572757`,
+"bound every declared document read from a stratified declaration surface", which
+declares `packReadBoundMs` as 10000 in `lifetime-tax-strategy.config.json`, assigns
+it in the route before any pack read, and applies it as the read bound — with
+`rltaxworkspace.js` changed alongside; each was re-read at the audited commit
+rather than taken from the packet's prose. Executed evidence: selftest checks
+`TB-SEC-01-01` and `TB-SEC-01-02` hold the bound across the response body and
+refuse a bound beyond the largest representable timer delay. All 14 Definition of
+Done rows in `scopes.md` are ticked with none open. There is therefore delivered
+behaviour to exercise. The framing that previously stood here, saying there was
+none, was written at filing time and outlived the fix.
 
-The checklist below is what a human should be able to confirm **after** Scopes 1
-and 2 are delivered. It is recorded now so the acceptance criteria are fixed
-before the fix is written rather than after.
+The checklist below is what a human should be able to confirm now that Scopes 1
+and 2 are delivered. It was recorded at filing so the acceptance criteria were
+fixed before the fix was written rather than after.
 
 ## Automation Readiness
 

@@ -1,11 +1,19 @@
-# User Validation: BUG-019 — Filed, Nothing Delivered
+# User Validation: BUG-019 — Remedy Delivered
 
-This packet was filed by a `bubbles.chaos` round. No scope has been started, no shipped file has
-been changed, and there is nothing yet to accept.
+This packet was filed by a `bubbles.chaos` round with nothing delivered, and a remedy was later
+carried into shipped code. The remedy is commit `e28be5814`, "declare the earliest priceable claim
+age in the benefit pack and refuse below it", which declares `earliestClaimAge` in
+`tax-rules/benefit/2026.json` and refuses beneath it through `BELOW_EARLIEST_CLAIM_AGE_DOMAIN` in
+`rltaxsocialsecurity.js`, `rltaxclaimage.js` and the route — each re-read at the audited commit
+rather than taken from the packet's prose. Executed evidence: selftest check `TB-SEC-02-03` settles
+age 62 at 1400 and refuses age 60 under `RLTAX-THRESHOLD-UNAVAILABLE` in this packet's own domain.
+All 18 Definition of Done rows in `scopes.md` are ticked with none open. There is therefore
+delivered behaviour to exercise. The framing that previously stood here, saying there was none, was
+written at filing time and outlived the fix.
 
-The checklist below is what a human should be able to confirm **after** Scopes 1 to 3 are
-delivered. It is recorded now so the acceptance criteria are fixed before the fix is written rather
-than after.
+The checklist below is what a human should be able to confirm now that Scopes 1 to 3 are
+delivered. It was recorded at filing so the acceptance criteria were fixed before the fix was
+written rather than after.
 
 ## Automation Readiness
 

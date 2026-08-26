@@ -1079,11 +1079,13 @@ the independently executed test-owner proof.
 
 **Phase:** test
 **Executed:** YES (current session)
-**Claim Source:** executed for the focused carrier; interpreted for the earlier
-structured receipt history
 **Command:** `timeout 240 node --test tests/portfolio-behavior-occurrence.unit.mjs`
 **Capture Command:** `timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-006 TP-B006-011 focused mutation-anchor regression" -- timeout 240 node --test tests/portfolio-behavior-occurrence.unit.mjs`
 **Exit Code:** 0
+**Claim Source:** interpreted
+**Interpretation:** The focused carrier block is direct executed evidence. The
+earlier structured receipt table is interpreted because the ledger preserves
+exit status and closure, but not raw stdout.
 
 ### Receipt History Reconciliation
 
@@ -2667,3 +2669,271 @@ ceiling and orders `gaps` immediately before `harden`. Inbound route
 still-in-progress packet to `bubbles.harden` for the next registered phase.
 No commit, merge, push, status promotion, DoD check, human-acceptance change,
 or certification write occurred.
+
+## Harden Phase Round 2 - 2026-08-26 {#harden-phase-round-2}
+
+**Phase:** harden
+**Agent:** `bubbles.harden`
+**Execution model:** `direct-authorized-runner`
+**Parent agent:** none
+**Claim Source:** interpreted
+**Interpretation:** `HARDENED_DIAGNOSTIC`. Round-2 hardening found no product
+or persistent-test defect. The packet and scope remain `in_progress`. All 17
+Definition of Done items remain unchecked. Human acceptance and certification
+remain unchanged.
+
+### Repository Authority And Workflow
+
+**Claim Source:** executed
+
+Repository preflight committed the exact BUG-006 target before local work:
+
+```text
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=<repo> source=concrete-target affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:222 revision=222 repository=research-lab root=<repo>
+repositoryAlias=research-lab
+authority=concrete-target
+transition=confirmed
+scopeKind=command
+scopeId=null
+targetKind=absolute-target
+pathVisibility=local
+actionable=true
+```
+
+The persisted mode resolved through the explicit grandfather path. It has a
+`done` ceiling. Its relevant phase sequence is `gaps`, `harden`, `stabilize`,
+`devops`, `security`, `validate`, `audit`, and `finalize`.
+
+### Baseline Validation
+
+**Claim Source:** executed for command results and interpreted for coverage
+classification.
+
+| Check | Result | Count or detail |
+| --- | --- | --- |
+| Worktree checkpoint | PASS | Clean at `a77d45e8cb1971611003f961b988bde7a0815f09` |
+| Build | NOT APPLICABLE | Research Lab is build-free. |
+| Lint | NOT APPLICABLE | The command registry declares no repository lint command. |
+| Source lock | PASS | Playwright `1.61.1`, lockfile v3, 16 adversarial source-lock refusals |
+| Focused unit and functional closure | PASS | 104 passed, 0 failed, 0 skipped |
+| Feature 008 browser matrix | PASS | 94 passed, 0 failed |
+| Canonical repository selftest | PASS | 3426 passed, 0 failed |
+| Regression-quality guards | PASS | 4 files, 0 violations, 0 warnings in normal and bugfix modes |
+| Static integrity | PASS | 0 incomplete markers, 0 skip/focus markers, 0 mock/interception markers |
+| Artifact lint | PASS | 40-line canonical check, exit 0 |
+| Traceability | PASS | 4 scenarios, 13 rows checked, 0 warnings |
+| Implementation reality | PASS | 2 product files, 0 violations, 0 warnings |
+| Hardening findings | PASS | 0 product findings, 0 persistent-test findings |
+
+### Complete Contract Probe
+
+**Command:** `timeout 180 bash .github/bubbles/scripts/tool-log.sh node -e '<round-2 BUG-006 contract probe>'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-006 round-2 harden contract probe
+boundary=36525 integer=true
+oneOver=36526 integer=true
+shared-envelope=value-safe exact
+shared-error-frozen=true
+local-precedence.windows=P008-BRIEF-WINDOWS/generic-window-contract-required
+local-precedence.policy-presence=P008-BRIEF-POLICY/behavior-and-queue-policy-required
+local-precedence.publication-time=P008-BRIEF-PUBLISHED/generic-publication-time-required
+local-precedence.composition-time=P008-BRIEF-COMPOSED/local-composition-time-required
+local-precedence.window-id=P008-BRIEF-WINDOW-ID/window-not-in-generic-contract
+local-precedence.cutoff=P008-BRIEF-CUTOFF/window-et-time-unparseable
+shared-policy-after-local-prerequisites=P008-CONFIG/invalid-policy/behavior
+compose-overflow=no-throw,input-unchanged
+derive-overflow=no-throw,input-policy-unchanged
+timeclip.forward=direct-RangeError
+timeclip.backward=direct-RangeError
+consumer-forward=shared-refusal-before-format
+consumer-backward=shared-refusal-before-format
+RESULT=PASS
+```
+
+The probe used deep-frozen brief input for the backward overflow. It compared
+that input with a structured clone after execution. It also compared the core
+overflow policy before and after derivation. Both consumers returned the exact
+shared refusal without throwing or mutating their inputs.
+
+### Runtime Consumer Review
+
+**Claim Source:** interpreted from current source reads and the executed
+contract probe.
+
+| Runtime consumer | Hardening result |
+| --- | --- |
+| `rlportfolio.js::validatePolicy` ceiling | Sole owner. The ceiling anchor occurs once. |
+| Core age filter | Runs after shared validation. It performs comparison only. |
+| Core expiry formatter | Shared validation runs first. Forward overflow returns the shared refusal. |
+| Brief `decayState` | Reached from validated composition. It performs comparison only. |
+| Brief derive floor guard | Preserves local non-finite floor precedence. |
+| Brief derive age filter | Shared validation follows at the preserved insertion point. |
+| Brief cutoff formatter | Shared validation immediately precedes the alias. Backward overflow returns the shared refusal. |
+| Brief invalidation copy | Runs only after successful shared validation. It formats text only. |
+| Page behavior ranking | Consumes policy accepted during validated boot. It performs comparison only. |
+| Page behavior display | Consumes policy accepted during validated boot. It formats text only. |
+
+The review found no third policy-derived Date formatter. The two existing
+formatters cover the forward and backward TimeClip directions.
+
+### Focused Four-Carrier Closure
+
+**Command:** `timeout 600 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-006 round-2 harden focused four-carrier baseline
+$ timeout 600 node --test tests/portfolio-foundation.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs
+exit: 0
+lines: 634
+sha256: 7b258579f3db8f0931f76cd327adce0ceaa0ad26c0e62a065c61861f86f99f39
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+ok 1 - BUG-004: a later same-civil-day completion is a distinct occurrence under one semantic identity
+--- omitted 594 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 103 - BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red
+ok 104 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+1..104
+# tests 104
+# suites 0
+# pass 104
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+```
+
+### Load-Bearing Mutation Controls
+
+**Claim Source:** executed
+
+The controls changed no file. Each process replaced one unique source anchor
+in memory.
+
+| Control | Expected result | Observed result |
+| --- | --- | --- |
+| Remove shared ceiling predicate | One-over and forward-overflow tests fail | 59 passed, exactly 2 failed |
+| Remove compose delegation | Exact composeBrief test fails | 28 passed, exactly 1 failed |
+| Remove derive delegation inside persistent carrier | Corrupt policy fails open while valid policy stays equal | Carrier passed all 8 assertions |
+
+```text
+# BUG-006 round-2 shared-ceiling mutation expected RED
+exit: 1
+lines: 1288
+sha256: ce964cb333628ae65a45f265cdf1bd778f262295644789c27df363df546920e3
+mutation=remove sole maximumEvidenceAgeDays upper-bound predicate
+not ok 4 - BUG-006: maximumEvidenceAgeDays refuses one day above the named boundary
+not ok 5 - BUG-006: an overflowing evidence window is refused before interest derivation
+1..61
+# tests 61
+# pass 59
+# fail 2
+# skipped 0
+```
+
+```text
+# BUG-006 round-2 compose-delegation primed mutation expected RED
+exit: 1
+lines: 302
+sha256: 9522419bdb673f46035992c62755eacc3946705c0d5d4e4649bd8fc6c9e3f2d4
+diskWrite=false
+target=rlportfoliobrief.js::composeBrief
+anchorCount=1
+mutatedReads=1
+not ok 15 - BUG-006: composeBrief validates shared evidence-age policy before Date formatting
+1..29
+# tests 29
+# pass 28
+# fail 1
+# skipped 0
+```
+
+```text
+# BUG-006 round-2 derive-delegation persistent mutation proof
+exit: 0
+lines: 58
+sha256: 4af51c11fd7cbcce65978e1d9a5985cdf42f3c08d0d6f24d18c336571612e5df
+ok 7 - BUG-004: a corrupt policy still refuses on an empty workspace, and refuses exactly as the removed call did
+ok 8 - BUG-004: removing the restored policy check reinstates the fail-open, so the assertion above is load-bearing
+1..8
+# tests 8
+# pass 8
+# fail 0
+# skipped 0
+# todo 0
+```
+
+### Browser And Repository Regression
+
+**Claim Source:** executed
+
+```text
+# BUG-006 round-2 harden Feature 008 browser matrix
+exit: 0
+lines: 303
+sha256: 319256c75f1d13d6b1688414ed0de053ad677f09c2b918cb8688240b6c1811e6
+Running 94 tests using 2 workers
+94 passed (2.6m)
+```
+
+```text
+# BUG-006 round-2 harden canonical Research Lab selftest
+exit: 0
+lines: 3912
+sha256: 97187993e59eb03e31a27f3044d01cbe02f2b04602fbc566808b80b726f30404
+Step 1 security - escaped model sinks and CSP on every page
+Feature 004 RLFX/RLDATA foundation
+specs/ - every scope progress claim matches the Definition of Done it summarises
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+### Test Plan Audit And Hardening Profile
+
+**Claim Source:** interpreted from the current artifacts and executed guards.
+
+| Check | Result |
+| --- | --- |
+| H1 findings classified with evidence | PASS. No speculative finding was recorded. |
+| H2 fixes verified | NOT APPLICABLE. Hardening found no new defect. |
+| H3 required artifact updates | PASS. This report and execution routing record the phase. |
+| H4 taxonomy completeness | PASS. Unit, functional, E2E UI, artifact, and guard rows match the affected static-site surfaces. |
+| H5 semantic fidelity | PASS. All four scenarios map to behavior assertions, not proxy status checks. |
+| H6 repository-realistic paths | PASS. All four persistent carriers and commands exist in the command registry. |
+| H7 regression quality | PASS. Every carrier has an adversarial signal. Three independent mutations are load-bearing. |
+| H8 cross-scope deduplication | PASS. The packet has one scope. Shared rows have distinct purposes. |
+| H9 `test-plan.json` synchronization | PASS. The structured plan retains the same twelve test entries and evidence anchors as `scopes.md`. |
+
+No persistent test was added. The existing tests already fail under each
+independent product regression. Adding a duplicate test would not increase
+discrimination.
+
+### Report Provenance Normalization
+
+The post-edit claim-source lint found one older mixed-value provenance tag in
+`TP-B006-011`. The block combined direct focused-carrier output with an
+interpreted receipt-history table. Hardening changed only the tag to the closed
+`interpreted` value and added its required interpretation. Commands, output,
+hashes, receipt rows, and test claims remain byte-for-byte unchanged.
+
+### Finding Closure And Routing
+
+The hardening finding count is zero. Therefore, Gate G031 requires zero new
+Gherkin scenarios and zero new DoD items. No completed scope reopened. No scope
+or certification reset applies.
+
+Inbound route `BUG-006-ROUTE-018` is complete. The grandfathered registry
+places `stabilize` immediately after `harden`. Route `BUG-006-ROUTE-019`
+transfers the unchanged, still-in-progress packet to `bubbles.stabilize`.
+
+No source, persistent test, scope, Definition of Done checkbox, human
+acceptance field, certification field, unrelated market brief, or data file
+changed. No commit, merge, or push occurred.

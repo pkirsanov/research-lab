@@ -183,7 +183,7 @@ Feature: Current test declarations exclude immutable historical receipts
 | TP-BUG022-F06 | SCN-BUG022-003 | Regression | functional | `tests/playwright-runtime.foundation.functional.mjs` | `Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority` | `node --test --test-name-pattern='^Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority$' tests/playwright-runtime.foundation.functional.mjs` | No |
 | TP-BUG022-C01 | SCN-BUG022-003 | Repository closure | functional | `scripts/validate-test-file-reachability.mjs` | Additive migration closes the repository without weakening ownership: the original eight crossings disappear, both Node families remain reachable, and the baseline does not grow | `node scripts/validate-test-file-reachability.mjs` | No |
 | TP-BUG022-C02 | SCN-BUG022-003 | Node regression | functional | `tests/portfolio-*.unit.mjs`, `tests/portfolio-*.functional.mjs` | Legitimate Feature 008 Node carriers remain owned by Node | `node --test tests/portfolio-*.unit.mjs tests/portfolio-*.functional.mjs` | No |
-| TP-BUG022-C03 | SCN-BUG022-003 | Browser regression | e2e-ui | `tests/portfolio-survival-*.spec.mjs` | Current portfolio browser scenarios remain owned and executable by Playwright | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
+| TP-BUG022-C03 | SCN-BUG022-003 | Regression E2E | e2e-ui | `tests/portfolio-survival-*.spec.mjs` | Current portfolio browser scenarios remain owned and executable by Playwright | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 | TP-BUG022-C04 | SCN-BUG022-001, SCN-BUG022-002, SCN-BUG022-003 | Repository regression | functional | `scripts/selftest.mjs` | The full build-free invariant suite remains green in a clean tree | `node scripts/selftest.mjs` | No |
 | TP-BUG022-C05 | SCN-BUG022-003 | Integrity | governance | protected report and explicit allowlist | Historical report blob, baseline, crossing set, and excluded paths are unchanged | `git diff --exit-code 359d536b -- specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/report.md` plus path-containment checks | No |
 | TP-BUG022-C06 | SCN-BUG022-001, SCN-BUG022-002, SCN-BUG022-003 | Packet validation | governance | BUG-022 packet | Artifact structure, scenario contracts, and Test Plan parity pass | `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-022-historical-report-declaration-leak` | No |
@@ -219,7 +219,9 @@ Feature: Current test declarations exclude immutable historical receipts
   **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#reachability-green`, exit 0, 0 classification errors, unchanged ratchets.
 - [x] TP-BUG022-C02 passes the Feature 008 direct Node regressions.
   **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#feature-008-node-regression`, exit 0, 257 passed.
-- [ ] TP-BUG022-C03 passes the Feature 008 Playwright regressions separately.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass: TP-BUG022-C03 runs the Feature 008 Playwright regressions separately for SCN-BUG022-003.
+  **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#feature-008-playwright-regression---non-zero` records exit 1. All 94 scenarios passed, but BUG-017 worker teardown emitted two force-kill errors.
+- [ ] Broader E2E regression suite passes: TP-BUG022-C03 runs the Feature 008 Playwright regression suite.
   **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#feature-008-playwright-regression---non-zero` records exit 1. All 94 scenarios passed, but BUG-017 worker teardown emitted two force-kill errors.
 - [ ] TP-BUG022-C04 passes the full repository selftest in a clean tree.
   **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#clean-tree-repository-selftest---non-zero` records exit 1 from 13 excluded certification drifts and BUG-022's validate-owned stale scope-progress claim.
@@ -234,7 +236,8 @@ Feature: Current test declarations exclude immutable historical receipts
 
 #### Build Quality Gate
 
-- [ ] The parser, focused test, and command-registry migration land atomically.
+- [ ] Change Boundary is respected and zero excluded file families were changed.
+  The parser, focused test, and command-registry migration land atomically.
   `KNOWN_DISCOVERY_CROSSINGS` and the reachability baseline do not grow. The
   focused test contains no skip, only, todo, or silent-pass bailout. The final
   explicit-pathspec commit contains only allowed changed files. Staged-path,

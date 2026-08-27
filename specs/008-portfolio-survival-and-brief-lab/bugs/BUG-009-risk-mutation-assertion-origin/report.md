@@ -1959,3 +1959,221 @@ causality, eight direct assertion obligations, and historical narrative.
 packet to `bubbles.harden` for a fresh hardening pass. This remediation does not
 claim that hardening passed. Status, scope state, DoD, human acceptance, and
 certification remain unchanged.
+
+## Fresh Harden Pass - Repository Authority Revision 300 {#fresh-harden-revision-300}
+
+**Phase:** harden
+**Agent:** `bubbles.harden`
+**Execution model:** `direct-authorized-runner`
+**Claim Source:** interpreted
+**Interpretation:** `NOT_HARDENED`. The BUG-009 implementation and focused
+regression surface pass. Current durable lifecycle and title parity do not.
+The canonical selftest also fails on a protected parent Feature 008 reference.
+
+### Repository Authority
+
+**Phase:** harden
+**Command:** `repository-binding-host-context.sh` followed by
+`repository-binding.sh preflight` for Research Lab
+**Exit Code:** `0`, then `0`
+**Claim Source:** executed
+
+```text
+host expectedControlRevision=300
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=~/research-lab source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:301 revision=301 repository=research-lab root=~/research-lab
+HEAD=be808bd0d915ca921de06aaf43e744a579f94aee
+subject=BUG-009: reconcile harden exact test title
+BUG-009 working-tree changes at entry=0
+staged changes at entry=0
+```
+
+### Focused Assertion-Origin Evidence
+
+**Phase:** harden
+**Commands:** exact focused shipped title, then the exact
+`F008-RISK-INPUT-001` mutation with an external temporary marker
+**Exit Codes:** shipped `0`, mutant `1` as the required negative control
+**Claim Source:** executed
+
+```text
+shipped source:
+BUG-009 risk mapping: unsupported holdings remain named exclusions
+tests 1
+pass 1
+fail 0
+skipped 0
+todo 0
+mutant source:
+not ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+code: 'ERR_ASSERTION'
+name: 'AssertionError'
+expected: 'ok'
+actual: 'unsupported-holding'
+tests 1
+pass 0
+fail 1
+MUTANT_EXIT=1
+marker lines=1
+applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+```
+
+An initial attempt used `/dev/stderr` as the marker. Node rejected that marker
+with `ENXIO` and `ERR_TEST_FAILURE`. That attempt is invalid evidence. The
+corrected temporary-marker run above is the assertion-origin evidence.
+
+### Current Regression And Gate Results
+
+**Phase:** harden
+**Claim Source:** executed
+
+| Check | Current-session result |
+| --- | --- |
+| Exact focused shipped title | `1/1`, exit `0` |
+| Exact focused mutant | `0/1`, required exit `1`, one `ERR_ASSERTION`, one `Module._compile` application |
+| Strict 18-case registry | Three outer tests passed, `3/3`, zero skipped |
+| Full risk carrier | `3/3`, zero skipped |
+| Five BUG-008 carriers | `43/43`, zero skipped, 268 lines, SHA-256 `403a5c42683df2331b4e65f218ee1409cd4ecd27fbf946c60e394719a4b10c34` |
+| Risk browser carrier | Playwright `1.61.1`, system Chrome, `13/13` |
+| Regression-quality guard | Two files, two adversarial signals, zero violations, zero warnings |
+| Installed downstream G028 | Two `.mjs` implementation files, zero violations, zero warnings |
+| Artifact lint | Passed |
+| Traceability | Passed, one scenario, three linked tests, zero warnings |
+| Scenario obligation | Passed, one coherent obligation matrix |
+| Test mechanism | Passed, one coherent public-function mechanism |
+| Scope context | Passed, one self-contained scope |
+| Capability foundation | Passed, G094 proportionality did not trigger |
+
+The focused test calls exported `RLPA.assetTreatment()` directly. It contains
+eight direct assertions for state, market inclusion, the named exclusion,
+look-through state, covered and missing ids, and both weights. It does not call
+`riskXRayProjection()` inside that title.
+
+### Canonical Selftest Failure
+
+**Phase:** harden
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 fresh harden canonical selftest" -- node scripts/selftest.mjs`
+**Exit Code:** `1`
+**Claim Source:** executed
+
+```text
+# BUG-009 fresh harden canonical selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3922
+sha256: 3b576684ef7ce030e1170939cf1acf1275feb2a555a5ce1d0e7cb1816000abc7
+FAIL: no active tests/*.mjs path named by a spec artifact is missing outside the frozen baseline
+Research-Lab self-test: 3425 passed, 1 failed
+[spec-test-paths] scanned=837 references=19603 distinctPaths=270 missingPaths=71 plannedMissing=0 baseline=70 new=1 stale=0
+NEW-MISSING tests/chaos-439508.spec.mjs (2 reference site(s))
+referenced at specs/008-portfolio-survival-and-brief-lab/state.json:1604
+referenced at specs/008-portfolio-survival-and-brief-lab/state.json:1618
+[spec-test-paths] FAIL - 1 new referenced path(s) do not exist
+```
+
+The failure sits in the protected parent Feature 008 state. That state already
+records the docs finding and routes its repair to `bubbles.validate`. This pass
+does not edit, stage, or duplicate the parent route.
+
+### Fresh Artifact Parity Findings
+
+**Phase:** harden
+**Claim Source:** executed
+
+```text
+bug.md exact-title count=1
+spec.md exact-title count=0
+design.md exact-title count=1
+scopes.md exact-title count=3
+scenario-manifest.json exact-title count=1
+test-plan.json exact-title count=4
+tests/portfolio-risk.functional.mjs exact-title count=1
+tests/portfolio-test-integrity.unit.mjs exact-title count=1
+TITLE_PARITY_EXIT=1
+HARDEN-B009-001 state status=addressed
+HARDEN-B009-002 state status=addressed
+HARDEN-B009-003 state status=addressed
+HARDEN-B009-004 state status=addressed
+BUG-009-ROUTE-008 state status=resolved
+BUG-009-ROUTE-009 state status=resolved
+BUG-009-ROUTE-010 state status=resolved
+BUG-009-ROUTE-011 state status=resolved
+active scopes.md next owner=bubbles.design for HARDEN-B009-003
+active report.md next owner=bubbles.design for HARDEN-B009-003
+```
+
+`HARDEN-B009-003` and `HARDEN-B009-004` are genuinely resolved. Their owner
+artifacts carry the exact shipped title. Routes 010 and 011 match those facts.
+
+`HARDEN-B009-001` and `HARDEN-B009-002` are not genuinely resolved in the
+current durable packet. The report opening and active scope routing still say
+that findings 003 and 004 remain open. They route to `bubbles.design`, despite
+the later design and bug records that close both findings. Routes 008 and 009
+record owner actions, but their required current-state outcome has regressed.
+
+The exact title is absent from `spec.md`. This violates the required parity
+across bug, spec, design, scope, manifest, plan, shipped test, and registry.
+
+### Findings And Routes
+
+| Finding | Current evidence | Required owner |
+| --- | --- | --- |
+| `HARDEN-B009-005` | Active `report.md` and `scopes.md` lifecycle text still routes resolved findings 003 and 004 to `bubbles.design`. | `bubbles.plan` |
+| `HARDEN-B009-006` | The exact shipped title occurs zero times in `spec.md`, while all seven other required surfaces contain it. | `bubbles.analyst` |
+| `HARDEN-B009-007` | Canonical selftest is `3425/3426` because protected parent state names missing `tests/chaos-439508.spec.mjs` twice. | `bubbles.validate` for the existing parent route |
+
+### Fresh Harden Verdict
+
+Verdict: **NOT_HARDENED**.
+
+The fresh execution supports consuming `BUG-009-ROUTE-012` as an executed
+harden request. It does not support a harden completion claim or a route to
+`bubbles.stabilize`. Route the spec title to `bubbles.analyst`, route active
+lifecycle text to `bubbles.plan`, preserve the existing parent route to
+`bubbles.validate`, then rerun harden. BUG-009 remains `in_progress`. Scope 1
+remains In Progress. Every DoD item remains unchecked. Human acceptance and
+certification remain unchanged.
+
+## Fresh Harden Durable Closeout - Repository Authority Revision 302 {#fresh-harden-durable-closeout-revision-302}
+
+**Phase:** harden
+**Agent:** `bubbles.harden`
+**Claim Source:** interpreted
+**Interpretation:** This section durably reconciles the already-executed fresh
+harden pass. It preserves the execution evidence and `NOT_HARDENED` verdict in
+the preceding section. It does not relabel the canonical selftest, rerun the
+long battery, or claim harden completion.
+**Recorded at:** `2026-08-27T06:50:32Z`
+**Repository authority:** host revision `302`; committed Research Lab decision
+`rb:vscode-d037d272141b9d17af8fa6ccdd049e69:303` at control revision `303`.
+
+### Consumed Route
+
+`BUG-009-ROUTE-012` is resolved by `bubbles.harden` because the requested fresh
+pass executed. Its outcome is explicitly `NOT_HARDENED`, so `harden` is not
+added to `execution.completedPhaseClaims` and the packet does not advance to
+`bubbles.stabilize`.
+
+### Unresolved Finding Ledger
+
+| Finding | Durable disposition | Owner |
+| --- | --- | --- |
+| `HARDEN-B009-005` | Unresolved. Reconcile the active report Summary and Completion Statement plus `scopes.md` lifecycle and routing text that still says findings 003 and 004 remain open and routes to design. | `bubbles.plan` via `BUG-009-ROUTE-013` |
+| `HARDEN-B009-006` | Unresolved. Add the exact shipped title to active `spec.md` without changing behavior, requirements, or acceptance criteria. | `bubbles.analyst` via `BUG-009-ROUTE-014` |
+| `HARDEN-B009-007` | Unresolved external parent finding. Preserve the canonical selftest result at `3425/3426`: parent Feature 008 state references missing `tests/chaos-439508.spec.mjs` twice. | Existing parent Feature 008 `bubbles.docs` execution-history route started `2026-08-27T06:19:29Z`, already assigned to `bubbles.validate` against parent `state.json` |
+
+No BUG-local transition request duplicates `HARDEN-B009-007`. The BUG state
+links the existing parent route and leaves parent state and chaos files
+untouched.
+
+### Ordered Continuation
+
+The next executable BUG-009 owner is `bubbles.plan` for
+`HARDEN-B009-005`. The analyst route for `HARDEN-B009-006` and the existing
+parent validate route for `HARDEN-B009-007` remain pending. A fresh harden pass
+is required after those three findings are reconciled. There is no route to
+stabilize from this closeout.
+
+BUG-009 remains `in_progress`. Scope 1 remains In Progress. All 18 DoD items
+remain unchecked. Human acceptance and every certification field remain
+unchanged.

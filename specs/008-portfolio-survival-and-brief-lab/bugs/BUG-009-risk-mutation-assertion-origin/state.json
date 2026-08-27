@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T06:24:58Z",
+  "lastUpdatedAt": "2026-08-27T06:50:32Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,19 +29,19 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.bug",
+    "activeAgent": "bubbles.harden",
     "currentPhase": "harden",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "bug_title_reconciled_route_to_harden",
+    "substate": "fresh_harden_not_hardened_routed_to_plan",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.harden",
+    "nextRequiredOwner": "bubbles.plan",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "HARDEN-B009-004 is reconciled to the active exact title and BUG-009-ROUTE-011 is resolved. Run a fresh hardening pass without treating this owner remediation as a harden pass.",
+    "nextRequiredReason": "The fresh harden pass consumed BUG-009-ROUTE-012 but returned NOT_HARDENED. Reconcile HARDEN-B009-005 first through bubbles.plan; HARDEN-B009-006 remains routed to bubbles.analyst and HARDEN-B009-007 remains linked to the existing parent Feature 008 bubbles.validate route. Rerun harden only after all three findings are reconciled; do not advance to stabilize.",
     "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps"],
-    "pendingTransitionRequests": ["BUG-009-ROUTE-012"],
+    "pendingTransitionRequests": ["BUG-009-ROUTE-013", "BUG-009-ROUTE-014"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -190,11 +190,30 @@
     },
     {
       "id": "BUG-009-ROUTE-012",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.bug",
       "nextRequiredOwner": "bubbles.harden",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-      "reason": "HARDEN-B009-004 is addressed and BUG-009-ROUTE-011 is resolved. Run a fresh hardening pass over the reconciled packet without treating this owner remediation as a harden pass."
+      "reason": "HARDEN-B009-004 is addressed and BUG-009-ROUTE-011 is resolved. Run a fresh hardening pass over the reconciled packet without treating this owner remediation as a harden pass.",
+      "resolvedBy": "bubbles.harden",
+      "resolvedAt": "2026-08-27T06:50:32Z",
+      "resolution": "Consumed by the fresh hardening pass recorded at report.md#fresh-harden-revision-300. The executed verdict is NOT_HARDENED, so no harden completion or stabilize route is claimed."
+    },
+    {
+      "id": "BUG-009-ROUTE-013",
+      "status": "pending",
+      "fromAgent": "bubbles.harden",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "report.md Summary and Completion Statement; scopes.md lifecycle and routing text",
+      "reason": "HARDEN-B009-005: reconcile active lifecycle text that still says HARDEN-B009-003 and HARDEN-B009-004 remain open and routes to bubbles.design, while preserving Scope 1 In Progress, every unchecked DoD item, human acceptance, status, and certification."
+    },
+    {
+      "id": "BUG-009-ROUTE-014",
+      "status": "pending",
+      "fromAgent": "bubbles.harden",
+      "nextRequiredOwner": "bubbles.analyst",
+      "target": "spec.md active exact shipped title",
+      "reason": "HARDEN-B009-006: add the active exact shipped title to spec.md without changing behavior, requirements, acceptance criteria, scope state, human acceptance, status, or certification."
     }
   ],
   "reworkQueue": [],
@@ -300,6 +319,16 @@
       "note": "Resolved only HARDEN-B009-004 and BUG-009-ROUTE-011 by replacing the stale proposed exact title in bug.md with the active plural named-exclusions title. Preserved the diagnosed wrong-origin RED, root cause, exact mutation, Module._compile causality, all eight direct assertions, and historical narrative. Routed BUG-009-ROUTE-012 to bubbles.harden for a fresh pass without claiming hardening passed. Status, scope state, DoD, human acceptance, and certification remain untouched.",
       "phasesExecuted": ["bug"],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-27T06:50:32Z",
+      "agent": "bubbles.harden",
+      "phase": "harden",
+      "action": "consumed-fresh-harden-route-recorded-not-hardened-and-routed-to-plan",
+      "note": "Consumed BUG-009-ROUTE-012 by durably recording the already-executed fresh hardening pass under Research Lab authority revision 302. Preserved its NOT_HARDENED verdict and canonical selftest result of 3425 passed and 1 failed. Recorded HARDEN-B009-005 for bubbles.plan and HARDEN-B009-006 for bubbles.analyst. Linked HARDEN-B009-007 to the existing parent Feature 008 bubbles.docs execution-history route started 2026-08-27T06:19:29Z, already assigned to bubbles.validate against parent state.json, without creating a duplicate BUG-local parent route. No long test battery was rerun for this state-only closeout. Status and certification remain in_progress, Scope 1 remains In Progress, all 18 DoD items remain unchecked, human acceptance remains untouched, harden is not added to completedPhaseClaims, and no stabilize route is opened.",
+      "phasesExecuted": ["harden"],
+      "provenanceMode": "specialist",
+      "outcome": "route_required"
     }
   ],
   "addressedFindings": [
@@ -393,7 +422,47 @@
       "owner": "bubbles.bug",
       "status": "addressed",
       "evidenceRef": "report.md#bug-title-reconciliation-2026-08-27"
+    },
+    {
+      "id": "B009-HARDEN-EXECUTION-002",
+      "summary": "BUG-009-ROUTE-012 was consumed by an executed fresh hardening pass whose durable verdict remains NOT_HARDENED; no harden completion claim or stabilize route was added.",
+      "owner": "bubbles.harden",
+      "status": "addressed",
+      "evidenceRef": "report.md#fresh-harden-revision-300"
     }
   ],
-  "unresolvedFindings": []
+  "unresolvedFindings": [
+    {
+      "id": "HARDEN-B009-005",
+      "summary": "Active report Summary and Completion Statement plus scopes.md lifecycle and routing text still say HARDEN-B009-003 and HARDEN-B009-004 remain open and route to bubbles.design.",
+      "owner": "bubbles.plan",
+      "status": "unresolved",
+      "transitionRequest": "BUG-009-ROUTE-013",
+      "evidenceRef": "report.md#fresh-harden-revision-300"
+    },
+    {
+      "id": "HARDEN-B009-006",
+      "summary": "Active spec.md does not contain the exact shipped title; add that title without changing behavior or requirements.",
+      "owner": "bubbles.analyst",
+      "status": "unresolved",
+      "transitionRequest": "BUG-009-ROUTE-014",
+      "evidenceRef": "report.md#fresh-harden-revision-300"
+    },
+    {
+      "id": "HARDEN-B009-007",
+      "summary": "Canonical selftest remains 3425 of 3426 because parent Feature 008 state references missing tests/chaos-439508.spec.mjs twice.",
+      "owner": "bubbles.validate",
+      "status": "unresolved_external",
+      "evidenceRef": "report.md#fresh-harden-revision-300",
+      "routeDisposition": "linked-existing-parent-route",
+      "externalRouteRef": {
+        "featureDir": "specs/008-portfolio-survival-and-brief-lab",
+        "stateFile": "specs/008-portfolio-survival-and-brief-lab/state.json",
+        "executionHistoryAgent": "bubbles.docs",
+        "executionHistoryStartedAt": "2026-08-27T06:19:29Z",
+        "nextRequiredOwner": "bubbles.validate",
+        "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/state.json"
+      }
+    }
+  ]
 }

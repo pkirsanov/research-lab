@@ -318,6 +318,13 @@ test.afterEach(() => {
 test('a shut decision card shows a visible cue naming what opening it reveals', async ({ page }) => {
   test.setTimeout(90_000);
   await openBrief(page);
+  /* An empty tier is a published outcome, not an absent one: every candidate can be refused and
+     the brief still publishes. This row measures the card's RENDERING — what a reader can see
+     while it is shut — so it must have a card to measure, not wait for the market to supply one.
+     It was the only tier-rendering row in this file missing the guard the other five already use;
+     on 2026-08-27 all five candidates were refused as RLATTN-OVERLAP, no card rendered, and this
+     row failed the deploy gate and withheld a correctly published brief. */
+  await ensureRenderedAttentionFixture(page);
   await expect(page.locator('#decisionAttention details').first()).toBeAttached({ timeout: 30000 });
 
   const read = await page.evaluate(() => {

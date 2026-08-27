@@ -3151,28 +3151,65 @@ try {
      survived only in a comment — which is exactly the failure mode this packet already found
      once in rlbrief.js. Both halves are therefore executed below.
 
-     The fixture is the committed item's JUDGEMENT ONLY, which is what the authoring lane
-     actually hands over. Recomposing the committed item as published proves nothing here: a
-     `decision-attention/v1` envelope carries its own observed half, so it survives an outage
-     snapshot untouched and the branch never runs — measured, not supposed. */
+     The fixture is a lane JUDGEMENT ONLY, which is what the authoring lane actually hands over.
+     Recomposing a published item proves nothing here: a `decision-attention/v1` envelope carries
+     its own observed half, so it survives an outage snapshot untouched and the branch never
+     runs — measured, not supposed. */
   const outageConfig = JSON.parse(read('market-brief.config.json'));
   const outageRegistry = JSON.parse(read('tools.json'));
   const outageAgenda = JSON.parse(read('research-agenda.json'));
   const outageSnapshot = JSON.parse(read('market-brief.snapshot.json'));
   const committedForOutage = JSON.parse(read('market-brief.payload.json'));
-  const laneJudgementOnly = {};
-  for (const key of RLATTN_AUTHORED_KEYS) {
-    if (committedForOutage.attention[0][key] !== undefined) laneJudgementOnly[key] = committedForOutage.attention[0][key];
-  }
-  const outageBasePayload = Object.assign({}, committedForOutage, { attention: [laneJudgementOnly] });
+  /* The fixture is CONSTRUCTED rather than harvested from the published tier, for the same reason
+     the SCN-BUG009-R1 rows above stopped depending on the market being interesting. Harvesting
+     `attention[0]` assumed the tier is never empty — but an empty tier is a GUARANTEED outcome,
+     not an anomaly: the composer refuses candidates and "if every candidate is refused the tier
+     publishes empty and the brief still publishes". On 2026-08-27 the pre-market run refused all
+     five candidates as RLATTN-OVERLAP, `attention[0]` was undefined, and this whole group threw
+     on `.headline` — taking the deploy gate, and therefore the published brief, down with it.
+     A quiet tier is not a defect and must not read as one. */
+  const outageTrackedSubjects = Object.keys(outageSnapshot.tracked || {}).sort();
+  assert(outageTrackedSubjects.length > 0,
+    'the committed snapshot carries at least one observable subject, so the outage fixture below is built against real observed state rather than passing vacuously');
+  const outageSubject = outageTrackedSubjects[0];
+  /* Observability is CONSTRUCTED on the chosen subject, exactly as SCN-BUG009-R1-E2E does. The
+     gate refuses a candidate whose subject clears no declared band (RLATTN-PROVENANCE), so
+     harvesting whatever the market happened to be doing made this row depend on the weather too.
+     Live input health is asserted separately and unconditionally by the observableSubjectTally
+     row above; conflating the two is what let a quiet tier read as a broken gate. */
+  const outageObservedSubject = Object.assign({}, outageSnapshot.tracked[outageSubject], {
+    ma200Dist: -20, maStack: 'tangled',
+    levels: Object.assign({}, outageSnapshot.tracked[outageSubject].levels,
+      { high52w: 160, low52w: 80, ma20: 104, ma50: 108, ma200: 125 }),
+    flags: Object.assign({}, outageSnapshot.tracked[outageSubject].flags, { persistenceGateMet: true })
+  });
+  const outageObservableSnapshot = Object.assign({}, outageSnapshot, {
+    tracked: Object.assign({}, outageSnapshot.tracked, { [outageSubject]: outageObservedSubject })
+  });
+  const laneJudgementOnly = {
+    headline: `${outageSubject} sits far from its 200-day`, rationale: 'structural',
+    verb: 'monitor', horizon: 'swing', severity: 'moderate', imminence: 'latent',
+    escalationTrigger: 'a close back above the 200-day',
+    invalidation: 'a close below the 52-week low',
+    expiry: new Date(Date.parse(committedForOutage.generatedAt) + 3 * 86400000).toISOString()
+  };
+  /* Actions are emptied for the fixture run ONLY. Overlap is resolved by scanning the day's
+     action prose for watchlist tickers, so any real subject can be claimed by an action on any
+     given day — which is exactly what refused all five candidates on 2026-08-27. Leaving the
+     live actions in place would make this row's subject a lottery the outage branch has no
+     stake in. The snapshot stays real, so observability is still measured, not assumed. */
+  const outageBasePayload = Object.assign({}, committedForOutage, {
+    attention: [laneJudgementOnly],
+    nextSession: Object.assign({}, committedForOutage.nextSession, { actions: [] })
+  });
   delete outageBasePayload.attentionExclusions;
   const systemicRows = (result) => (result.payload.attentionExclusions || [])
     .filter((exclusion) => exclusion && exclusion.code === 'RLATTN-SNAPSHOT-UNOBSERVABLE');
 
   const outageRun = recomposePayloadAttention(outageBasePayload, outageConfig, { tracked: {} });
-  const observableRun = recomposePayloadAttention(outageBasePayload, outageConfig, outageSnapshot);
+  const observableRun = recomposePayloadAttention(outageBasePayload, outageConfig, outageObservableSnapshot);
   assert(observableRun.items.length === 1 && systemicRows(observableRun).length === 0,
-    'the same candidate BUILDS against the committed snapshot and records no systemic cause, so the fixture is a genuinely observable item and the outage branch discriminates rather than always firing');
+    'the same candidate BUILDS against a snapshot whose subject is observable by construction and records no systemic cause, so the fixture is a genuinely observable item and the outage branch discriminates rather than always firing');
   assert(outageRun.items.length === 0 && systemicRows(outageRun).length === 1
     && systemicRows(outageRun)[0].index === -1 && systemicRows(outageRun)[0].subject === null,
     'against a snapshot the gate cannot observe, the composer builds nothing and records the systemic cause exactly ONCE with no subject, rather than leaving only per-candidate refusals that never name why every one of them failed');
@@ -28224,15 +28261,41 @@ try {
   const hllEventNames = ['hlEventsInWindow', 'hlScenarioTotal', 'hlScenariosUsable', 'hlEventCaveat',
     'hlObservationOf', 'hlDiffObservation'];
   const hllEv = build(hllEventNames.map((n) => extractFn(hllSrc, n)), hllEventNames);
-  const hllRealEvents = JSON.parse(read('market-brief.payload.json')).events;
+  const hllPayload = JSON.parse(read('market-brief.payload.json'));
+  const hllRealEvents = hllPayload.events;
   const hllNow = Date.parse('2026-08-19T00:00:00Z');
-  const hllShort = hllEv.hlEventsInWindow(hllRealEvents, 5, hllNow);
-  const hllLong = hllEv.hlEventsInWindow(hllRealEvents, 21, hllNow);
-  assert(Array.isArray(hllRealEvents) && hllRealEvents.length > 0
-    && hllShort.length > 0 && hllLong.length > hllShort.length
-    && hllShort.every((e) => e.daysOut >= 0),
-    'a longer horizon admits strictly more scheduled events than a shorter one, so the window is load-bearing ('
+  // WHY A FIXTURE. Windowing used to be proved by measuring the SHIPPED payload from this frozen
+  // clock. But the payload is regenerated four times a day and its calendar only looks FORWARD, so
+  // as publication moved on, the 5-session window (~7.2 calendar days from a fixed 2026-08-19)
+  // slid off the back of the calendar. On 2026-08-27 the regenerated payload put 0 events inside
+  // it against 4 inside 21 sessions, and the run went red with no behaviour changed — the
+  // assertion had been measuring the market's event density, not the window. A fixed clock needs a
+  // fixed calendar; the live payload is held to a separate, density-independent property below.
+  const hllWindowFixture = [
+    { event: 'inside both windows', when: '2026-08-20', impliedMovePct: null, scenarios: [] },
+    { event: 'inside both windows', when: '2026-08-24', impliedMovePct: null, scenarios: [] },
+    { event: 'inside the long window only', when: '2026-09-01', impliedMovePct: null, scenarios: [] },
+    { event: 'inside the long window only', when: '2026-09-15', impliedMovePct: null, scenarios: [] },
+    { event: 'beyond both windows', when: '2026-11-30', impliedMovePct: null, scenarios: [] }
+  ];
+  const hllShort = hllEv.hlEventsInWindow(hllWindowFixture, 5, hllNow);
+  const hllLong = hllEv.hlEventsInWindow(hllWindowFixture, 21, hllNow);
+  assert(hllShort.length > 0 && hllLong.length > hllShort.length
+    && hllShort.every((e) => e.daysOut >= 0)
+    && hllLong.every((e) => e.when !== '2026-11-30'),
+    'a longer horizon admits strictly more scheduled events than a shorter one, and neither admits an event beyond its own end, so the window is load-bearing ('
     + hllShort.length + ' at 5 sessions vs ' + hllLong.length + ' at 21)');
+  // The SHIPPED calendar is still held to a real contract, measured from its own clock rather than
+  // a frozen one: it parses, and widening the horizon never DROPS an event. That is monotonicity,
+  // which holds however busy or quiet the market calendar happens to be on publication day.
+  const hllPayloadNow = Date.parse(hllPayload.generatedAt);
+  const hllShippedShort = hllEv.hlEventsInWindow(hllRealEvents, 5, hllPayloadNow);
+  const hllShippedLong = hllEv.hlEventsInWindow(hllRealEvents, 21, hllPayloadNow);
+  assert(Array.isArray(hllRealEvents) && hllRealEvents.length > 0 && Number.isFinite(hllPayloadNow)
+    && hllShippedLong.length >= hllShippedShort.length
+    && hllShippedLong.every((e) => Number.isFinite(e.daysOut) && e.daysOut >= -1),
+    'the shipped brief calendar parses against its own generation clock and widening the horizon never drops an event ('
+    + hllShippedShort.length + ' at 5 sessions vs ' + hllShippedLong.length + ' at 21 of ' + hllRealEvents.length + ' published)');
   assert(hllEv.hlEventsInWindow(null, 21, hllNow).length === 0
     && hllEv.hlEventsInWindow([{ when: 'not-a-date' }], 21, hllNow).length === 0
     && hllEv.hlEventsInWindow(hllRealEvents, 21, NaN).length === 0,
@@ -28241,12 +28304,20 @@ try {
     'an event with no declared implied move stays null rather than being filled in');
 
   // Declared scenario probabilities are only usable if they actually form a distribution.
-  assert(Math.abs(hllEv.hlScenarioTotal(hllLong[0].scenarios) - 1) <= 0.02
-    && hllEv.hlScenariosUsable(hllLong[0].scenarios) === true
+  const hllScenarioFixture = [{ name: 'up', prob: 0.3 }, { name: 'flat', prob: 0.5 }, { name: 'down', prob: 0.2 }];
+  assert(Math.abs(hllEv.hlScenarioTotal(hllScenarioFixture) - 1) <= 0.02
+    && hllEv.hlScenariosUsable(hllScenarioFixture) === true
     && hllEv.hlScenariosUsable([{ prob: 0.5 }, { prob: 0.2 }]) === false
     && hllEv.hlScenariosUsable([{ name: 'no prob' }]) === false
     && hllEv.hlScenarioTotal([]) === null,
     'a scenario set is usable only when its declared probabilities sum to one, so a malformed set is reported rather than renormalised');
+  // The shipped calendar is held to that same contract directly, rather than through whichever
+  // event happened to sort first in a window: EVERY published event that declares scenarios must
+  // carry a usable distribution. That cannot go vacuously green either — the count is reported.
+  const hllShippedScenarioEvents = hllRealEvents.filter((e) => Array.isArray(e.scenarios) && e.scenarios.length > 0);
+  assert(hllShippedScenarioEvents.every((e) => hllEv.hlScenariosUsable(e.scenarios) === true),
+    'every scheduled event the brief publishes with declared scenarios carries a usable distribution ('
+    + hllShippedScenarioEvents.length + ' of ' + hllRealEvents.length + ' published events declare one)');
 
   // A catalyst inside the horizon must be surfaced as a limit on the analog rate.
   assert(typeof hllEv.hlEventCaveat(hllLong) === 'string'

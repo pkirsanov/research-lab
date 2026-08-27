@@ -792,3 +792,69 @@ test('Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 1
     rmSync(fixtureRoot, { recursive: true, force: true });
   }
 });
+
+test('Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project', () => {
+  const foundationSource = readFileSync(
+    resolve(ROOT, 'tests/portfolio-survival-foundation.spec.mjs'),
+    'utf8'
+  );
+  const runtimeFoundationSource = readFileSync(fileURLToPath(import.meta.url), 'utf8');
+  const runnerSource = readFileSync(resolve(LOCAL_PACKAGE, 'lib/runner/index.js'), 'utf8');
+  const systemChrome = playwrightConfig.projects.find(({ name }) => name === 'system-chrome');
+
+  assert.ok(systemChrome, 'SCN-BUG017-11: system-chrome project is missing');
+  assert.equal(systemChrome.use.browserName, 'chromium');
+  assert.equal(systemChrome.use.channel, 'chrome');
+  assert.ok(
+    playwrightConfig.workers === 2 || playwrightConfig.workers === 1,
+    `SCN-BUG017-11: workers must remain 2 or use the rollback-gated 1-worker fallback, got ${playwrightConfig.workers}`
+  );
+  assert.match(
+    runnerSource,
+    /PWTEST_CHILD_PROCESS_TIMEOUT \|\| 5 \* 60 \* 1e3/,
+    'SCN-BUG017-11: Playwright default worker-stop budget is no longer 300000ms'
+  );
+  assert.match(foundationSource, /import \{ expect, test as baseTest \} from '\.\/playwright-runtime\.mjs';/);
+  assert.match(
+    foundationSource,
+    /foundationBrowserBoundary: \[async \(\{ browser \}, use\) => \{[\s\S]*foundationBrowser = browser;[\s\S]*await use\(\);[\s\S]*\}, \{ auto: true, scope: 'worker' \}\]/,
+    'SCN-BUG017-11: Foundation must own an automatic worker-scoped browser boundary'
+  );
+
+  const afterAllStart = foundationSource.indexOf('test.afterAll(async () => {');
+  const afterAllEnd = foundationSource.indexOf('\n});', afterAllStart);
+  assert.ok(afterAllStart >= 0 && afterAllEnd > afterAllStart, 'SCN-BUG017-11: Foundation afterAll is missing');
+  const afterAllSource = foundationSource.slice(afterAllStart, afterAllEnd);
+  const browserClose = afterAllSource.indexOf('await foundationBrowser.close()');
+  const serverClose = afterAllSource.indexOf('await server.close()');
+  assert.ok(browserClose >= 0, 'SCN-BUG017-11: Foundation-owned browser close is missing');
+  assert.ok(serverClose > browserClose, 'SCN-BUG017-11: browser must close before the Foundation server');
+  assert.equal(
+    foundationSource.match(/foundationBrowser\.close\(\)/g)?.length,
+    1,
+    'SCN-BUG017-11: Foundation browser must close exactly once in its owning hook'
+  );
+  assert.doesNotMatch(afterAllSource, /\bcatch\b|\.catch\s*\(/, 'SCN-BUG017-11: browser close errors must remain visible');
+
+  const canaryStart = runtimeFoundationSource.indexOf(
+    "test('Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds'"
+  );
+  const containmentStart = runtimeFoundationSource.indexOf(
+    "test('Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project'"
+  );
+  assert.ok(canaryStart >= 0 && containmentStart > canaryStart, 'SCN-BUG017-11: lifecycle canary is missing');
+  const canarySource = runtimeFoundationSource.slice(canaryStart, containmentStart);
+  assert.match(canarySource, /PWTEST_CHILD_PROCESS_TIMEOUT: String\(BUG017_WORKER_STOP_BOUND_MS\)/);
+  assert.match(canarySource, /process\.stdout\.write\(child\.stdout \|\| ''\)/);
+  assert.match(canarySource, /process\.stderr\.write\(child\.stderr \|\| ''\)/);
+  assert.match(canarySource, /assert\.doesNotMatch\(output, \/worker-/);
+  assert.doesNotMatch(canarySource, /\bcatch\b|\.catch\s*\(/, 'SCN-BUG017-11: canary must not catch teardown errors');
+
+  console.log('[SCN-BUG017-11] project=system-chrome');
+  console.log('[SCN-BUG017-11] channel=chrome');
+  console.log('[SCN-BUG017-11] workers=' + playwrightConfig.workers);
+  console.log('[SCN-BUG017-11] defaultWorkerStopBudgetMs=300000');
+  console.log('[SCN-BUG017-11] browserCloseBeforeServer=true');
+  console.log('[SCN-BUG017-11] forceKillErrorsStreamed=true');
+  console.log('[SCN-BUG017-11] teardownErrorsCaught=0');
+});

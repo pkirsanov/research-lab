@@ -29,29 +29,39 @@
   selftest passed `3426/3426`. No CI, build, deployment, configuration,
   dependency, observability, release, registry, or runtime-operations change
   is required, and no live deployment was invoked.
-- Verdict: `NO DEVOPS CHANGE REQUIRED`. DevOps is recorded in execution
-  provenance, and `BUG-009-ROUTE-020` routes next to `bubbles.security`, the
-  next persisted fastlane phase.
+- Revision-321 security consumed `BUG-009-ROUTE-020` and audited the actual
+  implementation commit, both changed tests, and the unchanged shared injector.
+  G034 reported zero findings, the dependency source lock rejected all 16
+  hostile relaxations, the canonical Node security suites passed `19/19`, the
+  complete mutation mechanism passed `3/3`, and the focused title passed `1/1`.
+  A disposable probe confirmed fail-loud input and anchor behavior, child-only
+  preload scope, private temporary-directory ownership, parallel marker
+  isolation, unchanged source bytes, and cleanup.
+- Verdict: `SECURE WITHIN THE BUG-009 TEST-ONLY CHANGE BOUNDARY`. This is not a
+  broad Research Lab security certification. `BUG-009-ROUTE-021` routes next to
+  `bubbles.validate`, the next persisted fastlane phase.
 - Historical before/after evidence, including the earlier `3425/3426` failure,
   the revision-311 `NOT_HARDENED` result, and old route language inside dated
   sections remains intact as valid history. The parent Feature 008 transaction,
   BUG-007, README, docs, product source, tests, baseline, DoD, scope status,
   human acceptance, certification, and all foreign paths remain unchanged by
-  this DevOps closeout.
+  this security closeout.
 
 ## Completion Statement
 
-The revision-319 DevOps phase inspected the actual two-file implementation
-commit and the repository's GitHub Pages contract. The exact Pages build, a
-detailed registered-artifact build, the exact CI selftest, and an explicit
-implementation-path and artifact-membership check all passed. The repair needs
-no operational file change and no live deployment. `BUG-009-ROUTE-019` is
-resolved, DevOps is recorded in execution provenance, and
-`BUG-009-ROUTE-020` routes next to `bubbles.security` under the persisted phase
-order. This is phase completion, not terminal delivery completion: BUG-009
-remains `in_progress`, Scope 1 remains In Progress, and all 18 DoD items remain
-unchecked. Human acceptance and every certification field remain untouched and
-unclaimed.
+The revision-321 security phase inspected the actual two-file implementation
+commit and the unchanged shared mutation injector. It found no BUG-009-local
+security defect. The injector is explicitly classified as a trusted test
+harness rather than a sandbox: its parent can choose an outside-root module,
+replacement source, inherited Node options, and marker path, but that parent
+already controls Node execution and no user, provider, page, runtime, or
+less-privileged input reaches those values. The preload runs only in spawned
+test children, and the three mechanism files and BUG packet are absent from the
+generated Pages artifact. `BUG-009-ROUTE-020` is resolved, security is recorded
+in execution provenance, and `BUG-009-ROUTE-021` routes next to
+`bubbles.validate`. BUG-009 remains `in_progress`, Scope 1 remains In Progress,
+and all 18 DoD items remain unchecked. Human acceptance and every certification
+field remain untouched and unclaimed.
 
 ## Test Evidence
 
@@ -3529,3 +3539,452 @@ phase immediately after DevOps in the persisted `bugfix-fastlane` order.
 BUG-009 remains `in_progress`, Scope 1 remains In Progress, all 18 DoD items
 remain unchecked, human acceptance remains unclaimed, and certification remains
 unchanged.
+
+## ROUTE-020 Security - Repository Authority Revision 321 {#security-revision-321}
+
+**Phase:** security
+**Agent:** `bubbles.security`
+**Recorded at:** `2026-08-27T08:56:12Z`
+**Claim Source:** interpreted
+**Interpretation:** No BUG-009 security defect was found in implementation
+commit `4824edc81`. The verdict covers only the two changed test hunks and the
+unchanged injector mechanism they invoke. G034 and the canonical Node security
+suites provide supporting repository checks, but they do not turn this narrow
+review into a whole-repository security certification.
+
+### Threat Model And Review Boundary
+
+| Surface | Trust transition | Data or capability | Result |
+| --- | --- | --- | --- |
+| Committed `CASES` entry to child environment | Trusted test parent to spawned Node child | Module path, exact anchor, replacement source, marker path | No external or runtime input enters the transition. |
+| Child `NODE_OPTIONS` to preload | Spawn configuration to `portfolio-defect-injector.cjs` | Process-wide hooks inside that child | The hook does not enter the parent or an uninjected control child. |
+| Preload to target source | Exact resolved filename plus exact one-anchor replacement | In-memory executable JavaScript | Powerful by design; not a sandbox or privilege boundary. |
+| Preload to marker | Caller-selected path to append-only diagnostic record | Relative module name, hook name, byte count | Actual harness places markers in a unique `0700` directory and removes it through `t.after`. |
+| Repository to Pages artifact | Source tree to `_site` allowlist | Public deployable bytes | Both changed tests, the injector, and the BUG packet are omitted. |
+
+The focused fixture contains synthetic symbols and holding identifiers only.
+The harness copies the parent environment into each child, so ambient secrets
+could exist in child process memory. The changed title and carrier do not print
+the environment, replacement input, or marker path. Marker content is limited
+to module, hook, and byte count. This is a process-inheritance observation, not
+a claim that operating-system process memory is secret-free.
+
+### Implementation Commit And Pre-Existing Injector
+
+**Command:** `timeout 30 git --no-pager show --format=fuller --name-status --summary 4824edc81`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+commit 4824edc81b0920b40e728f55b8e8dfdbe1804b2d
+Author:     pkirsanov <pkirsanov@users.noreply.github.com>
+AuthorDate: Thu Aug 27 01:15:48 2026 +0000
+Commit:     pkirsanov <pkirsanov@users.noreply.github.com>
+CommitDate: Thu Aug 27 01:15:48 2026 +0000
+
+    test(BUG-009): assert named risk exclusions
+
+M       tests/portfolio-risk.functional.mjs
+M       tests/portfolio-test-integrity.unit.mjs
+```
+
+**Command:** `timeout 30 git --no-pager log --follow --format='%H %aI %s' -- tests/portfolio-defect-injector.cjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+82d1db5e5819738aa4f5049ebe7078514408620c 2026-08-27T00:15:49+00:00 test(BUG-007): prove mutation failure causality
+fef1b4491088d0fac1a56a9914078dc3fb2e3e23 2026-08-24T01:19:37+00:00 test(008): checkpoint adversarial test replacement
+```
+
+The injector predates BUG-009. The implementation diff adds one direct
+`assetTreatment()` test and changes one static `title` scalar. It does not
+change environment handling, base64 decoding, path resolution, hooks, marker
+I/O, dependencies, Pages packaging, or production source.
+
+### Security Assessment
+
+| Requested area | Assessment | Grounded disposition |
+| --- | --- | --- |
+| Environment-variable inputs | Five injector inputs are required. The harness derives them from committed case records and a private temp path. `RL_DEFECT_DOUBLE_APPLICATION_CONTROL` is a fixed internal control. | No BUG-009 regression. Missing marker input failed loud in the disposable probe. |
+| Base64 decode and replacement | Base64 is transport, not validation. Arbitrary decoded replacement text can execute after compilation. Empty or malformed decoded anchors do not silently apply because the one-occurrence check rejects them. | Pre-existing trusted-harness capability. Invalid base64 and absent anchors failed before marker creation. |
+| Exact module and anchor constraints | Both hooks compare the fully resolved loaded filename to `TARGET`. `representedSource()` requires exactly one anchor and rejects no-op replacement. | Exact-target control passed; zero and duplicate anchors were rejected with empty markers. |
+| Arbitrary path or code execution | `path.resolve(ROOT, MODULE_REL)` accepts absolute and traversing paths, and replacement text is executable JavaScript. `MARKER` is also caller-selected. | Deliberate, pre-existing capability, not a sandbox. The only caller is already-authorized committed test code that can execute Node and write files directly; BUG-009 adds no less-privileged input or new authority. |
+| `NODE_OPTIONS` preload scope | The harness appends `--require <injector>` only to the spawned child's copied environment and uses `spawnSync` argv with no shell. Existing parent options are inherited. | Probe confirmed the parent hook and an uninjected child remain unchanged. No production or browser process receives the preload. |
+| Marker creation, permissions, and cleanup | The harness creates a unique `mkdtempSync` workspace, pre-creates each marker, and removes the workspace in `t.after`. The injector appends module, hook, and byte count only. | Probe observed directory mode `0700`, marker mode `0644` with no group/other write bit, unchanged source, and zero residue. The directory prevents other-user reads of the `0644` file. Hard-kill residue remains a generic temp-file limitation, not introduced by BUG-009. |
+| Parallel isolation | Every integrity invocation is a separate Node process, and marker paths are unique inside the per-test workspace. | Four concurrent children each produced one isolated marker and exited successfully. |
+| Secret and PII exposure | The two changed hunks contain no credential or personal input. The child inherits ambient environment values but neither changed test nor injector emits them. Actual marker content omits environment and replacement values. | No exposure found in the reviewed path. No claim is made about unrelated repository code or OS process inspection. |
+| Test-to-production boundary | All three mechanism files remain under `tests/`. No production module imports the injector, and implementation commit `4824edc81` changes no production file. | Test-only boundary preserved. |
+| Generated Pages exclusion | The builder publishes an explicit directory allowlist containing only `tests/fixtures` from the test tree. | Isolated Pages build omitted both changed tests, the injector, and BUG state, then removed its temporary artifact. |
+| Supply chain and dependencies | `package.json`, `package-lock.json`, `.npmrc`, the Pages build script, and Pages workflow are unchanged by the implementation commit. | Source-lock validation passed and rejected all 16 adversarial relaxations. No CVE-absence claim is made because this review did not run an undeclared network vulnerability audit. |
+| New title mapping | The title is a committed scalar, regex-escaped, and passed as a `spawnSync` argv element. It never reaches a shell. The mapping changes the selected assertion from broad downstream structure to the exact unsupported-holding contract while the full risk carrier remains independently executed. | Trust is narrowed and made more causal; no command-injection or authority expansion was introduced. |
+
+### Mechanical Security And Reality Scans
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 G034 mechanical security floor" -- bash .github/bubbles/scripts/security-gate.sh --repo-root .`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 G034 mechanical security floor
+$ bash .github/bubbles/scripts/security-gate.sh --repo-root .
+exit: 0
+lines: 1
+sha256: 5c96c1174f3bd9937056d5075db7fbe6421b358e2770b19a5704e751e19bd7f0
+--- output ---
+[security-gate] OK — 10163 tracked file(s), zero G034 findings
+```
+
+G034 is the required mechanical floor. Its clean result does not cover
+authorization, injection, sandboxing, or business-logic trust by itself.
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 installed implementation reality security scan" -- bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --verbose`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 installed implementation reality security scan
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --verbose
+exit: 0
+lines: 35
+sha256: 32afbca50feeceaa740f471db55387647e6f219712239c11ea128083cc61b9a2
+--- output ---
+ℹ️  INFO: Resolved 2 implementation file(s) to scan
+
+--- Scan 1: Gateway/Backend Stub Patterns ---
+
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+
+--- Scan 1D: External Integration Authenticity ---
+
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+
+--- Scan 2B: Sensitive Client Storage ---
+
+--- Scan 3: Frontend API Call Absence ---
+
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+
+--- Scan 5: Default/Fallback Value Patterns ---
+
+--- Scan 6: Live-System Test Interception ---
+
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+
+============================================================
+  IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+
+  Files scanned:  2
+  Violations:     0
+  Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+```
+
+### Dependency And Canonical Security Checks
+
+**Command:** `timeout 120 node scripts/validate-node-source-lock.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[node-source-lock] manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+[node-source-lock] npmrc=PASS registry=https://registry.npmjs.org/ entries=5 ignoreScripts=true
+[node-source-lock] lockfile=PASS version=3 externalPackages=3 integrity=sha512
+[node-source-lock] graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+[node-source-lock] adversarial=missing-file result=REJECTED code=FILE-MISSING
+[node-source-lock] adversarial=manifest-drift result=REJECTED code=MANIFEST-KEYS
+[node-source-lock] adversarial=manifest-range result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=manifest-wrong-version result=REJECTED code=MANIFEST-PLAYWRIGHT
+[node-source-lock] adversarial=second-registry result=REJECTED code=NPMRC-DUPLICATE
+[node-source-lock] adversarial=scoped-registry result=REJECTED code=NPMRC-SCOPED-REGISTRY
+[node-source-lock] adversarial=verification-disabled result=REJECTED code=NPMRC-VERIFICATION
+[node-source-lock] adversarial=lifecycle-relaxation result=REJECTED code=NPMRC-IGNORE-SCRIPTS
+[node-source-lock] adversarial=untrusted-resolved-url result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=missing-integrity result=REJECTED code=LOCK-INTEGRITY
+[node-source-lock] adversarial=git-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=file-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=path-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=http-source result=REJECTED code=LOCK-SOURCE
+[node-source-lock] adversarial=external-version-range result=REJECTED code=LOCK-PACKAGE-VERSION
+[node-source-lock] adversarial=extra-package result=REJECTED code=LOCK-GRAPH
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+```
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 canonical Node security suites" -- node --test tests/*.security.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 canonical Node security suites
+$ node --test tests/red-alert.security.mjs tests/web-evidence.security.mjs
+exit: 0
+lines: 124
+sha256: 7fef7e3535c048a3dd7bf0726c335100cc93774c3f46200b87ff2f12a98f1848
+--- first 20 ---
+TAP version 13
+# Subtest: acquire() discards a hostile injected source and its marker never enters the frozen bundle or the projection
+ok 1 - acquire() discards a hostile injected source and its marker never enters the frozen bundle or the projection
+  ---
+  duration_ms: 16.496233
+  type: 'test'
+  ...
+# Subtest: a hostile thesis is a closed refusal at assembly and its marker is never echoed in the refusal
+ok 2 - a hostile thesis is a closed refusal at assembly and its marker is never echoed in the refusal
+  ---
+  duration_ms: 3.287767
+  type: 'test'
+  ...
+# Subtest: the engine source and runtime red-alert policy hardcode no illustrative named topic
+ok 3 - the engine source and runtime red-alert policy hardcode no illustrative named topic
+  ---
+  duration_ms: 2.72189
+  type: 'test'
+  ...
+# Subtest: no red-alert policy exposes a topic catalog, seed catalog, or a minimum-output floor
+--- omitted 84 line(s); sha256 above covers the full output ---
+--- last 20 ---
+# Subtest: STATIC authority proof: acquisition module imports ONLY node:crypto and owns zero forbidden capability
+ok 18 - STATIC authority proof: acquisition module imports ONLY node:crypto and owns zero forbidden capability
+  ---
+  duration_ms: 1.835926
+  type: 'test'
+  ...
+# Subtest: Regression: agenda acquisition rejects query URL byte time and concurrency limits at capacity plus one
+ok 19 - Regression: agenda acquisition rejects query URL byte time and concurrency limits at capacity plus one
+  ---
+  duration_ms: 1.206352
+  type: 'test'
+  ...
+1..19
+# tests 19
+# suites 0
+# pass 19
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 154.711042
+```
+
+The security suites are broad supporting regression evidence. They do not
+exercise the mutation injector and are not cited as proof of its controls.
+
+### Mutation Mechanism And Focused Carrier
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 complete mutation mechanism" -- node --test tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 complete mutation mechanism
+$ node --test tests/portfolio-test-integrity.unit.mjs
+exit: 0
+lines: 28
+sha256: cb390e50cf5622dd9143ae56e5f9c2b9324b950501f56aaef09993db0aa3bc18
+--- output ---
+TAP version 13
+# Subtest: Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+  ---
+  duration_ms: 7429.035841
+  type: 'test'
+  ...
+# Subtest: BUG-007: caller-key protections and normal ordering are load-bearing in memory
+ok 2 - BUG-007: caller-key protections and normal ordering are load-bearing in memory
+  ---
+  duration_ms: 1619.654238
+  type: 'test'
+  ...
+# Subtest: BUG-007: represented mutants execute one protective assertion through one intended hook
+ok 3 - BUG-007: represented mutants execute one protective assertion through one intended hook
+  ---
+  duration_ms: 1885.443047
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 11053.311879
+```
+
+**Command:** `timeout 120 node --test --test-reporter=tap --test-name-pattern='^BUG-009 risk mapping: unsupported holdings remain named exclusions$' tests/portfolio-risk.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+TAP version 13
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+  ---
+  duration_ms: 3.708592
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 103.71889
+```
+
+### Disposable Injector Boundary Probe
+
+**Command:** `cd ~/research-lab && timeout 120 node /tmp/bug009-security-probe.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[bug009-security] required-marker-input=REFUSED
+[bug009-security] invalid-base64-anchor=REFUSED
+[bug009-security] absent-anchor=REFUSED found=0 marker=empty
+[bug009-security] duplicate-anchor=REFUSED found=2 marker=empty
+[bug009-security] exact-module-control=PASS sibling=unmodified
+[bug009-security] outside-root-target=ALLOWED caller-controlled-preload
+[bug009-security] replacement-source-execution=CONFIRMED child-only
+[bug009-security] node-options-scope=child-only parent-hook=unchanged
+[bug009-security] marker-directory-mode=0700
+[bug009-security] marker-file-mode=0644 group-other-write=false
+[bug009-security] marker-content=module-hook-byte-count-only
+[bug009-security] parallel-children=4 isolated-markers=4
+[bug009-security] target-source-hash=unchanged
+[bug009-security] cleanup=PASS residue=false
+[bug009-security] trust-boundary=test-parent-already-controls-node-execution
+```
+
+The disposable script created only `/tmp` fixtures, removed its entire fixture
+tree in `finally`, and was then itself removed. A separate check printed
+`[bug009-security] probe-script-cleanup=PASS residue=false`.
+
+### Pages And Byte Containment
+
+**Command:**
+
+```text
+cd ~/research-lab && timeout 120 node --input-type=module -e 'import assert from "node:assert/strict"; import { existsSync, rmSync } from "node:fs"; import { buildPagesSite } from "./scripts/build-pages-site.mjs"; const destination=`.rl-site-bug009-security-${process.pid}`; const omitted=["tests/portfolio-risk.functional.mjs","tests/portfolio-test-integrity.unit.mjs","tests/portfolio-defect-injector.cjs","specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/state.json"]; let plan; try { plan=buildPagesSite({destination}); for (const path of omitted) assert.equal(existsSync(`${destination}/${path}`),false,path); assert.equal(existsSync(`${destination}/tests/fixtures`),true); console.log(`[bug009-pages] registered-pages=${plan.registeredPages.length}`); console.log(`[bug009-pages] public-directories=${plan.directories.join(",")}`); for (const path of omitted) console.log(`[bug009-pages] omitted=${path}`); console.log("[bug009-pages] allowed-test-subtree=tests/fixtures"); console.log("[bug009-pages] mechanism-files-public=false"); console.log("[bug009-pages] bug-packet-public=false"); } finally { rmSync(destination,{recursive:true,force:true}); } console.log(`[bug009-pages] cleanup=${existsSync(destination) ? "FAIL" : "PASS"}`);'
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[bug009-pages] registered-pages=29
+[bug009-pages] public-directories=briefs,data,docs,notes,research,rlexperience-adapters,tests/fixtures
+[bug009-pages] omitted=tests/portfolio-risk.functional.mjs
+[bug009-pages] omitted=tests/portfolio-test-integrity.unit.mjs
+[bug009-pages] omitted=tests/portfolio-defect-injector.cjs
+[bug009-pages] omitted=specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/state.json
+[bug009-pages] allowed-test-subtree=tests/fixtures
+[bug009-pages] mechanism-files-public=false
+[bug009-pages] bug-packet-public=false
+[bug009-pages] cleanup=PASS
+```
+
+**Command:**
+
+```text
+cd ~/research-lab && for path in tests/portfolio-defect-injector.cjs rlportfolioanalytics.js tests/portfolio-risk.functional.mjs tests/portfolio-test-integrity.unit.mjs; do parent=$(timeout 30 git rev-parse "4824edc81^:$path"); implementation=$(timeout 30 git rev-parse "4824edc81:$path"); head=$(timeout 30 git rev-parse "HEAD:$path"); worktree=$(timeout 30 git hash-object "$path"); printf '[bug009-containment] %s parent=%s implementation=%s head=%s worktree=%s\n' "$path" "$parent" "$implementation" "$head" "$worktree"; done; if timeout 30 git diff --quiet 4824edc81^ 4824edc81 -- package.json package-lock.json .npmrc; then echo '[bug009-containment] dependency-files=UNCHANGED'; else echo '[bug009-containment] dependency-files=CHANGED'; exit 1; fi; if timeout 30 git diff --quiet 4824edc81^ 4824edc81 -- scripts/build-pages-site.mjs .github/workflows/pages.yml; then echo '[bug009-containment] pages-build-workflow=UNCHANGED'; else echo '[bug009-containment] pages-build-workflow=CHANGED'; exit 1; fi; if [[ -z "$(timeout 30 git status --short -- tests/portfolio-defect-injector.cjs rlportfolioanalytics.js tests/portfolio-risk.functional.mjs tests/portfolio-test-integrity.unit.mjs)" ]]; then echo '[bug009-containment] reviewed-implementation-paths=WORKTREE_CLEAN'; else echo '[bug009-containment] reviewed-implementation-paths=WORKTREE_DIRTY'; exit 1; fi; if [[ -z "$(timeout 30 git status --short -- specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/report.md specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/state.json)" ]]; then echo '[bug009-containment] owned-artifacts-before-edit=WORKTREE_CLEAN'; else echo '[bug009-containment] owned-artifacts-before-edit=WORKTREE_DIRTY'; exit 1; fi
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[bug009-containment] tests/portfolio-defect-injector.cjs parent=20ed786006be23f542ec3c524758eda625567ea9 implementation=20ed786006be23f542ec3c524758eda625567ea9 head=20ed786006be23f542ec3c524758eda625567ea9 worktree=20ed786006be23f542ec3c524758eda625567ea9
+[bug009-containment] rlportfolioanalytics.js parent=203c57b14898a13e0da81898e755ea5f5f6674ba implementation=203c57b14898a13e0da81898e755ea5f5f6674ba head=203c57b14898a13e0da81898e755ea5f5f6674ba worktree=203c57b14898a13e0da81898e755ea5f5f6674ba
+[bug009-containment] tests/portfolio-risk.functional.mjs parent=a69b5e284265b661ddeab477d4c449f2c777f81d implementation=2a537316eadbf5067d19c020e0a60b020fb16e84 head=2a537316eadbf5067d19c020e0a60b020fb16e84 worktree=2a537316eadbf5067d19c020e0a60b020fb16e84
+[bug009-containment] tests/portfolio-test-integrity.unit.mjs parent=22fbd21801fd48054d84bf8433f0a3a911bea863 implementation=5aa222876f78430ef1d76a2c980045cf6a5d5207 head=5aa222876f78430ef1d76a2c980045cf6a5d5207 worktree=5aa222876f78430ef1d76a2c980045cf6a5d5207
+[bug009-containment] dependency-files=UNCHANGED
+[bug009-containment] pages-build-workflow=UNCHANGED
+[bug009-containment] reviewed-implementation-paths=WORKTREE_CLEAN
+[bug009-containment] owned-artifacts-before-edit=WORKTREE_CLEAN
+```
+
+### Security Profile And Route
+
+| Check | Result | Basis |
+| --- | --- | --- |
+| SE1 security coverage complete | PASS | Inputs, decode/replacement, module and anchor constraints, arbitrary target/code capability, preload scope, marker lifecycle, parallel isolation, exposure, production boundary, Pages, dependencies, and title trust were reviewed. |
+| SE2 dependency or scanner evidence | PASS | G034, installed G028, source-lock validation, and canonical Node security suites executed. |
+| SE3 findings grounded | PASS | The no-defect result and every trust assumption are tied to source, commit, blob, or executable probe evidence above. |
+| SE4 artifact handling for open issues | NOT APPLICABLE | No BUG-009 security defect or foreign-owned remediation was found. |
+
+Security verdict: **SECURE WITHIN THE BUG-009 TEST-ONLY CHANGE BOUNDARY**.
+
+This verdict does not claim that the injector safely accepts untrusted input;
+it does not. It claims that BUG-009 did not introduce such an input path or
+expand authority. `BUG-009-ROUTE-020` is resolved.
+`B009-SECURITY-EXECUTION-001` records the phase, and
+`BUG-009-ROUTE-021` routes next to `bubbles.validate`, the phase immediately
+after security in the persisted `bugfix-fastlane` order. BUG-009 remains
+`in_progress`, Scope 1 remains In Progress, all 18 DoD items remain unchecked,
+human acceptance remains unclaimed, and certification remains unchanged.
+
+### Post-Edit JSON, Editor, And Preservation Checks
+
+**Command:**
+
+```text
+cd ~/research-lab && timeout 30 node -e 'const fs=require("node:fs"); const path="specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/state.json"; const state=JSON.parse(fs.readFileSync(path,"utf8")); if(state.status!=="in_progress") throw new Error("status changed"); if(state.certification.status!=="in_progress") throw new Error("certification changed"); if(state.execution.scopeInventory[0].status!=="In Progress") throw new Error("scope changed"); if(state.execution.nextRequiredOwner!=="bubbles.validate") throw new Error("route owner mismatch"); const route20=state.transitionRequests.find((route)=>route.id==="BUG-009-ROUTE-020"); const route21=state.transitionRequests.find((route)=>route.id==="BUG-009-ROUTE-021"); if(route20?.status!=="resolved"||route21?.status!=="pending") throw new Error("route state mismatch"); console.log("[bug009-state] json=PASS"); console.log(`[bug009-state] status=${state.status}`); console.log(`[bug009-state] certification=${state.certification.status}`); console.log(`[bug009-state] scope=${state.execution.scopeInventory[0].status}`); console.log(`[bug009-state] completed-scopes=${state.completedScopes.length}`); console.log(`[bug009-state] security-claim=${state.execution.completedPhaseClaims.includes("security")}`); console.log(`[bug009-state] route-020=${route20.status}`); console.log(`[bug009-state] route-021=${route21.status}`); console.log(`[bug009-state] next-owner=${state.execution.nextRequiredOwner}`); console.log(`[bug009-state] human-cert-fields-unchanged=${state.certification.certifiedAt===null}`);'
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[bug009-state] json=PASS
+[bug009-state] status=in_progress
+[bug009-state] certification=in_progress
+[bug009-state] scope=In Progress
+[bug009-state] completed-scopes=0
+[bug009-state] security-claim=true
+[bug009-state] route-020=resolved
+[bug009-state] route-021=pending
+[bug009-state] next-owner=bubbles.validate
+[bug009-state] human-cert-fields-unchanged=true
+```
+
+**Tool:** VS Code diagnostics for BUG-009 `report.md` and `state.json`
+**Claim Source:** executed
+
+```text
+report.md: No errors found
+state.json: No errors found
+```
+
+**Command:**
+
+```text
+cd ~/research-lab && timeout 30 node -e 'const fs=require("node:fs"); const base="specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin"; const scopes=fs.readFileSync(`${base}/scopes.md`,"utf8"); const state=JSON.parse(fs.readFileSync(`${base}/state.json`,"utf8")); const unchecked=(scopes.match(/^- \[ \]/gm)||[]).length; const checked=(scopes.match(/^- \[[xX]\]/gm)||[]).length; if(unchecked!==18||checked!==0) throw new Error(`DoD drift ${unchecked}/${checked}`); if(state.status!=="in_progress"||state.certification.status!=="in_progress"||state.execution.scopeInventory[0].status!=="In Progress") throw new Error("lifecycle drift"); console.log(`[bug009-preservation] dod-unchecked=${unchecked}`); console.log(`[bug009-preservation] dod-checked=${checked}`); console.log(`[bug009-preservation] status=${state.status}`); console.log(`[bug009-preservation] scope=${state.execution.scopeInventory[0].status}`); console.log(`[bug009-preservation] certification=${state.certification.status}`); console.log(`[bug009-preservation] human-certified-at=${state.certification.certifiedAt}`);' && if timeout 30 git diff --quiet -- specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/scopes.md specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/uservalidation.md; then echo '[bug009-preservation] planning-and-human-files=UNCHANGED'; else echo '[bug009-preservation] planning-and-human-files=CHANGED'; exit 1; fi; echo '[bug009-preservation] dirty-bug-paths:'; timeout 30 git diff --name-only -- specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin; if [[ -z "$(timeout 30 git diff --cached --name-status)" ]]; then echo '[bug009-preservation] staged-paths=0'; else echo '[bug009-preservation] staged-paths=NONZERO'; exit 1; fi
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[bug009-preservation] dod-unchecked=18
+[bug009-preservation] dod-checked=0
+[bug009-preservation] status=in_progress
+[bug009-preservation] scope=In Progress
+[bug009-preservation] certification=in_progress
+[bug009-preservation] human-certified-at=null
+[bug009-preservation] planning-and-human-files=UNCHANGED
+[bug009-preservation] dirty-bug-paths:
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/report.md
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/state.json
+[bug009-preservation] staged-paths=0
+```

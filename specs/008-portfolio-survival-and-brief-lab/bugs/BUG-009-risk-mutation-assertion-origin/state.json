@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T08:37:41Z",
+  "lastUpdatedAt": "2026-08-27T08:56:12Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,18 +29,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.devops",
-    "currentPhase": "devops",
+    "activeAgent": "bubbles.security",
+    "currentPhase": "security",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "devops_reviewed_security_pending",
+    "substate": "security_reviewed_validation_pending",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.security",
+    "nextRequiredOwner": "bubbles.validate",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "BUG-009-ROUTE-019 is resolved by the revision-319 no-change DevOps review. Implementation commit 4824edc81 changes exactly two test files and no operational surface. The canonical Pages build passed, the generated artifact omits both tests and the BUG packet, and the exact CI selftest passed 3426 of 3426. No CI, build, deployment, configuration, dependency, observability, release, registry, or runtime-operations change is required. The persisted bugfix-fastlane phase order places security immediately after devops, so BUG-009-ROUTE-020 routes next to bubbles.security while delivery and certification remain in progress.",
-    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps", "harden", "stabilize", "devops"],
+    "nextRequiredReason": "BUG-009-ROUTE-020 is resolved by the revision-321 scoped security review. Actual commit, source, G034, G028, dependency-lock, canonical security-suite, mutation-mechanism, hostile-input, Pages-exclusion, and blob-containment evidence found no BUG-009 security defect. The unchanged injector remains a trusted test harness, not a sandbox; BUG-009 introduces no less-privileged input or authority expansion. The persisted bugfix-fastlane phase order places validate immediately after security, so BUG-009-ROUTE-021 routes next to bubbles.validate while delivery and certification remain in progress.",
+    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps", "harden", "stabilize", "devops", "security"],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
@@ -278,11 +278,22 @@
     },
     {
       "id": "BUG-009-ROUTE-020",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.devops",
       "nextRequiredOwner": "bubbles.security",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-      "reason": "The revision-319 DevOps review found no changed CI, build, deployment, configuration, dependency, observability, release, registry, or runtime-operations surface. The canonical Pages build passed, the generated site excludes the two repaired tests and BUG packet, and the exact CI selftest passed 3426 of 3426. Continue with bubbles.security, the next phase in the persisted bugfix-fastlane order, while preserving status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, and certification."
+      "reason": "The revision-319 DevOps review found no changed CI, build, deployment, configuration, dependency, observability, release, registry, or runtime-operations surface. The canonical Pages build passed, the generated site excludes the two repaired tests and BUG packet, and the exact CI selftest passed 3426 of 3426. Continue with bubbles.security, the next phase in the persisted bugfix-fastlane order, while preserving status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, and certification.",
+      "resolvedBy": "bubbles.security",
+      "resolvedAt": "2026-08-27T08:56:12Z",
+      "resolution": "Consumed by the revision-321 scoped security review recorded at report.md#security-revision-321. No BUG-009 security defect was found. The unchanged injector is explicitly classified as a trusted test harness rather than a sandbox, and the review makes no broad repository-security claim."
+    },
+    {
+      "id": "BUG-009-ROUTE-021",
+      "status": "pending",
+      "fromAgent": "bubbles.security",
+      "nextRequiredOwner": "bubbles.validate",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "The revision-321 security phase found no BUG-009 defect across the actual two-test implementation change and unchanged shared injector. G034, G028, dependency source lock, canonical Node security suites, complete mutation mechanism, focused carrier, disposable hostile-input probe, Pages exclusion, and byte containment are recorded. Continue with bubbles.validate, the next persisted bugfix-fastlane phase, while preserving status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, and certification until validate performs its owned work."
     }
   ],
   "reworkQueue": [],
@@ -483,6 +494,17 @@
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#devops-revision-319"
+    },
+    {
+      "at": "2026-08-27T08:56:12Z",
+      "agent": "bubbles.security",
+      "phase": "security",
+      "action": "consumed-route-020-scoped-security-clean-and-routed-to-validate",
+      "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:321, audited implementation commit 4824edc81, both changed tests, and the unchanged shared injector. Executed G034, installed G028, exact dependency source-lock validation, canonical Node security suites, the complete mutation mechanism, the focused title, a disposable hostile-input and parallel-isolation probe, an isolated Pages build, and parent/implementation/HEAD/worktree containment. No BUG-009 security defect was found. The injector accepts caller-selected paths and executable replacement source by design, but remains a pre-existing trusted test harness with no less-privileged or production input path added by BUG-009. Resolved route 020, recorded security in execution provenance, and opened route 021 to bubbles.validate. Preserved status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, parent Feature 008, BUG-007, README, docs, baseline, accessibility, product, tests, and every foreign dirty path. No push was performed.",
+      "phasesExecuted": ["security"],
+      "provenanceMode": "specialist",
+      "outcome": "route_required",
+      "evidenceRef": "report.md#security-revision-321"
     }
   ],
   "addressedFindings": [
@@ -639,6 +661,13 @@
       "owner": "bubbles.devops",
       "status": "addressed",
       "evidenceRef": "report.md#devops-revision-319"
+    },
+    {
+      "id": "B009-SECURITY-EXECUTION-001",
+      "summary": "The revision-321 security review found no BUG-009 security defect across the actual implementation commit, changed tests, unchanged injector, environment and preload flow, decode and anchor controls, target and marker capabilities, parallel isolation, exposure boundary, Pages artifact, dependency lock, and title trust. It resolved BUG-009-ROUTE-020 and routed BUG-009-ROUTE-021 to bubbles.validate without changing delivery, acceptance, or certification state.",
+      "owner": "bubbles.security",
+      "status": "addressed",
+      "evidenceRef": "report.md#security-revision-321"
     }
   ],
   "unresolvedFindings": []

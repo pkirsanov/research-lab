@@ -837,3 +837,132 @@ certification remain unchanged.
 
 Not run. The packet retains all test-owned evidence and routes to
 `bubbles.regression`; no audit or certification claim is made.
+
+## Independent Regression Phase {#independent-regression-phase-2026-08-27}
+
+**Phase:** regression
+**Claim Source:** executed
+**Executed at:** `2026-08-27T01:43:38Z`
+**Repository authority:** revision `273` was observed and committed before local
+work; after the requested canonical-source diagnostic, Research Lab authority
+was restored as decision `rb:vscode-d037d272141b9d17af8fa6ccdd049e69:276`.
+**Tree under review:** `40ae3fdf6eca38966f8b0a6e9a78ffc8a1e5ea2f`
+**Implementation commit:** `4824edc81b0920b40e728f55b8e8dfdbe1804b2d`
+**Planning correction:** `4633054197c9501665cb96f723a033a390408634`
+
+### Exact Behavior And Mutation Origin
+
+The focused shipped title executed once and passed once. The unchanged
+`F008-RISK-INPUT-001` mutation executed the same title once and failed once at
+the first direct state assertion. Its complete TAP output named
+`ERR_ASSERTION` and `AssertionError`; it contained no `TypeError`,
+`ERR_TEST_FAILURE`, injector, preload, setup, anchor, syntax, or module-load
+error. The separate marker inspection found exactly one application through
+the declared hook.
+
+**Commands:**
+
+- `timeout 240 node --test --test-name-pattern='^BUG-009 risk mapping: unsupported holdings remain named exclusions$' tests/portfolio-risk.functional.mjs`
+- `timeout 240 env NODE_OPTIONS="--require $PWD/tests/portfolio-defect-injector.cjs" RL_DEFECT_MODULE=rlportfolioanalytics.js RL_DEFECT_FIND_B64=ICAgICAgZWxzZSBleGNsdWRlZC5wdXNoKHsgc3ltYm9sOiBoLnN5bWJvbCwgYXNzZXRUeXBlOiBoLmFzc2V0VHlwZSB8fCAidW5rbm93biIgfSk7 RL_DEFECT_REPLACE_B64=ICAgICAgZWxzZSByZXR1cm4geyBzdGF0ZTogInVuc3VwcG9ydGVkLWhvbGRpbmciLCBzeW1ib2w6IGguc3ltYm9sIH07 RL_DEFECT_MARKER=/tmp/rl-b009-regression-marker-536218b5 node --test --test-reporter=tap --test-name-pattern='^BUG-009 risk mapping: unsupported holdings remain named exclusions$' tests/portfolio-risk.functional.mjs`
+- `wc -l /tmp/rl-b009-regression-marker-536218b5` and `cat /tmp/rl-b009-regression-marker-536218b5`
+
+**Exit codes:** shipped `0`; mutant `1` as the required negative control;
+marker inspection `0`.
+
+```text
+TAP version 13
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+not ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+  ---
+  duration_ms: 3.578076
+  type: 'test'
+  location: '~/research-lab/tests/portfolio-risk.functional.mjs:43:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+
+    + 'unsupported-holding'
+    - 'ok'
+
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ok'
+  actual: 'unsupported-holding'
+  operator: 'strictEqual'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 94.999875
+1 /tmp/rl-b009-regression-marker-536218b5
+applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+```
+
+### Baseline And Broader Regression Comparison
+
+| Check | Prior test-owned count | Independent regression count | Result |
+| --- | ---: | ---: | --- |
+| Focused shipped title | `1/1` | `1/1` | Stable |
+| Exact mutant | `0/1`, required assertion RED | `0/1`, required assertion RED, one marker | Stable |
+| Narrowed mutation umbrella | `1/1` | `1/1` over `18` registered cases | Stable |
+| Full integrity file | `3/3` | `3/3` | Stable |
+| Full risk carrier | `3/3` | `3/3` | Stable |
+| Five BUG-008 carriers | `43/43` | `43/43` | Stable; full-output SHA-256 `c9eaf8b3d74e85ff8b8fa95f28654d4d355833c41e0a236e52660b323c6ac35e` |
+| Risk Playwright carrier | `13/13` | `13/13` | Stable |
+| Canonical Research Lab selftest | `3426/3426` | `3426/3426` | Stable; full-output SHA-256 `aae3de15ff6a81eb5513f4ab3113f6e69faba541bd56c1c4785fd62641956aab` |
+
+The repository declares no code-coverage command, so no percentage is
+invented. The implementation patch adds one persistent title with eight direct
+assertions, removes no test or assertion, and changes one registry title
+scalar. Regression quality scanned both changed files with `0` violations and
+`0` warnings. Scenario resolution found all `3` linked references. The six
+packet checks passed: artifact lint, traceability, one-scenario obligation
+matrix, one declared test mechanism, one self-contained scope, and capability
+proportionality.
+
+### Commit And Protected-Byte Audit
+
+`4824edc81` changes exactly two files: `tests/portfolio-risk.functional.mjs`
+and `tests/portfolio-test-integrity.unit.mjs`, with `30` insertions and `1`
+title-line deletion. The complete patch contains no baseline, budget, skip,
+fallback, product, injector, or other registry-case change.
+
+The product owner `rlportfolioanalytics.js` has Git blob
+`203c57b14898a13e0da81898e755ea5f5f6674ba` at `4824edc81^`, at
+`4824edc81`, at reviewed `HEAD`, and in the working tree. The shared injector
+has Git blob `20ed786006be23f542ec3c524758eda625567ea9` at the same four
+checkpoints. Existing Feature 008 overlap is coherent: `SCN-008-047` retains
+the user-visible degraded-risk contract, while `SCN-008-054` retains the
+18-case mutation umbrella. BUG-009 adds the direct assertion-origin carrier
+under those contracts without replacing either scenario.
+
+### Canonical G028 Diagnostic And Remaining Prerequisite
+
+Canonical Bubbles `HEAD` is exactly
+`db7b4f200a89cbeda0c9f5c39428b8fb2b6e1f06`, and its scanner blob is
+`23e0af5448141427e268083f4be3c4eba6e7c2a7`. Executed from that canonical
+source against BUG-009, G028 resolved `2` implementation files and reported
+`0` violations and `0` warnings.
+
+Research Lab's installed downstream scanner remains blob
+`3518d226789ee99df26e84958c7008e5fef17d84`, so installer propagation of
+`db7b4f2` remains an explicit prerequisite. This phase does not present the
+canonical-source diagnostic as final downstream-installed G028 evidence.
+
+### Regression Verdict And Route
+
+🟢 `REGRESSION_FREE`
+
+No failing carrier, coverage-surface reduction, scenario conflict, weakened
+assertion, skip, baseline, budget, product-source drift, injector drift, or
+cross-feature conflict was found in the requested regression closure. The
+persisted `bugfix-fastlane` registry resolves the phase order as `regression`
+followed by `simplify`; the next owner is therefore `bubbles.simplify`.
+BUG-009 remains `in_progress`, its scope remains In Progress, every DoD item
+remains unchecked, and human acceptance and certification remain unchanged.

@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T01:22:57Z",
+  "lastUpdatedAt": "2026-08-27T01:43:38Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,19 +29,19 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
+    "activeAgent": "bubbles.regression",
+    "currentPhase": "regression",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
     "substate": "quality_reverification_required",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.regression",
-    "nextRequiredTarget": "tests/portfolio-risk.functional.mjs, tests/portfolio-test-integrity.unit.mjs, tests/portfolio-survival-risk.spec.mjs, report.md",
-    "nextRequiredReason": "Planning-owned home-path and linked-title defects are repaired; scenario resolution, repository selftest, six packet gates, and the fixed canonical G028 diagnostic are green. Independently verify the committed regression contracts before the next quality phase; final downstream G028 execution still requires installer propagation of db7b4f2.",
-    "completedPhaseClaims": ["bug", "plan", "test"],
-    "pendingTransitionRequests": ["BUG-009-ROUTE-003"],
+    "nextRequiredOwner": "bubbles.simplify",
+    "nextRequiredTarget": "tests/portfolio-risk.functional.mjs, tests/portfolio-test-integrity.unit.mjs",
+    "nextRequiredReason": "Independent regression is clean across the exact shipped title, one-marker ERR_ASSERTION mutant, 18-case narrowed registry, 3-test integrity file, 3-test risk carrier, 43-test BUG-008 carrier set, 13-test risk browser carrier, 3426-test canonical selftest, scenario resolution, regression-quality guard, six packet gates, protected-byte audit, and canonical-source G028 diagnostic. Review the bounded two-test-file delta for simplification; final downstream G028 execution still requires installer propagation of db7b4f2.",
+    "completedPhaseClaims": ["bug", "plan", "test", "regression"],
+    "pendingTransitionRequests": ["BUG-009-ROUTE-004"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -100,11 +100,21 @@
     },
     {
       "id": "BUG-009-ROUTE-003",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.plan",
       "nextRequiredOwner": "bubbles.regression",
       "target": "tests/portfolio-risk.functional.mjs, tests/portfolio-test-integrity.unit.mjs, tests/portfolio-survival-risk.spec.mjs, report.md",
-      "reason": "The planning-owned PII paths and linked test title are repaired, the canonical selftest and packet gates are green, and the fixed canonical G028 scanner is diagnostically green. Independently verify the committed regression contracts; final downstream G028 execution remains gated on installer propagation of db7b4f2."
+      "reason": "The planning-owned PII paths and linked test title are repaired, the canonical selftest and packet gates are green, and the fixed canonical G028 scanner is diagnostically green. Independently verify the committed regression contracts; final downstream G028 execution remains gated on installer propagation of db7b4f2.",
+      "resolvedBy": "bubbles.regression",
+      "resolvedAt": "2026-08-27T01:43:38Z"
+    },
+    {
+      "id": "BUG-009-ROUTE-004",
+      "status": "pending",
+      "fromAgent": "bubbles.regression",
+      "nextRequiredOwner": "bubbles.simplify",
+      "target": "tests/portfolio-risk.functional.mjs, tests/portfolio-test-integrity.unit.mjs",
+      "reason": "The independent regression closure is clean and the persisted bugfix-fastlane phase order places simplify after regression. Review the one direct carrier and one title remap for unnecessary complexity without changing behavior, planner-owned artifacts, human acceptance, certification, or the downstream G028 propagation prerequisite."
     }
   ],
   "reworkQueue": [],
@@ -134,6 +144,15 @@
       "action": "repaired-planning-artifacts-and-routed-to-regression",
       "note": "Removed all five home-path literals from planner-owned command catalogs, changed durable G028 execution to the installed downstream scanner with installer propagation of db7b4f2 as an explicit prerequisite, corrected the browser linked test title, and reran scenario resolution, the repository selftest, and all six packet gates green. The fixed canonical scanner is diagnostically green; the installed downstream scanner has not yet received db7b4f2. Status stays in_progress, the scope stays In Progress, and certification and human acceptance remain untouched.",
       "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-27T01:43:38Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "independent-regression-clean-and-routed-to-simplify",
+      "note": "Confirmed Research Lab authority from operator-stated revision 273 through final actionable decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:276. Independently executed the focused shipped title at 1 of 1, the exact one-marker mutant at 0 of 1 through ERR_ASSERTION with no TypeError or infrastructure substitute, the 18-case narrowed registry at 1 of 1, the full integrity file at 3 of 3, the risk carrier at 3 of 3, five BUG-008 carriers at 43 of 43, the real-browser risk carrier at 13 of 13, and the canonical selftest at 3426 of 3426. Regression quality, all three scenario links, six packet gates, and the canonical db7b4f2 G028 diagnostic passed. Product and injector blob identities remained unchanged, and implementation commit 4824edc81 changed only the two declared test files with no skip, budget, or baseline change. The installed downstream G028 blob still differs from canonical and remains an explicit installer-propagation prerequisite. Changed only regression-owned report and execution state, preserved every concurrent dirty path, left all DoD items unchecked, left the scope In Progress, and did not change human acceptance, certification, or push state. Resolved route 003 and routed route 004 to bubbles.simplify.",
+      "phasesExecuted": ["regression"],
       "provenanceMode": "specialist"
     }
   ],
@@ -172,15 +191,14 @@
       "owner": "bubbles.plan",
       "status": "addressed",
       "evidenceRef": "scenario-manifest.json#scenarios"
-    }
-  ],
-  "unresolvedFindings": [
+    },
     {
       "id": "B009-QUALITY-001",
-      "summary": "The next quality phase must independently verify the committed focused carrier, strict mutation registry, and proportionate browser regression before simplify or certification.",
+      "summary": "Independent regression verified the focused assertion origin, complete 18-case registry, broader risk carriers, scenario links, packet gates, protected bytes, canonical selftest, and canonical-source G028 diagnostic, then routed the persisted fastlane to simplify.",
       "owner": "bubbles.regression",
-      "status": "route_required",
-      "evidenceRef": "report.md#validation-summary"
+      "status": "addressed",
+      "evidenceRef": "report.md#independent-regression-phase-2026-08-27"
     }
-  ]
+  ],
+  "unresolvedFindings": []
 }

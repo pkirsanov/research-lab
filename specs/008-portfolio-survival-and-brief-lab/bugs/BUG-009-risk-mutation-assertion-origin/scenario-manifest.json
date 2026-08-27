@@ -66,7 +66,7 @@
         },
         {
           "file": "tests/portfolio-survival-risk.spec.mjs",
-          "testId": "Feature 008 risk browser regression",
+          "testId": "Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth",
           "testPlanRow": "TP-B009-006",
           "coverageStatus": "authored-existing",
           "evidenceRef": "report.md#tp-b009-006"

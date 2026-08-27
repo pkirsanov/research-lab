@@ -21,7 +21,7 @@
     {
       "id": "db7b4f2",
       "owner": "bubbles",
-      "requirement": "Use the canonical Bubbles implementation-reality scanner from a checkout containing this fixed scanner commit."
+      "requirement": "Propagate canonical Bubbles implementation-reality scanner fix db7b4f2 through the installer before final downstream execution, then use the installed downstream scanner."
     }
   ],
   "commandCatalog": {
@@ -35,11 +35,11 @@
     "CMD-B009-RISK-E2E": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
     "CMD-B009-SELFTEST": "timeout 1800 node scripts/selftest.mjs",
     "CMD-B009-REGRESSION-QUALITY": "timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-test-integrity.unit.mjs tests/portfolio-risk.functional.mjs",
-    "CMD-B009-G028": "timeout 30 git -C /home/philipk/bubbles merge-base --is-ancestor db7b4f2 HEAD && timeout 600 bash /home/philipk/bubbles/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --verbose",
+    "CMD-B009-G028": "timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --verbose",
     "CMD-B009-ARTIFACT": "timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
     "CMD-B009-TRACEABILITY": "timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
     "CMD-B009-SCENARIO-OBLIGATION": "timeout 600 bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "CMD-B009-TEST-MECHANISM": "timeout 600 bash .github/bubbles/scripts/test-mechanism-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --repo-root /home/philipk/research-lab",
+    "CMD-B009-TEST-MECHANISM": "timeout 600 bash .github/bubbles/scripts/test-mechanism-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --repo-root .",
     "CMD-B009-SCOPE-CONTEXT": "timeout 600 bash .github/bubbles/scripts/scope-context-fit-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
     "CMD-B009-CAPABILITY": "timeout 600 bash .github/bubbles/scripts/capability-foundation-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin"
   },
@@ -181,7 +181,7 @@
           "category": "functional",
           "file": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
           "scenarioId": "SCN-B009-001",
-          "description": "Verify the canonical Bubbles checkout contains scanner fix db7b4f2, then run its implementation-reality scanner against BUG-009.",
+          "description": "After installer propagation of canonical scanner fix db7b4f2, run the installed downstream implementation-reality scanner against BUG-009.",
           "commandRef": "CMD-B009-G028",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-010",

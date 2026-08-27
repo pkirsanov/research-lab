@@ -148,7 +148,9 @@ contract.
 - `CMD-B009-RISK-E2E`: `timeout 1800 npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 - `CMD-B009-SELFTEST`: `timeout 1800 node scripts/selftest.mjs`
 - `CMD-B009-REGRESSION-QUALITY`: `timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-test-integrity.unit.mjs tests/portfolio-risk.functional.mjs`
-- `CMD-B009-G028`: verify `/home/philipk/bubbles` contains commit `db7b4f2`, then run `/home/philipk/bubbles/bubbles/scripts/implementation-reality-scan.sh` against this packet.
+- `CMD-B009-G028`: prerequisite: propagate canonical Bubbles fix `db7b4f2`
+  through the installer before final downstream execution; then run
+  `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --verbose`.
 - `CMD-B009-PACKET`: artifact lint, traceability, scenario-obligation lint,
   test-mechanism lint, scope-context-fit lint, and capability-foundation guard
   against this packet.
@@ -166,7 +168,7 @@ contract.
 | `TP-B009-006` | Proportionate browser regression | `e2e-ui` | `tests/portfolio-survival-risk.spec.mjs` | `CMD-B009-RISK-E2E` | Yes | Existing Risk X-Ray browser carrier green; not used as direct pure-logic proof. |
 | `TP-B009-008` | Canonical repository selftest | `functional` | `scripts/selftest.mjs` | `CMD-B009-SELFTEST` | No | Green without budget or baseline change. |
 | `TP-B009-009` | Adversarial regression quality | `functional` | Registry and focused risk carrier | `CMD-B009-REGRESSION-QUALITY` | No | Bugfix guard green. |
-| `TP-B009-010` | Fixed canonical G028 scan | `functional` | Canonical Bubbles scanner at commit `db7b4f2` or descendant | `CMD-B009-G028` | No | Canonical scanner green against this packet. |
+| `TP-B009-010` | Fixed canonical G028 scan | `functional` | Installed downstream scanner after installer propagation of `db7b4f2` | `CMD-B009-G028` | No | Installed downstream scanner green against this packet. |
 | `TP-B009-011` | Packet planning gates | `functional` | BUG-009 planning artifacts | `CMD-B009-PACKET` | No | All six named planning gates green. |
 
 ### Test Plan To DoD Parity
@@ -224,8 +226,9 @@ contract.
   `report.md#tp-b009-008`.
 - [ ] `TP-B009-009` regression-quality guard passes. Evidence:
   `report.md#tp-b009-009`.
-- [ ] `TP-B009-010` canonical G028 scanner from the Bubbles checkout containing
-  commit `db7b4f2` passes. Evidence: `report.md#tp-b009-010`.
+- [ ] `TP-B009-010` installed downstream G028 scanner passes after canonical
+  fix `db7b4f2` is propagated through the installer. Evidence:
+  `report.md#tp-b009-010`.
 - [ ] `TP-B009-011` artifact lint, traceability, scenario-obligation lint,
   test-mechanism lint, scope-context-fit lint, and capability-foundation guard
   pass. Evidence: `report.md#tp-b009-011`.

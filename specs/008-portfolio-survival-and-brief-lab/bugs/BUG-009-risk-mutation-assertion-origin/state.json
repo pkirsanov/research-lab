@@ -29,23 +29,24 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
+    "substate": "needs_reverification",
     "parentAgent": null,
-    "completedAt": "2026-08-27T00:52:38Z",
-    "currentScope": null,
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "tests/portfolio-risk.functional.mjs, tests/portfolio-test-integrity.unit.mjs",
-    "nextRequiredReason": "Implement the one exact direct assetTreatment title, remap only F008-RISK-INPUT-001, and execute the complete RED/GREEN and regression contract in scopes.md.",
+    "completedAt": null,
+    "currentScope": "01-restore-risk-mutation-assertion-origin",
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "scopes.md, test-plan.json, scenario-manifest.json",
+    "nextRequiredReason": "Remove five home-path findings from the two planning command catalogs and replace the unresolved browser linkedTests title; then route the packet back through the remaining quality checks.",
     "completedPhaseClaims": ["bug", "plan"],
     "pendingTransitionRequests": ["BUG-009-ROUTE-002"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
         "scope": 1,
-        "status": "Not Started",
+        "status": "In Progress",
         "dependsOn": []
       }
     ]

@@ -14,6 +14,22 @@ specification states the behaviour that replaces it.
 
 It does not specify a new pricing rule. It specifies where pricing stops.
 
+### Single-Capability Justification
+
+**Classification:** Existing-capability extension with one pack-backed implementation.
+
+This packet extends the existing claim-age adjustment contract. `tax-rules/benefit/2026.json`
+adds `earliestClaimAge` inside the existing `earlyReductionRule` record.
+`rltaxsocialsecurity.js::applyClaimAgeAdjustment` reads that figure before the existing
+per-month factor loop. It reuses the existing citation and `RLTAX-THRESHOLD-UNAVAILABLE`
+contracts.
+
+The packet adds no second benefit engine, pack provider, claim-age strategy, or schema adapter.
+The pack already owns sourced thresholds, and the engine already owns claim-age adjustment. A
+new foundation would duplicate those boundaries. The matching design classification is
+`### Single-Implementation Justification`, not a foundation and overlay split with invented
+variation axes.
+
 ## Behaviour Under Specification
 
 A household declares a claim age in whole months. The route resolves a full retirement age from

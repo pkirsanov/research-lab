@@ -10,6 +10,21 @@ This specification describes the behaviour required. It does not choose the boun
 or where the bound is declared, because the configuration contract validates an
 exact key set per section and adding a key is an owner decision. See `design.md`.
 
+### Single-Capability Justification
+
+**Classification:** Existing-capability extension with one loader implementation.
+
+This packet extends the existing declared-document reader.
+`lifetime-tax-strategy-lab.html::loadJson` remains the only transport path for the
+configuration and all eight packs. `rltaxworkspace.js` owns the configuration-read bound, and
+`lifetime-tax-strategy.config.json` owns the pack-read bound. All nine reads reuse the same
+helper and their existing failure handlers.
+
+The packet adds no second transport, retry provider, loader variant, or reusable read framework.
+The two declaration strata supply policy to one existing loader. They are not competing
+implementations. The matching design classification is `### Single-Implementation
+Justification`, not a foundation and overlay split with invented variation axes.
+
 ## Behaviour Under Specification
 
 The route reads nine documents during boot: one configuration and eight packs. A

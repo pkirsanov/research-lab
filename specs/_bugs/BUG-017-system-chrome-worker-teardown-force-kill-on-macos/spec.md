@@ -6,6 +6,20 @@ This specification states the behaviour a remedy must establish for local macOS 
 `system-chrome` browser project. It selects no remedy; the options and their consequences are
 in `design.md`.
 
+### Single-Capability Justification
+
+**Classification:** Existing-capability extension with one concrete runner configuration.
+
+This packet extends the existing Playwright runner policy. `playwright.config.mjs` pins
+`workers: 2`, and `.specify/memory/agents.md` records the same operating limit.
+`playwright.config.mjs` already contains the `system-chrome` and `chromium` projects. The packet
+adds neither project and introduces no runner abstraction or extension point.
+
+The remedy bounds exposure for one existing system-Chrome teardown path. It does not create a
+second worker policy, browser provider, or reusable lifecycle contract. The matching design
+classification is `### Single-Implementation Justification`, not a foundation and overlay split
+with invented variation axes.
+
 ## Behaviour Under Specification
 
 An exit code is a claim. When a runner reports ninety-four passes and exits 1, the claim and

@@ -6,6 +6,20 @@ This specification states the behaviour that would have prevented the defect in 
 the behaviour a remedy must establish. It does not select between the remedy options in
 `design.md`; that selection is an owner decision recorded there.
 
+### Single-Capability Justification
+
+**Classification:** Single-use narrow fix.
+
+This packet repairs combined-panel wiring coherence inside the existing Lifetime Tax Strategy
+Lab route. `lifetime-tax-strategy-lab.html` owns the panel DOM and loads `rltaxcombined.js`.
+`scripts/selftest.mjs` derives the route modules and combined anchors from current files. It then
+checks that this one page wires them.
+
+The packet adds no second route, provider, adapter, variant, or reusable contract. A capability
+foundation would widen a page-specific repair without a second implementation. The matching
+design classification is `### Single-Implementation Justification`, not a foundation and overlay
+split with invented variation axes.
+
 ## Behaviour Under Specification
 
 A blocking deploy gate exists to answer one question: is this branch fit to publish. It can

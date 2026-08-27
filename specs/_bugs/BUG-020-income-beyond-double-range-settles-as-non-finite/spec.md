@@ -12,6 +12,21 @@ refusal code, because the code vocabulary is closed and pinned and widening it i
 an owner decision. See `design.md` for the two options and the question they turn
 on.
 
+### Single-Capability Justification
+
+**Classification:** Existing-capability extension with one refusal path.
+
+This packet extends the existing refusal and value-record contracts.
+`rltax.js::computeTaxableIncome` rejects a non-finite sum through `rules.unavailable`.
+`rltax.js::formatForDisplay` rejects a non-finite value record through the same contract.
+`rltaxrules.js` adds one refusal code, and the route already consumes unavailable records.
+
+The packet adds no second formatter family, numeric provider, rendering strategy, or extension
+point. One shared formatter and one shared refusal shape already exist. The repair closes those
+existing paths instead of creating a new reusable surface. The matching design classification is
+`### Single-Implementation Justification`, not a foundation and overlay split with invented
+variation axes.
+
 ## Behaviour Under Specification
 
 A household declares amounts the route accepts individually. Their sum exceeds

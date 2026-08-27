@@ -1,74 +1,6 @@
 {
   "asOf": "2026-08-27T11:30:00.000Z",
-  "attention": [
-    {
-      "contractVersion": "decision-attention/v1",
-      "decisionWindow": "pre-market",
-      "deepLink": "etf-momentum-lab.html",
-      "disposition": "context",
-      "escalationTrigger": "A daily VGT close below ~115.50 forfeits its 20>50>200 bull-stack.",
-      "expiry": "2026-09-04T20:00:00Z",
-      "figures": [
-        {
-          "label": "distance from 200-day",
-          "provenance": {
-            "asOf": "2026-08-27T11:30:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "14.71%"
-        },
-        {
-          "label": "from 52-week high",
-          "provenance": {
-            "asOf": "2026-08-27T11:30:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "-6.19%"
-        },
-        {
-          "label": "moving-average stack",
-          "provenance": {
-            "asOf": "2026-08-27T11:30:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "bull-stack"
-        }
-      ],
-      "gateId": null,
-      "headline": "VGT — last bull-stacked tech fund defending its ~117 50-day",
-      "horizon": "swing",
-      "id": "attn-f2fedeccf8eadecc",
-      "imminence": "latent",
-      "invalidation": "A daily VGT close above ~120.00 clears the 50-day and voids the watch.",
-      "lifecycle": [
-        {
-          "at": "2026-08-27T11:30:00.000Z",
-          "condition": "observed",
-          "ref": null,
-          "to": "discovered"
-        }
-      ],
-      "marketConfirmation": {
-        "detail": null,
-        "state": "absent"
-      },
-      "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
-      "observedAt": "2026-08-27T11:30:00.000Z",
-      "rationale": "The reader is interrupted because VGT still holds a clean 20>50>200 bull-stack but defends it from just +0.9% above its ~117 50-day with negative one-week momentum (mom5 -0.68) and -6.2% from its high. It is one of the last intact technology trends while the broad complex already tests its own 50-days; forfeiting the stack would confirm the leadership crack into breadth that just narrowed to 41.7% positive.",
-      "severity": "moderate",
-      "state": "discovered",
-      "subject": "VGT",
-      "supersededBy": null,
-      "transmissionAbsenceNote": null,
-      "transmissionPath": [
-        "breadth-market-structure"
-      ],
-      "verb": "monitor",
-      "windowBoundaryUtc": "2026-08-27T11:30:00.000Z",
-      "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-08-27"
-    }
-  ],
+  "attention": [],
   "attentionExclusions": [
     {
       "code": "RLATTN-OVERLAP",
@@ -89,14 +21,14 @@
       "field": "subject",
       "index": 2,
       "reason": "this subject is already published as an action and must not be surfaced twice",
-      "subject": "QQQ"
+      "subject": "XLE"
     },
     {
       "code": "RLATTN-OVERLAP",
       "field": "subject",
       "index": 3,
       "reason": "this subject is already published as an action and must not be surfaced twice",
-      "subject": "XLE"
+      "subject": "QQQ"
     },
     {
       "code": "RLATTN-OVERLAP",
@@ -107,14 +39,14 @@
     }
   ],
   "backdrop": {
-    "asymmetry": "With the tracked binaries resolved benignly, the multi-month structure intact (SPY 20>50>200 bull-stack on the Tier-A ma-distance) and price roughly 1.5% under the highs rather than a break, the longer-term bull is unbroken, and the near-term vol picture stayed calm into this open (VIX 15.21, an orderly Mixed / developing auction) with the dealer buffer firming to near-flat and flow flipping back to upside calls. But the cautions remain: breadth stays narrow at 41.72% of 134 (margin -18.28) and narrowed further, so three-bar persistence above 60% is decisively unmet (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26); the swing-structure-lab owner read reads Tangled MAs with an active Double top; the near-term leaders have not fully reclaimed their lines (SPMO -1.97% below its 50-day at 147.52 though it holds +12.16% over its 200-day, QQQ 711.37 still fractionally below its 50-day, XLK Lagging right at its 50-day, SOXX -21.31% off its high); and the dealer map is still negative gamma (GEX -0.10B) with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall and the priced move a wide ±21.22. The constructive counters: a calm VIX 15.21 with the sizing model NORMAL, flow back to call-heavy with an SPY 766 upside call the marquee print, MSFT firm with mom5 +2.49, leadership broad across communications and defensives (XLC/XLB/XLP/XLV and XLE), GLD mid-low at 47.5 and crypto leadership held (ETH-USD 76.6, BTC 69.5). The near-term stance favors HOLDING the intact core and the first beta-add tranche while pausing the rest until breadth re-broadens and holds 60% across three bars, SPMO reclaims its 50-day, QQQ reclaims it and SPY reclaims the flip, tilting the rotation toward the Leading communications/defensives funded from weakening financials with energy kept as a Leading cyclical leg, HOLDING (not chasing) MSFT, and carrying only a small defined tail while dealers sit right at the flip. The residual near-term risk is a session that loses the 765 put wall back into deeper negative gamma, breadth staying narrow, SPMO or QQQ failing to reclaim their 50-days, MSFT fading toward ~431.1, or the Double top resolving lower; the near-term upside is a close that reclaims and holds above the 766.28 flip while breadth re-broadens and holds 60% across three bars.",
+    "asymmetry": "With the tracked binaries resolved benignly, the multi-month structure intact (SPY 20>50>200 bull-stack on the Tier-A ma-distance) and price roughly 1.5% under the highs rather than a break, the longer-term bull is unbroken, and the near-term vol picture eased further into this open (VIX 14.94, an orderly Mixed / developing auction) with the dealer buffer firming to near-flat and flow flipping back to upside calls. But the cautions remain: breadth stays narrow at 41.72% of 134 (margin -18.28) and narrowed further, so three-bar persistence above 60% is decisively unmet (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26); the swing-structure-lab owner read reads Tangled MAs with an active Double top; the near-term leaders have not fully reclaimed their lines (SPMO -1.97% below its 50-day at 147.52 though it holds +12.16% over its 200-day, QQQ 711.37 still fractionally below its 50-day, XLK Lagging right at its 50-day, SOXX -21.31% off its high); and the dealer map is still negative gamma (GEX -0.10B) with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall and the priced move a wide ±21.22. The constructive counters: a calm VIX 14.94 with the sizing model NORMAL, flow back to call-heavy with an SPY 766 upside call the marquee print, MSFT firm with mom5 +2.49, leadership broad across communications and defensives (XLC/XLB/XLP/XLV and XLE), GLD mid-low at 47.5 and crypto leadership held (ETH-USD 76.6, BTC 69.5). The near-term stance favors HOLDING the intact core and the first beta-add tranche while pausing the rest until breadth re-broadens and holds 60% across three bars, SPMO reclaims its 50-day, QQQ reclaims it and SPY reclaims the flip, tilting the rotation toward the Leading communications/defensives funded from weakening financials with energy kept as a Leading cyclical leg, HOLDING (not chasing) MSFT, and carrying only a small defined tail while dealers sit right at the flip. The residual near-term risk is a session that loses the 765 put wall back into deeper negative gamma, breadth staying narrow, SPMO or QQQ failing to reclaim their 50-days, MSFT fading toward ~431.1, or the Double top resolving lower; the near-term upside is a close that reclaims and holds above the 766.28 flip while breadth re-broadens and holds 60% across three bars.",
     "globalBackdrop": [
       "GLOBAL ROTATION (global-rotation-lab, owner read on the 8/26 tape) is Asia/global-led: EWS (Singapore) leads at 89.8/100 vs ACWI, with EWC (Canada) next. The global tape corroborates the risk-on tilt with breadth outside US megacap tech (deep-link: global-rotation-lab.html).",
       "REAL ASSETS leadership is CRYPTO-led, consistent with risk-on/reflation, with the precious-metal bid mid-to-low (real-assets-lab, owner read): ETH-USD leads at 76.6/100 with BTC 69.5 next, and precious metals mid-to-low with GLD at 47.5 (SLV 22.6), a cyclical/speculative tilt with a haven bid that is not yet dominant (deep-link: real-assets-lab.html).",
       "US EQUITY BREADTH stays below the broad-market threshold this window (market-heatmap-lab): 41.72% of 134 constituents are positive against a 60% broad-market threshold (narrow, margin -18.28). The last distinct completed bars (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26) show only 8/24 above 60%, so three-bar persistence above 60% is not established and the beta add holds a first tranche while the remaining tranches stay paused until completed closes re-broaden and hold breadth above 60% across three bars (deep-link: market-heatmap-lab.html)."
     ],
-    "macroCycle": "HAWKISH-HOLD Fed backdrop DIGESTED BENIGNLY, with a benign July NFP 8/7 resolving the last near-term hard-data binary and the tape roughly 1.5% under its highs, though breadth stays narrow at 41.72%: funds 3.50-3.75% held four straight meetings, and the 7/29 decision (Wed 2:00pm ET, a non-SEP meeting, no new dot plot) has PASSED with visibly benign market digestion. July NFP landed 8/7 pre-open, the tape held near its highs with VIX a calm 15.21, a benign jobs reaction, though the official figure is tape-inferred and must be re-pulled. Breadth read 68.91% on 8/24, 44.72% on 8/25 and 41.72% on 8/26, so only the 8/24 bar cleared 60% and three-bar persistence above 60% is not established; into this open the dealer map stayed negative but firmed to near-flat (GEX -0.10B, SPY spot 766.08 right at the 766.28 flip just above the 765 put wall) while the front expected move reads a wide ±21.22. Headline VIX reads a calm 15.21 (under 20) and the sizing model's regime is NORMAL (volatility-sizing-lab 11.0005%, throttle x1.36). The official 7/29 outcome/path and the NFP figure still need a re-pull, but the reaction (calm headline vol, no hawkish shock) reads as a soft-landing digestion. June CPI printed cool (7/14, web-verified) and June PPI benign (7/15, tape-inferred/unverified). The reflationary nudge is crypto-led on the real-assets read: ETH-USD leads at 76.6 with BTC 69.5 next, and precious metals mid-to-low with GLD at 47.5 (SLV 22.6), a cyclical, risk-on tilt with a crypto bid underneath and a haven bid that is not yet dominant. Leadership tilts toward communications and defensives: communications (XLC) carries the highest sector rsMom and is Improving, materials (XLB), staples (XLP), healthcare (XLV) and energy (XLE) Leading, MAGS, real estate (XLRE), utilities (XLU) and discretionary (XLY) Improving while tech (XLK) sits Lagging right at its 50-day and financials (XLF) weaken; the global tape is Asia-led (EWS Singapore 89.8 vs ACWI). bond-regime-lab cannot make the credit or duration call this run (an independent credit-spread reading is not available in this view yet); its high-yield-vs-investment-grade price ratio reads mixed through 8/26 across both clean pairs (jnk-lqd, hyg-lqd), with the yield curve positive, an inflation read that is stable and a duration posture to extend, but the credit regime unresolved. causal-rotation-lab flags selective credit transmission toward banks but is not ready to act on yet, confirmation still required. ai-capex-strategy-lab is a dated 2026-06-30 scenario-assumptions estimate (not measured returns). With OPEX behind us, the tracked binaries resolved and dealer gamma still negative but firmed to near-flat with SPY right at the 766.28 flip (GEX -0.10B, priced move a wide ±21.22), the question into the open and session is whether SPY reclaims and holds above the flip into positive gamma and breadth can re-broaden and hold 60% across three bars, or loses the 765 put wall back into deeper negative gamma.",
-    "pricedIn": "The event binaries the brief tracked have RESOLVED and are now priced: July NFP 8/7 (benign, official figure tape-inferred, re-pull), the MSFT FY26-Q4 print (at 496.37, maStack tangled, mom5 +2.49) and the benign 7/29 Fed digestion. Also priced into this pre-market read: SPY holding its bull-stack (766.08, options spot 766.08) about 1.5% under the highs on a mixed / developing intraday tape, breadth a narrow 41.72%, headline VIX a calm 15.21, volatility-sizing-lab at a NORMAL regime (throttle x1.36), the still-negative but near-flat dealer gamma / range-break-watch (flip 766.28 with SPY spot 766.08 right at it, spot just above the 765 put wall, call wall 770, GEX -0.10B) alongside a front expected move that reads a wide ±21.22, an options-flow lean that flipped back to call-heavy by premium (callFraction 0.6811) with an SPY 766 upside call the most-unusual print, and QQQ and SPMO still at/under their 50-days. NOT yet priced and the near-term question into the open and session: whether SPY reclaims and holds above the 766.28 flip into positive gamma or loses the 765 put wall into deeper negative gamma; whether SPMO and QQQ reclaim their 50-days; whether breadth can re-broaden and hold 60% across three bars; whether the Double top resolves up or down; and the official July NFP figure and 7/29 Fed statement/path.",
+    "macroCycle": "HAWKISH-HOLD Fed backdrop DIGESTED BENIGNLY, with a benign July NFP 8/7 resolving the last near-term hard-data binary and the tape roughly 1.5% under its highs, though breadth stays narrow at 41.72%: funds 3.50-3.75% held four straight meetings, and the 7/29 decision (Wed 2:00pm ET, a non-SEP meeting, no new dot plot) has PASSED with visibly benign market digestion. July NFP landed 8/7 pre-open, the tape held near its highs with VIX a calm 14.94, a benign jobs reaction, though the official figure is tape-inferred and must be re-pulled. Breadth read 68.91% on 8/24, 44.72% on 8/25 and 41.72% on 8/26, so only the 8/24 bar cleared 60% and three-bar persistence above 60% is not established; into this open the dealer map stayed negative but firmed to near-flat (GEX -0.10B, SPY spot 766.08 right at the 766.28 flip just above the 765 put wall) while the front expected move reads a wide ±21.22. Headline VIX reads a calm 14.94 (under 20) and the sizing model's regime is NORMAL (volatility-sizing-lab 11.0005%, throttle x1.36). The official 7/29 outcome/path and the NFP figure still need a re-pull, but the reaction (calm headline vol, no hawkish shock) reads as a soft-landing digestion. June CPI printed cool (7/14, web-verified) and June PPI benign (7/15, tape-inferred/unverified). The reflationary nudge is crypto-led on the real-assets read: ETH-USD leads at 76.6 with BTC 69.5 next, and precious metals mid-to-low with GLD at 47.5 (SLV 22.6), a cyclical, risk-on tilt with a crypto bid underneath and a haven bid that is not yet dominant. Leadership tilts toward communications and defensives: communications (XLC) carries the highest sector rsMom and is Improving, materials (XLB), staples (XLP), healthcare (XLV) and energy (XLE) Leading, MAGS, real estate (XLRE), utilities (XLU) and discretionary (XLY) Improving while tech (XLK) sits Lagging right at its 50-day and financials (XLF) weaken; the global tape is Asia-led (EWS Singapore 89.8 vs ACWI). bond-regime-lab cannot make the credit or duration call this run (an independent credit-spread reading is not available in this view yet); its high-yield-vs-investment-grade price ratio reads mixed through 8/26 across both clean pairs (jnk-lqd, hyg-lqd), with the yield curve positive, an inflation read that is stable and a duration posture to shorten, but the credit regime unresolved. causal-rotation-lab flags selective credit transmission toward banks but is not ready to act on yet, confirmation still required. ai-capex-strategy-lab is a dated 2026-06-30 scenario-assumptions estimate (not measured returns). With OPEX behind us, the tracked binaries resolved and dealer gamma still negative but firmed to near-flat with SPY right at the 766.28 flip (GEX -0.10B, priced move a wide ±21.22), the question into the open and session is whether SPY reclaims and holds above the flip into positive gamma and breadth can re-broaden and hold 60% across three bars, or loses the 765 put wall back into deeper negative gamma.",
+    "pricedIn": "The event binaries the brief tracked have RESOLVED and are now priced: July NFP 8/7 (benign, official figure tape-inferred, re-pull), the MSFT FY26-Q4 print (at 496.37, maStack tangled, mom5 +2.49) and the benign 7/29 Fed digestion. Also priced into this pre-market read: SPY holding its bull-stack (766.08, options spot 766.08) about 1.5% under the highs on a mixed / developing intraday tape, breadth a narrow 41.72%, headline VIX a calm 14.94, volatility-sizing-lab at a NORMAL regime (throttle x1.36), the still-negative but near-flat dealer gamma / range-break-watch (flip 766.28 with SPY spot 766.08 right at it, spot just above the 765 put wall, call wall 770, GEX -0.10B) alongside a front expected move that reads a wide ±21.22, an options-flow lean that flipped back to call-heavy by premium (callFraction 0.6811) with an SPY 766 upside call the most-unusual print, and QQQ and SPMO still at/under their 50-days. NOT yet priced and the near-term question into the open and session: whether SPY reclaims and holds above the 766.28 flip into positive gamma or loses the 765 put wall into deeper negative gamma; whether SPMO and QQQ reclaim their 50-days; whether breadth can re-broaden and hold 60% across three bars; whether the Double top resolves up or down; and the official July NFP figure and 7/29 Fed statement/path.",
     "primaryTrend": "Extended structural bull whose risk-on breakout holds roughly 1.5% under its highs, though breadth stays narrow: SPY reads 766.08 (pctFrom52wHigh -1.52, options spot 766.08), today's session a Mixed / developing auction under Algo-controlled control at VWAP 765.64 (gap -0.14%, 79 bars), and market-heatmap-lab breadth is a narrow 41.72% (margin -18.28). On the Tier-A ma-distance SPY holds a full 20>50>200 bull-stack (+1.74% above its 50-day ~752.98 and +8.07% over its 200-day ~708.9, mom126/252 +10.52%/+19.24%), while swing-structure-lab's owner read is more cautious, reading SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91), a cautionary overhead tell rather than a break. The near-term leaders have not fully reclaimed their lines: SPMO 147.52 sits -1.97% below its 50-day (~150.5) while holding +12.16% over its 200-day (~131.5), and QQQ 711.37 is still fractionally below its 50-day though now Tier-A bull-stacked, while XLK 182.84 is right at its 50-day and Lagging. Counting persistence by distinct completed market-bar dates only 8/24 cleared 60% (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26), so three-bar persistence above 60% is not established.",
     "structuralLevels": {
       "MSFT": {
@@ -196,11 +128,11 @@
         "path": "dataAsOf.labels.bars"
       },
       {
-        "chars": 288,
+        "chars": 241,
         "path": "dataAsOf.labels.macro"
       },
       {
-        "chars": 59,
+        "chars": 0,
         "path": "attention[].headline"
       },
       {
@@ -208,11 +140,11 @@
         "path": "attention[].what"
       },
       {
-        "chars": 66,
+        "chars": 0,
         "path": "attention[].escalationTrigger"
       },
       {
-        "chars": 70,
+        "chars": 0,
         "path": "attention[].invalidation"
       },
       {
@@ -254,21 +186,11 @@
       "headline": 140,
       "total": 3000
     },
-    "cards": [
-      {
-        "chars": 195,
-        "path": "attention[0]"
-      }
-    ],
+    "cards": [],
     "contractVersion": "budget-measurement/v1",
-    "detail": [
-      {
-        "chars": 410,
-        "path": "attention[0].rationale"
-      }
-    ],
-    "disclosedTotal": 141019,
-    "total": 1386,
+    "detail": [],
+    "disclosedTotal": 136673,
+    "total": 1144,
     "violations": []
   },
   "changed": [
@@ -580,25 +502,25 @@
   },
   "dataAsOf": {
     "bars": "Pre-market read on Thursday 2026-08-27, positioning for actions at today's open and session on the last completed 8/26 bar. Bars refreshed this window (289 live series, 289 fresh, 0 carried, 0 missing; expectedSessionDate 2026-08-26, refreshDate 2026-08-27, refreshWindow pre-market). SPY 766.08 holds a full Tier-A 20>50>200 bull-stack (ma50Dist +1.74% ~752.98, ma200Dist +8.07% ~708.9, mom126/252 +10.52%/+19.24%, pctFrom52wHigh -1.52, about 1.5% under its high) while swing-structure-lab's owner read is more cautious, reading SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91). Breadth stays narrow: market-heatmap-lab 41.72% of 134 (narrow, margin -18.28), so counting distinct completed market-bar dates 68.91% on 8/24, 44.72% on 8/25 and 41.72% on 8/26, only 8/24 cleared 60% and three-bar persistence above 60% is not established. Today's tape is a Mixed / developing auction under Algo-controlled control (intraday-tape-lab VWAP 765.64, gap -0.14%, 79 bars). The near-term leaders remain at/under their 50-days: QQQ 711.37 (-0.14% below ~712.4, mom5 -0.66, now Tier-A bull-stacked), SPMO 147.52 (-1.97% below ~150.5 while +12.16% over its 200-day ~131.5, mom5 -0.56), XLK 182.84 right at its 50-day and Lagging; MSFT 496.37 (+15.14% over its 200-day ~431.1, maStack tangled, mom5 +2.49). Semis stay heavy (SOXX 515.40, -21.31% off its high).",
-    "events": "Near-term calendar, PRE-MARKET window on Thursday 2026-08-27, positioning for actions at today's open and session: the binaries the brief tracked are all behind us. July NFP 8/7 8:30am ET resolved benignly (official figure tape-inferred, re-pull the print), the MSFT FY26-Q4 print (AMC 7/29) is at 496.37 with its maStack tangled but mom5 +2.49, the 7/29 FOMC decision has passed and digested benignly (official statement/path a re-pull item) and OPEX (7/17) is behind us. No high-importance release lands 8/27 pre-market; the next scheduled item is the BLS preliminary benchmark revision 8/28 (medium). Standing tells into the open: today's tape a Mixed / developing auction under Algo-controlled control (VWAP 765.64, gap -0.14%), breadth a narrow 41.72% so three-bar persistence above 60% is not established, the dealer map still negative but firmed to near-flat with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall (GEX -0.10B) while the front expected move reads a wide ±21.22, index flow flipped back to call-heavy (callFraction 0.6811) with an SPY 766 upside call the most-unusual print, VIX an easy 15.21, and QQQ (711.37) and SPMO (147.52) still at/under their 50-days.",
+    "events": "Near-term calendar, PRE-MARKET window on Thursday 2026-08-27, positioning for actions at today's open and session: the binaries the brief tracked are all behind us. July NFP 8/7 8:30am ET resolved benignly (official figure tape-inferred, re-pull the print), the MSFT FY26-Q4 print (AMC 7/29) is at 496.37 with its maStack tangled but mom5 +2.49, the 7/29 FOMC decision has passed and digested benignly (official statement/path a re-pull item) and OPEX (7/17) is behind us. No high-importance release lands 8/27 pre-market; the next scheduled item is the BLS preliminary benchmark revision 8/28 (medium). Standing tells into the open: today's tape a Mixed / developing auction under Algo-controlled control (VWAP 765.64, gap -0.14%), breadth a narrow 41.72% so three-bar persistence above 60% is not established, the dealer map still negative but firmed to near-flat with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall (GEX -0.10B) while the front expected move reads a wide ±21.22, index flow flipped back to call-heavy (callFraction 0.6811) with an SPY 766 upside call the most-unusual print, VIX an easy 14.94, and QQQ (711.37) and SPMO (147.52) still at/under their 50-days.",
     "labels": {
       "bars": "Fresh (289/289, 0 carried) — pre-market Thu 8/27, last completed bar 8/26; SPY 766.08 holds a 20>50>200 bull-stack about 1.5% under its high, but breadth is a narrow 41.72% and SPMO and QQQ still sit at/under their 50-days.",
-      "events": "The tracked binaries are resolved (July NFP benign, official figure tape-inferred, re-pull; MSFT print at 496.37, tangled but mom5 +2.49, mom252 -1.56 still slightly negative; 7/29 Fed passed and digested benignly, official statement/path a re-pull item); OPEX behind us; no high-importance release 8/27, next is the BLS preliminary benchmark revision 8/28; standing tells: today's tape a Mixed / developing auction, breadth a narrow 41.72% so three-bar persistence above 60% is not established, the dealer map still negative but firmed to near-flat with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall (GEX -0.10B) while the front expected move reads a wide ±21.22, index flow flipped back to call-heavy (callFraction 0.6811) with an SPY 766 upside call the most-unusual print, VIX 15.21, SPMO (147.52) and QQQ (711.37) still at/below their 50-days.",
-      "macro": "VIX 15.21 calm (band VIX 15.2), sizing model NORMAL (throttle x1.36); dealer gamma still negative but firmed to near-flat (-0.10B) with SPY spot 766.08 right at the 766.28 flip while the front expected move reads a wide ±21.22; Fear & Greed not fetched, so the composite of 0 is VIX-only.",
+      "events": "The tracked binaries are resolved (July NFP benign, official figure tape-inferred, re-pull; MSFT print at 496.37, tangled but mom5 +2.49, mom252 -1.56 still slightly negative; 7/29 Fed passed and digested benignly, official statement/path a re-pull item); OPEX behind us; no high-importance release 8/27, next is the BLS preliminary benchmark revision 8/28; standing tells: today's tape a Mixed / developing auction, breadth a narrow 41.72% so three-bar persistence above 60% is not established, the dealer map still negative but firmed to near-flat with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall (GEX -0.10B) while the front expected move reads a wide ±21.22, index flow flipped back to call-heavy (callFraction 0.6811) with an SPY 766 upside call the most-unusual print, VIX 14.94, SPMO (147.52) and QQQ (711.37) still at/below their 50-days.",
+      "macro": "VIX an easy 14.94 (band VIX 14.9), sizing model NORMAL (throttle x1.36); dealer gamma still negative but firmed to near-flat (-0.10B) with SPY spot 766.08 right at the 766.28 flip; Fear & Greed not fetched, so the composite of 1 is VIX-only.",
       "options": "Fresh chains (22/22); this window's dealer map (spot 766.08) reads SPY in negative but near-flat gamma, the spot right at the 766.28 flip just above the 765 put wall (call wall 770), GEX -0.10B, atmIV 74.84%, front expected move a wide ±21.22; options-flow-feed-lab flipped back to call-heavy (callFraction 0.6811) with the most-unusual prints upside calls — an SPY 766 0DTE CALL ($78.7M, 58.7x open interest) and a QQQ 710 0DTE CALL."
     },
-    "macro": "VIX 15.21 (Yahoo ^VIX, band VIX 15.2) reads a calm headline well below the 20 handle and the +3 single-reference regime-change threshold, so the calm headline regime is intact. Dealer positioning stayed negative into this open but firmed to near-flat: signed net GEX -0.10B (far less negative than the pre-close -1.10B), the flip 766.28 with SPY spot 766.08 pinned right at it just above the 765 put wall, call wall 770, so dealers hold the tape at the walls in a near-neutral pocket that turns positive just above ~766.3; the front expected move reads a wide ±21.22 with atmIV 74.84% on the 3 priced expiries. The sizing model is in line with the calm headline: volatility-sizing-lab reads a NORMAL regime (SPY conditional vol 11.0005%, throttle x1.36). Fear & Greed was NOT fetched this run (snapshot.fearGreed null), so the deterministic composite score of 0 is VIX-ONLY, not a measured neutral and not a data gap. bond-regime-lab cannot make the credit or duration call this run, an independent credit-spread reading is not available in this view yet, and its high-yield-versus-investment-grade price ratio reads mixed across both clean pairs (jnk-lqd, hyg-lqd) through 2026-08-26, with the yield curve positive, an inflation read that is stable, a duration posture to extend, but the credit regime unresolved and confidence low. causal-rotation-lab flags selective credit transmission toward banks but is not ready to act on yet, confirmation still required. fx-regime-relative-value-lab makes no currency call this run because no FX evidence source is approved. technical-analysis-decision-lab's five-gate model does not feed the brief yet this window because its owner read is not published. VIX9D/VIX3M term structure is not in Tier-A and must be re-pulled before any term-structure claim. The tracked binaries are behind us: July NFP 8/7 resolved benignly in the tape but the official figure is not web-verified this run, treat it as tape-inferred and re-pull; the 7/29 FOMC decision is passed and digested benignly but its official statement/path remains unverified, re-pull FedWatch and the statement before asserting either result.",
-    "options": "22 option chains surfaced (refreshed this window, 22 fresh, 0 carried, 0 missing). This window's dealer-positioning owner reads (spot 766.08): options-structure-lab and gamma-trading-lab read SPY in negative dealer gamma but firmed to near-flat, with the flip at 766.28 and the spot pinned right at it just above the 765 put wall (call wall 770), signed net GEX -0.10B (far less negative than the pre-close -1.10B and the prior after-hours -2.07B), atmIV 74.84%, front expected move a wide ±21.22 across 3 priced expiries, playbook range-break-watch / conviction patient, hold same-session-fade. options-flow-feed-lab turned back to CALL-HEAVY by premium (callFraction 0.6811, call premium $2.376B against put premium $1.113B across 12 tickers, 1776 contracts clearing the $250k premium bar within 30 days) and its most-unusual prints are upside calls: the single most-unusual is an SPY 766 0DTE CALL ($78.7M on 58.7x open interest, score 89), with a QQQ 710 0DTE CALL ($76.9M, score 88) and an MSFT 495 0DTE CALL ($12.1M, score 86) next, so the marquee prints flipped from downside puts a session ago back to upside calls."
+    "macro": "VIX 14.94 (Yahoo ^VIX, band VIX 14.9) reads a calm headline well below the 20 handle and the +3 single-reference regime-change threshold, so the calm headline regime is intact and eased a touch from the prior 15-handle. Dealer positioning stayed negative into this open but firmed to near-flat: signed net GEX -0.10B (far less negative than the pre-close -1.10B), the flip 766.28 with SPY spot 766.08 pinned right at it just above the 765 put wall, call wall 770, so dealers hold the tape at the walls in a near-neutral pocket that turns positive just above ~766.3; the front expected move reads a wide ±21.22 with atmIV 74.84% on the 3 priced expiries. The sizing model is in line with the calm headline: volatility-sizing-lab reads a NORMAL regime (SPY conditional vol 11.0005%, throttle x1.36). Fear & Greed was NOT fetched this run (snapshot.fearGreed null), so the deterministic composite score of 1 is VIX-ONLY, not a measured neutral and not a data gap. bond-regime-lab cannot make the credit or duration call this run, an independent credit-spread reading is not available in this view yet, and its high-yield-versus-investment-grade price ratio reads mixed across both clean pairs (jnk-lqd, hyg-lqd) through 2026-08-26, with the yield curve positive, an inflation read that is stable, a duration posture to shorten, but the credit regime unresolved and confidence low. causal-rotation-lab flags selective credit transmission toward banks but is not ready to act on yet, confirmation still required. fx-regime-relative-value-lab makes no currency call this run because no FX evidence source is approved. technical-analysis-decision-lab's five-gate model does not feed the brief yet this window because its owner read is not published. VIX9D/VIX3M term structure is not in Tier-A and must be re-pulled before any term-structure claim. The tracked binaries are behind us: July NFP 8/7 resolved benignly in the tape but the official figure is not web-verified this run, treat it as tape-inferred and re-pull; the 7/29 FOMC decision is passed and digested benignly but its official statement/path remains unverified, re-pull FedWatch and the statement before asserting either result.",
+    "options": "22 option chains surfaced (refreshed this window, 22 fresh, 0 carried, 0 missing). This window's dealer-positioning owner reads (spot 766.08): options-structure-lab and gamma-trading-lab read SPY in negative dealer gamma but firmed to near-flat, with the flip at 766.28 and the spot pinned right at it just above the 765 put wall (call wall 770), signed net GEX -0.10B (far less negative than the pre-close -1.10B), atmIV 74.84%, front expected move a wide ±21.22 across 3 priced expiries, playbook range-break-watch / conviction patient, hold same-session-fade. options-flow-feed-lab turned back to CALL-HEAVY by premium (callFraction 0.6811, call premium $2.376B against put premium $1.113B across 12 tickers, 1776 contracts clearing the $250k premium bar within 30 days) and its most-unusual prints are upside calls: the single most-unusual is an SPY 766 0DTE CALL ($78.7M on 58.7x open interest, score 89), with a QQQ 710 0DTE CALL ($76.9M, score 88) and an MSFT 495 0DTE CALL ($12.1M, score 86) next, so the marquee prints flipped from downside puts a session ago back to upside calls."
   },
   "events": [
     {
-      "consensus": "ESTIMATE (re-confirm on the first fresh chart) — a positioning mechanic, not a scheduled release, so it carries no consensus number. Inputs this window: SPY spot ~766.08 on the 766.28 flip, between the 765 put wall and the 770 call wall; dealers negative gamma below the flip; front expected move ±21.22 (~2.77%); VIX 15.21; breadth narrow at 41.7% of 134 positive; SPY swing structure reads Tangled MAs with an active Double top.",
-      "event": "8/27 cash open — dealer-gamma and breadth mechanic — with monthly options expiration past and no scheduled release until Friday, positioning is the dominant near-term driver. The chain reads dealers in negative gamma below the flip with SPY spot ~766.08 sitting right on the 766.28 flip, between the 765 put wall and the 770 call wall; the front expected move is ±21.22 (~2.77%) with VIX 15.21, into breadth that narrowed to 41.7% of 134 constituents positive.",
+      "consensus": "ESTIMATE (re-confirm on the first fresh chart) — a positioning mechanic, not a scheduled release, so it carries no consensus number. Inputs this window: SPY spot ~766.08 on the 766.28 flip, between the 765 put wall and the 770 call wall; dealers negative gamma below the flip (signed GEX -95.6M); front expected move ±21.22 (~2.77%); VIX ~14.9; breadth narrow at 41.7% of 134 positive; SPY swing structure reads Tangled MAs with an active Double top.",
+      "event": "8/27 cash open — dealer-gamma and breadth mechanic — with monthly options expiration past and no scheduled release until Friday, positioning is the dominant near-term driver. The chain reads dealers in negative gamma below the flip with SPY spot ~766.08 sitting right on the 766.28 flip, between the 765 put wall and the 770 call wall; the front expected move is ±21.22 (~2.77%) with VIX ~14.9, into breadth that narrowed to 41.7% of 134 constituents positive.",
       "impliedMovePct": 2.77,
-      "psychologyNote": "The odds tilt to pin/chop because vol is calm (VIX 15.21) and spot sits right on the 766.28 flip inside a 765-770 cluster, so expiry-adjacent hedging can hold the band even with dealers negative below the flip. The downside break is weighted second because breadth narrowed to 41.7% positive, the last Leading cyclical (energy) is showing peaking signs and the tech leaders are back on their 50-days, so a loss of the 765 shelf lets hedging accelerate toward the ~753 50-day beneath a calm-looking index. The upside is genuinely possible with the index near its high and vol calm, but it must first clear the call wall and reclaim the flip against negative gamma and a Double top, so it ranks last.",
+      "psychologyNote": "The odds tilt to pin/chop because vol is calm (VIX ~14.9) and spot sits right on the 766.28 flip inside a 765-770 cluster, so expiry-adjacent hedging can hold the band even with dealers negative below the flip. The downside break is weighted second because breadth narrowed to 41.7% positive, the last Leading cyclical (energy) is showing peaking signs and the tech leaders are back on their 50-days, so a loss of the 765 shelf lets hedging accelerate toward the ~753 50-day beneath a calm-looking index. The upside is genuinely possible with the index near its high and vol calm, but it must first clear the call wall and reclaim the flip against negative gamma and a Double top, so it ranks last.",
       "scenarios": [
         {
-          "expectedEffect": "ESTIMATE (inputs: expiry-adjacent hedging around the 765/770 strikes, calm VIX 15.21, spot sitting on the 766.28 flip). Range-bound chop pins the band — ranked first because vol is calm and spot sits inside a tight strike cluster.",
+          "expectedEffect": "ESTIMATE (inputs: expiry-adjacent hedging around the 765/770 strikes, calm VIX ~14.9, spot sitting on the 766.28 flip). Range-bound chop pins the band — ranked first because vol is calm and spot sits inside a tight strike cluster.",
           "name": "pin the 765-770 gamma band",
           "prob": 0.45
         },
@@ -618,7 +540,7 @@
     },
     {
       "consensus": "ESTIMATE — a preliminary benchmark revision to the establishment-survey payroll level, not a monthly binary; no consensus magnitude is on file this run, so treat it as a watch item and re-pull nearer the date. Inputs: recent preliminary benchmark revisions have skewed the payroll level downward (carried context, re-verify); a large downward revision would firm the labor-softening narrative, a neutral one would be a non-event.",
-      "event": "8/28 (Fri) — BLS preliminary payrolls benchmark revision — the next scheduled labor-market data event, roughly one session out; flagged for calendar awareness, not as an actionable near-term catalyst. With only positioning mechanics between the open and this revision, the 8/27 stretch is a quiet calendar gap that leaves the dealer-gamma and breadth mechanic as the dominant driver.",
+      "event": "8/28 (Fri) — BLS preliminary payrolls benchmark revision — the next scheduled labor-market data event, roughly one session out; flagged for calendar awareness rather than as an actionable near-term catalyst. With only positioning mechanics between the open and this revision, the 8/27 stretch is a quiet calendar gap that leaves the dealer-gamma and breadth mechanic as the dominant driver.",
       "impliedMovePct": null,
       "psychologyNote": "The odds tilt to a downward revision because the recent run of preliminary benchmark revisions has repeatedly cut the reported payroll level, so the market's prior is that the establishment survey has been over-counting jobs — a soft-landing, rate-cut-friendly bias. It is only a labelled lean, not conviction, because the magnitude is unknown and a benchmark revision is a slow-burn narrative input rather than an imminent tradable catalyst.",
       "scenarios": [
@@ -658,7 +580,7 @@
           "prob": 0.3
         },
         {
-          "expectedEffect": "ESTIMATE (inputs: any late-month equity pullback would flip the rebalance direction). Buying of the underperforming asset would give a modest month-end bid, again a transient flow rather than a trend signal.",
+          "expectedEffect": "ESTIMATE (inputs: a less-common configuration where funds top up equities). A buy-the-laggard rebalance would provide a modest month-end bid that also fades quickly, so it is the low-odds leg.",
           "name": "bonds-into-equities rebalance supports stocks",
           "prob": 0.15
         }
@@ -667,25 +589,50 @@
       "when": "2026-08-31"
     },
     {
-      "consensus": "ESTIMATE — the specific 2026 release date and the consensus payroll/unemployment figures are NOT confirmed this run and MUST be re-pulled from the BLS calendar; treated as a labelled estimate. Inputs: recent monthly prints and the pending benchmark revision both point to a gradually cooling labor market (carried context, re-verify).",
-      "event": "~9/4 (Fri) — August employment report (nonfarm payrolls), ESTIMATE — re-verify against the BLS September release schedule — the next monthly labor binary, roughly six sessions out and the first hard growth read of the new month. It lands into a tape whose leadership has narrowed sharply beneath the surface (breadth 41.7% positive) even as the headline index sits near its high, so a soft or hot surprise would hit an already-fragile rotation.",
+      "consensus": "ESTIMATE — the 2026 print and Street consensus are UNVERIFIED this run; re-pull the ISM release and the consensus before asserting a number. Carried context: manufacturing PMI has hovered near the 50 expansion/contraction line, so the market reads it as a marginal, not marquee, catalyst that mainly sets the tone into the payrolls print.",
+      "event": "9/1 (Tue) — ISM Manufacturing PMI (10:00am ET) — the first scheduled macro print after the long-weekend-free month turn and the opening read on the manufacturing cycle for the new month; a growth-momentum gauge that feeds the soft-landing-versus-slowdown debate ahead of Friday's jobs report.",
       "impliedMovePct": null,
-      "psychologyNote": "The odds tilt to a cooling, in-line print because the recent run of data and the pending benchmark revision both point to gradual labor softening, which is the market's base case and the rate-cut-friendly outcome. The hot and weak tails are weighted equally because the asymmetry cuts both ways into a narrowing tape: a hot number revives rate-hold fears and hits extended growth leadership, while a weak number, though rate-cut-friendly, would feed a growth scare that favours defensives. The read is a labelled estimate because the exact date and consensus are unverified this run.",
+      "psychologyNote": "The odds tilt to an in-line, near-50 print because manufacturing PMI has been hovering around the expansion/contraction line, so the base case is 'no new information' that defers the real decision to Friday's jobs report. The soft-miss and firm-beat tails are weighted equally because, with breadth already narrow and leadership testing its 50-days, the tape is unusually two-sided: a slowdown read would validate the defensive rotation while a re-acceleration would relieve it, and there is no strong prior for which way the surprise falls.",
       "scenarios": [
         {
-          "expectedEffect": "ESTIMATE (inputs: recent prints and revisions lean toward gradual cooling, to re-verify). A payroll gain near a cooling trend keeps the rate-cut path intact and is mildly supportive for equities and duration.",
-          "name": "in-line / cooling print — soft landing",
+          "expectedEffect": "ESTIMATE (inputs: PMI has clustered around the 50 line, so an in-line read is modal). A print near expectations leaves the growth debate unchanged and hands the baton to Friday's jobs report.",
+          "name": "near-50 in-line print — status quo",
           "prob": 0.5
         },
         {
-          "expectedEffect": "ESTIMATE (inputs: an upside surprise would run against the cooling trend). A hot number trims rate-cut odds, firms front-end yields and the dollar, and pressures the most extended growth leadership.",
-          "name": "hot print — rate-hold fears revive",
+          "expectedEffect": "ESTIMATE (inputs: a sub-consensus manufacturing read into already-narrowing breadth). A weak PMI would firm the slowdown narrative, pressure cyclicals such as energy and support duration and defensives.",
+          "name": "soft miss — slowdown worry",
           "prob": 0.25
         },
         {
-          "expectedEffect": "ESTIMATE (inputs: a sharp downside miss). A materially weak number is rate-cut-friendly but raises growth-scare risk, a mixed read that typically favours defensives over cyclicals.",
-          "name": "weak print — growth scare",
+          "expectedEffect": "ESTIMATE (inputs: an above-consensus read against a decelerating equity tape). A firm PMI would support cyclicals and risk appetite but could lift front-end yields by trimming the rate-cut path at the margin.",
+          "name": "firm beat — re-acceleration",
           "prob": 0.25
+        }
+      ],
+      "type": "OTHER",
+      "when": "2026-09-01"
+    },
+    {
+      "consensus": "ESTIMATE — the August payroll, unemployment-rate and wage figures and the Street consensus are UNVERIFIED this run; re-pull the BLS release and the consensus before asserting any number. Carried context: recent preliminary benchmark revisions have skewed the payroll level lower, so the market's prior leans toward continued labor softening — a rate-cut-friendly bias that is a lean, not a confirmed setup.",
+      "event": "9/4 (Fri) — August employment report / non-farm payrolls (8:30am ET) — the marquee forward labor binary inside this window and the first major growth-and-rates catalyst after month-end; sets the near-term path for rate-cut expectations, the dollar and front-end yields into the next Fed meeting.",
+      "impliedMovePct": null,
+      "psychologyNote": "The odds tilt to an in-line, still-cooling print because the labor market has been softening gradually rather than in steps, so the modal outcome preserves the soft-landing story. The soft-miss tail is weighted second and heavily because the recent benchmark-revision skew has repeatedly cut payroll levels, so the market's prior is that the establishment survey over-counts — but the same softness that helps the rate-cut case can flip to a growth scare into already-narrow breadth. The hot beat ranks last because it cuts against the recent cooling trend, and it is the most dangerous tail for the extended, rate-sensitive leadership names.",
+      "scenarios": [
+        {
+          "expectedEffect": "ESTIMATE (inputs: the labor market has been cooling gradually, so a moderate print is modal). An in-line, still-cooling report keeps the soft-landing, gradual-cut narrative intact and is broadly supportive of risk without forcing a repricing.",
+          "name": "in-line, cooling print — soft-landing path",
+          "prob": 0.45
+        },
+        {
+          "expectedEffect": "ESTIMATE (inputs: the recent downward payroll-revision skew and softening momentum). A weak report would firm the rate-cut case and support duration, but into narrow breadth it could also read as growth-scare rather than pure easing relief, pressuring cyclicals.",
+          "name": "soft miss — labor cracks",
+          "prob": 0.35
+        },
+        {
+          "expectedEffect": "ESTIMATE (inputs: an upside surprise against the recent cooling trend, so the low-odds leg). A hot report would trim rate-cut odds, lift front-end yields and the dollar, and pressure the most rate-sensitive and extended growth names.",
+          "name": "hot beat — labor re-firms",
+          "prob": 0.2
         }
       ],
       "type": "NFP",
@@ -700,7 +647,7 @@
         "options-structure-lab.regime=negative dealer gamma; spot=766.08; flip=766.28; callWall=770; putWall=765; expectedMove=21.22; atmIV=0.7484; signedNetGEX=-95.6M",
         "gamma-trading-lab.scenario=range-break-watch; conviction=patient; flip=766.28; walls=765/770",
         "intraday-tape-lab.sessionType=Mixed / developing; control=Algo-controlled; vwap=765.64; gapPct=-0.14; barsToday=79",
-        "bench.px=766.08; regime.vix=15.21; maStack=bull-stack; pctFrom52wHigh=-1.52"
+        "bench.px=766.08; regime.vix=14.94; maStack=bull-stack; pctFrom52wHigh=-1.52"
       ],
       "method": "Cross-read the single-name options tape (call-versus-put premium, call fraction, and the strike and days-to-expiry of the heaviest same-session prints) against the cash-market internals (market-heatmap breadth versus its 60% threshold, and its change from the prior session) and the options-structure corridor (negative dealer gamma, flip, put and call walls, front expected move), then judge whether a swing back to call-led premium under narrowing breadth is a broad risk-on turn or a short-dated gamma chase, and anchor a direction-correct invalidation to the call wall above spot whose reclaim would falsify the rally-quality caution.",
       "note": "The genuinely new signature this window is that the derivative tape has rotated back from the two-sided, put-led posture of the prior session to uniformly call-led premium — yet the heaviest prints are almost entirely same-session upside chase rather than positioned conviction. Single-name option premium is call-heavy at a 0.681 call fraction, $2.376B of call premium against $1.113B of put premium across 12 tickers with 1776 contracts clearing the $250k bar inside 30 days, a clear step up in call demand. But the composition is short-dated: the single most unusual print is a same-session SPY 766 call at $78.7M on 58.7x open interest, the second a same-session QQQ 710 call at $76.9M, and the third a same-session MSFT 495 call — every top print is zero-days-to-expiry and struck at or just above spot, the fingerprint of intraday gamma chase, not a durable directional bid. This lands on a cash tape that is narrowing, not broadening: market-heatmap breadth is 41.72% of 134 constituents positive, an 18.28-point miss of the 60% broad-participation line and a step down from the prior read, so the call-led premium is being paid into a shrinking cohort of leaders. The options structure is mechanically fragile — SPY is in negative dealer gamma with spot near 766.08 wedged between the 765 put wall and the 770 call wall, fractionally under the 766.28 flip, inside a wide plus-or-minus 21.22 front expected move, while the most recent intraday auction was a Mixed / developing session pinned to a 765.64 VWAP. Call-led, zero-dated premium concentrating at the money under deteriorating breadth in negative gamma is a low-quality-rally read on the index rather than a broad risk-on turn, so the caution here is on rally quality. Watch a decisive reclaim of the 766.28 flip and the 770 call wall as the confirming trigger that would flip dealers positive and validate the bullish flow; the rally-quality caution is invalidated on a daily close above ~770.00 on SPY, which clears the call wall and releases the corridor upward.",
@@ -712,14 +659,14 @@
         "real-assets-lab.leader=ETH-USD score 76.6 Uptrend; BTC-USD=69.5; IBIT=61.9; DBC=64.8; PDBC=64.8; USO=55.0; GLD=47.5 mom126 -11.01; SLV=22.6 weak; scored=14 horizon=swing",
         "market-heatmap-lab.breadthPct=41.72; threshold=60; margin=-18.28; constituents=134; leadership=narrow",
         "etf-momentum-lab.leader=VGT 28.02; ranked=JMOM,SPMO,QQQ,MTUM; scored=13",
-        "bench.px=766.08; regime.vix=15.21; maStack=bull-stack; pctFrom52wHigh=-1.52"
+        "bench.px=766.08; regime.vix=14.94; maStack=bull-stack; pctFrom52wHigh=-1.52"
       ],
       "method": "Cross-read three independent internals — the sector RRG rotation states and accelerations, the real-assets 0-100 composite leadership across crypto, broad commodity, oil and the monetary metals, and the market-heatmap breadth versus its 60% threshold — to test whether a risk-on leadership rotation is firming against the narrow breadth, then, finding no direction-correct price level on a single committed-universe instrument that expresses the cluster, withhold a tactical call rather than publish one that cannot be scored.",
       "note": "The second cross-model pattern this window is a risk-on rotation cluster that sits in tension with, rather than alongside, the narrowing cash breadth. The sector model is rotating leadership toward communications — XLC is Improving with acceleration +5.27 and healthcare XLV is Leading at +2.26 — while financials XLF weakens and rotates out. The real-assets model reinforces the risk-on read: crypto leads with ETH-USD at 76.6/100, bitcoin (BTC-USD) at 69.5 and IBIT at 61.9 all in uptrends, and broad commodities are firm with DBC and PDBC both 64.8 and oil (USO) a 55.0 uptrend, while the defensive monetary metals lag — gold (GLD) reads 47.5 with six-month momentum of -11.01% and silver (SLV) is weak at 22.6. Improving communications and crypto leadership with firm broad commodities is a coherent speculative-appetite signature that argues against reading the narrow 41.72% breadth as uniformly defensive. This is a structural observation, not a scoreable trade: the cluster does not resolve to a single committed-universe instrument with a direction-correct price level this window — the sector reads are relative-strength and rotation states, the real-assets reads are 0-100 composite scores, and neither is a price trigger — so a tactical call is withheld rather than published with only a working side. Watch whether breadth reclaims the 60% participation line to confirm the risk-on rotation, or whether XLC leadership fades back toward defensives; until an instrument-level price trigger is in view, the cluster is carried as counter-weight evidence to the index-level rally-quality caution, not as its own call.",
       "title": "A risk-on rotation cluster is firming underneath the narrow breadth this window — sector leadership is improving into communications (XLC Improving, accel +5.27) with healthcare leading (XLV Leading, accel +2.26) as financials weaken (XLF Weakening), and real assets lead with crypto (ETH-USD 76.6, BTC-USD 69.5, IBIT 61.9) and firm broad commodities (DBC and PDBC 64.8) while gold (GLD 47.5, six-month momentum -11.01%) and silver (SLV 22.6) lag — a cross-model tension with the 41.72% breadth read that resolves to no single committed-universe price level"
     }
   ],
-  "generatedAt": "2026-08-27T05:48:32.639Z",
+  "generatedAt": "2026-08-27T11:30:25.242Z",
   "groups": [
     {
       "breadth": {
@@ -858,7 +805,7 @@
           "ticker": "TSLA"
         }
       ],
-      "note": "MAGS reads Improving up (quad I, rotation INTO) in the 2026-08-27 pre-market window off the 2026-08-26 close: rsMom 100.62 sits just over 100 while rsRatio 99.92 is still fractionally under the line and the 2-week acceleration remains slightly NEGATIVE (-0.2) — a firming-but-unconfirmed RRG (single distinct market-bar date, no persistence claimed). The ETF holds +3.65% over its 200-day (~65.2) with a bull-stacked MA stack (px 67.57). Breadth is 2/7 bull-stacked by MA order (NVDA, AMZN), above-50-day 4/7 (MSFT +16.59 (~425.7), AMZN +3.75 (~250.9), NVDA +0.92 (~207.8), AAPL +0.72 (~311.2); below GOOGL -2.5 (~350.8), META -2.76 (~592.5), TSLA -4.58 (~362.4)), above-200-day 5/7 (MSFT +15.14 (~431.1), AAPL +11.11 (~282.1), AMZN +9.12 (~238.5), NVDA +7.22 (~195.5), GOOGL +2.4 (~334.0); below META -7.56 (~623.3), TSLA -13.93 (~401.8)), and 21-day upMom 5/7 (MSFT +26.19, AMZN +12.74, TSLA +12.48, NVDA +6.42, GOOGL +2.48 green; red AAPL -7.83, META -2.91). The 5-day tape is only 2/7 green — META +5.51 the strongest, then MSFT +2.49 — with NVDA -3.63 the group's weakest 5-day, then AMZN -2.09, TSLA -1.51, AAPL -1.07 and GOOGL -0.79. MSFT is the engine: mom21 +26.19 the group's strongest one-month read keeps it ABOVE both its 50-day (+16.59%, ~425.7) and 200-day (+15.14%, ~431.1), though the MA stack is still tangled (the 50-day sits under the 200-day) and mom252 -1.56 with -8.43% off high shows the long-term order not yet healed; this cycle options-flow-feed-lab prints a BULLISH MSFT 495 0-DTE call ($12.1M at ~31.1x open interest, score 86) — a supportive single-name print — while company-fundamentals-lab publishes only partial fundamentals with direction not resolved (statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24Z, market observation still absent) and the bespoke msft-july-print-model offers no call this cycle, deep-link only; the read stands on price plus a bullish print, HOLD, invalidated on a daily close below its 200-day (~431.1). NVDA is the group's firmest bull-stack — +7.22% over its 200-day (~195.5), +0.92% above its 50-day (~207.8), mom21 +6.42 green though mom5 -3.63 the group's weakest 5-day and mom63 -1.38 soft, only -11.06% off high; NVDA prints no unusual single-name option this cycle, so the bull-stack stands on price and breaks on a daily close below its 50-day (~207.8). AMZN is a clean bull-stack — +9.12% over its 200-day (~238.5), +3.75% above its 50-day (~250.9), mom21 +12.74 green with a soft mom5 -2.09, only -8.36% off high; HOLD, invalidated on a daily close below its 200-day (~238.5). AAPL is bull-ordered but fractionally over its 50-day (+0.72%, ~311.2) — +11.11% over its 200-day (~282.1), mom252 +37.99 green — with mom21 -7.83 the group's weakest one-month read and mom5 -1.07 red; HOLD while it holds the long structure, invalidated on a daily close below its 200-day (~282.1). GOOGL sits under its 50-day (-2.5%, ~350.8) with mom21 +2.48 a slight green but mom63 -12.04 red — still +2.4% over its 200-day (~334.0), mom252 +64.04 the group's deepest structural gain — and it sits in the sector-research rotation-in sector (Communication Services / XLC) this cycle; GOOGL prints no unusual single-name flow, so HOLD while it holds the long structure, invalidated on a daily close below its 200-day (~334.0). META carries the group's structural damage — bear-stacked, -7.56% UNDER its 200-day (~623.3), -2.76% under its 50-day (~592.5), -26.16% off high, mom21 -2.91 / mom126 -11.86 / mom252 -23.52 the deepest declines in the group though mom5 +5.51 is the group's firmest bounce; META also sits in the rotation-in sector (XLC) but prints no unusual single-name flow, so the damaged-structure read stands on price and is invalidated on a daily close back above its 200-day (~623.3). TSLA is a bear-stacked laggard — on price mom21 +12.48 is a one-month bounce but the name is still -29.41% off high, -13.93% under its 200-day (~401.8), -4.58% under its 50-day (~362.4) with mom63 -21.47 the deepest 3-month red and mom5 -1.51 red; TSLA prints no unusual single-name flow this cycle, so with price ($345.82) below both moving averages the still-below-trend read is invalidated on a daily close above its 200-day (~401.8). The sector backdrop reaches PART of this group this run: sector-research-lab (owning-tool read, asOf 2026-08-27T05:19:12Z, benchmark SPY, 11 sectors) rotates INTO Communication Services (XLC — Improving up, quad I, rsMom 102.26, rsRatio 99.94, accel +5.27, sitting -1.25% under its 200-day) and OUT of Financials (XLF — Weakening down, quad W, rsMom 99.66, rsRatio 100.93, accel +1.84), with Health Care (XLV) the RS leader (Leading, rsRatio 101.49, rsMom 100.08) — of the group's sectors, Communication Services IS the rotation-in this window, so GOOGL and META sit in the rotation-in sector while Technology (AAPL, MSFT, NVDA) and Consumer Discretionary (AMZN, TSLA) carry no sector rotation signal and lean on their own structure. options-flow-feed-lab reads CALL-HEAVY (leaning bullish) this cycle — call premium leads put ($2,375.9M call vs $1,112.6M put, callFraction 0.68) across 12 tickers with 1776 contracts clearing the $250k/30-day bar; the feed's most unusual prints overall are a BULLISH SPY 766 0-DTE call (score 89), a QQQ 710 0-DTE call (88) and an MSFT 495 0-DTE call (86) — of the MAG7 only MSFT prints unusual single-name flow this cycle and it is a bullish call, so the rest of the group's reads stand on price. Confirm on breadth broadening (>2/7 bull-stacked, rsRatio reclaiming 100 and accel turning positive with rsMom holding over 100) and MSFT's 50-day crossing back above its 200-day to turn the earnings gap into a healed trend. (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY — labeled proxies; MA levels are ~ approximations derived from price and MA-distance; regime is calm by VIX 15.21 (score 0) but dealers sit in NEGATIVE gamma: options-structure-lab / gamma-trading-lab put the SPY flip 766.28 with spot ~766.08 just BELOW it, call wall 770 / put wall 765, expected move plus-or-minus 21.22, atm IV ~74.8%, playbook range-break-watch at patient conviction (asOf 2026-08-26T16:00:00Z); intraday-tape-lab reads SPY a Mixed / developing auction under Algo-controlled control (VWAP ~765.64, asOf 2026-08-26T20:00:00Z); market-heatmap-lab shows NARROW leadership — 41.72% of 134 constituents positive against a 60% threshold (asOf 2026-08-27T05:19:17Z); swing-structure-lab reads SPY Tangled MAs with an active Double top pattern (asOf 2026-08-26T13:30Z). This is the 2026-08-27 pre-market window; the 2026-08-26 regular session is the latest completed daily bar, the next 2026-08-27 session has not yet opened, snapshot asOf 2026-08-27T11:30:00.000Z; daily structure counts are read off that single distinct market-bar date — no multi-session persistence is claimed. Educational only — not investment advice.)",
+      "note": "MAGS reads Improving up (quad I, rotation INTO) in the 2026-08-27 pre-market window off the 2026-08-26 close: rsMom 100.62 sits just over 100 while rsRatio 99.92 is still fractionally under the line and the 2-week acceleration remains slightly NEGATIVE (-0.2) — a firming-but-unconfirmed RRG (single distinct market-bar date, no persistence claimed). The ETF holds +3.65% over its 200-day (~65.2) with a bull-stacked MA stack (px 67.57). Breadth is 2/7 bull-stacked by MA order (NVDA, AMZN), above-50-day 4/7 (MSFT +16.59 (~425.7), AMZN +3.75 (~250.9), NVDA +0.92 (~207.8), AAPL +0.72 (~311.2); below GOOGL -2.5 (~350.8), META -2.76 (~592.5), TSLA -4.58 (~362.4)), above-200-day 5/7 (MSFT +15.14 (~431.1), AAPL +11.11 (~282.1), AMZN +9.12 (~238.5), NVDA +7.22 (~195.5), GOOGL +2.4 (~334.0); below META -7.56 (~623.3), TSLA -13.93 (~401.8)), and 21-day upMom 5/7 (MSFT +26.19, AMZN +12.74, TSLA +12.48, NVDA +6.42, GOOGL +2.48 green; red AAPL -7.83, META -2.91). The 5-day tape is only 2/7 green — META +5.51 the strongest, then MSFT +2.49 — with NVDA -3.63 the group's weakest 5-day, then AMZN -2.09, TSLA -1.51, AAPL -1.07 and GOOGL -0.79. MSFT is the engine: mom21 +26.19 the group's strongest one-month read keeps it ABOVE both its 50-day (+16.59%, ~425.7) and 200-day (+15.14%, ~431.1), though the MA stack is still tangled (the 50-day sits under the 200-day) and mom252 -1.56 with -8.43% off high shows the long-term order not yet healed; this cycle options-flow-feed-lab prints a BULLISH MSFT 495 0-DTE call ($12.1M at ~31.1x open interest, score 86) — a supportive single-name print — while company-fundamentals-lab publishes only partial fundamentals with direction not resolved (statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24Z, market observation still absent) and the bespoke msft-july-print-model offers no call this cycle, deep-link only; the read stands on price plus a bullish print, HOLD, invalidated on a daily close below its 200-day (~431.1). NVDA is the group's firmest bull-stack — +7.22% over its 200-day (~195.5), +0.92% above its 50-day (~207.8), mom21 +6.42 green though mom5 -3.63 the group's weakest 5-day and mom63 -1.38 soft, only -11.06% off high; NVDA prints no unusual single-name option this cycle, so the bull-stack stands on price and breaks on a daily close below its 50-day (~207.8). AMZN is a clean bull-stack — +9.12% over its 200-day (~238.5), +3.75% above its 50-day (~250.9), mom21 +12.74 green with a soft mom5 -2.09, only -8.36% off high; HOLD, invalidated on a daily close below its 200-day (~238.5). AAPL is bull-ordered but fractionally over its 50-day (+0.72%, ~311.2) — +11.11% over its 200-day (~282.1), mom252 +37.99 green — with mom21 -7.83 the group's weakest one-month read and mom5 -1.07 red; HOLD while it holds the long structure, invalidated on a daily close below its 200-day (~282.1). GOOGL sits under its 50-day (-2.5%, ~350.8) with mom21 +2.48 a slight green but mom63 -12.04 red — still +2.4% over its 200-day (~334.0), mom252 +64.04 the group's deepest structural gain — and it sits in the sector-research rotation-in sector (Communication Services / XLC) this cycle; GOOGL prints no unusual single-name flow, so HOLD while it holds the long structure, invalidated on a daily close below its 200-day (~334.0). META carries the group's structural damage — bear-stacked, -7.56% UNDER its 200-day (~623.3), -2.76% under its 50-day (~592.5), -26.16% off high, mom21 -2.91 / mom126 -11.86 / mom252 -23.52 the deepest declines in the group though mom5 +5.51 is the group's firmest bounce; META also sits in the rotation-in sector (XLC) but prints no unusual single-name flow, so the damaged-structure read stands on price and is invalidated on a daily close back above its 200-day (~623.3). TSLA is a bear-stacked laggard — on price mom21 +12.48 is a one-month bounce but the name is still -29.41% off high, -13.93% under its 200-day (~401.8), -4.58% under its 50-day (~362.4) with mom63 -21.47 the deepest 3-month red and mom5 -1.51 red; TSLA prints no unusual single-name flow this cycle, so with price ($345.82) below both moving averages the still-below-trend read is invalidated on a daily close above its 200-day (~401.8). The sector backdrop reaches PART of this group this run: sector-research-lab (owning-tool read, asOf 2026-08-27T05:19:12Z, benchmark SPY, 11 sectors) rotates INTO Communication Services (XLC — Improving up, quad I, rsMom 102.26, rsRatio 99.94, accel +5.27, sitting -1.25% under its 200-day) and OUT of Financials (XLF — Weakening down, quad W, rsMom 99.66, rsRatio 100.93, accel +1.84), with Health Care (XLV) the RS leader (Leading, rsRatio 101.49, rsMom 100.08) — of the group's sectors, Communication Services IS the rotation-in this window, so GOOGL and META sit in the rotation-in sector while Technology (AAPL, MSFT, NVDA) and Consumer Discretionary (AMZN, TSLA) carry no sector rotation signal and lean on their own structure. options-flow-feed-lab reads CALL-HEAVY (leaning bullish) this cycle — call premium leads put ($2,375.9M call vs $1,112.6M put, callFraction 0.68) across 12 tickers with 1776 contracts clearing the $250k/30-day bar; the feed's most unusual prints overall are a BULLISH SPY 766 0-DTE call (score 89), a QQQ 710 0-DTE call (88) and an MSFT 495 0-DTE call (86) — of the MAG7 only MSFT prints unusual single-name flow this cycle and it is a bullish call, so the rest of the group's reads stand on price. Confirm on breadth broadening (>2/7 bull-stacked, rsRatio reclaiming 100 and accel turning positive with rsMom holding over 100) and MSFT's 50-day crossing back above its 200-day to turn the earnings gap into a healed trend. (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY — labeled proxies; MA levels are ~ approximations derived from price and MA-distance; regime is calm by VIX 14.94 (score 1) but dealers sit in NEGATIVE gamma: options-structure-lab / gamma-trading-lab put the SPY flip 766.28 with spot ~766.08 just BELOW it, call wall 770 / put wall 765, expected move plus-or-minus 21.22, atm IV ~74.8%, playbook range-break-watch at patient conviction (asOf 2026-08-26T16:00:00Z); intraday-tape-lab reads SPY a Mixed / developing auction under Algo-controlled control (VWAP ~765.64, asOf 2026-08-26T20:00:00Z); market-heatmap-lab shows NARROW leadership — 41.72% of 134 constituents positive against a 60% threshold (asOf 2026-08-27T05:19:17Z); swing-structure-lab reads SPY Tangled MAs with an active Double top pattern (asOf 2026-08-26T13:30Z). This is the 2026-08-27 pre-market window; the 2026-08-26 regular session is the latest completed daily bar, the next 2026-08-27 session has not yet opened, snapshot asOf 2026-08-27T11:30:00.000Z; daily structure counts are read off that single distinct market-bar date — no multi-session persistence is claimed. Educational only — not investment advice.)",
       "read": {
         "accel": -0.2,
         "etf": "MAGS",
@@ -1072,7 +1019,7 @@
           "ticker": "KLAC"
         }
       ],
-      "note": "SOXX reads Lagging (quad A, rotation NEUTRAL) in the 2026-08-27 pre-market window off the 2026-08-26 close: rsMom 99.92 sits just UNDER 100, rsRatio 98.77 stays under the line, and the 2-week acceleration is firmly NEGATIVE (-2.73); the RRG is not firming (single distinct market-bar date, no persistence claimed). The ETF still holds a deep +21.57% over its 200-day (~424.0) but sits -6.84% below its 50-day (~553.2) with a tangled MA stack (px 515.4), -21.31% off its high. Breadth is deep-long / thin near-term: 10/12 above their 200-day (below only AVGO -3.69 (~369.2) and QCOM -2.55 (~167.0)), but just 2/12 bull-stacked by MA order (NVDA, AVGO) and only 2/12 above their 50-day (NVDA +0.92 (~207.8), MRVL +6.22 (~230.8)); the 21-day upMom count is 9/12 (MRVL +40.49, LRCX +16.05, MU +14.37, TSM +6.47, NVDA +6.42, AMD +5.79, ADI +1.63, AMAT +0.69, QCOM +0.52 green; red AVGO -6.65, TXN -5.52, KLAC -3.65) while the 5-day tape is 6/12 green (MRVL +3.3 the strongest, then AMD +3.11, LRCX +1.86, TSM +1.36, QCOM +1.12 and MU +0.14; the other six red, deepest NVDA -3.63, AMAT -3.31 and TXN -2.12). MRVL is the group's momentum leader — mom21 +40.49 and mom5 +3.3 both green, +66.43% over its 200-day (~147.3) and +6.22% above its 50-day (~230.8); the clearest momentum name in a deteriorated complex, HOLD while it holds the long structure, invalidated on a daily close below its 200-day (~147.3). AVGO is the former leader that has lost its 200-day — bull-ordered by MA label but price -3.69% UNDER its 200-day (~369.2) and -8.04% under its 50-day (~386.7), mom5 -1.9 / mom21 -6.65 / mom63 -15.71 all red and -26.16% off high; AVGO prints no unusual single-name options flow this cycle, so the broken-structure read stands on price and is invalidated on a daily close back above its 200-day (~369.2). NVDA carries the complex's firmest structure — bull-stacked, +7.22% over its 200-day (~195.5) and +0.92% above its 50-day (~207.8), mom21 +6.42 green though mom5 -3.63 a near-term red, only -11.06% off high; HOLD while it holds the long structure, invalidated on a daily close below its 50-day (~207.8). MU and LRCX remain deep-structure holds — MU +61.37% over its 200-day (~581.5), mom21 +14.37 green, and LRCX +22.28% over its 200-day (~255.9), mom21 +16.05 green — while KLAC is the deepest structural laggard: -39.07% off high, -14.89% below its 50-day (~216.0) though still +8.49% over its 200-day (~169.4), mom5 -1.84 and mom21 -3.65 among the group's deeper reds; KLAC prints no unusual single-name options flow this cycle, so HOLD only while it holds the 200-day, invalidated on a daily close below its 200-day (~169.4). The sector backdrop does NOT reach this group this run: sector-research-lab (owning-tool read, asOf 2026-08-27T05:19:12Z, benchmark SPY, 11 sectors) rotates INTO Communication Services (XLC — Improving up, quad I, rsMom 102.26, accel +5.27) and OUT of Financials (XLF — Weakening down, quad W), with Health Care (XLV) the RS leader (rsRatio 101.49) — Technology is neither the rotation-in nor the rotation-out sector this window, so the semiconductor complex leans on its own — Lagging — RRG rather than a sector tailwind. options-flow-feed-lab reads CALL-HEAVY (leaning bullish) this cycle ($2,375.9M call vs $1,112.6M put, callFraction 0.68 across 12 tickers, 1776 contracts over the $250k/30-day bar), and the feed's most unusual prints overall are NOT semiconductor names this cycle — a bullish SPY 766 0-DTE call (score 89), a QQQ 710 call (88) and an MSFT 495 call (86); no semiconductor name prints unusual single-name flow this cycle, so the whole complex's reads stand on price. Confirm on breadth broadening (>2/12 bull-stacked and above the 50-day, rsRatio reclaiming 100 and accel turning positive with rsMom reclaiming 100). (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY — labeled proxies; MA levels are ~ approximations derived from price and MA-distance; regime is calm by VIX 15.21 (score 0) but dealers sit in NEGATIVE gamma: options-structure-lab / gamma-trading-lab put the SPY flip 766.28 with spot ~766.08 just BELOW it, call wall 770 / put wall 765, expected move plus-or-minus 21.22, atm IV ~74.8%, playbook range-break-watch at patient conviction (asOf 2026-08-26T16:00:00Z); intraday-tape-lab reads SPY a Mixed / developing auction under Algo-controlled control (VWAP ~765.64, asOf 2026-08-26T20:00:00Z); market-heatmap-lab shows NARROW leadership — 41.72% of 134 constituents positive against a 60% threshold (asOf 2026-08-27T05:19:17Z); swing-structure-lab reads SPY Tangled MAs with an active Double top pattern (asOf 2026-08-26T13:30Z). This is the 2026-08-27 pre-market window; the 2026-08-26 regular session is the latest completed daily bar, the next 2026-08-27 session has not yet opened, snapshot asOf 2026-08-27T11:30:00.000Z; daily structure counts are read off that single distinct market-bar date — no multi-session persistence is claimed. Educational only — not investment advice.)",
+      "note": "SOXX reads Lagging (quad A, rotation NEUTRAL) in the 2026-08-27 pre-market window off the 2026-08-26 close: rsMom 99.92 sits just UNDER 100, rsRatio 98.77 stays under the line, and the 2-week acceleration is firmly NEGATIVE (-2.73); the RRG is not firming (single distinct market-bar date, no persistence claimed). The ETF still holds a deep +21.57% over its 200-day (~424.0) but sits -6.84% below its 50-day (~553.2) with a tangled MA stack (px 515.4), -21.31% off its high. Breadth is deep-long / thin near-term: 10/12 above their 200-day (below only AVGO -3.69 (~369.2) and QCOM -2.55 (~167.0)), but just 2/12 bull-stacked by MA order (NVDA, AVGO) and only 2/12 above their 50-day (NVDA +0.92 (~207.8), MRVL +6.22 (~230.8)); the 21-day upMom count is 9/12 (MRVL +40.49, LRCX +16.05, MU +14.37, TSM +6.47, NVDA +6.42, AMD +5.79, ADI +1.63, AMAT +0.69, QCOM +0.52 green; red AVGO -6.65, TXN -5.52, KLAC -3.65) while the 5-day tape is 6/12 green (MRVL +3.3 the strongest, then AMD +3.11, LRCX +1.86, TSM +1.36, QCOM +1.12 and MU +0.14; the other six red, deepest NVDA -3.63, AMAT -3.31 and TXN -2.12). MRVL is the group's momentum leader — mom21 +40.49 and mom5 +3.3 both green, +66.43% over its 200-day (~147.3) and +6.22% above its 50-day (~230.8); the clearest momentum name in a deteriorated complex, HOLD while it holds the long structure, invalidated on a daily close below its 200-day (~147.3). AVGO is the former leader that has lost its 200-day — bull-ordered by MA label but price -3.69% UNDER its 200-day (~369.2) and -8.04% under its 50-day (~386.7), mom5 -1.9 / mom21 -6.65 / mom63 -15.71 all red and -26.16% off high; AVGO prints no unusual single-name options flow this cycle, so the broken-structure read stands on price and is invalidated on a daily close back above its 200-day (~369.2). NVDA carries the complex's firmest structure — bull-stacked, +7.22% over its 200-day (~195.5) and +0.92% above its 50-day (~207.8), mom21 +6.42 green though mom5 -3.63 a near-term red, only -11.06% off high; HOLD while it holds the long structure, invalidated on a daily close below its 50-day (~207.8). MU and LRCX remain deep-structure holds — MU +61.37% over its 200-day (~581.5), mom21 +14.37 green, and LRCX +22.28% over its 200-day (~255.9), mom21 +16.05 green — while KLAC is the deepest structural laggard: -39.07% off high, -14.89% below its 50-day (~216.0) though still +8.49% over its 200-day (~169.4), mom5 -1.84 and mom21 -3.65 among the group's deeper reds; KLAC prints no unusual single-name options flow this cycle, so HOLD only while it holds the 200-day, invalidated on a daily close below its 200-day (~169.4). The sector backdrop does NOT reach this group this run: sector-research-lab (owning-tool read, asOf 2026-08-27T05:19:12Z, benchmark SPY, 11 sectors) rotates INTO Communication Services (XLC — Improving up, quad I, rsMom 102.26, accel +5.27) and OUT of Financials (XLF — Weakening down, quad W), with Health Care (XLV) the RS leader (rsRatio 101.49) — Technology is neither the rotation-in nor the rotation-out sector this window, so the semiconductor complex leans on its own — Lagging — RRG rather than a sector tailwind. options-flow-feed-lab reads CALL-HEAVY (leaning bullish) this cycle ($2,375.9M call vs $1,112.6M put, callFraction 0.68 across 12 tickers, 1776 contracts over the $250k/30-day bar), and the feed's most unusual prints overall are NOT semiconductor names this cycle — a bullish SPY 766 0-DTE call (score 89), a QQQ 710 call (88) and an MSFT 495 call (86); no semiconductor name prints unusual single-name flow this cycle, so the whole complex's reads stand on price. Confirm on breadth broadening (>2/12 bull-stacked and above the 50-day, rsRatio reclaiming 100 and accel turning positive with rsMom reclaiming 100). (rsMom1m/3m/6m and accel are sector-lab RRG proxies vs SPY — labeled proxies; MA levels are ~ approximations derived from price and MA-distance; regime is calm by VIX 14.94 (score 1) but dealers sit in NEGATIVE gamma: options-structure-lab / gamma-trading-lab put the SPY flip 766.28 with spot ~766.08 just BELOW it, call wall 770 / put wall 765, expected move plus-or-minus 21.22, atm IV ~74.8%, playbook range-break-watch at patient conviction (asOf 2026-08-26T16:00:00Z); intraday-tape-lab reads SPY a Mixed / developing auction under Algo-controlled control (VWAP ~765.64, asOf 2026-08-26T20:00:00Z); market-heatmap-lab shows NARROW leadership — 41.72% of 134 constituents positive against a 60% threshold (asOf 2026-08-27T05:19:17Z); swing-structure-lab reads SPY Tangled MAs with an active Double top pattern (asOf 2026-08-26T13:30Z). This is the 2026-08-27 pre-market window; the 2026-08-26 regular session is the latest completed daily bar, the next 2026-08-27 session has not yet opened, snapshot asOf 2026-08-27T11:30:00.000Z; daily structure counts are read off that single distinct market-bar date — no multi-session persistence is claimed. Educational only — not investment advice.)",
       "read": {
         "accel": -2.73,
         "etf": "SOXX",
@@ -1098,8 +1045,8 @@
         "deepLink": "swing-structure-lab.html",
         "horizon": "structural",
         "invalidation": "A SPY daily close below ~752.98 (its 50-day) turns the core from hold toward trim; a confirmed SPMO daily close below ~131.5 (its 200-day) confirms structural damage.",
-        "rationale": "The multi-month structure is the strongest evidence in this read and it held into the 8/26 close: on the Tier-A ma-distance SPY 766.08 carries a full 20>50>200 bull-stack (+1.74% above its 50-day ~752.98 and +8.07% over its 200-day ~708.9, mom126/252 +10.52%/+19.24%, pctFrom52wHigh -1.52, about 1.5% under its high). The owner read is more cautious this window: swing-structure-lab reads SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91), a cautionary overhead tell rather than a break of the multi-month leg. The cautions are real but do not break the structural leg: breadth stays narrow at 41.72% of 134 (market-heatmap-lab, narrow, margin -18.28); the near-term leaders have not fully reclaimed their lines (QQQ 711.37 -0.14% below its 50-day ~712.4 though now Tier-A bull-stacked, SPMO 147.52 -1.97% below its 50-day ~150.5 yet +12.16% over its 200-day ~131.5, XLK 182.84 right at its 50-day and Lagging); and the dealer map is still marginally negative gamma (options-structure-lab / gamma-trading-lab, spot 766.08, signed net GEX -0.10B, flip 766.28) though it firmed to near-flat with the spot pinned right at the flip. VIX is a calm 15.21 and volatility-sizing-lab reads NORMAL (throttle x1.36). Hold the structural SPY/SPMO core while SPY holds its 20>50>200 stack and its 50-day and SPMO holds well above its 200-day.",
-        "structuralAnchor": "SPY 766.08 (pctFrom52wHigh -1.52), Tier-A 20>50>200 bull-stack, ma50Dist +1.74% (~752.98), ma200Dist +8.07% (~708.9), mom126/252 +10.52%/+19.24%; swing-structure-lab reads SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91). SPMO 147.52, -1.97% below its 50-day (~150.5), +12.16% over its 200-day (~131.5), mom5 -0.56, mom21 +4.66, maStack tangled. Breadth 41.72% of 134 (market-heatmap-lab, narrow, margin -18.28). Dealer map (options-structure-lab / gamma-trading-lab, spot 766.08): negative gamma but near-flat, signed net GEX -0.10B, flip 766.28, put wall 765, call wall 770, atmIV 74.84%, expected move ±21.22. Today's session intraday-tape-lab Mixed / developing auction under Algo-controlled control, VWAP 765.64, gap -0.14%, 79 bars.",
+        "rationale": "The multi-month structure is the strongest evidence in this read and it held into the 8/26 close: on the Tier-A ma-distance SPY 766.08 carries a full 20>50>200 bull-stack (+1.74% above its 50-day ~752.98 and +8.07% over its 200-day ~708.9, mom126/252 +10.52%/+19.24%, pctFrom52wHigh -1.52). The owner read is more cautious this window: swing-structure-lab reads SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91), a cautionary overhead tell rather than a break of the multi-month leg. The cautions are real but do not break the structural leg: breadth stays narrow at 41.72% of 134 (market-heatmap-lab, margin -18.28); the near-term leaders have not fully reclaimed their lines (QQQ 711.37 -0.14% below its 50-day ~712.4 though now Tier-A bull-stacked, SPMO 147.52 -1.97% below its 50-day ~150.5 yet +12.16% over its 200-day ~131.5, XLK 182.84 right at its 50-day and Lagging); and the dealer map is still marginally negative gamma (options-structure-lab / gamma-trading-lab, spot 766.08, signed net GEX -0.10B, flip 766.28) though it firmed to near-flat with the spot pinned right at the flip. VIX eased to a calm 14.94 and volatility-sizing-lab reads NORMAL (throttle x1.36). Hold the structural SPY/SPMO core while SPY holds its 20>50>200 stack and its 50-day and SPMO holds well above its 200-day.",
+        "structuralAnchor": "SPY 766.08 (pctFrom52wHigh -1.52), Tier-A 20>50>200 bull-stack, ma50Dist +1.74% (~752.98), ma200Dist +8.07% (~708.9), mom126/252 +10.52%/+19.24%; swing-structure-lab reads SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91). SPMO 147.52, -1.97% below its 50-day (~150.5), +12.16% over its 200-day (~131.5), mom5 -0.56, mom21 +4.66, maStack tangled. Breadth 41.72% of 134 (market-heatmap-lab, narrow, margin -18.28). Dealer map (options-structure-lab / gamma-trading-lab, spot 766.08): negative gamma but near-flat, signed net GEX -0.10B, flip 766.28, put wall 765, call wall 770, atmIV 74.84%, expected move ±21.22. Today's session intraday-tape-lab Mixed / developing auction under Algo-controlled control, VWAP 765.64, gap -0.14%, 79 bars. VIX 14.94, volatility-sizing-lab NORMAL, throttle x1.36.",
         "subject": "SPY / SPMO longer-term structural core — HOLD into the 2026-08-27 open and session. SPY 766.08 carries a full 20>50>200 bull-stack (+1.74% over its 50-day ~752.98 and +8.07% over its 200-day ~708.9) about 1.5% under its 52-week high, and SPMO 147.52 holds +12.16% over its 200-day though it is still below its 50-day, so today's narrow 41.72% breadth, the swing-structure-lab Double top and Tangled MAs owner read, the near-term leaders still at or under their 50-days and the marginally-negative dealer gamma are cautionary tells, not a structural break; there is nothing to trim while the stack and the 200-day lines hold.",
         "trigger": "Hold the core while SPY holds its 20>50>200 stack and its 50-day (~752.98) and SPMO holds well above its 200-day (~131.5); re-evaluate to trim only on the invalidation below."
       },
@@ -1109,7 +1056,7 @@
         "deepLink": "sector-research-lab.html",
         "horizon": "swing",
         "invalidation": "An XLE daily close below ~57.9 (its 50-day) that breaks the cyclical/energy leg turns the leadership tilt from hold toward pause; a SPY daily close below ~752.98 (its 50-day) that takes the whole tape risk-off retires it.",
-        "rationale": "Leadership held its cyclical/defensive tilt on the 8/26 tape: sector-research-lab reads Rotate toward XLC as XLF weakens. On the deterministic RRG the standout relative-strength legs are XLC (communications, the highest sector rsMom 102.26, accel +5.27, quad I, Improving, rotating into), XLB (materials, rsMom 101.53, accel +4.08, quad L, Leading, bull-stack, +7.89% over its 200-day), XLP (staples, rsMom 100.81, accel +4.14, quad L, Leading, bull-stack, +3.89% over its 200-day), XLE (energy, rsMom 100.15, accel +0.56, quad L, Leading, rotating into) and XLV (healthcare, rsMom 100.08, accel +2.26, quad L, Leading, +12.23% over its 200-day), with MAGS (rsMom 100.62), XLRE (real estate, rsMom 100.55, accel +3.16), XLU (utilities, rsMom 100.43, accel +2.39) and XLY (discretionary, rsMom 100.2, accel +0.45) Improving. Funding comes from weakening financials (XLF rsMom 99.66, quad W, rotating out) and laggard tech (XLK rsMom 99.38, quad A, accel -4.15, Lagging right at its 50-day). etf-momentum-lab still ranks VGT first (28.02% momentum, 13 funds scored), global-rotation-lab keeps EWS Singapore first (89.8 vs ACWI) and real-assets-lab reads crypto-led leadership (ETH-USD 76.6, BTC 69.5, GLD mid-low at 47.5), all consistent with a cyclical, risk-on-with-defensive-ballast tilt. With dealer gamma still marginally negative (SPY spot 766.08 just below the 766.28 flip) and breadth narrow, tilting toward the strongest, structurally-clean relative-strength legs and the Improving defensives rather than broad beta is the higher-conviction expression; keep the tilt while the Leading legs hold rsMom above 100 with positive acceleration and energy holds its structural line.",
+        "rationale": "Leadership held its cyclical/defensive tilt on the 8/26 tape: sector-research-lab reads Rotate toward XLC as XLF weakens. On the deterministic RRG the standout relative-strength legs are XLC (communications, the highest sector rsMom 102.26, accel +5.27, quad I, Improving, rotating into), XLB (materials, rsMom 101.53, accel +4.08, quad L, Leading, bull-stack, +7.89% over its 200-day), XLP (staples, rsMom 100.81, accel +4.14, quad L, Leading, +3.89% over its 200-day), XLE (energy, rsMom 100.15, accel +0.56, quad L, Leading, rotating into) and XLV (healthcare, rsMom 100.08, accel +2.26, quad L, Leading, +12.23% over its 200-day), with MAGS (rsMom 100.62), XLRE (rsMom 100.55, accel +3.16), XLU (rsMom 100.43, accel +2.39) and XLY (rsMom 100.2, accel +0.45) Improving. Funding comes from weakening financials (XLF rsMom 99.66, quad W, rotating out) and laggard tech (XLK rsMom 99.38, quad A, accel -4.15, Lagging right at its 50-day). etf-momentum-lab still ranks VGT first (28.02% momentum, 13 funds scored), global-rotation-lab keeps EWS Singapore first (89.8 vs ACWI) and real-assets-lab reads crypto-led leadership (ETH-USD 76.6, BTC 69.5, GLD mid-low at 47.5), all consistent with a cyclical, risk-on-with-defensive-ballast tilt. With dealer gamma still marginally negative (SPY spot 766.08 just below the 766.28 flip) and breadth narrow, tilting toward the strongest, structurally-clean relative-strength legs and the Improving defensives rather than broad beta is the higher-conviction expression; keep the tilt while the Leading legs hold rsMom above 100 with positive acceleration and energy holds its structural line.",
         "structuralAnchor": "XLC highest sector rsMom 102.26 (rsRatio 99.94, accel +5.27, quad I, Improving, rotating into, ma200Dist -1.25). XLB Leading (rsMom 101.53, rsRatio 101.3, accel +4.08, quad L, +7.89% over its 200-day). XLP Leading (rsRatio 100.02, rsMom 100.81, accel +4.14, quad L, bull-stack, +3.89% over its 200-day). XLE Leading (rsMom 100.15, rsRatio 101.37, accel +0.56, quad L, rotating into; XLE 62.43, +7.91% over its 50-day ~57.9, +15.23% over its 200-day ~54.2, near its 52-week high pctFrom52wHigh -2.07). XLV Leading (rsRatio 101.49, rsMom 100.08, accel +2.26, quad L, +12.23% over its 200-day). Improving: MAGS (rsMom 100.62), XLRE (rsMom 100.55, accel +3.16), XLU (rsMom 100.43, accel +2.39), XLY (rsMom 100.2, accel +0.45). Weakening / funding: XLF (rsMom 99.66, quad W, rotating out, +9.29% over its 200-day). Lagging: XLK (rsMom 99.38, quad A, accel -4.15, right at its 50-day), XLI (rsMom 98.63, quad A). Benchmark SPY, 11 sectors.",
         "subject": "ROTATE the sector tilt toward the Leading materials/staples/healthcare (XLB materials, XLP staples, XLV healthcare) and energy (XLE) plus Improving communications (XLC, the highest sector rsMom) and defensives (XLU utilities, XLRE real estate), funded from weakening financials (XLF) and Lagging tech (XLK below/at its 50-day); sector-research-lab reads Rotate toward XLC as XLF weakens this window.",
         "trigger": "Rotate toward XLC/XLB/XLP/XLV and the Improving XLU/XLRE/XLY/MAGS while the Leading legs hold rsMom above 100 with positive acceleration, funding from weakening financials (XLF) and Lagging tech (XLK). Keep energy (XLE) as a Leading cyclical leg while it holds its 50-day; do not chase XLK."
@@ -1120,7 +1067,7 @@
         "deepLink": "etf-momentum-lab.html",
         "horizon": "swing",
         "invalidation": "A confirmed SPMO daily close below ~131.5 (its 200-day) breaks the structural leg and turns the first tranche from hold toward trim; a SPY daily close below ~752.98 (its 50-day) pares it.",
-        "rationale": "The add's persistence premise stays out of reach this window, so keep the remaining tranches paused. market-heatmap-lab reads a narrow 41.72% of 134 (narrow, margin -18.28), so counting by distinct completed market-bar dates the sequence is 68.91% on 8/24, 44.72% on 8/25 and 41.72% on 8/26 — only the 8/24 bar cleared 60%, so three-bar persistence above 60% is decisively not established and breadth narrowed further this window. The structural backdrop still supports HOLDING the first tranche: etf-momentum-lab ranks VGT first (28.02% momentum, 13 funds scored) and SPMO still holds +12.16% over its 200-day. But the release conditions are still unmet: SPMO 147.52 is -1.97% below its 50-day (~150.5, mom5 -0.56), QQQ 711.37 is still -0.14% below its 50-day (~712.4, mom5 -0.66) even though it now carries a Tier-A bull-stack, XLK 182.84 is Lagging right at its 50-day, and dealer gamma is still marginally negative with SPY spot 766.08 just below the 766.28 flip. Do not add the remaining tranches until breadth holds above 60% across three completed bars, SPMO reclaims its 50-day, QQQ reclaims its 50-day and SPY closes above the flip into positive gamma.",
+        "rationale": "The add's persistence premise stays out of reach this window, so keep the remaining tranches paused. market-heatmap-lab reads a narrow 41.72% of 134 (margin -18.28), so counting by distinct completed market-bar dates the sequence is 68.91% on 8/24, 44.72% on 8/25 and 41.72% on 8/26 — only the 8/24 bar cleared 60%, so three-bar persistence above 60% is decisively not established and breadth narrowed further this window. The structural backdrop still supports HOLDING the first tranche: etf-momentum-lab ranks VGT first (28.02% momentum, 13 funds scored) and SPMO still holds +12.16% over its 200-day. But the release conditions are still unmet: SPMO 147.52 is -1.97% below its 50-day (~150.5, mom5 -0.56), QQQ 711.37 is still -0.14% below its 50-day (~712.4, mom5 -0.66) even though it now carries a Tier-A bull-stack, XLK 182.84 is Lagging right at its 50-day, and dealer gamma is still marginally negative with SPY spot 766.08 just below the 766.28 flip. Do not add the remaining tranches until breadth holds above 60% across three completed bars, SPMO reclaims its 50-day, QQQ reclaims its 50-day and SPY closes above the flip into positive gamma.",
         "structuralAnchor": "Breadth 41.72% of 134 (market-heatmap-lab, narrow, margin -18.28); distinct completed-bar sequence 68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26, so persistence above 60% across three bars is not established. Dealer map near-flat negative: spot 766.08 just above the 765 put wall right at the 766.28 flip, call wall 770, GEX -0.10B, atmIV 74.84%, expected move ±21.22. SPMO 147.52 -1.97% below its 50-day (~150.5), +12.16% over its 200-day (~131.5), mom5 -0.56. QQQ 711.37 still just below its 50-day (~712.4, ma50Dist -0.14, mom5 -0.66) but now Tier-A bull-stacked, XLK 182.84 (right at its 50-day, Lagging). etf-momentum-lab ranks VGT first (28.02% momentum), 13 funds scored. volatility-sizing-lab NORMAL, throttle x1.36.",
         "subject": "Measured index / broad-momentum beta add — HOLD the FIRST tranche and keep the rest PAUSED into the 2026-08-27 open and session. Breadth is a narrow 41.72% of 134 so three-bar persistence above 60% is unmet, and the near-term leaders have still not fully reclaimed their 50-days (SPMO still below its, QQQ still fractionally below its), so keep the remaining tranches gated until completed closes hold breadth above 60% across three bars while SPMO reclaims ~150.5, QQQ reclaims ~712.4 and SPY reclaims the 766.28 flip into positive dealer gamma.",
         "trigger": "Hold the first tranche while SPMO holds above its 200-day (~131.5). Release the remaining tranches only when completed closes hold breadth above 60% across three bars AND SPMO reclaims and holds ~150.5 AND QQQ reclaims and holds ~712.4 AND SPY closes above the 766.28 flip into positive dealer gamma."
@@ -1131,9 +1078,9 @@
         "deepLink": "gamma-trading-lab.html",
         "horizon": "tactical",
         "invalidation": "A SPY daily close above ~766.3 that reclaims and holds the gamma flip back into positive dealer gamma retires the tail; the amplification risk it insures against is gone and the tail no longer earns its carry.",
-        "rationale": "Keep only a small, defined tail, and this window argues for it a touch LESS hard than the last as the dealer buffer firmed and flow flipped back to the upside. WHAT STILL ARGUES FOR A TAIL: options-structure-lab and gamma-trading-lab (spot 766.08) still read SPY in negative dealer gamma with the flip at 766.28 and the spot pinned right at it just above the 765 put wall (playbook range-break-watch, conviction patient, hold same-session-fade); breadth stays narrow at 41.72% and narrowed further; the near-term leaders have not fully reclaimed their 50-days (QQQ 711.37, SPMO 147.52); semis are heavy (SOXX -21.31% off its high); and the front expected move reads a wide ±21.22 (atmIV 74.84%). WHAT ARGUES FOR SIZING IT SMALL AND WEAKENED: dealer gamma firmed to near-flat (signed net GEX -0.10B vs the pre-close -1.10B), the spot sits within 0.2 points of reclaiming positive gamma, options-flow-feed-lab flipped back to call-heavy (callFraction 0.6811) with its most-unusual prints upside calls (an SPY 766 0DTE CALL $78.7M on 58.7x open interest, a QQQ 710 call, an MSFT 495 call), VIX is a calm 15.21, volatility-sizing-lab reads NORMAL (throttle x1.36), and today's tape is an orderly Mixed / developing auction. So carry a small, defined tail against the still-negative but near-flat gamma pocket and the narrow breadth — smaller than last window, not size.",
-        "structuralAnchor": "Dealer map (options-structure-lab / gamma-trading-lab, spot 766.08): negative gamma but near-flat, signed net GEX -0.10B (far less negative than the pre-close -1.10B), flip 766.28 with SPY right at it, put wall 765, call wall 770, atmIV 74.84%, expected move a wide ±21.22, scenario range-break-watch / conviction patient, hold same-session-fade. intraday-tape-lab Mixed / developing auction under Algo-controlled control (VWAP 765.64, gap -0.14%, 79 bars). Breadth 41.72% (narrow, margin -18.28). options-flow-feed-lab call-heavy (callFraction 0.6811, call premium $2.376B vs put premium $1.113B, 12 tickers, 1776 contracts over $250k in 30 days); the single most-unusual print is an SPY 766 CALL ($78.7M, 58.7x open interest, 0DTE), with a QQQ 710 CALL and an MSFT 495 CALL next. VIX 15.21, volatility-sizing-lab NORMAL (throttle x1.36).",
-        "subject": "Carry only a small, defined tail into the 2026-08-27 open; dealer gamma is still negative but firmed to near-flat (signed net GEX -0.10B) with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall and breadth a narrow 41.72%, but the options tape turned constructive — flow flipped back to call-heavy with an SPY 766 upside call the marquee print and VIX a calm 15.21 with the sizing model NORMAL — so size the hedge as a small, defined tail only, smaller than last window, and stand ready to retire it if SPY reclaims the flip.",
+        "rationale": "Keep only a small, defined tail, and this window argues for it a touch LESS hard than the last as the dealer buffer firmed, flow flipped back to the upside and VIX eased further. WHAT STILL ARGUES FOR A TAIL: options-structure-lab and gamma-trading-lab (spot 766.08) still read SPY in negative dealer gamma with the flip at 766.28 and the spot pinned right at it just above the 765 put wall (playbook range-break-watch, conviction patient, hold same-session-fade); breadth stays narrow at 41.72% and narrowed further; the near-term leaders have not fully reclaimed their 50-days (QQQ 711.37, SPMO 147.52); semis are heavy (SOXX -21.31% off its high); and the front expected move reads a wide ±21.22 (atmIV 74.84%). WHAT ARGUES FOR SIZING IT SMALL AND WEAKENED: dealer gamma firmed to near-flat (signed net GEX -0.10B vs the pre-close -1.10B), the spot sits within 0.2 points of reclaiming positive gamma, options-flow-feed-lab flipped back to call-heavy (callFraction 0.6811) with its most-unusual prints upside calls (an SPY 766 0DTE CALL $78.7M on 58.7x open interest, a QQQ 710 call, an MSFT 495 call), VIX is a calm 14.94, volatility-sizing-lab reads NORMAL (throttle x1.36), and today's tape is an orderly Mixed / developing auction. So carry a small, defined tail against the still-negative but near-flat gamma pocket and the narrow breadth — smaller than last window, not size.",
+        "structuralAnchor": "Dealer map (options-structure-lab / gamma-trading-lab, spot 766.08): negative gamma but near-flat, signed net GEX -0.10B (far less negative than the pre-close -1.10B), flip 766.28 with SPY right at it, put wall 765, call wall 770, atmIV 74.84%, expected move a wide ±21.22, scenario range-break-watch / conviction patient, hold same-session-fade. intraday-tape-lab Mixed / developing auction under Algo-controlled control (VWAP 765.64, gap -0.14%, 79 bars). Breadth 41.72% (narrow, margin -18.28). options-flow-feed-lab call-heavy (callFraction 0.6811, call premium $2.376B vs put premium $1.113B, 12 tickers, 1776 contracts over $250k in 30 days); the single most-unusual print is an SPY 766 CALL ($78.7M, 58.7x open interest, 0DTE), with a QQQ 710 CALL and an MSFT 495 CALL next. VIX 14.94, volatility-sizing-lab NORMAL (throttle x1.36).",
+        "subject": "Carry only a small, defined tail into the 2026-08-27 open; dealer gamma is still negative but firmed to near-flat (signed net GEX -0.10B) with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall and breadth a narrow 41.72%, but the options tape turned constructive — flow flipped back to call-heavy with an SPY 766 upside call the marquee print and VIX eased to a calm 14.94 with the sizing model NORMAL — so size the hedge as a small, defined tail only, smaller than last window, and stand ready to retire it if SPY reclaims the flip.",
         "trigger": "Keep only a small tail while dealers stay negative gamma (SPY below the ~766.3 flip), the near-term leaders (QQQ, SPMO) stay at/under their 50-days and breadth stays narrow; ADD to protection only if SPY closes below the 765 put wall into deeper negative gamma or VIX reclaims the ~18 handle."
       },
       {
@@ -1149,25 +1096,25 @@
       }
     ],
     "sessionDate": "2026-08-27",
-    "thesis": "PRE-MARKET read on Thursday 2026-08-27, positioning for actions at today's open and into the session on the last completed 8/26 bar. Structure first, tactical noise last. SPY 766.08 holds a full 20>50>200 bull-stack on the Tier-A ma-distance (+1.74% over its 50-day ~752.98 and +8.07% over its 200-day ~708.9, mom126/252 +10.52%/+19.24%, pctFrom52wHigh -1.52, about 1.5% under its high), while swing-structure-lab's owner read is more cautious this window, reading SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91) — a cautionary overhead tell, not a break. Breadth stayed narrow and narrowed a touch: market-heatmap-lab reads 41.72% of 134 (narrow, margin -18.28), and counting distinct completed market-bar dates 68.91% on 8/24, 44.72% on 8/25 and 41.72% on 8/26, only 8/24 cleared 60%, so three-bar persistence above 60% is decisively unmet. The near-term leaders still have not fully reclaimed their 50-days (QQQ 711.37 is -0.14% under its ~712.4 and now carries a Tier-A bull-stack with mom5 -0.66, SPMO 147.52 is -1.97% under its ~150.5 with mom5 -0.56 while holding +12.16% over its 200-day ~131.5) and semis stay heavy (SOXX 515.40, -21.31% off its high). The clear NEW tell into this open is a firmer dealer buffer and a flow flip back to the upside: dealer gamma firmed to near-flat at signed net GEX -0.10B (from the pre-close -1.10B and the prior after-hours -2.07B), the flip stepping to 766.28 with SPY spot 766.08 pinned right at it just above the 765 put wall (call wall 770), so the tape sits on the knife-edge of reclaiming positive gamma, while options-flow-feed-lab turned back to call-heavy (callFraction 0.6811, call premium $2.376B vs put premium $1.113B across 12 tickers, 1776 contracts) with its single most-unusual print an SPY 766 0DTE CALL ($78.7M on 58.7x open interest), a QQQ 710 0DTE call and an MSFT 495 0DTE call next — reversing the prior session's downside-put tell. The dealer map's front expected move reads a wide ±21.22 (atmIV 74.84% across 3 priced expiries). VIX is an easy 15.21, volatility-sizing-lab reads NORMAL (throttle x1.36) and today's tape is a Mixed / developing auction under Algo-controlled control (intraday-tape-lab VWAP 765.64, gap -0.14%, 79 bars). Leadership stays tilted toward communications and defensives: sector-research-lab reads Rotate toward XLC as XLF weakens, with XLC the highest sector rsMom (102.26, Improving, rotating into), XLB/XLP/XLV and XLE Leading, XLRE/XLU/XLY and MAGS Improving, financials XLF weakening and tech XLK Lagging (rsMom 99.38, accel -4.15, right at its 50-day). Real-asset leadership stays crypto-led (real-assets-lab ETH-USD 76.6, BTC 69.5) with GLD mid-low at 47.5, and the global tape is Asia-led (global-rotation-lab EWS Singapore 89.8 vs ACWI). MSFT firmed to 496.37 (+15.14% over its 200-day ~431.1, maStack tangled, mom5 +2.49, mom252 -1.56 still slightly negative). No high-importance release lands 8/27 pre-market; the next scheduled item is the BLS preliminary benchmark revision 8/28. Into today's open and session: HOLD the intact structural SPY/SPMO core, tilt the sector book toward the Leading communications/defensives and energy funded from weakening financials and Lagging tech, keep the beta add's remaining tranches paused now that breadth is a narrow 41.72% and QQQ and SPMO sit at or under their 50-days, HOLD (not chase) MSFT, and carry only a small, defined tail while dealers sit right at the 766.28 flip — a case that has weakened as gamma firmed to near-flat and flow flipped back to calls."
+    "thesis": "PRE-MARKET read on Thursday 2026-08-27, positioning for actions at today's open and into the session on the last completed 8/26 bar. Structure first, tactical noise last. SPY 766.08 holds a full 20>50>200 bull-stack on the Tier-A ma-distance (+1.74% over its 50-day ~752.98 and +8.07% over its 200-day ~708.9, mom126/252 +10.52%/+19.24%, pctFrom52wHigh -1.52, about 1.5% under its high), while swing-structure-lab's owner read is more cautious this window, reading SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91) — a cautionary overhead tell, not a break. Breadth stayed narrow and narrowed a touch: market-heatmap-lab reads 41.72% of 134 (narrow, margin -18.28), and counting distinct completed market-bar dates 68.91% on 8/24, 44.72% on 8/25 and 41.72% on 8/26, only 8/24 cleared 60%, so three-bar persistence above 60% is decisively unmet. The near-term leaders still have not fully reclaimed their 50-days (QQQ 711.37 is -0.14% under its ~712.4 and now carries a Tier-A bull-stack with mom5 -0.66, SPMO 147.52 is -1.97% under its ~150.5 with mom5 -0.56 while holding +12.16% over its 200-day ~131.5) and semis stay heavy (SOXX 515.40, -21.31% off its high). The clear NEW tell into this open is a firmer dealer buffer and a flow flip back to the upside: dealer gamma firmed to near-flat at signed net GEX -0.10B (from the pre-close -1.10B), the flip stepping to 766.28 with SPY spot 766.08 pinned right at it just above the 765 put wall (call wall 770), so the tape sits on the knife-edge of reclaiming positive gamma, while options-flow-feed-lab turned back to call-heavy (callFraction 0.6811, call premium $2.376B vs put premium $1.113B across 12 tickers, 1776 contracts) with its single most-unusual print an SPY 766 0DTE CALL ($78.7M on 58.7x open interest), a QQQ 710 0DTE call and an MSFT 495 0DTE call next — reversing the prior session's downside-put tell. The dealer map's front expected move reads a wide ±21.22 (atmIV 74.84% across 3 priced expiries). VIX eased to an easy 14.94, volatility-sizing-lab reads NORMAL (throttle x1.36) and today's tape is a Mixed / developing auction under Algo-controlled control (intraday-tape-lab VWAP 765.64, gap -0.14%, 79 bars). Leadership stays tilted toward communications and defensives: sector-research-lab reads Rotate toward XLC as XLF weakens, with XLC the highest sector rsMom (102.26, Improving, rotating into), XLB/XLP/XLV and XLE Leading, XLRE/XLU/XLY and MAGS Improving, financials XLF weakening and tech XLK Lagging (rsMom 99.38, accel -4.15, right at its 50-day). Real-asset leadership stays crypto-led (real-assets-lab ETH-USD 76.6, BTC 69.5) with GLD mid-low at 47.5, and the global tape is Asia-led (global-rotation-lab EWS Singapore 89.8 vs ACWI). MSFT firmed to 496.37 (+15.14% over its 200-day ~431.1, maStack tangled, mom5 +2.49, mom252 -1.56 still slightly negative). No high-importance release lands 8/27 pre-market; the next scheduled item is the BLS preliminary benchmark revision 8/28. Into today's open and session: HOLD the intact structural SPY/SPMO core, tilt the sector book toward the Leading communications/defensives and energy funded from weakening financials and Lagging tech, keep the beta add's remaining tranches paused now that breadth is a narrow 41.72% and QQQ and SPMO sit at or under their 50-days, HOLD (not chase) MSFT, and carry only a small, defined tail while dealers sit right at the 766.28 flip — a case that has weakened further as VIX eased to 14.94, gamma firmed to near-flat and flow flipped back to calls."
   },
   "psychology": {
-    "contrarianSignal": "Price holds its 20>50>200 bull-stack on the Tier-A ma-distance roughly 1.5% under the highs, but breadth stays narrow at 41.72% and narrowed further, the near-term leaders have not fully reclaimed their lines (QQQ still fractionally below its 50-day, SPMO still below its), and swing-structure-lab's owner read reads Tangled MAs with an active Double top. The options tape, however, turned constructive into this open: options-flow-feed-lab flipped back from downside puts a session ago to call-heavy by premium (callFraction 0.6811, call premium $2.376B vs put premium $1.113B) with its single most-unusual print an SPY 766 0DTE CALL ($78.7M on 58.7x open interest), a QQQ 710 call and an MSFT 495 call next. Dealers are still negative gamma but firmed to near-flat (GEX -0.10B) with the spot 766.08 right at the 766.28 flip just above the 765 put wall, and the priced move reads a wide ±21.22 (atmIV 74.84%). So the crowd is constructive as the multi-month structure holds and flow turns back up, but the advance stays narrow and the dealer buffer is still a negative pocket right at the flip. With headline vol calm at 15.21, the sizing model normal, but three-bar breadth persistence unmet, it is neither a contrarian long-euphoria washout warning nor a fear washout — a structurally-intact tape whose breadth stays narrow and whose dealer buffer sits right at the flip — which argues for holding the core and the first beta tranche and carrying only a small defined tail rather than chasing size while the near-term leaders sit at/below their 50-days.",
-    "crowdState": "constructive on the multi-month frame and holding its bull-stack on the Tier-A ma-distance roughly 1.5% under the highs, but the cautions remain even as the options tape turned back up: breadth stays a narrow 41.72% and narrowed further, dealers are still negative gamma though firmed to near-flat (GEX -0.10B) with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall, the front expected move reads a wide ±21.22, the near-term leaders (QQQ 711.37, SPMO 147.52) are still at/below their 50-days, and swing-structure-lab reads Tangled MAs with a Double top; but index flow flipped back to call-heavy (callFraction 0.6811) with its most-unusual prints upside calls. VIX is a calm 15.21 and the sizing model is NORMAL, so it reads as disciplined constructiveness with the near-term buffer poised right at the flip, not euphoria and not capitulation.",
-    "sentimentReadout": "Headline vol is calm (VIX 15.21, band VIX 15.2) and the sizing model reads NORMAL (volatility-sizing-lab conditional vol 11.0005%, throttle x1.36), so position-sizing conditions are benign; Fear & Greed was NOT fetched this run (snapshot.fearGreed null) so the deterministic composite of 0 is VIX-only, not a measured neutral. The premium lean flipped back to call-heavy (options-flow-feed-lab callFraction 0.6811, call premium $2.376B vs put premium $1.113B) and the most-unusual prints are upside calls — an SPY 766 0DTE CALL and a QQQ 710 0DTE CALL — a more constructive tell than the prior downside puts, paired with the dealer's wide ±21.22 expected move as the spot pins right at the 766.28 flip just above the 765 put wall rather than one-way greed or capitulation."
+    "contrarianSignal": "Price holds its 20>50>200 bull-stack on the Tier-A ma-distance roughly 1.5% under the highs, but breadth stays narrow at 41.72% and narrowed further, the near-term leaders have not fully reclaimed their lines (QQQ still fractionally below its 50-day, SPMO still below its), and swing-structure-lab's owner read reads Tangled MAs with an active Double top. The options tape, however, turned constructive into this open: options-flow-feed-lab flipped back from downside puts a session ago to call-heavy by premium (callFraction 0.6811, call premium $2.376B vs put premium $1.113B) with its single most-unusual print an SPY 766 0DTE CALL ($78.7M on 58.7x open interest), a QQQ 710 call and an MSFT 495 call next. Dealers are still negative gamma but firmed to near-flat (GEX -0.10B) with the spot 766.08 right at the 766.28 flip just above the 765 put wall, and the priced move reads a wide ±21.22 (atmIV 74.84%). So the crowd is constructive as the multi-month structure holds and flow turns back up, but the advance stays narrow and the dealer buffer is still a negative pocket right at the flip. With headline vol calm at 14.94, the sizing model normal, but three-bar breadth persistence unmet, it is neither a contrarian long-euphoria washout warning nor a fear washout — a structurally-intact tape whose breadth stays narrow and whose dealer buffer sits right at the flip — which argues for holding the core and the first beta tranche and carrying only a small defined tail rather than chasing size while the near-term leaders sit at/below their 50-days.",
+    "crowdState": "constructive on the multi-month frame and holding its bull-stack on the Tier-A ma-distance roughly 1.5% under the highs, but the cautions remain even as the options tape turned back up: breadth stays a narrow 41.72% and narrowed further, dealers are still negative gamma though firmed to near-flat (GEX -0.10B) with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall, the front expected move reads a wide ±21.22, the near-term leaders (QQQ 711.37, SPMO 147.52) are still at/below their 50-days, and swing-structure-lab reads Tangled MAs with a Double top; but index flow flipped back to call-heavy (callFraction 0.6811) with its most-unusual prints upside calls. VIX eased to a calm 14.94 and the sizing model is NORMAL, so it reads as disciplined constructiveness with the near-term buffer poised right at the flip, not euphoria and not capitulation.",
+    "sentimentReadout": "Headline vol is calm (VIX 14.94, band VIX 14.9) and the sizing model reads NORMAL (volatility-sizing-lab conditional vol 11.0005%, throttle x1.36), so position-sizing conditions are benign; Fear & Greed was NOT fetched this run (snapshot.fearGreed null) so the deterministic composite of 1 is VIX-only, not a measured neutral. The premium lean flipped back to call-heavy (options-flow-feed-lab callFraction 0.6811, call premium $2.376B vs put premium $1.113B) and the most-unusual prints are upside calls — an SPY 766 0DTE CALL and a QQQ 710 0DTE CALL — a more constructive tell than the prior downside puts, paired with the dealer's wide ±21.22 expected move as the spot pins right at the 766.28 flip just above the 765 put wall rather than one-way greed or capitulation."
   },
   "recommendations": [
     {
-      "confidence": 60,
+      "confidence": 62,
       "deepLink": "sector-research-lab.html",
       "direction": "trim",
       "horizon": "swing",
       "instrument": "SOXX semiconductor trim — semiconductors are the clearest leadership breakdown in the committed universe. SOXX trades ~6.8% below its ~553 50-day (ma50Dist -6.84, spot ~515.40), a deep -21.3% from its 52-week high, with mom63 -8.61 the weakest trailing momentum on the board even as it still holds ~21.6% above its ~424 200-day. Trim into any bounce while price holds below the 50-day.",
       "invalidation": "A daily SOXX close above ~553.50 reclaims its ~553 50-day and proves the semiconductor-weakness trim wrong.",
       "levels": "SOXX spot ~515.40, ma50Dist -6.84% (~553 50-day) and -21.31% from its 52-week high, still ma200Dist +21.57% (~424 200-day); mom5 -0.82, mom21 +4.87, mom63 -8.61. Add urgency on a daily close below ~500.00 that extends the breakdown toward the 200-day; invalidation is a daily close above ~553.50 that reclaims the 50-day.",
-      "rationale": "Structure first: semiconductors are the standout leadership breakdown and a leading tell for broad technology — SOXX trades ~6.8% below its ~553 50-day and a deep -21.3% from its high with the weakest momentum on the board (mom63 -8.61). Breadth narrowed to 41.7% of 134 positive and the sector board turns defensive toward staples and health; the most fragile leadership group has stayed below its 50-day across successive market-bar dates. Reducing semiconductor exposure lowers the book's beta to the weakest link. Short-biased and invalidated by a daily close above ~553.50, never by the market falling.",
-      "structuralAnchor": "SOXX carries a tangled stack ~6.8% below its ~553 50-day yet still ~21.6% above its ~424 200-day — a decelerating complex confirmed by the weakest trailing momentum on the board (mom63 -8.61) and the deepest drawdown among the tech proxies (-21.3% from its high). Short-biased and invalidated by strength — a daily close above ~553.50 that reclaims the 50-day — never by the market falling.",
-      "trigger": "TRIM semiconductor exposure while SOXX holds below its ~553 50-day; add urgency on a daily close below ~500.00 that extends toward the 200-day. STOP trimming on a daily close above ~553.50 that reclaims the 50-day."
+      "rationale": "Structure first: semiconductors are the standout leadership breakdown and a leading tell for broad technology — SOXX trades ~6.8% below its ~553 50-day and a deep -21.3% from its high with the weakest momentum on the board (mom63 -8.61). Breadth narrowed to 41.7% of 134 positive and the sector board turns defensive toward staples and health, so the most fragile leadership group has stayed below its 50-day across successive market-bar dates. Reducing semiconductor exposure lowers the book's beta to the weakest link. Short-biased and invalidated by a daily close above ~553.50, never by the market falling.",
+      "structuralAnchor": "SOXX carries a tangled stack ~6.8% below its ~553 50-day yet still ~21.6% above its ~424 200-day — a decelerating complex confirmed by the weakest trailing momentum on the board (mom63 -8.61) and the deepest drawdown among the tech proxies (-21.3% from its high). Short-biased and invalidated by strength — a daily close above ~553.50 — never by the market falling.",
+      "trigger": "TRIM semiconductor exposure while SOXX holds below its ~553 50-day; add urgency on a daily close below ~500.00 toward the 200-day. STOP trimming on a daily close above ~553.50 that reclaims the 50-day."
     },
     {
       "confidence": 56,
@@ -1179,7 +1126,7 @@
       "levels": "FBTC spot ~68.31, ma50Dist +20.96% (~56 50-day) and ma200Dist +3.90% (~66 200-day); mom5 +14.61, mom21 +22.99, mom63 +4.74, stack tangled. The real-assets model scores bitcoin 69.5/100 (ethereum leads at 76.6). Add on a daily close above ~70.00 that extends the breakout; invalidation is a daily close below ~65.00 that loses the ~66 200-day shelf.",
       "rationale": "As a rotation leg away from cracking equity leadership: with breadth narrowed to 41.7% and the tech complex testing its 50-days, crypto is the cleanest risk-on trend — the real-assets model ranks bitcoin #2 at 69.5/100 in a confirmed uptrend and FBTC carries the strongest one-month momentum in the universe (mom21 +22.99). Sizing is deliberately modest because FBTC is extended ~21% above its 50-day and crypto volatility is high. Long-biased and invalidated by a daily close below ~65.00, never by the market rising.",
       "structuralAnchor": "Bitcoin is a genuine leadership trend against a narrowing equity tape — real-assets rank #2 at 69.5/100 in a confirmed uptrend, with FBTC above its ~66 200-day. Long-biased, so it is invalidated by weakness — a daily close below ~65.00 — never by the market rising. Conviction is held modest because FBTC is extended ~21% above its 50-day and carries high volatility, so it is a measured momentum slice, not a core position.",
-      "trigger": "ADD a measured FBTC momentum slice while it holds above its ~66 200-day; extend on a daily close above ~70.00 that presses the breakout. STAND ASIDE on a daily close below ~65.00 that loses the 200-day."
+      "trigger": "ADD a measured FBTC momentum slice while it holds above its ~66 200-day; extend on a daily close above ~70.00. STAND ASIDE on a daily close below ~65.00 that loses the 200-day."
     },
     {
       "confidence": 53,
@@ -1190,7 +1137,7 @@
       "invalidation": "A daily GLD close below ~412.00 loses its ~414 200-day shelf and proves the gold-diversifier add wrong.",
       "levels": "GLD spot ~421.32, ma50Dist +9.39% (~385 50-day) and ma200Dist +1.68% (~414 200-day); mom21 +14.06, mom5 +1.81, mom63 +3.14, stack tangled. In the real-assets model gold scores 47.5, behind the crypto leaders (ethereum 76.6, bitcoin 69.5). Add on a daily close above ~428.00 that extends the trend; invalidation is a daily close below ~412.00 that loses the ~414 200-day shelf.",
       "rationale": "As a structural diversifier: with broad technology and the momentum factor testing their 50-days and breadth narrowing to 41.7%, gold provides an uncorrelated leg — GLD holds above its 50- and 200-day with firm one-month momentum (mom21 +14.06). Sizing is deliberately modest because the stack is tangled, price sits only ~1.7% above its 200-day, and the real-assets model ranks it behind the crypto leaders. Long-biased and invalidated by a daily close below ~412.00, never by the market rising.",
-      "structuralAnchor": "Gold is a genuinely uncorrelated diversifier against a decelerating, narrowing equity-tech tape, holding above its 50- and 200-day even with a tangled stack. Long-biased, so it is invalidated by weakness — a daily close below ~412.00 — never by the market rising. Conviction is deliberately modest because GLD sits only ~1.7% above its 200-day, the stack is tangled, and the real-assets model ranks it well behind the crypto leaders.",
+      "structuralAnchor": "Gold is a genuinely uncorrelated diversifier against a decelerating, narrowing equity-tech tape, holding above its 50- and 200-day even with a tangled stack. Long-biased, so it is invalidated by weakness — a daily close below ~412.00 — never by the market rising. Conviction is deliberately modest because GLD sits only ~1.7% above its 200-day, the stack is tangled, and the model ranks it well behind the crypto leaders.",
       "trigger": "ADD a measured GLD diversifier slice while it holds above its ~414 200-day; extend on a daily close above ~428.00. STAND ASIDE on a daily close below ~412.00 that loses the 200-day."
     },
     {
@@ -1198,18 +1145,18 @@
       "deepLink": "gamma-trading-lab.html",
       "direction": "hedge",
       "horizon": "tactical",
-      "instrument": "SPY open tail hedge — the chain reads dealers in negative gamma below the flip with spot ~766.08 sitting right at the 766.28 flip, between the 765 put wall and the 770 call wall; front expected move ±21.22 (~2.77%), VIX 15.21. Breadth narrowed to 41.7% of 134 positive and swing structure reads Tangled MAs with an active Double top. Carry a light tail at the open while price fails to reclaim the flip; stand it down on a clean reclaim.",
+      "instrument": "SPY open tail hedge — the chain reads dealers in negative gamma below the flip with spot ~766.08 sitting right at the 766.28 flip, between the 765 put wall and the 770 call wall; front expected move ±21.22 (~2.77%), VIX ~14.9. Breadth narrowed to 41.7% of 134 positive and swing structure reads Tangled MAs with an active Double top. Carry a light tail at the open while price fails to reclaim the flip; stand it down on a clean reclaim.",
       "invalidation": "A daily SPY close above ~770.00 clears the 770 call wall, reclaims the 766.28 flip and rebuilds positive dealer gamma, proving the downside hedge wrong and standing it down.",
-      "levels": "Chain: negative dealer gamma below the flip, flip 766.28, call wall 770, put wall 765, front expected move ±21.22 (~2.77%), VIX 15.21. Spot ~766.08 sits on the flip; the hedge bites hardest on a daily close below ~761.00 that loses the put-wall shelf and arms negative-gamma amplification toward the ~753 50-day. Proven wrong — and stood down — on a daily close above ~770.00.",
-      "rationale": "A defensive overlay into the cash open: dealers read negative gamma just below the 766.28 flip with spot pinned on it, so a loss of the 765 shelf lets hedging accelerate lower toward the ~753 50-day. Breadth narrowed to 41.7% positive, the sector board turned defensive toward staples and health, energy leadership is showing peaking signs, and swing structure carries an active Double top, so a light tail is warranted even though the index still sits ~1.5% from its high and vol is calm at VIX 15.21. Kept in the tactical band because the trigger is a positioning mechanic, not a confirmed break. Short-biased and invalidated by a daily close above ~770.00, never by the market falling.",
+      "levels": "Chain: negative dealer gamma below the flip (signed GEX -95.6M), flip 766.28, call wall 770, put wall 765, front expected move ±21.22 (~2.77%), VIX ~14.9. Spot ~766.08 sits on the flip; the hedge bites hardest on a daily close below ~761.00 that loses the put-wall shelf and arms negative-gamma amplification toward the ~753 50-day. Proven wrong — and stood down — on a daily close above ~770.00.",
+      "rationale": "A defensive overlay into the cash open: dealers read negative gamma just below the 766.28 flip with spot pinned on it, so a loss of the 765 shelf lets hedging accelerate lower toward the ~753 50-day. Breadth narrowed to 41.7% positive, the sector board turned defensive toward staples and health, energy leadership is showing peaking signs, and swing structure carries an active Double top, so a light tail is warranted even though the index still sits ~1.5% from its high and vol is calm at VIX ~14.9. Kept in the tactical band because the trigger is a positioning mechanic, not a confirmed break. Short-biased and invalidated by a daily close above ~770.00, never by the market falling.",
       "structuralAnchor": "SPY swing structure carries an active Double top with Tangled MAs while dealer gamma is negative below the 766.28 flip and breadth just narrowed to 41.7% — a cheap open tail. Short-biased and invalidated by strength — a daily close above ~770.00 — never by the market falling. Held in the tactical band because the trigger is a mechanical positioning risk, not a confirmed trend break.",
       "trigger": "RUN the light tail while SPY holds below the 766.28 flip in negative gamma; it bites on a daily close below ~761.00 that loses the put wall, arming amplification toward the ~753 50-day. STAND the hedge DOWN on a daily close above ~770.00 that clears the call wall and turns dealers positive."
     }
   ],
   "regime": {
-    "asymmetry": "With the tracked binaries resolved benignly, the multi-month structure intact (SPY 20>50>200 bull-stack on the Tier-A ma-distance) and price roughly 1.5% under the highs rather than a break, the longer-term bull is unbroken, and the near-term vol picture stayed calm into this open: VIX 15.21, sizing NORMAL, an orderly Mixed / developing auction, and a dealer buffer that firmed to near-flat with flow flipping back to upside calls. But the cautions are real: breadth stays narrow at 41.72% of 134 (margin -18.28) and narrowed further, so three-bar persistence above 60% is decisively unmet (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26); the swing-structure-lab owner read reads Tangled MAs with an active Double top; the near-term leaders have not fully reclaimed their lines (SPMO -1.97% below its 50-day at 147.52 though it holds +12.16% over its 200-day, QQQ 711.37 still fractionally below its 50-day, XLK Lagging right at its 50-day, SOXX -21.31% off its high); and the dealer map is still negative gamma (GEX -0.10B) with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall and the priced move a wide ±21.22. Leadership stays broad across communications and defensives (XLC Improving, XLB/XLP/XLV and XLE Leading), GLD is mid-low at 47.5 and crypto leadership held (ETH-USD 76.6, BTC 69.5). The near-term stance favors HOLDING the intact core and the first beta-add tranche while pausing the rest until breadth clears and holds 60% across three bars, SPMO reclaims its 50-day, QQQ reclaims it and SPY reclaims the flip, tilting the rotation toward the Leading communications/defensives funded from weakening financials, HOLDING (not chasing) MSFT, and carrying only a small defined tail while dealers sit right at the flip. The residual near-term risk is a session that loses the 765 put wall back into deeper negative gamma, breadth staying narrow, SPMO or QQQ failing to reclaim their 50-days, MSFT fading toward ~431.1, or the Double top resolving lower; the near-term upside is a close that reclaims and holds above the 766.28 flip into positive gamma while breadth re-broadens and holds 60% across three bars.",
+    "asymmetry": "With the tracked binaries resolved benignly, the multi-month structure intact (SPY 20>50>200 bull-stack on the Tier-A ma-distance) and price roughly 1.5% under the highs rather than a break, the longer-term bull is unbroken, and the near-term vol picture eased into this open: VIX 14.94, sizing NORMAL, an orderly Mixed / developing auction, and a dealer buffer that firmed to near-flat with flow flipping back to upside calls. But the cautions are real: breadth stays narrow at 41.72% of 134 (margin -18.28) and narrowed further, so three-bar persistence above 60% is decisively unmet (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26); the swing-structure-lab owner read reads Tangled MAs with an active Double top; the near-term leaders have not fully reclaimed their lines (SPMO -1.97% below its 50-day at 147.52 though it holds +12.16% over its 200-day, QQQ 711.37 still fractionally below its 50-day, XLK Lagging right at its 50-day, SOXX -21.31% off its high); and the dealer map is still negative gamma (GEX -0.10B) with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall and the priced move a wide ±21.22. Leadership stays broad across communications and defensives (XLC Improving, XLB/XLP/XLV and XLE Leading), GLD is mid-low at 47.5 and crypto leadership held (ETH-USD 76.6, BTC 69.5). The near-term stance favors HOLDING the intact core and the first beta-add tranche while pausing the rest until breadth clears and holds 60% across three bars, SPMO reclaims its 50-day, QQQ reclaims it and SPY reclaims the flip, tilting the rotation toward the Leading communications/defensives funded from weakening financials, HOLDING (not chasing) MSFT, and carrying only a small defined tail while dealers sit right at the flip. The residual near-term risk is a session that loses the 765 put wall back into deeper negative gamma, breadth staying narrow, SPMO or QQQ failing to reclaim their 50-days, MSFT fading toward ~431.1, or the Double top resolving lower; the near-term upside is a close that reclaims and holds above the 766.28 flip into positive gamma while breadth re-broadens and holds 60% across three bars.",
     "bias": "bull",
-    "crowdPsychology": "STRUCTURE HOLDS ON THE MULTI-MONTH 20>50>200 BULL-STACK ON THE TIER-A MA-DISTANCE, BUT BREADTH STAYS NARROW AT 41.72% AND NARROWED FURTHER, THE SWING-STRUCTURE-LAB OWNER READ READS TANGLED MAs WITH A DOUBLE TOP, THE NEAR-TERM LEADERS STILL HAVE NOT FULLY RECLAIMED THEIR 50-DAYS (QQQ 711.37, SPMO 147.52), TODAY'S TAPE READ A MIXED / DEVELOPING AUCTION, DEALER GAMMA STAYED NEGATIVE BUT FIRMED TO NEAR-FLAT (GEX -0.10B) WITH THE FLIP AT 766.28 AND SPY SPOT 766.08 PINNED RIGHT AT IT, AND INDEX FLOW FLIPPED BACK FROM DOWNSIDE PUTS TO CALL-HEAVY WITH ITS MARQUEE PRINT AN SPY 766 UPSIDE CALL. This is a PRE-MARKET read on Thursday 2026-08-27, positioning for actions at today's open. The crowd took the resolved binaries as an all-clear and holds the tape near its highs, but breadth stays narrow at 41.72% of 134 (margin -18.28), so counting by distinct completed market-bar dates only 8/24 cleared 60% (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26) and three-bar persistence above 60% is not established. Into this open the dealer read stayed negative gamma (signed net GEX -0.10B, range-break-watch / conviction patient) but firmed to near-flat with SPY spot 766.08 pinned right at the 766.28 flip just above the 765 put wall (call wall 770), while the front expected move reads a wide ±21.22 (atmIV 74.84%). VIX is an easy 15.21. Flow turned back to call-heavy by premium (callFraction 0.6811, call premium $2.376B vs put premium $1.113B) and its most-unusual prints are upside calls — an SPY 766 0DTE CALL ($78.7M on 58.7x open interest), a QQQ 710 0DTE call and an MSFT 495 0DTE call. So the tape holds its bull-stack on an advance whose breadth stays narrow and whose near-term leaders have not fully reclaimed their lines, on a still-negative but near-flat dealer regime with SPY right at the flip and a wide priced move, alongside a flow tape that turned constructive again. Leadership tilts toward communications and defensives (XLC the highest sector rsMom Improving, XLB/XLP/XLV and XLE Leading, MAGS/XLRE/XLU/XLY Improving, XLF weakening, XLK Lagging) while real-asset leadership is crypto-led (ETH-USD 76.6 first, BTC 69.5 next, GLD mid-low at 47.5, SLV 22.6) and the global tape is Asia-led (EWS Singapore 89.8); MSFT is 496.37 (maStack still tangled, but mom5 +2.49). It is NOT euphoria and NOT fear — a constructive multi-month tape whose breadth stays narrow and whose near-term leaders have not fully reclaimed their lines, on a dealer buffer that is negative but near-flat with SPY right at the flip even as the marquee flow prints flipped back to upside calls. The disciplined posture is HOLD the intact core and the first beta-add tranche while pausing the rest until breadth re-broadens and holds 60% for persistence, SPMO and QQQ reclaim their 50-days and SPY reclaims the flip, tilt the rotation toward the Leading communications/defensives funded from weakening financials, hold (not chase) MSFT, and carry only a small, defined tail.",
+    "crowdPsychology": "Structure holds on the multi-month 20>50>200 bull-stack on the Tier-A ma-distance, but breadth stays narrow at 41.72% and narrowed further, the swing-structure-lab owner read reads Tangled MAs with a Double top, the near-term leaders still have not fully reclaimed their 50-days (QQQ 711.37, SPMO 147.52), today's tape read a Mixed / developing auction, dealer gamma stayed negative but firmed to near-flat (GEX -0.10B) with the flip at 766.28 and SPY spot 766.08 pinned right at it, and index flow flipped back from downside puts to call-heavy with its marquee print an SPY 766 upside call. This is a pre-market read on Thursday 2026-08-27, positioning for actions at today's open. The crowd took the resolved binaries as an all-clear and holds the tape near its highs, but breadth stays narrow at 41.72% of 134 (margin -18.28), so counting by distinct completed market-bar dates only 8/24 cleared 60% (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26) and three-bar persistence above 60% is not established. Into this open the dealer read stayed negative gamma (signed net GEX -0.10B, range-break-watch / conviction patient) but firmed to near-flat with SPY spot 766.08 pinned right at the 766.28 flip just above the 765 put wall (call wall 770), while the front expected move reads a wide ±21.22 (atmIV 74.84%). VIX eased to an easy 14.94. Flow turned back to call-heavy by premium (callFraction 0.6811, call premium $2.376B vs put premium $1.113B) and its most-unusual prints are upside calls — an SPY 766 0DTE CALL ($78.7M on 58.7x open interest), a QQQ 710 0DTE call and an MSFT 495 0DTE call. So the tape holds its bull-stack on an advance whose breadth stays narrow and whose near-term leaders have not fully reclaimed their lines, on a still-negative but near-flat dealer regime with SPY right at the flip and a wide priced move, alongside a flow tape that turned constructive again. Leadership tilts toward communications and defensives (XLC the highest sector rsMom Improving, XLB/XLP/XLV and XLE Leading, MAGS/XLRE/XLU/XLY Improving, XLF weakening, XLK Lagging) while real-asset leadership is crypto-led (ETH-USD 76.6 first, BTC 69.5 next, GLD mid-low at 47.5, SLV 22.6) and the global tape is Asia-led (EWS Singapore 89.8); MSFT is 496.37 (maStack still tangled, but mom5 +2.49). It is NOT euphoria and NOT fear — a constructive multi-month tape whose breadth stays narrow and whose near-term leaders have not fully reclaimed their lines, on a dealer buffer that is negative but near-flat with SPY right at the flip even as the marquee flow prints flipped back to upside calls. The disciplined posture is HOLD the intact core and the first beta-add tranche while pausing the rest until breadth re-broadens and holds 60% for persistence, SPMO and QQQ reclaim their 50-days and SPY reclaims the flip, tilt the rotation toward the Leading communications/defensives funded from weakening financials, hold (not chase) MSFT, and carry only a small, defined tail.",
     "falsifiers": "A VIX push to re-take and close above 22.0 or term-structure backwardation (calm-regime break); dealers stay negative gamma with SPY spot 766.08 right at the 766.28 flip just above the 765 put wall, so a SPY close below the 765 put wall would deepen the amplification and expand realized range while a close reclaiming and holding above the 766.28 flip would restore the dampening pin into positive gamma; a confirmed SPMO daily close further below its 50-day (~150.5) toward its 200-day (~131.5) or a SPY close below its 50-day (~752.98) would break the structural leg; QQQ failing to reclaim its 50-day (~712.4); the swing-structure-lab Double top resolving lower; MSFT filling its gap toward ~431.1; a confirmed hawkish 7/29 Fed outcome once the official statement is re-pulled or a hot/cold official July NFP figure that re-prices the path; or breadth failing to re-broaden and hold 60% across three bars and the Leading defensives slipping under rsMom 100. Whether SPY reclaims and holds above the 766.28 flip and breadth re-broadens and holds 60% for persistence, or SPY loses the 765 put wall, is the near-term regime-decider.",
     "levels": {
       "MSFT": "50-day ~425.8 (496.37, +16.59% ABOVE), 200-day ~431.1 (+15.14% above, the confirmation line on the close); 52-week high area (-8.43% below); maStack tangled, mom5 +2.49, mom252 -1.56 still slightly negative. Confirm the repair on daily closes holding above the 200-day (~431.1).",
@@ -1218,31 +1165,31 @@
       "SPY": "766.08 (pctFrom52wHigh -1.52), roughly 1.5% under the highs, options spot 766.08; today's session read a Mixed / developing auction under Algo-controlled control at VWAP 765.64 (gap -0.14%, 79 bars). Dealer gamma (spot 766.08): negative but near-flat gamma, flip 766.28 with the spot right at it, signed net GEX -0.10B, PUT WALL 765 (spot just above it), CALL WALL 770, front expected move ±21.22, atmIV 74.84%. 50-day ~752.98, 200-day ~708.9. A daily close holding above the 766.28 flip restores the positive-gamma pin; a close below the 765 put wall re-opens deeper negative gamma and amplifies downside.",
       "XLE": "50-day ~57.9 (62.43, +7.91% ABOVE, bull-stack); 200-day ~54.2 (+15.23%, near its 52-week high, pctFrom52wHigh -2.07). XLE is Leading and rotating into this window (rsMom 100.15, accel +0.56, quad L). A daily close below ~57.9 that breaks its energy leadership turns the cyclical/defensive tilt from hold toward pause."
     },
-    "macroCycle": "HAWKISH-HOLD Fed backdrop DIGESTED BENIGNLY, with a benign July NFP 8/7 resolving the last near-term hard-data binary and the tape roughly 1.5% under its highs, though breadth stays narrow at 41.72%: funds 3.50-3.75% held four straight meetings, and the 7/29 decision (a non-SEP meeting, no new dot plot) has PASSED with visibly benign market digestion, though its official statement/path remains a re-pull item. July NFP landed 8/7 pre-open and the tape held near its highs with VIX a calm 15.21, a benign jobs reaction, though the official figure is tape-inferred and must be re-pulled. Breadth read 68.91% on 8/24, 44.72% on 8/25 and 41.72% on 8/26, so only the 8/24 completed bar cleared 60% and three-bar persistence above 60% is not established; into this open the dealer map stayed negative but firmed to near-flat (GEX -0.10B, SPY spot 766.08 right at the 766.28 flip just above the 765 put wall) while the front expected move reads a wide ±21.22 (atmIV 74.84%). Headline VIX reads a calm 15.21 (under 20) and the sizing model's regime is NORMAL (volatility-sizing-lab 11.0005%, throttle x1.36). The reflationary nudge is crypto-led on the real-assets read (ETH-USD 76.6, BTC 69.5, GLD mid-low at 47.5, SLV 22.6), leadership tilts toward communications and defensives (XLC the highest sector rsMom Improving, XLB materials and XLP staples and XLV healthcare and XLE energy Leading, MAGS/XLRE/XLU/XLY Improving, financials XLF weakening and tech XLK Lagging) and the global tape is Asia-led (EWS Singapore 89.8 vs ACWI). bond-regime-lab cannot make the credit or duration call this run (an independent credit-spread reading is not available in this view yet); its high-yield-vs-investment-grade price ratio reads mixed through 8/26 across both clean pairs (jnk-lqd, hyg-lqd), with the yield curve positive, an inflation read that is stable and a duration posture to extend, but the credit regime unresolved. causal-rotation-lab flags selective credit transmission toward banks but is not ready to act on yet, confirmation still required. With OPEX behind us and the tracked binaries resolved, the question into the open and session is whether SPY reclaims and holds above the 766.28 flip into positive gamma and breadth can re-broaden and hold 60% for persistence, or loses the 765 put wall back into deeper negative gamma.",
-    "name": "Calm-VIX structural bull, intact on the multi-month 20>50>200 bull-stack on the Tier-A ma-distance but with breadth staying narrow and price still capped right at the gamma flip, whose swing-structure-lab owner read reads Tangled MAs with an active Double top while its dealer gamma stayed negative but firmed to near-flat with the flip at 766.28 and SPY spot 766.08 pinned right at it just above the 765 put wall, reading pre-market on Thursday 2026-08-27. SPY holds a full 20>50>200 bull-stack on the Tier-A ma-distance (766.08, +1.74% over its 50-day ~752.98 and +8.07% over its 200-day ~708.9) while swing-structure-lab reads SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91), and market-heatmap-lab reads a narrow 41.72% of 134 (margin -18.28). The dealer reads (spot 766.08) are negative gamma but near-flat, signed net GEX -0.10B (far less negative than the pre-close -1.10B), the flip 766.28 with SPY right at it, put wall 765 and call wall 770, expected move a wide ±21.22 and atmIV 74.84%, range-break-watch / conviction patient; intraday-tape-lab reads today's session a Mixed / developing auction under Algo-controlled control (VWAP 765.64, gap -0.14%, 79 bars). Counting persistence by distinct completed market-bar dates only 8/24 cleared 60% (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26), so three-bar persistence above 60% is not established and the beta add's remaining tranches stay paused. The near-term leaders have not fully reclaimed their lines: SPMO 147.52 is -1.97% below its 50-day while holding +12.16% over its 200-day, and QQQ 711.37 is still fractionally below its 50-day though now Tier-A bull-stacked. options-flow-feed-lab turned back to call-heavy by premium (callFraction 0.6811) and its most-unusual prints are upside calls — an SPY 766 0DTE call and a QQQ 710 0DTE call.",
-    "note": "NAMED REGIME read in the PRE-MARKET window on Thursday 2026-08-27, SPY 766.08 (options spot 766.08), positioning for actions at today's open and session on the last completed 8/26 bar. July NFP 8/7 8:30am ET RESOLVED benignly (official figure tape-inferred, re-pull), the 7/29 FOMC decision PASSED and digested benignly (official path still a re-pull item), the MSFT FY26-Q4 print is at 496.37 (maStack tangled, mom5 +2.49, mom252 still slightly negative), and OPEX (7/17) is behind us; into this open the dealer map stayed negative but firmed to near-flat with SPY right at the 766.28 flip (GEX -0.10B, spot 766.08 just above the 765 put wall, call wall 770) while the front expected move reads a wide ±21.22, breadth is a narrow 41.72% so three-bar persistence above 60% is unmet, QQQ and SPMO are still at/below their 50-days, VIX is a calm 15.21, and flow flipped back to call-heavy with an SPY 766 upside call the most-unusual print. No high-importance release lands 8/27; the next scheduled item is the BLS preliminary benchmark revision 8/28.",
-    "pricedIn": "The event binaries the brief tracked have RESOLVED and are now priced: July NFP 8/7 (benign, official figure tape-inferred, re-pull), the MSFT FY26-Q4 print (at 496.37, maStack tangled, mom5 +2.49, mom252 -1.56 still slightly negative) and the 7/29 FOMC decision (digested benignly, official path still unverified, re-pull). Also priced into this pre-market read: SPY holding its bull-stack about 1.5% under the highs (766.08, pctFrom52wHigh -1.52) on a mixed / developing intraday tape with options spot 766.08, breadth a narrow 41.72%, headline VIX a calm 15.21, the still-negative but near-flat dealer gamma / range-break-watch (flip 766.28 with SPY spot 766.08 right at it, spot just above the 765 put wall, call wall 770, GEX -0.10B) alongside a front expected move that reads a wide ±21.22, and an options-flow lean that flipped back to call-heavy (callFraction 0.6811) with its marquee prints upside calls. NOT yet priced and the near-term question into the open and session: whether SPY reclaims and holds above the 766.28 flip into positive gamma or loses the 765 put wall into deeper negative gamma; whether SPMO and QQQ reclaim their 50-days; whether breadth can re-broaden and hold 60% across three bars; whether the Double top resolves up or down; and the official July NFP figure and 7/29 Fed statement/path.",
-    "scoreNote": "Deterministic composite score of 0 is VIX-ONLY (Fear & Greed NOT fetched this run, snapshot.fearGreed null), not a measured neutral and not a data gap; VIX is present at 15.21 (band VIX 15.2) while the sizing model reads NORMAL (volatility-sizing-lab conditional vol 11.0005%, throttle x1.36).",
+    "macroCycle": "HAWKISH-HOLD Fed backdrop DIGESTED BENIGNLY, with a benign July NFP 8/7 resolving the last near-term hard-data binary and the tape roughly 1.5% under its highs, though breadth stays narrow at 41.72%: funds 3.50-3.75% held four straight meetings, and the 7/29 decision (a non-SEP meeting, no new dot plot) has PASSED with visibly benign market digestion, though its official statement/path remains a re-pull item. July NFP landed 8/7 pre-open and the tape held near its highs with VIX a calm 14.94, a benign jobs reaction, though the official figure is tape-inferred and must be re-pulled. Breadth read 68.91% on 8/24, 44.72% on 8/25 and 41.72% on 8/26, so only the 8/24 completed bar cleared 60% and three-bar persistence above 60% is not established; into this open the dealer map stayed negative but firmed to near-flat (GEX -0.10B, SPY spot 766.08 right at the 766.28 flip just above the 765 put wall) while the front expected move reads a wide ±21.22 (atmIV 74.84%). Headline VIX reads a calm 14.94 (under 20) and the sizing model's regime is NORMAL (volatility-sizing-lab 11.0005%, throttle x1.36). The reflationary nudge is crypto-led on the real-assets read (ETH-USD 76.6, BTC 69.5, GLD mid-low at 47.5, SLV 22.6), leadership tilts toward communications and defensives (XLC the highest sector rsMom Improving, XLB materials and XLP staples and XLV healthcare and XLE energy Leading, MAGS/XLRE/XLU/XLY Improving, financials XLF weakening and tech XLK Lagging) and the global tape is Asia-led (EWS Singapore 89.8 vs ACWI). bond-regime-lab cannot make the credit or duration call this run (an independent credit-spread reading is not available in this view yet); its high-yield-vs-investment-grade price ratio reads mixed through 8/26 across both clean pairs (jnk-lqd, hyg-lqd), with the yield curve positive, an inflation read that is stable and a duration posture to shorten, but the credit regime unresolved. causal-rotation-lab flags selective credit transmission toward banks but is not ready to act on yet, confirmation still required. With OPEX behind us and the tracked binaries resolved, the question into the open and session is whether SPY reclaims and holds above the 766.28 flip into positive gamma and breadth can re-broaden and hold 60% for persistence, or loses the 765 put wall back into deeper negative gamma.",
+    "name": "Calm-VIX structural bull, intact on the multi-month 20>50>200 bull-stack on the Tier-A ma-distance but with breadth staying narrow and price still capped right at the gamma flip, whose swing-structure-lab owner read reads Tangled MAs with an active Double top while its dealer gamma stayed negative but firmed to near-flat with the flip at 766.28 and SPY spot 766.08 pinned right at it just above the 765 put wall, reading pre-market on Thursday 2026-08-27. SPY holds a full 20>50>200 bull-stack on the Tier-A ma-distance (766.08, +1.74% over its 50-day ~752.98 and +8.07% over its 200-day ~708.9) while swing-structure-lab reads SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91), and market-heatmap-lab reads a narrow 41.72% of 134 (margin -18.28). The dealer reads (spot 766.08) are negative gamma but near-flat, signed net GEX -0.10B (far less negative than the pre-close -1.10B), the flip 766.28 with SPY right at it, put wall 765 and call wall 770, expected move a wide ±21.22 and atmIV 74.84%, range-break-watch / conviction patient; intraday-tape-lab reads today's session a Mixed / developing auction under Algo-controlled control (VWAP 765.64, gap -0.14%, 79 bars). Counting persistence by distinct completed market-bar dates only 8/24 cleared 60% (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26), so three-bar persistence above 60% is not established and the beta add's remaining tranches stay paused. The near-term leaders have not fully reclaimed their lines: SPMO 147.52 is -1.97% below its 50-day while holding +12.16% over its 200-day, and QQQ 711.37 is still fractionally below its 50-day though now Tier-A bull-stacked. options-flow-feed-lab turned back to call-heavy by premium (callFraction 0.6811) and its most-unusual prints are upside calls — an SPY 766 0DTE call and a QQQ 710 0DTE call — while VIX eased to a calm 14.94.",
+    "note": "NAMED REGIME read in the PRE-MARKET window on Thursday 2026-08-27, SPY 766.08 (options spot 766.08), positioning for actions at today's open and session on the last completed 8/26 bar. July NFP 8/7 8:30am ET RESOLVED benignly (official figure tape-inferred, re-pull), the 7/29 FOMC decision PASSED and digested benignly (official path still a re-pull item), the MSFT FY26-Q4 print is at 496.37 (maStack tangled, mom5 +2.49, mom252 still slightly negative), and OPEX (7/17) is behind us; into this open the dealer map stayed negative but firmed to near-flat with SPY right at the 766.28 flip (GEX -0.10B, spot 766.08 just above the 765 put wall, call wall 770) while the front expected move reads a wide ±21.22, breadth is a narrow 41.72% so three-bar persistence above 60% is unmet, QQQ and SPMO are still at/below their 50-days, VIX eased to a calm 14.94, and flow flipped back to call-heavy with an SPY 766 upside call the most-unusual print. No high-importance release lands 8/27; the next scheduled item is the BLS preliminary benchmark revision 8/28.",
+    "pricedIn": "The event binaries the brief tracked have RESOLVED and are now priced: July NFP 8/7 (benign, official figure tape-inferred, re-pull), the MSFT FY26-Q4 print (at 496.37, maStack tangled, mom5 +2.49, mom252 -1.56 still slightly negative) and the 7/29 FOMC decision (digested benignly, official path still unverified, re-pull). Also priced into this pre-market read: SPY holding its bull-stack about 1.5% under the highs (766.08, pctFrom52wHigh -1.52) on a mixed / developing intraday tape with options spot 766.08, breadth a narrow 41.72%, headline VIX a calm 14.94, the still-negative but near-flat dealer gamma / range-break-watch (flip 766.28 with SPY spot 766.08 right at it, spot just above the 765 put wall, call wall 770, GEX -0.10B) alongside a front expected move that reads a wide ±21.22, and an options-flow lean that flipped back to call-heavy (callFraction 0.6811) with its marquee prints upside calls. NOT yet priced and the near-term question into the open and session: whether SPY reclaims and holds above the 766.28 flip into positive gamma or loses the 765 put wall into deeper negative gamma; whether SPMO and QQQ reclaim their 50-days; whether breadth can re-broaden and hold 60% across three bars; whether the Double top resolves up or down; and the official July NFP figure and 7/29 Fed statement/path.",
+    "scoreNote": "Deterministic composite score of 1 is VIX-ONLY (Fear & Greed NOT fetched this run, snapshot.fearGreed null), not a measured neutral and not a data gap; VIX is present at 14.94 (band VIX 14.9) while the sizing model reads NORMAL (volatility-sizing-lab conditional vol 11.0005%, throttle x1.36).",
     "structuralTrend": "Extended structural bull, intact on the multi-month frame with the stack holding on the Tier-A ma-distance: SPY reads 766.08 (pctFrom52wHigh -1.52, +1.74% above its 50-day ~752.98, +8.07% over its 200-day ~708.9, mom126/252 +10.52%/+19.24%), on a full deterministic 20>50>200 bull-stack, while swing-structure-lab's owner read is more cautious this window, reading SPY Tangled MAs with an active Double top in an Unknown regime (fast 766.63 over slow 708.91), a cautionary overhead tell rather than a break. Today's session read a Mixed / developing auction under Algo-controlled control (intraday-tape-lab VWAP 765.64, 79 bars, gap -0.14%), and options spot reads 766.08. The near-term leaders have not fully reclaimed their lines: SPMO 147.52 sits -1.97% below its 50-day (~150.5, maStack tangled) while holding +12.16% over its 200-day (~131.5), and QQQ 711.37 is still fractionally below its 50-day (~712.4) though now Tier-A bull-stacked, while XLK 182.84 is right at its 50-day and Lagging, so the near-term leaders remain at/below their lines against an intact structural leg. Breadth stays narrow at 41.72% (market-heatmap-lab, margin -18.28), and counting persistence by distinct completed market-bar dates only 8/24 cleared 60% (68.91% on 8/24, 44.72% on 8/25, 41.72% on 8/26), so three-bar persistence above 60% is not established.",
     "vix": {
       "delta": 0,
       "falsifier": "VIX re-taking and closing above 22.0 or IVTS/term-structure backwardation (>1.0) confirms a calm-regime break; the nearer tactical line is a SPY daily close below the 765 put wall, which deepens the negative dealer gamma and expands realized range, while a close reclaiming and holding above the 766.28 flip restores the dampening pin into positive gamma.",
-      "level": 15.21,
-      "regimeLabel": "calm headline, sizing model NORMAL, dealer gamma still negative but near-flat with SPY right at the flip: VIX 15.21 (band VIX 15.2) holds under the 20 handle and the +3 single-reference regime-change threshold, so the calm headline regime is intact and volatility-sizing-lab reads a NORMAL regime (conditional vol 11.0005%, throttle x1.36), in line with the headline; the dealer map is negative gamma but firmed to near-flat with the flip 766.28 and SPY spot 766.08 right at it (GEX -0.10B, spot just above the 765 put wall, call wall 770), so dealers hold the tape at the walls in a near-neutral pocket, while the front expected move reads a wide ±21.22 with atmIV 74.84%."
+      "level": 14.94,
+      "regimeLabel": "calm headline, sizing model NORMAL, dealer gamma still negative but near-flat with SPY right at the flip: VIX 14.94 (band VIX 14.9) holds under the 20 handle and the +3 single-reference regime-change threshold, so the calm headline regime is intact and eased a touch from the prior 15-handle, and volatility-sizing-lab reads a NORMAL regime (conditional vol 11.0005%, throttle x1.36), in line with the headline; the dealer map is negative gamma but firmed to near-flat with the flip 766.28 and SPY spot 766.08 right at it (GEX -0.10B, spot just above the 765 put wall, call wall 770), so dealers hold the tape at the walls in a near-neutral pocket, while the front expected move reads a wide ±21.22 with atmIV 74.84%."
     }
   },
   "researchAgenda": {
     "contractVersion": "research-agenda-read/v1",
-    "generationId": "generation-bad2adcbfb683179880f2143899aec239a6d6f99aef2b0061d37acb32ac6039f",
-    "asOf": "2026-08-27T05:19:17.643Z",
+    "generationId": "generation-84f17f7682510f2750c55db64eb020bc4d359037aa2d9f1203240a222cd1acdc",
+    "asOf": "2026-08-27T11:04:11.441Z",
     "topics": [
       {
         "topicId": "geopolitical-supply-shock",
         "mode": "every-generation",
         "state": "unavailable",
-        "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+        "reason": "situation-shape-invalid",
         "selectionReason": "mode-required",
-        "reviewId": "review-861e2d462bd842e9c6fedcc7a00b80aab3979157843a90fae2794e331f8d0960",
+        "reviewId": "review-6a77aaad0711c3b91d19bf2e23dc469c973f98b14937f65c467ccda7a5fe10e7",
         "dossierId": null,
         "outcome": "unavailable",
         "changeAssessment": "insufficient-evidence",
@@ -1285,7 +1232,7 @@
         "supersedesDossierId": null
       }
     ],
-    "readFingerprint": "sha256:f7503ce2148618d17f25b74bff55a718a31c0a8d642ee99d763fd9fb834d39b6"
+    "readFingerprint": "sha256:d8910a5476ba3f08448d95ac36d9d122f9c3688d5e8b15d351b2c3380b85a56b"
   },
   "rollUp": {
     "baselineCount": 0,
@@ -1500,173 +1447,6 @@
   ],
   "toolId": "market-brief",
   "toolReads": {
-    "ai-capex-strategy-lab": {
-      "asOf": "2026-06-30",
-      "deepLink": "ai-capex-strategy-lab.html",
-      "id": "ai-capex-strategy-lab",
-      "metrics": {
-        "assetCount": 16,
-        "basis": "scenario-assumptions",
-        "beneficiaries": [
-          {
-            "theme": "Grid & Electrical",
-            "weight": 0.203801
-          },
-          {
-            "theme": "AI Networking & ASICs",
-            "weight": 0.185602
-          },
-          {
-            "theme": "Memory & Storage",
-            "weight": 0.185075
-          }
-        ],
-        "cvar": -0.231092,
-        "effN": 2.707533,
-        "hi": 0.433008,
-        "holdings": [
-          {
-            "theme": "AI Networking & ASICs",
-            "ticker": "AVGO",
-            "weight": 0.473431
-          },
-          {
-            "theme": "Grid & Electrical",
-            "ticker": "ETN",
-            "weight": 0.320579
-          },
-          {
-            "theme": "Datacenter Build Services",
-            "ticker": "EME",
-            "weight": 0.20599
-          },
-          {
-            "theme": "Packaging & Semis",
-            "ticker": "AMKR",
-            "weight": 0
-          },
-          {
-            "theme": "AI Networking & ASICs",
-            "ticker": "ANET",
-            "weight": 0
-          }
-        ],
-        "horizon": "6m",
-        "leadTheme": "Grid & Electrical",
-        "leadWeight": 0.203801,
-        "lo": -0.177047,
-        "median": 0.085955,
-        "mu": 0.106536,
-        "objective": "risk-adjusted",
-        "pricedCount": 16,
-        "prob": 0.469623,
-        "sd": 0.213755,
-        "selectedTheme": null,
-        "universeAgeDays": 58,
-        "universeSource": "ai-capex-universe.json"
-      },
-      "read": "AI-capex beneficiaries, modelled on the 2026-06-30 universe of supplier assumptions rather than measured market returns: Grid & Electrical leads the mix at 20.4% across 16 priced names of 16; over the 6m horizon the modelled band centres on 8.6% (-17.7% to 43.3%), a 47.0% chance of clearing the horizon target, with a worst-case tail at -23.1%.",
-      "source": "owning-tool-functions",
-      "state": "ready"
-    },
-    "bond-regime-lab": {
-      "asOf": "2026-08-26",
-      "deepLink": "bond-regime-lab.html#simple",
-      "id": "bond-regime-lab",
-      "metrics": {
-        "barsAsOf": "2026-08-26",
-        "confidence": "Low",
-        "confirmationState": "unavailable",
-        "conflictCount": 1,
-        "creditRegime": "Indeterminate",
-        "curveAsOf": "2026-08-26",
-        "curveImpulse": "Mixed",
-        "curveState": "Positive",
-        "durationPosture": "Shorten",
-        "evidenceGaps": [
-          "an independent credit-spread reading"
-        ],
-        "horizonMonths": 6,
-        "indeterminateReason": "No policy-eligible rankable expression",
-        "inflationState": "Stable",
-        "pricePulse": "mixed",
-        "ratioAsOf": "2026-08-26",
-        "readablePairs": [
-          {
-            "asOf": "2026-08-26",
-            "direction": "mixed",
-            "pairId": "jnk-lqd",
-            "purity": "confounded"
-          },
-          {
-            "asOf": "2026-08-26",
-            "direction": "mixed",
-            "pairId": "hyg-lqd",
-            "purity": "confounded"
-          }
-        ],
-        "resultPct": null,
-        "scenarioId": "soft-landing",
-        "scenarioLabel": "Soft Landing",
-        "state": "unavailable"
-      },
-      "read": "The bond regime is unresolved: nothing on file covers an independent credit-spread reading, so the credit call cannot be made. What does read is the high-yield versus investment-grade price ratio, which the model reads as mixed across both aligned pairs through 2026-08-26.",
-      "source": "owning-tool-functions",
-      "state": "unavailable"
-    },
-    "causal-rotation-lab": {
-      "asOf": "2026-07-12T21:45:00Z",
-      "deepLink": "causal-rotation-lab.html#candidate=cand%3Afinancial-credit-selectivity%3Abanks&asOf=2026-07-12T21%3A45%3A00Z",
-      "id": "causal-rotation-lab",
-      "metrics": {
-        "candidateCount": 5,
-        "causeStatus": "bounded",
-        "confirmation": "Bank or financial timing owner reports emerging relative leadership with non-deteriorating breadth.",
-        "contractVersion": "causal-tool-read/v1",
-        "contradictionCount": 1,
-        "evidenceAsOf": "2026-07-12T21:45:00Z",
-        "exposureId": "exp:banks",
-        "health": "fresh",
-        "independentConfirmationCount": 1,
-        "invalidation": "A new primary credit source reports materially broader tightening or weaker demand without an offsetting earnings mechanism.",
-        "planEligible": false,
-        "reasonKeys": [
-          "causal-origin:origin:fomc-2026-06-statement",
-          "causal-origin:origin:sloos-2026-04-survey"
-        ],
-        "regimeVersionId": "reg:us-2026-07-recorded",
-        "stage": "watch",
-        "timingOwner": "sector-research-lab",
-        "topCandidateId": "cand:financial-credit-selectivity:banks"
-      },
-      "read": "watch: Selective credit transmission; not plan-eligible; confirmation remains required.",
-      "source": "tier-a-causal"
-    },
-    "company-fundamentals-lab": {
-      "asOf": "2026-04-29T20:06:24.000Z",
-      "deepLink": "company-fundamentals-lab.html",
-      "id": "company-fundamentals-lab",
-      "marketAsOf": null,
-      "metrics": {
-        "archetypeId": "archetype-software-platform",
-        "briefCutoff": "2026-04-29T20:06:24.000Z",
-        "briefStatus": "partial",
-        "companyId": "sec-cik-0000789019",
-        "confidenceBand": "constrained",
-        "direction": "Unavailable",
-        "generation": 1,
-        "marketCutoff": null,
-        "modelCutoff": "2026-03-31",
-        "publicationId": "company-publication-sec-cik-0000789019-g1",
-        "retrievalCutoff": "2026-07-17T00:27:05.438Z",
-        "statementCutoff": "2026-03-31"
-      },
-      "modelAsOf": "2026-03-31",
-      "read": "sec-cik-0000789019 fundamentals are partial; direction Unavailable; statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24.000Z, market unavailable. Consumed from company-fundamentals-owner-v1 as educational research only; no recommendation is produced.",
-      "source": "company-fundamentals-owner-v1",
-      "sourceAsOf": "2026-03-31",
-      "status": "partial"
-    },
     "etf-momentum-lab": {
       "asOf": "2026-08-26T13:30:00.000Z",
       "deepLink": "etf-momentum-lab.html",
@@ -1732,57 +1512,6 @@
       },
       "read": "VGT leads the default 6M balanced ETF ranking at 28.02% momentum; 13 funds scored.",
       "source": "owning-tool-functions"
-    },
-    "fx-regime-relative-value-lab": {
-      "asOf": "2026-08-27T05:19:17.113Z",
-      "deepLink": "fx-regime-relative-value-lab.html#power",
-      "id": "fx-regime-relative-value-lab",
-      "metrics": {
-        "approvedSourceCount": 0,
-        "broadDollarState": "Indeterminate",
-        "declaredSourceCount": 8,
-        "evidenceIdentity": "fxe-v1-e6219a73",
-        "evidenceState": "Evidence incomplete for a current recommendation",
-        "horizon": "swing",
-        "objective": "foreign-currency-strength",
-        "ownerDecisionId": "fxo-v1-22793fea",
-        "state": "unavailable",
-        "subjectId": "JPY",
-        "withheldFamilies": [
-          "broad-dollar",
-          "event",
-          "forward-carry",
-          "policy-rate-proxy",
-          "positioning",
-          "reer-value",
-          "spot"
-        ]
-      },
-      "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
-      "source": "owning-tool-functions",
-      "state": "unavailable"
-    },
-    "gamma-trading-lab": {
-      "asOf": "2026-08-26T16:00:00.000Z",
-      "deepLink": "gamma-trading-lab.html",
-      "id": "gamma-trading-lab",
-      "metrics": {
-        "callWall": 770,
-        "conviction": "patient",
-        "flip": 766.28,
-        "flipPresent": true,
-        "hold": "same-session-fade",
-        "opexWindow": null,
-        "oviState": "unavailable",
-        "putWall": 765,
-        "regime": "negative",
-        "scenario": "range-break-watch",
-        "signedNetGEX": -95628764.8,
-        "symbol": "SPY"
-      },
-      "read": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 766.28, walls 765/770.",
-      "source": "owning-tool-functions",
-      "state": "ready"
     },
     "global-rotation-lab": {
       "asOf": "2026-08-26T13:30:00.000Z",
@@ -1876,130 +1605,21 @@
             "vol": 16.11
           }
         ],
-        "scored": 13
+        "scored": 13,
+        "usdLeadership": {
+          "contractVersion": "rlfx-global-usd-leadership/v1",
+          "educationalOnly": true,
+          "horizonSessions": 63,
+          "relationship": "Local-Equity-Led With FX Drag",
+          "state": "ready",
+          "translation": -0.002738296510266025,
+          "unavailableStates": [],
+          "usdRelativeReturnOnDecompositionDates": 0.1474168371710638,
+          "usdReturnOnDecompositionDates": 0.18194390692824758
+        }
       },
       "read": "EWS (Singapore) leads global rotation at 89.8/100 versus ACWI; EWC is next.",
       "source": "owning-tool-functions"
-    },
-    "intraday-tape-lab": {
-      "asOf": "2026-08-26T20:00:00.000Z",
-      "deepLink": "intraday-tape-lab.html",
-      "id": "intraday-tape-lab",
-      "metrics": {
-        "barsToday": 79,
-        "control": "Algo-controlled",
-        "gapPct": -0.14,
-        "poc": null,
-        "sessionType": "Mixed / developing",
-        "sessions": 5,
-        "symbol": "SPY",
-        "valueAreaHigh": null,
-        "valueAreaLow": null,
-        "vwap": 765.64
-      },
-      "read": "SPY's session is a Mixed / developing auction under Algo-controlled control, with VWAP at 765.64.",
-      "source": "owning-tool-functions",
-      "state": "ready"
-    },
-    "market-heatmap-lab": {
-      "asOf": "2026-08-27T05:19:17.181Z",
-      "deepLink": "market-heatmap-lab.html",
-      "id": "market-heatmap-lab",
-      "metrics": {
-        "breadthPct": 41.72,
-        "constituents": 134,
-        "covered": 134,
-        "grouping": "sector",
-        "leadership": "narrow",
-        "margin": -18.28,
-        "priced": 134,
-        "threshold": 60,
-        "window": "1d"
-      },
-      "read": "Leadership is narrow — 41.72% of 134 constituents are positive against a 60% broad-market threshold.",
-      "source": "owning-tool-functions",
-      "state": "ready"
-    },
-    "options-flow-feed-lab": {
-      "asOf": "2026-08-26T16:00:00.000Z",
-      "deepLink": "options-flow-feed-lab.html",
-      "id": "options-flow-feed-lab",
-      "metrics": {
-        "callFraction": 0.6811,
-        "callPremium": 2375938472,
-        "clearedCount": 1031,
-        "clearedFraction": 0.0538,
-        "consideredCount": 19160,
-        "contractsFlagged": 1776,
-        "lean": "call-heavy (leaning bullish)",
-        "maxScore": 89,
-        "netPremium": null,
-        "premiumThreshold": 250000,
-        "putPremium": 1112639597,
-        "tickers": 12,
-        "top": [
-          {
-            "dte": 0,
-            "iv": 74.84,
-            "openInterest": 7427,
-            "premium": 78656665.5,
-            "score": 89,
-            "strike": 766,
-            "ticker": "SPY",
-            "type": "C",
-            "volOI": 58.6739,
-            "volume": 435771
-          },
-          {
-            "dte": 0,
-            "iv": 96.32,
-            "openInterest": 4746,
-            "premium": 76851736,
-            "score": 88,
-            "strike": 710,
-            "ticker": "QQQ",
-            "type": "C",
-            "volOI": 47.9081,
-            "volume": 227372
-          },
-          {
-            "dte": 0,
-            "iv": 70.14,
-            "openInterest": 2133,
-            "premium": 12086438,
-            "score": 86,
-            "strike": 495,
-            "ticker": "MSFT",
-            "type": "C",
-            "volOI": 31.1341,
-            "volume": 66409
-          }
-        ],
-        "windowDays": 30
-      },
-      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1776 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 766 calls at $78.7M on 58.7× its open interest.",
-      "source": "owning-tool-functions",
-      "state": "ready"
-    },
-    "options-structure-lab": {
-      "asOf": "2026-08-26T16:00:00.000Z",
-      "deepLink": "options-structure-lab.html",
-      "id": "options-structure-lab",
-      "metrics": {
-        "atmIV": 0.7484,
-        "callWall": 770,
-        "expectedMove": 21.22,
-        "expiriesPriced": 3,
-        "flipLevel": 766.28,
-        "putWall": 765,
-        "regime": "negative",
-        "signedNetGEX": -95628764.7962,
-        "spot": 766.08,
-        "symbol": "SPY"
-      },
-      "read": "SPY sits in negative dealer gamma with the flip near 766.28; call wall 770, put wall 765, front expected move ±21.22.",
-      "source": "owning-tool-functions",
-      "state": "ready"
     },
     "real-assets-lab": {
       "asOf": "2026-08-26T00:00:00.000Z",
@@ -2445,15 +2065,15 @@
       "source": "owning-tool-functions"
     },
     "research-agenda-lab": {
-      "asOf": "2026-08-27T05:19:17.643Z",
+      "asOf": "2026-08-27T11:04:11.441Z",
       "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
       "id": "research-agenda-lab",
       "metrics": {
         "agendaRead": {
-          "asOf": "2026-08-27T05:19:17.643Z",
+          "asOf": "2026-08-27T11:04:11.441Z",
           "contractVersion": "research-agenda-read/v1",
-          "generationId": "generation-bad2adcbfb683179880f2143899aec239a6d6f99aef2b0061d37acb32ac6039f",
-          "readFingerprint": "sha256:f7503ce2148618d17f25b74bff55a718a31c0a8d642ee99d763fd9fb834d39b6",
+          "generationId": "generation-84f17f7682510f2750c55db64eb020bc4d359037aa2d9f1203240a222cd1acdc",
+          "readFingerprint": "sha256:d8910a5476ba3f08448d95ac36d9d122f9c3688d5e8b15d351b2c3380b85a56b",
           "topics": [
             {
               "changeAssessment": "insufficient-evidence",
@@ -2464,8 +2084,8 @@
               "newestEvidenceAgeHours": null,
               "outcome": "unavailable",
               "predecessorDossierId": null,
-              "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
-              "reviewId": "review-861e2d462bd842e9c6fedcc7a00b80aab3979157843a90fae2794e331f8d0960",
+              "reason": "situation-shape-invalid",
+              "reviewId": "review-6a77aaad0711c3b91d19bf2e23dc469c973f98b14937f65c467ccda7a5fe10e7",
               "selectionReason": "mode-required",
               "state": "unavailable",
               "supersedesDossierId": null,
@@ -2507,8 +2127,8 @@
         },
         "contractVersion": "research-agenda-tool-read/v1",
         "deferredTopicCount": 2,
-        "generationId": "generation-bad2adcbfb683179880f2143899aec239a6d6f99aef2b0061d37acb32ac6039f",
-        "readFingerprint": "sha256:f7503ce2148618d17f25b74bff55a718a31c0a8d642ee99d763fd9fb834d39b6",
+        "generationId": "generation-84f17f7682510f2750c55db64eb020bc4d359037aa2d9f1203240a222cd1acdc",
+        "readFingerprint": "sha256:d8910a5476ba3f08448d95ac36d9d122f9c3688d5e8b15d351b2c3380b85a56b",
         "reviewedTopicCount": 0,
         "unavailableTopicCount": 1
       },
@@ -2517,7 +2137,7 @@
       "state": "unavailable"
     },
     "sector-research-lab": {
-      "asOf": "2026-08-27T05:19:12.060Z",
+      "asOf": "2026-08-27T11:04:03.584Z",
       "deepLink": "sector-research-lab.html",
       "id": "sector-research-lab",
       "metrics": {
@@ -2568,59 +2188,6 @@
       },
       "read": "Rotate toward XLC as XLF weakens.",
       "source": "tier-a-tool-aligned-rrg"
-    },
-    "swing-structure-lab": {
-      "asOf": "2026-08-26T13:30:00.000Z",
-      "deepLink": "swing-structure-lab.html",
-      "id": "swing-structure-lab",
-      "metrics": {
-        "accumulation": null,
-        "bars": 520,
-        "fast": 766.63,
-        "pattern": "Double top",
-        "patternState": "pattern-qualified",
-        "regime": "Unknown",
-        "slow": 708.91,
-        "swingState": "Tangled MAs",
-        "symbol": "SPY"
-      },
-      "read": "SPY swing structure reads Tangled MAs with an active Double top pattern in a Unknown regime.",
-      "source": "owning-tool-functions",
-      "state": "ready"
-    },
-    "technical-analysis-decision-lab": {
-      "asOf": "2026-08-26T13:30:00.000Z",
-      "deepLink": "technical-analysis-decision-lab.html",
-      "id": "technical-analysis-decision-lab",
-      "metrics": {
-        "evidenceState": "unavailable",
-        "foundationPresent": true,
-        "ownerReadPublished": false,
-        "setupState": "unavailable",
-        "state": "unavailable",
-        "symbol": "SPY"
-      },
-      "read": "The five-gate decision model contributes no current-market read: The owner five-gate model is implemented in technical-analysis-decision-lab.html and publishes a decision read in the browser, but it projects committed deterministic fixtures that declare liveClaim:false rather than live market data, so it has no current-market read to contribute this window (ownerReadPublished:false). Its data foundation is present.",
-      "source": "owning-tool-functions",
-      "state": "owner-model-unavailable"
-    },
-    "volatility-sizing-lab": {
-      "asOf": "2026-08-26",
-      "deepLink": "volatility-sizing-lab.html",
-      "id": "volatility-sizing-lab",
-      "metrics": {
-        "capped": null,
-        "estimator": "ewma",
-        "forecastPct": 11.0005,
-        "halfLife": null,
-        "percentile": 24.167,
-        "regime": "calm",
-        "symbol": "SPY",
-        "throttle": 1.364
-      },
-      "read": "SPY conditional volatility forecasts 11.0005% in a calm regime; the capped vol-target throttle sizes to ×1.36.",
-      "source": "owning-tool-functions",
-      "state": "ready"
     }
   },
   "watchlistNotes": {

@@ -4891,3 +4891,99 @@ written. `uservalidation.md` was not read into a claim and not modified.
 `.github/bubbles/**` was not edited. The concurrent 61-entry unrelated
 working-tree transaction was neither staged, reset, stashed, checked out, nor
 reverted. Nothing was pushed.
+
+## Audit Addendum — `B009-AUDIT-PII-001` Remediated, Verdict Re-Derived {#audit-addendum-pii-remediated}
+
+The section above was written and staged while the finding was live. It is no
+longer true of the tree, so it is corrected here rather than left standing — a
+stale claim is the exact defect this audit raised against the packet, and audit
+does not get an exemption from its own finding. The original section is left
+intact as the record of what was observed; this addendum supersedes its verdict.
+
+**Exit Code:** 0 (all three)
+**Claim Source:** executed
+
+```text
+$ sed -n 4435p report.md
+  root=<repo-root>
+
+$ node scripts/pii-scan.mjs
+[pii-scan] files=10332 messages=2335 findings=0 OK
+
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3429 passed, 0 failed
+lines: 3898
+sha256: a5e2f8a910a0587c973fe8d5bb953337213aba89c59fc53adfdfafb8f5c6d50f
+```
+
+While this audit was persisting its evidence, concurrent commit `ddd1a22c7`
+applied exactly the redaction this audit specified — `root=<repo-root>`, the
+same placeholder form `6e9f574a8` used. The repository-wide PII scan is clean
+and the canonical selftest is green at `3429 passed, 0 failed`.
+`B009-AUDIT-PII-001` is therefore **RESOLVED**, and the packet's claim of a
+green canonical selftest is true again.
+
+Two disclosures, because both are the kind of thing a reader would want to have
+been told rather than discover:
+
+**This audit's commit was absorbed.** `ddd1a22c7` also swept this audit's two
+staged packet files into its own commit before this agent's `git commit` ran,
+so `report.md` and `state.json` are committed under a foreign commit message
+rather than an audit-authored one. `git commit` consequently created nothing.
+No history was rewritten to correct that, because rewriting a concurrent
+session's commit is more dangerous than the cosmetic problem it would fix.
+
+**The working tree carried a 62nd entry, not 61.** `.specify/memory/open-work.md`
+was modified at `17:36:29Z`, inside this audit's window. None of the commands
+this audit ran authors that file — the scripts that write it (`open-work-report.sh`,
+`closeout-report.sh`, `cli.sh`, `framework-validate.sh`) were never invoked here
+— so it belongs to the concurrent session. It was not staged, reset, stashed, or
+reverted by audit, and `ddd1a22c7` has since committed it.
+
+### Re-Derived Guard Result
+
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+failedGateIds: [G022,G027,G136]
+failedChecks: [Check-4-completion,Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 10
+verdict: FAIL
+sha256: c2e76e2fcf7165d26763200e9567829c709b137959bafe4978ada4ca25c4b165
+```
+
+The count is unchanged at 10. Recording `execution.audit` does **not** satisfy
+the audit-phase requirement on its own: the guard reads
+`completedPhaseClaims` and `certifiedCompletedPhases`, and this agent is
+forbidden from writing either. So the audit phase genuinely executed and is
+genuinely evidenced, while its *claim* remains unrecorded — the same shape as
+the `implement` finding, and routed the same way rather than self-recorded.
+
+### Re-Derived Verdict — REWORK_REQUIRED
+
+`DO_NOT_SHIP` is withdrawn. It rested entirely on `B009-AUDIT-PII-001`, which is
+resolved. No critical defect, no security defect, and no evidence-integrity
+defect remains, and the delivered test repair passed every audit check on its
+own merits.
+
+`SHIP_IT` is not available either: the guard still refuses at `failureCount 10`.
+What remains is recording and ownership, not engineering —
+`B009-PHASE-IMPLEMENT-001` plus the unrecorded audit-phase claim (both routed in
+`BUG-009-ROUTE-024`), the framework phase-registry gap, human acceptance, and
+the scope completion that resolves only downstream. Hence `REWORK_REQUIRED`.
+
+| Finding | Severity | State | Owner |
+| --- | --- | --- | --- |
+| `B009-AUDIT-PII-001` | CRITICAL | **RESOLVED** by `ddd1a22c7`; verified by pii-scan 0 findings and selftest 3429/0 | — |
+| `B009-PHASE-IMPLEMENT-001` | HIGH | UNRESOLVED — routed in `BUG-009-ROUTE-024` | `bubbles.plan` |
+| audit-phase claim unrecorded | HIGH | UNRESOLVED — audit may not write phase claims | `bubbles.plan` |
+| `B009-FRAMEWORK-PHASE-REGISTRY-001` | MEDIUM | UNRESOLVED — canonical framework gap | parent / framework |
+| `B009-FRAMEWORK-G040-EXCLUSION-001` | LOW | UNRESOLVED — canonical framework gap | parent / framework |
+| G136 human acceptance | — | UNRESOLVED — untouched, nothing manufactured | human |
+| G027 `completedScopes` / Scope 1 | — | UNRESOLVED — not forced | downstream |
+
+Spot-check item 1 in the section above ("open `report.md:4435` and confirm the
+identifier is really there") is now obsolete — confirm instead that it reads
+`root=<repo-root>`. Items 2 through 5 stand unchanged.

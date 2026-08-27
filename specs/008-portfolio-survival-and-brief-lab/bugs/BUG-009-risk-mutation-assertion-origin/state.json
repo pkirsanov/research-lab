@@ -45,11 +45,11 @@
     "pendingTransitionRequests": [],
     "audit": {
       "schemaVersion": "audit-run/v1",
-      "currentAttemptId": "BUG-009-AUDIT-001",
+      "currentAttemptId": "BUG-009-AUDIT-002",
       "attempts": [
         {
           "attemptId": "BUG-009-AUDIT-001",
-          "resultState": "ACTIVE",
+          "resultState": "SUPERSEDED",
           "supersedesAttemptId": null,
           "at": "2026-08-27T17:52:00Z",
           "agent": "bubbles.audit",
@@ -87,7 +87,44 @@
             {"command": "node scripts/selftest.mjs", "exitCode": 1, "result": "3428 passed 1 failed; sha256 f49a315df3adddba26ee4e63e2cf48163cf9663f5ef2432bcebea3b60c8cdc4e"},
             {"command": "state-transition-guard.sh --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...", "exitCode": 1, "result": "failureCount 10, failedGateIds G022/G027/G136, blockingCode DELIVERY_COMPLETION_FAILED"}
           ],
-          "note": "First execution of the audit phase for this packet. Engineering substance passed every audit check; the DO_NOT_SHIP verdict rests solely on B009-AUDIT-PII-001, a committed personal identifier in the packet's own report.md attributed to plan commit 58a8089ca and previously remediated by 6e9f574a8. Audit wrote only its own report.md section and this additive execution.audit record. No certification.*, no top-level status, no completedScopes, no completedPhaseClaims, no scope status, no DoD checkbox, and no uservalidation.md content was written. .github/bubbles/** was not edited and nothing was pushed."
+          "note": "First execution of the audit phase for this packet. Engineering substance passed every audit check; the DO_NOT_SHIP verdict rests solely on B009-AUDIT-PII-001, a committed personal identifier in the packet's own report.md attributed to plan commit 58a8089ca and previously remediated by 6e9f574a8. Audit wrote only its own report.md section and this additive execution.audit record. No certification.*, no top-level status, no completedScopes, no completedPhaseClaims, no scope status, no DoD checkbox, and no uservalidation.md content was written. .github/bubbles/** was not edited and nothing was pushed. SUPERSEDED BY BUG-009-AUDIT-002: the identifier was redacted by concurrent commit ddd1a22c7 while this attempt was being persisted, so the DO_NOT_SHIP verdict is no longer true of the tree and was re-derived rather than left standing."
+        },
+        {
+          "attemptId": "BUG-009-AUDIT-002",
+          "resultState": "ACTIVE",
+          "supersedesAttemptId": "BUG-009-AUDIT-001",
+          "at": "2026-08-27T17:49:00Z",
+          "agent": "bubbles.audit",
+          "consumedRoute": "BUG-009-ROUTE-023",
+          "openedRoute": "BUG-009-ROUTE-024",
+          "bindingDecisionId": "rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:2",
+          "bindingControlRevision": 2,
+          "workflowMode": "bugfix-fastlane",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "targetRevision": "sha256:915e3491f0897dd3518da9c09d18f1f307f03034f603b4d28c973933672e207a",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "certifiedStatus": "none",
+          "planningEvaluation": "NOT_EVALUATED",
+          "deliveryEvaluation": "REFUSED",
+          "sourceEditLockout": "NOT_EVALUATED",
+          "applicableCheckClasses": ["universal", "mode-required", "delivery-completion"],
+          "guardFailureCountObserved": 10,
+          "guardFailedGateIds": ["G022", "G027", "G136"],
+          "blockingCode": "DELIVERY_COMPLETION_FAILED",
+          "addressedFindings": ["BUG-009-ROUTE-023", "B009-AUDIT-PII-001"],
+          "unresolvedFindings": ["B009-PHASE-IMPLEMENT-001", "B009-FRAMEWORK-PHASE-REGISTRY-001", "B009-FRAMEWORK-G040-EXCLUSION-001"],
+          "nextRequiredOwner": "bubbles.plan",
+          "evidenceRefs": ["report.md#audit-route-023", "report.md#audit-addendum-pii-remediated"],
+          "commandsExecuted": [
+            {"command": "node scripts/pii-scan.mjs", "exitCode": 0, "result": "files=10332 messages=2335 findings=0 OK"},
+            {"command": "sed -n 4435p report.md", "exitCode": 0, "result": "root=<repo-root> — identifier redacted"},
+            {"command": "node scripts/selftest.mjs", "exitCode": 0, "result": "3429 passed 0 failed; sha256 a5e2f8a910a0587c973fe8d5bb953337213aba89c59fc53adfdfafb8f5c6d50f"},
+            {"command": "state-transition-guard.sh --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...", "exitCode": 1, "result": "failureCount 10, failedGateIds G022/G027/G136, unchanged from the pre-audit baseline"}
+          ],
+          "note": "Re-derived verdict. B009-AUDIT-PII-001 is RESOLVED: concurrent commit ddd1a22c7 applied exactly the redaction this audit specified, report.md:4435 now reads 'root=<repo-root>', node scripts/pii-scan.mjs exits 0 with 0 findings, and node scripts/selftest.mjs exits 0 at 3429 passed 0 failed. That same concurrent commit also absorbed this audit's two staged packet files into its own commit before this agent's git commit ran, so the audit evidence is committed under a foreign commit message rather than an audit-authored one; no history was rewritten to correct that. The verdict moves DO_NOT_SHIP to REWORK_REQUIRED because no critical or security defect remains, but the guard still refuses at failureCount 10. The audit phase is not satisfied by this record alone: the guard reads completedPhaseClaims and certifiedCompletedPhases, which this agent is forbidden from writing, so both the audit and implement phase recordings remain routed to the owner. Nothing was pushed and .github/bubbles/** was not edited."
         }
       ]
     },

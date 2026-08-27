@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T00:43:31Z",
+  "lastUpdatedAt": "2026-08-27T00:52:38Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,18 +29,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.bug",
-    "currentPhase": "bug",
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "completedAt": "2026-08-27T00:43:31Z",
+    "completedAt": "2026-08-27T00:52:38Z",
     "currentScope": null,
-    "nextRequiredOwner": "bubbles.plan",
-    "nextRequiredTarget": "scopes.md, scenario-manifest.json, test-plan.json",
-    "nextRequiredReason": "Reconcile the one-scope test-only plan for a direct assetTreatment carrier and one F008-RISK-INPUT-001 title remap. Preserve product source, injector, anchor, other mappings, BUG-007, BUG-008, parent Feature 008, and concurrent dirty paths.",
-    "completedPhaseClaims": ["bug"],
-    "pendingTransitionRequests": ["BUG-009-ROUTE-001"],
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "tests/portfolio-risk.functional.mjs, tests/portfolio-test-integrity.unit.mjs",
+    "nextRequiredReason": "Implement the one exact direct assetTreatment title, remap only F008-RISK-INPUT-001, and execute the complete RED/GREEN and regression contract in scopes.md.",
+    "completedPhaseClaims": ["bug", "plan"],
+    "pendingTransitionRequests": ["BUG-009-ROUTE-002"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -79,11 +79,21 @@
   "transitionRequests": [
     {
       "id": "BUG-009-ROUTE-001",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.bug",
       "nextRequiredOwner": "bubbles.plan",
       "target": "scopes.md, scenario-manifest.json, test-plan.json",
-      "reason": "Current-session execution isolates one assertion-origin defect after the seven BUG-008 carrier repairs. Reconcile the exact one-scope RED/GREEN plan before test implementation."
+      "reason": "Current-session execution isolates one assertion-origin defect after the seven BUG-008 carrier repairs. Reconcile the exact one-scope RED/GREEN plan before test implementation.",
+      "resolvedBy": "bubbles.plan",
+      "resolvedAt": "2026-08-27T00:52:38Z"
+    },
+    {
+      "id": "BUG-009-ROUTE-002",
+      "status": "pending",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-risk.functional.mjs, tests/portfolio-test-integrity.unit.mjs",
+      "reason": "The one-scope plan is reconciled to the exact focused title, direct assetTreatment assertions, unchanged mutation, strict 18-case registry, and proportionate regression set."
     }
   ],
   "reworkQueue": [],
@@ -96,6 +106,15 @@
       "note": "Bound Research Lab authority, reproduced the sole strict-registry finding, confirmed the selected mutant title fails with TypeError and ERR_TEST_FAILURE rather than ERR_ASSERTION, and filed one isolated test-only BUG-009 packet. No source, persistent test, existing bug, parent Feature 008 artifact, concurrent dirty path, human acceptance, certification, terminal state, or push changed.",
       "phasesExecuted": ["bug"],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-27T00:52:38Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "reconciled-one-test-only-scope-and-routed-to-test",
+      "note": "Reconciled the exact focused title, direct assetTreatment contract, mutation assertion-origin proof, strict registry, BUG-008 carriers, proportionate browser regression, canonical scanner, and packet gates. Product tests and source remain unchanged; status stays in_progress and certification is untouched.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist"
     }
   ],
   "addressedFindings": [
@@ -105,13 +124,20 @@
       "owner": "bubbles.bug",
       "status": "addressed",
       "evidenceRef": "report.md#current-session-strict-registry-red"
+    },
+    {
+      "id": "B009-PLAN-001",
+      "summary": "One exact test-only scope now binds the focused title, direct assertions, unchanged mutation, strict registry, proportionate regressions, and packet gates to executable handoffs.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "scopes.md#scope-1---assert-unsupported-holding-risk-mapping"
     }
   ],
   "unresolvedFindings": [
     {
       "id": "F008-RISK-INPUT-001",
       "summary": "The selected whole-projection title fails through downstream TypeError rubble instead of the exact unsupported-holding assertion.",
-      "owner": "bubbles.plan",
+      "owner": "bubbles.test",
       "status": "route_required",
       "evidenceRef": "report.md#selected-title-mutant-origin"
     }

@@ -2,24 +2,24 @@
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "generatedAt": "2026-08-27",
-  "generatedBy": "bubbles.bug",
-  "provenance": "Diagnosis-only scenario draft routed to bubbles.plan for owner reconciliation. No test implementation, shipped GREEN, repaired mutation RED, browser result, human acceptance, or certification is claimed.",
+  "generatedBy": "bubbles.plan",
+  "provenance": "Planning-owned scenario contract reconciled for bubbles.test. No test implementation, shipped GREEN, repaired mutation RED, browser result, human acceptance, or certification is claimed.",
   "scenarios": [
     {
       "scenarioId": "SCN-B009-001",
       "scopeId": "01-restore-risk-mutation-assertion-origin",
       "scope": 1,
-      "title": "Unsupported holdings remain named without aborting asset treatment",
+      "title": "Risk mapping keeps unsupported holdings as named exclusions",
       "gherkin": {
-        "given": "assetTreatment receives one listed holding with complete declared look-through and one unsupported holding without look-through",
-        "when": "the focused direct title runs on shipped source and under the exact F008-RISK-INPUT-001 early-return mutation",
-        "then": "shipped source returns ok with the named exclusion and partial look-through, while the mutant fails once through ERR_ASSERTION rather than TypeError or ERR_TEST_FAILURE"
+        "given": "assetTreatment receives listed holding AAA with id listed, weight 0.6, and complete declared look-through plus unsupported holding UNKNOWN with id unsupported, weight 0.4, and assetType unresolved",
+        "when": "the exact focused title calls exported RLPA.assetTreatment on shipped source and under the exact F008-RISK-INPUT-001 early-return mutation",
+        "then": "shipped source returns exact ok, marketBased, named-exclusion, and partial look-through values, while the mutant title executes once and fails once through ERR_ASSERTION rather than TypeError or ERR_TEST_FAILURE"
       },
-      "status": "planned-owner-review",
+      "status": "planned",
       "behaviorClass": "test-integrity",
       "changeType": "bugfix",
       "requiredTestType": "functional",
-      "requiredTestTypes": ["functional", "unit", "e2e-ui"],
+      "requiredTestTypes": ["functional", "unit"],
       "regressionRequired": true,
       "riskTier": "high",
       "requirementRefs": ["FR-B009-001", "FR-B009-002", "FR-B009-003", "FR-B009-004", "FR-B009-005", "FR-B009-006", "FR-B009-007", "FR-B009-008", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5", "AC-6"],
@@ -46,13 +46,13 @@
         "negativeControl": "Replace the unsupported-holding exclusion push with the registered early return; the first exact state assertion must fail with ERR_ASSERTION.",
         "negativeControlMechanism": "mutation"
       },
-      "implementationRefs": ["tests/portfolio-risk.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
-      "testRows": ["TP-B009-000", "TP-B009-001", "TP-B009-002", "TP-B009-003", "TP-B009-004", "TP-B009-005", "TP-B009-006", "TP-B009-007", "TP-B009-008", "TP-B009-009", "TP-B009-010", "TP-B009-011"],
+      "implementationRefs": ["rlportfolioanalytics.js#assetTreatment", "tests/portfolio-risk.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B009-000", "TP-B009-001", "TP-B009-002", "TP-B009-003", "TP-B009-004", "TP-B009-005", "TP-B009-006", "TP-B009-008", "TP-B009-009", "TP-B009-010", "TP-B009-011"],
       "lockdown": false,
       "linkedTests": [
         {
           "file": "tests/portfolio-risk.functional.mjs",
-          "testId": "BUG-009 risk mapping: unsupported holding is named without aborting asset treatment",
+          "testId": "BUG-009 risk mapping: unsupported holdings remain named exclusions",
           "testPlanRow": "TP-B009-001",
           "coverageStatus": "planned-new",
           "evidenceRef": "report.md#tp-b009-001"
@@ -74,8 +74,8 @@
       ],
       "expectedAssertions": [
         "state is ok",
-        "marketBased contains AAA",
-        "excludedFromMarketAnalytics names UNKNOWN with assetType unresolved",
+        "marketBased is exactly [AAA]",
+        "excludedFromMarketAnalytics is exactly [{symbol: UNKNOWN, assetType: unresolved}]",
         "lookThrough state is partial",
         "coveredIds is listed and missingIds is unsupported",
         "coveredWeight is 0.6 and uncoveredWeight is 0.4",

@@ -20,10 +20,10 @@
 
 ## Completion Statement
 
-Diagnosis and filing are complete for this packet only. BUG-009 remains
-`in_progress` and routes to `bubbles.plan`. No source or persistent test changed.
-No shipped GREEN, repaired mutation RED, scope completion, human acceptance, or
-certification is claimed.
+Diagnosis and planning reconciliation are complete for this packet only.
+BUG-009 remains `in_progress` and routes to `bubbles.test`. No source or
+persistent test changed. No shipped GREEN, repaired mutation RED, scope
+completion, human acceptance, or certification is claimed.
 
 ## Test Evidence
 
@@ -170,9 +170,10 @@ scenario is marked implemented or verified.
 ## Coverage Report
 
 Planned coverage includes focused shipped GREEN, focused mutation
-`ERR_ASSERTION` RED, full 18-case registry 3/3 GREEN, full risk carrier,
-relevant Node and browser carriers, canonical selftest, regression-quality
-guard, fixed canonical G028 scanner, and packet gates.
+`ERR_ASSERTION` RED, full 18-case registry 3/3 GREEN, full risk carrier, all
+five BUG-008 functional carriers, the proportionate risk browser carrier,
+canonical selftest, regression-quality guard, fixed canonical G028 scanner,
+and packet gates.
 
 No post-repair coverage result is claimed.
 
@@ -280,9 +281,11 @@ RESULT: PASSED (0 warnings)
 
 ## Validation Summary
 
-Filing-time artifact lint and traceability pass. BUG-009 remains `in_progress`;
-delivery validation and certification remain unrun and unchanged.
+Filing-time evidence remains diagnostic. Planning gate results are not delivery
+evidence and must be rerun after the two permitted test hunks change. BUG-009
+remains `in_progress`; delivery validation and certification remain unrun and
+unchanged.
 
 ## Audit Verdict
 
-Not run. This invocation performs diagnosis and filing only.
+Not run. The packet retains diagnosis evidence and a planning-only handoff.

@@ -1488,4 +1488,213 @@ skipped: 0
 duration: 1.3m
 ```
 
+## Current-Head Closure After BUG-022
+
+**Phase:** test
+**Base revision:** `4b549f9d8ffd2ed37100b31691cf71f7fe9c9fec`
+**Claim Source:** executed
+
+BUG-022 removed the shared discovery-boundary failure. This round reran each BUG-017
+functional canary and negative control before changing this packet.
+
+### Exact Scenario Tests
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-017 SCN-03 exact current-head
+exit: 0
+lines: 9
+sha256: 6e1e3fa3848c7c981635a1aae342aa192ee71f45333e43c437a5b8b94305162a
+✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (0.862458ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 196
+```
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-017 SCN-07 exact current-head
+exit: 0
+lines: 9
+sha256: c73f936c8ccc627fa2dba2f5afcb105639d842933c298e7d79c4ca4f92b02f49
+✔ Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence (0.77425ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 192.781333
+```
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-017 SCN-08 exact current-head
+exit: 0
+lines: 9
+sha256: 7442fe84022719ff5a2228ea17c72fe74343a8a16b84a493476e931670db1b61
+✔ Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin (0.698916ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 179.490542
+```
+
+### Four Revision-Current RED/GREEN Probes
+
+The commands match the four mutations in `scopes.md`. Each probe emitted its specified
+assertion, reran GREEN, and restored the tracked file to its starting blob hash.
+
+```text
+SCN-BUG017-03 causal-label probe
+exit: 0
+capture-sha256: ac691048d346998bb99a98c3845fb050ab616a1e2d6bfb12b426765931a86a0f
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 3 uses a forbidden causal verdict
+green-exit: 0
+revert-verified: yes
+committed: 7ca974130ac963da62ee8e46eb08132f73ab1a55
+restored: 7ca974130ac963da62ee8e46eb08132f73ab1a55
+discriminating: yes
+
+SCN-BUG017-03 single-build-rationale probe
+exit: 0
+capture-sha256: aeb47674b8a4485cd76503e56c187a01bd7bca6481b6aacce3b4ccdbb6902812
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 4 lacks the single-build untested rationale
+green-exit: 0
+revert-verified: yes
+committed: 7ca974130ac963da62ee8e46eb08132f73ab1a55
+restored: 7ca974130ac963da62ee8e46eb08132f73ab1a55
+discriminating: yes
+
+SCN-BUG017-07 platform-removal probe
+exit: 0
+capture-sha256: 090ae9f197f0ff3d038a5657201eaf523430a29bdb4244c126faefa070338e92
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-07: playwright.config.mjs disclosure is missing platform macOS
+green-exit: 0
+revert-verified: yes
+committed: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+restored: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+discriminating: yes
+
+SCN-BUG017-08 two-to-six-worker probe
+exit: 0
+capture-sha256: 465a8087cc87cef603827c8e6c705b3f1ae0eea412eb40e0000700dbd05aef42
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2
+green-exit: 0
+revert-verified: yes
+committed: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+restored: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+discriminating: yes
+```
+
+A separate hash check returned the same working and committed blobs after all probes:
+
+```text
+report working: 7ca974130ac963da62ee8e46eb08132f73ab1a55
+report committed: 7ca974130ac963da62ee8e46eb08132f73ab1a55
+config working: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+config committed: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+worktree status: clean
+```
+
+### Complete Runtime Foundation
+
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-017 full runtime foundation current-head after BUG-022
+exit: 0
+lines: 44
+sha256: a5d6c83da1bb214e6d7a25a95257f238341a485a7bda9db197bc2e1b5f1797c8
+--- first 20 ---
+[playwright-runtime] package=node_modules/playwright
+[playwright-runtime] cli=node_modules/playwright/cli.js
+[playwright-runtime] version=1.61.1
+[playwright-runtime] browserChannel=chrome
+[playwright-runtime] apiIdentity=PASS
+[playwright-runtime] outside=sibling-repo exit=1 borrowed=false
+[playwright-runtime] outside=global-prefix exit=1 borrowed=false
+[playwright-runtime] outside=npm-cache-hash exit=1 borrowed=false
+[playwright-runtime] browserExecutableFallback=ABSENT
+[playwright-runtime] externalPackageFallback=ABSENT
+[playwright-runtime] committedBrowserConfigs=playwright.config.mjs
+[playwright-runtime] testMatch=**/*.spec.mjs
+[playwright-runtime] discoveredSpecs=79
+[playwright-runtime] sharedImporters=79
+[playwright-runtime] absoluteOverrides=0
+[playwright-runtime] matcher=**/*.spec.mjs
+[playwright-runtime] browserSelected=79
+[playwright-runtime] nodeGlobSelected=115
+[playwright-runtime] directNodeSuites=10
+[playwright-runtime] frozenCrossings=9
+--- omitted 4 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✔ shared runtime contains no browser executable or package fallback authority (0.18775ms)
+✔ every Playwright spec uses the shared seam and sole committed browser config (1516.740625ms)
+✔ committed discovery boundary keeps browser specs and direct Node suites disjoint (3.161833ms)
+✔ Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs (1.549334ms)
+✔ Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative (1.323375ms)
+✔ Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority (1.262834ms)
+✔ Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance (37.539ms)
+✔ Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth (393.276542ms)
+✔ Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority (389.705917ms)
+✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (0.388125ms)
+✔ Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence (0.209792ms)
+✔ Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin (0.13425ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2716.651291
+```
+
+The diff from `b1d358ce7` adds BUG-022 helpers and six tests after the fifth original
+test body. It changes none of the five original test bodies. The current run reports all
+five original tests and all nine later regressions green.
+
+### Manifest Authorship State
+
+The three structured BUG-017 links already use the canonical `testState: "authored"` value.
+Currentness remains receipt-derived, so this round did not add a declared scenario state.
+
+### Distinct Two-Worker Teardown Recurrence
+
+**Claim Source:** interpreted from BUG-022's executed report evidence
+
+BUG-022 separately ran the 94-test Feature 008 Playwright command. Its report records
+`94 passed`, two force-kill errors, and process exit 1 at the configured two-worker setting.
+This BUG-017 round did not execute that command and does not claim that it passed.
+
+The recurrence belongs to BUG-017's runtime remedy owner. It shows that the two-worker pin
+bounds exposure but does not eliminate it. It does not satisfy Feature 008's Playwright pass
+row, and it is not evidence for either checkbox closed above.
+
 

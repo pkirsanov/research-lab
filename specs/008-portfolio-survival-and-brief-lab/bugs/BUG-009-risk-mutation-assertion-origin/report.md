@@ -2,30 +2,37 @@
 
 ## Summary
 
-- Added one focused `assetTreatment()` carrier for unsupported holdings and
-  remapped only `F008-RISK-INPUT-001` to that title.
-- Proved the focused title passes on shipped source and fails under the exact
-  mutation through `ERR_ASSERTION`, not `TypeError` or test infrastructure.
-- Proved the strict 18-case registry passes all three outer tests, the full risk
-  carrier passes `3/3`, the five BUG-008 carriers pass `43/43`, and the
-  proportionate risk browser carrier passes `13/13`.
-- Ran the canonical selftest. It reported `3425 passed, 1 failed` because five
-  literal home-path findings remain in planning-owned command catalogs.
-- The linked-test resolver also found one planning-owned browser-title mismatch.
-- Preserved product source, the shared injector, the other 17 registry entries,
-  BUG-007, BUG-008, and parent Feature 008 artifacts.
+- The focused `assetTreatment()` carrier and the single
+  `F008-RISK-INPUT-001` registry remap are implemented and verified.
+- Current recorded execution is focused shipped `1/1`, exact mutant `0/1`
+  through required `ERR_ASSERTION`, strict registry `3/3`, full risk `3/3`,
+  five BUG-008 carriers `43/43`, risk browser `13/13`, and canonical selftest
+  `3426/3426`.
+- Regression, simplify, gaps, and the sanctioned setup prerequisite are
+  complete. The installed downstream G028 scan resolves both declared files
+  with `0` violations and `0` warnings.
+- The independent harden execution battery passes, but harden is not complete:
+  it found and routed four control-plane findings. This reconciliation addresses
+  only test-owned `HARDEN-B009-001`; `HARDEN-B009-002..004` remain open.
+- The next required owner is `bubbles.plan` for `HARDEN-B009-002`. The design
+  and bug findings retain their separate owners.
+- Historical before/after evidence, including the earlier `3425/3426` failure,
+  remains intact. Product source, tests, DoD, scope status, human acceptance,
+  certification, BUG-007, BUG-008, and parent Feature 008 artifacts are
+  unchanged by this reconciliation.
 
 ## Completion Statement
 
-The owned test repair and focused regression set are implemented and executed.
-The planning-owned linked title and home-path command defects are repaired. The
-canonical selftest, scenario resolver, and six packet gates are green in the
-current planning session. The fixed canonical G028 scanner is also green as a
-diagnostic, while final downstream G028 execution still requires propagation of
-canonical fix `db7b4f2` through the installer. BUG-009 remains `in_progress`;
-the scope remains In Progress. The completed plan-to-test transition is closed,
-and the packet routes to `bubbles.regression` for the next quality phase. Human
-acceptance and certification remain untouched and unclaimed.
+The owned test repair and every test execution claimed by this report are
+implemented and verified. Regression, simplify, gaps, and sanctioned setup are
+complete; installed downstream G028 scans `2` files with `0` violations and
+`0` warnings. Independent harden execution checks pass, but harden remains
+incomplete because that pass routed four control-plane findings. This change
+adds the missing test-phase execution provenance, addresses only
+`HARDEN-B009-001`, and resolves its transition request. The remaining planner,
+design, and bug findings stay open, with `bubbles.plan` next. BUG-009 remains
+`in_progress`, the scope remains In Progress, every DoD item remains unchecked,
+and human acceptance and certification remain untouched and unclaimed.
 
 ## Test Evidence
 

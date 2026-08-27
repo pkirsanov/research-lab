@@ -29,7 +29,7 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.harden",
+    "activeAgent": "bubbles.test",
     "currentPhase": "harden",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
@@ -37,11 +37,11 @@
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredOwner": "bubbles.plan",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "Independent hardening reproduced every requested clean execution result but found the test completedPhaseClaims entry has no test executionHistory backing and the opening test-owned report summary is stale. Reconcile HARDEN-B009-001, then retain the separately routed planner, design, and bug artifact findings before harden reruns.",
+    "nextRequiredReason": "HARDEN-B009-001 is reconciled with truthful test executionHistory backing and a current opening report summary. Next reconcile planner-owned HARDEN-B009-002 while preserving the separately routed design and bug findings before harden reruns.",
     "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps"],
-    "pendingTransitionRequests": ["BUG-009-ROUTE-008", "BUG-009-ROUTE-009", "BUG-009-ROUTE-010", "BUG-009-ROUTE-011"],
+    "pendingTransitionRequests": ["BUG-009-ROUTE-009", "BUG-009-ROUTE-010", "BUG-009-ROUTE-011"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -150,11 +150,13 @@
     },
     {
       "id": "BUG-009-ROUTE-008",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.harden",
       "nextRequiredOwner": "bubbles.test",
       "target": "state.json execution history and report.md current summary",
-      "reason": "HARDEN-B009-001: add truthful test-phase execution-history backing for the existing completedPhaseClaims test entry and reconcile the opening report Summary and Completion Statement with the later 3426/3426, installed G028 2/0/0, and completed regression route. Do not change test bytes, DoD, acceptance, status, or certification."
+      "reason": "HARDEN-B009-001: add truthful test-phase execution-history backing for the existing completedPhaseClaims test entry and reconcile the opening report Summary and Completion Statement with the later 3426/3426, installed G028 2/0/0, and completed regression route. Do not change test bytes, DoD, acceptance, status, or certification.",
+      "resolvedBy": "bubbles.test",
+      "resolvedAt": "2026-08-27T05:56:55Z"
     },
     {
       "id": "BUG-009-ROUTE-009",
@@ -209,6 +211,18 @@
       "note": "Removed all five home-path literals from planner-owned command catalogs, changed durable G028 execution to the installed downstream scanner with installer propagation of db7b4f2 as an explicit prerequisite, corrected the browser linked test title, and reran scenario resolution, the repository selftest, and all six packet gates green. The fixed canonical scanner is diagnostically green; the installed downstream scanner has not yet received db7b4f2. Status stays in_progress, the scope stays In Progress, and certification and human acceptance remain untouched.",
       "phasesExecuted": ["plan"],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-27",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "implemented-and-verified-recorded-test-contracts",
+      "note": "The report chronology before independent regression records focused shipped 1 of 1, the exact mutant at the required 0 of 1 through ERR_ASSERTION, strict registry 3 of 3, full risk 3 of 3, five BUG-008 carriers 43 of 43, risk browser 13 of 13, and canonical selftest 3426 of 3426 while preserving the earlier 3425 of 3426 failure. Regression quality and six named packet gates are recorded green. Installed downstream G028 at 2 files, 0 violations, and 0 warnings is recorded only by the subsequent sanctioned setup, gaps, and harden evidence and is not attributed to this original test run. No exact completion instant or duration was measured.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The report preserves the executed command chronology and observed outcomes but no wall-clock start and finish for the original test phase. No elapsed duration or synthetic completion instant is inferred.",
+      "evidenceRef": "report.md#test-evidence"
     },
     {
       "at": "2026-08-27T01:43:38Z",
@@ -310,16 +324,16 @@
       "owner": "bubbles.harden",
       "status": "addressed",
       "evidenceRef": "report.md#harden-phase-2026-08-27"
+    },
+    {
+      "id": "HARDEN-B009-001",
+      "summary": "The existing test completedPhaseClaims entry now has a truthful bubbles.test executionHistory record with an explicitly unmeasured duration, and the opening report summary reflects the later green execution and routed harden state.",
+      "owner": "bubbles.test",
+      "status": "addressed",
+      "evidenceRef": "report.md#completion-statement"
     }
   ],
   "unresolvedFindings": [
-    {
-      "id": "HARDEN-B009-001",
-      "summary": "The test phase is claimed complete without a matching test executionHistory entry, and the opening test-owned report summary still presents superseded selftest, G028, and regression-route state.",
-      "owner": "bubbles.test",
-      "status": "open",
-      "evidenceRef": "report.md#harden-phase-2026-08-27"
-    },
     {
       "id": "HARDEN-B009-002",
       "summary": "Planner-owned scopes and structured Test Plan still route to regression and describe executed test rows and regression verification as not executed or unclaimed.",

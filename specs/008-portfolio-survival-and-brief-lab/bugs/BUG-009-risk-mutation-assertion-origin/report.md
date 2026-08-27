@@ -11,12 +11,13 @@
 - Regression, simplify, gaps, and the sanctioned setup prerequisite are
   complete. The installed downstream G028 scan resolves both declared files
   with `0` violations and `0` warnings.
-- The independent harden execution battery passes, but harden is not complete:
-  it found and routed four control-plane findings. This reconciliation addresses
-  only planner-owned `HARDEN-B009-002`; `HARDEN-B009-001` was already addressed,
-  and `HARDEN-B009-003..004` remain open.
-- The next required owner is `bubbles.design` for `HARDEN-B009-003`. The bug
-  finding retains its separate owner.
+- The fresh harden verdict remains `NOT_HARDENED`.
+  `HARDEN-B009-001..005` are addressed after this planner reconciliation.
+- `HARDEN-B009-006` remains routed to `bubbles.analyst` through existing
+  `BUG-009-ROUTE-014` and is the next BUG-local route.
+  `HARDEN-B009-007` remains an external parent Feature 008 selftest blocker on
+  the existing parent `bubbles.validate` route. After both resolve, rerun
+  harden; do not route to stabilize now.
 - Historical before/after evidence, including the earlier `3425/3426` failure,
   remains intact. Product source, tests, DoD, scope status, human acceptance,
   certification, BUG-007, BUG-008, and parent Feature 008 artifacts are
@@ -27,11 +28,12 @@
 The owned test repair and every test execution claimed by this report are
 implemented and verified. Regression, simplify, gaps, and sanctioned setup are
 complete; installed downstream G028 scans `2` files with `0` violations and
-`0` warnings. Independent harden execution checks pass, but harden remains
-incomplete because that pass routed four control-plane findings. This change
-reconciles planner lifecycle metadata, addresses only `HARDEN-B009-002`, and
-resolves `BUG-009-ROUTE-009`. The design and bug findings stay open, with
-`bubbles.design` next for `HARDEN-B009-003`. BUG-009 remains `in_progress`, the
+`0` warnings. Fresh harden remains `NOT_HARDENED`. This change resolves only
+`HARDEN-B009-005` and `BUG-009-ROUTE-013`, leaving
+`HARDEN-B009-001..005` addressed. `HARDEN-B009-006` is next for
+`bubbles.analyst` via `BUG-009-ROUTE-014`; `HARDEN-B009-007` remains linked to
+the existing external parent `bubbles.validate` route. After both resolve,
+rerun harden. No stabilize route is opened. BUG-009 remains `in_progress`, the
 scope remains In Progress, every DoD item remains unchecked, and human
 acceptance and certification remain untouched and unclaimed.
 
@@ -2177,3 +2179,36 @@ stabilize from this closeout.
 BUG-009 remains `in_progress`. Scope 1 remains In Progress. All 18 DoD items
 remain unchecked. Human acceptance and every certification field remain
 unchanged.
+
+## HARDEN-B009-005 Lifecycle Reconciliation - 2026-08-27 {#harden-b009-005-lifecycle-reconciliation-2026-08-27}
+
+**Phase:** plan
+**Agent:** `bubbles.plan`
+**Claim Source:** interpreted
+**Interpretation:** This planner-owned reconciliation updates only current
+lifecycle and execution-routing statements. It preserves every historical
+evidence section, the fresh `NOT_HARDENED` verdict, and the unresolved external
+parent finding.
+**Recorded at:** `2026-08-27T06:57:19Z`
+**Repository authority:** host revision `304`; committed Research Lab decision
+`rb:vscode-d037d272141b9d17af8fa6ccdd049e69:305` at control revision `305`.
+
+### Resolved Route And Finding
+
+`BUG-009-ROUTE-013` is resolved by `bubbles.plan`.
+`HARDEN-B009-005` is addressed because the active report Summary, Completion
+Statement, and `scopes.md` lifecycle text now agree that
+`HARDEN-B009-003` and `HARDEN-B009-004` were resolved by their owners.
+`HARDEN-B009-001..005` are therefore addressed in the current ledger.
+
+### Ordered Continuation
+
+`HARDEN-B009-006` remains unresolved on existing `BUG-009-ROUTE-014`, with
+`bubbles.analyst` as the next required owner. `HARDEN-B009-007` remains an
+external parent Feature 008 selftest blocker linked to the existing parent
+`bubbles.validate` route. No duplicate BUG-local route is created for it.
+
+After `HARDEN-B009-006` and `HARDEN-B009-007` resolve, rerun harden. This
+reconciliation does not route to stabilize. BUG-009 remains `in_progress`.
+Scope 1 remains In Progress. All 18 DoD items remain unchecked. Human
+acceptance and every certification field remain unchanged.

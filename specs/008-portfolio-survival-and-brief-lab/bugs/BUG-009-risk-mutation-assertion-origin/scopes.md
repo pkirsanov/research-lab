@@ -3,7 +3,8 @@
 **Layout:** single-file
 **Mode:** `bugfix-fastlane`
 **Packet status:** `in_progress`
-**Next required owner:** `bubbles.design` for `HARDEN-B009-003`
+**Next required owner:** `bubbles.analyst` for `HARDEN-B009-006` via
+`BUG-009-ROUTE-014`
 
 [Spec](spec.md) | [Design](design.md) | [Report](report.md) |
 [User validation](uservalidation.md) |
@@ -13,9 +14,12 @@
 Planning changes no source or persistent test. The test-owned report records
 the two permitted test hunks and their execution evidence. Implementation,
 test, regression, simplify, gaps, and setup have executed. Harden attempted and
-remains incomplete after routing four stale artifact findings. This planner
-repair resolves `HARDEN-B009-002` and its transition request, then routes the
-still-in-progress packet to `bubbles.design` for `HARDEN-B009-003`.
+the fresh verdict remains `NOT_HARDENED`. `HARDEN-B009-001..005` are addressed
+after this planner repair resolves `HARDEN-B009-005` and
+`BUG-009-ROUTE-013`. `HARDEN-B009-006` remains routed to `bubbles.analyst` via
+`BUG-009-ROUTE-014`. `HARDEN-B009-007` remains an external parent Feature 008
+selftest blocker on the existing parent `bubbles.validate` route. After both
+remaining findings resolve, rerun harden. Do not route to stabilize now.
 
 ## Execution Outline
 
@@ -53,8 +57,10 @@ still-in-progress packet to `bubbles.design` for `HARDEN-B009-003`.
 **Depends On:** None
 **Scope-Kind:** contract-only
 **Finding:** `F008-RISK-INPUT-001`
-**Execution routing:** `bubbles.design` resolves `HARDEN-B009-003`; harden
-remains open, and transition plus final acceptance remain pending.
+**Execution routing:** `bubbles.analyst` resolves `HARDEN-B009-006` through
+`BUG-009-ROUTE-014`. `HARDEN-B009-007` stays on the existing external parent
+`bubbles.validate` route. Rerun harden after both resolve; no stabilize route is
+open. Transition and final acceptance remain pending.
 
 ### Implementation Files
 
@@ -249,13 +255,15 @@ contract.
 
 ### Uncertainty Declaration For Unchecked Items
 
-**Attempted:** Repaired the planner-owned command catalogs, linked test title,
-and lifecycle route after execution. **Observed:** The test-owned report retains
-implementation, test, regression, simplify, gaps, and setup evidence. Harden
-attempted and routed four stale artifact findings; harden completion,
-transition, human acceptance, and certification remain unclaimed.
-**Resolution:** After this planner-owned `HARDEN-B009-002` correction and its
-transition request are resolved, `bubbles.design` owns `HARDEN-B009-003`.
+**Attempted:** Reconciled the active planner-owned lifecycle statements after
+the owner records resolved `HARDEN-B009-003` and `HARDEN-B009-004`.
+**Observed:** `HARDEN-B009-001..005` are addressed. Fresh harden remains
+`NOT_HARDENED`; `HARDEN-B009-006` remains on `BUG-009-ROUTE-014` for
+`bubbles.analyst`, and external parent finding `HARDEN-B009-007` remains on the
+existing parent `bubbles.validate` route. Harden completion, transition, human
+acceptance, and certification remain unclaimed. **Resolution:** Resolve
+`HARDEN-B009-006` and `HARDEN-B009-007`, then rerun harden without routing to
+stabilize first.
 
 All items remain unchecked. The scope remains In Progress. Planning claims no
 harden completion, transition, human acceptance, or certification.

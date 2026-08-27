@@ -112,10 +112,10 @@ hash-verifies the tracked target before running the unchanged GREEN command.
   → Evidence: [Candidate mechanisms](report.md#candidate-mechanisms).
 - [ ] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence` passes against the committed candidate table; both planned self-reverting RED probes discriminate; each RED emits its specified SCN-BUG017-03 assertion message; and all five pre-existing runtime-foundation tests remain byte-unchanged and green.
   > **Uncertainty Declaration**
-  > **What was attempted:** The current runtime canary, candidate table, and receipt-derived scenario state were inspected during planning.
-  > **What was observed:** The runtime canary has no SCN-BUG017-03 test, and the resolver reports only `PLANNED` for this scenario.
-  > **Why this is uncertain:** No test body or RED/GREEN receipt exists for either candidate-table mutation.
-  > **What would resolve this:** Add the exact named test, run its focused command and both probes above, preserve their assertion messages, and record scenario-bound receipts.
+  > **What was attempted:** The exact SCN-BUG017-03 test and both planned self-reverting RED probes passed; the complete runtime-foundation functional file was then run at current `main`.
+  > **What was observed:** The named test passed, both probes emitted their specified assertion messages and hash-verified restoration, but the complete file reported seven passes and one discovery-boundary failure involving eight `tests/portfolio-survival-*.spec.mjs` crossings.
+  > **Why this is uncertain:** This item also requires all five earlier runtime-foundation tests green. The current complete-file run proves only four of those five green.
+  > **What would resolve this:** Correct the portfolio-survival discovery declarations in their owning feature, then rerun the complete functional file with all eight tests green.
 - [x] A remedy option is selected, and the broader lifetime-tax E2E regression suite passes at its two-worker system-Chrome configuration.
   → Evidence: `report.md` `### Decision` records the selected option; `report.md` `### The pair, re-derived` records `A2 proj=system-chrome exit=0 wall=76s forcekills=0 failmarks=0 | 111 passed (1.3m) | using 2 workers`.
 - [x] Raw output evidence is recorded inline for each item above.
@@ -299,16 +299,11 @@ conceded in writing is that a remedy for the **exposure** was available and take
   → Evidence: **18 of 18** documented invocations name `--config=playwright.config.mjs`; **0** do not. `report.md` `### The pair, re-derived` records the complete 22-file, 111-test system-Chrome workload passing at two workers, exit 0, with zero force-kills.
 - [ ] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence` passes only when both developer-facing sites carry every required disclosure field and placement; its planned platform-removal RED probe discriminates with the specified SCN-BUG017-07 assertion message; and the five pre-existing runtime-foundation tests remain byte-unchanged and green.
   > **Uncertainty Declaration**
-  > **What was attempted:** The current linked runtime canary and both disclosure sites were inspected during planning.
-  > **What was observed:** The linked canary asserts Playwright version and browser channel but contains no disclosure-content assertion; the resolver reports only `PLANNED` for this scenario.
-  > **Why this is uncertain:** No test body or RED/GREEN receipt proves that removing a required field from one disclosure site fails.
-  > **What would resolve this:** Add the exact named test, run its focused command and platform-removal probe above, preserve the specified assertion message, and record scenario-bound receipts.
-- [ ] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin` passes only when the full disclosure and resolved two-worker pin coexist; its planned two-to-six RED probe leaves disclosure intact, discriminates with the specified SCN-BUG017-08 assertion message, and hash-verifies restoration before GREEN.
-  > **Uncertainty Declaration**
-  > **What was attempted:** The resolved `workers: 2` configuration, disclosure text, current runtime canary, and receipt-derived scenario state were inspected during planning.
-  > **What was observed:** No canary requires disclosure and the two-worker pin as a conjunction; the resolver reports only `PLANNED` for this scenario.
-  > **Why this is uncertain:** No adversarial receipt proves the disclosure-preserving two-to-six mutation fails.
-  > **What would resolve this:** Add the exact named test, run its focused command and worker-pin probe above, preserve the specified assertion message, and record scenario-bound receipts.
+  > **What was attempted:** The exact SCN-BUG017-07 test and its planned platform-removal RED probe passed; the complete runtime-foundation functional file was then run at current `main`.
+  > **What was observed:** The named test passed and the probe emitted the specified missing-platform assertion before hash-verified restoration, but the complete file reported seven passes and one discovery-boundary failure involving eight `tests/portfolio-survival-*.spec.mjs` crossings.
+  > **Why this is uncertain:** This item also requires all five earlier runtime-foundation tests green. The current complete-file run proves only four of those five green.
+  > **What would resolve this:** Correct the portfolio-survival discovery declarations in their owning feature, then rerun the complete functional file with all eight tests green.
+- [x] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin` passes only when the full disclosure and resolved two-worker pin coexist; its planned two-to-six RED probe leaves disclosure intact, discriminates with the specified SCN-BUG017-08 assertion message, and hash-verifies restoration before GREEN. **Claim Source:** executed. → Evidence: [current-main SCN-BUG017-08 evidence](report.md#current-main-scn-bug017-08-evidence).
 
 ## Cross-Scope Definition of Done
 

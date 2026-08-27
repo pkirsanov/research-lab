@@ -1129,9 +1129,9 @@ failedChecks: []
 failureCount: 4
 ```
 
-The full linked functional file remained at seven passing tests and one pre-existing failure at
-the final revision. The same eight portfolio-survival crossings failed at planning revision
-`fb91c2e99`; all three BUG-017 titles passed in the final run.
+The full linked functional file remained at seven passing tests and one failure already observed
+at planning revision `fb91c2e99`. The same eight portfolio-survival crossings failed there; all
+three BUG-017 titles passed in the final run.
 
 ```text
 command: node --test tests/playwright-runtime.foundation.functional.mjs
@@ -1159,6 +1159,170 @@ scope-dod-progress: exit=1 new=13, including 3 BUG-017 certification-count drift
 repository selftest: exit=1 pass=3464 fail=1
 selftest sha256: b632ae4ecf9b8302cbefcfd8244cae628d763c3b070e88730c0e94eaea276d3d
 selftest failure: scope progress reports the same 13 certification-count drifts
+```
+
+## Current-Main Test Evidence At `6ad5f4252`
+
+**Phase:** test
+**Claim Source:** executed
+
+The three exact functional canaries each passed independently at the current local `main` tip.
+
+### Current-Main SCN-BUG017-03 Evidence
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (1.148042ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 234.347417
+sha256: 2e6db3a7a309a6ad8bd9dd7e1870088a4b91cdc2587d76885d8c6a9462fd68e6
+```
+
+Both planned negative controls discriminated and restored `report.md` to its initial blob hash.
+
+```text
+probe: SCN-BUG017-03 causal verdict is rejected
+exit: 0
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 3 uses a forbidden causal verdict
+green-exit: 0
+revert-verified: yes
+committed: bd8499976af53a2aa8106b98b57bc9660e8b8622
+restored: bd8499976af53a2aa8106b98b57bc9660e8b8622
+discriminating: yes
+sha256: 00c55f758120b71e84d5f388e45037a825f4cefc3a1aa430ba67041584268d40
+probe: SCN-BUG017-03 untested candidate requires a discriminating rationale
+exit: 0
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 4 lacks the single-build untested rationale
+green-exit: 0
+revert-verified: yes
+committed: bd8499976af53a2aa8106b98b57bc9660e8b8622
+restored: bd8499976af53a2aa8106b98b57bc9660e8b8622
+discriminating: yes
+sha256: be8c4af15f2ae1a56ff1997e1402b936a141577c062b3cf764b3509c79b70c25
+```
+
+### Current-Main SCN-BUG017-07 Evidence
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✔ Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence (0.83525ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 222.022625
+sha256: 3810907e76e0de1475e7914b1a704f78292c0b8e994fccc34d8149534a58aaa0
+```
+
+The planned platform-removal negative control discriminated and restored `playwright.config.mjs`.
+
+```text
+probe: SCN-BUG017-07 config disclosure requires the platform
+exit: 0
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-07: playwright.config.mjs disclosure is missing platform macOS
+green-exit: 0
+revert-verified: yes
+committed: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+restored: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+discriminating: yes
+sha256: 1a3d8c12a5cf703ac6b63b0d14ccac14335bd36b64ef72c728695e63b1ab3ced
+```
+
+### Current-Main SCN-BUG017-08 Evidence
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✔ Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin (0.8965ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 204.125834
+sha256: 0e5edec396cd827ca74ccf122e501ac1b102162645ef187d4205935028a64ffe
+```
+
+The planned worker-pin negative control discriminated and restored `playwright.config.mjs`.
+
+```text
+probe: SCN-BUG017-08 disclosure cannot replace the two-worker pin
+exit: 0
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2
+green-exit: 0
+revert-verified: yes
+committed: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+restored: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+discriminating: yes
+sha256: abb1516ce91e396e8e0313aaafa2753a15a47c2341d152915705b64fc937ef5b
+```
+
+### Current-Main Broader Runs
+
+The complete linked functional file still exposes the discovery-boundary failure already recorded
+at planning revision `fb91c2e99`. The current run proves all three BUG-017 titles pass, but it does
+not prove that all five earlier runtime-foundation tests are green.
+
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+exit: 1
+lines: 65
+sha256: 6256543048352fd802ecdc73ac673ff8b2478a6ba6a7a3baec54a74fa396a9ef
+pass: 7
+fail: 1
+passed: Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence
+passed: Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence
+passed: Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin
+failure: committed discovery boundary keeps browser specs and direct Node suites disjoint
+actual: 8 committed tests/portfolio-survival-*.spec.mjs crossings
+```
+
+The first browser-suite attempt quoted the glob and therefore passed a literal pattern to Playwright;
+it exited `1` with `No tests found` and is not suite evidence. The corrected repository command let
+the shell expand all 22 files and passed all 111 tests under `system-chrome` with two workers.
+
+**Command:** `npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+Running 111 tests using 2 workers
+✓ Regression: SCN-022-013 the combined total is the sum of two independent settlements
+✓ Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds
+✓ Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement
+✓ Regression: SCN-021-01 the settlement header does not remain Loading once the declared bound has elapsed
+✓ Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted
+✓ Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on
+111 passed (1.3m)
+exit: 0
+lines: 116
+sha256: 63de266d13dd8407eb703a9bcf7fbd2bbf2ea5c0a34746628607206140c1012c
 ```
 
 

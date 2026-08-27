@@ -19,7 +19,7 @@
 
 ## Human Acceptance Record
 
-- acceptedBy: null
-- acceptedAt: null
-- method: null
-- evidenceRef: null
+- acceptedBy: [human name or handle — never an agent id]
+- acceptedAt: [YYYY-MM-DDTHH:MM:SSZ]
+- method: [human-interactive | external-record]
+- record: [pointer to the external acceptance artifact — required only for external-record]

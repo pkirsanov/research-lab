@@ -1,0 +1,185 @@
+{
+  "version": 1,
+  "specId": "BUG-022",
+  "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-27T12:18:47Z",
+  "planningDelta": "Design-commit 359d536b reconciliation. Exact focused titles are planned-not-authored. No command result or test linkage is claimed.",
+  "scopes": [
+    {
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scopeName": "Classify Declaration Authority And Close Reachability",
+      "tests": [
+        {
+          "id": "TP-BUG022-RED-01",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "committed discovery boundary keeps browser specs and direct Node suites disjoint",
+          "command": "node --test --test-name-pattern='^committed discovery boundary keeps browser specs and direct Node suites disjoint$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "existing-red-control",
+          "status": "planned-not-executed",
+          "expectedRed": "Non-zero with exactly eight new portfolio crossings before implementation."
+        },
+        {
+          "id": "TP-BUG022-F01",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG022-001",
+          "description": "Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "planned-not-authored",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-F02",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG022-001",
+          "description": "Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "planned-not-authored",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-F03",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG022-002",
+          "description": "Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "planned-not-authored",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-F04",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG022-002",
+          "description": "Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "planned-not-authored",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-F05",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "planned-not-authored",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-F06",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "planned-not-authored",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-C01",
+          "type": "functional",
+          "category": "functional",
+          "file": "scripts/validate-test-file-reachability.mjs",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "Repository reachability closes without baseline or frozen-crossing growth.",
+          "command": "node scripts/validate-test-file-reachability.mjs",
+          "liveSystem": false,
+          "testState": "existing-command",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-C02",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/portfolio-*.unit.mjs tests/portfolio-*.functional.mjs",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "Feature 008 direct Node carriers remain selected only by Node.",
+          "command": "node --test tests/portfolio-*.unit.mjs tests/portfolio-*.functional.mjs",
+          "liveSystem": false,
+          "testState": "existing-command",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-C03",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-*.spec.mjs",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "Feature 008 current browser routes remain selected only by Playwright.",
+          "command": "npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "testState": "existing-command",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-C04",
+          "type": "functional",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "The complete build-free repository invariant suite stays green.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "testState": "existing-command",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-C05",
+          "type": "governance",
+          "category": "governance",
+          "file": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/report.md",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "The historical report blob and all excluded paths remain unchanged.",
+          "command": "git diff --exit-code 359d536b -- specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/report.md",
+          "liveSystem": false,
+          "testState": "existing-command",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-C06",
+          "type": "governance",
+          "category": "governance",
+          "file": "specs/_bugs/BUG-022-historical-report-declaration-leak",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "The packet passes artifact structure and planning-contract lint.",
+          "command": "bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-022-historical-report-declaration-leak",
+          "liveSystem": false,
+          "testState": "existing-command",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG022-C07",
+          "type": "governance",
+          "category": "governance",
+          "file": "specs/_bugs/BUG-022-historical-report-declaration-leak",
+          "scenarioId": "SCN-BUG022-003",
+          "description": "The transition guard reports the truthful non-terminal state.",
+          "command": "bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-022-historical-report-declaration-leak",
+          "liveSystem": false,
+          "testState": "existing-command",
+          "status": "planned-not-executed"
+        }
+      ]
+    }
+  ]
+}

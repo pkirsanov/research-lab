@@ -101,6 +101,13 @@ No subagent was invoked during packet filing. The host runtime exposes no
 `runSubagent` tool in this invocation, so design, planning, implementation,
 test, validation, documentation, and recap dispatches remain unclaimed.
 
+## Planning Handoff
+
+Scope 1 maps repository closure to
+`scripts/validate-test-file-reachability.mjs` and focused authority behavior to
+`tests/playwright-runtime.foundation.functional.mjs`. These are planned test
+paths only. This section records no implementation, execution, or pass claim.
+
 ## Change Ledger
 
 The filing operation created only the eight artifacts in this BUG-022 packet.

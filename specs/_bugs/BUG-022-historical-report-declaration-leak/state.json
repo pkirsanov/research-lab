@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
   "featureName": "BUG-022 Historical Report Declaration Leak",
   "createdAt": "2026-08-27T00:00:00Z",
-  "lastUpdatedAt": "2026-08-27T12:10:13Z",
+  "lastUpdatedAt": "2026-08-27T12:24:45Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -18,21 +18,21 @@
     "scopes": "scopes.md",
     "report": "report.md",
     "uservalidation": "uservalidation.md",
-    "scenarioManifest": "scenario-manifest.json"
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.design",
-    "currentPhase": "design",
-    "currentPhaseStatus": "in_progress",
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "planning",
+    "currentPhaseStatus": "completed",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-27T12:10:13Z",
-    "completedAt": null,
-    "substate": "design-reconciled",
+    "runStartedAt": "2026-08-27T12:18:47Z",
+    "completedAt": "2026-08-27T12:24:45Z",
     "currentScope": "01-separate-active-declarations-from-historical-receipts",
-    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredOwner": "bubbles.implement",
     "nextRequiredTarget": "specs/_bugs/BUG-022-historical-report-declaration-leak",
-    "nextRequiredReason": "Reconcile the plan-owned scope and acceptance authority with the role-aware design. Artifact lint currently reports PD12-METHOD-UNKNOWN because uservalidation.md carries method null.",
+    "nextRequiredReason": "Execute Scope 1 atomically: author the six exact focused tests, capture RED, implement structured authority classification and registry migration, then run the planned GREEN closure without acceptance or baseline growth.",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
     "scopeInventory": [
@@ -137,6 +137,32 @@
       ],
       "nextRequiredOwner": "bubbles.plan",
       "summary": "Reconciled design.md to replace basename exclusion with broad candidate collection, structured artifact and section roles, fail-closed classification, authority-delta migration, and paired active-versus-historical adversarial behavior. Artifact lint executed and reached one plan-owned PD12-METHOD-UNKNOWN finding in uservalidation.md. No source, test, scope, report, user-validation, scenario-manifest, certification, policy, historical evidence, or concurrent dirty path changed."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-08-27T12:18:47Z",
+      "completedAt": "2026-08-27T12:24:45Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["bootstrap"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG022-PLAN-RECONCILIATION",
+        "BUG022-PD12-METHOD-UNKNOWN",
+        "BUG022-TEST-HANDOFF",
+        "BUG022-SCENARIO-TRACEABILITY"
+      ],
+      "unresolvedFindings": [
+        "BUG022-IMPLEMENTATION",
+        "BUG022-RED-GREEN-VERIFICATION",
+        "BUG022-DELIVERY-CERTIFICATION"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Reconciled one atomic scope to design commit 359d536b, added exact RED/GREEN commands and the structured test handoff, reduced the scenario manifest to three derived obligation contracts, repaired the unsigned human-acceptance template, and preserved in-progress status. Artifact lint, scenario obligations, test mechanisms, and traceability passed. The delivery transition guard was executed and truthfully refused done because implementation, delivery evidence, completion phases, and human acceptance do not exist yet."
     }
   ]
 }

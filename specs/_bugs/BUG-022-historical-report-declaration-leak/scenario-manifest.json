@@ -1,97 +1,217 @@
 {
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
-  "generatedAt": "2026-08-27T00:00:00Z",
-  "generatedBy": "bubbles.bug",
-  "provenance": "Transcribed from BUG-022 scopes.md during atomic packet filing. All carriers are planned and no execution or certification is claimed.",
+  "generatedAt": "2026-08-27T12:18:47Z",
+  "generatedBy": "bubbles.plan",
+  "stage": "scope-level-planning",
+  "stageNote": "Reconciled after design commit 359d536b. testRows name planned obligations. linkedTests and evidenceRefs remain empty because the six exact BUG-022 tests have not been authored or executed. No delivery or certification is claimed.",
+  "scenarioCount": 3,
+  "scopeMapping": {
+    "01-separate-active-declarations-from-historical-receipts": [
+      "SCN-BUG022-001",
+      "SCN-BUG022-002",
+      "SCN-BUG022-003"
+    ]
+  },
   "scenarios": [
     {
       "scenarioId": "SCN-BUG022-001",
       "scopeId": "01-separate-active-declarations-from-historical-receipts",
       "scope": 1,
-      "title": "Historical report receipt is non-declarative",
-      "gherkin": {
-        "given": "a report.md receipt containing node --test tests/portfolio-*.mjs and a Playwright spec matcher",
-        "when": "current test declarations are collected",
-        "then": "the report contributes no Node declaration and creates no portfolio crossing"
-      },
       "status": "planned",
+      "title": "Artifact role separates historical receipts from active plans",
+      "gherkin": {
+        "given": "identical node --test tests/portfolio-*.mjs text in a report receipt and an active scope Test Plan or structured test plan",
+        "when": "the production collector classifies both candidates",
+        "then": "the report site is historical while the active site remains authoritative with artifact and line provenance"
+      },
       "behaviorClass": "static-metadata",
       "changeType": "bugfix",
       "requiredTestType": "functional",
       "regressionRequired": true,
-      "lockdown": false,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production collector output separates identical command bytes into historical and active authority states.",
+          "satisfiedBy": [
+            "TP-BUG022-F01 :: Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs",
+            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The active declaration retains its repository-relative artifact and positive source line.",
+          "satisfiedBy": [
+            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-F01",
+        "TP-BUG022-F02"
+      ],
       "linkedTests": [],
-      "coverageNote": "Carrier must be authored and executed by the test owner.",
       "evidenceRefs": [],
-      "replacedBy": null,
-      "invalidatedBy": null
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
+        ],
+        "negativeControl": "Moving the identical command from report.md into an active scope Test Plan changes authority from historical to active.",
+        "negativeControlMechanism": "perturbed-input"
+      }
     },
     {
       "scenarioId": "SCN-BUG022-002",
       "scopeId": "01-separate-active-declarations-from-historical-receipts",
       "scope": 1,
-      "title": "Active broad Node declaration still crosses",
-      "gherkin": {
-        "given": "an active command authority containing node --test tests/portfolio-*.mjs and a Playwright spec matcher",
-        "when": "current test declarations are collected",
-        "then": "the active artifact and line are retained and portfolio specs are exposed as crossings"
-      },
       "status": "planned",
+      "title": "Markdown presentation cannot manufacture authority",
+      "gherkin": {
+        "given": "active-looking headings inside historical evidence, fenced headings, and a glob candidate on an unrecognized artifact surface",
+        "when": "the production collector classifies the candidates",
+        "then": "artifact role outranks headings, fenced headings do not alter section role, and the unknown candidate fails closed with provenance"
+      },
       "behaviorClass": "static-metadata",
       "changeType": "bugfix",
       "requiredTestType": "functional",
       "regressionRequired": true,
-      "lockdown": false,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production heading and fence classification preserves the enclosing artifact role.",
+          "satisfiedBy": [
+            "TP-BUG022-F03 :: Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An unknown candidate produces a named blocking classification error instead of disappearing or becoming historical.",
+          "satisfiedBy": [
+            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Every classification error retains artifact, line, section context, and machine-readable reason.",
+          "satisfiedBy": [
+            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-F03",
+        "TP-BUG022-F04"
+      ],
       "linkedTests": [],
-      "coverageNote": "Adversarial carrier must prove the invariant was not weakened.",
       "evidenceRefs": [],
-      "replacedBy": null,
-      "invalidatedBy": null
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
+        ],
+        "negativeControl": "Placing a matching command in an unrecognized Markdown artifact must change the result to a blocking classification error.",
+        "negativeControlMechanism": "perturbed-input"
+      }
     },
     {
       "scenarioId": "SCN-BUG022-003",
       "scopeId": "01-separate-active-declarations-from-historical-receipts",
       "scope": 1,
-      "title": "Legitimate Node families have current authority",
-      "gherkin": {
-        "given": "active commands for tests/*.functional.mjs and tests/*.test.mjs",
-        "when": "test-file reachability is validated",
-        "then": "both families remain reachable without report receipts and the baseline does not grow"
-      },
       "status": "planned",
-      "behaviorClass": "static-metadata",
-      "changeType": "bugfix",
-      "requiredTestType": "functional",
-      "regressionRequired": true,
-      "lockdown": false,
-      "linkedTests": [],
-      "coverageNote": "Reachability and selftest executions are required.",
-      "evidenceRefs": [],
-      "replacedBy": null,
-      "invalidatedBy": null
-    },
-    {
-      "scenarioId": "SCN-BUG022-004",
-      "scopeId": "01-separate-active-declarations-from-historical-receipts",
-      "scope": 1,
-      "title": "Historical Feature 008 evidence remains immutable",
+      "title": "Additive migration closes reachability without weakening runner ownership",
       "gherkin": {
-        "given": "the Feature 008 BUG-004 report at the filing commit",
-        "when": "the parser repair is complete",
-        "then": "the captured portfolio command, outcome, and sha256 remain byte-for-byte unchanged"
+        "given": "the original eight report-derived portfolio crossings and legitimate functional and test Node families",
+        "when": "the classifier and current command registry migration land together",
+        "then": "the eight false crossings disappear without ratchet growth, both Node families remain reachable, Playwright stays disjoint, and the historical report remains byte-identical"
       },
-      "status": "planned",
-      "behaviorClass": "documentation",
+      "behaviorClass": "ui",
       "changeType": "bugfix",
-      "requiredTestType": "functional",
+      "requiredTestType": "e2e-ui",
       "regressionRequired": true,
-      "lockdown": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "static-metadata",
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Repository validation derives zero new orphans, zero new crossings, unchanged ratchets, two active Node family declarations, and a byte-identical historical report.",
+          "satisfiedBy": [
+            "TP-BUG022-F05 :: Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth",
+            "TP-BUG022-F06 :: Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority",
+            "TP-BUG022-C01",
+            "TP-BUG022-C05"
+          ]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Current Feature 008 production routes remain executable by Playwright after Node authority is narrowed.",
+          "satisfiedBy": [
+            "TP-BUG022-C03"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-RED-01",
+        "TP-BUG022-F05",
+        "TP-BUG022-F06",
+        "TP-BUG022-C01",
+        "TP-BUG022-C02",
+        "TP-BUG022-C03",
+        "TP-BUG022-C04",
+        "TP-BUG022-C05",
+        "TP-BUG022-C06",
+        "TP-BUG022-C07"
+      ],
       "linkedTests": [],
-      "coverageNote": "A path-limited Git comparison is required.",
       "evidenceRefs": [],
-      "replacedBy": null,
-      "invalidatedBy": null
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs",
+        ".specify/memory/agents.md",
+        "playwright.config.mjs",
+        "tests/playwright-runtime.foundation.functional.mjs",
+        "tests/"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "playwright.config.mjs",
+          "scripts/validate-test-file-reachability.mjs",
+          ".specify/memory/agents.md"
+        ],
+        "negativeControl": "An active portfolio-wide Node declaration recreates the eight crossings and fails the focused disjointness assertion.",
+        "negativeControlMechanism": "perturbed-input"
+      }
     }
   ]
 }

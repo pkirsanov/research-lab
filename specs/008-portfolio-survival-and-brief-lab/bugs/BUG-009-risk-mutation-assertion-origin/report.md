@@ -4987,3 +4987,146 @@ the scope completion that resolves only downstream. Hence `REWORK_REQUIRED`.
 Spot-check item 1 in the section above ("open `report.md:4435` and confirm the
 identifier is really there") is now obsolete — confirm instead that it reads
 `root=<repo-root>`. Items 2 through 5 stand unchanged.
+
+---
+
+## Plan Phase — BUG-009-ROUTE-024 Phase-Record Repair {#plan-route-024-phase-record-repair}
+
+**Owner:** `bubbles.plan` · **Route consumed:** `BUG-009-ROUTE-024` (from `bubbles.audit`)
+**Repository binding:** preflight `PREFLIGHT_COMMITTED`, decision `rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:3`, control revision 3, `root=<repo-root>`, exit 0.
+
+This section records a **semantics judgement**, not a measurement. It is written
+so the decision is auditable and reversible by whoever disagrees.
+
+### Measured effect
+
+| Measurement | Before | After |
+| --- | --- | --- |
+| `state-transition-guard.sh` `failureCount` | 10 | **7** |
+| `failedGateIds` | `G022, G027, G136` | `G022, G027, G136` |
+| Guard exit code | 1 | 1 |
+| `node scripts/pii-scan.mjs` | — | exit 0 — `files=10332 messages=2336 findings=0 OK` |
+| `node scripts/selftest.mjs` | — | exit 0 — `Research-Lab self-test: 3429 passed, 0 failed` |
+
+Three blocks cleared: the missing `audit` phase, the unregistered `plan` phase
+claim, and the phase-owner-contract rollup. `failedGateIds` is unchanged because
+G022 still carries the `implement` pair (see the refusal below).
+
+### (a) `implement` — DECLINED, and why the stated rationale was wrong
+
+The route asked for the `implement` phase to be recorded, citing `4824edc81`,
+on the rationale that *"`bugfix-fastlane` has no separate test-only phase, so
+that commit **is** the implement phase."*
+
+**That rationale is false, and this pass falsified it rather than repeating it.**
+The guard's own Check 6 for this mode requires `implement` **and** `test` as two
+distinct phases; `test` already PASSES; and the packet carries distinct
+test-phase commits `50a541600` and `40ae3fdf6` alongside `4824edc81`.
+
+The underlying *claim* nevertheless survives independent scrutiny: the packet's
+own devops, security, validate and audit phases each call `4824edc81` the
+implementation commit, at `report.md` lines 888, 1019, 1240, 2855, 3552 and 3619.
+So the work is real. The reason offered for it was not.
+
+The claim was still **not recorded**, because recording it would require
+provenance that cannot be supplied honestly. `state-transition-guard.sh` Check 6B
+accepts `implement` provenance from exactly two sources:
+
+1. `bubbles.implement` — the registry-declared owner (`workflows.yaml`
+   `phases.implement.owner`). It appears in **0 of 22** `executionHistory`
+   entries and authored no commit in this packet's log.
+2. `bubbles.bug` — a hardcoded delegation shortcut at
+   `state-transition-guard.sh:2183`. Both `bubbles.bug` entries record
+   `phasesExecuted: ["bug"]`; neither authored the delivery.
+
+`executionHistory` entry 3 records who actually did it: **`bubbles.test`**, with
+`action: "implemented-and-verified-recorded-test-contracts"`. For a test-only
+defect the implementation and the test are the same artifact — `4824edc81`
+changes no production file — so the registry's `implement` owner set has no
+honest member.
+
+Writing a `bubbles.implement` entry that never ran, or grafting `implement` onto
+a `bubbles.bug` entry that did not author it, is precisely the **phantom owner**
+Check 6B refuses to synthesize. Parent confirmation cannot authorize fabricating
+an execution record. The honest resolution is a framework change to the
+`implement` owner set or its delegation shortcut — for example admitting
+`bubbles.test` for test-only defects — which cannot be made here because
+`.github/bubbles/**` is framework-managed. Escalated as
+`B009-PHASE-IMPLEMENT-001` in `BUG-009-ROUTE-025`.
+
+### (b) `audit` — RECORDED
+
+`bubbles.audit` genuinely executed this session. Verified with
+`git show --stat 9f5f266eb`: *"audit(BUG-009): addendum — PII finding resolved,
+verdict re-derived to REWORK_REQUIRED"*, `report.md +96`, `state.json +43/-3`.
+Audit disclosed that its own `execution.audit` write could not move the guard,
+because Check 6/6B read `completedPhaseClaims` / `certifiedCompletedPhases`,
+which audit may not write.
+
+`audit` was added to `completedPhaseClaims` and a matching `executionHistory`
+entry recorded with `9f5f266eb` as evidence. The entry carries an explicit
+`recordedBy: bubbles.plan` disclosure: the phase execution is real and SHA-backed,
+but the act of recording it is this agent's, not audit's. Check 6B now reports
+`Phase 'audit' has specialist provenance from bubbles.audit`.
+
+### (c) `plan` — REMOVED from `completedPhaseClaims`, provenance preserved in full
+
+**This pass agrees with the parent's reading.** Grounds, each verified here by
+direct read rather than inherited:
+
+1. `workflows.yaml` `phases:` registers **30** phases. Neither `plan` nor
+   `design` is among them.
+2. The same file separates two different concepts:
+   `modeTemplates.planningChainAgents` = `[bubbles.analyst, bubbles.ux,
+   bubbles.design, bubbles.plan]` (line 80) versus
+   `modeTemplates.findingDeliveryPhases` = `[implement, test, validate, audit,
+   docs, finalize]` (line 109). `plan` appears as a planning-chain **agent**,
+   never as a delivery **phase**.
+3. Corroboration the route did not cite: the guard's Check 6 required-phase list
+   for this mode is `implement, test, regression, simplify, stabilize, security,
+   validate, audit`. `plan` is not a required delivery phase.
+
+On the `modelFloor` objection — `design: sonnet-class` / `plan: sonnet-class` at
+lines 782-783 — that table selects a **model tier by agent name**. The guard
+never reads `modelFloor` for phase ownership. The apparent self-contradiction is
+cosmetic and does not make `plan` a delivery phase.
+
+`completedPhaseClaims` is therefore a record of **delivery phases**, and
+`plan`'s presence in it was a **category error in the packet**, fixable here
+without touching the framework.
+
+**Nothing was erased.** All six `bubbles.plan` `executionHistory` entries are
+preserved byte-for-byte; a seventh was appended for this pass. Removing a phase
+*claim* is a classification fix; erasing execution provenance would be
+falsification, and none occurred. The reasoning is also persisted in-band at
+`state.json` → `execution.completedPhaseClaimsAdjudication` so it survives
+independently of this report.
+
+**If a future owner disagrees** and concludes `plan` genuinely belongs in
+`completedPhaseClaims`, the correct remedy is to register `plan` and `design` in
+the framework `phases:` block with declared owners — not to re-add an
+unregistered claim. `B009-FRAMEWORK-PHASE-REGISTRY-001` remains open for that.
+
+### Remaining 7 blockers, and who owns them
+
+| # | Block | Gate | Owner |
+| --- | --- | --- | --- |
+| 1 | 3 unchecked DoD items | — | mixed: human + framework |
+| 2 | Scope 1 still `In Progress` | — | downstream of 1 |
+| 3 | `implement` not in phase records | G022 | **framework** — owner-set gap |
+| 4 | 1 specialist phase missing (rollup of 3) | G022 | framework |
+| 5 | `completedScopes` is empty | G027 | downstream of 1–2 |
+| 6 | Zero scopes marked `Done` | G027 | downstream of 1–2 |
+| 7 | Human acceptance not established | G136 | **human** |
+
+### What this pass did not touch
+
+`uservalidation.md` is **byte-identical** — 0 of 6 items checked, no acceptance
+record manufactured. The three unchecked DoD items in `scopes.md` are unchanged;
+the Build Quality Gate legitimately remains unchecked because the guard still
+exits 1. `completedScopes`, Scope 1 status, `status`, `certification.status` and
+`certifiedAt` are unchanged. No product source or test byte changed.
+`.github/bubbles/**` was not edited. The concurrent 61-entry unrelated
+working-tree transaction was neither staged, reset, stashed nor reverted.
+Nothing was pushed.
+

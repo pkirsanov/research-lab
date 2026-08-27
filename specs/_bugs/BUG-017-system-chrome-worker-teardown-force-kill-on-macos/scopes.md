@@ -69,8 +69,32 @@ Feature: The stall is characterised before a remedy is chosen
 | Repeated execution | Identical runs under `system-chrome`, exit code recorded for each. |
 | Concurrency sweep | Runs at varying worker counts, stall presence recorded per count. |
 | Process sampling | Browser process count before and after each run. |
+| Functional regression | `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence`, run with `node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs`. It parses the candidate table in this packet's `report.md`; requires candidates 3 and 4, an allowed supported/contradicted/untested verdict, and candidate-specific distinguishing evidence; and rejects a causal verdict. This complements rather than replaces the unchanged process-level workload. |
 | E2E | Scenario-specific process-level E2E characterization for SCN-BUG017-01 through SCN-BUG017-03 runs the 22-file lifetime-tax system-Chrome suite; concrete workload tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document`. |
 | Regression E2E | `e2e-ui` characterization for SCN-BUG017-01 through SCN-BUG017-03 executes the complete 22-file lifetime-tax system-Chrome workload across the declared worker-count sweep and preserves each named browser regression. |
+
+#### SCN-BUG017-03 Discriminating RED Mutations
+
+Both probes use the same named test and `scripts/red-green-probe.sh`, which restores and
+hash-verifies the tracked target before running the unchanged GREEN command.
+
+1. Causal-label rejection:
+
+  ```bash
+  scripts/red-green-probe.sh --file specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md --find '| 3 | Profile or lock contention | **Contradicted as profile contention** |' --replace '| 3 | Profile or lock contention | **Cause** |' --label 'SCN-BUG017-03 causal verdict is rejected' --bound 120 -- node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs
+  ```
+
+  Expected RED: the Node test exits non-zero with
+  `SCN-BUG017-03: candidate 3 uses a forbidden causal verdict`.
+
+1. Untested-rationale rejection:
+
+  ```bash
+  scripts/red-green-probe.sh --file specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md --find 'only one Chrome build was available, so nothing is discriminated.' --replace 'the candidate was reviewed.' --label 'SCN-BUG017-03 untested candidate requires a discriminating rationale' --bound 120 -- node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs
+  ```
+
+  Expected RED: the Node test exits non-zero with
+  `SCN-BUG017-03: candidate 4 lacks the single-build untested rationale`.
 
 ### Definition of Done
 
@@ -86,6 +110,12 @@ Feature: The stall is characterised before a remedy is chosen
   → Evidence: [Candidate mechanisms](report.md#candidate-mechanisms).
 - [x] No candidate is named as the cause without evidence distinguishing it from the others.
   → Evidence: [Candidate mechanisms](report.md#candidate-mechanisms).
+- [ ] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence` passes against the committed candidate table; both planned self-reverting RED probes discriminate; each RED emits its specified SCN-BUG017-03 assertion message; and all five pre-existing runtime-foundation tests remain byte-unchanged and green.
+  > **Uncertainty Declaration**
+  > **What was attempted:** The current runtime canary, candidate table, and receipt-derived scenario state were inspected during planning.
+  > **What was observed:** The runtime canary has no SCN-BUG017-03 test, and the resolver reports only `PLANNED` for this scenario.
+  > **Why this is uncertain:** No test body or RED/GREEN receipt exists for either candidate-table mutation.
+  > **What would resolve this:** Add the exact named test, run its focused command and both probes above, preserve their assertion messages, and record scenario-bound receipts.
 - [x] A remedy option is selected, and the broader lifetime-tax E2E regression suite passes at its two-worker system-Chrome configuration.
   → Evidence: `report.md` `### Decision` records the selected option; `report.md` `### The pair, re-derived` records `A2 proj=system-chrome exit=0 wall=76s forcekills=0 failmarks=0 | 111 passed (1.3m) | using 2 workers`.
 - [x] Raw output evidence is recorded inline for each item above.
@@ -220,8 +250,31 @@ Feature: An unremovable defect is disclosed rather than rediscovered
 |---|---|
 | Review | The disclosure states platform, project, symptom, intermittence, and measured cost. |
 | Adversarial | The disclosure is not accepted while Scope 1 records an available remedy. |
+| Functional regression | `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence`, run with `node --test --test-name-pattern='^Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence$' tests/playwright-runtime.foundation.functional.mjs`. It asserts independently on `playwright.config.mjs` and `.specify/memory/agents.md` that each disclosure names macOS, `system-chrome`, the 300000ms force-kill symptom with a green suite exiting non-zero, the 6/8, 1/3, and 0/3 intermittence record, and the 343s-versus-81s cost on 111 tests. It also asserts that the config disclosure is adjacent to `workers: 2` and the registry disclosure precedes the first Playwright run command. |
+| Adversarial regression | `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin`, run with `node --test --test-name-pattern='^Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin$' tests/playwright-runtime.foundation.functional.mjs`. It requires the conjunction of the full disclosure and resolved `playwrightConfig.workers === 2`; disclosure alone cannot pass. |
 | E2E | Scenario-specific E2E workload verification for SCN-BUG017-07 and SCN-BUG017-08 runs the same 22-file lifetime-tax system-Chrome suite after the `playwright.config.mjs` exposure remedy; concrete tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted`. |
 | Regression E2E | `e2e-ui` verification for SCN-BUG017-07 and SCN-BUG017-08 executes the complete 22-file lifetime-tax system-Chrome workload after the worker-bound remedy and developer disclosure. |
+
+#### SCN-BUG017-07 And SCN-BUG017-08 Discriminating RED Mutations
+
+1. Disclosure-content rejection for SCN-BUG017-07:
+
+  ```bash
+  scripts/red-green-probe.sh --file playwright.config.mjs --find 'and on macOS a `system-chrome` run' --replace 'and a `system-chrome` run' --label 'SCN-BUG017-07 config disclosure requires the platform' --bound 120 -- node --test --test-name-pattern='^Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence$' tests/playwright-runtime.foundation.functional.mjs
+  ```
+
+  Expected RED: the Node test exits non-zero with
+  `SCN-BUG017-07: playwright.config.mjs disclosure is missing platform macOS`, even though
+  the worker pin and the second disclosure site remain intact.
+
+1. Remedy-before-disclosure rejection for SCN-BUG017-08:
+
+  ```bash
+  scripts/red-green-probe.sh --file playwright.config.mjs --find '  workers: 2,' --replace '  workers: 6,' --label 'SCN-BUG017-08 disclosure cannot replace the two-worker pin' --bound 120 -- node --test --test-name-pattern='^Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin$' tests/playwright-runtime.foundation.functional.mjs
+  ```
+
+  Expected RED: the Node test exits non-zero with
+  `SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2`.
 
 ### Definition of Done
 
@@ -244,6 +297,18 @@ conceded in writing is that a remedy for the **exposure** was available and take
   → Evidence: **343s against 81s on the identical 111 tests**, measured in this execution — run C (`--workers=6`, exit 1, 4 force-kills, `111 passed (5.7m)`) against run A (configured 2 workers, exit 0, `111 passed (1.3m)`), raw lines under `report.md` `### The condition is still reachable at the remedy commit`. Both figures appear in both disclosure sites.
 - [x] The disclosure is reachable from where a developer runs the suite, and the broader lifetime-tax E2E regression suite passes after the remedy and disclosure.
   → Evidence: **18 of 18** documented invocations name `--config=playwright.config.mjs`; **0** do not. `report.md` `### The pair, re-derived` records the complete 22-file, 111-test system-Chrome workload passing at two workers, exit 0, with zero force-kills.
+- [ ] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence` passes only when both developer-facing sites carry every required disclosure field and placement; its planned platform-removal RED probe discriminates with the specified SCN-BUG017-07 assertion message; and the five pre-existing runtime-foundation tests remain byte-unchanged and green.
+  > **Uncertainty Declaration**
+  > **What was attempted:** The current linked runtime canary and both disclosure sites were inspected during planning.
+  > **What was observed:** The linked canary asserts Playwright version and browser channel but contains no disclosure-content assertion; the resolver reports only `PLANNED` for this scenario.
+  > **Why this is uncertain:** No test body or RED/GREEN receipt proves that removing a required field from one disclosure site fails.
+  > **What would resolve this:** Add the exact named test, run its focused command and platform-removal probe above, preserve the specified assertion message, and record scenario-bound receipts.
+- [ ] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin` passes only when the full disclosure and resolved two-worker pin coexist; its planned two-to-six RED probe leaves disclosure intact, discriminates with the specified SCN-BUG017-08 assertion message, and hash-verifies restoration before GREEN.
+  > **Uncertainty Declaration**
+  > **What was attempted:** The resolved `workers: 2` configuration, disclosure text, current runtime canary, and receipt-derived scenario state were inspected during planning.
+  > **What was observed:** No canary requires disclosure and the two-worker pin as a conjunction; the resolver reports only `PLANNED` for this scenario.
+  > **Why this is uncertain:** No adversarial receipt proves the disclosure-preserving two-to-six mutation fails.
+  > **What would resolve this:** Add the exact named test, run its focused command and worker-pin probe above, preserve the specified assertion message, and record scenario-bound receipts.
 
 ## Cross-Scope Definition of Done
 

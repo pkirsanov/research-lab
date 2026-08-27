@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "specId": "BUG-017",
+  "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-27T10:10:19Z",
+  "planningDelta": "Executable obligations for the three receipt-derived PLANNED scenarios only; historical REGRESSION_GREEN rows remain in scopes.md.",
+  "scopes": [
+    {
+      "scopeId": "1",
+      "scopeName": "Characterise The Stall Well Enough To Choose",
+      "tests": [
+        {
+          "id": "TP-BUG017-03-CANDIDATE-DISCRIMINATION",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG017-03",
+          "description": "Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "planned-not-authored",
+          "status": "planned-not-executed",
+          "redMutations": [
+            {
+              "target": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md",
+              "find": "| 3 | Profile or lock contention | **Contradicted as profile contention** |",
+              "replace": "| 3 | Profile or lock contention | **Cause** |",
+              "expectedFailure": "SCN-BUG017-03: candidate 3 uses a forbidden causal verdict"
+            },
+            {
+              "target": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md",
+              "find": "only one Chrome build was available, so nothing is discriminated.",
+              "replace": "the candidate was reviewed.",
+              "expectedFailure": "SCN-BUG017-03: candidate 4 lacks the single-build untested rationale"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "scopeId": "3",
+      "scopeName": "Disclose It Where A Developer Meets It",
+      "tests": [
+        {
+          "id": "TP-BUG017-07-DISCLOSURE-CONTENT",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG017-07",
+          "description": "Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "planned-not-authored",
+          "status": "planned-not-executed",
+          "redMutations": [
+            {
+              "target": "playwright.config.mjs",
+              "find": "and on macOS a `system-chrome` run",
+              "replace": "and a `system-chrome` run",
+              "expectedFailure": "SCN-BUG017-07: playwright.config.mjs disclosure is missing platform macOS"
+            }
+          ]
+        },
+        {
+          "id": "TP-BUG017-08-REMEDY-BEFORE-DISCLOSURE",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG017-08",
+          "description": "Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "planned-not-authored",
+          "status": "planned-not-executed",
+          "redMutations": [
+            {
+              "target": "playwright.config.mjs",
+              "find": "  workers: 2,",
+              "replace": "  workers: 6,",
+              "expectedFailure": "SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

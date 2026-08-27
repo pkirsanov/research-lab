@@ -41,14 +41,15 @@
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
       "evidenceRefs": ["report.md#candidate-mechanisms"],
-      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds"],
-      "mappingNote": "The linked tests identify the real suite workload held constant while project, worker count, process state, and installed-version candidates were varied at process level.",
-      "behaviorTraits": ["runtime-config"],
+      "linkedTests": [{"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence", "testState": "planned-not-authored"}, "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds"],
+      "mappingNote": "The lifetime-tax tests identify the real workload held constant during process-level candidate runs but do not assert the candidate verdicts. The planned functional test is the exact carrier for candidate-table classification, distinguishing-evidence, and no-causal-label assertions.",
+      "behaviorTraits": ["runtime-config", "static-metadata"],
       "obligations": [
-        {"trait": "runtime-config", "requiredProof": "Candidate runs hold the real workload constant and record each candidate as supported, contradicted, or untested without promoting correlation to cause.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds"]}
+        {"trait": "runtime-config", "requiredProof": "Candidate runs hold the real workload constant while project, worker count, process state, and installed-version inputs vary.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds"]},
+        {"trait": "static-metadata", "requiredProof": "Candidates 3 and 4 each carry an allowed supported, contradicted, or untested verdict plus candidate-specific distinguishing evidence, and neither is promoted to cause.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence"]}
       ],
-      "implementationRefs": ["playwright.config.mjs", "tests/lifetime-tax-combined.spec.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
-      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs"], "negativeControl": "The candidate matrix holds the workload fixed while switching browser project and worker count; bundled chromium stays clean at six while system-chrome stalls, contradicting profile contention as the sole mechanism."}
+      "implementationRefs": ["playwright.config.mjs", "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md", "tests/playwright-runtime.foundation.functional.mjs", "tests/lifetime-tax-combined.spec.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs", "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md"], "negativeControl": "One probe changes candidate 3 from contradicted to cause without changing its evidence; a second removes candidate 4's single-build rationale while preserving its untested label. Each must fail the exact SCN-BUG017-03 functional test."}
     },
     {
       "id": "SCN-BUG017-04",
@@ -105,13 +106,14 @@
       "requiredTestType": "functional",
       "scopeRef": "Scope 3",
       "evidenceRefs": ["report.md#current-linked-functional-canary", "report.md#scope-3-execution--disclosure-written"],
-      "linkedTests": ["tests/playwright-runtime.foundation.functional.mjs#shared runtime exports the exact checkout-local Playwright 1.61.1 API", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"],
-      "mappingNote": "The functional test is the existing config/runtime canary and the browser test is a concrete workload member. The disclosure wording itself is an artifact claim recorded in the packet, not silently upgraded into a test assertion.",
+      "linkedTests": [{"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence", "testState": "planned-not-authored"}, "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"],
+      "mappingNote": "The planned functional test asserts every required disclosure field and its placement independently on both developer-facing artifacts. The lifetime-tax test remains a concrete workload member and is not offered as disclosure-content proof.",
       "behaviorTraits": ["static-metadata"],
       "obligations": [
-        {"trait": "static-metadata", "requiredProof": "The repository-owned config names macOS, system-chrome, the force-kill symptom, intermittence, and measured cost where the worker override is encountered.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#shared runtime exports the exact checkout-local Playwright 1.61.1 API"]}
+        {"trait": "static-metadata", "requiredProof": "Both developer-facing sites name macOS, system-chrome, the 300000ms force-kill and green-suite non-zero symptom, all three intermittence rates, and measured cost; each notice is placed before the worker override or run command it qualifies.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence"]}
       ],
-      "implementationRefs": ["playwright.config.mjs", ".specify/memory/agents.md", "tests/playwright-runtime.foundation.functional.mjs", "tests/lifetime-tax-combined.spec.mjs"]
+      "implementationRefs": ["playwright.config.mjs", ".specify/memory/agents.md", "tests/playwright-runtime.foundation.functional.mjs", "tests/lifetime-tax-combined.spec.mjs"],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "recorded-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs", ".specify/memory/agents.md"], "negativeControl": "Remove only the macOS clause from the config disclosure while preserving the comment, worker pin, and registry disclosure; the exact SCN-BUG017-07 test must fail with the missing-platform assertion."}
     },
     {
       "id": "SCN-BUG017-08",
@@ -120,13 +122,14 @@
       "requiredTestType": "functional",
       "scopeRef": "Scope 3",
       "evidenceRefs": ["report.md#current-linked-functional-canary", "report.md#scope-3-execution--disclosure-written"],
-      "linkedTests": ["tests/playwright-runtime.foundation.functional.mjs#shared runtime exports the exact checkout-local Playwright 1.61.1 API", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"],
-      "mappingNote": "The linked tests are existing config/runtime and workload canaries. The ordering of remedy before disclosure remains a planning/evidence claim and no new receipt is invented here.",
+      "linkedTests": [{"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin", "testState": "planned-not-authored"}, "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"],
+      "mappingNote": "The planned functional test requires the disclosure and resolved two-worker pin together. The lifetime-tax test remains a concrete workload member and is not offered as proof that remedy precedes disclosure.",
       "behaviorTraits": ["static-metadata"],
       "obligations": [
-        {"trait": "static-metadata", "requiredProof": "The disclosure is adjacent to the already-applied workers setting and describes only the remaining explicit override.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#shared runtime exports the exact checkout-local Playwright 1.61.1 API"]}
+        {"trait": "static-metadata", "requiredProof": "The full disclosure is adjacent to an applied workers value of exactly two, so disclosure alone cannot satisfy the scenario.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin"]}
       ],
-      "implementationRefs": ["playwright.config.mjs", ".specify/memory/agents.md", "tests/playwright-runtime.foundation.functional.mjs", "tests/lifetime-tax-read-bound.spec.mjs"]
+      "implementationRefs": ["playwright.config.mjs", ".specify/memory/agents.md", "tests/playwright-runtime.foundation.functional.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "recorded-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs", ".specify/memory/agents.md"], "negativeControl": "Change only workers from two to six while leaving the complete disclosure intact; the exact SCN-BUG017-08 test must fail because disclosure cannot substitute for the pin."}
     }
   ]
 }

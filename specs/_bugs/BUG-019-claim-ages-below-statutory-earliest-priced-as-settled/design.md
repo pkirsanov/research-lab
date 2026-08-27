@@ -8,6 +8,18 @@ contract and therefore the shape of every future benefit pack.
 
 No fix was attempted by the round that filed this packet, and no shipped file was modified.
 
+### Single-Implementation Justification
+
+The existing owning abstraction is the pack-backed claim-age adjustment contract.
+`tax-rules/benefit/2026.json::earlyReductionRule` owns the sourced factors and earliest age.
+`rltaxsocialsecurity.js::applyClaimAgeAdjustment` owns their application and the resulting
+refusal.
+
+This packet adds one declared lower bound to that contract. It adds no benefit engine, pack
+provider, pricing strategy, or schema adapter. Jurisdiction and year differences remain pack
+data, not a new implementation axis. A reusable foundation would duplicate the rule-pack
+boundary without a second implementation or an independent variation axis.
+
 ## Mechanism
 
 ### The bound and the factors live in the same object

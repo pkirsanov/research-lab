@@ -8,6 +8,18 @@ It does not diagnose the stall. Diagnosis needs instrumentation the filing sessi
 run, and guessing past the boundary would convert an honest defect record into a
 confident-sounding wrong one.
 
+### Single-Implementation Justification
+
+The existing owning abstraction is the repository-wide Playwright runner configuration in
+`playwright.config.mjs`. It owns the worker limit and the existing `system-chrome` and
+`chromium` project definitions. `.specify/memory/agents.md` records the same operating
+contract.
+
+This packet bounds one teardown exposure within that existing runner. It adds no runner
+implementation, browser provider, or lifecycle extension point. Browser channel selection
+already belongs to Playwright's project model, so it is not a new variation axis. A separate
+foundation would duplicate that model without a second implementation to consume it.
+
 ## The Boundary
 
 Five runs in a single session on one machine, with only one variable moving.

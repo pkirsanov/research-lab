@@ -12,6 +12,18 @@ nothing. That revision is superseded by `## The Decision` below, which the owner
 authorised on 2026-08-24. The mechanism sections are unchanged and still
 current.
 
+### Single-Implementation Justification
+
+The existing owning abstraction is the declared-document loader in
+`lifetime-tax-strategy-lab.html::loadJson`, governed by the configuration contract in
+`rltaxworkspace.js`. The helper remains the only transport for the configuration and all
+declared packs.
+
+This packet supplies bounds to that one loader. The module constant and configuration member
+are policy strata, not loader implementations or variants. The work adds no second transport,
+retry provider, or read strategy. A new foundation would duplicate one helper and invent a
+variation axis that no second implementation exercises.
+
 ## Mechanism
 
 ### The one unbounded call

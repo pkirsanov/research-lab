@@ -7,6 +7,17 @@ and enumerates remedy options with their consequences. It selects no remedy. The
 depends on a branch-reconciliation decision that belongs to the operator and that this
 filing was explicitly forbidden to make.
 
+### Single-Implementation Justification
+
+This packet is a narrow repair inside the existing Lifetime Tax Strategy Lab page compositor.
+`lifetime-tax-strategy-lab.html` owns the combined-panel DOM anchors and loads the existing
+`rltaxcombined.js` module.
+
+The repair restores and protects one route's existing composition. It adds no second page
+compositor, panel provider, or reusable contract. The required anchors are invariants, not a
+variation axis. A foundation and overlay split would turn one route-specific integrity rule
+into an unsupported framework.
+
 ## Mechanism
 
 The six failing tests wait for three selectors. None of the three exists on the deployed

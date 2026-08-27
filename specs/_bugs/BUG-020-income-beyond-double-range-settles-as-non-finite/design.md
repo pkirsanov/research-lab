@@ -12,6 +12,18 @@ nothing. That revision is superseded by `## The Decision` below, which the owner
 authorised on 2026-08-24. The mechanism sections are unchanged and still
 current.
 
+### Single-Implementation Justification
+
+The existing owning abstraction is the shared value-record and refusal pipeline.
+`rltax.js::computeTaxableIncome` owns the arithmetic origin, and
+`rltax.js::formatForDisplay` owns value-record formatting. `rltaxrules.js::RLTAX_CODES`
+owns the closed refusal vocabulary.
+
+This packet adds one refusal condition to those existing owners. It adds no formatter family,
+numeric provider, rendering strategy, or extension point. The route surfaces are consumers of
+one record contract, not separate implementations. Their shared refusal outcome is invariant,
+so no new variation axis warrants a foundation and overlay split.
+
 ## Mechanism
 
 ### Three formatters, two guards

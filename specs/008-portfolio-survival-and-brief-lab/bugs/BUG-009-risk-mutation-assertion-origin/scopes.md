@@ -255,9 +255,27 @@ contract.
   `4824edc81` is `+1/-1` in `tests/portfolio-test-integrity.unit.mjs`.
 - [x] Delivery changes remain inside the declared test-only Change Boundary.
   Evidence: [report.md#plan-route-022-reconciliation](report.md#plan-route-022-reconciliation).
-- [ ] `TP-B009-000` persistent wrong-origin RED records the sole strict-registry
+- [x] `TP-B009-000` persistent wrong-origin RED records the sole strict-registry
   finding and the broad title's `TypeError` / `ERR_TEST_FAILURE` origin.
-  Evidence: `report.md#tp-b009-000`.
+  Evidence: [report.md#current-session-strict-registry-red](report.md#current-session-strict-registry-red)
+  records the sole finding — `F008-RISK-INPUT-001 ... mutant failure did not
+  originate from the selected protective assertion` is the only entry in the
+  not-load-bearing list — and
+  [report.md#selected-title-mutant-origin](report.md#selected-title-mutant-origin)
+  records the broad title's origin. The item asserts what the record *contains*,
+  and both halves were verified against it this session.
+  The broad-mutant half is re-executable: `CMD-B009-BROAD-MUTANT-RED` was re-run
+  and reproduced the documented origin exactly — exit 1,
+  `code: 'ERR_TEST_FAILURE'`, `failureType: 'testCodeFailure'`,
+  `name: 'TypeError'`,
+  `error: "Cannot read properties of undefined (reading 'state')"`, `# pass 0`,
+  `# fail 1`. The recorded location `tests/portfolio-risk.functional.mjs:43:1`
+  (stack `:94:54`) reads `:72:1` (stack `:123:54`) on re-run; the delta is
+  exactly +29 lines, matching the `+29/-0` that `4824edc81` added to that file,
+  so the origin is identical and only the offsets moved.
+  The strict-registry half is legitimately historical: that finding *was* the
+  defect, and `TP-B009-003` now passes the registry 3/3, so it is retained as a
+  record and correctly not restated as current-session evidence.
 - [x] `TP-B009-001` focused shipped-source GREEN passes exactly once.
   Evidence: [report.md#validate-tp-b009-001](report.md#validate-tp-b009-001).
 - [x] `TP-B009-002` focused mutation RED fails exactly once through
@@ -287,8 +305,15 @@ contract.
   test-mechanism lint, scope-context-fit lint, and capability-foundation guard
   pass. Evidence:
   [report.md#validate-tp-b009-011](report.md#validate-tp-b009-011).
-- [ ] Human acceptance remains unclaimed and human-owned in
-  [uservalidation.md](uservalidation.md).
+- [x] Human acceptance remains unclaimed and human-owned in
+  [uservalidation.md](uservalidation.md). This item asserts the *negative* — that
+  the boundary held and no acceptance was manufactured. It does not grant
+  acceptance, and checking it does not satisfy Gate G136, which separately and
+  correctly still blocks because `uservalidation.md` does not establish
+  acceptance. Evidence: the file is byte-identical to the pre-merge tip
+  `467e495252b3225f50c0db5cafd909c98ef9fbb7` — blob
+  `b5667556a67f0aec71e23b5cf4004d6fe44e73d7` at that tip, at `HEAD`, and in the
+  worktree — and carries 0 checked of 6 items. Planning did not modify it.
 - [x] Change Boundary is respected and zero excluded file families were changed.
   Evidence: [report.md#plan-route-022-reconciliation](report.md#plan-route-022-reconciliation)
   — `git show --numstat 4824edc81` reports exactly the two allowed paths
@@ -303,6 +328,22 @@ contract.
   zero unrelated staged paths, exact changed-path containment, current packet
   documentation, fixed canonical G028 scan, artifact lint, traceability, and
   validate-owned transition checks green.
+  **Failing clause: `validate-owned transition checks green`.**
+  `state-transition-guard.sh` exits 1 with 7 failures, so the item cannot be
+  honestly checked. Every other clause was verified green this session:
+  `node scripts/selftest.mjs` exits 0 with 3429 passed and 0 failed, covering
+  zero skipped required tests and zero infrastructure-error substitutes;
+  `4824edc81` touches exactly `tests/portfolio-risk.functional.mjs` (`+29/-0`)
+  and `tests/portfolio-test-integrity.unit.mjs` (`+1/-1`), so zero product
+  source, zero anchor changes, and exact changed-path containment hold;
+  `git diff --cached --name-only` is empty, so zero unrelated staged paths hold;
+  and the installed G028 scan, artifact lint, and traceability guard each exit 0,
+  covering current packet documentation. The residual guard failures are the
+  scope still In Progress, the two `G027` completedScopes and zero-scopes-Done
+  blocks, the two missing-`implement`-phase blocks, and `G136` human acceptance.
+  None is plan-owned: they resolve only behind human acceptance and the
+  owner-gated `B009-PHASE-IMPLEMENT-001` decision, and forcing any of them would
+  fabricate the state the gate exists to check.
 
 ### Uncertainty Declaration For Unchecked Items
 
@@ -311,14 +352,20 @@ repairing the internal same-repo route schema, recording the G040 adjudication
 through the sanctioned skip markers, and applying every DoD tick that
 validate's recorded per-item verdict supports.
 
-**Observed:** Sixteen of the nineteen items are now checked against commands
-executed in a real session. Three stay unchecked, each for a stated reason:
+**Observed:** Eighteen of the nineteen items are now checked against commands
+executed in a real session. One stays unchecked, for a stated reason:
 
 | Unchecked item | Reason it stays unchecked |
 | --- | --- |
-| `TP-B009-000` persistent wrong-origin RED | It is a persistent historical record of the pre-fix state. Post-fix the strict registry is green by design, so re-running it would invert its meaning rather than confirm it. No fresh run is claimed, and the record is not restated as current-session evidence. |
-| Human acceptance | Acceptance is human-owned. No acceptance record was manufactured and `uservalidation.md` is untouched. |
-| Build Quality Gate | It requires validate-owned transition checks to be green. `state-transition-guard.sh` still exits 1, so the item cannot be honestly checked. |
+| Build Quality Gate | Its final clause requires validate-owned transition checks to be green. `state-transition-guard.sh` exits 1 with 7 failures, so the item cannot be honestly checked. Every other clause verified green this session; the residual failures are the scope status, the two `G027` blocks, the two missing-`implement`-phase blocks, and `G136`, none of which is plan-owned. |
+
+Two items previously carried in this table were re-adjudicated and checked this
+session. Each earlier reason is recorded with why it did not hold:
+
+| Re-adjudicated item | Why the earlier reason did not hold |
+| --- | --- |
+| `TP-B009-000` persistent wrong-origin RED | It was recorded as wholly "not re-executable". That is true of only one half. The broad-mutant half re-executes on demand: `CMD-B009-BROAD-MUTANT-RED` was re-run this session and reproduced the documented `TypeError` / `ERR_TEST_FAILURE` origin exactly, with line offsets shifted by exactly the +29 lines `4824edc81` added to the carrier. Only the strict-registry half is genuinely historical, and the item asserts what the record *contains* rather than that both halves re-run. |
+| Human acceptance | It was read as though checking it would claim acceptance. The item asserts the opposite \u2014 that acceptance remains *unclaimed*. Checking it records that the boundary held. `uservalidation.md` is byte-identical to the pre-merge tip with 0 of 6 items checked, planning did not modify it, and Gate G136 still blocks separately and correctly. |
 
 **Resolution:** `bubbles.audit` consumes `BUG-009-ROUTE-023` and runs the one
 required `delivery-completion-v1` phase that has not executed. Three findings

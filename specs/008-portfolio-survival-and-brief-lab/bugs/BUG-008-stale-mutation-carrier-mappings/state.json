@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-008-stale-mutation-carrier-mappings",
   "featureName": "BUG-008 Stale Mutation Carrier Mappings",
   "createdAt": "2026-08-26T23:28:18Z",
-  "lastUpdatedAt": "2026-08-26T23:33:41Z",
+  "lastUpdatedAt": "2026-08-27T00:11:30Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,26 +29,26 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.bug",
+    "activeAgent": "bubbles.plan",
     "currentPhase": "plan",
     "currentPhaseStatus": "route_required",
-    "substate": "diagnosis-filed",
+    "substate": "plan-reconciled",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-26T23:28:18Z",
-    "completedAt": "2026-08-26T23:33:41Z",
+    "runStartedAt": "2026-08-26T23:45:49Z",
+    "completedAt": "2026-08-27T00:11:30Z",
     "currentScope": null,
-    "nextRequiredOwner": "bubbles.plan",
-    "nextRequiredTarget": "scopes.md, scenario-manifest.json, and test-plan.json",
-    "nextRequiredReason": "Reconcile the initial one-scope packet, preserve all seven exact mutation anchors, and route scenario-first RED ownership to bubbles.test. The test-infrastructure defect is high severity and no product source change is authorized.",
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "TP-B008-000, then TP-B008-001 through TP-B008-007",
+    "nextRequiredReason": "Record the persistent 18-case registry RED first, then add the seven focused carrier titles and prove each exact mutation fails through ERR_ASSERTION. Product source, the shared injector, BUG-007 artifacts, and parent Feature 008 artifacts remain excluded.",
     "completedPhaseClaims": [],
-    "pendingTransitionRequests": ["BUG-008-ROUTE-001"],
+    "pendingTransitionRequests": ["BUG-008-ROUTE-002"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-mutation-mapping-causality",
         "scope": 1,
         "status": "Not Started",
-        "dependsOn": []
+        "dependsOn": ["BUG-007:HARDEN-B007-001"]
       }
     ]
   },
@@ -81,11 +81,19 @@
   "transitionRequests": [
     {
       "id": "BUG-008-ROUTE-001",
-      "status": "pending",
+      "status": "completed",
       "fromAgent": "bubbles.bug",
       "nextRequiredOwner": "bubbles.plan",
       "target": "scopes.md, scenario-manifest.json, test-plan.json",
       "reason": "The filing confirms seven stale mutation-to-carrier mappings after the shared injector repair. Reconcile the exact one-scope RED/GREEN plan and preserve all current mutation anchors before bubbles.test changes any persistent carrier."
+    },
+    {
+      "id": "BUG-008-ROUTE-002",
+      "status": "pending",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "TP-B008-000, then TP-B008-001 through TP-B008-007",
+      "reason": "Capture the persistent registry RED before repair, then add the seven scenario-specific functional carriers and retain each mapping only after its exact mutation fails through ERR_ASSERTION."
     }
   ],
   "reworkQueue": [],
@@ -97,6 +105,15 @@
       "action": "diagnosed-filed-and-routed-to-plan",
       "note": "Bound Research Lab authority at control revision 256. Preserved all concurrent dirty paths, BUG-007, and the parent Feature 008 transaction. Treated the operator-supplied three-test, two-pass, one-fail registry result as diagnostic input only. Inspected the current 18-case registry, all seven exact product anchors, and each selected functional title. Filed a complete v3 BUG-008 packet with one high-severity mapping-causality finding. Artifact lint and traceability pass after one local DoD-fidelity repair. No product source, persistent test, human acceptance, certification, terminal status, push, or unrelated path changed.",
       "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-27T00:11:30Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "reconciled-and-routed-to-test",
+      "note": "Preserved the seven-scenario, 15-row test-only design; removed the stale umbrella identity from active planning; made BUG-007 HARDEN-B007-001 an explicit foreign-owned prerequisite; and routed TP-B008-000 plus the seven focused carrier additions to bubbles.test. Status remains in_progress, Scope 1 remains Not Started, and certification and human acceptance are unchanged.",
+      "phasesExecuted": ["plan"],
       "provenanceMode": "specialist"
     }
   ],
@@ -113,7 +130,7 @@
     {
       "id": "B008-MAPPING-001",
       "summary": "Seven applied Feature 008 mutations select tests that stay green because the titles do not assert the represented behavior.",
-      "owner": "bubbles.plan",
+      "owner": "bubbles.test",
       "status": "open",
       "evidenceRef": "report.md#inherited-current-session-diagnostic"
     }

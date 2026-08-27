@@ -1,170 +1,447 @@
 {
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-008-stale-mutation-carrier-mappings",
-  "generatedAt": "2026-08-26T23:28:18Z",
-  "generatedBy": "bubbles.bug",
-  "provenance": "Initial diagnosis-only filing. The operator supplied the current-session registry result. Current-tree inspection grounded the seven mapping mismatches. No persistent RED, carrier repair, GREEN result, browser result, human acceptance, or certification is claimed.",
+  "generatedAt": "2026-08-26T23:45:49Z",
+  "generatedBy": "bubbles.plan",
+  "provenance": "Reconciled planning contract only. Seven independent mutation obligations replace the initial umbrella scenario. No carrier implementation, RED/GREEN result, injector repair, browser result, human acceptance, or certification is claimed.",
   "scenarios": [
     {
-      "scenarioId": "SCN-B008-MUTATION-MAPPING-CAUSALITY",
+      "scenarioId": "SCN-B008-001",
       "scopeId": "01-restore-mutation-mapping-causality",
       "scope": 1,
-      "title": "Every audited mutation fails one causal protective assertion",
+      "title": "Public clear exposes the exclusion inventory",
       "gherkin": {
-        "given": "the complete 18-case Feature 008 mutation registry, unchanged audited anchors, and one selected persistent title per case",
-        "when": "each selected title runs once on shipped source and once with its represented mutation applied exactly once",
-        "then": "the shipped title passes, the mutant title fails through its protective assertion, infrastructure failures do not count, and no mutation stays green or becomes baselined skipped or removed"
+        "given": "all 18 mutation cases remain registered and F008-CLEAR-TEST-001 retains the public-exclusion branch anchor",
+        "when": "the exact clear title runs on shipped source and with the branch replaced by else if (false)",
+        "then": "shipped source passes on the complete public exclusion inventory and the mutant fails once through ERR_ASSERTION because the inventory entry disappears"
       },
       "status": "planned",
       "behaviorClass": "test-integrity",
       "changeType": "bugfix",
-      "requiredTestType": "unit",
-      "requiredTestTypes": ["unit", "functional", "e2e-ui"],
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
       "regressionRequired": true,
       "riskTier": "high",
-      "requirementRefs": [
-        "FR-B008-001",
-        "FR-B008-002",
-        "FR-B008-003",
-        "FR-B008-004",
-        "FR-B008-005",
-        "FR-B008-006",
-        "FR-B008-007",
-        "FR-B008-008",
-        "AC-1",
-        "AC-2",
-        "AC-3",
-        "AC-4",
-        "AC-5"
-      ],
-      "findingRefs": [
-        "B008-MAPPING-001",
-        "F008-CLEAR-TEST-001",
-        "F008-PATH-CONTRACT-001",
-        "F008-SURVIVAL-PATH-001",
-        "F008-DIVERSIFICATION-001",
-        "F008-HEDGE-001",
-        "F008-ALLOCATION-001",
-        "F008-DOSSIER-001"
-      ],
-      "behaviorTraits": ["shared-consumer", "static-metadata"],
+      "requirementRefs": ["FR-B008-001", "FR-B008-002", "FR-B008-003", "FR-B008-004", "FR-B008-005", "FR-B008-006", "FR-B008-007", "FR-B008-008", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5"],
+      "findingRefs": ["B008-MAPPING-001", "F008-CLEAR-TEST-001"],
+      "behaviorTraits": ["pure-calculation"],
       "obligations": [
         {
-          "trait": "shared-consumer",
-          "requiredProof": "consumer-surface: all five affected functional carriers stay green on shipped source; parity: the full 18-case registry maps each mutation to one assertion-origin RED.",
-          "satisfiedBy": [
-            "consumer-surface:TP-B008-002",
-            "consumer-surface:TP-B008-003",
-            "consumer-surface:TP-B008-004",
-            "consumer-surface:TP-B008-005",
-            "consumer-surface:TP-B008-006",
-            "parity:TP-B008-001"
-          ]
-        },
-        {
-          "trait": "static-metadata",
-          "requiredProof": "The registry retains all 18 finding ids, exact anchors, one selected title per finding, and no baseline or skip path.",
-          "satisfiedBy": ["TP-B008-001", "TP-B008-010"]
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over clearAllPersonalData's computed publicExclusions inventory, plus the exact bounded mutation.",
+          "satisfiedBy": ["production-unit:TP-B008-001", "mutation:TP-B008-001", "registry:TP-B008-008"]
         }
       ],
       "testMechanism": {
-        "entrypoint": "internal-helper",
+        "entrypoint": "public-function",
         "inputOrigin": "synthetic-fixture",
         "assertionSurface": "returned-value",
         "dependencyPath": "not-applicable",
-        "productionOwners": [
-          "tests/portfolio-test-integrity.unit.mjs",
-          "tests/portfolio-privacy.functional.mjs",
-          "tests/portfolio-paths.functional.mjs",
-          "tests/portfolio-diversification.functional.mjs",
-          "tests/portfolio-allocation.functional.mjs",
-          "tests/portfolio-dossier.functional.mjs"
-        ],
-        "negativeControl": "Keep one selected title pointed at behavior it does not assert. The comprehensive registry must apply that mutation and fail because the selected title remains green. Then restore the causal mapping and require the same registry title to pass.",
+        "productionOwners": ["rlportfolio.js#clearAllPersonalData"],
+        "negativeControl": "Replace the public-exclusion branch condition with false; the expected public:local-storage inventory row must disappear and the exact assertion must fail.",
         "negativeControlMechanism": "mutation"
       },
-      "implementationRefs": [
-        "tests/portfolio-test-integrity.unit.mjs",
-        "tests/portfolio-privacy.functional.mjs",
-        "tests/portfolio-paths.functional.mjs",
-        "tests/portfolio-diversification.functional.mjs",
-        "tests/portfolio-allocation.functional.mjs",
-        "tests/portfolio-dossier.functional.mjs"
-      ],
-      "testRows": [
-        "TP-B008-000",
-        "TP-B008-001",
-        "TP-B008-002",
-        "TP-B008-003",
-        "TP-B008-004",
-        "TP-B008-005",
-        "TP-B008-006",
-        "TP-B008-007",
-        "TP-B008-008",
-        "TP-B008-009",
-        "TP-B008-010",
-        "TP-B008-011",
-        "TP-B008-012"
-      ],
+      "implementationRefs": ["rlportfolio.js#clearAllPersonalData", "tests/portfolio-privacy.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B008-000", "TP-B008-001", "TP-B008-008", "TP-B008-009", "TP-B008-010", "TP-B008-011", "TP-B008-012", "TP-B008-013"],
       "lockdown": false,
       "linkedTests": [
         {
-          "file": "tests/portfolio-test-integrity.unit.mjs",
-          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "file": "tests/portfolio-privacy.functional.mjs",
+          "testId": "BUG-008 clear mapping: public exclusions enumerate untouched public storage",
           "testPlanRow": "TP-B008-001",
-          "coverageStatus": "authored-existing-red",
+          "coverageStatus": "planned-new",
           "evidenceRef": "report.md#tp-b008-001"
         },
         {
-          "file": "tests/portfolio-privacy.functional.mjs",
-          "testId": "Adversarial: full personal clear detects undeclared keys live state and arbitrary residue",
-          "testPlanRow": "TP-B008-002",
-          "coverageStatus": "planned-strengthening",
-          "evidenceRef": "report.md#tp-b008-002"
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "testPlanRow": "TP-B008-008",
+          "coverageStatus": "authored-existing-red",
+          "evidenceRef": "report.md#tp-b008-008"
+        }
+      ],
+      "expectedAssertions": ["publicExclusions contains the exact public storage inventory", "shipped title passes once", "mutation applies once", "mutant title fails once with ERR_ASSERTION"],
+      "evidenceRefs": ["report.md#tp-b008-001", "report.md#tp-b008-008"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B008-005",
+      "scopeId": "01-restore-mutation-mapping-causality",
+      "scope": 1,
+      "title": "Non-aligned hedge samples are unavailable",
+      "gherkin": {
+        "given": "F008-HEDGE-001 retains the aligned-excess-returns requirement and the fixture supplies another valid sample definition",
+        "when": "the exact hedge title runs on shipped source and with the sample-definition check disabled",
+        "then": "shipped source returns unavailable with excess-return-sample-required and the mutant fails once through ERR_ASSERTION"
+      },
+      "status": "planned",
+      "behaviorClass": "test-integrity",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B008-001", "FR-B008-002", "FR-B008-003", "FR-B008-004", "FR-B008-005", "FR-B008-006", "FR-B008-007", "FR-B008-008", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5"],
+      "findingRefs": ["B008-MAPPING-001", "F008-HEDGE-001"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over the hedge regression sample-definition validation result.",
+          "satisfiedBy": ["production-unit:TP-B008-005", "mutation:TP-B008-005"]
         },
         {
-          "file": "tests/portfolio-paths.functional.mjs",
-          "testId": "TP-22-02 chunk controller cancellation and supersession preserve the last valid result",
-          "testPlanRow": "TP-B008-003",
-          "coverageStatus": "planned-strengthening",
-          "evidenceRef": "report.md#tp-b008-003"
-        },
+          "trait": "degraded-state",
+          "requiredProof": "Named unavailable reason excess-return-sample-required with no neighboring cost or duplicate-sample failure.",
+          "satisfiedBy": ["negative-path:TP-B008-005", "registry:TP-B008-008"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolioanalytics.js#fitHedgeRegression"],
+        "negativeControl": "Disable the aligned-excess-returns requirement while keeping the sample otherwise valid; the exact unavailable reason assertion must fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfolioanalytics.js#fitHedgeRegression", "tests/portfolio-diversification.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B008-000", "TP-B008-005", "TP-B008-008", "TP-B008-009", "TP-B008-010", "TP-B008-011", "TP-B008-012", "TP-B008-013"],
+      "lockdown": false,
+      "linkedTests": [
         {
           "file": "tests/portfolio-diversification.functional.mjs",
-          "testId": "TP-23-02 complete diversification projection survives JSON round trip with exact contracts",
-          "testPlanRow": "TP-B008-004",
-          "coverageStatus": "planned-strengthening",
-          "evidenceRef": "report.md#tp-b008-004"
-        },
-        {
-          "file": "tests/portfolio-allocation.functional.mjs",
-          "testId": "TP-13-02 six production candidates share one frozen basis and keep their own states",
+          "testId": "BUG-008 hedge mapping: non-aligned excess-return sample is unavailable",
           "testPlanRow": "TP-B008-005",
-          "coverageStatus": "planned-candidate-remap",
+          "coverageStatus": "planned-new",
           "evidenceRef": "report.md#tp-b008-005"
         },
         {
-          "file": "tests/portfolio-dossier.functional.mjs",
-          "testId": "Adversarial: incomplete walk forward and mutable dossier records cannot satisfy the audit contract",
-          "testPlanRow": "TP-B008-006",
-          "coverageStatus": "planned-strengthening",
-          "evidenceRef": "report.md#tp-b008-006"
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "testPlanRow": "TP-B008-008",
+          "coverageStatus": "authored-existing-red",
+          "evidenceRef": "report.md#tp-b008-008"
         }
       ],
-      "expectedAssertions": [
-        "all 18 mutations apply exactly once",
-        "each selected title resolves to one executed test",
-        "all seven stale mappings fail through their own protective assertion",
-        "no infrastructure error satisfies mutation discrimination",
-        "all five affected functional carriers pass on shipped source",
-        "product source and shared injector remain unchanged"
+      "expectedAssertions": ["state is unavailable", "reason is excess-return-sample-required", "shipped title passes once", "mutant title fails once with ERR_ASSERTION"],
+      "evidenceRefs": ["report.md#tp-b008-005", "report.md#tp-b008-008"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B008-006",
+      "scopeId": "01-restore-mutation-mapping-causality",
+      "scope": 1,
+      "title": "Declared allocation constraints produce a concrete conflict",
+      "gherkin": {
+        "given": "F008-ALLOCATION-001 retains declared constraint normalization and BND has a maximum weight of 0.5",
+        "when": "the exact allocation title runs on shipped source and with all constraints dropped",
+        "then": "shipped source marks minimum variance infeasible with a BND maximum conflict and the mutant fails once through ERR_ASSERTION"
+      },
+      "status": "planned",
+      "behaviorClass": "test-integrity",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B008-001", "FR-B008-002", "FR-B008-003", "FR-B008-004", "FR-B008-005", "FR-B008-006", "FR-B008-007", "FR-B008-008", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5"],
+      "findingRefs": ["B008-MAPPING-001", "F008-ALLOCATION-001"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over the named candidate's feasibility and concrete conflicting set.",
+          "satisfiedBy": ["production-unit:TP-B008-006", "mutation:TP-B008-006"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named infeasible state with BND maximum required=0.5 and actual greater than required.",
+          "satisfiedBy": ["negative-path:TP-B008-006", "registry:TP-B008-008"]
+        }
       ],
-      "evidenceRefs": [
-        "report.md#inherited-current-session-diagnostic",
-        "report.md#current-tree-mapping-inspection",
-        "report.md#tp-b008-000",
-        "report.md#tp-b008-001"
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolioanalytics.js#evaluateFeasibility"],
+        "negativeControl": "Replace declared constraints with an empty list; the minimum-variance candidate must lose its BND maximum conflict and the exact assertion must fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfolioanalytics.js#evaluateFeasibility", "tests/portfolio-allocation.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B008-000", "TP-B008-006", "TP-B008-008", "TP-B008-009", "TP-B008-010", "TP-B008-011", "TP-B008-012", "TP-B008-013"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-allocation.functional.mjs",
+          "testId": "BUG-008 allocation mapping: declared BND cap makes minimum variance infeasible",
+          "testPlanRow": "TP-B008-006",
+          "coverageStatus": "planned-new",
+          "evidenceRef": "report.md#tp-b008-006"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "testPlanRow": "TP-B008-008",
+          "coverageStatus": "authored-existing-red",
+          "evidenceRef": "report.md#tp-b008-008"
+        }
       ],
+      "expectedAssertions": ["minimum-variance feasibility state is infeasible", "conflicting subject is BND", "conflicting kind is maximum", "required is 0.5 and actual exceeds it", "mutant title fails once with ERR_ASSERTION"],
+      "evidenceRefs": ["report.md#tp-b008-006", "report.md#tp-b008-008"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B008-007",
+      "scopeId": "01-restore-mutation-mapping-causality",
+      "scope": 1,
+      "title": "Incomplete decision-fold requests are request-invalid",
+      "gherkin": {
+        "given": "F008-DOSSIER-001 retains the exact fold keys and request-version anchor and a pre-computation request omits one required key",
+        "when": "the exact dossier title runs on shipped source and with exact request validation disabled",
+        "then": "shipped source returns unavailable with request-invalid and the mutant fails once through ERR_ASSERTION"
+      },
+      "status": "planned",
+      "behaviorClass": "test-integrity",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B008-001", "FR-B008-002", "FR-B008-003", "FR-B008-004", "FR-B008-005", "FR-B008-006", "FR-B008-007", "FR-B008-008", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5"],
+      "findingRefs": ["B008-MAPPING-001", "F008-DOSSIER-001"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over exact decision-fold request validation before computation.",
+          "satisfiedBy": ["production-unit:TP-B008-007", "mutation:TP-B008-007"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named unavailable state and request-invalid reason for an actually incomplete request.",
+          "satisfiedBy": ["negative-path:TP-B008-007", "registry:TP-B008-008"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolioanalytics.js#evaluateDecisionFold"],
+        "negativeControl": "Disable exact-key and request-version refusal; the incomplete pre-computation request must stop returning request-invalid and the exact assertion must fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfolioanalytics.js#evaluateDecisionFold", "tests/portfolio-dossier.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B008-000", "TP-B008-007", "TP-B008-008", "TP-B008-009", "TP-B008-010", "TP-B008-011", "TP-B008-012", "TP-B008-013"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-dossier.functional.mjs",
+          "testId": "BUG-008 dossier mapping: incomplete decision-fold request is request-invalid",
+          "testPlanRow": "TP-B008-007",
+          "coverageStatus": "planned-new",
+          "evidenceRef": "report.md#tp-b008-007"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "testPlanRow": "TP-B008-008",
+          "coverageStatus": "authored-existing-red",
+          "evidenceRef": "report.md#tp-b008-008"
+        }
+      ],
+      "expectedAssertions": ["state is unavailable", "reason is request-invalid", "request is incomplete before evaluation", "shipped title passes once", "mutant title fails once with ERR_ASSERTION"],
+      "evidenceRefs": ["report.md#tp-b008-007", "report.md#tp-b008-008"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B008-002",
+      "scopeId": "01-restore-mutation-mapping-causality",
+      "scope": 1,
+      "title": "Stale token identity is superseded directly",
+      "gherkin": {
+        "given": "F008-PATH-CONTRACT-001 retains the identity mismatch anchor and an otherwise active token carries a mismatched scenario identity",
+        "when": "the exact token title runs on shipped source and with the identity check disabled",
+        "then": "shipped source returns P008-COMPUTE-SUPERSEDED and the mutant fails once through ERR_ASSERTION because the stale token is accepted"
+      },
+      "status": "planned",
+      "behaviorClass": "test-integrity",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B008-001", "FR-B008-002", "FR-B008-003", "FR-B008-004", "FR-B008-005", "FR-B008-006", "FR-B008-007", "FR-B008-008", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5"],
+      "findingRefs": ["B008-MAPPING-001", "F008-PATH-CONTRACT-001"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Direct public-function assertion over the token identity validation result.",
+          "satisfiedBy": ["production-unit:TP-B008-002", "mutation:TP-B008-002"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named P008-COMPUTE-SUPERSEDED negative path with no cancellation or token-state fallback trigger.",
+          "satisfiedBy": ["negative-path:TP-B008-002", "registry:TP-B008-008"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolioanalytics.js#runScenarioChunk"],
+        "negativeControl": "Disable the workspace/scenario identity mismatch guard while keeping the token active; the stale token must stop returning P008-COMPUTE-SUPERSEDED.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfolioanalytics.js#runScenarioChunk", "tests/portfolio-paths.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B008-000", "TP-B008-002", "TP-B008-008", "TP-B008-009", "TP-B008-010", "TP-B008-011", "TP-B008-012", "TP-B008-013"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-paths.functional.mjs",
+          "testId": "BUG-008 token mapping: mismatched scenario identity is superseded directly",
+          "testPlanRow": "TP-B008-002",
+          "coverageStatus": "planned-new",
+          "evidenceRef": "report.md#tp-b008-002"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "testPlanRow": "TP-B008-008",
+          "coverageStatus": "authored-existing-red",
+          "evidenceRef": "report.md#tp-b008-008"
+        }
+      ],
+      "expectedAssertions": ["active mismatched token returns P008-COMPUTE-SUPERSEDED", "shipped title passes once", "mutation applies once", "mutant title fails once with ERR_ASSERTION"],
+      "evidenceRefs": ["report.md#tp-b008-002", "report.md#tp-b008-008"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B008-003",
+      "scopeId": "01-restore-mutation-mapping-causality",
+      "scope": 1,
+      "title": "Cash need lands on its declared session and date",
+      "gherkin": {
+        "given": "F008-SURVIVAL-PATH-001 retains the first-session-on-or-after-date anchor and a cash need declares 2026-02-04",
+        "when": "the exact cash-need title runs on shipped source and with every need forced to session zero",
+        "then": "shipped source records declaredDate and modeledDate as 2026-02-04 with session 2 and the mutant fails once through ERR_ASSERTION on that timing"
+      },
+      "status": "planned",
+      "behaviorClass": "test-integrity",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B008-001", "FR-B008-002", "FR-B008-003", "FR-B008-004", "FR-B008-005", "FR-B008-006", "FR-B008-007", "FR-B008-008", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5"],
+      "findingRefs": ["B008-MAPPING-001", "F008-SURVIVAL-PATH-001"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over the scheduled event's declaredDate, modeledDate, and zero-based session.",
+          "satisfiedBy": ["production-unit:TP-B008-003", "mutation:TP-B008-003", "registry:TP-B008-008"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolioanalytics.js#scheduleCashFlows"],
+        "negativeControl": "Replace first-session-on-or-after-date selection with session zero; the exact event timing assertion must fail while event existence alone would still pass.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfolioanalytics.js#scheduleCashFlows", "tests/portfolio-paths.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B008-000", "TP-B008-003", "TP-B008-008", "TP-B008-009", "TP-B008-010", "TP-B008-011", "TP-B008-012", "TP-B008-013"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-paths.functional.mjs",
+          "testId": "BUG-008 cash-need mapping: declared date resolves to the first eligible session",
+          "testPlanRow": "TP-B008-003",
+          "coverageStatus": "planned-new",
+          "evidenceRef": "report.md#tp-b008-003"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "testPlanRow": "TP-B008-008",
+          "coverageStatus": "authored-existing-red",
+          "evidenceRef": "report.md#tp-b008-008"
+        }
+      ],
+      "expectedAssertions": ["cash-need event declaredDate is 2026-02-04", "modeledDate is 2026-02-04", "session is 2", "mutant title fails once with ERR_ASSERTION"],
+      "evidenceRefs": ["report.md#tp-b008-003", "report.md#tp-b008-008"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-B008-004",
+      "scopeId": "01-restore-mutation-mapping-causality",
+      "scope": 1,
+      "title": "Qualified Forbes-Rigobon adjustment is observable",
+      "gherkin": {
+        "given": "F008-DIVERSIFICATION-001 retains the qualified ForbesRigobonRequest/v1 dispatch anchor and the frozen samples qualify",
+        "when": "the exact diversification title runs on shipped source and with qualified dispatch disabled",
+        "then": "shipped source reports the TARGET to PROXY orientation, named samples, and adjusted estimate while the mutant fails once through ERR_ASSERTION"
+      },
+      "status": "planned",
+      "behaviorClass": "test-integrity",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B008-001", "FR-B008-002", "FR-B008-003", "FR-B008-004", "FR-B008-005", "FR-B008-006", "FR-B008-007", "FR-B008-008", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5"],
+      "findingRefs": ["B008-MAPPING-001", "F008-DIVERSIFICATION-001"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over qualified state, anchor orientation, sample identities, and the deterministic adjusted estimate.",
+          "satisfiedBy": ["production-unit:TP-B008-004", "mutation:TP-B008-004", "registry:TP-B008-008"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolioanalytics.js#qualifiedForbesRigobonAdjustment"],
+        "negativeControl": "Disable ForbesRigobonRequest/v1 dispatch; the unqualified branch must not satisfy the orientation and adjustedEstimate assertions.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfolioanalytics.js#qualifiedForbesRigobonAdjustment", "tests/portfolio-diversification.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B008-000", "TP-B008-004", "TP-B008-008", "TP-B008-009", "TP-B008-010", "TP-B008-011", "TP-B008-012", "TP-B008-013"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-diversification.functional.mjs",
+          "testId": "BUG-008 diversification mapping: qualified Forbes-Rigobon adjustment exposes orientation and estimate",
+          "testPlanRow": "TP-B008-004",
+          "coverageStatus": "planned-new",
+          "evidenceRef": "report.md#tp-b008-004"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "testPlanRow": "TP-B008-008",
+          "coverageStatus": "authored-existing-red",
+          "evidenceRef": "report.md#tp-b008-008"
+        }
+      ],
+      "expectedAssertions": ["qualified adjustment state is ok", "anchorOrientation is TARGET to PROXY", "named sample ids are preserved", "adjustedEstimate equals the frozen-sample result", "mutant title fails once with ERR_ASSERTION"],
+      "evidenceRefs": ["report.md#tp-b008-004", "report.md#tp-b008-008"],
       "replacedBy": null,
       "invalidatedBy": null
     }

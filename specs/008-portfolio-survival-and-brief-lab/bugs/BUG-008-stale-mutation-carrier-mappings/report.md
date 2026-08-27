@@ -214,8 +214,9 @@ Verify the complete output hash with:
 ## Validation Summary
 
 The packet passes filing-time artifact lint and traceability. It remains
-`in_progress` and routes to `bubbles.plan`. Validate-owned certification
-remains unchanged and empty.
+`in_progress` and routes to `bubbles.test` for `TP-B008-000` persistent RED,
+then the seven focused carrier additions in `TP-B008-001` through
+`TP-B008-007`. Validate-owned certification remains unchanged and empty.
 
 ## Audit Verdict
 

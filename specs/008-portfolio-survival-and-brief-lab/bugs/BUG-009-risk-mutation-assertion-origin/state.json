@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T08:56:12Z",
+  "lastUpdatedAt": "2026-08-27T17:21:22Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,17 +29,17 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.validate",
-    "currentPhase": "validate",
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "validated_certification_withheld",
+    "substate": "plan_residue_repaired_pending_audit",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredOwner": "bubbles.audit",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "BUG-009-ROUTE-021 is resolved. bubbles.validate independently re-derived every BUG-009 verification on the current tree at HEAD 33e239d5c: focused shipped GREEN 1/1, the exact F008-RISK-INPUT-001 mutant RED 0/1 through ERR_ASSERTION at Module._compile with no infrastructure substitute, strict registry 3/3 across all 18 cases, full risk carrier 3/3, five BUG-008 carriers 43/43, browser risk carrier 13/13, canonical selftest 3429 passed 0 failed, regression-quality guard clean, installed G028 clean, and all six named packet gates clean. The recorded 3426 total is stale: the merged origin/main changed 535 files including scripts/selftest.mjs, so the current total is 3429 with zero failures. Certification is withheld because state-transition-guard exits 1 with G022, G136, G040, G061, G027, and G053. The residue is not validate-owned: delivery-completion-v1 still requires an audit phase that has not run; scopes.md lacks the G136 change-boundary enumeration of allowed and excluded surfaces; and the installed workflows.yaml does not register the phase names plan and design, which is the single root cause behind Check 6B, phase-name-enum-lint G140, and the G040 'plan follow-up' label at report.md:573. BUG-009-ROUTE-022 routes those findings to bubbles.plan. Status, certification, scope status, DoD checkboxes, and human acceptance are all unchanged.",
+    "nextRequiredReason": "BUG-009-ROUTE-022 is resolved. bubbles.plan cleared every plan-owned block it was routed: Check 8D now passes on both the change-boundary DoD item and the allowed/excluded surface enumeration, the G061 route schema is satisfied by an internal same-repo shape (routedToSpec equal to this guarded spec, productAction 'none', no routedToCommit or routedToTicket, so the guard's looks_external branch is not taken and no cross-repo referral is fabricated), and both G040 hits are bounded by the framework's own bubbles:g040-skip markers with the adjudication recorded and zero evidence words rewritten. DoD moved from 0 of 18 to 16 of 19 checked; a nineteenth mandated change-boundary item was added and checked against git show --numstat 4824edc81, which reports exactly the two allowed test paths. Three items stay unchecked on purpose: TP-B009-000 is a persistent pre-fix historical record that post-fix cannot be re-executed without inverting its meaning, human acceptance is human-owned and untouched, and the Build Quality Gate requires transition checks that still exit 1. Three findings outside plan ownership are carried in unresolvedFindings: the canonical and installed phase registries both omit 'plan' and 'design', the G040 exclusion list omits the guard's own crossRepoFollowUp identifier, and no implement phase record exists because delivery landed under the test phase. bubbles.audit is the one required delivery-completion-v1 phase that has never executed; BUG-009-ROUTE-023 routes to it. Status, certification, scope status, completedScopes, and human acceptance are unchanged.",
     "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps", "harden", "stabilize", "devops", "security", "validate"],
     "pendingTransitionRequests": [],
     "scopeInventory": [
@@ -300,11 +300,26 @@
     },
     {
       "id": "BUG-009-ROUTE-022",
-      "status": "open",
+      "status": "resolved",
       "fromAgent": "bubbles.validate",
       "nextRequiredOwner": "bubbles.plan",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-      "reason": "Validate proved the BUG-009 product contract on the current tree and withheld certification. Four findings remain and none is validate-owned. (1) G136: scopes.md is a repair scope but carries no change-boundary DoD item enumerating allowed and excluded surfaces; the delivery is genuinely test-only (commit 4824edc81 touched exactly tests/portfolio-risk.functional.mjs and tests/portfolio-test-integrity.unit.mjs, +30/-1), so the enumeration must be authored to match that verified boundary. (2) G022 Check 6B and phase-name-enum-lint G140: the installed .github/bubbles/workflows.yaml does not register the phase names 'plan' and 'design', so persisted phase claims fail the registered phase-owner contract; this is also the root cause of the single G040 hit, the label '**Phase:** plan follow-up' at report.md:573, which validate adjudicated as a phase label rather than deferred work and declined to launder. (3) G022: delivery-completion-v1 still requires an audit phase that has not run, so bubbles.audit must execute before any terminal status. (4) DoD checkboxes remain 0/18; validate recorded a per-item verdict at report.md under 'DoD Adjudication' (16 supported by executed evidence, 1 a non-re-executable historical RED record, 1 human-owned) so the scope owner can apply ticks to evidence in the same edit that repairs G136. Human acceptance in uservalidation.md stays unclaimed and must not be manufactured."
+      "reason": "Validate proved the BUG-009 product contract on the current tree and withheld certification. Four findings remain and none is validate-owned. (1) G136: scopes.md is a repair scope but carries no change-boundary DoD item enumerating allowed and excluded surfaces; the delivery is genuinely test-only (commit 4824edc81 touched exactly tests/portfolio-risk.functional.mjs and tests/portfolio-test-integrity.unit.mjs, +30/-1), so the enumeration must be authored to match that verified boundary. (2) G022 Check 6B and phase-name-enum-lint G140: the installed .github/bubbles/workflows.yaml does not register the phase names 'plan' and 'design', so persisted phase claims fail the registered phase-owner contract; this is also the root cause of the single G040 hit, the label '**Phase:** plan follow-up' at report.md:573, which validate adjudicated as a phase label rather than deferred work and declined to launder. (3) G022: delivery-completion-v1 still requires an audit phase that has not run, so bubbles.audit must execute before any terminal status. (4) DoD checkboxes remain 0/18; validate recorded a per-item verdict at report.md under 'DoD Adjudication' (16 supported by executed evidence, 1 a non-re-executable historical RED record, 1 human-owned) so the scope owner can apply ticks to evidence in the same edit that repairs G136. Human acceptance in uservalidation.md stays unclaimed and must not be manufactured.",
+      "resolvedBy": "bubbles.plan",
+      "resolvedAt": "2026-08-27T17:21:22Z",
+      "resolution": "Consumed by the plan pass recorded at report.md#plan-route-022-reconciliation. scopes.md now enumerates allowed file families and excluded surfaces and carries the mandated change-boundary DoD item, clearing both Check 8D blocks. The internal same-repo route schema is repaired truthfully in BUG-009-ROUTE-023: routedToSpec names this same guarded spec, productAction is 'none', and no routedToCommit or routedToTicket is present, so the guard's looks_external branch is not taken and no cross-repo referral is fabricated. Validate's reading that the guard demands crossRepoFollowUp:true for every open route was inaccurate; that flag is required only when the route looks external. The two G040 hits are bounded by the framework's own bubbles:g040-skip markers with the adjudication recorded and zero evidence words changed. DoD is now 16 of 19 checked. Three findings outside plan ownership move to unresolvedFindings."
+    },
+    {
+      "id": "BUG-009-ROUTE-023",
+      "status": "open",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.audit",
+      "routedTo": "bubbles.audit",
+      "routedToSpec": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "productAction": "none",
+      "routingClass": "same-repo-next-phase",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "The plan-owned residue of BUG-009-ROUTE-022 is closed: Check 8D now passes on both blocks, the G061 route schema is satisfied by this internal same-repo shape, the two G040 hits are bounded by sanctioned skip markers with the adjudication recorded, and 16 of 19 DoD items are checked against executed evidence. The one required delivery-completion-v1 phase that has never executed is audit, so bubbles.audit is the next owner. Three findings sit outside plan ownership and are carried in unresolvedFindings rather than resolved here: B009-FRAMEWORK-PHASE-REGISTRY-001 (both the installed registry and canonical bubbles at 2086d1e omit the phase names plan and design, so this is a canonical framework gap, not install staleness, and .github/bubbles/** must not be hand-edited downstream), B009-FRAMEWORK-G040-EXCLUSION-001 (the G040 exclusion list already exempts followUpOwner, followUpAction, followUpTarget, and followUps but omits the guard's own crossRepoFollowUp identifier), and B009-PHASE-IMPLEMENT-001 (no implement phase record exists; the delivery landed under the test phase and no implement record was fabricated). Preserve status in_progress, certification in_progress, Scope 1 In Progress, the three unchecked DoD items, and unclaimed human acceptance. Do not force completedScopes or the scope status."
     }
   ],
   "reworkQueue": [],
@@ -516,6 +531,17 @@
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#security-revision-321"
+    },
+    {
+      "at": "2026-08-27T17:21:22Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "consumed-route-022-cleared-plan-owned-blocks-and-routed-to-audit",
+      "note": "Under validated repository-binding packet decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:1 at control revision 1, consumed BUG-009-ROUTE-022 and cleared every plan-owned block. Check 8D: scopes.md now carries the mandated change-boundary DoD item and an Allowed file families / Excluded surfaces enumeration matching the boundary verified this session by git show --numstat 4824edc81, which reports exactly tests/portfolio-risk.functional.mjs at +29/-0 and tests/portfolio-test-integrity.unit.mjs at +1/-1. G061: BUG-009-ROUTE-023 uses the truthful internal same-repo shape with routedToSpec equal to this guarded spec, productAction none, and no routedToCommit or routedToTicket, so the guard's looks_external branch is not taken; validate's reading that crossRepoFollowUp true is always demanded was inaccurate. G040: both report hits are bounded by the framework's own bubbles:g040-skip markers with the adjudication recorded and zero evidence words rewritten; hit one is a phase label on a historical TP-B009-008 evidence-block header and hit two is validate's own prose quoting the guard schema identifier crossRepoFollowUp. DoD moved from 0 of 18 to 16 of 19 checked. No product source or test byte changed, .github/bubbles/** was not edited, the concurrent 61-entry unrelated working-tree transaction was neither staged nor reset nor stashed nor reverted, human acceptance is untouched, and nothing was pushed.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist",
+      "outcome": "route_required",
+      "evidenceRef": "report.md#plan-route-022-reconciliation"
     }
   ],
   "addressedFindings": [
@@ -679,7 +705,60 @@
       "owner": "bubbles.security",
       "status": "addressed",
       "evidenceRef": "report.md#security-revision-321"
+    },
+    {
+      "id": "B009-PLAN-CHANGE-BOUNDARY-001",
+      "summary": "scopes.md now carries the mandated change-boundary DoD item and an explicit Allowed file families / Excluded surfaces enumeration matching the boundary verified by git show --numstat 4824edc81. Both Check 8D blocks are cleared without widening the real boundary.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "report.md#plan-route-022-reconciliation"
+    },
+    {
+      "id": "B009-PLAN-ROUTE-SCHEMA-001",
+      "summary": "The open internal handoff now satisfies G061 truthfully. BUG-009-ROUTE-023 carries routedTo, routedToSpec equal to this guarded spec, and productAction none, with no routedToCommit and no routedToTicket, so the guard treats it as same-repo and no external referral or cross-repo flag is fabricated.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "report.md#plan-route-022-reconciliation"
+    },
+    {
+      "id": "B009-PLAN-G040-ADJUDICATION-001",
+      "summary": "Both G040 report hits are adjudicated as false positives in substance and bounded by the framework's own bubbles:g040-skip markers. Hit one is a phase label on a historical evidence-block header; hit two is validate's prose quoting the guard schema identifier crossRepoFollowUp. No evidence wording was rewritten and no certifying-window blanket exemption was used.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "report.md#plan-route-022-reconciliation"
+    },
+    {
+      "id": "B009-PLAN-DOD-ADJUDICATION-001",
+      "summary": "Sixteen of nineteen DoD items are checked against commands executed in a real session, each with an inline evidence reference. TP-B009-000, human acceptance, and the Build Quality Gate stay unchecked with stated reasons; no acceptance record was manufactured and no fresh run of the pre-fix RED was claimed.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "scopes.md#uncertainty-declaration-for-unchecked-items"
     }
   ],
-  "unresolvedFindings": []
+  "unresolvedFindings": [
+    {
+      "id": "B009-FRAMEWORK-PHASE-REGISTRY-001",
+      "summary": "Gate G022 Check 6B refuses the claimed phase 'plan' because the phase registry does not list it. Both the installed .github/bubbles/workflows.yaml and canonical bubbles at 2086d1e list the same 30 phases, and neither registers 'plan' or 'design'. This is a canonical framework gap, not packet drift and not install staleness, so it cannot be closed downstream: .github/bubbles/** is framework-managed and changes only through the sanctioned installer.",
+      "owner": "bubbles.workflow",
+      "status": "unresolved",
+      "routedTo": "parent orchestrator",
+      "evidenceRef": "report.md#plan-route-022-reconciliation"
+    },
+    {
+      "id": "B009-FRAMEWORK-G040-EXCLUSION-001",
+      "summary": "The G040 exclusion list already exempts the camelCase identifiers followUpOwner, followUpAction, followUpTarget, and followUps, but omits the guard's own crossRepoFollowUp schema field. Any artifact that describes the G061 route schema in prose therefore trips the deferral scanner on an identifier rather than on deferred work. This packet bounds the hit with the sanctioned skip markers; the exclusion-list gap itself is a framework surface.",
+      "owner": "bubbles.workflow",
+      "status": "unresolved",
+      "routedTo": "parent orchestrator",
+      "evidenceRef": "report.md#plan-route-022-reconciliation"
+    },
+    {
+      "id": "B009-PHASE-IMPLEMENT-001",
+      "summary": "Gate G022 Check 6 reports the required phase 'implement' absent from phase records. The delivery genuinely landed under the test phase in commit 4824edc81, and no implement record was fabricated to satisfy the profile. Whether bugfix-fastlane should require a distinct implement record for a test-only repair is an orchestrator decision, not a plan-owned artifact repair.",
+      "owner": "bubbles.workflow",
+      "status": "unresolved",
+      "routedTo": "parent orchestrator",
+      "evidenceRef": "report.md#plan-route-022-reconciliation"
+    }
+  ]
 }

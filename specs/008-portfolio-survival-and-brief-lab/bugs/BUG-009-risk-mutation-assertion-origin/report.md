@@ -570,7 +570,9 @@ identifier findings before this evidence update. `scopes.md` and
 
 ### TP-B009-008 Canonical Selftest GREEN After Planning Repair {#tp-b009-008-current}
 
+<!-- bubbles:g040-skip-begin -->
 **Phase:** plan follow-up
+<!-- bubbles:g040-skip-end -->
 **Command:** `timeout 1800 node scripts/selftest.mjs`
 **Exit Code:** 0
 **Claim Source:** executed
@@ -4326,6 +4328,7 @@ targetStatus: done
 verdict: FAIL
 ```
 
+<!-- bubbles:g040-skip-begin -->
 | Gate | Finding | Owner |
 | --- | --- | --- |
 | G022 | Required phases `implement`, `validate`, `audit` absent from phase records. Persisted claims are `bug, plan, test, regression, simplify, gaps, harden, stabilize, devops, security`. | `bubbles.audit` must run; the phase vocabulary is plan-owned |
@@ -4335,6 +4338,7 @@ verdict: FAIL
 | G061 | `BUG-009-ROUTE-021` carried `status: pending`, which is outside the accepted `open / closed / resolved` enum | resolved by this validate phase |
 | G061 (residual) | The guard's `open` shape models an **external** referral: it demands `routedTo`, `routedToSpec`, `routedToCommit`, `routedToTicket` as a URL, `productAction: "none"`, and `crossRepoFollowUp: true`. `BUG-009-ROUTE-022` is an **internal** next-owner handoff inside this repository. Validate populated those fields, saw the guard then require an external URL and a cross-repo flag, and removed them rather than fabricate a cross-repo referral that does not exist. Every earlier route in this packet sidestepped the mismatch by being marked `resolved` on creation, so no internal open handoff has ever satisfied G061 here. | `bubbles.plan` — reconcile the packet's internal-handoff routing convention with the installed G061 schema |
 | G040 | One deferral-language hit in `report.md` | adjudicated below |
+<!-- bubbles:g040-skip-end -->
 
 ### G040 Adjudication — report.md:573
 
@@ -4411,3 +4415,161 @@ unclaimed, and `BUG-009-ROUTE-022` carries the named findings to `bubbles.plan`.
 
 The unrelated 61-entry working-tree transaction was neither staged, reset,
 stashed, nor reverted, and nothing was pushed.
+
+## Plan Phase — BUG-009-ROUTE-022 Reconciliation {#plan-route-022-reconciliation}
+
+`bubbles.plan` consumed `BUG-009-ROUTE-022` and cleared every block it was
+routed. It did not touch the three residual gates that belong to other owners.
+
+### Repository Binding
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+$ bash .github/bubbles/scripts/repository-binding.sh validate-packet \
+    --session-id vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05 \
+    --session-control-file <session-control-file> \
+    --packet-file <inherited-packet>
+REPOSITORY PACKET VALID actionable=true repository=research-lab
+  root=/home/philipk/research-lab
+  decision=rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:1 revision=1
+```
+
+The inherited packet validated against authoritative session control at
+revision 1 before any repository-local read or write.
+
+### Baseline And Result
+
+**Exit Code:** 1 (both runs; the residual gates are not plan-owned)
+**Claim Source:** executed
+
+| Run | `failureCount` | `failedGateIds` | Output sha256 |
+| --- | --- | --- | --- |
+| Baseline, before this pass | 15 | `G061, G022, G027, G040, G136` | `8e9cd0b249b397ff0a09862c84359384464ab8ae1d87f6fe9c3312ec80b20137` |
+| After the plan-owned repairs | 10 | `G022, G027, G136` | `637515329302319d4c4a5b5dd3e574457bda8f8bb55065b40e35ddb49e785b7c` |
+
+Both runs are `bash .github/bubbles/scripts/state-transition-guard.sh` against
+this packet, recorded through `evidence-capture.sh`, so each hash is
+re-derivable with `--verify`. `G061` and `G040` moved into `passedGateIds`.
+
+### Check 8D — Change Boundary Containment
+
+Two blocks were open: the mandated change-boundary DoD item was absent, and the
+scope did not enumerate allowed and excluded surfaces. The real boundary was
+read from the implementation commit rather than assumed.
+
+**Command:** `git show --numstat --format='%H %s' 4824edc81`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+4824edc81b0920b40e728f55b8e8dfdbe1804b2d test(BUG-009): assert named risk exclusions
+
+29      0       tests/portfolio-risk.functional.mjs
+1       1       tests/portfolio-test-integrity.unit.mjs
+```
+
+`scopes.md` now carries an **Allowed file families** table naming exactly those
+two paths and an **Excluded surfaces** table naming the product source, the
+injector, the seven non-`title` fields of `F008-RISK-INPUT-001`, the other 17
+registry entries, all parent Feature 008 artifacts, the BUG-007 and BUG-008
+packets, every path in the concurrent working-tree transaction, and
+`.github/bubbles/**`. The boundary was written to match the verified commit; it
+was not widened to make a check pass. The mandated DoD item is present and
+checked against the command above.
+
+### Gate G061 — Internal Route Schema
+
+The guard admits an `open` route when it carries `routedTo`, one of
+`routedToCommit` / `routedToSpec` / `routedToTicket`, and `productAction`
+equal to `none`. Its cross-repo boolean is required only when the route
+*looks external* — that is, when it carries a commit, a ticket URL, a
+`routedToSpec` naming a different spec, or a routing class matching
+`upstream|external`:
+
+```text
+looks_external = routed_commit
+                 or routed_ticket
+                 or (routed_spec and not same_spec_route)
+                 or re.search(r"upstream|external", routing_class, re.I)
+if looks_external and not cross_repo:
+    problems.append("routed externally but crossRepoFollowUp is not true")
+```
+
+`BUG-009-ROUTE-023` therefore satisfies the schema truthfully: `routedTo` names
+`bubbles.audit`, `routedToSpec` names this same guarded spec, `productAction`
+is `none`, and no commit or ticket is present. `same_spec_route` is true, so
+`looks_external` is false and no cross-repo referral is fabricated. Validate's
+earlier reading — that the guard demands an external URL and the cross-repo
+flag on every open route — was inaccurate; the guard demands them only on the
+external branch. That correction is what made a truthful repair possible.
+
+### Gate G040 — Adjudication, Not Laundering
+
+Two hits were present. Both were adjudicated as false positives in substance:
+
+| Line | Text class | Adjudication |
+| --- | --- | --- |
+| `report.md:573` | `**Phase:**` label on a historical `TP-B009-008` evidence-block header | A phase label. It promises nothing and hides no obligation. |
+| The validate findings table | Prose quoting a guard schema field name while describing the G061 mismatch | An identifier, not an admission of unfinished work. |
+
+Neither hit was reworded. The framework's own opt-in
+`<!-- bubbles:g040-skip-begin -->` / `<!-- bubbles:g040-skip-end -->` markers
+bound exactly those two regions, leaving every evidence word byte-identical and
+the exemption visible in the file. The broader `certifying-window-begin` marker
+was **not** used: it would have exempted all 4,413 prior lines, and a blanket
+exemption is a worse answer than a scoped one. Post-marker enforcement stays
+strict, and the scan now reports zero net hits across every packet artifact.
+
+The second hit exposes a framework gap rather than a packet defect. The
+exclusion list already exempts four camelCase route identifiers of the same
+class but omits the guard's own cross-repo field, so any artifact that
+describes the G061 schema in prose trips the scanner on an identifier. That gap
+is recorded in `state.json.unresolvedFindings` as
+`B009-FRAMEWORK-G040-EXCLUSION-001`.
+
+### DoD Adjudication Applied
+
+`scopes.md` moved from 0 of 18 checked to 16 of 19. The nineteenth item is the
+mandated change-boundary item added by this pass. Every tick carries an inline
+evidence reference to a command executed against the current tree, and
+`artifact-lint.sh` confirms it:
+
+**Command:** `bash .github/bubbles/scripts/artifact-lint.sh <packet>`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+Artifact lint PASSED.
+```
+
+Three items stay unchecked, each for a stated reason: `TP-B009-000` is a
+persistent pre-fix historical record that cannot be re-executed post-fix
+without inverting its meaning, so no fresh run is claimed; human acceptance is
+human-owned and `uservalidation.md` is untouched; and the Build Quality Gate
+requires validate-owned transition checks that still exit 1.
+
+Validate's summary prose counted sixteen supported items while its own table
+shows fifteen plus the historical record. This pass checked the fifteen the
+table supports, plus the new change-boundary item, for sixteen of nineteen.
+
+### Residual Gates Not Owned By Plan
+
+| Gate | Finding | Disposition |
+| --- | --- | --- |
+| G022 Check 6B | Phase `plan` is absent from the phase registry | `B009-FRAMEWORK-PHASE-REGISTRY-001`. Both the installed registry and canonical bubbles at `2086d1e` list the same 30 phases, and neither registers `plan` or `design`. A canonical framework gap, not install staleness. `.github/bubbles/**` was not edited. |
+| G022 Check 6 | Required phases `implement` and `audit` absent | `B009-PHASE-IMPLEMENT-001` and `BUG-009-ROUTE-023`. Delivery landed under the `test` phase; no `implement` record was fabricated. `bubbles.audit` has never run and is the next owner. |
+| G027 / Check 15 and Check 5 | `completedScopes` empty while Scope 1 is In Progress | Resolves only when the scope legitimately completes downstream. Neither was forced. |
+| G136 | Human acceptance terminal gate | Human-owned. No acceptance record was manufactured. |
+
+### Containment
+
+No product source or test byte changed. `.github/bubbles/**` was not edited.
+The concurrent 61-entry unrelated working-tree transaction was neither staged,
+reset, stashed, checked out, nor reverted. `uservalidation.md` is untouched.
+Status stays `in_progress`, certification stays `in_progress`, Scope 1 stays In
+Progress, `completedScopes` stays empty, and nothing was pushed.

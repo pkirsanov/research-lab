@@ -3,8 +3,7 @@
 **Layout:** single-file
 **Mode:** `bugfix-fastlane`
 **Packet status:** `in_progress`
-**Next required owner:** `bubbles.harden` for one clean fresh pass via
-`BUG-009-ROUTE-017`
+**Next required owner:** `bubbles.audit` via `BUG-009-ROUTE-023`
 
 [Spec](spec.md) | [Design](design.md) | [Report](report.md) |
 [User validation](uservalidation.md) |
@@ -13,14 +12,17 @@
 
 Planning changes no source or persistent test. The test-owned report records
 the two permitted test hunks and their execution evidence. Implementation,
-test, regression, simplify, gaps, and setup have executed. Harden attempted and
-revision 311 was technically clean, but its verdict remains `NOT_HARDENED`
-solely because this active planner lifecycle text was stale.
-`BUG-009-ROUTE-015` was consumed by that pass. This reconciliation resolves
-`BUG-009-ROUTE-016` and addresses `HARDEN-B009-008`, so
-`HARDEN-B009-001..008` are now addressed. `BUG-009-ROUTE-017` returns the
-packet to `bubbles.harden` for one clean fresh pass before stabilize. Do not
-route to stabilize now.
+test, regression, simplify, gaps, setup, harden, stabilize, devops, security,
+and validate have executed. The revision-315 harden pass recorded `HARDENED`,
+and `bubbles.validate` independently re-derived every BUG-009 verification on
+the current tree and withheld certification because non-validate-owned residue
+remained. This plan pass consumes `BUG-009-ROUTE-022`: it enumerates the
+change boundary, repairs the internal route schema, records the G040
+adjudication through the sanctioned skip markers, and applies the DoD ticks
+that validate's per-item verdict supports. `BUG-009-ROUTE-023` routes the
+packet to `bubbles.audit`, the one required `delivery-completion-v1` phase
+that has not executed. Scope 1 stays In Progress, human acceptance stays
+unclaimed, status and certification stay `in_progress`.
 
 ## Execution Outline
 
@@ -58,10 +60,11 @@ route to stabilize now.
 **Depends On:** None
 **Scope-Kind:** contract-only
 **Finding:** `F008-RISK-INPUT-001`
-**Execution routing:** `BUG-009-ROUTE-016` is resolved by the active planner
-reconciliation that addresses `HARDEN-B009-008`. `BUG-009-ROUTE-017` routes
-the packet to `bubbles.harden` for one clean fresh pass. No stabilize route is
-open. Transition and final acceptance remain pending.
+**Execution routing:** `BUG-009-ROUTE-022` is consumed by this plan pass, which
+enumerates the change boundary, repairs the internal same-repo route schema,
+records the G040 adjudication, and applies the evidence-backed DoD ticks.
+`BUG-009-ROUTE-023` routes the packet to `bubbles.audit`. Transition and final
+human acceptance remain unclaimed.
 
 ### Implementation Files
 
@@ -81,6 +84,33 @@ Only these delivery hunks may change:
 - `tests/portfolio-test-integrity.unit.mjs`: change only the `title` scalar in
   the `F008-RISK-INPUT-001` entry.
 - BUG-009 execution evidence and execution-only state fields.
+
+**Allowed file families** (the complete delivery surface; implementation commit
+`4824edc81` changed exactly these two paths, `+29/-0` and `+1/-1`):
+
+| Allowed path | Permitted change |
+| --- | --- |
+| `tests/portfolio-risk.functional.mjs` | Add the one exact focused `test()` title with its complete direct assertions. |
+| `tests/portfolio-test-integrity.unit.mjs` | Change only the `title` scalar of the `F008-RISK-INPUT-001` registry entry. |
+
+BUG-009 packet artifacts under
+`specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/`
+carry execution evidence and execution-only state. They are packet bookkeeping,
+not delivery, and are outside the two-path delivery surface above.
+
+**Excluded surfaces** (must remain byte-identical; a change to any of these is a
+boundary violation, and collateral cleanup inside them is not authorized):
+
+| Excluded surface | Reason |
+| --- | --- |
+| `rlportfolioanalytics.js` and all other product source | The scope is contract-only; the production owner is inspected, never edited. |
+| `tests/portfolio-defect-injector.cjs` | The mutation mechanism must stay unchanged so the assertion-origin proof stays causal. |
+| The `find`, `replace`, `module`, `carrier`, `finding`, `scope`, and `intendedHook` fields of `F008-RISK-INPUT-001` | Only the `title` scalar is remapped. |
+| The other 17 strict-registry entries | The registry must retain all 18 entries unchanged apart from the one title. |
+| All parent Feature 008 artifacts, including its `state.json`, `test-plan.json`, and every `scopes/*/` directory | Parent-owned; a concurrent transaction holds them. |
+| BUG-007 and BUG-008 packet artifacts | Foreign packets. |
+| Every path in the concurrent unrelated working-tree transaction | Foreign work; never staged, reset, stashed, or reverted. |
+| `.github/bubbles/**` | Framework-managed; changes only through the sanctioned installer. |
 
 Product source, the injector, the mutation `find` and `replace` strings,
 `module`, `carrier`, `finding`, `scope`, `intendedHook`, the other 17 entries,
@@ -202,49 +232,69 @@ contract.
 
 #### Core Items
 
-- [ ] `SCN-B009-001` proves the exact focused title calls real exported
+- [x] `SCN-B009-001` proves the exact focused title calls real exported
   `RLPA.assetTreatment()`, returns `ok`, reports exact `marketBased` and
   `excludedFromMarketAnalytics` values, and reports exact partial look-through;
   the unchanged mutation makes that title execute once and fail once through
   `ERR_ASSERTION` without `TypeError` or `ERR_TEST_FAILURE`.
-- [ ] Root cause remains the broad mutation-to-title mapping documented in
+  Evidence: [report.md#validate-tp-b009-001](report.md#validate-tp-b009-001) and
+  [report.md#validate-tp-b009-002](report.md#validate-tp-b009-002).
+- [x] Root cause remains the broad mutation-to-title mapping documented in
   [design.md](design.md), with current-session RED evidence retained in
   [report.md](report.md).
-- [ ] The exact persistent title `BUG-009 risk mapping: unsupported holdings
+  Evidence: [report.md#validate-tp-b009-002](report.md#validate-tp-b009-002) —
+  the registry entry `F008-RISK-INPUT-001` now names the focused title and the
+  mutant fails at `tests/portfolio-risk.functional.mjs:60`.
+- [x] The exact persistent title `BUG-009 risk mapping: unsupported holdings
   remain named exclusions` is implemented with exact state, market inclusion,
   named exclusion, and look-through assertions.
-- [ ] Only the `F008-RISK-INPUT-001` title mapping changes; its anchor,
+  Evidence: [report.md#validate-tp-b009-001](report.md#validate-tp-b009-001).
+- [x] Only the `F008-RISK-INPUT-001` title mapping changes; its anchor,
   replacement, carrier, intended hook, and all other mappings remain unchanged.
-- [ ] Delivery changes remain inside the declared test-only Change Boundary.
+  Evidence: [report.md#code-diff-evidence](report.md#code-diff-evidence) —
+  `4824edc81` is `+1/-1` in `tests/portfolio-test-integrity.unit.mjs`.
+- [x] Delivery changes remain inside the declared test-only Change Boundary.
+  Evidence: [report.md#plan-route-022-reconciliation](report.md#plan-route-022-reconciliation).
 - [ ] `TP-B009-000` persistent wrong-origin RED records the sole strict-registry
   finding and the broad title's `TypeError` / `ERR_TEST_FAILURE` origin.
   Evidence: `report.md#tp-b009-000`.
-- [ ] `TP-B009-001` focused shipped-source GREEN passes exactly once.
-  Evidence: `report.md#tp-b009-001`.
-- [ ] `TP-B009-002` focused mutation RED fails exactly once through
+- [x] `TP-B009-001` focused shipped-source GREEN passes exactly once.
+  Evidence: [report.md#validate-tp-b009-001](report.md#validate-tp-b009-001).
+- [x] `TP-B009-002` focused mutation RED fails exactly once through
   `ERR_ASSERTION`, with no `TypeError` or `ERR_TEST_FAILURE` substitute.
-  Evidence: `report.md#tp-b009-002`.
-- [ ] `TP-B009-003` full strict registry passes 3/3 and all 18 mutation cases
-  remain causal. Evidence: `report.md#tp-b009-003`.
-- [ ] `TP-B009-004` full risk carrier passes. Evidence:
-  `report.md#tp-b009-004`.
-- [ ] `TP-B009-005` all five BUG-008 functional carriers pass. Evidence:
-  `report.md#tp-b009-005`.
-- [ ] `TP-B009-006` proportionate risk browser regression passes without being
+  Evidence: [report.md#validate-tp-b009-002](report.md#validate-tp-b009-002).
+- [x] `TP-B009-003` full strict registry passes 3/3 and all 18 mutation cases
+  remain causal. Evidence:
+  [report.md#validate-tp-b009-003](report.md#validate-tp-b009-003).
+- [x] `TP-B009-004` full risk carrier passes. Evidence:
+  [report.md#validate-tp-b009-004](report.md#validate-tp-b009-004).
+- [x] `TP-B009-005` all five BUG-008 functional carriers pass. Evidence:
+  [report.md#validate-tp-b009-005](report.md#validate-tp-b009-005).
+- [x] `TP-B009-006` proportionate risk browser regression passes without being
   substituted for the direct pure-logic proof. Evidence:
-  `report.md#tp-b009-006`.
-- [ ] `TP-B009-008` canonical selftest passes. Evidence:
-  `report.md#tp-b009-008`.
-- [ ] `TP-B009-009` regression-quality guard passes. Evidence:
-  `report.md#tp-b009-009`.
-- [ ] `TP-B009-010` installed downstream G028 scanner passes after canonical
+  [report.md#validate-tp-b009-006](report.md#validate-tp-b009-006).
+- [x] `TP-B009-008` canonical selftest passes. Evidence:
+  [report.md#validate-tp-b009-008](report.md#validate-tp-b009-008) — 3429 passed
+  and 0 failed. The recorded total moved from 3426 because a concurrent merge
+  changed `scripts/selftest.mjs` among 535 files; no budget or baseline was
+  adjusted to absorb it.
+- [x] `TP-B009-009` regression-quality guard passes. Evidence:
+  [report.md#validate-tp-b009-009](report.md#validate-tp-b009-009).
+- [x] `TP-B009-010` installed downstream G028 scanner passes after canonical
   fix `db7b4f2` is propagated through the installer. Evidence:
-  `report.md#tp-b009-010`.
-- [ ] `TP-B009-011` artifact lint, traceability, scenario-obligation lint,
+  [report.md#validate-tp-b009-009](report.md#validate-tp-b009-009).
+- [x] `TP-B009-011` artifact lint, traceability, scenario-obligation lint,
   test-mechanism lint, scope-context-fit lint, and capability-foundation guard
-  pass. Evidence: `report.md#tp-b009-011`.
+  pass. Evidence:
+  [report.md#validate-tp-b009-011](report.md#validate-tp-b009-011).
 - [ ] Human acceptance remains unclaimed and human-owned in
   [uservalidation.md](uservalidation.md).
+- [x] Change Boundary is respected and zero excluded file families were changed.
+  Evidence: [report.md#plan-route-022-reconciliation](report.md#plan-route-022-reconciliation)
+  — `git show --numstat 4824edc81` reports exactly the two allowed paths
+  `tests/portfolio-risk.functional.mjs` (`+29/-0`) and
+  `tests/portfolio-test-integrity.unit.mjs` (`+1/-1`), and no excluded surface
+  from the table above appears in that commit.
 
 #### Build Quality Gate
 
@@ -256,17 +306,32 @@ contract.
 
 ### Uncertainty Declaration For Unchecked Items
 
-**Attempted:** Reconciled the three active planner-owned lifecycle statements
-after `HARDEN-B009-006` and `HARDEN-B009-007` were addressed and the revision
-311 harden battery was technically clean.
-**Observed:** `BUG-009-ROUTE-015` was consumed by that pass, whose retained
-verdict is `NOT_HARDENED` solely because the active scope text was stale. This
-reconciliation addresses `HARDEN-B009-008`, resolves `BUG-009-ROUTE-016`, and
-leaves `HARDEN-B009-001..008` addressed. `BUG-009-ROUTE-017` is pending for
-`bubbles.harden` to run one clean fresh pass before stabilize. Harden
-completion, transition, human acceptance, and certification remain unclaimed.
-**Resolution:** `bubbles.harden` consumes `BUG-009-ROUTE-017` and runs the
-fresh pass; no direct stabilize route is open.
+**Attempted:** Consumed `BUG-009-ROUTE-022` by enumerating the change boundary,
+repairing the internal same-repo route schema, recording the G040 adjudication
+through the sanctioned skip markers, and applying every DoD tick that
+validate's recorded per-item verdict supports.
 
-All items remain unchecked. The scope remains In Progress. Planning claims no
-harden completion, transition, human acceptance, or certification.
+**Observed:** Sixteen of the nineteen items are now checked against commands
+executed in a real session. Three stay unchecked, each for a stated reason:
+
+| Unchecked item | Reason it stays unchecked |
+| --- | --- |
+| `TP-B009-000` persistent wrong-origin RED | It is a persistent historical record of the pre-fix state. Post-fix the strict registry is green by design, so re-running it would invert its meaning rather than confirm it. No fresh run is claimed, and the record is not restated as current-session evidence. |
+| Human acceptance | Acceptance is human-owned. No acceptance record was manufactured and `uservalidation.md` is untouched. |
+| Build Quality Gate | It requires validate-owned transition checks to be green. `state-transition-guard.sh` still exits 1, so the item cannot be honestly checked. |
+
+**Resolution:** `bubbles.audit` consumes `BUG-009-ROUTE-023` and runs the one
+required `delivery-completion-v1` phase that has not executed. Three findings
+sit outside plan ownership and are recorded in `state.json.unresolvedFindings`:
+the installed and canonical phase registries both omit the phase names `plan`
+and `design`; the G040 exclusion list already exempts four camelCase route
+identifiers of the same class but omits the guard's own cross-repo boolean
+field, so prose describing the G061 schema trips the scanner on an identifier
+rather than on unfinished work; and no `implement` phase record exists for a
+packet whose delivery landed under the `test` phase. All three are
+framework-surface or orchestrator decisions; this plan pass did not edit
+`.github/bubbles/**`.
+
+Scope 1 remains In Progress. Status and certification remain `in_progress`.
+Planning claims no audit completion, no transition, no human acceptance, and no
+certification.

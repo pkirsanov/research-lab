@@ -18,10 +18,14 @@
 ## Completion Statement
 
 The owned test repair and focused regression set are implemented and executed.
-BUG-009 remains `in_progress`; the scope is not Done. The packet routes to
-`bubbles.plan` for the excluded linked-title and home-path planning findings,
-then needs quality re-verification. Human acceptance and certification remain
-untouched and unclaimed.
+The planning-owned linked title and home-path command defects are repaired. The
+canonical selftest, scenario resolver, and six packet gates are green in the
+current planning session. The fixed canonical G028 scanner is also green as a
+diagnostic, while final downstream G028 execution still requires propagation of
+canonical fix `db7b4f2` through the installer. BUG-009 remains `in_progress`;
+the scope remains In Progress. The completed plan-to-test transition is closed,
+and the packet routes to `bubbles.regression` for the next quality phase. Human
+acceptance and certification remain untouched and unclaimed.
 
 ## Test Evidence
 
@@ -528,6 +532,38 @@ The two test files and this report/state pair had zero matching personal
 identifier findings before this evidence update. `scopes.md` and
 `test-plan.json` are planning-owned and excluded from this test invocation.
 
+### TP-B009-008 Canonical Selftest GREEN After Planning Repair {#tp-b009-008-current}
+
+**Phase:** plan follow-up
+**Command:** `timeout 1800 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009-canonical-selftest-after-planning-fix
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3912
+sha256: 88d967a36c61ae8679fabf404c2c99a13bf33a8324724e19fd73cd9f639e7ea7
+--- last 12 ---
+  ✓ freezing one scope does not license the next — the baseline is keyed on the SCOPE, not on the numbers, so a second drifting scope still FAILS while the frozen one passes
+  ✓ a baseline entry whose claim now matches its artifact is reported STALE while the run still exits 0, so the frozen list can only shrink
+  ✓ a scan that matches zero progress claims FAILS rather than passing vacuously — a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes
+  ✓ the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (85 claim(s) across 66 packet(s), 71 agreeing, baseline 14 entries)
+  ✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+  ✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 85 claim(s))
+
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+The earlier failing block remains above as the before-repair result. This rerun
+is the current claim. The generic staged-diff `pii-scan.sh` was also invoked,
+but it exited `3` because this downstream repository has no `.gitleaks.toml`;
+that command is not presented as PII evidence. The canonical selftest's own
+committed-surface PII check is included in the green `3426/3426` result.
+
 ### TP-B009-009 Regression Quality GREEN {#tp-b009-009}
 
 **Phase:** test
@@ -788,11 +824,16 @@ RESULT: PASSED (0 warnings)
 ## Validation Summary
 
 The two permitted test hunks have current-session functional, mutation,
-registry, browser, scanner, and packet-gate evidence. The linked-title resolver
-and canonical selftest remain non-green for planning-owned artifacts. BUG-009
-therefore remains `in_progress`; scope completion, human acceptance, and
-validate-owned certification remain unchanged.
+registry, browser, scanner, and packet-gate evidence. The planning-owned linked
+title and home-path defects are repaired; the scenario resolver, canonical
+selftest, and packet planning gates are green in the current planning session.
+The installed downstream G028 scanner has not yet received canonical fix
+`db7b4f2`, so its final execution remains prerequisite-bound even though the
+fixed canonical scanner is diagnostically green. BUG-009 therefore remains
+`in_progress`; scope completion, human acceptance, and validate-owned
+certification remain unchanged.
 
 ## Audit Verdict
 
-Not run. The packet retains diagnosis evidence and a planning-only handoff.
+Not run. The packet retains all test-owned evidence and routes to
+`bubbles.regression`; no audit or certification claim is made.

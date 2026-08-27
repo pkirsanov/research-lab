@@ -3,15 +3,16 @@
 **Layout:** single-file
 **Mode:** `bugfix-fastlane`
 **Packet status:** `in_progress`
-**Next required owner:** `bubbles.test`
+**Next required owner:** `bubbles.regression`
 
 [Spec](spec.md) | [Design](design.md) | [Report](report.md) |
 [User validation](uservalidation.md) |
 [Scenario manifest](scenario-manifest.json) |
 [Structured Test Plan](test-plan.json)
 
-This reconciled plan changes no source or persistent test. It defines one
-test-only execution scope for `bubbles.test`.
+Planning changes no source or persistent test. The test-owned report records
+the two permitted test hunks and their execution evidence; this repaired plan
+routes the still-in-progress scope to `bubbles.regression`.
 
 ## Execution Outline
 
@@ -40,16 +41,16 @@ test-only execution scope for `bubbles.test`.
 
 | Scope | Outcome | Planned test paths | Status |
 | --- | --- | --- | --- |
-| 1 | Give `F008-RISK-INPUT-001` one direct assertion-origin carrier | `tests/portfolio-risk.functional.mjs` and one title remap in `tests/portfolio-test-integrity.unit.mjs` | Not Started |
+| 1 | Give `F008-RISK-INPUT-001` one direct assertion-origin carrier | `tests/portfolio-risk.functional.mjs` and one title remap in `tests/portfolio-test-integrity.unit.mjs` | In Progress |
 
 ## Scope 1 - Assert Unsupported-Holding Risk Mapping
 
 **Scope ID:** `01-restore-risk-mutation-assertion-origin`
-**Status:** Not Started
+**Status:** In Progress
 **Depends On:** None
 **Scope-Kind:** contract-only
 **Finding:** `F008-RISK-INPUT-001`
-**Execution dependency:** `bubbles.test` -> quality phases ->
+**Execution dependency:** `bubbles.regression` -> remaining quality phases ->
 `bubbles.validate`
 
 ### Implementation Files
@@ -245,11 +246,12 @@ contract.
 
 ### Uncertainty Declaration For Unchecked Items
 
-**Attempted:** Reconciled one executable test-only scope and its structured
-handoffs. **Observed:** No test or source file was changed by planning, so no
-delivery checkbox has execution evidence. **Resolution:** `bubbles.test` must
-implement the two permitted test hunks, execute every named command, and append
-current-session evidence before changing any checkbox.
+**Attempted:** Repaired the planner-owned command catalogs, linked test title,
+and lifecycle route after test execution. **Observed:** The test-owned report
+retains implementation and execution evidence, while regression, later quality
+phases, human acceptance, and certification remain incomplete. **Resolution:**
+`bubbles.regression` must independently verify the committed regression
+contracts before the remaining quality phases may proceed.
 
-All items remain unchecked. This plan claims no implementation, test delivery,
-human acceptance, or certification.
+All items remain unchecked. Planning claims no regression verdict, human
+acceptance, or certification.

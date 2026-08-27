@@ -4,9 +4,9 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "generatedBy": "bubbles.plan",
   "generatedAt": "2026-08-27",
-  "planningStatus": "ready-for-test-owner",
+  "planningStatus": "ready-for-regression-owner",
   "tddMode": "scenario-first",
-  "evidenceBoundary": "Planning reconciliation only. TP-B009-000 diagnosis evidence exists; no focused carrier implementation, repaired mutation RED, post-repair GREEN, browser result, human acceptance, or certification is claimed.",
+  "evidenceBoundary": "Planning records no new test evidence. The test-owned report retains focused carrier, mutation, registry, and browser evidence; regression verification, human acceptance, and certification remain unclaimed.",
   "prerequisites": [
     {
       "id": "82d1db5e5",

@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T07:53:26Z",
+  "lastUpdatedAt": "2026-08-27T08:09:18Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,18 +29,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
+    "activeAgent": "bubbles.harden",
+    "currentPhase": "harden",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "planner_lifecycle_reconciled_fresh_harden_pending",
+    "substate": "hardened_stabilize_pending",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.harden",
+    "nextRequiredOwner": "bubbles.stabilize",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "HARDEN-B009-008 is addressed and BUG-009-ROUTE-016 is resolved. BUG-009-ROUTE-015 was consumed by a technically clean revision-311 harden pass whose verdict remained NOT_HARDENED only because active planner lifecycle text was stale. BUG-009-ROUTE-017 routes one clean fresh pass to bubbles.harden before stabilize.",
-    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps"],
+    "nextRequiredReason": "BUG-009-ROUTE-017 is resolved by the clean revision-315 hardening pass. H3 and H9 pass with no unresolved findings. The persisted bugfix-fastlane phase order places stabilize immediately after harden, so BUG-009-ROUTE-018 routes next to bubbles.stabilize while delivery and certification remain in progress.",
+    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps", "harden"],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
@@ -245,11 +245,22 @@
     },
     {
       "id": "BUG-009-ROUTE-017",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.plan",
       "nextRequiredOwner": "bubbles.harden",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-      "reason": "HARDEN-B009-008 is addressed and BUG-009-ROUTE-016 is resolved. BUG-009-ROUTE-015 was consumed by a technically clean revision-311 harden pass whose verdict remained NOT_HARDENED only because active planner lifecycle text was stale. Run one clean fresh harden pass over the reconciled packet before stabilize while preserving in-progress status, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, and historical harden evidence."
+      "reason": "HARDEN-B009-008 is addressed and BUG-009-ROUTE-016 is resolved. BUG-009-ROUTE-015 was consumed by a technically clean revision-311 harden pass whose verdict remained NOT_HARDENED only because active planner lifecycle text was stale. Run one clean fresh harden pass over the reconciled packet before stabilize while preserving in-progress status, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, and historical harden evidence.",
+      "resolvedBy": "bubbles.harden",
+      "resolvedAt": "2026-08-27T08:09:18Z",
+      "resolution": "Consumed by the decisive fresh hardening pass recorded at report.md#fresh-harden-revision-315. Every requested current technical, packet, title, lifecycle, H3, H9, and containment check is clean. The verdict is HARDENED, and the next persisted phase is stabilize."
+    },
+    {
+      "id": "BUG-009-ROUTE-018",
+      "status": "pending",
+      "fromAgent": "bubbles.harden",
+      "nextRequiredOwner": "bubbles.stabilize",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "The revision-315 decisive fresh hardening pass is HARDENED with H3 and H9 clean and no unresolved findings. Continue with bubbles.stabilize, the next phase in the persisted bugfix-fastlane order, while preserving status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, and certification."
     }
   ],
   "reworkQueue": [],
@@ -417,6 +428,17 @@
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#harden-b009-008-planner-lifecycle-reconciliation-revision-313"
+    },
+    {
+      "at": "2026-08-27T08:09:18Z",
+      "agent": "bubbles.harden",
+      "phase": "harden",
+      "action": "consumed-route-017-fresh-hardening-clean-and-routed-to-stabilize",
+      "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:315, freshly executed the exact shipped title, exact assertion-origin mutant with one selected test and one Module._compile application, strict 18-case registry, full risk, five BUG-008 carriers, risk browser, canonical selftest, regression quality, installed downstream G028, all six packet gates, exact-title parity, active lifecycle, H3/H9, and source/test containment. Every check is clean and no unresolved finding remains. Resolved BUG-009-ROUTE-017, recorded harden as completed in execution provenance, and opened BUG-009-ROUTE-018 to bubbles.stabilize, the next persisted phase. Preserved status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, the parent Feature 008 transaction, BUG-007, README, docs, product source, tests, baseline, and all foreign paths.",
+      "phasesExecuted": ["harden"],
+      "provenanceMode": "specialist",
+      "outcome": "route_required",
+      "evidenceRef": "report.md#fresh-harden-revision-315"
     }
   ],
   "addressedFindings": [
@@ -552,6 +574,13 @@
       "owner": "bubbles.plan",
       "status": "addressed",
       "evidenceRef": "report.md#harden-b009-008-planner-lifecycle-reconciliation-revision-313"
+    },
+    {
+      "id": "B009-HARDEN-EXECUTION-004",
+      "summary": "The revision-315 decisive fresh hardening pass re-executed every requested current check, found H3 and H9 clean, resolved BUG-009-ROUTE-017, and routed the next persisted phase to bubbles.stabilize without changing delivery or certification state.",
+      "owner": "bubbles.harden",
+      "status": "addressed",
+      "evidenceRef": "report.md#fresh-harden-revision-315"
     }
   ],
   "unresolvedFindings": []

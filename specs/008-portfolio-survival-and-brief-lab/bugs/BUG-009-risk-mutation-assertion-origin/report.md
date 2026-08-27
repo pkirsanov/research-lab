@@ -4,7 +4,7 @@
 
 - The focused `assetTreatment()` carrier and the single
   `F008-RISK-INPUT-001` registry remap are implemented and verified.
-- Fresh revision-311 execution is focused shipped `1/1`, exact mutant `0/1`
+- Fresh revision-315 execution is focused shipped `1/1`, exact mutant `0/1`
   solely through `ERR_ASSERTION` with one selected test and one
   `Module._compile` application, strict registry `3/3` over all 18 cases, full
   risk `3/3`, five BUG-008 carriers `43/43`, risk browser `13/13`, and
@@ -14,32 +14,30 @@
   violations and `0` warnings. All six named packet gates pass.
 - Exact-title parity is clean across all eight required surfaces, the legacy
   title is absent, and product, injector, and test blob containment passes.
-- The revision-311 harden battery was technically clean. Its durable verdict
-  remains `NOT_HARDENED` only because active planner lifecycle text was stale
-  during that pass.
-- This planner reconciliation addresses `HARDEN-B009-008` and resolves
-  `BUG-009-ROUTE-016`. `HARDEN-B009-001..008` are now addressed.
-- `BUG-009-ROUTE-015` was consumed by the revision-311 pass.
-  `BUG-009-ROUTE-017` now routes one clean fresh pass to `bubbles.harden`.
-  No stabilize route is open.
+- Active lifecycle and H3/H9 checks are clean. `HARDEN-B009-001..008` remain
+  addressed, and no unresolved finding remains.
+- Verdict: `HARDENED`. `BUG-009-ROUTE-017` is resolved by this fresh pass,
+  harden is recorded in execution provenance, and `BUG-009-ROUTE-018` routes
+  next to `bubbles.stabilize`, the next persisted fastlane phase.
 - Historical before/after evidence, including the earlier `3425/3426` failure,
-  remains intact. Parent Feature 008 changed only by replacing two disposed
-  harness path tokens in its existing aggregate unstaged state transaction.
-  Product source, tests, DoD, scope status, human acceptance, certification,
-  BUG-007, and BUG-008 are unchanged by this planning increment.
+  the revision-311 `NOT_HARDENED` result, and old route language inside dated
+  sections remains intact as valid history. The parent Feature 008 transaction,
+  BUG-007, README, docs, product source, tests, baseline, DoD, scope status,
+  human acceptance, certification, and all foreign paths remain unchanged by
+  this harden closeout.
 
 ## Completion Statement
 
-The revision-311 harden pass executed the complete requested technical and
-packet battery. Every implementation, test, scanner, gate, parity, and blob
-containment check passed with the exact counts recorded below. That pass
-retained `NOT_HARDENED` because the active planner lifecycle check failed at
-the time. This reconciliation addresses `HARDEN-B009-008` and resolves
-`BUG-009-ROUTE-016`. It leaves `HARDEN-B009-001..008` addressed.
-`BUG-009-ROUTE-017` returns the packet to `bubbles.harden` for one clean fresh
-pass before stabilize. No stabilize route is open. BUG-009 remains
-`in_progress`, and Scope 1 remains In Progress. All 18 DoD items remain
-unchecked. Human acceptance and certification remain untouched and unclaimed.
+The revision-315 decisive fresh harden pass executed the complete requested
+technical and packet battery on the current tree. Every implementation, test,
+scanner, gate, exact-title, lifecycle, H3/H9, and containment check passed with
+the exact counts recorded below. The verdict is `HARDENED`.
+`BUG-009-ROUTE-017` is resolved, harden is recorded in execution provenance,
+and `BUG-009-ROUTE-018` routes next to `bubbles.stabilize` under the persisted
+phase order. This is phase completion, not terminal delivery completion:
+BUG-009 remains `in_progress`, Scope 1 remains In Progress, and all 18 DoD
+items remain unchecked. Human acceptance and every certification field remain
+untouched and unclaimed.
 
 ## Test Evidence
 
@@ -2560,3 +2558,250 @@ open a stabilize route.
 BUG-009 remains `in_progress`, and Scope 1 remains In Progress. All 18 DoD
 items remain unchecked. Human acceptance and certification remain unchanged.
 Historical harden sections remain unchanged.
+
+## ROUTE-017 Decisive Fresh Harden - Repository Authority Revision 315 {#fresh-harden-revision-315}
+
+**Phase:** harden
+**Agent:** `bubbles.harden`
+**Recorded at:** `2026-08-27T08:09:18Z`
+**Claim Source:** interpreted
+**Interpretation:** The complete requested technical battery is clean on the
+current tree. This section records the execution before the owned execution
+state write. Final H3 disposition, route resolution, and the hardened verdict
+require the post-write coherence check recorded below; no terminal completion,
+scope completion, DoD check, human acceptance, or certification is inferred
+from this technical result.
+
+### Repository Authority And Persisted Mode
+
+**Claim Source:** executed
+
+```text
+host expectedControlRevision=314
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=~/research-lab source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:315 revision=315 repository=research-lab root=~/research-lab
+HEAD=222b445c2941bf1e148c4a6d25a377310dd9b289
+shared staged paths=0
+BUG-009 report.md dirty at entry=false
+BUG-009 state.json dirty at entry=false
+workflowMode=bugfix-fastlane
+statusCeiling=done
+phaseOrder=[select,bootstrap,implement,test,regression,simplify,gaps,harden,stabilize,devops,security,validate,audit,finalize]
+BUG-009-ROUTE-017 status at entry=pending
+next persisted phase after harden=stabilize
+```
+
+The baseline listed the concurrent parent Feature 008 transaction, BUG-007,
+README, docs, product source, tests, and baseline changes with an empty shared
+index. No foreign path was staged or reverted.
+
+### Exact Shipped And Assertion-Origin Proof
+
+**Claim Source:** interpreted
+**Interpretation:** The full mutant TAP output names exactly one selected test,
+one failure, `ERR_ASSERTION`, and no `TypeError` or `ERR_TEST_FAILURE`. The
+disposable marker contains exactly one line and identifies
+`Module._compile`. Together these signals prove the registered defect was
+applied once and failed at the selected protective assertion rather than at an
+injector or downstream runtime failure.
+
+```text
+focused shipped source:
+BUG-009 risk mapping: unsupported holdings remain named exclusions
+tests=1
+pass=1
+fail=0
+skipped=0
+todo=0
+exit=0
+
+exact F008-RISK-INPUT-001 mutant:
+not ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+code: ERR_ASSERTION
+name: AssertionError
+tests=1
+pass=0
+fail=1
+skipped=0
+todo=0
+MUTANT_EXIT=1
+APPLICATION_LINES=1
+APPLICATION=applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+```
+
+The mutation remained in memory. The temporary marker was removed after the
+run, and no shipped source or test byte was mutated.
+
+### Registry And Regression Battery
+
+**Claim Source:** executed
+
+```text
+strict registry source cardinality=18 F008 cases
+strict registry tests=3 pass=3 fail=0 skipped=0 todo=0 exit=0
+full risk tests=3 pass=3 fail=0 skipped=0 todo=0 exit=0
+five BUG-008 carriers tests=43 pass=43 fail=0 skipped=0 todo=0 exit=0
+five BUG-008 carriers lines=268
+five BUG-008 carriers sha256=056e1ef64ababf72afebc536ac02d44a5280ed3071f5973a0bf4eae97188b071
+Playwright version=1.61.1
+risk browser tests=13 pass=13 fail=0 using system-chrome exit=0
+canonical selftest lines=3895
+canonical selftest sha256=c98201c12fdb07b9e719ad08eedc85b300f48a0dfa81de5ccaf3d909f1faba3d
+Research-Lab self-test: 3426 passed, 0 failed
+regression-quality violations=0 warnings=0
+regression-quality files=2 adversarial-files=2
+Pages build registeredPages=29 rootFiles=123 exit=0
+parent path validator references=19612 distinctPaths=269 missingPaths=70
+parent path validator baseline=70 new=0 stale=0 exit=0
+```
+
+The path validator's reference count reflects the live concurrent parent
+transaction. Its decisive current result remains `new=0` and `stale=0`; no
+baseline change was made by this harden pass.
+
+### Installed G028 And Six Packet Gates
+
+**Claim Source:** executed
+
+```text
+installed downstream G028 resolved implementation files=2
+installed downstream G028 files scanned=2
+installed downstream G028 violations=0
+installed downstream G028 warnings=0
+artifact-lint exit=0
+traceability-guard exit=0 warnings=0
+scenario-obligation-lint exit=0 scenarios=1
+test-mechanism-lint exit=0 mechanisms=1
+scope-context-fit-lint exit=0 scopes=1
+capability-foundation-guard exit=0 proportionality=not-triggered
+skip-marker scan exit=1 expected=1
+live-mock scan exit=1 expected=1
+incomplete-marker scan exit=1 expected=1
+editor diagnostics implementation files=0
+editor diagnostics report.md=0
+editor diagnostics state.json=0
+```
+
+Research Lab declares no lint or format command. No substitute command was
+invented.
+
+### H4-H9 Hardening Profile Review
+
+**Claim Source:** interpreted
+**Interpretation:** The code reads and executed checks support the profile
+dispositions below. H3 is intentionally withheld until the owned state write
+and post-write active-lifecycle check.
+
+| Check | Result | Current basis |
+| --- | --- | --- |
+| H4 test taxonomy | PASS | The pure-calculation/test-integrity scenario has direct functional and unit mutation proof plus the proportionate real-browser regression declared by the packet. |
+| H5 semantic fidelity | PASS | The exact carrier calls exported `RLPA.assetTreatment()` and directly asserts state, market inclusion, named exclusion, partial state, ids, and weights. |
+| H6 realistic paths | PASS | All three linked tests exist and the installed traceability guard resolves them. |
+| H7 regression quality | PASS | Persistent direct, strict-registry, five-carrier, and browser regressions are green; the bugfix guard reports two adversarial files and zero findings. |
+| H8 cross-scope deduplication | PASS | The packet has one scope, so no consecutive-scope duplicate can exist. |
+| H9 structured-plan sync | PASS | Markdown, JSON, and scenario rows carry the same 11 unique IDs with no missing command reference. |
+
+```text
+MARKDOWN_TEST_IDS=11
+JSON_TEST_IDS=11
+SCENARIO_TEST_ROWS=11
+DUPLICATE_MARKDOWN_IDS=0
+DUPLICATE_JSON_IDS=0
+MISSING_COMMAND_REFS=0
+SCOPE_IDS=01-restore-risk-mutation-assertion-origin
+H9_TEST_PLAN_SYNC=PASS
+ACTIVE_LIFECYCLE_RESULT=PASS
+HARDEN-B009-001..008=addressed
+unresolved findings=0
+DoD unchecked=18 checked=0
+human acceptance checked=0
+certified completed scopes=0
+certified completed phases=0
+```
+
+### Exact-Title And Implementation Containment
+
+**Claim Source:** executed
+
+```text
+bug.md CURRENT=1 EXPECTED=1 STALE=0
+spec.md CURRENT=1 EXPECTED=1 STALE=0
+design.md CURRENT=1 EXPECTED=1 STALE=0
+scopes.md CURRENT=3 EXPECTED=3 STALE=0
+scenario-manifest.json CURRENT=1 EXPECTED=1 STALE=0
+test-plan.json CURRENT=4 EXPECTED=4 STALE=0
+tests/portfolio-risk.functional.mjs CURRENT=1 EXPECTED=1 STALE=0
+tests/portfolio-test-integrity.unit.mjs CURRENT=1 EXPECTED=1 STALE=0
+TITLE_SURFACES=8
+REGISTRY_F008_CASES=18
+rlportfolioanalytics.js parent=203c57b14898a13e0da81898e755ea5f5f6674ba implementation=203c57b14898a13e0da81898e755ea5f5f6674ba head=203c57b14898a13e0da81898e755ea5f5f6674ba worktree=203c57b14898a13e0da81898e755ea5f5f6674ba
+tests/portfolio-defect-injector.cjs parent=20ed786006be23f542ec3c524758eda625567ea9 implementation=20ed786006be23f542ec3c524758eda625567ea9 head=20ed786006be23f542ec3c524758eda625567ea9 worktree=20ed786006be23f542ec3c524758eda625567ea9
+tests/portfolio-risk.functional.mjs implementation=2a537316eadbf5067d19c020e0a60b020fb16e84 head=2a537316eadbf5067d19c020e0a60b020fb16e84 worktree=2a537316eadbf5067d19c020e0a60b020fb16e84
+tests/portfolio-test-integrity.unit.mjs implementation=5aa222876f78430ef1d76a2c980045cf6a5d5207 head=5aa222876f78430ef1d76a2c980045cf6a5d5207 worktree=5aa222876f78430ef1d76a2c980045cf6a5d5207
+IMPLEMENTATION_CHANGED_PATH_COUNT=2
+tests/portfolio-risk.functional.mjs
+tests/portfolio-test-integrity.unit.mjs
+SOURCE_TEST_BLOB_CONTAINMENT=PASS
+```
+
+The title parity check deliberately excludes `report.md`: legacy route and
+title language inside timestamped historical evidence remains valid history,
+not active drift.
+
+### Post-State Closeout Receipt
+
+**Claim Source:** executed
+
+```text
+STATUS=PASS
+SCOPE=PASS
+ROUTE17=PASS
+ROUTE18=PASS
+ROUTING=PASS
+CLAIM=PASS
+HISTORY=PASS
+FINDINGS=PASS
+DOD=PASS
+ACCEPTANCE=PASS
+CERTIFICATION=PASS
+STATE_CLOSEOUT_RESULT=PASS
+```
+
+The state closeout resolves `BUG-009-ROUTE-017`, opens
+`BUG-009-ROUTE-018` to `bubbles.stabilize`, records one harden phase claim and
+one matching history row, and adds `B009-HARDEN-EXECUTION-004` to addressed
+findings. It preserves `in_progress`, Scope 1 In Progress, all 18 unchecked DoD
+items, human acceptance, and certification. The final H3/H9 result is recorded
+after the immediate post-report coherence run below.
+
+### Final H3/H9 Result And Route
+
+**Validated at:** `2026-08-27T08:11:04Z`
+**Claim Source:** executed
+
+```text
+REPORT=PASS
+STATE=PASS
+ROUTE=PASS
+HISTORY=PASS
+FINDINGS=PASS
+PRESERVATION=PASS
+H9=PASS
+H3_REQUIRED_ARTIFACT_UPDATES=PASS
+H9_TEST_PLAN_SYNC=PASS
+PENDING_ROUTE=BUG-009-ROUTE-018:bubbles.stabilize
+STATUS=in_progress
+SCOPE_STATUS=In Progress
+DOD_UNCHECKED=18
+CERTIFIED_PHASES=0
+FINAL_HARDEN_PROFILE=PASS
+```
+
+Verdict: **HARDENED**.
+
+`BUG-009-ROUTE-017` is resolved. Harden is complete in execution provenance,
+with `B009-HARDEN-EXECUTION-004` addressed and no unresolved finding.
+`BUG-009-ROUTE-018` routes next to `bubbles.stabilize`, the phase immediately
+after harden in the persisted `bugfix-fastlane` order. This result does not
+mark the scope or bug done and does not modify human acceptance or
+certification.

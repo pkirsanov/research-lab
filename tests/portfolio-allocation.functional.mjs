@@ -92,6 +92,25 @@ test('TP-13-02 six production candidates share one frozen basis and keep their o
   }
 });
 
+test('BUG-008 allocation mapping: declared BND cap makes minimum variance infeasible', () => {
+  const { analytics } = loadRuntime();
+  const comparison = analytics.compareAllocationMethods({
+    symbols: ['BND', 'MSFT'],
+    covariance: [[0.04, 0.01], [0.01, 0.09]],
+    currentWeights: [0.4, 0.6],
+    constraints: [{ subject: 'BND', minimum: null, maximum: 0.5 }]
+  });
+  const minimumVariance = comparison.candidates.find((candidate) => candidate.method === 'minimum-variance');
+
+  assert.equal(comparison.state, 'ok');
+  assert.equal(minimumVariance.feasibility.state, 'infeasible');
+  assert.equal(minimumVariance.feasibility.conflictingSet.length, 1);
+  assert.equal(minimumVariance.feasibility.conflictingSet[0].subject, 'BND');
+  assert.equal(minimumVariance.feasibility.conflictingSet[0].kind, 'maximum');
+  assert.equal(minimumVariance.feasibility.conflictingSet[0].required, 0.5);
+  assert.ok(minimumVariance.feasibility.conflictingSet[0].actual > 0.5);
+});
+
 test('TP-13-08 a saved allocation survives a reread and is emptied by the full personal clear', () => {
   const { api, policy } = loadRuntime();
   const localStorage = createStorage();

@@ -1852,6 +1852,34 @@ function scope17ClearFixture(api, policy, options = {}) {
   return { localStorage, sessionStorage, store, committed, controller, emptyController };
 }
 
+test('BUG-008 clear mapping: public exclusions enumerate untouched public storage', () => {
+  const { api, policy } = loadRuntime();
+  const contracts = require('../rlcontracts.js');
+  const fixtureState = scope17ClearFixture(api, policy);
+  const categoryId = 'public:local-storage:rlData';
+  const registry = api.derivePersonalCategoryRegistry({
+    storageAdapters: {
+      localStorage: fixtureState.localStorage,
+      sessionStorage: fixtureState.sessionStorage
+    },
+    workspace: fixtureState.committed.value.workspace,
+    controller: fixtureState.controller,
+    policy,
+    now: '2026-07-15T14:04:00.000Z'
+  });
+
+  assert.equal(registry.ok, true, JSON.stringify(registry.error || {}));
+  assert.deepEqual(registry.value.publicExclusions, [{
+    categoryId,
+    location: 'local-storage',
+    sourcePath: 'rlData',
+    contentSha256: contracts.contentSha256(
+      { categoryId, value: '{"public":true}' },
+      'portfolio-clear-residue/v1'
+    )
+  }]);
+});
+
 test('SCN-008-042 and SCN-008-043 multi-row revision and full clear round trip through fresh adapters and controller inspection', () => {
   const { api, policy } = loadRuntime();
   const fixtureState = scope17ClearFixture(api, policy);

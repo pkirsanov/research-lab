@@ -59,6 +59,18 @@ function append(apiResult, request) {
   return appended;
 }
 
+test('BUG-008 dossier mapping: incomplete decision-fold request is request-invalid', () => {
+  const complete = decisionFold();
+  assert.equal(complete.state, 'ok');
+  const incomplete = { ...complete.requestIdentityInput };
+  delete incomplete.applicationEnd;
+
+  const result = analytics.evaluateDecisionFold(incomplete);
+
+  assert.equal(result.state, 'unavailable');
+  assert.equal(result.reason, 'request-invalid');
+});
+
 test('TP-25-02 dossier reload corrections private export and clear preserve an immutable hash chain', () => {
   assert.equal(api.validatePolicy(policy).ok, true);
   const fold = decisionFold();

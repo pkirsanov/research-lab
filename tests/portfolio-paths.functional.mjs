@@ -68,6 +68,54 @@ function specification(overrides = {}) {
 
 const SAMPLE = [0.01, -0.02, 0.015, -0.005, 0.02, -0.01];
 
+test('BUG-008 token mapping: mismatched scenario identity is superseded directly', () => {
+  const current = specification({ pathCount: 4, chunkSize: 2 });
+  current.parameterPolicy.drawCount = 1;
+  const controller = RLPA.createScenarioComputeController({
+    workspaceIdentity: current.workspaceIdentity,
+    lastValidViewModel: null
+  });
+  const issued = controller.issue(current, {
+    tokenId: 'bug-008-mismatched-identity',
+    issuedAt: '2026-08-21T00:00:00.000Z'
+  });
+  const mismatched = {
+    ...controller.token(issued.tokenId),
+    scenarioIdentity: 'scenario:stale-direct-token'
+  };
+
+  const result = RLPA.runScenarioChunk(current, mismatched, { workIndex: 0 }, {
+    sampleReturns: SAMPLE,
+    maximumWorkUnits: 4
+  });
+
+  assert.equal(result.state, 'error');
+  assert.equal(result.error.code, 'P008-COMPUTE-SUPERSEDED');
+});
+
+test('BUG-008 cash-need mapping: declared date resolves to the first eligible session', () => {
+  const result = RLPA.scheduleCashFlows([{
+    amount: 75,
+    currency: 'USD',
+    date: '2026-02-04',
+    kind: 'withdrawal',
+    label: 'Need A',
+    timing: 'end-of-step'
+  }], ['2026-02-02', '2026-02-03', '2026-02-04', '2026-02-05', '2026-02-06']);
+
+  assert.equal(result.state, 'ok');
+  assert.equal(result.scheduled.length, 1);
+  assert.deepEqual({
+    declaredDate: result.scheduled[0].declaredDate,
+    modeledDate: result.scheduled[0].modeledDate,
+    session: result.scheduled[0].session
+  }, {
+    declaredDate: '2026-02-04',
+    modeledDate: '2026-02-04',
+    session: 2
+  });
+});
+
 test('TP-22-02 chunk controller cancellation and supersession preserve the last valid result', async () => {
   const initial = specification({ pathCount: 4, chunkSize: 2 });
   initial.parameterPolicy.drawCount = 1;

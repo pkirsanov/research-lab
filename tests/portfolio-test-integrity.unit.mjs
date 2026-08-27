@@ -60,7 +60,8 @@ const CASES = [
     find: "      draftResult.value.rows.filter(function (row) { return row.holdingId !== holdingId; }),",
     replace: "      draftResult.value.rows,",
     carrier: "tests/portfolio-privacy.functional.mjs",
-    title: "SCN-008-042 and SCN-008-043 multi-row revision and full clear round trip through fresh adapters and controller inspection"
+    title: "SCN-008-042 and SCN-008-043 multi-row revision and full clear round trip through fresh adapters and controller inspection",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-CLEAR-RUNTIME-001",
@@ -70,7 +71,8 @@ const CASES = [
     find: "          if (reservedPersonalKey(stored.key) && !declared[locationKey]) {",
     replace: "          if (false) {",
     carrier: "tests/portfolio-privacy.functional.mjs",
-    title: "Adversarial: full personal clear detects undeclared keys live state and arbitrary residue"
+    title: "Adversarial: full personal clear detects undeclared keys live state and arbitrary residue",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-CLEAR-TEST-001",
@@ -80,7 +82,8 @@ const CASES = [
     find: "          } else if (!reservedPersonalKey(stored.key)) {",
     replace: "          } else if (false) {",
     carrier: "tests/portfolio-privacy.functional.mjs",
-    title: "Adversarial: full personal clear detects undeclared keys live state and arbitrary residue"
+    title: "BUG-008 clear mapping: public exclusions enumerate untouched public storage",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-BEHAVIOR-CONTRACT-001",
@@ -90,7 +93,8 @@ const CASES = [
     find: "    var fingerprintPayload = clone(payload);",
     replace: "    var fingerprintPayload = { subjectId: payload.subjectId };",
     carrier: "tests/portfolio-brief.functional.mjs",
-    title: "SCN-008-044 behavior identity civil time distinct floors and global ranking are canonical"
+    title: "SCN-008-044 behavior identity civil time distinct floors and global ranking are canonical",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-BAR-COVERAGE-001",
@@ -100,7 +104,8 @@ const CASES = [
     find: "    return acquireBarCoverage(sym, interval, target, sourcePolicy);",
     replace: "    return measureBarCoverageLegacy(sym, interval, target);",
     carrier: "tests/portfolio-bar-coverage.functional.mjs",
-    title: "SCN-008-045 same-origin append measures actual bounds and preserves partial truth without lookup"
+    title: "SCN-008-045 same-origin append measures actual bounds and preserves partial truth without lookup",
+    intendedHook: "fs.readFileSync"
   },
   {
     finding: "F008-BRIEF-EVIDENCE-001",
@@ -110,7 +115,8 @@ const CASES = [
     find: "    var selectedHistoryRefs = Object.keys(historyByEvidence).sort().map(function (key) { return historyByEvidence[key]; });",
     replace: "    var selectedHistoryRefs = input.historyRefs.slice();",
     carrier: "tests/portfolio-brief.functional.mjs",
-    title: "SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time"
+    title: "SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-BRIEF-POLICY-001",
@@ -120,7 +126,8 @@ const CASES = [
     find: "    return actual === expected ? new Date(guess).toISOString() : null;",
     replace: "    return new Date(target + 5 * 3600000).toISOString();",
     carrier: "tests/portfolio-brief.functional.mjs",
-    title: "SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time"
+    title: "SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-BROWSER-API-001",
@@ -130,7 +137,8 @@ const CASES = [
     find: "    whyShown: whyShown,",
     replace: "    /* reduced: whyShown is not part of the exported API */",
     carrier: "tests/portfolio-brief.functional.mjs",
-    title: "SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time"
+    title: "SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-RISK-INPUT-001",
@@ -140,7 +148,8 @@ const CASES = [
     find: "      else excluded.push({ symbol: h.symbol, assetType: h.assetType || \"unknown\" });",
     replace: "      else return { state: \"unsupported-holding\", symbol: h.symbol };",
     carrier: "tests/portfolio-risk.functional.mjs",
-    title: "SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output"
+    title: "SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-RISK-DIAGNOSTICS-001",
@@ -150,7 +159,8 @@ const CASES = [
     find: "    var years = elapsedDays / CALENDAR_DAYS_PER_YEAR;",
     replace: "    var years = returns.length / ppy;",
     carrier: "tests/portfolio-analytics.unit.mjs",
-    title: "TP-07-01 arithmetic, compounded and drag are separate and independently correct"
+    title: "TP-07-01 arithmetic, compounded and drag are separate and independently correct",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-PATH-CONTRACT-001",
@@ -160,7 +170,8 @@ const CASES = [
     find: "    if (token.workspaceIdentity !== spec.workspaceIdentity || token.scenarioIdentity !== identity) {",
     replace: "    if (false) {",
     carrier: "tests/portfolio-paths.functional.mjs",
-    title: "TP-22-02 chunk controller cancellation and supersession preserve the last valid result"
+    title: "BUG-008 token mapping: mismatched scenario identity is superseded directly",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-SURVIVAL-PATH-001",
@@ -170,7 +181,8 @@ const CASES = [
     find: "        if (sessionDates[s] >= flow.date) { session = s; break; }",
     replace: "        if (s === 0) { session = s; break; }",
     carrier: "tests/portfolio-paths.functional.mjs",
-    title: "TP-22-02 complete multi-path flow and distribution records survive a public JSON round trip"
+    title: "BUG-008 cash-need mapping: declared date resolves to the first eligible session",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-DIVERSIFICATION-001",
@@ -180,7 +192,8 @@ const CASES = [
     find: "    if (input && input.contractVersion === \"ForbesRigobonRequest/v1\") {",
     replace: "    if (false) {",
     carrier: "tests/portfolio-diversification.functional.mjs",
-    title: "TP-23-02 complete diversification projection survives JSON round trip with exact contracts"
+    title: "BUG-008 diversification mapping: qualified Forbes-Rigobon adjustment exposes orientation and estimate",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-HEDGE-001",
@@ -190,7 +203,8 @@ const CASES = [
     find: "    if (request.sample.definitionKind !== \"aligned-excess-returns\") {",
     replace: "    if (false) {",
     carrier: "tests/portfolio-diversification.functional.mjs",
-    title: "TP-23-02 reduced or incomplete recompute refuses publication and preserves the last valid projection"
+    title: "BUG-008 hedge mapping: non-aligned excess-return sample is unavailable",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-ALLOCATION-001",
@@ -200,7 +214,8 @@ const CASES = [
     find: "    var list = Array.isArray(constraints) ? constraints : [];",
     replace: "    var list = [];",
     carrier: "tests/portfolio-allocation.functional.mjs",
-    title: "TP-24-02 six complete candidates retain one basis costs paths survival and no winner"
+    title: "BUG-008 allocation mapping: declared BND cap makes minimum variance infeasible",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-SENSITIVITY-BL-001",
@@ -210,7 +225,8 @@ const CASES = [
     find: "    var sigma = request.covariance;",
     replace: "    var sigma = request.covariance;\n    request = Object.assign({}, request, { views: [] });",
     carrier: "tests/portfolio-allocation.functional.mjs",
-    title: "TP-14-02 production sensitivity and Black-Litterman lifecycle run on the common basis"
+    title: "TP-14-02 production sensitivity and Black-Litterman lifecycle run on the common basis",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-DOSSIER-001",
@@ -220,7 +236,8 @@ const CASES = [
     find: "    ]) || request.contractVersion !== DECISION_FOLD_REQUEST_VERSION) {",
     replace: "    ]) && false) {",
     carrier: "tests/portfolio-dossier.functional.mjs",
-    title: "Adversarial: incomplete walk forward and mutable dossier records cannot satisfy the audit contract"
+    title: "BUG-008 dossier mapping: incomplete decision-fold request is request-invalid",
+    intendedHook: "Module._compile"
   },
   {
     finding: "F008-COMPUTE-NAV-001",
@@ -230,7 +247,8 @@ const CASES = [
     find: "    function discard() { try { storage.removeItem(RETURN_CONTEXT_KEY); } catch (error) { /* already gone */ } }",
     replace: "    function discard() { /* reduced: the consumed context is left behind */ }",
     carrier: "tests/portfolio-workspace.functional.mjs",
-    title: "Adversarial: recomputing navigation stale publication and fake return context cannot pass"
+    title: "Adversarial: recomputing navigation stale publication and fake return context cannot pass",
+    intendedHook: "Module._compile"
   }
 ];
 
@@ -407,17 +425,17 @@ test("Adversarial: SCN-008-054 every audited Feature 008 defect class remains lo
 
     const shipped = runProtectiveTitle({ carrier: entry.carrier, title: entry.title, defect: null, marker });
     const mutant = runProtectiveTitle({ carrier: entry.carrier, title: entry.title, defect: entry, marker });
-    const applied = readFileSync(marker, "utf8").trim();
+    const applications = readApplications(marker);
 
     const problems = [];
     if (shipped.tests !== 1) problems.push(`title resolved to ${shipped.tests} executed test(s) on the shipped tree, expected exactly 1`);
-    if (shipped.exitCode !== 0 || shipped.fail !== 0) problems.push(`the protective test does not pass on the shipped tree (exit ${shipped.exitCode}, fail ${shipped.fail})`);
-    if (applied === "") problems.push("the audited defect was never represented, so nothing was challenged");
-    if (mutant.tests !== 1) problems.push(`title resolved to ${mutant.tests} executed test(s) under the defect, expected exactly 1`);
-    if (mutant.exitCode === 0 || !(mutant.fail >= 1)) problems.push(`the protective test still PASSES with the audited defect present (exit ${mutant.exitCode}, fail ${mutant.fail}) — it is not load-bearing`);
+    if (shipped.exitCode !== 0 || shipped.pass !== 1 || shipped.fail !== 0) {
+      problems.push(`the protective test does not pass exactly once on the shipped tree (exit ${shipped.exitCode}, pass ${shipped.pass}, fail ${shipped.fail})`);
+    }
+    problems.push(...mutationCausalityProblems({ entry, mutant, applications }));
 
     if (problems.length) failures.push(`${entry.finding} (scope ${entry.scope}, ${entry.carrier}): ${problems.join("; ")}`);
-    evidence.push(`${entry.finding} scope=${entry.scope} shipped=${shipped.pass}/${shipped.tests} mutant-fail=${mutant.fail} represented=${applied !== ""}`);
+    evidence.push(`${entry.finding} scope=${entry.scope} shipped=${shipped.pass}/${shipped.tests} mutant=${mutant.pass}/${mutant.tests} mutant-fail=${mutant.fail} applications=${applications.length} hook=${applications[0]?.hook ?? "none"}`);
   }
 
   /* ---- F008-ACCESSIBILITY-001: each route affordance is individually load-bearing ---- */

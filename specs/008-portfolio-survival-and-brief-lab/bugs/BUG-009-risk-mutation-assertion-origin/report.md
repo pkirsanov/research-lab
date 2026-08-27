@@ -1917,3 +1917,24 @@ the same failed gate set `G060,G061,G022,G053,G027,G040,G136`, `27` completion
 failures, `DELIVERY_COMPLETION_FAILED`, and verdict `FAIL`. G095 remained in the
 passed gate set. This is diagnostic evidence of unresolved prerequisites, not
 an attempted status transition.
+
+## Design Exact-Title Reconciliation - 2026-08-27 {#design-title-reconciliation-2026-08-27}
+
+### Owned Finding Resolution
+
+`HARDEN-B009-003` is addressed. The active exact title in `design.md` is now
+`BUG-009 risk mapping: unsupported holdings remain named exclusions`, matching
+the planned and delivered contract. The current-session focused title search
+found no stale title in active design and found the active title at its one
+focused-carrier declaration.
+
+The reconciliation changes only that title. The eight direct assertion
+obligations, unchanged mutation and `Module._compile` origin, product-source
+boundary, alternatives, and prior report chronology remain intact.
+
+### Required Owner Route
+
+`BUG-009-ROUTE-010` is resolved by `bubbles.design`. `HARDEN-B009-004` and its
+pending `BUG-009-ROUTE-011` remain open, with `bubbles.bug` as the next required
+owner. Harden remains incomplete. Status, scope state, DoD, human acceptance,
+and certification remain unchanged.

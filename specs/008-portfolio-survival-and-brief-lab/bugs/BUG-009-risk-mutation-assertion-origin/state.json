@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T06:08:44Z",
+  "lastUpdatedAt": "2026-08-27T06:17:36Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,7 +29,7 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
+    "activeAgent": "bubbles.design",
     "currentPhase": "harden",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
@@ -37,11 +37,11 @@
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredOwner": "bubbles.bug",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "HARDEN-B009-002 is reconciled with truthful planner lifecycle metadata and BUG-009-ROUTE-009 is resolved. Next reconcile design-owned HARDEN-B009-003 while preserving the separately routed bug finding before harden reruns.",
+    "nextRequiredReason": "HARDEN-B009-003 is reconciled to the active exact title and BUG-009-ROUTE-010 is resolved. Next reconcile bug-owned HARDEN-B009-004 while preserving the diagnosed wrong-origin RED and root cause before harden reruns.",
     "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps"],
-    "pendingTransitionRequests": ["BUG-009-ROUTE-010", "BUG-009-ROUTE-011"],
+    "pendingTransitionRequests": ["BUG-009-ROUTE-011"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -170,11 +170,13 @@
     },
     {
       "id": "BUG-009-ROUTE-010",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.harden",
       "nextRequiredOwner": "bubbles.design",
       "target": "design.md exact focused title",
-      "reason": "HARDEN-B009-003: reconcile the stale singular exact test title with the active plural named-exclusions title used by spec, scope, scenario manifest, structured plan, registry, and shipped test. Do not weaken the eight direct assertions or mutation-origin contract."
+      "reason": "HARDEN-B009-003: reconcile the stale singular exact test title with the active plural named-exclusions title used by spec, scope, scenario manifest, structured plan, registry, and shipped test. Do not weaken the eight direct assertions or mutation-origin contract.",
+      "resolvedBy": "bubbles.design",
+      "resolvedAt": "2026-08-27T06:17:36Z"
     },
     {
       "id": "BUG-009-ROUTE-011",
@@ -270,6 +272,15 @@
       "note": "Resolved only HARDEN-B009-002 and BUG-009-ROUTE-009. Scopes and the structured Test Plan now reflect the retained diagnostic RED and recorded execution for TP-B009-001 through TP-B009-006 and TP-B009-008 through TP-B009-011, with no TP-B009-007 invented. Harden remains incomplete, status and certification remain in_progress, Scope 1 remains In Progress, every DoD item remains unchecked, and human acceptance remains untouched. The next required owner is bubbles.design for HARDEN-B009-003.",
       "phasesExecuted": ["plan"],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-27T06:17:36Z",
+      "agent": "bubbles.design",
+      "phase": "design",
+      "action": "reconciled-exact-title-and-routed-to-bug",
+      "note": "Resolved only HARDEN-B009-003 and BUG-009-ROUTE-010 by replacing the stale exact title in design.md with the active plural named-exclusions title. Preserved all eight direct assertions, the unchanged mutation and Module._compile origin, the product-source boundary, and prior historical narrative. HARDEN-B009-004 and BUG-009-ROUTE-011 remain open with bubbles.bug next. Harden remains incomplete; status, scope state, DoD, human acceptance, and certification remain untouched.",
+      "phasesExecuted": ["design"],
+      "provenanceMode": "specialist"
     }
   ],
   "addressedFindings": [
@@ -349,16 +360,16 @@
       "owner": "bubbles.plan",
       "status": "addressed",
       "evidenceRef": "test-plan.json#scopes"
+    },
+    {
+      "id": "HARDEN-B009-003",
+      "summary": "The design now names the active exact plural named-exclusions title while preserving all eight direct assertions, the unchanged mutation origin, and the product-source boundary.",
+      "owner": "bubbles.design",
+      "status": "addressed",
+      "evidenceRef": "report.md#design-title-reconciliation-2026-08-27"
     }
   ],
   "unresolvedFindings": [
-    {
-      "id": "HARDEN-B009-003",
-      "summary": "design.md prescribes a stale singular exact test title that conflicts with the active planned and delivered plural named-exclusions title.",
-      "owner": "bubbles.design",
-      "status": "open",
-      "evidenceRef": "report.md#harden-phase-2026-08-27"
-    },
     {
       "id": "HARDEN-B009-004",
       "summary": "bug.md prescribes the same stale singular exact test title instead of the delivered plural named-exclusions title.",

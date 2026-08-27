@@ -80,7 +80,7 @@ failure rather than causal contract failure.
 
 Add this exact title to `tests/portfolio-risk.functional.mjs`:
 
-`BUG-009 risk mapping: unsupported holding is named without aborting asset treatment`
+`BUG-009 risk mapping: unsupported holdings remain named exclusions`
 
 Call `RLPA.assetTreatment()` with:
 

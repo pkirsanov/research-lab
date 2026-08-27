@@ -1938,3 +1938,24 @@ boundary, alternatives, and prior report chronology remain intact.
 pending `BUG-009-ROUTE-011` remain open, with `bubbles.bug` as the next required
 owner. Harden remains incomplete. Status, scope state, DoD, human acceptance,
 and certification remain unchanged.
+
+## Bug Exact-Title Reconciliation - 2026-08-27 {#bug-title-reconciliation-2026-08-27}
+
+### Owned Finding Resolution
+
+**Claim Source:** interpreted
+**Interpretation:** `HARDEN-B009-004` is addressed. The proposed exact title in
+`bug.md` is now
+`BUG-009 risk mapping: unsupported holdings remain named exclusions`, matching
+the active contract, plan, registry, and shipped test title.
+
+The reconciliation changes only the stale proposed-title literal. It preserves
+the diagnosed wrong-origin RED, root cause, exact mutation, `Module._compile`
+causality, eight direct assertion obligations, and historical narrative.
+
+### Required Owner Route
+
+`BUG-009-ROUTE-011` is resolved by `bubbles.bug`. `BUG-009-ROUTE-012` routes the
+packet to `bubbles.harden` for a fresh hardening pass. This remediation does not
+claim that hardening passed. Status, scope state, DoD, human acceptance, and
+certification remain unchanged.

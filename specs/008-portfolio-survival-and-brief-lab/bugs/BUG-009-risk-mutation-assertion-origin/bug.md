@@ -90,7 +90,7 @@ injector, or causality predicate.
 
 Add one focused title in `tests/portfolio-risk.functional.mjs`:
 
-`BUG-009 risk mapping: unsupported holding is named without aborting asset treatment`
+`BUG-009 risk mapping: unsupported holdings remain named exclusions`
 
 The title calls `RLPA.assetTreatment()` with one listed holding and one
 unsupported holding. It directly asserts state, market inclusion, the named

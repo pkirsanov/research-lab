@@ -1880,6 +1880,49 @@ PY
   } >> "$feature_dir/report.md"
 }
 
+emit_g040_exposure_fixture() {
+  # G040 / Check 18 fixture builder for the `Exposure-Deferred:` label contract
+  # shared with vertical-delivery-plan-guard.sh.
+  #
+  # The label lives in the SCOPE body (that guard reads scope bodies, never
+  # report.md), so this variant appends to scopes.md and therefore exercises
+  # Check 18's scope-file scan rather than its report scan.
+  #
+  # Args:
+  #   feature_dir — destination directory
+  #   reason      — the reason half of `Exposure-Deferred: <reason> -> <target>`
+  local feature_dir="$1"
+  local reason="$2"
+
+  emit_base_fixture "$feature_dir"
+  mutate_delivery_contract "$feature_dir/state.json"
+
+  # Promote to a delivery-completion (done) transition so Check 18 is active.
+  python3 - "$feature_dir/state.json" <<'PY'
+import json
+import sys
+
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle:
+    data = json.load(handle)
+
+data["status"] = "done"
+cert = data.setdefault("certification", {})
+cert["status"] = "done"
+
+with open(path, "w", encoding="utf-8") as handle:
+    json.dump(data, handle, indent=2)
+    handle.write("\n")
+PY
+
+  {
+    echo ""
+    echo "### Exposure"
+    echo ""
+    echo "- **Exposure-Deferred:** $reason -> spec.md#exposure"
+  } >> "$feature_dir/scopes.md"
+}
+
 emit_g040_cw_fixture() {
   # G040 / Check 18 certifying-window fixture builder (report.md marker parity
   # with artifact-lint.sh Check 3). Exercises the prior-window suppression added
@@ -2300,6 +2343,11 @@ g040_cw_pre_skipped_dir="$tmp_root/specs/934-g040-cw-pre-marker-skipped"
 g040_cw_post_blocks_dir="$tmp_root/specs/935-g040-cw-post-marker-blocks"
 g040_cw_no_marker_dir="$tmp_root/specs/936-g040-cw-no-marker-full-enforcement"
 g040_cw_two_markers_dir="$tmp_root/specs/937-g040-cw-two-markers-fail-loud"
+# These two names MUST NOT contain a G040 deferral term: emit_base_fixture
+# writes the fixture's absolute path into scopes.md, so a term in the directory
+# name becomes a scanned hit and decides both assertions on its own.
+g040_neg_exposure_label_dir="$tmp_root/specs/942-g040-negative-exposure-label"
+g040_pos_exposure_reason_dir="$tmp_root/specs/943-g040-positive-exposure-reason"
 fast_lane_profile_dir="$tmp_root/specs/940-fast-lane-profile-resolve"
 framework_proposal_profile_dir="$tmp_root/specs/941-framework-proposal-profile-resolve"
 g064_framework_root="$tmp_root/framework-g064"
@@ -2493,6 +2541,18 @@ emit_g040_cw_fixture "$g040_cw_no_marker_dir" 0 \
   "Several action items were deferred to next sprint per planning notes." ""
 emit_g040_cw_fixture "$g040_cw_two_markers_dir" 2 \
   "Several action items were deferred to next sprint in the prior release cycle." ""
+
+# G040 / Check 18 `Exposure-Deferred:` label fixtures. The label is MANDATED by
+# vertical-delivery-plan-guard.sh on any scope that ships no runnable consumer
+# surface, and G040's pattern contains `deferred` — so before Strategy (iv) the
+# two gates contradicted each other and such a scope could never reach done.
+# The pair is adversarial by construction: neutralizing the label must not
+# neutralize the REASON written after it, or the fix silently disables G040 for
+# every line carrying the label.
+emit_g040_exposure_fixture "$g040_neg_exposure_label_dir" \
+  "this scope ships guard configuration only and has no runnable consumer surface"
+emit_g040_exposure_fixture "$g040_pos_exposure_reason_dir" \
+  "punted to a future iteration"
 
 clone_framework_surface "$g064_framework_root"
 mkdir -p "$g064_framework_root/specs"
@@ -3887,6 +3947,25 @@ echo "Running G040 Check 18 — positive: status=done with mixed schema tokens A
 g040_pos_mixed_log="$tmp_root/g040-pos-mixed.log"
 run_capture "$g040_pos_mixed_log" bash "$GUARD_SCRIPT" "$g040_pos_strict_done_mixed_dir" >/dev/null
 assert_log_contains "$g040_pos_mixed_log" "deferral language hit" "G040 Check 18 BLOCKs under status=done when real deferral prose ('punted to Phase 3') accompanies schema followUp* tokens"
+
+# ----------------------------------------------------------------------------
+# G040 / Check 18 — `Exposure-Deferred:` label contract shared with
+# vertical-delivery-plan-guard.sh. That guard REQUIRES the literal label on any
+# scope shipping no runnable consumer surface; G040's pattern contains
+# `deferred`. Before Strategy (iv) no wording satisfied both gates, so such a
+# scope could never reach done. These two cases are an adversarial pair and
+# BOTH are required: the second proves the label neutralization did not turn
+# the label into a blanket exemption for whatever is written after it.
+# ----------------------------------------------------------------------------
+echo "Running G040 Check 18 — negative: the mandated Exposure-Deferred label does NOT trigger..."
+g040_neg_exposure_label_log="$tmp_root/g040-neg-exposure-label.log"
+run_capture "$g040_neg_exposure_label_log" bash "$GUARD_SCRIPT" "$g040_neg_exposure_label_dir" >/dev/null
+assert_log_not_contains "$g040_neg_exposure_label_log" "deferral language hit" "G040 Check 18 ignores the vertical-delivery-mandated 'Exposure-Deferred:' label when its reason is benign"
+
+echo "Running G040 Check 18 — positive (adversarial twin): a deferring Exposure-Deferred REASON still BLOCKs..."
+g040_pos_exposure_reason_log="$tmp_root/g040-pos-exposure-reason.log"
+run_capture "$g040_pos_exposure_reason_log" bash "$GUARD_SCRIPT" "$g040_pos_exposure_reason_dir" >/dev/null
+assert_log_contains "$g040_pos_exposure_reason_log" "deferral language hit" "G040 Check 18 still BLOCKs on 'Exposure-Deferred: punted to a future iteration' — only the label is neutralized, never the reason"
 
 # ----------------------------------------------------------------------------
 # G040 / Check 18 — certifying-window boundary (report.md marker parity with

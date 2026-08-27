@@ -4099,6 +4099,10 @@ echo ""
 #        <!-- bubbles:g040-skip-end --> HTML-comment markers is excluded
 #        from the scan, letting governance docs / post-mortems quote
 #        follow-up narrative inline without flipping spec status.
+#   (iv) The literal label token `Exposure-Deferred:` — mandated in scope
+#        bodies by vertical-delivery-plan-guard.sh — is stripped from each
+#        scope line before the scan. Only the token is removed; the reason
+#        written after it stays in the scan. See the Strategy (iv) note below.
 # =============================================================================
 echo "--- Check 18: Deferral Language Scan (Gate G040) ---"
 
@@ -4153,11 +4157,39 @@ else
   # bubbles:g040-skip-begin / bubbles:g040-skip-end sentinel markers.
   # Marker lines themselves are dropped via `next` so they are never fed
   # to the grep.
+  #
+  # Strategy (iv): the same filter neutralizes the `Exposure-Deferred:` LABEL
+  # TOKEN. Two framework gates read the same scope body and contradicted each
+  # other: vertical-delivery-plan-guard.sh REQUIRES the literal
+  # `Exposure-Deferred: <reason> -> <spec section>` on any scope that ships no
+  # runnable consumer surface, and `deferred` is a G040 term — so no wording
+  # satisfied both and such a scope could never reach done. The label is
+  # legitimate for exactly the reason Strategy (i)'s followUpOwner /
+  # "Follow-Up Narrative" exemptions are: it is SCHEMA-STRUCTURAL — a mandated
+  # field name another guard parses — not prose in which an author admits
+  # deferring work.
+  #
+  # The token is STRIPPED, not the line EXCLUDED, and that distinction is the
+  # whole point. Excluding the line would let "Exposure-Deferred: punted to a
+  # future iteration" pass G040 silently, turning a mandated label into a
+  # blanket exemption for any deferral prose written after it. Stripping leaves
+  # the REASON in the scan, so a genuinely deferring reason still blocks.
+  # Guarded by an adversarial selftest pair (a benign label that must NOT block
+  # and a deferring reason that MUST), so this cannot regress into an exclusion.
+  #
+  # The token is spelled with per-character classes because POSIX awk has no
+  # portable case-insensitivity (IGNORECASE is gawk-only), and the optional
+  # `- **` / `**` markdown wrapper is consumed so the residue is clean prose.
+  # Scope scan only: the report scan below is unchanged, matching the
+  # vertical-delivery guard, which reads scope bodies and never report.md.
   deferral_strip_awk='
     /^```/ || /^    ```/ { in_block = !in_block; next }
     /<!-- bubbles:g040-skip-begin -->/ { skip = 1; next }
     /<!-- bubbles:g040-skip-end -->/ { skip = 0; next }
-    !in_block && !skip { print }
+    !in_block && !skip {
+      gsub(/(-[[:space:]]*)?[*]*[Ee][Xx][Pp][Oo][Ss][Uu][Rr][Ee]-[Dd][Ee][Ff][Ee][Rr][Rr][Ee][Dd][[:space:]]*:[*]*/, " ")
+      print
+    }
   '
 
   for scope_path in ${scope_files[@]+"${scope_files[@]}"}; do

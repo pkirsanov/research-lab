@@ -130,6 +130,31 @@ run_expect_fake_integration_failure() {
   fi
 }
 
+run_expect_live_intercept_failure() {
+  local feature_dir="$1"
+  local label="$2"
+  local output=""
+  local output_file="$TMPDIR/run-expect-live-intercept.txt"
+  local status=0
+
+  if bubbles_run_with_timeout 180 bash "$SCAN_SCRIPT" "$feature_dir" --verbose >"$output_file" 2>&1; then
+    output="$(cat "$output_file")"
+    echo "$output"
+    fail "$label"
+    return
+  else
+    status=$?
+    output="$(cat "$output_file")"
+    echo "$output"
+  fi
+
+  if [[ "$status" -eq 1 ]] && grep -Fq 'LIVE_TEST_INTERCEPT' <<< "$output"; then
+    pass "$label"
+  else
+    fail "$label"
+  fi
+}
+
 create_shell_heavy_fixture() {
   local feature_dir="$FIXTURE_ROOT/shell-heavy-feature"
   mkdir -p "$feature_dir/scripts" "$feature_dir/config" "$feature_dir/docs"
@@ -142,6 +167,8 @@ create_shell_heavy_fixture() {
 ### Implementation Files
 
 - \`$feature_dir/scripts/validate.sh\`
+- \`$feature_dir/scripts/runtime.mjs\`
+- \`$feature_dir/scripts/preload.cjs\`
 - \`$feature_dir/config/service.yaml\`
 - \`$feature_dir/config/service.yml\`
 - \`$feature_dir/config/schema.json\`
@@ -152,6 +179,22 @@ EOF
 #!/usr/bin/env bash
 set -euo pipefail
 echo "fixture validation complete"
+EOF
+
+  cat > "$feature_dir/scripts/runtime.mjs" <<'EOF'
+export function validateRuntime(identity) {
+  if (identity === "") throw new Error("runtime identity is required");
+  return { identity };
+}
+EOF
+
+  cat > "$feature_dir/scripts/preload.cjs" <<'EOF'
+"use strict";
+
+module.exports = function validatePreload(identity) {
+  if (identity === "") throw new Error("preload identity is required");
+  return { identity };
+};
 EOF
 
   cat > "$feature_dir/config/service.yaml" <<'EOF'
@@ -387,6 +430,30 @@ func noop() {}
 EOF
 }
 
+create_mjs_live_intercept_fixture() {
+  local feature_dir="$FIXTURE_ROOT/mjs-live-intercept-feature"
+  local test_file="$feature_dir/tests/browser.spec.mjs"
+  mkdir -p "$(dirname "$test_file")"
+
+  cat > "$feature_dir/scopes.md" <<EOF
+# Scopes: MJS Live Interception Fixture
+
+## Scope 1: Real Browser Path
+
+### Implementation Files
+
+- \`$test_file\` — e2e-ui live-system carrier
+EOF
+
+  cat > "$test_file" <<'EOF'
+export async function installIntercept(page) {
+  await page.route("**/api/items", async (route) => {
+    await route.fulfill({ status: 200, body: "[]" });
+  });
+}
+EOF
+}
+
 create_sensitive_storage_fixture() {
   SENSITIVE_REPO="$FIXTURE_ROOT/sensitive-storage-repo"
   SENSITIVE_FEATURE="$SENSITIVE_REPO/specs/001-sensitive-storage"
@@ -478,11 +545,12 @@ create_go_connector_package_fixture
 create_fake_connector_fixture
 create_telemetry_noop_adapter_fixture
 create_fake_noop_integration_fixture
+create_mjs_live_intercept_fixture
 create_sensitive_storage_fixture
 
 echo "Running implementation-reality-scan discovery selftest..."
-echo "Scenario: shell-heavy fixtures resolve honest implementation inventory."
-run_expect_success "$FIXTURE_ROOT/shell-heavy-feature" "Shell-heavy fixture resolves .sh/.yaml/.yml/.json/docs-backed inventory"
+echo "Scenario: shell-heavy and JavaScript-module fixtures resolve honest implementation inventory."
+run_expect_success "$FIXTURE_ROOT/shell-heavy-feature" "Discovery fixture resolves .sh/.mjs/.cjs/.yaml/.yml/.json/docs-backed inventory"
 
 echo "Scenario: missing inventories still fail with ZERO_FILES_RESOLVED."
 run_expect_zero_files_failure "$FIXTURE_ROOT/missing-inventory-feature" "Missing-inventory fixture fails honestly without shim files"
@@ -498,6 +566,9 @@ run_expect_success "$FIXTURE_ROOT/telemetry-noop-adapter-feature" "Telemetry no-
 
 echo "Scenario: a bare non-telemetry no-op integration body is STILL flagged (exclusion opens no hole)."
 run_expect_fake_integration_failure "$FIXTURE_ROOT/fake-noop-integration-feature" "Bare non-telemetry, non-quoted no-op integration body is still flagged as FAKE_INTEGRATION"
+
+echo "Scenario: an MJS live-system carrier reaches interception detection."
+run_expect_live_intercept_failure "$FIXTURE_ROOT/mjs-live-intercept-feature" "MJS e2e-ui carrier is discovered and flagged as LIVE_TEST_INTERCEPT"
 
 echo "Scenario: semantic Scan 2B distinguishes storage operations and exact session classification."
 run_scan_in_repo "$SENSITIVE_REPO" "$SENSITIVE_FEATURE"

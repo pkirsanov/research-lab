@@ -94,11 +94,6 @@ vwarn() {
   warnings=$((warnings + 1))
 }
 
-pass() {
-  local message="$1"
-  echo "✅ PASS: $message"
-}
-
 info() {
   local message="$1"
   echo "ℹ️  INFO: $message"
@@ -165,8 +160,11 @@ add_impl_file() {
 impl_files=()
 test_files=()
 
-IMPL_DISCOVERY_PATTERN='`[^`]+\.(rs|ts|tsx|js|jsx|py|go|java|dart|scala|brs|sh|yaml|yml|json|md)\b[^`]*`'
-TEST_DISCOVERY_PATTERN='`[^`]+(spec|test)[^`]*\.(rs|ts|tsx|js|jsx|py|go|java|dart|scala|brs|sh)\b[^`]*`'
+# These are regular expressions, not shell expressions; backticks must remain literal.
+# shellcheck disable=SC2016
+IMPL_DISCOVERY_PATTERN='`[^`]+\.(rs|ts|tsx|js|jsx|mjs|cjs|py|go|java|dart|scala|brs|sh|yaml|yml|json|md)\b[^`]*`'
+# shellcheck disable=SC2016
+TEST_DISCOVERY_PATTERN='`[^`]+(spec|test)[^`]*\.(rs|ts|tsx|js|jsx|mjs|cjs|py|go|java|dart|scala|brs|sh)\b[^`]*`'
 
 normalize_declared_path() {
   local raw_path="$1"
@@ -267,7 +265,7 @@ if [[ ${#impl_files[@]} -eq 0 ]]; then
   search_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
   while IFS= read -r found_file; do
     [[ -z "$found_file" ]] && continue
-    rel_file="${found_file#$search_root/}"
+    rel_file="${found_file#"$search_root"/}"
     add_impl_file "$rel_file"
   done < <(find "$search_root" \
               -path '*/node_modules' -prune -o \

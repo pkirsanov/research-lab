@@ -60,7 +60,10 @@ adoption_profile_ids() {
   bubbles_adoption_profile_ids "$1"
 }
 
-mapfile -t managed_entries < <(bubbles_framework_manifest_entries "$REPO_ROOT" false)
+managed_entries=()
+while IFS= read -r managed_entry; do
+  managed_entries+=("$managed_entry")
+done < <(bubbles_framework_manifest_entries "$REPO_ROOT" false)
 
 # BUG-015 (BUG015-F1): the golden-task eval HARNESS is framework-source-only, not a
 # downstream product tool. Its selftest is wired through run_check_self_only (SKIPPED
@@ -152,7 +155,7 @@ source_only_entries=()
 # The installer and the version file it stamps are source-root artifacts. They
 # were in NEITHER checksum section, so nothing tracked their integrity and the
 # payload-closure guard had no way to notice a managed script reaching for them.
-for installer_entry in "install.sh" "VERSION"; do
+for installer_entry in "install.sh" "VERSION" ".gitleaks.toml"; do
   [[ -f "$REPO_ROOT/$installer_entry" ]] || continue
   bubbles_manifest_entry_is_tracked "$REPO_ROOT" "$installer_entry" || continue
   source_only_entries+=("$installer_entry")
@@ -175,7 +178,7 @@ eval_managed_schemas=(
 )
 while IFS= read -r eval_source_path; do
   [[ -f "$eval_source_path" ]] || continue
-  eval_relative_path="${eval_source_path#$REPO_ROOT/}"
+  eval_relative_path="${eval_source_path#"$REPO_ROOT"/}"
   bubbles_manifest_entry_is_tracked "$REPO_ROOT" "$eval_relative_path" || continue
   eval_entry_is_managed=false
   for eval_managed_schema in "${eval_managed_schemas[@]}"; do
@@ -189,7 +192,7 @@ while IFS= read -r eval_source_path; do
 done < <(find "$REPO_ROOT/bubbles/eval" -type f 2>/dev/null | LC_ALL=C sort)
 while IFS= read -r regression_test_path; do
   [[ -f "$regression_test_path" ]] || continue
-  regression_relative_path="${regression_test_path#$REPO_ROOT/}"
+  regression_relative_path="${regression_test_path#"$REPO_ROOT"/}"
   bubbles_manifest_entry_is_tracked "$REPO_ROOT" "$regression_relative_path" || continue
   source_only_entries+=("$regression_relative_path")
 done < <(find "$REPO_ROOT/tests/regression" -maxdepth 1 -type f -name '*.sh' 2>/dev/null | LC_ALL=C sort)
@@ -209,7 +212,11 @@ fi
 # pair lives under bubbles/scripts/, which sorts between bubbles/eval/** and
 # tests/regression/**, so it must be merged into sort order rather than appended.
 if [[ "${#source_only_entries[@]}" -gt 0 ]]; then
-  mapfile -t source_only_entries < <(printf '%s\n' "${source_only_entries[@]}" | LC_ALL=C sort)
+  sorted_source_only_entries=()
+  while IFS= read -r source_only_entry; do
+    sorted_source_only_entries+=("$source_only_entry")
+  done < <(printf '%s\n' "${source_only_entries[@]}" | LC_ALL=C sort)
+  source_only_entries=("${sorted_source_only_entries[@]}")
 fi
 
 payload_git_sha=''
@@ -248,13 +255,22 @@ fi
 capability_ledger_version="$({ awk '/^version:/ { print $2; exit }' "$REPO_ROOT/bubbles/capability-ledger.yaml"; } || true)"
 [[ -n "$capability_ledger_version" ]] || capability_ledger_version='1'
 
-mapfile -t supported_profiles < <(adoption_profile_ids "$REPO_ROOT/bubbles/adoption-profiles.yaml")
+supported_profiles=()
+while IFS= read -r supported_profile; do
+  supported_profiles+=("$supported_profile")
+done < <(adoption_profile_ids "$REPO_ROOT/bubbles/adoption-profiles.yaml")
 [[ "${#supported_profiles[@]}" -gt 0 ]] || {
   echo "Adoption profile registry must expose at least one supported profile" >&2
   exit 1
 }
-mapfile -t supported_interop_sources < <(bubbles_interop_source_ids "$(bubbles_interop_registry_path "$REPO_ROOT")")
-mapfile -t validated_surfaces < <(printf '%s\n' \
+supported_interop_sources=()
+while IFS= read -r supported_interop_source; do
+  supported_interop_sources+=("$supported_interop_source")
+done < <(bubbles_interop_source_ids "$(bubbles_interop_registry_path "$REPO_ROOT")")
+validated_surfaces=()
+while IFS= read -r validated_surface; do
+  validated_surfaces+=("$validated_surface")
+done < <(printf '%s\n' \
   'framework-validate' \
   'release-check' \
   'release-manifest-selftest' \
@@ -269,7 +285,7 @@ for docs_file in \
   "$REPO_ROOT/docs/recipes/framework-ops.md" \
   "$REPO_ROOT/CHANGELOG.md"; do
   [[ -f "$docs_file" ]] || continue
-  docs_digest_material+="${docs_file#$REPO_ROOT/}\t$(bubbles_sha256_file "$docs_file")"$'\n'
+  docs_digest_material+="${docs_file#"$REPO_ROOT"/}\t$(bubbles_sha256_file "$docs_file")"$'\n'
 done
 docs_digest="$(printf '%s' "$docs_digest_material" | bubbles_sha256_stdin)"
 managed_file_count="${#managed_entries[@]}"
@@ -287,7 +303,9 @@ hash_inventory() { # hash_inventory <result-array-name> <entry...>
   local entry
 
   if [[ "${#entries[@]}" -gt 0 ]]; then
-    mapfile -t hashes < <(printf '%s\n' "${entries[@]}" | bubbles_sha256_batch "$REPO_ROOT" | cut -f1)
+    while IFS= read -r hash; do
+      hashes+=("$hash")
+    done < <(printf '%s\n' "${entries[@]}" | bubbles_sha256_batch "$REPO_ROOT" | cut -f1)
     if [[ "${#hashes[@]}" -ne "${#entries[@]}" ]]; then
       hashes=()
       for entry in "${entries[@]}"; do

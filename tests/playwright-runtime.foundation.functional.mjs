@@ -24,6 +24,9 @@ import * as sharedRuntime from './playwright-runtime.mjs';
 const ROOT = realpathSync(resolve(dirname(fileURLToPath(import.meta.url)), '..'));
 const HELPER = resolve(ROOT, 'tests/playwright-runtime.mjs');
 const TESTS_DIR = resolve(ROOT, 'tests');
+const REACHABILITY_VALIDATOR = resolve(ROOT, 'scripts/validate-test-file-reachability.mjs');
+const REACHABILITY_BASELINE = resolve(ROOT, 'scripts/validate-test-file-reachability.baseline');
+const BUG022_BASELINE_CEILING = 26;
 const LOCAL_PACKAGE = realpathSync(resolve(ROOT, 'node_modules/playwright'));
 const LOCAL_CLI = realpathSync(resolve(ROOT, 'node_modules/.bin/playwright'));
 
@@ -69,6 +72,24 @@ function repoTestFiles() {
     .filter((name) => name.endsWith('.mjs'))
     .sort()
     .map((name) => `tests/${name}`);
+}
+
+function withDeclarationFixture(files, assertion) {
+  const fixtureRoot = mkdtempSync(resolve(tmpdir(), 'research-lab-bug022-'));
+  try {
+    for (const [relativePath, source] of Object.entries(files)) {
+      const absolutePath = resolve(fixtureRoot, relativePath);
+      mkdirSync(dirname(absolutePath), { recursive: true });
+      writeFileSync(absolutePath, source);
+    }
+    return assertion(fixtureRoot);
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
+}
+
+function declarationFor(result, pattern, kind = 'node-test-argument') {
+  return result.globs.find((entry) => entry.pattern === pattern && entry.kind === kind);
 }
 
 /* Files a discovery mechanism actually selects, plus the patterns and the
@@ -279,6 +300,274 @@ test('committed discovery boundary keeps browser specs and direct Node suites di
   console.log('[playwright-runtime] frozenCrossings=' + KNOWN_DISCOVERY_CROSSINGS.length);
   console.log('[playwright-runtime] newCrossings=' + newCrossings.length);
   console.log('[playwright-runtime] discoveryTaxonomy=PASS');
+});
+
+test('Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs', () => {
+  const pattern = 'tests/portfolio-*.mjs';
+  const reportArtifact = 'specs/008-portfolio/bugs/BUG-004-receipt/report.md';
+  const reportSource = [
+    '# Report',
+    '',
+    '## Test Evidence',
+    '```text',
+    '$ node --test tests/portfolio-*.mjs',
+    '```',
+    ''
+  ].join('\n');
+
+  withDeclarationFixture({ [reportArtifact]: reportSource }, (fixtureRoot) => {
+    const result = collectDeclaredTestGlobs(fixtureRoot);
+    const historical = (result.historicalSites ?? []).filter((site) => site.pattern === pattern);
+
+    assert.equal(declarationFor(result, pattern), undefined);
+    assert.equal(historical.length, 1);
+    assert.equal(historical[0].artifact, reportArtifact);
+    assert.equal(historical[0].line, 5);
+    assert.equal(historical[0].artifactRole, 'historical-report');
+    assert.equal(historical[0].sectionRole, 'evidence');
+    assert.equal(historical[0].authority, 'historical');
+    assert.match(historical[0].reason, /historical/);
+  });
+});
+
+test('Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative', () => {
+  const scopePattern = 'tests/scope-*.functional.mjs';
+  const structuredPattern = 'tests/structured-*.test.mjs';
+  const scopeArtifact = 'specs/101-active/scopes.md';
+  const structuredArtifact = 'specs/102-structured/test-plan.json';
+  const scopeSource = [
+    '# Scopes',
+    '',
+    '## Scope 1',
+    '',
+    '### Test Plan',
+    '',
+    '| Command |',
+    '| --- |',
+    '| `node --test tests/scope-*.functional.mjs` |',
+    ''
+  ].join('\n');
+  const structuredSource = JSON.stringify({
+    scopes: [{
+      scopeId: '01-structured',
+      tests: [{ command: 'node --test tests/structured-*.test.mjs' }]
+    }]
+  }, null, 2) + '\n';
+
+  withDeclarationFixture({
+    [scopeArtifact]: scopeSource,
+    [structuredArtifact]: structuredSource
+  }, (fixtureRoot) => {
+    const result = collectDeclaredTestGlobs(fixtureRoot);
+    const scopeDeclaration = declarationFor(result, scopePattern);
+    const structuredDeclaration = declarationFor(result, structuredPattern);
+
+    assert.ok(scopeDeclaration);
+    assert.deepEqual(
+      scopeDeclaration.sites.map(({ artifact, line }) => ({ artifact, line })),
+      [{ artifact: scopeArtifact, line: 9 }]
+    );
+    assert.ok(structuredDeclaration);
+    assert.equal(structuredDeclaration.sites.length, 1);
+    assert.equal(structuredDeclaration.sites[0].artifact, structuredArtifact);
+    assert.ok(structuredDeclaration.sites[0].line > 0);
+  });
+});
+
+test('Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority', () => {
+  const reportPattern = 'tests/report-heading-*.mjs';
+  const activePattern = 'tests/fence-safe-*.functional.mjs';
+  const reportArtifact = 'specs/_bugs/BUG-900-fixture/report.md';
+  const scopeArtifact = 'specs/900-fixture/scopes.md';
+  const reportSource = [
+    '# Report',
+    '',
+    '## Command Registry',
+    '```bash',
+    'node --test tests/report-heading-*.mjs',
+    '```',
+    ''
+  ].join('\n');
+  const scopeSource = [
+    '# Scopes',
+    '',
+    '## Scope 1',
+    '',
+    '### Test Plan',
+    '```markdown',
+    '## Evidence',
+    '```',
+    '| `node --test tests/fence-safe-*.functional.mjs` |',
+    ''
+  ].join('\n');
+
+  withDeclarationFixture({
+    [reportArtifact]: reportSource,
+    [scopeArtifact]: scopeSource
+  }, (fixtureRoot) => {
+    const result = collectDeclaredTestGlobs(fixtureRoot);
+    const historical = (result.historicalSites ?? []).filter((site) => site.pattern === reportPattern);
+    const active = declarationFor(result, activePattern);
+
+    assert.equal(declarationFor(result, reportPattern), undefined);
+    assert.equal(historical.length, 1);
+    assert.equal(historical[0].artifactRole, 'historical-report');
+    assert.ok(active);
+    assert.equal(active.sites[0].artifact, scopeArtifact);
+    assert.equal(active.sites[0].sectionRole, 'test-plan');
+  });
+});
+
+test('Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance', () => {
+  const unknownArtifact = 'misc/unknown-declaration.md';
+  const unknownPattern = 'tests/unknown-*.mjs';
+  const unknownSource = [
+    '# Unknown Commands',
+    '```bash',
+    'node --test tests/unknown-*.mjs',
+    '```',
+    ''
+  ].join('\n');
+
+  withDeclarationFixture({
+    'playwright.config.mjs': "export default { testMatch: '**/*.spec.mjs' };\n",
+    'scripts/validate-test-file-reachability.baseline': '# empty fixture baseline\n',
+    'tests/unknown-example.spec.mjs': "import test from 'node:test';\ntest('fixture', () => {});\n",
+    [unknownArtifact]: unknownSource
+  }, (fixtureRoot) => {
+    const result = collectDeclaredTestGlobs(fixtureRoot);
+    const errors = result.classificationErrors ?? [];
+    const execution = spawnSync(process.execPath, [
+      REACHABILITY_VALIDATOR,
+      '--root',
+      fixtureRoot,
+      '--all-sites'
+    ], { cwd: ROOT, encoding: 'utf8' });
+
+    assert.equal(errors.length, 1);
+    assert.equal(errors[0].pattern, unknownPattern);
+    assert.equal(errors[0].artifact, unknownArtifact);
+    assert.equal(errors[0].line, 3);
+    assert.equal(errors[0].sectionRole, 'none');
+    assert.equal(errors[0].authority, 'error');
+    assert.match(errors[0].reason, /unknown/);
+    assert.equal(execution.status, 1);
+    assert.match(execution.stdout + execution.stderr, /CLASSIFICATION ERROR/);
+    assert.match(execution.stdout + execution.stderr, /misc\/unknown-declaration\.md:3/);
+  });
+
+  const malformedArtifact = 'specs/901-malformed/test-plan.json';
+  withDeclarationFixture({
+    [malformedArtifact]: JSON.stringify({
+      scopes: [],
+      receipt: 'node --test tests/malformed-*.mjs'
+    }, null, 2) + '\n'
+  }, (fixtureRoot) => {
+    const result = collectDeclaredTestGlobs(fixtureRoot);
+    assert.equal(result.classificationErrors.length, 1);
+    assert.equal(result.classificationErrors[0].pattern, 'tests/malformed-*.mjs');
+    assert.equal(result.classificationErrors[0].artifact, malformedArtifact);
+    assert.equal(result.classificationErrors[0].artifactRole, 'structured-test-plan');
+    assert.equal(result.classificationErrors[0].authority, 'error');
+    assert.equal(result.classificationErrors[0].reason, 'malformed-structured-test-plan');
+  });
+});
+
+test('Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth', () => {
+  const result = collectDeclaredTestGlobs(ROOT);
+  const testFiles = repoTestFiles();
+  const browserMatchers = result.globs
+    .filter((entry) => entry.kind === 'playwright-testMatch')
+    .map((entry) => globToRegExp(entry.pattern));
+  const activeNodeMatchers = result.globs
+    .filter((entry) => entry.kind === 'node-test-argument')
+    .map((entry) => globToRegExp(entry.pattern));
+  const browserFiles = testFiles.filter((path) => browserMatchers.some((matcher) => matcher.test(path)));
+  const browserSet = new Set(browserFiles);
+  const activeCrossings = testFiles.filter((path) => (
+    browserSet.has(path) && activeNodeMatchers.some((matcher) => matcher.test(path))
+  ));
+  const newCrossings = activeCrossings.filter((path) => !KNOWN_DISCOVERY_CROSSINGS.includes(path));
+  const protectedReport = 'specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/report.md';
+  const historicalPortfolioSites = (result.historicalSites ?? []).filter((site) => (
+    site.pattern === 'tests/portfolio-*.mjs' && site.artifact === protectedReport
+  ));
+  const historicalMatcher = globToRegExp('tests/portfolio-*.mjs');
+  const historicalCrossings = browserFiles.filter((path) => historicalMatcher.test(path));
+  const baselineEntries = readFileSync(REACHABILITY_BASELINE, 'utf8')
+    .split(/\r?\n/)
+    .filter((line) => line.startsWith('tests/'));
+
+  assert.equal(historicalPortfolioSites.length, 1);
+  assert.equal(historicalCrossings.length, 8);
+  assert.deepEqual(newCrossings, []);
+  assert.ok(
+    baselineEntries.length <= BUG022_BASELINE_CEILING,
+    `reachability baseline grew from ${BUG022_BASELINE_CEILING} to ${baselineEntries.length}`
+  );
+
+  const activeScopeArtifact = 'specs/902-active-crossing/scopes.md';
+  const fixtureReportArtifact = 'specs/902-active-crossing/report.md';
+  const activeScopeSource = [
+    '# Scopes',
+    '',
+    '## Scope 1',
+    '',
+    '### Test Plan',
+    '`node --test tests/portfolio-*.mjs`',
+    ''
+  ].join('\n');
+  const fixtureReportSource = [
+    '# Report',
+    '',
+    '## Evidence',
+    'node --test tests/portfolio-*.mjs',
+    ''
+  ].join('\n');
+
+  withDeclarationFixture({
+    'playwright.config.mjs': "export default { testMatch: '**/*.spec.mjs' };\n",
+    [activeScopeArtifact]: activeScopeSource,
+    [fixtureReportArtifact]: fixtureReportSource,
+    'tests/portfolio-fixture.spec.mjs': "import test from 'node:test';\ntest('fixture', () => {});\n"
+  }, (fixtureRoot) => {
+    const fixture = collectDeclaredTestGlobs(fixtureRoot);
+    const activeBroad = declarationFor(fixture, 'tests/portfolio-*.mjs');
+    const fixtureBrowser = declarationFor(fixture, '**/*.spec.mjs', 'playwright-testMatch');
+    const fixturePath = 'tests/portfolio-fixture.spec.mjs';
+
+    assert.ok(activeBroad);
+    assert.equal(activeBroad.sites[0].artifact, activeScopeArtifact);
+    assert.equal(
+      fixture.historicalSites.some((site) => site.artifact === fixtureReportArtifact),
+      true
+    );
+    assert.equal(globToRegExp(activeBroad.pattern).test(fixturePath), true);
+    assert.equal(globToRegExp(fixtureBrowser.pattern).test(fixturePath), true);
+  });
+});
+
+test('Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority', () => {
+  const result = collectDeclaredTestGlobs(ROOT);
+  const testFiles = repoTestFiles();
+
+  for (const pattern of ['tests/*.functional.mjs', 'tests/*.test.mjs']) {
+    const declaration = declarationFor(result, pattern);
+    assert.ok(declaration, `missing active declaration for ${pattern}`);
+    assert.ok(
+      declaration.sites.some((site) => site.artifact === '.specify/memory/agents.md'),
+      `${pattern} is not declared by the current command registry`
+    );
+    assert.equal(
+      declaration.sites.some((site) => site.artifact.endsWith('/report.md')),
+      false,
+      `${pattern} still depends on report authority`
+    );
+    assert.ok(
+      testFiles.some((path) => globToRegExp(pattern).test(path)),
+      `${pattern} reaches no current test files`
+    );
+  }
 });
 
 const BUG017_PACKET = resolve(

@@ -85,6 +85,10 @@
 import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  markdownFenceMask,
+  markdownHeadings
+} from './validate-scope-dod-progress.mjs';
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(SCRIPT_PATH), '..');
@@ -93,6 +97,24 @@ const BASELINE_REL = 'scripts/validate-test-file-reachability.baseline';
 const SELF_REL = 'scripts/validate-test-file-reachability.mjs';
 const PLAYWRIGHT_CONFIG_REL = 'playwright.config.mjs';
 const EXEMPT_RULE = 'shared-helper-module';
+
+const ARTIFACT_ROLE = Object.freeze({
+  PLAYWRIGHT_CONFIG: 'playwright-config',
+  COMMAND_REGISTRY: 'command-registry',
+  ACTIVE_PLAN: 'active-plan',
+  STRUCTURED_TEST_PLAN: 'structured-test-plan',
+  VALIDATION_NOTE: 'validation-note',
+  HISTORICAL_REPORT: 'historical-report',
+  UNKNOWN: 'unknown'
+});
+
+const SECTION_ROLE = Object.freeze({
+  COMMAND_REGISTRY: 'command-registry',
+  TEST_PLAN: 'test-plan',
+  VALIDATION: 'validation',
+  EVIDENCE: 'evidence',
+  NONE: 'none'
+});
 
 /* `--test` followed by a run of tokens that are each a flag or a repo test
    path. The trailing guard keeps `--testMatch` and `--test-only` from matching,
@@ -182,13 +204,124 @@ function listFilesRecursive(absDir, ignored) {
   return found;
 }
 
+function artifactRole(artifact) {
+  if (artifact === PLAYWRIGHT_CONFIG_REL) return ARTIFACT_ROLE.PLAYWRIGHT_CONFIG;
+  if (artifact === '.specify/memory/agents.md') return ARTIFACT_ROLE.COMMAND_REGISTRY;
+  if (/^specs\/.+\/test-plan\.json$/.test(artifact)) return ARTIFACT_ROLE.STRUCTURED_TEST_PLAN;
+  if (/^specs\/.+\/(?:scopes\.md|scopes\/[^/]+\/scope\.md)$/.test(artifact)) {
+    return ARTIFACT_ROLE.ACTIVE_PLAN;
+  }
+  if (/^specs\/.+\/report\.md$/.test(artifact)) return ARTIFACT_ROLE.HISTORICAL_REPORT;
+  if (/^notes\/.+\.md$/.test(artifact)) return ARTIFACT_ROLE.VALIDATION_NOTE;
+  return ARTIFACT_ROLE.UNKNOWN;
+}
+
+function headingSectionRole(text) {
+  if (/\bcommand registry\b/i.test(text)) return SECTION_ROLE.COMMAND_REGISTRY;
+  if (/\btest plan\b/i.test(text)) return SECTION_ROLE.TEST_PLAN;
+  if (/^validation(?:\b|\s)/i.test(text)) return SECTION_ROLE.VALIDATION;
+  if (/\b(?:test evidence|execution evidence|evidence|verification|before fix|after fix)\b/i.test(text)) {
+    return SECTION_ROLE.EVIDENCE;
+  }
+  return SECTION_ROLE.NONE;
+}
+
+function markdownSectionRoles(lines) {
+  const fenceMask = markdownFenceMask(lines);
+  const headings = markdownHeadings(lines, fenceMask);
+  const roles = new Array(lines.length).fill(SECTION_ROLE.NONE);
+  const ancestry = [];
+  let headingIndex = 0;
+
+  for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+    while (headingIndex < headings.length && headings[headingIndex].line === lineIndex) {
+      const heading = headings[headingIndex++];
+      while (ancestry.length > 0 && ancestry[ancestry.length - 1].level >= heading.level) ancestry.pop();
+      ancestry.push({ level: heading.level, role: headingSectionRole(heading.text) });
+    }
+    for (let ancestryIndex = ancestry.length - 1; ancestryIndex >= 0; ancestryIndex--) {
+      if (ancestry[ancestryIndex].role === SECTION_ROLE.NONE) continue;
+      roles[lineIndex] = ancestry[ancestryIndex].role;
+      break;
+    }
+  }
+  return roles;
+}
+
+function nodePatterns(text) {
+  const patterns = [];
+  NODE_TEST_INVOCATION.lastIndex = 0;
+  let invocation;
+  while ((invocation = NODE_TEST_INVOCATION.exec(text)) !== null) {
+    TEST_PATH_ARGUMENT.lastIndex = 0;
+    let argument;
+    while ((argument = TEST_PATH_ARGUMENT.exec(invocation[1])) !== null) {
+      if (argument[0].includes('*')) patterns.push(argument[0]);
+    }
+  }
+  return patterns;
+}
+
+function candidateClassification(artifactRoleValue, sectionRole) {
+  if (artifactRoleValue === ARTIFACT_ROLE.HISTORICAL_REPORT) {
+    return { authority: 'historical', reason: 'historical-report-receipt' };
+  }
+  if (
+    artifactRoleValue === ARTIFACT_ROLE.COMMAND_REGISTRY
+    && sectionRole === SECTION_ROLE.COMMAND_REGISTRY
+  ) {
+    return { authority: 'active', reason: 'current-command-registry' };
+  }
+  if (artifactRoleValue === ARTIFACT_ROLE.ACTIVE_PLAN && sectionRole === SECTION_ROLE.TEST_PLAN) {
+    return { authority: 'active', reason: 'current-test-plan' };
+  }
+  if (artifactRoleValue === ARTIFACT_ROLE.VALIDATION_NOTE && sectionRole === SECTION_ROLE.VALIDATION) {
+    return { authority: 'active', reason: 'current-validation-note' };
+  }
+  if (artifactRoleValue === ARTIFACT_ROLE.UNKNOWN) {
+    return { authority: 'error', reason: 'unknown-artifact-role' };
+  }
+  return { authority: 'error', reason: 'unrecognized-authority-section' };
+}
+
+function lineCanContainCandidate(line, artifactRoleValue, sectionRole) {
+  if (artifactRoleValue === ARTIFACT_ROLE.HISTORICAL_REPORT) return true;
+  if (candidateClassification(artifactRoleValue, sectionRole).authority === 'active') return true;
+  return /^\s*(?:\$\s+)?node\s+--test\b/.test(line);
+}
+
+function structuredTestCommands(parsed) {
+  if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.scopes)) return null;
+  const commands = [];
+  for (const scope of parsed.scopes) {
+    if (!scope || typeof scope !== 'object' || !Array.isArray(scope.tests)) continue;
+    for (const testEntry of scope.tests) {
+      if (testEntry && typeof testEntry === 'object' && typeof testEntry.command === 'string') {
+        commands.push(testEntry.command);
+      }
+    }
+  }
+  return commands;
+}
+
 /* Every verification glob the repository declares, each carrying the artifact
    and line that declares it. */
 export function collectDeclaredTestGlobs(root = ROOT) {
   const byPattern = new Map();
-  const record = (pattern, kind, artifact, line) => {
+  const historicalSites = [];
+  const classificationErrors = [];
+  const record = (site) => {
+    if (site.authority === 'historical') {
+      historicalSites.push(site);
+      return;
+    }
+    if (site.authority === 'error') {
+      classificationErrors.push(site);
+      return;
+    }
+    const { pattern, kind } = site;
     if (!byPattern.has(pattern)) byPattern.set(pattern, { pattern, kind, sites: [] });
-    byPattern.get(pattern).sites.push({ artifact, line });
+    byPattern.get(pattern).sites.push(site);
   };
 
   const configAbs = resolve(root, PLAYWRIGHT_CONFIG_REL);
@@ -208,7 +341,16 @@ export function collectDeclaredTestGlobs(root = ROOT) {
     }
     for (const pattern of patterns) {
       playwrightMatchers++;
-      record(pattern, 'playwright-testMatch', PLAYWRIGHT_CONFIG_REL, line);
+      record({
+        pattern,
+        kind: 'playwright-testMatch',
+        artifact: PLAYWRIGHT_CONFIG_REL,
+        line,
+        artifactRole: ARTIFACT_ROLE.PLAYWRIGHT_CONFIG,
+        sectionRole: SECTION_ROLE.NONE,
+        authority: 'active',
+        reason: 'playwright-direct-config'
+      });
     }
   }
 
@@ -225,21 +367,105 @@ export function collectDeclaredTestGlobs(root = ROOT) {
     if (!text.includes('--test')) continue;
     const artifact = displayPath(root, abs);
     const lines = text.split(/\r?\n/);
-    for (let i = 0; i < lines.length; i++) {
-      NODE_TEST_INVOCATION.lastIndex = 0;
-      let invocation;
-      while ((invocation = NODE_TEST_INVOCATION.exec(lines[i])) !== null) {
-        TEST_PATH_ARGUMENT.lastIndex = 0;
-        let argument;
-        while ((argument = TEST_PATH_ARGUMENT.exec(invocation[1])) !== null) {
-          if (argument[0].includes('*')) record(argument[0], 'node-test-argument', artifact, i + 1);
+
+    const artifactRoleValue = artifactRole(artifact);
+    if (artifactRoleValue === ARTIFACT_ROLE.STRUCTURED_TEST_PLAN) {
+      const rawCandidates = [];
+      for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+        for (const pattern of nodePatterns(lines[lineIndex])) {
+          rawCandidates.push({ pattern, line: lineIndex + 1 });
         }
+      }
+      let commands = null;
+      try { commands = structuredTestCommands(JSON.parse(text)); } catch { commands = null; }
+      if (commands === null) {
+        for (const candidate of rawCandidates) {
+          record({
+            ...candidate,
+            kind: 'node-test-argument',
+            artifact,
+            artifactRole: artifactRoleValue,
+            sectionRole: SECTION_ROLE.NONE,
+            authority: 'error',
+            reason: 'malformed-structured-test-plan'
+          });
+        }
+        continue;
+      }
+
+      const recognizedCandidates = new Map();
+      let searchFrom = 0;
+      for (const command of commands) {
+        const commandNeedle = JSON.stringify(command);
+        const commandOffset = text.indexOf(commandNeedle, searchFrom);
+        const line = commandOffset < 0
+          ? 1
+          : text.slice(0, commandOffset + 1).split(/\r?\n/).length;
+        if (commandOffset >= 0) searchFrom = commandOffset + commandNeedle.length;
+        for (const pattern of nodePatterns(command)) {
+          const candidateKey = `${line}\0${pattern}`;
+          recognizedCandidates.set(candidateKey, (recognizedCandidates.get(candidateKey) ?? 0) + 1);
+          record({
+            pattern,
+            kind: 'node-test-argument',
+            artifact,
+            line,
+            artifactRole: artifactRoleValue,
+            sectionRole: SECTION_ROLE.TEST_PLAN,
+            authority: 'active',
+            reason: 'structured-test-plan'
+          });
+        }
+      }
+      for (const candidate of rawCandidates) {
+        const candidateKey = `${candidate.line}\0${candidate.pattern}`;
+        const recognizedCount = recognizedCandidates.get(candidateKey) ?? 0;
+        if (recognizedCount > 0) {
+          recognizedCandidates.set(candidateKey, recognizedCount - 1);
+          continue;
+        }
+        record({
+          ...candidate,
+          kind: 'node-test-argument',
+          artifact,
+          artifactRole: artifactRoleValue,
+          sectionRole: SECTION_ROLE.NONE,
+          authority: 'error',
+          reason: 'malformed-structured-test-plan'
+        });
+      }
+      continue;
+    }
+
+    const sectionRoles = artifact.endsWith('.md')
+      ? markdownSectionRoles(lines)
+      : new Array(lines.length).fill(SECTION_ROLE.NONE);
+    for (let i = 0; i < lines.length; i++) {
+      const sectionRole = sectionRoles[i];
+      if (!lineCanContainCandidate(lines[i], artifactRoleValue, sectionRole)) continue;
+      const classification = candidateClassification(artifactRoleValue, sectionRole);
+      for (const pattern of nodePatterns(lines[i])) {
+        record({
+          pattern,
+          kind: 'node-test-argument',
+          artifact,
+          line: i + 1,
+          artifactRole: artifactRoleValue,
+          sectionRole,
+          ...classification
+        });
       }
     }
   }
 
   const globs = [...byPattern.values()].sort((a, b) => byteOrder(a.pattern, b.pattern));
-  return { globs, playwrightMatchers, scannedFiles };
+  historicalSites.sort((left, right) => (
+    byteOrder(left.artifact, right.artifact) || left.line - right.line || byteOrder(left.pattern, right.pattern)
+  ));
+  classificationErrors.sort((left, right) => (
+    byteOrder(left.artifact, right.artifact) || left.line - right.line || byteOrder(left.pattern, right.pattern)
+  ));
+  return { classificationErrors, globs, historicalSites, playwrightMatchers, scannedFiles };
 }
 
 export function readBaseline(absBaselineFile) {
@@ -285,8 +511,15 @@ export function validateTestFileReachability(root = ROOT, options = {}) {
     }
   }
 
-  const { globs, playwrightMatchers, scannedFiles } = collectDeclaredTestGlobs(root);
+  const {
+    classificationErrors,
+    globs,
+    historicalSites,
+    playwrightMatchers,
+    scannedFiles
+  } = collectDeclaredTestGlobs(root);
   const compiled = globs.map((glob) => ({ ...glob, matcher: globToRegExp(glob.pattern) }));
+  const nodeGlobCount = globs.filter((glob) => glob.kind === 'node-test-argument').length;
 
   const reachable = [];
   const orphans = [];
@@ -310,12 +543,15 @@ export function validateTestFileReachability(root = ROOT, options = {}) {
     baselineCount: frozen.size,
     baselineFile: displayPath(root, baselineFile),
     baselinePresent,
+    classificationErrors,
     exempt,
     exemptRule: EXEMPT_RULE,
     globCount: globs.length,
     globs,
+    historicalSites,
     knownOrphans,
     newOrphans,
+    nodeGlobCount,
     orphans: orphans.slice().sort(byteOrder),
     playwrightMatchers,
     reachable,
@@ -323,7 +559,7 @@ export function validateTestFileReachability(root = ROOT, options = {}) {
     staleBaseline,
     testFileCount: testFiles.length,
     testsDir,
-    vacuous: globs.length === 0 || testFiles.length === 0 || scannedFiles === 0
+    vacuous: playwrightMatchers === 0 || nodeGlobCount === 0 || testFiles.length === 0 || scannedFiles === 0
   };
 }
 
@@ -331,12 +567,29 @@ export function formatTestFileReachabilityFindings(result, indent = 0) {
   const pad = ' '.repeat(indent);
   const lines = [];
   lines.push(`${pad}${result.testFileCount} test file(s) in ${result.testsDir}/, `
-    + `${result.globCount} declared glob(s) from ${result.scannedFiles} artifact(s), `
+    + `${result.globCount} active glob(s), ${result.historicalSites.length} historical site(s), `
+    + `${result.classificationErrors.length} classification error(s) from ${result.scannedFiles} artifact(s), `
     + `${result.reachable.length} reachable, ${result.exempt.length} exempt (${result.exemptRule}), `
     + `${result.orphans.length} orphan(s)`);
   for (const glob of result.globs) {
     lines.push(`${pad}glob ${glob.pattern} [${glob.kind}] declared at ${glob.sites.length} site(s), `
       + `first ${glob.sites[0].artifact}:${glob.sites[0].line}`);
+    if (result.allSites) {
+      for (const site of glob.sites) {
+        lines.push(`${pad}  active ${site.pattern} [${site.kind}] ${site.artifact}:${site.line} `
+          + `artifactRole=${site.artifactRole} sectionRole=${site.sectionRole} reason=${site.reason}`);
+      }
+    }
+  }
+  if (result.allSites) {
+    for (const site of result.historicalSites) {
+      lines.push(`${pad}historical ${site.pattern} [${site.kind}] ${site.artifact}:${site.line} `
+        + `artifactRole=${site.artifactRole} sectionRole=${site.sectionRole} reason=${site.reason}`);
+    }
+  }
+  for (const site of result.classificationErrors) {
+    lines.push(`${pad}CLASSIFICATION ERROR ${site.pattern} [${site.kind}] ${site.artifact}:${site.line} `
+      + `artifactRole=${site.artifactRole} sectionRole=${site.sectionRole} reason=${site.reason}`);
   }
   for (const entry of result.exempt) {
     lines.push(`${pad}exempt ${entry.path} — ${result.exemptRule}: registers no node:test test, `
@@ -432,12 +685,13 @@ function main(argv) {
   const result = validateTestFileReachability(root, { allSites });
   for (const line of formatTestFileReachabilityFindings(result, 0)) console.log(line);
 
+  if (result.classificationErrors.length > 0) return 1;
   if (update) {
     console.log(`baseline written: ${writeBaseline(root, result)}`);
     return 0;
   }
   if (result.vacuous) {
-    console.error('vacuous scan: derived no globs, found no test files, or read no artifacts');
+    console.error('vacuous scan: missing active Playwright or Node globs, test files, or scanned artifacts');
     return 1;
   }
   if (!result.baselinePresent) return 1;

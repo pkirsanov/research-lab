@@ -145,6 +145,17 @@ node --test tests/*.integration.mjs
 This selects every committed Node integration suite. A new integration test is
 therefore executable through a stable command without editing this registry.
 
+### Node functional and direct tests
+
+```bash
+node --test tests/*.functional.mjs
+node --test tests/*.test.mjs
+```
+
+These commands select every committed Node functional suite and direct
+`.test.mjs` suite. Browser-owned `.spec.mjs` files remain selected only by the
+Playwright command.
+
 ### Node unit tests
 
 ```bash

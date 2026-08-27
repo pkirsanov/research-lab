@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T05:45:55Z",
+  "lastUpdatedAt": "2026-08-27T06:08:44Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,7 +29,7 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.test",
+    "activeAgent": "bubbles.plan",
     "currentPhase": "harden",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
@@ -37,11 +37,11 @@
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredOwner": "bubbles.design",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "HARDEN-B009-001 is reconciled with truthful test executionHistory backing and a current opening report summary. Next reconcile planner-owned HARDEN-B009-002 while preserving the separately routed design and bug findings before harden reruns.",
+    "nextRequiredReason": "HARDEN-B009-002 is reconciled with truthful planner lifecycle metadata and BUG-009-ROUTE-009 is resolved. Next reconcile design-owned HARDEN-B009-003 while preserving the separately routed bug finding before harden reruns.",
     "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps"],
-    "pendingTransitionRequests": ["BUG-009-ROUTE-009", "BUG-009-ROUTE-010", "BUG-009-ROUTE-011"],
+    "pendingTransitionRequests": ["BUG-009-ROUTE-010", "BUG-009-ROUTE-011"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -160,11 +160,13 @@
     },
     {
       "id": "BUG-009-ROUTE-009",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.harden",
       "nextRequiredOwner": "bubbles.plan",
       "target": "scopes.md and test-plan.json lifecycle metadata",
-      "reason": "HARDEN-B009-002: reconcile stale regression-next-owner text, the stale regression uncertainty declaration, ready-for-regression planning status, and planned-not-executed rows against the recorded later phase history. Preserve every DoD checkbox and scope status."
+      "reason": "HARDEN-B009-002: reconcile stale regression-next-owner text, the stale regression uncertainty declaration, ready-for-regression planning status, and planned-not-executed rows against the recorded later phase history. Preserve every DoD checkbox and scope status.",
+      "resolvedBy": "bubbles.plan",
+      "resolvedAt": "2026-08-27T06:08:44Z"
     },
     {
       "id": "BUG-009-ROUTE-010",
@@ -259,6 +261,15 @@
       "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:293, independently verified focused shipped 1/1, exact mutant 0/1 through one ERR_ASSERTION and one Module._compile marker with zero infrastructure signals, strict registry 18 cases and all three outer tests, full risk 3/3, five BUG-008 carriers 43/43, risk browser 13/13, selftest 3426/3426, installed downstream G028 2 files with zero violations and warnings, all named packet gates, static test compliance, and exact product/injector/test blob and commit containment. Found four unresolved foreign-owned control-plane findings: unbacked test phase claim plus stale report summary, stale planner lifecycle metadata, and stale exact-title strings in design.md and bug.md. Recorded NOT_HARDENED and routed each owner without modifying source, tests, planning artifacts, DoD, human acceptance, status, or certification.",
       "phasesExecuted": ["harden"],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-27T06:08:44Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "reconciled-harden-lifecycle-metadata-and-routed-to-design",
+      "note": "Resolved only HARDEN-B009-002 and BUG-009-ROUTE-009. Scopes and the structured Test Plan now reflect the retained diagnostic RED and recorded execution for TP-B009-001 through TP-B009-006 and TP-B009-008 through TP-B009-011, with no TP-B009-007 invented. Harden remains incomplete, status and certification remain in_progress, Scope 1 remains In Progress, every DoD item remains unchecked, and human acceptance remains untouched. The next required owner is bubbles.design for HARDEN-B009-003.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist"
     }
   ],
   "addressedFindings": [
@@ -331,16 +342,16 @@
       "owner": "bubbles.test",
       "status": "addressed",
       "evidenceRef": "report.md#completion-statement"
+    },
+    {
+      "id": "HARDEN-B009-002",
+      "summary": "Planner lifecycle metadata now records the retained diagnostic RED and the executed TP-B009-001 through TP-B009-006 and TP-B009-008 through TP-B009-011 rows, preserves the absent TP-B009-007, and routes next to design without claiming harden completion, transition, human acceptance, or certification.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "test-plan.json#scopes"
     }
   ],
   "unresolvedFindings": [
-    {
-      "id": "HARDEN-B009-002",
-      "summary": "Planner-owned scopes and structured Test Plan still route to regression and describe executed test rows and regression verification as not executed or unclaimed.",
-      "owner": "bubbles.plan",
-      "status": "open",
-      "evidenceRef": "report.md#harden-phase-2026-08-27"
-    },
     {
       "id": "HARDEN-B009-003",
       "summary": "design.md prescribes a stale singular exact test title that conflicts with the active planned and delivered plural named-exclusions title.",

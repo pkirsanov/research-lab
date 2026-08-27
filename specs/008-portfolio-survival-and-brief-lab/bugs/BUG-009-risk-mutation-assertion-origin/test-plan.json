@@ -4,9 +4,9 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "generatedBy": "bubbles.plan",
   "generatedAt": "2026-08-27",
-  "planningStatus": "ready-for-regression-owner",
+  "planningStatus": "in-progress-harden-findings-routed",
   "tddMode": "scenario-first",
-  "evidenceBoundary": "Planning records no new test evidence. The test-owned report retains focused carrier, mutation, registry, and browser evidence; regression verification, human acceptance, and certification remain unclaimed.",
+  "evidenceBoundary": "Planning records no new test evidence. The report retains the diagnostic RED and execution evidence for TP-B009-001 through TP-B009-006 and TP-B009-008 through TP-B009-011. Implementation, test, regression, simplify, gaps, and setup have executed. Harden attempted and remains incomplete after routing four stale artifact findings. Transition, human acceptance, and certification remain pending.",
   "prerequisites": [
     {
       "id": "82d1db5e5",
@@ -62,7 +62,7 @@
           "commandRefs": ["CMD-B009-PREFIX-RED", "CMD-B009-BROAD-MUTANT-RED"],
           "liveSystem": false,
           "evidenceRef": "report.md#current-session-strict-registry-red",
-          "status": "executed-red",
+          "status": "executed-diagnostic-red-retained",
           "redGreenRequired": true
         },
         {
@@ -76,7 +76,7 @@
           "commandRef": "CMD-B009-FOCUSED-GREEN",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-001",
-          "status": "planned-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": true
         },
         {
@@ -92,7 +92,7 @@
           "expectedMutantFailure": "ERR_ASSERTION from the exact state or named-exclusion assertion",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-002",
-          "status": "planned-not-executed",
+          "status": "executed-required-red",
           "redGreenRequired": true
         },
         {
@@ -105,7 +105,7 @@
           "commandRef": "CMD-B009-FULL-REGISTRY",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-003",
-          "status": "planned-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": true
         },
         {
@@ -118,7 +118,7 @@
           "commandRef": "CMD-B009-FULL-RISK",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-004",
-          "status": "planned-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -132,7 +132,7 @@
           "commandRef": "CMD-B009-BUG008-CARRIERS",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-005",
-          "status": "planned-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -145,7 +145,7 @@
           "commandRef": "CMD-B009-RISK-E2E",
           "liveSystem": true,
           "evidenceRef": "report.md#tp-b009-006",
-          "status": "planned-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -158,7 +158,7 @@
           "commandRef": "CMD-B009-SELFTEST",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-008",
-          "status": "planned-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -172,7 +172,7 @@
           "commandRef": "CMD-B009-REGRESSION-QUALITY",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-009",
-          "status": "planned-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": true
         },
         {
@@ -185,7 +185,7 @@
           "commandRef": "CMD-B009-G028",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-010",
-          "status": "planned-not-executed",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -199,7 +199,7 @@
           "commandRefs": ["CMD-B009-ARTIFACT", "CMD-B009-TRACEABILITY", "CMD-B009-SCENARIO-OBLIGATION", "CMD-B009-TEST-MECHANISM", "CMD-B009-SCOPE-CONTEXT", "CMD-B009-CAPABILITY"],
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b009-011",
-          "status": "planned-revalidation-required",
+          "status": "executed-passed",
           "redGreenRequired": false
         }
       ]

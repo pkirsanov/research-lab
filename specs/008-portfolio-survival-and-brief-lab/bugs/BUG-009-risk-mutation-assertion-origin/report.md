@@ -13,9 +13,10 @@
   with `0` violations and `0` warnings.
 - The independent harden execution battery passes, but harden is not complete:
   it found and routed four control-plane findings. This reconciliation addresses
-  only test-owned `HARDEN-B009-001`; `HARDEN-B009-002..004` remain open.
-- The next required owner is `bubbles.plan` for `HARDEN-B009-002`. The design
-  and bug findings retain their separate owners.
+  only planner-owned `HARDEN-B009-002`; `HARDEN-B009-001` was already addressed,
+  and `HARDEN-B009-003..004` remain open.
+- The next required owner is `bubbles.design` for `HARDEN-B009-003`. The bug
+  finding retains its separate owner.
 - Historical before/after evidence, including the earlier `3425/3426` failure,
   remains intact. Product source, tests, DoD, scope status, human acceptance,
   certification, BUG-007, BUG-008, and parent Feature 008 artifacts are
@@ -28,11 +29,11 @@ implemented and verified. Regression, simplify, gaps, and sanctioned setup are
 complete; installed downstream G028 scans `2` files with `0` violations and
 `0` warnings. Independent harden execution checks pass, but harden remains
 incomplete because that pass routed four control-plane findings. This change
-adds the missing test-phase execution provenance, addresses only
-`HARDEN-B009-001`, and resolves its transition request. The remaining planner,
-design, and bug findings stay open, with `bubbles.plan` next. BUG-009 remains
-`in_progress`, the scope remains In Progress, every DoD item remains unchecked,
-and human acceptance and certification remain untouched and unclaimed.
+reconciles planner lifecycle metadata, addresses only `HARDEN-B009-002`, and
+resolves `BUG-009-ROUTE-009`. The design and bug findings stay open, with
+`bubbles.design` next for `HARDEN-B009-003`. BUG-009 remains `in_progress`, the
+scope remains In Progress, every DoD item remains unchecked, and human
+acceptance and certification remain untouched and unclaimed.
 
 ## Test Evidence
 

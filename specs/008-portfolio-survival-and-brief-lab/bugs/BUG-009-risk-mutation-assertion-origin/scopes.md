@@ -3,7 +3,7 @@
 **Layout:** single-file
 **Mode:** `bugfix-fastlane`
 **Packet status:** `in_progress`
-**Next required owner:** `bubbles.regression`
+**Next required owner:** `bubbles.design` for `HARDEN-B009-003`
 
 [Spec](spec.md) | [Design](design.md) | [Report](report.md) |
 [User validation](uservalidation.md) |
@@ -11,8 +11,11 @@
 [Structured Test Plan](test-plan.json)
 
 Planning changes no source or persistent test. The test-owned report records
-the two permitted test hunks and their execution evidence; this repaired plan
-routes the still-in-progress scope to `bubbles.regression`.
+the two permitted test hunks and their execution evidence. Implementation,
+test, regression, simplify, gaps, and setup have executed. Harden attempted and
+remains incomplete after routing four stale artifact findings. This planner
+repair resolves `HARDEN-B009-002` and its transition request, then routes the
+still-in-progress packet to `bubbles.design` for `HARDEN-B009-003`.
 
 ## Execution Outline
 
@@ -50,8 +53,8 @@ routes the still-in-progress scope to `bubbles.regression`.
 **Depends On:** None
 **Scope-Kind:** contract-only
 **Finding:** `F008-RISK-INPUT-001`
-**Execution dependency:** `bubbles.regression` -> remaining quality phases ->
-`bubbles.validate`
+**Execution routing:** `bubbles.design` resolves `HARDEN-B009-003`; harden
+remains open, and transition plus final acceptance remain pending.
 
 ### Implementation Files
 
@@ -247,11 +250,12 @@ contract.
 ### Uncertainty Declaration For Unchecked Items
 
 **Attempted:** Repaired the planner-owned command catalogs, linked test title,
-and lifecycle route after test execution. **Observed:** The test-owned report
-retains implementation and execution evidence, while regression, later quality
-phases, human acceptance, and certification remain incomplete. **Resolution:**
-`bubbles.regression` must independently verify the committed regression
-contracts before the remaining quality phases may proceed.
+and lifecycle route after execution. **Observed:** The test-owned report retains
+implementation, test, regression, simplify, gaps, and setup evidence. Harden
+attempted and routed four stale artifact findings; harden completion,
+transition, human acceptance, and certification remain unclaimed.
+**Resolution:** After this planner-owned `HARDEN-B009-002` correction and its
+transition request are resolved, `bubbles.design` owns `HARDEN-B009-003`.
 
-All items remain unchecked. Planning claims no regression verdict, human
-acceptance, or certification.
+All items remain unchecked. The scope remains In Progress. Planning claims no
+harden completion, transition, human acceptance, or certification.

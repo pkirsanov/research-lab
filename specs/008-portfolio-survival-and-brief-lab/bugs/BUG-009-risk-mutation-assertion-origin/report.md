@@ -966,3 +966,210 @@ persisted `bugfix-fastlane` registry resolves the phase order as `regression`
 followed by `simplify`; the next owner is therefore `bubbles.simplify`.
 BUG-009 remains `in_progress`, its scope remains In Progress, every DoD item
 remains unchecked, and human acceptance and certification remain unchanged.
+
+## Simplify Phase - 2026-08-27 {#simplify-phase-2026-08-27}
+
+**Phase:** simplify
+**Claim Source:** interpreted
+**Interpretation:** The bounded test delta is already the smallest auditable
+form. Extracting a fixture or assertion helper would add indirection without
+removing repeated behavior and would weaken the visible causal link between the
+registered mutation and the first failing contract assertion.
+**Executed at:** `2026-08-27T01:54:02Z`
+**Repository authority:** host revision `277`; committed Research Lab decision
+`rb:vscode-d037d272141b9d17af8fa6ccdd049e69:278` at control revision `278`.
+**Reviewed implementation:** `4824edc81b0920b40e728f55b8e8dfdbe1804b2d`
+**Reviewed paths:** `tests/portfolio-risk.functional.mjs` and the one
+`F008-RISK-INPUT-001` title scalar in
+`tests/portfolio-test-integrity.unit.mjs`.
+
+### Three Independent Review Passes
+
+| Pass | Finding | Decision |
+| --- | --- | --- |
+| Reuse | Existing Feature 008 fixtures exercise the larger `riskXRayProjection()` contract. None is a reusable direct two-holding `assetTreatment()` carrier. | Keep the local two-record input. Extracting it would obscure why this title alone is the mutation carrier. |
+| Clarity | The eight assertions each expose one required contract fact: state, included symbol, named exclusion, look-through state, covered id, missing id, covered weight, and uncovered weight. | Keep the assertions direct and separate. A whole-object assertion or helper would reduce failure locality and assertion-origin auditability. |
+| Efficiency | The title performs one production call over two small records and no repeated setup, serialization, sorting, or derived computation. The registry change is one exact scalar. | No optimization is available without adding code or weakening exactness. |
+
+**Simplify verdict:** `NO_CHANGE`. No source or test byte was edited. No helper,
+fixture, abstraction, fallback, baseline, budget, or skip was introduced.
+
+### Focused Title
+
+**Phase:** simplify
+**Command:** `timeout 240 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 simplify focused title" -- node --test --test-name-pattern='^BUG-009 risk mapping: unsupported holdings remain named exclusions$' tests/portfolio-risk.functional.mjs`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+# BUG-009 simplify focused title
+$ node --test --test-name-pattern=^BUG-009 risk mapping: unsupported holdings remain named exclusions$ tests/portfolio-risk.functional.mjs
+exit: 0
+lines: 16
+sha256: d7ca2ef5d7f276be083e3fd88127727915c5e2922e130bfc73fb28a3abc0099f
+--- output ---
+TAP version 13
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+  ---
+  duration_ms: 3.279472
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 75.436377
+```
+
+### Narrowed Registry
+
+**Phase:** simplify
+**Command:** `timeout 240 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 simplify narrowed registry" -- node --test --test-name-pattern='^Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing$' tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+# BUG-009 simplify narrowed registry
+$ node --test --test-name-pattern=^Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing$ tests/portfolio-test-integrity.unit.mjs
+exit: 0
+lines: 16
+sha256: 45e7499866212626ea7effac49f3e6b4d0fd38457e8e9b829f957be9bae85d2f
+--- output ---
+TAP version 13
+# Subtest: Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+  ---
+  duration_ms: 5832.498034
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 5916.958837
+```
+
+### Complete Integrity And Risk Carriers
+
+**Phase:** simplify
+**Commands:**
+
+- `timeout 240 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 simplify full integrity" -- node --test tests/portfolio-test-integrity.unit.mjs`
+- `timeout 240 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 simplify full risk" -- node --test tests/portfolio-risk.functional.mjs`
+
+**Exit Codes:** integrity `0`; risk `0`
+**Claim Source:** executed
+
+```text
+# BUG-009 simplify full integrity
+$ node --test tests/portfolio-test-integrity.unit.mjs
+exit: 0
+lines: 28
+sha256: 9c28e1ddb53a33c2e4d8a529e39b5cc86c49bceb71719ff92616f0c0f4c5f893
+# Subtest: Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+# Subtest: BUG-007: caller-key protections and normal ordering are load-bearing in memory
+ok 2 - BUG-007: caller-key protections and normal ordering are load-bearing in memory
+# Subtest: BUG-007: represented mutants execute one protective assertion through one intended hook
+ok 3 - BUG-007: represented mutants execute one protective assertion through one intended hook
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# BUG-009 simplify full risk
+$ node --test tests/portfolio-risk.functional.mjs
+exit: 0
+lines: 28
+sha256: a3f6ba3531280c296eecd83c0a0eaaea80fbe1c0fe84fa5d536a22bf7f6edc3e
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+# Subtest: SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output
+ok 2 - SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output
+# Subtest: SCN-008-047 failed candidate preserves the last valid structured result
+ok 3 - SCN-008-047 failed candidate preserves the last valid structured result
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+```
+
+### Syntax, Regression Quality, And Blob Identity
+
+**Phase:** simplify
+**Commands:** `node --check` on both reviewed test files; the canonical
+`regression-quality-guard.sh --bugfix` over those files; and four-checkpoint Git
+blob comparisons over product, injector, and reviewed tests.
+**Exit Codes:** syntax `0` and `0`; regression quality `0`; identity `0`.
+**Claim Source:** executed
+**Output normalization:** the regression guard's absolute repository root is
+rendered as `~/research-lab`; no result line or count is changed.
+
+```text
+=== syntax: tests/portfolio-risk.functional.mjs ===
+risk_syntax_exit=0
+=== syntax: tests/portfolio-test-integrity.unit.mjs ===
+integrity_syntax_exit=0
+syntax_summary risk=0 integrity=0
+# BUG-009 simplify regression quality
+$ bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-test-integrity.unit.mjs tests/portfolio-risk.functional.mjs
+exit: 0
+lines: 17
+sha256: 25b1fbc4368daaaa6046022ab02d36b6c4a89e6cb12a2236405b6e95a5008647
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: ~/research-lab
+  Timestamp: 2026-08-27T01:53:13Z
+  Bugfix mode: true
+============================================================
+Scanning tests/portfolio-test-integrity.unit.mjs
+Adversarial signal detected in tests/portfolio-test-integrity.unit.mjs
+Scanning tests/portfolio-risk.functional.mjs
+Adversarial signal detected in tests/portfolio-risk.functional.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 2
+Files with adversarial signals: 2
+product_parent=203c57b14898a13e0da81898e755ea5f5f6674ba
+product_commit=203c57b14898a13e0da81898e755ea5f5f6674ba
+product_head=203c57b14898a13e0da81898e755ea5f5f6674ba
+product_worktree=203c57b14898a13e0da81898e755ea5f5f6674ba
+injector_parent=20ed786006be23f542ec3c524758eda625567ea9
+injector_commit=20ed786006be23f542ec3c524758eda625567ea9
+injector_head=20ed786006be23f542ec3c524758eda625567ea9
+injector_worktree=20ed786006be23f542ec3c524758eda625567ea9
+risk_commit=2a537316eadbf5067d19c020e0a60b020fb16e84
+risk_head=2a537316eadbf5067d19c020e0a60b020fb16e84
+risk_worktree=2a537316eadbf5067d19c020e0a60b020fb16e84
+registry_commit=5aa222876f78430ef1d76a2c980045cf6a5d5207
+registry_head=5aa222876f78430ef1d76a2c980045cf6a5d5207
+registry_worktree=5aa222876f78430ef1d76a2c980045cf6a5d5207
+identity_result=PASS
+```
+
+### Remaining Prerequisite And Route
+
+The installed downstream G028 prerequisite is unchanged: canonical Bubbles fix
+`db7b4f2` must propagate through the installer before final downstream G028
+execution. This phase neither bypassed that prerequisite nor edited any
+downstream framework file.
+
+The resolved `bugfix-fastlane` phase order is `regression` -> `simplify` ->
+`gaps`. The next owner is `bubbles.gaps`. BUG-009 stays `in_progress`; the
+scope stays In Progress; all DoD checkboxes stay unchecked; human acceptance
+and every certification field stay unchanged.

@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T01:43:38Z",
+  "lastUpdatedAt": "2026-08-27T01:54:02Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,19 +29,19 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.regression",
-    "currentPhase": "regression",
+    "activeAgent": "bubbles.simplify",
+    "currentPhase": "simplify",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "quality_reverification_required",
+    "substate": "simplification_not_warranted",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.simplify",
-    "nextRequiredTarget": "tests/portfolio-risk.functional.mjs, tests/portfolio-test-integrity.unit.mjs",
-    "nextRequiredReason": "Independent regression is clean across the exact shipped title, one-marker ERR_ASSERTION mutant, 18-case narrowed registry, 3-test integrity file, 3-test risk carrier, 43-test BUG-008 carrier set, 13-test risk browser carrier, 3426-test canonical selftest, scenario resolution, regression-quality guard, six packet gates, protected-byte audit, and canonical-source G028 diagnostic. Review the bounded two-test-file delta for simplification; final downstream G028 execution still requires installer propagation of db7b4f2.",
-    "completedPhaseClaims": ["bug", "plan", "test", "regression"],
-    "pendingTransitionRequests": ["BUG-009-ROUTE-004"],
+    "nextRequiredOwner": "bubbles.gaps",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+    "nextRequiredReason": "The no-change simplify review found the direct two-holding carrier and one registry title scalar already minimal and auditable. Focused title, narrowed registry, full 3/3 integrity, full 3/3 risk, syntax, regression quality, and protected blob identity all passed independently. Continue the canonical bugfix-fastlane sequence with gaps; final downstream G028 still requires installer propagation of db7b4f2.",
+    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify"],
+    "pendingTransitionRequests": ["BUG-009-ROUTE-005"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -110,11 +110,21 @@
     },
     {
       "id": "BUG-009-ROUTE-004",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.regression",
       "nextRequiredOwner": "bubbles.simplify",
       "target": "tests/portfolio-risk.functional.mjs, tests/portfolio-test-integrity.unit.mjs",
-      "reason": "The independent regression closure is clean and the persisted bugfix-fastlane phase order places simplify after regression. Review the one direct carrier and one title remap for unnecessary complexity without changing behavior, planner-owned artifacts, human acceptance, certification, or the downstream G028 propagation prerequisite."
+      "reason": "The independent regression closure is clean and the persisted bugfix-fastlane phase order places simplify after regression. Review the one direct carrier and one title remap for unnecessary complexity without changing behavior, planner-owned artifacts, human acceptance, certification, or the downstream G028 propagation prerequisite.",
+      "resolvedBy": "bubbles.simplify",
+      "resolvedAt": "2026-08-27T01:54:02Z"
+    },
+    {
+      "id": "BUG-009-ROUTE-005",
+      "status": "pending",
+      "fromAgent": "bubbles.simplify",
+      "nextRequiredOwner": "bubbles.gaps",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "No simplification is warranted: the direct assetTreatment carrier preserves one-to-one assertion causality, the registry remap is one scalar, and all requested independent checks are green. Review the delivered packet for remaining requirement or integration gaps without bypassing the installer-propagation prerequisite for canonical G028 fix db7b4f2."
     }
   ],
   "reworkQueue": [],
@@ -153,6 +163,15 @@
       "action": "independent-regression-clean-and-routed-to-simplify",
       "note": "Confirmed Research Lab authority from operator-stated revision 273 through final actionable decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:276. Independently executed the focused shipped title at 1 of 1, the exact one-marker mutant at 0 of 1 through ERR_ASSERTION with no TypeError or infrastructure substitute, the 18-case narrowed registry at 1 of 1, the full integrity file at 3 of 3, the risk carrier at 3 of 3, five BUG-008 carriers at 43 of 43, the real-browser risk carrier at 13 of 13, and the canonical selftest at 3426 of 3426. Regression quality, all three scenario links, six packet gates, and the canonical db7b4f2 G028 diagnostic passed. Product and injector blob identities remained unchanged, and implementation commit 4824edc81 changed only the two declared test files with no skip, budget, or baseline change. The installed downstream G028 blob still differs from canonical and remains an explicit installer-propagation prerequisite. Changed only regression-owned report and execution state, preserved every concurrent dirty path, left all DoD items unchecked, left the scope In Progress, and did not change human acceptance, certification, or push state. Resolved route 003 and routed route 004 to bubbles.simplify.",
       "phasesExecuted": ["regression"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-27T01:54:02Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "action": "three-pass-no-change-review-verified-and-routed-to-gaps",
+      "note": "Reviewed only implementation commit 4824edc81: the direct assetTreatment title in tests/portfolio-risk.functional.mjs and the exact F008-RISK-INPUT-001 title scalar in tests/portfolio-test-integrity.unit.mjs. Reuse, clarity, and efficiency passes all rejected churn: existing fixtures exercise broader projection behavior, the eight separate assertions preserve one-to-one contract and mutation-failure causality, and the title performs one production call over two records with no redundant computation. Executed the focused title at 1 of 1, narrowed 18-case registry umbrella at 1 of 1, full integrity at 3 of 3, full risk at 3 of 3, syntax for both files, and regression-quality at zero violations and zero warnings. Product and injector blobs match implementation parent, implementation commit, HEAD, and working tree; both reviewed test blobs match implementation commit, HEAD, and working tree. No source, test, injector, planning, human-acceptance, certification, scope-status, DoD, or downstream framework byte changed. The installed downstream G028 prerequisite remains installer propagation of canonical fix db7b4f2. Resolved route 004 and routed route 005 to bubbles.gaps, the next phase in the resolved fastlane order.",
+      "phasesExecuted": ["simplify"],
       "provenanceMode": "specialist"
     }
   ],
@@ -198,6 +217,13 @@
       "owner": "bubbles.regression",
       "status": "addressed",
       "evidenceRef": "report.md#independent-regression-phase-2026-08-27"
+    },
+    {
+      "id": "B009-SIMPLIFY-001",
+      "summary": "Three independent simplify passes found the direct two-holding carrier and one registry title scalar already minimal; requested focused, registry, full-file, syntax, quality, and blob-identity checks passed without changing implementation bytes.",
+      "owner": "bubbles.simplify",
+      "status": "addressed",
+      "evidenceRef": "report.md#simplify-phase-2026-08-27"
     }
   ],
   "unresolvedFindings": []

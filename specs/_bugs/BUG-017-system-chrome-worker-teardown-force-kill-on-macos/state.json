@@ -266,26 +266,30 @@
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": [
+      "01-characterise-the-stall-well-enough-to-choose",
+      "02-apply-the-selected-remedy",
+      "03-disclose-it-where-a-developer-meets-it"
+    ],
     "certifiedCompletedPhases": [],
     "certificationFieldWriteNote": "certification.status was set equal to the top-level status. It reads in_progress because the packet is filed and unstarted: three scopes Not Started, zero Definition of Done items ticked, the root cause unestablished. completedScopes is empty. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any evidence in report.md.",
     "scopeProgress": [
       {
         "scopeId": "01-characterise-the-stall-well-enough-to-choose",
         "status": "done",
-        "dodChecked": 7,
+        "dodChecked": 10,
         "dodUnchecked": 0
       },
       {
         "scopeId": "02-apply-the-selected-remedy",
         "status": "done",
-        "dodChecked": 7,
+        "dodChecked": 9,
         "dodUnchecked": 0
       },
       {
         "scopeId": "03-disclose-it-where-a-developer-meets-it",
         "status": "done",
-        "dodChecked": 4,
+        "dodChecked": 8,
         "dodUnchecked": 0
       },
       {
@@ -296,7 +300,11 @@
       }
     ]
   },
-  "completedScopes": [],
+  "completedScopes": [
+    "01-characterise-the-stall-well-enough-to-choose",
+    "02-apply-the-selected-remedy",
+    "03-disclose-it-where-a-developer-meets-it"
+  ],
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
     "grill": {

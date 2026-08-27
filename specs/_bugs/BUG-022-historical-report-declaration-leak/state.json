@@ -71,8 +71,8 @@
       {
         "scopeId": "01-separate-active-declarations-from-historical-receipts",
         "status": "in_progress",
-        "dodChecked": 0,
-        "dodUnchecked": 17
+        "dodChecked": 12,
+        "dodUnchecked": 3
       }
     ]
   },

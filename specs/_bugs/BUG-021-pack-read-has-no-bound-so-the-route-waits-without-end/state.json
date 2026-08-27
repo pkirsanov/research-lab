@@ -192,23 +192,56 @@
     "certifiedAt": null,
     "assuranceLevel": null,
     "evidence": null,
+    "lockdownState": "unlocked",
+    "completedScopes": [
+      "01-bound-every-declared-document-read",
+      "02-pin-both-sides-of-the-bound"
+    ],
+    "certifiedCompletedPhases": [],
     "scopeProgress": [
       {
         "scopeId": "01-bound-every-declared-document-read",
         "status": "done",
-        "dodChecked": 8,
+        "dodChecked": 10,
         "dodUnchecked": 0
       },
       {
         "scopeId": "02-pin-both-sides-of-the-bound",
         "status": "done",
-        "dodChecked": 6,
+        "dodChecked": 8,
         "dodUnchecked": 0
       }
     ]
   },
+  "completedScopes": [
+    "01-bound-every-declared-document-read",
+    "02-pin-both-sides-of-the-bound"
+  ],
   "policySnapshot": {
-    "capturedAt": "2026-08-24T00:00:00Z",
-    "source": "bubbles.stabilize filing"
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
   }
 }

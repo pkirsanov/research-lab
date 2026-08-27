@@ -272,7 +272,7 @@
       "03-disclose-it-where-a-developer-meets-it"
     ],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status was set equal to the top-level status. It reads in_progress because the packet is filed and unstarted: three scopes Not Started, zero Definition of Done items ticked, the root cause unestablished. completedScopes is empty. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any evidence in report.md.",
+    "certificationFieldWriteNote": "The completion mirror lists the three scope artifacts currently marked Done. Packet status and certification.status remain in_progress, and certifiedCompletedPhases remains empty; this reconciliation does not assert terminal certification or alter execution provenance.",
     "scopeProgress": [
       {
         "scopeId": "01-characterise-the-stall-well-enough-to-choose",

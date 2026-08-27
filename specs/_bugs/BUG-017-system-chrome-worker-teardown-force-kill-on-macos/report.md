@@ -2374,7 +2374,7 @@ The current finalization failures activate the approved fallback route. The earl
 passes and failures remain unchanged above. This section records new inverse commits and new
 fallback execution. It does not reinterpret a non-zero command as a pass.
 
-### Candidate Rollback And Baseline Identity
+**Candidate Rollback And Baseline Identity**
 
 Commit `047292eb2d2d7444dff1e45b52738950609cad4b` reverses lifecycle test commit
 `5620a4e7865742eca3651565bffcac86153a4419`. Commit

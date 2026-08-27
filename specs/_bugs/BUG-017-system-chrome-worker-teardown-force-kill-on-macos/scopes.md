@@ -466,10 +466,10 @@ Feature: Foundation releases its browser before the worker is asked to stop
 
 ### Implementation Files
 
-- `tests/portfolio-survival-foundation.spec.mjs` — restored to its pre-candidate baseline.
+- `playwright.config.mjs` — selected one-worker fallback after hash-verified rollback.
+- `.specify/memory/agents.md` — command-registry disclosure for the selected fallback.
 - `tests/playwright-runtime.foundation.functional.mjs` — fallback pin and containment
   regression after candidate-test rollback.
-- `playwright.config.mjs` — selected one-worker fallback after hash-verified rollback.
 
 ### Change Boundary
 
@@ -520,6 +520,7 @@ another exploratory rerun. Do not spend another complete run before applying the
 
 ### Definition of Done
 
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior persist for the selected fallback: TP-BUG017-04-04 maps SCN-BUG017-11 to the exact config-default 94-test system-Chrome command and asserts one resolved worker, 94/94 passing, exit 0, no force-kill or ignored lifecycle error, and zero owned residue.
 - [x] Scenario-specific evidence records every Scope 4 branch outcome. The lifecycle candidate's green and red canaries remain preserved. The selected SCN-BUG017-11 fallback functional test and two complete C03 runs pass. **Phase:** implement. **Claim Source:** executed. → Evidence: [Scope 4 finalization validation](report.md#scope-4-finalization-validation-candidate-rejected) and [Scope 4 fallback selection](report.md#scope-4-fallback-selection-and-verification).
 - [x] Broader E2E regression suite passes for the complete eight-file, 94-test BUG-022 C03 portfolio workload under the selected system-Chrome worker configuration. **Phase:** implement. **Claim Source:** executed. → Evidence: [Exact BUG-022 C03 at workers two](report.md#exact-bug-022-c03-at-workers-two).
 - [x] The additive supersession is respected: no current closure claim relies on the historical `0/3 at two workers` observation, and no historical evidence or checked row is rewritten. **Phase:** implement. **Claim Source:** executed. → Evidence: [Additive supersession integrity](report.md#additive-supersession-integrity).

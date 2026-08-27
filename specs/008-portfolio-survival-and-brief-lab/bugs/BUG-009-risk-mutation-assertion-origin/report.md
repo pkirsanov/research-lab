@@ -12,16 +12,14 @@
   complete. The installed downstream G028 scan resolves both declared files
   with `0` violations and `0` warnings.
 - The fresh harden verdict remains `NOT_HARDENED`.
-  `HARDEN-B009-001..005` are addressed after this planner reconciliation.
-- `HARDEN-B009-006` remains routed to `bubbles.analyst` through existing
-  `BUG-009-ROUTE-014` and is the next BUG-local route.
-  `HARDEN-B009-007` remains an external parent Feature 008 selftest blocker on
-  the existing parent `bubbles.validate` route. After both resolve, rerun
-  harden; do not route to stabilize now.
+  `HARDEN-B009-001..007` are addressed after the parent validation repair.
+- `BUG-009-ROUTE-015` is the next BUG-local route and returns the packet to
+  `bubbles.harden` for a fresh harden pass. No stabilize route is open.
 - Historical before/after evidence, including the earlier `3425/3426` failure,
-  remains intact. Product source, tests, DoD, scope status, human acceptance,
-  certification, BUG-007, BUG-008, and parent Feature 008 artifacts are
-  unchanged by this reconciliation.
+  remains intact. Parent Feature 008 changed only by replacing two disposed
+  harness path tokens in its existing aggregate unstaged state transaction.
+  Product source, tests, DoD, scope status, human acceptance, certification,
+  BUG-007, and BUG-008 are unchanged by this validation increment.
 
 ## Completion Statement
 
@@ -29,13 +27,11 @@ The owned test repair and every test execution claimed by this report are
 implemented and verified. Regression, simplify, gaps, and sanctioned setup are
 complete; installed downstream G028 scans `2` files with `0` violations and
 `0` warnings. Fresh harden remains `NOT_HARDENED`. This change resolves only
-`HARDEN-B009-005` and `BUG-009-ROUTE-013`, leaving
-`HARDEN-B009-001..005` addressed. `HARDEN-B009-006` is next for
-`bubbles.analyst` via `BUG-009-ROUTE-014`; `HARDEN-B009-007` remains linked to
-the existing external parent `bubbles.validate` route. After both resolve,
-rerun harden. No stabilize route is opened. BUG-009 remains `in_progress`, the
-scope remains In Progress, every DoD item remains unchecked, and human
-acceptance and certification remain untouched and unclaimed.
+`HARDEN-B009-007` externally and opens `BUG-009-ROUTE-015` to
+`bubbles.harden`; `HARDEN-B009-001..007` are addressed. No stabilize route is
+opened. BUG-009 remains `in_progress`, the scope remains In Progress, every DoD
+item remains unchecked, and human acceptance and certification remain untouched
+and unclaimed.
 
 ## Test Evidence
 
@@ -2067,7 +2063,7 @@ sha256: 3b576684ef7ce030e1170939cf1acf1275feb2a555a5ce1d0e7cb1816000abc7
 FAIL: no active tests/*.mjs path named by a spec artifact is missing outside the frozen baseline
 Research-Lab self-test: 3425 passed, 1 failed
 [spec-test-paths] scanned=837 references=19603 distinctPaths=270 missingPaths=71 plannedMissing=0 baseline=70 new=1 stale=0
-NEW-MISSING tests/chaos-439508.spec.mjs (2 reference site(s))
+NEW-MISSING [run-scoped chaos-439508 Playwright harness; removed after execution] (2 reference site(s))
 referenced at specs/008-portfolio-survival-and-brief-lab/state.json:1604
 referenced at specs/008-portfolio-survival-and-brief-lab/state.json:1618
 [spec-test-paths] FAIL - 1 new referenced path(s) do not exist
@@ -2122,7 +2118,7 @@ across bug, spec, design, scope, manifest, plan, shipped test, and registry.
 | --- | --- | --- |
 | `HARDEN-B009-005` | Active `report.md` and `scopes.md` lifecycle text still routes resolved findings 003 and 004 to `bubbles.design`. | `bubbles.plan` |
 | `HARDEN-B009-006` | The exact shipped title occurs zero times in `spec.md`, while all seven other required surfaces contain it. | `bubbles.analyst` |
-| `HARDEN-B009-007` | Canonical selftest is `3425/3426` because protected parent state names missing `tests/chaos-439508.spec.mjs` twice. | `bubbles.validate` for the existing parent route |
+| `HARDEN-B009-007` | Canonical selftest is `3425/3426` because protected parent state names the removed run-scoped chaos-439508 Playwright harness twice as a durable test artifact. | `bubbles.validate` for the existing parent route |
 
 ### Fresh Harden Verdict
 
@@ -2162,7 +2158,7 @@ added to `execution.completedPhaseClaims` and the packet does not advance to
 | --- | --- | --- |
 | `HARDEN-B009-005` | Unresolved. Reconcile the active report Summary and Completion Statement plus `scopes.md` lifecycle and routing text that still says findings 003 and 004 remain open and routes to design. | `bubbles.plan` via `BUG-009-ROUTE-013` |
 | `HARDEN-B009-006` | Unresolved. Add the exact shipped title to active `spec.md` without changing behavior, requirements, or acceptance criteria. | `bubbles.analyst` via `BUG-009-ROUTE-014` |
-| `HARDEN-B009-007` | Unresolved external parent finding. Preserve the canonical selftest result at `3425/3426`: parent Feature 008 state references missing `tests/chaos-439508.spec.mjs` twice. | Existing parent Feature 008 `bubbles.docs` execution-history route started `2026-08-27T06:19:29Z`, already assigned to `bubbles.validate` against parent `state.json` |
+| `HARDEN-B009-007` | Unresolved external parent finding. Preserve the canonical selftest result at `3425/3426`: parent Feature 008 state names the removed run-scoped chaos-439508 Playwright harness twice as a durable test artifact. | Existing parent Feature 008 `bubbles.docs` execution-history route started `2026-08-27T06:19:29Z`, already assigned to `bubbles.validate` against parent `state.json` |
 
 No BUG-local transition request duplicates `HARDEN-B009-007`. The BUG state
 links the existing parent route and leaves parent state and chaos files
@@ -2212,3 +2208,97 @@ After `HARDEN-B009-006` and `HARDEN-B009-007` resolve, rerun harden. This
 reconciliation does not route to stabilize. BUG-009 remains `in_progress`.
 Scope 1 remains In Progress. All 18 DoD items remain unchecked. Human
 acceptance and every certification field remain unchanged.
+
+## HARDEN-B009-007 Parent Validation - Repository Authority Revision 308 {#harden-b009-007-parent-validation-revision-308}
+
+**Phase:** validate
+**Agent:** `bubbles.validate`
+**Claim Source:** executed
+**Recorded at:** `2026-08-27T07:23:29Z`
+**Repository authority:** host observation revision `308`; committed Research
+Lab decision `rb:vscode-d037d272141b9d17af8fa6ccdd049e69:309` at control
+revision `309`.
+
+### Parent Repair And Focused Validation
+
+The parent Feature 008 state retains chaos identity `439508`, all three seeds
+`439508`, `811327`, and `205774`, the `344` traced actions, the `7/7` outcomes,
+the zero-finding control-arm result, and the later docs finding. Only the two
+tokens that named the disposed harness as a durable test file changed. BUG-009's
+four historical descriptions now use the same semantic run-scoped harness name
+so they cannot recreate the missing-path contract they describe.
+
+**Commands:**
+
+- `timeout 120 node scripts/validate-spec-test-paths.mjs`
+- `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 parent path repair canonical selftest" -- node scripts/selftest.mjs`
+
+**Exit Codes:** `0`, `0`
+
+```text
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=837 references=19603 distinctPaths=269 missingPaths=70
+ plannedMissing=0 baseline=70 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+
+# BUG-009 parent path repair canonical selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3919
+sha256: 9ff226b15e342070f8ce8c820cb6344e2e2323f3ec821c2398221efff650f8d1
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 3879 line(s); sha256 above covers the full output ---
+--- last 20 ---
+specs/ — every scope progress claim matches the Definition of Done it summarises
+  ✓ a claim of 2 ticked and 1 open matches an artifact holding exactly those rows, so the ordinary reconciled case is not reported — rows outside the Definition-of-Done section, rows in a sibling section, and rows inside a fenced block are all excluded (1 claim(s), 1 agreeing)
+  ✓ the fence mask is what removes the documented example rows — ignoring fences the same artifact tallies 5/2 against the masked 4/1, so the rule is load-bearing rather than decorative
+  ✓ a registry claiming more ticked rows than the artifact carries FAILS, and the finding names the packet, the scope and both sides (claims 3/0 checked/unchecked, artifact has 2/1)
+  ✓ a registry claiming fewer ticked rows than the artifact carries FAILS too — drift in either direction is a false summary
+  ✓ a claim whose scope artifact cannot be located FAILS instead of being silently skipped — an unverifiable claim is not a verified one
+  ✓ the single-file bug-packet layout resolves all three of its claims — a numbered scope whose tiered DoD includes a deeper sub-heading, a sibling scope that has not started, and the packet-level cross-scope block — across the dodChecked, dodTicked and dodTotal spellings alike (3/3 agreeing)
+  ✓ scope 2 ends where the cross-scope block begins rather than running to end-of-file, and `## Scope Summary` is not mistaken for a scope section because it carries no ordinal (01, 02, cross-scope)
+  ✓ a `#` line inside a fenced Gherkin block is a comment rather than a heading, so it never splits a scope or ends a Definition of Done (2 real headings, 3 when fences are ignored)
+  ✓ a scope already frozen in the baseline is carried as known debt rather than failing the run, so pre-existing drift in packets this change does not own cannot turn the validation path red
+  ✓ freezing one scope does not license the next — the baseline is keyed on the SCOPE, not on the numbers, so a second drifting scope still FAILS while the frozen one passes
+  ✓ a baseline entry whose claim now matches its artifact is reported STALE while the run still exits 0, so the frozen list can only shrink
+  ✓ a scan that matches zero progress claims FAILS rather than passing vacuously — a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes
+  ✓ the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (85 claim(s) across 66 packet(s), 71 agreeing, baseline 14 entries)
+  ✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+  ✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 85 claim(s))
+
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+### Finding Disposition And Route
+
+`HARDEN-B009-007` is `addressed_external`. The parent path contract and the
+canonical selftest are green without recreating the disposable harness or
+changing the frozen missing-path baseline. `BUG-009-ROUTE-015` returns BUG-009
+to `bubbles.harden` for a fresh harden pass. The retained verdict is
+`NOT_HARDENED`; no stabilize route or completion claim is created.
+
+BUG-009 remains `in_progress`. Scope 1 remains In Progress. All 18 DoD items
+remain unchecked. Human acceptance, completed phase claims, and every
+certification field remain unchanged.

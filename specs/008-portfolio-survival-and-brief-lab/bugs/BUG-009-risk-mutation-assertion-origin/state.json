@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T07:06:56Z",
+  "lastUpdatedAt": "2026-08-27T07:23:29Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,17 +29,17 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.analyst",
-    "currentPhase": "analyze",
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "harden_finding_006_addressed_parent_validation_pending",
+    "substate": "harden_finding_007_addressed_external_harden_pending",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.validate",
-    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/state.json",
-    "nextRequiredReason": "Fresh harden remains NOT_HARDENED and HARDEN-B009-001 through HARDEN-B009-006 are addressed. HARDEN-B009-007 remains linked to the existing parent Feature 008 bubbles.docs execution-history route started 2026-08-27T06:19:29Z, already assigned to bubbles.validate against parent state.json. Resolve that existing parent route without creating a BUG-local transition request, then return BUG-009 to bubbles.harden for a fresh harden pass; do not advance to stabilize.",
+    "nextRequiredOwner": "bubbles.harden",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+    "nextRequiredReason": "Fresh harden remains NOT_HARDENED and HARDEN-B009-001 through HARDEN-B009-007 are addressed. BUG-009-ROUTE-015 returns the packet to bubbles.harden for a fresh harden pass; do not advance to stabilize unless that pass is clean.",
     "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps"],
     "pendingTransitionRequests": [],
     "scopeInventory": [
@@ -220,6 +220,14 @@
       "resolvedBy": "bubbles.analyst",
       "resolvedAt": "2026-08-27T07:05:05Z",
       "resolution": "Active FR-B009-001 now names the exact shipped title BUG-009 risk mapping: unsupported holdings remain named exclusions. Exact-title parity is restored across all eight required surfaces without changing behavior, requirement count, acceptance criteria, product-principle meaning, source boundary, or human acceptance."
+    },
+    {
+      "id": "BUG-009-ROUTE-015",
+      "status": "pending",
+      "fromAgent": "bubbles.validate",
+      "nextRequiredOwner": "bubbles.harden",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "HARDEN-B009-007 is addressed_external after the parent Feature 008 state stopped naming the disposed run-scoped chaos harness as a durable test artifact. The focused path validator reports new=0 and stale=0 with the baseline unchanged, and the canonical selftest passes 3426 of 3426. Run a fresh hardening pass over the fully reconciled packet while preserving in-progress status, Scope 1 In Progress, all 18 unchecked DoD items, NOT_HARDENED history, human acceptance, and certification."
     }
   ],
   "reworkQueue": [],
@@ -355,6 +363,16 @@
       "phasesExecuted": ["analyze"],
       "provenanceMode": "specialist",
       "outcome": "route_required"
+    },
+    {
+      "at": "2026-08-27T07:23:29Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "resolved-parent-disposable-harness-reference-and-routed-to-harden",
+      "note": "Under host observation revision 308 and committed Research Lab decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:309, replaced exactly two nonexistent durable test-path tokens in the parent Feature 008 execution history with truthful run-scoped chaos-439508 Playwright harness wording while preserving all three seeds, 344 traced actions, 7/7 outcomes, zero findings, control-arm evidence, and the later docs finding. The focused path validator then reported 19603 references, 269 distinct paths, 70 baseline missing paths, new=0, and stale=0 at exit 0. The canonical selftest executed at 3426 passed and 0 failed, exit 0, over 3919 lines with sha256 9ff226b15e342070f8ce8c820cb6344e2e2323f3ec821c2398221efff650f8d1. HARDEN-B009-007 is addressed_external and BUG-009-ROUTE-015 returns the packet to bubbles.harden. Fresh harden remains NOT_HARDENED. Status and certification remain in_progress, Scope 1 remains In Progress, all 18 DoD items remain unchecked, completed phase claims and human acceptance remain unchanged, and no stabilize route is opened.",
+      "phasesExecuted": ["validate"],
+      "provenanceMode": "specialist",
+      "outcome": "route_required"
     }
   ],
   "addressedFindings": [
@@ -469,24 +487,14 @@
       "owner": "bubbles.analyst",
       "status": "addressed",
       "evidenceRef": "spec.md#fr-b009-001---focused-direct-carrier"
-    }
-  ],
-  "unresolvedFindings": [
+    },
     {
       "id": "HARDEN-B009-007",
-      "summary": "Canonical selftest remains 3425 of 3426 because parent Feature 008 state references missing tests/chaos-439508.spec.mjs twice.",
+      "summary": "The parent Feature 008 execution history now identifies chaos-439508 as a removed run-scoped Playwright harness instead of a durable test artifact; the focused path validator reports no new or stale missing path, and the canonical selftest passes 3426 of 3426 without recreating the harness or changing the baseline.",
       "owner": "bubbles.validate",
-      "status": "unresolved_external",
-      "evidenceRef": "report.md#fresh-harden-revision-300",
-      "routeDisposition": "linked-existing-parent-route",
-      "externalRouteRef": {
-        "featureDir": "specs/008-portfolio-survival-and-brief-lab",
-        "stateFile": "specs/008-portfolio-survival-and-brief-lab/state.json",
-        "executionHistoryAgent": "bubbles.docs",
-        "executionHistoryStartedAt": "2026-08-27T06:19:29Z",
-        "nextRequiredOwner": "bubbles.validate",
-        "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/state.json"
-      }
+      "status": "addressed_external",
+      "evidenceRef": "report.md#harden-b009-007-parent-validation-revision-308"
     }
-  ]
+  ],
+  "unresolvedFindings": []
 }

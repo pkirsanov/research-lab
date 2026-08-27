@@ -36,6 +36,13 @@
     "nextRequiredReason": "Reconcile the validate-owned certification.scopeProgress claim from 14/2 to the artifact's executed 16/0. Status and certification remain in_progress; terminal certification also remains blocked by the current transition guard and unrecorded human acceptance.",
     "completedPhaseClaims": [
       {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-27T12:54:06Z",
+        "evidenceRef": "report.md#code-diff-evidence",
+        "scopes": []
+      },
+      {
         "phase": "test",
         "agent": "bubbles.test",
         "claimedAt": "2026-08-27T15:56:30Z",

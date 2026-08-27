@@ -818,3 +818,38 @@ sha256: 03e245e713bdd27a6a80fdf89fe5844e89c035d00e274ad17ae72b0b830391ae
   NEW-DRIFT specs/_bugs/BUG-022-historical-report-declaration-leak#01::certification (01-separate-active-declarations-from-historical-receipts) — claims 12/3 checked/unchecked, artifact has 14/2 [specs/_bugs/BUG-022-historical-report-declaration-leak/scopes.md]
 [scope-dod-progress] FAIL — 1 scope progress claim(s) do not match their artifact
 ```
+
+### Code Diff Evidence
+
+**Phase:** implement
+**Executed:** YES (current session)
+**Command:** `git cat-file -t 7d0b3147ac69bf0dfce94c24770b69d9b1f334a2 && git cat-file -t ec28e258d6e65e0eaf4cce433ef885eee785af5f && git merge-base --is-ancestor 7d0b3147ac69bf0dfce94c24770b69d9b1f334a2 ec28e258d6e65e0eaf4cce433ef885eee785af5f && git diff --name-status 7d0b3147ac69bf0dfce94c24770b69d9b1f334a2..ec28e258d6e65e0eaf4cce433ef885eee785af5f && git log --reverse --format='%H %s' 7d0b3147ac69bf0dfce94c24770b69d9b1f334a2..ec28e258d6e65e0eaf4cce433ef885eee785af5f`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+**Derived range:** base `7d0b3147ac69bf0dfce94c24770b69d9b1f334a2`; head `ec28e258d6e65e0eaf4cce433ef885eee785af5f`.
+
+**Changed files:**
+
+- Source: `scripts/validate-test-file-reachability.mjs`
+- Test: `tests/playwright-runtime.foundation.functional.mjs`
+- Config: `.specify/memory/agents.md`
+- Config: `specs/_bugs/BUG-022-historical-report-declaration-leak/state.json`
+- Docs: `specs/_bugs/BUG-022-historical-report-declaration-leak/report.md`
+- Docs: `specs/_bugs/BUG-022-historical-report-declaration-leak/scopes.md`
+
+**Containment:** `f226ae5c34dff3f6eb73723bff3c85c8f7ab4f2a` is the single three-file implementation commit. Its parent is the derived base. `ec28e258d6e65e0eaf4cce433ef885eee785af5f` is its direct child and changes only packet evidence. The two-commit range contains exactly the six paths above, so no protected Feature 008 report or baseline is in the delivery delta.
+
+```text
+commit
+commit
+M       .specify/memory/agents.md
+M       scripts/validate-test-file-reachability.mjs
+M       specs/_bugs/BUG-022-historical-report-declaration-leak/report.md
+M       specs/_bugs/BUG-022-historical-report-declaration-leak/scopes.md
+M       specs/_bugs/BUG-022-historical-report-declaration-leak/state.json
+M       tests/playwright-runtime.foundation.functional.mjs
+f226ae5c34dff3f6eb73723bff3c85c8f7ab4f2a fix(BUG-022): classify active test declarations
+ec28e258d6e65e0eaf4cce433ef885eee785af5f docs(BUG-022): record implementation evidence
+```

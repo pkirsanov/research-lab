@@ -1,0 +1,97 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
+  "generatedAt": "2026-08-27T00:00:00Z",
+  "generatedBy": "bubbles.bug",
+  "provenance": "Transcribed from BUG-022 scopes.md during atomic packet filing. All carriers are planned and no execution or certification is claimed.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-BUG022-001",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Historical report receipt is non-declarative",
+      "gherkin": {
+        "given": "a report.md receipt containing node --test tests/portfolio-*.mjs and a Playwright spec matcher",
+        "when": "current test declarations are collected",
+        "then": "the report contributes no Node declaration and creates no portfolio crossing"
+      },
+      "status": "planned",
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "coverageNote": "Carrier must be authored and executed by the test owner.",
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-BUG022-002",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Active broad Node declaration still crosses",
+      "gherkin": {
+        "given": "an active command authority containing node --test tests/portfolio-*.mjs and a Playwright spec matcher",
+        "when": "current test declarations are collected",
+        "then": "the active artifact and line are retained and portfolio specs are exposed as crossings"
+      },
+      "status": "planned",
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "coverageNote": "Adversarial carrier must prove the invariant was not weakened.",
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-BUG022-003",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Legitimate Node families have current authority",
+      "gherkin": {
+        "given": "active commands for tests/*.functional.mjs and tests/*.test.mjs",
+        "when": "test-file reachability is validated",
+        "then": "both families remain reachable without report receipts and the baseline does not grow"
+      },
+      "status": "planned",
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "coverageNote": "Reachability and selftest executions are required.",
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null
+    },
+    {
+      "scenarioId": "SCN-BUG022-004",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Historical Feature 008 evidence remains immutable",
+      "gherkin": {
+        "given": "the Feature 008 BUG-004 report at the filing commit",
+        "when": "the parser repair is complete",
+        "then": "the captured portfolio command, outcome, and sha256 remain byte-for-byte unchanged"
+      },
+      "status": "planned",
+      "behaviorClass": "documentation",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": true,
+      "linkedTests": [],
+      "coverageNote": "A path-limited Git comparison is required.",
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

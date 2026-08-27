@@ -1,0 +1,118 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
+  "featureName": "BUG-022 Historical Report Declaration Leak",
+  "createdAt": "2026-08-27T00:00:00Z",
+  "lastUpdatedAt": "2026-08-27T00:00:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "9dbd3b87c",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "bug-discovery",
+    "currentPhaseStatus": "in_progress",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-27T00:00:00Z",
+    "completedAt": null,
+    "substate": "diagnosed",
+    "currentScope": "01-separate-active-declarations-from-historical-receipts",
+    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredTarget": "specs/_bugs/BUG-022-historical-report-declaration-leak/design.md",
+    "nextRequiredReason": "Artifact ownership requires design confirmation before implementation. The current host invocation exposes no runSubagent tool, so no specialist dispatch is claimed.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-separate-active-declarations-from-historical-receipts",
+        "scope": 1,
+        "status": "In Progress",
+        "dependsOn": []
+      }
+    ],
+    "audit": null
+  },
+  "defect": {
+    "severity": "High",
+    "surface": "Repository test declaration and runner-disjointness discovery",
+    "measuredAtCommit": "9dbd3b87c",
+    "originMainAtFiling": "3c8828f7c",
+    "falseDeclarationPattern": "tests/portfolio-*.mjs",
+    "falseDeclarationSite": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/report.md:3856",
+    "falseCrossingCount": 8,
+    "reportOnlyActiveFamilies": [
+      "tests/*.functional.mjs",
+      "tests/*.test.mjs"
+    ],
+    "newlyExposedOrphanCountWithoutMigration": 33,
+    "rootCause": "collectDeclaredTestGlobs scans command-shaped text without classifying active command authority versus immutable report evidence"
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-separate-active-declarations-from-historical-receipts",
+        "status": "in_progress",
+        "dodChecked": 0,
+        "dodUnchecked": 17
+      }
+    ]
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "on",
+      "source": "user-request"
+    },
+    "lockdown": {
+      "mode": "protect-existing-scenarios",
+      "source": "user-request"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-27T00:00:00Z",
+      "agent": "bubbles.bug",
+      "phase": "bug-discovery",
+      "action": "filed-and-diagnosed",
+      "note": "Created the complete BUG-022 packet after fresh local and origin/main inventory. Executed a production-parser counterfactual that removes only report.md sites: all eight portfolio crossings disappear, while two legitimate report-only Node family declarations expose 33 current orphans. No source, test, command-registry, historical evidence, protected bug, or concurrent dirty path changed."
+    }
+  ]
+}

@@ -1138,13 +1138,17 @@ sha256: 25b1fbc4368daaaa6046022ab02d36b6c4a89e6cb12a2236405b6e95a5008647
   Timestamp: 2026-08-27T01:53:13Z
   Bugfix mode: true
 ============================================================
-Scanning tests/portfolio-test-integrity.unit.mjs
-Adversarial signal detected in tests/portfolio-test-integrity.unit.mjs
-Scanning tests/portfolio-risk.functional.mjs
-Adversarial signal detected in tests/portfolio-risk.functional.mjs
-REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
-Files scanned: 2
-Files with adversarial signals: 2
+
+ℹ️  Scanning tests/portfolio-test-integrity.unit.mjs
+✅ Adversarial signal detected in tests/portfolio-test-integrity.unit.mjs
+ℹ️  Scanning tests/portfolio-risk.functional.mjs
+✅ Adversarial signal detected in tests/portfolio-risk.functional.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 2
+  Files with adversarial signals: 2
+============================================================
 product_parent=203c57b14898a13e0da81898e755ea5f5f6674ba
 product_commit=203c57b14898a13e0da81898e755ea5f5f6674ba
 product_head=203c57b14898a13e0da81898e755ea5f5f6674ba

@@ -23,24 +23,31 @@
 - Production analytics, injector, focused carrier, and registry bytes remain
   equal to the implementation/HEAD blobs. The shared index stayed empty and
   no foreign dirty path was staged, reverted, or edited.
-- Verdict: `STABLE`. `BUG-009-ROUTE-018` is resolved, stabilize is recorded in
-  execution provenance, and `BUG-009-ROUTE-019` routes next to
-  `bubbles.devops`, the next persisted fastlane phase.
+- Revision-319 DevOps consumed `BUG-009-ROUTE-019` and confirmed implementation
+  commit `4824edc81` changes exactly two test files. The canonical Pages build
+  passed, its artifact omits both tests and the BUG packet, and the exact CI
+  selftest passed `3426/3426`. No CI, build, deployment, configuration,
+  dependency, observability, release, registry, or runtime-operations change
+  is required, and no live deployment was invoked.
+- Verdict: `NO DEVOPS CHANGE REQUIRED`. DevOps is recorded in execution
+  provenance, and `BUG-009-ROUTE-020` routes next to `bubbles.security`, the
+  next persisted fastlane phase.
 - Historical before/after evidence, including the earlier `3425/3426` failure,
   the revision-311 `NOT_HARDENED` result, and old route language inside dated
   sections remains intact as valid history. The parent Feature 008 transaction,
   BUG-007, README, docs, product source, tests, baseline, DoD, scope status,
   human acceptance, certification, and all foreign paths remain unchanged by
-  this harden closeout.
+  this DevOps closeout.
 
 ## Completion Statement
 
-The revision-317 stabilization pass found no BUG-009 stability defect. Repeated
-focused, repeated exact-mutant, concurrent-mutant, repeated strict-registry,
-full-risk, canonical-selftest, cleanup, process, resource, and byte-containment
-checks produced the exact outcomes recorded below. The verdict is `STABLE`.
-`BUG-009-ROUTE-018` is resolved, stabilize is recorded in execution provenance,
-and `BUG-009-ROUTE-019` routes next to `bubbles.devops` under the persisted phase
+The revision-319 DevOps phase inspected the actual two-file implementation
+commit and the repository's GitHub Pages contract. The exact Pages build, a
+detailed registered-artifact build, the exact CI selftest, and an explicit
+implementation-path and artifact-membership check all passed. The repair needs
+no operational file change and no live deployment. `BUG-009-ROUTE-019` is
+resolved, DevOps is recorded in execution provenance, and
+`BUG-009-ROUTE-020` routes next to `bubbles.security` under the persisted phase
 order. This is phase completion, not terminal delivery completion: BUG-009
 remains `in_progress`, Scope 1 remains In Progress, and all 18 DoD items remain
 unchecked. Human acceptance and every certification field remain untouched and
@@ -3258,3 +3265,267 @@ The hash covers the complete 40-line raw artifact-lint output. Editor
 diagnostics immediately after the first owned edit reported zero errors in
 `report.md` and zero errors in `state.json`. The final-byte rerun is recorded by
 the phase closeout command results rather than predicted here.
+
+## ROUTE-019 DevOps - Repository Authority Revision 319 {#devops-revision-319}
+
+**Phase:** devops
+**Agent:** `bubbles.devops`
+**Recorded at:** `2026-08-27`
+**Claim Source:** interpreted
+**Interpretation:** The implementation commit changes one direct functional
+test and one strict-registry title scalar. It changes no deployable page,
+production source, Pages workflow, build script, configuration, dependency,
+deployment, observability, release, registry, or runtime surface. The existing
+Pages pipeline already runs the canonical selftest and registered-site build
+before deployment, and the builder excludes `specs`, `scripts`, and top-level
+test infrastructure from the published `_site` artifact.
+
+### Persisted Mode And Route Order
+
+**Command:** `timeout 120 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 persisted bugfix-fastlane mode" -- bash .github/bubbles/scripts/mode-resolver.sh --grandfather bugfix-fastlane`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 persisted bugfix-fastlane mode
+$ bash .github/bubbles/scripts/mode-resolver.sh --grandfather bugfix-fastlane
+exit: 0
+lines: 46
+sha256: 986156f2dbb912fa87df07d087705abebbe2af8d9db0959aa61484fc7b443022
+--- first 20 ---
+DEPRECATION (v7 grandfather): resolving removed v5 mode 'bugfix-fastlane' (v6 form: 'fix action:fastlane target:bug'). New work must use the v6 form.
+statusCeiling: done
+requiredGates: [G001, G002, G003, G004, G005, G006, G007, G008, G009, G010, G011, G012, G014, G015, G016, G018, G019, G020, G021, G022, G023, G024, G025, G026, G027, G028, G029, G033, G034, G035, G040, G044, G047, G048, G051, G055, G056, G057, G059, G060, G061, G094]
+constraints:
+  specReviewDefault: once-before-implement
+  specReviewDefaultScope: done-ceiling-delivery-modes
+  specReviewOptOutRequiresReason: true
+  requireCanonicalPlanningChain: true
+  planningChainAgents: [bubbles.analyst, bubbles.ux, bubbles.design, bubbles.plan]
+  sequentialSpecCompletion: true
+  crossAgentVerification: true
+  antiFabricationDetection: true
+  requireAllSpecialistsComplete: true
+  requireAllScopesDoneBeforeSpecDone: true
+  requirePerDodItemRawEvidence: true
+  requireTestsForAllRealScenarios: true
+  require100PercentBusinessLogicCoverage: true
+  requirePhaseScopeCoherence: true
+  requireImplementationRealityScan: true
+  requireNoDefaultsNoFallbacks: true
+--- omitted 6 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  requireQualityLoopUntilCertifiedDone: true
+  restartLoopAtPhase: implement
+  blockedOnlyWhenValidateBlocked: true
+  requireNoSkippedTests: true
+  requireNoPreexistingFailingTests: true
+  requireNoInternalMocksExceptExternalDeps: true
+  requireGherkinE2eCoverage: true
+  requireAllDiscoveredBugsClosedInRun: true
+  requirePhaseEvidenceBeforeAdvance: true
+  blockOnMissingSpecialistExecution: true
+description: Focused bug loop with mandatory reproduction and verification. Loops until validate certifies the fix or returns a documented blocked verdict.
+transitionAudit:
+  profile: delivery-completion-v1
+  target: statusCeiling
+phaseOrder: [select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize]
+sessionBudget:
+  maxWallClockMinutes: 180
+  maxToolCalls: 350
+  maxSingleToolResultBytes: 50000
+  maxCumulativeToolResultBytes: 250000
+```
+
+The persisted sequence places `security` immediately after `devops`.
+
+### Implementation And Operational Impact
+
+**Command:** `timeout 60 git --no-pager show --format=fuller --name-status 4824edc81`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+commit 4824edc81b0920b40e728f55b8e8dfdbe1804b2d
+Author:     pkirsanov <pkirsanov@users.noreply.github.com>
+AuthorDate: Thu Aug 27 01:15:48 2026 +0000
+Commit:     pkirsanov <pkirsanov@users.noreply.github.com>
+CommitDate: Thu Aug 27 01:15:48 2026 +0000
+
+    test(BUG-009): assert named risk exclusions
+
+M       tests/portfolio-risk.functional.mjs
+M       tests/portfolio-test-integrity.unit.mjs
+```
+
+The exact patch adds one `RLPA.assetTreatment()` test with direct assertions
+and changes only the `F008-RISK-INPUT-001` `title` value. No operational path
+appears in the commit.
+
+| Surface | Disposition | Grounded basis |
+| --- | --- | --- |
+| CI | No change required | `.github/workflows/pages.yml` already gates deploy on `node scripts/selftest.mjs`, source-lock validation, the Pages build, and the full browser suite. |
+| Pages build | Verify only | `node scripts/build-pages-site.mjs` is the declared build and succeeded below. |
+| Deployment | No change required | The deploy job consumes `_site`; the build plan excludes top-level tests and all `specs`. |
+| Configuration and dependencies | No change required | Neither implementation path is a config, manifest, lockfile, package, or generated artifact. |
+| Observability and runtime operations | Not applicable | Research Lab declares no runtime service, lifecycle command, or telemetry deployment for this test-only repair. |
+| Release and registry | No change required | No page, tool registration, navigation entry, release packet, or public artifact membership changes. |
+
+### Canonical Pages Build
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 DevOps Pages build" -- node scripts/build-pages-site.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 DevOps Pages build
+$ node scripts/build-pages-site.mjs
+exit: 0
+lines: 1
+sha256: f6fd8b5d118d9bba99eb7b75c51c2643cce74640b56f2b3882ce55217a3a77ea
+--- output ---
+{"contractVersion":"pages-site-build-result/v1","dryRun":false,"registeredPages":29,"excludedPaths":12,"rootFiles":123,"directories":["briefs","data","docs","notes","research","rlexperience-adapters","tests/fixtures"],"historyIndexDirectory":"briefs/indexes/82b13eade7cb2e0673ec91324f0bdbf9a84461a363aa7209693a875c20b40cab","omittedOrphanIndexes":182}
+```
+
+The exact canonical build produced the registered Pages artifact without adding
+a DevOps remediation obligation.
+
+### Detailed Pages Artifact Contract
+
+**Command:**
+
+```text
+timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 DevOps Pages build details" -- node -e 'import("./scripts/build-pages-site.mjs").then(({buildPagesSite})=>{const fs=require("node:fs");const plan=buildPagesSite();console.log("CONTRACT=pages-site-build-result/v1");console.log(`REGISTERED_PAGES=${plan.registeredPages.length}`);console.log(`EXCLUDED_PATHS=${plan.excludedPaths.length}`);console.log(`ROOT_FILES=${plan.rootFiles.length}`);console.log(`PUBLIC_DIRECTORIES=${plan.directories.join(",")}`);console.log(`HISTORY_INDEX=${plan.historyIndexDirectory}`);console.log(`OMITTED_ORPHAN_INDEXES=${plan.orphanIndexDirectories.length}`);console.log(`PUBLISHED_INDEX=${fs.existsSync("_site/index.html")?"present":"absent"}`);console.log(`PUBLISHED_NOJEKYLL=${fs.existsSync("_site/.nojekyll")?"present":"absent"}`);console.log(`PUBLISHED_FOCUSED_TEST=${fs.existsSync("_site/tests/portfolio-risk.functional.mjs")?"present":"absent"}`);console.log(`PUBLISHED_REGISTRY_TEST=${fs.existsSync("_site/tests/portfolio-test-integrity.unit.mjs")?"present":"absent"}`);console.log(`PUBLISHED_BUG_PACKET=${fs.existsSync("_site/specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin")?"present":"absent"}`);console.log("PAGES_BUILD=PASS")})'
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 DevOps Pages build details
+exit: 0
+lines: 13
+sha256: e8270b7459ad190a5d9480255a306ac632f03132aeea91c32511e336a9e1b5b2
+--- output ---
+CONTRACT=pages-site-build-result/v1
+REGISTERED_PAGES=29
+EXCLUDED_PATHS=12
+ROOT_FILES=123
+PUBLIC_DIRECTORIES=briefs,data,docs,notes,research,rlexperience-adapters,tests/fixtures
+HISTORY_INDEX=briefs/indexes/82b13eade7cb2e0673ec91324f0bdbf9a84461a363aa7209693a875c20b40cab
+OMITTED_ORPHAN_INDEXES=182
+PUBLISHED_INDEX=present
+PUBLISHED_NOJEKYLL=present
+PUBLISHED_FOCUSED_TEST=absent
+PUBLISHED_REGISTRY_TEST=absent
+PUBLISHED_BUG_PACKET=absent
+PAGES_BUILD=PASS
+```
+
+### Canonical CI Selftest
+
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 DevOps canonical selftest" -- node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 DevOps canonical selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3895
+sha256: 036d7710d7e974aa18018d770b041e6309f8d20c55c24086857162d3629e73d8
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 3855 line(s); sha256 above covers the full output ---
+--- last 20 ---
+specs/ — every scope progress claim matches the Definition of Done it summarises
+  ✓ a claim of 2 ticked and 1 open matches an artifact holding exactly those rows, so the ordinary reconciled case is not reported — rows outside the Definition-of-Done section, rows in a sibling section, and rows inside a fenced block are all excluded (1 claim(s), 1 agreeing)
+  ✓ the fence mask is what removes the documented example rows — ignoring fences the same artifact tallies 5/2 against the masked 4/1, so the rule is load-bearing rather than decorative
+  ✓ a registry claiming more ticked rows than the artifact carries FAILS, and the finding names the packet, the scope and both sides (claims 3/0 checked/unchecked, artifact has 2/1)
+  ✓ a registry claiming fewer ticked rows than the artifact carries FAILS too — drift in either direction is a false summary
+  ✓ a claim whose scope artifact cannot be located FAILS instead of being silently skipped — an unverifiable claim is not a verified one
+  ✓ the single-file bug-packet layout resolves all three of its claims — a numbered scope whose tiered DoD includes a deeper sub-heading, a sibling scope that has not started, and the packet-level cross-scope block — across the dodChecked, dodTicked and dodTotal spellings alike (3/3 agreeing)
+  ✓ scope 2 ends where the cross-scope block begins rather than running to end-of-file, and `## Scope Summary` is not mistaken for a scope section because it carries no ordinal (01, 02, cross-scope)
+  ✓ a `#` line inside a fenced Gherkin block is a comment rather than a heading, so it never splits a scope or ends a Definition of Done (2 real headings, 3 when fences are ignored)
+  ✓ a scope already frozen in the baseline is carried as known debt rather than failing the run, so pre-existing drift in packets this change does not own cannot turn the validation path red
+  ✓ freezing one scope does not license the next — the baseline is keyed on the SCOPE, not on the numbers, so a second drifting scope still FAILS while the frozen one passes
+  ✓ a baseline entry whose claim now matches its artifact is reported STALE while the run still exits 0, so the frozen list can only shrink
+  ✓ a scan that matches zero progress claims FAILS rather than passing vacuously — a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes
+  ✓ the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (85 claim(s) across 66 packet(s), 71 agreeing, baseline 14 entries)
+  ✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+  ✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 85 claim(s))
+
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+The stored hash covers the complete 3,895-line source output. The compact
+rendering keeps every displayed line verbatim while the hash covers the omitted
+middle.
+
+### CI Path And Artifact Membership Consistency
+
+**Command:**
+
+```text
+timeout 120 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 DevOps CI path consistency" -- node -e 'const fs=require("node:fs");const{execFileSync}=require("node:child_process");const expected=["tests/portfolio-risk.functional.mjs","tests/portfolio-test-integrity.unit.mjs"];const paths=execFileSync("git",["diff-tree","--no-commit-id","--name-only","-r","4824edc81"],{encoding:"utf8"}).trim().split("\n");if(JSON.stringify(paths)!==JSON.stringify(expected))throw new Error("implementation path set drifted");console.log("IMPLEMENTATION_PATHS");for(const path of paths)console.log(path);console.log(`IMPLEMENTATION_PATH_COUNT=${paths.length}`);const checks=[["PUBLISHED_FOCUSED_TEST","_site/tests/portfolio-risk.functional.mjs",false],["PUBLISHED_REGISTRY_TEST","_site/tests/portfolio-test-integrity.unit.mjs",false],["PUBLISHED_BUG_PACKET","_site/specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",false],["PUBLISHED_INDEX","_site/index.html",true],["PUBLISHED_NOJEKYLL","_site/.nojekyll",true]];for(const[label,path,want]of checks){const found=fs.existsSync(path);if(found!==want)throw new Error(`${label} unexpected membership`);console.log(`${label}=${found?"present":"absent"}`)}console.log("OPERATIONAL_PATHS_CHANGED=0");console.log("CI_PATH_CONSISTENCY=PASS");'
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 DevOps CI path consistency
+exit: 0
+lines: 11
+sha256: 1089e5c7c580f5b5fabb0123e3f353fc02d61243459757aaf8b3a02c5257d4ba
+--- output ---
+IMPLEMENTATION_PATHS
+tests/portfolio-risk.functional.mjs
+tests/portfolio-test-integrity.unit.mjs
+IMPLEMENTATION_PATH_COUNT=2
+PUBLISHED_FOCUSED_TEST=absent
+PUBLISHED_REGISTRY_TEST=absent
+PUBLISHED_BUG_PACKET=absent
+PUBLISHED_INDEX=present
+PUBLISHED_NOJEKYLL=present
+OPERATIONAL_PATHS_CHANGED=0
+CI_PATH_CONSISTENCY=PASS
+```
+
+### DevOps Disposition And Route
+
+**Claim Source:** interpreted
+**Interpretation:** Actual commit and current contract evidence disconfirm every
+candidate operational obligation. Adding a workflow, deployment action,
+configuration key, observability hook, release artifact, or registry entry for
+this test-only repair would be invented work.
+
+Verdict: **NO DEVOPS CHANGE REQUIRED**.
+
+`BUG-009-ROUTE-019` is resolved. `B009-DEVOPS-EXECUTION-001` records the
+no-change phase, and `BUG-009-ROUTE-020` routes next to `bubbles.security`, the
+phase immediately after DevOps in the persisted `bugfix-fastlane` order.
+BUG-009 remains `in_progress`, Scope 1 remains In Progress, all 18 DoD items
+remain unchecked, human acceptance remains unclaimed, and certification remains
+unchanged.

@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T08:09:18Z",
+  "lastUpdatedAt": "2026-08-27T08:27:52Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,18 +29,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.harden",
-    "currentPhase": "harden",
+    "activeAgent": "bubbles.stabilize",
+    "currentPhase": "stabilize",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "hardened_stabilize_pending",
+    "substate": "stabilized_devops_pending",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.stabilize",
+    "nextRequiredOwner": "bubbles.devops",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "BUG-009-ROUTE-017 is resolved by the clean revision-315 hardening pass. H3 and H9 pass with no unresolved findings. The persisted bugfix-fastlane phase order places stabilize immediately after harden, so BUG-009-ROUTE-018 routes next to bubbles.stabilize while delivery and certification remain in progress.",
-    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps", "harden"],
+    "nextRequiredReason": "BUG-009-ROUTE-018 is resolved by the clean revision-317 stabilization pass. Five shipped-title trials, five sequential exact mutants, six concurrent exact-mutant children across three isolated-marker probes, three strict-registry trials, the full risk carrier, canonical selftest, cleanup, process, resource, and byte-containment checks found no BUG-009 stability defect. One agent-authored concurrent-probe validator had a shell-quoting defect; its children and cleanup were correct, and the quote-safe rerun passed. The persisted bugfix-fastlane phase order places devops immediately after stabilize, so BUG-009-ROUTE-019 routes next to bubbles.devops while delivery and certification remain in progress.",
+    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps", "harden", "stabilize"],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
@@ -256,11 +256,22 @@
     },
     {
       "id": "BUG-009-ROUTE-018",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.harden",
       "nextRequiredOwner": "bubbles.stabilize",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-      "reason": "The revision-315 decisive fresh hardening pass is HARDENED with H3 and H9 clean and no unresolved findings. Continue with bubbles.stabilize, the next phase in the persisted bugfix-fastlane order, while preserving status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, and certification."
+      "reason": "The revision-315 decisive fresh hardening pass is HARDENED with H3 and H9 clean and no unresolved findings. Continue with bubbles.stabilize, the next phase in the persisted bugfix-fastlane order, while preserving status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, and certification.",
+      "resolvedBy": "bubbles.stabilize",
+      "resolvedAt": "2026-08-27T08:24:15Z",
+      "resolution": "Consumed by the revision-317 stabilization pass recorded at report.md#stabilize-revision-317. Repeated shipped, exact-mutant, concurrent-mutant, strict-registry, full-risk, canonical-selftest, cleanup, process, resource, timeout, and byte-containment checks found no BUG-009 stability defect."
+    },
+    {
+      "id": "BUG-009-ROUTE-019",
+      "status": "pending",
+      "fromAgent": "bubbles.stabilize",
+      "nextRequiredOwner": "bubbles.devops",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "The revision-317 stabilization pass is STABLE with no BUG-009-local runtime, flake, race, resource, mutation-determinism, isolation, cleanup, timeout, or build-free suite defect. Continue with bubbles.devops, the next phase in the persisted bugfix-fastlane order, while preserving status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, and certification."
     }
   ],
   "reworkQueue": [],
@@ -439,6 +450,17 @@
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#fresh-harden-revision-315"
+    },
+    {
+      "at": "2026-08-27T08:24:15Z",
+      "agent": "bubbles.stabilize",
+      "phase": "stabilize",
+      "action": "consumed-route-018-stability-clean-and-routed-to-devops",
+      "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:317, executed five exact shipped-title trials, five sequential exact mutants with unique markers, six concurrent exact-mutant children across three isolated-marker probes, three complete strict-registry trials, the full risk carrier, canonical selftest, cleanup, process, host-resource, timeout, and source/test byte-containment checks. One agent-authored isolated-stream validator exited 1 because shell quoting corrupted its assertion-code regex; both child TAP streams and markers were correct, cleanup succeeded, and the quote-safe rerun passed. No BUG-009 stability defect was found. Registry timing varied under measured unrelated shared-host load; no performance SLA exists, so no latency threshold was invented. Resolved BUG-009-ROUTE-018, recorded stabilize in execution provenance, and opened BUG-009-ROUTE-019 to bubbles.devops, the next persisted phase. Preserved status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, the parent Feature 008 transaction, BUG-007, README, docs, product source, tests, baseline, and every foreign path.",
+      "phasesExecuted": ["stabilize"],
+      "provenanceMode": "specialist",
+      "outcome": "route_required",
+      "evidenceRef": "report.md#stabilize-revision-317"
     }
   ],
   "addressedFindings": [
@@ -581,6 +603,13 @@
       "owner": "bubbles.harden",
       "status": "addressed",
       "evidenceRef": "report.md#fresh-harden-revision-315"
+    },
+    {
+      "id": "B009-STABILIZE-EXECUTION-001",
+      "summary": "The revision-317 stabilization pass found no BUG-009-local runtime, flake, race, resource, mutation-determinism, isolation, cleanup, timeout, or build-free suite defect across repeated and concurrent execution, resolved BUG-009-ROUTE-018, and routed the next persisted phase to bubbles.devops without changing delivery or certification state.",
+      "owner": "bubbles.stabilize",
+      "status": "addressed",
+      "evidenceRef": "report.md#stabilize-revision-317"
     }
   ],
   "unresolvedFindings": []

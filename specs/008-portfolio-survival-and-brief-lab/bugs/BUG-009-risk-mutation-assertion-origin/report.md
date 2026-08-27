@@ -4,21 +4,28 @@
 
 - The focused `assetTreatment()` carrier and the single
   `F008-RISK-INPUT-001` registry remap are implemented and verified.
-- Fresh revision-315 execution is focused shipped `1/1`, exact mutant `0/1`
-  solely through `ERR_ASSERTION` with one selected test and one
-  `Module._compile` application, strict registry `3/3` over all 18 cases, full
-  risk `3/3`, five BUG-008 carriers `43/43`, risk browser `13/13`, and
-  canonical selftest `3426/3426`.
-- Regression quality is `0` violations and `0` warnings. Installed downstream
-  G028 resolves exactly the two declared `.mjs` implementation files with `0`
-  violations and `0` warnings. All six named packet gates pass.
-- Exact-title parity is clean across all eight required surfaces, the legacy
-  title is absent, and product, injector, and test blob containment passes.
-- Active lifecycle and H3/H9 checks are clean. `HARDEN-B009-001..008` remain
-  addressed, and no unresolved finding remains.
-- Verdict: `HARDENED`. `BUG-009-ROUTE-017` is resolved by this fresh pass,
-  harden is recorded in execution provenance, and `BUG-009-ROUTE-018` routes
-  next to `bubbles.stabilize`, the next persisted fastlane phase.
+- Revision-317 stabilization executed the exact shipped title five times at
+  `1/1`, the exact mutant five times sequentially at the required `0/1` through
+  `ERR_ASSERTION`, and six concurrent mutant children across three isolated
+  marker probes. Every child applied exactly once through `Module._compile`;
+  every stabilization marker was removed. One agent-authored concurrent-probe
+  validator exited `1` because shell quoting corrupted its assertion-code
+  regex; the child TAP and markers were correct, and a quote-safe rerun passed.
+- The complete 18-case strict registry passed `3/3` on three independent runs.
+  The full risk carrier passed `3/3`, and the canonical build-free selftest
+  passed `3426/3426` over 3,895 lines with SHA-256
+  `2078b99217bc1a18c8e906b14d3dc531190be1213bd2d1d90012398b471b12f0`.
+- No BUG-009 process, file, marker, timeout, race, cleanup, or resource leak was
+  reproduced. The increasing registry wall time was observed while the shared
+  host load average was `11.25/10.26/9.02` and unrelated QuantitativeFinance
+  and Smackerel Docker clients were active. Research Lab declares no
+  performance SLA, so no latency pass/fail claim is inferred from those times.
+- Production analytics, injector, focused carrier, and registry bytes remain
+  equal to the implementation/HEAD blobs. The shared index stayed empty and
+  no foreign dirty path was staged, reverted, or edited.
+- Verdict: `STABLE`. `BUG-009-ROUTE-018` is resolved, stabilize is recorded in
+  execution provenance, and `BUG-009-ROUTE-019` routes next to
+  `bubbles.devops`, the next persisted fastlane phase.
 - Historical before/after evidence, including the earlier `3425/3426` failure,
   the revision-311 `NOT_HARDENED` result, and old route language inside dated
   sections remains intact as valid history. The parent Feature 008 transaction,
@@ -28,16 +35,16 @@
 
 ## Completion Statement
 
-The revision-315 decisive fresh harden pass executed the complete requested
-technical and packet battery on the current tree. Every implementation, test,
-scanner, gate, exact-title, lifecycle, H3/H9, and containment check passed with
-the exact counts recorded below. The verdict is `HARDENED`.
-`BUG-009-ROUTE-017` is resolved, harden is recorded in execution provenance,
-and `BUG-009-ROUTE-018` routes next to `bubbles.stabilize` under the persisted
-phase order. This is phase completion, not terminal delivery completion:
-BUG-009 remains `in_progress`, Scope 1 remains In Progress, and all 18 DoD
-items remain unchecked. Human acceptance and every certification field remain
-untouched and unclaimed.
+The revision-317 stabilization pass found no BUG-009 stability defect. Repeated
+focused, repeated exact-mutant, concurrent-mutant, repeated strict-registry,
+full-risk, canonical-selftest, cleanup, process, resource, and byte-containment
+checks produced the exact outcomes recorded below. The verdict is `STABLE`.
+`BUG-009-ROUTE-018` is resolved, stabilize is recorded in execution provenance,
+and `BUG-009-ROUTE-019` routes next to `bubbles.devops` under the persisted phase
+order. This is phase completion, not terminal delivery completion: BUG-009
+remains `in_progress`, Scope 1 remains In Progress, and all 18 DoD items remain
+unchecked. Human acceptance and every certification field remain untouched and
+unclaimed.
 
 ## Test Evidence
 
@@ -2805,3 +2812,449 @@ with `B009-HARDEN-EXECUTION-004` addressed and no unresolved finding.
 after harden in the persisted `bugfix-fastlane` order. This result does not
 mark the scope or bug done and does not modify human acceptance or
 certification.
+
+## ROUTE-018 Stabilization - Repository Authority Revision 317 {#stabilize-revision-317}
+
+**Phase:** stabilize
+**Agent:** `bubbles.stabilize`
+**Recorded at:** `2026-08-27T08:24:15Z`
+**Claim Source:** interpreted
+**Interpretation:** Current-session repeated execution found no BUG-009-local
+flake, mutation race, resource leak, timeout, isolation failure, cleanup defect,
+or build-free suite regression. The registry timing variance occurred during
+measured unrelated host load and has no repository-defined SLA against which to
+make a performance verdict.
+
+### Repository Authority And Change Boundary
+
+**Claim Source:** executed
+
+```text
+host expectedControlRevision=316
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=~/research-lab source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:317 revision=317 repository=research-lab root=~/research-lab
+implementation commit=4824edc81b0920b40e728f55b8e8dfdbe1804b2d
+implementation paths=tests/portfolio-risk.functional.mjs,tests/portfolio-test-integrity.unit.mjs
+hardening commit=e15e4aaaeeb8b7a37ecd6429214882a767dc8608
+hardening paths=BUG-009/report.md,BUG-009/state.json
+HEAD=e15e4aaaeeb8b7a37ecd6429214882a767dc8608
+BUG-009 dirty at entry=false
+shared staged paths at entry=0
+workflowMode=bugfix-fastlane
+pending route at entry=BUG-009-ROUTE-018:bubbles.stabilize
+```
+
+The concurrent parent Feature 008, BUG-007, README, docs, product source,
+accessibility tests, and reachability-baseline changes were present at entry.
+They were treated as foreign work and were not staged, reverted, or edited.
+
+### Stability Inventory
+
+| Domain | Result | Evidence-backed disposition |
+| --- | --- | --- |
+| Reliability and flake behavior | PASS | Five shipped-title runs passed exactly once; three complete registry runs passed all three outer tests. |
+| Deterministic mutation application | PASS | Five sequential and six concurrent exact-mutant children each produced the required assertion RED and one `Module._compile` marker. |
+| Race behavior | PASS | Three two-child probes used distinct markers; the quote-safe isolated-stream probe validated each child independently. |
+| Test isolation and cleanup | PASS | Mutation stayed process-local; all 11 stabilization markers were deleted; no new strict-registry temp root remained. |
+| Timeouts | PASS | Every test and inspection carried an explicit bound; no timeout fired. The direct carrier has no timer, network, filesystem, or asynchronous dependency. |
+| Resource usage | PASS with observation | No Research Lab Node process remained. Host memory and disk were not pressured; unrelated shared-host load explains timing noise more plausibly than the deterministic two-record carrier. |
+| Build and configuration | PASS | The repository is build-free for this check, no config or dependency surface changed, and canonical `node scripts/selftest.mjs` passed. |
+
+No security or compliance conclusion is made by this stability phase.
+
+### Repeated Focused Shipped Title
+
+**Claim Source:** interpreted
+**Interpretation:** Each row was observed from a separate bounded terminal
+execution of the exact title. The variation is reported without inventing a
+latency threshold.
+
+| Trial | Exit | Tests | Pass | Fail | Skipped | Test duration ms | Total duration ms |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 0 | 1 | 1 | 0 | 0 | 3.574167 | 80.849556 |
+| 2 | 0 | 1 | 1 | 0 | 0 | 3.405876 | 84.411202 |
+| 3 | 0 | 1 | 1 | 0 | 0 | 4.325807 | 97.455872 |
+| 4 | 0 | 1 | 1 | 0 | 0 | 3.144605 | 87.482636 |
+| 5 | 0 | 1 | 1 | 0 | 0 | 3.283104 | 86.609503 |
+
+Representative raw output from trial 5:
+
+```text
+TAP version 13
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+  ---
+  duration_ms: 3.283104
+  type: 'test'
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 1
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 86.609503
+```
+
+### Repeated Exact Mutant And Concurrent Race Probe
+
+**Claim Source:** interpreted
+**Interpretation:** All five sequential trials used a unique disposable marker,
+validated expected child exit `1`, one selected test, one assertion failure,
+absence of `TypeError` and `ERR_TEST_FAILURE`, and exactly one
+`Module._compile` marker before deleting that marker. Two additional exact
+mutants ran simultaneously with separate markers; both retained the same causal
+shape and cleanup contract.
+
+| Sequential trial | Child exit | Tests | Pass | Fail | Failure code | Applications | Marker cleaned | Total duration ms |
+| ---: | ---: | ---: | ---: | ---: | --- | ---: | --- | ---: |
+| 1 | 1 | 1 | 0 | 1 | `ERR_ASSERTION` | 1 | YES | 99.950840 |
+| 2 | 1 | 1 | 0 | 1 | `ERR_ASSERTION` | 1 | YES | 147.084818 |
+| 3 | 1 | 1 | 0 | 1 | `ERR_ASSERTION` | 1 | YES | 125.550664 |
+| 4 | 1 | 1 | 0 | 1 | `ERR_ASSERTION` | 1 | YES | 155.135458 |
+| 5 | 1 | 1 | 0 | 1 | `ERR_ASSERTION` | 1 | YES | 82.082998 |
+
+```text
+TAP version 13
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+not ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+  ---
+  duration_ms: 1.966903
+  type: 'test'
+  location: '~/research-lab/tests/portfolio-risk.functional.mjs:43:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    + 'unsupported-holding'
+    - 'ok'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ok'
+  actual: 'unsupported-holding'
+  operator: 'strictEqual'
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 99.95084
+MUTANT_TRIAL=1 CHILD_EXIT=1
+MARKER_CONTENT=applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+MARKER_CLEANED=YES
+VALIDATION_EXIT=0
+```
+
+Initial concurrent shell probe receipt:
+
+```text
+RACE_A_EXIT=1
+RACE_A_MARKER=applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+RACE_B_EXIT=1
+RACE_B_MARKER=applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+RACE_MARKERS_CLEANED=YES
+```
+
+The concurrent TAP streams interleaved on the shared terminal. They are not used
+for per-line parsing; the independent process exits, two `ERR_ASSERTION` records,
+and isolated marker contents are the stable signals.
+
+The first isolated-stream harness then exposed an agent-authored validator
+defect. Both child TAP streams showed `ERR_ASSERTION`, both markers were valid,
+and cleanup succeeded, but shell quoting removed the apostrophe-sensitive regex
+and the wrapper honestly exited `1`:
+
+```text
+# BUG-009 stabilize isolated concurrent mutants
+exit: 1
+lines: 86
+sha256: 08faea293fa5925dece17a5afb8d5139e63bd0a2ddbc4320e47ad407189de467
+RACE_A_EXIT=1
+RACE_A_MARKER=applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+RACE_A_OUTPUT_VALID=NO
+RACE_A_MARKER_VALID=YES
+RACE_B_EXIT=1
+RACE_B_MARKER=applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+RACE_B_OUTPUT_VALID=NO
+RACE_B_MARKER_VALID=YES
+RACE_MARKERS_CLEANED=YES
+RACE_VALIDATION=FAIL
+```
+
+This was not a repository or BUG-009 failure. The same two-child probe reran
+with a quote-safe `ERR_ASSERTION` check and passed:
+
+```text
+# BUG-009 stabilize isolated concurrent mutants corrected
+exit: 0
+lines: 86
+sha256: aaf62ac2fb0401aec5b54056ed20ca590e30019497a071a6f348ec072ff6f77d
+--- first 20 ---
+RACE_A_OUTPUT_BEGIN
+TAP version 13
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+not ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+  ---
+  duration_ms: 1.82109
+  type: 'test'
+  location: '~/research-lab/tests/portfolio-risk.functional.mjs:43:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    Expected values to be strictly equal:
+    + actual - expected
+    + 'unsupported-holding'
+    - 'ok'
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected: 'ok'
+  actual: 'unsupported-holding'
+--- omitted 46 line(s); sha256 above covers the full output ---
+--- last 20 ---
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 85.011913
+RACE_B_OUTPUT_END
+RACE_B_EXIT=1
+RACE_B_MARKER=applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+RACE_B_OUTPUT_VALID=YES
+RACE_B_MARKER_VALID=YES
+RACE_MARKERS_CLEANED=YES
+RACE_VALIDATION=PASS
+```
+
+### Repeated Strict Registry And Full Risk Carrier
+
+**Claim Source:** interpreted
+**Interpretation:** Three independent complete registry processes each passed
+all three outer tests. Each first outer test traverses all 18 registered Feature
+008 mutation cases and enforces one shipped pass, one assertion-origin mutant
+failure, and one declared-hook application per case.
+
+| Registry trial | Exit | Tests | Pass | Fail | Cancelled | Skipped | Total duration ms |
+| ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| 1 | 0 | 3 | 3 | 0 | 0 | 0 | 10152.463196 |
+| 2 | 0 | 3 | 3 | 0 | 0 | 0 | 12480.176157 |
+| 3 | 0 | 3 | 3 | 0 | 0 | 0 | 18682.864959 |
+
+```text
+TAP version 13
+# Subtest: Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+  ---
+  duration_ms: 12822.545758
+  type: 'test'
+  ...
+# Subtest: BUG-007: caller-key protections and normal ordering are load-bearing in memory
+ok 2 - BUG-007: caller-key protections and normal ordering are load-bearing in memory
+  ---
+  duration_ms: 2892.064118
+  type: 'test'
+  ...
+# Subtest: BUG-007: represented mutants execute one protective assertion through one intended hook
+ok 3 - BUG-007: represented mutants execute one protective assertion through one intended hook
+  ---
+  duration_ms: 2040.798554
+  type: 'test'
+  ...
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 18682.864959
+```
+
+The neighboring full risk carrier remained green:
+
+```text
+TAP version 13
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+# Subtest: SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output
+ok 2 - SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output
+# Subtest: SCN-008-047 failed candidate preserves the last valid structured result
+ok 3 - SCN-008-047 failed candidate preserves the last valid structured result
+1..3
+# tests 3
+# suites 0
+# pass 3
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 93.089753
+```
+
+### Canonical Build-Free Selftest
+
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 stabilize canonical selftest" -- node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 stabilize canonical selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3895
+sha256: 2078b99217bc1a18c8e906b14d3dc531190be1213bd2d1d90012398b471b12f0
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 3855 line(s); sha256 above covers the full output ---
+--- last 20 ---
+specs/ — every scope progress claim matches the Definition of Done it summarises
+  ✓ a claim of 2 ticked and 1 open matches an artifact holding exactly those rows, so the ordinary reconciled case is not reported — rows outside the Definition-of-Done section, rows in a sibling section, and rows inside a fenced block are all excluded (1 claim(s), 1 agreeing)
+  ✓ the fence mask is what removes the documented example rows — ignoring fences the same artifact tallies 5/2 against the masked 4/1, so the rule is load-bearing rather than decorative
+  ✓ a registry claiming more ticked rows than the artifact carries FAILS, and the finding names the packet, the scope and both sides (claims 3/0 checked/unchecked, artifact has 2/1)
+  ✓ a registry claiming fewer ticked rows than the artifact carries FAILS too — drift in either direction is a false summary
+  ✓ a claim whose scope artifact cannot be located FAILS instead of being silently skipped — an unverifiable claim is not a verified one
+  ✓ the single-file bug-packet layout resolves all three of its claims — a numbered scope whose tiered DoD includes a deeper sub-heading, a sibling scope that has not started, and the packet-level cross-scope block — across the dodChecked, dodTicked and dodTotal spellings alike (3/3 agreeing)
+  ✓ scope 2 ends where the cross-scope block begins rather than running to end-of-file, and `## Scope Summary` is not mistaken for a scope section because it carries no ordinal (01, 02, cross-scope)
+  ✓ a `#` line inside a fenced Gherkin block is a comment rather than a heading, so it never splits a scope or ends a Definition of Done (2 real headings, 3 when fences are ignored)
+  ✓ a scope already frozen in the baseline is carried as known debt rather than failing the run, so pre-existing drift in packets this change does not own cannot turn the validation path red
+  ✓ freezing one scope does not license the next — the baseline is keyed on the SCOPE, not on the numbers, so a second drifting scope still FAILS while the frozen one passes
+  ✓ a baseline entry whose claim now matches its artifact is reported STALE while the run still exits 0, so the frozen list can only shrink
+  ✓ a scan that matches zero progress claims FAILS rather than passing vacuously — a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes
+  ✓ the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (85 claim(s) across 66 packet(s), 71 agreeing, baseline 14 entries)
+  ✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+  ✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 85 claim(s))
+
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+The stored hash covers the complete command output. The compact rendering keeps
+the 3,895-line evidence bounded; no application build exists or was invented.
+
+### Host Load, Cleanup, And Byte Containment
+
+**Claim Source:** interpreted
+**Interpretation:** The registry timing increased while unrelated shared-host
+work was active. Available memory and disk remained ample, every BUG-009 test
+process exited, and no BUG-009-created marker or temp root remained. Two
+`rl-scope28-*` directories dated 2026-08-24 existed before this phase and were
+preserved as foreign residue rather than deleted or attributed to BUG-009.
+
+```text
+load average: 11.25, 10.26, 9.02
+memory total MiB=48176 used=18457 free=2535 available=29718
+swap total MiB=16384 used=1824 free=14559
+filesystem size=1007G used=545G available=411G use=58%
+unrelated process: docker cwd=~/quantitativeFinance
+unrelated process: docker cwd=~/smackerel
+pre-existing process: python3 cwd=~/research-lab elapsed=6545s
+BUG-009 Research Lab node processes after checks=0
+BUG-009 stabilization markers after checks=0
+new rl-scope28 temp roots after checks=0
+pre-existing rl-scope28 temp roots=2 dated 2026-08-24
+timeouts fired=0
+performance SLA declared for this test-only repair=none
+```
+
+```text
+BLOB path=rlportfolioanalytics.js implementation=203c57b14898a13e0da81898e755ea5f5f6674ba head=203c57b14898a13e0da81898e755ea5f5f6674ba worktree=203c57b14898a13e0da81898e755ea5f5f6674ba
+BLOB path=tests/portfolio-defect-injector.cjs implementation=20ed786006be23f542ec3c524758eda625567ea9 head=20ed786006be23f542ec3c524758eda625567ea9 worktree=20ed786006be23f542ec3c524758eda625567ea9
+BLOB path=tests/portfolio-risk.functional.mjs implementation=2a537316eadbf5067d19c020e0a60b020fb16e84 head=2a537316eadbf5067d19c020e0a60b020fb16e84 worktree=2a537316eadbf5067d19c020e0a60b020fb16e84
+BLOB path=tests/portfolio-test-integrity.unit.mjs implementation=5aa222876f78430ef1d76a2c980045cf6a5d5207 head=5aa222876f78430ef1d76a2c980045cf6a5d5207 worktree=5aa222876f78430ef1d76a2c980045cf6a5d5207
+BUG-009 dirty before owned edit=false
+shared staged paths=0
+stabilization marker paths=0
+new registry temp roots=0
+Research Lab node processes=0
+CONTAINMENT_SNAPSHOT_COMPLETE
+```
+
+### Stabilize Profile And Route
+
+**Claim Source:** interpreted
+**Interpretation:** The executed checks support all four stabilize-profile
+requirements. No stability remediation or foreign-owner defect was discovered.
+
+| Check | Result | Basis |
+| --- | --- | --- |
+| ST1 stability scan complete | PASS | Reliability, mutation determinism, race behavior, isolation, cleanup, timeouts, resources, build, and configuration were reviewed. |
+| ST2 findings backed by evidence | PASS | No defect finding was raised; the timing observation is tied to measured host load and explicitly carries no SLA claim. |
+| ST3 fixes verified | NOT APPLICABLE | Stabilize changed no source, test, injector, configuration, or runtime behavior. |
+| ST4 scope artifacts updated | PASS | This report and execution-only state record the phase result and next persisted owner. |
+
+Verdict: **STABLE**.
+
+`BUG-009-ROUTE-018` is resolved. `B009-STABILIZE-EXECUTION-001` records the
+phase, and `BUG-009-ROUTE-019` routes next to `bubbles.devops`. BUG-009 remains
+`in_progress`, Scope 1 remains In Progress, all 18 DoD items remain unchecked,
+human acceptance remains unclaimed, and certification remains unchanged.
+
+### Post-Edit Artifact And Editor Validation
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 stabilize artifact lint" -- bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 stabilize artifact lint
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin
+exit: 0
+lines: 40
+sha256: 182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567
+Required artifacts present: spec.md, design.md, uservalidation.md, state.json, scopes.md, report.md
+Forbidden sidecar artifacts present: 0
+DoD section found: YES
+DoD checkbox syntax: PASS
+User-validation checklist found: YES
+User-validation checkbox syntax: PASS
+Automation and human acceptance separated: YES
+state.json status: in_progress
+state.json workflowMode: bugfix-fastlane
+state.json v3 required fields: PASS
+state.json v3 recommended fields: PASS
+Top-level status matches certification.status: YES
+Mode allows done; current status remains in_progress
+report Summary section: PASS
+report Completion Statement section: PASS
+report Test Evidence section: PASS
+Mode-specific promotion gates: SKIPPED because status is not in promotion set
+Value-first rationale lint: NOT APPLICABLE
+Scenario path-placeholder lint: NOT APPLICABLE
+Checked DoD evidence blocks: PASS
+Unfilled scope evidence templates: 0
+Unfilled report evidence templates: 0
+Artifact lint PASSED.
+```
+
+The hash covers the complete 40-line raw artifact-lint output. Editor
+diagnostics immediately after the first owned edit reported zero errors in
+`report.md` and zero errors in `state.json`. The final-byte rerun is recorded by
+the phase closeout command results rather than predicted here.

@@ -3,8 +3,8 @@
 **Layout:** single-file
 **Mode:** `bugfix-fastlane`
 **Packet status:** `in_progress`
-**Next required owner:** `bubbles.analyst` for `HARDEN-B009-006` via
-`BUG-009-ROUTE-014`
+**Next required owner:** `bubbles.harden` for one clean fresh pass via
+`BUG-009-ROUTE-017`
 
 [Spec](spec.md) | [Design](design.md) | [Report](report.md) |
 [User validation](uservalidation.md) |
@@ -14,12 +14,13 @@
 Planning changes no source or persistent test. The test-owned report records
 the two permitted test hunks and their execution evidence. Implementation,
 test, regression, simplify, gaps, and setup have executed. Harden attempted and
-the fresh verdict remains `NOT_HARDENED`. `HARDEN-B009-001..005` are addressed
-after this planner repair resolves `HARDEN-B009-005` and
-`BUG-009-ROUTE-013`. `HARDEN-B009-006` remains routed to `bubbles.analyst` via
-`BUG-009-ROUTE-014`. `HARDEN-B009-007` remains an external parent Feature 008
-selftest blocker on the existing parent `bubbles.validate` route. After both
-remaining findings resolve, rerun harden. Do not route to stabilize now.
+revision 311 was technically clean, but its verdict remains `NOT_HARDENED`
+solely because this active planner lifecycle text was stale.
+`BUG-009-ROUTE-015` was consumed by that pass. This reconciliation resolves
+`BUG-009-ROUTE-016` and addresses `HARDEN-B009-008`, so
+`HARDEN-B009-001..008` are now addressed. `BUG-009-ROUTE-017` returns the
+packet to `bubbles.harden` for one clean fresh pass before stabilize. Do not
+route to stabilize now.
 
 ## Execution Outline
 
@@ -57,9 +58,9 @@ remaining findings resolve, rerun harden. Do not route to stabilize now.
 **Depends On:** None
 **Scope-Kind:** contract-only
 **Finding:** `F008-RISK-INPUT-001`
-**Execution routing:** `bubbles.analyst` resolves `HARDEN-B009-006` through
-`BUG-009-ROUTE-014`. `HARDEN-B009-007` stays on the existing external parent
-`bubbles.validate` route. Rerun harden after both resolve; no stabilize route is
+**Execution routing:** `BUG-009-ROUTE-016` is resolved by the active planner
+reconciliation that addresses `HARDEN-B009-008`. `BUG-009-ROUTE-017` routes
+the packet to `bubbles.harden` for one clean fresh pass. No stabilize route is
 open. Transition and final acceptance remain pending.
 
 ### Implementation Files
@@ -255,15 +256,17 @@ contract.
 
 ### Uncertainty Declaration For Unchecked Items
 
-**Attempted:** Reconciled the active planner-owned lifecycle statements after
-the owner records resolved `HARDEN-B009-003` and `HARDEN-B009-004`.
-**Observed:** `HARDEN-B009-001..005` are addressed. Fresh harden remains
-`NOT_HARDENED`; `HARDEN-B009-006` remains on `BUG-009-ROUTE-014` for
-`bubbles.analyst`, and external parent finding `HARDEN-B009-007` remains on the
-existing parent `bubbles.validate` route. Harden completion, transition, human
-acceptance, and certification remain unclaimed. **Resolution:** Resolve
-`HARDEN-B009-006` and `HARDEN-B009-007`, then rerun harden without routing to
-stabilize first.
+**Attempted:** Reconciled the three active planner-owned lifecycle statements
+after `HARDEN-B009-006` and `HARDEN-B009-007` were addressed and the revision
+311 harden battery was technically clean.
+**Observed:** `BUG-009-ROUTE-015` was consumed by that pass, whose retained
+verdict is `NOT_HARDENED` solely because the active scope text was stale. This
+reconciliation addresses `HARDEN-B009-008`, resolves `BUG-009-ROUTE-016`, and
+leaves `HARDEN-B009-001..008` addressed. `BUG-009-ROUTE-017` is pending for
+`bubbles.harden` to run one clean fresh pass before stabilize. Harden
+completion, transition, human acceptance, and certification remain unclaimed.
+**Resolution:** `bubbles.harden` consumes `BUG-009-ROUTE-017` and runs the
+fresh pass; no direct stabilize route is open.
 
 All items remain unchecked. The scope remains In Progress. Planning claims no
 harden completion, transition, human acceptance, or certification.

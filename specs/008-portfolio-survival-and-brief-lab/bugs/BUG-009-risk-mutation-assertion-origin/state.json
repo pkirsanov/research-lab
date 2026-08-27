@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T07:42:15Z",
+  "lastUpdatedAt": "2026-08-27T07:53:26Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,17 +29,17 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.harden",
-    "currentPhase": "harden",
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "fresh_harden_not_hardened_planner_lifecycle_stale",
+    "substate": "planner_lifecycle_reconciled_fresh_harden_pending",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredOwner": "bubbles.harden",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "Fresh revision-311 harden passes the complete technical battery but remains NOT_HARDENED because active scopes.md top, execution-routing, and uncertainty text still describe addressed HARDEN-B009-006 and HARDEN-B009-007 as unresolved. BUG-009-ROUTE-016 routes that precise planning-owned reconciliation to bubbles.plan; rerun harden before stabilize.",
+    "nextRequiredReason": "HARDEN-B009-008 is addressed and BUG-009-ROUTE-016 is resolved. BUG-009-ROUTE-015 was consumed by a technically clean revision-311 harden pass whose verdict remained NOT_HARDENED only because active planner lifecycle text was stale. BUG-009-ROUTE-017 routes one clean fresh pass to bubbles.harden before stabilize.",
     "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps"],
     "pendingTransitionRequests": [],
     "scopeInventory": [
@@ -234,11 +234,22 @@
     },
     {
       "id": "BUG-009-ROUTE-016",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.harden",
       "nextRequiredOwner": "bubbles.plan",
       "target": "scopes.md active top, Scope 1 execution routing, and unchecked-item uncertainty declaration",
-      "reason": "HARDEN-B009-008: reconcile active planner-owned lifecycle text that still routes resolved BUG-009-ROUTE-014 to bubbles.analyst and still describes addressed HARDEN-B009-006 and HARDEN-B009-007 as unresolved. Preserve Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, status, certification, and historical harden evidence; return to bubbles.harden after the planner repair."
+      "reason": "HARDEN-B009-008: reconcile active planner-owned lifecycle text that still routes resolved BUG-009-ROUTE-014 to bubbles.analyst and still describes addressed HARDEN-B009-006 and HARDEN-B009-007 as unresolved. Preserve Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, status, certification, and historical harden evidence; return to bubbles.harden after the planner repair.",
+      "resolvedBy": "bubbles.plan",
+      "resolvedAt": "2026-08-27T07:53:26Z",
+      "resolution": "The active scopes.md top, Scope 1 execution routing, and unchecked-item uncertainty declaration now record HARDEN-B009-001 through HARDEN-B009-008 as addressed. They preserve the revision-311 NOT_HARDENED verdict, record BUG-009-ROUTE-015 as consumed, and route one clean fresh pass to bubbles.harden through BUG-009-ROUTE-017 before stabilize."
+    },
+    {
+      "id": "BUG-009-ROUTE-017",
+      "status": "pending",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.harden",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "HARDEN-B009-008 is addressed and BUG-009-ROUTE-016 is resolved. BUG-009-ROUTE-015 was consumed by a technically clean revision-311 harden pass whose verdict remained NOT_HARDENED only because active planner lifecycle text was stale. Run one clean fresh harden pass over the reconciled packet before stabilize while preserving in-progress status, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, and historical harden evidence."
     }
   ],
   "reworkQueue": [],
@@ -395,6 +406,17 @@
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#fresh-harden-revision-311"
+    },
+    {
+      "at": "2026-08-27T07:53:26Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "reconciled-active-lifecycle-and-routed-fresh-harden",
+      "note": "Resolved only HARDEN-B009-008 and BUG-009-ROUTE-016. Active scopes.md now records HARDEN-B009-001 through HARDEN-B009-008 as addressed and records BUG-009-ROUTE-015 as consumed by the technically clean revision-311 harden pass. That pass retains NOT_HARDENED because its active planner lifecycle check failed at the time. BUG-009-ROUTE-017 returns the packet to bubbles.harden for one clean fresh pass before stabilize. Status and certification remain in_progress, Scope 1 remains In Progress, all 18 DoD items remain unchecked, and human acceptance remains untouched.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist",
+      "outcome": "route_required",
+      "evidenceRef": "report.md#harden-b009-008-planner-lifecycle-reconciliation-revision-313"
     }
   ],
   "addressedFindings": [
@@ -523,15 +545,14 @@
       "owner": "bubbles.harden",
       "status": "addressed",
       "evidenceRef": "report.md#fresh-harden-revision-311"
-    }
-  ],
-  "unresolvedFindings": [
+    },
     {
       "id": "HARDEN-B009-008",
-      "summary": "Active scopes.md top, Scope 1 execution routing, and unchecked-item uncertainty text still route resolved BUG-009-ROUTE-014 to bubbles.analyst, describe addressed HARDEN-B009-006 and HARDEN-B009-007 as unresolved, and contain no current BUG-009-ROUTE-015 lifecycle reference.",
+      "summary": "The active scopes.md top, Scope 1 execution routing, and unchecked-item uncertainty declaration now record HARDEN-B009-001 through HARDEN-B009-008 as addressed. They preserve the revision-311 NOT_HARDENED verdict, record BUG-009-ROUTE-015 as consumed, and route one clean fresh pass to bubbles.harden through BUG-009-ROUTE-017 before stabilize.",
       "owner": "bubbles.plan",
-      "status": "unresolved",
-      "evidenceRef": "report.md#fresh-harden-revision-311"
+      "status": "addressed",
+      "evidenceRef": "report.md#harden-b009-008-planner-lifecycle-reconciliation-revision-313"
     }
-  ]
+  ],
+  "unresolvedFindings": []
 }

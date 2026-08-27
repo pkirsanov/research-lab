@@ -14,29 +14,32 @@
   violations and `0` warnings. All six named packet gates pass.
 - Exact-title parity is clean across all eight required surfaces, the legacy
   title is absent, and product, injector, and test blob containment passes.
-- The fresh harden verdict remains `NOT_HARDENED` because active planner-owned
-  `scopes.md` lifecycle text still describes addressed
-  `HARDEN-B009-006` and `HARDEN-B009-007` as unresolved.
-- `BUG-009-ROUTE-015` is consumed and resolved. `HARDEN-B009-008` is routed to
-  `bubbles.plan` through `BUG-009-ROUTE-016`; no stabilize route is open.
+- The revision-311 harden battery was technically clean. Its durable verdict
+  remains `NOT_HARDENED` only because active planner lifecycle text was stale
+  during that pass.
+- This planner reconciliation addresses `HARDEN-B009-008` and resolves
+  `BUG-009-ROUTE-016`. `HARDEN-B009-001..008` are now addressed.
+- `BUG-009-ROUTE-015` was consumed by the revision-311 pass.
+  `BUG-009-ROUTE-017` now routes one clean fresh pass to `bubbles.harden`.
+  No stabilize route is open.
 - Historical before/after evidence, including the earlier `3425/3426` failure,
   remains intact. Parent Feature 008 changed only by replacing two disposed
   harness path tokens in its existing aggregate unstaged state transaction.
   Product source, tests, DoD, scope status, human acceptance, certification,
-  BUG-007, and BUG-008 are unchanged by this validation increment.
+  BUG-007, and BUG-008 are unchanged by this planning increment.
 
 ## Completion Statement
 
 The revision-311 harden pass executed the complete requested technical and
 packet battery. Every implementation, test, scanner, gate, parity, and blob
-containment check passed with the exact counts recorded below. The active
-planner lifecycle check failed, so the verdict is `NOT_HARDENED` and no harden
-completion claim is added. `BUG-009-ROUTE-015` is resolved by this executed
-pass; `HARDEN-B009-008` and `BUG-009-ROUTE-016` route only the stale active
-`scopes.md` top, execution-routing, and uncertainty text to `bubbles.plan`.
-No stabilize route is opened. BUG-009 remains `in_progress`, Scope 1 remains In
-Progress, all 18 DoD items remain unchecked, and human acceptance and
-certification remain untouched and unclaimed.
+containment check passed with the exact counts recorded below. That pass
+retained `NOT_HARDENED` because the active planner lifecycle check failed at
+the time. This reconciliation addresses `HARDEN-B009-008` and resolves
+`BUG-009-ROUTE-016`. It leaves `HARDEN-B009-001..008` addressed.
+`BUG-009-ROUTE-017` returns the packet to `bubbles.harden` for one clean fresh
+pass before stabilize. No stabilize route is open. BUG-009 remains
+`in_progress`, and Scope 1 remains In Progress. All 18 DoD items remain
+unchecked. Human acceptance and certification remain untouched and unclaimed.
 
 ## Test Evidence
 
@@ -2535,3 +2538,25 @@ Verdict: **NOT_HARDENED**.
 `BUG-009-ROUTE-016` routes `HARDEN-B009-008` to `bubbles.plan` for the narrow
 active-lifecycle reconciliation. A fresh harden pass is required after that
 planner-owned change. No route to `bubbles.stabilize` is opened.
+
+## HARDEN-B009-008 Planner Lifecycle Reconciliation - Repository Authority Revision 313 {#harden-b009-008-planner-lifecycle-reconciliation-revision-313}
+
+**Agent:** `bubbles.plan`
+**Claim Source:** interpreted
+
+**Interpretation:** The revision-311 harden evidence records a technically
+clean battery. It also records `NOT_HARDENED` because three active scope blocks
+still described addressed findings as unresolved.
+
+This planner pass reconciles only those active lifecycle blocks. It addresses
+`HARDEN-B009-008` and resolves `BUG-009-ROUTE-016`.
+`HARDEN-B009-001..008` are now addressed. `BUG-009-ROUTE-015` remains consumed
+by the revision-311 pass.
+
+`BUG-009-ROUTE-017` routes the packet to `bubbles.harden` for one clean fresh
+pass before stabilize. This planner pass does not claim harden completion or
+open a stabilize route.
+
+BUG-009 remains `in_progress`, and Scope 1 remains In Progress. All 18 DoD
+items remain unchecked. Human acceptance and certification remain unchanged.
+Historical harden sections remain unchanged.

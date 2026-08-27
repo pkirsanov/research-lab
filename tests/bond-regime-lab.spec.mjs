@@ -343,6 +343,37 @@ async function openFromSharedCache(page, options = {}) {
   // The shared brief mount fetches its pointer independently after the tool is ready; let it reach a
   // terminal state so its one-time, tool-orthogonal network never lands inside a request-count window.
   await page.waitForSelector('[data-rlbrief-mount][data-rlbrief-ready="1"]', { state: 'attached', timeout: 10000 }).catch(() => { });
+  await pinCharacteristicFreshness(page);
+}
+
+// WHY THIS EXISTS. Every characteristic in bond-regime-universe.json carries a finite
+// `reviewWindowDays`, and calculateScenarioResult compares it against wall-clock `new Date()`. So a
+// committed stamp expires on a calendar date, and on that date every fresh-path assertion below
+// turns red without a single line of behaviour changing: the sleeve correctly reports
+// BRL-CHARACTERISTIC-STALE and renders "Not calculable". That is DESIGNED behaviour
+// (specs/003-bond-regime-and-scenario-lab/design.md: "Sleeve visible but not rankable"), not a
+// regression — so a red run there measured the AGE OF A STAMP, not the decomposition logic under
+// test. It happened on 2026-08-24, when the 2026-07-10 stamps passed their 45-day window, and it
+// held the whole `pages` deploy red for days because deploy needs verify.
+//
+// Pinning the stamp to the evaluation date makes these tests measure what they name. This is the
+// same move scripts/selftest.mjs already makes when it re-stamps its own fixture.
+//
+// This does NOT weaken stale coverage, which is asserted by tests that opt in explicitly AFTER
+// opening — 'BS-008 stale characteristic remains visible and unranked' and the stale layout leg
+// both set `asOf = '2020-01-01'` themselves, which still overrides the pin. Whether the COMMITTED
+// characteristics are current is a data question, tracked as a data chore; the live tool keeps
+// reporting it honestly on the page.
+async function pinCharacteristicFreshness(page) {
+  await page.evaluate(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    for (const instrument of window.BondRegimeLab.runtime.config.instruments) {
+      for (const key of ['carry', 'rateDuration', 'spreadDuration', 'convexity']) {
+        if (instrument[key] && instrument[key].asOf) instrument[key].asOf = today;
+      }
+    }
+    window.BondRegimeLab.recompute();
+  });
 }
 
 test('Live smoke returns a valid adjusted pair and official nominal headers or explicit unavailable source state', async ({ page }) => {

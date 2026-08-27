@@ -28224,15 +28224,41 @@ try {
   const hllEventNames = ['hlEventsInWindow', 'hlScenarioTotal', 'hlScenariosUsable', 'hlEventCaveat',
     'hlObservationOf', 'hlDiffObservation'];
   const hllEv = build(hllEventNames.map((n) => extractFn(hllSrc, n)), hllEventNames);
-  const hllRealEvents = JSON.parse(read('market-brief.payload.json')).events;
+  const hllPayload = JSON.parse(read('market-brief.payload.json'));
+  const hllRealEvents = hllPayload.events;
   const hllNow = Date.parse('2026-08-19T00:00:00Z');
-  const hllShort = hllEv.hlEventsInWindow(hllRealEvents, 5, hllNow);
-  const hllLong = hllEv.hlEventsInWindow(hllRealEvents, 21, hllNow);
-  assert(Array.isArray(hllRealEvents) && hllRealEvents.length > 0
-    && hllShort.length > 0 && hllLong.length > hllShort.length
-    && hllShort.every((e) => e.daysOut >= 0),
-    'a longer horizon admits strictly more scheduled events than a shorter one, so the window is load-bearing ('
+  // WHY A FIXTURE. Windowing used to be proved by measuring the SHIPPED payload from this frozen
+  // clock. But the payload is regenerated four times a day and its calendar only looks FORWARD, so
+  // as publication moved on, the 5-session window (~7.2 calendar days from a fixed 2026-08-19)
+  // slid off the back of the calendar. On 2026-08-27 the regenerated payload put 0 events inside
+  // it against 4 inside 21 sessions, and the run went red with no behaviour changed — the
+  // assertion had been measuring the market's event density, not the window. A fixed clock needs a
+  // fixed calendar; the live payload is held to a separate, density-independent property below.
+  const hllWindowFixture = [
+    { event: 'inside both windows', when: '2026-08-20', impliedMovePct: null, scenarios: [] },
+    { event: 'inside both windows', when: '2026-08-24', impliedMovePct: null, scenarios: [] },
+    { event: 'inside the long window only', when: '2026-09-01', impliedMovePct: null, scenarios: [] },
+    { event: 'inside the long window only', when: '2026-09-15', impliedMovePct: null, scenarios: [] },
+    { event: 'beyond both windows', when: '2026-11-30', impliedMovePct: null, scenarios: [] }
+  ];
+  const hllShort = hllEv.hlEventsInWindow(hllWindowFixture, 5, hllNow);
+  const hllLong = hllEv.hlEventsInWindow(hllWindowFixture, 21, hllNow);
+  assert(hllShort.length > 0 && hllLong.length > hllShort.length
+    && hllShort.every((e) => e.daysOut >= 0)
+    && hllLong.every((e) => e.when !== '2026-11-30'),
+    'a longer horizon admits strictly more scheduled events than a shorter one, and neither admits an event beyond its own end, so the window is load-bearing ('
     + hllShort.length + ' at 5 sessions vs ' + hllLong.length + ' at 21)');
+  // The SHIPPED calendar is still held to a real contract, measured from its own clock rather than
+  // a frozen one: it parses, and widening the horizon never DROPS an event. That is monotonicity,
+  // which holds however busy or quiet the market calendar happens to be on publication day.
+  const hllPayloadNow = Date.parse(hllPayload.generatedAt);
+  const hllShippedShort = hllEv.hlEventsInWindow(hllRealEvents, 5, hllPayloadNow);
+  const hllShippedLong = hllEv.hlEventsInWindow(hllRealEvents, 21, hllPayloadNow);
+  assert(Array.isArray(hllRealEvents) && hllRealEvents.length > 0 && Number.isFinite(hllPayloadNow)
+    && hllShippedLong.length >= hllShippedShort.length
+    && hllShippedLong.every((e) => Number.isFinite(e.daysOut) && e.daysOut >= -1),
+    'the shipped brief calendar parses against its own generation clock and widening the horizon never drops an event ('
+    + hllShippedShort.length + ' at 5 sessions vs ' + hllShippedLong.length + ' at 21 of ' + hllRealEvents.length + ' published)');
   assert(hllEv.hlEventsInWindow(null, 21, hllNow).length === 0
     && hllEv.hlEventsInWindow([{ when: 'not-a-date' }], 21, hllNow).length === 0
     && hllEv.hlEventsInWindow(hllRealEvents, 21, NaN).length === 0,
@@ -28241,12 +28267,20 @@ try {
     'an event with no declared implied move stays null rather than being filled in');
 
   // Declared scenario probabilities are only usable if they actually form a distribution.
-  assert(Math.abs(hllEv.hlScenarioTotal(hllLong[0].scenarios) - 1) <= 0.02
-    && hllEv.hlScenariosUsable(hllLong[0].scenarios) === true
+  const hllScenarioFixture = [{ name: 'up', prob: 0.3 }, { name: 'flat', prob: 0.5 }, { name: 'down', prob: 0.2 }];
+  assert(Math.abs(hllEv.hlScenarioTotal(hllScenarioFixture) - 1) <= 0.02
+    && hllEv.hlScenariosUsable(hllScenarioFixture) === true
     && hllEv.hlScenariosUsable([{ prob: 0.5 }, { prob: 0.2 }]) === false
     && hllEv.hlScenariosUsable([{ name: 'no prob' }]) === false
     && hllEv.hlScenarioTotal([]) === null,
     'a scenario set is usable only when its declared probabilities sum to one, so a malformed set is reported rather than renormalised');
+  // The shipped calendar is held to that same contract directly, rather than through whichever
+  // event happened to sort first in a window: EVERY published event that declares scenarios must
+  // carry a usable distribution. That cannot go vacuously green either — the count is reported.
+  const hllShippedScenarioEvents = hllRealEvents.filter((e) => Array.isArray(e.scenarios) && e.scenarios.length > 0);
+  assert(hllShippedScenarioEvents.every((e) => hllEv.hlScenariosUsable(e.scenarios) === true),
+    'every scheduled event the brief publishes with declared scenarios carries a usable distribution ('
+    + hllShippedScenarioEvents.length + ' of ' + hllRealEvents.length + ' published events declare one)');
 
   // A catalyst inside the horizon must be surfaced as a limit on the analog rate.
   assert(typeof hllEv.hlEventCaveat(hllLong) === 'string'

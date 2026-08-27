@@ -1177,3 +1177,213 @@ The resolved `bugfix-fastlane` phase order is `regression` -> `simplify` ->
 `gaps`. The next owner is `bubbles.gaps`. BUG-009 stays `in_progress`; the
 scope stays In Progress; all DoD checkboxes stay unchecked; human acceptance
 and every certification field stay unchanged.
+
+## Gaps Phase - 2026-08-27 {#gaps-phase-2026-08-27}
+
+**Phase:** gaps
+**Claim Source:** interpreted
+**Interpretation:** Current-session source inspection and execution found no
+requirement, design, scenario, assertion, browser-overlap, containment, or
+packet-gate defect beyond the already-declared installed-scanner propagation
+prerequisite. Canonical-source G028 execution is diagnostic only. It does not
+satisfy the downstream-installed G028 obligation.
+**Executed at:** `2026-08-27T02:13:40Z`
+**Repository authority:** Research Lab decision
+`rb:vscode-d037d272141b9d17af8fa6ccdd049e69:282`, control revision `282`.
+
+### Requirement And Acceptance Audit
+
+| Contract | Current result | Grounding |
+| --- | --- | --- |
+| `FR-B009-001` focused direct carrier | Match | `tests/portfolio-risk.functional.mjs` calls exported `RLPA.assetTreatment()` once in the exact BUG-009 title. |
+| `FR-B009-002` explicit mixed input | Match | The fixture contains listed `AAA` at `0.6` and unsupported `UNKNOWN` at `0.4`; it does not call `riskXRayProjection()`. |
+| `FR-B009-003` exact shipped assertions | Match | Eight direct assertions cover state, market inclusion, named exclusion and asset type, look-through state, ids, and weights. |
+| `FR-B009-004` assertion-origin mutation RED | Match | Current mutant execution found one test, zero passes, one failure, `ERR_ASSERTION`, and one `Module._compile` receipt, with no `TypeError`, `ERR_TEST_FAILURE`, or injector failure. |
+| `FR-B009-005` one mapping change | Match | Commit `4824edc81` changes only the focused test file and the one `F008-RISK-INPUT-001` title scalar. Product and injector blobs are identical at parent, implementation commit, HEAD, and working tree. |
+| `FR-B009-006` complete registry certification | Match | The registry still contains 18 `F008-*` cases and the complete integrity file passes `3/3`; the controlling loop enforces one shipped pass, one mutant assertion failure, one application, and the declared hook per case. |
+| `FR-B009-007` regression containment | Open only at downstream G028 | Focused, full risk, five BUG-008 carriers, real browser risk, selftest, linked-test resolution, regression quality, and six packet gates are green. Installed G028 scans one fallback `.js` file instead of the two declared `.mjs` test files. |
+| `FR-B009-008` separate human acceptance | Match | `uservalidation.md` remains entirely unchecked and no acceptance record is claimed. |
+| `AC-1` before-fix wrong-origin RED | Retained | Historical raw evidence remains at `report.md#current-session-strict-registry-red` and `report.md#selected-title-mutant-origin`; it names only `F008-RISK-INPUT-001` and the broad-title `TypeError` origin. |
+| `AC-2` focused shipped GREEN | Match | Current run: `1/1` pass. |
+| `AC-3` exact mutation assertion RED | Match | Current run: `0/1`, `ERR_ASSERTION`, exact one-application receipt. |
+| `AC-4` all 18 causal | Match | Current registry cardinality is 18 and the complete integrity file is `3/3`. |
+| `AC-5` broader carriers | Match | Full risk is `3/3`, five BUG-008 files are `43/43`, and the real-browser risk carrier is `13/13`. |
+| `AC-6` adversarial, G028, packet gates | Open only at downstream G028 | Regression quality and all packet gates pass. The installed scanner remains under-covering until framework propagation. |
+
+### Design, Scenario, Test Plan, And DoD Audit
+
+- The focused two-holding fixture, first state assertion, direct value
+  assertions, one-scalar registry remap, strict causality predicate, shared
+  infrastructure sweep, and rollback boundary match `design.md` without an
+  alternate implementation path.
+- `SCN-B009-001` maps to all eight functional requirements and all six
+  acceptance criteria. All three linked tests resolve. The existing browser
+  `SCN-008-047` carrier remains a `13/13` broader regression and is not used as
+  a substitute for the direct functional proof.
+- The Test Plan contains 11 rows and the parity table contains 11 mappings.
+  Current results are: `TP-B009-000` retained wrong-origin RED;
+  `TP-B009-001` `1/1`; `TP-B009-002` required `0/1` assertion RED;
+  `TP-B009-003` `3/3`; `TP-B009-004` `3/3`; `TP-B009-005` `43/43`;
+  `TP-B009-006` `13/13`; `TP-B009-008` `3426/3426`;
+  `TP-B009-009` zero violations and warnings; `TP-B009-010` open on installed
+  scanner propagation; and `TP-B009-011` six of six named packet gates green.
+- All 18 DoD items remain unchecked: 17 core items plus the Build Quality Gate.
+  The scope and packet remain `in_progress`.
+
+### Current Core Causality Evidence
+
+**Phase:** gaps
+**Commands:** focused shipped title; unchanged focused mutation with one marker
+receipt; complete integrity file; complete risk carrier.
+**Exit Codes:** shipped `0`; mutant `1` as the required negative control;
+causality probe `0`; integrity `0`; risk `0`.
+**Claim Source:** executed
+
+```text
+focused shipped source:
+tests 1
+pass 1
+fail 0
+skipped 0
+todo 0
+mutant source:
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+not ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+error: Expected values to be strictly equal:
+actual: 'unsupported-holding'
+expected: 'ok'
+code: 'ERR_ASSERTION'
+name: 'AssertionError'
+# tests 1
+# pass 0
+# fail 1
+MUTANT_EXIT=1
+1 /tmp/rl-b009-gaps-536218b5.marker
+applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+CAUSALITY_CHECK_EXIT=0
+complete integrity:
+tests 3
+pass 3
+fail 0
+complete risk:
+tests 3
+pass 3
+fail 0
+```
+
+### Current Regression And Packet Receipts
+
+**Phase:** gaps
+**Claim Source:** executed
+
+| Check | Current result |
+| --- | --- |
+| Five BUG-008 functional carriers | `43/43`; full-output SHA-256 `f819f54b6d2b2a3226b8dff10109b63453769518af9ea01ab0ca4e5fd9a7d852` |
+| Real-browser risk carrier | `13/13` with system Chrome |
+| Linked-test resolver | `3` references resolved; category comparison not applicable because no discovery adapter is declared |
+| Canonical repository selftest | `3426/3426`; full-output SHA-256 `ecb5fc03d60850283b611c5d2e0d62485aa8f8a25729c059fd3da331d8327bc0` |
+| Regression-quality guard | `0` violations, `0` warnings, `2` adversarial files |
+| Artifact lint | Exit `0`, `Artifact lint PASSED` |
+| Traceability | Exit `0`, `1` scenario, all `3` linked files present, `0` warnings |
+| Scenario obligation | Exit `0`, one coherent obligation matrix |
+| Test mechanism | Exit `0`, one coherent mechanism; mutation adapter inert |
+| Scope context fit | Exit `0`, one self-contained scope |
+| Capability foundation | Exit `0`, Gate G094 proportionality trigger absent |
+
+### Installed Versus Canonical G028
+
+**Phase:** gaps
+**Installed command:** `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --verbose`
+**Canonical diagnostic command (local source root normalized):** `timeout 600 bash <bubbles-repo>/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --verbose`
+**Exit Codes:** installed `0`; installed under-coverage probe `0`; canonical
+diagnostic `0`.
+**Claim Source:** executed
+
+```text
+installed downstream scanner:
+INFO: Scopes yielded 0 files - falling back to design.md for file discovery
+WARN: Resolved 1 file(s) from design.md fallback - scopes.md should reference these directly
+INFO: Resolved 1 implementation file(s) to scan
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned:  1
+Violations:     0
+Warnings:       1
+PASSED with 1 warning(s) - manual review advised
+INSTALLED_DOWNSTREAM_G028_EXIT=0
+INSTALLED_G028_UNDERCOVERAGE_PROBE_EXIT=0
+
+canonical db7b4f2 diagnostic:
+INFO: Resolved 2 implementation file(s) to scan
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned:  2
+Violations:     0
+Warnings:       0
+PASSED: No source code reality violations detected
+CANONICAL_DB7B4F2_ANCESTOR_EXIT=0
+```
+
+Canonical commit `db7b4f200a89cbeda0c9f5c39428b8fb2b6e1f06` changes the
+implementation and test discovery regexes from `.js`-only JavaScript coverage
+to `.js`, `.mjs`, and `.cjs`, and adds both discovery and live-interception
+regressions. Research Lab's installed scanner is the pre-fix blob. Its green
+exit scans only `rlportfolioanalytics.js` through design fallback; it does not
+scan the two planned `.mjs` implementation files. Therefore the canonical
+diagnostic is not accepted as `TP-B009-010` evidence.
+
+### Static Accounting And Transition Receipt
+
+**Phase:** gaps
+**Claim Source:** executed
+
+```text
+registry_cases=18
+test_plan_rows=11
+parity_rows=11
+dod_unchecked=18
+dod_checked=0
+product_parent=203c57b14898a13e0da81898e755ea5f5f6674ba
+product_commit=203c57b14898a13e0da81898e755ea5f5f6674ba
+product_head=203c57b14898a13e0da81898e755ea5f5f6674ba
+product_worktree=203c57b14898a13e0da81898e755ea5f5f6674ba
+injector_parent=20ed786006be23f542ec3c524758eda625567ea9
+injector_commit=20ed786006be23f542ec3c524758eda625567ea9
+injector_head=20ed786006be23f542ec3c524758eda625567ea9
+injector_worktree=20ed786006be23f542ec3c524758eda625567ea9
+PROTECTED_IDENTITY_EXIT=0
+tests/portfolio-risk.functional.mjs
+tests/portfolio-test-integrity.unit.mjs
+IMPLEMENTATION_BOUNDARY_EXIT=0
+STATIC_ACCOUNTING_EXIT=0
+```
+
+The pre-route transition guard correctly refused terminal promotion: exit `1`,
+352 lines, full-output SHA-256
+`204d092cf6133fe127b1ce2956024a9eadc92dd6c422dd76ad4f37618342102c`,
+blocking code `DELIVERY_COMPLETION_FAILED`, and failed gates
+`G060,G061,G022,G053,G027,G040,G136`. This is expected for 18 unchecked DoD
+items, a pending owner route, incomplete phase/certification state, and no
+terminal transition request.
+
+### Report Chronology Reconciliation
+
+The opening Summary, the earlier Scenario Contract Evidence paragraph, and the
+earlier Coverage Report describe intermediate test/planning snapshots. They are
+not the current verdict. Current execution is selftest `3426/3426`, all three
+linked tests resolved, six named packet gates green, and exactly one open
+delivery prerequisite: installed G028 propagation. The historical raw failures
+remain preserved because they establish the red-to-green chain.
+
+### Gap Verdict And Required Owner Route
+
+`B009-G028-PROPAGATION-001` is the only remaining delivery gap. Route it to
+`bubbles.setup`, the registered downstream framework refresh owner. The owner
+must propagate canonical `db7b4f2` through the standard installer/upgrade
+surface, without directly patching the managed downstream script. After that
+owner returns, `bubbles.gaps` must execute the installed downstream scanner
+against BUG-009 and require two files, zero warnings, and zero violations.
+Only then may the persisted `bugfix-fastlane` continue from `gaps` to `harden`.
+
+The simplify route is resolved by this audit. No product, injector, persistent
+test, planning artifact, parent Feature 008 artifact, human acceptance,
+certification field, scope status, DoD checkbox, or concurrent dirty path is
+changed by the gaps phase.

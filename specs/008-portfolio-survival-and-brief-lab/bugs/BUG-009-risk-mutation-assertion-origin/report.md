@@ -3988,3 +3988,426 @@ specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-
 specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/state.json
 [bug009-preservation] staged-paths=0
 ```
+
+## Validate Phase — Independent Re-Derivation (BUG-009-ROUTE-021)
+
+### Summary
+
+`bubbles.validate` executed every BUG-009 verification command itself against the
+current working tree at HEAD `33e239d5c`. No earlier recorded number is restated
+as current evidence. A concurrent session merged a moved `origin/main`
+(`0b7534f0a`) carrying 535 changed files including `scripts/selftest.mjs`, so the
+previously recorded `3426/3426` canonical baseline was stale by construction and
+was re-derived rather than reused.
+
+The product contract holds. The packet cannot reach a terminal status this
+session, and the reasons are recorded below rather than worked around.
+
+### Environment
+
+**Claim Source:** executed
+
+```text
+HEAD                 33e239d5ce3d3dadf53c720823614bddd6364e8e (main, ahead 75)
+index                empty (0 staged paths)
+working tree         61 dirty entries, all belonging to an unrelated in-flight
+                     Feature 008 / accessibility transaction
+BUG-009 packet       clean before this validate append
+```
+
+### TP-B009-001 Focused Shipped Carrier GREEN {#validate-tp-b009-001}
+
+**Command:**
+
+```text
+timeout 240 node --test --test-name-pattern='^BUG-009 risk mapping: unsupported holdings remain named exclusions$' tests/portfolio-risk.functional.mjs
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✔ BUG-009 risk mapping: unsupported holdings remain named exclusions (4.099381ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 81.563315
+FOCUSED_GREEN_EXIT=0
+```
+
+The exact persistent title executes once and passes once on shipped source.
+
+### TP-B009-002 Exact Mutant RED Through ERR_ASSERTION {#validate-tp-b009-002}
+
+The mutation applied is the `F008-RISK-INPUT-001` entry of the strict registry
+verbatim: module `rlportfolioanalytics.js`, `find` the named-exclusion push,
+`replace` the early `unsupported-holding` return. The `find` string was first
+proven to occur exactly once in the shipped module, so the substitution is exact
+rather than approximate.
+
+**Command:**
+
+```text
+FIND='      else excluded.push({ symbol: h.symbol, assetType: h.assetType || "unknown" });'
+REPL='      else return { state: "unsupported-holding", symbol: h.symbol };'
+grep -cF "$FIND" rlportfolioanalytics.js
+export RL_DEFECT_MODULE=rlportfolioanalytics.js
+export RL_DEFECT_FIND_B64=$(printf '%s' "$FIND" | base64 -w0)
+export RL_DEFECT_REPLACE_B64=$(printf '%s' "$REPL" | base64 -w0)
+export RL_DEFECT_MARKER=$(mktemp -t bug009-marker.XXXXXX)
+export NODE_OPTIONS="--require $PWD/tests/portfolio-defect-injector.cjs"
+timeout 240 node --test --test-name-pattern='^BUG-009 risk mapping: unsupported holdings remain named exclusions$' tests/portfolio-risk.functional.mjs
+```
+
+**Exit Code:** 1 (required RED)
+**Claim Source:** executed
+
+```text
+=== exactness: FIND present in shipped module? ===
+1
+GREP_COUNT_ABOVE (must be exactly 1)
+MARKER=/tmp/bug009-marker.x2e4Fm
+
+✖ BUG-009 risk mapping: unsupported holdings remain named exclusions (2.197693ms)
+ℹ tests 1
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+
+✖ failing tests:
+
+test at tests/portfolio-risk.functional.mjs:43:1
+✖ BUG-009 risk mapping: unsupported holdings remain named exclusions (2.197693ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+      at TestContext.<anonymous> (file:///home/philipk/research-lab/tests/portfolio-risk.functional.mjs:60:10)
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'unsupported-holding',
+    expected: 'ok',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+MUTATION_RED_EXIT=1
+
+=== applied-representation marker contents ===
+applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+```
+
+This is the precise contract BUG-009 exists to establish. The failure origin is
+`AssertionError [ERR_ASSERTION]` with `code: 'ERR_ASSERTION'` and
+`operator: 'strictEqual'`, raised inside the carrier's own assertion at
+`tests/portfolio-risk.functional.mjs:60`. There is no `TypeError`, no
+`ERR_TEST_FAILURE`, and no infrastructure substitute. The marker independently
+records `via=Module._compile`, matching the registry's declared `intendedHook`,
+so the mutation reached the module through the intended representation exactly
+once.
+
+### TP-B009-003 Full Strict Registry {#validate-tp-b009-003}
+
+**Command:**
+
+```text
+timeout 240 node --test tests/portfolio-test-integrity.unit.mjs
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✔ Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing (6081.835772ms)
+✔ BUG-007: caller-key protections and normal ordering are load-bearing in memory (1333.855477ms)
+✔ BUG-007: represented mutants execute one protective assertion through one intended hook (1299.821115ms)
+ℹ tests 3
+ℹ pass 3
+ℹ fail 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8795.349732
+FULL_REGISTRY_EXIT=0
+```
+
+Registry breadth was counted rather than assumed: 18 `finding:` entries, one of
+which is `F008-RISK-INPUT-001`, whose `title` field now reads
+`BUG-009 risk mapping: unsupported holdings remain named exclusions`. The remap
+is present in the current tree and is the only title change.
+
+```text
+=== registry case count === 18
+F008-PORTFOLIO-LIFECYCLE-001  F008-CLEAR-RUNTIME-001   F008-CLEAR-TEST-001
+F008-BEHAVIOR-CONTRACT-001    F008-BAR-COVERAGE-001    F008-BRIEF-EVIDENCE-001
+F008-BRIEF-POLICY-001         F008-BROWSER-API-001     F008-RISK-INPUT-001
+F008-RISK-DIAGNOSTICS-001     F008-PATH-CONTRACT-001   F008-SURVIVAL-PATH-001
+F008-DIVERSIFICATION-001      F008-HEDGE-001           F008-ALLOCATION-001
+F008-SENSITIVITY-BL-001       F008-DOSSIER-001         F008-COMPUTE-NAV-001
+```
+
+### TP-B009-004 Full Risk Carrier {#validate-tp-b009-004}
+
+**Command:** `timeout 240 node --test tests/portfolio-risk.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✔ BUG-009 risk mapping: unsupported holdings remain named exclusions (3.31049ms)
+✔ SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output (6.101281ms)
+✔ SCN-008-047 failed candidate preserves the last valid structured result (3.12239ms)
+ℹ tests 3
+ℹ pass 3
+ℹ fail 0
+ℹ skipped 0
+ℹ duration_ms 87.429132
+FULL_RISK_EXIT=0
+```
+
+### TP-B009-005 BUG-008 Carriers {#validate-tp-b009-005}
+
+**Command:**
+
+```text
+timeout 600 node --test tests/portfolio-privacy.functional.mjs tests/portfolio-paths.functional.mjs tests/portfolio-diversification.functional.mjs tests/portfolio-allocation.functional.mjs tests/portfolio-dossier.functional.mjs
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+ℹ tests 43
+ℹ suites 0
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2127.842794
+BUG008_CARRIERS_EXIT=0
+```
+
+All five named carriers are green; no BUG-008 title regressed under the remap.
+
+### TP-B009-006 Proportionate Browser Regression {#validate-tp-b009-006}
+
+**Command:**
+
+```text
+timeout 1800 npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+Running 13 tests using 1 worker
+  ✓   1 …: SCN-008-013 arithmetic CAGR and conditional drag stay separate (1.4s)
+  ✓   2 …n: SCN-008-014 unrecovered drawdown stops at the evidence cutoff (1.1s)
+  ✓   3 …wdown canvas tables remain equivalent at desktop mobile and zoom (1.3s)
+  ✓   4 …015 concentration lenses expose overlap and missing look through (1.2s)
+  ✓   5 …SCN-008-016 beta alpha R squared and residual risk stay separate (1.2s)
+  ✓   6 …nchmark fit is unavailable rather than regressed against a guess (1.2s)
+  ✓   7 …ion: SCN-008-017 marginal and total risk contributions reconcile (1.3s)
+  ✓   8 …lared proxy factors report exposures and name themselves proxies (1.1s)
+  ✓   9 …08-017 return contribution stays distinct from risk contribution (1.1s)
+  ✓  10 …5 manual assets and absent look through stay visible not omitted (1.1s)
+  ✓  11 …and contribution diagnostics preserve mobile canvas table parity (1.3s)
+  ✓  12 …olio inputs preserve eligible risk diagnostics and partial truth (1.3s)
+  ✓  13 … 008 Risk X-Ray refuses rather than showing a partial portfolio (992ms)
+
+  13 passed (18.7s)
+RISK_E2E_EXIT=0
+```
+
+This is offered as proportionate regression breadth only. The direct
+assertion-origin contract is proved by the pure-logic pair above, not here.
+
+### TP-B009-008 Canonical Selftest — Re-Derived, Total Changed {#validate-tp-b009-008}
+
+**Command:** `timeout 1800 node scripts/selftest.mjs` (via installed
+`evidence-capture.sh`, which hashes every produced line)
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-009 validate: canonical selftest on current tree
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3898
+sha256: b05ad83593bfce36f7f515d68cce52822c19e93bb64797cf2087653cf5dc9179
+--- last lines ---
+  ✓ no scope progress claim disagrees with its Definition of Done outside the
+    frozen baseline (0 new, 14 frozen, 0 stale of 87 claim(s))
+
+================================================
+Research-Lab self-test: 3429 passed, 0 failed
+================================================
+```
+
+The current tree produces **3429 passed, 0 failed**. The packet's earlier
+recorded total was 3426. The total moved by +3 because the merged
+`origin/main` changed `scripts/selftest.mjs` among 535 files. Nothing failed, so
+this is a baseline movement caused by work outside BUG-009, not a regression, and
+it is recorded rather than reconciled away. Validate does not own that
+divergence and did not adjust any budget or baseline to absorb it.
+
+### TP-B009-009 / TP-B009-010 Guards {#validate-tp-b009-009}
+
+**Claim Source:** executed
+
+```text
+$ timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-test-integrity.unit.mjs tests/portfolio-risk.functional.mjs
+✅ Adversarial signal detected in tests/portfolio-test-integrity.unit.mjs
+✅ Adversarial signal detected in tests/portfolio-risk.functional.mjs
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+REGRESSION_QUALITY_EXIT=0
+
+$ timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh <packet> --verbose
+  Files scanned:  2
+  Violations:     0
+  Warnings:       0
+🟢 PASSED: No source code reality violations detected
+G028_EXIT=0
+```
+
+### TP-B009-011 Named Packet Gates {#validate-tp-b009-011}
+
+All six gates named by `CMD-B009-PACKET` were run through the installed
+`.github/bubbles/scripts/` entry points.
+
+**Claim Source:** executed
+
+```text
+artifact-lint.sh              → Artifact lint PASSED.                    EXIT=0
+traceability-guard.sh         → RESULT: PASSED (0 warnings)              EXIT=0
+scenario-obligation-lint.sh   → OK — 1 coherent derived obligation matrix EXIT=0
+test-mechanism-lint.sh        → OK — 1 declared mechanism(s) coherent     EXIT=0
+scope-context-fit-lint.sh     → OK — all 1 scope(s) self-contained        EXIT=0
+capability-foundation-guard.sh→ PASS Gate G094                           EXIT=0
+```
+
+### Code Diff Evidence
+
+Change-boundary containment was verified against the real implementation commit
+rather than asserted from the scope prose.
+
+**Command:** `git --no-pager show --stat --oneline 4824edc81`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+4824edc81 test(BUG-009): assert named risk exclusions
+ tests/portfolio-risk.functional.mjs     | 29 +++++++++++++++++++++++++++++
+ tests/portfolio-test-integrity.unit.mjs |  2 +-
+ 2 files changed, 30 insertions(+), 1 deletion(-)
+```
+
+Exactly two files, both tests, +30 / −1. `rlportfolioanalytics.js` and
+`tests/portfolio-defect-injector.cjs` are untouched by the delivery, so the
+declared test-only Change Boundary holds and the mutation proof runs against
+genuinely shipped source.
+
+### Blocking Findings Validate Does Not Own
+
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh <packet>`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+🔴 TRANSITION BLOCKED: 17 failure(s), 2 warning(s)
+failedGateIds: [G061,G022,G053,G027,G040,G136]
+failedChecks: [Check-4-completion,Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+verdict: FAIL
+```
+
+| Gate | Finding | Owner |
+| --- | --- | --- |
+| G022 | Required phases `implement`, `validate`, `audit` absent from phase records. Persisted claims are `bug, plan, test, regression, simplify, gaps, harden, stabilize, devops, security`. | `bubbles.audit` must run; the phase vocabulary is plan-owned |
+| G022 Check 6B / G140 | Phase names `plan` and `design` are not registered in the installed `.github/bubbles/workflows.yaml`; `phase-name-enum-lint.sh` exits 1 on the same two names | framework-managed installed surface; downstream must not hand-edit it |
+| G136 | Scope is a repair but `scopes.md` carries no change-boundary DoD item enumerating allowed and excluded surfaces | `bubbles.plan` |
+| G027 | Phase claims include implement/test while `completedScopes` is empty and zero scopes are Done | resolves once DoD adjudication is applied by the scope owner |
+| G061 | `BUG-009-ROUTE-021` carried `status: pending`, which is outside the accepted `open / closed / resolved` enum | resolved by this validate phase |
+| G061 (residual) | The guard's `open` shape models an **external** referral: it demands `routedTo`, `routedToSpec`, `routedToCommit`, `routedToTicket` as a URL, `productAction: "none"`, and `crossRepoFollowUp: true`. `BUG-009-ROUTE-022` is an **internal** next-owner handoff inside this repository. Validate populated those fields, saw the guard then require an external URL and a cross-repo flag, and removed them rather than fabricate a cross-repo referral that does not exist. Every earlier route in this packet sidestepped the mismatch by being marked `resolved` on creation, so no internal open handoff has ever satisfied G061 here. | `bubbles.plan` — reconcile the packet's internal-handoff routing convention with the installed G061 schema |
+| G040 | One deferral-language hit in `report.md` | adjudicated below |
+
+### G040 Adjudication — report.md:573
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+$ grep -n 'Phase:\*\* plan follow-up' report.md
+573:**Phase:** plan follow-up
+```
+
+Read in context, line 573 is the phase label on the header of a historical
+`TP-B009-008` selftest evidence block. It names which phase produced that run.
+It promises no work, and no unfinished obligation hides behind it.
+
+That makes it a false positive **in substance** and a real failure **in
+mechanism**: G040 scans report artifacts for a fixed vocabulary, that label
+matches it, and the gate is blocking with no bypass. The correct resolution is
+not to launder the wording of a historical evidence block. It is to give the
+label a registered phase name — which is the same defect G140 and Check 6B
+already report, since the phase it names is itself unregistered. One root cause,
+three symptoms. Validate records the adjudication and routes the phase-vocabulary
+reconciliation to the owner rather than rewriting prior evidence prose to quiet a
+scanner.
+
+
+### DoD Adjudication
+
+Validate does not own `scopes.md`, so the checkboxes are left for the scope
+owner to apply together with the G136 change-boundary repair that the same file
+already needs. The verdict per item is recorded here so the owner applies ticks
+to evidence rather than to assertion.
+
+| DoD item | Validate verdict | Evidence |
+| --- | --- | --- |
+| `SCN-B009-001` proves exact focused title calls real exported source | SUPPORTED | [#validate-tp-b009-001](#validate-tp-b009-001) |
+| Root cause remains the broad mutation-to-title mapping | SUPPORTED | registry entry `F008-RISK-INPUT-001` now names the focused title |
+| Exact persistent title present | SUPPORTED | [#validate-tp-b009-001](#validate-tp-b009-001) |
+| Only the `F008-RISK-INPUT-001` title mapping changes | SUPPORTED | [Code Diff Evidence](#code-diff-evidence) — 2 files, +30/−1 |
+| Delivery stays inside the test-only Change Boundary | SUPPORTED | [Code Diff Evidence](#code-diff-evidence) |
+| `TP-B009-000` persistent wrong-origin RED | NOT RE-EXECUTABLE | Post-fix the registry is green by design; the pre-fix RED is a persistent historical record, not a re-runnable claim |
+| `TP-B009-001` focused shipped GREEN passes exactly once | SUPPORTED | [#validate-tp-b009-001](#validate-tp-b009-001) |
+| `TP-B009-002` focused mutation RED via `ERR_ASSERTION` | SUPPORTED | [#validate-tp-b009-002](#validate-tp-b009-002) |
+| `TP-B009-003` registry 3/3 with all 18 cases | SUPPORTED | [#validate-tp-b009-003](#validate-tp-b009-003) |
+| `TP-B009-004` full risk carrier | SUPPORTED | [#validate-tp-b009-004](#validate-tp-b009-004) |
+| `TP-B009-005` five BUG-008 carriers | SUPPORTED | [#validate-tp-b009-005](#validate-tp-b009-005) |
+| `TP-B009-006` browser regression | SUPPORTED | [#validate-tp-b009-006](#validate-tp-b009-006) |
+| `TP-B009-008` canonical selftest | SUPPORTED WITH MOVED TOTAL | [#validate-tp-b009-008](#validate-tp-b009-008) — 3429/3429, was 3426 |
+| `TP-B009-009` regression-quality guard | SUPPORTED | [#validate-tp-b009-009](#validate-tp-b009-009) |
+| `TP-B009-010` installed G028 scanner | SUPPORTED | [#validate-tp-b009-009](#validate-tp-b009-009) |
+| `TP-B009-011` packet planning gates | SUPPORTED | [#validate-tp-b009-011](#validate-tp-b009-011) |
+| Human acceptance remains unclaimed and human-owned | NOT VALIDATE'S TO CLAIM | untouched by design; no acceptance record was manufactured |
+| Build Quality Gate | NOT SATISFIED | state-transition guard exits 1 with G022, G136, G040, G061, G027, G053 |
+
+Sixteen items are supported by commands executed in this session. One is a
+persistent historical record that cannot be re-executed post-fix without
+inverting its meaning. One is human-owned and was deliberately left alone. The
+Build Quality Gate cannot pass while the guard blocks.
+
+### Completion Statement
+
+The BUG-009 product contract is proved on the current tree: the exact focused
+title passes on shipped source and fails through `ERR_ASSERTION` at
+`Module._compile` under the exact registry mutation, with the full registry,
+every carrier, the browser regression, and the canonical selftest green, and the
+delivery confined to two test files.
+
+Certification is nevertheless withheld. `bubbles.validate` will not certify a
+`bugfix-fastlane` packet whose `delivery-completion-v1` profile still requires an
+`audit` phase that has not run, whose scope file lacks the G136 change-boundary
+enumeration, and whose phase vocabulary the installed registry rejects. Status
+stays `in_progress`, certification stays `in_progress`, human acceptance stays
+unclaimed, and `BUG-009-ROUTE-022` carries the named findings to `bubbles.plan`.
+
+The unrelated 61-entry working-tree transaction was neither staged, reset,
+stashed, nor reverted, and nothing was pushed.

@@ -29,18 +29,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.security",
-    "currentPhase": "security",
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "security_reviewed_validation_pending",
+    "substate": "validated_certification_withheld",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredOwner": "bubbles.plan",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "BUG-009-ROUTE-020 is resolved by the revision-321 scoped security review. Actual commit, source, G034, G028, dependency-lock, canonical security-suite, mutation-mechanism, hostile-input, Pages-exclusion, and blob-containment evidence found no BUG-009 security defect. The unchanged injector remains a trusted test harness, not a sandbox; BUG-009 introduces no less-privileged input or authority expansion. The persisted bugfix-fastlane phase order places validate immediately after security, so BUG-009-ROUTE-021 routes next to bubbles.validate while delivery and certification remain in progress.",
-    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps", "harden", "stabilize", "devops", "security"],
+    "nextRequiredReason": "BUG-009-ROUTE-021 is resolved. bubbles.validate independently re-derived every BUG-009 verification on the current tree at HEAD 33e239d5c: focused shipped GREEN 1/1, the exact F008-RISK-INPUT-001 mutant RED 0/1 through ERR_ASSERTION at Module._compile with no infrastructure substitute, strict registry 3/3 across all 18 cases, full risk carrier 3/3, five BUG-008 carriers 43/43, browser risk carrier 13/13, canonical selftest 3429 passed 0 failed, regression-quality guard clean, installed G028 clean, and all six named packet gates clean. The recorded 3426 total is stale: the merged origin/main changed 535 files including scripts/selftest.mjs, so the current total is 3429 with zero failures. Certification is withheld because state-transition-guard exits 1 with G022, G136, G040, G061, G027, and G053. The residue is not validate-owned: delivery-completion-v1 still requires an audit phase that has not run; scopes.md lacks the G136 change-boundary enumeration of allowed and excluded surfaces; and the installed workflows.yaml does not register the phase names plan and design, which is the single root cause behind Check 6B, phase-name-enum-lint G140, and the G040 'plan follow-up' label at report.md:573. BUG-009-ROUTE-022 routes those findings to bubbles.plan. Status, certification, scope status, DoD checkboxes, and human acceptance are all unchanged.",
+    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps", "harden", "stabilize", "devops", "security", "validate"],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
@@ -289,11 +289,22 @@
     },
     {
       "id": "BUG-009-ROUTE-021",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.security",
       "nextRequiredOwner": "bubbles.validate",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-      "reason": "The revision-321 security phase found no BUG-009 defect across the actual two-test implementation change and unchanged shared injector. G034, G028, dependency source lock, canonical Node security suites, complete mutation mechanism, focused carrier, disposable hostile-input probe, Pages exclusion, and byte containment are recorded. Continue with bubbles.validate, the next persisted bugfix-fastlane phase, while preserving status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, and certification until validate performs its owned work."
+      "reason": "The revision-321 security phase found no BUG-009 defect across the actual two-test implementation change and unchanged shared injector. G034, G028, dependency source lock, canonical Node security suites, complete mutation mechanism, focused carrier, disposable hostile-input probe, Pages exclusion, and byte containment are recorded. Continue with bubbles.validate, the next persisted bugfix-fastlane phase, while preserving status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, and certification until validate performs its owned work.",
+      "resolvedBy": "bubbles.validate",
+      "resolvedAt": "2026-08-27T17:05:00Z",
+      "resolution": "Consumed by the validate phase recorded at report.md#validate-phase-independent-re-derivation-bug-009-route-021. Every BUG-009 verification was re-executed on the current tree rather than restated: focused shipped GREEN, exact mutant RED through ERR_ASSERTION at Module._compile, strict registry 3/3 over 18 cases, full risk carrier, five BUG-008 carriers, browser risk carrier, canonical selftest 3429/3429, regression-quality guard, installed G028, and all six named packet gates. The prior status value 'pending' sat outside the accepted open/closed/resolved enum and tripped G061; that is corrected here. Certification is withheld and BUG-009-ROUTE-022 carries the non-validate-owned residue forward."
+    },
+    {
+      "id": "BUG-009-ROUTE-022",
+      "status": "open",
+      "fromAgent": "bubbles.validate",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "Validate proved the BUG-009 product contract on the current tree and withheld certification. Four findings remain and none is validate-owned. (1) G136: scopes.md is a repair scope but carries no change-boundary DoD item enumerating allowed and excluded surfaces; the delivery is genuinely test-only (commit 4824edc81 touched exactly tests/portfolio-risk.functional.mjs and tests/portfolio-test-integrity.unit.mjs, +30/-1), so the enumeration must be authored to match that verified boundary. (2) G022 Check 6B and phase-name-enum-lint G140: the installed .github/bubbles/workflows.yaml does not register the phase names 'plan' and 'design', so persisted phase claims fail the registered phase-owner contract; this is also the root cause of the single G040 hit, the label '**Phase:** plan follow-up' at report.md:573, which validate adjudicated as a phase label rather than deferred work and declined to launder. (3) G022: delivery-completion-v1 still requires an audit phase that has not run, so bubbles.audit must execute before any terminal status. (4) DoD checkboxes remain 0/18; validate recorded a per-item verdict at report.md under 'DoD Adjudication' (16 supported by executed evidence, 1 a non-re-executable historical RED record, 1 human-owned) so the scope owner can apply ticks to evidence in the same edit that repairs G136. Human acceptance in uservalidation.md stays unclaimed and must not be manufactured."
     }
   ],
   "reworkQueue": [],

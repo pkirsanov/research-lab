@@ -1237,3 +1237,55 @@ BUG-022 therefore remains `in_progress`. Its C03 historical receipt is preserved
 advance to regression or stabilization while the owning BUG-017 lifecycle canary is red. The
 workers=1 fallback remains ineligible under BUG-017's planned decision rule. No BUG-022 checkbox,
 state, certification, acceptance, Checklist, protected Feature 008 report, or ratchet changed.
+
+## BUG-017 Scope 4 Fallback Consumer Receipt {#bug-017-scope-4-fallback-consumer-receipt}
+
+**Phase:** stabilize
+**Claim Source:** executed
+**Execution date:** 2026-08-27
+
+BUG-017 preserved its lifecycle candidate evidence, reverted the candidate through two explicit
+commits, and selected the planned one-worker fallback. This receipt records BUG-022's unchanged
+TP-BUG022-C03 command. It does not record a BUG-022 phase completion or status transition.
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `a3e93124da2431f11b6347f53b9ed678d0776cd56a3e75d2583b6dae68961c2b`
+
+```text
+RUN_BEGIN id=BUG022-C03-R2
+EXACT_COMMAND=npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+PROCESS_COUNTS label=before-BUG022-C03-R2 worktreeCwd=0 remoteDebugChrome=0
+Running 94 tests using 1 worker
+94 passed (1.4m)
+PROCESS_COUNTS label=after-BUG022-C03-R2 worktreeCwd=0 remoteDebugChrome=0
+RUN_RECEIPT id=BUG022-C03-R2 playwrightExit=0 wallSeconds=86 resolvedOne=1 passed94=1 forceKill=0 ignoredLifecycle=0 ownedResidue=0 remoteDebugDelta=0
+RUN_END id=BUG022-C03-R2
+captureSha256=a3e93124da2431f11b6347f53b9ed678d0776cd56a3e75d2583b6dae68961c2b
+result=PASS
+```
+
+BUG-022 remains `in_progress`. This append changes no BUG-022 checkbox, state, certification,
+acceptance, Checklist, protected Feature 008 report, or baseline.
+
+### Current BUG-022 Completion Guard
+
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-022-historical-report-declaration-leak`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `63da0db7847d524e65f35236c13c2453aa3a1ed65e3e5d291e5f50ea651dff14`
+
+```text
+BEGIN TRANSITION_GUARD_RESULT_V1
+targetStatus: done
+failedGateIds: [G022,G027,G040,G136]
+failedChecks: [Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 12
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+This is a non-terminal guard result, not a pass. No BUG-022 state or acceptance field changed.

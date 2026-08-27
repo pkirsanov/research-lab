@@ -195,7 +195,8 @@
         "report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest-at-c652cd092",
         "report.md#fresh-change-boundary-containment-at-c652cd092",
         "report.md#bug-017-scope-4-dependency-unblock-receipt",
-        "report.md#bug-017-scope-4-finalization-follow-up"
+        "report.md#bug-017-scope-4-finalization-follow-up",
+        "report.md#bug-017-scope-4-fallback-consumer-receipt"
       ],
       "implementationRefs": [
         "scripts/validate-test-file-reachability.mjs",
@@ -214,7 +215,7 @@
           "scripts/validate-test-file-reachability.mjs",
           ".specify/memory/agents.md"
         ],
-        "negativeControl": "An active portfolio-wide Node declaration recreates the eight crossings and fails the focused disjointness assertion.",
+        "negativeControl": "An active portfolio-wide Node declaration recreates the eight crossings and fails the focused disjointness assertion. TP-BUG022-C03 remains the unchanged Playwright command and now consumes the selected one-worker config default.",
         "negativeControlMechanism": "perturbed-input"
       }
     }

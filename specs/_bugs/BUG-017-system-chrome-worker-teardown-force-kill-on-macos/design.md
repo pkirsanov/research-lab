@@ -1,16 +1,31 @@
-# Design: BUG-017 - Foundation-Owned Browser Lifecycle Boundary
+# Design: BUG-017 - Rollback-Gated One-Worker Fallback
 
-> **Active design status:** Reconciled to the current-revision diagnosis at `d532faaac`.
-> Worker count is an exposure control, not the active root-cause model. The selected candidate
-> remains provisional until the exact 94-test BUG-022 C03 workload exits 0 at two workers.
+> **Active design status:** The Foundation lifecycle candidate is rejected and hash-verified as
+> rolled back. The selected route pins one worker while preserving system-Chrome parity and the
+> unchanged worker-stop budget. Worker count remains an exposure control, not a root-cause claim.
+
+## Scope 4 Fallback Selection
+
+The candidate passed an earlier strict canary and exact complete run. Two later strict canaries
+failed at the same committed bytes. Foundation's browser close timed out, and one worker required
+force-kill at the 15-second test bound.
+
+Commits `047292eb2` and `af119275a` reverse the candidate test and implementation commits.
+The resulting Foundation and runtime-functional blobs match the pre-candidate baseline. The
+fallback changes the repository default from two workers to one. It does not change the browser
+project, Chrome channel, vendor stop budget, reporter, or force-kill visibility.
+
+Two complete config-default runs selected this route. Each resolved one worker, passed 94 tests,
+exited zero, emitted no force-kill marker, and left no workload-owned residue. This section
+supersedes later present-tense descriptions of the Foundation lifecycle candidate.
 
 ## Design Brief
 
 ### Current State
 
-`tests/portfolio-survival-foundation.spec.mjs` uses the shared base Playwright `test` and closes
-only its HTTP server in `afterAll`. The browser remains owned by Playwright's worker fixture and
-is released during generic worker teardown. The cumulative Foundation sequence can leave that
+`tests/portfolio-survival-foundation.spec.mjs` again uses the shared Playwright `test` and closes
+only its HTTP server in `afterAll`. Exact blob comparison confirms the lifecycle candidate is
+absent. The historical diagnosis found that the cumulative Foundation sequence can leave a
 worker holding two anonymous `Socket` handles after Chrome exits.
 
 The exact 94-test `system-chrome` workload failed two of two times at workers=2 after all tests
@@ -19,29 +34,21 @@ count threshold or a worker-count cause.
 
 ### Target State
 
-Foundation receives a file-local automatic worker-scoped fixture boundary and closes its owned
-browser in its existing `afterAll`, before Playwright tears down the worker fixture. Later specs
-continue to use the shared base `test`. Paths therefore receives a fresh worker and browser in
-the focused canary rather than inheriting Foundation's closed browser.
-
-The candidate is selected only if both the strict 27-test canary and the unchanged 94-test
-BUG-022 C03 command pass at workers=2 with clean process shutdown. Workers=1 is a contingency
-only after the candidate passes the canary, fails the complete lifecycle acceptance, and is
-rolled back with exact hash verification.
+The repository resolves one worker from `playwright.config.mjs`. The exact BUG-022 C03 command
+uses that default without a CLI override. System Chrome and its unchanged 300000ms worker-stop
+budget remain visible. A force-kill still makes the command fail.
 
 ### Patterns to Follow
 
-- Derive a file-local `test` from the base export in `tests/playwright-runtime.mjs`.
-- Keep browser ownership in `tests/portfolio-survival-foundation.spec.mjs`.
-- Put the persistent child-process lifecycle assertion in
-   `tests/playwright-runtime.foundation.functional.mjs`.
+- Keep Foundation, Paths, and the shared Playwright runtime at pre-candidate bytes.
+- Pin the selected worker value in `playwright.config.mjs` and its functional assertions.
 - Preserve BUG-022 TP-BUG022-C03's exact command and the `system-chrome` project.
-- Keep `playwright.config.mjs` at workers=2 while the lifecycle candidate is evaluated.
+- Preserve force-kill visibility and the vendor's 300000ms worker-stop budget.
 
 ### Patterns to Avoid
 
-- Do not follow the stale `playwright.config.mjs` comment that says worker count decides the
-   outcome or that two workers avoid the defect. Current execution falsifies both claims.
+- Do not restore the rejected Foundation browser-close candidate.
+- Do not claim that one worker removes the upstream cause.
 - Do not close a shared browser without a distinct worker fixture pool. Paths then receives a
    closed browser and fails its first test.
 - Do not close the browser from worker-fixture teardown. That timing enters the stuck vendor
@@ -50,11 +57,11 @@ rolled back with exact hash verification.
 
 ### Resolved Decisions
 
-- The active diagnosis is a Foundation-owned lifecycle boundary, not concurrency causality.
-- The candidate changes one portfolio spec and one persistent lifecycle test.
-- The two-worker canary precedes the complete two-worker workload.
-- A complete two-worker pass keeps workers=2. A complete lifecycle failure activates rollback.
-- A workers=1 change is ineligible until candidate rollback is hash-verified.
+- The Foundation lifecycle candidate failed current finalization and is rejected.
+- Candidate rollback must preserve its prior evidence commits.
+- Foundation and its candidate test must match their pre-candidate blobs before fallback work.
+- The selected fallback changes only the default worker count and its durable assertions.
+- The browser project, Chrome channel, timeout, and force-kill behavior remain unchanged.
 
 ### Open Questions
 
@@ -107,7 +114,7 @@ The complete 94-test run remains the discriminator between a focused improvement
 4. Playwright enters generic worker-fixture teardown and attempts to close the browser transport.
 5. After the cumulative trigger, anonymous sockets can keep the worker alive until force-kill.
 
-### Selected Candidate Flow
+### Rejected Candidate Flow (Historical)
 
 1. Foundation imports the existing `test` as `baseTest`.
 2. Foundation defines a local derived `test` with one automatic worker-scoped
@@ -157,11 +164,10 @@ and changes only which spec owns its final close.
    its close-removal negative control, and assertions that browser project and teardown errors
    cannot be hidden.
 
-### Conditional Configuration File
+### Selected Configuration File
 
-- `playwright.config.mjs`: unchanged when the candidate passes at two workers. The only eligible
-   implementation change is workers 2 to 1 after the complete two-worker lifecycle failure and
-   verified candidate rollback.
+- `playwright.config.mjs`: changes workers from two to one after candidate rejection and
+   hash-verified rollback.
 
 ### Excluded Files And Behavior
 
@@ -197,22 +203,20 @@ Chrome processes. Temporary output remains outside the repository.
 
 ## Configuration And Rollout
 
-The evaluation starts with the committed `system-chrome` project and workers=2. The derived
-fixture is local to Foundation and requires no shared runtime or config migration.
+The evaluation started with the committed `system-chrome` project and workers=2. The candidate
+passed one focused and one complete run. It then failed two current strict-canary runs.
 
-Rollout is gated rather than gradual:
+Rollout followed the fallback gate:
 
-1. The strict Foundation-to-Paths canary must pass first at explicit workers=2.
-2. The unchanged BUG-022 C03 command must then resolve two workers and satisfy every complete-run
-    criterion.
-3. Only that complete pass selects the lifecycle candidate and leaves workers=2 in place.
-4. A test assertion failure does not authorize workers=1 because it does not discriminate the
-    lifecycle candidate. The contingency is eligible only when all 94 tests pass but lifecycle
-    acceptance fails through non-zero exit, force-kill, ignored teardown error, or owned residue.
+1. Preserve both successful and failed candidate evidence.
+2. Revert the candidate test commit and verify its parent-tree bytes.
+3. Revert the candidate implementation and verify pre-candidate Foundation bytes.
+4. Change the config default and adjacent assertions from two workers to one.
+5. Run the unchanged BUG-022 C03 command twice through the config default.
 
 ## Acceptance And Test Design
 
-### Gate 1 - Strict 27-Test Canary At Workers=2
+### Historical Gate 1 - Strict 27-Test Canary At Workers=2
 
 The persistent test title is
 `Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds` in
@@ -239,7 +243,7 @@ The negative control removes only the Foundation-owned close. It must preserve 2
 assertions while failing the lifecycle assertion, then restore the exact Foundation file hash and
 return the canary to green.
 
-### Gate 2 - Exact 94-Test BUG-022 C03 At Workers=2
+### Historical Gate 2 - Exact 94-Test BUG-022 C03 At Workers=2
 
 After Gate 1 passes, run the canonical command unchanged.
 
@@ -258,15 +262,24 @@ After the selected branch is stable, run the complete runtime-foundation functio
 packet governance checks. Run `node scripts/selftest.mjs` on the final tree. These checks
 complement the two lifecycle gates. None substitutes for them.
 
+### Selected Fallback Gate
+
+Run the unchanged BUG-022 C03 command without `--workers`:
+
+```text
+npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+```
+
+The runner must report `Running 94 tests using 1 worker`. All 94 tests must pass. The command
+must exit zero. No force-kill, ignored-lifecycle, or workload-owned residue may remain.
+
 ## Rollback And One-Worker Contingency
 
 Before candidate implementation, record baseline hashes and the exact candidate diff for both
 candidate files.
 
-If Gate 1 fails, restore the candidate files and continue diagnosis. Workers=1 is not eligible
-because the complete two-worker workload did not test the candidate.
-
-If Gate 1 passes but Gate 2 fails a lifecycle criterion after all 94 tests pass:
+If any required current candidate acceptance run fails a lifecycle criterion after the candidate
+has reached complete-workload evaluation:
 
 1. Preserve the complete unfiltered failure evidence.
 2. Restore only the Foundation lifecycle and candidate-canary hunks.
@@ -278,9 +291,8 @@ The one-worker contingency requires 94/94 passing, exit 0, clean teardown output
 owned process counts. Failure leaves the defect unresolved. A one-worker pass only bounds
 exposure. It does not establish the socket owner or make worker count the root cause.
 
-If Gate 2 passes at two workers, retain the candidate and workers=2. Prove rollback with a
-self-reverting close-removal mutation: the strict canary must fail on lifecycle, exact hash
-restoration must succeed, and the restored canary must pass.
+The finalization canary failed this condition twice. The rollback and one-worker branch are now
+selected. Earlier candidate passes remain historical evidence rather than final-tree proof.
 
 ## Observability And Diagnostics
 

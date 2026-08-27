@@ -2364,4 +2364,225 @@ BUG022_STATE_ACCEPTANCE_DIFF_EXIT=0
 CANDIDATE_BOUNDARY_END
 ```
 
+## Scope 4 Fallback Selection And Verification {#scope-4-fallback-selection-and-verification}
+
+**Phase:** stabilize
+**Claim Source:** executed
+**Execution date:** 2026-08-27
+
+The current finalization failures activate the approved fallback route. The earlier lifecycle
+passes and failures remain unchanged above. This section records new inverse commits and new
+fallback execution. It does not reinterpret a non-zero command as a pass.
+
+### Candidate Rollback And Baseline Identity
+
+Commit `047292eb2d2d7444dff1e45b52738950609cad4b` reverses lifecycle test commit
+`5620a4e7865742eca3651565bffcac86153a4419`. Commit
+`af119275ad624893d5c55ac07d046d646c0928a4` reverses lifecycle implementation commit
+`b3322965e6209b125391c3f147b45ce1ae8241b4`. Both inverse commits follow evidence commit
+`00041db0fce7b8f87bebe459859a410ec17d5210`.
+
+**Command:** `git ls-tree 8ebf4b751 -- tests/portfolio-survival-foundation.spec.mjs tests/playwright-runtime.mjs tests/portfolio-survival-paths.spec.mjs; git ls-tree HEAD -- <same paths>; git diff --quiet 8ebf4b751 -- <same paths>`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+ROLLBACK_AND_BASELINE_RECEIPT_BEGIN
+047292eb2d2d7444dff1e45b52738950609cad4b
+af119275ad624893d5c55ac07d046d646c0928a4
+BASELINE_OBJECTS
+b50262e48116f614380a000d0f226617e24e2c82 tests/playwright-runtime.mjs
+bc66800eb67d51f2bfdd3beae19bbe0bee697d2e tests/portfolio-survival-foundation.spec.mjs
+ab2b3eac1ee84b711f9966b1a01eaf900c744972 tests/portfolio-survival-paths.spec.mjs
+CURRENT_COMMITTED_OBJECTS
+b50262e48116f614380a000d0f226617e24e2c82 tests/playwright-runtime.mjs
+bc66800eb67d51f2bfdd3beae19bbe0bee697d2e tests/portfolio-survival-foundation.spec.mjs
+ab2b3eac1ee84b711f9966b1a01eaf900c744972 tests/portfolio-survival-paths.spec.mjs
+FOUNDATION_SHARED_PATHS_BASELINE_EXIT=0
+ROLLBACK_AND_BASELINE_RECEIPT_END
+```
+
+The candidate runtime-functional blob also returned to baseline object
+`0d319b8b1662dbb45dd4a5b61b189b6909ded77d` before the fallback assertion changed it.
+The candidate version was `eb79697d24213fd4283a4e88c21df620d2f23734`.
+
+### Selected Route
+
+`playwright.config.mjs` now resolves one worker. The adjacent config disclosure and command
+registry state that this is an exposure bound after candidate rollback. Neither surface claims
+that two workers avoid recurrence. The `system-chrome` project, Chrome channel, Playwright
+300000ms worker-stop budget, list reporter, and force-kill error remain unchanged.
+
+### Runtime-Foundation Functional Suite
+
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `faaff00198b2f9caad97d2d265fa051954803fe7094eeb26cfafe38998235b7e`
+
+```text
+# BUG-017 Scope 4 fallback runtime-foundation functional suite
+exit: 0
+lines: 51
+sha256: faaff00198b2f9caad97d2d265fa051954803fe7094eeb26cfafe38998235b7e
+Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin
+Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity
+tests 15
+pass 15
+fail 0
+cancelled 0
+skipped 0
+todo 0
+```
+
+### Exact Config-Default Run Matrix
+
+Both rows invoked this exact child command without `--workers`:
+
+```text
+npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+```
+
+| Run | Consumer | Resolved workers | Tests | Exit | Wall | Force-kill | Ignored lifecycle | Owned residue | Capture SHA-256 |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| BUG017-FALLBACK-R1 | BUG-017 TP-BUG017-04-04 | 1 | 94/94 | 0 | 99s | 0 | 0 | 0 | `c1e5e7d345cd779fd9b817cc6fd850c4aed138beb8e02e9f2afbcaa1325c0153` |
+| BUG022-C03-R2 | BUG-022 TP-BUG022-C03 | 1 | 94/94 | 0 | 86s | 0 | 0 | 0 | `a3e93124da2431f11b6347f53b9ed678d0776cd56a3e75d2583b6dae68961c2b` |
+
+**Command:** exact config-default command above, invoked by the bounded process-ownership probe
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+RUN_BEGIN id=BUG017-FALLBACK-R1
+EXACT_COMMAND=npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+PROCESS_COUNTS label=before-BUG017-FALLBACK-R1 worktreeCwd=0 remoteDebugChrome=0
+Running 94 tests using 1 worker
+94 passed (1.6m)
+PROCESS_COUNTS label=after-BUG017-FALLBACK-R1 worktreeCwd=0 remoteDebugChrome=0
+RUN_RECEIPT id=BUG017-FALLBACK-R1 playwrightExit=0 wallSeconds=99 resolvedOne=1 passed94=1 forceKill=0 ignoredLifecycle=0 ownedResidue=0 remoteDebugDelta=0
+RUN_END id=BUG017-FALLBACK-R1
+captureSha256=c1e5e7d345cd779fd9b817cc6fd850c4aed138beb8e02e9f2afbcaa1325c0153
+result=PASS
+```
+
+**Command:** exact config-default command above, invoked by the bounded process-ownership probe
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+RUN_BEGIN id=BUG022-C03-R2
+EXACT_COMMAND=npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+PROCESS_COUNTS label=before-BUG022-C03-R2 worktreeCwd=0 remoteDebugChrome=0
+Running 94 tests using 1 worker
+94 passed (1.4m)
+PROCESS_COUNTS label=after-BUG022-C03-R2 worktreeCwd=0 remoteDebugChrome=0
+RUN_RECEIPT id=BUG022-C03-R2 playwrightExit=0 wallSeconds=86 resolvedOne=1 passed94=1 forceKill=0 ignoredLifecycle=0 ownedResidue=0 remoteDebugDelta=0
+RUN_END id=BUG022-C03-R2
+captureSha256=a3e93124da2431f11b6347f53b9ed678d0776cd56a3e75d2583b6dae68961c2b
+result=PASS
+```
+
+### Uncertainty Declaration
+
+**Attempted:** Two complete config-default runs tested the selected route after exact rollback.
+
+**Observed:** Both runs passed every test and all declared lifecycle acceptance checks.
+
+**Not established:** Two runs do not prove that one worker removes the upstream socket cause.
+The fallback bounds measured exposure and preserves failure visibility.
+
+### Final Repository Selftest
+
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `e640a67af9cae0c02f9ef8e1e0826e76d0fdcaf824187a4a67e98beeb1a39b47`
+
+```text
+# BUG-017 Scope 4 fallback final repository selftest
+exit: 0
+lines: 3960
+sha256: e640a67af9cae0c02f9ef8e1e0826e76d0fdcaf824187a4a67e98beeb1a39b47
+TB-SEC-02-01: invalid earliest claim ages are refused
+TB-SEC-02-02: negative settlement is refused
+TB-SEC-02-03: shipped pack behavior remains intact
+TB-SEC-01-01: response-body read bound remains armed
+TB-SEC-01-02: unrepresentable timer bounds are refused
+TB-SEC-03-01: repository anchor comes from the checkout
+TB-SEC-03-02: foreign checkout targets are refused
+Research-Lab self-test: 3465 passed, 0 failed
+```
+
+### Final Pass-Style Validator Matrix
+
+**Command:** bounded matrix of both packet lints, traceability, scenario obligations, scope
+progress, acceptance, PII, spec paths, reachability, regression quality, and `git diff --check`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `3614f9db25c5a5dd1f469e3c364d4686907e842445f9e61a04aa5fc64b00f2cc`
+
+```text
+FINAL_VALIDATOR_MATRIX_BEGIN
+artifact-bug017=0
+artifact-bug022=0
+traceability-bug017=0
+traceability-bug022=0
+scenario-obligations-bug017=0
+scenario-obligations-bug022=0
+scope-progress=0
+acceptance=0
+pii=0
+spec-test-paths=0
+reachability=0
+regression-quality=0
+diff-check=0
+overall=0
+captureSha256=3614f9db25c5a5dd1f469e3c364d4686907e842445f9e61a04aa5fc64b00f2cc
+FINAL_VALIDATOR_MATRIX_END
+```
+
+The matrix wrapper exits non-zero when any listed check exits non-zero. Its observed exit was
+zero. The completion guards below ran separately and are not included in that verdict.
+
+### Current Completion Guards - Non-Terminal
+
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `69b0477535dfb90655747e729aef0afb93a7763bf91ed318b824d33ec9179e86`
+
+```text
+BEGIN TRANSITION_GUARD_RESULT_V1
+workflowMode: bugfix-fastlane
+targetStatus: done
+failedGateIds: [G028,G136]
+failedChecks: [Check-4-scenario-states,Check-5-all-done,Check-9-evidence]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 8
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-022-historical-report-declaration-leak`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `63da0db7847d524e65f35236c13c2453aa3a1ed65e3e5d291e5f50ea651dff14`
+
+```text
+BEGIN TRANSITION_GUARD_RESULT_V1
+workflowMode: bugfix-fastlane
+targetStatus: done
+failedGateIds: [G022,G027,G040,G136]
+failedChecks: [Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 12
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+Neither completion guard is recorded as passing. Packet status, certification, certified phases,
+and acceptance remain unchanged.
+
 

@@ -123,13 +123,13 @@
       "scopeRef": "Scope 3",
       "evidenceRefs": ["report.md#current-linked-functional-canary", "report.md#scope-3-execution--disclosure-written"],
       "linkedTests": [{"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin", "testState": "authored"}, "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"],
-      "mappingNote": "The planned functional test requires the disclosure and resolved two-worker pin together. The lifetime-tax test remains a concrete workload member and is not offered as proof that remedy precedes disclosure.",
+      "mappingNote": "The functional test requires the disclosure and selected one-worker pin together. The lifetime-tax test remains a concrete workload member and is not offered as proof that remedy precedes disclosure.",
       "behaviorTraits": ["static-metadata"],
       "obligations": [
-        {"trait": "static-metadata", "requiredProof": "The full disclosure is adjacent to an applied workers value of exactly two, so disclosure alone cannot satisfy the scenario.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin"]}
+        {"trait": "static-metadata", "requiredProof": "The full disclosure is adjacent to the selected workers value of exactly one, so disclosure alone cannot satisfy the scenario.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin"]}
       ],
       "implementationRefs": ["playwright.config.mjs", ".specify/memory/agents.md", "tests/playwright-runtime.foundation.functional.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
-      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "recorded-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs", ".specify/memory/agents.md"], "negativeControl": "Change only workers from two to six while leaving the complete disclosure intact; the exact SCN-BUG017-08 test must fail because disclosure cannot substitute for the pin."}
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "recorded-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs", ".specify/memory/agents.md"], "negativeControl": "Change only workers from one to six while leaving the complete disclosure intact; the exact SCN-BUG017-08 test must fail because disclosure cannot substitute for the pin."}
     },
     {
       "id": "SCN-BUG017-09",
@@ -139,12 +139,13 @@
       "scopeRef": "Scope 4",
       "evidenceRefs": [
         "report.md#scope-4-implementation-foundation-owned-browser-lifecycle",
-        "report.md#scope-4-finalization-validation-candidate-rejected"
+        "report.md#scope-4-finalization-validation-candidate-rejected",
+        "report.md#scope-4-fallback-selection-and-verification"
       ],
       "linkedTests": [
-        {"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds", "testState": "authored"}
+        {"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds", "testState": "retired-after-rollback"}
       ],
-      "mappingNote": "The persistent Node test must spawn the real system-Chrome Playwright child over portfolio-survival-foundation.spec.mjs followed by portfolio-survival-paths.spec.mjs. The earlier disposable 27/27 probe informs the candidate but does not satisfy this planned row.",
+      "mappingNote": "The candidate test produced both green and red lifecycle evidence. It was retired with the rejected candidate and remains historical rather than a final-tree carrier.",
       "behaviorTraits": ["dependency-path", "runtime-config"],
       "obligations": [
         {"trait": "dependency-path", "requiredProof": "The real system-Chrome child crosses Playwright's browser-to-worker teardown boundary and exits zero within 15 seconds of worker stop without a force-kill.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds"]},
@@ -159,7 +160,7 @@
       "title": "The lifecycle candidate clears the blocked complete workload",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 4",
-      "evidenceRefs": ["report.md#scope-4-implementation-foundation-owned-browser-lifecycle"],
+      "evidenceRefs": ["report.md#scope-4-implementation-foundation-owned-browser-lifecycle", "report.md#scope-4-finalization-validation-candidate-rejected", "report.md#scope-4-fallback-selection-and-verification"],
       "linkedTests": [
         {"file": "tests/portfolio-survival-foundation.spec.mjs", "testId": "TP-BUG017-04-03 complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "TP-BUG017-04-03 complete BUG-022 C03 portfolio set", "testState": "authored"},
@@ -170,7 +171,7 @@
         {"file": "tests/portfolio-survival-accessibility.spec.mjs", "testId": "TP-BUG017-04-03 complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-mobile.spec.mjs", "testId": "TP-BUG017-04-03 complete BUG-022 C03 portfolio set", "testState": "authored"}
       ],
-      "mappingNote": "This is the unchanged complete BUG-022 C03 command over all eight portfolio-survival specs. Its page assertions must all pass, and the process-level exit, force-kill scan, and owned-process baseline establish lifecycle closure.",
+      "mappingNote": "The two-worker command passed provisionally before current canary failures rejected the candidate. The same command is retained unchanged for the selected one-worker fallback.",
       "behaviorTraits": ["dependency-path", "runtime-config"],
       "obligations": [
         {"trait": "dependency-path", "requiredProof": "The complete real system-Chrome workload crosses the browser-to-worker teardown boundary, exits zero, emits no 300000ms force-kill, and restores owned Chrome and worker process counts.", "satisfiedBy": ["tests/portfolio-survival-foundation.spec.mjs#TP-BUG017-04-03", "tests/portfolio-survival-brief.spec.mjs#TP-BUG017-04-03", "tests/portfolio-survival-allocation.spec.mjs#TP-BUG017-04-03", "tests/portfolio-survival-risk.spec.mjs#TP-BUG017-04-03", "tests/portfolio-survival-diversification.spec.mjs#TP-BUG017-04-03", "tests/portfolio-survival-paths.spec.mjs#TP-BUG017-04-03", "tests/portfolio-survival-accessibility.spec.mjs#TP-BUG017-04-03", "tests/portfolio-survival-mobile.spec.mjs#TP-BUG017-04-03"]},
@@ -185,7 +186,7 @@
       "title": "One worker is used only after the lifecycle candidate fails",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 4",
-      "evidenceRefs": ["report.md#scope-4-implementation-foundation-owned-browser-lifecycle"],
+      "evidenceRefs": ["report.md#scope-4-fallback-selection-and-verification"],
       "linkedTests": [
         {"file": "tests/portfolio-survival-foundation.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
@@ -195,16 +196,16 @@
         {"file": "tests/portfolio-survival-paths.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-accessibility.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-mobile.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
-        {"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project", "testState": "authored"}
+        {"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity", "testState": "authored"}
       ],
-      "mappingNote": "This branch is permitted only after the two-worker lifecycle candidate fails the complete workload and candidate rollback is hash-verified. It reruns the same exact C03 command under system-chrome with the resolved config changed only to workers=1.",
+      "mappingNote": "Current lifecycle acceptance failed twice after complete candidate evaluation. Hash-verified rollback preceded the one-worker config change and two unchanged C03 runs.",
       "behaviorTraits": ["dependency-path", "runtime-config"],
       "obligations": [
         {"trait": "dependency-path", "requiredProof": "The unchanged complete workload still crosses the real system-Chrome teardown boundary and exits zero with no hidden or ignored force-kill after the conditional config change.", "satisfiedBy": ["tests/portfolio-survival-foundation.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-brief.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-allocation.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-risk.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-diversification.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-paths.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-accessibility.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-mobile.spec.mjs#TP-BUG017-04-04"]},
-        {"trait": "runtime-config", "requiredProof": "Evidence records the failed two-worker candidate run and hash-verified rollback before the runtime resolves workers=1; browser project and teardown budget remain unchanged.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project", "tests/portfolio-survival-foundation.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-brief.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-allocation.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-risk.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-diversification.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-paths.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-accessibility.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-mobile.spec.mjs#TP-BUG017-04-04"]}
+        {"trait": "runtime-config", "requiredProof": "Evidence records failed current candidate acceptance and hash-verified rollback before the runtime resolves workers=1; browser project and teardown budget remain unchanged.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity", "tests/portfolio-survival-foundation.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-brief.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-allocation.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-risk.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-diversification.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-paths.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-accessibility.spec.mjs#TP-BUG017-04-04", "tests/portfolio-survival-mobile.spec.mjs#TP-BUG017-04-04"]}
       ],
       "implementationRefs": ["tests/portfolio-survival-foundation.spec.mjs", "tests/playwright-runtime.foundation.functional.mjs", "playwright.config.mjs", "tests/portfolio-survival-brief.spec.mjs", "tests/portfolio-survival-allocation.spec.mjs", "tests/portfolio-survival-risk.spec.mjs", "tests/portfolio-survival-diversification.spec.mjs", "tests/portfolio-survival-paths.spec.mjs", "tests/portfolio-survival-accessibility.spec.mjs", "tests/portfolio-survival-mobile.spec.mjs"],
-      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "external-live", "productionOwners": ["playwright.config.mjs"], "negativeControl": "Selecting workers=1 before a recorded complete two-worker candidate failure, switching to bundled Chromium, or ignoring a force-kill must fail the SCN-BUG017-11 containment regression."}
+      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "external-live", "productionOwners": ["playwright.config.mjs"], "negativeControl": "Changing the selected worker value, switching from system Chrome, changing the stop budget, hiding a force-kill, or restoring the rejected lifecycle seam must fail the SCN-BUG017-11 containment regression."}
     }
   ]
 }

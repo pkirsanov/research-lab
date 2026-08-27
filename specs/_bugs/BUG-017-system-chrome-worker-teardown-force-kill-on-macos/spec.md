@@ -10,8 +10,8 @@ their consequences.
 
 **Classification:** Existing-capability extension with one concrete runner configuration.
 
-This packet extends the existing Playwright runner policy. `playwright.config.mjs` pins
-`workers: 2`, and `.specify/memory/agents.md` records the same operating limit.
+This packet extends the existing Playwright runner policy. `playwright.config.mjs` now pins
+`workers: 1`, and `.specify/memory/agents.md` records the same rollback-gated fallback.
 `playwright.config.mjs` already contains the `system-chrome` and `chromium` projects. The packet
 adds neither project and introduces no runner abstraction or extension point.
 
@@ -44,9 +44,14 @@ Chrome exited. That observation narrows the failing lifecycle boundary. It does 
 the transport's underlying root cause.
 
 A measured lifecycle candidate gave Foundation a worker-scoped boundary and closed its browser
-in the existing `afterAll`. The Foundation-to-Paths probe passed all 27 tests. Both worker
-processes exited within the strict 15-second stop bound. The candidate remains uncertified
-because it has not passed the exact 94-test two-worker workload.
+in the existing `afterAll`. It passed one strict 27-test canary and one exact 94-test run.
+Finalization then failed the strict canary twice at the same candidate bytes. The browser close
+timed out, and Playwright force-killed a worker after 15 seconds.
+
+The candidate commits remain in history. Two explicit revert commits restored the Foundation
+and runtime-functional files to their pre-candidate blobs. The selected one-worker fallback then
+passed the exact 94-test config-default command twice. Both runs exited zero without force-kill,
+ignored-lifecycle, or owned-residue findings.
 
 ## Requirements
 
@@ -86,19 +91,19 @@ A lifecycle candidate remains provisional after passing the focused Foundation-t
 Selection requires the exact 94-test workload at two workers to pass with exit 0. No force-kill
 marker or workload-owned process residue may remain.
 
-### FR-017-007 — One worker is a conditional fallback
+### FR-017-007 — One worker is a rollback-gated fallback
 
-The repository may move from two workers to one only after the lifecycle candidate fails the
-complete two-worker workload and its changes are rolled back. One worker must then pass the
-same 94-test workload with exit 0, no force-kill marker, and no workload-owned process residue.
+The repository may move from two workers to one only after the lifecycle candidate fails a
+required current acceptance run and its changes are hash-verified as rolled back. One worker
+must then pass the same 94-test workload with exit 0. No force-kill marker or workload-owned
+process residue may remain.
 
 ## Acceptance Criteria
 
-- The focused Foundation-to-Paths lifecycle check reports 27 passes and releases each worker
-  within 15 seconds of its stop signal.
-- The exact 94-test BUG-022 C03 workload under `system-chrome` at two workers exits 0 after
-  every test passes.
-- No `worker-N process did not exit within` error appears in the complete workload run.
+- The rejected lifecycle candidate's successful and failed checks remain recorded as history.
+- Both selected-route runs execute the exact BUG-022 C03 command through the config default.
+- Each selected-route run resolves one worker, passes all 94 tests, and exits zero.
+- No `worker-N process did not exit within` error appears in either selected-route run.
 - Chrome process count returns to its pre-run level after the run completes.
 - A one-worker configuration is eligible only under FR-017-007 and must pass the identical
   complete workload.
@@ -118,10 +123,10 @@ same 94-test workload with exit 0, no force-kill marker, and no workload-owned p
 ## Grounding
 
 Historical filing claims remain grounded in the filing evidence in `report.md`. The current
-contract is grounded in `Distinct Two-Worker Teardown Recurrence` and `Current-Revision
-Stabilization At d532faaac` in that report. The Foundation handle observation narrows the
-failing boundary without establishing a root cause. The complete 94-test proof for the
-lifecycle candidate remains pending and is not claimed here.
+contract is grounded in `Current-Revision Stabilization At d532faaac`, `Scope 4 Finalization
+Validation - Candidate Rejected`, and `Scope 4 Fallback Selection And Verification`. The
+Foundation handle observation narrows the failing boundary without establishing a root cause.
+The fallback runs bound exposure. They do not identify the retained socket owner.
 
 ## Superseded Closure Inference (Historical)
 

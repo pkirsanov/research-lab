@@ -593,7 +593,7 @@ function tableRow(source, number) {
 function bug017Disclosures() {
   const config = readFileSync(resolve(ROOT, 'playwright.config.mjs'), 'utf8');
   const registry = readFileSync(AGENT_REGISTRY, 'utf8');
-  const configStart = config.indexOf('/* Match the pipeline');
+  const configStart = config.indexOf('/* Scope 4 selects');
   const workersStart = config.indexOf('\n  workers:', configStart);
   const registryStart = registry.indexOf('### Playwright E2E');
   const firstRunCommand = registry.indexOf('npx --no-install playwright test', registryStart);
@@ -674,7 +674,41 @@ test('Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome work
   }
   assert.equal(
     playwrightConfig.workers,
-    2,
-    'SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2'
+    1,
+    'SCN-BUG017-08: disclosure is present but the rollback-gated worker pin is not 1'
   );
+});
+
+test('Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity', () => {
+  const configSource = readFileSync(resolve(ROOT, 'playwright.config.mjs'), 'utf8');
+  const foundationSource = readFileSync(
+    resolve(ROOT, 'tests/portfolio-survival-foundation.spec.mjs'),
+    'utf8'
+  );
+  const runnerSource = readFileSync(resolve(LOCAL_PACKAGE, 'lib/runner/index.js'), 'utf8');
+  const systemChrome = playwrightConfig.projects.find(({ name }) => name === 'system-chrome');
+
+  assert.equal(playwrightConfig.workers, 1, 'SCN-BUG017-11: fallback must resolve one worker');
+  assert.ok(systemChrome, 'SCN-BUG017-11: system-chrome project is missing');
+  assert.equal(systemChrome.use.browserName, 'chromium');
+  assert.equal(systemChrome.use.channel, 'chrome');
+  assert.match(
+    runnerSource,
+    /PWTEST_CHILD_PROCESS_TIMEOUT \|\| 5 \* 60 \* 1e3/,
+    'SCN-BUG017-11: Playwright default worker-stop budget is no longer 300000ms'
+  );
+  assert.match(configSource, /process did not exit within 300000ms after stop/);
+  assert.match(configSource, /force-killed it/);
+  assert.doesNotMatch(
+    foundationSource,
+    /foundationBrowserBoundary|foundationBrowser\.close\(\)/,
+    'SCN-BUG017-11: rejected lifecycle candidate must remain rolled back'
+  );
+
+  console.log('[SCN-BUG017-11] workers=1');
+  console.log('[SCN-BUG017-11] project=system-chrome');
+  console.log('[SCN-BUG017-11] channel=chrome');
+  console.log('[SCN-BUG017-11] defaultWorkerStopBudgetMs=300000');
+  console.log('[SCN-BUG017-11] forceKillDisclosure=present');
+  console.log('[SCN-BUG017-11] lifecycleCandidateRolledBack=true');
 });

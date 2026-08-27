@@ -3,8 +3,8 @@
   "specId": "BUG-017",
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-08-27T17:57:44Z",
-  "planningDelta": "Adds the active Scope 4 lifecycle remediation for the proven two-worker recurrence. Historical rows remain unchanged; all Scope 4 rows are planned-not-executed.",
+  "generatedAt": "2026-08-27T20:19:41Z",
+  "planningDelta": "Records the rejected lifecycle candidate and selects the planned one-worker fallback after hash-verified rollback. Historical execution remains preserved.",
   "scopes": [
     {
       "scopeId": "1",
@@ -76,9 +76,9 @@
           "redMutations": [
             {
               "target": "playwright.config.mjs",
-              "find": "  workers: 2,",
+              "find": "  workers: 1,",
               "replace": "  workers: 6,",
-              "expectedFailure": "SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2"
+              "expectedFailure": "SCN-BUG017-08: disclosure is present but the rollback-gated worker pin is not 1"
             }
           ]
         }
@@ -98,8 +98,8 @@
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs",
           "innerCommand": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=2 --reporter=list",
           "liveSystem": true,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed"
+          "testState": "retired-after-rollback",
+          "status": "executed-candidate-rejected"
         },
         {
           "id": "TP-BUG017-04-02",
@@ -110,8 +110,8 @@
           "description": "Regression: SCN-BUG017-09 Foundation-owned close is required",
           "command": "scripts/red-green-probe.sh --file tests/portfolio-survival-foundation.spec.mjs --find '  if (foundationBrowser) await foundationBrowser.close();' --replace '  void foundationBrowser;' --label 'SCN-BUG017-09 Foundation-owned close is required' --bound 300 -- node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": true,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed"
+          "testState": "retired-after-rollback",
+          "status": "executed-candidate-rejected"
         },
         {
           "id": "TP-BUG017-04-03",
@@ -129,11 +129,11 @@
             "tests/portfolio-survival-mobile.spec.mjs"
           ],
           "scenarioId": "SCN-BUG017-10",
-          "description": "Complete BUG-022 C03 portfolio workload passes at workers=2 after the lifecycle candidate",
+          "description": "Historical complete BUG-022 C03 pass at workers=2 before current finalization rejected the lifecycle candidate",
           "command": "npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
           "testState": "authored",
-          "status": "planned-not-executed"
+          "status": "executed-provisional-pass"
         },
         {
           "id": "TP-BUG017-04-04",
@@ -155,8 +155,8 @@
           "command": "npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
           "testState": "authored",
-          "status": "planned-not-executed",
-          "condition": "Run only after TP-BUG017-04-03 fails a lifecycle criterion and candidate rollback is hash-verified."
+          "status": "executed-pass",
+          "condition": "Selected after current candidate finalization failed twice and candidate rollback was hash-verified."
         },
         {
           "id": "TP-BUG017-04-05",
@@ -164,11 +164,11 @@
           "category": "functional",
           "file": "tests/playwright-runtime.foundation.functional.mjs",
           "scenarioId": "SCN-BUG017-11",
-          "description": "Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project",
-          "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project$' tests/playwright-runtime.foundation.functional.mjs",
+          "description": "Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "executed-pass"
         }
       ]
     }

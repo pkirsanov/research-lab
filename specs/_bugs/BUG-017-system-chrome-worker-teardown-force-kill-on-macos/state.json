@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "featureName": "BUG-017 On macOS The System-Chrome Browser Project Intermittently Fails To Tear Down, Turning An All-Green Run Into A Non-Zero Exit",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-27T19:42:40Z",
+  "lastUpdatedAt": "2026-08-27T20:19:41Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -29,20 +29,20 @@
     "uservalidation": "uservalidation.md"
   },
   "execution": {
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
+    "activeAgent": "bubbles.stabilize",
+    "currentPhase": "stabilize",
     "currentPhaseStatus": "in_progress",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-23T00:00:00Z",
     "completedAt": null,
-    "substate": "implemented",
+    "substate": "fallback_verified",
     "currentScope": "04-close-the-foundation-browser-before-worker-teardown",
-    "nextRequiredOwner": "bubbles.stabilize",
-    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#scope-4-finalization-validation-candidate-rejected",
-    "nextRequiredReason": "Scope 4's Foundation-local browser close passed the recorded strict canary and one exact 94-test run, but finalization against the same committed candidate bytes failed the complete focused file and then the exact named canary. Foundation's afterAll browser close timed out, one worker reached stop without exit, and Playwright force-killed it at 15000ms. The planned workers=1 fallback remains ineligible because its required predecessor is a failed complete SCN-BUG017-10 run, which did not occur. Stabilization must reconcile the lifecycle implementation shape before implementation can be claimed complete.",
-    "phaseClaimNote": "currentPhase remains 'implement' with Scope 4 in progress. Commits b3322965e and 5620a4e78 contain the Foundation-local lifecycle candidate and its persistent containment tests. Earlier green canary and 94-test captures remain preserved, but current finalization produced two strict-canary failures at the same committed bytes. No Scope 4 implement completion claim, BUG-022 regression claim, BUG-022 stabilize claim, certification change, acceptance change, or top-level status change is recorded.",
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/scopes.md#fallback-selection-addendum",
+    "nextRequiredReason": "The rollback-gated one-worker fallback passed two complete config-default runs and all pass-style validators. The current BUG-017 completion guard still exits 1 on G028 and G136. Planning must reconcile the retired candidate scenario and remaining unchecked row before human acceptance and validation can close the packet.",
+    "phaseClaimNote": "Scope 4 remains In Progress. The lifecycle candidate and all of its prior evidence remain in history. Explicit revert commits 047292eb2 and af119275a restore the candidate files before the fallback change. Two exact 94-test config-default runs pass at one worker with exit 0, no force-kill, and zero owned residue. The repository selftest and pass-style validator matrix exit 0. BUG-017 and BUG-022 completion guards each exit 1, so no implement completion, stabilize completion, certification, acceptance, or top-level status claim is added.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -424,6 +424,14 @@
       "phasesExecuted": ["implement"],
       "action": "scope-4-finalization-validation-failed",
       "note": "The existing candidate and its historical RED/GREEN, strict-canary, exact 94-test, process-release, focused-file, and selftest evidence were retained. A current bounded closeout bundle passed artifact lint for BUG-017 and BUG-022, traceability for both packets, scope progress, acceptance, PII, spec-test paths, reachability, regression quality, and the 3465-assertion selftest, but the complete focused runtime-foundation file exited 1 on SCN-BUG017-09. An immediate exact named-canary run also exited 1: Foundation's afterAll browser close exceeded 30000ms, one worker reached stop without exit, and Playwright force-killed it at 15000ms. No bounded matrix or 94-test command was rerun. Scope 4 remains In Progress, the workers=1 fallback remains ineligible, and no implement completion, regression, stabilize, certification, acceptance, or top-level status claim was added."
+    },
+    {
+      "at": "2026-08-27T20:19:41Z",
+      "agent": "bubbles.stabilize",
+      "phase": "stabilize",
+      "phasesExecuted": ["stabilize"],
+      "action": "scope-4-one-worker-fallback-verified",
+      "note": "Preserved the lifecycle candidate's successful and failed evidence. Revert 047292eb2 reversed lifecycle tests, and revert af119275a reversed the lifecycle implementation. Foundation, shared runtime, and Paths matched baseline blobs bc66800e, b50262e4, and ab2b3eac. The selected fallback changed only the repository worker default and its durable assertions to one worker. The exact BUG-022 C03 command then ran twice without a workers override: both runs resolved one worker, passed 94 of 94 tests, exited 0, emitted no force-kill or ignored-lifecycle marker, and left zero owned residue. The runtime-foundation suite passed 15 of 15. The repository selftest passed 3465 of 3465. Both packet artifact lints, traceability checks, scenario-obligation checks, scope progress, acceptance, PII, spec-test paths, reachability, regression quality, and diff hygiene exited 0. The BUG-017 completion guard exited 1 on G028 and G136. The BUG-022 completion guard exited 1 on G022, G027, G040, and G136. No non-zero command is recorded as a pass. Packet status, certification status, certified phases, acceptance, and uservalidation remain unchanged."
     }
   ]
 }

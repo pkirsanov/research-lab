@@ -47,7 +47,7 @@
       "title": "a read that completes inside the bound is unaffected",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
-      "evidenceRefs": ["report.md#both-strata-verified-separately"],
+      "evidenceRefs": ["report.md#both-strata-verified-separately", "report.md#p8--tb-021-02-fails-when-the-bound-is-lowered-to-1000"],
       "linkedTests": [
         "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"
       ],

@@ -37,7 +37,7 @@
     "parentAgent": null,
     "runStartedAt": "2026-08-23T00:00:00Z",
     "completedAt": null,
-    "substate": "filed",
+    "substate": "independently_verified",
     "currentScope": "cross-scope",
     "nextRequiredOwner": "operator — the branch-reconciliation decision in Scope 1 is not agent-dischargeable and was explicitly withheld from this run",
     "nextRequiredTarget": "specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main/design.md#open-questions-for-the-owner",

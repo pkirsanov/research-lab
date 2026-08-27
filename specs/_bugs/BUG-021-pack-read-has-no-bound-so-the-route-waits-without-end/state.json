@@ -37,7 +37,7 @@
     "parentAgent": null,
     "runStartedAt": "2026-08-24T00:00:00Z",
     "completedAt": null,
-    "substate": "implemented",
+    "substate": "independently_verified",
     "currentScope": null,
     "nextRequiredOwner": "bubbles.validate, to certify this packet. Both parts of the open question are answered in design.md, the route change landed at commit 084572757, and all fourteen Definition of Done items across both scopes are ticked against executed evidence recorded in report.md. No certification field was written by the implementing round.",
     "nextRequiredTarget": "specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end/state.json",

@@ -115,7 +115,7 @@
       "title": "the settling side of the boundary is pinned",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": ["report.md#the-boundary-both-sides"],
+      "evidenceRefs": ["report.md#the-boundary-both-sides", "report.md#q7--tb-020-05-fails-when-the-guard-is-widened-past-non-finiteness"],
       "linkedTests": [
         "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout"
       ],

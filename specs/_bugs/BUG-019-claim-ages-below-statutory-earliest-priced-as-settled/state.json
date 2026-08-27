@@ -37,7 +37,7 @@
     "parentAgent": null,
     "runStartedAt": "2026-08-23T00:00:00Z",
     "completedAt": null,
-    "substate": "implemented",
+    "substate": "independently_verified",
     "currentScope": "01-declare-the-earliest-claim-age-as-a-sourced-pack-figure",
     "nextRequiredOwner": "bubbles.plan, to reconcile three Definition of Done items against what shipped: the Scope 1 item wording an AbsentFigure/v1 return where the engine returns an RLTAX-THRESHOLD-UNAVAILABLE refusal, the Scope 1 item asking for a packContentSha256 update on a pin that belongs to the federal pack rather than the benefit pack, and the Scope 2 item naming a delayed-credit stopping-age disclosure that exists but is asserted nowhere. Then a human for the uservalidation.md Human Acceptance Record.",
     "nextRequiredTarget": "specs/_bugs/BUG-019-claim-ages-below-statutory-earliest-priced-as-settled/scopes.md",

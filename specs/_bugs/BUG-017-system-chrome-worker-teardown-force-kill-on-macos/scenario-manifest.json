@@ -72,7 +72,7 @@
       "title": "Browser processes are released",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": ["report.md#scope-2-execution--remedy-applied"],
+      "evidenceRefs": ["report.md#the-identical-command-again-every-test-passes-exit-1", "report.md#scope-2-execution--remedy-applied"],
       "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"],
       "mappingNote": "These tests identify the real browser workload bracketed by process-count samples; process release is asserted at the workload boundary, not inside either page test.",
       "behaviorTraits": ["runtime-config"],

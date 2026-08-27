@@ -1089,4 +1089,76 @@ Running 111 tests using 2 workers
 111 passed (1.3m)
 ```
 
+### Receipt-state and repository validation at `56957d514`
+
+**Phase:** test
+**Claim Source:** executed
+
+The receipt resolver was required through every applicable state up to
+`REGRESSION_GREEN`. It exited 0 and derived all eight states from current-revision receipts:
+
+```text
+source revision: 56957d5144bf
+SCN-BUG017-01 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-BUG017-02 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-BUG017-03 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-BUG017-04 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-BUG017-05 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-BUG017-06 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-BUG017-07 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED REGRESSION_GREEN]
+SCN-BUG017-08 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED REGRESSION_GREEN]
+all 165 refusals are SCS-REVISION-DRIFT: superseded receipts, excluded from derivation, not blocking
+certifiable: yes
+exit: 0
+lines: 177
+sha256: ecff205e60cc8896ffafe68beef8bd403c443a2f1149be62147b95617e707f4a
+```
+
+The same transition guard was measured immediately before and after the receipt refresh. The
+scenario-state check cleared; certification and human-acceptance gates remained unchanged:
+
+```text
+BEFORE revision=b1d358ce7 exit=1 lines=603 sha256=a3cc937b9cfb1e0725055c13995a1ae56073d2b88f846ae78a5accf2f440dc61
+failedGateIds: [G027,G136]
+failedChecks: [Check-4-scenario-states]
+failureCount: 5
+
+AFTER revision=56957d514 exit=1 lines=388 sha256=0a176ec7f35cb85714f992e74057c7789d112694aecf2fb35b44cf2b41db713e
+failedGateIds: [G027,G136]
+failedChecks: []
+failureCount: 4
+```
+
+The full linked functional file remained at seven passing tests and one pre-existing failure at
+the final revision. The same eight portfolio-survival crossings failed at planning revision
+`fb91c2e99`; all three BUG-017 titles passed in the final run.
+
+```text
+command: node --test tests/playwright-runtime.foundation.functional.mjs
+revision: 56957d514
+exit: 1
+lines: 65
+sha256: 34eb31dbacc54012dc60f297d3168045b5cca9fe0158a2f833613796c7837406
+pass: 7
+fail: 1
+failure: committed discovery boundary keeps browser specs and direct Node suites disjoint
+actual: 8 committed tests/portfolio-survival-*.spec.mjs crossings
+```
+
+The clean-worktree repository checks produced these independent outcomes:
+
+```text
+scenario-test-resolve: exit=0 references=17 resolved=17
+scenario-obligation-lint: exit=0 scenarios=8
+test-mechanism-lint: exit=0 mechanisms=8
+artifact-lint: exit=0 PASSED
+acceptance-bulk-stamp: exit=0 new=0 stale=0
+spec-test-paths: exit=0 new=0 stale=0
+pii-scan: exit=0 findings=0 files=10007
+scope-dod-progress: exit=1 new=13, including 3 BUG-017 certification-count drifts
+repository selftest: exit=1 pass=3464 fail=1
+selftest sha256: b632ae4ecf9b8302cbefcfd8244cae628d763c3b070e88730c0e94eaea276d3d
+selftest failure: scope progress reports the same 13 certification-count drifts
+```
+
 

@@ -241,3 +241,4 @@ Feature: Current test declarations exclude immutable historical receipts
   committed-path, and excluded-path comparisons report leakage 0. No push,
   reset, rebase, framework edit, protected evidence edit, or acceptance act
   occurs.
+  **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** This grouped gate remains unchecked because TP-BUG022-C03 and TP-BUG022-C04 have non-zero exits recorded in `report.md`; all containment subchecks passed with `leakage=0`.

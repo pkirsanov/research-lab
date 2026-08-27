@@ -257,7 +257,7 @@ function sha256(relPath) {
 /* One narrowed carrier run. `defect` absent => shipped tree; `defect` present => the reduced source
    is substituted in memory by the preload. TAP is forced so the counts parse identically whether or
    not a terminal is attached. */
-function runProtectiveTitle({ carrier, title, defect, marker }) {
+function runProtectiveTitle({ carrier, title, defect, marker, doubleApplicationControl = false }) {
   const env = { ...process.env };
   /* This file is itself executed by `node --test`, which marks its children with NODE_TEST_CONTEXT.
      Inheriting it makes the run below report over the internal child-reporter channel instead of
@@ -270,6 +270,7 @@ function runProtectiveTitle({ carrier, title, defect, marker }) {
     env.RL_DEFECT_FIND_B64 = Buffer.from(defect.find, "utf8").toString("base64");
     env.RL_DEFECT_REPLACE_B64 = Buffer.from(defect.replace, "utf8").toString("base64");
     env.RL_DEFECT_MARKER = marker;
+    if (doubleApplicationControl) env.RL_DEFECT_DOUBLE_APPLICATION_CONTROL = "1";
   }
   const run = spawnSync(
     process.execPath,
@@ -282,6 +283,77 @@ function runProtectiveTitle({ carrier, title, defect, marker }) {
     return found ? Number(found[1]) : null;
   };
   return { exitCode: run.status, tests: count("tests"), pass: count("pass"), fail: count("fail"), output };
+}
+
+function runUncoordinatedMutatedCompile({ defect, marker }) {
+  const env = { ...process.env };
+  delete env.NODE_TEST_CONTEXT;
+  env.NODE_OPTIONS = `${process.env.NODE_OPTIONS ?? ""} --require ${INJECTOR}`.trim();
+  env.RL_DEFECT_MODULE = defect.module;
+  env.RL_DEFECT_FIND_B64 = Buffer.from(defect.find, "utf8").toString("base64");
+  env.RL_DEFECT_REPLACE_B64 = Buffer.from(defect.replace, "utf8").toString("base64");
+  env.RL_DEFECT_MARKER = marker;
+  const probe = [
+    "const fs = require('node:fs');",
+    "const path = require('node:path');",
+    "const { Module } = require('node:module');",
+    "const target = path.resolve(process.cwd(), process.env.RL_DEFECT_MODULE);",
+    "const source = fs.readFileSync(target).toString('utf8');",
+    "const find = Buffer.from(process.env.RL_DEFECT_FIND_B64, 'base64').toString('utf8');",
+    "const replacement = Buffer.from(process.env.RL_DEFECT_REPLACE_B64, 'base64').toString('utf8');",
+    "const uncoordinated = source.replace(find, replacement);",
+    "const candidate = new Module(target, module);",
+    "candidate.filename = target;",
+    "candidate.paths = module.paths;",
+    "candidate._compile(uncoordinated, target);"
+  ].join("\n");
+  const run = spawnSync(process.execPath, ["-e", probe], {
+    cwd: ROOT,
+    env,
+    encoding: "utf8",
+    maxBuffer: 64 * 1024 * 1024
+  });
+  return { exitCode: run.status, output: `${run.stdout ?? ""}${run.stderr ?? ""}` };
+}
+
+const INFRASTRUCTURE_FAILURE = /portfolio-defect-injector:|\bpreload\b|\bsetup\b|\banchor\b|\bsyntax(?:\s*error)?\b|\bmodule[- ]load(?:\s+error)?\b/i;
+
+function readApplications(marker) {
+  return readFileSync(marker, "utf8").trim().split("\n").filter(Boolean).map((line) => {
+    const parsed = /^applied module=(\S+) via=(Module\._compile|fs\.readFileSync|require|readFileSync) bytes=(\d+)$/.exec(line);
+    assert.ok(parsed, `representation marker must name an exact module, intended hook, and byte count: ${line}`);
+    return { module: parsed[1], hook: parsed[2], bytes: Number(parsed[3]) };
+  });
+}
+
+function mutationCausalityProblems({ entry, mutant, applications }) {
+  const problems = [];
+  const infrastructureFailure = INFRASTRUCTURE_FAILURE.exec(mutant.output);
+  if (applications.length !== 1) {
+    problems.push(`in-memory substitution applied ${applications.length} time(s), expected exactly 1`);
+  }
+  if (applications.length === 1 && applications[0].module !== entry.module) {
+    problems.push(`marker named module ${applications[0].module}, expected ${entry.module}`);
+  }
+  if (applications.length === 1 && applications[0].hook !== entry.intendedHook) {
+    problems.push(`marker named hook ${applications[0].hook}, expected ${entry.intendedHook}`);
+  }
+  if (mutant.tests !== 1) {
+    problems.push(`mutant title resolved to ${mutant.tests} test(s), expected exactly 1`);
+  }
+  if (mutant.exitCode === 0 || mutant.pass !== 0 || mutant.fail !== 1) {
+    problems.push(`mutant result was exit=${mutant.exitCode} pass=${mutant.pass} fail=${mutant.fail}, expected one failing selected test`);
+  }
+  if (infrastructureFailure) {
+    const detail = mutant.output.split("\n").find((line) => line.includes(infrastructureFailure[0]))?.trim();
+    problems.push(`mutant output contains forbidden infrastructure failure: ${detail ?? infrastructureFailure[0]}`);
+  }
+  if (!mutant.output.includes(`# Subtest: ${entry.title}`) ||
+      !mutant.output.includes(`not ok 1 - ${entry.title}`) ||
+      !/code: ['"]ERR_ASSERTION['"]/.test(mutant.output)) {
+    problems.push("mutant failure did not originate from the selected protective assertion");
+  }
+  return problems;
 }
 
 test("Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing", (t) => {
@@ -380,7 +452,8 @@ const BUG_007_MUTATIONS = [
     find: "    var categoriesBySubject = Object.create(null);",
     replace: "    var categoriesBySubject = {};",
     carrier: "tests/portfolio-brief.functional.mjs",
-    title: "BUG-007: prototype-sensitive completion subjects are safe own keys"
+    title: "BUG-007: prototype-sensitive completion subjects are safe own keys",
+    intendedHook: "Module._compile"
   },
   {
     id: "BUG-007-OWN-OWNER-LOOKUP",
@@ -389,7 +462,8 @@ const BUG_007_MUTATIONS = [
     find: "Object.prototype.hasOwnProperty.call(owners, subjectId)",
     replace: "true",
     carrier: "tests/portfolio-brief.functional.mjs",
-    title: "BUG-007: own lookup semantics and RED cleanup preserve shared built-ins"
+    title: "BUG-007: own lookup semantics and RED cleanup preserve shared built-ins",
+    intendedHook: "Module._compile"
   },
   {
     id: "BUG-007-NORMAL-LANE-ORDER",
@@ -398,20 +472,29 @@ const BUG_007_MUTATIONS = [
     find: "  var LANE_ORDER = [\"held\", \"watchlist\", \"completedResearch\", \"inferredRelevance\"];",
     replace: "  var LANE_ORDER = [\"watchlist\", \"held\", \"completedResearch\", \"inferredRelevance\"];",
     carrier: "tests/portfolio-brief.functional.mjs",
-    title: "BUG-007: normal brief order and refusal precedence remain unchanged"
+    title: "BUG-007: normal brief order and refusal precedence remain unchanged",
+    intendedHook: "Module._compile"
   }
 ];
 
-test("BUG-007: caller-key protections and normal ordering are load-bearing in memory", (t) => {
+const DIRECT_TEXT_CONTROL = {
+  ...CASES.find((entry) => entry.finding === "F008-BAR-COVERAGE-001"),
+  intendedHook: "fs.readFileSync"
+};
+
+function runBug007MutationCausality(t) {
   const workspace = mkdtempSync(join(tmpdir(), "rl-bug007-integrity-"));
   t.after(() => rmSync(workspace, { recursive: true, force: true }));
 
-  const trackedPaths = [
-    "rlportfoliobrief.js",
-    "tests/portfolio-brief.functional.mjs",
+  assert.ok(DIRECT_TEXT_CONTROL, "the direct-text control must reuse the registered rldata.js mutation");
+  const trackedPaths = [...new Set([
+    ...BUG_007_MUTATIONS.flatMap((entry) => [entry.module, entry.carrier]),
+    DIRECT_TEXT_CONTROL.module,
+    DIRECT_TEXT_CONTROL.carrier,
+    "tests/provider-credentials.support.mjs",
     "tests/portfolio-defect-injector.cjs",
     "tests/portfolio-test-integrity.unit.mjs"
-  ];
+  ])].sort();
   const before = Object.fromEntries(trackedPaths.map((path) => [path, sha256(path)]));
   const failures = [];
 
@@ -420,18 +503,67 @@ test("BUG-007: caller-key protections and normal ordering are load-bearing in me
     writeFileSync(marker, "");
     const shipped = runProtectiveTitle({ carrier: entry.carrier, title: entry.title, defect: null, marker });
     const mutant = runProtectiveTitle({ carrier: entry.carrier, title: entry.title, defect: entry, marker });
-    const applications = readFileSync(marker, "utf8").trim().split("\n").filter(Boolean);
+    const applications = readApplications(marker);
 
     const problems = [];
     if (shipped.tests !== 1) problems.push(`protective title resolved to ${shipped.tests} test(s), expected exactly 1`);
-    if (shipped.exitCode !== 0 || shipped.fail !== 0) problems.push(`shipped protection is not green (exit ${shipped.exitCode}, fail ${shipped.fail})`);
-    if (applications.length !== 1) problems.push(`in-memory substitution applied ${applications.length} time(s), expected exactly 1`);
-    if (mutant.tests !== 1) problems.push(`mutant title resolved to ${mutant.tests} test(s), expected exactly 1`);
-    if (mutant.exitCode === 0 || !(mutant.fail >= 1)) problems.push(`persistent test stayed green after removing protection (exit ${mutant.exitCode}, fail ${mutant.fail})`);
+    if (shipped.exitCode !== 0 || shipped.pass !== 1 || shipped.fail !== 0) problems.push(`shipped protection is not green (exit ${shipped.exitCode}, pass ${shipped.pass}, fail ${shipped.fail})`);
+    problems.push(...mutationCausalityProblems({ entry, mutant, applications }));
     if (problems.length) failures.push(`${entry.id}: ${entry.defect}: ${problems.join("; ")}`);
   }
+
+  const doubleEntry = BUG_007_MUTATIONS[0];
+  const doubleMarker = join(workspace, "double-application.marker");
+  writeFileSync(doubleMarker, "");
+  const doubleMutant = runProtectiveTitle({
+    carrier: doubleEntry.carrier,
+    title: doubleEntry.title,
+    defect: doubleEntry,
+    marker: doubleMarker,
+    doubleApplicationControl: true
+  });
+  const doubleApplications = readApplications(doubleMarker);
+  const doubleHooks = doubleApplications.map((application) => application.hook);
+  const doubleProblems = mutationCausalityProblems({ entry: doubleEntry, mutant: doubleMutant, applications: doubleApplications });
+  if (doubleHooks.length !== 2 || doubleHooks[0] !== "fs.readFileSync" || doubleHooks[1] !== "Module._compile") {
+    failures.push(`DOUBLE-APPLICATION-CONTROL: observed hooks ${JSON.stringify(doubleHooks)}, expected ["fs.readFileSync","Module._compile"]`);
+  }
+  if (!doubleProblems.some((problem) => problem.includes("applied 2 time(s)"))) {
+    failures.push(`DOUBLE-APPLICATION-CONTROL: carrier did not classify two applications as infrastructure failure: ${doubleProblems.join("; ")}`);
+  }
+  if (INFRASTRUCTURE_FAILURE.test(doubleMutant.output)) {
+    failures.push("DOUBLE-APPLICATION-CONTROL: injector/preload failure prevented the selected protective assertion");
+  }
+
+  const directMarker = join(workspace, "direct-text.marker");
+  writeFileSync(directMarker, "");
+  const directMutant = runProtectiveTitle({
+    carrier: DIRECT_TEXT_CONTROL.carrier,
+    title: DIRECT_TEXT_CONTROL.title,
+    defect: DIRECT_TEXT_CONTROL,
+    marker: directMarker
+  });
+  const directApplications = readApplications(directMarker);
+  const directProblems = mutationCausalityProblems({ entry: DIRECT_TEXT_CONTROL, mutant: directMutant, applications: directApplications });
+  if (directProblems.length) {
+    failures.push(`DIRECT-TEXT-CONTROL: ${directProblems.join("; ")}`);
+  }
+
+  const uncoordinatedMarker = join(workspace, "uncoordinated-mutated-content.marker");
+  writeFileSync(uncoordinatedMarker, "");
+  const uncoordinated = runUncoordinatedMutatedCompile({ defect: BUG_007_MUTATIONS[0], marker: uncoordinatedMarker });
+  assert.notEqual(uncoordinated.exitCode, 0, "uncoordinated already-mutated content must fail loud");
+  assert.equal(readFileSync(uncoordinatedMarker, "utf8"), "", "uncoordinated mutated content must not record an application");
+  assert.match(
+    uncoordinated.output,
+    /portfolio-defect-injector: anchor must occur exactly once in rlportfoliobrief\.js \(found 0\)/,
+    "uncoordinated already-mutated content must retain the exact zero-anchor refusal"
+  );
 
   const after = Object.fromEntries(trackedPaths.map((path) => [path, sha256(path)]));
   assert.deepEqual(after, before, "in-memory BUG-007 mutations must not write product source or persistent tests");
   assert.deepEqual(failures, [], `BUG-007 protections that are not load-bearing:\n  ${failures.join("\n  ")}`);
-});
+}
+
+test("BUG-007: caller-key protections and normal ordering are load-bearing in memory", runBug007MutationCausality);
+test("BUG-007: represented mutants execute one protective assertion through one intended hook", runBug007MutationCausality);

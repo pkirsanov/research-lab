@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
   "featureName": "BUG-022 Historical Report Declaration Leak",
   "createdAt": "2026-08-27T00:00:00Z",
-  "lastUpdatedAt": "2026-08-27T12:24:45Z",
+  "lastUpdatedAt": "2026-08-27T12:54:06Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -22,17 +22,17 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "planning",
-    "currentPhaseStatus": "completed",
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "blocked",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-27T12:18:47Z",
-    "completedAt": "2026-08-27T12:24:45Z",
+    "completedAt": null,
     "currentScope": "01-separate-active-declarations-from-historical-receipts",
-    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredOwner": "bubbles.validate",
     "nextRequiredTarget": "specs/_bugs/BUG-022-historical-report-declaration-leak",
-    "nextRequiredReason": "Execute Scope 1 atomically: author the six exact focused tests, capture RED, implement structured authority classification and registry migration, then run the planned GREEN closure without acceptance or baseline growth.",
+    "nextRequiredReason": "Reconcile BUG-022's validate-owned certification.scopeProgress claim after implementation evidence. Terminal certification remains unavailable while the excluded BUG-017 Playwright teardown and foreign scope-progress drifts keep required commands non-zero.",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
     "scopeInventory": [
@@ -163,6 +163,29 @@
       ],
       "nextRequiredOwner": "bubbles.implement",
       "summary": "Reconciled one atomic scope to design commit 359d536b, added exact RED/GREEN commands and the structured test handoff, reduced the scenario manifest to three derived obligation contracts, repaired the unsigned human-acceptance template, and preserved in-progress status. Artifact lint, scenario obligations, test mechanisms, and traceability passed. The delivery transition guard was executed and truthfully refused done because implementation, delivery evidence, completion phases, and human acceptance do not exist yet."
+    },
+    {
+      "at": "2026-08-27T12:54:06Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "action": "implemented-and-verified-with-blockers",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": ["implement"],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG022-IMPLEMENTATION",
+        "BUG022-RED-GREEN-VERIFICATION"
+      ],
+      "unresolvedFindings": [
+        "BUG017-PLAYWRIGHT-WORKER-TEARDOWN",
+        "BUG022-CERTIFICATION-SCOPE-PROGRESS",
+        "BUG016-021-FOREIGN-SCOPE-PROGRESS",
+        "BUG022-DELIVERY-CERTIFICATION"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Committed the structured declaration classifier, six exact regressions, and additive Node registry migration. Focused tests, reachability, runtime foundation, Feature 008 Node, artifact lint, bulk-stamp, spec-path, PII, and regression-quality checks passed. Playwright exited 1 after 94 passing scenarios because BUG-017 worker teardown force-killed a process. The clean-tree selftest exited 1 on 14 scope-progress certification drifts, including BUG-022's validate-owned count. No acceptance or certification field changed."
     }
   ]
 }

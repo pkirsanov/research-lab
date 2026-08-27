@@ -193,30 +193,44 @@ Feature: Current test declarations exclude immutable historical receipts
 
 #### Core Items
 
-- [ ] TP-BUG022-RED-01 records the unchanged RED result with exactly eight
+- [x] TP-BUG022-RED-01 records the unchanged RED result with exactly eight
   report-derived portfolio crossings.
-- [ ] TP-BUG022-F01 proves "Artifact role separates historical receipts from
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#red-01---existing-crossing-reproduction`, exit 1, sha256 `4c2060a926fe7b4601f8d9d146cac06bedef5021e9cfbe1f8e0bad961829b9a3`.
+- [x] TP-BUG022-F01 proves "Artifact role separates historical receipts from
   active plans": a report receipt contributes no active Node declaration.
-- [ ] TP-BUG022-F02 proves Markdown scope Test Plans and structured test plans
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** exact SCN-BUG022-001 report-receipt title in `report.md#focused-green`, exit 0.
+- [x] TP-BUG022-F02 proves Markdown scope Test Plans and structured test plans
   remain active with artifact and line provenance.
-- [ ] TP-BUG022-F03 proves "Markdown presentation cannot manufacture
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** exact SCN-BUG022-001 active-plan title in `report.md#focused-green`, exit 0.
+- [x] TP-BUG022-F03 proves "Markdown presentation cannot manufacture
   authority": fenced and misheaded evidence cannot change its artifact role.
-- [ ] TP-BUG022-F04 proves every unknown candidate fails closed with artifact,
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** exact SCN-BUG022-002 fence title in `report.md#focused-green`, exit 0.
+- [x] TP-BUG022-F04 proves every unknown candidate fails closed with artifact,
   line, section, and reason provenance.
-- [ ] TP-BUG022-F05 proves exactly eight report-derived crossings disappear
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** exact SCN-BUG022-002 unknown-role title in `report.md#focused-green`, exit 0.
+- [x] TP-BUG022-F05 proves exactly eight report-derived crossings disappear
   without ratchet growth.
-- [ ] TP-BUG022-F06 proves both legitimate Node families remain reachable from
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** exact SCN-BUG022-003 crossing title in `report.md#focused-green`, exit 0.
+- [x] TP-BUG022-F06 proves both legitimate Node families remain reachable from
   current command authority.
-- [ ] TP-BUG022-C01 proves "Additive migration closes the repository without
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** exact SCN-BUG022-003 family-reachability title in `report.md#focused-green`, exit 0.
+- [x] TP-BUG022-C01 proves "Additive migration closes the repository without
   weakening ownership" with zero reachability-baseline or crossing-set growth.
-- [ ] TP-BUG022-C02 passes the Feature 008 direct Node regressions.
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#reachability-green`, exit 0, 0 classification errors, unchanged ratchets.
+- [x] TP-BUG022-C02 passes the Feature 008 direct Node regressions.
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#feature-008-node-regression`, exit 0, 257 passed.
 - [ ] TP-BUG022-C03 passes the Feature 008 Playwright regressions separately.
+  **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#feature-008-playwright-regression---non-zero` records exit 1. All 94 scenarios passed, but BUG-017 worker teardown emitted two force-kill errors.
 - [ ] TP-BUG022-C04 passes the full repository selftest in a clean tree.
-- [ ] TP-BUG022-C05 proves the Feature 008 report is byte-identical and every
+  **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#clean-tree-repository-selftest---non-zero` records exit 1 from 13 excluded certification drifts and BUG-022's validate-owned stale scope-progress claim.
+- [x] TP-BUG022-C05 proves the Feature 008 report is byte-identical and every
   excluded path is unchanged.
-- [ ] TP-BUG022-C06 passes packet artifact lint and scenario/Test Plan parity.
-- [ ] TP-BUG022-C07 records the real transition-guard verdict without changing
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#change-containment`, exit 0, six allowed paths, `leakage=0`.
+- [x] TP-BUG022-C06 passes packet artifact lint and scenario/Test Plan parity.
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#packet-artifact-lint`, exit 0, sha256 `182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567`.
+- [x] TP-BUG022-C07 records the real transition-guard verdict without changing
   terminal status, Checklist items, or Human Acceptance Record fields.
+  **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#truthful-transition-guard`, exit 1 with `DELIVERY_COMPLETION_FAILED`; status and acceptance remained unchanged.
 
 #### Build Quality Gate
 

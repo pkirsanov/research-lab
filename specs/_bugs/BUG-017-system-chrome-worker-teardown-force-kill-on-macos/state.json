@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "featureName": "BUG-017 On macOS The System-Chrome Browser Project Intermittently Fails To Tear Down, Turning An All-Green Run Into A Non-Zero Exit",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-25T07:21:15Z",
+  "lastUpdatedAt": "2026-08-27T19:42:40Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -29,20 +29,20 @@
     "uservalidation": "uservalidation.md"
   },
   "execution": {
-    "activeAgent": null,
+    "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentPhaseStatus": "complete",
+    "currentPhaseStatus": "in_progress",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-23T00:00:00Z",
     "completedAt": null,
     "substate": "implemented",
-    "currentScope": "cross-scope",
-    "nextRequiredOwner": "the human operator for the uservalidation.md Human Acceptance Record, and an independent validating party for the bug.md Verified transition — neither is dischargeable by the round that wrote the change",
-    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/uservalidation.md#human-acceptance-record",
-    "nextRequiredReason": "Scopes 1, 2 and 3 are executed and twenty of twenty-two Definition of Done items are ticked with inline evidence. The two still open are not an implementing round's to close. The cross-scope item asserts bug.md moves 'from Confirmed to Fixed and then Verified'; it is half satisfied, because bug.md already reads 'Fixed — awaiting independent verification', and the Verified half requires a party that did not write the fix. The Human Acceptance Record requires the human operator, and filling it from automation would be the agent granting itself acceptance. The root cause remains narrowed rather than established, and is now recorded as not removable in this repository: the force-kill is emitted by node_modules/playwright/lib/runner/index.js against the operator's installed Chrome, so the workers pin bounds exposure rather than removing the defect.",
-    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented'. This round took Scope 3, reversing the earlier declination on the grounds recorded in report.md '## Scope 3 Execution — Disclosure Written'. It modified five files: playwright.config.mjs (comment only — the resolved workers value, testMatch and both project definitions were re-verified unchanged by importing the config), .specify/memory/agents.md (a disclosure note above the first Playwright command), and this packet's own scopes.md, report.md and state.json. It executed Playwright three times against the twenty-two tests/lifetime-tax*.spec.mjs files, writing all output to a temporary directory OUTSIDE the repository, and reproduced the defect independently at six workers: 111 passed, exit 1, 343 seconds wall, four force-killed workers. No test, workflow, pack or scripts/selftest.mjs line was modified, no file belonging to a concurrent session was touched, and no branch or remote was pushed, merged, rebased or moved. scopeInventory statuses for scopes 1 and 2 were corrected from 'Not Started' to 'Done' so the record stops contradicting their already-ticked Definition of Done items and the committed workers pin; that execution belongs to the earlier round, not to this one. completedPhaseClaims records implement as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "currentScope": "04-close-the-foundation-browser-before-worker-teardown",
+    "nextRequiredOwner": "bubbles.stabilize",
+    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#scope-4-finalization-validation-candidate-rejected",
+    "nextRequiredReason": "Scope 4's Foundation-local browser close passed the recorded strict canary and one exact 94-test run, but finalization against the same committed candidate bytes failed the complete focused file and then the exact named canary. Foundation's afterAll browser close timed out, one worker reached stop without exit, and Playwright force-killed it at 15000ms. The planned workers=1 fallback remains ineligible because its required predecessor is a failed complete SCN-BUG017-10 run, which did not occur. Stabilization must reconcile the lifecycle implementation shape before implementation can be claimed complete.",
+    "phaseClaimNote": "currentPhase remains 'implement' with Scope 4 in progress. Commits b3322965e and 5620a4e78 contain the Foundation-local lifecycle candidate and its persistent containment tests. Earlier green canary and 94-test captures remain preserved, but current finalization produced two strict-canary failures at the same committed bytes. No Scope 4 implement completion claim, BUG-022 regression claim, BUG-022 stabilize claim, certification change, acceptance change, or top-level status change is recorded.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -134,6 +134,15 @@
         "status": "Done",
         "dependsOn": [
           "01-characterise-the-stall-well-enough-to-choose"
+        ],
+        "resolvedBy": null
+      },
+      {
+        "scopeId": "04-close-the-foundation-browser-before-worker-teardown",
+        "scope": 4,
+        "status": "In Progress",
+        "dependsOn": [
+          "03-disclose-it-where-a-developer-meets-it"
         ],
         "resolvedBy": null
       }
@@ -407,6 +416,14 @@
       "phasesExecuted": ["stabilize"],
       "action": "stabilize-round-recorded-from-shipped-work",
       "note": "Records real stabilization work rather than a stub, because this packet is a stability defect end to end and its delivered remedy is a reliability change, not a correctness change. THE DEFECT IS INTERMITTENT AND TIMING-BOUND: on macOS a `--project=system-chrome` run leaves worker processes that never signal exit, Playwright waits out its 300000ms teardown budget, emits `worker-N process did not exit within 300000ms after stop, force-killed it`, and exits 1 with EVERY TEST PASSING. That is the shape of a stability defect — a non-zero exit no test earned, plus a wall-time blowout — and not of a wrong answer. THE CHARACTERISATION WAS MEASURED, WHICH IS WHAT MADE THE REMEDY CHOOSABLE (Scope 1, Done): holding the project fixed and moving only the worker count gave 6 of 8 runs stalling at six workers, 1 of 3 at four, and 0 of 3 at two, with the wall-time cost when it stalls at 343s against 81s for the identical 111 tests, a controlled pair a later round re-derived independently at 366s against 76s. THE REMEDY IS A CONFIGURATION BOUND (Scope 2, Done), shipped at 13494be66 'fix(BUG-017): pin the worker count local runs share with the pipeline', which added the `workers: 2` line to `playwright.config.mjs`, verified in this round with `git show --stat` (+6 lines in that file). b08ba13f4 'BUG-017: correct the root cause from browser channel to worker count, and close the bug.md status row' is cited with it because it is the commit that moved the attribution off the browser channel and onto the worker count — the correction without which the pin would be the right change for the wrong reason. THE LIMIT OF THE REMEDY IS RECORDED RATHER THAN GLOSSED: the force-kill is emitted by node_modules/playwright/lib/runner/index.js against the operator's installed Chrome, neither of which this repository vendors or versions, so the pin BOUNDS EXPOSURE and does not remove the cause; a CLI `--workers` flag still overrides it. Switching to `--project=chromium` was considered and rejected as a remedy, because that project was clean on two runs only and CI runs system-chrome, so it would trade browser parity to dodge a condition two workers already avoids. This round shipped no new stabilization change of its own; it executed the suite at the pinned worker count and observed exit 0, 111 passed, 1.2m and no force-kill line, and wrote only `state.json`."
+    },
+    {
+      "at": "2026-08-27T19:42:40Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "phasesExecuted": ["implement"],
+      "action": "scope-4-finalization-validation-failed",
+      "note": "The existing candidate and its historical RED/GREEN, strict-canary, exact 94-test, process-release, focused-file, and selftest evidence were retained. A current bounded closeout bundle passed artifact lint for BUG-017 and BUG-022, traceability for both packets, scope progress, acceptance, PII, spec-test paths, reachability, regression quality, and the 3465-assertion selftest, but the complete focused runtime-foundation file exited 1 on SCN-BUG017-09. An immediate exact named-canary run also exited 1: Foundation's afterAll browser close exceeded 30000ms, one worker reached stop without exit, and Playwright force-killed it at 15000ms. No bounded matrix or 94-test command was rerun. Scope 4 remains In Progress, the workers=1 fallback remains ineligible, and no implement completion, regression, stabilize, certification, acceptance, or top-level status claim was added."
     }
   ]
 }

@@ -367,7 +367,7 @@ conceded in writing is that a remedy for the **exposure** was available and take
 
 ## Scope 4: Close The Foundation Browser Before Worker Teardown
 
-**Status:** Not Started
+**Status:** In Progress
 **Depends On:** Scope 3
 
 ### Consumer Surface
@@ -512,19 +512,19 @@ another exploratory rerun. Do not spend another complete run before applying the
 
 ### Definition of Done
 
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-09 through SCN-BUG017-11, including the strict canary and whichever complete C03 branch its recorded decision selects.
-- [ ] Broader E2E regression suite passes for the complete eight-file, 94-test BUG-022 C03 portfolio workload under the selected system-Chrome worker configuration.
-- [ ] The additive supersession is respected: no current closure claim relies on the historical `0/3 at two workers` observation, and no historical evidence or checked row is rewritten.
-- [ ] The implementation uses automatic worker-scoped ownership for Foundation and closes its browser in the existing Foundation `afterAll`; neither rejected bare-close nor worker-fixture-teardown shape is present.
-- [ ] TP-BUG017-04-01 passes the real cumulative Foundation-to-Paths canary at 27/27 with workers=2, child exit 0 within the strict 15-second worker-stop bound, and zero force-kill or ignored teardown errors.
-- [ ] TP-BUG017-04-02 proves the canary is discriminating: removing only the Foundation-owned close produces the planned lifecycle RED, then exact hash restoration returns the canary to GREEN.
-- [ ] TP-BUG017-04-03 runs the complete exact BUG-022 C03 94-test command at workers=2 and records 94/94 passing, exit 0, no 300000ms force-kill marker, and restored owned process counts.
-- [ ] If TP-BUG017-04-03 passes, `playwright.config.mjs` remains at workers=2 and no one-worker change is present.
-- [ ] If TP-BUG017-04-03 fails a lifecycle criterion, candidate rollback is hash-verified before workers=1 is selected; TP-BUG017-04-04 then passes the unchanged exact 94-test command. If it does not pass, the scope remains Not Started or In Progress and both bugs remain blocked.
-- [ ] No force-kill error is ignored, caught as success, filtered from evidence, or relabelled; no browser-project switch or teardown-budget increase is present.
-- [ ] The implementation diff contains only the declared allowed file families, with zero changes to excluded surfaces and zero sensitive or machine-local leakage.
-- [ ] Rollback is proven by exact candidate-hunk restoration plus file hashes, without changing portfolio assertions or historical packet evidence.
-- [ ] Packet artifact lint, planning traceability checks, and the repository baseline selftest pass after planning and implementation artifacts are synchronized.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-09 through SCN-BUG017-11, including the strict canary and whichever complete C03 branch its recorded decision selects. **Phase:** implement. **Claim Source:** executed. The finalization run of the complete focused file and the immediate exact named canary both exited 1 at the worker-stop boundary. → Evidence: [Scope 4 finalization validation](report.md#scope-4-finalization-validation-candidate-rejected).
+- [x] Broader E2E regression suite passes for the complete eight-file, 94-test BUG-022 C03 portfolio workload under the selected system-Chrome worker configuration. **Phase:** implement. **Claim Source:** executed. → Evidence: [Exact BUG-022 C03 at workers two](report.md#exact-bug-022-c03-at-workers-two).
+- [x] The additive supersession is respected: no current closure claim relies on the historical `0/3 at two workers` observation, and no historical evidence or checked row is rewritten. **Phase:** implement. **Claim Source:** executed. → Evidence: [Additive supersession integrity](report.md#additive-supersession-integrity).
+- [x] The implementation uses automatic worker-scoped ownership for Foundation and closes its browser in the existing Foundation `afterAll`; neither rejected bare-close nor worker-fixture-teardown shape is present. **Phase:** implement. **Claim Source:** executed. → Evidence: [Lifecycle containment regression](report.md#lifecycle-containment-regression).
+- [ ] TP-BUG017-04-01 passes the real cumulative Foundation-to-Paths canary at 27/27 with workers=2, child exit 0 within the strict 15-second worker-stop bound, and zero force-kill or ignored teardown errors. **Phase:** implement. **Claim Source:** executed. The prior green capture is preserved, but two current finalization attempts failed this lifecycle criterion at the same committed candidate bytes. → Evidence: [Persistent strict canary GREEN](report.md#persistent-strict-canary-green) and [Scope 4 finalization validation](report.md#scope-4-finalization-validation-candidate-rejected).
+- [x] TP-BUG017-04-02 proves the canary is discriminating: removing only the Foundation-owned close produces the planned lifecycle RED, then exact hash restoration returns the canary to GREEN. **Phase:** implement. **Claim Source:** executed. → Evidence: [Close-removal discriminator and exact restoration](report.md#close-removal-discriminator-and-exact-restoration).
+- [x] TP-BUG017-04-03 runs the complete exact BUG-022 C03 94-test command at workers=2 and records 94/94 passing, exit 0, no 300000ms force-kill marker, and restored owned process counts. **Phase:** implement. **Claim Source:** executed. → Evidence: [Exact BUG-022 C03 at workers two](report.md#exact-bug-022-c03-at-workers-two) and [selected route and process release](report.md#selected-route-and-process-release).
+- [x] If TP-BUG017-04-03 passes, `playwright.config.mjs` remains at workers=2 and no one-worker change is present. **Phase:** implement. **Claim Source:** executed. → Evidence: [Selected route and process release](report.md#selected-route-and-process-release) and [lifecycle containment regression](report.md#lifecycle-containment-regression).
+- [x] If TP-BUG017-04-03 fails a lifecycle criterion, candidate rollback is hash-verified before workers=1 is selected; TP-BUG017-04-04 then passes the unchanged exact 94-test command. If it does not pass, the scope remains Not Started or In Progress and both bugs remain blocked. **Phase:** implement. **Claim Source:** executed. → Evidence: [Exact BUG-022 C03 at workers two](report.md#exact-bug-022-c03-at-workers-two) exited 0, so the conditional predecessor was false and [selected route and process release](report.md#selected-route-and-process-release) records `fallbackEligible=false` with workers 2 unchanged.
+- [x] No force-kill error is ignored, caught as success, filtered from evidence, or relabelled; no browser-project switch or teardown-budget increase is present. **Phase:** implement. **Claim Source:** executed. → Evidence: [Lifecycle containment regression](report.md#lifecycle-containment-regression).
+- [x] The implementation diff contains only the declared allowed file families, with zero changes to excluded surfaces and zero sensitive or machine-local leakage. **Phase:** implement. **Claim Source:** executed. → Evidence: [Candidate boundary and state integrity](report.md#candidate-boundary-and-state-integrity) and [Synchronized packet guards](report.md#synchronized-packet-guards).
+- [x] Rollback is proven by exact candidate-hunk restoration plus file hashes, without changing portfolio assertions or historical packet evidence. **Phase:** implement. **Claim Source:** executed. → Evidence: [Close-removal discriminator and exact restoration](report.md#close-removal-discriminator-and-exact-restoration) and [additive supersession integrity](report.md#additive-supersession-integrity).
+- [x] Packet artifact lint, planning traceability checks, and the repository baseline selftest pass after planning and implementation artifacts are synchronized. **Phase:** implement. **Claim Source:** executed. → Evidence: [Synchronized packet guards](report.md#synchronized-packet-guards).
 
 The rows above are intentionally unchecked. The strict canary result supplied to planning is
 candidate evidence, not complete-workload proof, and the complete lifecycle candidate has not

@@ -1938,3 +1938,430 @@ The packet and certification status remain `in_progress`. No completion or stabi
 is recorded for BUG-022.
 
 
+## Scope 4 Implementation - Foundation-Owned Browser Lifecycle {#scope-4-implementation-foundation-owned-browser-lifecycle}
+
+**Phase:** implement
+**Claim Source:** executed
+**Execution time:** 2026-08-27T19:13:15Z
+
+The selected route is the Foundation-local lifecycle boundary. The complete two-worker gate
+passed, so the one-worker fallback was not eligible and `playwright.config.mjs` remains unchanged.
+No stabilize or regression phase is claimed here for either packet.
+
+### Failing-First Strict Canary
+
+The persistent canary ran before the Foundation implementation changed. All 27 browser tests
+executed, one worker exited after stop, and the Foundation worker received `__stop__` without
+emitting an exit record before Playwright's strict child timeout. The outer test therefore exited
+1 on its lifecycle assertion.
+
+**Phase:** implement
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `e14819d5f126b560fe01a2f760efa8b72cb00ce1907edf1a1bacf7f6b2618854`
+
+```text
+# BUG-017 Scope 4 RED missing Foundation lifecycle boundary
+exit: 1
+lines: 401
+sha256: e14819d5f126b560fe01a2f760efa8b72cb00ce1907edf1a1bacf7f6b2618854
+Running 27 tests using 2 workers
+[BUG017-CANARY pid=35931] installed
+[BUG017-CANARY pid=35928] stop at=1787857034134
+[BUG017-CANARY pid=35928] exit code=0 at=1787857034322 elapsedMs=188
+[BUG017-CANARY pid=35931] stop at=1787857040429
+AssertionError [ERR_ASSERTION]: SCN-BUG017-09: child did not exit zero within the strict worker-stop bound
+actual: 1
+expected: 0
+```
+
+### Persistent Strict Canary GREEN
+
+**Phase:** implement
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `2f420eb5de2bc1adaf66b186b7cef13f64e6e598ce5f21dba86d6edcdc7fdfc7`
+
+```text
+# BUG-017 Scope 4 GREEN Foundation lifecycle boundary
+exit: 0
+lines: 199
+sha256: 2f420eb5de2bc1adaf66b186b7cef13f64e6e598ce5f21dba86d6edcdc7fdfc7
+Running 27 tests using 2 workers
+[BUG017-CANARY pid=71742] stop at=1787857107160
+[BUG017-CANARY pid=71742] exit code=0 at=1787857107336 elapsedMs=176
+[BUG017-CANARY pid=71744] stop at=1787857135938
+[BUG017-CANARY pid=71744] exit code=0 at=1787857135942 elapsedMs=4
+[SCN-BUG017-09] tests=27
+[SCN-BUG017-09] workers=2
+[SCN-BUG017-09] workerStops=2
+[SCN-BUG017-09] workerExits=2
+[SCN-BUG017-09] maxStopToExitMs=176
+[SCN-BUG017-09] forceKills=0
+[SCN-BUG017-09] residue=0
+tests 1
+pass 1
+fail 0
+skipped 0
+todo 0
+```
+
+### Close-Removal Discriminator And Exact Restoration
+
+The self-reverting probe removed only the Foundation-owned close. Both arms retained 27 passing
+page tests. RED exited 1, restored GREEN exited 0, and the committed Foundation blob was restored
+exactly.
+
+**Phase:** implement
+**Command:** `scripts/red-green-probe.sh --file tests/portfolio-survival-foundation.spec.mjs --find '  if (foundationBrowser) await foundationBrowser.close();' --replace '  void foundationBrowser;' --label 'SCN-BUG017-09 Foundation-owned close is required' --bound 300 --summary-match '27 passed' -- node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `e852083fb655f5addb9bc5e33d840f60e7988d91c333920aaa085a0e5d4671e4`
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SCN-BUG017-09 Foundation-owned close is required
+file:             tests/portfolio-survival-foundation.spec.mjs
+mutation:           if (foundationBrowser) await foundationBrowser.close();  ->    void foundationBrowser;   (1 occurrence(s))
+command:          node --test --test-name-pattern=^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$ tests/playwright-runtime.foundation.functional.mjs
+red-exit:         1
+red-summary:          27 passed (43.4s)
+green-exit:       0
+green-summary:      27 passed (46.3s)
+summary-compared:     27 passed (<elapsed>)  vs    27 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=2731a3f5455e888b408c80c5ffe0355c2acc1d1e restored=2731a3f5455e888b408c80c5ffe0355c2acc1d1e)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### Lifecycle Containment Regression
+
+**Phase:** implement
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `338690f98f9738373d40af01999492949272b7ce313d74bfef07f648dfa0fe70`
+
+```text
+[SCN-BUG017-11] project=system-chrome
+[SCN-BUG017-11] channel=chrome
+[SCN-BUG017-11] workers=2
+[SCN-BUG017-11] defaultWorkerStopBudgetMs=300000
+[SCN-BUG017-11] browserCloseBeforeServer=true
+[SCN-BUG017-11] forceKillErrorsStreamed=true
+[SCN-BUG017-11] teardownErrorsCaught=0
+Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project
+tests 1
+pass 1
+fail 0
+cancelled 0
+skipped 0
+todo 0
+```
+
+### Exact BUG-022 C03 At Workers Two
+
+The canonical wildcard expanded to the same eight portfolio-survival spec files. Playwright
+resolved two workers, passed all 94 tests, emitted no failure-shaped force-kill block, and exited
+0. This is the acceptance discriminator that retains the lifecycle candidate.
+
+**Phase:** implement
+**Command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `763bea8081d68ed1803dd58797307c0bf0bd541cb206c60a898c36db061f3620`
+
+```text
+# BUG-017 Scope 4 TP-BUG017-04-03 exact BUG-022 C03 workers 2
+exit: 0
+lines: 303
+sha256: 763bea8081d68ed1803dd58797307c0bf0bd541cb206c60a898c36db061f3620
+Running 94 tests using 2 workers
+system-chrome: portfolio-survival-accessibility.spec.mjs
+system-chrome: portfolio-survival-allocation.spec.mjs
+system-chrome: portfolio-survival-brief.spec.mjs
+system-chrome: portfolio-survival-diversification.spec.mjs
+system-chrome: portfolio-survival-foundation.spec.mjs
+system-chrome: portfolio-survival-mobile.spec.mjs
+system-chrome: portfolio-survival-paths.spec.mjs
+system-chrome: portfolio-survival-risk.spec.mjs
+94 passed (1.7m)
+```
+
+### Selected Route And Process Release
+
+**Phase:** implement
+**Command:** `zsh -f -c '<resolved-config, candidate-hash, and process-residue receipt>'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+SCOPE4_ROUTE_RECEIPT_BEGIN
+candidateGate=PASS
+selectedRoute=foundation-lifecycle
+fallbackEligible=false
+resolvedWorkers=2
+project=system-chrome
+channel=chrome
+foundationSha256=68048d53b828788b4312495ec7117c572e189ccbebc95a9c959d4b50abaf73e5
+canarySha256=61480b0e29ecd720bc764ea2f230a580d703a0fc90633ff1404a137e01e6bb70
+configSha256=f2046ba0a332862e9a13475339099a29be5a44763b59c3d73f42baa0cbb6417d
+ownedProcessResidue=0
+playwrightWorkerResidue=0
+forceKillSuppression=absent
+SCOPE4_ROUTE_RECEIPT_END
+```
+
+### Complete Runtime-Foundation Functional Suite
+
+The first complete-file attempt correctly rejected an external `node_modules` symlink. After
+replacing it with a physical APFS clone inside the isolated worktree, the identical command
+passed all 16 tests, including the live 27-test child canary.
+
+**Phase:** implement
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `f614146ce8eb1ac6e97dd973e7293270d56495954adb4fb1382f387006952559`
+
+```text
+# BUG-017 Scope 4 complete runtime-foundation functional suite isolated dependencies
+exit: 0
+lines: 243
+sha256: f614146ce8eb1ac6e97dd973e7293270d56495954adb4fb1382f387006952559
+[playwright-runtime] package=node_modules/playwright
+[playwright-runtime] version=1.61.1
+[playwright-runtime] browserChannel=chrome
+[playwright-runtime] apiIdentity=PASS
+[playwright-runtime] discoveredSpecs=79
+[playwright-runtime] sharedImporters=79
+[playwright-runtime] newCrossings=0
+Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds
+Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project
+tests 16
+pass 16
+fail 0
+cancelled 0
+skipped 0
+todo 0
+```
+
+### Clean Code-Tree Repository Selftest
+
+**Phase:** implement
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `672840abd9200f20cc9bdfbfe69cb3516b50b52f9db1f8095c80b4ea7c88b733`
+
+```text
+# BUG-017 Scope 4 clean repository selftest at 5620a4e78
+exit: 0
+lines: 3960
+sha256: 672840abd9200f20cc9bdfbfe69cb3516b50b52f9db1f8095c80b4ea7c88b733
+Step 1 security - escaped model sinks and CSP on every page
+Feature 004 RLFX/RLDATA foundation
+security findings - a declared bound that nothing validates is not a bound
+TB-SEC-02-01: invalid earliest claim ages are refused
+TB-SEC-02-02: negative settlement is refused
+TB-SEC-02-03: shipped pack behavior remains intact
+TB-SEC-01-01: response-body read bound remains armed
+TB-SEC-01-02: unrepresentable timer bounds are refused
+TB-SEC-03-01: repository anchor comes from the checkout
+TB-SEC-03-02: foreign checkout targets are refused
+Research-Lab self-test: 3465 passed, 0 failed
+```
+
+### Implementation Commits And Boundary
+
+- `b3322965e` changes only the Foundation spec and persistent lifecycle canary.
+- `5620a4e78` adds only the SCN-BUG017-11 containment regression.
+- Both commits were preceded by explicit staged-path allowlist checks reporting `LEAKAGE=0`.
+- `playwright.config.mjs`, Paths, shared fixtures, the browser project, the vendor teardown
+  timeout, portfolio assertions, historical evidence, certification, acceptance, and Checklist
+  content were not changed by these commits.
+
+### Additive Supersession Integrity
+
+**Phase:** implement
+**Command:** `node --input-type=module -e '<compare baseline report and Scopes 1-3 bytes against current artifacts>'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+SCOPE4_SUPERSESSION_CHECK_BEGIN
+baseline=8ebf4b751331d1ea6b7e88555a9333f4810f2ed4
+priorReportBytes=94534
+currentReportBytes=104583
+priorReportIsExactPrefix=true
+historicalScopesOneThroughThreeByteIdentical=true
+historicalCheckedRowsRewritten=0
+currentClosureHistoricalZeroOfThreeReferences=0
+selectedRoute=foundation-lifecycle
+selectedWorkers=2
+additiveSupersession=PASS
+SCOPE4_SUPERSESSION_CHECK_END
+```
+
+### Current Repository Guards
+
+**Phase:** implement
+**Command:** `node scripts/validate-test-file-reachability.mjs; node scripts/validate-scope-dod-progress.mjs --all; node scripts/validate-acceptance-bulk-stamp.mjs; node scripts/pii-scan.mjs; node scripts/validate-spec-test-paths.mjs; bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-survival-foundation.spec.mjs tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `37359eea1259a5e94f511966a4198a9165a3defe33a2aa585d932d558af2529e`
+
+```text
+# BUG-017 Scope 4 current repository guards
+exit: 0
+lines: 78
+sha256: 37359eea1259a5e94f511966a4198a9165a3defe33a2aa585d932d558af2529e
+CURRENT_GUARDS_BEGIN
+REACHABILITY_EXIT=0
+SCOPE_PROGRESS_EXIT=0
+ACCEPTANCE_GUARD_EXIT=0
+PII_SCAN_EXIT=0
+SPEC_TEST_PATHS_EXIT=0
+BUBBLES REGRESSION QUALITY GUARD
+Bugfix mode: true
+Scanning tests/portfolio-survival-foundation.spec.mjs
+Adversarial signal detected in tests/portfolio-survival-foundation.spec.mjs
+Scanning tests/playwright-runtime.foundation.functional.mjs
+Adversarial signal detected in tests/playwright-runtime.foundation.functional.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 2
+Files with adversarial signals: 2
+REGRESSION_QUALITY_EXIT=0
+CURRENT_GUARDS_OVERALL=0
+CURRENT_GUARDS_END
+```
+
+## Scope 4 Finalization Validation - Candidate Rejected {#scope-4-finalization-validation-candidate-rejected}
+
+**Phase:** implement
+**Claim Source:** executed
+**Execution time:** 2026-08-27T19:42:40Z
+
+The pre-closeout validation bundle left every packet and repository guard green, including both
+packet artifact lints, both traceability guards, scope progress, acceptance, PII, spec-test paths,
+reachability, regression quality, and the 3465-assertion repository selftest. The complete focused
+runtime-foundation file did not stay green. Its real SCN-BUG017-09 child hit the same lifecycle
+boundary this scope is intended to close, so the bundle exited 1.
+
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `7051fc012b0113d8a8cf967087e88e830ebdbf88034e2a1f91a645302dcd04ba`
+
+```text
+# BUG-017 Scope 4 finalization validation before closeout
+exit: 1
+lines: 4786
+sha256: 7051fc012b0113d8a8cf967087e88e830ebdbf88034e2a1f91a645302dcd04ba
+AssertionError [ERR_ASSERTION]: SCN-BUG017-09: child did not exit zero within the strict worker-stop bound
+ARTIFACT_BUG017_EXIT=0
+ARTIFACT_BUG022_EXIT=0
+TRACEABILITY_BUG017_EXIT=0
+TRACEABILITY_BUG022_EXIT=0
+SCOPE_PROGRESS_EXIT=0
+ACCEPTANCE_GUARD_EXIT=0
+PII_SCAN_EXIT=0
+SPEC_TEST_PATHS_EXIT=0
+REACHABILITY_EXIT=0
+FOCUSED_FUNCTIONAL_EXIT=1
+REGRESSION_QUALITY_EXIT=0
+SELFTEST_EXIT=0
+OVERALL_EXIT=1
+```
+
+An immediate run of only the exact planned canary confirmed that this was not a different test in
+the functional file. All 27 test bodies reached the final Foundation row. Foundation's new
+`afterAll` then exceeded its 30000ms hook timeout while awaiting the browser close. Worker 86433
+received `__stop__` but emitted no exit record, and Playwright force-killed it at the strict
+15000ms bound. The other worker exited zero immediately.
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+Error: worker-1 process did not exit within 15000ms after stop, force-killed it
+"afterAll" hook timeout of 30000ms exceeded.
+1 failed
+26 passed (58.3s)
+1 error was not a part of any test, see above for details
+[BUG017-CANARY pid=86433] installed
+[BUG017-CANARY pid=86434] installed
+[BUG017-CANARY pid=86433] stop at=1787859623192
+[BUG017-CANARY pid=86434] stop at=1787859656969
+[BUG017-CANARY pid=86434] exit code=0 at=1787859656969 elapsedMs=0
+tests 1
+pass 0
+fail 1
+duration_ms 59171.740333
+```
+
+The earlier exact 94-test exit-0 capture remains preserved as a real historical run. It cannot
+close Scope 4 after the persistent canary fails twice at the same committed candidate bytes. The
+one-worker fallback remains ineligible because its planned predecessor is a failed complete
+SCN-BUG017-10 run, and that predecessor did not occur. No bounded matrix or 94-test command was
+rerun. Scope 4 remains in progress, no implement completion claim is added, and BUG-022 receives
+no regression or stabilize phase claim.
+
+### Synchronized Packet Guards
+
+**Phase:** implement
+**Claim Source:** executed
+**Exit Code:** 0
+**Capture SHA-256:** `e408841bb68032bb5bd3e43e83d204fe2819199511d6a6f67a385883c092963f`
+
+```text
+# BUG-017 Scope 4 synchronized packet guards
+exit: 0
+lines: 4307
+sha256: e408841bb68032bb5bd3e43e83d204fe2819199511d6a6f67a385883c092963f
+ARTIFACT_BUG017_EXIT=0
+ARTIFACT_BUG022_EXIT=0
+TRACEABILITY_BUG017_EXIT=0
+TRACEABILITY_BUG022_EXIT=0
+SCOPE_PROGRESS_EXIT=0
+ACCEPTANCE_GUARD_EXIT=0
+PII_SCAN_EXIT=0
+SPEC_TEST_PATHS_EXIT=0
+REACHABILITY_EXIT=0
+REGRESSION_QUALITY_EXIT=0
+SELFTEST_EXIT=0
+DIFF_CHECK_EXIT=0
+OVERALL_EXIT=0
+```
+
+### Candidate Boundary And State Integrity
+
+**Phase:** implement
+**Claim Source:** executed
+**Exit Code:** 0
+
+```text
+CANDIDATE_BOUNDARY_BEGIN
+ALLOWED specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md
+ALLOWED specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/scenario-manifest.json
+ALLOWED specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/scopes.md
+ALLOWED specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/state.json
+ALLOWED specs/_bugs/BUG-022-historical-report-declaration-leak/report.md
+ALLOWED specs/_bugs/BUG-022-historical-report-declaration-leak/scenario-manifest.json
+ALLOWED tests/playwright-runtime.foundation.functional.mjs
+ALLOWED tests/portfolio-survival-foundation.spec.mjs
+EXPECTED_PATHS=8 ACTUAL_PATHS=8 LEAKAGE=0
+TOP_LEVEL_STATUS_UNCHANGED=true
+CERTIFICATION_UNCHANGED=true
+SCOPE4_STATUS=In Progress
+SCOPE4_COMPLETED_IMPLEMENT_CLAIM=false
+NEXT_REQUIRED_OWNER=bubbles.stabilize
+BUG017_ACCEPTANCE_DIFF_EXIT=0
+BUG022_STATE_ACCEPTANCE_DIFF_EXIT=0
+CANDIDATE_BOUNDARY_END
+```
+
+

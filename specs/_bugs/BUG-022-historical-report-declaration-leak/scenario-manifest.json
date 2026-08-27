@@ -193,7 +193,9 @@
       "linkedTests": [],
       "evidenceRefs": [
         "report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest-at-c652cd092",
-        "report.md#fresh-change-boundary-containment-at-c652cd092"
+        "report.md#fresh-change-boundary-containment-at-c652cd092",
+        "report.md#bug-017-scope-4-dependency-unblock-receipt",
+        "report.md#bug-017-scope-4-finalization-follow-up"
       ],
       "implementationRefs": [
         "scripts/validate-test-file-reachability.mjs",

@@ -137,9 +137,12 @@
       "title": "The focused lifecycle boundary survives the strict canary",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 4",
-      "evidenceRefs": [],
+      "evidenceRefs": [
+        "report.md#scope-4-implementation-foundation-owned-browser-lifecycle",
+        "report.md#scope-4-finalization-validation-candidate-rejected"
+      ],
       "linkedTests": [
-        {"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds", "testState": "planned-not-authored"}
+        {"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds", "testState": "authored"}
       ],
       "mappingNote": "The persistent Node test must spawn the real system-Chrome Playwright child over portfolio-survival-foundation.spec.mjs followed by portfolio-survival-paths.spec.mjs. The earlier disposable 27/27 probe informs the candidate but does not satisfy this planned row.",
       "behaviorTraits": ["dependency-path", "runtime-config"],
@@ -156,7 +159,7 @@
       "title": "The lifecycle candidate clears the blocked complete workload",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 4",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#scope-4-implementation-foundation-owned-browser-lifecycle"],
       "linkedTests": [
         {"file": "tests/portfolio-survival-foundation.spec.mjs", "testId": "TP-BUG017-04-03 complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "TP-BUG017-04-03 complete BUG-022 C03 portfolio set", "testState": "authored"},
@@ -182,7 +185,7 @@
       "title": "One worker is used only after the lifecycle candidate fails",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 4",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#scope-4-implementation-foundation-owned-browser-lifecycle"],
       "linkedTests": [
         {"file": "tests/portfolio-survival-foundation.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
@@ -192,7 +195,7 @@
         {"file": "tests/portfolio-survival-paths.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-accessibility.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-mobile.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
-        {"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project", "testState": "planned-not-authored"}
+        {"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project", "testState": "authored"}
       ],
       "mappingNote": "This branch is permitted only after the two-worker lifecycle candidate fails the complete workload and candidate rollback is hash-verified. It reruns the same exact C03 command under system-chrome with the resolved config changed only to workers=1.",
       "behaviorTraits": ["dependency-path", "runtime-config"],

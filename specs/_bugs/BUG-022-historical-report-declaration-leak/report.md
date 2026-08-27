@@ -1158,3 +1158,82 @@ exit-0 evidence and cannot complete C03.
 `REG-BUG022-001` remains unresolved. BUG-022 stays `in_progress`. No checkbox, state field,
 certification field, acceptance field, protected Feature 008 report, or baseline changed. No
 stabilize phase claim is recorded.
+
+## BUG-017 Scope 4 Dependency-Unblock Receipt {#bug-017-scope-4-dependency-unblock-receipt}
+
+**Phase:** implement
+**Claim Source:** executed
+**Execution time:** 2026-08-27T19:13:15Z
+
+This is a consumer receipt from BUG-017 Scope 4, not a BUG-022 regression or stabilize phase
+claim. The Foundation-local automatic worker boundary and early browser close were present. The
+canonical BUG-022 C03 command then resolved two workers, passed all 94 tests, emitted no
+failure-shaped force-kill block, and exited 0. A post-command scan found no workload-owned process
+and no Playwright worker. BUG-022 remains `in_progress`; this append changes no state,
+certification, scope, acceptance, Checklist, protected Feature 008 report, or ratchet.
+
+**Phase:** implement
+**Command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `763bea8081d68ed1803dd58797307c0bf0bd541cb206c60a898c36db061f3620`
+
+```text
+# BUG-017 Scope 4 TP-BUG017-04-03 exact BUG-022 C03 workers 2
+exit: 0
+lines: 303
+sha256: 763bea8081d68ed1803dd58797307c0bf0bd541cb206c60a898c36db061f3620
+Running 94 tests using 2 workers
+system-chrome: portfolio-survival-accessibility.spec.mjs
+system-chrome: portfolio-survival-allocation.spec.mjs
+system-chrome: portfolio-survival-brief.spec.mjs
+system-chrome: portfolio-survival-diversification.spec.mjs
+system-chrome: portfolio-survival-foundation.spec.mjs
+system-chrome: portfolio-survival-mobile.spec.mjs
+system-chrome: portfolio-survival-paths.spec.mjs
+system-chrome: portfolio-survival-risk.spec.mjs
+94 passed (1.7m)
+```
+
+**Phase:** implement
+**Command:** `zsh -f -c '<resolved-config, candidate-hash, and process-residue receipt>'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+SCOPE4_ROUTE_RECEIPT_BEGIN
+candidateGate=PASS
+selectedRoute=foundation-lifecycle
+fallbackEligible=false
+resolvedWorkers=2
+project=system-chrome
+channel=chrome
+foundationSha256=68048d53b828788b4312495ec7117c572e189ccbebc95a9c959d4b50abaf73e5
+canarySha256=61480b0e29ecd720bc764ea2f230a580d703a0fc90633ff1404a137e01e6bb70
+configSha256=f2046ba0a332862e9a13475339099a29be5a44763b59c3d73f42baa0cbb6417d
+ownedProcessResidue=0
+playwrightWorkerResidue=0
+forceKillSuppression=absent
+SCOPE4_ROUTE_RECEIPT_END
+```
+
+The selected route keeps `playwright.config.mjs` at workers 2. The workers-1 fallback is
+ineligible because its required predecessor, a lifecycle failure after 94 passing tests, did not
+occur. No fallback implementation or fallback test run is claimed.
+
+## BUG-017 Scope 4 Finalization Follow-Up {#bug-017-scope-4-finalization-follow-up}
+
+**Phase:** implement
+**Claim Source:** interpreted from BUG-017 current-session executed evidence
+**Execution time:** 2026-08-27T19:42:40Z
+
+The dependency-unblock receipt above remains a real record of one exact 94-test exit-0 run. It is
+not a BUG-022 regression or stabilize claim. BUG-017's subsequent closeout bundle failed the
+complete focused runtime-foundation file on SCN-BUG017-09, and an immediate exact named canary
+failed again when Foundation's `afterAll` browser close timed out and one worker was force-killed
+at the strict 15000ms stop bound. The same committed candidate bytes were present in both runs.
+
+BUG-022 therefore remains `in_progress`. Its C03 historical receipt is preserved, but it cannot
+advance to regression or stabilization while the owning BUG-017 lifecycle canary is red. The
+workers=1 fallback remains ineligible under BUG-017's planned decision rule. No BUG-022 checkbox,
+state, certification, acceptance, Checklist, protected Feature 008 report, or ratchet changed.

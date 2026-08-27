@@ -1,15 +1,24 @@
-import { expect, test } from './playwright-runtime.mjs';
+import { expect, test as baseTest } from './playwright-runtime.mjs';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { commitTrackedLeak, FIXTURE_ROOT, ROOT, startPortfolioServer, trackedPathsContaining } from './portfolio-survival.support.mjs';
 
 let server;
+let foundationBrowser;
+
+const test = baseTest.extend({
+  foundationBrowserBoundary: [async ({ browser }, use) => {
+    foundationBrowser = browser;
+    await use();
+  }, { auto: true, scope: 'worker' }]
+});
 
 test.beforeAll(async () => {
   server = await startPortfolioServer();
 });
 
 test.afterAll(async () => {
+  if (foundationBrowser) await foundationBrowser.close();
   if (server) await server.close();
 });
 

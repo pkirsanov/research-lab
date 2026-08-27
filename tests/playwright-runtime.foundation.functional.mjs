@@ -576,6 +576,41 @@ const BUG017_PACKET = resolve(
 );
 const BUG017_REPORT = resolve(BUG017_PACKET, 'report.md');
 const AGENT_REGISTRY = resolve(ROOT, '.specify/memory/agents.md');
+const BUG017_WORKER_STOP_BOUND_MS = 15_000;
+
+function bug017WorkerProbeSource() {
+  return [
+    "'use strict';",
+    "const isWorker = process.argv.some((argument) => argument.includes('workerProcessEntry.js'));",
+    'if (isWorker) {',
+    '  let stopAt = null;',
+    "  const log = (message) => process._rawDebug(`[BUG017-CANARY pid=${process.pid}] ${message}`);",
+    "  process.prependListener('message', (message) => {",
+    "    if (message?.method !== '__stop__') return;",
+    '    stopAt = Date.now();',
+    "    log(`stop at=${stopAt}`);",
+    '  });',
+    "  process.on('exit', (code) => {",
+    '    const exitAt = Date.now();',
+    "    const elapsedMs = stopAt === null ? 'missing' : String(exitAt - stopAt);",
+    "    log(`exit code=${code} at=${exitAt} elapsedMs=${elapsedMs}`);",
+    '  });',
+    "  log('installed');",
+    '}',
+    ''
+  ].join('\n');
+}
+
+function bug017WorkerRecords(output, event) {
+  const pattern = event === 'stop'
+    ? /\[BUG017-CANARY pid=(\d+)\] stop at=(\d+)/g
+    : /\[BUG017-CANARY pid=(\d+)\] exit code=(\d+) at=(\d+) elapsedMs=(\d+)/g;
+  return [...output.matchAll(pattern)].map((match) => ({
+    pid: Number(match[1]),
+    code: event === 'exit' ? Number(match[2]) : undefined,
+    elapsedMs: event === 'exit' ? Number(match[4]) : undefined
+  }));
+}
 
 function tableRow(source, number) {
   const prefix = `| ${number} |`;
@@ -677,4 +712,83 @@ test('Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome work
     2,
     'SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2'
   );
+});
+
+test('Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds', () => {
+  const fixtureRoot = mkdtempSync(resolve(tmpdir(), 'research-lab-bug017-lifecycle-'));
+  const probePath = resolve(fixtureRoot, 'worker-stop-probe.cjs');
+  writeFileSync(probePath, bug017WorkerProbeSource());
+
+  try {
+    const child = spawnSync('npx', [
+      '--no-install',
+      'playwright',
+      'test',
+      'tests/portfolio-survival-foundation.spec.mjs',
+      'tests/portfolio-survival-paths.spec.mjs',
+      '--config=playwright.config.mjs',
+      '--project=system-chrome',
+      '--workers=2',
+      '--reporter=list'
+    ], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      env: {
+        ...process.env,
+        NODE_OPTIONS: [process.env.NODE_OPTIONS, `--require=${probePath}`].filter(Boolean).join(' '),
+        PWTEST_CHILD_PROCESS_TIMEOUT: String(BUG017_WORKER_STOP_BOUND_MS),
+        TMPDIR: fixtureRoot
+      },
+      maxBuffer: 64 * 1024 * 1024,
+      timeout: 300_000
+    });
+    const output = `${child.stdout || ''}${child.stderr || ''}`;
+    process.stdout.write(child.stdout || '');
+    process.stderr.write(child.stderr || '');
+
+    assert.equal(child.error, undefined, `SCN-BUG017-09: child execution failed\n${output}`);
+    assert.equal(child.signal, null, `SCN-BUG017-09: child ended by signal ${child.signal}\n${output}`);
+    assert.equal(child.status, 0, `SCN-BUG017-09: child did not exit zero within the strict worker-stop bound\n${output}`);
+    assert.match(output, /Running 27 tests using 2 workers/);
+    assert.match(output, /27 passed/);
+    assert.doesNotMatch(output, /worker-\d+ process did not exit within \d+ms after stop, force-killed it/);
+    assert.doesNotMatch(output, /ignored (?:teardown|lifecycle) error/i);
+
+    const stops = bug017WorkerRecords(output, 'stop');
+    const exits = bug017WorkerRecords(output, 'exit');
+    assert.equal(stops.length, 2, `SCN-BUG017-09: expected stop records for two workers\n${output}`);
+    assert.equal(exits.length, 2, `SCN-BUG017-09: expected exit records for two workers\n${output}`);
+    assert.deepEqual(
+      exits.map(({ pid }) => pid).sort((left, right) => left - right),
+      stops.map(({ pid }) => pid).sort((left, right) => left - right),
+      'SCN-BUG017-09: every stopped worker must emit its own exit record'
+    );
+    for (const record of exits) {
+      assert.equal(record.code, 0, `SCN-BUG017-09: worker ${record.pid} exited ${record.code}`);
+      assert.ok(
+        record.elapsedMs >= 0 && record.elapsedMs < BUG017_WORKER_STOP_BOUND_MS,
+        `SCN-BUG017-09: worker ${record.pid} exited ${record.elapsedMs}ms after stop`
+      );
+    }
+
+    const processes = spawnSync('ps', ['-axo', 'pid=,ppid=,command='], {
+      cwd: ROOT,
+      encoding: 'utf8'
+    });
+    assert.equal(processes.status, 0, 'SCN-BUG017-09: process residue scan must execute');
+    const residue = processes.stdout
+      .split('\n')
+      .filter((line) => line.includes(fixtureRoot));
+    assert.deepEqual(residue, [], `SCN-BUG017-09: workload-owned process residue remains\n${residue.join('\n')}`);
+
+    console.log('[SCN-BUG017-09] tests=27');
+    console.log('[SCN-BUG017-09] workers=2');
+    console.log('[SCN-BUG017-09] workerStops=' + stops.length);
+    console.log('[SCN-BUG017-09] workerExits=' + exits.length);
+    console.log('[SCN-BUG017-09] maxStopToExitMs=' + Math.max(...exits.map(({ elapsedMs }) => elapsedMs)));
+    console.log('[SCN-BUG017-09] forceKills=0');
+    console.log('[SCN-BUG017-09] residue=0');
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
+  }
 });

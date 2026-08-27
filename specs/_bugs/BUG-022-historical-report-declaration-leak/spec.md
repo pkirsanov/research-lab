@@ -33,6 +33,22 @@ This change improves measurement quality by making test reachability and runner
 ownership reflect current commands rather than past transcripts. It delivers no
 new product capability and makes no roadmap claim.
 
+### Single-Capability Justification
+
+- **Capability:** Classify repository test-declaration candidates as active,
+   historical, or error outcomes for reachability and runner-disjointness checks.
+- **Boundary:** The capability starts with candidates extracted by
+   `collectDeclaredTestGlobs()` and ends with its classified result. It does not
+   own test execution, command authoring, or historical evidence content.
+- **Consumers and variants:** `validateTestFileReachability()`,
+   `tests/playwright-runtime.foundation.functional.mjs`, and
+   `scripts/selftest.mjs` consume the same classification path. Active,
+   historical, and error are closed outcomes, not separate implementations.
+- **Why no foundation split:** This bug repairs one policy inside the existing
+   reachability guard. No second provider, adapter, screen, service, or reusable
+   product contract exists, so a foundation split would add an unused extension
+   layer.
+
 ## Requirements
 
 ### FR-BUG022-001 - Evidence receipts are non-declarative

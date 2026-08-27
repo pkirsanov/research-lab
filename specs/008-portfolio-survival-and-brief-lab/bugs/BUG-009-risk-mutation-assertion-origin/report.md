@@ -4432,7 +4432,7 @@ $ bash .github/bubbles/scripts/repository-binding.sh validate-packet \
     --session-control-file <session-control-file> \
     --packet-file <inherited-packet>
 REPOSITORY PACKET VALID actionable=true repository=research-lab
-  root=/home/philipk/research-lab
+  root=<repo-root>
   decision=rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:1 revision=1
 ```
 
@@ -4573,3 +4573,321 @@ The concurrent 61-entry unrelated working-tree transaction was neither staged,
 reset, stashed, checked out, nor reverted. `uservalidation.md` is untouched.
 Status stays `in_progress`, certification stays `in_progress`, Scope 1 stays In
 Progress, `completedScopes` stays empty, and nothing was pushed.
+
+## Audit Phase — BUG-009-ROUTE-023 Final Audit {#audit-route-023}
+
+`bubbles.audit` consumed `BUG-009-ROUTE-023`. This is the first time the
+`audit` phase has run for this packet. Every number below was produced by a
+command executed in this audit session; nothing is restated from an upstream
+phase. Real filesystem paths are written as `<repo-root>` on purpose — see the
+CRITICAL finding in the security subsection for why that discipline matters.
+
+**Resolved contract.** `transition-contract-resolver.sh` returned
+`workflowMode: bugfix-fastlane`, `auditProfile: delivery-completion-v1`,
+`statusCeiling: done`, `targetStatus: done`,
+`contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`,
+`targetRevision: sha256:0329f35339de9d65d678aa673db37b2a940efc23c52cc9a7e68ee90c56ab1ee1`.
+The delivery-completion vocabulary therefore applies, so this section issues a
+shipment verdict rather than a planning verdict.
+
+### Repository Binding
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+$ bash .github/bubbles/scripts/repository-binding.sh preflight \
+    --session-id vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05 \
+    --session-control-file <session-control-file> \
+    --request-class STRUCTURED --workspace-root <11 host-declared roots> \
+    --repository-root <repo-root> --expected-control-revision 1
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=<repo-root>
+  source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:2
+  revision=2 repository=research-lab
+```
+
+### Change Boundary — CLEAN
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+$ git show --stat --oneline 4824edc81
+4824edc81 test(BUG-009): assert named risk exclusions
+ tests/portfolio-risk.functional.mjs     | 29 +++++++++++++++++++++++++++++
+ tests/portfolio-test-integrity.unit.mjs |  2 +-
+ 2 files changed, 30 insertions(+), 1 deletion(-)
+
+$ git status --porcelain -- tests/portfolio-risk.functional.mjs \
+    tests/portfolio-test-integrity.unit.mjs \
+    tests/portfolio-defect-injector.cjs rlportfolioanalytics.js
+(no output)
+```
+
+The delivery is exactly the two declared test files. Product source
+`rlportfolioanalytics.js` and the shared harness
+`tests/portfolio-defect-injector.cjs` carry no change, and the whole BUG-009
+surface is byte-identical to `HEAD`. The declared two-file test-only boundary
+is confirmed by execution, not by assertion.
+
+### Assertion-Origin Causality — PROVEN LOAD-BEARING
+
+This is the substantive audit question: does the repaired registry title prove
+*exact* assertion-origin causality, or does it merely happen to fail? I ran the
+`F008-RISK-INPUT-001` mutation twice against the same product mutation — once
+against the post-fix title, once against the pre-fix title as an adversarial
+control. The control is what converts this from a structural check into proof.
+
+**Exit Code:** 1 (both mutant runs — a mutant that exits 0 would be the defect)
+**Claim Source:** executed
+
+```text
+$ grep -Fc '      else excluded.push({ symbol: h.symbol, ... });' rlportfolioanalytics.js
+1
+
+[A] post-fix title, mutation applied in memory
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+not ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  operator: 'strictEqual'
+  expected: 'ok'
+  actual: 'unsupported-holding'
+  stack: TestContext.<anonymous>
+    (file://<repo-root>/tests/portfolio-risk.functional.mjs:60:10)
+# pass 0
+# fail 1
+marker: applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+
+[B] ADVERSARIAL CONTROL — same mutation, pre-fix title SCN-008-047
+not ok 1 - SCN-008-047 mixed portfolio freezes one cutoff and composes partial
+  structured risk output
+  error: "Cannot read properties of undefined (reading 'state')"
+  code: 'ERR_TEST_FAILURE'
+  name: 'TypeError'
+  stack: TestContext.<anonymous>
+    (file://<repo-root>/tests/portfolio-risk.functional.mjs:123:54)
+# pass 0
+# fail 1
+marker: applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+```
+
+Both titles fail, so a naive "did it go red?" check could not tell them apart —
+and that is precisely how the original defect survived. They fail for different
+reasons. The pre-fix title dies at line 123 with a `TypeError` from reading
+`.state` off an `undefined` downstream value: an incidental crash caused by
+consuming a malformed return, not a protective assertion. The post-fix title
+dies at line 60 with `ERR_ASSERTION`, `operator: strictEqual`,
+`actual 'unsupported-holding'` against `expected 'ok'` — the mutation's exact
+semantic effect, named by the assertion that exists to reject it.
+
+`mutationCausalityProblems()` in `tests/portfolio-test-integrity.unit.mjs:347`
+requires `code: 'ERR_ASSERTION'`, exactly one applied substitution, the exact
+module, the exact intended hook, exactly one resolved test, and
+`exit != 0 && pass == 0 && fail == 1`. Run [B] satisfies none of the assertion
+clause. The repair is therefore load-bearing rather than cosmetic: the pre-fix
+mapping would now be rejected by the very harness it was registered in.
+
+**Not a tautology.** The new test carries eight assertions over real
+`RLPA.assetTreatment` output — `state`, `marketBased`,
+`excludedFromMarketAnalytics` (asserting the named `symbol`/`assetType` pair),
+and five `lookThrough` fields including `coveredWeight 0.6` /
+`uncoveredWeight 0.4`. No stub, fake, canned literal, or proxy assertion
+appears; the values are computed by shipped product code.
+
+### Shipped Green And Harness Integrity
+
+**Exit Code:** 0 (all three)
+**Claim Source:** executed
+
+```text
+[C] focused BUG-009 test, unmutated tree
+ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+# pass 1
+# fail 0
+
+[D] full risk carrier tests/portfolio-risk.functional.mjs
+# tests 3
+# pass 3
+# fail 0
+
+[F] strict registry tests/portfolio-test-integrity.unit.mjs
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains
+       load-bearing
+ok 2 - BUG-007: caller-key protections and normal ordering are load-bearing in
+       memory
+ok 3 - BUG-007: represented mutants execute one protective assertion through one
+       intended hook
+# tests 3
+# pass 3
+# fail 0
+```
+
+The in-memory mutation wrote nothing: after four mutant executions the dirty
+count was still 61 and `rlportfolioanalytics.js` was still clean.
+
+### Security — CRITICAL FINDING `B009-AUDIT-PII-001`
+
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+$ node scripts/pii-scan.mjs
+[pii-scan] specs/008-portfolio-survival-and-brief-lab/bugs/
+  BUG-009-risk-mutation-assertion-origin/report.md:4435:8
+  rule=home-path length=13
+[pii-scan] files=10332 messages=2334 findings=1 FAIL
+
+$ git blame -L 4435,4435 -- <packet>/report.md
+58a8089caa (pkirsanov 2026-08-27 4435)   root=<a real 13-character home path>
+
+$ git show 6e9f574a8 --stat --oneline
+6e9f574a8 security(BUG-009): redact real home path from captured evidence
+ .../BUG-009-risk-mutation-assertion-origin/report.md | 2 +-
+
+occurrences of the identifier in this report.md, by commit:
+  6e9f574a8 -> 0
+  58a8089ca -> 1
+```
+
+A real operator home path is committed on the repository surface at
+`report.md:4435`, inside the `## Plan Phase — BUG-009-ROUTE-022 Reconciliation`
+evidence block. It is the **only** finding in a 10,332-file / 2,334-message
+scan, and it is a **regression of an already-remediated defect**: commit
+`6e9f574a8` drove the count to zero, and the plan-phase commit `58a8089ca`
+reintroduced it one commit later while transcribing a binding transcript by
+hand.
+
+The line is inside a plain fenced block, not an `evidence-capture.sh` block, so
+no recorded `sha256` covers it and a redaction to `<repo-root>` would preserve
+the evidence semantics exactly. Audit did not perform that redaction: the block
+belongs to `bubbles.plan`, not to audit, and rewriting another owner's evidence
+is a foreign-artifact change. It is routed instead.
+
+No credential, token, key, or secret was found. The mutation injector is a
+trusted in-repo test harness and was not treated as an untrusted-input
+boundary.
+
+### Canonical Validation — RED
+
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+$ node scripts/selftest.mjs
+  ✗ FAIL: committed surface carries no personal identifier
+================================================
+Research-Lab self-test: 3428 passed, 1 failed
+================================================
+lines: 3903
+sha256: f49a315df3adddba26ee4e63e2cf48163cf9663f5ef2432bcebea3b60c8cdc4e
+```
+
+`scripts/selftest.mjs:2688` asserts the PII scan result, so the finding above
+is not advisory — it turns the repository's only canonical validation command
+red. The packet's standing narrative describes "the canonical selftest green",
+which was true when `bubbles.validate` measured it and is **not true of the
+current tree**. This is a real regression introduced after that measurement by
+`58a8089ca`, not a fabricated claim by `bubbles.validate`; the distinction is
+recorded deliberately so the routed fix targets the right commit.
+
+### Implement-Phase Adjudication `B009-PHASE-IMPLEMENT-001`
+
+The resolved `bugfix-fastlane` `phaseOrder` is `select, bootstrap, implement,
+test, regression, simplify, gaps, harden, stabilize, devops, security, validate,
+audit, finalize`. `implement` is required and is absent from
+`execution.completedPhaseClaims`.
+
+Audit's adjudication: the `implement` phase **did occur**. Commit `4824edc81`
+is a real, non-empty delivery (2 files, +30/-1) that produced the entire fix,
+and `bugfix-fastlane` provides no separate phase for a test-only change — the
+mode's `test` phase is claimed alongside it and is a different phase. The
+omission is therefore a **recording gap, not a work gap**.
+
+Audit did **not** write the claim. `execution.completedPhaseClaims` is a phase
+record, and this agent is forbidden from writing phase claims or certification
+state; inventing one to clear a check is exactly the fabrication this phase
+exists to catch. The recording is routed to the owner instead. No phase claim
+was fabricated.
+
+### Guard Baseline Observed By Audit
+
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh <packet> \
+    --target-status done --expect-workflow-mode bugfix-fastlane \
+    --expect-contract-digest sha256:aa91472c...c449f
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+passedGateIds: [G057,G061,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,
+  G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G022,G027,G136]
+failedChecks: [Check-4-completion,Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 10
+verdict: FAIL
+sha256: c6fb0cfb2253c25725ec4f6d3b9c72ac662d1e273642c49cd09abc4eee2691da
+```
+
+Audit measured `failureCount: 10`, not the 11 carried in the inbound routing
+note. The contract digest and workflow mode assertions were accepted, so this
+is a genuine count difference rather than a provenance conflict; the smaller
+number is reported as measured rather than reconciled to the expectation.
+
+### Audit Verdict — DO_NOT_SHIP
+
+The engineering substance of BUG-009 is sound and, on the evidence above,
+better than the packet claimed for itself: the boundary is exactly two test
+files, the new test asserts real computed behavior, and the adversarial control
+proves the repaired mapping is load-bearing rather than incidental. Had the
+security scan been clean this would have been a straightforward advance.
+
+It is not clean. A real personal identifier sits on the committed surface and
+the repository's canonical validation command exits 1 because of it. A packet
+cannot ship while its own artifact is the single blocking PII finding in the
+repository, and it cannot ship on a claim of green validation that the current
+tree contradicts. The verdict is therefore `DO_NOT_SHIP`, driven entirely by
+`B009-AUDIT-PII-001` and not by any defect in the delivered test repair.
+
+| Finding | Severity | Owner | Action |
+| --- | --- | --- | --- |
+| `B009-AUDIT-PII-001` | CRITICAL | `bubbles.plan` | Redact the identifier at `report.md:4435` to `<repo-root>`; re-run `node scripts/pii-scan.mjs` to 0 findings and `node scripts/selftest.mjs` to green |
+| `B009-PHASE-IMPLEMENT-001` | HIGH | `bubbles.plan` | Record the real `implement` phase for commit `4824edc81`; do not invent scope or evidence |
+| `B009-FRAMEWORK-PHASE-REGISTRY-001` | UNRESOLVED | parent / framework | `plan` and `design` are unregistered in canonical bubbles `2086d1e`; `.github/bubbles/**` is framework-managed and was not edited |
+| G136 human acceptance | UNRESOLVED | human | Untouched by audit; no acceptance record manufactured |
+| G027 `completedScopes` / Scope 1 In Progress | UNRESOLVED | downstream | Resolves only on legitimate completion; not forced |
+
+### Spot-Check Recommendations
+
+Automation gets more convincing as it gets more confident, so these are the
+items worth re-checking by hand rather than trusting this report:
+
+1. **The PII line itself.** Open `report.md:4435` and confirm the identifier is
+   really there and really is a home path. Everything in the verdict rests on
+   this one line, and the scanner withholds the matched text by design.
+2. **The adversarial control [B].** Re-run the pre-fix-title mutant and confirm
+   it fails with `TypeError` rather than `ERR_ASSERTION`. If both titles failed
+   the same way, the BUG-009 repair would be cosmetic and this report's central
+   conclusion would be wrong.
+3. **The selftest delta.** The count moved `3426 -> 3429 -> 3428 passed` across
+   this session because a concurrent merge changed `scripts/selftest.mjs`.
+   Confirm the single failure is the PII assertion and not a second, masked
+   regression riding in on that merge.
+4. **The implement-phase adjudication.** This is audit's judgement, not a
+   measurement: confirm you agree that `4824edc81` constitutes the `implement`
+   phase for a test-only `bugfix-fastlane` delivery before anyone records it.
+5. **Scope 1 and the 3 unchecked DoD rows.** They remain open by intent.
+   Confirm none was quietly advanced.
+
+### Containment
+
+Audit changed two paths, both audit-owned: this `report.md` section and the
+additive `execution.audit` record in `state.json`. No product source, no test,
+no `scopes.md` DoD row, no scope status, no `completedScopes`, no
+`completedPhaseClaims`, no `certification.*`, and no top-level status was
+written. `uservalidation.md` was not read into a claim and not modified.
+`.github/bubbles/**` was not edited. The concurrent 61-entry unrelated
+working-tree transaction was neither staged, reset, stashed, checked out, nor
+reverted. Nothing was pushed.

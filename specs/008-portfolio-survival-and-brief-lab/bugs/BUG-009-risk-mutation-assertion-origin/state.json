@@ -37,11 +37,60 @@
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.audit",
+    "nextRequiredOwner": "bubbles.plan",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-    "nextRequiredReason": "BUG-009-ROUTE-022 is resolved. bubbles.plan cleared every plan-owned block it was routed: Check 8D now passes on both the change-boundary DoD item and the allowed/excluded surface enumeration, the G061 route schema is satisfied by an internal same-repo shape (routedToSpec equal to this guarded spec, productAction 'none', no routedToCommit or routedToTicket, so the guard's looks_external branch is not taken and no cross-repo referral is fabricated), and both G040 hits are bounded by the framework's own bubbles:g040-skip markers with the adjudication recorded and zero evidence words rewritten. DoD moved from 0 of 18 to 16 of 19 checked; a nineteenth mandated change-boundary item was added and checked against git show --numstat 4824edc81, which reports exactly the two allowed test paths. Three items stay unchecked on purpose: TP-B009-000 is a persistent pre-fix historical record that post-fix cannot be re-executed without inverting its meaning, human acceptance is human-owned and untouched, and the Build Quality Gate requires transition checks that still exit 1. Three findings outside plan ownership are carried in unresolvedFindings: the canonical and installed phase registries both omit 'plan' and 'design', the G040 exclusion list omits the guard's own crossRepoFollowUp identifier, and no implement phase record exists because delivery landed under the test phase. bubbles.audit is the one required delivery-completion-v1 phase that has never executed; BUG-009-ROUTE-023 routes to it. Status, certification, scope status, completedScopes, and human acceptance are unchanged.",
+    "nextRequiredReason": "BUG-009-ROUTE-023 is resolved: the audit phase executed for the first time and its evidence is at report.md#audit-route-023. The engineering substance of BUG-009 passed every audit check. The change boundary is exactly the two declared test files, verified by git show --stat 4824edc81 plus a clean git status over rlportfolioanalytics.js and tests/portfolio-defect-injector.cjs. Assertion-origin causality was proven load-bearing by running the F008-RISK-INPUT-001 mutation twice: against the post-fix title it fails ERR_ASSERTION strictEqual actual 'unsupported-holding' expected 'ok' at portfolio-risk.functional.mjs:60 with marker via=Module._compile, and against the pre-fix SCN-008-047 title the same mutation fails TypeError ERR_TEST_FAILURE at line 123, which the harness's ERR_ASSERTION requirement rejects, so the repair is not cosmetic. Shipped focused GREEN 1/0, full risk carrier 3/0, strict registry 3/0, no stub or canned data, no credential or token. Audit nevertheless returns DO_NOT_SHIP on one CRITICAL security finding it owns discovering, B009-AUDIT-PII-001: node scripts/pii-scan.mjs exits 1 with the single repository-wide finding at this packet's own report.md:4435 rule=home-path, git blame attributes that line to the plan commit 58a8089ca, and commit 6e9f574a8 had already driven the same identifier to zero, so this is a regression of an already-remediated defect. Because scripts/selftest.mjs:2688 asserts the scan, node scripts/selftest.mjs now exits 1 at 3428 passed 1 failed, so the packet's standing claim of a green canonical selftest is false of the current tree; that claim was true when validate measured it and was invalidated afterwards by 58a8089ca, so it is a regression rather than fabrication. Audit did not redact the line because the block belongs to bubbles.plan and rewriting another owner's evidence is a foreign-artifact change. Audit adjudicated B009-PHASE-IMPLEMENT-001 as a recording gap rather than a work gap: commit 4824edc81 is a real non-empty delivery of 2 files +30/-1 and bugfix-fastlane offers no separate phase for a test-only change, so the implement phase did occur, but audit is forbidden from writing phase claims and refused to fabricate one. Audit measured state-transition-guard failureCount 10 with failedGateIds G022, G027, G136, not the 11 carried inbound. BUG-009-ROUTE-024 routes both owned findings to bubbles.plan. Status, certification, scope status, completedScopes, completedPhaseClaims, DoD rows, and human acceptance are all unchanged; nothing was pushed and .github/bubbles/** was not edited.",
+    "supersededNextRequiredReason": "BUG-009-ROUTE-022 is resolved. bubbles.plan cleared every plan-owned block it was routed: Check 8D now passes on both the change-boundary DoD item and the allowed/excluded surface enumeration, the G061 route schema is satisfied by an internal same-repo shape (routedToSpec equal to this guarded spec, productAction 'none', no routedToCommit or routedToTicket, so the guard's looks_external branch is not taken and no cross-repo referral is fabricated), and both G040 hits are bounded by the framework's own bubbles:g040-skip markers with the adjudication recorded and zero evidence words rewritten. DoD moved from 0 of 18 to 16 of 19 checked; a nineteenth mandated change-boundary item was added and checked against git show --numstat 4824edc81, which reports exactly the two allowed test paths. Three items stay unchecked on purpose: TP-B009-000 is a persistent pre-fix historical record that post-fix cannot be re-executed without inverting its meaning, human acceptance is human-owned and untouched, and the Build Quality Gate requires transition checks that still exit 1. Three findings outside plan ownership are carried in unresolvedFindings: the canonical and installed phase registries both omit 'plan' and 'design', the G040 exclusion list omits the guard's own crossRepoFollowUp identifier, and no implement phase record exists because delivery landed under the test phase. bubbles.audit is the one required delivery-completion-v1 phase that has never executed; BUG-009-ROUTE-023 routes to it. Status, certification, scope status, completedScopes, and human acceptance are unchanged.",
     "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps", "harden", "stabilize", "devops", "security", "validate"],
     "pendingTransitionRequests": [],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "currentAttemptId": "BUG-009-AUDIT-001",
+      "attempts": [
+        {
+          "attemptId": "BUG-009-AUDIT-001",
+          "resultState": "ACTIVE",
+          "supersedesAttemptId": null,
+          "at": "2026-08-27T17:52:00Z",
+          "agent": "bubbles.audit",
+          "consumedRoute": "BUG-009-ROUTE-023",
+          "openedRoute": "BUG-009-ROUTE-024",
+          "bindingDecisionId": "rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:2",
+          "bindingControlRevision": 2,
+          "workflowMode": "bugfix-fastlane",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "targetRevision": "sha256:0329f35339de9d65d678aa673db37b2a940efc23c52cc9a7e68ee90c56ab1ee1",
+          "auditVerdict": "DO_NOT_SHIP",
+          "outcome": "route_required",
+          "certifiedStatus": "none",
+          "planningEvaluation": "NOT_EVALUATED",
+          "deliveryEvaluation": "REFUSED",
+          "sourceEditLockout": "NOT_EVALUATED",
+          "applicableCheckClasses": ["universal", "mode-required", "delivery-completion"],
+          "guardFailureCountObserved": 10,
+          "guardFailedGateIds": ["G022", "G027", "G136"],
+          "blockingCode": "AUDIT_SECURITY_FINDING",
+          "addressedFindings": ["BUG-009-ROUTE-023"],
+          "unresolvedFindings": ["B009-AUDIT-PII-001", "B009-PHASE-IMPLEMENT-001", "B009-FRAMEWORK-PHASE-REGISTRY-001", "B009-FRAMEWORK-G040-EXCLUSION-001"],
+          "nextRequiredOwner": "bubbles.plan",
+          "evidenceRefs": ["report.md#audit-route-023"],
+          "commandsExecuted": [
+            {"command": "git show --stat --oneline 4824edc81", "exitCode": 0, "result": "exactly 2 test files, +30/-1"},
+            {"command": "node --test mutant vs post-fix title (F008-RISK-INPUT-001)", "exitCode": 1, "result": "ERR_ASSERTION strictEqual actual 'unsupported-holding' expected 'ok' at portfolio-risk.functional.mjs:60; marker via=Module._compile; pass 0 fail 1"},
+            {"command": "node --test mutant vs pre-fix title SCN-008-047 (adversarial control)", "exitCode": 1, "result": "TypeError ERR_TEST_FAILURE at line 123, not ERR_ASSERTION; proves the repair is load-bearing"},
+            {"command": "node --test focused BUG-009 test on unmutated tree", "exitCode": 0, "result": "pass 1 fail 0"},
+            {"command": "node --test tests/portfolio-risk.functional.mjs", "exitCode": 0, "result": "tests 3 pass 3 fail 0"},
+            {"command": "node --test tests/portfolio-test-integrity.unit.mjs", "exitCode": 0, "result": "tests 3 pass 3 fail 0"},
+            {"command": "node scripts/pii-scan.mjs", "exitCode": 1, "result": "files=10332 messages=2334 findings=1 FAIL at this packet report.md:4435 rule=home-path"},
+            {"command": "node scripts/selftest.mjs", "exitCode": 1, "result": "3428 passed 1 failed; sha256 f49a315df3adddba26ee4e63e2cf48163cf9663f5ef2432bcebea3b60c8cdc4e"},
+            {"command": "state-transition-guard.sh --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...", "exitCode": 1, "result": "failureCount 10, failedGateIds G022/G027/G136, blockingCode DELIVERY_COMPLETION_FAILED"}
+          ],
+          "note": "First execution of the audit phase for this packet. Engineering substance passed every audit check; the DO_NOT_SHIP verdict rests solely on B009-AUDIT-PII-001, a committed personal identifier in the packet's own report.md attributed to plan commit 58a8089ca and previously remediated by 6e9f574a8. Audit wrote only its own report.md section and this additive execution.audit record. No certification.*, no top-level status, no completedScopes, no completedPhaseClaims, no scope status, no DoD checkbox, and no uservalidation.md content was written. .github/bubbles/** was not edited and nothing was pushed."
+        }
+      ]
+    },
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -311,7 +360,10 @@
     },
     {
       "id": "BUG-009-ROUTE-023",
-      "status": "open",
+      "status": "resolved",
+      "resolvedBy": "bubbles.audit",
+      "resolvedAt": "2026-08-27T17:52:00Z",
+      "resolution": "Consumed by the audit phase recorded at report.md#audit-route-023, the first execution of the audit phase for this packet. Under repository-binding preflight decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:2 at control revision 2, audit independently re-executed rather than restated: change boundary confirmed as exactly the two declared test files, assertion-origin causality proven load-bearing by an adversarial pre-fix-title control that fails TypeError where the post-fix title fails ERR_ASSERTION at line 60, shipped focused GREEN 1/0, full risk carrier 3/0, strict registry 3/0, and no stub, canned, credential, or token content. Verdict is DO_NOT_SHIP solely on B009-AUDIT-PII-001, a CRITICAL committed personal identifier at this packet's own report.md:4435 attributed by git blame to plan commit 58a8089ca and previously remediated by 6e9f574a8, which turns node scripts/selftest.mjs red at 3428 passed 1 failed. B009-PHASE-IMPLEMENT-001 was adjudicated as a recording gap, not a work gap, and no phase claim was fabricated. Both are routed to bubbles.plan in BUG-009-ROUTE-024. The framework phase-registry gap, human acceptance, completedScopes, and Scope 1 status were left untouched.",
       "fromAgent": "bubbles.plan",
       "nextRequiredOwner": "bubbles.audit",
       "routedTo": "bubbles.audit",
@@ -320,6 +372,18 @@
       "routingClass": "same-repo-next-phase",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
       "reason": "The plan-owned residue of BUG-009-ROUTE-022 is closed: Check 8D now passes on both blocks, the G061 route schema is satisfied by this internal same-repo shape, the two G040 hits are bounded by sanctioned skip markers with the adjudication recorded, and 16 of 19 DoD items are checked against executed evidence. The one required delivery-completion-v1 phase that has never executed is audit, so bubbles.audit is the next owner. Three findings sit outside plan ownership and are carried in unresolvedFindings rather than resolved here: B009-FRAMEWORK-PHASE-REGISTRY-001 (both the installed registry and canonical bubbles at 2086d1e omit the phase names plan and design, so this is a canonical framework gap, not install staleness, and .github/bubbles/** must not be hand-edited downstream), B009-FRAMEWORK-G040-EXCLUSION-001 (the G040 exclusion list already exempts followUpOwner, followUpAction, followUpTarget, and followUps but omits the guard's own crossRepoFollowUp identifier), and B009-PHASE-IMPLEMENT-001 (no implement phase record exists; the delivery landed under the test phase and no implement record was fabricated). Preserve status in_progress, certification in_progress, Scope 1 In Progress, the three unchecked DoD items, and unclaimed human acceptance. Do not force completedScopes or the scope status."
+    },
+    {
+      "id": "BUG-009-ROUTE-024",
+      "status": "open",
+      "fromAgent": "bubbles.audit",
+      "nextRequiredOwner": "bubbles.plan",
+      "routedTo": "bubbles.plan",
+      "routedToSpec": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "productAction": "none",
+      "routingClass": "same-repo-next-phase",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "Audit executed and returned DO_NOT_SHIP. Two findings are routed to bubbles.plan as the owner of the artifact and the commit that produced them. B009-AUDIT-PII-001 is CRITICAL: node scripts/pii-scan.mjs exits 1 reporting exactly one finding across 10332 files and 2334 commit messages, at this packet's own report.md:4435:8 rule=home-path length=13, inside the '## Plan Phase - BUG-009-ROUTE-022 Reconciliation' repository-binding evidence block. git blame attributes line 4435 to plan commit 58a8089ca, and commit 6e9f574a8 titled 'security(BUG-009): redact real home path from captured evidence' had already driven the same identifier to zero, so this is a regression of an already-remediated defect introduced one commit later while a binding transcript was transcribed by hand. Because scripts/selftest.mjs:2688 asserts the scan result, the repository's only canonical validation command now exits 1 at 3428 passed 1 failed, and the packet's standing narrative that the canonical selftest is green is false of the current tree. Required fix: redact the identifier on that line to the placeholder <repo-root>, exactly as 6e9f574a8 did, which preserves evidence semantics because the line sits in a plain fenced block that no evidence-capture sha256 covers; then re-run node scripts/pii-scan.mjs to 0 findings and node scripts/selftest.mjs to green and record both. Audit did not perform the redaction because the block is bubbles.plan's evidence and rewriting another owner's evidence is a foreign-artifact change. B009-PHASE-IMPLEMENT-001 is HIGH: the resolved bugfix-fastlane phaseOrder requires an implement phase that is absent from completedPhaseClaims. Audit adjudicated that the implement phase did occur, because commit 4824edc81 is a real non-empty delivery of 2 files +30/-1 that produced the entire fix and the mode offers no separate phase for a test-only change, so the omission is a recording gap rather than a work gap; audit is forbidden from writing phase claims and refused to fabricate one, so the recording is routed here. Preserve status in_progress, certification in_progress, Scope 1 In Progress, the three unchecked DoD items, empty completedScopes, and unclaimed human acceptance. Do not edit .github/bubbles/**, do not touch the concurrent 61-entry unrelated working-tree transaction, and do not push. B009-FRAMEWORK-PHASE-REGISTRY-001 and B009-FRAMEWORK-G040-EXCLUSION-001 remain unresolved framework-level findings outside both plan and audit ownership and are not routed here."
     }
   ],
   "reworkQueue": [],

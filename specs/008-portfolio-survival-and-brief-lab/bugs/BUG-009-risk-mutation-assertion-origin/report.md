@@ -5130,3 +5130,141 @@ exits 1. `completedScopes`, Scope 1 status, `status`, `certification.status` and
 working-tree transaction was neither staged, reset, stashed nor reverted.
 Nothing was pushed.
 
+## Implement Phase — Owner-Level Refusal To Record (BUG-009-ROUTE-025) {#implement-route-025-owner-refusal}
+
+**Claim Source:** executed
+
+`bubbles.implement` — the registry-declared owner of the `implement` phase — was
+dispatched to record that phase, with the parent's explicit confirmation and an
+explicit instruction to verify `4824edc81` first and to report rather than record
+if observation contradicted the premise. Observation contradicted the premise.
+**No `implement` claim was written.** `state.json` is byte-identical after this
+pass; only this section was added.
+
+This is the second refusal on this route. The first came from `bubbles.plan`
+(a non-owner) in `755044b65`. This one comes from the owner itself, which is the
+stronger form: the agent that alone can legitimately supply `implement`
+provenance states that it cannot, because it did not execute the delivery.
+
+### Premise-by-premise verification
+
+| # | Parent's premise | Verdict | Command run this session |
+| --- | --- | --- | --- |
+| A | `4824edc81` is a real delivery of exactly two files, +30/−1 | **CONFIRMED** | `git show --stat 4824edc81` |
+| B | `bugfix-fastlane` has no separate test-only phase, so that commit *is* the implement phase | **FALSIFIED** | read `modes.yaml` line 304 |
+| C | The gap is a recording gap, safe to record | **FALSIFIED** | read guard lines 2172–2185; enumerated `executionHistory` |
+| D | (implied) Recording it clears the block | **FALSIFIED** | `state-transition-guard.sh` baseline |
+
+**A — confirmed.** `git show --stat 4824edc81` (exit 0) returned commit
+`4824edc81b0920b40e728f55b8e8dfdbe1804b2d`, `test(BUG-009): assert named risk
+exclusions`, Thu Aug 27 01:15:48 2026:
+
+```
+ tests/portfolio-risk.functional.mjs     | 29 +++++++++++++++++++++++++++++
+ tests/portfolio-test-integrity.unit.mjs |  2 +-
+ 2 files changed, 30 insertions(+), 1 deletion(-)
+```
+
+Exactly the two files and exactly the +30/−1 the parent stated. That the commit
+is a real, bounded, test-only delivery is not in dispute.
+
+**B — falsified.** The premise that licenses treating a `test(...)` commit as the
+`implement` phase is that the mode collapses the two. It does not.
+`.github/bubbles/workflows/modes.yaml` line 304 declares:
+
+```
+phaseOrder: [ select, bootstrap, implement, test, regression, simplify, gaps,
+              harden, stabilize, devops, security, validate, audit, finalize ]
+```
+
+`implement` and `test` are two distinct ordered phases. The `test` phase already
+PASSES on this packet under its own provenance. So the missing phase is not a
+label for work that was done under another name — the two names are separately
+required, and only one of them was executed.
+
+**C — falsified, and this is the decisive one.** The guard does not accept an
+`implement` claim from any agent. `state-transition-guard.sh` Pass 1
+(lines 2172–2181) matches a claimed phase against an owner **set**, and line 2183
+adds one hardcoded exception:
+
+```
+# bubbles.bug delegation shortcut for implement/test
+elif [[ "$claimed_phase" == "implement" || "$claimed_phase" == "test" ]] && ... $1=="bubbles.bug" ...
+```
+
+So `implement` provenance is admissible only from `bubbles.implement` or
+`bubbles.bug`. Neither executed this delivery. Enumerating all 24
+`executionHistory` entries returned **zero** entries with `phase == "implement"`
+or `implement` in `phasesExecuted`. The sole entry covering the work is index 3:
+
+```
+{ "agent": "bubbles.test", "phase": "test",
+  "action": "implemented-and-verified-recorded-test-contracts",
+  "phasesExecuted": ["test"], "provenanceMode": "specialist" }
+```
+
+`bubbles.test` did the work, under the `test` phase, and the commit is prefixed
+`test(BUG-009)`. For `bubbles.implement` to write an entry claiming it executed
+`4824edc81` would be a false statement about authorship: that commit predates
+this dispatch by roughly seventeen hours and was produced by a different phase.
+
+The requested write is not merely inaccurate, it is self-defeating. Because Pass 1
+keys on `agent` ∈ owner-set together with `phase == "implement"` and
+`provenanceMode` `specialist`-or-absent, the entry described in the dispatch is
+*precisely* the shape that flips the check to PASS. It would not surface the gap
+to the guard; it would conceal it. That is the phantom owner Check 6B exists to
+refuse, and the refusal is worth more than the green check.
+
+**D — falsified.** Recording would not clear the block. Two of the seven
+baseline failures are Gate G027, which already fires *because* the packet claims
+implement/test phases while no scope is Done:
+
+```
+🔴 BLOCK: Execution/certification phases claim implement/test phases but completedScopes is EMPTY — FABRICATION (Gate G027)
+🔴 BLOCK: Execution/certification phases claim implement/test phases but ZERO scopes are marked 'Done' — FABRICATION (Gate G027)
+```
+
+Adding an `implement` claim *reinforces* the antecedent of both. The best case
+was 7 → 5, purchased with a fabricated provenance record, while the three
+human-gated failures (unchecked DoD, scope status, G136 acceptance) are
+untouchable by this agent by construction.
+
+### Guard result — unchanged, by design
+
+`state-transition-guard.sh` was run against this packet before the edit:
+**7 failures, 2 warnings, exit 1**, `blockingCode: DELIVERY_COMPLETION_FAILED`.
+Because this pass changed only `report.md`, the count is unchanged at **7**. No
+failure was cleared and none was introduced. The seven remain as tabulated in the
+preceding ROUTE-024 section.
+
+### The actual defect
+
+The framework's `implement` owner-set has no member for a defect whose entire
+correct remedy is a test-contract change. `bugfix-fastlane` requires `implement`
+unconditionally, but a test-only fix is executed by `bubbles.test`, whose
+provenance the owner-set rejects for that phase. The packet is therefore
+structurally unable to satisfy Check 6 without either fabricating provenance or
+performing product-source work it does not need. This is carried as
+`B009-PHASE-IMPLEMENT-001` and is a framework registry decision, not a packet
+defect. It is owner-routed; `.github/bubbles/**` is framework-managed and was not
+edited.
+
+A sanctioned mechanism may already exist: Pass 2 of the same check accepts
+`provenanceMode: "parent-expanded"` with an `expandedBy` in the orchestrator
+allowlist and an `expansionReason` of at least 20 characters. That path is for an
+orchestrator expanding a phase a specialist covered. `bubbles.implement` is not an
+orchestrator and did not take it. Whether it is the right remedy here is the
+registry owner's call, not this agent's.
+
+### What this pass did not touch
+
+`state.json` is **byte-identical** — no `completedPhaseClaims` entry added, and
+`executionHistory` still holds all 24 entries including all 7 from `bubbles.plan`.
+`uservalidation.md` is byte-identical with 0 of 6 items checked. No DoD item was
+checked. No product source or test file was modified — not
+`rlportfolioanalytics.js`, not `tests/portfolio-defect-injector.cjs`, and not
+either of the two files in `4824edc81`. `status`, `certification.status` and
+`certifiedAt` are unchanged. `.github/bubbles/**` was not edited. The concurrent
+61-entry unrelated working-tree transaction was neither staged, reset, stashed nor
+reverted. Nothing was pushed.
+

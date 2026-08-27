@@ -1676,3 +1676,236 @@ BUG-009 remains `in_progress`; Scope 1 remains In Progress; all 18 DoD items
 remain unchecked. Human acceptance, certification, product source, tests,
 injector, parent Feature 008 artifacts, and every concurrent dirty Feature 008
 path remain unchanged.
+
+## Harden Phase - 2026-08-27 {#harden-phase-2026-08-27}
+
+**Phase:** harden
+**Agent:** `bubbles.harden`
+**Execution model:** `direct-authorized-runner`
+**Executed at:** `2026-08-27T05:45:55Z`
+**Claim Source:** interpreted
+**Interpretation:** `NOT_HARDENED`. The implementation and every requested
+behavioral or mechanical check are clean in this session. Four unresolved
+control-plane findings prevent a hardened verdict: test-phase provenance and
+current report summary drift, planner lifecycle drift, one stale exact title in
+`design.md`, and the same stale exact title in `bug.md`. Those artifacts are
+foreign-owned, so harden records and routes the findings instead of rewriting
+them.
+
+### Authority And Baseline
+
+**Claim Source:** executed
+
+```text
+host expectedControlRevision=292
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=~/research-lab source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:293 revision=293 repository=research-lab root=~/research-lab
+HEAD=8588bffa61901d2180628e28df4a655c5e9b4705
+subject=chore(008): close BUG-009 G028 prerequisite
+pre-existing BUG-009 changes=0
+pre-existing non-BUG-009 dirty paths were copied to an external temporary baseline
+```
+
+### Focused Causality Proof
+
+**Claim Source:** executed
+**Commands:** exact shipped title, then the unchanged
+`F008-RISK-INPUT-001` in-memory substitution with a fresh marker.
+**Exit Codes:** shipped `0`; mutant `1` as the required negative control;
+causality probe `0`.
+
+```text
+shipped source:
+# Subtest: BUG-009 risk mapping: unsupported holdings remain named exclusions
+ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+# tests 1
+# pass 1
+# fail 0
+# skipped 0
+mutant source:
+not ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+code: 'ERR_ASSERTION'
+name: 'AssertionError'
+# tests 1
+# pass 0
+# fail 1
+MUTANT_EXIT=1
+ERR_ASSERTION_COUNT=1
+INFRASTRUCTURE_FAILURE_COUNT=0
+MARKER_LINES=1
+MARKER_TEXT=applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+CAUSALITY_PROBE_EXIT=0
+```
+
+The complete mutant output contains no `TypeError`, `ERR_TEST_FAILURE`,
+injector, preload, setup, anchor, syntax, or module-load failure. The first
+direct state assertion is the failure origin.
+
+### Requested Execution Closure
+
+**Claim Source:** executed
+
+| Check | Current-session result |
+| --- | --- |
+| Focused shipped title | `1/1`, exit `0` |
+| Exact focused mutant | `0/1`, required exit `1`, one `ERR_ASSERTION`, one `Module._compile` marker, zero infrastructure signals |
+| Strict mutation registry | `18` registered cases; complete file `3/3`, including both BUG-007 outer controls |
+| Full risk carrier | `3/3` |
+| Five BUG-008 functional carriers | `43/43`; 268 output lines; full-output SHA-256 `1b7a799b7069f50aa818593e8eac74c09111df2fc3b0a680eaee45cc72982d2d` |
+| Risk browser carrier | Playwright `1.61.1`; system Chrome; `13/13` |
+| Canonical repository selftest | `3426/3426`; 3919 output lines; full-output SHA-256 `d4cb8d4680a663f418c74a57b922f2c3166f717515ff3e208a1229882c70d4fb` |
+| Pages site build | exit `0`; `29` registered pages, `123` root files |
+| Installed downstream G028 | exact two declared `.mjs` files; `2` scanned, `0` violations, `0` warnings |
+
+The installed scanner was the Research Lab path
+`.github/bubbles/scripts/implementation-reality-scan.sh`, not the canonical
+source path. Its committed and working-tree blob is
+`23e0af5448141427e268083f4be3c4eba6e7c2a7`. Installer provenance records
+version `7.28.0`, local source `2086d1e93c3fa6e6a7e1d68de64b91d2484159cc`,
+and `sourceDirty=false`. The two paths resolved from the scope's canonical
+Implementation Files section are `tests/portfolio-risk.functional.mjs` and
+`tests/portfolio-test-integrity.unit.mjs`.
+
+### Packet And Test-Quality Gates
+
+**Claim Source:** executed
+
+```text
+ARTIFACT_EXIT=0
+TRACEABILITY_EXIT=0
+LINKED_TEST_RESOLVER_EXIT=0
+SCENARIO_OBLIGATION_EXIT=0
+TEST_MECHANISM_EXIT=0
+SCOPE_CONTEXT_FIT_EXIT=0
+CAPABILITY_GUARD_EXIT=0
+REGRESSION_QUALITY_EXIT=0
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 2
+Files with adversarial signals: 2
+SYNTAX_RISK_EXIT=0
+SYNTAX_REGISTRY_EXIT=0
+SKIP_SCAN_EXIT=1 (zero matches)
+LIVE_MOCK_SCAN_EXIT=1 (zero matches)
+INCOMPLETE_MARKER_SCAN_EXIT=1 (zero matches)
+FOCUSED_TITLE_COUNT=1
+REGISTRY_TITLE_COUNT=1
+```
+
+The scenario resolver checked all three links. Scenario obligations reported
+one coherent matrix. Test mechanism reported one coherent public-function
+mechanism. Scope context fit reported one self-contained scope. Capability
+foundation proportionality did not trigger. Research Lab declares no lint or
+format command; no substitute command was invented.
+
+### Commit And Blob Containment
+
+**Claim Source:** executed
+
+Implementation commit
+`4824edc81b0920b40e728f55b8e8dfdbe1804b2d` changes exactly:
+
+```text
+tests/portfolio-risk.functional.mjs
+tests/portfolio-test-integrity.unit.mjs
+```
+
+Routing commit `8588bffa61901d2180628e28df4a655c5e9b4705` changes only this
+BUG-009 `report.md` and `state.json`. Current identity checks returned:
+
+```text
+rlportfolioanalytics.js parent=203c57b14898a13e0da81898e755ea5f5f6674ba impl=203c57b14898a13e0da81898e755ea5f5f6674ba head=203c57b14898a13e0da81898e755ea5f5f6674ba worktree=203c57b14898a13e0da81898e755ea5f5f6674ba
+tests/portfolio-defect-injector.cjs parent=20ed786006be23f542ec3c524758eda625567ea9 impl=20ed786006be23f542ec3c524758eda625567ea9 head=20ed786006be23f542ec3c524758eda625567ea9 worktree=20ed786006be23f542ec3c524758eda625567ea9
+tests/portfolio-risk.functional.mjs impl=2a537316eadbf5067d19c020e0a60b020fb16e84 head=2a537316eadbf5067d19c020e0a60b020fb16e84 worktree=2a537316eadbf5067d19c020e0a60b020fb16e84
+tests/portfolio-test-integrity.unit.mjs impl=5aa222876f78430ef1d76a2c980045cf6a5d5207 head=5aa222876f78430ef1d76a2c980045cf6a5d5207 worktree=5aa222876f78430ef1d76a2c980045cf6a5d5207
+BLOB_IDENTITY_EXIT=0
+IMPLEMENTATION_PATH_CONTAINMENT_EXIT=0
+```
+
+### Artifact And Phase-Claim Findings
+
+**Claim Source:** interpreted
+**Interpretation:** The commands below identify current control-plane
+contradictions. They do not invalidate the clean product and test execution,
+but they prevent H3 and H9 from passing and therefore prevent a hardened phase
+claim.
+
+| Finding | Evidence | Required owner |
+| --- | --- | --- |
+| `HARDEN-B009-001` | `execution.completedPhaseClaims` includes `test`, but the present execution history has no `bubbles.test` / `phasesExecuted: [test]` entry. The diagnostic transition guard fails G022, and the focused history search exits `1`. The report contains test-phase evidence, so this is an unbacked state claim rather than proof the tests did not run. The opening report Summary and Completion Statement also retain the old `3425/3426`, unpropagated-G028, and regression-route current summary. | `bubbles.test` |
+| `HARDEN-B009-002` | `scopes.md` still says the next owner is `bubbles.regression` and says regression must run; `test-plan.json` still says `ready-for-regression-owner`, marks executed rows `planned-not-executed`, and says regression remains unclaimed. State and report history prove regression, simplify, gaps, setup, and this harden attempt occurred later. | `bubbles.plan` |
+| `HARDEN-B009-003` | `design.md` says the exact title is `BUG-009 risk mapping: unsupported holding is named without aborting asset treatment`; the spec, scope, scenario manifest, structured plan, registry, and shipped test use `BUG-009 risk mapping: unsupported holdings remain named exclusions`. | `bubbles.design` |
+| `HARDEN-B009-004` | `bug.md` repeats the stale singular exact title while the delivered and planned title is the plural named-exclusions title. | `bubbles.bug` |
+
+No test is weakened to clear these findings. No harden completion claim is
+added. The installed mode resolver confirms that `stabilize` follows `harden`,
+but routing to `bubbles.stabilize` is withheld until all four findings are
+reconciled and harden reruns clean.
+
+### Diagnostic Transition Guard And Remaining Prerequisites
+
+**Claim Source:** executed
+
+The guard was run only as a diagnostic. It exited `1` over 353 output lines,
+full-output SHA-256
+`cc4fb99110a075d559564dc095d0cb7dac0c9d768b59346ad0fca153ffdbcee5`.
+
+```text
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+failedGateIds: [G060,G061,G022,G053,G027,G040,G136]
+failedChecks: [Check-4-completion,Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 24
+exitStatus: 1
+verdict: FAIL
+```
+
+The packet has `18` unchecked DoD items, `0` checked DoD items, one In Progress
+scope, `0` completed scopes, `0` certified phases, six untouched unchecked
+automation/human validation items, four control-plane findings above, and later
+workflow phases still unexecuted. Status and certification correctly remain
+`in_progress`. Human acceptance remains untouched.
+
+### Harden Verdict And Route
+
+Verdict: **NOT_HARDENED**.
+
+The implementation is behaviorally clean under every requested independent
+check. The packet is not control-plane clean. Route `HARDEN-B009-001` first to
+`bubbles.test`; preserve the separately assigned planner, design, and bug
+findings in the unresolved set. After every owner reconciles its artifact,
+rerun harden before advancing to the persisted successor `bubbles.stabilize`.
+
+### Protected Dirty Transaction Check
+
+**Claim Source:** executed
+
+```text
+PROTECTED_FILES_CHECKED=58
+PROTECTED_MISMATCHES=0
+BUG-009 changed paths:
+M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/report.md
+M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin/state.json
+NON_OWNED_TARGET_DIFF_EXIT=0
+editor diagnostics report.md=0
+editor diagnostics state.json=0
+git diff --check exit=0
+```
+
+The protected set includes every dirty file observed at entry, both BUG-007
+artifacts, the separate parent Feature 008 transaction, and the two concurrent
+chaos files that appeared before this harden edit. No protected byte changed.
+
+### Post-Route Diagnostic Transition Receipt
+
+**Claim Source:** executed
+
+After the four findings were recorded and routed, the diagnostic guard was run
+again. It remained correctly non-terminal: exit `1`, 356 output lines,
+full-output SHA-256
+`1ee53a5a0496d51107904e929962691164d266df6b4f99ec2cdfca17de9f00c7`,
+the same failed gate set `G060,G061,G022,G053,G027,G040,G136`, `27` completion
+failures, `DELIVERY_COMPLETION_FAILED`, and verdict `FAIL`. G095 remained in the
+passed gate set. This is diagnostic evidence of unresolved prerequisites, not
+an attempted status transition.

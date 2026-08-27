@@ -219,12 +219,12 @@ Feature: Current test declarations exclude immutable historical receipts
   **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#reachability-green`, exit 0, 0 classification errors, unchanged ratchets.
 - [x] TP-BUG022-C02 passes the Feature 008 direct Node regressions.
   **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#feature-008-node-regression`, exit 0, 257 passed.
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass: TP-BUG022-C03 runs the Feature 008 Playwright regressions separately for SCN-BUG022-003.
-  **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#feature-008-playwright-regression---non-zero` records exit 1. All 94 scenarios passed, but BUG-017 worker teardown emitted two force-kill errors.
-- [ ] Broader E2E regression suite passes: TP-BUG022-C03 runs the Feature 008 Playwright regression suite.
-  **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#feature-008-playwright-regression---non-zero` records exit 1. All 94 scenarios passed, but BUG-017 worker teardown emitted two force-kill errors.
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass: TP-BUG022-C03 runs the Feature 008 Playwright regressions separately for SCN-BUG022-003.
+  **Phase:** test. **Claim Source:** executed. **Evidence:** `report.md#fresh-tp-bug022-c03-feature-008-playwright-regression`, exit 0, 94 passed, 0 skipped.
+- [x] Broader E2E regression suite passes: TP-BUG022-C03 runs the Feature 008 Playwright regression suite.
+  **Phase:** test. **Claim Source:** executed. **Evidence:** `report.md#fresh-tp-bug022-c03-feature-008-playwright-regression`, exit 0, 94 passed, 0 skipped.
 - [ ] TP-BUG022-C04 passes the full repository selftest in a clean tree.
-  **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#clean-tree-repository-selftest---non-zero` records exit 1 from 13 excluded certification drifts and BUG-022's validate-owned stale scope-progress claim.
+  **Phase:** test. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest---non-zero` records exit 1 with 3464 passed and one failed scope-progress invariant. `report.md#scope-progress-validator-after-c03-closure---non-zero` reports BUG-022's validate-owned claim as 12/3 while the current artifact is 14/2.
 - [x] TP-BUG022-C05 proves the Feature 008 report is byte-identical and every
   excluded path is unchanged.
   **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#change-containment`, exit 0, six allowed paths, `leakage=0`.
@@ -244,4 +244,4 @@ Feature: Current test declarations exclude immutable historical receipts
   committed-path, and excluded-path comparisons report leakage 0. No push,
   reset, rebase, framework edit, protected evidence edit, or acceptance act
   occurs.
-  **Phase:** implement. **Claim Source:** executed. **Uncertainty Declaration:** This grouped gate remains unchecked because TP-BUG022-C03 and TP-BUG022-C04 have non-zero exits recorded in `report.md`; all containment subchecks passed with `leakage=0`.
+  **Phase:** test. **Claim Source:** executed. **Uncertainty Declaration:** This grouped gate remains unchecked because TP-BUG022-C04 has a non-zero exit in `report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest---non-zero`. TP-BUG022-C03 now exits 0, and the earlier containment subchecks passed with `leakage=0`.

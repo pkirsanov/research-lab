@@ -517,3 +517,170 @@ UNCHANGED package.json
 UNCHANGED package-lock.json
 leakage=0
 ```
+
+## Fresh Test-Phase Execution At Current Revision
+
+The commands in this section ran from a tracked-clean detached checkout at
+`ff7a587643c8148e407df43075846a7e0f98b269`. They supersede the stale execution
+outcomes above without rewriting those historical records.
+
+### Fresh TP-BUG022-C03 Feature 008 Playwright Regression
+
+**Phase:** test
+**Executed:** YES (current session)
+**Command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+```text
+# BUG-022 TP-BUG022-C03 Feature 008 Playwright at ff7a5876
+$ /usr/bin/perl -e alarm shift @ARGV; exec @ARGV 1440 npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+lines: 303
+sha256: bd94cc46dcd01ac32f7f23104f94eb8b133c4b8d820cb7267f137989814f9248
+--- first 20 ---
+
+Running 94 tests using 2 workers
+
+  ✓   2 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:109:1 › Regression: SCN-008-026 all six allocation methods share one frozen basis (1.2s)
+  ✓   1 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:89:1 › Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete (1.5s)
+  ✓   3 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:137:1 › Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner (512ms)
+  ✓   5 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:158:1 › Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation (530ms)
+  ✓   6 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:189:1 › Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states (573ms)
+  ✓   7 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:235:1 › Regression: Feature 008 Allocation refuses rather than showing candidate weights without evidence (490ms)
+  ✓   4 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:316:1 › Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision (2.1s)
+  ✓   8 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:253:1 › Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions (553ms)
+  ✓  10 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:293:1 › Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence (747ms)
+  ✓   9 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:501:1 › Adversarial: SCN-008-053 reduced accessibility implementations fail closed (1.3s)
+  ✓  11 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:339:1 › Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium view posterior and uncertainty separate (736ms)
+[TP-05-02] windows=pre-market,morning,pre-close,after-hours times=07:30,11:00,15:00,17:00 preserved=3 excludedAfterCutoff=1
+  ✓  12 [system-chrome] › tests/portfolio-survival-brief.spec.mjs:89:1 › Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time (497ms)
+[TP-05-03] held=MSFT watchlistOnly=QQQ completedResearch=0 inferred=0 duplicated=0
+  ✓  14 [system-chrome] › tests/portfolio-survival-brief.spec.mjs:175:1 › Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history (462ms)
+  ✓  13 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:375:1 › Regression: Feature 008 allocation sensitivity ranges and Black Litterman editor preserve mobile table parity (671ms)
+[TP-05-04] behaviorHistory=insufficient-history inferred=0 heldRetained=true explained=true
+--- omitted 263 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓  77 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:143:1 › Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff (569ms)
+  ✓  79 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:180:1 › Regression: Feature 008 return and drawdown canvas tables remain equivalent at desktop mobile and zoom (643ms)
+  ✓  80 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:253:1 › Regression: SCN-008-015 concentration lenses expose overlap and missing look through (551ms)
+  ✓  78 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:265:1 › Regression: SCN-008-020 dated cash need records before and after collision capital (1.5s)
+  ✓  81 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:286:1 › Regression: SCN-008-016 beta alpha R squared and residual risk stay separate (556ms)
+  ✓  83 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:325:1 › Regression: SCN-008-016 benchmark fit is unavailable rather than regressed against a guess (535ms)
+  ✓  82 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:306:1 › Regression: SCN-008-021 missing survival definition renders distributions without probability (1.5s)
+  ✓  84 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:344:1 › Regression: SCN-008-017 marginal and total risk contributions reconcile (552ms)
+  ✓  86 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:372:1 › Regression: SCN-008-016 declared proxy factors report exposures and name themselves proxies (556ms)
+  ✓  87 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:409:1 › Regression: SCN-008-017 return contribution stays distinct from risk contribution (540ms)
+  ✓  88 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:438:1 › Regression: SCN-008-015 manual assets and absent look through stay visible not omitted (522ms)
+  ✓  85 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:342:1 › Regression: Feature 008 cash need timeline and path table preserve order and mobile canvas parity (2.2s)
+  ✓  89 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:465:1 › Regression: Feature 008 concentration CAPM and contribution diagnostics preserve mobile canvas table parity (614ms)
+  ✓  91 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:527:1 › Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth (600ms)
+  ✓  90 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:405:1 › Regression: Feature 008 an incomplete cash need is refused rather than partly assumed (1.1s)
+  ✓  92 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:565:1 › Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio (513ms)
+  ✓  93 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:422:1 › Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path (2.5s)
+  ✓  94 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:463:1 › Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view (1.6s)
+
+  94 passed (1.1m)
+```
+
+### Fresh TP-BUG022-C04 Clean-Tree Repository Selftest - Non-Zero
+
+**Phase:** test
+**Executed:** YES (current session)
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+**Result:** FAIL
+
+The command ran immediately after `git status --short --branch` printed only
+`## HEAD (no branch)` and `git rev-parse HEAD` printed
+`ff7a587643c8148e407df43075846a7e0f98b269`.
+
+```text
+# BUG-022 TP-BUG022-C04 repository selftest clean ff7a5876
+$ /usr/bin/perl -e alarm shift @ARGV; exec @ARGV 2340 node scripts/selftest.mjs
+exit: 1
+lines: 3961
+sha256: 1eacd752e264cee527d5068ddd06ec820dd444ba40a0f96e4041fbb41445fcb9
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- failure-shaped lines from the omitted region ---
+  ✗ FAIL: no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (1 new, 14 frozen, 0 stale of 86 claim(s))
+--- omitted 3921 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓ a group missing `acceptanceBasis` on one member, and a group whose members each assert a DIFFERENT act, both FAIL — a partially-written declaration is the shape a bulk stamp would take if the exemption were the thing being gamed
+  ✓ a third packet joining an already-declared act FAILS the whole group, because the two original members cover 2 of 3 — an exemption that grew silently would admit exactly the act being guarded (`coveredPackets` on specs/915-act-a covers 2 of the 3 packet(s) sharing this instant)
+  ✓ the thirteen-record stamp — ten sharing ONE instant with three bare fields — still FAILS after the refinement, all ten reported, cleared by nothing: the exemption needs ten mutually-consistent covered sets and ten distinct bases, so it converts a silent side effect into a deliberate ten-part fabrication rather than opening a door (10 of 10 reported, group size 10)
+  ✓ the scan read the real registry licence and parsed real acceptance records, so a green verdict is a comparison rather than a parser that stopped matching (25 record(s) in 63 file(s), 8 eligible, 3 collision group(s), baseline 4)
+    DECLARED-ACT operator@1787696524 — declares one acceptance act `operator-session-2026-08-25-bug016-bug017` covering 2 packet(s), each with its own basis (specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main, specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos)
+  ✓ no Human Acceptance Record outside the frozen baseline claims a live-session acceptance at an instant another packet also claims — a bulk stamp satisfies the terminal gate while asserting something that cannot have happened (0 new, 4 frozen, 0 stale of 4 colliding record(s))
+  ✓ the real BUG-016/BUG-017 pair is cleared as ONE declared acceptance act rather than by a new baseline entry, and the frozen list still holds exactly the 4 pre-existing records — a baseline that grew to admit a legitimate record would stop meaning "debt awaiting correction" (1 declared act(s), baseline 4)
+
+security findings — a declared bound that nothing validates is not a bound
+  ✓ TB-SEC-02-01: a pack declaring an earliest claim age of zero or a negative is refused as RLTAX-PACK-INVALID naming that member, rather than admitted as a floor that lets every claim age through
+  ✓ TB-SEC-02-02: no claim-age adjustment settles a negative benefit under any pack-declared floor, and the floor that is positive but too low to price refuses on the arithmetic naming the adjusted monthly benefit — a negative amount is finite, so the unrepresentable-figure guards cannot catch it (120 settled result(s) swept, 0 negative)
+  ✓ TB-SEC-02-03: the shipped pack is untouched by both refusals — age 62 still settles at 1400, age 60 still refuses RLTAX-THRESHOLD-UNAVAILABLE under BUG-019’s own domain, and the full-retirement and delayed-credit ages still settle
+  ✓ TB-SEC-01-01: the pack read holds its bound across the response BODY — the handler that receives the response head does not clear the timer, and the two disarm sites sit past the parsed body, so an origin that answers 200 and then stalls the stream is aborted rather than awaited without end
+  ✓ TB-SEC-01-02: a declared read bound beyond the largest delay a timer can represent is refused by name rather than armed, the boundary value itself is still admitted, and the shipped configuration still validates — one past the ceiling the delay wraps and the bound fires at once instead of waiting longer
+  ✓ TB-SEC-03-01: the probe anchors its repository from the checkout it is RUN IN before any target is examined, and no path seeds that anchor from a target, so the cross-repository guard reads "this repository" rather than "the same one the first --file happened to be in"
+  ✓ TB-SEC-03-02: a --file in another Git checkout is refused at registration with the dirty-target exit rather than accepted as a new anchor, and the foreign file is byte-identical afterwards because the refusal lands before any target is hashed or mutated (exit 4)
+
+================================================
+Research-Lab self-test: 3464 passed, 1 failed
+================================================
+```
+
+The dedicated scope-progress validator isolated the single failure:
+
+```text
+# BUG-022 scope-progress diagnosis at ff7a5876
+$ /usr/bin/perl -e alarm shift @ARGV; exec @ARGV 120 node scripts/validate-scope-dod-progress.mjs --all
+exit: 1
+lines: 3
+sha256: 0ac66e0d11d25030e201821c4333328cf5bdab2ec874b4c8248aee3d158c3234
+--- output ---
+[scope-dod-progress] packets=63 claims=86 agree=71 drift=15 unresolved=0 baseline=14 new=1 stale=0
+  NEW-DRIFT specs/_bugs/BUG-022-historical-report-declaration-leak#01::certification (01-separate-active-declarations-from-historical-receipts) — claims 12/3 checked/unchecked, artifact has 12/4 [specs/_bugs/BUG-022-historical-report-declaration-leak/scopes.md]
+[scope-dod-progress] FAIL — 1 scope progress claim(s) do not match their artifact
+```
+
+### Scope-Progress Validator After C03 Closure - Non-Zero
+
+**Phase:** test
+**Executed:** YES (current session)
+**Command:** `node scripts/validate-scope-dod-progress.mjs --all`
+**Exit Code:** 1
+**Claim Source:** executed
+**Result:** FAIL
+
+```text
+# BUG-022 scope-progress after C03 closure
+$ /usr/bin/perl -e alarm shift @ARGV; exec @ARGV 120 node scripts/validate-scope-dod-progress.mjs --all
+exit: 1
+lines: 3
+sha256: 03e245e713bdd27a6a80fdf89fe5844e89c035d00e274ad17ae72b0b830391ae
+--- output ---
+[scope-dod-progress] packets=63 claims=86 agree=71 drift=15 unresolved=0 baseline=14 new=1 stale=0
+  NEW-DRIFT specs/_bugs/BUG-022-historical-report-declaration-leak#01::certification (01-separate-active-declarations-from-historical-receipts) — claims 12/3 checked/unchecked, artifact has 14/2 [specs/_bugs/BUG-022-historical-report-declaration-leak/scopes.md]
+[scope-dod-progress] FAIL — 1 scope progress claim(s) do not match their artifact
+```

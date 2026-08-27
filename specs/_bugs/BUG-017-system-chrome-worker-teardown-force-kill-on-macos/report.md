@@ -900,4 +900,193 @@ failures before this audit and 38 after the Code Diff Evidence repair above.
 
 The open increments total 38. The packet remains `in_progress`.
 
+## Test Phase — Planned Scenario Canaries And Revision Refresh
+
+**Phase:** test
+**Implementation revision:** `b1d358ce7ea7dcd5ecf27b3d3ef5707537c290b4`
+**Claim Source:** executed
+
+The three tests planned by `fb91c2e99` were appended to
+`tests/playwright-runtime.foundation.functional.mjs`. The five existing test bodies were not
+edited. The focused command over all three new titles passed with zero skipped tests:
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-(?:03|07|08)' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (1.732083ms)
+✔ Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence (1.816166ms)
+✔ Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin (0.151667ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 228.344958
+```
+
+### SCN-BUG017-03 causal-label mutation
+
+**Phase:** test
+**Command:** `scripts/red-green-probe.sh --file specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md --find '| 3 | Profile or lock contention | **Contradicted as profile contention** |' --replace '| 3 | Profile or lock contention | **Cause** |' --label 'SCN-BUG017-03 causal verdict is rejected' --bound 120 --summary-match 'Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence|SCN-BUG017-03: candidate 3 uses a forbidden causal verdict' -- node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SCN-BUG017-03 causal verdict is rejected
+file:             specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md
+mutation:         | 3 | Profile or lock contention | **Contradicted as profile contention** |  ->  | 3 | Profile or lock contention | **Cause** |   (1 occurrence(s))
+command:          node --test --test-name-pattern=\^Regression:\ SCN-BUG017-03\ candidate\ classifications\ require\ distinguishing\ evidence\$ tests/playwright-runtime.foundation.functional.mjs
+red-exit:         1
+red-summary:        AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 3 uses a forbidden causal verdict
+green-exit:       0
+green-summary:    ✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (0.765625ms)
+summary-compared:   AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 3 uses a forbidden causal verdict  vs  ✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=bf60889e35a5e836673baed6ebb624d711ae66d4 restored=bf60889e35a5e836673baed6ebb624d711ae66d4)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### SCN-BUG017-03 single-build-rationale mutation
+
+**Phase:** test
+**Command:** `scripts/red-green-probe.sh --file specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md --find 'only one Chrome build was available, so nothing is discriminated.' --replace 'the candidate was reviewed.' --label 'SCN-BUG017-03 untested candidate requires a discriminating rationale' --bound 120 --summary-match 'Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence|SCN-BUG017-03: candidate 4 lacks the single-build untested rationale' -- node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SCN-BUG017-03 untested candidate requires a discriminating rationale
+file:             specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md
+mutation:         only one Chrome build was available, so nothing is discriminated.  ->  the candidate was reviewed.   (1 occurrence(s))
+command:          node --test --test-name-pattern=\^Regression:\ SCN-BUG017-03\ candidate\ classifications\ require\ distinguishing\ evidence\$ tests/playwright-runtime.foundation.functional.mjs
+red-exit:         1
+red-summary:        AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 4 lacks the single-build untested rationale
+green-exit:       0
+green-summary:    ✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (0.708042ms)
+summary-compared:   AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 4 lacks the single-build untested rationale  vs  ✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=bf60889e35a5e836673baed6ebb624d711ae66d4 restored=bf60889e35a5e836673baed6ebb624d711ae66d4)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### SCN-BUG017-07 platform mutation
+
+**Phase:** test
+**Command:** `scripts/red-green-probe.sh --file playwright.config.mjs --find 'and on macOS a `system-chrome` run' --replace 'and a `system-chrome` run' --label 'SCN-BUG017-07 config disclosure requires the platform' --bound 120 --summary-match 'Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence|SCN-BUG017-07: playwright.config.mjs disclosure is missing platform macOS' -- node --test --test-name-pattern='^Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SCN-BUG017-07 config disclosure requires the platform
+file:             playwright.config.mjs
+mutation:         and on macOS a `system-chrome` run  ->  and a `system-chrome` run   (1 occurrence(s))
+command:          node --test --test-name-pattern=\^Regression:\ SCN-BUG017-07\ disclosure\ names\ its\ platform\ project\ symptom\ and\ intermittence\$ tests/playwright-runtime.foundation.functional.mjs
+red-exit:         1
+red-summary:        AssertionError [ERR_ASSERTION]: SCN-BUG017-07: playwright.config.mjs disclosure is missing platform macOS
+green-exit:       0
+green-summary:    ✔ Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence (0.657917ms)
+summary-compared:   AssertionError [ERR_ASSERTION]: SCN-BUG017-07: playwright.config.mjs disclosure is missing platform macOS  vs  ✔ Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b restored=d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### SCN-BUG017-08 worker-pin mutation
+
+**Phase:** test
+**Command:** `scripts/red-green-probe.sh --file playwright.config.mjs --find '  workers: 2,' --replace '  workers: 6,' --label 'SCN-BUG017-08 disclosure cannot replace the two-worker pin' --bound 120 --summary-match 'Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin|SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2' -- node --test --test-name-pattern='^Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SCN-BUG017-08 disclosure cannot replace the two-worker pin
+file:             playwright.config.mjs
+mutation:           workers: 2,  ->    workers: 6,   (1 occurrence(s))
+command:          node --test --test-name-pattern=\^Regression:\ SCN-BUG017-08\ disclosure\ cannot\ replace\ the\ system-chrome\ worker\ pin\$ tests/playwright-runtime.foundation.functional.mjs
+red-exit:         1
+red-summary:        AssertionError [ERR_ASSERTION]: SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2
+green-exit:       0
+green-summary:    ✔ Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin (0.643667ms)
+summary-compared:   AssertionError [ERR_ASSERTION]: SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2  vs  ✔ Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b restored=d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+### Full linked functional file
+
+**Phase:** test
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+The complete file was run from the clean temporary worktree with checkout-local dependencies.
+Seven tests passed, including all three tests added here. The unchanged discovery-boundary test
+failed on eight committed `portfolio-survival-*.spec.mjs` files selected by both Playwright and a
+declared direct-Node glob. The same test failed with the same eight-file set at the untouched
+planning revision `fb91c2e99`, before these tests existed.
+
+```text
+# implementation revision b1d358ce7
+exit: 1
+lines: 65
+sha256: d3a799640509c97f74bde44eb9eaadc95dcd59a914386cd8682560b2542b64d0
+✔ shared runtime exports the exact checkout-local Playwright 1.61.1 API
+✔ shared runtime rejects sibling global-prefix and npm-cache Playwright packages
+✔ shared runtime contains no browser executable or package fallback authority
+✔ every Playwright spec uses the shared seam and sole committed browser config
+✖ committed discovery boundary keeps browser specs and direct Node suites disjoint
+✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence
+✔ Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence
+✔ Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin
+AssertionError [ERR_ASSERTION]: file selected by both the browser matcher and a declared node --test glob
+actual: tests/portfolio-survival-accessibility.spec.mjs, tests/portfolio-survival-allocation.spec.mjs, tests/portfolio-survival-brief.spec.mjs, tests/portfolio-survival-diversification.spec.mjs, tests/portfolio-survival-foundation.spec.mjs, tests/portfolio-survival-mobile.spec.mjs, tests/portfolio-survival-paths.spec.mjs, tests/portfolio-survival-risk.spec.mjs
+
+# untouched planning revision fb91c2e99
+exit: 1
+lines: 62
+sha256: 6fc6427ba47a7466b91265a0ef080ced62106a702f2cffbe4d8ad297c279ae71
+✔ shared runtime exports the exact checkout-local Playwright 1.61.1 API
+✔ shared runtime rejects sibling global-prefix and npm-cache Playwright packages
+✔ shared runtime contains no browser executable or package fallback authority
+✔ every Playwright spec uses the shared seam and sole committed browser config
+✖ committed discovery boundary keeps browser specs and direct Node suites disjoint
+AssertionError [ERR_ASSERTION]: file selected by both the browser matcher and a declared node --test glob
+actual: tests/portfolio-survival-accessibility.spec.mjs, tests/portfolio-survival-allocation.spec.mjs, tests/portfolio-survival-brief.spec.mjs, tests/portfolio-survival-diversification.spec.mjs, tests/portfolio-survival-foundation.spec.mjs, tests/portfolio-survival-mobile.spec.mjs, tests/portfolio-survival-paths.spec.mjs, tests/portfolio-survival-risk.spec.mjs
+```
+
+The unchanged failure is not repaired here because its producers and direct-Node declarations
+belong to the portfolio-survival feature. Growing `KNOWN_DISCOVERY_CROSSINGS` would weaken the
+existing shrink-only ratchet rather than repair those declarations.
+
+### Complete 22-file lifetime-tax system-Chrome workload
+
+**Phase:** test
+**Command:** `npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-017 22 lifetime-tax specs system-chrome at b1d358ce7
+exit: 0
+lines: 116
+sha256: dfcb137ac0b0d8e3d65cdd5337756e35bdbc133f8393e8ec309eb977934766fd
+Running 111 tests using 2 workers
+✓ [system-chrome] Regression: SCN-024-001 neither origin and both origins each refuse and neither shows a benefit amount
+✓ [system-chrome] Regression: SCN-022-013 the combined total is the sum of two independent settlements
+✓ [system-chrome] Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds
+✓ [system-chrome] Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement
+✓ [system-chrome] Regression: SCN-021-01 the settlement header does not remain Loading once the declared bound has elapsed
+✓ [system-chrome] Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted
+✓ [system-chrome] Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on
+111 passed (1.3m)
+```
+
 

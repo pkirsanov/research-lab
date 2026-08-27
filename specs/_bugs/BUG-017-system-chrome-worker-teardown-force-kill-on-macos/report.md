@@ -2585,4 +2585,216 @@ END TRANSITION_GUARD_RESULT_V1
 Neither completion guard is recorded as passing. Packet status, certification, certified phases,
 and acceptance remain unchanged.
 
+## Scope 4 Independent Test Verification At Planning Commit 5615b8918 {#scope-4-independent-test-verification-at-planning-commit-5615b8918}
+
+**Phase:** test
+**Claim Source:** executed
+**Execution date:** 2026-08-27
+
+### Canonical Scenario-State Derivation
+
+The canonical resolver was inspected before use. It defines the closed derived-state vocabulary
+as `PLANNED`, `RED_VERIFIED`, `IMPLEMENTED`, `GREEN_TARGETED`, `GREEN_LIVE`,
+`REGRESSION_GREEN`, `OBSERVED`, and validate-owned `CERTIFIED`. It does not define a rejected,
+retired, or superseded scenario state. No such state was written into the scenario manifest.
+
+**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos --source-revision aa6383b7e23c163a038f4ef85e08616152c74c2f --format text`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `63d57adf6dacd4e3eb0e7d1296c3e0412cf4602f261035437a537dee9a0d2287`
+
+```text
+# BUG-017 Scope 4 canonical scenario state resolve at fallback revision
+$ /usr/bin/perl -e alarm shift @ARGV; exec @ARGV 120 bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos --source-revision aa6383b7e23c163a038f4ef85e08616152c74c2f --format text
+exit: 0
+lines: 339
+sha256: 63d57adf6dacd4e3eb0e7d1296c3e0412cf4602f261035437a537dee9a0d2287
+--- first 20 ---
+scenario-state-resolve: specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos
+  source revision: aa6383b7e23c
+  SCN-BUG017-09  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-10  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-11  state=PLANNED  derived=[PLANNED]
+--- omitted 299 line(s); sha256 above covers the full output ---
+  (all 325 refusals are SCS-REVISION-DRIFT: superseded receipts, excluded from derivation, not blocking)
+```
+
+The resolver therefore provides no derived execution state that can be used to relabel the two
+rejected candidate scenarios or certify the selected fallback. Their planning lifecycle remains
+an owner-routed correction. The historical green and RED captures remain unchanged.
+
+### Focused Selected-Fallback Functional Check
+
+The detached worktree did not contain the git-ignored dependency tree, so its first invocation
+stopped before behavior with `ERR_MODULE_NOT_FOUND`. The exact command was then run from the
+dependency-provisioned primary checkout after `git status --short` returned no changes for every
+BUG-017 runtime, config, and portfolio-test path. That checkout was at planning commit
+`5615b8918c583fe7535b3f82a174184b491e2694`.
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `34bc8fec7fbc79729aab02cd9755f294ea2e0a8af1752e8833cd0338469d77f6`
+
+```text
+# BUG-017 Scope 4 current SCN-11 focused fallback functional dependency-provisioned checkout
+exit: 0
+lines: 15
+sha256: 34bc8fec7fbc79729aab02cd9755f294ea2e0a8af1752e8833cd0338469d77f6
+[SCN-BUG017-11] workers=1
+[SCN-BUG017-11] project=system-chrome
+[SCN-BUG017-11] channel=chrome
+[SCN-BUG017-11] defaultWorkerStopBudgetMs=300000
+[SCN-BUG017-11] forceKillDisclosure=present
+[SCN-BUG017-11] lifecycleCandidateRolledBack=true
+tests 1
+pass 1
+fail 0
+skipped 0
+todo 0
+```
+
+### Git Receipt And Rollback Verification
+
+Git resolves both revert objects and their reverted commits. The lifecycle-test revert is a
+child of evidence commit `00041db0f`, and the implementation revert is its immediate child.
+The three candidate-owned runtime files match the pre-candidate baseline blobs at the planning
+commit. The only paths changed between fallback commit `aa6383b7e` and planning commit
+`5615b8918` are this report and `scopes.md`, so no fallback runtime or config byte changed.
+
+**Command:** bounded `git rev-parse`, `git show -s`, `git ls-tree`, `git diff --quiet`,
+`git diff --name-only`, and `git grep` checks over the named commits and packet report
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+ROLLBACK_GIT_VERIFICATION_BEGIN
+047292eb2d2d7444dff1e45b52738950609cad4b
+af119275ad624893d5c55ac07d046d646c0928a4
+COMMIT=047292eb2d2d7444dff1e45b52738950609cad4b PARENTS=00041db0fce7b8f87bebe459859a410ec17d5210 SUBJECT=Revert "test(BUG-017): lock lifecycle containment"
+COMMIT=af119275ad624893d5c55ac07d046d646c0928a4 PARENTS=047292eb2d2d7444dff1e45b52738950609cad4b SUBJECT=Revert "fix(BUG-017): close Foundation browser before teardown"
+BASELINE_OBJECTS
+100644 blob b50262e48116f614380a000d0f226617e24e2c82 tests/playwright-runtime.mjs
+100644 blob bc66800eb67d51f2bfdd3beae19bbe0bee697d2e tests/portfolio-survival-foundation.spec.mjs
+100644 blob ab2b3eac1ee84b711f9966b1a01eaf900c744972 tests/portfolio-survival-paths.spec.mjs
+CURRENT_OBJECTS
+100644 blob b50262e48116f614380a000d0f226617e24e2c82 tests/playwright-runtime.mjs
+100644 blob bc66800eb67d51f2bfdd3beae19bbe0bee697d2e tests/portfolio-survival-foundation.spec.mjs
+100644 blob ab2b3eac1ee84b711f9966b1a01eaf900c744972 tests/portfolio-survival-paths.spec.mjs
+FOUNDATION_SHARED_PATHS_BASELINE_EXIT=0
+POST_FALLBACK_CHANGED_PATHS
+specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md
+specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/scopes.md
+RUN_RECEIPT id=BUG017-FALLBACK-R1 playwrightExit=0 wallSeconds=99 resolvedOne=1 passed94=1 forceKill=0 ignoredLifecycle=0 ownedResidue=0 remoteDebugDelta=0
+RUN_RECEIPT id=BUG022-C03-R2 playwrightExit=0 wallSeconds=86 resolvedOne=1 passed94=1 forceKill=0 ignoredLifecycle=0 ownedResidue=0 remoteDebugDelta=0
+ROLLBACK_GIT_VERIFICATION_END
+```
+
+The two current candidate failures remain preserved in the report: the complete focused
+runtime-foundation run failed on the SCN-BUG017-09 strict worker-stop assertion, and the immediate
+exact named canary reported a 15000ms worker force-kill. Neither result is converted into a pass.
+Because the two committed 94-test receipts cover unchanged runtime and config bytes, this pass
+did not spend another complete 94-test run.
+
+### Plan-Owned Closure Rows
+
+The evidence supports checking the selected-fallback row. It does not support checking the
+candidate-pass statement as written. `scopes.md` planning text is owned by `bubbles.plan`, so this
+test pass records the exact additive correction instead of changing that foreign-owned text:
+
+```markdown
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior persist for the selected fallback: TP-BUG017-04-04 maps SCN-BUG017-11 to the exact config-default 94-test system-Chrome command and asserts one resolved worker, 94/94 passing, exit 0, no force-kill or ignored lifecycle error, and zero owned residue. **Phase:** test. **Claim Source:** executed. -> Evidence: [Scope 4 fallback selection](report.md#scope-4-fallback-selection-and-verification) and [Scope 4 independent test verification](report.md#scope-4-independent-test-verification-at-planning-commit-5615b8918).
+- [x] TP-BUG017-04-01 is rejected as the active closure route rather than recorded as passing: its historical GREEN and adversarial RED remain preserved, two current acceptance canaries failed at unchanged candidate bytes, commits `047292eb2` and `af119275a` hash-restore the candidate files, and those failures make the verified TP-BUG017-04-04 one-worker fallback eligible. **Phase:** test. **Claim Source:** executed. -> Evidence: [Persistent strict canary GREEN](report.md#persistent-strict-canary-green), [Scope 4 finalization validation](report.md#scope-4-finalization-validation-candidate-rejected), [Scope 4 fallback selection](report.md#scope-4-fallback-selection-and-verification), and [Scope 4 independent test verification](report.md#scope-4-independent-test-verification-at-planning-commit-5615b8918).
+```
+
+The scenario manifest schema exposes no rejected or superseded scenario lifecycle state. The
+resolver derives SCN-BUG017-09, SCN-BUG017-10, and SCN-BUG017-11 as `PLANNED` from the available
+structured receipts. Planning must therefore retire the candidate paths and select the fallback
+without adding a hand-authored scenario state. Scope 4 remains `In Progress` in this test-owned
+change, and no state or certification mirror is changed.
+
+### Current Validator Results
+
+Each command ran against the detached tree at `5615b8918` after the report and evidence-link
+edits. The pass-style checks are green. The canonical linked-test resolver is a real blocking
+failure and is not included in the green set.
+
+| Check | Exit | Observed result | Capture SHA-256 |
+| --- | ---: | --- | --- |
+| `node scripts/selftest.mjs` | 0 | 3465 passed, 0 failed | `1c212c68f2c059ff0c0b2cbe01bbf8fcf66bd04106f4bf7e44e1c8b0cce6f44b` |
+| `bash .github/bubbles/scripts/traceability-guard.sh <packet>` | 0 | 11 scenarios mapped; 27 test rows; 0 warnings | `7685f146adb960e3c4cfc129e5098334d640ba4148b8788beb753d37a631cc63` |
+| `node scripts/validate-scope-dod-progress.mjs --all` | 0 | no new DoD progress drift | `b5a9ca8bc45dec0c5056a5a3a21883be1163a6a543e818f032093730455961a7` |
+| `node scripts/validate-acceptance-bulk-stamp.mjs` | 0 | no new bulk-stamped acceptance record | `4cc6dabaa6ef05110ef65d568e833c847c0bed35c092423761522d3c410fbabe` |
+| `node scripts/pii-scan.mjs` | 0 | 10016 files; 0 findings | `38784ac9194018e7f6d5f8ab8a0c6903d6ade356642e4627effc4fb6c50d6662` |
+| `bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix <two carriers>` | 0 | 0 violations; 0 warnings; 2 adversarial carriers | `cdf8ff9d2e3e0b288b438342b5506a5759a6aab3684867be4bdacc53b9be1aa3` |
+| `bash .github/bubbles/scripts/scenario-test-resolve.sh <packet> --repo-root <worktree>` | 1 | 17 unresolved linked-test titles | `d984be634384de528228495de62d58c93fc952d7fad07e98fb3289fad2ffc76c` |
+
+```text
+SELFTEST_EXIT=0
+Research-Lab self-test: 3465 passed, 0 failed
+TRACEABILITY_EXIT=0
+RESULT: PASSED (0 warnings)
+SCOPE_PROGRESS_EXIT=0
+[scope-dod-progress] OK - no new DoD progress drift
+ACCEPTANCE_GUARD_EXIT=0
+[acceptance-bulk-stamp] OK - no new bulk-stamped acceptance record
+PII_SCAN_EXIT=0
+[pii-scan] files=10016 messages=2311 findings=0 OK
+REGRESSION_QUALITY_EXIT=0
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+SCENARIO_TEST_RESOLVE_EXIT=1
+scenario-test-resolve: 17 unresolved reference(s) of 35 checked.
+```
+
+### Linked-Test Resolution Blocker
+
+SCN-BUG017-09 references its removed candidate title. SCN-BUG017-10 and SCN-BUG017-11 each
+reference eight synthetic `TP-BUG017-04-0x complete BUG-022 C03 portfolio set` titles that do
+not exist in the named files. The resolver therefore exits 1 under Gate G057.
+
+The manifest schema supports `lockdown.state: replaced` plus `replacedBy`; it does not support a
+rejected, retired, or superseded derived scenario state. The test resolver does not exempt a
+replaced scenario from reference checks. Planning must use `replaced` for SCN-BUG017-09 and
+SCN-BUG017-10, set `replacedBy` to `SCN-BUG017-11`, and replace missing title references with
+canonical resolvable string references. The existing report anchors preserve the candidate's
+historical GREEN, RED, rejection, and rollback evidence.
+
+One existing accessibility adversarial carrier uses `page.route(...).fulfill(...)` to inject a
+mutated document. It is a UI-unit mechanism rather than live-route proof. The regression-quality
+guard still finds two valid adversarial carriers, and the other portfolio files continue to run
+through the real browser boundary. This observation does not convert the unresolved linked-test
+references into a pass.
+
+### Current Transition Guard - Routed Closeout
+
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `1e6474c301227289cc909e812d26c5644dc03cf229a7fa3f327e89c51bfed59b`
+
+```text
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G136]
+failedChecks: [Check-4-scenario-states,Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+parentExpandedPhases: 0
+failureCount: 3
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+This refusal is the controlling completion result. Scope 4 stays `In Progress`; the two plan-owned
+rows stay unchecked; state counts, execution claims, certification, acceptance, and top-level
+status stay unchanged. The next required owner remains `bubbles.plan` for the additive row and
+scenario/test-plan reconciliation, followed by `bubbles.validate` only after the planning repair
+and fresh test verification pass.
+
 

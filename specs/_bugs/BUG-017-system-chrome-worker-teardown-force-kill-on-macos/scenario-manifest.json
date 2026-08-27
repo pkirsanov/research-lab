@@ -140,7 +140,8 @@
       "evidenceRefs": [
         "report.md#scope-4-implementation-foundation-owned-browser-lifecycle",
         "report.md#scope-4-finalization-validation-candidate-rejected",
-        "report.md#scope-4-fallback-selection-and-verification"
+        "report.md#scope-4-fallback-selection-and-verification",
+        "report.md#scope-4-independent-test-verification-at-planning-commit-5615b8918"
       ],
       "linkedTests": [
         {"file": "tests/playwright-runtime.foundation.functional.mjs", "testId": "Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds", "testState": "retired-after-rollback"}
@@ -160,7 +161,7 @@
       "title": "The lifecycle candidate clears the blocked complete workload",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 4",
-      "evidenceRefs": ["report.md#scope-4-implementation-foundation-owned-browser-lifecycle", "report.md#scope-4-finalization-validation-candidate-rejected", "report.md#scope-4-fallback-selection-and-verification"],
+      "evidenceRefs": ["report.md#scope-4-implementation-foundation-owned-browser-lifecycle", "report.md#scope-4-finalization-validation-candidate-rejected", "report.md#scope-4-fallback-selection-and-verification", "report.md#scope-4-independent-test-verification-at-planning-commit-5615b8918"],
       "linkedTests": [
         {"file": "tests/portfolio-survival-foundation.spec.mjs", "testId": "TP-BUG017-04-03 complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "TP-BUG017-04-03 complete BUG-022 C03 portfolio set", "testState": "authored"},
@@ -186,7 +187,7 @@
       "title": "One worker is used only after the lifecycle candidate fails",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 4",
-      "evidenceRefs": ["report.md#scope-4-fallback-selection-and-verification"],
+      "evidenceRefs": ["report.md#scope-4-fallback-selection-and-verification", "report.md#scope-4-independent-test-verification-at-planning-commit-5615b8918"],
       "linkedTests": [
         {"file": "tests/portfolio-survival-foundation.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},
         {"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "TP-BUG017-04-04 conditional complete BUG-022 C03 portfolio set", "testState": "authored"},

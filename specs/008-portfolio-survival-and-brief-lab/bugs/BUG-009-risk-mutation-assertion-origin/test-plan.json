@@ -1,0 +1,215 @@
+{
+  "version": 1,
+  "specId": "008-BUG-009",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+  "generatedBy": "bubbles.bug",
+  "generatedAt": "2026-08-27",
+  "planningStatus": "route-required-plan-owner",
+  "tddMode": "scenario-first",
+  "evidenceBoundary": "Diagnosis-only test-plan draft. Only TP-B009-000 and the current broken-origin diagnostic have executed. No focused carrier implementation, repaired mutation RED, post-repair GREEN, browser result, human acceptance, or certification is claimed.",
+  "prerequisites": [
+    {
+      "id": "82d1db5e5",
+      "owner": "BUG-007",
+      "requirement": "The injector causality predicate and intended-hook coordination remain unchanged."
+    },
+    {
+      "id": "7c0c5d64e",
+      "owner": "BUG-008",
+      "requirement": "The seven repaired carrier mappings remain unchanged and causally green."
+    },
+    {
+      "id": "db7b4f2",
+      "owner": "bubbles",
+      "requirement": "Use the canonical Bubbles implementation-reality scanner from a checkout containing this fixed scanner commit."
+    }
+  ],
+  "commandCatalog": {
+    "CMD-B009-PREFIX-RED": "timeout 240 bash .github/bubbles/scripts/evidence-capture.sh --label \"BUG-008-strict-registry-after-seven\" -- node --test --test-name-pattern='^Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing$' tests/portfolio-test-integrity.unit.mjs",
+    "CMD-B009-FOCUSED-GREEN": "timeout 240 node --test --test-name-pattern='^BUG-009 risk mapping: unsupported holding is named without aborting asset treatment$' tests/portfolio-risk.functional.mjs",
+    "CMD-B009-MUTATION-RED": "timeout 240 env NODE_OPTIONS=\"--require $PWD/tests/portfolio-defect-injector.cjs\" RL_DEFECT_MODULE=rlportfolioanalytics.js RL_DEFECT_FIND_B64=ICAgICAgZWxzZSBleGNsdWRlZC5wdXNoKHsgc3ltYm9sOiBoLnN5bWJvbCwgYXNzZXRUeXBlOiBoLmFzc2V0VHlwZSB8fCAidW5rbm93biIgfSk7 RL_DEFECT_REPLACE_B64=ICAgICAgZWxzZSByZXR1cm4geyBzdGF0ZTogInVuc3VwcG9ydGVkLWhvbGRpbmciLCBzeW1ib2w6IGguc3ltYm9sIH07 RL_DEFECT_MARKER=/dev/null node --test --test-reporter=tap --test-name-pattern='^BUG-009 risk mapping: unsupported holding is named without aborting asset treatment$' tests/portfolio-risk.functional.mjs",
+    "CMD-B009-FULL-REGISTRY": "timeout 240 node --test tests/portfolio-test-integrity.unit.mjs",
+    "CMD-B009-FULL-RISK": "timeout 240 node --test tests/portfolio-risk.functional.mjs",
+    "CMD-B009-BROADER-NODE": "timeout 600 node --test tests/portfolio-analytics.unit.mjs tests/portfolio-risk.functional.mjs",
+    "CMD-B009-RISK-E2E": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+    "CMD-B009-FEATURE-E2E": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+    "CMD-B009-SELFTEST": "timeout 1800 node scripts/selftest.mjs",
+    "CMD-B009-REGRESSION-QUALITY": "timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-test-integrity.unit.mjs tests/portfolio-risk.functional.mjs",
+    "CMD-B009-G028": "timeout 30 git -C $HOME/bubbles merge-base --is-ancestor db7b4f2 HEAD && timeout 600 bash $HOME/bubbles/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --verbose",
+    "CMD-B009-PACKET": "timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin && timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin"
+  },
+  "scopes": [
+    {
+      "scopeId": "01-restore-risk-mutation-assertion-origin",
+      "scopeName": "Restore Risk Mutation Assertion Origin",
+      "foundation": false,
+      "dependsOn": [],
+      "tests": [
+        {
+          "id": "TP-B009-000",
+          "type": "Pre-fix strict-registry RED",
+          "category": "unit",
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "scenarioId": "SCN-B009-001",
+          "testTitle": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "description": "Before repair, require the strict registry to apply all 18 mutations and fail only for F008-RISK-INPUT-001 assertion origin.",
+          "commandRef": "CMD-B009-PREFIX-RED",
+          "liveSystem": false,
+          "evidenceRef": "report.md#current-session-strict-registry-red",
+          "status": "executed-red",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B009-001",
+          "type": "Focused shipped carrier",
+          "category": "functional",
+          "file": "tests/portfolio-risk.functional.mjs",
+          "scenarioId": "SCN-B009-001",
+          "testTitle": "BUG-009 risk mapping: unsupported holding is named without aborting asset treatment",
+          "description": "Call exported assetTreatment directly and assert ok state, listed market inclusion, named unsupported exclusion, and exact partial look-through.",
+          "commandRef": "CMD-B009-FOCUSED-GREEN",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b009-001",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B009-002",
+          "type": "Focused mutation negative control",
+          "category": "functional",
+          "file": "tests/portfolio-risk.functional.mjs",
+          "scenarioId": "SCN-B009-001",
+          "testTitle": "BUG-009 risk mapping: unsupported holding is named without aborting asset treatment",
+          "description": "Apply the unchanged F008-RISK-INPUT-001 substitution and require the exact focused title to fail once with ERR_ASSERTION and no TypeError substitute.",
+          "commandRef": "CMD-B009-MUTATION-RED",
+          "mutationFinding": "F008-RISK-INPUT-001",
+          "expectedMutantFailure": "ERR_ASSERTION from the exact state or named-exclusion assertion",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b009-002",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B009-003",
+          "type": "Full strict mutation registry GREEN",
+          "category": "unit",
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "scenarioId": "SCN-B009-001",
+          "description": "Run all three outer tests and require all 18 mappings to retain one shipped pass and one assertion-origin mutant failure.",
+          "commandRef": "CMD-B009-FULL-REGISTRY",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b009-003",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B009-004",
+          "type": "Full risk functional carrier",
+          "category": "functional",
+          "file": "tests/portfolio-risk.functional.mjs",
+          "scenarioId": "SCN-B009-001",
+          "description": "Run the complete risk functional file on shipped source.",
+          "commandRef": "CMD-B009-FULL-RISK",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b009-004",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B009-005",
+          "type": "Relevant broader Node carriers",
+          "category": "functional",
+          "file": "tests/portfolio-analytics.unit.mjs",
+          "files": ["tests/portfolio-analytics.unit.mjs", "tests/portfolio-risk.functional.mjs"],
+          "scenarioId": "SCN-B009-001",
+          "description": "Run the adjacent analytics unit carrier and complete risk functional carrier together.",
+          "commandRef": "CMD-B009-BROADER-NODE",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b009-005",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B009-006",
+          "type": "Scenario-specific Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-risk.spec.mjs",
+          "scenarioId": "SCN-B009-001",
+          "description": "Run the real browser risk carrier with the committed config and system Chrome.",
+          "commandRef": "CMD-B009-RISK-E2E",
+          "liveSystem": true,
+          "evidenceRef": "report.md#tp-b009-006",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B009-007",
+          "type": "Broader Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-foundation.spec.mjs",
+          "files": ["tests/portfolio-survival-foundation.spec.mjs", "tests/portfolio-survival-brief.spec.mjs", "tests/portfolio-survival-risk.spec.mjs", "tests/portfolio-survival-paths.spec.mjs", "tests/portfolio-survival-diversification.spec.mjs", "tests/portfolio-survival-allocation.spec.mjs", "tests/portfolio-survival-mobile.spec.mjs", "tests/portfolio-survival-accessibility.spec.mjs"],
+          "scenarioId": "SCN-B009-001",
+          "description": "Run the full Feature 008 browser matrix to protect cross-surface behavior.",
+          "commandRef": "CMD-B009-FEATURE-E2E",
+          "liveSystem": true,
+          "evidenceRef": "report.md#tp-b009-007",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B009-008",
+          "type": "Canonical repository selftest",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-B009-001",
+          "description": "Run the canonical build-free repository selftest without a budget or baseline change.",
+          "commandRef": "CMD-B009-SELFTEST",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b009-008",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B009-009",
+          "type": "Adversarial regression quality",
+          "category": "functional",
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "files": ["tests/portfolio-test-integrity.unit.mjs", "tests/portfolio-risk.functional.mjs"],
+          "scenarioId": "SCN-B009-001",
+          "description": "Reject bailout, skip, optional assertion, interception, and tautological carrier patterns.",
+          "commandRef": "CMD-B009-REGRESSION-QUALITY",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b009-009",
+          "status": "planned-not-executed",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B009-010",
+          "type": "Fixed canonical G028 scan",
+          "category": "functional",
+          "file": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+          "scenarioId": "SCN-B009-001",
+          "description": "Verify the canonical Bubbles checkout contains scanner fix db7b4f2, then run its implementation-reality scanner against BUG-009.",
+          "commandRef": "CMD-B009-G028",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b009-010",
+          "status": "planned-not-executed",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B009-011",
+          "type": "Packet gates",
+          "category": "functional",
+          "file": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+          "scenarioId": "SCN-B009-001",
+          "description": "Run artifact lint and traceability guard against the isolated packet.",
+          "commandRef": "CMD-B009-PACKET",
+          "liveSystem": false,
+          "evidenceRef": "report.md#tp-b009-011",
+          "status": "executed-green-filing",
+          "redGreenRequired": false
+        }
+      ]
+    }
+  ]
+}

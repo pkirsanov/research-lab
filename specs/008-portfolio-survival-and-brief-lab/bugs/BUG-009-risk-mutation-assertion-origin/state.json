@@ -1,0 +1,119 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+  "featureName": "BUG-009 Risk Mutation Assertion Origin",
+  "createdAt": "2026-08-27",
+  "lastUpdatedAt": "2026-08-27T00:43:31Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "7c0c5d64e",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "bug",
+    "currentPhaseStatus": "route_required",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "completedAt": "2026-08-27T00:43:31Z",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "scopes.md, scenario-manifest.json, test-plan.json",
+    "nextRequiredReason": "Reconcile the one-scope test-only plan for a direct assetTreatment carrier and one F008-RISK-INPUT-001 title remap. Preserve product source, injector, anchor, other mappings, BUG-007, BUG-008, parent Feature 008, and concurrent dirty paths.",
+    "completedPhaseClaims": ["bug"],
+    "pendingTransitionRequests": ["BUG-009-ROUTE-001"],
+    "scopeInventory": [
+      {
+        "scopeId": "01-restore-risk-mutation-assertion-origin",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      }
+    ]
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-restore-risk-mutation-assertion-origin",
+        "status": "Not Started",
+        "certifiedAt": null
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "on", "source": "operator-request" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [
+    {
+      "id": "BUG-009-ROUTE-001",
+      "status": "pending",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md, scenario-manifest.json, test-plan.json",
+      "reason": "Current-session execution isolates one assertion-origin defect after the seven BUG-008 carrier repairs. Reconcile the exact one-scope RED/GREEN plan before test implementation."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-27",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "diagnosed-filed-and-routed-to-plan",
+      "note": "Bound Research Lab authority, reproduced the sole strict-registry finding, confirmed the selected mutant title fails with TypeError and ERR_TEST_FAILURE rather than ERR_ASSERTION, and filed one isolated test-only BUG-009 packet. No source, persistent test, existing bug, parent Feature 008 artifact, concurrent dirty path, human acceptance, certification, terminal state, or push changed.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "B009-FILING-001",
+      "summary": "The remaining risk mutation finding is grounded in current-session strict-registry execution, a focused mutant run, and current-tree inspection, and is represented by a complete v3 BUG-009 packet.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#current-session-strict-registry-red"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "F008-RISK-INPUT-001",
+      "summary": "The selected whole-projection title fails through downstream TypeError rubble instead of the exact unsupported-holding assertion.",
+      "owner": "bubbles.plan",
+      "status": "route_required",
+      "evidenceRef": "report.md#selected-title-mutant-origin"
+    }
+  ]
+}

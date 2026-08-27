@@ -1,0 +1,89 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+  "generatedAt": "2026-08-27",
+  "generatedBy": "bubbles.bug",
+  "provenance": "Diagnosis-only scenario draft routed to bubbles.plan for owner reconciliation. No test implementation, shipped GREEN, repaired mutation RED, browser result, human acceptance, or certification is claimed.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B009-001",
+      "scopeId": "01-restore-risk-mutation-assertion-origin",
+      "scope": 1,
+      "title": "Unsupported holdings remain named without aborting asset treatment",
+      "gherkin": {
+        "given": "assetTreatment receives one listed holding with complete declared look-through and one unsupported holding without look-through",
+        "when": "the focused direct title runs on shipped source and under the exact F008-RISK-INPUT-001 early-return mutation",
+        "then": "shipped source returns ok with the named exclusion and partial look-through, while the mutant fails once through ERR_ASSERTION rather than TypeError or ERR_TEST_FAILURE"
+      },
+      "status": "planned-owner-review",
+      "behaviorClass": "test-integrity",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional", "unit", "e2e-ui"],
+      "regressionRequired": true,
+      "riskTier": "high",
+      "requirementRefs": ["FR-B009-001", "FR-B009-002", "FR-B009-003", "FR-B009-004", "FR-B009-005", "FR-B009-006", "FR-B009-007", "FR-B009-008", "AC-1", "AC-2", "AC-3", "AC-4", "AC-5", "AC-6"],
+      "findingRefs": ["F008-RISK-INPUT-001"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Direct production-function assertions over state, listed market inclusion, named unsupported exclusion, and exact look-through coverage.",
+          "satisfiedBy": ["production-unit:TP-B009-001", "mutation:TP-B009-002", "registry:TP-B009-003"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An unsupported holding remains named without aborting all asset treatment.",
+          "satisfiedBy": ["negative-path:TP-B009-001", "mutation:TP-B009-002"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolioanalytics.js#assetTreatment"],
+        "negativeControl": "Replace the unsupported-holding exclusion push with the registered early return; the first exact state assertion must fail with ERR_ASSERTION.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["tests/portfolio-risk.functional.mjs", "tests/portfolio-test-integrity.unit.mjs"],
+      "testRows": ["TP-B009-000", "TP-B009-001", "TP-B009-002", "TP-B009-003", "TP-B009-004", "TP-B009-005", "TP-B009-006", "TP-B009-007", "TP-B009-008", "TP-B009-009", "TP-B009-010", "TP-B009-011"],
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-risk.functional.mjs",
+          "testId": "BUG-009 risk mapping: unsupported holding is named without aborting asset treatment",
+          "testPlanRow": "TP-B009-001",
+          "coverageStatus": "planned-new",
+          "evidenceRef": "report.md#tp-b009-001"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+          "testPlanRow": "TP-B009-003",
+          "coverageStatus": "authored-existing-red",
+          "evidenceRef": "report.md#tp-b009-003"
+        },
+        {
+          "file": "tests/portfolio-survival-risk.spec.mjs",
+          "testId": "Feature 008 risk browser regression",
+          "testPlanRow": "TP-B009-006",
+          "coverageStatus": "authored-existing",
+          "evidenceRef": "report.md#tp-b009-006"
+        }
+      ],
+      "expectedAssertions": [
+        "state is ok",
+        "marketBased contains AAA",
+        "excludedFromMarketAnalytics names UNKNOWN with assetType unresolved",
+        "lookThrough state is partial",
+        "coveredIds is listed and missingIds is unsupported",
+        "coveredWeight is 0.6 and uncoveredWeight is 0.4",
+        "mutant title fails once with ERR_ASSERTION"
+      ],
+      "evidenceRefs": ["report.md#current-session-strict-registry-red", "report.md#selected-title-mutant-origin", "report.md#tp-b009-001", "report.md#tp-b009-002", "report.md#tp-b009-003"],
+      "replacedBy": null,
+      "invalidatedBy": null
+    }
+  ]
+}

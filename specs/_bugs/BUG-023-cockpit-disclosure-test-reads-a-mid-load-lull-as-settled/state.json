@@ -1,0 +1,94 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-023-cockpit-disclosure-test-reads-a-mid-load-lull-as-settled",
+  "featureName": "BUG-023 The Cockpit Disclosure Test Reads A Mid-Load Lull As Settled, So A Passing Page Fails On Network Weather",
+  "createdAt": "2026-08-27T15:10:00Z",
+  "lastUpdatedAt": "2026-08-27T15:10:00Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "priorBlockedReason": null,
+  "blockedReasonResolved": null,
+  "crossFeatureEditAuthorization": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "priorPlanningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "99b927fc7",
+  "policySnapshot": {
+    "capturedAt": "2026-08-27T15:10:00Z",
+    "source": "diagnostic filing while unblocking a red pages gate"
+  },
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": "bug",
+    "currentPhaseStatus": "complete",
+    "phaseReconciliation": null,
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-27T15:10:00Z",
+    "completedAt": null,
+    "substate": "filed",
+    "currentScope": null,
+    "nextRequiredOwner": "the human operator, to answer the open question in design.md before Scope 1 can start",
+    "nextRequiredTarget": "specs/_bugs/BUG-023-cockpit-disclosure-test-reads-a-mid-load-lull-as-settled/design.md",
+    "nextRequiredReason": "Scope 1 selects between three candidate directions and the choice is not an implementing round's to make. Direction A adds a terminal settled state to the cockpit page for testability; direction B neutralises the live layer and narrows what the test observes; direction C attributes requests by initiator and risks a quietly wrong attribution. Each trades something real. The owner must answer whether the cockpit exposes, or may be given, a terminal live-layer-settled state before the baseline signal can be chosen, because Scope 2's assertions depend on which direction was taken.",
+    "phaseClaimNote": "currentPhase is 'bug' with substate 'filed'. This round diagnosed a red pages gate and filed this packet. It changed no shipped file: the only repository writes are the six artifacts in this directory. The mechanism was measured with a probe that was run from a detached worktree and deliberately not committed; its full source and observed output are reproduced verbatim in report.md so the measurement is repeatable without it. No scope has been started, every Definition of Done item is unticked, and no fix was written or evaluated. The failing full-suite run and the isolated pass were both observed at commits named in report.md.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-08-27T15:10:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      }
+    ]
+  },
+  "scopeInventory": [
+    {
+      "id": "01-establish-the-baseline-from-outstanding-work",
+      "title": "Establish The Baseline From Outstanding Work",
+      "status": "Not Started"
+    },
+    {
+      "id": "02-prove-the-invariant-still-bites",
+      "title": "Prove The Invariant Still Bites",
+      "status": "Not Started"
+    }
+  ],
+  "certification": {
+    "status": "in_progress",
+    "certifiedBy": null,
+    "certifiedAt": null,
+    "assuranceLevel": null,
+    "evidence": null,
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-establish-the-baseline-from-outstanding-work",
+        "status": "not started",
+        "dodChecked": 0,
+        "dodUnchecked": 5
+      },
+      {
+        "scopeId": "02-prove-the-invariant-still-bites",
+        "status": "not started",
+        "dodChecked": 0,
+        "dodUnchecked": 3
+      }
+    ]
+  }
+}

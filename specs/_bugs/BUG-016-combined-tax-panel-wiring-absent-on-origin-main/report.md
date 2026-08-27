@@ -5,6 +5,34 @@
 - **Phase:** bug (filing only)
 - **Delivered behaviour:** none
 
+## Test-Phase RED Before GREEN Evidence
+
+**Phase:** test
+**Command:** `scripts/red-green-probe.sh --file lifetime-tax-strategy-lab.html --find '<script src="rltaxcombined.js"></script>' --replace '<!-- evidence probe: combined module tag absent -->' --label 'BUG-016 W2 fresh evidence: combined module tag absent' --bound 720 --summary-match 'W2: ' -- node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+RED-STAGE: `red-exit: 1`; W2 named `rltaxcombined.js` as unwired.
+GREEN-STAGE: `green-exit: 0`; the same W2 assertion named no unwired module.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-016 W2 fresh evidence: combined module tag absent
+file:             lifetime-tax-strategy-lab.html
+mutation:         <script src="rltaxcombined.js"></script>  ->  <!-- evidence probe: combined module tag absent -->   (1 occurrence(s))
+command:          node scripts/selftest.mjs
+red-exit:         1
+red-summary:        ✗ FAIL: W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: rltaxcombined.js — an unwired module still ships its file and still pass
+green-exit:       0
+green-summary:      ✓ W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: none — an unwired module still ships its file and still passes its own unit ch
+summary-compared:   ✗ FAIL: W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: rltaxcombined.js — an unwired module still ships its file and still pass  vs    ✓ W2: lifetime-tax-strategy-lab.html carries a <script src> for every rltax module on disk — 14 modules, unwired: none — an unwired module still ships its file and still passes its own unit ch   (elapsed time normalised out)
+revert-verified:  yes (committed=193f75318bb85fc0ca68e1b992ad290ce371a265 restored=193f75318bb85fc0ca68e1b992ad290ce371a265)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Full-output receipt: `lines=13`, `sha256=6e8644dac00be8f3b5e63dd67313f00a130d84f89d95ae17a830906a1032137b`.
+
 ## Summary
 
 Eleven consecutive completed runs of the deploy workflow have failed at the blocking browser

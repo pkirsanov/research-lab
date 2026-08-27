@@ -172,7 +172,7 @@ Feature: The earliest priceable claim age is a declared pack figure
       must not cost the route its admission, and no digest may be edited to buy it back.
       Implementation Plan step 4 above rests on the same false premise and is superseded by this
       item.
-- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404, and the broader lifetime-tax E2E regression suite passes after the Scope 1 pack-bound behavior. → Evidence:
+- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404, and the broader lifetime-tax E2E regression suite passes after the Scope 1 pack-bound behavior. → Evidence: [Validation Run](report.md#validation-run).
       `self-test: 3405 passed, 0 failed`, exit 0, in `report.md` § Validation Run; `report.md` `## Independent Verification Round — The Two Restated Rows` records the bundled 22-file family as `111 passed`, exit 0.
 
 ---
@@ -305,7 +305,7 @@ Feature: A claim age the pack cannot price is refused
       removed or weakened as the broader lifetime-tax E2E regression suite. → Evidence: `Running 97 tests using 6 workers` → `97 passed (18.1s)`,
       exit 0. `git --no-pager diff --numstat` on both edited spec files reports `108` insertions
       and `0` deletions, so no existing assertion was removed or weakened.
-- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
+- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence: [Validation Run](report.md#validation-run).
       `self-test: 3405 passed, 0 failed`, exit 0. Verbatim in `report.md` § Validation Run.
 
 ---
@@ -393,5 +393,5 @@ Feature: The pricing boundary is pinned from both sides
       `tests/lifetime-tax-claim-age.spec.mjs` reports `108` insertions and `0` deletions.
       `scripts/selftest.mjs` shows a single deletion, the `sourceIds24` declaration in its former
       position, quoted verbatim in `report.md`.
-- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404, and the broader lifetime-tax E2E regression suite passes after both boundary cases. → Evidence:
+- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404, and the broader lifetime-tax E2E regression suite passes after both boundary cases. → Evidence: [Validation Run](report.md#validation-run).
       `self-test: 3405 passed, 0 failed`, exit 0, in `report.md` § Validation Run; `report.md` `### The route` records the bundled 22-file family as `111 passed`, exit 0.

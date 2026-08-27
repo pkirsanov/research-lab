@@ -76,12 +76,17 @@ Feature: The stall is characterised before a remedy is chosen
 - [x] A frequency is established: the proportion of identical six-worker system-Chrome runs exhibiting a force-killed worker is recorded with the number of runs and raw output for each, using the scenario-specific E2E workload for SCN-BUG017-01.
   → Evidence: `report.md` `## Scope 1 Execution — Characterisation` records the 22-file lifetime-tax workload, every exit, force-kill count, and sample size; every page test passed in each recorded workload run.
 - [x] A concurrency threshold is probed: the lowest worker count at which the stall was observed is recorded.
+  → Evidence: [Worker sweep](report.md#worker-sweep--the-stall-was-observed-at-four-not-observed-at-two).
 - [x] The same threshold probe records a worker count at which the stall was not observed as not-observed, never as safe.
+  → Evidence: [Worker sweep](report.md#worker-sweep--the-stall-was-observed-at-four-not-observed-at-two).
 - [x] The cheap candidates are discriminated: each profile-contention and version-pair candidate is marked supported, contradicted, or untested.
+  → Evidence: [Candidate mechanisms](report.md#candidate-mechanisms).
 - [x] No candidate is named as the cause without evidence distinguishing it from the others.
+  → Evidence: [Candidate mechanisms](report.md#candidate-mechanisms).
 - [x] A remedy option is selected, and the broader lifetime-tax E2E regression suite passes at its two-worker system-Chrome configuration.
   → Evidence: `report.md` `### Decision` records the selected option; `report.md` `### The pair, re-derived` records `A2 proj=system-chrome exit=0 wall=76s forcekills=0 failmarks=0 | 111 passed (1.3m) | using 2 workers`.
 - [x] Raw output evidence is recorded inline for each item above.
+  → Evidence: [Six-worker frequency output](report.md#frequency-at-the-filed-configuration--six-workers-eight-runs-six-stalls).
 
 ## Scope 2: Apply The Selected Remedy
 
@@ -148,12 +153,17 @@ Feature: A passing run reports success
 - [x] Repeated runs exit zero: consecutive scenario-specific system-Chrome E2E workloads for SCN-BUG017-04 through SCN-BUG017-06 at the chosen worker count all exit 0, with raw output for each.
   → Evidence: `report.md` `## Scope 2 Execution — Remedy Applied` records three consecutive 94-test runs, all tests passing, exit 0, and zero force-kills.
 - [x] No run reports `worker-N process did not exit within`.
+  → Evidence: [Scope 2 remedy runs](report.md#scope-2-execution--remedy-applied).
 - [x] Browser processes are released: the browser process count returns to its pre-run level after each run.
+  → Evidence: [Scope 2 remedy runs](report.md#scope-2-execution--remedy-applied).
 - [x] The cost is proportionate: the wall-time ratio meets the bound recorded under FR-017-004.
+  → Evidence: [FR-017-004 bound](report.md#the-fr-017-004-bound).
 - [x] `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline.
+  → Evidence: [Scope 2 unchanged suite](report.md#the-suite-is-unchanged).
 - [x] No test was modified to accommodate the remedy, and the broader lifetime-tax E2E regression suite passes under the repository-owned `playwright.config.mjs` worker setting.
   → Evidence: `report.md` `### The suite is unchanged` records the test diff; `report.md` `### The pair, re-derived` records all 111 tests passing at two workers with exit 0 and zero force-kills.
 - [x] Raw output evidence is recorded inline for each item above.
+  → Evidence: [Scope 2 remedy runs](report.md#scope-2-execution--remedy-applied).
 
 ## Scope 3: Disclose It Where A Developer Meets It
 

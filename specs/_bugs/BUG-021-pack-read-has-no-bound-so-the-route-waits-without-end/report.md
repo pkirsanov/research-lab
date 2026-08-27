@@ -5,6 +5,34 @@
 **Filed by:** a `bubbles.stabilize` round against the Lifetime Tax Strategy Lab
 route. Nothing was delivered. No shipped file changed.
 
+## Test-Phase RED Before GREEN Evidence
+
+RED-STAGE: withholding the AbortController signal from the real fetch made the named terminal-state case exit 1.
+
+**Phase:** test
+**Command:** `scripts/red-green-probe.sh --file lifetime-tax-strategy-lab.html --find 'signal: controller.signal' --replace 'signal: undefined' --label 'BUG-021 AbortController signal withheld from fetch' --bound 720 --summary-match 'reaches a terminal display state within the declared bound and names the document' -- npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document' --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+GREEN-STAGE: restoring the committed signal path made the same terminal-state case exit 0.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-021 AbortController signal withheld from fetch
+file:             lifetime-tax-strategy-lab.html
+mutation:         signal: controller.signal  ->  signal: undefined   (1 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-021-01\ a\ declared\ pack\ whose\ origin\ never\ responds\ reaches\ a\ terminal\ display\ state\ within\ the\ declared\ bound\ and\ names\ the\ document --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-read-bound.spec.mjs:95:1 › Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document
+green-exit:       0
+green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-read-bound.spec.mjs:95:1 › Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document
+revert-verified:  yes (committed=193f75318bb85fc0ca68e1b992ad290ce371a265 restored=193f75318bb85fc0ca68e1b992ad290ce371a265)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Full-output receipt: `lines=13`, `sha256=2df6dafdc36f4ee79f78609b9ebca49b8a7dd8681441631dfb488114700a9bfd`.
+
 ## Summary
 
 Sixteen damage modes were driven against the route. Fifteen reached a terminal,

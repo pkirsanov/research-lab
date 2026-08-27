@@ -6,6 +6,34 @@
 authorised to record findings and file bug artifacts. It is not authorised to change a shipped
 file, and it changed none.
 
+## Test-Phase RED Before GREEN Evidence
+
+RED-STAGE: disabling the earliest-age guard made the exact one-month boundary case exit 1.
+
+**Phase:** test
+**Command:** `scripts/red-green-probe.sh --file rltaxsocialsecurity.js --find 'if (claimAgeMonths < earliestMonths) {' --replace 'if (false && claimAgeMonths < earliestMonths) {' --label 'BUG-019 earliest-age guard removed' --bound 720 --summary-match 'earliest priceable claim age prices and one month below it refuses' -- npx --no-install playwright test tests/lifetime-tax-benefit.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses' --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+GREEN-STAGE: restoring the committed guard made the same case exit 0.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-019 earliest-age guard removed
+file:             rltaxsocialsecurity.js
+mutation:         if (claimAgeMonths < earliestMonths) {  ->  if (false && claimAgeMonths < earliestMonths) {   (1 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax-benefit.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep Regression:\ BUG-019\ the\ earliest\ priceable\ claim\ age\ prices\ and\ one\ month\ below\ it\ refuses --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:333:1 › Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses
+green-exit:       0
+green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:333:1 › Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses (634ms)
+revert-verified:  yes (committed=143f3827d698deafb7471fbad60fbe660d1272bf restored=143f3827d698deafb7471fbad60fbe660d1272bf)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Full-output receipt: `lines=13`, `sha256=dbb4bafdbc26ff84f506d76a2a5de84145100df67d9e5465bd8cabe35d26eaf2`.
+
 ## Summary
 
 The route prices a Social Security claim age below the earliest age its own rule pack says the

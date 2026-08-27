@@ -8,7 +8,7 @@
       "title": "The owner selects an approach",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#independent-verification-round"],
       "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"],
       "behaviorTraits": ["static-metadata"],
       "obligations": [
@@ -22,7 +22,7 @@
       "title": "The selection accounts for recurrence",
       "requiredTestType": "unit",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#test-phase-red-before-green-evidence"],
       "linkedTests": ["scripts/selftest.mjs"],
       "behaviorTraits": ["static-metadata"],
       "obligations": [
@@ -36,7 +36,7 @@
       "title": "The curve chart resolves",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#independent-verification-round"],
       "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction"],
       "behaviorTraits": ["user-visible-ui"],
       "obligations": [
@@ -51,7 +51,7 @@
       "title": "The unavailability marker resolves",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#independent-verification-round"],
       "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 a refusing state leg makes the combined total refuse with that leg own reason"],
       "behaviorTraits": ["user-visible-ui", "degraded-state"],
       "obligations": [
@@ -67,7 +67,7 @@
       "title": "The federal leg value resolves",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#independent-verification-round"],
       "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 a refusing state leg makes the combined total refuse with that leg own reason"],
       "behaviorTraits": ["pure-calculation", "user-visible-ui"],
       "obligations": [
@@ -83,7 +83,7 @@
       "title": "The whole spec passes, not only the quotable failure",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#independent-verification-round"],
       "linkedTests": [
         "tests/lifetime-tax-combined.spec.mjs#Regression: the shipped Florida pack states no imposition, so the combined answer inherits that refusal instead of adding a zero",
         "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements",
@@ -107,7 +107,7 @@
       "title": "A spec is present and its target selectors are not",
       "requiredTestType": "unit",
       "scopeRef": "Scope 3",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#test-phase-red-before-green-evidence", "report.md#durable-guard-added-after-the-filing-above"],
       "linkedTests": ["scripts/selftest.mjs"],
       "behaviorTraits": ["static-metadata", "degraded-state"],
       "obligations": [
@@ -122,7 +122,7 @@
       "title": "A coherent branch is not obstructed",
       "requiredTestType": "unit",
       "scopeRef": "Scope 3",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#test-phase-red-before-green-evidence", "report.md#independent-verification-round"],
       "linkedTests": ["scripts/selftest.mjs", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"],
       "behaviorTraits": ["static-metadata"],
       "obligations": [

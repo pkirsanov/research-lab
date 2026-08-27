@@ -261,6 +261,7 @@ one spec against exactly one route.
 ## Cross-Scope Definition of Done
 
 - [x] `bug.md` status is updated from Confirmed to Fixed and then Verified.
+  → Evidence: [Independent Verification Round](report.md#independent-verification-round).
       Both transitions have now occurred. `bug.md` read `Fixed` on the implementing round's evidence
       and reads `Verified` on an independent round's, recorded under `report.md`
       § Independent Verification Round. That round wrote no part of this packet and re-derived every

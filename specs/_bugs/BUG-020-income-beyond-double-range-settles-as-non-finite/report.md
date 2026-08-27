@@ -5,6 +5,36 @@
 **Filed by:** a `bubbles.stabilize` round against the Lifetime Tax Strategy Lab
 route. Nothing was delivered. No shipped file changed.
 
+## Test-Phase RED Before GREEN Evidence
+
+RED-STAGE: the design-named two-file mutation made the exact no-Infinity-or-NaN route assertion exit 1.
+
+**Phase:** test
+**Command:** `scripts/red-green-probe.sh --file lifetime-tax-strategy-lab.html --find 'if (!Number.isFinite(record.value)) return "no figure";' --replace 'if (false) return "no figure";' --file rltax.js --find 'if (!Number.isFinite(gross)) {' --replace 'if (false) {' --label 'BUG-020 design-named composed Infinity path' --bound 720 --summary-match 'no rendered text on the route is an infinity symbol or NaN' -- npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN' --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+GREEN-STAGE: restoring both committed guards made the same route assertion exit 0.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-020 design-named composed Infinity path
+files:            lifetime-tax-strategy-lab.html rltax.js
+mutations:        2 composed, applied together
+  mutation 1:     [lifetime-tax-strategy-lab.html]  if (!Number.isFinite(record.value)) return "no figure";  ->  if (false) return "no figure";   (1 occurrence(s))
+  mutation 2:     [rltax.js]  if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-020-01\ no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+green-exit:       0
+green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN (496ms)
+revert-verified:  yes, all 2 targets (lifetime-tax-strategy-lab.html committed=193f75318bb85fc0ca68e1b992ad290ce371a265 restored=193f75318bb85fc0ca68e1b992ad290ce371a265, rltax.js committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Full-output receipt: `lines=15`, `sha256=c0cb916c72c864ff1655bcd1664162495de972d87a8aca2ff2790e76d101cbf8`.
+
 ## Summary
 
 Two income fields declared at `9e307` or more make their sum exceed

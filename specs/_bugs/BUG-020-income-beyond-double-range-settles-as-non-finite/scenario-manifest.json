@@ -8,7 +8,7 @@
       "title": "a stage whose amount overflows the double range is refused by name",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#the-reported-pair-asserted-in-its-own-right", "report.md#test-phase-red-before-green-evidence"],
       "linkedTests": [
         "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name",
         "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN",
@@ -48,7 +48,7 @@
       "title": "the settlement header does not describe an unrepresentable result as settled",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#the-reported-pair-asserted-in-its-own-right"],
       "linkedTests": [
         "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-02 the settlement header does not describe an unrepresentable result as settled",
         "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain"
@@ -82,7 +82,7 @@
       "title": "a declaration inside the representable range is unchanged",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#the-reported-pair-asserted-in-its-own-right"],
       "linkedTests": [
         "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard"
       ],
@@ -115,7 +115,7 @@
       "title": "the settling side of the boundary is pinned",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#the-boundary-both-sides"],
       "linkedTests": [
         "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout"
       ],
@@ -148,7 +148,7 @@
       "title": "the refusing side of the boundary is pinned",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#the-boundary-both-sides", "report.md#test-phase-red-before-green-evidence"],
       "linkedTests": [
         "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double"
       ],

@@ -8,7 +8,7 @@
       "title": "a declared document that never arrives reaches a terminal named state",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#test-phase-red-before-green-evidence", "report.md#the-reproduction-driven-again"],
       "linkedTests": [
         "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document",
         "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 the settlement header does not remain Loading once the declared bound has elapsed"
@@ -47,7 +47,7 @@
       "title": "a read that completes inside the bound is unaffected",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#both-strata-verified-separately"],
       "linkedTests": [
         "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"
       ],
@@ -80,7 +80,7 @@
       "title": "an unbounded read is impossible by construction",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#test-phase-red-before-green-evidence", "report.md#probes"],
       "linkedTests": [
         "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds",
         "scripts/selftest.mjs"
@@ -114,7 +114,7 @@
       "title": "the tolerated side of the bound is pinned",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#probes", "report.md#the-lifetime-tax-browser-suite"],
       "linkedTests": [
         "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"
       ],
@@ -147,7 +147,7 @@
       "title": "the refusing side of the bound is pinned",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#test-phase-red-before-green-evidence", "report.md#probes"],
       "linkedTests": [
         "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on"
       ],

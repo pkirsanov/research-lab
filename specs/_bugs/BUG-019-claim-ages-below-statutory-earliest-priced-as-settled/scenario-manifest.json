@@ -8,7 +8,7 @@
       "title": "The pack declares the earliest age with a source",
       "requiredTestType": "unit",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#the-bound-now-lives-in-the-pack", "report.md#test-phase-red-before-green-evidence"],
       "linkedTests": [
         "scripts/selftest.mjs",
         "tests/lifetime-tax-benefit.spec.mjs#Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses"
@@ -26,7 +26,7 @@
       "title": "A pack that has not retrieved the figure declares its absence",
       "requiredTestType": "unit",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#independent-verification-round--the-two-restated-rows"],
       "linkedTests": ["scripts/selftest.mjs"],
       "behaviorTraits": ["pure-calculation", "degraded-state"],
       "obligations": [
@@ -41,7 +41,7 @@
       "title": "The engine holds no earliest age of its own",
       "requiredTestType": "unit",
       "scopeRef": "Scope 1",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#probe-3--the-bound-is-read-from-the-pack-exit-0-discriminated"],
       "linkedTests": ["scripts/selftest.mjs"],
       "behaviorTraits": ["static-metadata"],
       "obligations": [
@@ -55,7 +55,7 @@
       "title": "The earliest priceable age still prices",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#both-sides-of-the-one-month-boundary", "report.md#test-phase-red-before-green-evidence"],
       "linkedTests": ["tests/lifetime-tax-benefit.spec.mjs#Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses"],
       "behaviorTraits": ["pure-calculation", "user-visible-ui"],
       "obligations": [
@@ -71,7 +71,7 @@
       "title": "One month below the earliest age refuses",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#both-sides-of-the-one-month-boundary", "report.md#test-phase-red-before-green-evidence"],
       "linkedTests": ["tests/lifetime-tax-benefit.spec.mjs#Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses"],
       "behaviorTraits": ["user-visible-ui", "degraded-state"],
       "obligations": [
@@ -87,7 +87,7 @@
       "title": "The refusal reaches the comparison table row by row",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#probe-5--the-comparison-table-refuses-per-candidate-exit-0-discriminated"],
       "linkedTests": ["tests/lifetime-tax-claim-age.spec.mjs#Regression: BUG-019 a comparison list mixing priceable and unpriceable ages keeps its priceable rows and refuses the unpriceable one in place"],
       "behaviorTraits": ["user-visible-ui", "degraded-state"],
       "obligations": [
@@ -103,7 +103,7 @@
       "title": "The section prose agrees with what the section shows",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#both-sides-of-the-one-month-boundary"],
       "linkedTests": ["tests/lifetime-tax-benefit.spec.mjs#Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses", "tests/lifetime-tax-claim-age.spec.mjs#Regression: BUG-019 a comparison list mixing priceable and unpriceable ages keeps its priceable rows and refuses the unpriceable one in place"],
       "behaviorTraits": ["user-visible-ui", "degraded-state"],
       "obligations": [
@@ -119,7 +119,7 @@
       "title": "A claim age beyond the delayed-credit stopping age is disclosed",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 2",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#disclosure-round--where-the-stopping-age-coverage-actually-was"],
       "linkedTests": ["tests/lifetime-tax-benefit.spec.mjs#Regression: SCN-024-003 the full retirement age row, the months counted and each factor applied are shown and an out-of-domain birth year refuses", "scripts/selftest.mjs"],
       "behaviorTraits": ["pure-calculation", "user-visible-ui"],
       "obligations": [
@@ -135,7 +135,7 @@
       "title": "The boundary is asserted one month apart",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 3",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#test-phase-red-before-green-evidence", "report.md#probe-evidence"],
       "linkedTests": ["tests/lifetime-tax-benefit.spec.mjs#Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses"],
       "behaviorTraits": ["pure-calculation", "user-visible-ui", "degraded-state"],
       "obligations": [
@@ -152,7 +152,7 @@
       "title": "Removing the bound fails the suite",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 3",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#test-phase-red-before-green-evidence", "report.md#probe-evidence"],
       "linkedTests": ["tests/lifetime-tax-benefit.spec.mjs#Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses", "scripts/selftest.mjs"],
       "behaviorTraits": ["pure-calculation", "degraded-state"],
       "obligations": [
@@ -167,7 +167,7 @@
       "title": "The sub-zero band is a refusal and not a silence",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 3",
-      "evidenceRefs": [],
+      "evidenceRefs": ["report.md#probe-4--the-sub-zero-band-exit-0-discriminated"],
       "linkedTests": ["tests/lifetime-tax-benefit.spec.mjs#Regression: BUG-019 every claim age below the earliest priceable age refuses, including the band whose multiplier turns negative"],
       "behaviorTraits": ["user-visible-ui", "degraded-state"],
       "obligations": [

@@ -5,6 +5,61 @@
 - **Phase:** bug (filing only)
 - **Delivered behaviour:** none
 
+## Test-Phase RED Before GREEN Evidence
+
+RED-STAGE: six workers reported 111 successful test outcomes but exited 1.
+
+**Phase:** test
+**Command:** `scripts/red-green-probe.sh --file playwright.config.mjs --find 'workers: 2,' --replace 'workers: 6,' --label 'BUG-017 worker-count exposure: six workers versus repository two-worker setting' --bound 900 --summary-match '111 passed' -- npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+GREEN-STAGE: the restored two-worker configuration reported all 111 tests passing and exited 0.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-017 worker-count exposure: six workers versus repository two-worker setting
+file:             playwright.config.mjs
+mutation:         workers: 2,  ->  workers: 6,   (1 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+red-exit:         1
+red-summary:        111 passed (6.1m)
+green-exit:       0
+green-summary:      111 passed (1.7m)
+summary-compared:   111 passed (<elapsed>)  vs    111 passed (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes (committed=d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b restored=d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Full-output receipt: `lines=13`, `sha256=940c43f5626a0184d0d85a7cc4b7d3fffbedee410e9a16286ae4e3086cf27f1f`.
+
+## Current Linked Functional Canary
+
+**Phase:** test
+**Command:** `gtimeout 240 node --test --test-name-pattern='^shared runtime exports the exact checkout-local Playwright 1\.61\.1 API$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+[playwright-runtime] package=node_modules/playwright
+[playwright-runtime] cli=node_modules/playwright/cli.js
+[playwright-runtime] version=1.61.1
+[playwright-runtime] browserChannel=chrome
+[playwright-runtime] apiIdentity=PASS
+✔ shared runtime exports the exact checkout-local Playwright 1.61.1 API (0.953625ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 189.940083
+```
+
+Full-output receipt: `lines=14`, `sha256=f0a6b33bb324380603edc878ee7d7fd32a37eeede156e0a642e644adb0953563`.
+
 ## Summary
 
 Five runs in one session, on one machine, with the browser project as the only variable

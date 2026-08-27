@@ -148,7 +148,7 @@ const CASES = [
     find: "      else excluded.push({ symbol: h.symbol, assetType: h.assetType || \"unknown\" });",
     replace: "      else return { state: \"unsupported-holding\", symbol: h.symbol };",
     carrier: "tests/portfolio-risk.functional.mjs",
-    title: "SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output",
+    title: "BUG-009 risk mapping: unsupported holdings remain named exclusions",
     intendedHook: "Module._compile"
   },
   {

@@ -11,7 +11,7 @@ decision.
 
 ## Scope 1: Refuse A Non-Finite Figure At The Display Seam
 
-**Status:** In Progress
+**Status:** Done (delivered; every current Definition of Done item is ticked with existing execution evidence)
 
 ### Problem This Scope Resolves
 
@@ -57,6 +57,14 @@ Scenario: a declaration inside the representable range is unchanged
 4. Confirm the surfaces render that refusal without a new branch, since the
    refusal shape is the one they already handle.
 
+### Implementation Surfaces
+
+- `rltax.js` owns the display-seam finiteness check and refusal result.
+- `rltaxrules.js` owns the closed refusal-code vocabulary.
+- `lifetime-tax-strategy-lab.html` renders the stage rows and settlement header.
+- `tests/lifetime-tax-representable.spec.mjs` carries the scenario-specific browser regressions.
+- `scripts/selftest.mjs` carries the vocabulary and node contract assertions.
+
 ### Test Plan
 
 | Id | Category | Asserts |
@@ -65,16 +73,17 @@ Scenario: a declaration inside the representable range is unchanged
 | TB-020-02 | browser | The settlement header does not read `Settled` for that declaration |
 | TB-020-03 | browser | No rendered text contains an infinity symbol or `NaN` for that declaration |
 | TB-020-04 | node | `formatForDisplay` returns a refusal for a non-finite value and the prior result for a finite one |
+| TB-020-E2E-S1 | e2e-ui | Scenario-specific E2E regressions SCN-020-01 through SCN-020-03 execute `tests/lifetime-tax-representable.spec.mjs` tests `Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage`, `Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain`, and `Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard` on the production route. |
 
 ### Definition of Done
 
 - [x] The owner's refusal-code decision is recorded in `design.md` under the open question, with the date and the reasoning. → Evidence: `design.md` `## The Decision`, "Decided 2026-08-24. Authorised by the owner", with the reasoning in `### Why a new member rather than a reused one` and the rejected alternative in `### The alternative rejected`.
-- [x] SCN-020-01 holds: two fields at `9e307` refuse by name on every non-finite stage, and no such row carries a rule-status label. → Evidence: asserted at the reported declaration itself by `tests/lifetime-tax-representable.spec.mjs` test 6, over `CO-1`, `CO-3`, `CO-4`, `CO-5`, `CO-6`, `CO-7` and `CO-8`; run recorded in `report.md` `## The Reported Pair, Asserted In Its Own Right`.
+- [x] SCN-020-01 holds in the scenario-specific E2E regressions for SCN-020-01 through SCN-020-03: every stage whose amount overflows the double range is refused by name; at the reported two-field `9e307` declaration, no non-finite stage carries a rule-status label. → Evidence: asserted at the reported declaration itself by `tests/lifetime-tax-representable.spec.mjs` test 6, over `CO-1`, `CO-3`, `CO-4`, `CO-5`, `CO-6`, `CO-7` and `CO-8`; run recorded in `report.md` `## The Reported Pair, Asserted In Its Own Right`.
 - [x] SCN-020-02 holds: the settlement header does not read `Settled` for that declaration and names the unrepresentable domain. → Evidence: test 7, asserting the header is not `Settled` and that `#truthDetail` names `income:grossSupportedIncome`.
-- [x] SCN-020-03 holds: two fields at `8.9e307` settle with every figure, rounding and rule status unchanged from the pre-change observation recorded in `report.md`. → Evidence: test 8 asserts the three facts the pre-change observation actually records (`truth=Settled`, no infinity symbol, no `NaN`) and adds a rounded figure and `enacted-current-law` standing on `CO-1`, which that observation could not carry; probe `P12` establishes the "unchanged" clause by measurement, showing the guard is not on this declaration's path at all.
+- [x] SCN-020-03 holds: a declaration inside the representable range is unchanged; two fields at `8.9e307` settle with every figure, rounding and rule status preserved from the pre-change observation recorded in `report.md`. → Evidence: test 8 asserts the three facts the pre-change observation actually records (`truth=Settled`, no infinity symbol, no `NaN`) and adds a rounded figure and `enacted-current-law` standing on `CO-1`, which that observation could not carry; probe `P12` establishes the "unchanged" clause by measurement, showing the guard is not on this declaration's path at all.
 - [x] `formatForDisplay` refuses a non-finite value at the same seam that already refuses a non-finite factor, and the refusal names the domain. → Evidence: `rltax.js:1205`, guarding `valueRecord.value` beside the existing factor guard and naming domain `display:value`; asserted by `TB-020-04` and proven to discriminate by probe `P3`.
 - [x] If a vocabulary member was added, `scripts/selftest.mjs` assertion `TP-01-05` enumerates it by name and still fails on a fabricated addition and on a repurposed member. → Evidence: `BUG_020_CODES` names the member; the assertion carries the `fabricatedAddition` and `repurposedVocabulary` limbs as live conjuncts; probe `P2` proves the fabricated-addition direction against the module source and probe `P1` the removal direction.
-- [x] A red-green probe through `scripts/red-green-probe.sh` proves each new assertion fails when the guard is removed, with the probe output recorded in `report.md`. → Evidence: all nine assertions are now proven to discriminate. Eight were already proven by `P1` to `P5`, `P7` to `P11` and re-derived as `Q1` to `Q11`. `TB-020-03` was the ninth, and it is closed by `S4`: the two-mutation adversarial case `design.md` names for it in `## The Adversarial Case Each New Assertion Must Fail On` — "the R2 fallback is restored to `String(record.value)` **and** a record carrying `Infinity` is placed in a stage" — driven as written, red-exit `1` against green-exit `0`, probe exit `0`. The case spans two files, so it could not be expressed until `scripts/red-green-probe.sh` was extended to accept repeated `--find`/`--replace` pairs and repeated `--file`; the extension preserves every safety property and is pinned by a permanent selftest group, recorded under `#### S1`. Backward compatibility is shown by re-running two recorded single-pair probes unchanged through the extended harness: `S2` reproduces `Q9` at exit `0` and `S3` reproduces `P6b` at exit `7`. `S3` is also the control for `S4` — it applies the E1 literal alone and correctly refuses at exit `7`, so the difference between the two runs is the second mutation and nothing else. The earlier exit `7` readings under `#### P6 and P6b`, `#### P6c and P6d`, `#### P6e and P6f`, `#### P6g, P6h and P6i` and `#### Q6` stand unchanged and unrewritten: they were true statements about single-mutation edits, and they establish that `TB-020-03` is over-determined rather than unfalsifiable. Recorded in `report.md` under `## The Composed Adversarial Case — S1 To S4`.
+- [x] A red-green probe through `scripts/red-green-probe.sh` proves each new assertion fails when the guard is removed, and the broader lifetime-tax E2E regression suite passes, with the evidence recorded in `report.md`. → Evidence: all nine assertions are now proven to discriminate. Eight were already proven by `P1` to `P5`, `P7` to `P11` and re-derived as `Q1` to `Q11`. `TB-020-03` was the ninth, and it is closed by `S4`: the two-mutation adversarial case `design.md` names for it in `## The Adversarial Case Each New Assertion Must Fail On` — "the R2 fallback is restored to `String(record.value)` **and** a record carrying `Infinity` is placed in a stage" — driven as written, red-exit `1` against green-exit `0`, probe exit `0`. The case spans two files, so it could not be expressed until `scripts/red-green-probe.sh` was extended to accept repeated `--find`/`--replace` pairs and repeated `--file`; the extension preserves every safety property and is pinned by a permanent selftest group, recorded under `#### S1`. Backward compatibility is shown by re-running two recorded single-pair probes unchanged through the extended harness: `S2` reproduces `Q9` at exit `0` and `S3` reproduces `P6b` at exit `7`. `S3` is also the control for `S4` — it applies the E1 literal alone and correctly refuses at exit `7`, so the difference between the two runs is the second mutation and nothing else. The earlier exit `7` readings under `#### P6 and P6b`, `#### P6c and P6d`, `#### P6e and P6f`, `#### P6g, P6h and P6i` and `#### Q6` stand unchanged and unrewritten: they were true statements about single-mutation edits, and they establish that `TB-020-03` is over-determined rather than unfalsifiable. Recorded in `report.md` under `## The Composed Adversarial Case — S1 To S4`; `report.md` `## The Lifetime-Tax Browser Suite` records the broader suite passing.
 - [x] `node scripts/selftest.mjs` reports `0 failed` and no fewer assertions than before this scope. → Evidence: `self-test: 3408 passed, 0 failed`, exit `0`; recorded in `report.md` `## Validation`.
 
 ## Scope 2: Pin The Boundary From Both Sides
@@ -112,18 +121,25 @@ Scenario: the refusing side of the boundary is pinned
    `--summary-match` to the assertion's own wording rather than to the aggregate
    pass count.
 
+### Implementation Surfaces
+
+- `rltax.js` owns the representability boundary applied by both cases.
+- `lifetime-tax-strategy-lab.html` exposes the production route and stage table.
+- `tests/lifetime-tax-representable.spec.mjs` carries both adjacent-boundary browser regressions.
+
 ### Test Plan
 
 | Id | Category | Asserts |
 |---|---|---|
 | TB-020-05 | browser | The settling side settles with finite figures throughout |
 | TB-020-06 | browser | The refusing side refuses by name on every affected stage |
+| TB-020-E2E-S2 | e2e-ui | Scenario-specific E2E regressions execute `tests/lifetime-tax-representable.spec.mjs` tests `Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout` and `Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double` on the production route. |
 
 ### Definition of Done
 
-- [x] SCN-020-04 holds against a declaration just inside the boundary. → Evidence: `8.988465674311579e+307` in both income fields, summing to exactly `Number.MAX_VALUE`; test 4 asserts `Settled` and no unrepresentable refusal on any stage.
+- [x] SCN-020-04 holds in the scenario-specific E2E regressions for SCN-020-04 and SCN-020-05 against a declaration just inside the boundary. → Evidence: `8.988465674311579e+307` in both income fields, summing to exactly `Number.MAX_VALUE`; test 4 asserts `Settled` and no unrepresentable refusal on any stage.
 - [x] SCN-020-05 holds against a declaration just outside the boundary. → Evidence: `8.98846567431158e+307` in both fields; test 5 asserts `Incomplete` and at least one rendered `RLTAX-FIGURE-UNREPRESENTABLE`.
 - [x] The two declarations are close enough that no untested behaviour sits between them, and `report.md` states the two values. → Evidence: both values are stated in `report.md` `### The boundary, both sides`; test 5 derives the adjacency from the page's own arithmetic rather than trusting the literals, asserting that the refusing amount is the immediate successor double, that each round-trips through the input, that the settling pair sums to exactly `Number.MAX_VALUE` and that the refusing pair overflows.
 - [x] Each assertion is proven to discriminate by a `scripts/red-green-probe.sh` run recorded verbatim in `report.md`, with `--summary-match` pinned to that assertion's own wording. → Evidence: probe `P7` for the settling side against a widened guard, probe `P8` for the refusing side against a removed guard; each `--summary-match` names its own scenario title, and both returned exit `0`.
 - [x] `node scripts/validate-spec-test-paths.mjs` reports `new=0 stale=0`. → Evidence: recorded in `report.md` `## Validation`.
-- [x] The lifetime-tax browser suite passes on `--project=chromium` with no fewer assertions than before this scope. → Evidence: recorded in `report.md` `## The Lifetime-Tax Browser Suite`.
+- [x] The broader lifetime-tax E2E regression suite passes on `--project=chromium` with no fewer assertions than before this scope. → Evidence: recorded in `report.md` `## The Lifetime-Tax Browser Suite`.

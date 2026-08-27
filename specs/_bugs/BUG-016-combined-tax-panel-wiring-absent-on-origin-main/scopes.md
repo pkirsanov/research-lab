@@ -24,6 +24,7 @@ choice depends on how the operator wants the two lines to relate.
 
 ```gherkin
 Feature: A reconciliation approach is selected before content is changed
+# SCN-BUG016-01
   Scenario: The owner selects an approach
     Given the two branch tips hold different resolutions of the same page
     And the wiring is absent at their merge base
@@ -31,6 +32,7 @@ Feature: A reconciliation approach is selected before content is changed
     Then the selection is recorded with its rationale
     And Scope 2 is defined in terms of that selection
 
+# SCN-BUG016-02
   Scenario: The selection accounts for recurrence
     Given four merges have each discarded the wiring
     When the owner selects a reconciliation approach
@@ -44,11 +46,22 @@ Feature: A reconciliation approach is selected before content is changed
 2. Select an approach and record it, with the rationale, in this scope.
 3. State whether Scope 3 is taken or declined.
 
+### Implementation Files
+
+- `lifetime-tax-strategy-lab.html` is the deployed route whose panel wiring reflects the selected approach.
+- `rltaxcombined.js` is the combined-settlement module loaded by that route.
+- `scripts/selftest.mjs` is the recurrence guard selected by taking Scope 3.
+
+### Consumer Proof Files
+
+- `tests/lifetime-tax-combined.spec.mjs` is the live consumer proof for the selected deployed outcome.
+
 ### Test Plan
 
 | Type | Coverage |
 |---|---|
 | None | This scope produces a recorded decision, not behaviour. There is nothing to execute. |
+| E2E | Scenario-specific E2E consumer proof executes `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements`; the W1-W5 BUG-016 group in `scripts/selftest.mjs` maps the recurrence disposition. |
 
 ### The Decision
 
@@ -72,11 +85,11 @@ its tests pass there. No content authorship remains for this packet to perform.
 
 ### Definition of Done
 
-- [x] A reconciliation approach is selected and recorded with its rationale.
-  → Evidence: Option A recorded above, including what it gives up (duplicate content on two lines that must still conflict on this file).
-- [x] Open questions 1 and 4 in `design.md` are answered.
-  → Evidence: Q1 — A and C, both taken. Q4 — the disposition is recorded immediately below.
-- [x] The disposition of Scope 3 is recorded as taken or declined.
+- [x] The owner selects an approach: a reconciliation approach is recorded with its rationale, and the scenario-specific E2E consumer regression for SCN-BUG016-01 passes.
+  → Evidence: Option A recorded above, including what it gives up (duplicate content on two lines that must still conflict on this file). `report.md` `## Independent Verification Round` records the combined browser file green.
+- [x] Open questions 1 and 4 in `design.md` are answered, and the broader combined-panel E2E regression suite passes.
+  → Evidence: Q1 — A and C, both taken. Q4 — the disposition is recorded immediately below. `report.md` independently records `green-summary: 8 passed (4.1s)`.
+- [x] The selection accounts for recurrence: the disposition of Scope 3 is recorded as taken or declined.
   → Evidence: taken. The guard exists on `origin/main` at `scripts/selftest.mjs:28704` and its four assertions pass; see Scope 3.
 - [x] Scope 2's shape is restated in terms of the selected approach.
   → Evidence: restated above as verification rather than authorship, because the content landed via Feature 022.
@@ -96,21 +109,25 @@ absent.
 
 ```gherkin
 Feature: The deployed page carries the combined settlement panel
+# SCN-BUG016-03
   Scenario: The curve chart resolves
     Given the deployed revision of the lifetime tax strategy lab
     When a test waits for the combined curve chart
     Then the element is found within the assertion budget
 
+# SCN-BUG016-04
   Scenario: The unavailability marker resolves
     Given a pack year mismatch and a refusing state leg
     When a test waits for the combined settlement card unavailability marker
     Then the element is found and carries the expected reason code
 
+# SCN-BUG016-05
   Scenario: The federal leg value resolves
     Given the deployed revision of the lifetime tax strategy lab
     When a test reads the combined federal leg value
     Then the read returns without exhausting the test budget
 
+# SCN-BUG016-06
   Scenario: The whole spec passes, not only the quotable failure
     Given the three absent selectors are restored
     When the combined spec is run against the deployed revision
@@ -125,6 +142,16 @@ Feature: The deployed page carries the combined settlement panel
    retired test title.
 4. Run the combined spec against the deployed revision.
 
+### Implementation Files
+
+- `lifetime-tax-strategy-lab.html` owns the panel markup, module tag, curve anchor, refusal marker, and federal-leg projection.
+- `rltaxcombined.js` computes the combined settlement consumed by the route.
+- `scripts/selftest.mjs` carries the route-to-test coherence guard.
+
+### Consumer Proof Files
+
+- `tests/lifetime-tax-combined.spec.mjs` carries all eight production-route regressions.
+
 ### Test Plan
 
 | Type | Coverage |
@@ -132,14 +159,14 @@ Feature: The deployed page carries the combined settlement panel
 | Browser | All eight tests in `tests/lifetime-tax-combined.spec.mjs` pass against the deployed revision. |
 | Selftest | `node scripts/selftest.mjs` reports zero failures and no fewer assertions than the recorded baseline. |
 | Gate | The deploy workflow's `verify` job passes and `deploy` runs rather than reporting `skipped`. |
+| E2E | Scenario-specific E2E regressions execute `tests/lifetime-tax-combined.spec.mjs` tests `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction`, `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure`, `Regression: SCN-022-013 the combined total is the sum of two independent settlements`, and the entire eight-test file for SCN-BUG016-03 through SCN-BUG016-06. |
 
 ### Definition of Done
 
 - [x] All four wiring markers count non-zero on the deployed branch.
   → Evidence: `git show origin/main:lifetime-tax-strategy-lab.html | grep -c` → combinedSettlementCard 2, combinedCurveChart 3, combinedFederalLeg 2, combinedIndependenceLine 3. Exit Code: 0
-- [x] All three previously absent selectors resolve.
-  → Evidence: runtime probe on the clean ref — `#combinedCurveChart` count 1, `#combinedSettlementCard` count 1. `[data-rl-value="combinedFederalLeg"]` is rendered only in the driven state, so it reads 0 on bare load and its resolution is demonstrated by the eight passing tests below rather than by that probe.
-- [x] All eight tests in `tests/lifetime-tax-combined.spec.mjs` pass, with raw output recorded.
+- [x] The curve chart resolves within the assertion budget, the unavailability marker resolves for a pack-year mismatch and a refusing state leg, and the federal leg value resolves without exhausting the test budget; these are the scenario-specific E2E regressions for SCN-BUG016-03 through SCN-BUG016-05. → Evidence: the clean-ref runtime probe records `#combinedCurveChart` and `#combinedSettlementCard` count 1; the curve, pack-year-mismatch, combined-total, and refusing-state-leg browser tests pass in the eight-test run below and drive `[data-rl-value="combinedFederalLeg"]`.
+- [x] The whole spec passes, not only the quotable failure: the broader combined-panel E2E regression suite of all eight tests in `tests/lifetime-tax-combined.spec.mjs` passes, with raw output recorded.
   → Evidence: `npx playwright test --project=system-chrome tests/lifetime-tax-combined.spec.mjs` on a clean `origin/main` worktree → `8 passed (6.6s)`. Exit Code: 0
 - [x] The retired test title is no longer present on the deployed branch.
   → Evidence: `git grep -c 'renders the single-jurisdiction settlement region' -- tests/` → 0 occurrences. Exit Code: 1 (no match)
@@ -170,12 +197,14 @@ Restoring the content without addressing recurrence restores a value the next me
 
 ```gherkin
 Feature: A branch that loses an implementation says so
+# SCN-BUG016-07
   Scenario: A spec is present and its target selectors are not
     Given a spec file present on the branch
     And a page it targets that lacks the selectors the spec asserts
     When the coherence check runs
     Then the condition is reported before publication
 
+# SCN-BUG016-08
   Scenario: A coherent branch is not obstructed
     Given a spec file whose target selectors are all present
     When the coherence check runs
@@ -188,6 +217,15 @@ Feature: A branch that loses an implementation says so
 2. Establish the check fails on the current condition and passes on a coherent branch.
 3. Wire it where it runs before publication.
 
+### Implementation Files
+
+- `scripts/selftest.mjs` implements the W1-W5 route/module/selector coherence guard.
+- `lifetime-tax-strategy-lab.html` is the guarded route.
+
+### Consumer Proof Files
+
+- `tests/lifetime-tax-combined.spec.mjs` supplies the derived selector inventory and the live consumer canary.
+
 ### Test Plan
 
 | Type | Coverage |
@@ -195,13 +233,14 @@ Feature: A branch that loses an implementation says so
 | Adversarial | The check fails against a branch state carrying the spec without the selectors. |
 | Negative | The check passes against a coherent branch and reports nothing. |
 | Selftest | `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline. |
+| E2E | Scenario-specific E2E consumer proof runs the eight tests in `tests/lifetime-tax-combined.spec.mjs` while the W1-W5 group in `scripts/selftest.mjs` checks SCN-BUG016-07 and SCN-BUG016-08 against the same route and selector inventory. |
 
 ### Definition of Done
 
-- [x] The check fails on the defective condition, with raw output recorded.
-  → Evidence: evaluated against `origin/main` content read straight out of the ref at filing time; seventeen findings from a spec present and intact at that ref. Raw output under `## Durable Guard Added After The Filing Above` in `report.md`.
-- [x] The check passes on a coherent branch, with raw output recorded.
-  → Evidence: clean `origin/main` worktree → W1 14 modules, W2 unwired none, W3 10 anchors missing none, W4 6 names missing none. Exit Code: 0
+- [x] A spec present while its target selectors are absent is reported before publication: the check fails on the defective condition, and its scenario-specific E2E consumer regression remains mapped to `tests/lifetime-tax-combined.spec.mjs`, with raw output recorded.
+  → Evidence: evaluated against `origin/main` content read straight out of the ref at filing time; seventeen findings from a spec present and intact at that ref. Raw output under `## Durable Guard Added After The Filing Above` in `report.md`; the same report records the combined browser file green after repair.
+- [x] A coherent branch is not obstructed: the check reports nothing and passes, and the broader combined-panel E2E regression suite passes, with raw output recorded.
+  → Evidence: clean `origin/main` worktree → W1 14 modules, W2 unwired none, W3 10 anchors missing none, W4 6 names missing none. Exit Code: 0. `report.md` independently records all eight combined browser tests passing.
 - [x] The check is not satisfiable by a branch that carries the spec and not the selectors.
   → Evidence: both required sets are derived, not listed — modules from `readdirSync`, markers from the browser spec's own locators — and each derivation carries a floor (modules >= 10, id anchors >= 8, value names >= 5), so emptying a derivation's source fails rather than passing vacuously.
 - [x] `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline.

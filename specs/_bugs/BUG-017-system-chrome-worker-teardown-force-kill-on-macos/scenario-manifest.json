@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
+  "scenarios": [
+    {
+      "id": "SCN-BUG017-01",
+      "scenarioId": "SCN-BUG017-01",
+      "title": "A frequency is established",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document"],
+      "mappingNote": "These are concrete tests in the measured 22-file system-Chrome workload. Their page assertions do not claim to test runner teardown; the scenario is the process-level repeated execution of that unchanged workload.",
+      "behaviorTraits": ["runtime-config"],
+      "obligations": [
+        {"trait": "runtime-config", "requiredProof": "Repeated process-level runs execute the same system-Chrome workload at six workers and record the force-kill proportion and sample size.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document"]}
+      ],
+      "implementationRefs": ["playwright.config.mjs", "tests/lifetime-tax-combined.spec.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs"], "negativeControl": "Holding the workload fixed and raising the worker count from two to six changes the observed force-kill rate from 0/3 to 6/8 in the recorded sweep."}
+    },
+    {
+      "id": "SCN-BUG017-02",
+      "scenarioId": "SCN-BUG017-02",
+      "title": "A concurrency threshold is probed",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"],
+      "mappingNote": "The linked tests are concrete members of the unchanged workload run at each worker count; threshold and not-observed outcomes are process-level measurements, not claims made by either page test.",
+      "behaviorTraits": ["runtime-config"],
+      "obligations": [
+        {"trait": "runtime-config", "requiredProof": "The identical workload executes at increasing worker counts, recording the lowest observed stall and a lower not-observed count without calling it safe.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"]}
+      ],
+      "implementationRefs": ["playwright.config.mjs", "tests/lifetime-tax-combined.spec.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs"], "negativeControl": "The recorded worker sweep holds the workload fixed and varies two, four, and six workers, exposing an observed stall at four and a not-observed result at two."}
+    },
+    {
+      "id": "SCN-BUG017-03",
+      "scenarioId": "SCN-BUG017-03",
+      "title": "The cheap candidates are discriminated",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds"],
+      "mappingNote": "The linked tests identify the real suite workload held constant while project, worker count, process state, and installed-version candidates were varied at process level.",
+      "behaviorTraits": ["runtime-config"],
+      "obligations": [
+        {"trait": "runtime-config", "requiredProof": "Candidate runs hold the real workload constant and record each candidate as supported, contradicted, or untested without promoting correlation to cause.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds"]}
+      ],
+      "implementationRefs": ["playwright.config.mjs", "tests/lifetime-tax-combined.spec.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs"], "negativeControl": "The candidate matrix holds the workload fixed while switching browser project and worker count; bundled chromium stays clean at six while system-chrome stalls, contradicting profile contention as the sole mechanism."}
+    },
+    {
+      "id": "SCN-BUG017-04",
+      "scenarioId": "SCN-BUG017-04",
+      "title": "Repeated runs exit zero",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on"],
+      "mappingNote": "The tests are concrete members of the unchanged workload whose process exit and teardown diagnostics are observed after every page test passes.",
+      "behaviorTraits": ["runtime-config"],
+      "obligations": [
+        {"trait": "runtime-config", "requiredProof": "Consecutive executions use the repository-owned two-worker setting, pass the real workload, exit zero, and emit no teardown force-kill.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on"]}
+      ],
+      "implementationRefs": ["playwright.config.mjs", "tests/lifetime-tax-combined.spec.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs"], "negativeControl": "Overriding the same config to six workers reproduces exit 1 with every test passed, while the configured two-worker runs exit zero."}
+    },
+    {
+      "id": "SCN-BUG017-05",
+      "scenarioId": "SCN-BUG017-05",
+      "title": "Browser processes are released",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"],
+      "mappingNote": "These tests identify the real browser workload bracketed by process-count samples; process release is asserted at the workload boundary, not inside either page test.",
+      "behaviorTraits": ["runtime-config"],
+      "obligations": [
+        {"trait": "runtime-config", "requiredProof": "The configured two-worker workload returns the browser process count to its pre-run level after completion.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"]}
+      ],
+      "implementationRefs": ["playwright.config.mjs", "tests/lifetime-tax-combined.spec.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs"], "negativeControl": "The pre/post process sampler compares the browser count at the workload boundary; any surviving process above the pre-run level makes the equality fail."}
+    },
+    {
+      "id": "SCN-BUG017-06",
+      "scenarioId": "SCN-BUG017-06",
+      "title": "The cost is proportionate",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"],
+      "mappingNote": "The same concrete workload tests run under both projects; the wall-time ratio is a process-level comparison and is not attributed to either page assertion.",
+      "behaviorTraits": ["runtime-config"],
+      "obligations": [
+        {"trait": "runtime-config", "requiredProof": "The identical workload runs under system-chrome and bundled chromium at the selected worker count and the recorded wall-time ratio meets FR-017-004.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"]}
+      ],
+      "implementationRefs": ["playwright.config.mjs", "tests/lifetime-tax-combined.spec.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-cli", "inputOrigin": "ephemeral-real", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["playwright.config.mjs"], "negativeControl": "The recorded controlled pair runs the identical workload under system-chrome and bundled chromium so a ratio above the FR-017-004 bound is observed rather than hidden."}
+    },
+    {
+      "id": "SCN-BUG017-07",
+      "scenarioId": "SCN-BUG017-07",
+      "title": "A developer meets the symptom",
+      "requiredTestType": "functional",
+      "scopeRef": "Scope 3",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/playwright-runtime.foundation.functional.mjs#shared runtime exports the exact checkout-local Playwright 1.61.1 API", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"],
+      "mappingNote": "The functional test is the existing config/runtime canary and the browser test is a concrete workload member. The disclosure wording itself is an artifact claim recorded in the packet, not silently upgraded into a test assertion.",
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {"trait": "static-metadata", "requiredProof": "The repository-owned config names macOS, system-chrome, the force-kill symptom, intermittence, and measured cost where the worker override is encountered.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#shared runtime exports the exact checkout-local Playwright 1.61.1 API"]}
+      ],
+      "implementationRefs": ["playwright.config.mjs", ".specify/memory/agents.md", "tests/playwright-runtime.foundation.functional.mjs", "tests/lifetime-tax-combined.spec.mjs"]
+    },
+    {
+      "id": "SCN-BUG017-08",
+      "scenarioId": "SCN-BUG017-08",
+      "title": "Disclosure does not stand in for an available fix",
+      "requiredTestType": "functional",
+      "scopeRef": "Scope 3",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/playwright-runtime.foundation.functional.mjs#shared runtime exports the exact checkout-local Playwright 1.61.1 API", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"],
+      "mappingNote": "The linked tests are existing config/runtime and workload canaries. The ordering of remedy before disclosure remains a planning/evidence claim and no new receipt is invented here.",
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {"trait": "static-metadata", "requiredProof": "The disclosure is adjacent to the already-applied workers setting and describes only the remaining explicit override.", "satisfiedBy": ["tests/playwright-runtime.foundation.functional.mjs#shared runtime exports the exact checkout-local Playwright 1.61.1 API"]}
+      ],
+      "implementationRefs": ["playwright.config.mjs", ".specify/memory/agents.md", "tests/playwright-runtime.foundation.functional.mjs", "tests/lifetime-tax-read-bound.spec.mjs"]
+    }
+  ]
+}

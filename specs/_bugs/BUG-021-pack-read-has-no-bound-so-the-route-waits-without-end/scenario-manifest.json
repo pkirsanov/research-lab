@@ -1,0 +1,183 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end",
+  "scenarios": [
+    {
+      "id": "SCN-021-01",
+      "scenarioId": "SCN-021-01",
+      "title": "a declared document that never arrives reaches a terminal named state",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document",
+        "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 the settlement header does not remain Loading once the declared bound has elapsed"
+      ],
+      "behaviorTraits": ["user-visible-ui", "degraded-state", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route reaches a visible terminal state, leaves Loading, and names the unread document.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document", "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 the settlement header does not remain Loading once the declared bound has elapsed"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The withheld document produces a named terminal refusal without a loading or settled default.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "Runtime behavior executes the declared pack-read bound before exposing the terminal state.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document"]
+        }
+      ],
+      "implementationRefs": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json", "rltaxworkspace.js", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json", "rltaxworkspace.js"],
+        "negativeControl": "Withholding the AbortController signal from fetch reproduces the pre-change wait and fails the terminal-state assertion, as recorded by probe P1."
+      }
+    },
+    {
+      "id": "SCN-021-02",
+      "scenarioId": "SCN-021-02",
+      "title": "a read that completes inside the bound is unaffected",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"
+      ],
+      "behaviorTraits": ["user-visible-ui", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route renders the delayed settlement identically to the undelayed control.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The configured read bound admits the delayed response at runtime rather than narrowing it silently.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"]
+        }
+      ],
+      "implementationRefs": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json"],
+        "negativeControl": "Lowering the declared bound below the 3000 ms delayed response makes the unchanged-settlement assertion fail, as recorded by probe P8."
+      }
+    },
+    {
+      "id": "SCN-021-03",
+      "scenarioId": "SCN-021-03",
+      "title": "an unbounded read is impossible by construction",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-03 the configuration read is bounded by its own stratum-0 declaration when that origin never responds",
+        "scripts/selftest.mjs"
+      ],
+      "behaviorTraits": ["runtime-config", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The route seeds from CONFIG_READ_BOUND_MS, promotes to rules.packReadBoundMs without a fallback, and passes an AbortController signal to fetch.",
+          "satisfiedBy": ["scripts/selftest.mjs"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Missing, malformed, or elapsed bounds refuse by name rather than leaving an unbounded request.",
+          "satisfiedBy": ["scripts/selftest.mjs"]
+        }
+      ],
+      "implementationRefs": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json", "rltaxworkspace.js", "scripts/selftest.mjs", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json", "rltaxworkspace.js"],
+        "negativeControl": "Probes P1, P4 and P7 each remove one abort application from the two read strata and make the bounded-read assertions fail."
+      }
+    },
+    {
+      "id": "SCN-021-04",
+      "scenarioId": "SCN-021-04",
+      "title": "the tolerated side of the bound is pinned",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"
+      ],
+      "behaviorTraits": ["user-visible-ui", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route visibly reaches ready and settles on the tolerated side.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "Runtime behavior executes the declared bound and admits a response below it.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"]
+        }
+      ],
+      "implementationRefs": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json"],
+        "negativeControl": "Lowering the bound to 1000 ms makes the tolerated 3000 ms response abort and turns this assertion red, as recorded by probe P2."
+      }
+    },
+    {
+      "id": "SCN-021-05",
+      "scenarioId": "SCN-021-05",
+      "title": "the refusing side of the bound is pinned",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on"
+      ],
+      "behaviorTraits": ["user-visible-ui", "degraded-state", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route visibly reaches a terminal named state rather than settling or remaining Loading.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The withheld pack is recorded as unread and no settled default replaces it.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "Runtime behavior executes the declared bound and abandons the response only after it elapses.",
+          "satisfiedBy": ["tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on"]
+        }
+      ],
+      "implementationRefs": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json", "tests/lifetime-tax-read-bound.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": ["lifetime-tax-strategy-lab.html", "lifetime-tax-strategy.config.json"],
+        "negativeControl": "Widening the bound to 600000 ms prevents the withheld response from reaching the expected terminal state inside the suite budget, as recorded by probe P3."
+      }
+    }
+  ]
+}

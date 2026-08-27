@@ -1,0 +1,184 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite",
+  "scenarios": [
+    {
+      "id": "SCN-020-01",
+      "scenarioId": "SCN-020-01",
+      "title": "a stage whose amount overflows the double range is refused by name",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name",
+        "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN",
+        "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage"
+      ],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The production calculation identifies each non-finite dependent stage for the reported declaration.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route visibly names every affected refusal and renders neither Infinity nor NaN.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name", "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The overflow path produces a named refusal and omits rule standing from affected rows.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage"]
+        }
+      ],
+      "implementationRefs": ["rltax.js", "rltaxrules.js", "lifetime-tax-strategy-lab.html", "tests/lifetime-tax-representable.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rltax.js", "rltaxrules.js", "lifetime-tax-strategy-lab.html"],
+        "negativeControl": "Removing the display-seam finiteness guard makes the reported-pair refusal assertions fail, as recorded by the packet's P3 mutation probe."
+      }
+    },
+    {
+      "id": "SCN-020-02",
+      "scenarioId": "SCN-020-02",
+      "title": "the settlement header does not describe an unrepresentable result as settled",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-02 the settlement header does not describe an unrepresentable result as settled",
+        "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain"
+      ],
+      "behaviorTraits": ["user-visible-ui", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route header visibly withholds Settled and names the unrepresentable domain.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An unrepresentable settlement is exposed as a named incomplete result rather than a plausible settled default.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-02 the settlement header does not describe an unrepresentable result as settled"]
+        }
+      ],
+      "implementationRefs": ["rltax.js", "lifetime-tax-strategy-lab.html", "tests/lifetime-tax-representable.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"],
+        "negativeControl": "Removing the display refusal guard makes the header settle or lose its unrepresentable-domain explanation, as recorded by the packet's red-green probes."
+      }
+    },
+    {
+      "id": "SCN-020-03",
+      "scenarioId": "SCN-020-03",
+      "title": "a declaration inside the representable range is unchanged",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard"
+      ],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The representable declaration retains its prior rounded figure and rule standing.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route still renders the settled header, finite figure, and enacted-current-law standing.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard"]
+        }
+      ],
+      "implementationRefs": ["rltax.js", "lifetime-tax-strategy-lab.html", "tests/lifetime-tax-representable.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"],
+        "negativeControl": "The packet's S4 composed mutation restores the non-finite fallback and injects Infinity into a stage, making the unchanged representable-input assertion fail."
+      }
+    },
+    {
+      "id": "SCN-020-04",
+      "scenarioId": "SCN-020-04",
+      "title": "the settling side of the boundary is pinned",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout"
+      ],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The immediate representable boundary input produces finite figures throughout.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route visibly settles on the inside boundary without an unrepresentable refusal.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout"]
+        }
+      ],
+      "implementationRefs": ["rltax.js", "lifetime-tax-strategy-lab.html", "tests/lifetime-tax-representable.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"],
+        "negativeControl": "Widening the guard to reject the immediate inside value makes this assertion fail, as recorded by probe P7."
+      }
+    },
+    {
+      "id": "SCN-020-05",
+      "scenarioId": "SCN-020-05",
+      "title": "the refusing side of the boundary is pinned",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double"
+      ],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The immediate successor double crosses the representability boundary.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route visibly refuses each affected stage at the outside boundary.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The outside-boundary result is a named refusal rather than a non-finite figure or default.",
+          "satisfiedBy": ["tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double"]
+        }
+      ],
+      "implementationRefs": ["rltax.js", "rltaxrules.js", "lifetime-tax-strategy-lab.html", "tests/lifetime-tax-representable.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rltax.js", "rltaxrules.js", "lifetime-tax-strategy-lab.html"],
+        "negativeControl": "Removing the finiteness guard makes the immediate outside value render non-finite output instead of refusing, as recorded by probe P8."
+      }
+    }
+  ]
+}

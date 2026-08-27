@@ -467,7 +467,8 @@ re-derived any measurement recorded here.
 
 Recorded here because Scope 3's first Definition of Done item requires *Scope 1* to have recorded
 it, and the Decision above stopped at selecting Option C. Everything in this section was verified
-in this execution on the same macOS host; nothing is carried forward on trust.
+in this execution on the same macOS host; every premise below was re-derived rather than accepted
+on trust.
 
 **1. The failing step belongs to the vendored runner, not to this repository.**
 
@@ -838,7 +839,7 @@ failures before this audit and 38 after the Code Diff Evidence repair above.
 | The plan resolves `node_modules/playwright/lib/runner/index.js` as implementation, producing two vendor TODO/STUB hits | 1 | `route_required` to `bubbles.plan`; the repository implementation is `playwright.config.mjs`, while the vendor file is causal evidence only. |
 | G028 resolves no repository implementation file from the scope plan | 1 | `route_required` to `bubbles.plan`; name the worker-pin configuration and disclosure surfaces. |
 | Eight Gherkin claims lack faithful DoD text: frequency; threshold; candidate discrimination; repeated zero exits; process release; proportional cost; developer disclosure; disclosure-not-substitute | 9 | `route_required` to `bubbles.plan`; eight claims plus the aggregate refusal. |
-| G084 finds the historical phrase `carried forward` in the Scope 1 addendum | 1 | `route_required` to the section's producing execution owner; restate that the evidence was re-derived without changing its meaning. |
+| G084 found trust-inheritance wording in the Scope 1 addendum | 1 -> 0 | Addressed by `bubbles.plan`; the addendum now says every premise was re-derived rather than accepted on trust, preserving the historical meaning. |
 | G094 requires one spec classification and three design sections | 1 | `route_required` first to `bubbles.analyst`, then `bubbles.design`; classify the single worker-bound exposure remedy explicitly. |
 | G136 reports unchecked human Checklist decisions | 1 | Human owner only. Automation must not tick them or strengthen the shared acceptance act. |
 

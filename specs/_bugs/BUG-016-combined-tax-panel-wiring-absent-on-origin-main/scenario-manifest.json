@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main",
+  "scenarios": [
+    {
+      "id": "SCN-BUG016-01",
+      "scenarioId": "SCN-BUG016-01",
+      "title": "The owner selects an approach",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"],
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {"trait": "static-metadata", "requiredProof": "The recorded Option A outcome is exercised on the deployed route by the combined-settlement consumer test.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"]}
+      ],
+      "implementationRefs": ["lifetime-tax-strategy-lab.html", "rltaxcombined.js", "tests/lifetime-tax-combined.spec.mjs"]
+    },
+    {
+      "id": "SCN-BUG016-02",
+      "scenarioId": "SCN-BUG016-02",
+      "title": "The selection accounts for recurrence",
+      "requiredTestType": "unit",
+      "scopeRef": "Scope 1",
+      "evidenceRefs": [],
+      "linkedTests": ["scripts/selftest.mjs"],
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {"trait": "static-metadata", "requiredProof": "The selected recurrence disposition is implemented by the W1-W5 derived coherence guard.", "satisfiedBy": ["scripts/selftest.mjs"]}
+      ],
+      "implementationRefs": ["scripts/selftest.mjs", "tests/lifetime-tax-combined.spec.mjs", "lifetime-tax-strategy-lab.html"]
+    },
+    {
+      "id": "SCN-BUG016-03",
+      "scenarioId": "SCN-BUG016-03",
+      "title": "The curve chart resolves",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction"],
+      "behaviorTraits": ["user-visible-ui"],
+      "obligations": [
+        {"trait": "user-visible-ui", "requiredProof": "The current production route renders and draws the combined curve within the browser assertion budget.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction"]}
+      ],
+      "implementationRefs": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html", "tests/lifetime-tax-combined.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "visible-ui", "dependencyPath": "not-applicable", "productionOwners": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html"], "negativeControl": "Dropping the combined curve anchor makes W3 and the browser locator fail, as recorded by BUG-016 probe 2."}
+    },
+    {
+      "id": "SCN-BUG016-04",
+      "scenarioId": "SCN-BUG016-04",
+      "title": "The unavailability marker resolves",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 a refusing state leg makes the combined total refuse with that leg own reason"],
+      "behaviorTraits": ["user-visible-ui", "degraded-state"],
+      "obligations": [
+        {"trait": "user-visible-ui", "requiredProof": "The production route visibly renders the combined-card refusal marker.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure"]},
+        {"trait": "degraded-state", "requiredProof": "A mismatched pack or refusing state leg produces its named refusal with no combined numeral.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 a refusing state leg makes the combined total refuse with that leg own reason"]}
+      ],
+      "implementationRefs": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html", "tests/lifetime-tax-combined.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "visible-ui", "dependencyPath": "not-applicable", "productionOwners": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html"], "negativeControl": "Dropping a combined-card anchor makes W3 and the production-route refusal locator fail, as recorded by the anchor mutation probe."}
+    },
+    {
+      "id": "SCN-BUG016-05",
+      "scenarioId": "SCN-BUG016-05",
+      "title": "The federal leg value resolves",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 a refusing state leg makes the combined total refuse with that leg own reason"],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "The displayed federal leg is byte-identical to the independently settled federal amount.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"]},
+        {"trait": "user-visible-ui", "requiredProof": "The production route renders the federal leg on settling and refusing combined paths.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 a refusing state leg makes the combined total refuse with that leg own reason"]}
+      ],
+      "implementationRefs": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html", "tests/lifetime-tax-combined.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "visible-ui", "dependencyPath": "not-applicable", "productionOwners": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html"], "negativeControl": "Renaming the combinedFederalLeg emitting call makes W4 and the browser field assertion fail, as recorded by BUG-016 probe 3."}
+    },
+    {
+      "id": "SCN-BUG016-06",
+      "scenarioId": "SCN-BUG016-06",
+      "title": "The whole spec passes, not only the quotable failure",
+      "requiredTestType": "e2e-ui",
+      "scopeRef": "Scope 2",
+      "evidenceRefs": [],
+      "linkedTests": [
+        "tests/lifetime-tax-combined.spec.mjs#Regression: the shipped Florida pack states no imposition, so the combined answer inherits that refusal instead of adding a zero",
+        "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements",
+        "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction",
+        "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure",
+        "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table",
+        "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the request ledger does not grow after first paint and every entry is a declared same-origin read across the full combined workflow",
+        "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the tool is absent from every registry and the market brief",
+        "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 a refusing state leg makes the combined total refuse with that leg own reason"
+      ],
+      "behaviorTraits": ["user-visible-ui"],
+      "obligations": [
+        {"trait": "user-visible-ui", "requiredProof": "All eight tests execute the current production route and pass as one file, so a single quotable locator result cannot stand in for the complete behavior.", "satisfiedBy": ["tests/lifetime-tax-combined.spec.mjs#Regression: the shipped Florida pack states no imposition, so the combined answer inherits that refusal instead of adding a zero", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 a refusing state leg makes the combined total refuse with that leg own reason"]}
+      ],
+      "implementationRefs": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html", "tests/lifetime-tax-combined.spec.mjs"],
+      "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-fixture", "assertionSurface": "visible-ui", "dependencyPath": "not-applicable", "productionOwners": ["rltaxcombined.js", "lifetime-tax-strategy-lab.html"], "negativeControl": "Dropping the combined module tag or a required anchor makes the coherence guard and the affected browser test fail, as recorded by probes 1 and 2."}
+    },
+    {
+      "id": "SCN-BUG016-07",
+      "scenarioId": "SCN-BUG016-07",
+      "title": "A spec is present and its target selectors are not",
+      "requiredTestType": "unit",
+      "scopeRef": "Scope 3",
+      "evidenceRefs": [],
+      "linkedTests": ["scripts/selftest.mjs"],
+      "behaviorTraits": ["static-metadata", "degraded-state"],
+      "obligations": [
+        {"trait": "static-metadata", "requiredProof": "W1-W5 derive the module and selector inventories from repository source rather than restating them.", "satisfiedBy": ["scripts/selftest.mjs"]},
+        {"trait": "degraded-state", "requiredProof": "A route missing a required module, anchor, emitted value, or gated membership turns the coherence group red.", "satisfiedBy": ["scripts/selftest.mjs"]}
+      ],
+      "implementationRefs": ["scripts/selftest.mjs", "tests/lifetime-tax-combined.spec.mjs", "lifetime-tax-strategy-lab.html"]
+    },
+    {
+      "id": "SCN-BUG016-08",
+      "scenarioId": "SCN-BUG016-08",
+      "title": "A coherent branch is not obstructed",
+      "requiredTestType": "unit",
+      "scopeRef": "Scope 3",
+      "evidenceRefs": [],
+      "linkedTests": ["scripts/selftest.mjs", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"],
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {"trait": "static-metadata", "requiredProof": "The unmodified coherent route passes W1-W5 and its live combined consumer test.", "satisfiedBy": ["scripts/selftest.mjs", "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements"]}
+      ],
+      "implementationRefs": ["scripts/selftest.mjs", "tests/lifetime-tax-combined.spec.mjs", "lifetime-tax-strategy-lab.html"]
+    }
+  ]
+}

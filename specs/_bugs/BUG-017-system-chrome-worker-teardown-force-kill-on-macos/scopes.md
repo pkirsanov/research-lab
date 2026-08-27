@@ -23,18 +23,21 @@ would be choosing on a guess.
 
 ```gherkin
 Feature: The stall is characterised before a remedy is chosen
+# SCN-BUG017-01
   Scenario: A frequency is established
     Given repeated identical runs under the system-chrome project at six workers
     When the runs complete
     Then the proportion exhibiting a force-killed worker is recorded
     And the record states the number of runs it is based on
 
+# SCN-BUG017-02
   Scenario: A concurrency threshold is probed
     Given runs at increasing worker counts
     When each completes
     Then the lowest worker count at which the stall was observed is recorded
     And a count at which it was not observed is recorded as not-observed rather than as safe
 
+# SCN-BUG017-03
   Scenario: The cheap candidates are discriminated
     Given the profile-contention and version-pair candidates
     When each is tested
@@ -50,6 +53,15 @@ Feature: The stall is characterised before a remedy is chosen
 4. Record which candidates are supported, contradicted, or untested.
 5. Select a remedy option, or record that diagnosis should continue.
 
+### Implementation Files
+
+- `playwright.config.mjs` is the repository-owned system-Chrome project and worker-count surface.
+
+### Consumer Proof Files
+
+- `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` are concrete members of the measured lifetime-tax E2E workload.
+- Playwright's runner and the operator-installed Chrome are causal evidence only; neither is a repository implementation path.
+
 ### Test Plan
 
 | Type | Coverage |
@@ -57,15 +69,18 @@ Feature: The stall is characterised before a remedy is chosen
 | Repeated execution | Identical runs under `system-chrome`, exit code recorded for each. |
 | Concurrency sweep | Runs at varying worker counts, stall presence recorded per count. |
 | Process sampling | Browser process count before and after each run. |
+| E2E | Scenario-specific process-level E2E characterization for SCN-BUG017-01 through SCN-BUG017-03 runs the 22-file lifetime-tax system-Chrome suite; concrete workload tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document`. |
 
 ### Definition of Done
 
-- [x] A frequency is recorded, with the number of runs it rests on, and raw output for each.
-- [x] The lowest worker count at which the stall was observed is recorded.
-- [x] A worker count at which it was not observed is recorded as not-observed, not as safe.
-- [x] Each candidate mechanism is marked supported, contradicted, or untested.
+- [x] A frequency is established: the proportion of identical six-worker system-Chrome runs exhibiting a force-killed worker is recorded with the number of runs and raw output for each, using the scenario-specific E2E workload for SCN-BUG017-01.
+  → Evidence: `report.md` `## Scope 1 Execution — Characterisation` records the 22-file lifetime-tax workload, every exit, force-kill count, and sample size; every page test passed in each recorded workload run.
+- [x] A concurrency threshold is probed: the lowest worker count at which the stall was observed is recorded.
+- [x] The same threshold probe records a worker count at which the stall was not observed as not-observed, never as safe.
+- [x] The cheap candidates are discriminated: each profile-contention and version-pair candidate is marked supported, contradicted, or untested.
 - [x] No candidate is named as the cause without evidence distinguishing it from the others.
-- [x] A remedy option is selected, or continued diagnosis is recorded as the decision.
+- [x] A remedy option is selected, and the broader lifetime-tax E2E regression suite passes at its two-worker system-Chrome configuration.
+  → Evidence: `report.md` `### Decision` records the selected option; `report.md` `### The pair, re-derived` records `A2 proj=system-chrome exit=0 wall=76s forcekills=0 failmarks=0 | 111 passed (1.3m) | using 2 workers`.
 - [x] Raw output evidence is recorded inline for each item above.
 
 ## Scope 2: Apply The Selected Remedy
@@ -82,17 +97,20 @@ than the bundled project on every run.
 
 ```gherkin
 Feature: A passing run reports success
+# SCN-BUG017-04
   Scenario: Repeated runs exit zero
     Given the selected remedy is applied
     When the ninety-four-test set runs repeatedly at the chosen worker count
     Then every run exits zero
     And no run reports a worker that did not exit within its teardown budget
 
+# SCN-BUG017-05
   Scenario: Browser processes are released
     Given a run has completed
     When the browser process count is sampled
     Then it has returned to its pre-run level
 
+# SCN-BUG017-06
   Scenario: The cost is proportionate
     Given the selected remedy is applied
     When the same set runs under both projects
@@ -106,6 +124,15 @@ Feature: A passing run reports success
 3. Sample browser process count either side of each run.
 4. Measure the wall-time ratio against the bundled project.
 
+### Implementation Files
+
+- `playwright.config.mjs` owns the selected `workers: 2` exposure bound and the `system-chrome` project.
+
+### Consumer Proof Files
+
+- `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` are concrete tests in the unchanged 22-file remedy workload.
+- `tests/playwright-runtime.foundation.functional.mjs` is the existing repository config/runtime canary.
+
 ### Test Plan
 
 | Type | Coverage |
@@ -114,15 +141,18 @@ Feature: A passing run reports success
 | Process sampling | Process count returns to its pre-run level. |
 | Timing | Wall-time ratio against the bundled project meets the recorded bound. |
 | Selftest | `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline. |
+| E2E | Scenario-specific process-level E2E verification for SCN-BUG017-04 through SCN-BUG017-06 runs the 22-file lifetime-tax system-Chrome suite at the configured worker count; concrete workload tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on`. |
 
 ### Definition of Done
 
-- [x] Consecutive runs at the chosen worker count all exit 0, with raw output for each.
+- [x] Repeated runs exit zero: consecutive scenario-specific system-Chrome E2E workloads for SCN-BUG017-04 through SCN-BUG017-06 at the chosen worker count all exit 0, with raw output for each.
+  → Evidence: `report.md` `## Scope 2 Execution — Remedy Applied` records three consecutive 94-test runs, all tests passing, exit 0, and zero force-kills.
 - [x] No run reports `worker-N process did not exit within`.
-- [x] Browser process count returns to its pre-run level after each run.
-- [x] The wall-time ratio meets the bound recorded under FR-017-004.
+- [x] Browser processes are released: the browser process count returns to its pre-run level after each run.
+- [x] The cost is proportionate: the wall-time ratio meets the bound recorded under FR-017-004.
 - [x] `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline.
-- [x] No test was modified to accommodate the remedy.
+- [x] No test was modified to accommodate the remedy, and the broader lifetime-tax E2E regression suite passes under the repository-owned `playwright.config.mjs` worker setting.
+  → Evidence: `report.md` `### The suite is unchanged` records the test diff; `report.md` `### The pair, re-derived` records all 111 tests passing at two workers with exit 0 and zero force-kills.
 - [x] Raw output evidence is recorded inline for each item above.
 
 ## Scope 3: Disclose It Where A Developer Meets It
@@ -139,11 +169,13 @@ have to.
 
 ```gherkin
 Feature: An unremovable defect is disclosed rather than rediscovered
+# SCN-BUG017-07
   Scenario: A developer meets the symptom
     Given a run reporting all tests passed and exiting non-zero
     When the developer looks for an explanation where they work
     Then the condition, its platform, and its intermittence are described
 
+# SCN-BUG017-08
   Scenario: Disclosure does not stand in for an available fix
     Given Scope 1 concluded a remedy is available in this repository
     When the disposition of this scope is reviewed
@@ -156,12 +188,23 @@ Feature: An unremovable defect is disclosed rather than rediscovered
 2. Describe the condition, its platform, its intermittence, and its measured cost, where a
    developer running the suite will meet it.
 
+### Implementation Files
+
+- `playwright.config.mjs` owns both the worker bound and the adjacent developer disclosure.
+
+### Consumer Proof Files
+
+- `.specify/memory/agents.md` is the command-registry disclosure surface reached before the suite runs.
+- `tests/playwright-runtime.foundation.functional.mjs` is the existing repository config/runtime canary.
+- `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` remain concrete members of the disclosed system-Chrome workload.
+
 ### Test Plan
 
 | Type | Coverage |
 |---|---|
 | Review | The disclosure states platform, project, symptom, intermittence, and measured cost. |
 | Adversarial | The disclosure is not accepted while Scope 1 records an available remedy. |
+| E2E | Scenario-specific E2E workload verification for SCN-BUG017-07 and SCN-BUG017-08 runs the same 22-file lifetime-tax system-Chrome suite after the `playwright.config.mjs` exposure remedy; concrete tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted`. |
 
 ### Definition of Done
 
@@ -174,14 +217,14 @@ conceded in writing is that a remedy for the **exposure** was available and take
 **cause** is not removable here. Full reversal reasoning and evidence:
 `report.md` `## Scope 3 Execution — Disclosure Written`.
 
-- [x] Scope 1 recorded that the cause is not removable in this repository.
-  → Evidence: `report.md` `## Scope 1 Addendum — The Cause Is Not Removable In This Repository`. The force-kill message is emitted only by `node_modules/playwright/lib/runner/index.js`; the same grep across repository sources returns nothing, so no repository code participates in worker teardown. The other end is the operator's installed `Google Chrome 151.0.7922.174`, which the repository neither vendors nor versions. The counter-argument — that deleting the repository-owned `channel: 'chrome'` would end exposure — is recorded and answered: that removes exposure, not the cause, and costs local/CI browser parity.
-- [x] The disclosure names the platform, the project, the symptom, and its intermittence.
+- [x] Scope 1 recorded that the cause is not removable in this repository, and disclosure does not stand in for the available fix because `workers: 2` is applied before the notice describes the remaining explicit override.
+  → Evidence: `report.md` `## Scope 1 Addendum — The Cause Is Not Removable In This Repository` records the causal boundary; `report.md` `### Why the declination above is superseded` records that the exposure remedy was filed first. The repository implementation is `playwright.config.mjs`; vendor-runner and installed-Chrome observations are causal evidence only.
+- [x] A developer meets the symptom disclosure where the suite is run: it names the platform, the project, the symptom, and its intermittence, and the scenario-specific system-Chrome E2E workload for SCN-BUG017-07 and SCN-BUG017-08 passes under that default configuration.
   → Evidence: the comment beside `workers: 2` in `playwright.config.mjs` names macOS, the `system-chrome` project, the symptom (`worker-N process did not exit within 300000ms after stop, force-killed it`, exit 1 with every test passed), and quantifies "intermittently" as 6/8 runs stalling at six workers, 1/3 at four, 0/3 at two. `.specify/memory/agents.md` `### Playwright E2E` carries the same four. `git diff -U0 -- playwright.config.mjs` shows comment lines only.
 - [x] The disclosure carries the measured wall-time cost.
   → Evidence: **343s against 81s on the identical 111 tests**, measured in this execution — run C (`--workers=6`, exit 1, 4 force-kills, `111 passed (5.7m)`) against run A (configured 2 workers, exit 0, `111 passed (1.3m)`), raw lines under `report.md` `### The condition is still reachable at the remedy commit`. Both figures appear in both disclosure sites.
-- [x] The disclosure is reachable from where a developer runs the suite.
-  → Evidence: **18 of 18** documented invocations of this suite — every command in `.specify/memory/agents.md` plus the pipeline job in `.github/workflows/pages.yml` — name `--config=playwright.config.mjs`; **0** do not. The suite cannot be run without naming the file the disclosure lives in, and that file owns the `workers` knob whose override is now the only route to the stall. The registry note sits directly above the first run command, which is where the command is copied from. `README.md` was not used: it is the managed architecture/development doc under `docsRegistryOverrides.managedDocs`.
+- [x] The disclosure is reachable from where a developer runs the suite, and the broader lifetime-tax E2E regression suite passes after the remedy and disclosure.
+  → Evidence: **18 of 18** documented invocations name `--config=playwright.config.mjs`; **0** do not. `report.md` `### The pair, re-derived` records the complete 22-file, 111-test system-Chrome workload passing at two workers, exit 0, with zero force-kills.
 
 ## Cross-Scope Definition of Done
 

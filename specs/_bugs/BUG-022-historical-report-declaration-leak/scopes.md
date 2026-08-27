@@ -223,8 +223,8 @@ Feature: Current test declarations exclude immutable historical receipts
   **Phase:** test. **Claim Source:** executed. **Evidence:** `report.md#fresh-tp-bug022-c03-feature-008-playwright-regression`, exit 0, 94 passed, 0 skipped.
 - [x] Broader E2E regression suite passes: TP-BUG022-C03 runs the Feature 008 Playwright regression suite.
   **Phase:** test. **Claim Source:** executed. **Evidence:** `report.md#fresh-tp-bug022-c03-feature-008-playwright-regression`, exit 0, 94 passed, 0 skipped.
-- [ ] TP-BUG022-C04 passes the full repository selftest in a clean tree.
-  **Phase:** test. **Claim Source:** executed. **Uncertainty Declaration:** `report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest---non-zero` records exit 1 with 3464 passed and one failed scope-progress invariant. `report.md#scope-progress-validator-after-c03-closure---non-zero` reports BUG-022's validate-owned claim as 12/3 while the current artifact is 14/2.
+- [x] TP-BUG022-C04 passes the full repository selftest in a clean tree.
+  **Phase:** test. **Claim Source:** executed. **Evidence:** [Fresh TP-BUG022-C04 clean-tree repository selftest at c652cd092](report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest-at-c652cd092), exit 0, 3465 passed, 0 failed, sha256 `805c958016f75c304fc504ef35ede3bd267020a9ecaabaa012c992bd6fd272c7`.
 - [x] TP-BUG022-C05 proves the Feature 008 report is byte-identical and every
   excluded path is unchanged.
   **Phase:** implement. **Claim Source:** executed. **Evidence:** `report.md#change-containment`, exit 0, six allowed paths, `leakage=0`.
@@ -236,7 +236,7 @@ Feature: Current test declarations exclude immutable historical receipts
 
 #### Build Quality Gate
 
-- [ ] Change Boundary is respected and zero excluded file families were changed.
+- [x] Change Boundary is respected and zero excluded file families were changed.
   The parser, focused test, and command-registry migration land atomically.
   `KNOWN_DISCOVERY_CROSSINGS` and the reachability baseline do not grow. The
   focused test contains no skip, only, todo, or silent-pass bailout. The final
@@ -244,4 +244,4 @@ Feature: Current test declarations exclude immutable historical receipts
   committed-path, and excluded-path comparisons report leakage 0. No push,
   reset, rebase, framework edit, protected evidence edit, or acceptance act
   occurs.
-  **Phase:** test. **Claim Source:** executed. **Uncertainty Declaration:** This grouped gate remains unchecked because TP-BUG022-C04 has a non-zero exit in `report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest---non-zero`. TP-BUG022-C03 now exits 0, and the earlier containment subchecks passed with `leakage=0`.
+  **Phase:** test. **Claim Source:** executed. **Evidence:** [Fresh Change Boundary containment at c652cd092](report.md#fresh-change-boundary-containment-at-c652cd092), exit 0, all historical delivery and current protected-invariant subchecks passed, `CONTAINMENT_FAILURES=0`, `leakage=0`, sha256 `866f3a0b34ce3fc48a36208acd2561e5993e0e48b4337b5612e3bf62bedce2bb`.

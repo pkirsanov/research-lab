@@ -191,7 +191,10 @@
         "TP-BUG022-C07"
       ],
       "linkedTests": [],
-      "evidenceRefs": [],
+      "evidenceRefs": [
+        "report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest-at-c652cd092",
+        "report.md#fresh-change-boundary-containment-at-c652cd092"
+      ],
       "implementationRefs": [
         "scripts/validate-test-file-reachability.mjs",
         ".specify/memory/agents.md",

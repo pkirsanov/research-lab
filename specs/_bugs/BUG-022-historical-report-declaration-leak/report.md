@@ -664,6 +664,140 @@ sha256: 0ac66e0d11d25030e201821c4333328cf5bdab2ec874b4c8248aee3d158c3234
 [scope-dod-progress] FAIL — 1 scope progress claim(s) do not match their artifact
 ```
 
+## Fresh Test-Owned Closure At Current Validate Revision
+
+The commands below ran from a tracked-clean detached checkout at
+`c652cd092e8394d3d33803824153e906633e7f6e`. They supersede only the
+non-zero C04 and containment uncertainty recorded above. They do not change
+status, certification, scope status, or human acceptance.
+
+### Fresh TP-BUG022-C04 Clean-Tree Repository Selftest At c652cd092
+
+**Phase:** test
+**Executed:** YES (current session)
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 2940 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+```text
+# BUG-022 TP-BUG022-C04 clean-tree selftest at c652cd092
+$ /usr/bin/perl -e alarm shift @ARGV; exec @ARGV 2940 node scripts/selftest.mjs
+exit: 0
+lines: 3960
+sha256: 805c958016f75c304fc504ef35ede3bd267020a9ecaabaa012c992bd6fd272c7
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 3920 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓ a group missing `acceptanceBasis` on one member, and a group whose members each assert a DIFFERENT act, both FAIL — a partially-written declaration is the shape a bulk stamp would take if the exemption were the thing being gamed
+  ✓ a third packet joining an already-declared act FAILS the whole group, because the two original members cover 2 of 3 — an exemption that grew silently would admit exactly the act being guarded (`coveredPackets` on specs/915-act-a covers 2 of the 3 packet(s) sharing this instant)
+  ✓ the thirteen-record stamp — ten sharing ONE instant with three bare fields — still FAILS after the refinement, all ten reported, cleared by nothing: the exemption needs ten mutually-consistent covered sets and ten distinct bases, so it converts a silent side effect into a deliberate ten-part fabrication rather than opening a door (10 of 10 reported, group size 10)
+  ✓ the scan read the real registry licence and parsed real acceptance records, so a green verdict is a comparison rather than a parser that stopped matching (25 record(s) in 63 file(s), 8 eligible, 3 collision group(s), baseline 4)
+    DECLARED-ACT operator@1787696524 — declares one acceptance act `operator-session-2026-08-25-bug016-bug017` covering 2 packet(s), each with its own basis (specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main, specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos)
+  ✓ no Human Acceptance Record outside the frozen baseline claims a live-session acceptance at an instant another packet also claims — a bulk stamp satisfies the terminal gate while asserting something that cannot have happened (0 new, 4 frozen, 0 stale of 4 colliding record(s))
+  ✓ the real BUG-016/BUG-017 pair is cleared as ONE declared acceptance act rather than by a new baseline entry, and the frozen list still holds exactly the 4 pre-existing records — a baseline that grew to admit a legitimate record would stop meaning "debt awaiting correction" (1 declared act(s), baseline 4)
+
+security findings — a declared bound that nothing validates is not a bound
+  ✓ TB-SEC-02-01: a pack declaring an earliest claim age of zero or a negative is refused as RLTAX-PACK-INVALID naming that member, rather than admitted as a floor that lets every claim age through
+  ✓ TB-SEC-02-02: no claim-age adjustment settles a negative benefit under any pack-declared floor, and the floor that is positive but too low to price refuses on the arithmetic naming the adjusted monthly benefit — a negative amount is finite, so the unrepresentable-figure guards cannot catch it (120 settled result(s) swept, 0 negative)
+  ✓ TB-SEC-02-03: the shipped pack is untouched by both refusals — age 62 still settles at 1400, age 60 still refuses RLTAX-THRESHOLD-UNAVAILABLE under BUG-019’s own domain, and the full-retirement and delayed-credit ages still settle
+  ✓ TB-SEC-01-01: the pack read holds its bound across the response BODY — the handler that receives the response head does not clear the timer, and the two disarm sites sit past the parsed body, so an origin that answers 200 and then stalls the stream is aborted rather than awaited without end
+  ✓ TB-SEC-01-02: a declared read bound beyond the largest delay a timer can represent is refused by name rather than armed, the boundary value itself is still admitted, and the shipped configuration still validates — one past the ceiling the delay wraps and the bound fires at once instead of waiting longer
+  ✓ TB-SEC-03-01: the probe anchors its repository from the checkout it is RUN IN before any target is examined, and no path seeds that anchor from a target, so the cross-repository guard reads "this repository" rather than "the same one the first --file happened to be in"
+  ✓ TB-SEC-03-02: a --file in another Git checkout is refused at registration with the dirty-target exit rather than accepted as a new anchor, and the foreign file is byte-identical afterwards because the refusal lands before any target is hashed or mutated (exit 4)
+
+================================================
+Research-Lab self-test: 3465 passed, 0 failed
+================================================
+```
+
+### Fresh Change Boundary Containment At c652cd092
+
+**Phase:** test
+**Executed:** YES (current session)
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 540 node /private/tmp/rl-bug022-containment-db38903e.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+The temporary read-only harness replayed the original delivery slice
+`7d0b3147a..ec28e258d` and checked protected invariants at current HEAD. It
+enumerated every allowed delivery path, required one atomic three-file
+implementation commit, compared the protected Feature 008 report and both
+ratchets, scanned the focused test for skip/only/todo/pending and silent-pass
+patterns, and invoked the bugfix regression-quality guard.
+
+```text
+# BUG-022 exact current-revision Change Boundary containment
+$ /usr/bin/perl -e alarm shift @ARGV; exec @ARGV 540 node /private/tmp/rl-bug022-containment-db38903e.mjs
+exit: 0
+lines: 49
+sha256: 866f3a0b34ce3fc48a36208acd2561e5993e0e48b4337b5612e3bf62bedce2bb
+--- first 20 ---
+CONTAINMENT_BASE=7d0b3147a
+DELIVERY_HEAD=ec28e258d6e65e0eaf4cce433ef885eee785af5f
+CURRENT_HEAD=c652cd092e8394d3d33803824153e906633e7f6e
+PASS current revision matches requested validate commit
+PASS clean detached worktree
+DELIVERY_TOUCHING_COMMITS=2
+CHECK commit=ec28e258d subject=docs(BUG-022): record implementation evidence
+ALLOW ec28e258d specs/_bugs/BUG-022-historical-report-declaration-leak/report.md
+ALLOW ec28e258d specs/_bugs/BUG-022-historical-report-declaration-leak/scopes.md
+ALLOW ec28e258d specs/_bugs/BUG-022-historical-report-declaration-leak/state.json
+CHECK commit=f226ae5c3 subject=fix(BUG-022): classify active test declarations
+ALLOW f226ae5c3 .specify/memory/agents.md
+ALLOW f226ae5c3 scripts/validate-test-file-reachability.mjs
+ALLOW f226ae5c3 tests/playwright-runtime.foundation.functional.mjs
+PASS atomic implementation commit=f226ae5c3 paths=3
+PASS protected Feature 008 report unchanged
+PASS reachability baseline file unchanged
+KNOWN_DISCOVERY_CROSSINGS_BASE_SHA256=b5ead0c8589c7a1cf699f00d2a08790d24e784a495e5f0a8f2d25f1aef79f470
+KNOWN_DISCOVERY_CROSSINGS_HEAD_SHA256=b5ead0c8589c7a1cf699f00d2a08790d24e784a495e5f0a8f2d25f1aef79f470
+PASS KNOWN_DISCOVERY_CROSSINGS unchanged
+--- omitted 9 line(s); sha256 above covers the full output ---
+--- last 20 ---
+
+ℹ️  Scanning tests/playwright-runtime.foundation.functional.mjs
+✅ Adversarial signal detected in tests/playwright-runtime.foundation.functional.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+  Files with adversarial signals: 1
+============================================================
+REGRESSION_QUALITY_EXIT=0
+PASS focused regression-quality guard
+ALLOWED_CHANGED_PATH_COUNT=6
+CHANGED_ALLOWED .specify/memory/agents.md
+CHANGED_ALLOWED scripts/validate-test-file-reachability.mjs
+CHANGED_ALLOWED specs/_bugs/BUG-022-historical-report-declaration-leak/report.md
+CHANGED_ALLOWED specs/_bugs/BUG-022-historical-report-declaration-leak/scopes.md
+CHANGED_ALLOWED specs/_bugs/BUG-022-historical-report-declaration-leak/state.json
+CHANGED_ALLOWED tests/playwright-runtime.foundation.functional.mjs
+CONTAINMENT_FAILURES=0
+leakage=0
+```
+
 ### Scope-Progress Validator After C03 Closure - Non-Zero
 
 **Phase:** test

@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
   "featureName": "BUG-022 Historical Report Declaration Leak",
   "createdAt": "2026-08-27T00:00:00Z",
-  "lastUpdatedAt": "2026-08-27T12:54:06Z",
+  "lastUpdatedAt": "2026-08-27T15:56:30Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -22,18 +22,27 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
-    "currentPhaseStatus": "blocked",
+    "activeAgent": null,
+    "currentPhase": "test",
+    "currentPhaseStatus": "complete",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-27T12:18:47Z",
     "completedAt": null,
+    "substate": "independently_verified",
     "currentScope": "01-separate-active-declarations-from-historical-receipts",
     "nextRequiredOwner": "bubbles.validate",
     "nextRequiredTarget": "specs/_bugs/BUG-022-historical-report-declaration-leak",
-    "nextRequiredReason": "Reconcile BUG-022's validate-owned certification.scopeProgress claim after implementation evidence. Terminal certification remains unavailable while the excluded BUG-017 Playwright teardown and foreign scope-progress drifts keep required commands non-zero.",
-    "completedPhaseClaims": [],
+    "nextRequiredReason": "Reconcile the validate-owned certification.scopeProgress claim from 14/2 to the artifact's executed 16/0. Status and certification remain in_progress; terminal certification also remains blocked by the current transition guard and unrecorded human acceptance.",
+    "completedPhaseClaims": [
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-08-27T15:56:30Z",
+        "evidenceRef": "report.md#fresh-test-owned-closure-at-current-validate-revision",
+        "scopes": []
+      }
+    ],
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
@@ -186,6 +195,27 @@
       ],
       "nextRequiredOwner": "bubbles.validate",
       "summary": "Committed the structured declaration classifier, six exact regressions, and additive Node registry migration. Focused tests, reachability, runtime foundation, Feature 008 Node, artifact lint, bulk-stamp, spec-path, PII, and regression-quality checks passed. Playwright exited 1 after 94 passing scenarios because BUG-017 worker teardown force-killed a process. The clean-tree selftest exited 1 on 14 scope-progress certification drifts, including BUG-022's validate-owned count. No acceptance or certification field changed."
+    },
+    {
+      "at": "2026-08-27T15:56:30Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "phasesExecuted": ["test"],
+      "action": "test-round-executed",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TP-BUG022-C04",
+        "BUG022-CHANGE-BOUNDARY"
+      ],
+      "unresolvedFindings": [
+        "BUG022-CERTIFICATION-SCOPE-PROGRESS",
+        "BUG022-DELIVERY-CERTIFICATION"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Fresh test execution at clean validate revision c652cd092 closed exactly TP-BUG022-C04 and the grouped Change Boundary row. The repository selftest exited 0 with 3465 passed and 0 failed. The current-revision containment matrix exited 0 with unchanged protected report and ratchets, a clean focused-test marker scan, and leakage=0. The six exact BUG-022 functional regressions passed after source-locked local dependency provisioning, reachability and artifact lint exited 0, and no test was skipped or marked todo. Scope progress truthfully exited 1 because validate-owned certification still claims 14/2 while the artifact now has 16/0; the transition guard truthfully remained non-terminal. No status, certification, acceptance, uservalidation, source, test, framework, or unrelated file changed."
     }
   ]
 }

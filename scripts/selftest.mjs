@@ -3151,28 +3151,65 @@ try {
      survived only in a comment — which is exactly the failure mode this packet already found
      once in rlbrief.js. Both halves are therefore executed below.
 
-     The fixture is the committed item's JUDGEMENT ONLY, which is what the authoring lane
-     actually hands over. Recomposing the committed item as published proves nothing here: a
-     `decision-attention/v1` envelope carries its own observed half, so it survives an outage
-     snapshot untouched and the branch never runs — measured, not supposed. */
+     The fixture is a lane JUDGEMENT ONLY, which is what the authoring lane actually hands over.
+     Recomposing a published item proves nothing here: a `decision-attention/v1` envelope carries
+     its own observed half, so it survives an outage snapshot untouched and the branch never
+     runs — measured, not supposed. */
   const outageConfig = JSON.parse(read('market-brief.config.json'));
   const outageRegistry = JSON.parse(read('tools.json'));
   const outageAgenda = JSON.parse(read('research-agenda.json'));
   const outageSnapshot = JSON.parse(read('market-brief.snapshot.json'));
   const committedForOutage = JSON.parse(read('market-brief.payload.json'));
-  const laneJudgementOnly = {};
-  for (const key of RLATTN_AUTHORED_KEYS) {
-    if (committedForOutage.attention[0][key] !== undefined) laneJudgementOnly[key] = committedForOutage.attention[0][key];
-  }
-  const outageBasePayload = Object.assign({}, committedForOutage, { attention: [laneJudgementOnly] });
+  /* The fixture is CONSTRUCTED rather than harvested from the published tier, for the same reason
+     the SCN-BUG009-R1 rows above stopped depending on the market being interesting. Harvesting
+     `attention[0]` assumed the tier is never empty — but an empty tier is a GUARANTEED outcome,
+     not an anomaly: the composer refuses candidates and "if every candidate is refused the tier
+     publishes empty and the brief still publishes". On 2026-08-27 the pre-market run refused all
+     five candidates as RLATTN-OVERLAP, `attention[0]` was undefined, and this whole group threw
+     on `.headline` — taking the deploy gate, and therefore the published brief, down with it.
+     A quiet tier is not a defect and must not read as one. */
+  const outageTrackedSubjects = Object.keys(outageSnapshot.tracked || {}).sort();
+  assert(outageTrackedSubjects.length > 0,
+    'the committed snapshot carries at least one observable subject, so the outage fixture below is built against real observed state rather than passing vacuously');
+  const outageSubject = outageTrackedSubjects[0];
+  /* Observability is CONSTRUCTED on the chosen subject, exactly as SCN-BUG009-R1-E2E does. The
+     gate refuses a candidate whose subject clears no declared band (RLATTN-PROVENANCE), so
+     harvesting whatever the market happened to be doing made this row depend on the weather too.
+     Live input health is asserted separately and unconditionally by the observableSubjectTally
+     row above; conflating the two is what let a quiet tier read as a broken gate. */
+  const outageObservedSubject = Object.assign({}, outageSnapshot.tracked[outageSubject], {
+    ma200Dist: -20, maStack: 'tangled',
+    levels: Object.assign({}, outageSnapshot.tracked[outageSubject].levels,
+      { high52w: 160, low52w: 80, ma20: 104, ma50: 108, ma200: 125 }),
+    flags: Object.assign({}, outageSnapshot.tracked[outageSubject].flags, { persistenceGateMet: true })
+  });
+  const outageObservableSnapshot = Object.assign({}, outageSnapshot, {
+    tracked: Object.assign({}, outageSnapshot.tracked, { [outageSubject]: outageObservedSubject })
+  });
+  const laneJudgementOnly = {
+    headline: `${outageSubject} sits far from its 200-day`, rationale: 'structural',
+    verb: 'monitor', horizon: 'swing', severity: 'moderate', imminence: 'latent',
+    escalationTrigger: 'a close back above the 200-day',
+    invalidation: 'a close below the 52-week low',
+    expiry: new Date(Date.parse(committedForOutage.generatedAt) + 3 * 86400000).toISOString()
+  };
+  /* Actions are emptied for the fixture run ONLY. Overlap is resolved by scanning the day's
+     action prose for watchlist tickers, so any real subject can be claimed by an action on any
+     given day — which is exactly what refused all five candidates on 2026-08-27. Leaving the
+     live actions in place would make this row's subject a lottery the outage branch has no
+     stake in. The snapshot stays real, so observability is still measured, not assumed. */
+  const outageBasePayload = Object.assign({}, committedForOutage, {
+    attention: [laneJudgementOnly],
+    nextSession: Object.assign({}, committedForOutage.nextSession, { actions: [] })
+  });
   delete outageBasePayload.attentionExclusions;
   const systemicRows = (result) => (result.payload.attentionExclusions || [])
     .filter((exclusion) => exclusion && exclusion.code === 'RLATTN-SNAPSHOT-UNOBSERVABLE');
 
   const outageRun = recomposePayloadAttention(outageBasePayload, outageConfig, { tracked: {} });
-  const observableRun = recomposePayloadAttention(outageBasePayload, outageConfig, outageSnapshot);
+  const observableRun = recomposePayloadAttention(outageBasePayload, outageConfig, outageObservableSnapshot);
   assert(observableRun.items.length === 1 && systemicRows(observableRun).length === 0,
-    'the same candidate BUILDS against the committed snapshot and records no systemic cause, so the fixture is a genuinely observable item and the outage branch discriminates rather than always firing');
+    'the same candidate BUILDS against a snapshot whose subject is observable by construction and records no systemic cause, so the fixture is a genuinely observable item and the outage branch discriminates rather than always firing');
   assert(outageRun.items.length === 0 && systemicRows(outageRun).length === 1
     && systemicRows(outageRun)[0].index === -1 && systemicRows(outageRun)[0].subject === null,
     'against a snapshot the gate cannot observe, the composer builds nothing and records the systemic cause exactly ONCE with no subject, rather than leaving only per-candidate refusals that never name why every one of them failed');

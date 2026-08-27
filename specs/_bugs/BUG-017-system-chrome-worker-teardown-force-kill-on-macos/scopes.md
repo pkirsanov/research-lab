@@ -1,15 +1,75 @@
 # Scopes: BUG-017 — System-Chrome Worker Teardown Force-Kill On macOS
 
+## Reopening Addendum — Two-Worker Recurrence At `d532faaac`
+
+The checked Scope 1 through Scope 3 rows remain a historical record of what their recorded
+runs established. They are not rewritten or unchecked. The later evidence under
+`report.md` `Current-Revision Stabilization At d532faaac` supersedes only the inference that
+three clean runs at two workers eliminated the recurrence. The exact BUG-022 C03 portfolio
+workload failed at two workers in two of two current-revision runs after all 94 tests passed.
+Scope 4 is therefore the active closure scope. Its unchecked Definition of Done controls any
+new claim that BUG-017 is remediated for the blocked BUG-022 consumer.
+
+## Execution Outline — Reopened Work
+
+### Phase Order
+
+1. **Scope 4 — Close The Foundation Browser Before Worker Teardown.** Apply the bounded
+  Foundation lifecycle candidate, prove it with the strict Foundation-to-Paths canary, and
+  then run the complete BUG-022 C03 workload at the repository's two-worker setting.
+2. **Conditional configuration branch within Scope 4.** Change the repository worker setting
+  to one only after the lifecycle candidate fails the complete C03 workload and its changes
+  are rolled back.
+
+### New Types And Signatures
+
+- No product type, schema, route, or public API changes.
+- Planned local extension in `tests/portfolio-survival-foundation.spec.mjs`:
+  `const test = baseTest.extend({ foundationBrowserBoundary: [fixture, { auto: true,
+  scope: 'worker' }] })`.
+- Planned worker owner: `let foundationBrowser`, assigned from Playwright's existing `browser`
+  fixture by `foundationBrowserBoundary` without an explicit parameter at each test site.
+- Planned lifecycle signature: Foundation's existing `afterAll` closes that owned browser
+  before Playwright begins worker teardown.
+- Planned persistent canary title: `Regression: SCN-BUG017-09 Foundation-to-Paths releases
+  its worker within 15 seconds`.
+
+### Validation Checkpoints
+
+1. The persistent Foundation-to-Paths child-process canary must report 27/27 passing and exit
+  within 15 seconds of worker stop before the complete workload may run.
+2. The exact BUG-022 C03 94-test command must pass at workers=2 with exit 0 and no force-kill
+  marker before the lifecycle candidate can be retained.
+3. A workers=1 configuration may be evaluated only after checkpoint 2 fails and the lifecycle
+  candidate is rolled back; it must pass the same exact C03 command.
+4. Packet planning lint and traceability checks gate handoff. Runtime implementation and test
+  evidence remain unchecked until executed by the next owner.
+
+## Execution Inventory
+
+| Scope | Outcome | Surfaces | Primary validation | Status |
+| --- | --- | --- | --- | --- |
+| 1 | Characterise the original stall | Diagnostics | Worker sweep and candidate discrimination | Done |
+| 2 | Apply the original exposure remedy | Runner config | Complete lifetime-tax workload | Done (historical) |
+| 3 | Disclose the remaining override risk | Config and command registry | Disclosure and workload regressions | Done (historical) |
+| 4 | Resolve the current two-worker recurrence | Foundation lifecycle; runner config only on conditional branch | 27-test canary, then exact 94-test BUG-022 C03 workload | Not Started |
+
 ## Sequencing Note
 
 Scope 1 characterises the defect well enough to choose a remedy; it is diagnostic and lands no
 behaviour change. Scope 2 applies whatever Scope 1 selects. Scope 3 is a disclosure fallback
-that is only correct if Scope 1 concludes the cause is unremovable here. Nothing is started
-and every Definition of Done item is unticked.
+that is only correct if Scope 1 concludes the cause is unremovable here. Those three scopes are
+preserved as the original execution sequence. Scope 4 follows them additively and is the only
+active scope after the current-revision two-worker recurrence.
 
 ## Scope 1: Characterise The Stall Well Enough To Choose
 
 **Status:** Done
+
+### Consumer Surface
+
+The operator surface is the Playwright CLI command whose exit code and teardown diagnostics
+must truthfully describe the completed browser workload.
 
 ### Problem This Scope Resolves
 
@@ -67,7 +127,7 @@ Feature: The stall is characterised before a remedy is chosen
 | Type | Coverage |
 |---|---|
 | Repeated execution | Identical runs under `system-chrome`, exit code recorded for each. |
-| Concurrency sweep | Runs at varying worker counts, stall presence recorded per count. |
+| Concurrency sweep | `SCN-BUG017-02 A concurrency threshold is probed` by running concrete workload carriers `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` at varying worker counts and recording stall presence per count. |
 | Process sampling | Browser process count before and after each run. |
 | Functional regression | `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence`, run with `node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs`. It parses the candidate table in this packet's `report.md`; requires candidates 3 and 4, an allowed supported/contradicted/untested verdict, and candidate-specific distinguishing evidence; and rejects a causal verdict. This complements rather than replaces the unchanged process-level workload. |
 | E2E | Scenario-specific process-level E2E characterization for SCN-BUG017-01 through SCN-BUG017-03 runs the 22-file lifetime-tax system-Chrome suite; concrete workload tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document`. |
@@ -121,6 +181,11 @@ hash-verifies the tracked target before running the unchanged GREEN command.
 **Status:** Done
 **Depends on:** Scope 1
 
+### Consumer Surface
+
+The CLI command used by developers to run `system-chrome` is the consumer: a passing workload
+must return exit 0 without a surviving browser worker.
+
 ### Problem This Scope Resolves
 
 A green suite exits 1, intermittently, and local verification is more than four times slower
@@ -171,7 +236,7 @@ Feature: A passing run reports success
 | Type | Coverage |
 |---|---|
 | Repeated execution | Consecutive runs at the chosen worker count all exit 0. |
-| Process sampling | Process count returns to its pre-run level. |
+| Process sampling | `SCN-BUG017-05 Browser processes are released` around concrete workload carriers `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs`; process count returns to its pre-run level. |
 | Timing | Wall-time ratio against the bundled project meets the recorded bound. |
 | Selftest | `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline. |
 | E2E | Scenario-specific process-level E2E verification for SCN-BUG017-04 through SCN-BUG017-06 runs the 22-file lifetime-tax system-Chrome suite at the configured worker count; concrete workload tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on`. |
@@ -200,6 +265,11 @@ Feature: A passing run reports success
 
 **Status:** Done
 **Disposition:** correct only if Scope 1 concludes the cause is not removable here
+
+### Consumer Surface
+
+The operator surface is the Playwright CLI guidance in `playwright.config.mjs` and the command
+registry read by a developer before invoking the browser suite.
 
 ### Problem This Scope Resolves
 
@@ -295,7 +365,192 @@ conceded in writing is that a remedy for the **exposure** was available and take
 - [x] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence` passes only when both developer-facing sites carry every required disclosure field and placement; its planned platform-removal RED probe discriminates with the specified SCN-BUG017-07 assertion message; and the five pre-existing runtime-foundation tests remain byte-unchanged and green. **Claim Source:** executed. → Evidence: [exact scenario tests](report.md#exact-scenario-tests) records the exact test at exit 0, the specified RED assertion, GREEN exit, hash restoration, the byte-identity diff, and the complete file at 14/14.
 - [x] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin` passes only when the full disclosure and resolved two-worker pin coexist; its planned two-to-six RED probe leaves disclosure intact, discriminates with the specified SCN-BUG017-08 assertion message, and hash-verifies restoration before GREEN. **Claim Source:** executed. → Evidence: [current-main SCN-BUG017-08 evidence](report.md#current-main-scn-bug017-08-evidence).
 
+## Scope 4: Close The Foundation Browser Before Worker Teardown
+
+**Status:** Not Started
+**Depends On:** Scope 3
+
+### Consumer Surface
+
+The blocked consumer is the exact BUG-022 C03 Playwright CLI command over the eight
+`tests/portfolio-survival-*.spec.mjs` files. Its all-passing workload must return exit 0.
+
+### Problem This Scope Resolves
+
+The exact BUG-022 C03 portfolio workload now reproduces at the repository's configured two
+workers: two of two runs completed all 94 tests and still exited 1, with three force-killed
+workers across the pair. The failures occurred at measured host loads 32.14 and 8.90, so load
+is neither necessary nor sufficient for the recurrence. A debug run completed every Playwright
+teardown stage but left one worker alive until the 300000ms force-kill boundary.
+
+The Foundation worker retained two anonymous Socket handles after Chrome exited. Foundation
+alone can reproduce after the cumulative sequence through SCN-008-042, while the individual
+row alone does not. A focused candidate gives Foundation an automatic worker-scoped boundary
+fixture and closes its browser in Foundation's existing `afterAll`, before worker teardown.
+The strict Foundation-to-Paths probe passed 27/27, but that candidate has not passed the
+complete 94-test workload. This scope tests that unresolved boundary without treating the
+canary as completion evidence.
+
+### Additive Supersession Rule
+
+The historical `0/3 at two workers` result remains a valid observation about those three runs.
+It no longer supports an elimination, safety, or closure claim. SCN-BUG017-09 through
+SCN-BUG017-11 and the unchecked rows below are the controlling current-revision contract.
+
+### Gherkin Scenarios
+
+```gherkin
+Feature: Foundation releases its browser before the worker is asked to stop
+# SCN-BUG017-09
+  Scenario: The focused lifecycle boundary survives the strict canary
+    Given the system-chrome project is configured with two workers on macOS
+    And Foundation receives an automatic worker-scoped boundary fixture
+    And Foundation closes its owned browser in its existing afterAll
+    When the cumulative Foundation-to-Paths canary runs in a child process
+    Then all 27 tests pass
+    And the child exits zero within 15 seconds of worker stop
+    And no worker force-kill or ignored teardown error is reported
+
+# SCN-BUG017-10
+  Scenario: The lifecycle candidate clears the blocked complete workload
+    Given SCN-BUG017-09 has passed without an ignored lifecycle error
+    When the exact BUG-022 C03 94-test portfolio command runs at two workers
+    Then all 94 tests pass and the command exits zero
+    And no worker remains until the 300000ms force-kill boundary
+    And no Chrome process started by the workload remains after exit
+
+# SCN-BUG017-11
+  Scenario: One worker is used only after the lifecycle candidate fails
+    Given the lifecycle candidate has failed the complete SCN-BUG017-10 workload
+    And the candidate changes have been rolled back
+    When the repository worker setting is changed from two to one
+    Then the exact BUG-022 C03 command is rerun without changing browser project
+    And closure requires 94 passing tests, exit zero, and no ignored force-kill error
+```
+
+### Implementation Plan
+
+1. Keep `system-chrome` as the exercised project and keep `workers: 2` while evaluating the
+   lifecycle candidate.
+2. In `tests/portfolio-survival-foundation.spec.mjs`, import the existing Playwright test as
+  `baseTest`, define a local `test = baseTest.extend(...)`, and use the automatic worker-scoped
+  `foundationBrowserBoundary` fixture to retain the existing `browser` owner in
+  `foundationBrowser`. Do not add a required fixture parameter to each Foundation test and do
+  not change `tests/playwright-runtime.mjs`.
+3. Add `if (foundationBrowser) await foundationBrowser.close();` to Foundation's existing
+  `afterAll`, before its existing server close and before Playwright worker teardown. A bare
+  `browser.close()` call outside the owning hook and a worker-fixture teardown that closes
+  after Foundation's hook are rejected implementation shapes.
+4. Add the persistent SCN-BUG017-09 child-process canary. Start its 15-second stop bound when
+   Playwright asks the worker to stop, not when the browser workload starts. Require the real
+   27-test Foundation-to-Paths sequence, exit 0, and absence of force-kill markers.
+5. Run the complete exact BUG-022 C03 command once the canary passes. Retain the candidate at
+   two workers only if all 94 tests pass, the command exits 0, process counts return to their
+   pre-run baseline, and no force-kill or ignored teardown error appears.
+6. If and only if the complete two-worker command fails a lifecycle criterion, preserve the
+   failure evidence, roll back the lifecycle candidate, change only the repository worker
+   setting to one, and run the same exact C03 command. A one-worker success is the contingency
+   remedy; a one-worker failure leaves BUG-017 and BUG-022 blocked.
+7. Do not suppress, catch-and-ignore, relabel, or filter the worker force-kill error. Do not
+   switch the browser project to bundled Chromium. Do not raise the 300000ms teardown budget.
+
+### Implementation Files
+
+- `tests/portfolio-survival-foundation.spec.mjs` — local automatic boundary fixture and
+  Foundation-owned browser close in the existing `afterAll`.
+- `tests/playwright-runtime.foundation.functional.mjs` — persistent strict-stop canary,
+  discriminating mutation, and containment regression.
+- `playwright.config.mjs` — conditional workers=1 change only after a recorded two-worker
+  candidate failure and hash-verified candidate rollback.
+
+### Change Boundary
+
+**Allowed implementation families:**
+
+- `tests/portfolio-survival-foundation.spec.mjs` for the local automatic worker fixture,
+  `foundationBrowser` owner, and existing `afterAll` close.
+- `tests/playwright-runtime.foundation.functional.mjs` for the persistent lifecycle-shape and
+  child-stop regression.
+- `playwright.config.mjs` only on the conditional workers=1 branch after the complete
+  two-worker lifecycle run fails.
+
+**Excluded surfaces:**
+
+- Portfolio assertions, scenario data, application source, generated site output, and
+  BUG-022 declaration behavior.
+- `tests/portfolio-survival-paths.spec.mjs`, which is the read-only canary terminus, and shared
+  helpers including `tests/playwright-runtime.mjs` and `tests/portfolio-survival.support.mjs`.
+- Browser-project selection, Chrome channel configuration, the 300000ms runner teardown
+  budget, reporter behavior, and error handling that could hide a force-kill.
+- BUG-017 historical evidence, checked historical DoD rows, state, certification,
+  uservalidation, acceptance, and tool logs.
+
+### Rollback
+
+- Before the complete C03 run, record the exact candidate diff and baseline hashes for every
+  allowed implementation file.
+- If the candidate fails SCN-BUG017-10, restore only those candidate hunks and verify their
+  hashes before changing `workers: 2` to `workers: 1`.
+- If the candidate passes, rollback proof is a self-reverting mutation that removes the
+  Foundation-owned close and makes the strict canary fail on its lifecycle assertion, followed
+  by hash restoration and a green canary.
+- No rollback may alter tests outside the declared boundary or any historical packet evidence.
+
+### Test Plan
+
+| ID | Type | Scenario | File / exact title | Command | Required result |
+| --- | --- | --- | --- | --- | --- |
+| TP-BUG017-04-01 | E2E UI regression | SCN-BUG017-09 | `tests/playwright-runtime.foundation.functional.mjs` — `Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds` | `node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs` | The test spawns `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=2 --reporter=list`; the real child reports 27/27 passing and exit 0 within 15 seconds of worker stop, with zero force-kill or ignored-error markers. |
+| TP-BUG017-04-02 | Adversarial regression | SCN-BUG017-09 | Same named canary | `scripts/red-green-probe.sh --file tests/portfolio-survival-foundation.spec.mjs --find '  if (foundationBrowser) await foundationBrowser.close();' --replace '  void foundationBrowser;' --label 'SCN-BUG017-09 Foundation-owned close is required' --bound 300 -- node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs` | RED must fail on the 15-second child-stop/lifecycle assertion, restore the Foundation file hash, and GREEN must pass. |
+| TP-BUG017-04-03 | Regression E2E | SCN-BUG017-10 | `tests/portfolio-survival-foundation.spec.mjs` plus the other seven concrete portfolio specs named in the scenario manifest | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Resolved worker count is 2; 94/94 pass; exit 0; no `worker-N process did not exit within 300000ms after stop, force-killed it`; owned Chrome and worker process counts return to baseline. |
+| TP-BUG017-04-04 | Conditional Regression E2E | SCN-BUG017-11 | `tests/portfolio-survival-foundation.spec.mjs` plus the same seven concrete portfolio specs | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | This row runs only after TP-BUG017-04-03 fails and candidate rollback is hash-verified; resolved worker count is 1; 94/94 pass; exit 0; no force-kill or ignored-error marker. |
+| TP-BUG017-04-05 | Functional regression | SCN-BUG017-11 | `tests/playwright-runtime.foundation.functional.mjs` — `Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project` | `node --test --test-name-pattern='^Regression: SCN-BUG017-11 lifecycle remediation cannot hide force-kill or switch browser project$' tests/playwright-runtime.foundation.functional.mjs` | The committed config still selects `system-chrome`; the 300000ms budget is unchanged; candidate and canary contain no catch-and-ignore or output filtering; only the conditional branch may change workers from 2 to 1. |
+
+The six-full-run diagnostic cap recorded by the current-revision stabilization round is
+exhausted. TP-BUG017-04-03 is the next implementation validation after the bounded canary, not
+another exploratory rerun. Do not spend another complete run before applying the candidate.
+
+### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-09 through SCN-BUG017-11, including the strict canary and whichever complete C03 branch its recorded decision selects.
+- [ ] Broader E2E regression suite passes for the complete eight-file, 94-test BUG-022 C03 portfolio workload under the selected system-Chrome worker configuration.
+- [ ] The additive supersession is respected: no current closure claim relies on the historical `0/3 at two workers` observation, and no historical evidence or checked row is rewritten.
+- [ ] The implementation uses automatic worker-scoped ownership for Foundation and closes its browser in the existing Foundation `afterAll`; neither rejected bare-close nor worker-fixture-teardown shape is present.
+- [ ] TP-BUG017-04-01 passes the real cumulative Foundation-to-Paths canary at 27/27 with workers=2, child exit 0 within the strict 15-second worker-stop bound, and zero force-kill or ignored teardown errors.
+- [ ] TP-BUG017-04-02 proves the canary is discriminating: removing only the Foundation-owned close produces the planned lifecycle RED, then exact hash restoration returns the canary to GREEN.
+- [ ] TP-BUG017-04-03 runs the complete exact BUG-022 C03 94-test command at workers=2 and records 94/94 passing, exit 0, no 300000ms force-kill marker, and restored owned process counts.
+- [ ] If TP-BUG017-04-03 passes, `playwright.config.mjs` remains at workers=2 and no one-worker change is present.
+- [ ] If TP-BUG017-04-03 fails a lifecycle criterion, candidate rollback is hash-verified before workers=1 is selected; TP-BUG017-04-04 then passes the unchanged exact 94-test command. If it does not pass, the scope remains Not Started or In Progress and both bugs remain blocked.
+- [ ] No force-kill error is ignored, caught as success, filtered from evidence, or relabelled; no browser-project switch or teardown-budget increase is present.
+- [ ] The implementation diff contains only the declared allowed file families, with zero changes to excluded surfaces and zero sensitive or machine-local leakage.
+- [ ] Rollback is proven by exact candidate-hunk restoration plus file hashes, without changing portfolio assertions or historical packet evidence.
+- [ ] Packet artifact lint, planning traceability checks, and the repository baseline selftest pass after planning and implementation artifacts are synchronized.
+
+The rows above are intentionally unchecked. The strict canary result supplied to planning is
+candidate evidence, not complete-workload proof, and the complete lifecycle candidate has not
+yet passed TP-BUG017-04-03.
+
+### Uncertainty Declaration — Scope 4
+
+**Attempted:** This planning pass reconciled the current-revision recurrence into an explicit
+implementation boundary, three scenarios, five exact test rows, a conditional decision rule,
+and rollback requirements. It did not implement or execute the lifecycle candidate.
+
+**Observed:** The current-session repository files establish the existing Foundation and Paths
+lifecycle hooks, the two-worker config, and the exact BUG-022 C03 command. The operator-supplied
+stabilization measurements are diagnostic input and are not claimed as execution by this
+planning pass.
+
+**Would resolve:** The next execution owner must produce the planned adversarial RED and GREEN
+canary, then run TP-BUG017-04-03. Only its actual result selects either the retained two-worker
+lifecycle remedy or the rollback-first one-worker branch. Every DoD row remains unchecked until
+its own command-backed evidence exists.
+
 ## Cross-Scope Definition of Done
+
+The checked rows below are preserved historical closure records. They do not satisfy or waive
+any unchecked Scope 4 row, and they do not authorize BUG-022 to consume the old two-worker
+closure claim.
 
 - [x] `bug.md` status is updated from Confirmed to Fixed and then Verified.
   → Evidence: `bug.md` now reads `Verified`. The earlier round left this half-open for one stated

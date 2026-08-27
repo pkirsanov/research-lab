@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
   "featureName": "BUG-022 Historical Report Declaration Leak",
   "createdAt": "2026-08-27T00:00:00Z",
-  "lastUpdatedAt": "2026-08-27T15:56:30Z",
+  "lastUpdatedAt": "2026-08-27T16:39:46Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -23,17 +23,17 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "test",
-    "currentPhaseStatus": "complete",
+    "currentPhase": "regression",
+    "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-27T12:18:47Z",
     "completedAt": null,
     "substate": "independently_verified",
     "currentScope": "01-separate-active-declarations-from-historical-receipts",
-    "nextRequiredOwner": "bubbles.validate",
-    "nextRequiredTarget": "specs/_bugs/BUG-022-historical-report-declaration-leak",
-    "nextRequiredReason": "Reconcile the validate-owned certification.scopeProgress claim from 14/2 to the artifact's executed 16/0. Status and certification remain in_progress; terminal certification also remains blocked by the current transition guard and unrecorded human acceptance.",
+    "nextRequiredOwner": "bubbles.stabilize",
+    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
+    "nextRequiredReason": "The required Feature 008 Playwright suite selected and passed all 94 scenarios at the committed two-worker setting, then Playwright force-killed worker-1 after 300000ms and exited 1 with two errors outside test bodies. BUG-017 owns this failure class and its two-worker mitigation claim must be reassessed before BUG-022 can complete regression.",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -223,6 +223,25 @@
       ],
       "nextRequiredOwner": "bubbles.validate",
       "summary": "Fresh test execution at clean validate revision c652cd092 closed exactly TP-BUG022-C04 and the grouped Change Boundary row. The repository selftest exited 0 with 3465 passed and 0 failed. The current-revision containment matrix exited 0 with unchanged protected report and ratchets, a clean focused-test marker scan, and leakage=0. The six exact BUG-022 functional regressions passed after source-locked local dependency provisioning, reachability and artifact lint exited 0, and no test was skipped or marked todo. Scope progress truthfully exited 1 because validate-owned certification still claims 14/2 while the artifact now has 16/0; the transition guard truthfully remained non-terminal. No status, certification, acceptance, uservalidation, source, test, framework, or unrelated file changed."
+    },
+    {
+      "at": "2026-08-27T16:39:46Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "phasesExecuted": ["regression"],
+      "action": "regression-round-executed-route-required",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG022-OWNED-REGRESSION-SURFACE"
+      ],
+      "unresolvedFindings": [
+        "REG-BUG022-001"
+      ],
+      "nextRequiredOwner": "bubbles.stabilize",
+      "summary": "Ran the genuine BUG-022 regression surface from an isolated clean worktree at 4bf10c039. The six exact BUG-022 functional rows passed 6 of 6. Reachability exited 0 with 201 test files, 10 active globs, 30 historical sites, 0 classification errors, 184 reachable, 11 exempt, and 6 frozen orphans. Feature 008 direct Node suites passed 257 of 257. The clean-tree selftest passed 3465 of 3465. The regression-quality guard reported 0 violations and 0 warnings. The protected Feature 008 report matched its 359d536b anchor at sha256 8ea0e36e28aa7a409006b1db4ba0612c202cdadbd59054d7686dc31c2bf6801b. Reachability baseline stayed 26 to 26 and known crossings stayed 9 to 9 with byte-identical hashes. The required Feature 008 Playwright command passed all 94 scenarios but exited 1 after Playwright force-killed worker-1 at the committed two-worker setting, reproducing BUG-017 with two errors outside test bodies. No regression completedPhaseClaim was added. No certification, status, scope, acceptance, implementation, test, framework, protected report, baseline, or unrelated dirty file changed."
     }
   ]
 }

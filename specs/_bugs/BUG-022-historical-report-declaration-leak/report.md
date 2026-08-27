@@ -853,3 +853,282 @@ M       tests/playwright-runtime.foundation.functional.mjs
 f226ae5c34dff3f6eb73723bff3c85c8f7ab4f2a fix(BUG-022): classify active test declarations
 ec28e258d6e65e0eaf4cce433ef885eee785af5f docs(BUG-022): record implementation evidence
 ```
+
+## Regression Phase Attempt At `4bf10c039` - Route Required
+
+### Verdict
+
+**Phase:** regression
+**Claim Source:** executed
+**Outcome:** `route_required`
+**Verdict:** `REGRESSION_DETECTED`
+
+BUG-022's focused behavior, direct Feature 008 Node suites, clean-tree
+selftest, regression-quality guard, and protected-byte checks passed. The
+required Feature 008 Playwright command did not pass. All 94 browser scenarios
+passed, but Playwright force-killed `worker-1` after its 300000ms teardown bound
+and exited 1 with two errors outside test bodies.
+
+This is the exact active defect class recorded by BUG-017. This run also
+contradicts BUG-017's current claim that the committed two-worker pin avoids
+the stall. The finding is routed to `bubbles.stabilize` against
+`specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos`.
+No BUG-017 artifact or implementation file changed. No completed `regression`
+phase claim is recorded for BUG-022.
+
+### Derived Regression Surface
+
+**Phase:** regression
+**Claim Source:** executed
+
+The implementation parent is
+`7d0b3147ac69bf0dfce94c24770b69d9b1f334a2`. The single implementation commit
+is `f226ae5c34dff3f6eb73723bff3c85c8f7ab4f2a`. The regression epoch is
+`4bf10c03906733cefe2b1de707faa3996ba25c66`.
+
+```text
+IMPLEMENTATION_CHANGED_PATHS=3
+CHANGED .specify/memory/agents.md
+CHANGED scripts/validate-test-file-reachability.mjs
+CHANGED tests/playwright-runtime.foundation.functional.mjs
+NUMSTAT 11      0       .specify/memory/agents.md
+NUMSTAT 270     16      scripts/validate-test-file-reachability.mjs
+NUMSTAT 289     0       tests/playwright-runtime.foundation.functional.mjs
+FEATURE008_TEST_FILE_DELTA=0
+```
+
+The collector and foundation carrier share the declaration-classification
+contract. Feature 008 is the protected dependent feature because the historical
+receipt and the eight browser specifications are its artifacts. BUG-017 is the
+affected cross-spec runtime because it owns the observed local macOS teardown
+failure and shares the foundation carrier and Playwright configuration.
+
+### Baseline Comparison
+
+| Check | Prior packet baseline | Current result | Delta |
+| --- | --- | --- | --- |
+| Six BUG-022 functional rows | 6 passed, exit 0 | 6 passed, exit 0 | Stable |
+| Feature 008 direct Node | 257 passed, exit 0 | 257 passed, exit 0 | Stable |
+| Feature 008 Playwright | 94 passed, exit 0 | 94 passed, exit 1, two non-test errors | Regression |
+| Full selftest | 3465 passed, 0 failed | 3465 passed, 0 failed | Stable |
+
+The command registry declares no numerical line-coverage command. The executed
+structural delta check found test declarations increasing from 11 to 23 and
+assert calls increasing from 57 to 106. It found zero deleted tests, zero
+deleted assertion lines, zero new skip/only/todo markers, zero permissive
+assertions, and zero Feature 008 test-file edits.
+
+### Focused Six Functional Tests
+
+**Phase:** regression
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG022-' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+```text
+# BUG-022 regression six focused functional tests at 4bf10c039
+exit: 0
+lines: 14
+sha256: 219fdc867e79180d292c1745fa45fd1d64a7d8aa7a0e1679556aa50e7d0b6efa
+tests 6
+pass 6
+fail 0
+cancelled 0
+skipped 0
+todo 0
+duration_ms 2016.037292
+```
+
+### Repository Reachability
+
+**Phase:** regression
+**Command:** `node scripts/validate-test-file-reachability.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+```text
+# BUG-022 regression repository reachability at 4bf10c039
+exit: 0
+lines: 43
+sha256: 232f53d2e10cfef68fbbadfd5a56bb68b69ebb22ed7d48f42cb342cbfd7da1a3
+testFiles=201
+activeGlobs=10
+historicalSites=30
+classificationErrors=0
+reachable=184
+exempt=11
+orphans=6
+```
+
+### Feature 008 Direct Node Suites
+
+**Phase:** regression
+**Command:** `node --test tests/portfolio-*.unit.mjs tests/portfolio-*.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+```text
+# BUG-022 regression Feature 008 direct Node suites at 4bf10c039
+exit: 0
+lines: 266
+sha256: 989078ab35b2874e39686af8b17e381f7f9594a4860f2fe15342d1f3c2d2ba64
+tests 257
+suites 0
+pass 257
+fail 0
+cancelled 0
+skipped 0
+todo 0
+duration_ms 4629.239375
+```
+
+### Feature 008 Playwright Suite - Non-Zero
+
+**Phase:** regression
+**Command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 1
+**Claim Source:** executed
+**Result:** FAIL
+
+```text
+# BUG-022 regression Feature 008 portfolio Playwright at 4bf10c039
+exit: 1
+lines: 306
+sha256: d68b33966cfeefd77a19141b312a77014d1c5d2f60d5767539cd13ab48b2be65
+Running 94 tests using 2 workers
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+94 passed (5.9m)
+2 errors were not a part of any test, see above for details
+```
+
+### Clean-Tree Full Selftest
+
+**Phase:** regression
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+```text
+# BUG-022 regression clean-tree full selftest at 4bf10c039
+exit: 0
+lines: 3960
+sha256: efefd867ffc731f693e91cb117629388ac3101324457a43b509f12896de499c1
+Step 1 security - escaped model sinks and CSP on every page
+Feature 004 RLFX/RLDATA foundation
+security findings - a declared bound that nothing validates is not a bound
+Research-Lab self-test: 3465 passed, 0 failed
+```
+
+### Regression Quality Guard
+
+**Phase:** regression
+**Command:** `bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+```text
+# BUG-022 regression quality guard at 4bf10c039
+exit: 0
+lines: 15
+sha256: 60c5fdf627156ec3bc7ad7d88128aac403b250cde55fadfce3d6b18bcc7904d6
+BUBBLES REGRESSION QUALITY GUARD
+Bugfix mode: true
+Scanning tests/playwright-runtime.foundation.functional.mjs
+Adversarial signal detected in tests/playwright-runtime.foundation.functional.mjs
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 1
+Files with adversarial signals: 1
+```
+
+### Protected Bytes And Ratchets
+
+**Phase:** regression
+**Command:** current-session Node byte comparator over the protected report, reachability baseline, and `KNOWN_DISCOVERY_CROSSINGS`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+```text
+PROTECTED_REPORT_ANCHOR=359d536bbeb8f10c3184aba9397b1b1f972e7d70
+PROTECTED_REPORT_ANCHOR_SHA256=8ea0e36e28aa7a409006b1db4ba0612c202cdadbd59054d7686dc31c2bf6801b
+PROTECTED_REPORT_CURRENT_SHA256=8ea0e36e28aa7a409006b1db4ba0612c202cdadbd59054d7686dc31c2bf6801b
+PROTECTED_REPORT_BYTES=251561
+REACHABILITY_BASELINE_BASE_SHA256=dbab8720445e1fdc267e381f49b1bee76f49c7e345c18ef669bccf85a820fd73
+REACHABILITY_BASELINE_CURRENT_SHA256=dbab8720445e1fdc267e381f49b1bee76f49c7e345c18ef669bccf85a820fd73
+REACHABILITY_BASELINE_COUNTS=26->26
+KNOWN_CROSSINGS_BASE_SHA256=b5ead0c8589c7a1cf699f00d2a08790d24e784a495e5f0a8f2d25f1aef79f470
+KNOWN_CROSSINGS_CURRENT_SHA256=b5ead0c8589c7a1cf699f00d2a08790d24e784a495e5f0a8f2d25f1aef79f470
+KNOWN_CROSSING_COUNTS=9->9
+CONTAINMENT_FAILURES=0
+leakage=0
+```
+
+### Coverage Delta And Weakening Scan
+
+**Phase:** regression
+**Command:** current-session Node diff audit over `7d0b3147a..f226ae5c3`
+**Exit Code:** 0
+**Claim Source:** executed
+**Result:** PASS
+
+```text
+FOUNDATION_TEST_DECLARATIONS=11->23
+FOUNDATION_ASSERT_CALLS=57->106
+DIFF_ADDED_TEST_DECLARATIONS=12
+DIFF_DELETED_TEST_DECLARATIONS=0
+DIFF_ADDED_ASSERTION_LINES=49
+DIFF_DELETED_ASSERTION_LINES=0
+DIFF_ADDED_SKIP_ONLY_TODO=0
+DIFF_ADDED_PERMISSIVE_ASSERTIONS=0
+FEATURE008_TEST_FILE_DELTA=0
+COVERAGE_DELTA_FAILURES=0
+```
+
+### Routed Finding
+
+`REG-BUG022-001` is unresolved. The required two-worker `system-chrome`
+portfolio suite passed every scenario but exited 1 after Playwright force-killed
+its worker. BUG-017 owns that failure class. Its current mitigation and
+disclosure must be reassessed against this current-revision reproduction before
+BUG-022 can record a completed regression phase.
+
+### Final Governance Receipts
+
+**Phase:** regression
+**Claim Source:** executed
+
+```text
+command: bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-022-historical-report-declaration-leak
+exit: 0
+result: Artifact lint PASSED
+command: node scripts/validate-scope-dod-progress.mjs --all
+exit: 0
+sha256: b5a9ca8bc45dec0c5056a5a3a21883be1163a6a543e818f032093730455961a7
+scope-progress: packets=63 claims=86 agree=72 drift=14 baseline=14 new=0 stale=0
+command: node scripts/validate-acceptance-bulk-stamp.mjs
+exit: 0
+sha256: 4cc6dabaa6ef05110ef65d568e833c847c0bed35c092423761522d3c410fbabe
+acceptance: files=63 records=25 eligible=8 new=0 stale=0
+command: node scripts/pii-scan.mjs
+exit: 0
+sha256: ed2dc946715b18f001c21e2d35934b3625e2578dc11bc91233758fc6612cb7e5
+pii: files=10016 messages=2298 findings=0
+command: bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-022-historical-report-declaration-leak
+exit: 1
+sha256: 8581650764ddd2096fd0da86d7f58693277bf83ff51eff82521e7ecc82414835
+failedGateIds: [G022,G027,G136]
+failedChecks: [Check-5-all-done]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 11
+verdict: FAIL
+```
+
+The transition refusal is the required current non-terminal outcome. It does
+not override the Playwright failure, complete the regression phase, certify a
+scope, or change either status mirror.

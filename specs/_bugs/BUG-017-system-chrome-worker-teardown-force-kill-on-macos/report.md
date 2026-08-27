@@ -1325,4 +1325,167 @@ lines: 116
 sha256: 63de266d13dd8407eb703a9bcf7fbd2bbf2ea5c0a34746628607206140c1012c
 ```
 
+## Integration-Revision Receipt Refresh Evidence At `8091b5767`
+
+**Phase:** test
+**Claim Source:** executed
+
+The run started from `8091b5767de2d1f6529b2800f466a21b85e26d57`. The receipt
+resolver derived `PLANNED` for all eight scenarios and excluded 253 superseded receipts.
+The linked-test resolver then resolved all 17 references with exit 0.
+
+### Three Exact Functional Canaries
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+exit: 0
+lines: 9
+sha256: 503fd1fb55d128f363cd3e4f5e1688a6753a6e2a24e74e364edec9ed4747138e
+test: Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence
+tests: 1
+pass: 1
+fail: 0
+skipped: 0
+todo: 0
+duration_ms: 186.097625
+```
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+exit: 0
+lines: 9
+sha256: cd7c581f9b931d7c12b89184e0373867d0a3283229ed70c9682a1695ffed4871
+test: Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence
+tests: 1
+pass: 1
+fail: 0
+skipped: 0
+todo: 0
+duration_ms: 179.273917
+```
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+exit: 0
+lines: 9
+sha256: 026b03185b3ada4b0e564235721a23184f18da9d8f864752bade8e3e829555ef
+test: Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin
+tests: 1
+pass: 1
+fail: 0
+skipped: 0
+todo: 0
+duration_ms: 184.709208
+```
+
+### Four Discriminating RED/GREEN Probes
+
+Each command used `scripts/red-green-probe.sh` with the exact mutation and test from
+`scopes.md`. Every probe produced its planned assertion, reran GREEN, and restored the
+tracked target to its starting blob.
+
+```text
+SCN-BUG017-03 causal-label probe
+exit: 0
+sha256: e5e913cc4e61c21c3e2bdc6de01c76f3f94c43f7196b8715658833c3386a1375
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 3 uses a forbidden causal verdict
+green-exit: 0
+revert-verified: yes
+committed: 7283e27d5a8bb1a87de90bc6eb2b516f0235dc9a
+restored: 7283e27d5a8bb1a87de90bc6eb2b516f0235dc9a
+discriminating: yes
+
+SCN-BUG017-03 single-build-rationale probe
+exit: 0
+sha256: 6d360fce8e023472999c7e7ba66ad884ddbfc22127ba7ae0fdcff2e861c2d2b4
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-03: candidate 4 lacks the single-build untested rationale
+green-exit: 0
+revert-verified: yes
+committed: 7283e27d5a8bb1a87de90bc6eb2b516f0235dc9a
+restored: 7283e27d5a8bb1a87de90bc6eb2b516f0235dc9a
+discriminating: yes
+
+SCN-BUG017-07 platform-removal probe
+exit: 0
+sha256: 9686d361e30b735f5a8b9edd6cfdb21b98d41713a8025a4a52bbe7b0ae05915b
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-07: playwright.config.mjs disclosure is missing platform macOS
+green-exit: 0
+revert-verified: yes
+committed: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+restored: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+discriminating: yes
+
+SCN-BUG017-08 two-to-six-worker probe
+exit: 0
+sha256: b4ec98437896985095c4c6b234f3b4f60e4ef8bcac00b19055e72a9c599eff4b
+red-exit: 1
+red-summary: AssertionError [ERR_ASSERTION]: SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2
+green-exit: 0
+revert-verified: yes
+committed: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+restored: d888fc38c3e2d92309b1efbf84b4f9322d2a9a9b
+discriminating: yes
+```
+
+### Complete Runtime-Foundation File
+
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+exit: 1
+lines: 65
+sha256: c5d9c19964591670b346217e700e658f8fc15bd41991cfc753d75a8028b2181c
+pass: shared runtime exports the exact checkout-local Playwright 1.61.1 API
+pass: shared runtime rejects sibling global-prefix and npm-cache Playwright packages
+pass: shared runtime contains no browser executable or package fallback authority
+pass: every Playwright spec uses the shared seam and sole committed browser config
+failure: committed discovery boundary keeps browser specs and direct Node suites disjoint
+actual: tests/portfolio-survival-accessibility.spec.mjs
+actual: tests/portfolio-survival-allocation.spec.mjs
+actual: tests/portfolio-survival-brief.spec.mjs
+actual: tests/portfolio-survival-diversification.spec.mjs
+actual: tests/portfolio-survival-foundation.spec.mjs
+actual: tests/portfolio-survival-mobile.spec.mjs
+actual: tests/portfolio-survival-paths.spec.mjs
+actual: tests/portfolio-survival-risk.spec.mjs
+```
+
+This failure keeps SCN-BUG017-03 and SCN-BUG017-07 at `PLANNED`. Their focused
+tests and mutations passed, but their unchecked DoD rows also require the complete file green.
+
+### Complete 22-File Lifetime-Tax Workload
+
+**Command:** `npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+runner: Version 1.61.1
+exit: 0
+lines: 116
+sha256: fa5ec30573aa8028e9df2fa0d24881c7240251cda2da3f24a87e34a782186ec6
+files: 22
+project: system-chrome
+workers: 2
+tests: 111
+passed: 111
+failed: 0
+skipped: 0
+duration: 1.3m
+```
+
 

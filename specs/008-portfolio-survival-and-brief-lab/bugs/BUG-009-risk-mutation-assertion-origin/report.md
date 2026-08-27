@@ -4,17 +4,21 @@
 
 - The focused `assetTreatment()` carrier and the single
   `F008-RISK-INPUT-001` registry remap are implemented and verified.
-- Current recorded execution is focused shipped `1/1`, exact mutant `0/1`
-  through required `ERR_ASSERTION`, strict registry `3/3`, full risk `3/3`,
-  five BUG-008 carriers `43/43`, risk browser `13/13`, and canonical selftest
-  `3426/3426`.
-- Regression, simplify, gaps, and the sanctioned setup prerequisite are
-  complete. The installed downstream G028 scan resolves both declared files
-  with `0` violations and `0` warnings.
-- The fresh harden verdict remains `NOT_HARDENED`.
-  `HARDEN-B009-001..007` are addressed after the parent validation repair.
-- `BUG-009-ROUTE-015` is the next BUG-local route and returns the packet to
-  `bubbles.harden` for a fresh harden pass. No stabilize route is open.
+- Fresh revision-311 execution is focused shipped `1/1`, exact mutant `0/1`
+  solely through `ERR_ASSERTION` with one selected test and one
+  `Module._compile` application, strict registry `3/3` over all 18 cases, full
+  risk `3/3`, five BUG-008 carriers `43/43`, risk browser `13/13`, and
+  canonical selftest `3426/3426`.
+- Regression quality is `0` violations and `0` warnings. Installed downstream
+  G028 resolves exactly the two declared `.mjs` implementation files with `0`
+  violations and `0` warnings. All six named packet gates pass.
+- Exact-title parity is clean across all eight required surfaces, the legacy
+  title is absent, and product, injector, and test blob containment passes.
+- The fresh harden verdict remains `NOT_HARDENED` because active planner-owned
+  `scopes.md` lifecycle text still describes addressed
+  `HARDEN-B009-006` and `HARDEN-B009-007` as unresolved.
+- `BUG-009-ROUTE-015` is consumed and resolved. `HARDEN-B009-008` is routed to
+  `bubbles.plan` through `BUG-009-ROUTE-016`; no stabilize route is open.
 - Historical before/after evidence, including the earlier `3425/3426` failure,
   remains intact. Parent Feature 008 changed only by replacing two disposed
   harness path tokens in its existing aggregate unstaged state transaction.
@@ -23,15 +27,16 @@
 
 ## Completion Statement
 
-The owned test repair and every test execution claimed by this report are
-implemented and verified. Regression, simplify, gaps, and sanctioned setup are
-complete; installed downstream G028 scans `2` files with `0` violations and
-`0` warnings. Fresh harden remains `NOT_HARDENED`. This change resolves only
-`HARDEN-B009-007` externally and opens `BUG-009-ROUTE-015` to
-`bubbles.harden`; `HARDEN-B009-001..007` are addressed. No stabilize route is
-opened. BUG-009 remains `in_progress`, the scope remains In Progress, every DoD
-item remains unchecked, and human acceptance and certification remain untouched
-and unclaimed.
+The revision-311 harden pass executed the complete requested technical and
+packet battery. Every implementation, test, scanner, gate, parity, and blob
+containment check passed with the exact counts recorded below. The active
+planner lifecycle check failed, so the verdict is `NOT_HARDENED` and no harden
+completion claim is added. `BUG-009-ROUTE-015` is resolved by this executed
+pass; `HARDEN-B009-008` and `BUG-009-ROUTE-016` route only the stale active
+`scopes.md` top, execution-routing, and uncertainty text to `bubbles.plan`.
+No stabilize route is opened. BUG-009 remains `in_progress`, Scope 1 remains In
+Progress, all 18 DoD items remain unchecked, and human acceptance and
+certification remain untouched and unclaimed.
 
 ## Test Evidence
 
@@ -2302,3 +2307,231 @@ to `bubbles.harden` for a fresh harden pass. The retained verdict is
 BUG-009 remains `in_progress`. Scope 1 remains In Progress. All 18 DoD items
 remain unchecked. Human acceptance, completed phase claims, and every
 certification field remain unchanged.
+
+## Fresh Harden Pass - Repository Authority Revision 311 {#fresh-harden-revision-311}
+
+**Phase:** harden
+**Agent:** `bubbles.harden`
+**Claim Source:** interpreted
+**Interpretation:** `NOT_HARDENED`. Every requested technical check passes on
+the current tree. The active planner-owned lifecycle text has not caught up
+with the addressed finding ledger, so H3 cannot pass and harden cannot route to
+stabilize.
+**Recorded at:** `2026-08-27T07:42:15Z`
+
+### Repository Authority And Mode
+
+**Claim Source:** executed
+
+```text
+host expectedControlRevision=310
+REPOSITORY PREFLIGHT CONFIRMED repository=research-lab root=~/research-lab source=explicit-repositoryRoot affinity=confirmed
+PREFLIGHT_COMMITTED decision=rb:vscode-d037d272141b9d17af8fa6ccdd049e69:311 revision=311 repository=research-lab root=~/research-lab
+HEAD=72ebc6188d3e59d732bcd93919c7c09fd1f7db8f
+persisted workflowMode=bugfix-fastlane
+grandfathered mode resolver exit=0
+statusCeiling=done
+phaseOrder=[select,bootstrap,implement,test,regression,simplify,gaps,harden,stabilize,devops,security,validate,audit,finalize]
+BUG-009-ROUTE-015 status at entry=pending
+HARDEN-B009-006 status at entry=addressed
+HARDEN-B009-007 status at entry=addressed_external
+harden completedPhaseClaims at entry=false
+```
+
+The fresh working-tree baseline contained 58 concurrent dirty paths. BUG-009
+`report.md` and `state.json` were clean at entry. No foreign path was staged or
+reverted.
+
+### Exact Focused And Mutation Origin
+
+**Claim Source:** executed
+
+```text
+# BUG-009 revision-311 focused shipped title
+$ node --test --test-name-pattern=^BUG-009 risk mapping: unsupported holdings remain named exclusions$ tests/portfolio-risk.functional.mjs
+exit: 0
+lines: 16
+sha256: 0f5eb1bf8fd5b938ebd9dd16dedee7ad9b4805dfdae21820e2c334bfc76919a5
+# tests 1
+# pass 1
+# fail 0
+# skipped 0
+# todo 0
+
+# BUG-009 revision-311 exact mutant origin
+exit: 1
+lines: 36
+sha256: 1ec1275710fc40af32ce63dd46b7470143230630c1a8a56ee2463ada29401679
+not ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+code: 'ERR_ASSERTION'
+name: 'AssertionError'
+# tests 1
+# pass 0
+# fail 1
+# skipped 0
+# todo 0
+MUTANT_EXIT=1
+APPLICATION_LINES=1
+APPLICATION=applied module=rlportfolioanalytics.js via=Module._compile bytes=311532
+```
+
+The mutant output contains the selected title once as the only failed test and
+contains no `TypeError`, `ERR_TEST_FAILURE`, injector, preload, setup, anchor,
+syntax, or module-load substitute.
+
+### Registry And Regression Battery
+
+**Claim Source:** executed
+
+```text
+# BUG-009 revision-311 strict all-18 registry
+exit: 0
+lines: 28
+sha256: 3eb41852dbd5f3fadc35014f35fbe6e34914365cf6830dab051f852030bf3ba6
+# tests 3
+# pass 3
+# fail 0
+# skipped 0
+# todo 0
+
+# BUG-009 revision-311 full risk carrier
+exit: 0
+lines: 28
+sha256: c97d3a6952b80c2f714502194a44ad57a58947012622d995a1d7b15b56b0a47a
+# tests 3
+# pass 3
+# fail 0
+# skipped 0
+# todo 0
+
+# BUG-009 revision-311 five BUG-008 carriers
+exit: 0
+lines: 268
+sha256: eab86e2b5464b0853fb741eba44e1bd4399ae5638d91c6d0d6ab2a9ac1598017
+# tests 43
+# pass 43
+# fail 0
+# skipped 0
+# todo 0
+
+# BUG-009 revision-311 risk browser carrier
+Version 1.61.1
+exit: 0
+lines: 18
+sha256: 57b6deb9f99639aaeb6fe20880dc9dfc1f820d8a2a06cbeda83fdc94632770c7
+Running 13 tests using 1 worker
+13 passed (17.2s)
+
+# BUG-009 revision-311 canonical selftest
+exit: 0
+lines: 3919
+sha256: a22edfce72c9ad983f201bb7e54c886b51e3a0370228075b71cdf5e5dede2b40
+Research-Lab self-test: 3426 passed, 0 failed
+```
+
+The registry source contains exactly 18 `F008-*` cases. Its three passing outer
+tests enforce one shipped pass, one mutant assertion failure, one application,
+and the declared hook for every case.
+
+### Regression Quality, G028, And Packet Gates
+
+**Claim Source:** executed
+
+```text
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 2
+Files with adversarial signals: 2
+G028_DECLARED_IMPLEMENTATION_FILES=2
+G028_IMPLEMENTATION_FILE=tests/portfolio-risk.functional.mjs
+G028_IMPLEMENTATION_FILE=tests/portfolio-test-integrity.unit.mjs
+IMPLEMENTATION REALITY SCAN RESULT
+Files scanned:  2
+Violations:     0
+Warnings:       0
+artifact-lint exit=0 lines=40 sha256=182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567
+traceability exit=0 lines=36 sha256=56cdf2f943125826d779de67e7166b248e0459614679c77355de62e74e75e097
+scenario-obligation exit=0 scenarios=1 sha256=9376304b85bf6ba26f043584e558e404f0f8bb5a67ce9be569e0f4633a03cbc4
+test-mechanism exit=0 mechanisms=1 sha256=9b5eb8597f28e2be64b065f55afd39e399c4dc67fcf86a91b0b4263fdace96f3
+scope-context-fit exit=0 scopes=1 sha256=7a84f3ca9c4d89bb763bfc95ee9d8247f3eb7fafed040311e53609f2ae6627d9
+capability-foundation exit=0 proportionality=not-triggered sha256=c8502accec1740a853e05cb2ed184bbb1ff266bf33792fd4d2a02aa02a651fc9
+```
+
+The selected compliance scan found zero skip markers, zero browser request
+interceptions, and zero required-scenario bailout returns. The browser carrier
+contains 147 direct `expect(...)` calls. All 11 planned test IDs match across
+the Markdown Test Plan, `test-plan.json`, `scenario-manifest.json`, and the DoD.
+The packet has one scope and one Gherkin scenario; cross-scope duplication is
+not applicable.
+
+### Exact-Title And Blob Containment
+
+**Claim Source:** executed
+
+```text
+bug.md CURRENT=1 EXPECTED=1 STALE=0
+spec.md CURRENT=1 EXPECTED=1 STALE=0
+design.md CURRENT=1 EXPECTED=1 STALE=0
+scopes.md CURRENT=3 EXPECTED=3 STALE=0
+scenario-manifest.json CURRENT=1 EXPECTED=1 STALE=0
+test-plan.json CURRENT=4 EXPECTED=4 STALE=0
+tests/portfolio-risk.functional.mjs CURRENT=1 EXPECTED=1 STALE=0
+tests/portfolio-test-integrity.unit.mjs CURRENT=1 EXPECTED=1 STALE=0
+TITLE_SURFACES=8
+REGISTRY_F008_CASES=18
+STATIC_CONTRACT_EXIT=0
+rlportfolioanalytics.js parent=203c57b14898a13e0da81898e755ea5f5f6674ba implementation=203c57b14898a13e0da81898e755ea5f5f6674ba head=203c57b14898a13e0da81898e755ea5f5f6674ba worktree=203c57b14898a13e0da81898e755ea5f5f6674ba
+tests/portfolio-defect-injector.cjs parent=20ed786006be23f542ec3c524758eda625567ea9 implementation=20ed786006be23f542ec3c524758eda625567ea9 head=20ed786006be23f542ec3c524758eda625567ea9 worktree=20ed786006be23f542ec3c524758eda625567ea9
+tests/portfolio-risk.functional.mjs implementation=2a537316eadbf5067d19c020e0a60b020fb16e84 head=2a537316eadbf5067d19c020e0a60b020fb16e84 worktree=2a537316eadbf5067d19c020e0a60b020fb16e84
+tests/portfolio-test-integrity.unit.mjs implementation=5aa222876f78430ef1d76a2c980045cf6a5d5207 head=5aa222876f78430ef1d76a2c980045cf6a5d5207 worktree=5aa222876f78430ef1d76a2c980045cf6a5d5207
+IMPLEMENTATION_CHANGED_PATH_COUNT=2
+tests/portfolio-risk.functional.mjs
+tests/portfolio-test-integrity.unit.mjs
+SOURCE_TEST_BLOB_CONTAINMENT_EXIT=0
+```
+
+### Planner Lifecycle Finding
+
+`HARDEN-B009-008` is open for `bubbles.plan`. The active top section,
+Scope 1 execution routing, and unchecked-item uncertainty declaration in
+`scopes.md` still name `bubbles.analyst` as the next owner, still describe
+`HARDEN-B009-006` and `HARDEN-B009-007` as unresolved, and still withhold the
+fresh harden pass until those already-addressed findings resolve.
+
+The planning-owned bytes remain unchanged. The required repair is limited to
+reconciling those active lifecycle statements with the current state and
+report while preserving Scope 1 as In Progress, every DoD item unchecked, and
+human acceptance and certification unchanged.
+
+**Claim Source:** executed
+
+```text
+STALE_ROUTE_014_OCCURRENCES=4
+STALE_ANALYST_OCCURRENCES=4
+FINDING_006_ACTIVE_OCCURRENCES=5
+FINDING_007_ACTIVE_OCCURRENCES=4
+CURRENT_ROUTE_015_OCCURRENCES=0
+ACTIVE_LIFECYCLE_RESULT=FAIL
+STATUS=in_progress
+CERTIFICATION_STATUS=in_progress
+SCOPE_STATUS=In Progress
+DOD_CHECKED=0
+DOD_UNCHECKED=18
+USERVALIDATION_CHECKED=0
+USERVALIDATION_UNCHECKED=6
+HARDEN_PHASE_CLAIMED=false
+ROUTE_015_STATUS=pending
+FINDING_006_STATUS=addressed
+FINDING_007_STATUS=addressed_external
+```
+
+The mismatch is planner-owned. This pass does not edit `scopes.md`, check any
+DoD item, claim human acceptance, or modify certification.
+
+### Verdict And Route
+
+Verdict: **NOT_HARDENED**.
+
+`BUG-009-ROUTE-015` is consumed and resolved by this executed pass.
+`BUG-009-ROUTE-016` routes `HARDEN-B009-008` to `bubbles.plan` for the narrow
+active-lifecycle reconciliation. A fresh harden pass is required after that
+planner-owned change. No route to `bubbles.stabilize` is opened.

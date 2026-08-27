@@ -280,3 +280,112 @@ test('committed discovery boundary keeps browser specs and direct Node suites di
   console.log('[playwright-runtime] newCrossings=' + newCrossings.length);
   console.log('[playwright-runtime] discoveryTaxonomy=PASS');
 });
+
+const BUG017_PACKET = resolve(
+  ROOT,
+  'specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos'
+);
+const BUG017_REPORT = resolve(BUG017_PACKET, 'report.md');
+const AGENT_REGISTRY = resolve(ROOT, '.specify/memory/agents.md');
+
+function tableRow(source, number) {
+  const prefix = `| ${number} |`;
+  const line = source.split('\n').find((candidate) => candidate.startsWith(prefix));
+  assert.ok(line, `SCN-BUG017-03: candidate ${number} row is missing`);
+  const cells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+  assert.equal(cells.length, 4, `SCN-BUG017-03: candidate ${number} row is malformed`);
+  return {
+    candidate: cells[1],
+    verdict: cells[2].replaceAll('**', ''),
+    evidence: cells[3]
+  };
+}
+
+function bug017Disclosures() {
+  const config = readFileSync(resolve(ROOT, 'playwright.config.mjs'), 'utf8');
+  const registry = readFileSync(AGENT_REGISTRY, 'utf8');
+  const configStart = config.indexOf('/* Match the pipeline');
+  const workersStart = config.indexOf('\n  workers:', configStart);
+  const registryStart = registry.indexOf('### Playwright E2E');
+  const firstRunCommand = registry.indexOf('npx --no-install playwright test', registryStart);
+
+  assert.ok(configStart >= 0, 'SCN-BUG017-07: playwright.config.mjs disclosure is missing');
+  assert.ok(workersStart > configStart, 'SCN-BUG017-07: playwright.config.mjs disclosure is not before workers');
+  assert.match(
+    config.slice(configStart, workersStart),
+    /\*\/\s*$/,
+    'SCN-BUG017-07: playwright.config.mjs disclosure is not adjacent to workers'
+  );
+  assert.ok(registryStart >= 0, 'SCN-BUG017-07: agents.md Playwright E2E section is missing');
+  assert.ok(
+    firstRunCommand > registryStart,
+    'SCN-BUG017-07: agents.md disclosure does not precede the first Playwright run command'
+  );
+
+  return [
+    ['playwright.config.mjs', config.slice(configStart, workersStart)],
+    ['.specify/memory/agents.md', registry.slice(registryStart, firstRunCommand)]
+  ];
+}
+
+function assertCompleteBug017Disclosure(site, disclosure) {
+  const prefix = `SCN-BUG017-07: ${site} disclosure`;
+  assert.match(disclosure, /macOS/, `${prefix} is missing platform macOS`);
+  assert.match(disclosure, /system-chrome/, `${prefix} is missing project system-chrome`);
+  assert.match(disclosure, /300000ms/, `${prefix} is missing the teardown budget`);
+  assert.match(disclosure, /force-killed/, `${prefix} is missing the force-kill symptom`);
+  assert.match(disclosure, /exits? 1/, `${prefix} is missing the non-zero exit`);
+  assert.match(disclosure, /every test passed|fully green run/i, `${prefix} is missing the green-suite symptom`);
+  assert.match(disclosure, /6\/8/, `${prefix} is missing the six-worker intermittence`);
+  assert.match(disclosure, /1\/3/, `${prefix} is missing the four-worker intermittence`);
+  assert.match(disclosure, /0\/3/, `${prefix} is missing the two-worker intermittence`);
+  assert.match(disclosure, /343s/, `${prefix} is missing the stalled wall time`);
+  assert.match(disclosure, /81s/, `${prefix} is missing the bounded wall time`);
+  assert.match(disclosure, /same 111 tests/, `${prefix} is missing the workload identity`);
+}
+
+test('Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence', () => {
+  const report = readFileSync(BUG017_REPORT, 'utf8');
+  const profile = tableRow(report, 3);
+  const versionPair = tableRow(report, 4);
+
+  assert.equal(profile.candidate, 'Profile or lock contention');
+  assert.equal(versionPair.candidate, 'Version-pair interaction');
+  assert.doesNotMatch(
+    profile.verdict,
+    /\bcause\b/i,
+    'SCN-BUG017-03: candidate 3 uses a forbidden causal verdict'
+  );
+  assert.doesNotMatch(
+    versionPair.verdict,
+    /\bcause\b/i,
+    'SCN-BUG017-03: candidate 4 uses a forbidden causal verdict'
+  );
+  assert.match(profile.verdict, /^(?:Supported|Contradicted|Untested)\b/);
+  assert.match(versionPair.verdict, /^(?:Supported|Contradicted|Untested)\b/);
+  assert.match(profile.evidence, /--user-data-dir=/);
+  assert.match(profile.evidence, /no per-user profile state is shared/);
+  assert.match(versionPair.evidence, /Playwright 1\.61\.1 against Chrome 151\.0\.7922\.170/);
+  assert.match(
+    versionPair.evidence,
+    /only one Chrome build was available, so nothing is discriminated\./,
+    'SCN-BUG017-03: candidate 4 lacks the single-build untested rationale'
+  );
+});
+
+test('Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence', () => {
+  for (const [site, disclosure] of bug017Disclosures()) {
+    assertCompleteBug017Disclosure(site, disclosure);
+  }
+});
+
+test('Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin', () => {
+  for (const [site, disclosure] of bug017Disclosures()) {
+    assertCompleteBug017Disclosure(site, disclosure);
+  }
+  assert.equal(
+    playwrightConfig.workers,
+    2,
+    'SCN-BUG017-08: disclosure is present but the system-chrome worker pin is not 2'
+  );
+});

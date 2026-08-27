@@ -4085,7 +4085,7 @@ MARKER=/tmp/bug009-marker.x2e4Fm
 test at tests/portfolio-risk.functional.mjs:43:1
 ✖ BUG-009 risk mapping: unsupported holdings remain named exclusions (2.197693ms)
   AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
-      at TestContext.<anonymous> (file:///home/philipk/research-lab/tests/portfolio-risk.functional.mjs:60:10)
+      at TestContext.<anonymous> (file:///<repo-root>/tests/portfolio-risk.functional.mjs:60:10)
     generatedMessage: true,
     code: 'ERR_ASSERTION',
     actual: 'unsupported-holding',

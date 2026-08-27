@@ -1,6 +1,6 @@
 # BUG-017: On macOS The System-Chrome Browser Project Intermittently Fails To Tear Down, Turning An All-Green Run Into A Non-Zero Exit
 
-- **Status:** Verified
+- **Status:** Reopened — In Progress
 - **Severity:** Medium — developer experience only; does not reproduce in the pipeline
 - **Surface:** `playwright.config.mjs` project `system-chrome` (`channel: 'chrome'`), local macOS runs
 - **Filed at commit:** `7d592cf1b`
@@ -80,6 +80,10 @@ Neither cost appears at one worker. Runs 1 and 2 differ by about a second.
 
 ## Processes Survive The Run
 
+**Historical filing observation.** The following count belongs to run 5 and is retained
+verbatim. Current Foundation isolation found no Chrome residue, so this count does not
+describe the current recurrence.
+
 Chrome process count was sampled either side of run 5:
 
 ```
@@ -95,17 +99,21 @@ teardown that does not fully release, not as an exact leak count.
 
 Stated plainly so it is not read as more than it is.
 
-- **The transport-level attribution was not verified here.** The stall has been attributed
-  elsewhere to Chromium's CDP transport over `--remote-debugging-pipe`. No handle trace was
-  taken in this session, so that mechanism is recorded as an unverified hypothesis in
-  `design.md`, not as a finding.
+- **The underlying transport attribution remains unverified.** The filing carried an
+  attribution to Chromium's CDP transport over `--remote-debugging-pipe` and took no handle
+  trace. Current isolation later found two anonymous `Socket` handles in the Foundation worker
+  after Chrome exited. That observation narrows the lifecycle boundary but does not identify
+  the sockets' owner or the underlying transport mechanism.
 - **Only one worker was force-killed, not several.** Run 5 names `worker-3` and no other. A
   higher count may occur under different conditions; it was not observed here.
-- **No repository fixture was implicated or exonerated.** The same ninety-four tests pass
-  cleanly on the bundled project, which points away from the tests, but pointing away is not
-  proof and no fixture-level isolation was attempted.
-- **The frequency is not characterised.** One occurrence in two runs at six workers is not a
-  rate.
+- **Superseded fixture reading.** The filing implicated or exonerated no repository fixture
+  because it attempted no fixture-level isolation. Current evidence now implicates the
+  Foundation lifecycle boundary. Its cumulative sequence through row 14 triggers the retained
+  handles, while the row alone does not. No HTTP server or Chrome residue remains after the
+  isolated trigger.
+- **The long-run frequency is not characterised.** The filing observed one occurrence in two
+  six-worker runs. Current evidence observed two failures in two two-worker runs and two passes
+  in two one-worker runs. Neither sample is a long-run rate.
 
 ## Impact
 
@@ -117,8 +125,9 @@ Stated plainly so it is not read as more than it is.
 
 ## Root Cause
 
-Not established at the transport level. What later measurement did establish is which variable
-governs whether a given run stalls — and the reading recorded at filing time was wrong.
+The underlying transport mechanism remains unestablished. Current recurrence evidence now
+implicates the Foundation lifecycle boundary. It also disproves the prior claim that worker
+count alone governs whether the run stalls.
 
 **Superseded reading, kept so the correction is legible.** The filing concluded: *"The variable
 is the browser channel."* That was drawn from a comparison which never held the channel fixed
@@ -126,7 +135,8 @@ while moving the worker count. The reproduction table above varies the project a
 at six, and contains no `system-chrome` run at two. With that cell missing, the channel was the
 only variable left standing, so it took the attribution by default.
 
-**Corrected reading.** The stall is conjunctive, and worker count is the governing term.
+**Superseded second reading, retained for historical traceability.** The stall is conjunctive,
+and worker count is the governing term.
 
 - Holding the channel fixed at `system-chrome` and moving only the worker count, the stall rate
   is monotone: **0 of 3** runs at two workers, **1 of 3** at four, **6 of 8** at six
@@ -136,25 +146,40 @@ only variable left standing, so it took the attribution by default.
   passing in both. Recorded and independently re-derived — see
   `## Independent Re-Derivation Round — The Controlled Pair At N=2`.
 
-The channel is **not** exonerated and must not be recorded as irrelevant: the bundled `chromium`
-project was clean at six workers, and the stall has never been observed under it. But that rests
-on two runs (`### The bundled project at the same concurrency`), which cannot carry a claim of
-channel independence against an eight-run system-Chrome sample. The honest statement is that
-`system-chrome` is a necessary condition, worker count decides, and the transport-level mechanism
-remains unselected among the candidates in `design.md`.
+**Superseded conclusion from that round, retained verbatim.** The channel is **not** exonerated
+and must not be recorded as irrelevant: the bundled `chromium` project was clean at six workers,
+and the stall has never been observed under it. But that rests on two runs (`### The bundled
+project at the same concurrency`), which cannot carry a claim of channel independence against an
+eight-run system-Chrome sample. The honest statement is that `system-chrome` is a necessary
+condition, worker count decides, and the transport-level mechanism remains unselected among the
+candidates in `design.md`.
+
+**Current reading after recurrence.** The exact 94-test `system-chrome` workload failed in two
+of two current-revision runs at two workers after every test passed. The same workload passed in
+two of two runs at one worker. These are current samples, not rates or proof that one worker
+removes the cause.
+
+The Foundation worker retained two anonymous `Socket` handles after Chrome exited. No HTTP
+server or Chrome process remained. The cumulative Foundation sequence through row 14 triggers
+the retention, while that row alone does not. This implicates Foundation's transport lifecycle
+boundary without selecting the underlying mechanism. Worker count modulates exposure, but it
+does not decide the outcome and is not the sole cause.
 
 ## What This Means For A Developer
 
-The distinction is not academic — it inverts the guidance.
+The current recurrence reopens this defect. The pipeline and committed configuration both use
+two workers, but the exact local workload now fails at that count. The two-worker pin therefore
+modulates exposure rather than proving remediation.
 
-The pipeline runs this suite on `system-chrome` with `--workers=2`
-(`.github/workflows/pages.yml`), which is precisely why it has never reproduced the stall. The
-committed `workers: 2` in `playwright.config.mjs` puts a local run on that same count by default.
+Keep `system-chrome` and two workers while evaluating the Foundation lifecycle candidate. The
+candidate closes Foundation's owned browser before worker teardown. Its strict
+Foundation-to-Paths probe passed 27 of 27 tests and released both workers within 15 seconds.
+That focused result does not prove the remedy. The candidate must still pass the exact 94-test
+workload with exit 0, no force-kill marker, and no workload-owned process residue.
 
-So the instruction is **leave the pinned worker count alone**. Raising `--workers` is the
-remaining route to the stall. Switching to `--project=chromium` would forfeit the local/CI browser
-parity the `system-chrome` project exists to provide, in order to avoid a condition that two
-workers already avoids — a bad trade, and not the remedy this packet took.
+Move the repository setting to one worker only if the lifecycle candidate fails that complete
+run and its changes are rolled back. One worker passed the current two-run sample, but it remains
+a conditional fallback rather than the selected remedy or a root-cause claim.
 
 ## Scope Of This Packet
 

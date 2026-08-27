@@ -3,8 +3,8 @@
 ## Purpose
 
 This specification states the behaviour a remedy must establish for local macOS runs of the
-`system-chrome` browser project. It selects no remedy; the options and their consequences are
-in `design.md`.
+`system-chrome` browser project. It selects no remedy. `design.md` records the options and
+their consequences.
 
 ### Single-Capability Justification
 
@@ -22,14 +22,31 @@ with invented variation axes.
 
 ## Behaviour Under Specification
 
-An exit code is a claim. When a runner reports ninety-four passes and exits 1, the claim and
-the evidence disagree, and everything downstream that reads the exit code — a script, a hook,
-a developer's habit — is reading a falsehood.
+An exit code is a claim. A runner can report ninety-four passes and still exit 1. That
+disagreement makes the exit code false. Every downstream caller then receives that falsehood.
 
-The defect is that disagreement. It is confined to one browser project on one platform, it
-does not reach the pipeline, and it is intermittent. Intermittence is not a mitigation here;
-it is the aggravating factor, because a failure that clears on rerun trains people to ignore
-the signal rather than to investigate it.
+The defect is that disagreement. It is confined to one browser project on one platform. It
+does not reach the pipeline, and it is intermittent. Intermittence aggravates the defect. A
+failure that clears on rerun trains people to ignore the signal rather than investigate it.
+
+## Current Evidence Boundary
+
+The original six-worker reproductions remain historical characterisation. They do not define
+the current trigger or prove that the two-worker setting closes the defect.
+
+At revision `d532faaac`, the exact 94-test BUG-022 C03 workload failed on two consecutive
+two-worker runs after every test passed. Each run ended at the runner's force-kill boundary.
+The same workload passed on two consecutive one-worker runs. These four runs define a current
+sample, not a long-run rate or proof that one worker removes the cause.
+
+Focused isolation found the Foundation worker retaining two anonymous `Socket` handles after
+Chrome exited. That observation narrows the failing lifecycle boundary. It does not establish
+the transport's underlying root cause.
+
+A measured lifecycle candidate gave Foundation a worker-scoped boundary and closed its browser
+in the existing `afterAll`. The Foundation-to-Paths probe passed all 27 tests. Both worker
+processes exited within the strict 15-second stop bound. The candidate remains uncertified
+because it has not passed the exact 94-test two-worker workload.
 
 ## Requirements
 
@@ -52,22 +69,39 @@ exit code for an identical, all-passing test set.
 ### FR-017-004 — Local verification cost is proportionate
 
 The `system-chrome` project's wall time for a given test set is within a stated multiple of
-the bundled project's. The currently measured ratio is roughly four to one on a clean run and
-roughly eighteen to one on a stalled one. What multiple is acceptable is an owner decision
-recorded against this requirement, not a number this specification fixes.
+the bundled project's. Filing measurements recorded roughly four to one on a clean six-worker
+run and roughly eighteen to one on a stalled run. Those values characterise the filing sample.
+What multiple is acceptable remains an owner decision recorded against this requirement.
 
 ### FR-017-005 — If the defect cannot be removed, it is disclosed rather than endured
 
-Where the cause lies outside this repository, the condition is documented where a developer
-meets it, so an intermittent exit 1 on a green suite is recognised rather than rediscovered.
-Disclosure is a fallback for an unremovable cause, never a substitute for a removable one.
+Where the cause lies outside this repository, document the condition where a developer meets
+it. Developers can then recognise an intermittent exit 1 on a green suite rather than
+rediscover it. Disclosure is a fallback for an unremovable cause, never a substitute for a
+removable one.
+
+### FR-017-006 — Focused proof does not certify the remedy
+
+A lifecycle candidate remains provisional after passing the focused Foundation-to-Paths probe.
+Selection requires the exact 94-test workload at two workers to pass with exit 0. No force-kill
+marker or workload-owned process residue may remain.
+
+### FR-017-007 — One worker is a conditional fallback
+
+The repository may move from two workers to one only after the lifecycle candidate fails the
+complete two-worker workload and its changes are rolled back. One worker must then pass the
+same 94-test workload with exit 0, no force-kill marker, and no workload-owned process residue.
 
 ## Acceptance Criteria
 
-- A ninety-four-test set under `system-chrome` at six workers exits 0 on repeated
-  consecutive runs, with raw output recorded for each.
-- No `worker-N process did not exit within` error appears in any of those runs.
+- The focused Foundation-to-Paths lifecycle check reports 27 passes and releases each worker
+  within 15 seconds of its stop signal.
+- The exact 94-test BUG-022 C03 workload under `system-chrome` at two workers exits 0 after
+  every test passes.
+- No `worker-N process did not exit within` error appears in the complete workload run.
 - Chrome process count returns to its pre-run level after the run completes.
+- A one-worker configuration is eligible only under FR-017-007 and must pass the identical
+  complete workload.
 - The wall-time ratio against the bundled project meets whatever bound the owner records
   under FR-017-004.
 - `node scripts/selftest.mjs` reports zero failures and no fewer assertions than the recorded
@@ -83,7 +117,18 @@ Disclosure is a fallback for an unremovable cause, never a substitute for a remo
 
 ## Grounding
 
-Every factual claim in this specification is established by executed evidence in `report.md`,
-produced in the filing session on the machine where the defect reproduces. Claims that were
-**not** established are enumerated in `bug.md` under `## What Was Not Established` and are not
-relied upon here.
+Historical filing claims remain grounded in the filing evidence in `report.md`. The current
+contract is grounded in `Distinct Two-Worker Teardown Recurrence` and `Current-Revision
+Stabilization At d532faaac` in that report. The Foundation handle observation narrows the
+failing boundary without establishing a root cause. The complete 94-test proof for the
+lifecycle candidate remains pending and is not claimed here.
+
+## Superseded Closure Inference (Historical)
+
+The original worker sweep observed no stalls in three two-worker runs. It observed one stall
+in three four-worker runs and six stalls in eight six-worker runs. Those outcomes remain valid
+history in `report.md`.
+
+The current two-worker recurrence supersedes only the inference that two workers eliminated
+the default-path defect. Six workers remain part of the original characterisation. They are no
+longer the acceptance workload or the only known recurrence condition.

@@ -44,8 +44,10 @@ change outside the declared test-only boundary.
 
 ### FR-B009-001 - Focused direct carrier
 
-Add exactly one persistent title in `tests/portfolio-risk.functional.mjs` that
-calls the real exported `RLPA.assetTreatment()` function directly.
+Add exactly one persistent title,
+`BUG-009 risk mapping: unsupported holdings remain named exclusions`, in
+`tests/portfolio-risk.functional.mjs` that calls the real exported
+`RLPA.assetTreatment()` function directly.
 
 ### FR-B009-002 - Mixed input is explicit
 

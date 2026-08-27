@@ -1132,3 +1132,29 @@ verdict: FAIL
 The transition refusal is the required current non-terminal outcome. It does
 not override the Playwright failure, complete the regression phase, certify a
 scope, or change either status mirror.
+
+## Stabilization Reassessment At `d532faaac` {#stabilization-reassessment-at-d532faaac}
+
+**Phase:** stabilize
+**Claim Source:** interpreted
+**Interpretation:** BUG-017 remains active. BUG-022 C03 has no final-tree exit-0 evidence.
+
+Fresh evidence is recorded in
+[BUG-017 current-revision stabilization](../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-revision-stabilization-at-d532faaac).
+The bounded full-run matrix produced two failures from two runs at the committed two-worker
+setting. Both runs reported 94 passing scenarios before Playwright force-killed workers. Two
+one-worker runs each reported 94 passes and exit 0.
+
+The diagnosis tied the stuck process to the Foundation spec's system-Chrome pipe transport.
+Repository HTTP servers had closed. Chrome had exited. The worker retained two transport Socket
+handles and never reached `process.exit(0)`. A focused worker-boundary plus early browser-close
+candidate passed Foundation followed by Paths with a strict 15000ms stop bound.
+
+The sixth full run used a rejected bare-close probe. Playwright recorded
+`"afterAll" hook timeout of 30000ms exceeded` and `status: failed`. VS Code discarded the async
+terminal payload before retrieval, so no numeric outer exit is asserted. The result is not
+exit-0 evidence and cannot complete C03.
+
+`REG-BUG022-001` remains unresolved. BUG-022 stays `in_progress`. No checkbox, state field,
+certification field, acceptance field, protected Feature 008 report, or baseline changed. No
+stabilize phase claim is recorded.

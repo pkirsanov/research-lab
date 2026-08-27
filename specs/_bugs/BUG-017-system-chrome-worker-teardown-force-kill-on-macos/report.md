@@ -1697,4 +1697,244 @@ The recurrence belongs to BUG-017's runtime remedy owner. It shows that the two-
 bounds exposure but does not eliminate it. It does not satisfy Feature 008's Playwright pass
 row, and it is not evidence for either checkbox closed above.
 
+## Current-Revision Stabilization At `d532faaac` {#current-revision-stabilization-at-d532faaac}
+
+**Phase:** stabilize
+**Claim Source:** interpreted
+**Interpretation:** Fresh execution falsifies the packet's current two-worker elimination claim.
+The defect is tied to the Foundation workload's Chrome transport shutdown. Machine load can
+amplify the condition, but it is neither necessary nor sufficient in this sample.
+
+No source, test, configuration, state, certification, acceptance, checkbox, protected Feature
+008 report, or baseline changed in this stabilization round. All source probes ran in a detached
+clean worktree and were restored byte-for-byte.
+
+### Bounded Full-Run Matrix
+
+Every matrix leg used the same eight `tests/portfolio-survival-*.spec.mjs` files, the
+`system-chrome` project, list reporter, and output directory. Only `--workers` changed.
+
+| Run | Workers | Start load | Tests | Playwright result | Wall | Owned residue |
+| --- | ---: | ---: | ---: | --- | ---: | ---: |
+| W2-R1 | 2 | 32.14 | 94 | 94 passed, 3 force-kills, exit 1 | 352s | 0 |
+| W1-R1 | 1 | 6.53 | 94 | 94 passed, exit 0 | 91s | 0 |
+| W2-R2 | 2 | 8.90 | 94 | 94 passed, 3 force-kills, exit 1 | 358s | 0 |
+| W1-R2 | 1 | 11.24 | 94 | 94 passed, exit 0 | 91s | 0 |
+
+The current sample is **2 of 2 failures at two workers** and **0 of 2 failures at one worker**.
+It does not estimate a stable long-run rate. It directly contradicts the historical `0/3` at
+two workers and the text that says the committed pin eliminates the default-path recurrence.
+
+**Phase:** stabilize
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 900 /bin/zsh -f /tmp/rl-bug017-run-probe-db38903e.zsh 2 W2-R1`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `a19b8e6531815afdc387878a559c71c280f94edb82383860826ede92ed3d465e`
+
+```text
+RUN_BEGIN id=W2-R1 workers=2 head=d532faaacff25987dda284d68740c0c68bd466ad output=/tmp/rl-bug017-matrix-output-db38903e
+RUNNER_VERSION=Version 1.61.1
+MACHINE logicalCpu=12 load={ 32.14 12.29 8.37 }
+Running 94 tests using 2 workers
+Error: worker-0 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+94 passed (5.9m)
+3 errors were not a part of any test, see above for details
+PLAYWRIGHT_EXIT id=W2-R1 workers=2 exit=1 wallSeconds=352
+PROCESS_COUNTS label=after-W2-R1 worktreeCwd=0 remoteDebugChrome=0
+WORKTREE_STATUS id=W2-R1 porcelainLines=0
+RUN_END id=W2-R1 workers=2 exit=1
+```
+
+**Phase:** stabilize
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 900 /bin/zsh -f /tmp/rl-bug017-run-probe-db38903e.zsh 1 W1-R1`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `d75071754703a264d7a04ecb3420c27320fd978761a5d1fcce9ea4dada0ddf7b`
+
+```text
+RUN_BEGIN id=W1-R1 workers=1 head=d532faaacff25987dda284d68740c0c68bd466ad output=/tmp/rl-bug017-matrix-output-db38903e
+RUNNER_VERSION=Version 1.61.1
+MACHINE logicalCpu=12 load={ 6.53 7.59 7.42 }
+Running 94 tests using 1 worker
+94 passed (1.5m)
+PLAYWRIGHT_EXIT id=W1-R1 workers=1 exit=0 wallSeconds=91
+MACHINE_AFTER logicalCpu=12 load={ 9.52 8.30 7.71 }
+PROCESS_COUNTS label=after-W1-R1 worktreeCwd=0 remoteDebugChrome=0
+WORKTREE_STATUS id=W1-R1 porcelainLines=0
+RUN_END id=W1-R1 workers=1 exit=0
+```
+
+**Phase:** stabilize
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 900 /bin/zsh -f /tmp/rl-bug017-run-probe-db38903e.zsh 2 W2-R2`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `e638b42496b7485ced98f41e77a7e3b76797bea1fe06a3a1b0ef382357f4d9f4`
+
+```text
+RUN_BEGIN id=W2-R2 workers=2 head=d532faaacff25987dda284d68740c0c68bd466ad output=/tmp/rl-bug017-matrix-output-db38903e
+RUNNER_VERSION=Version 1.61.1
+MACHINE logicalCpu=12 load={ 8.90 8.21 7.69 }
+Running 94 tests using 2 workers
+Error: worker-0 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+Error: worker-1 process did not exit within 300000ms after stop, force-killed it
+94 passed (6.0m)
+3 errors were not a part of any test, see above for details
+PLAYWRIGHT_EXIT id=W2-R2 workers=2 exit=1 wallSeconds=358
+PROCESS_COUNTS label=after-W2-R2 worktreeCwd=0 remoteDebugChrome=0
+WORKTREE_STATUS id=W2-R2 porcelainLines=0
+RUN_END id=W2-R2 workers=2 exit=1
+```
+
+**Phase:** stabilize
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 900 /bin/zsh -f /tmp/rl-bug017-run-probe-db38903e.zsh 1 W1-R2`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `e64b8a9333804324ea369decc8024f80ea470b7c0c1c5335b5254638e6e859ce`
+
+```text
+RUN_BEGIN id=W1-R2 workers=1 head=d532faaacff25987dda284d68740c0c68bd466ad output=/tmp/rl-bug017-matrix-output-db38903e
+RUNNER_VERSION=Version 1.61.1
+MACHINE logicalCpu=12 load={ 11.24 7.74 7.62 }
+Running 94 tests using 1 worker
+94 passed (1.5m)
+PLAYWRIGHT_EXIT id=W1-R2 workers=1 exit=0 wallSeconds=91
+MACHINE_AFTER logicalCpu=12 load={ 18.25 11.21 8.97 }
+PROCESS_COUNTS label=after-W1-R2 worktreeCwd=0 remoteDebugChrome=0
+WORKTREE_STATUS id=W1-R2 porcelainLines=0
+RUN_END id=W1-R2 workers=1 exit=0
+```
+
+### Process Ancestry And Residue
+
+The clean-worktree tree was the outer probe, `npx`, the Playwright runner, and Playwright worker
+processes. During W2-R1, one worker remained at 5m50s. During W2-R2, two workers remained at
+5m28s while load had fallen to 3.67. Neither sample contained a clean-worktree Chrome process.
+Every completed run returned the clean-worktree Playwright and remote-debugging process counts
+to zero.
+
+A separate `playwright test-server` appeared under the VS Code extension host in the developer
+worktree. It had no children and listened on an ephemeral loopback port. Its PID changed between
+samples. It was not a descendant of any matrix runner and is not counted as matrix residue.
+
+### Shutdown Stage
+
+The fifth full run enabled `DEBUG=pw:test,pw:test:protocol` and counted against the six-run cap.
+All 94 scenarios passed. Playwright logged the `headless`, `playwright`, and final teardown stages
+as finished at the same timestamp. One worker then remained alive until the 300000ms dispatcher
+bound expired.
+
+**Phase:** stabilize
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 900 env DEBUG_COLORS=0 DEBUG='pw:test,pw:test:protocol' PW_RUNNER_DEBUG=1 /bin/zsh -f /tmp/rl-bug017-run-probe-db38903e.zsh 2 W2-DEBUG`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `10148920bc288294dc3f7e87d9d218b8899d8a4d2c009f2e24a06f38441438e8`
+
+```text
+Running 94 tests using 2 workers
+2026-08-27T17:10:37.526Z pw:test started teardown "headless"
+2026-08-27T17:10:37.526Z pw:test finished teardown "headless"
+2026-08-27T17:10:37.526Z pw:test started teardown "playwright"
+2026-08-27T17:10:37.526Z pw:test finished teardown "playwright"
+2026-08-27T17:10:37.526Z pw:test started teardown
+2026-08-27T17:10:37.526Z pw:test finished teardown
+Error: worker-0 process did not exit within 300000ms after stop, force-killed it
+94 passed (5.7m)
+1 error was not a part of any test, see above for details
+PLAYWRIGHT_EXIT id=W2-DEBUG workers=2 exit=1 wallSeconds=345
+PROCESS_COUNTS label=after-W2-DEBUG worktreeCwd=0 remoteDebugChrome=0
+WORKTREE_STATUS id=W2-DEBUG porcelainLines=0
+RUN_END id=W2-DEBUG workers=2 exit=1
+```
+
+### Workload Isolation
+
+The selected specs create no Node timers, subprocesses, watchers, or sockets beyond their
+per-file HTTP servers. Every server has an awaited `afterAll`. The shared server closes all
+connections after `server.close()` starts.
+
+The allocation and diversification pair passed 26 tests at two workers. Both workers received
+`__stop__`, closed Chrome, reached `process.exit(0)`, and retained only IPC, stdout, and stderr.
+The Foundation and Paths pair passed 27 tests, but the Foundation worker retained two anonymous
+Socket handles after Chrome exited. It never reached `process.exit(0)` and hit the strict 15000ms
+diagnostic bound. Foundation alone reproduced the same result.
+
+The first eight and second eight Foundation rows each closed cleanly. The first twelve and first
+thirteen rows also closed cleanly. Adding `SCN-008-042` as row fourteen reproduced the transport
+stall. The second half contains `SCN-008-042` and closes cleanly, so that row is not independently
+causal. The trigger is the cumulative Foundation sequence ending at that row.
+
+### Rejected Lifecycle Shapes
+
+A bare `browser.close()` in the Foundation `afterAll` closed the transport in a focused run.
+It is not safe because Playwright can reuse that worker browser for another spec. Foundation
+followed by Paths at one worker failed the first Paths test with
+`browser.newContext: Target page, context or browser has been closed`.
+
+The same bare close failed the sixth and final full run. Playwright recorded one failed test and
+`"afterAll" hook timeout of 30000ms exceeded`. VS Code discarded the async terminal payload before
+it could be retrieved, so the outer numeric exit is not admissible evidence. Playwright's own
+`.last-run.json` records `status: failed`. This run cannot satisfy BUG-022 C03.
+
+Closing from a worker fixture teardown also failed. That teardown occurs too late and enters the
+same stuck transport path.
+
+### Focused Root-Fix Candidate
+
+The discriminating candidate combines two requirements:
+
+1. Give the Foundation test type one auto worker-scoped boundary fixture.
+2. Close its browser in the existing `afterAll`, before worker fixture teardown.
+
+The boundary makes Playwright start a fresh worker for later base-test specs. The early close
+removes the Foundation Chrome transport before the vendor stop path. Foundation followed by Paths
+at one available worker passed all 27 tests. Both worker processes reached `process.exit(0)` within
+the strict 15000ms stop bound.
+
+**Phase:** stabilize
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 300 env NODE_OPTIONS='--require=/tmp/rl-bug017-worker-stop-probe-db38903e.cjs' PWTEST_CHILD_PROCESS_TIMEOUT=15000 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list --workers=1 --output=/tmp/rl-bug017-scoped-output-db38903e`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `f7500cd5aaea6c71e85a72926cc08acba72a0dad7e3fe0f7badedb5fcaa1f15b`
+
+```text
+Running 27 tests using 1 worker
+[BUG017-WORKER pid=91462] probe installed
+[SCN-008-003] portfolioUnchanged=true
+[SCN-008-003] hardConstraints=2
+[SCN-008-003] researchConstraints=0
+[SCN-008-003] cashNeeds=1
+[SCN-008-003] absentFields=4
+[SCN-008-003] behaviorContribution=none
+[SCN-008-003] remotePersonalRequests=0
+[BUG017-WORKER pid=91462] exit event code=0
+[BUG017-WORKER pid=11198] probe installed
+[BUG017-WORKER pid=11198] exit event code=0
+  27 passed (1.0m)
+```
+
+This focused proof does not certify the candidate against the complete 94-test workload. The
+six-full-run cap is exhausted. No seventh full run executed.
+
+### Current Verdict And Owner Route
+
+**Verdict:** `UNSTABLE`
+
+Three findings remain open:
+
+1. `STAB-BUG017-001` high: the committed two-worker claim is stale and false for this workload.
+2. `STAB-BUG017-002` high: the Foundation sequence can strand the system-Chrome pipe transport.
+3. `STAB-BUG017-003` high: BUG-022 C03 has no final-tree exit-0 evidence.
+
+Planning ownership must add the current recurrence, lifecycle boundary, and persistent regression
+contract to BUG-017. Implementation ownership must apply the focused worker-boundary plus early
+close shape. Test ownership must run the strict Foundation-to-Paths canary and one fresh exact
+BUG-022 C03 command. A one-worker config pin is the measured low-cost mitigation if the lifecycle
+candidate fails that complete run. The historical `0/3` claim must not survive either route.
+
+The packet and certification status remain `in_progress`. No completion or stabilize phase claim
+is recorded for BUG-022.
+
 

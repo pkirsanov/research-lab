@@ -43,6 +43,64 @@
     "nextRequiredTarget": "specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite/design.md",
     "nextRequiredReason": "design.md already specifies a TWO-mutation adversarial case for TB-020-03, in two different files, while scripts/red-green-probe.sh applies one literal replacement to one file. The row and the design disagree about what is provable, and reconciling them is a design decision rather than an implementer's edit. The latest round widened the enumeration to every guard the remedy added, corrected the recorded layer count from three to four, and added a second live-mutation control; it took no position on which way the disagreement should be resolved and changed no assertion.",
     "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented'. The guards shipped and thirteen of fourteen Definition of Done rows are ticked against executed evidence in report.md. A later round added probes P6g, P6h and P6i and corrected the recorded layer count for TB-020-03 from three to four: E2, the CO-1 assembly guard the reported infinity row came from, had never been removed on its own, and neither had E4. P6g removes E2 alone, exit 7; P6h runs the identical literal against TB-020-01, exit 0, proving the mutation is live and detectable; P6i removes E4 alone, exit 7, and is recorded as uninformative because the acceptance fixture declares no disposition. The earlier three-layer sentence is left standing in report.md and corrected alongside rather than rewritten. A further round re-derived the whole set as a closed enumeration at one head: probes Q1 to Q11 cover every assertion this packet added plus the extended TP-01-05, ten discriminate at exit 0, and Q6 removes the R2 'no figure' guard the open row names, by deletion rather than the if (false) neutralisation earlier rounds used, and returns exit 7. The one open row is still open, still on TB-020-03, and no assertion was weakened, deleted or rewritten. No certification field was written.",
+    "completedPhaseClaims": [
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.stabilize",
+        "claimedAt": "2026-08-24T00:00:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimedAt": "2026-08-26T04:15:42Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "security",
+        "agent": "bubbles.security",
+        "claimedAt": "2026-08-26T04:36:21Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimedAt": "2026-08-26T15:57:50Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.audit",
+        "claimedAt": "2026-08-26T20:36:25Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "claimedAt": "2026-08-27T03:46:44Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-27T04:03:54Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-08-27T04:03:54Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      }
+    ],
     "executionHistory": [
       {
         "phase": "stabilize",

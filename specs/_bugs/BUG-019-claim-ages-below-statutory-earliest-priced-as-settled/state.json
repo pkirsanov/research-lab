@@ -43,6 +43,57 @@
     "nextRequiredTarget": "specs/_bugs/BUG-019-claim-ages-below-statutory-earliest-priced-as-settled/scopes.md",
     "nextRequiredReason": "The defect is fixed and the fix is asserted from both sides of a one-month boundary, but three Definition of Done items cannot be ticked as written. Two describe outcomes that differ from what shipped rather than outcomes that are missing, and rewriting a Definition of Done item to match delivery is not an implementer's edit. The third names behaviour that exists in the engine and the route but that this round executed no assertion against. The two pack-contract questions design.md routes to the owner are also still open: the delivered shape nests earliestClaimAge on earlyReductionRule and reuses RLTAX-THRESHOLD-UNAVAILABLE for the sub-zero band, and that is recorded as a delivered fact awaiting a decision rather than as the decision.",
     "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented'. The fix landed at commits e28be5814 and eeb2ac7cc. The benefit pack now carries earlyReductionRule.earliestClaimAge as a structured member with a resolving sourceRef and a locator, the engine reads ageYears from it and refuses below it quoting the pack's own figure rather than a literal, and the comparison surface refuses the single unpriceable candidate while leaving the priceable rows intact. The same commit repaired a temporal dead zone in scripts/selftest.mjs that had the repo gate at 3393 passed 1 failed; it now reports 3405 passed 0 failed. The boundary is asserted from both sides one month apart and six red-green probes were run through scripts/red-green-probe.sh, five discriminating and one recorded at exit 7 rather than discarded because it surfaced a real coverage fact. Every probe reported revert-verified against the committed blob and the tracked tree is clean. Fifteen of eighteen Definition of Done items are ticked with executed evidence; the three that are not carry an Uncertainty Declaration and none of them is missing behaviour. The two pack-contract questions design.md routes to the owner remain open and the uservalidation.md Human Acceptance Record is unrecorded, so this packet is not closed.",
+    "completedPhaseClaims": [
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimedAt": "2026-08-26T04:15:42Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "security",
+        "agent": "bubbles.security",
+        "claimedAt": "2026-08-26T04:36:21Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimedAt": "2026-08-26T15:57:50Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.audit",
+        "claimedAt": "2026-08-26T20:36:25Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "claimedAt": "2026-08-27T03:46:44Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-27T04:03:54Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-08-27T04:03:54Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      }
+    ],
     "executionHistory": [
       {
         "phase": "chaos",

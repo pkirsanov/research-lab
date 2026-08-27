@@ -59,6 +59,55 @@
         "scopes": [
           "03-disclose-it-where-a-developer-meets-it"
         ]
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimedAt": "2026-08-26T04:15:42Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "security",
+        "agent": "bubbles.security",
+        "claimedAt": "2026-08-26T04:36:21Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimedAt": "2026-08-26T15:57:50Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.audit",
+        "claimedAt": "2026-08-26T20:36:25Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "claimedAt": "2026-08-27T03:46:44Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-08-27T04:03:54Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
+      },
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.stabilize",
+        "claimedAt": "2026-08-27T04:03:54Z",
+        "evidenceRef": "report.md#test-evidence",
+        "scopes": []
       }
     ],
     "pendingTransitionRequests": [],

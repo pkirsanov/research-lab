@@ -11,7 +11,7 @@ decision.
 
 ## Scope 1: Refuse A Non-Finite Figure At The Display Seam
 
-**Status:** in_progress
+**Status:** In Progress
 
 ### Problem This Scope Resolves
 
@@ -79,7 +79,7 @@ Scenario: a declaration inside the representable range is unchanged
 
 ## Scope 2: Pin The Boundary From Both Sides
 
-**Status:** done
+**Status:** Done
 
 ### Problem This Scope Resolves
 

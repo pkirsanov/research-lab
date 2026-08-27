@@ -11,7 +11,7 @@ assertions depend on where the bound lives.
 
 ## Scope 1: Bound Every Declared Document Read
 
-**Status:** done
+**Status:** Done
 
 ### Problem This Scope Resolves
 
@@ -77,7 +77,7 @@ Scenario: an unbounded read is impossible by construction
 
 ## Scope 2: Pin Both Sides Of The Bound
 
-**Status:** done
+**Status:** Done
 
 ### Problem This Scope Resolves
 

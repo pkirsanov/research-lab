@@ -154,6 +154,41 @@ node --test tests/*.unit.mjs
 This selects every committed Node unit suite. A new unit test is therefore
 executable through a stable command without editing this registry.
 
+### Node security tests
+
+```bash
+node --test tests/*.security.mjs
+```
+
+This selects every committed Node security suite. A new security test is
+therefore executable through a stable command without editing this registry.
+These suites are pure Node and assert exfiltration-relevant refusals, so a
+regression in one of them fails this command rather than landing green.
+
+### Node load tests
+
+```bash
+node --test tests/*.load.mjs
+```
+
+This selects every committed Node load suite. A new load test is therefore
+executable through a stable command without editing this registry.
+`tests/provider-credentials.load.mjs` drives real browser contexts through the
+shared credential support seam, so this command inherits the system Chrome
+prerequisite above; the remaining load suites are pure Node.
+
+### Node stress tests
+
+```bash
+node --test tests/*.stress.mjs
+```
+
+This selects every committed Node stress suite. A new stress test is therefore
+executable through a stable command without editing this registry.
+`tests/provider-credentials.stress.mjs` drives real browser contexts through the
+shared credential support seam, so this command inherits the system Chrome
+prerequisite above; the remaining stress suites are pure Node.
+
 ### Contract validators
 
 Validate the committed Market Brief payload:

@@ -1387,3 +1387,292 @@ The simplify route is resolved by this audit. No product, injector, persistent
 test, planning artifact, parent Feature 008 artifact, human acceptance,
 certification field, scope status, DoD checkbox, or concurrent dirty path is
 changed by the gaps phase.
+
+## Gaps Prerequisite Resume - 2026-08-27 {#gaps-prerequisite-resume-2026-08-27}
+
+**Phase:** gaps
+**Claim Source:** executed
+**Executed at:** `2026-08-27T03:22:57Z`
+**Repository authority:** host revision `290`; committed Research Lab decision
+`rb:vscode-d037d272141b9d17af8fa6ccdd049e69:291` at control revision `291`.
+**Reviewed base:** `64af9849f996ae10f11c043c4a70e74fafdcdd1f`.
+
+This resumed pass owns only the installed-framework prerequisite that the
+earlier gaps audit routed to `bubbles.setup`. It supersedes earlier current-state
+statements that Research Lab still carried the pre-fix scanner. Historical RED
+and pre-propagation evidence remains unchanged as chronology.
+
+### Installed Framework Identity And Provenance
+
+**Commands:** current UTC time and Research Lab `HEAD`; canonical commit and
+scanner blob resolution through `git -C ../bubbles`; installed scanner
+`git hash-object`; byte comparison with `cmp -s`; non-secret
+`.github/bubbles/.install-source.json` field projection; root `.gitleaks.toml`
+presence check.
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+verified_at=2026-08-27T03:22:57Z
+research_lab_head=64af9849f996ae10f11c043c4a70e74fafdcdd1f
+canonical_commit=2086d1e93c3fa6e6a7e1d68de64b91d2484159cc
+canonical_commit_blob=23e0af5448141427e268083f4be3c4eba6e7c2a7
+canonical_worktree_blob=23e0af5448141427e268083f4be3c4eba6e7c2a7
+installed_blob=23e0af5448141427e268083f4be3c4eba6e7c2a7
+scanner_cmp_exit=0
+installedVersion=7.28.0
+installMode=local-source
+sourceGitSha=2086d1e93c3fa6e6a7e1d68de64b91d2484159cc
+sourceDirty=false
+targetRepoSlug=research-lab
+root_gitleaks_exists_exit=0
+```
+
+The installed scanner is byte-identical to both canonical commit `2086d1e`
+and the clean canonical working source. The installer provenance names that
+exact full source SHA with `sourceDirty=false`.
+
+### TP-B009-010 Installed Downstream G028 GREEN
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin --verbose`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+ℹ️  INFO: Resolved 2 implementation file(s) to scan
+
+--- Scan 1: Gateway/Backend Stub Patterns ---
+
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+
+--- Scan 1D: External Integration Authenticity ---
+
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+
+--- Scan 2B: Sensitive Client Storage ---
+
+--- Scan 3: Frontend API Call Absence ---
+
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+
+--- Scan 5: Default/Fallback Value Patterns ---
+
+--- Scan 6: Live-System Test Interception ---
+
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+
+============================================================
+  IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+
+  Files scanned:  2
+  Violations:     0
+  Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+```
+
+This is the required installed downstream execution. It resolves both planned
+`.mjs` implementation files and closes the prior under-coverage gap without a
+direct edit to any framework-managed downstream file.
+
+### Proportionate Packet And Carrier Revalidation
+
+**Commands:** artifact lint; traceability guard; scenario-test resolver; exact
+focused title; complete strict registry; complete risk carrier.
+**Exit Codes:** all `0`
+**Claim Source:** executed
+**Output normalization:** the traceability guard's local absolute repository
+prefix is rendered as `~/research-lab`; no result, count, or path suffix changed.
+
+```text
+artifact-lint:
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ All checklist bullet items use checkbox syntax
+✅ uservalidation separates automation readiness from human acceptance
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: Summary
+✅ report.md contains section matching: Completion Statement
+✅ report.md contains section matching: Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+=== End Anti-Fabrication Checks ===
+Artifact lint PASSED.
+```
+
+```text
+traceability-guard:
+============================================================
+  BUBBLES TRACEABILITY GUARD
+  Feature: ~/research-lab/specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin
+  Timestamp: 2026-08-27T03:20:31Z
+============================================================
+--- Scenario Manifest Cross-Check (G057/G059) ---
+✅ scenario-manifest.json covers 1 scenario contract(s)
+✅ scenario-manifest.json linked test exists: tests/portfolio-risk.functional.mjs
+✅ scenario-manifest.json linked test exists: tests/portfolio-test-integrity.unit.mjs
+✅ scenario-manifest.json linked test exists: tests/portfolio-survival-risk.spec.mjs
+✅ scenario-manifest.json records evidenceRefs for all 1 scenario contract(s)
+✅ All linked tests from scenario-manifest.json exist
+ℹ️  Checking traceability for scopes.md
+✅ scopes.md scenario mapped to Test Plan row: SCN-B009-001 risk mapping keeps unsupported holdings as named exclusions
+ℹ️  scopes.md scenario→row match confidence: ambiguous
+✅ scopes.md scenario maps to concrete test file: tests/portfolio-risk.functional.mjs
+✅ scopes.md report references concrete test evidence: tests/portfolio-risk.functional.mjs
+ℹ️  scopes.md summary: scenarios=1 test_rows=12
+--- Gherkin → DoD Content Fidelity (Gate G068) ---
+✅ scopes.md scenario maps to DoD item: SCN-B009-001 risk mapping keeps unsupported holdings as named exclusions
+ℹ️  scopes.md scenario→DoD match confidence: declared
+ℹ️  DoD fidelity: 1 scenarios checked, 1 mapped to DoD, 0 unmapped
+--- Traceability Summary ---
+ℹ️  Scenarios checked: 1
+ℹ️  Test rows checked: 12
+ℹ️  Scenario-to-row mappings: 1
+ℹ️  Concrete test file references: 1
+ℹ️  Report evidence references: 1
+ℹ️  DoD fidelity scenarios: 1 (mapped: 1, unmapped: 0)
+ℹ️  Edge confidence (IMP-015 Scope B): declared=1 inferred=0 ambiguous=1
+RESULT: PASSED (0 warnings)
+```
+
+```text
+[scenario-test-resolve] OK — 3 reference(s) resolved via literal-scan; 3 category comparison(s) not applicable (no test-discovery adapter declared)
+focused title:
+✔ BUG-009 risk mapping: unsupported holdings remain named exclusions
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+strict registry:
+✔ Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+✔ BUG-007: caller-key protections and normal ordering are load-bearing in memory
+✔ BUG-007: represented mutants execute one protective assertion through one intended hook
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+risk carrier:
+✔ BUG-009 risk mapping: unsupported holdings remain named exclusions
+✔ SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output
+✔ SCN-008-047 failed candidate preserves the last valid structured result
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+### Canonical Repository Selftest
+
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-009 post-propagation canonical selftest" -- node scripts/selftest.mjs`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+# BUG-009 post-propagation canonical selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3919
+sha256: 6d3f3737ec78c1c05154d7a7a6992cd10330fc24a01b2dbf7ef249a4b131061d
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 3879 line(s); sha256 above covers the full output ---
+--- last 20 ---
+specs/ — every scope progress claim matches the Definition of Done it summarises
+  ✓ a claim of 2 ticked and 1 open matches an artifact holding exactly those rows, so the ordinary reconciled case is not reported — rows outside the Definition-of-Done section, rows in a sibling section, and rows inside a fenced block are all excluded (1 claim(s), 1 agreeing)
+  ✓ the fence mask is what removes the documented example rows — ignoring fences the same artifact tallies 5/2 against the masked 4/1, so the rule is load-bearing rather than decorative
+  ✓ a registry claiming more ticked rows than the artifact carries FAILS, and the finding names the packet, the scope and both sides (claims 3/0 checked/unchecked, artifact has 2/1)
+  ✓ a registry claiming fewer ticked rows than the artifact carries FAILS too — drift in either direction is a false summary
+  ✓ a claim whose scope artifact cannot be located FAILS instead of being silently skipped — an unverifiable claim is not a verified one
+  ✓ the single-file bug-packet layout resolves all three of its claims — a numbered scope whose tiered DoD includes a deeper sub-heading, a sibling scope that has not started, and the packet-level cross-scope block — across the dodChecked, dodTicked and dodTotal spellings alike (3/3 agreeing)
+  ✓ scope 2 ends where the cross-scope block begins rather than running to end-of-file, and `## Scope Summary` is not mistaken for a scope section because it carries no ordinal (01, 02, cross-scope)
+  ✓ a `#` line inside a fenced Gherkin block is a comment rather than a heading, so it never splits a scope or ends a Definition of Done (2 real headings, 3 when fences are ignored)
+  ✓ a scope already frozen in the baseline is carried as known debt rather than failing the run, so pre-existing drift in packets this change does not own cannot turn the validation path red
+  ✓ freezing one scope does not license the next — the baseline is keyed on the SCOPE, not on the numbers, so a second drifting scope still FAILS while the frozen one passes
+  ✓ a baseline entry whose claim now matches its artifact is reported STALE while the run still exits 0, so the frozen list can only shrink
+  ✓ a scan that matches zero progress claims FAILS rather than passing vacuously — a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes
+  ✓ the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (85 claim(s) across 66 packet(s), 71 agreeing, baseline 14 entries)
+  ✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+  ✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 85 claim(s))
+
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+### Finding Closure And Next Route
+
+The installed mode resolver was executed for the persisted state with
+`--grandfather bugfix-fastlane`. It returned status ceiling `done` and this
+phase order:
+
+```text
+phaseOrder: [select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize]
+```
+
+`B009-G028-PROPAGATION-001` is resolved. The setup route is resolved by the
+clean local-source install plus the independent installed-scanner `2/0/0`
+result. The gaps phase is complete as diagnostic provenance only and routes to
+`bubbles.harden`, the actual next persisted fastlane owner.
+
+BUG-009 remains `in_progress`; Scope 1 remains In Progress; all 18 DoD items
+remain unchecked. Human acceptance, certification, product source, tests,
+injector, parent Feature 008 artifacts, and every concurrent dirty Feature 008
+path remain unchanged.

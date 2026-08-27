@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T02:13:40Z",
+  "lastUpdatedAt": "2026-08-27T03:22:57Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -33,15 +33,15 @@
     "currentPhase": "gaps",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "substate": "downstream_framework_propagation_required",
+    "substate": "routed_to_harden",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.setup",
-    "nextRequiredTarget": ".github/bubbles/scripts/implementation-reality-scan.sh",
-    "nextRequiredReason": "Exhaustive gaps audit found no requirement, design, scenario, test, browser, containment, or packet defect beyond the installed downstream G028 scanner. It exits zero after resolving zero scope files and scanning one design-fallback .js file because the installed discovery regex lacks canonical db7b4f2 .mjs/.cjs support. Propagate the canonical fix through the standard installer/upgrade surface, then return to bubbles.gaps for installed-scanner execution over both planned .mjs files before harden.",
-    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify"],
-    "pendingTransitionRequests": ["BUG-009-ROUTE-006"],
+    "nextRequiredOwner": "bubbles.harden",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+    "nextRequiredReason": "The installed downstream G028 scanner is byte-identical to clean canonical source 2086d1e, resolves both planned .mjs implementation files, and reports 0 violations and 0 warnings. Artifact lint, traceability, all three scenario links, the focused title, strict registry 3/3, risk carrier 3/3, and canonical selftest 3426/3426 are green. The persisted bugfix-fastlane phase order places harden immediately after gaps.",
+    "completedPhaseClaims": ["bug", "plan", "test", "regression", "simplify", "gaps"],
+    "pendingTransitionRequests": ["BUG-009-ROUTE-007"],
     "scopeInventory": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -120,11 +120,31 @@
     },
     {
       "id": "BUG-009-ROUTE-005",
-      "status": "pending",
+      "status": "resolved",
       "fromAgent": "bubbles.simplify",
       "nextRequiredOwner": "bubbles.gaps",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-      "reason": "No simplification is warranted: the direct assetTreatment carrier preserves one-to-one assertion causality, the registry remap is one scalar, and all requested independent checks are green. Review the delivered packet for remaining requirement or integration gaps without bypassing the installer-propagation prerequisite for canonical G028 fix db7b4f2."
+      "reason": "No simplification is warranted: the direct assetTreatment carrier preserves one-to-one assertion causality, the registry remap is one scalar, and all requested independent checks are green. Review the delivered packet for remaining requirement or integration gaps without bypassing the installer-propagation prerequisite for canonical G028 fix db7b4f2.",
+      "resolvedBy": "bubbles.gaps",
+      "resolvedAt": "2026-08-27T02:13:40Z"
+    },
+    {
+      "id": "BUG-009-ROUTE-006",
+      "status": "resolved",
+      "fromAgent": "bubbles.gaps",
+      "nextRequiredOwner": "bubbles.setup",
+      "target": ".github/bubbles/scripts/implementation-reality-scan.sh, .github/bubbles/.install-source.json, .gitleaks.toml",
+      "reason": "Propagate canonical G028 .mjs/.cjs discovery fix db7b4f2 and the required root gitleaks policy through the sanctioned installer, then return to bubbles.gaps for an independent installed-scanner 2 files, 0 violations, 0 warnings check.",
+      "resolvedBy": "bubbles.setup",
+      "resolvedAt": "2026-08-27T03:11:37Z"
+    },
+    {
+      "id": "BUG-009-ROUTE-007",
+      "status": "pending",
+      "fromAgent": "bubbles.gaps",
+      "nextRequiredOwner": "bubbles.harden",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "Clean local-source provenance names canonical 2086d1e, the installed scanner blob matches canonical exactly, installed G028 is 2/0/0, and the requested packet, focused, registry, risk, and canonical selftest checks are green. Harden is the next phase in the persisted bugfix-fastlane order; preserve in-progress status, unchecked DoD, human acceptance, and certification."
     }
   ],
   "reworkQueue": [],
@@ -172,6 +192,15 @@
       "action": "three-pass-no-change-review-verified-and-routed-to-gaps",
       "note": "Reviewed only implementation commit 4824edc81: the direct assetTreatment title in tests/portfolio-risk.functional.mjs and the exact F008-RISK-INPUT-001 title scalar in tests/portfolio-test-integrity.unit.mjs. Reuse, clarity, and efficiency passes all rejected churn: existing fixtures exercise broader projection behavior, the eight separate assertions preserve one-to-one contract and mutation-failure causality, and the title performs one production call over two records with no redundant computation. Executed the focused title at 1 of 1, narrowed 18-case registry umbrella at 1 of 1, full integrity at 3 of 3, full risk at 3 of 3, syntax for both files, and regression-quality at zero violations and zero warnings. Product and injector blobs match implementation parent, implementation commit, HEAD, and working tree; both reviewed test blobs match implementation commit, HEAD, and working tree. No source, test, injector, planning, human-acceptance, certification, scope-status, DoD, or downstream framework byte changed. The installed downstream G028 prerequisite remains installer propagation of canonical fix db7b4f2. Resolved route 004 and routed route 005 to bubbles.gaps, the next phase in the resolved fastlane order.",
       "phasesExecuted": ["simplify"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-27T03:22:57Z",
+      "agent": "bubbles.gaps",
+      "phase": "gaps",
+      "action": "installed-g028-prerequisite-verified-and-routed-to-harden",
+      "note": "Resumed only the routed installed-framework prerequisite under Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:291. Verified the installed implementation-reality scanner blob is byte-identical to canonical commit and working source 2086d1e, .install-source.json names that full source SHA with sourceDirty false, and root .gitleaks.toml exists. Independently executed installed downstream G028 against BUG-009 at 2 files, 0 violations, and 0 warnings; reran artifact lint, traceability, all three linked-title resolutions, the focused title at 1 of 1, the strict registry at 3 of 3, the risk carrier at 3 of 3, and the canonical selftest at 3426 of 3426. Resolved B009-G028-PROPAGATION-001 and setup route 006, marked gaps completed in execution provenance only, and opened route 007 to bubbles.harden, the next persisted fastlane phase. Status and certification remain in_progress, Scope 1 remains In Progress, all DoD items remain unchecked, and no human acceptance, source, test, injector, parent Feature 008, or concurrent dirty path changed.",
+      "phasesExecuted": ["gaps"],
       "provenanceMode": "specialist"
     }
   ],
@@ -224,6 +253,13 @@
       "owner": "bubbles.simplify",
       "status": "addressed",
       "evidenceRef": "report.md#simplify-phase-2026-08-27"
+    },
+    {
+      "id": "B009-G028-PROPAGATION-001",
+      "summary": "The sanctioned local-source install propagated canonical G028 .mjs/.cjs discovery and root gitleaks policy from clean source 2086d1e; the installed scanner blob matches canonical and independently scans both BUG-009 implementation files with zero violations and warnings.",
+      "owner": "bubbles.setup",
+      "status": "addressed",
+      "evidenceRef": "report.md#gaps-prerequisite-resume-2026-08-27"
     }
   ],
   "unresolvedFindings": []

@@ -97,6 +97,7 @@
     "executionHistory": [
       {
         "phase": "chaos",
+        "phasesExecuted": ["chaos"],
         "agent": "bubbles.chaos",
         "startedAt": "2026-08-23T00:00:00Z",
         "completedAt": "2026-08-23T00:00:00Z",

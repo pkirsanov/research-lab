@@ -489,3 +489,60 @@ Exit code `0`. Command:
 `npx --no-install playwright test tests/lifetime-tax-*.spec.mjs --project=chromium --reporter=line`.
 The family held 105 tests before this round and holds 111 after it, so it carries
 no fewer assertions than it did.
+
+### Code Diff Evidence
+
+**Phase:** gaps
+**Command:** `for commit in 084572757 d36ed96d3 1599d6a8f 115f1e61a; do printf '%s ' "$commit"; git cat-file -t "$commit"; done && git --no-pager show --stat --oneline --decorate=no 084572757 d36ed96d3 1599d6a8f 115f1e61a`
+**Command:** `git show --stat --oneline --decorate=no 084572757 d36ed96d3 1599d6a8f 115f1e61a`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+$ git show --stat --oneline --decorate=no 084572757 d36ed96d3 1599d6a8f 115f1e61a
+084572757 commit
+d36ed96d3 commit
+1599d6a8f commit
+115f1e61a commit
+084572757 BUG-021: bound every declared document read from a stratified declaration surface
+ lifetime-tax-strategy-lab.html    | 101 ++++++++++++++++++++++++++++++++------
+ lifetime-tax-strategy.config.json |   3 +-
+ rltaxworkspace.js                 |  22 ++++++++-
+ 3 files changed, 109 insertions(+), 17 deletions(-)
+d36ed96d3 BUG-021: assert the stratified read bound in the repo gate
+ scripts/selftest.mjs | 55 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 55 insertions(+)
+1599d6a8f BUG-021: assert the read bound against an origin that never answers
+ tests/lifetime-tax-read-bound.spec.mjs | 232 +++++++++++++++++++++++++++++++++
+ 1 file changed, 232 insertions(+)
+115f1e61a BUG-021: record the hanging-origin reproduction and its bounded terminal state
+ .../report.md                          | 10 ++++++++++
+ tests/lifetime-tax-read-bound.spec.mjs | 16 ++++++++++------
+ 2 files changed, 20 insertions(+), 6 deletions(-)
+```
+
+The commits include product and persistent regression paths. This evidence does not certify the
+packet or alter human acceptance.
+
+## Gaps Audit Finding Ledger - 2026-08-27 UTC
+
+The canonical state-transition guard was executed against this packet. It exited `1` with 36
+failures before this audit and 35 after the Code Diff Evidence repair above.
+
+| Finding | Guard increments | Disposition |
+| --- | ---: | --- |
+| G053 lacked a parser-recognized raw `git show` transcript | 1 -> 0 | Addressed here after executing the literal recognized command. No installed framework file changed. |
+| G055 policy snapshot lacks six policy entries plus valid provenance coverage | 7 | `route_required` to `bubbles.validate`; use authoritative policy values only. |
+| G056 lacks `certifiedCompletedPhases` and `lockdownState` fields | 2 | `route_required` to `bubbles.validate`; do not fabricate certified phases. |
+| G057 has no `scenario-manifest.json` | 1 | `route_required` to `bubbles.plan`; map the six existing bounded-read browser tests and node contract assertion. |
+| G060 has no recognized failing marker before the existing passing output | 1 | `route_required` to the producing execution owner; preserve the real mutation probes and expose their actual order. |
+| Completed scope state is empty | 1 | `route_required` to `bubbles.validate`; both scopes are Done but certification is unchanged here. |
+| Eight completed phase claims lack canonical same-phase provenance arrays, plus the aggregate block | 9 | `route_required` to `bubbles.validate`; add no run and no phase beyond each existing record. |
+| Retrospective implement and test records share one clock interval | 1 | Framework route: G077 conflates a historical implementation-recording window with execution time. Do not patch the installed guard downstream. |
+| Two scopes lack scenario-specific E2E DoD, broader-suite DoD and explicit scenario E2E Test Plan rows | 7 | `route_required` to `bubbles.plan`; six missing rows plus aggregate refusal. |
+| G027 rejects phase claims while completed scope state is empty | 1 | `route_required` to `bubbles.validate` after planning reconciliation. |
+| Two Gherkin claims lack faithful DoD text: delayed read unchanged; every read bounded and aborted | 3 | `route_required` to `bubbles.plan`; two claims plus aggregate refusal. |
+| G094 requires one spec classification and three design sections | 1 | `route_required` first to `bubbles.analyst`, then `bubbles.design`; record the narrow stratified-read-bound capability explicitly. |
+| G136 reports unchecked human Checklist items and no human acceptance record | 1 | Human owner only. Automation must not create or tick acceptance. |
+
+The open increments total 35. The packet remains `in_progress`.

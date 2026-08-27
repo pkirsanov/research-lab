@@ -689,3 +689,60 @@ predates the filing.
 
 Both rows hold and are ticked by this round.
 
+### Code Diff Evidence
+
+**Phase:** gaps
+**Command:** `for commit in e28be5814 eeb2ac7cc 17dafde4f; do printf '%s ' "$commit"; git cat-file -t "$commit"; done && git --no-pager show --stat --oneline --decorate=no e28be5814 eeb2ac7cc 17dafde4f`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+e28be5814 commit
+eeb2ac7cc commit
+17dafde4f commit
+e28be5814 BUG-019: declare the earliest priceable claim age in the benefit pack and refuse below it
+ lifetime-tax-strategy-lab.html | 13 +++++++++++
+ rltaxclaimage.js               | 21 ++++++++++++++++-
+ rltaxsocialsecurity.js         | 47 ++++++++++++++++++++++++++++++++++++++
+ scripts/selftest.mjs           | 52 +++++++++++++++++++++++++++++++++++++++++-
+ tax-rules/benefit/2026.json    | 14 +++++++++++-
+ 5 files changed, 144 insertions(+), 3 deletions(-)
+eeb2ac7cc BUG-019: assert the earliest-claim-age boundary from both sides
+ tests/lifetime-tax-benefit.spec.mjs   | 68 +++++++++++++++++++++++++++++++++++
+ tests/lifetime-tax-claim-age.spec.mjs | 40 +++++++++++++++++++++
+ 2 files changed, 108 insertions(+)
+17dafde4f spec(BUG-019): assert the stopping-age disclosure, and re-measure two premises
+ scripts/selftest.mjs                               | 20 ++++++
+ .../report.md                                      | 84 ++++++++++++++++++++++
+ .../scopes.md                                      | 26 +++++--
+ 3 files changed, 123 insertions(+), 7 deletions(-)
+```
+
+The commits include product and persistent regression paths. This evidence does not certify the
+packet or alter human acceptance.
+
+## Gaps Audit Finding Ledger - 2026-08-27 UTC
+
+The canonical state-transition guard was executed against this packet. It exited `1` with 46
+failures before this audit and 45 after the Code Diff Evidence repair above.
+
+| Finding | Guard increments | Disposition |
+| --- | ---: | --- |
+| G053 lacked git-backed implementation delta evidence | 1 -> 0 | Addressed here with current-session commit-object and `git show` evidence over `e28be5814`, `eeb2ac7cc` and `17dafde4f`. |
+| G055 policy snapshot lacks `grill`, `tdd`, `autoCommit`, `lockdown`, `regression`, `validation` and valid provenance coverage | 7 | `route_required` to `bubbles.validate`; reconcile effective values from authoritative policy, never from guesswork. |
+| G056 lacks `certifiedCompletedPhases` and `lockdownState` fields | 2 | `route_required` to `bubbles.validate`; an empty certified phase set is truthful until certification occurs. |
+| G057 has no `scenario-manifest.json` | 1 | `route_required` to `bubbles.plan`; map all existing scenarios and real tests without inventing receipts. |
+| G060 sees passing output before the first recognized failing proof | 1 | `route_required` to the producing execution owner; preserve real probes and expose their actual order. |
+| Three delivered scopes still read `In Progress`, and completed scope state is empty | 2 | `route_required` to `bubbles.plan` for scope status, then `bubbles.validate` for state mirrors. |
+| Seven completed phase claims lack canonical `phasesExecuted` provenance; the aggregate block is separate | 8 | `route_required` to `bubbles.validate`; mechanically project only each existing entry's same singular `phase`, with no new run or phase. |
+| Retrospective implement and test records share one clock interval | 1 | Framework route: the implement entry explicitly records older shipped work and marks original duration unmeasured, while G077 treats the recording window as the execution window. Do not patch the installed guard downstream. |
+| Phase backing cannot see the seven existing history records without canonical phase arrays | 1 | Same `bubbles.validate` reconciliation as the G022 row. |
+| Three scopes lack scenario-specific E2E DoD, broader-suite DoD and explicit scenario E2E Test Plan rows | 10 | `route_required` to `bubbles.plan`; nine missing rows plus aggregate refusal. |
+| The selftest DoD carries three bare Evidence markers | 3 | `route_required` to `bubbles.test`; link the existing selftest evidence to each item. |
+| G027 rejects phase claims while completed scope state is empty | 1 | `route_required` to `bubbles.validate` after plan status reconciliation. |
+| Five Gherkin claims lack faithful DoD text: engine owns no literal floor; earliest age prices; one month below refuses; prose agrees; removing bound fails | 6 | `route_required` to `bubbles.plan`; five claims plus aggregate refusal. |
+| G094 requires one spec classification and three design sections | 1 | `route_required` first to `bubbles.analyst`, then `bubbles.design`; classify this narrow pack-bound validation capability explicitly. |
+| G136 reports unchecked human Checklist items and no human acceptance record | 1 | Human owner only. Automation must not create or tick acceptance. |
+
+The open increments total 45. The packet remains `in_progress`.
+

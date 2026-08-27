@@ -1353,3 +1353,55 @@ unchanged in both identity and count, and neither belongs to this packet: one is
 an unreachable-test-file census, the other a `market-brief.html` block count.
 Both sit in another session's working tree.
 
+### Code Diff Evidence
+
+**Phase:** gaps
+**Command:** `for commit in 7577d5ad3 4eb4a4725 af9934c82; do printf '%s ' "$commit"; git cat-file -t "$commit"; done && git --no-pager show --stat --oneline --decorate=no 7577d5ad3 4eb4a4725 af9934c82`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+7577d5ad3 commit
+4eb4a4725 commit
+af9934c82 commit
+7577d5ad3 BUG-020: refuse an unrepresentable figure at its origin, at the display seam and in the header
+ lifetime-tax-strategy-lab.html                     |  50 +++++++--
+ rltax.js                                           |  54 +++++++++-
+ rltaxrules.js                                      |  13 ++-
+ scripts/selftest.mjs                               | 114 ++++++++++++++++-----
+ .../spec.md                                        |  17 +++
+ 5 files changed, 207 insertions(+), 41 deletions(-)
+4eb4a4725 BUG-020: pin the adjacent-double boundary from both sides in the browser suite
+ tests/lifetime-tax-representable.spec.mjs | 172 ++++++++++++++++++++++++++++++
+ 1 file changed, 172 insertions(+)
+af9934c82 BUG-020: assert the reported 9e307 and 8.9e307 reproduction pair in its own right
+ tests/lifetime-tax-representable.spec.mjs | 70 +++++++++++++++++++++++++++++++
+ 1 file changed, 70 insertions(+)
+```
+
+The commits include product and persistent regression paths. This evidence does not certify the
+packet or alter human acceptance.
+
+## Gaps Audit Finding Ledger - 2026-08-27 UTC
+
+The canonical state-transition guard was executed against this packet. It exited `1` with 37
+failures before this audit and 36 after the Code Diff Evidence repair above.
+
+| Finding | Guard increments | Disposition |
+| --- | ---: | --- |
+| G053 lacked git-backed implementation delta evidence | 1 -> 0 | Addressed here with current-session commit-object and `git show` evidence over `7577d5ad3`, `4eb4a4725` and `af9934c82`. |
+| G055 policy snapshot lacks six policy entries plus valid provenance coverage | 7 | `route_required` to `bubbles.validate`; use authoritative policy values only. |
+| G056 lacks `certifiedCompletedPhases` and `lockdownState` fields | 2 | `route_required` to `bubbles.validate`; do not fabricate certified phases. |
+| G057 has no `scenario-manifest.json` | 1 | `route_required` to `bubbles.plan`; map the existing adjacent-double and reported-pair regressions. |
+| G060's earliest failure line also contains a passing count on the same line | 1 | `route_required` to the producing execution owner; retain the probe and expose the real RED-before-GREEN sequence. |
+| Delivered Scope 1 still reads `In Progress`, and completed scope state is empty | 2 | `route_required` to `bubbles.plan` for scope status, then `bubbles.validate` for state mirrors. |
+| Eight completed phase claims lack canonical same-phase provenance arrays, plus the aggregate block | 9 | `route_required` to `bubbles.validate`; add no run and no phase beyond each existing record. |
+| Retrospective implement and test records share one clock interval | 1 | Framework route: G077 conflates a historical implementation-recording window with execution time. Do not patch the installed guard downstream. |
+| Two scopes lack scenario-specific E2E DoD, broader-suite DoD and explicit scenario E2E Test Plan rows | 7 | `route_required` to `bubbles.plan`; six missing rows plus aggregate refusal. |
+| G027 rejects phase claims while completed scope state is empty | 1 | `route_required` to `bubbles.validate` after plan status reconciliation. |
+| Two Gherkin claims lack faithful DoD text: overflow refuses by name; representable input is unchanged | 3 | `route_required` to `bubbles.plan`; two claims plus aggregate refusal. |
+| G094 requires one spec classification and three design sections | 1 | `route_required` first to `bubbles.analyst`, then `bubbles.design`; record a single-capability justification unless evidence establishes reusable variation. |
+| G136 reports unchecked human Checklist items and no human acceptance record | 1 | Human owner only. Automation must not create or tick acceptance. |
+
+The open increments total 36. The packet remains `in_progress`.
+

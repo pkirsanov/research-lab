@@ -787,4 +787,61 @@ That cuts both ways and is recorded as such. It weakens `bug.md` `## Processes S
 a general claim — a stall does not always leak — while the two-and-a-half-day-old survivors show
 that when it does leak, the orphans persist indefinitely.
 
+### Code Diff Evidence
+
+**Phase:** gaps
+**Command:** `for commit in 13494be66 b08ba13f4 2d79740e1; do printf '%s ' "$commit"; git cat-file -t "$commit"; done && git --no-pager show --stat --oneline --decorate=no 13494be66 b08ba13f4 2d79740e1`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+13494be66 commit
+b08ba13f4 commit
+2d79740e1 commit
+13494be66 fix(BUG-017): pin the worker count local runs share with the pipeline
+ playwright.config.mjs                              |   6 +
+ .../report.md                                      | 200 +++++++++++++++++++--
+ .../scopes.md                                      |  32 ++--
+ 3 files changed, 211 insertions(+), 27 deletions(-)
+b08ba13f4 BUG-017: correct the root cause from browser channel to worker count, and close the bug.md status row
+ .specify/memory/agents.md                          | 24 ++++--
+ playwright.config.mjs                              | 22 +++--
+ .../bug.md                                         | 45 ++++++++--
+ .../report.md                                      | 95 ++++++++++++++++++++++
+ .../scopes.md                                      | 21 +++--
+ 5 files changed, 179 insertions(+), 28 deletions(-)
+2d79740e1 BUG-017: take Scope 3 - disclose the macOS system-chrome teardown stall where the suite is run
+ .specify/memory/agents.md                          |  12 ++
+ playwright.config.mjs                              |  16 +-
+ .../report.md                                      | 172 ++++++++++++++++++++-
+ .../scopes.md                                      |  27 ++--
+ .../state.json                                     |  38 +++--
+ 5 files changed, 239 insertions(+), 26 deletions(-)
+```
+
+The commits resolve as Git commit objects and include the non-artifact source path
+`playwright.config.mjs`. This evidence does not certify the packet or alter human acceptance.
+
+## Gaps Audit Finding Ledger - 2026-08-27 UTC
+
+The canonical state-transition guard was executed against this packet. It exited `1` with 39
+failures before this audit and 38 after the Code Diff Evidence repair above.
+
+| Finding | Guard increments | Disposition |
+| --- | ---: | --- |
+| G053 lacked git-backed implementation delta evidence | 1 -> 0 | Addressed here with current-session commit-object and `git show` evidence over `13494be66`, `b08ba13f4` and `2d79740e1`. |
+| G057 has no `scenario-manifest.json` | 1 | `route_required` to `bubbles.plan`; link the measured worker-count scenarios to the existing system-Chrome suite without inventing receipts. |
+| G060 sees passing output before the first recognized failing marker | 1 | `route_required` to the producing execution owner; preserve the measurements and label their actual failing-before-passing proof order. |
+| Scope completion is absent from `state.json` and G027 therefore rejects the phase claims | 2 | `route_required` to `bubbles.validate`; certification remains unchanged here. |
+| Each of three scopes lacks scenario-specific E2E DoD, broader-suite DoD and an explicit scenario E2E Test Plan row | 10 | `route_required` to `bubbles.plan`; nine missing rows plus the aggregate refusal. |
+| Ten checked measurement and remedy items have no resolvable evidence block | 10 | `route_required` to `bubbles.test`; attach existing frequency, threshold, candidate, repeated-run, process, timing and selftest evidence without re-running or rewriting history. |
+| The plan resolves `node_modules/playwright/lib/runner/index.js` as implementation, producing two vendor TODO/STUB hits | 1 | `route_required` to `bubbles.plan`; the repository implementation is `playwright.config.mjs`, while the vendor file is causal evidence only. |
+| G028 resolves no repository implementation file from the scope plan | 1 | `route_required` to `bubbles.plan`; name the worker-pin configuration and disclosure surfaces. |
+| Eight Gherkin claims lack faithful DoD text: frequency; threshold; candidate discrimination; repeated zero exits; process release; proportional cost; developer disclosure; disclosure-not-substitute | 9 | `route_required` to `bubbles.plan`; eight claims plus the aggregate refusal. |
+| G084 finds the historical phrase `carried forward` in the Scope 1 addendum | 1 | `route_required` to the section's producing execution owner; restate that the evidence was re-derived without changing its meaning. |
+| G094 requires one spec classification and three design sections | 1 | `route_required` first to `bubbles.analyst`, then `bubbles.design`; classify the single worker-bound exposure remedy explicitly. |
+| G136 reports unchecked human Checklist decisions | 1 | Human owner only. Automation must not tick them or strengthen the shared acceptance act. |
+
+The open increments total 38. The packet remains `in_progress`.
+
 

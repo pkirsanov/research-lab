@@ -1166,4 +1166,51 @@ browser spec were ever narrowed the residual would become live. It is disclosed,
 The row is ticked and `bug.md` moves to `Verified` on this round's authority, not the implementing
 round's.
 
+### Code Diff Evidence
+
+**Phase:** gaps
+**Command:** `git --no-pager show --stat --oneline --decorate=no 4cf6269d8 cdff776c5 b13924e9c`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+4cf6269d8 selftest: assert the lifetime-tax route wires every module and panel marker it depends on (BUG-016)
+ scripts/selftest.mjs | 57 ++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 57 insertions(+)
+cdff776c5 selftest: W4 checks the emitting call, not a bare string (BUG-016)
+ scripts/selftest.mjs                               |  97 +++++++++++++++-
+ .../report.md                                      | 123 +++++++++++++++++++++
+ 2 files changed, 214 insertions(+), 6 deletions(-)
+b13924e9c BUG-016: W5 - a gated emitter name must be admitted by the list its gate consults
+ scripts/selftest.mjs                               |  64 +++++++++++
+ .../report.md                                      | 124 +++++++++++++++++++++
+ 2 files changed, 188 insertions(+)
+```
+
+The three commits include the non-artifact source path `scripts/selftest.mjs`; this is evidence of
+the implementation delta only. It does not certify the packet or alter human acceptance.
+
+## Gaps Audit Finding Ledger - 2026-08-27 UTC
+
+The canonical state-transition guard was executed against this packet. It exited `1` with 28
+failures before this audit and 27 after the Code Diff Evidence repair above.
+
+| Finding | Guard increments | Disposition |
+| --- | ---: | --- |
+| G053 lacked git-backed implementation delta evidence | 1 -> 0 | Addressed here with current-session `git show` evidence over `4cf6269d8`, `cdff776c5` and `b13924e9c`. |
+| G057 has no `scenario-manifest.json` | 1 | `route_required` to `bubbles.plan`; create stable contracts for every existing Gherkin scenario and link the existing live tests without inventing receipts. |
+| G060 finds the first RED and GREEN signal on the same early report line | 1 | `route_required` to the producing execution owner; preserve the raw evidence and make its actual failing-before-passing order machine-readable. |
+| Scope completion is absent from `state.json` and G027 therefore rejects the phase claims | 2 | `route_required` to `bubbles.validate`; reconcile only after the planning and evidence gates pass. Do not advance packet status here. |
+| Each of three scopes lacks scenario-specific E2E DoD, broader-suite DoD and an explicit scenario E2E Test Plan row | 10 | `route_required` to `bubbles.plan`; nine missing rows plus the aggregate refusal. |
+| The scope plan resolves no implementation path, so G028 cannot scan the delivered source | 1 | `route_required` to `bubbles.plan`; name `scripts/selftest.mjs` and the existing browser spec as the real implementation and consumer proof surfaces. |
+| Eight Gherkin claims have no faithful DoD text: owner approach; recurrence disposition; curve chart; unavailability marker; federal leg; whole-spec pass; missing-selector detection; coherent-branch pass | 9 | `route_required` to `bubbles.plan`; preserve each behavioral claim in DoD text. |
+| The checked `bug.md` Fixed-to-Verified item has no resolvable inline or report anchor | 1 | `route_required` to `bubbles.implement`; link the already-recorded independent verification without changing the claim. |
+| G094 requires a capability classification: one spec justification plus three design sections | 1 | `route_required` first to `bubbles.analyst`, then `bubbles.design`; this is one narrow wiring-coherence capability unless those owners find evidence for reusable variation. |
+| G136 reports unchecked human Checklist decisions | 1 | Human owner only. Automation must not tick them or strengthen the existing acceptance record. |
+
+The open increments total 27. The packet remains `in_progress`.
+<!-- gaps-audit-ledger-end -->
+
+
+
 

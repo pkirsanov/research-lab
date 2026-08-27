@@ -6,6 +6,17 @@ Scope 1 is a decision, not an implementation, and it gates Scope 2. Scope 3 is i
 both and may be taken at any time or declined outright. Nothing here is started; every
 Definition of Done item is unticked and should remain so until the work is authorised.
 
+## Change Boundary
+
+- **Allowed file families:** `lifetime-tax-strategy-lab.html`, `scripts/selftest.mjs`,
+  `tests/lifetime-tax-combined.spec.mjs`, and this BUG-016 packet's owned artifacts.
+- **Excluded surfaces:** every other product route, Market Brief surfaces, unrelated tests and
+  specs, framework and policy mirrors, generated output, build caches, and vendor dependency
+  trees including `node_modules/**`.
+- `node_modules/**` is vendor-owned dependency content. It is not an implementation, test, or
+  evidence source path and must remain excluded from the changed-file inventory.
+- [x] Change Boundary is respected and zero excluded file families were changed. **Claim Source:** executed. → Evidence: [Code Diff Evidence](report.md#code-diff-evidence) enumerates the three BUG-016 implementation commits and shows only `scripts/selftest.mjs` plus this packet's `report.md` changed.
+
 ## Scope 1: Decide How The Two Resolutions Are Reconciled
 
 **Status:** Done
@@ -62,6 +73,7 @@ Feature: A reconciliation approach is selected before content is changed
 |---|---|
 | None | This scope produces a recorded decision, not behaviour. There is nothing to execute. |
 | E2E | Scenario-specific E2E consumer proof executes `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements`; the W1-W5 BUG-016 group in `scripts/selftest.mjs` maps the recurrence disposition. |
+| Regression E2E | `e2e-ui` proof for SCN-BUG016-01 and SCN-BUG016-02 executes `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and the complete eight-test production-route file; the W1-W5 BUG-016 selftest group records the recurrence disposition. |
 
 ### The Decision
 
@@ -85,6 +97,8 @@ its tests pass there. No content authorship remains for this packet to perform.
 
 ### Definition of Done
 
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG016-01, while SCN-BUG016-02's proportionate W1-W5 recurrence proof also passes. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged) and [W1-W5 mutation proof](report.md#every-guard-was-proven-to-bite-by-reverting-mutation); the scenario manifest preserves both mappings.
+- [x] Broader E2E regression suite passes for the complete eight-test `tests/lifetime-tax-combined.spec.mjs` production-route file. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged) records both unmutated GREEN controls at `8 passed` and the blocking CI run's eight combined-file cases.
 - [x] The owner selects an approach: a reconciliation approach is recorded with its rationale, and the scenario-specific E2E consumer regression for SCN-BUG016-01 passes.
   → Evidence: Option A recorded above, including what it gives up (duplicate content on two lines that must still conflict on this file). `report.md` `## Independent Verification Round` records the combined browser file green.
 - [x] Open questions 1 and 4 in `design.md` are answered, and the broader combined-panel E2E regression suite passes.
@@ -160,9 +174,12 @@ Feature: The deployed page carries the combined settlement panel
 | Selftest | `node scripts/selftest.mjs` reports zero failures and no fewer assertions than the recorded baseline. |
 | Gate | The deploy workflow's `verify` job passes and `deploy` runs rather than reporting `skipped`. |
 | E2E | Scenario-specific E2E regressions execute `tests/lifetime-tax-combined.spec.mjs` tests `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction`, `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure`, `Regression: SCN-022-013 the combined total is the sum of two independent settlements`, and the entire eight-test file for SCN-BUG016-03 through SCN-BUG016-06. |
+| Regression E2E | `e2e-ui` proof for SCN-BUG016-03 through SCN-BUG016-06 executes the named SCN-022-013, SCN-022-014, and SCN-022-015 regressions in `tests/lifetime-tax-combined.spec.mjs`, then executes the complete eight-test production-route file. |
 
 ### Definition of Done
 
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG016-03 through SCN-BUG016-06. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged); the scenario manifest links every scenario to its exact persistent title in `tests/lifetime-tax-combined.spec.mjs`.
+- [x] Broader E2E regression suite passes for the complete eight-test `tests/lifetime-tax-combined.spec.mjs` production-route file. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged) records two unmutated GREEN controls at `8 passed` and the blocking CI run's eight combined-file cases.
 - [x] All four wiring markers count non-zero on the deployed branch.
   → Evidence: `git show origin/main:lifetime-tax-strategy-lab.html | grep -c` → combinedSettlementCard 2, combinedCurveChart 3, combinedFederalLeg 2, combinedIndependenceLine 3. Exit Code: 0
 - [x] The curve chart resolves within the assertion budget, the unavailability marker resolves for a pack-year mismatch and a refusing state leg, and the federal leg value resolves without exhausting the test budget; these are the scenario-specific E2E regressions for SCN-BUG016-03 through SCN-BUG016-05. → Evidence: the clean-ref runtime probe records `#combinedCurveChart` and `#combinedSettlementCard` count 1; the curve, pack-year-mismatch, combined-total, and refusing-state-leg browser tests pass in the eight-test run below and drive `[data-rl-value="combinedFederalLeg"]`.
@@ -234,9 +251,12 @@ Feature: A branch that loses an implementation says so
 | Negative | The check passes against a coherent branch and reports nothing. |
 | Selftest | `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline. |
 | E2E | Scenario-specific E2E consumer proof runs the eight tests in `tests/lifetime-tax-combined.spec.mjs` while the W1-W5 group in `scripts/selftest.mjs` checks SCN-BUG016-07 and SCN-BUG016-08 against the same route and selector inventory. |
+| Regression E2E | `e2e-ui` proof for SCN-BUG016-07 and SCN-BUG016-08 executes the complete eight-test `tests/lifetime-tax-combined.spec.mjs` production-route file while the W1-W5 BUG-016 selftest group checks the same route and selector inventory. |
 
 ### Definition of Done
 
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG016-07 and SCN-BUG016-08 through the W1-W5 recurrence checks and their live combined-panel consumer canary. **Claim Source:** executed. → Evidence: [RED before GREEN evidence](report.md#test-phase-red-before-green-evidence), [W1-W5 mutation proof](report.md#every-guard-was-proven-to-bite-by-reverting-mutation), and the scenario manifest's selftest and browser mappings.
+- [x] Broader E2E regression suite passes for the complete eight-test `tests/lifetime-tax-combined.spec.mjs` production-route file. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged) records all eight cases passing together and shows the browser suite discriminates when guarded wiring is removed.
 - [x] A spec present while its target selectors are absent is reported before publication: the check fails on the defective condition, and its scenario-specific E2E consumer regression remains mapped to `tests/lifetime-tax-combined.spec.mjs`, with raw output recorded.
   → Evidence: evaluated against `origin/main` content read straight out of the ref at filing time; seventeen findings from a spec present and intact at that ref. Raw output under `## Durable Guard Added After The Filing Above` in `report.md`; the same report records the combined browser file green after repair.
 - [x] A coherent branch is not obstructed: the check reports nothing and passes, and the broader combined-panel E2E regression suite passes, with raw output recorded.

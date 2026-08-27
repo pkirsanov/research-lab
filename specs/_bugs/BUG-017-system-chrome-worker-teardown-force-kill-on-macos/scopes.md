@@ -70,9 +70,12 @@ Feature: The stall is characterised before a remedy is chosen
 | Concurrency sweep | Runs at varying worker counts, stall presence recorded per count. |
 | Process sampling | Browser process count before and after each run. |
 | E2E | Scenario-specific process-level E2E characterization for SCN-BUG017-01 through SCN-BUG017-03 runs the 22-file lifetime-tax system-Chrome suite; concrete workload tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document`. |
+| Regression E2E | `e2e-ui` characterization for SCN-BUG017-01 through SCN-BUG017-03 executes the complete 22-file lifetime-tax system-Chrome workload across the declared worker-count sweep and preserves each named browser regression. |
 
 ### Definition of Done
 
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-01 through SCN-BUG017-03. **Claim Source:** executed. → Evidence: [BUG-017 report](report.md), specifically `Frequency at the filed configuration`, `Worker sweep`, and `Candidate mechanisms`, records every browser assertion passing while characterising the process-level outcome; the scenario manifest preserves the exact linked tests.
+- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax system-Chrome workload at the selected two-worker configuration. **Claim Source:** executed. → Evidence: [BUG-017 report](report.md), `Scope 2 Execution — Remedy Applied`, records three consecutive complete 94-test workloads at two workers, all exit 0 with zero force-kills.
 - [x] A frequency is established: the proportion of identical six-worker system-Chrome runs exhibiting a force-killed worker is recorded with the number of runs and raw output for each, using the scenario-specific E2E workload for SCN-BUG017-01.
   → Evidence: `report.md` `## Scope 1 Execution — Characterisation` records the 22-file lifetime-tax workload, every exit, force-kill count, and sample size; every page test passed in each recorded workload run.
 - [x] A concurrency threshold is probed: the lowest worker count at which the stall was observed is recorded.
@@ -147,9 +150,12 @@ Feature: A passing run reports success
 | Timing | Wall-time ratio against the bundled project meets the recorded bound. |
 | Selftest | `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline. |
 | E2E | Scenario-specific process-level E2E verification for SCN-BUG017-04 through SCN-BUG017-06 runs the 22-file lifetime-tax system-Chrome suite at the configured worker count; concrete workload tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on`. |
+| Regression E2E | `e2e-ui` verification for SCN-BUG017-04 through SCN-BUG017-06 executes the complete 22-file lifetime-tax system-Chrome workload at the configured two-worker bound, including process release and wall-time assertions. |
 
 ### Definition of Done
 
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-04 through SCN-BUG017-06. **Claim Source:** executed. → Evidence: [BUG-017 report](report.md), `Scope 2 Execution — Remedy Applied`, records three consecutive scenario workloads with 94 passes, exit 0, no force-kill, restored process counts, and the configured worker setting; the scenario manifest preserves the exact linked tests.
+- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax system-Chrome workload at the selected two-worker configuration. **Claim Source:** executed. → Evidence: [BUG-017 report](report.md), `Scope 2 Execution — Remedy Applied`, records the complete workload passing on every configured run.
 - [x] Repeated runs exit zero: consecutive scenario-specific system-Chrome E2E workloads for SCN-BUG017-04 through SCN-BUG017-06 at the chosen worker count all exit 0, with raw output for each.
   → Evidence: `report.md` `## Scope 2 Execution — Remedy Applied` records three consecutive 94-test runs, all tests passing, exit 0, and zero force-kills.
 - [x] No run reports `worker-N process did not exit within`.
@@ -215,6 +221,7 @@ Feature: An unremovable defect is disclosed rather than rediscovered
 | Review | The disclosure states platform, project, symptom, intermittence, and measured cost. |
 | Adversarial | The disclosure is not accepted while Scope 1 records an available remedy. |
 | E2E | Scenario-specific E2E workload verification for SCN-BUG017-07 and SCN-BUG017-08 runs the same 22-file lifetime-tax system-Chrome suite after the `playwright.config.mjs` exposure remedy; concrete tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted`. |
+| Regression E2E | `e2e-ui` verification for SCN-BUG017-07 and SCN-BUG017-08 executes the complete 22-file lifetime-tax system-Chrome workload after the worker-bound remedy and developer disclosure. |
 
 ### Definition of Done
 
@@ -227,6 +234,8 @@ conceded in writing is that a remedy for the **exposure** was available and take
 **cause** is not removable here. Full reversal reasoning and evidence:
 `report.md` `## Scope 3 Execution — Disclosure Written`.
 
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-07 and SCN-BUG017-08. **Claim Source:** executed. → Evidence: [remedy-commit workload](report.md#the-condition-is-still-reachable-at-the-remedy-commit) records the disclosure-state configuration with all 111 browser tests passing; the scenario manifest preserves the functional disclosure canary and named lifetime-tax consumer links.
+- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax system-Chrome workload at the selected two-worker configuration. **Claim Source:** executed. → Evidence: [remedy-commit workload](report.md#the-condition-is-still-reachable-at-the-remedy-commit) records run A at two workers with `111 passed`, exit 0, and zero force-kills.
 - [x] Scope 1 recorded that the cause is not removable in this repository, and disclosure does not stand in for the available fix because `workers: 2` is applied before the notice describes the remaining explicit override.
   → Evidence: `report.md` `## Scope 1 Addendum — The Cause Is Not Removable In This Repository` records the causal boundary; `report.md` `### Why the declination above is superseded` records that the exposure remedy was filed first. The repository implementation is `playwright.config.mjs`; vendor-runner and installed-Chrome observations are causal evidence only.
 - [x] A developer meets the symptom disclosure where the suite is run: it names the platform, the project, the symptom, and its intermittence, and the scenario-specific system-Chrome E2E workload for SCN-BUG017-07 and SCN-BUG017-08 passes under that default configuration.

@@ -90,9 +90,12 @@ Feature: The earliest priceable claim age is a declared pack figure
 | Unit (`node scripts/selftest.mjs`) | The declared figure is readable and its absent form refuses |
 | Regression | `node scripts/selftest.mjs` stays at 3404 or above with 0 failed |
 | E2E (`tests/lifetime-tax-benefit.spec.mjs`) | Scenario-specific E2E regression `Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses` exercises SCN-BUG019-01 on the production route; the BUG-019 node assertion maps SCN-BUG019-02 and SCN-BUG019-03 to their proportionate contract checks. |
+| Regression E2E | `e2e-ui` proof for SCN-BUG019-01 through SCN-BUG019-03 executes the named earliest-priceable-age production-route regression and the complete 22-file lifetime-tax family, while the BUG-019 selftest clauses preserve the absent-figure and no-literal contracts. |
 
 ### Definition of Done
 
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG019-01 through SCN-BUG019-03. **Claim Source:** executed. → Evidence: [BUG-019 report](report.md), `Test-Phase RED Before GREEN Evidence`, `The Bound Now Lives In The Pack`, and `Independent Verification Round — The Two Restated Rows`; the scenario manifest preserves the exact browser and selftest links.
+- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax family after the pack-bound behavior. **Claim Source:** executed. → Evidence: [The route](report.md#the-route) records all 22 lifetime-tax files at `111 passed`, exit 0.
 - [x] The benefit pack carries the earliest priceable claim age with a source reference and a
       locator, and the scenario-specific E2E regression for SCN-BUG019-01 passes on the production route.
       → Evidence: `node scripts/selftest.mjs` → `3405 passed, 0 failed`, exit 0. The
@@ -263,9 +266,12 @@ Feature: A claim age the pack cannot price is refused
 | Browser (`tests/lifetime-tax-claim-age.spec.mjs`) | A mixed comparison list keeps priceable rows and refuses unpriceable ones in place |
 | Regression | The committed `tests/lifetime-tax-*.spec.mjs` family still passes on `--project=chromium` |
 | E2E | Scenario-specific E2E regressions execute `tests/lifetime-tax-benefit.spec.mjs` tests `Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses` and `Regression: SCN-024-003 the full retirement age row, the months counted and each factor applied are shown and an out-of-domain birth year refuses`, plus `tests/lifetime-tax-claim-age.spec.mjs` test `Regression: BUG-019 a comparison list mixing priceable and unpriceable ages keeps its priceable rows and refuses the unpriceable one in place`, covering SCN-BUG019-04 through SCN-BUG019-08 on the production route. |
+| Regression E2E | `e2e-ui` proof for SCN-BUG019-04 through SCN-BUG019-08 executes the exact benefit-boundary, stopping-age, and mixed-comparison regressions, then the complete 22-file lifetime-tax family. |
 
 ### Definition of Done
 
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG019-04 through SCN-BUG019-08. **Claim Source:** executed. → Evidence: [BUG-019 report](report.md), `Both Sides Of The One-Month Boundary`, Probes 1, 2b, 5, and 6, and the disclosure round; the scenario manifest preserves every exact browser and selftest link.
+- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax family after the refusal and disclosure behavior. **Claim Source:** executed. → Evidence: [The route](report.md#the-route) records the complete family at `111 passed`, exit 0.
 - [x] One month below the earliest priceable age refuses, and the wider reported band also refuses: 743 months produces no monthly or annual figure, while the `bug.md` reproduction at 720 months yields a refusal rather than $1,800.
       → Evidence: the `every claim age below the earliest priceable age refuses` case drives 720,
       600, 576, 480 and 0 months and asserts each returns `RLTAX-THRESHOLD-UNAVAILABLE` with zero
@@ -374,9 +380,12 @@ Feature: The pricing boundary is pinned from both sides
 | Browser | Each new case fails red against the pre-fix route for its assertion reason and passes after |
 | Regression | The whole `tests/lifetime-tax-*.spec.mjs` family passes on `--project=chromium` |
 | E2E | Scenario-specific E2E regressions execute `tests/lifetime-tax-benefit.spec.mjs` tests `Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses` and `Regression: BUG-019 every claim age below the earliest priceable age refuses, including the band whose multiplier turns negative`, covering SCN-BUG019-09 through SCN-BUG019-11 on the production route. |
+| Regression E2E | `e2e-ui` proof for SCN-BUG019-09 through SCN-BUG019-11 executes the exact one-month-boundary and sub-zero-band regressions, then the complete 22-file lifetime-tax family. |
 
 ### Definition of Done
 
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG019-09 through SCN-BUG019-11. **Claim Source:** executed. → Evidence: [BUG-019 report](report.md), `Test-Phase RED Before GREEN Evidence` and Probes 1, 2b, and 4; the scenario manifest preserves the exact one-month-boundary and sub-zero-band browser links.
+- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax family after both boundary cases. **Claim Source:** executed. → Evidence: [The route](report.md#the-route) records the complete family at `111 passed`, exit 0.
 - [x] The boundary is asserted from both sides one month apart in the scenario-specific E2E regressions for SCN-BUG019-09 through SCN-BUG019-11. → Evidence: 744 months prices to a
       `$25,200` headline and 743 months refuses, both inside one case so neither side can drift
       alone. Probe 1 fails the refusing half, Probe 2b fails the priced half.

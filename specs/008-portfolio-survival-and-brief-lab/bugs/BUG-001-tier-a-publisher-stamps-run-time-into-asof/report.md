@@ -66,11 +66,26 @@ falling back to anything, so the class of defect cannot recur silently under a n
 1040:    windowCutoffAt: windowCutoffAt,
 ```
 
+**`executed (validation turn)`** — re-verified against the committed tree. The export line has
+DRIFTED since the artifact turn, so the capture above is retained as a true reading at its
+time rather than edited to match today:
+
+```
+$ git show HEAD:rlportfoliobrief.js | grep -n 'windowCutoffAt'
+171:  function windowCutoffAt(windows, windowId, instant) {
+1134:    windowCutoffAt: windowCutoffAt,
+$ echo "exit=$?"
+exit=0
+```
+
+Defined once, exported once, at both readings. Only the export's line NUMBER moved (1040 to
+1134); the definition is still at 171 and the count is still two.
+
 Defined once at 171, exported at 1040. Both the publisher and the payload validator call it:
 
 **`executed (artifact turn)`** — `git diff scripts/validate-brief-payload.mjs`
 
-```
+```diff
 -   consumer cannot drift; only the calendar date is derived here, from the same ET zone. */
 +   consumer cannot drift; the calendar date is derived inside that helper from the same ET zone. */
 -  const cutoffAt = RLPORTFOLIOBRIEF.newYorkCivilCutoff(tradingDate, window.etTime);
@@ -82,10 +97,15 @@ The declared ET times are never restated as literals anywhere; they are read fro
 
 ## The Boundary Is Provably Untouched
 
-**`executed (artifact turn)`** — `git diff --numstat rlportfoliobrief.js`
+**`executed (artifact turn)`** — `git diff --numstat rlportfoliobrief.js`, re-verified in the
+validation turn against the delivery commit because the working-tree form now returns empty:
+the change is committed, so `git diff` has nothing left to report.
 
 ```
+$ git show --numstat 899c7a40e -- rlportfoliobrief.js | tail -2
 16      0       rlportfoliobrief.js
+$ echo "exit=$?"
+exit=0
 ```
 
 Sixteen insertions, **zero deletions**. The refusal condition cannot have been edited,
@@ -96,6 +116,7 @@ claim in `design.md`; it is checkable rather than asserted.
 read of 229-248)
 
 ```js
+$ sed -n '232,234p' rlportfoliobrief.js
     if (input.snapshotRef.window !== input.windowId || input.payloadRef.asOf > cutoffAt || input.snapshotRef.asOf > cutoffAt) {
       return contractErr("P008-BRIEF-EVIDENCE", "generic-evidence-cutoff-conflict", "input", null, false);
     }
@@ -109,7 +130,7 @@ the export at 1040, well below.
 
 **`executed (artifact turn)`** — `git diff -U0 market-brief.snapshot.json market-brief.payload.json`
 
-```
+```diff
 -  "asOf": "2026-08-23T15:37:31.147Z",
 +  "asOf": "2026-08-23T15:00:00.000Z",
 -  "asOf": "2026-08-23T15:37:31.147Z",
@@ -203,7 +224,7 @@ And the refusal is named in the `.catch()`:
 
 **`executed (artifact turn)`** — `git diff scripts/brief-narrative-parallel.mjs`
 
-```
+```diff
 -    payload.asOf = snapshot.asOf || snapshot.generatedAt || new Date().toISOString();
 +    /* The payload inherits the Tier-A window cutoff verbatim. It must never fall back to the run
 +       clock: the consumer refuses a payload dated past the window it declares, so a substituted

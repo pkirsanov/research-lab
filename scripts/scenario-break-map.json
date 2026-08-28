@@ -463,6 +463,19 @@
       "control": "a coverage envelope stops reporting which requested bound it failed to reach, so a two-year snapshot answering a five-year request no longer discloses that its start is missing",
       "claim": "A coverage result names exactly which requested bounds are missing, so a shorter committed snapshot cannot masquerade as the full requested window",
       "implementationRefs": ["rldata.js"]
+    },
+    "SCN-008-044": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection",
+      "breakFile": "rlportfoliobrief.js",
+      "edits": [
+        {
+          "find": "      if (Date.parse(occurrence.occurredAt) > Date.parse(input.behaviorCutoffAt)) {",
+          "replace": "      if (false) {"
+        }
+      ],
+      "control": "a behavior occurrence dated after the brief's own cutoff is admitted as eligible instead of quarantined, so activity that had not happened when the brief was composed is counted into its ranking",
+      "claim": "A behavior occurrence dated past the brief cutoff is quarantined rather than counted, so a brief never ranks on activity later than itself",
+      "implementationRefs": ["rlportfoliobrief.js"]
     }
   }
 }

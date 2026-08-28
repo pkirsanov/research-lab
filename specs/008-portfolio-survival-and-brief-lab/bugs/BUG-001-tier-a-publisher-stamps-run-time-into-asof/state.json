@@ -47,7 +47,8 @@
     "completedPhaseClaims": [
       "bug",
       "implement",
-      "test"
+      "test",
+      "regression"
     ],
     "phaseClaimNote": "Two claims were WITHDRAWN as framework-integrity violations, not because the work was absent. 'design' is not a registered phase in .github/bubbles/workflows.yaml (registered phases were enumerated; design resolves owner=None), so claiming it asserts a phase this workflow does not have. The design work itself is real and lives in design.md, produced during the 'bug' phase, which is exactly what executionHistory records (agent bubbles.bug). 'regression' IS registered but its owner is bubbles.regression, while executionHistory attributes it to bubbles.bug -- an owner-contract violation. The claim is withdrawn rather than relabelled; a real bubbles.regression run is what would restore it. 'test' is ADDED with genuine provenance: bubbles.test executed the phase in this session and committed 86c4a360f at 2026-08-28T16:46:33Z, closing Gate G060 by reconstructing the red stage inside an isolated git-archive export (15 failed / 4 passed with the fix reverted, restored to 19 passed). Timestamps here are real commit times, not placeholders; the pre-existing history entries all carry 2026-08-23T00:00:00Z, which is a placeholder midnight and is left untouched as inherited record rather than back-filled with invented precision."
   },
@@ -344,6 +345,17 @@
       "note": "Closed Gate G060 by making the packet's real red->green ordering legible and then reproducible. Root cause was a marker-form mismatch, not missing evidence: scopes.md read 'RED (before the fix)' and 'RED (' is not an accepted form, so the first recognised red marker fell through to a line carrying BOTH red and green ('3 passed / 14 failed'), and first-red < first-green could never hold. Relabelled to 'RED stage' / 'GREEN stage'; no number changed and no run was invented. Then reconstructed the red inside an isolated git-archive export: baseline 19 passed exit 0; fix reverted at its single asserted site -> 15 failed / 4 passed exit 1; export restored -> 19 passed exit 0. Recorded explicitly as a reconstruction performed now, never as the original historical red run. Four rows survived the revert, including this bug's own row at :1039, because it overrides both artifacts with its own late fixture before asserting -- so a publisher-side defect is invisible to it by construction. That limitation is recorded rather than glossed.",
       "phasesExecuted": [
         "test"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-28T19:00:14Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "verified",
+      "note": "Blast radius taken from the real diff (899c7a40e: 19 files, 1688 +, 23 -) rather than from the packet's prose, then every consumer of the changed surfaces was run on a FRESH git-archive export of HEAD 4bf23b545 -- the working tree carries ~85 foreign uncommitted files, so a run there would not measure this delivery. Node suites, all exit 0: selftest 3429 passed / 0 failed; validate-brief-payload PASS; portfolio-publisher-boundary.functional 5/5; portfolio-brief.functional 34/34. Browser suites -- the six specs that actually consume the brief payload, found by grep rather than assumed -- all exit 0: portfolio-survival-brief 19, market-brief-cockpit 22, attention-browser 17, portfolio-survival-foundation 17, market-brief-freshness 5, causal-rotation-brief 4, market-action-center 4. No regression and no coverage decrease. TWO THINGS CHECKED THAT COULD HAVE BEEN MISSED. (1) _site/ holds a published copy of rlportfoliobrief.js; a stale copy would mean the deployed page lacked the fix. It is IN-SYNC (both carry windowCutoffAt twice) and is gitignored with 0 tracked files, so it is a local build artifact, not a shipping risk. (2) The known weakness at portfolio-survival-brief.spec.mjs:1039 was verified, not rediscovered: that row overrides both artifacts with its own late fixture, so it survives the fix being reverted and cannot see a publisher-side defect. The earlier red reconstruction showed 15 OTHER rows failing when the fix is reverted, so the publisher half IS guarded -- by those rows, not by :1039. The coverage is adequate; the misleading part is only that :1039's NAME implies it guards a defect it structurally cannot. That is recorded rather than treated as sufficient.",
+      "phasesExecuted": [
+        "regression"
       ],
       "provenanceMode": "specialist"
     }

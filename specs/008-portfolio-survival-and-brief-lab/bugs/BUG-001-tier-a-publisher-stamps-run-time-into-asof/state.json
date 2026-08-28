@@ -46,11 +46,10 @@
     "nextRequiredReason": "The fix is implemented and its verification was executed and observed. Two things keep this packet non-terminal. First, the delivery is present in the working tree at 648e0992b and is uncommitted; the artifact turn was instructed not to commit or push. Second, no validate/certification phase ran, so certification.status stays in_progress and certifiedAt stays null. Separately, design.md Q1 (whether a persistently late publication should surface its lateness as an operational signal) is recorded for the owner and is not blocking.",
     "completedPhaseClaims": [
       "bug",
-      "design",
       "implement",
-      "regression"
+      "test"
     ],
-    "phaseClaimNote": "Only phases actually executed are listed. bug: the defect was reproduced against the live published artifacts and its provenance established by two surgical reverts. design: the decision not to weaken the consumer boundary, and the shared-helper approach. implement: the seven-surface fix and the two data corrections. regression: the adversarial row at tests/portfolio-survival-brief.spec.mjs:902 plus the four verification gates. NOT claimed: validate, docs, audit, security, simplify \u2014 none were dispatched."
+    "phaseClaimNote": "Two claims were WITHDRAWN as framework-integrity violations, not because the work was absent. 'design' is not a registered phase in .github/bubbles/workflows.yaml (registered phases were enumerated; design resolves owner=None), so claiming it asserts a phase this workflow does not have. The design work itself is real and lives in design.md, produced during the 'bug' phase, which is exactly what executionHistory records (agent bubbles.bug). 'regression' IS registered but its owner is bubbles.regression, while executionHistory attributes it to bubbles.bug -- an owner-contract violation. The claim is withdrawn rather than relabelled; a real bubbles.regression run is what would restore it. 'test' is ADDED with genuine provenance: bubbles.test executed the phase in this session and committed 86c4a360f at 2026-08-28T16:46:33Z, closing Gate G060 by reconstructing the red stage inside an isolated git-archive export (15 failed / 4 passed with the fix reverted, restored to 19 passed). Timestamps here are real commit times, not placeholders; the pre-existing history entries all carry 2026-08-23T00:00:00Z, which is a placeholder midnight and is left untouched as inherited record rather than back-filled with invented precision."
   },
   "defect": {
     "severity": "High",
@@ -336,6 +335,11 @@
         "bug"
       ],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-28T16:46:33Z",
+      "agent": "bubbles.test",
+      "phase": "test"
     }
   ],
   "activeBugs": [],

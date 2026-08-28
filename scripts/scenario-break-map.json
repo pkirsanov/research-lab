@@ -802,6 +802,19 @@
       "control": "the behaviour-only clear also deletes explicitly saved dossiers, so a reader who asked to remove derived behaviour silently loses research they deliberately saved",
       "claim": "A behaviour-only clear removes derived behaviour and leaves explicitly saved dossiers untouched, while the full-personal clear sweeps both",
       "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-054": {
+      "test": "tests/portfolio-test-integrity.unit.mjs#Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "      draftResult.value.rows.filter(function (row) { return row.holdingId !== holdingId; }),",
+          "replace": "      draftResult.value.rows,"
+        }
+      ],
+      "control": "the audited F008-PORTFOLIO-LIFECYCLE-001 defect is present in the shipped tree, so a removal returns the unchanged row set and the protective carrier no longer passes green on shipped - the integrity file's own green-on-shipped obligation fails",
+      "claim": "Every audited Feature 008 defect class is absent from the shipped tree and its protective carrier is proven load-bearing by failing when that defect is represented",
+      "implementationRefs": ["rlportfolio.js"]
     }
   }
 }

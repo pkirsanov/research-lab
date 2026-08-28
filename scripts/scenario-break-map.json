@@ -734,6 +734,19 @@
       "control": "the navigation surface points its Feature 008 entry at a different tool, so the registry, landing page, README, and note no longer agree on one published route and a reader following the nav link never reaches the Portfolio Brief workspace",
       "claim": "The registry, navigation, landing page, README, and note all publish one agreeing Feature 008 entry that opens the Portfolio Brief workspace",
       "implementationRefs": ["rlnav.js"]
+    },
+    "SCN-008-036": {
+      "test": "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "storedMode = window.localStorage.getItem(MODE_KEY) === \"power\" ? \"power\" : \"simple\";",
+          "replace": "storedMode = window.localStorage.getItem(MODE_KEY) === \"simple\" ? \"simple\" : \"power\";"
+        }
+      ],
+      "control": "the tool opens into the dense Power view for a reader with no stored preference, so the decision-first Simple cockpit is no longer the default and a first-time reader meets the drill-down instead",
+      "claim": "Simple is the default view, and Power adds evidence without altering the citation, identity, or verdict that Simple already showed",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

@@ -113,12 +113,85 @@ with `- Expected - 1 / + Received + 7`. Restoring the committed floor returned i
 `1 passed`, and `git diff --stat` on `market-brief.config.json` confirmed the probe left
 nothing behind.
 
-**That falsification probe was NOT re-performed on 2026-08-28.** It requires mutating
-committed `market-brief.config.json` and regenerating page artifacts, and this worktree is
-shared with a concurrent session holding 88 uncommitted files; mutating shared product
-config would race with it. The claim is therefore carried forward as a dated historical
-capture rather than re-derived, and is reported as such. What WAS re-run on 2026-08-28 is
-the scenario itself, in the full suite, against committed config:
+**That falsification probe was RE-DERIVED on 2026-08-28, outside this worktree.** The
+capture above is dated 2026-08-22; rather than restate it, the probe was performed again.
+It needs a mutation of committed `market-brief.config.json`, and this worktree is shared
+with a concurrent session holding uncommitted files — so the run was moved off the worktree
+entirely, into a `git clone` of this repository in a scratch directory outside it, which
+touches neither the shared files nor their `.git`. Research Lab is build-free, so a clone
+runs as-is; only `node_modules` was symlinked, read-only, for the Playwright binary. Clone
+paths below are shown as `<repo-root>`. Control first — committed floor, scenario passes:
+
+```
+$ node -e "console.log(require('./market-brief.config.json').thresholds.minimumActionConfidence)"
+50
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=1 tests/attention-browser.spec.mjs -g "every next-session action the cockpit renders clears the committed confidence floor"
+
+Running 1 test using 1 worker
+
+  ✓  1 … action the cockpit renders clears the committed confidence floor (1.5s)
+
+  1 passed (4.1s)
+CONTROL_EXIT=0
+```
+
+Then the floor alone was raised, in the clone only. The three committed `nextSession`
+actions at 57, 54 and 52 fall beneath 60, and the scenario fails naming each of them:
+
+```
+$ git --no-pager diff market-brief.config.json
+-        "minimumActionConfidence": 50,
++        "minimumActionConfidence": 60,
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=1 tests/attention-browser.spec.mjs -g "every next-session action the cockpit renders clears the committed confidence floor"
+
+  ✘  1 … action the cockpit renders clears the committed confidence floor (4.0s)
+
+    Error: every rendered action clears the committed floor of 60
+    expect(received).toEqual(expected) // deep equality
+    - Expected  - 1
+    + Received  + 5
+    - Array []
+    + Array [
+    +   57,
+    +   54,
+    +   52,
+    + ]
+      at <repo-root>/tests/attention-browser.spec.mjs:1603:6
+
+  1 failed
+FALSIFY_EXIT=1
+```
+
+Restoring the committed floor returns the scenario, and the probe leaves nothing behind:
+
+```
+$ git checkout -- market-brief.config.json
+$ git --no-pager diff --stat market-brief.config.json
+$ node -e "console.log(require('./market-brief.config.json').thresholds.minimumActionConfidence)"
+50
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=1 tests/attention-browser.spec.mjs -g "every next-session action the cockpit renders clears the committed confidence floor"
+
+  ✓  1 … action the cockpit renders clears the committed confidence floor (1.9s)
+
+  1 passed (4.6s)
+RESTORE_EXIT=0
+```
+
+**The re-derived count does not match the 2026-08-22 capture, and the older number was
+wrong on its own terms.** That capture read `+ Received + 7`, and the scenario comment at
+`tests/attention-browser.spec.mjs:1579` still says the probe "fails naming 7 rendered
+actions beneath it". `+ Received + N` counts DIFF LINES, not actions: a seven-line received
+array is five values plus two brackets, so 2026-08-22 falsified on five actions, never on
+seven. Today it reads `+ Received + 5`, which is three values — the committed payload now
+carries four `nextSession` actions where it once carried more. What the probe establishes
+is unchanged, and is the part that matters: the scenario is sensitive to a
+config-versus-payload disagreement, and it names the offending values instead of failing
+blankly. The count is a property of whichever payload is committed on the day, not of the
+invariant. Correcting that stale comment belongs to product test source, which this packet
+does not edit; it is recorded here so the next reader of that file has the measurement.
+
+The scenario was also re-run on 2026-08-28 in the full suite, in this worktree, against
+committed config and with no mutation at all:
 
 ```
 $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=1 tests/attention-browser.spec.mjs

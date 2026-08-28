@@ -721,6 +721,19 @@
       "control": "the workspace stops reporting the tab it is actually showing and always names the brief, so a reader auditing which view produced a figure is told the wrong one on every tab except the first",
       "claim": "The workspace reports the tab it is actually showing, so every mode and tab combination renders one identifiable active view against one published identity",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-055": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace",
+      "breakFile": "rlnav.js",
+      "edits": [
+        {
+          "find": "file: \"portfolio-survival-allocation-lab.html\", group: \"Strategy & Validation\" }",
+          "replace": "file: \"company-fundamentals-lab.html\", group: \"Strategy & Validation\" }"
+        }
+      ],
+      "control": "the navigation surface points its Feature 008 entry at a different tool, so the registry, landing page, README, and note no longer agree on one published route and a reader following the nav link never reaches the Portfolio Brief workspace",
+      "claim": "The registry, navigation, landing page, README, and note all publish one agreeing Feature 008 entry that opens the Portfolio Brief workspace",
+      "implementationRefs": ["rlnav.js"]
     }
   }
 }

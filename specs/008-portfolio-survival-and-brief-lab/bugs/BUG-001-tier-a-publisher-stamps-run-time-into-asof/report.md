@@ -288,6 +288,7 @@ the other, so the fix cannot be mistaken for a relaxation.
 before it asserts anything about the page:
 
 ```js
+$ sed -n '1050,1053p' tests/portfolio-survival-brief.spec.mjs
 const publishedLateAt = new Date(Date.parse(cutoffAt) + 37 * 60 * 1000).toISOString();
 expect(publishedLateAt > cutoffAt,
   'NON-TAUTOLOGY GUARD: the fixture must publish strictly LATER than its own window cutoff, '
@@ -301,6 +302,7 @@ softened, and the row fails if the blank-tab behaviour returns.
 The row also pins the refusal's structural identity, not only its rendered copy:
 
 ```js
+$ grep -n "toHaveAttribute('data-generic-window-error'" tests/portfolio-survival-brief.spec.mjs
 await expect(times).toHaveAttribute('data-generic-window-error', 'P008-BRIEF-EVIDENCE/generic-evidence-cutoff-conflict');
 // elided: the two toContainText assertions on the same element, and the #briefStates copy assertion
 const diagnostics = await page.evaluate(() => window.__PORTFOLIO_DIAGNOSTICS__);
@@ -982,6 +984,7 @@ The stub is right that the throws are handled at `brief-refresh.mjs:2672`. What 
 say is what that handler does:
 
 ```js
+$ sed -n '2672,2675p' scripts/brief-refresh.mjs
 main().catch((e) => {
   console.error(`[brief-refresh] ${process.argv.includes('--strict') ? 'fatal' : 'soft-fail'}:`, e.message);
   process.exit(process.argv.includes('--strict') ? 1 : 0);

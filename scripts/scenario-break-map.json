@@ -513,6 +513,45 @@
       "control": "the sixth candidate is emitted under a different method identity in both its solved and its unavailable branch, so the comparison no longer presents the contracted six-method set and a reader cannot find constrained-mvo among the candidates",
       "claim": "All six allocation methods are projected against one frozen basis, each appearing under its contracted method identity with its own assumption row and availability state",
       "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-006": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "byId(\"briefTimes\").setAttribute(\"data-composed\", value.times.composedAt);",
+          "replace": "byId(\"briefTimes\").setAttribute(\"data-composed\", value.times.evidenceCutoffAt);"
+        }
+      ],
+      "control": "the local composition clock is rendered as the evidence cutoff, collapsing three distinct clocks into two, so a reader can no longer tell when the brief was composed apart from when its evidence stopped and a past brief becomes unauditable",
+      "claim": "Each window preserves three distinct clocks - evidence cutoff, generic publication, and local composition - so a past brief can be audited against the moment its evidence closed",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-007": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history",
+      "breakFile": "rlportfoliobrief.js",
+      "edits": [
+        {
+          "find": "held: \"direct-holding\",",
+          "replace": "held: \"qualified\","
+        }
+      ],
+      "control": "the held lane stops emitting its contracted qualification source, so a rendered subject no longer discloses that it earned its place by being a direct holding and a reader must infer authority from lane position alone",
+      "claim": "Every rendered brief item declares the qualification source that admitted it to its lane, so lane position never has to be read as authority",
+      "implementationRefs": ["rlportfoliobrief.js"]
+    },
+    "SCN-008-008": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "\" (relevance only, not a success probability)\"",
+          "replace": "\" (relevance only)\""
+        }
+      ],
+      "control": "the relevance-confidence disclosure drops the clause separating relevance from a success probability, so a reader can take a relevance score as the odds of the trade working - the exact conflation FR-046 exists to prevent",
+      "claim": "Every rendered item opens a reachable Why shown disclosure whose relevance confidence is labelled as relevance and never as a success probability",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

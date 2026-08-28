@@ -100,6 +100,45 @@ if printf '%s\n' "$out" | grep -qE '^STATUS	missing'; then pass "depth-5 DoD hea
 out="$(run_lib "$WORK/does-not-exist.md")"
 if printf '%s\n' "$out" | grep -qE '^STATUS	read_error'; then pass "unreadable file -> STATUS read_error"; else fail "unreadable file did not yield STATUS read_error"; fi
 
+# --- Fixture 8: a fence OPENED on a list-marker line must not swallow DoD items ---
+#
+# REGRESSION (BUG-011 false G068). Evidence blocks routinely open a fence under
+# a sub-bullet (`  - ```text`) and close it plain-indented (`    ``` `). A
+# toggle that matches only line-start fences sees the CLOSE but not the OPEN,
+# inverts, and silently drops every later checkbox. The gate downstream then
+# reports DoD items as MISSING when they are present — a false violation that
+# is indistinguishable from a real planning defect.
+cat >"$WORK/listfence.md" <<'EOF'
+### Definition of Done
+- [x] first item
+  - **Command:** `node run.mjs`
+  - ```text
+    5 passed (1.1m)
+    EXIT=0
+    ```
+  - trailing note
+- [x] second item after the fenced block
+- [x] third item after the fenced block
+EOF
+out="$(run_lib "$WORK/listfence.md")"
+cb="$(printf '%s\n' "$out" | grep -c '^CHECKBOX')"
+if [[ "$cb" -eq 3 ]]; then pass "list-marker fence open/close keeps all 3 DoD items visible"; else fail "list-marker fence swallowed DoD items: expected 3 CHECKBOX, got $cb"; fi
+if printf '%s\n' "$out" | grep -q 'second item after the fenced block'; then pass "checkbox after a list-marker fence is parsed"; else fail "checkbox after a list-marker fence was dropped"; fi
+if printf '%s\n' "$out" | grep -q '5 passed'; then fail "fenced terminal output leaked out as a DoD item"; else pass "fenced terminal output stays inside the fence"; fi
+
+# --- Fixture 9: ordered-list marker fence is handled identically ---
+cat >"$WORK/ordfence.md" <<'EOF'
+### Definition of Done
+- [x] alpha
+  1. ```
+     raw output
+     ```
+- [x] beta
+EOF
+out="$(run_lib "$WORK/ordfence.md")"
+cb="$(printf '%s\n' "$out" | grep -c '^CHECKBOX')"
+if [[ "$cb" -eq 2 ]]; then pass "ordered-list-marker fence keeps both DoD items visible"; else fail "ordered-list-marker fence swallowed items: expected 2 CHECKBOX, got $cb"; fi
+
 # --- Every parse emits exactly one terminal STATUS ---
 sc="$(run_lib "$WORK/tiered.md" | grep -c '^STATUS')"
 if [[ "$sc" -eq 1 ]]; then pass "exactly one terminal STATUS record per parse"; else fail "expected exactly 1 STATUS record, got $sc"; fi

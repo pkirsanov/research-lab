@@ -66,7 +66,27 @@ dod_section_parse() {
       }
 
       # --- fenced code block toggle (``` or ~~~) ---
-      if (raw ~ /^[[:space:]]*(```|~~~)/) {
+      #
+      # A fence may open on a LIST-MARKER line. Markdown allows `  - ```text`,
+      # and Bubbles evidence blocks use that form constantly, because a fence
+      # nested under a DoD sub-bullet keeps the terminal output attached to the
+      # bullet it proves.
+      #
+      # Matching only `^[[:space:]]*(```|~~~)` sees the CLOSING fence (which is
+      # plain-indented) but never the list-marker OPENING. The toggle then
+      # inverts: the parser believes a fence OPENS where one actually closed,
+      # and every DoD checkbox until the next fence is silently swallowed.
+      #
+      # That failure is invisible and expensive. On BUG-011 it hid 4 of 7 DoD
+      # items, and Gate G068 then reported 4 "missing" DoD items for scenarios
+      # whose DoD items were present and correct the whole time — a FALSE
+      # violation that reads exactly like a real planning defect, and that
+      # cannot be diagnosed from the gate output.
+      #
+      # An unordered (`-`, `*`, `+`) or ordered (`1.`) marker before the fence
+      # is therefore consumed before testing. Same family as the phaseStubs and
+      # certifying-window fence fixes.
+      if (raw ~ /^[[:space:]]*([-*+][[:space:]]+|[0-9]+[.)][[:space:]]+)?(```|~~~)/) {
         in_fence = (in_fence ? 0 : 1)
         next
       }

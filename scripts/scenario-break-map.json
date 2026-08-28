@@ -786,6 +786,22 @@
       "control": "the workspace pointer is dropped from the full-personal clear key list, so a personal pointer survives the clear and a storage reread no longer returns exactly the generic public caches",
       "claim": "One full-personal clear removes every persisted personal key, so a storage reread afterwards holds exactly the generic public caches and no derived interest or action outcome",
       "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-040": {
+      "test": "tests/portfolio-allocation.functional.mjs#TP-15-08 a persisted dossier is swept by the full-personal clear and survives the behavior clear",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "    candidate.actionOutcomes = retainedOutcomes;",
+          "replace": [
+            "    candidate.actionOutcomes = retainedOutcomes;",
+            "    candidate.dossiers = [];"
+          ]
+        }
+      ],
+      "control": "the behaviour-only clear also deletes explicitly saved dossiers, so a reader who asked to remove derived behaviour silently loses research they deliberately saved",
+      "claim": "A behaviour-only clear removes derived behaviour and leaves explicitly saved dossiers untouched, while the full-personal clear sweeps both",
+      "implementationRefs": ["rlportfolio.js"]
     }
   }
 }

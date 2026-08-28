@@ -237,15 +237,17 @@
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": [
+      "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible"
+    ],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status mirrors the top-level status and is deliberately in_progress: no validate phase ran in this turn, so no certification is claimed. completedScopes is now EMPTY and scopeProgress records 18 checked / 1 unchecked with scope status In Progress. This is a correction, not a regression: a planning turn added the two regression-E2E DoD items Gate G068 requires, and the broader-suite item is honestly unchecked because the recorded suite run predates edits to the files it measures. A scope carrying an unchecked DoD item is not Done, so the earlier 'Done with 17 of 17' claim no longer describes the artifact and was withdrawn rather than left to read as a summary of a state the artifact has left.",
+    "certificationFieldWriteNote": "certification.status mirrors the top-level status and is deliberately in_progress: no validate phase has certified this packet, so no certification is claimed. scopeProgress records 19 checked / 0 unchecked with scope status Done, and completedScopes mirrors that SCOPE claim only. Scope completion and packet certification are separate claims and only the first is made here. The 19th item was closed by execution: the working tree carries another packet's uncommitted edits, so HEAD (17cb5335d) was exported with git archive into an isolated directory and all three suites passed there at exit 0 - selftest 3429/0, portfolio-brief.functional 34/34, playwright portfolio-survival-brief 19 passed. See report.md section 'Broader Suite On The Committed Tree'.",
     "scopeProgress": [
       {
         "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
-        "status": "In Progress",
-        "dodChecked": 18,
-        "dodUnchecked": 1
+        "status": "Done",
+        "dodChecked": 19,
+        "dodUnchecked": 0
       }
     ]
   },

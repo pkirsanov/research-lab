@@ -23,9 +23,9 @@ control instead of explaining itself. The Portfolio Brief tab read as "nothing h
 and the consumer share. The consumer boundary is byte-identical. The schedule renders before
 composition is attempted, and a refusal names its contract code and reason on screen.
 
-Scope 1 is delivered with 18 of 19 Definition of Done items evidenced. The nineteenth is
-unchecked on purpose: the broader-suite item requires a run against a tree that is not
-carrying another packet's uncommitted edits, and no such run is claimed until it exists.
+Scope 1 is delivered with 19 of 19 Definition of Done items evidenced. The nineteenth was
+closed by execution rather than assertion: the broader-suite item required a run against a tree
+not carrying another packet's uncommitted edits. See § Broader Suite On The Committed Tree.
 
 The delivery is committed. `scripts/brief-refresh.mjs` carries the fix in `899c7a40e`
 ("fix(brief): bind asOf to the analyzed window") and it is present at `HEAD`
@@ -366,6 +366,55 @@ because it was run as a verification gate, not because this packet authored it.
 The fix is present in the working tree at `648e0992b` and is **uncommitted**. The artifact
 turn was explicitly scoped to documentation and was instructed not to commit or push, so no
 commit was created and none is claimed. `autoCommit` is `off` in the policy snapshot.
+
+> **Superseded — kept because it was true when captured.** The block and paragraph above are
+> the artifact turn's genuine reading and are left byte-intact rather than rewritten. Both
+> have since gone stale: the fix was committed in `899c7a40e` ("fix(brief): bind asOf to the
+> analyzed window") and is present at `HEAD`, and `648e0992b` — the docs commit that happened
+> to be `HEAD` while the line was written — is now an ancestor of `HEAD`. Verified by
+> `git merge-base --is-ancestor 648e0992b HEAD` (true) and
+> `git show HEAD:scripts/brief-refresh.mjs | grep -c windowCutoffAt` (3).
+
+## Broader Suite On The Committed Tree
+
+**`executed (validation turn)`** — the obstruction was real and is worth naming: the working
+tree carries another packet's uncommitted edits to `tests/portfolio-brief.functional.mjs` and
+`rlportfoliobrief.js`, so any suite run there measures a tree that is not this packet's
+delivery. Rather than claim a pass from a contaminated tree or leave the item open forever,
+`HEAD` was exported with `git archive` into an isolated directory. That mutates no repository
+state and contains exactly the committed delivery.
+
+The divergence was proved, not assumed:
+
+```
+$ EXPORT_OF=17cb5335d
+tests/portfolio-brief.functional.mjs   export=a8d963a9feec worktree=875825213e53  export is CLEAN, worktree dirty
+rlportfoliobrief.js                    export=d8fa7cf2a0fe worktree=2c9805a22d68  export is CLEAN, worktree dirty
+```
+
+All three suites pass on that clean export, each exit 0:
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3429 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ node --test tests/portfolio-brief.functional.mjs
+# tests 34
+# pass 34
+# fail 0
+# duration_ms 687.214083
+FUNCTIONAL_EXIT=0
+
+$ npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+  ✓  18 [system-chrome] › tests/portfolio-survival-brief.spec.mjs:1039:1 › Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule (778ms)
+  19 passed (30.5s)
+PLAYWRIGHT_EXIT=0
+```
+
+Case 18 is this bug's own regression row, so the suite that certifies the tree is the same
+suite that carries the fix's proof.
 
 ## Completion Statement
 

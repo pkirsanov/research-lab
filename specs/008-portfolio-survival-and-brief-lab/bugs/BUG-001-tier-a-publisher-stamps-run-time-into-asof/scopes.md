@@ -8,7 +8,7 @@
 
 ## Scope 1 — Bind `asOf` to the analyzed window, and make a refusal legible
 
-**Status:** In Progress
+**Status:** Done
 
 ### Implementation Files
 
@@ -165,19 +165,20 @@ row, so neither can be traded for the other.
       fix turn — the row cited as `:902` in the item above now sits at `:1039`, and the
       `rlportfoliobrief.js` export cited as `:1040` now sits at `:1134`. The test *titles* are
       the stable identity, and they are what `scenario-manifest.json` binds.
-- [ ] Broader E2E regression suite passes on the current tree. UNCHECKED, and deliberately so:
-      the recorded run in `report.md` § Test Evidence — `tests/portfolio-survival-brief.spec.mjs`
-      17 passed / 0 failed, `node --test tests/portfolio-publisher-boundary.functional.mjs`
-      exit 0, `node scripts/validate-brief-payload.mjs` PASS, `node scripts/selftest.mjs` 3314
-      passed / 0 failed — is tagged `executed (fix turn)` and predates edits to the very files
-      it measures. `tests/portfolio-survival-brief.spec.mjs` was modified after that run, and
-      `tests/portfolio-brief.functional.mjs` and `rlportfoliobrief.js` carry uncommitted edits
-      owned by other work in the same checkout, so a run now would measure a tree that is not
-      this packet's delivery. Re-running
-      `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs
-      --config=playwright.config.mjs --project=system-chrome --reporter=list`,
-      `node --test tests/portfolio-brief.functional.mjs` and `node scripts/selftest.mjs`
-      against a clean tree is what closes this item. No pass is claimed until that run exists.
+- [x] Broader E2E regression suite passes on the current tree. Closed by execution, not by
+      waiting: the obstruction was that the working tree carries another packet's uncommitted
+      edits to `tests/portfolio-brief.functional.mjs` and `rlportfoliobrief.js`, so a run here
+      would not measure this packet's delivery. Resolved by exporting `HEAD` (`17cb5335d`) with
+      `git archive` into an isolated directory — which mutates no repository state and, unlike
+      the working tree, contains exactly the committed delivery. Divergence was proved rather
+      than assumed: `tests/portfolio-brief.functional.mjs` hashes `a8d963a9feec` in the export
+      versus `875825213e53` in the worktree, and `rlportfoliobrief.js` `d8fa7cf2a0fe` versus
+      `2c9805a22d68`. All three suites pass there, each exit 0 —
+      `node scripts/selftest.mjs` 3429 passed / 0 failed; `node --test
+      tests/portfolio-brief.functional.mjs` 34 pass / 0 fail; `npx --no-install playwright test
+      tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs
+      --project=system-chrome --reporter=list` 19 passed (30.5s), whose case 18 is this bug's
+      own row at `:1039`. Evidence: `report.md` § Broader Suite On The Committed Tree.
 - [x] The brief suite passes. Evidence: `report.md` § Test Evidence — 3 passed / 14 failed
       before, **17 passed / 0 failed** after.
 - [x] The publisher-boundary functional suite passes. Evidence: `report.md` § Test Evidence —

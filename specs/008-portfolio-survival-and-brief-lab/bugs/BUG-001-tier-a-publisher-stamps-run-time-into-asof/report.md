@@ -148,13 +148,11 @@ recorded here. § The Two Clocks Are Traceable carries the equivalent read again
 artifacts, with its command inline.
 
 That artifact-turn reading was: `window = morning`, `asOf = 2026-08-23T15:00:00.000Z`,
-`generatedAt = 2026-08-23T15:37:31.147Z`, `payload asOf = 2026-08-23T15:00:00.000Z`. The two
-clocks differ by 37 minutes and the payload inherits the cutoff rather than the run instant,
-which is the property this section demonstrates. It is quoted rather than re-run because the
-Tier-A refresh has regenerated both artifacts many times since.
-payload generatedAt= 2026-08-23T16:24:27.665Z
-payload window     = morning
-```
+`generatedAt = 2026-08-23T15:37:31.147Z`, `payload asOf = 2026-08-23T15:00:00.000Z`,
+`payload generatedAt = 2026-08-23T16:24:27.665Z`, `payload window = morning`. The two clocks
+differ by 37 minutes and the payload inherits the cutoff rather than the run instant, which is
+the property this section demonstrates. It is quoted rather than re-run because the Tier-A
+refresh has regenerated both artifacts many times since.
 
 Both artifacts now declare the 11:00 ET `morning` window and disclose their own publication
 instants — 11:37 for the snapshot, 12:24 for the payload, which was regenerated later by the
@@ -436,6 +434,9 @@ claim.
 $ git log --oneline -1 744ac6a54 && git log --oneline -1 0972ddd75
 744ac6a54 feat(008): complete immutable workspace navigation
 0972ddd75 feat(008): implement accessible six-tab interaction
+$ git show --stat --oneline 744ac6a54 | sed -n '2,3p'
+ portfolio-survival-allocation-lab.html             | 273 +++++++
+ rlnav.js                                           | 180 ++++
 ```
 
 **`executed (fix turn)`** — the two surgical reverts. `rlnav.js` was reverted to

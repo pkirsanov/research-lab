@@ -336,28 +336,55 @@ contract.
   zero unrelated staged paths, exact changed-path containment, current packet
   documentation, fixed canonical G028 scan, artifact lint, traceability, and
   validate-owned transition checks green.
-  Every clause was re-verified by command in the certifying session.
-  `node scripts/selftest.mjs` exits 0 with `3429 passed, 0 failed`, covering
-  zero skipped required tests and zero infrastructure-error substitutes.
-  `git show --numstat 4824edc81` reports exactly
-  `tests/portfolio-risk.functional.mjs` (`+29/-0`) and
-  `tests/portfolio-test-integrity.unit.mjs` (`+1/-1`), so zero product source
-  changed, zero anchors changed, and exact changed-path containment holds.
-  `git diff --cached --name-only` is empty, so zero unrelated staged paths hold.
-  `node scripts/pii-scan.mjs` exits 0 with `files=10332 messages=2340
-  findings=0`. `artifact-lint.sh` exits 0, `traceability-guard.sh` exits 0 with
-  `RESULT: PASSED (0 warnings)`, and `implementation-reality-scan.sh` exits 0
-  with 0 violations, covering current packet documentation and the fixed
-  canonical G028 scan.
-  The final clause resolved in this session. `state-transition-guard.sh` fell
-  from 7 failures to 4 once the `implement` phase was recorded as an honest
-  `execution.phaseStubs` entry and human acceptance was recorded in
-  `uservalidation.md`, then to 1 once Scope 1 closed and `completedScopes` was
-  populated. The single residual failure at the moment this box was ticked was
-  the box itself under Check 4; Checks 5, 6, 15 and 43 were already green, so
-  the tick records a verified state rather than asserting an unverified one.
-  Evidence:
-  [report.md#validate-route-025-phase-stub-and-certification](report.md#validate-route-025-phase-stub-and-certification).
+  Evidence: recorded inline immediately below, rather than as a `report.md`
+  anchor reference. The anchor this item previously cited,
+  `report.md#validate-route-025-phase-stub-and-certification`, does not exist:
+  it resolves to 0 matches in `report.md`, while all thirteen other anchors
+  cited in this file resolve to exactly 1. Creating that anchor would require
+  editing `report.md`, which is outside this pass's change boundary, so the
+  evidence is attached inline instead of pointing at a link that cannot
+  resolve. Each figure below is the observed output of the command shown,
+  re-executed in this session rather than carried forward.
+  - Command: `node scripts/selftest.mjs` — Exit Code: 0 — reports
+    `Research-Lab self-test: 3429 passed, 0 failed` across 3898 captured lines
+    (sha256 `db954920fb3f6528b69d943b6c2e4eed232d8aea49fb909ad07ee964c46d39bb`).
+    Zero required tests were skipped and no result was satisfied by an
+    infrastructure-error substitute.
+  - Command: `node scripts/pii-scan.mjs` — Exit Code: 0 — reports
+    `[pii-scan] files=10332 messages=2341 findings=0 OK`. The message count is
+    2341 here rather than the 2340 previously recorded; the scanned corpus
+    moved between sessions and `findings` is 0 on both readings.
+  - Command: `git show --numstat 4824edc81` — Exit Code: 0 — reports exactly
+    `tests/portfolio-risk.functional.mjs` (`+29/-0`) and
+    `tests/portfolio-test-integrity.unit.mjs` (`+1/-1`). Zero product source
+    changed, zero anchors changed, and exact changed-path containment holds.
+  - Command: `git diff --cached --name-only` — Exit Code: 0 — empty output,
+    so zero unrelated staged paths.
+  - Command: `bash .github/bubbles/scripts/implementation-reality-scan.sh`
+    against this packet — Exit Code: 0 — reports `Files scanned: 2`,
+    `Violations: 0`, `Warnings: 0`, covering the fixed canonical G028 scan and
+    current packet documentation.
+  - Command: `bash .github/bubbles/scripts/traceability-guard.sh` against this
+    packet — Exit Code: 0 — reports `RESULT: PASSED (0 warnings)`.
+  - Command: `bash .github/bubbles/scripts/artifact-lint.sh` against this
+    packet — Exit Code: 0 — reports `Artifact lint PASSED` and
+    `All checked DoD items in scopes.md have evidence blocks`.
+  - Command: `bash .github/bubbles/scripts/state-transition-guard.sh` against
+    this packet — Exit Code: 0 — reports `failureCount: 0`, `failedChecks: []`,
+    `failedGateIds: []`, `verdict: PASS`.
+
+  The last two clauses are measured after this block landed, because the
+  block's absence was what made them fail. Immediately before it was attached
+  the guard reported `failureCount: 2` with `failedChecks: [Check-9-evidence]`
+  and `exitStatus: 1`, and artifact lint exited 1 on the single issue
+  `DoD item marked [x] has no evidence block`. Both failures had one cause:
+  this item's evidence marker sat 25 lines below the checkbox, outside the
+  15-line window the evidence check reads, so the narrative was present but
+  undetectable. Attaching the evidence inside the window is what makes the
+  clause true, so the ordering is a dependency rather than a circularity.
+  The guard now also reports that status may be set to `done`; that verdict is
+  deliberately not consumed here. Certification is routed separately and both
+  `status` and `certification.status` remain `in_progress`.
 
 ### Uncertainty Declaration For Unchecked Items
 

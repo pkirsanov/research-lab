@@ -5888,7 +5888,7 @@ $ bash .github/bubbles/scripts/artifact-lint.sh <tmp>/pkt      # copy at status=
 ✅ Required specialist phase 'validate' recorded in execution/certification phase records
 ✅ Required specialist phase 'audit' recorded in execution/certification phase records
 ✅ Phase-scope coherence verified (Gate G027)
-ℹ️  Skipped 134 evidence blocks before <!-- bubbles:certifying-window-begin --> (prior-window history) in report.md
+ℹ️  Skipped 134 evidence blocks before <SENTINEL> (prior-window history) in report.md
 ✅ All 150 evidence blocks in report.md contain legitimate terminal output
 Artifact lint PASSED.
 exit 0
@@ -5896,6 +5896,14 @@ exit 0
 $ git status --porcelain -- <packet> | wc -l
 0
 ```
+
+`<SENTINEL>` above is a verbatim elision of the certifying-window begin marker,
+applied under the convention already recorded earlier in this report. Wording,
+counts and exit codes are otherwise unaltered. The elision was applied
+retroactively by attempt `BUG-009-AUDIT-004`, which found that this block had
+reproduced the literal token and that the second occurrence was itself the
+condition blocking Gates G040, G084 and G095. See
+[the marker-residue finding](#audit-attempt-004-marker-residue-self-corrected).
 
 The 68 issues previously seen at `done` are gone, and `implement` now resolves
 from the stub. The framework defect is genuinely fixed.
@@ -6326,4 +6334,242 @@ complete. `executionHistory` is append-only and retains all 29 prior entries
 including all 7 from `bubbles.plan`. Product source, tests and
 `.github/bubbles/**` were untouched. `specs/007-technical-analysis-decision-lab/`
 was neither read, staged, reset nor reverted. Nothing was pushed.
+
+## Audit Phase — Attempt `BUG-009-AUDIT-004`: Refusal Lifted; Marker Residue Was Audit's Own {#audit-attempt-004-marker-residue-self-corrected}
+
+> **Transcript elision, disclosed.** Tool lines below name the report's
+> window-boundary marker. Every occurrence is rendered as the bare backticked
+> token `certifying-window-begin`, never in its literal comment form, because
+> the literal form is the control token this section is about and a verbatim
+> paste would add a further occurrence to this file. Wording, counts and exit
+> codes are otherwise unaltered.
+
+Attempt `BUG-009-AUDIT-003` restated `REWORK_REQUIRED` on two grounds. Both were
+re-executed at `c3a6e115e` and both are resolved. Attempt `003` is superseded;
+its `targetRevision` `sha256:b0b5f435…` no longer matches the packet, so its
+verdict was not reusable and a fresh attempt was mandatory rather than optional.
+
+### Both prior grounds re-executed, not assumed
+
+`requiresRevalidation` is `false` and the dependency gate is clean:
+
+```text
+$ jq -r .requiresRevalidation <packet>/state.json
+false
+
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh <packet>
+inter-spec-dependency-guard: PASS Gate G089 (inter_spec_dependency_gate) - spec=<packet>
+dependencies=0 acceptedDependencies=none requiresRevalidation=false acknowledgedUnstableDependencies=0
+INTER_SPEC_GUARD_EXIT=0
+```
+
+`artifact-lint.sh` passes, confirming upstream `53d6270` landed:
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh <packet>
+✅ No unfilled evidence template placeholders in report.md
+=== End Anti-Fabrication Checks ===
+Artifact lint PASSED.
+ARTIFACT_LINT_EXIT=0
+```
+
+### The delivery re-verified on its own terms
+
+The fix is test-only, so the proof is causal, not structural. The shipped title
+is GREEN and the strict registry still executes all 18 mutations and requires
+each to fail through its protective assertion — the `F008-RISK-INPUT-001` case
+is the BUG-009 carrier, asserted at `tests/portfolio-test-integrity.unit.mjs:371`
+against `code: 'ERR_ASSERTION'`:
+
+```text
+$ node --test --test-name-pattern='^BUG-009 risk mapping: unsupported holdings remain named exclusions$' tests/portfolio-risk.functional.mjs
+ok 1 - BUG-009 risk mapping: unsupported holdings remain named exclusions
+# pass 1
+# fail 0
+FOCUSED_GREEN_EXIT=0
+
+$ node --test tests/portfolio-test-integrity.unit.mjs
+ok 1 - Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ok 2 - BUG-007: caller-key protections and normal ordering are load-bearing in memory
+ok 3 - BUG-007: represented mutants execute one protective assertion through one intended hook
+# pass 3
+# fail 0
+FULL_REGISTRY_EXIT=0
+
+$ node --test tests/portfolio-risk.functional.mjs
+# pass 3
+# fail 0
+FULL_RISK_EXIT=0
+```
+
+### The blocker was audit's own residue, and audit owned the repair
+
+The first guard run at `c3a6e115e` failed three gates — `G040`, `G084`, `G095`.
+They are one condition, not three. Ground truth from the artifact was one real
+marker at line 5429 plus one occurrence quoted inside a fenced block at line
+5891; `git log -L` attributes that second occurrence to `87c1c728d`, the commit
+that opened attempt `BUG-009-AUDIT-003`. Audit reproduced the literal token in
+its own evidence block after an earlier section of this same report had already
+recorded why that must never be done. Validate's routing table named the owner
+exactly: *"Audit re-states its transcript token."*
+
+The repair applied this report's existing, disclosed elision convention to
+audit's own block. No other agent's evidence was touched, no count or exit code
+was altered, and the single real marker stayed at its original position. All
+three gates then cleared:
+
+```text
+$ python3 -c "<fence-aware count of the certifying-window-begin token>"
+REAL (unfenced) = 1 | fenced/quoted = 0 | total = 1
+
+$ bash .github/bubbles/scripts/pre-existing-deferral-guard.sh <packet>
+PASS Gate G084 (pre_existing_deferral_block_gate) — scannedFiles=1 violations=0
+G084_EXIT=0
+
+$ bash .github/bubbles/scripts/discovered-issue-disposition-guard.sh <packet>
+✅ G095: discovered-issue disposition clean (no unfiled deferrals)
+G095_EXIT=0
+```
+
+### Transition guard at the resolved contract
+
+Re-run assertion-only against the registry-derived target, mode and digest:
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh <packet> \
+    --target-status done --expect-workflow-mode bugfix-fastlane \
+    --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+🟡 TRANSITION PERMITTED with 2 warning(s)
+state.json status may be set to 'done'.
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+STATE_TRANSITION_GUARD_EXIT=0
+```
+
+66 gates pass, including `G040`, `G084`, `G089` and `G095`. Two warnings remain
+and are recorded below rather than suppressed.
+
+### A new framework finding the fix did not reach
+
+Upstream `53d6270` made the marker counter fence-aware in `artifact-lint.sh`
+only. Three sibling scripts still count with fence-blind `grep -cF` while their
+own consumers are fence-aware — the identical counter/consumer disagreement, in
+three more places:
+
+| Script | Fence-blind counter | Fence-aware consumer |
+|---|---|---|
+| `state-transition-guard.sh` | `:4251` | `:4243` (`!in_block`) |
+| `pre-existing-deferral-guard.sh` | `:355` | `:264` (`!in_fence`) |
+| `discovered-issue-disposition-guard.sh` | `:219` | `:228` (`!in_fence`) |
+| `artifact-lint.sh` | fixed by `53d6270` | `:1688` |
+
+This packet no longer trips it because the trigger was removed, so it is
+non-blocking here. It is not cosmetic: any packet that legitimately quotes the
+token in evidence will be refused by these three, and the over-permissive
+direction the upstream commit describes — zero real markers plus one quoted
+occurrence silently disabling enforcement — remains reachable in all three.
+Filed as `B009-FRAMEWORK-MARKER-COUNTER-FANOUT-001`, owner upstream Bubbles,
+remedy the same sanctioned installer path that delivered `53d6270`.
+
+### Verdict
+
+`SHIP_WITH_NOTES`. The delivery is sound on re-executed evidence and the
+transition guard permits promotion. It is not `SHIP_IT` because three findings
+remain open as observations and two guard warnings are unresolved. Certification
+is validate's call; audit did not touch `status` or `certification.status`.
+
+`BUG-009-ROUTE-028` is resolved.
+
+### Spot-Check Recommendations
+
+Automation bias grows as the transcript above gets more confident. These are the
+places to look first if you check anything:
+
+1. **The 63-of-165 evidence warning.** The guard warns that 63 of 165 evidence
+   blocks lack terminal-output signals. `artifact-lint.sh` passes because it is
+   window-aware and skips 134 prior-window blocks; the guard counts the whole
+   file. Verify the warning is confined to prior-window history and not to the
+   current certifying window.
+2. **My own repair at line 5891.** I edited audit-owned evidence to clear gates
+   that I then reported as passing. That is a self-interested edit by
+   construction. Confirm with `git diff` that only the marker token changed and
+   that the transcript's counts and `exit 0` are untouched.
+3. **`node --test` exit codes.** Node's test runner can report `# fail 0` while
+   still exiting non-zero on unhandled errors. I recorded the exit codes; re-run
+   the three commands if you want them independently.
+4. **`B009-FRAMEWORK-MARKER-COUNTER-FANOUT-001` line numbers.** I read the three
+   counters by `grep`, not by executing them against a crafted fixture. The
+   over-permissive direction is inferred from the code shape and the upstream
+   commit message, not demonstrated here.
+5. **Two `bubbles.audit` executionHistory entries, four attempts.** Attempt
+   records and history entries do not correspond one-to-one; confirm that is
+   intended before reading history as an attempt count.
+
+### Retained findings
+
+| Finding | Disposition | Owner |
+|---|---|---|
+| `B009-FRAMEWORK-PHASE-REGISTRY-001` | Retained observation, non-blocking | upstream Bubbles |
+| `B009-FRAMEWORK-G040-EXCLUSION-001` | Retained observation, non-blocking | upstream Bubbles |
+| `B009-FRAMEWORK-MARKER-COUNTER-FANOUT-001` | New observation, non-blocking here | upstream Bubbles |
+| `B009-REVALIDATION-RESIDUE-001` | Addressed — cleared at `58a2d4f11`, re-verified exit 0 | closed |
+| `B009-LINT-WINDOW-MARKER-001` | Addressed — token restated per validate's routing | closed |
+| `BUG-009-ROUTE-028` | Resolved | closed |
+
+```text
+BEGIN AUDIT_RESULT_V1
+schemaVersion: audit-result/v1
+runId: none
+attemptId: BUG-009-AUDIT-004
+target: specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin
+targetRevision: sha256:4f38e969f5d581ee91b4b9c8f2cca8ca0bbba253ec825e4f0371ba0e35ec4bde
+workflowMode: bugfix-fastlane
+modeClass: none
+auditClass: delivery-completion
+statusCeiling: done
+requestedStatus: done
+auditVerdict: SHIP_WITH_NOTES
+outcome: completed_diagnostic
+resultState: ACTIVE
+certifiedStatus: none
+planningEvaluation: NOT_EVALUATED
+deliveryEvaluation: CERTIFIED
+sourceEditLockout: NOT_EVALUATED
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G022,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G040,G044,G047,G048,G051,G053,G055,G056,G057,G059,G060,G061,G068,G082,G083,G084,G085,G086,G087,G088,G089,G090,G091,G092,G093,G094,G095,G097,G098,G099,G100,G128,G130,G131,G136]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+unresolvedFields: []
+contradictions: []
+contractRef: bubbles/workflows/modes.yaml#bugfix-fastlane
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+evidenceRefs: [report.md#audit-attempt-004-marker-residue-self-corrected]
+addressedFindings: [BUG-009-ROUTE-028,B009-LINT-WINDOW-MARKER-001,B009-REVALIDATION-RESIDUE-001]
+unresolvedFindings: [B009-FRAMEWORK-PHASE-REGISTRY-001,B009-FRAMEWORK-G040-EXCLUSION-001,B009-FRAMEWORK-MARKER-COUNTER-FANOUT-001]
+nextRequiredOwner: bubbles.validate
+supersedesAttemptId: BUG-009-AUDIT-003
+resumeFromPhase: none
+END AUDIT_RESULT_V1
+```
+
+`targetRevision` above is the revision at which every gate was measured — after
+the marker repair, before this section was written. Writing audit evidence
+necessarily changes the artifact it describes; the guard was therefore re-run
+after this section landed and the result is recorded in the commit.
+
+### Boundaries honored
+
+`status` and `certification.status` remain `in_progress`; audit did not
+promote. `executionHistory` is append-only and retains all 30 prior entries
+including all 7 from `bubbles.plan`. Product source, tests, `.github/bubbles/**`
+and `uservalidation.md` were untouched. `specs/007-technical-analysis-decision-lab/`
+was neither read, staged, reset nor reverted. The unrelated dirty working-tree
+files were left alone; only this packet's `report.md` and `state.json` were
+staged, by explicit pathspec. Nothing was pushed.
 

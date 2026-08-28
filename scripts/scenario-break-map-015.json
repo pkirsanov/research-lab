@@ -98,6 +98,19 @@
       "control": "no-committed-series is removed from the closed mint-refusal set, so a claim with no committed price series is no longer classified not-evaluable and silently rejoins the scoreable population it was excluded from",
       "claim": "A claim with no committed series is minted and recorded as not-evaluable rather than dropped from or counted in the denominator",
       "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-013": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "    var ROW_V2_FIELDS = unionSorted([ROW_V2_REQUIRED_FIELDS, ROW_V2_MEASURED_OPTIONAL_FIELDS, [CLAIM_REF_FIELD]]);",
+          "replace": "    var ROW_V2_FIELDS = unionSorted([ROW_V2_REQUIRED_FIELDS, ROW_V2_MEASURED_OPTIONAL_FIELDS]);"
+        }
+      ],
+      "control": "claimRef is dropped from the accepted v2 field set, so a v2 row that names the claim minted in the same pass is refused as carrying an unknown field and the pointer joining a row to its claim cannot be written at all",
+      "claim": "A v2 row carries claimRef referencing the claim minted in the same pass, so a recommendation and the claim it was scored against stay joined",
+      "implementationRefs": ["rlclaims.js"]
     }
   }
 }

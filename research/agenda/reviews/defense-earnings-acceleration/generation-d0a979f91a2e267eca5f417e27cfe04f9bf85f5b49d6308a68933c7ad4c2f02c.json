@@ -1,0 +1,95 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-e239229ce13d2b8009161534f9fe37f3f8fc7c0718ca0d8c437f4ce83e828fd5",
+  "generationId": "generation-d0a979f91a2e267eca5f417e27cfe04f9bf85f5b49d6308a68933c7ad4c2f02c",
+  "topicId": "defense-earnings-acceleration",
+  "attemptedAt": "2026-08-28T11:02:19.547Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "cadence",
+  "selectionReason": "cadence-elapsed",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "topic-model-not-applicable",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "consensus-revisions",
+      "status": "unavailable",
+      "interpretation": "No current consensus-revision evidence is available. The acquired web-evidence bundle retained zero sources (retainedSourceCount 0) and its 'company-filings-and-guidance' material claim (earnings-revision, capacity, backlog) is non-authorable and uncorroborated, so no named public defense manufacturer's consensus revision can be evidenced this pass. No finding is authored.",
+      "gaps": [
+        "No official-filing or company-guidance source retained for requirement 'company-filings-and-guidance' (state missing-or-stale).",
+        "Material claim 'defense-earnings-acceleration:company-filings-and-guidance' is uncorroborated, freshness unsupported, and not authorable.",
+        "No per-manufacturer consensus earnings estimate observed to compare current versus prior revisions over 3, 6 and 12 months."
+      ]
+    },
+    {
+      "sectionId": "revision-gap-ranking",
+      "status": "unavailable",
+      "interpretation": "A revision gap ranking requires observed per-manufacturer earnings-revision evidence versus consensus, which is absent. With zero retained sources and no authorable consensus estimates, no manufacturers can be ranked by revision gap. No finding is authored.",
+      "gaps": [
+        "No consensus estimate evidence retained for requirement 'consensus-estimates-and-funded-programs'.",
+        "No manufacturer-level revision magnitudes available to rank an acceleration gap.",
+        "Funded-award threshold trigger cannot be evaluated because no award or appropriation source was retained."
+      ]
+    },
+    {
+      "sectionId": "funded-program-catalysts",
+      "status": "unavailable",
+      "interpretation": "No named funded program, award, appropriation or multi-year framework was retained. The 'consensus-estimates-and-funded-programs' claim (earnings-revision, catalyst) is uncorroborated and non-authorable, so no funded-program catalyst can be evidenced. No finding is authored.",
+      "gaps": [
+        "No official-filing or company-guidance source retained for requirement 'consensus-estimates-and-funded-programs' (state missing-or-stale).",
+        "No observed award USD magnitude available to test the 'funded-award-observed' at-least-1-billion trigger.",
+        "No mapping from a funded ceiling to a declared production or backlog input can be evidenced."
+      ]
+    },
+    {
+      "sectionId": "production-capacity",
+      "status": "unavailable",
+      "interpretation": "Production-capacity evidence depends on filing or guidance capacity disclosures, none of which were retained. The 'company-filings-and-guidance' claim covers capacity but is non-authorable, so no capacity read is evidenced. No finding is authored.",
+      "gaps": [
+        "No capacity disclosure source retained (requiredClaimCoverage 'capacity' unmet).",
+        "No material-guidance-change observation available to confirm or refute a capacity input change.",
+        "No committed public bars retained to corroborate capacity-linked market response."
+      ]
+    },
+    {
+      "sectionId": "backlog-conversion",
+      "status": "unavailable",
+      "interpretation": "Backlog-conversion analysis requires observed backlog and revenue-conversion disclosures. With zero retained filing/guidance sources, the backlog coverage of the 'company-filings-and-guidance' claim is unmet and non-authorable. No finding is authored.",
+      "gaps": [
+        "No backlog disclosure source retained (requiredClaimCoverage 'backlog' unmet).",
+        "No book-to-bill or backlog-to-revenue conversion figures observed for any declared manufacturer.",
+        "No corroborating independent origin group present for backlog claims."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The source ledger is empty. The acquisition bundle retained no sources (candidateCount 0, retainedSourceCount 0, independentOriginCount 0) and no committed prior evidence was supplied, so there are no ledger entries to carry.",
+      "gaps": [
+        "Bundle 'sources' array is empty and all three material claims were rejected (rejectedMaterialClaimCount 3).",
+        "committedEvidence is empty and priorDossier is null, so no reusable ledger rows exist.",
+        "Requirement 'committed-public-bars' retained no committed-bar source (public-bar coverage unmet)."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No predecessor dossier was supplied (priorDossier null) and no current findings were authored, so no change from a prior situation can be assessed. Change classification and direction scoring are outside this author's scope and are deliberately not produced.",
+      "gaps": [
+        "priorDossier is null, so there is no predecessor state to diff.",
+        "No current findings exist to compare against a predecessor.",
+        "Change direction and assessment are owned downstream, not authored here."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

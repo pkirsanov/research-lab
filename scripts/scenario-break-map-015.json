@@ -111,6 +111,45 @@
       "control": "claimRef is dropped from the accepted v2 field set, so a v2 row that names the claim minted in the same pass is refused as carrying an unknown field and the pointer joining a row to its claim cannot be written at all",
       "claim": "A v2 row carries claimRef referencing the claim minted in the same pass, so a recommendation and the claim it was scored against stay joined",
       "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-002": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        else if (outcomeValue > 0) outcomeClass = \"win\";",
+          "replace": "        else if (outcomeValue > 0) outcomeClass = \"loss\";"
+        }
+      ],
+      "control": "a claim whose outcome moved in the direction it predicted is classified as a loss, so a satisfied claim is recorded against the author and the track record inverts",
+      "claim": "A satisfied claim resolves to a positive outcome and is classified as a win",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-003": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        else outcomeClass = \"loss\";",
+          "replace": "        else outcomeClass = \"win\";"
+        }
+      ],
+      "control": "a claim whose outcome moved against its prediction is classified as a win, so an invalidated claim is credited and the hit rate counts failures as successes",
+      "claim": "An invalidated claim resolves to a negative outcome and is classified as a loss",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-005": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        \"unresolvable-legacy\": \"unresolvableLegacy\"",
+          "replace": "        \"unresolvable-legacy\": \"unresolved\""
+        }
+      ],
+      "control": "legacy anonymous rows are routed into the ordinary unresolved bucket instead of their own permanent one, so rows nobody ever attributed to a claim are folded into the population being scored rather than held apart from it",
+      "claim": "A legacy anonymous row stays in its own permanent unresolvable-legacy bucket and is never folded into the scoreable population",
+      "implementationRefs": ["rlclaims.js"]
     }
   }
 }

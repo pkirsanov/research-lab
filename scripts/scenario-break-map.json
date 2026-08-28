@@ -366,6 +366,38 @@
       "control": "a holding with no usable price evidence is reported as included in valuation, so an unevidenced position is silently valued instead of being excluded by name with no substitute applied",
       "claim": "A holding whose price evidence is missing is excluded from valuation by name and no stand-in number is substituted for it",
       "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-033": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-033 correlation never emits a substantially identical verdict",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "      identityThreshold: null,",
+            "      adjudicated: false,"
+          ],
+          "replace": [
+            "      identityThreshold: null,",
+            "      adjudicated: true,"
+          ]
+        }
+      ],
+      "control": "the replacement comparison reports itself as adjudicated, so research inputs are presented as a substantially-identical determination the product is not permitted to make",
+      "claim": "Correlation and overlap are offered as research inputs only and no substantially-identical verdict is ever emitted",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-043": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "      tombstoneCommitted: tombstone !== null,",
+          "replace": "      tombstoneCommitted: false,"
+        }
+      ],
+      "control": "the full personal clear stops reporting that its tombstone was committed, so a completed clear becomes indistinguishable from one whose durable record was never written and the deletion cannot be verified after the fact",
+      "claim": "A full personal clear commits a tombstone before deletion and reports that commit, so the clear is verifiable rather than merely asserted",
+      "implementationRefs": ["rlportfolio.js"]
     }
   }
 }

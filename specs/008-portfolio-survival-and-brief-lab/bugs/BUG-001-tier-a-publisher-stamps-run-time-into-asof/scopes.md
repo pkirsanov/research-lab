@@ -149,6 +149,35 @@ row, so neither can be traded for the other.
 - [x] Scenario-specific adversarial regression coverage exists and is non-tautological.
       Evidence: `tests/portfolio-survival-brief.spec.mjs:902`, with the in-test
       NON-TAUTOLOGY GUARD quoted in § Test Plan above and in `report.md` § Regression E2E.
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior exist and
+      bind to all six of this bug's scenarios. Re-verified against the committed tree in the
+      planning turn rather than restated from the fix turn:
+      `tests/portfolio-survival-brief.spec.mjs:1039` — `Regression: BUG-001 a publication
+      later than its declared window cutoff is refused by name and never empties the
+      schedule` — carries SCN-B001-LATE-PUBLICATION-REFUSED, SCN-B001-SCHEDULE-SURVIVES-REFUSAL
+      and SCN-B001-NO-WALLCLOCK-FALLBACK, and still holds the NON-TAUTOLOGY GUARD quoted in
+      § Test Plan. `tests/portfolio-survival-brief.spec.mjs:90` — `Regression: SCN-008-006 all
+      four exact ET windows preserve cutoff and composition time` — carries
+      SCN-B001-CUTOFF-STAMPED, SCN-B001-SHARED-CUTOFF-RULE and SCN-B001-PUBLICATION-CLOCK-DISTINCT.
+      `tests/portfolio-brief.functional.mjs:549` and `:1561` carry the two functional bindings.
+      All six rows in `scenario-manifest.json` are `regressionRequired: true` and Gate G057
+      confirms every binding resolves to a real file and title. Line numbers drifted after the
+      fix turn — the row cited as `:902` in the item above now sits at `:1039`, and the
+      `rlportfoliobrief.js` export cited as `:1040` now sits at `:1134`. The test *titles* are
+      the stable identity, and they are what `scenario-manifest.json` binds.
+- [ ] Broader E2E regression suite passes on the current tree. UNCHECKED, and deliberately so:
+      the recorded run in `report.md` § Test Evidence — `tests/portfolio-survival-brief.spec.mjs`
+      17 passed / 0 failed, `node --test tests/portfolio-publisher-boundary.functional.mjs`
+      exit 0, `node scripts/validate-brief-payload.mjs` PASS, `node scripts/selftest.mjs` 3314
+      passed / 0 failed — is tagged `executed (fix turn)` and predates edits to the very files
+      it measures. `tests/portfolio-survival-brief.spec.mjs` was modified after that run, and
+      `tests/portfolio-brief.functional.mjs` and `rlportfoliobrief.js` carry uncommitted edits
+      owned by other work in the same checkout, so a run now would measure a tree that is not
+      this packet's delivery. Re-running
+      `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs
+      --config=playwright.config.mjs --project=system-chrome --reporter=list`,
+      `node --test tests/portfolio-brief.functional.mjs` and `node scripts/selftest.mjs`
+      against a clean tree is what closes this item. No pass is claimed until that run exists.
 - [x] The brief suite passes. Evidence: `report.md` § Test Evidence — 3 passed / 14 failed
       before, **17 passed / 0 failed** after.
 - [x] The publisher-boundary functional suite passes. Evidence: `report.md` § Test Evidence —
@@ -168,15 +197,27 @@ row, so neither can be traded for the other.
 
 ---
 
-## Not In Scope
+## Non-Goals
 
-**Recording how late a publication was.** The fix makes a late publication honest; it does
-not surface the lateness as an operational signal. Carried as Q1 in `design.md` § Open
-Question For The Owner rather than silently absorbed here.
+Neither item below is undone work from this bug. `spec.md` states the whole requirement set —
+FR-B001-001 through FR-B001-009 — and it governs the two clocks, the shared cutoff rule, the
+consumer boundary, the schedule transaction, the on-screen refusal identity, the publication
+clock, the runbook sentence, and lockstep inheritance. No requirement asks for either item,
+so nothing this packet committed to is left unfinished by naming them here.
 
-**Scope 28's test-integrity work.** `tests/portfolio-publisher-boundary.functional.mjs`,
+**Surfacing how late a publication was is an owner decision, not unfinished work.** The fix
+makes an 11:37 publication of the 11:00 window honest: it declares 11:00 evidence and
+discloses an 11:37 publication instant. Turning that difference into an operational staleness
+signal is a new capability with no governing FR, and `design.md` § Open Question For The Owner
+records it as Q1 with the explicit finding that *"Nothing here is blocked on the answer."* It
+is routed to the owner for a decision, which is where a product question without a requirement
+belongs.
+
+**Scope 28's test-integrity work is another packet's, and is named only to keep the diff
+readable.** `tests/portfolio-publisher-boundary.functional.mjs`,
 `tests/portfolio-survival.support.mjs`, `tests/portfolio-defect-injector.cjs`,
-`tests/portfolio-test-integrity.unit.mjs`, `.specify/memory/agents.md` and the Scope 28
-artifacts are modified in the same working tree and belong to
-`specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement`.
-They are named here so this bug's footprint is not later misread from the diff.
+`tests/portfolio-test-integrity.unit.mjs` and `.specify/memory/agents.md` are owned by
+`specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement`
+and were modified in the same working tree while this bug was fixed. Listing them is an
+ownership statement so this bug's footprint is not misread from the diff; none of it is a
+commitment this packet made.

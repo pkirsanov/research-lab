@@ -336,6 +336,59 @@ print(json.dumps(value, indent=2))
 PY
 }
 
+# v4.1.0 G022 phaseStubs. A phase may be honestly declared as no-work-needed via
+# state.json execution.phaseStubs[<phase>] (or top-level phaseStubs[<phase>]), so
+# a packet whose delivery genuinely had no such phase satisfies G022 by stating
+# that instead of manufacturing a phantom phase owner.
+#
+# state-transition-guard.sh Check 6 has merged stubs into its phase block since
+# v4.1.0; this linter could not see them at all. The two surfaces then split on
+# byte-identical content: the guard passed a stubbed `implement` while the linter
+# reported it MISSING under a message reading FABRICATION — so the only route
+# past the linter was to invent the phantom claim the stub exists to avoid.
+#
+# The semantics are COPIED from that guard check, not re-derived. A stub counts
+# IFF its entry is a dict carrying a non-empty `reason` string, or is itself a
+# non-empty string. The empty-`reason` rejection is the anti-fabrication half of
+# the contract and is preserved exactly: an empty stub buys nothing.
+extract_phase_stubs_block() {
+  python3 - "$1" <<'PY' 2>/dev/null || true
+import json
+import sys
+
+try:
+    with open(sys.argv[1], encoding="utf-8") as handle:
+        data = json.load(handle)
+except Exception:
+    sys.exit(0)
+
+if not isinstance(data, dict):
+    sys.exit(0)
+
+# None-safe: state.json may carry an explicit null for `execution`, and the
+# default-arg of dict.get(...) does NOT replace None.
+execution = data.get("execution") or {}
+if not isinstance(execution, dict):
+    execution = {}
+
+phase_stubs = execution.get("phaseStubs")
+if not isinstance(phase_stubs, dict):
+    phase_stubs = data.get("phaseStubs")
+if not isinstance(phase_stubs, dict):
+    phase_stubs = {}
+
+for phase_name, stub_entry in phase_stubs.items():
+    if not isinstance(phase_name, str):
+        continue
+    if isinstance(stub_entry, dict):
+        reason = stub_entry.get("reason")
+        if isinstance(reason, str) and reason.strip():
+            print(json.dumps(phase_name))
+    elif isinstance(stub_entry, str) and stub_entry.strip():
+        print(json.dumps(phase_name))
+PY
+}
+
 detect_scope_layout() {
   local state_layout=""
   state_layout="$(json_first_string "scopeLayout" "$feature_dir/state.json" || true)"
@@ -603,6 +656,7 @@ state_plan_maturity_only=""
 state_completed_phases_block=""
 state_execution_phase_claims_block=""
 state_certified_completed_phases_block=""
+state_phase_stubs_block=""
 state_completed_scopes_block=""
 wi_canonical_count=""
 wi_provisional_count=""
@@ -642,10 +696,18 @@ if [[ -f "$state_file" ]]; then
   # case, which falls through and reads correctly: a PARTIAL certification was
   # strictly more damaging than none at all. The guard and this linter read the
   # same arrays and must not disagree about what they contain.
-  state_completed_phases_block="$(printf '%s\n%s\n%s\n' \
+  # phaseStubs joins the SAME block rather than being tested separately, because
+  # that is where state-transition-guard.sh Check 6 puts them. Every consumer of
+  # this block is a phase-record reader, and giving the two surfaces one merged
+  # view is the point: a second, narrower merge here would just relocate the
+  # disagreement instead of ending it.
+  state_phase_stubs_block="$(extract_phase_stubs_block "$state_file" || true)"
+
+  state_completed_phases_block="$(printf '%s\n%s\n%s\n%s\n' \
     "$state_certified_completed_phases_block" \
     "$state_execution_phase_claims_block" \
     "$(extract_array_block "completedPhases" "$state_file" || true)" \
+    "$state_phase_stubs_block" \
     | grep -v '^$' || true)"
 
   if [[ -z "$state_status" ]]; then

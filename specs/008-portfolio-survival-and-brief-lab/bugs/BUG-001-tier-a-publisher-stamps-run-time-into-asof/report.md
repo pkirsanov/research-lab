@@ -455,6 +455,310 @@ commit was created and none is claimed. `autoCommit` is `off` in the policy snap
 > `git merge-base --is-ancestor 648e0992b HEAD` (true) and
 > `git show HEAD:scripts/brief-refresh.mjs | grep -c windowCutoffAt` (3).
 
+### Code Diff Evidence
+
+**`executed (evidence turn)`** — every block below is `git` output run against the committed
+history in this turn. No hunk is hand-written, paraphrased, or reconstructed from source
+inspection. Sections earlier in this report narrate individual fragments of the same delta;
+this section anchors the whole of it to a commit.
+
+**Which commit carries the delivery.** Six commits have touched this packet. Exactly one
+changed a file outside the artifact tree, so the implementation delta is entirely
+`899c7a40e`; the other five are packet bookkeeping and carry no product change.
+
+```
+$ for c in $(git log --format='%h' -- specs/008-.../BUG-001-tier-a-publisher-stamps-run-time-into-asof); do
+    printf '%s  non-artifact-files=%-3s %s\n' "$c" \
+      "$(git show --stat --format='' --name-only $c | grep -vE '^(specs|docs|\.github|\.specify)/' | grep -v '^$' | wc -l)" \
+      "$(git log -1 --format='%s' $c)"
+  done
+
+86c4a360f  non-artifact-files=0   test(BUG-001-tier-a): make the real red->green ordering legible to G060
+a0780da51  non-artifact-files=0   test(BUG-001-tier-a): close the broader-suite item by execution on a clean tree
+17cb5335d  non-artifact-files=0   fix(BUG-001-tier-a): withdraw the stale 'Done, 17 of 17' claim
+cd35962b6  non-artifact-files=0   plan(BUG-001-tier-a): add regression-E2E DoD coverage, retire deferral wording
+6f7a8fa21  non-artifact-files=0   validate(5 packets): record operator-authorized human acceptance, clearing G136
+899c7a40e  non-artifact-files=11  fix(brief): bind asOf to the analyzed window
+```
+
+**The shape of that one commit,** with the packet's own artifacts excluded so the product
+footprint stands alone:
+
+```
+$ git show --stat --format='%h %s' 899c7a40e -- . ':(exclude)specs/*'
+
+899c7a40e fix(brief): bind asOf to the analyzed window
+
+ market-brief.page.json                  |  2 +-
+ market-brief.payload.json               |  2 +-
+ market-brief.snapshot.json              |  2 +-
+ market-brief.snapshot.page.json         |  2 +-
+ notes/market-brief.md                   |  2 +-
+ portfolio-survival-allocation-lab.html  | 63 ++++++++++++++++++++-----
+ rlportfoliobrief.js                     | 16 +++++++
+ scripts/brief-narrative-parallel.mjs    |  9 +++-
+ scripts/brief-refresh.mjs               | 11 ++++-
+ scripts/validate-brief-payload.mjs      |  4 +-
+ tests/portfolio-survival-brief.spec.mjs | 84 +++++++++++++++++++++++++++++++++
+ 11 files changed, 174 insertions(+), 23 deletions(-)
+```
+
+#### The defect line, and what replaced it
+
+Earlier sections quote the *corrected* statement read back out of the file. Only a diff shows
+the removed line, and the removed line is the defect itself:
+
+```
+$ git show 899c7a40e --format='' -- scripts/brief-refresh.mjs
+
+diff --git a/scripts/brief-refresh.mjs b/scripts/brief-refresh.mjs
+index de642710a..0f74c5277 100644
+--- a/scripts/brief-refresh.mjs
++++ b/scripts/brief-refresh.mjs
+@@ -41,6 +41,10 @@ const RLMETRICS = featureRequire(join(ROOT, 'rlmetrics.js'));
+    the published block agree about which leg is dark by construction, not by two implementations
+    that happen to match today. */
+ const RLCOCKPIT = featureRequire(join(ROOT, 'rlcockpit.js'));
++/* rlportfoliobrief.js owns the ONE window-cutoff rule. The consumer measures every published
++   reference against it, so the publisher resolves its own `asOf` through the same function
++   rather than a second implementation that agrees only until a clock edge separates them. */
++const RLPORTFOLIOBRIEF = featureRequire(join(ROOT, 'rlportfoliobrief.js'));
+ const cfg = JSON.parse(read('market-brief.config.json'));
+ const wl = JSON.parse(read('watchlist.json'));
+ const SNAPSHOT_MAX_AGE_MS = 6 * 3600e3;
+@@ -2628,8 +2632,11 @@ async function main() {
+   if (!dryRun) appendFileSync(join(ROOT, 'brief-history.jsonl'), JSON.stringify(snap) + '\n');
+ 
+   // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
+-  // asOf = the window this refresh anchors to; generatedAt = the actual wall-clock this refresh ran (both are the run time for Tier-A).
+-  const snapshot = { asOf: snap.ts, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage, tracked, crossAsset };
++  // asOf is the analyzed WINDOW's evidence cutoff, not the run clock: a run that starts at 11:37 still
++  // publishes the 11:00 morning window, and every consumer refuses evidence dated past the window it declares.
++  const windowCutoffAt = RLPORTFOLIOBRIEF.windowCutoffAt(cfg.windows, window, snap.ts);
++  if (!windowCutoffAt) throw new Error(`window "${window}" has no resolvable evidence cutoff in market-brief.config.json`);
++  const snapshot = { asOf: windowCutoffAt, generatedAt: snap.ts, window, marketClosed, nextSessionDate: nextSession, dataFreshness, regime: { band: reg.band, score: reg.risk, vix, fearGreed: fg ? fg.score : null }, bench: snap.bench, names, sectors, groups, toolReads, toolCoverage, tracked, crossAsset };
+   if (!dryRun) writeFileSync(join(ROOT, 'market-brief.snapshot.json'), JSON.stringify(snapshot, null, 2) + '\n');
+   /* Deterministic public causal snapshot. Written only when the evaluation succeeded, so a failed
+      run leaves the previous snapshot in place rather than replacing it with a stub that a reader
+```
+
+The removed line took `snap.ts` — the run clock — into **both** fields. The added guard is the
+reason the defect cannot recur quietly under a new window id: an unresolvable cutoff throws
+rather than falling back to anything.
+
+#### The shared helper, added whole
+
+§ One Cutoff Rule proves the helper's *location* with `grep`, and § The Boundary Is Provably
+Untouched proves `16 +, 0 -`. Neither shows the helper's body. It is the substance of the fix,
+so it is reproduced here as the diff that introduced it:
+
+```
+$ git show 899c7a40e --format='' -- rlportfoliobrief.js
+
+diff --git a/rlportfoliobrief.js b/rlportfoliobrief.js
+index 0e537aa28..0533e7803 100644
+--- a/rlportfoliobrief.js
++++ b/rlportfoliobrief.js
+@@ -163,6 +163,21 @@
+     var actual = verified.year + "-" + verified.month + "-" + verified.day + "T" + verified.hour + ":" + verified.minute + ":" + verified.second;
+     return actual === expected ? new Date(guess).toISOString() : null;
+   }
++  /* The evidence cutoff of the window a run analyzes, resolved from the run instant alone.
++     The trading date is the New York civil date of that instant, which is why an 11:37 ET run
++     of the 11:00 ET morning window resolves to 11:00 and not to the moment it happened to
++     execute. Publisher and consumer both call this, so the boundary a brief is measured
++     against is the same boundary it was stamped with. */
++  function windowCutoffAt(windows, windowId, instant) {
++    if (!Array.isArray(windows) || typeof windowId !== "string" || !windowId || !isIso(instant)) return null;
++    var declared = null;
++    for (var index = 0; index < windows.length; index += 1) {
++      if (windows[index] && windows[index].id === windowId) { declared = windows[index]; break; }
++    }
++    if (!declared || typeof declared.etTime !== "string") return null;
++    var parts = civilParts(instant, "America/New_York");
++    return newYorkCivilCutoff(parts.year + "-" + parts.month + "-" + parts.day, declared.etTime);
++  }
+   function validSnapshotRef(value) {
+     return exactFields(value, SNAPSHOT_REF_FIELDS) && GENERIC_STATES.indexOf(value.state) >= 0 &&
+       HASH_RE.test(value.contentSha256 || "") && HASH_RE.test(value.dataFreshnessSha256 || "") &&
+@@ -1022,6 +1037,7 @@
+     /* Exported so the PUBLISHER can refuse a brief this module would reject, rather than shipping
+        one and leaving every consumer to discover the conflict. One cutoff rule, two callers. */
+     newYorkCivilCutoff: newYorkCivilCutoff,
++    windowCutoffAt: windowCutoffAt,
+     validateGenericWindow: validateGenericWindow,
+     composeBrief: composeBrief,
+     dedupeBehaviorEvents: dedupeBehaviorEvents,
+```
+
+Both hunks are pure additions, which is the mechanical reason the refusal condition at line 232
+cannot have shifted in meaning. The helper calls `newYorkCivilCutoff`, the same function the
+consumer already used; it moves the trading-date derivation inside, so the value computed is
+the one the consumer computed before.
+
+#### The consumer, with its removals shown
+
+§ The Schedule Is A Separate Transaction and § The Second Clock quote the post-fix blocks.
+The diff additionally shows what was deleted — the inline selector population that used to sit
+*after* composition, which is precisely the code whose position caused the dead tab:
+
+```
+$ git show 899c7a40e --format='' -- portfolio-survival-allocation-lab.html
+
+diff --git a/portfolio-survival-allocation-lab.html b/portfolio-survival-allocation-lab.html
+index 6a3f5c8dd..7558723e2 100644
+--- a/portfolio-survival-allocation-lab.html
++++ b/portfolio-survival-allocation-lab.html
+@@ -8045,6 +8045,24 @@
+                     });
+             }
+ 
++            /* The window selector is a projection of the PUBLIC schedule, not of the evidence
++               window. It is therefore rendered from the config alone, so that a refused evidence
++               composition cannot silently remove the control the reader needs to understand the
++               refusal. Idempotent: re-rendering the same schedule is a no-op for the reader. */
++            function renderBriefWindowOptions(windows) {
++                var select = byId("briefWindow");
++                if (!select) return;
++                var previous = select.value;
++                select.innerHTML = "";
++                (windows || []).forEach(function (window_) {
++                    var option = document.createElement("option");
++                    option.value = window_.id;
++                    option.textContent = window_.label + " (" + window_.etTime + " ET)";
++                    select.appendChild(option);
++                });
++                if (previous) select.value = previous;
++            }
++
+             /* The generic window contract is fetched READ-ONLY from the same origin. A failure here
+                leaves the brief explicitly unavailable rather than falling back to a locally invented
+                schedule, because a second copy of the schedule is a second source of truth. */
+@@ -8072,25 +8090,32 @@
+                         if (!artifacts.config || !Array.isArray(artifacts.config.windows) || !artifacts.config.windows.length) {
+                             throw new Error("brief-config-windows-absent");
+                         }
++                        /* The SCHEDULE and the EVIDENCE WINDOW are two different transactions, and
++                           collapsing them is what turns one refused publication into a dead tab. The
++                           schedule has loaded by this point, so the selector is populated from it
++                           BEFORE composition is attempted. If composition is then refused, the reader
++                           still sees the four windows and an explicit named reason; previously the
++                           throw skipped this block entirely and left a control with zero options,
++                           which reads as "nothing here" rather than "this was refused, and why". */
++                        state.briefWindows = artifacts.config.windows;
++                        renderBriefWindowOptions(artifacts.config.windows);
++
+                         var projection = buildGenericWindow(artifacts);
+                         state.briefWindows = projection.config.windows;
+                         state.briefWindowId = projection.genericWindow.windowId;
+-                        state.briefPublishedAt = projection.genericWindow.payloadRef.asOf;
++                        /* Publication time is `generatedAt`; the analyzed window instant is `asOf`.
++                           They are deliberately DISTINCT clocks, so the publication clock must come
++                           from the publication timestamp. Reading it off `payloadRef.asOf` collapsed
++                           it onto the evidence cutoff and made a past brief unauditable. */
++                        state.briefPublishedAt = projection.genericWindow.snapshotRef.generatedAt;
+                         state.publicWatchlist = projection.tickers;
+                         state.briefOwners = projection.owners;
+                         state.genericWindow = projection.genericWindow;
+                         state.lastValidGenericWindow = projection.genericWindow;
+                         state.genericWindowError = null;
+                         state.genericEvidenceSourceCount = 5;
+-                        var select = byId("briefWindow");
+-                        select.innerHTML = "";
+-                        projection.config.windows.forEach(function (window_) {
+-                            var option = document.createElement("option");
+-                            option.value = window_.id;
+-                            option.textContent = window_.label + " (" + window_.etTime + " ET)";
+-                            select.appendChild(option);
+-                        });
+-                        select.value = state.briefWindowId;
++                        renderBriefWindowOptions(projection.config.windows);
++                        byId("briefWindow").value = state.briefWindowId;
+                         renderBrief();
+                         restoreReturnFocus();
+                     })
+@@ -8101,13 +8126,25 @@
+                             reason: "public-evidence-transaction-failed", field: null, row: null,
+                             valueEchoed: false, recoverable: true
+                         };
++                        /* NAME the refusal. The contract code and reason already existed on
++                           state.genericWindowError but were reachable only through the diagnostics
++                           object, so on screen an unsatisfiable evidence contract was
++                           indistinguishable from "no data yet". An unavailable state that cannot say
++                           what was refused is not an honest unavailable state. */
++                        var refusal = state.genericWindowError;
++                        var named = refusal.code + " / " + refusal.reason;
+                         setText("briefTimes", state.genericWindow
+-                            ? "Public evidence refresh refused. The last valid brief remains visible."
+-                            : "Generic evidence window unavailable.");
++                            ? "Public evidence refresh refused (" + named + "). The last valid brief remains visible."
++                            : "Generic evidence window unavailable (" + named + ").");
+                         byId("briefTimes").className = "state-message warn";
+                         byId("briefTimes").setAttribute("data-generic-window-state",
+                             state.genericWindow ? "preserved-last-valid" : "unavailable");
+-                        setText("briefStates", state.genericWindow ? "Last valid brief retained." : "Brief unavailable. No window is assumed.");
++                        byId("briefTimes").setAttribute("data-generic-window-error",
++                            refusal.code + "/" + refusal.reason);
++                        setText("briefStates", state.genericWindow
++                            ? "Last valid brief retained."
++                            : "Brief unavailable. No window is assumed. The published brief does not satisfy the "
++                                + "generic evidence contract for the window it declares, so nothing is composed from it.");
+                         updateDiagnostics();
+                     });
+             }
+```
+
+The three hunks are one behaviour, not three: the schedule becomes its own render step, the
+publication clock stops being read off the evidence cutoff, and the refusal acquires a name in
+both a machine attribute and the reader's copy.
+
+#### What is reproduced above, and what is not
+
+The commit's eleven product files are accounted for exhaustively. Nothing is dropped without
+being named here.
+
+| File | `+ / -` | Where its diff appears |
+|---|---|---|
+| `scripts/brief-refresh.mjs` | `9 / 2` | in full, above |
+| `rlportfoliobrief.js` | `16 / 0` | in full, above |
+| `portfolio-survival-allocation-lab.html` | `50 / 13` | in full, above |
+| `scripts/brief-narrative-parallel.mjs` | `8 / 1` | already reproduced verbatim in § No Wall-Clock Fallback |
+| `scripts/validate-brief-payload.mjs` | `2 / 2` | already reproduced verbatim in § One Cutoff Rule |
+| `notes/market-brief.md` | `1 / 1` | already reproduced, before and after, in § The Runbook Correction |
+| `market-brief.snapshot.json` | `1 / 1` | already reproduced verbatim in § Published Clocks Now Differ |
+| `market-brief.payload.json` | `1 / 1` | already reproduced verbatim in § Published Clocks Now Differ |
+| `market-brief.page.json` | `1 / 1` | **elided — see below** |
+| `market-brief.snapshot.page.json` | `1 / 1` | **elided — see below** |
+| `tests/portfolio-survival-brief.spec.mjs` | `84 / 0` | excerpted in § Regression E2E, with its own elision marked there |
+
+Five diffs are not repeated because this report already carries them verbatim; repeating them
+would pad the record rather than add to it. The cross-references above are the whole of their
+content, not a summary of it.
+
+**The two elisions, and why they are elisions rather than omissions.** `market-brief.page.json`
+and `market-brief.snapshot.page.json` are derived single-line page artifacts. Each shows `1 +,
+1 -`, but that one line is 97,954 and 69,937 characters respectively — pasting both would add
+roughly 330 KB of minified JSON to this report. Rather than assert that the rest of the line is
+unchanged, it was measured: both documents were parsed at `899c7a40e^` and at `899c7a40e` and
+compared leaf by leaf.
+
+```
+$ node -e '<parse both revisions of each file, flatten to leaf paths, print differing paths>'
+
+=== market-brief.page.json ===
+  asOf: "2026-08-23T15:37:31.147Z" -> "2026-08-23T15:00:00.000Z"
+  total differing leaf paths: 1
+=== market-brief.snapshot.page.json ===
+  asOf: "2026-08-23T15:37:31.147Z" -> "2026-08-23T15:00:00.000Z"
+  total differing leaf paths: 1
+```
+
+Exactly one leaf changed in each: the top-level `asOf`, from the 11:37 run clock to the 11:00
+window cutoff. Both files embed many nested per-source `asOf` values for individual tool reads;
+none of those moved. That is the same one-field change already shown for the two readable
+artifacts, regenerated into the minified page form, so nothing is withheld from the record —
+only its 330 KB encoding.
+
 ## Broader Suite On The Committed Tree
 
 **`executed (validation turn)`** — the obstruction was real and is worth naming: the working

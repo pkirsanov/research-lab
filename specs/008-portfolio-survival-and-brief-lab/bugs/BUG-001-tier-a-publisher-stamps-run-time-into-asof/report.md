@@ -859,6 +859,46 @@ PLAYWRIGHT_EXIT=0
 Case 18 is this bug's own regression row, so the suite that certifies the tree is the same
 suite that carries the fix's proof.
 
+### Audit Evidence
+
+**`executed (audit turn)`** — `bubbles.audit` round 3, recorded in `state.json`
+`executionHistory`. Rounds 1 and 2 both returned `REWORK_REQUIRED` and both were correct;
+two of their findings were errors introduced during remediation, not pre-existing defects.
+Round 3 re-derived every prior finding rather than accepting the round-2 summary, reading
+source from `HEAD` via `git show` because the working tree carries roughly eighty-five
+foreign uncommitted files from other sessions.
+
+```
+$ jq -r '.executionHistory[-1] | "\(.at) \(.agent) \(.phase) \(.action)"' state.json
+2026-08-28T20:41:01Z bubbles.audit audit verified
+$ node scripts/selftest.mjs | tail -2
+Research-Lab self-test: 3429 passed, 0 failed
+================================================
+$ node scripts/pii-scan.mjs | tail -1
+[pii-scan] files=10342 messages=2444 findings=0 OK
+$ bash .github/bubbles/scripts/artifact-lint.sh <packet>; echo exit=$?
+exit=0
+```
+
+Verdict **SHIP_WITH_NOTES**. What the round established, each by execution:
+
+- All nine requirements `FR-B001-001` through `FR-B001-009` verified. `FR-B001-001` was proven
+  by running the shared rule against the real config rather than by reading it: an 11:37 ET run
+  of the 11:00 ET `morning` window returns 11:00 ET, which is a genuine transformation and not
+  a passthrough.
+- `rlportfoliobrief.js` is 16 insertions and 0 deletions, so the consumer boundary cannot have
+  been weakened — a removal is the only way to weaken it, and there is none.
+- 0 secret or network tokens in the added source; the only raw-HTML sink is a clear-to-empty;
+  the four input guards were verified by execution.
+- 0 TODO, FIXME or HACK markers and 0 skip markers in added lines.
+- All three `phaseStubs` judged honest, none a disguised skip.
+
+Three non-blocking observations were raised rather than waived. `F3` (the adversarial
+regression row cited at `:902` against the real `:1039`) is closed above in § The Adversarial
+Row. `N1` records a pre-existing duplicate `newYorkCivilCutoff` at
+`portfolio-survival-allocation-lab.html:7906` which this fix did not introduce and does not
+touch. `N2` narrowed the `simplify` stub's closing clause to its verified grounds.
+
 ## Completion Statement
 
 **What is established.** The Tier-A publisher binds `asOf` to the analyzed window's evidence

@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-28T02:01:33Z",
+  "lastUpdatedAt": "2026-08-28T02:54:16Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -15,7 +15,7 @@
   "linkedPlanningPacket": null,
   "specDependsOn": [],
   "flagsIntroduced": [],
-  "requiresRevalidation": true,
+  "requiresRevalidation": false,
   "scopeLayout": "single-file",
   "filedAtCommit": "7c0c5d64e",
   "artifacts": {
@@ -401,7 +401,7 @@
         "certifiedAt": "2026-08-28T00:06:59Z"
       }
     ],
-    "requiresRevalidation": null
+    "requiresRevalidation": false
   },
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
@@ -723,7 +723,8 @@
     },
     {
       "id": "BUG-009-ROUTE-027",
-      "status": "open",
+      "status": "resolved",
+      "resolution": "Consumed by bubbles.audit as attempt BUG-009-AUDIT-003, then answered by bubbles.validate. Audit recorded B009-REVALIDATION-RESIDUE-001 as RECORDED_NOT_EDITED and delegated the single open question explicitly: 'That decision belongs to bubbles.validate, not to audit.' ANSWERED: top-level requiresRevalidation is CLEARED to false as the documented outcome of a completed revalidation, on five independently re-derived facts recorded at report.md#validate-route-027-revalidation-decision. Audit's addressedFindings for that attempt also discharge BUG-009-ROUTE-027 and B009-PHASE-IMPLEMENT-001, and the top-level ledger is reconciled to match. Certification did NOT complete and is carried forward as BUG-009-ROUTE-028 against a newly diagnosed root cause, B009-LINT-WINDOW-MARKER-001, which was not visible to any prior pass.",
       "fromAgent": "bubbles.validate",
       "nextRequiredOwner": "bubbles.audit",
       "routedTo": "bubbles.audit",
@@ -732,6 +733,18 @@
       "routingClass": "same-repo-next-phase",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
       "reason": "The artifact surface is certifiable and the audit record is not. This pass drove artifact-lint.sh at status done from 65 issues to 0 (exit 0, Artifact lint PASSED) without editing one historical evidence block, and state-transition-guard.sh reports failureCount 0, failedGateIds [], blockingCode none, verdict PASS, exit 0. What blocks certification is audit-owned state that bubbles.validate is forbidden to write. execution.audit.currentAttemptId is BUG-009-AUDIT-002, resultState ACTIVE, and it records verdict REWORK_REQUIRED, deliveryEvaluation REFUSED and outcome route_required, with three unresolvedFindings. That attempt carries NO evidenceRef, so no AUDIT_RESULT_V1 transcript exists to adjudicate; audit-result-contract-lint.sh requires --result FILE and exits 64 with a usage message because there is nothing to point it at. Nothing mechanical would have refused: a grep of state-transition-guard.sh for REWORK_REQUIRED, DO_NOT_SHIP, auditVerdict and deliveryEvaluation returns zero matches, and its attempt-state enforcement is written for planning-maturity-v1, so delivery-completion-v1 reaches verdict PASS without ever reading the audit's conclusion. Certifying anyway was therefore available and was DECLINED. The grounds the audit itself named are now discharged: the addendum re-derived REWORK_REQUIRED expressly because SHIP_IT was unavailable while the guard still refused at failureCount 10, pending scope completion that could only resolve downstream, and the guard now reports 0, Scope 1 is Done, completedScopes is populated, all 19 DoD items are checked, and node scripts/pii-scan.mjs exits 0 with findings=0. But discharging an auditor's stated grounds is not the auditor withdrawing its refusal. Writing certification.status done over an unretracted deliveryEvaluation REFUSED would publish a machine-readable completion claim that the packet's own independent check still denies, and release and deploy consumers read that field without reading the prose beside it. That is the same phantom-green pattern B009-PHASE-IMPLEMENT-001 refused, relocated to a different field. REWORK_REQUIRED means rework then re-audit; the rework is complete, so the packet routes to bubbles.audit for a delivery re-audit that can lift the refusal or state a surviving reason. If it lifts, certification is a single downstream step: the only remaining guard conditions at done are Gate G088, which needs a non-null top-level certifiedAt, and Gate G089, which needs requiresRevalidation resolved; both were observed this session by flipping status temporarily, and both are fields a genuine certification populates. Evidence: report.md#validate-route-026-artifact-closure."
+    },
+    {
+      "id": "BUG-009-ROUTE-028",
+      "status": "open",
+      "fromAgent": "bubbles.validate",
+      "nextRequiredOwner": "bubbles.audit",
+      "routedTo": "bubbles.audit",
+      "routedToSpec": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "productAction": "none",
+      "routingClass": "same-repo-next-phase",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "The single open question routed by BUG-009-ROUTE-027 is ANSWERED: requiresRevalidation is cleared to false, G089 passes standalone at exit 0 reporting dependencies=0 requiresRevalidation=false, and the top-level findings ledger is reconciled with audit's own adjudication. Certification still did not complete, and the reason is NEW. B009-LINT-WINDOW-MARKER-001: report.md carries exactly one real certifying-window boundary marker at line 5429, but a second occurrence of the literal token sits at line 5891 inside a fenced code block, where 87c1c728d pasted a line of artifact-lint's own success transcript. artifact-lint.sh line 1644 counts markers with grep -cF, which is blind to code fences and sees 2, while its consumer at line 1663 requires in_code_block -eq 0 and correctly sees 1. The window mechanism is opt-in only when exactly one marker is counted, so the miscount disables it and all 134 prior-window evidence blocks are re-checked. Measured this session: artifact-lint at status done exits 1 with 64 issues, decomposing as 45 'lacks terminal output signals' plus 18 'too short' plus the 1 multiple-marker error that causes them; on byte-identical content at in_progress it exits 0 with 0 issues; state-transition-guard exits 1 at in_progress with failedGateIds [G040,G084,G095]; pre-existing-deferral-guard and discovered-issue-disposition-guard both abort at exit 2 without evaluating content. All three gates fail on that one condition, so the packet is currently blocked at EVERY status, not only at done. Confirmed by commit: report.md at e7468c902 counts 1 marker and lint PASSED at done; at 87c1c728d it counts 2 and lint FAILS. bubbles.validate did not repair it because the offending line sits inside bubbles.audit's recorded evidence block and this agent holds append-only ownership of report.md, and because the counter/consumer inconsistency itself is in .github/bubbles/**, which is framework-managed. Two admissible repairs exist, both owned elsewhere: bubbles.audit re-states its transcript with the control token rendered in the bare backticked form this report already uses at line 4520, or the framework makes the marker counter fence-aware to match its consumer. status and certification.status remain in_progress, certifiedAt and completedAt remain null, certifiedCompletedPhases remains empty, no DoD checkbox or scope status was written, and uservalidation.md was not touched. Nothing was pushed."
     }
   ],
   "reworkQueue": [],
@@ -1072,9 +1085,36 @@
       "provenanceMode": "direct-execution",
       "outcome": "route_required",
       "evidenceRef": "report.md#audit-attempt-003-refusal-restated"
+    },
+    {
+      "at": "2026-08-28",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "adjudicated-revalidation-residue-cleared-flag-attempted-certification-and-reverted",
+      "note": "Under repository-binding preflight decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:15 at control revision 15 (PREFLIGHT_COMMITTED, exit 0, actionable). (a) ANSWERED the single question BUG-009-ROUTE-027 delegated. Top-level requiresRevalidation is CLEARED to false. Five facts re-derived by execution rather than taken from the record: git show d18731c51 on state.json shows -false/+true and that commit's own note sets the flag while restoring status to in_progress after a failed certification, so it is revert residue; specDependsOn is [] and git log -S over this packet finds no run of the dependency-revalidation script, only audit prose quoting its name; certifiedAt is null so nothing exists to revalidate against; inter-spec-dependency-guard.sh line 276 names the remedy as 'demote the spec or recertify after revalidation'; and the clearing bought no gate benefit, because G089 fires only at done or done_with_concerns and the packet is being left at in_progress. Revalidation re-derived: node scripts/selftest.mjs exit 0, 3429 passed 0 failed; node scripts/pii-scan.mjs exit 0, files=10332 messages=2347 findings=0; delivery commit 4824edc81 intact at 2 test files +30/-1; inter-spec-dependency-guard.sh exit 0 reporting dependencies=0 requiresRevalidation=false. (b) ATTEMPTED certification and REVERTED it. status, certification.status, completedAt, certifiedAt and certifiedCompletedPhases were set to a done shape, measured, and restored. artifact-lint.sh at status done exits 1 with 64 issues; on byte-identical content at in_progress it exits 0 with 0 issues. state-transition-guard.sh exits 1 at in_progress with failedGateIds [G040,G084,G095], blockingCode DELIVERY_COMPLETION_FAILED. (c) DIAGNOSED a NEW root cause no prior pass had seen, filed as B009-LINT-WINDOW-MARKER-001. All three failing gates trace to ONE condition: report.md holds exactly one real certifying-window boundary marker at line 5429, and a second occurrence of the literal token sits at line 5891 inside a fenced code block, where 87c1c728d pasted a line of artifact-lint's own success transcript. artifact-lint.sh line 1644 counts with grep -cF and is blind to code fences, seeing 2, while its consumer at line 1663 requires in_code_block -eq 0 and correctly sees 1; the window is opt-in only at exactly one counted marker, so the miscount disables it and re-checks all 134 prior-window blocks, generating the 45 signal findings and 18 length findings. Confirmed by commit: e7468c902 counts 1 and lint PASSED at done, 87c1c728d counts 2 and lint FAILS. The packet is therefore blocked at EVERY status, not only at done. NOT repaired here: the line sits inside bubbles.audit's evidence block and this agent's report.md ownership is append-only, and the counter/consumer inconsistency is in .github/bubbles/**, which is framework-managed and was not edited. Carried as BUG-009-ROUTE-028 to bubbles.audit. (d) RECONCILED the top-level findings ledger against audit's own adjudication: B009-PHASE-IMPLEMENT-001 moved to addressedFindings because BUG-009-AUDIT-003 already lists it as addressed while the ledger still called it unresolved, and B009-REVALIDATION-RESIDUE-001 recorded as addressed. The two genuine upstream framework findings are retained unresolved. No implement phase was claimed and plan was not added; certifiedCompletedPhases remains empty. No DoD checkbox, scope status or completedScopes entry was written. uservalidation.md was not touched, so its Checklist, Human Acceptance Record and Automation Readiness items are byte-identical. executionHistory is append-only and retains all 28 prior entries including all 7 from bubbles.plan. Product source, tests and .github/bubbles/** were untouched, specs/007-technical-analysis-decision-lab/ was neither staged nor reverted, and nothing was pushed.",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "provenanceMode": "direct-execution",
+      "outcome": "route_required",
+      "evidenceRef": "report.md#validate-route-027-revalidation-decision"
     }
   ],
   "addressedFindings": [
+    {
+      "id": "B009-REVALIDATION-RESIDUE-001",
+      "summary": "Top-level requiresRevalidation:true was adjudicated by bubbles.validate under explicit delegation from bubbles.audit ('That decision belongs to bubbles.validate, not to audit') and is CLEARED to false as the recorded outcome of a completed revalidation. Five facts re-derived this session: (1) git show d18731c51 on state.json shows -false/+true, and that commit's own note states the flag was set while restoring status and certification.status to in_progress after a failed certification attempt, so it is revert residue; (2) specDependsOn is [] and git log -S'inter-spec-dependency-revalidation' over this packet returns only 87c1c728d, which merely quotes the script name in audit prose, so the legitimate setter never ran; (3) certifiedAt is null, so no prior certification exists whose validity a dependency change could undermine; (4) inter-spec-dependency-guard.sh line 276 names the remedy as 'demote the spec or recertify after revalidation', and a revalidation was re-derived here with node scripts/selftest.mjs 3429 passed 0 failed exit 0, node scripts/pii-scan.mjs findings=0 exit 0, delivery commit 4824edc81 intact at 2 files +30/-1, and inter-spec-dependency-guard exit 0 reporting dependencies=0 requiresRevalidation=false; (5) the clearing purchased no gate benefit, because G089 fires only at done or done_with_concerns and this packet is being left at in_progress, which distinguishes a recorded revalidation outcome from gate-gaming.",
+      "owner": "bubbles.validate",
+      "status": "addressed",
+      "evidenceRef": "report.md#validate-route-027-revalidation-decision"
+    },
+    {
+      "id": "B009-PHASE-IMPLEMENT-001",
+      "summary": "Ledger reconciliation by bubbles.validate as packet owner. bubbles.audit adjudicated this finding RESOLVED and lists it in execution.audit.attempts BUG-009-AUDIT-003 addressedFindings, while the top-level unresolvedFindings ledger still carried it as unresolved, so the two records contradicted each other. The substantive discharge stands as recorded: the implement phase is carried as execution.phaseStubs.implement, which state-transition-guard Check 6B admits without demanding provenance because a stub is not a claim, and the delivery is real and SHA-backed at 4824edc81 changing exactly two test files +30/-1. No implement phase claim was synthesized. The residual framework observation about the registry implement owner set remains carried upstream as B009-FRAMEWORK-PHASE-REGISTRY-001.",
+      "owner": "bubbles.audit",
+      "status": "addressed",
+      "evidenceRef": "report.md#validate-route-027-revalidation-decision"
+    },
     {
       "id": "B009-FILING-001",
       "summary": "The remaining risk mutation finding is grounded in current-session strict-registry execution, a focused mutant run, and current-tree inspection, and is represented by a complete v3 BUG-009 packet.",
@@ -1297,12 +1337,12 @@
       "evidenceRef": "report.md#plan-route-022-reconciliation"
     },
     {
-      "id": "B009-PHASE-IMPLEMENT-001",
-      "summary": "Gate G022 Check 6 reports the required phase 'implement' absent from phase records. RE-DIAGNOSED under BUG-009-ROUTE-024 as a FRAMEWORK owner-set defect, not a packet recording gap. The implement work is real and SHA-backed at 4824edc81, and the packet's own devops, security, validate and audit phases each call it the implementation commit at report.md lines 888, 1019, 1240, 2855, 3552 and 3619. But state-transition-guard Check 6B accepts implement provenance ONLY from bubbles.implement, the registry-declared owner, which appears in 0 of 22 executionHistory entries, or from bubbles.bug via the hardcoded delegation shortcut at state-transition-guard.sh line 2183, whose two entries both record phasesExecuted [bug] and authored no delivery. executionHistory entry 3 records the actual executor as bubbles.test with action 'implemented-and-verified-recorded-test-contracts'. For a test-only defect the implementation and the test are the same artifact and 4824edc81 changes no production file, so the registry implement owner set has no honest member. Recording the claim would require writing a bubbles.implement entry that never ran or grafting 'implement' onto a bubbles.bug entry that did not author it, which is the phantom owner Check 6B exists to refuse, so bubbles.plan declined despite parent confirmation. NOTE: the parent's stated rationale that bugfix-fastlane has no separate test-only phase was falsified this session, because Check 6 lists implement and test as distinct required phases, test already PASSES, and distinct test-phase commits 50a541600 and 40ae3fdf6 exist. The fix is a framework change to the implement owner set or its delegation shortcut, for example admitting bubbles.test for test-only defects, and cannot be made downstream because .github/bubbles/** is framework-managed.",
-      "owner": "bubbles.workflow",
+      "id": "B009-LINT-WINDOW-MARKER-001",
+      "summary": "NEW ROOT CAUSE found this session. report.md carries exactly ONE real certifying-window boundary marker, at line 5429. A second occurrence of the literal token sits at line 5891 INSIDE a fenced code block: it is a pasted line of artifact-lint's own success transcript, added by 87c1c728d, reading 'Skipped 134 evidence blocks before <marker> (prior-window history)'. artifact-lint.sh line 1644 counts markers with grep -cF, which is blind to code fences and therefore sees 2, while the consumer at line 1663 requires in_code_block -eq 0 and correctly sees 1. Because the window mechanism is opt-in ONLY when exactly one marker is counted, the miscount disables it and all 134 prior-window evidence blocks are re-checked, producing 63 downstream evidence findings. Measured: artifact-lint at status done exits 1 with 64 issues; on byte-identical content at in_progress it exits 0 with 0 issues; state-transition-guard exits 1 at in_progress with failedGateIds [G040,G084,G095]; pre-existing-deferral-guard and discovered-issue-disposition-guard both abort at exit 2 without evaluating content. All three gates fail on this single condition. Confirmed by commit: report.md at e7468c902 counts 1 marker and lint PASSED at done; at 87c1c728d it counts 2 and lint FAILS. The offending line is inside bubbles.audit's recorded evidence block, and bubbles.validate holds append-only ownership of report.md, so this pass did not rewrite it. The counter/consumer inconsistency itself is in .github/bubbles/**, which is framework-managed and was not edited. Two admissible repairs exist and both belong to other owners: bubbles.audit re-states its transcript with the control token rendered in the bare backticked form this report already uses elsewhere, or the framework makes the marker counter fence-aware to match its consumer.",
+      "owner": "bubbles.audit",
       "status": "unresolved",
-      "routedTo": "parent orchestrator",
-      "evidenceRef": "report.md#plan-route-024-phase-record-repair"
+      "routedTo": "bubbles.audit",
+      "evidenceRef": "report.md#validate-route-027-revalidation-decision"
     }
   ]
 }

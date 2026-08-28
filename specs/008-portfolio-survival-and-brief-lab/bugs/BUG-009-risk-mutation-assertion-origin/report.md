@@ -6038,3 +6038,154 @@ tests, and `.github/bubbles/**` were untouched. The concurrent session's
 transaction were neither staged nor reverted. `node scripts/pii-scan.mjs` was run
 before committing. Nothing was pushed.
 
+### Revalidation Residue Adjudicated; Certification Refused On A New Root Cause {#validate-route-027-revalidation-decision}
+
+> **Transcript elision, disclosed.** Several tool lines below name the report's
+> window-boundary marker. Every occurrence is rendered as the bare backticked
+> token `certifying-window-begin`, never in its literal comment form, because
+> the literal form is itself the control token this section is about and a
+> verbatim paste would add a further occurrence to this file. That is exactly
+> the accident being diagnosed. Wording is otherwise unaltered; the convention
+> matches the existing safe mention already in this report.
+
+**Decision 1 — `B009-REVALIDATION-RESIDUE-001`: top-level `requiresRevalidation`
+is CLEARED to `false`.** `bubbles.audit` recorded this finding as
+`RECORDED_NOT_EDITED` and delegated it explicitly: *"That decision belongs to
+bubbles.validate, not to audit."* Five independent facts were re-derived this
+session rather than taken from the prior record:
+
+1. **Provenance is revert residue.** `git show d18731c51` on `state.json` shows
+   `- "requiresRevalidation": false` / `+ "requiresRevalidation": true`, and that
+   commit's own note states the flag was set while *"status and
+   certification.status were restored to in_progress, certifiedCompletedPhases
+   restored to empty"* — that is, while unwinding a failed certification attempt.
+2. **The legitimate setter never ran.** `specDependsOn` is `[]`, and
+   `git log -S'inter-spec-dependency-revalidation'` over this packet returns only
+   `87c1c728d`, which merely quotes the script name in audit prose.
+3. **There is nothing to revalidate against.** `certifiedAt` is `null`; the packet
+   was never certified, so no prior certification's validity is in question.
+4. **The guard's own remedy sanctions clearing.** `inter-spec-dependency-guard.sh`
+   line 276 names the remedy as *"demote the spec or recertify after
+   revalidation"*, and a revalidation was performed and re-derived here.
+5. **Clearing it produced no gate benefit.** G089 fires only at `done` /
+   `done_with_concerns`. The packet is being left at `in_progress`, so the flag's
+   clearing changes no gate outcome. It records a completed revalidation; it does
+   not purchase a green check.
+
+Revalidation re-derived this session:
+
+```
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3429 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+
+$ node scripts/pii-scan.mjs
+[pii-scan] files=10332 messages=2347 findings=0 OK
+PII_EXIT=0
+
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh <packet>
+inter-spec-dependency-guard: PASS Gate G089 (inter_spec_dependency_gate) -
+  dependencies=0 acceptedDependencies=none requiresRevalidation=false
+  acknowledgedUnstableDependencies=0
+G089_EXIT=0
+
+$ git show 4824edc81 --stat     # delivery commit intact on current tree
+ tests/portfolio-risk.functional.mjs     | 29 +++++++++++++++++++++++++++++
+ tests/portfolio-test-integrity.unit.mjs |  2 +-
+ 2 files changed, 30 insertions(+), 1 deletion(-)
+```
+
+**Decision 2 — certification REFUSED. A previously undiagnosed defect blocks the
+packet at every status.** Certification was attempted, measured, and reverted.
+At `status: done` the lint fails; on byte-identical content at `in_progress` it
+passes, and the transition guard fails at both:
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh <packet>      # status: done
+Artifact lint FAILED with 64 issue(s).
+ARTIFACT_LINT_DONE_EXIT=1
+  45  Evidence block lacks terminal output signals
+  18  Evidence block too short
+   1  Multiple `certifying-window-begin` markers (2) in report.md
+
+$ bash .github/bubbles/scripts/artifact-lint.sh <packet>      # status: in_progress
+Artifact lint PASSED.
+ARTIFACT_LINT_INPROGRESS_EXIT=0   issues=0
+
+$ bash .github/bubbles/scripts/state-transition-guard.sh <packet>
+failedGateIds: [G040,G084,G095]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 3
+verdict: FAIL
+STATE_TRANSITION_GUARD_EXIT=1
+
+$ bash .github/bubbles/scripts/pre-existing-deferral-guard.sh <packet>
+pre-existing-deferral-guard: multiple `certifying-window-begin` markers (2)
+G084_EXIT=2
+
+$ bash .github/bubbles/scripts/discovered-issue-disposition-guard.sh <packet>
+G095 ERROR: multiple `certifying-window-begin` markers (2)
+G095_EXIT=2
+```
+
+**Root cause — `B009-LINT-WINDOW-MARKER-001`.** All three gates fail on one
+condition, and the 63 evidence findings are its downstream consequence, not
+independent defects. This report carries exactly ONE real window marker, at line
+5429. A second occurrence of the literal token sits at line 5891 **inside a
+fenced code block**: it is a pasted line of the lint's own success transcript,
+added by `87c1c728d`, reading `Skipped 134 evidence blocks before <marker>
+(prior-window history)`. The marker counter and the marker consumer disagree
+about fenced code:
+
+```
+$ sed -n '1644p' .github/bubbles/scripts/artifact-lint.sh      # COUNTER: fence-blind
+  cw_marker_count=$(grep -cF -- '<marker>' "$current_report_file" || true)
+
+$ sed -n '1663p' .github/bubbles/scripts/artifact-lint.sh      # CONSUMER: fence-aware
+    if [[ "$in_code_block" -eq 0 ]] && [[ "$line" == *"<marker>"* ]]; then
+
+$ awk 'BEGIN{f=0} /^```/{f=!f} /<marker>/{print NR"  in_code_fence="f}' report.md
+5429  in_code_fence=0
+5891  in_code_fence=1
+
+$ for c in e7468c902 87c1c728d; do git show "$c:<packet>/report.md" | grep -cF -- '<marker>'; done
+1      # e7468c902 — lint PASSED at done
+2      # 87c1c728d — lint FAILS at done
+```
+
+The counter sees 2 and declares "multiple markers"; the consumer correctly sees
+1. Because the window mechanism is opt-in *only when exactly one marker is
+counted*, the miscount disables it, and all 134 prior-window evidence blocks are
+re-checked — producing the 63 findings. The packet did not regress substantively:
+it acquired a quoted control token. Audit pasted the transcript proving the lint
+passed, and that paste is what makes the lint fail.
+
+**Why this pass did not repair it.** The offending line is inside
+`bubbles.audit`'s recorded evidence block. This agent's ownership of `report.md`
+is append-only, and rewriting another phase's transcript to clear three gates is
+the same category of action audit warned against on the revalidation flag. The
+counter/consumer inconsistency itself lives in `.github/bubbles/**`, which is
+framework-managed and was not edited. Both admissible repairs therefore sit with
+other owners, so this is routed rather than forced.
+
+**Disposition.** `status` and `certification.status` remain `in_progress`;
+`certifiedAt`, `completedAt`, and `certification.certifiedCompletedPhases` were
+restored to their pre-attempt values after the measurement above. A truthful
+`in_progress` beats a fabricated `done`.
+
+### Boundaries honored (route 027 pass)
+
+`requiresRevalidation` was set `false` as the recorded outcome of a completed
+revalidation. `status`, `certification.status`, `certifiedAt`, `completedAt`, and
+`certifiedCompletedPhases` are unchanged from HEAD. No DoD checkbox, scope
+status, or `completedScopes` entry was written; `uservalidation.md` was not
+touched, so its Checklist, Human Acceptance Record, and Automation Readiness
+items are byte-identical. `implement` was not claimed and `plan` was not added.
+`executionHistory` was appended to only and retains all 28 prior entries,
+including all 7 from `bubbles.plan`. Product source, tests, and
+`.github/bubbles/**` were untouched. The concurrent session's
+`specs/007-technical-analysis-decision-lab/` files and the unrelated working-tree
+transaction were neither staged nor reverted. Nothing was pushed.
+

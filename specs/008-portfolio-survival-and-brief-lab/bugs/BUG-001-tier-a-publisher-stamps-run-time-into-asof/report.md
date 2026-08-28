@@ -821,3 +821,195 @@ its lateness as an operational signal, rather than only being made honest about 
 as Q1 in `design.md` § Open Question For The Owner. Adding a staleness disclosure in the same
 change that first makes the two clocks differ would leave no run in which to observe whether
 the distinction alone is sufficient.
+
+## Audit Evidence
+
+**`executed (audit turn)`** — `bubbles.audit`, 2026-08-28. Every command below was run in
+this turn against a clean `git archive HEAD` export at `d650e8cc3`, because the working tree
+carries ~85 uncommitted files from other sessions and a run there would not measure this
+delivery. `rlportfoliobrief.js` is among those dirty files, so auditing the tree would have
+read a surface this packet did not deliver.
+
+**Verdict: `REWORK_REQUIRED`.** The delivery is sound and every requirement is satisfied. The
+findings are confined to the justification and bookkeeping surface, where five claims do not
+survive verification. The `audit` phase is therefore NOT recorded as verified.
+
+### The delivery itself passes
+
+Each requirement was checked against the code and the published artifacts rather than against
+this report's prose.
+
+| Requirement | Verified at | Result |
+|---|---|---|
+| FR-B001-001 `asOf` is the window cutoff | `brief-refresh.mjs:2637-2639` | PASS |
+| FR-B001-002 `generatedAt` is the run clock | `brief-refresh.mjs:2639` | PASS |
+| FR-B001-003 one shared cutoff rule | `windowCutoffAt` defined once, `rlportfoliobrief.js:171` | PASS |
+| FR-B001-004 consumer boundary not weakened | `rlportfoliobrief.js` diff is `16 +, 0 -` | PASS |
+| FR-B001-005 schedule survives a refusal | selector rendered before `buildGenericWindow` | PASS |
+| FR-B001-006 a refusal names itself | `data-generic-window-error` + reader copy | PASS |
+| FR-B001-007 publication clock from `generatedAt` | `state.briefPublishedAt = …snapshotRef.generatedAt` | PASS |
+| FR-B001-008 runbook corrected | `notes/market-brief.md` | PASS |
+| FR-B001-009 no wall-clock fallback | `brief-narrative-parallel.mjs` throws | PASS |
+
+FR-B001-003 deserves its own note, because "one rule, two callers" is checkable rather than
+assertable. `windowCutoffAt` is a thin wrapper that derives the New York civil date and then
+calls `newYorkCivilCutoff`, which is the same function the consumer's `validateGenericWindow`
+calls directly at `rlportfoliobrief.js:219`. The two signatures bottom out in one
+implementation, so drift is structurally impossible rather than merely absent today.
+
+**One transformed value traced end to end**, since structural checks confirm the parts exist
+and only a traced value confirms they are connected:
+
+```
+snapshot.window      = morning          declared etTime = 11:00 ET
+snapshot.asOf        = 2026-08-27T15:00:00.000Z   <- the 11:00 ET cutoff
+snapshot.generatedAt = 2026-08-27T14:57:36.125Z   <- the run instant
+payload.asOf         = 2026-08-27T15:00:00.000Z   <- inherited, not recomputed
+helper re-resolution from the run instant = 2026-08-27T15:00:00.000Z  (equal)
+```
+
+The two clocks are distinct, the published `asOf` equals what the shared helper independently
+resolves, and the payload inherits rather than substitutes.
+
+**Re-executed in this turn, all exit 0:** `node scripts/selftest.mjs` → **3429 passed, 0
+failed**; `node scripts/validate-brief-payload.mjs` → PASS, including `every evidence
+timestamp is at or before the declared window cutoff`; `node --test
+tests/portfolio-publisher-boundary.functional.mjs` → 5/5; `node --test
+tests/portfolio-brief.functional.mjs` → 34/34. `artifact-lint.sh` exits 0; scope Done with
+19 of 19 DoD items checked and none unchecked.
+
+### AUDIT-F1 — the `simplify` stub's stated measurement is false (MEDIUM)
+
+This is not a documentation nit. `phaseStubs` is a live Gate G022 satisfier; the guard's own
+comment states a stubbed phase satisfies G022 *"IFF the stub entry carries a non-empty
+`reason` field, preventing empty-stub fabrication."* Non-emptiness is machine-checkable and
+truth is not, so this phase is the only control on whether the reason is real.
+
+Two of the stub's three supporting claims do not hold:
+
+| Stub claim | Verification | Result |
+|---|---|---|
+| `brief-narrative-parallel.mjs` "computed the cutoff itself via `newYorkCivilCutoff(tradingDate, window.etTime)`" | `git show 899c7a40e^:scripts/brief-narrative-parallel.mjs \| grep -c newYorkCivilCutoff` → `0` | FALSE |
+| "call sites at `brief-refresh.mjs:2637` and in `brief-narrative-parallel.mjs`" | first TRUE; second → `grep -c windowCutoffAt` → `0`, and the file never imports `rlportfoliobrief` | HALF FALSE |
+| "`function windowCutoffAt` matches exactly once, at `rlportfoliobrief.js:171`" | reproduced | TRUE |
+
+The file the description actually fits is `scripts/validate-brief-payload.mjs:975`, and even
+there the characterisation is wrong in kind: it was already calling the *shared* exported
+`RLPORTFOLIOBRIEF.newYorkCivilCutoff`, so it was never "a second implementation". What the
+delivery removed was the local trading-date derivation feeding that shared call.
+`brief-narrative-parallel.mjs` changed for a different requirement entirely — FR-B001-009,
+removing the wall-clock fallback. The justification appears to have swapped the two files.
+
+The stub's **conclusion is independently true**: `windowCutoffAt` is defined exactly once and
+the delivery removed a duplicated derivation. So the remedy is to correct the reason, not to
+run a simplify phase.
+
+### AUDIT-F2 — the staleness correction was applied in two places and missed two others (MEDIUM)
+
+This packet already corrected a false "not committed" claim once. That correction is
+incomplete, and the surviving copies contradict the corrected ones inside the same artifacts.
+
+| Location | Claim | Reality |
+|---|---|---|
+| `report.md:30` | "The delivery is committed." | correct |
+| `report.md:446` | "is **uncommitted**" | stale, but **annotated** at `:450` "Superseded — kept because it was true when captured" |
+| `report.md:817` | "No commit exists for the delivery." | stale, **no annotation** |
+| `state.json` `knownLimitation.statement` | "What is NOT established: … a commit for the delivery" | stale, **no annotation** |
+| `state.json` `execution.nextRequiredReason` | "the delivery is present in the working tree at 648e0992b and is uncommitted" | stale, **no annotation** |
+
+`git merge-base --is-ancestor 899c7a40e HEAD` is true, so the delivery is committed. The
+handling at `report.md:450` is exemplary — the original capture is preserved byte-intact and
+the supersession is annotated rather than the history rewritten. The defect is that
+§ Completion Statement and `state.json` did not receive the same treatment, and
+`knownLimitation.recordedIn` points at the two sections that were corrected.
+
+Two further claims in the same paragraph are stale:
+
+- `report.md:812` "the full **3314**-assertion selftest" — the selftest reports **3429
+  passed, 0 failed**, both in the regression phase's record and when re-run in this turn. The
+  historical table row at `:314` is legitimate captured evidence; the § Completion Statement
+  sentence is a present-tense claim about what is established.
+- `report.md:816` "they were not re-run while these artifacts were written" — the regression
+  phase re-ran them on a clean export, and this turn re-ran four of them again.
+
+### AUDIT-F3 — `adversarialRegression.line` contradicts `state.json`'s own history (LOW)
+
+`state.json` records the regression row at line **902**. That was correct at `899c7a40e` and
+the file has since grown; the row is at **1039** at HEAD, where line 902 is an unrelated
+privacy assertion. The `name` field matches the row verbatim, so the row remains
+identifiable, but the pointer misdirects. Both `executionHistory` notes and `report.md`
+(`:377-380`, `:795`) cite 1039 correctly, so the contradiction is internal to `state.json`.
+
+### AUDIT-F4 — the `stabilize` stub's "fail-loud" reading overstates the process boundary (LOW)
+
+The stub is right that the throws are handled at `brief-refresh.mjs:2672`. What it does not
+say is what that handler does:
+
+```js
+main().catch((e) => {
+  console.error(`[brief-refresh] ${process.argv.includes('--strict') ? 'fatal' : 'soft-fail'}:`, e.message);
+  process.exit(process.argv.includes('--strict') ? 1 : 0);
+});
+```
+
+Without `--strict` the process exits **0**. Replacing a silent wall-clock fallback with a
+throw is fail-loud relative to the old behaviour, which is the trade the stub defends and it
+is the correct trade; but at the process boundary in the default invocation the run still
+reports success. Separately, the new throw at `:2638` sits between the `brief-history.jsonl`
+append at `:2632` and the snapshot write at `:2640`, so a config-defect run can now append a
+history row with no corresponding snapshot — a window that did not exist before this change.
+The path is narrow and the conclusion "nothing to stabilize" is defensible; the grounds are
+overstated.
+
+### AUDIT-F5 — the `security` stub's stated scope omits the surface that renders the refusal (LOW)
+
+The stub grepped "the four changed non-artifact source files". The delivery changed a fifth
+source surface, `portfolio-survival-allocation-lab.html` (`50 +, 13 -`), and that is exactly
+where FR-B001-006's refusal copy reaches the DOM — the one place in this delivery where text
+meets a rendering sink.
+
+Checked independently in this turn: no raw-HTML sink is introduced. Values reach the DOM via
+`option.textContent`, `setText`, and `setAttribute`, all of which escape. The single
+`innerHTML` in the diff is `select.innerHTML = ""`, a clear-to-empty with no interpolation.
+The stub's conclusion holds — but it holds because of this check, not because of the method
+the stub describes.
+
+### Observation — an early run now stamps a cutoff in the future
+
+Not a defect and not a requirement violation, recorded because it is a state the delivery
+newly makes reachable. The live artifact publishes `asOf` `15:00:00.000Z` against
+`generatedAt` `14:57:36.125Z`: the run finished ~2.4 minutes *before* the cutoff it declares.
+FR-B001-001 mandates this, and no consumer refuses it because the only boundary is
+`asOf > cutoffAt`. It belongs alongside `design.md` Q1, which asks the converse question
+about persistently *late* publication.
+
+### Judgement on the `:1039` reasoning
+
+The reasoning holds, and the packet states it honestly rather than glossing it. `report.md`
+`:377-380` names the row, states that it "overrides both published artifacts with its own
+late fixture before asserting anything, so a defect in what the *publisher* writes is
+invisible to it by construction", and both `executionHistory` notes repeat it.
+
+The structural argument is correct. A row that proves "a late publication is refused" cannot
+use a correctly-published artifact, because then the refusal path never executes and every
+assertion below it passes vacuously — which is precisely what the recorded
+`nonTautologyBasis` asserts about its own fixture. So the two halves of the contract need
+two different guards: `:1039` guards that a refusal is named and does not empty the schedule,
+and the fifteen rows that read the real published artifacts guard the publisher half. That
+those fifteen went red under revert is the empirical evidence, and it was reconstructed
+rather than asserted. The only genuinely misleading residue is that the row's *name* implies
+it guards a defect it structurally cannot, and the packet says so itself.
+
+### What would clear this audit
+
+Four corrections, none of which require re-running a phase:
+
+1. Rewrite the `simplify` stub reason to name `scripts/validate-brief-payload.mjs:975`, and
+   to describe what was removed as a duplicated trading-date derivation feeding the shared
+   helper rather than as "a second implementation".
+2. Annotate or correct `report.md:812`, `:816`, `:817` the way `:450` was annotated.
+3. Update `state.json` so neither `knownLimitation.statement` nor
+   `execution.nextRequiredReason` asserts that a commit for the delivery is unestablished,
+   and set `adversarialRegression.line` to `1039`.
+4. Optionally, narrow the `stabilize` and `security` stub reasons to what was actually
+   measured. Both conclusions survive; only their stated grounds need to match.

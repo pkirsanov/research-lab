@@ -340,6 +340,19 @@
       "control": "minimums that sum past the whole portfolio are downgraded from universally infeasible to a candidate-level miss, so a mandate no weight vector can satisfy reads as one unlucky candidate rather than a contradiction in the constraints",
       "claim": "Mutually conflicting constraints are reported as universally infeasible and nothing is silently relaxed",
       "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-021": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-021 missing survival definition renders distributions without probability",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var survivalDefinition = spec.survivalDefinition.state === \"available\" ? {",
+          "replace": "    var survivalDefinition = true ? {"
+        }
+      ],
+      "control": "an unavailable survival definition is treated as available, so a survival probability is computed against a floor the user never stated instead of the distributions rendering without one",
+      "claim": "A missing survival definition suppresses the survival probability rather than defaulting to a fabricated floor",
+      "implementationRefs": ["rlportfolioanalytics.js"]
     }
   }
 }

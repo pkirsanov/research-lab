@@ -428,9 +428,11 @@ with this entire packet moved out of the tree still returns
 the end of this session shows tracked modifications that were absent at §E6:
 
 ```
+$ git status --porcelain
  M specs/024-social-security-and-medicare/scopes/01-benefit-computation/report.md
  M tax-rules/benefit/2026.json
 ?? data/company-intelligence/
+NOT RE-EXECUTABLE - retained point-in-time capture of one session's working tree.
 ```
 
 **Not re-executed, and left as captured.** This is a point-in-time snapshot of one
@@ -874,14 +876,18 @@ named message. One survived:
 ```
 SURVIVED  COVER:attentionSubjectUniquenessInstruction (drop one scanned field)
           (exit=0, self-test: 3136 passed, 0 failed)
+NOT RE-EXECUTABLE - retained PRE-FIX capture. Re-applying this same mutation to
+scripts/build-attention-items.mjs at HEAD 7d629377c now goes RED, not SURVIVED
+(receipt below), so this survival cannot be reproduced against any current tree.
 ```
 
 **Not re-executed, and left as captured.** The mutation harness behind this line was
 ad-hoc and was never committed, so there is no command to re-run: reproducing it would
 mean writing a new harness and presenting its output as the old one's. The surviving
 mutation was also closed by the fix described immediately below, so the tree that
-produced this result no longer exists. The block stays as the original capture and stays
-below the evidence-strength bar.
+produced this result no longer exists. That non-reproducibility is now *proven* rather
+than asserted: the receipt under the next block re-applies this exact mutation to
+committed code at `7d629377c` and it goes RED, not SURVIVED.
 
 Rendering `SUBJECT_RESOLUTION_FIELDS.slice(1)` dropped `headline` from the set the
 author is warned about, and the suite stayed green. `findUnofferedTerms` is an
@@ -913,12 +919,43 @@ RED-NAMED  RE-MASK: put the masking prose back
 RED-NAMED  PIN-ITSELF: neuter findMaskedTerms so it can never report a restatement
 RED-NAMED  PIN-ITSELF: make findMaskedTerms fire on a single mention
 mutations=7 red-named=7 problems=0
+
+--- RETAINED CAPTURE ABOVE (ad-hoc harness, uncommitted).
+--- RE-RUN BELOW: 2026-08-28, committed code only, in an isolated `git clone` of
+--- HEAD 7d629377c (clone path redacted as <repo-root>). It reproduces the FIRST
+--- and load-bearing line above - the mutation that SURVIVED before the fix.
+
+$ node scripts/selftest.mjs                       # baseline, unmutated
+Research-Lab self-test: 3429 passed, 0 failed
+SELFTEST_EXIT=0
+
+$ python3 -c "...SUBJECT_RESOLUTION_FIELDS -> SUBJECT_RESOLUTION_FIELDS.slice(1)..."
+mutation applied: SUBJECT_RESOLUTION_FIELDS -> SUBJECT_RESOLUTION_FIELDS.slice(1)
+$ git --no-pager diff --stat scripts/build-attention-items.mjs
+ scripts/build-attention-items.mjs | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+$ node scripts/selftest.mjs                       # under mutation
+  x FAIL: the uniqueness instruction names every field the subject resolver scans (unnamed: headline)
+  v naming only the headline leaves every other scanned field unwarned (unnamed: rationale, escalationTrigger, invalidation)
+Research-Lab self-test: 3428 passed, 1 failed
+SELFTEST_EXIT=1
+
+$ git checkout -- scripts/build-attention-items.mjs
+$ node scripts/selftest.mjs                       # revert control
+Research-Lab self-test: 3429 passed, 0 failed
+SELFTEST_EXIT=0
 ```
 
-**Not re-executed, and left as captured.** Same reason as H1 above: the mutation harness
-was ad-hoc and uncommitted, so re-running it means authoring a new one rather than
-re-executing the documented one. The block stays as the original capture and stays below
-the evidence-strength bar.
+**The seven-line summary is a retained capture; the load-bearing line is re-executed.**
+The ad-hoc harness that produced the summary was never committed, so the seven-line
+table itself cannot be regenerated without authoring a new harness and presenting its
+output as the old one's. What *can* be re-run is the pin, using committed code only:
+the receipt appended inside the block above re-applies `COVER:uniqueness drop field[0]`
+— the one mutation that SURVIVED before the fix — to `scripts/build-attention-items.mjs`
+in an isolated clone of `7d629377c`, and records the full negative-control pair
+(`3429/0` green -> `3428/1` red with the named message -> `3429/0` green on revert).
+The remaining six lines of the table stay as the original capture.
 
 The full sixteen-mutation suite then re-run: `mutations=16 red-named=16 problems=0`.
 
@@ -931,6 +968,9 @@ mean exactly that. It aborted instead:
 ```
 FAIL no throw: undefined snapshot + subject __proto__ :: Cannot read properties of undefined (reading 'asOf')
 FAIL no throw: null snapshot      + subject __proto__ :: Cannot read properties of null (reading 'asOf')
+NOT RE-EXECUTABLE - retained PRE-FIX capture. The defect was closed in the same
+pass, so this probe cannot fail this way at HEAD 7d629377c; re-running it would
+demonstrate the fix, not the fault. Left below the evidence-strength bar.
 ```
 
 **Not re-executed, and left as captured.** This is a pre-fix failure. The defect it
@@ -990,6 +1030,9 @@ A 200,000-character `rationale` composes, validates and publishes:
 rationale          published=1 refusal=(none) publishedLength=200000
 escalationTrigger  published=1 refusal=(none) -> validator: outputBudget: attention[0] is 200151 characters, over the declared per-card cap of 300
 invalidation       published=1 refusal=(none) -> validator: outputBudget: attention[0] is 200138 characters, over the declared per-card cap of 300
+NOT RE-EXECUTABLE - retained PRE-FIX observation. The unbounded `rationale` was
+subsequently capped under BUG-014 FR-014-008, so the 200000-character value no
+longer publishes. Left below the evidence-strength bar.
 ```
 
 **Not re-executed, and left as captured.** This too is a pre-fix observation. As the

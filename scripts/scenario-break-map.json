@@ -841,6 +841,19 @@
       "control": "the dependence claim boundary inverts and asserts that a windowed correlation IS a property of the pair, so a reader takes a stress-window figure as a permanent characteristic of the two assets",
       "claim": "The dependence surface states its own claim boundary - a correlation measured on one named window is not a property of the pair, heteroskedasticity alone can produce a rise, and no contagion label is applied automatically",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-025": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "\"<th scope=\\\"col\\\">Carry</th><th scope=\\\"col\\\">Direct</th><th scope=\\\"col\\\">Turnover</th>\" +",
+          "replace": "\"<th scope=\\\"col\\\">Net cost</th><th scope=\\\"col\\\">Turnover</th>\" +"
+        }
+      ],
+      "control": "carry and direct cost are collapsed into one blended net figure, which is exactly the conflation that lets a large carry hide behind a large risk reduction and leaves a reader unable to see what the hedge actually costs to hold",
+      "claim": "The hedge comparison keeps carry, direct cost, turnover, financing, and basis risk as separate columns, so no single blended figure can conceal one cost behind another",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

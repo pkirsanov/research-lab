@@ -118,28 +118,38 @@ positive proof the builder ran. A builder that never ran would leave
 ### E4 — Reproduction: a lane-contract-conformant candidate is refused
 
 **Claim Source: `executed`** — isolated detached worktree, no working-tree mutation.
+Re-executed on 2026-08-28. `main` has advanced since the original run, so the ref is
+pinned to the literal commit `373f4572d` instead of `HEAD`; that is the only change,
+and the worktree it produces is the same tree the original probe used.
 
 ```
-$ git worktree add --detach "$TMPDIR/rl-bug009-repro" HEAD
+$ git worktree add --detach "$TMPDIR/rl-bug009-repro" 373f4572d
 Preparing worktree (detached HEAD 373f4572d)
 Updating files: 100% (7535/7535), done.
 HEAD is now at 373f4572d Record intended-RED/GREEN evidence for 19 of 28 Scope 01 Test Plan rows
-WORKTREE_EXIT=0
+Exit Code: 0
 
 $ git rev-parse HEAD
 373f4572dd23adb1440a87db210876d9ede3e400
+Exit Code: 0
 ```
 
 A candidate carrying exactly the nine `AUTHORED_JUDGEMENT_KEYS` the signals lane is
 instructed to author, and nothing else, passed through `buildAttentionItems`:
 
 ```
+$ node probe-e4.mjs
+keys     = ["headline","escalationTrigger","invalidation","expiry","verb","horizon","severity","imminence","rationale"]
 built    = 0
 refused  = 1
-exclusion= {"index":0,"subject":null,"code":"RLATTN-PROVENANCE","field":"gateResult",
-            "reason":"an attention item is built from an observed gate result"}
-REPRO_EXIT=0
+exclusion= {"index":0,"subject":null,"code":"RLATTN-PROVENANCE","field":"gateResult","reason":"an attention item is built from an observed gate result"}
+Exit Code: 0
 ```
+
+Re-executed on 2026-08-28 inside the pinned worktree above. `probe-e4.mjs` is written
+into the throwaway worktree, not into the repository: it imports the committed
+`AUTHORED_JUDGEMENT_KEYS` and `buildAttentionItems` and hands the composer a candidate
+built from those keys alone. The refusal reproduces byte for byte.
 
 **The lane contract and the composer contract are mutually unsatisfiable.**
 
@@ -147,13 +157,19 @@ REPRO_EXIT=0
 
 **Claim Source: `executed`** — same worktree.
 
-Values taken unmodified from `payload.toolReads["sector-research-lab"]`:
+Values taken unmodified from `payload.toolReads["sector-research-lab"]`. Re-derived on
+2026-08-28 straight out of the committed revision, so the read is the artifact's own,
+not a transcription of it:
 
 ```
+$ git show 373f4572d:market-brief.payload.json | node -e '…print toolReads["sector-research-lab"]…'
 REAL read asOf = 2026-08-17T20:31:11.253Z
 REAL deepLink  = sector-research-lab.html
 REAL into      = {"accel":2.77,…,"rsMom1m":4.44,…,"ticker":"XLK"}
+Exit Code: 0
 ```
+
+The values live at `toolReads["sector-research-lab"].metrics.into`.
 
 Three successive attempts were refused on **semantic** grounds before one was
 accepted. Each refusal is the contract working correctly, and each is recorded
@@ -168,21 +184,44 @@ because the sequence shows how much genuine input a producer must supply:
 With the confirmation note supplied:
 
 ```
+$ node probe-e5.mjs
 built   = 1
 refused = 0 []
 ACCEPTED: {
- "id": "attn-cd1a23c582c623c5",
+ "id": "attn-b6dd3f0132693f01",
  "gateId": "probe-uncovered-subject",
  "subject": "QQQ",
  "deepLink": "sector-research-lab.html",
  "decisionWindow": "after-hours",
  "windowResolvedFrom": "session",
  "observedAt": "2026-08-17T20:31:11.253Z",
- "figures": [{"label":"RS momentum 1m","value":"4.44",
-   "provenance":{"sourceId":"sector-research-lab","asOf":"2026-08-17T20:31:11.253Z"}}]
+ "figures": [
+  {
+   "label": "RS momentum 1m",
+   "value": "4.44",
+   "provenance": {
+    "sourceId": "sector-research-lab",
+    "asOf": "2026-08-17T20:31:11.253Z"
+   }
+  }
+ ]
 }
-PROBE4_EXIT=0
+Exit Code: 0
 ```
+
+Re-executed on 2026-08-28. Every recorded field reproduces exactly — `gateId`,
+`subject`, `deepLink`, `decisionWindow`, `windowResolvedFrom`, `observedAt`, and the
+figure with its provenance — and the re-run walked the same refusal sequence, taking
+one additional refusal (`RLATTN-TRANSMISSION:transmissionPath`) before the channel was
+drawn from the certified vocabulary in `rlmarketaction.js`.
+
+**One field did not reproduce, and is recorded rather than reconciled.** The original
+run logged `id` as `attn-cd1a23c582c623c5`; this one produced
+`attn-b6dd3f0132693f01`. The id is `stableId([subject, headline, observedAt, windowId,
+horizon, verb])`, and of those six inputs the packet records only four — `headline` and
+`horizon` were never written down. A different headline therefore mints a different id
+by construction. The id is not evidence of anything the claim depends on, but the
+difference is stated instead of being papered over.
 
 **Interpretation, tagged `interpreted`:** this proves the composer, validator,
 context builder and lane all function, and that the missing piece is exclusively the
@@ -259,18 +298,28 @@ lines: 177
 sha256: 55d93ceaa7cad5d9d4598bc02599b9263860efbef3ea673af034067ea8d47559
 ```
 
-The transition, isolated (`attn` / `excl` / `window` / distinct refusal codes):
+The transition, isolated (`attn` / `excl` / `window` / distinct refusal codes). Re-derived
+on 2026-08-28 by reading each revision of the payload back out of git, so every row is
+the committed artifact's own content:
 
 ```
-2026-08-13 12:17 809efbdac  attn=0 excl=3 win=pre-close   codes=RLATTN-PROVENANCE:gateResult
-…
+$ for sha in 809efbdac 98fa5752a 9a2f78329 8ca53d46e aeb1bcbc3 9d593acc5 a8edab38e; do
+    git show "$sha:market-brief.payload.json" | node -e '…count attention / attentionExclusions…'; done
+2026-08-13 12:17 809efbdac  attn=0 excl=3 win=pre-close codes=RLATTN-PROVENANCE:gateResult
 2026-08-10 13:55 98fa5752a  attn=0 excl=4 win=after-hours codes=RLATTN-PROVENANCE:gateResult
-2026-08-10 11:55 9a2f78329  attn=0 excl=3 win=pre-close   codes=RLATTN-PROVENANCE:gateResult
-2026-08-10 10:00 8ca53d46e  attn=0 excl=6 win=morning     codes=RLATTN-PROVENANCE:gateResult
-2026-08-10 14:13 aeb1bcbc3  attn=3 excl=2 win=after-hours codes=RLATTN-OVERLAP:subject      ← BUG-007 green
-2026-08-09 16:26 9d593acc5  attn=5 excl=- win=after-hours codes=-                            ← last publication run
+2026-08-10 11:55 9a2f78329  attn=0 excl=3 win=pre-close codes=RLATTN-PROVENANCE:gateResult
+2026-08-10 10:00 8ca53d46e  attn=0 excl=6 win=morning codes=RLATTN-PROVENANCE:gateResult
+2026-08-10 14:13 aeb1bcbc3  attn=3 excl=2 win=after-hours codes=RLATTN-OVERLAP:subject
+2026-08-09 16:26 9d593acc5  attn=5 excl=- win=after-hours codes=-
 2026-08-09 13:54 a8edab38e  attn=5 excl=- win=after-hours codes=-
+Exit Code: 0
 ```
+
+The re-run covers the seven commits the original table named, so it carries no elision.
+Dates are author dates; the committer date of `9d593acc5` is five hours later, and the
+original table used the author date.
+`aeb1bcbc3` is annotated below as the BUG-007 green run and `9d593acc5` as the last
+publication run.
 
 Two facts this makes precise:
 
@@ -384,6 +433,14 @@ the end of this session shows tracked modifications that were absent at §E6:
 ?? data/company-intelligence/
 ```
 
+**Not re-executed, and left as captured.** This is a point-in-time snapshot of one
+session's working tree. `git status --porcelain` run today reports a different and much
+larger set, because concurrent sessions hold unrelated modifications in the same tree,
+and `TP-01-11` has since been repaired, so the `2842 passed, 1 failed` control cannot be
+reproduced either. Re-running the command would produce output that does not support the
+claim the block was written to support. The block therefore stays as the original
+capture and stays below the evidence-strength bar.
+
 `TP-01-11` concerns the benefit pack and `tax-rules/benefit/2026.json` — two files in
 that modified set. A concurrent session is editing spec 024 while this packet was
 being written. **Owned by that session, not by this one.**
@@ -405,9 +462,18 @@ attributions preceded the right one:
    site, and it was this file:
 
 ```
-newMissing = [{ "path": "<the red-probe path>",
-                "sites": [{ "artifact": "specs/_bugs/BUG-009-…/report.md", "line": 359 }] }]
+$ node scripts/validate-spec-test-paths.mjs
+[spec-test-paths] scanned=844 references=19753 distinctPaths=270 missingPaths=70 plannedMissing=0 baseline=70 new=0 stale=0
+[spec-test-paths] OK — no new missing test path(s)
+Exit Code: 0
 ```
+
+The transcript above is the validator re-run on 2026-08-28, and `new=0` is the standing
+proof that this packet no longer registers a referencing site for a path that does not
+exist. The original query returned a single `newMissing` entry — one path, one site,
+`report.md` line 359 — and that entry is quoted here in prose rather than re-pasted as a
+transcript, because the tree that produced it no longer exists and the query cannot be
+re-executed against it.
 
 The literal token is therefore **not** reproduced anywhere in this packet. It is a
 deliberately nonexistent red-probe path under the tests directory, owned by spec 024,
@@ -427,10 +493,16 @@ because two corrected attributions are worth more than one confident wrong one.
 
 ```
 $ git worktree remove --force "$TMPDIR/rl-bug009-repro"
-REMOVE_EXIT=0
+Exit Code: 0
 $ git worktree list
-<repo-root>  373f4572d [main]
+<repo-root>  8ba70fecd [main]
+Exit Code: 0
 ```
+
+Re-executed on 2026-08-28, closing the worktree this session opened. The listing also
+reported eight unrelated detached worktrees under `/tmp` belonging to other concurrent
+sessions; they are elided because they are not this packet's. The main-worktree commit
+reads `8ba70fecd` rather than `373f4572d` because `main` advanced while this session ran.
 
 The worktree path above uses the canonical `<repo-root>` placeholder. The `home-path`
 rule refuses a real account name or absolute home path on the committed surface, and
@@ -491,7 +563,11 @@ d893d5449 fix(brief): hand the lane the eligible subjects instead of asking it t
  3 files changed, 45 insertions(+), 2 deletions(-)
 404aa32ce fix(brief): teach the expiry instant shape with an example the gate accepts
  4 files changed, 42 insertions(+), 2 deletions(-)
+Exit Code: 0
 ```
+
+Re-executed on 2026-08-28. Every commit subject and every shortstat line above is the
+current output of that loop, reproduced unchanged.
 
 Nine code commits, 874 insertions and 42 deletions across `rlattention.js`,
 `rlattentiongate.js`, `scripts/build-attention-items.mjs`,
@@ -793,6 +869,13 @@ SURVIVED  COVER:attentionSubjectUniquenessInstruction (drop one scanned field)
           (exit=0, self-test: 3136 passed, 0 failed)
 ```
 
+**Not re-executed, and left as captured.** The mutation harness behind this line was
+ad-hoc and was never committed, so there is no command to re-run: reproducing it would
+mean writing a new harness and presenting its output as the old one's. The surviving
+mutation was also closed by the fix described immediately below, so the tree that
+produced this result no longer exists. The block stays as the original capture and stays
+below the evidence-strength bar.
+
 Rendering `SUBJECT_RESOLUTION_FIELDS.slice(1)` dropped `headline` from the set the
 author is warned about, and the suite stayed green. `findUnofferedTerms` is an
 EXISTENCE test, and the sentence went on to say *"not the headline alone"*, so the
@@ -825,6 +908,11 @@ RED-NAMED  PIN-ITSELF: make findMaskedTerms fire on a single mention
 mutations=7 red-named=7 problems=0
 ```
 
+**Not re-executed, and left as captured.** Same reason as H1 above: the mutation harness
+was ad-hoc and uncommitted, so re-running it means authoring a new one rather than
+re-executing the documented one. The block stays as the original capture and stays below
+the evidence-strength bar.
+
 The full sixteen-mutation suite then re-run: `mutations=16 red-named=16 problems=0`.
 
 ### H2 — the producer aborted on a snapshot it promises to tolerate (FIXED)
@@ -837,6 +925,13 @@ mean exactly that. It aborted instead:
 FAIL no throw: undefined snapshot + subject __proto__ :: Cannot read properties of undefined (reading 'asOf')
 FAIL no throw: null snapshot      + subject __proto__ :: Cannot read properties of null (reading 'asOf')
 ```
+
+**Not re-executed, and left as captured.** This is a pre-fix failure. The defect it
+records was closed in the same hardening pass — the subject map is now null-prototype and
+the snapshot is narrowed before it is read — so the probe cannot fail this way against any
+current tree. Re-running it at `HEAD` would demonstrate the fix, not the fault, and would
+not be the transcript this block exists to hold. The block stays as the original capture
+and stays below the evidence-strength bar.
 
 `observableSubjects` built its map as a plain `{}`, so `tracked['__proto__']`
 answered with `Object.prototype`, which passes `isPlainObject`. That let a
@@ -889,6 +984,13 @@ rationale          published=1 refusal=(none) publishedLength=200000
 escalationTrigger  published=1 refusal=(none) -> validator: outputBudget: attention[0] is 200151 characters, over the declared per-card cap of 300
 invalidation       published=1 refusal=(none) -> validator: outputBudget: attention[0] is 200138 characters, over the declared per-card cap of 300
 ```
+
+**Not re-executed, and left as captured.** This too is a pre-fix observation. As the
+closing section of this report records, the unbounded `rationale` was subsequently fixed
+under BUG-014 FR-014-008 and now carries its own `detailFieldChars` cap, so the 200,000
+character value no longer publishes. The probe was ad-hoc and uncommitted, and the tree
+that produced the result is gone. The block stays as the original capture and stays below
+the evidence-strength bar.
 
 `headline` is capped by `checkHeadline`; `escalationTrigger` and `invalidation` are
 caught by the payload validator's per-card budget. `rationale` is caught by neither,

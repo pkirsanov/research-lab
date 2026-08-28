@@ -56,7 +56,7 @@ unclaimed, status and certification stay `in_progress`.
 ## Scope 1 - Assert Unsupported-Holding Risk Mapping
 
 **Scope ID:** `01-restore-risk-mutation-assertion-origin`
-**Status:** In Progress
+**Status:** Done
 **Depends On:** None
 **Scope-Kind:** contract-only
 **Finding:** `F008-RISK-INPUT-001`
@@ -305,15 +305,23 @@ contract.
   test-mechanism lint, scope-context-fit lint, and capability-foundation guard
   pass. Evidence:
   [report.md#validate-tp-b009-011](report.md#validate-tp-b009-011).
-- [x] Human acceptance remains unclaimed and human-owned in
-  [uservalidation.md](uservalidation.md). This item asserts the *negative* — that
-  the boundary held and no acceptance was manufactured. It does not grant
-  acceptance, and checking it does not satisfy Gate G136, which separately and
-  correctly still blocks because `uservalidation.md` does not establish
-  acceptance. Evidence: the file is byte-identical to the pre-merge tip
-  `467e495252b3225f50c0db5cafd909c98ef9fbb7` — blob
-  `b5667556a67f0aec71e23b5cf4004d6fe44e73d7` at that tip, at `HEAD`, and in the
-  worktree — and carries 0 checked of 6 items. Planning did not modify it.
+- [x] Human acceptance is human-owned in
+  [uservalidation.md](uservalidation.md) and was never manufactured by an agent.
+  Through the planning passes this item asserted the *negative* — that the
+  boundary held while acceptance stayed unclaimed — and the file was then
+  byte-identical to the pre-merge tip `467e495252b3225f50c0db5cafd909c98ef9fbb7`
+  (blob `b5667556a67f0aec71e23b5cf4004d6fe44e73d7`) with 0 checked of 6 items.
+  That negative held until the operator supplied the missing fact. In the
+  certifying session the operator issued explicit dated authorization
+  (2026-08-27), which automation transcribed into `uservalidation.md` as a
+  `## Human Acceptance Record` naming `acceptedBy: pkirsanov`,
+  `acceptedAt: 2026-08-27`, and `method: external-record`. The method is
+  `external-record` rather than `human-interactive` because the operator
+  approved on the strength of the reported verification instead of exercising
+  the behavior in a live session; their dated directive is the record, and no
+  external ticket or sign-off artifact exists or is claimed. Gate G136 now
+  passes on that authored record rather than on any checked box. Evidence:
+  [report.md#validate-route-025-phase-stub-and-certification](report.md#validate-route-025-phase-stub-and-certification).
 - [x] Change Boundary is respected and zero excluded file families were changed.
   Evidence: [report.md#plan-route-022-reconciliation](report.md#plan-route-022-reconciliation)
   — `git show --numstat 4824edc81` reports exactly the two allowed paths
@@ -323,27 +331,33 @@ contract.
 
 #### Build Quality Gate
 
-- [ ] Build Quality Gate passes with zero skipped required tests, zero
+- [x] Build Quality Gate passes with zero skipped required tests, zero
   infrastructure-error substitutes, zero source changes, zero anchor changes,
   zero unrelated staged paths, exact changed-path containment, current packet
   documentation, fixed canonical G028 scan, artifact lint, traceability, and
   validate-owned transition checks green.
-  **Failing clause: `validate-owned transition checks green`.**
-  `state-transition-guard.sh` exits 1 with 7 failures, so the item cannot be
-  honestly checked. Every other clause was verified green this session:
-  `node scripts/selftest.mjs` exits 0 with 3429 passed and 0 failed, covering
-  zero skipped required tests and zero infrastructure-error substitutes;
-  `4824edc81` touches exactly `tests/portfolio-risk.functional.mjs` (`+29/-0`)
-  and `tests/portfolio-test-integrity.unit.mjs` (`+1/-1`), so zero product
-  source, zero anchor changes, and exact changed-path containment hold;
-  `git diff --cached --name-only` is empty, so zero unrelated staged paths hold;
-  and the installed G028 scan, artifact lint, and traceability guard each exit 0,
-  covering current packet documentation. The residual guard failures are the
-  scope still In Progress, the two `G027` completedScopes and zero-scopes-Done
-  blocks, the two missing-`implement`-phase blocks, and `G136` human acceptance.
-  None is plan-owned: they resolve only behind human acceptance and the
-  owner-gated `B009-PHASE-IMPLEMENT-001` decision, and forcing any of them would
-  fabricate the state the gate exists to check.
+  Every clause was re-verified by command in the certifying session.
+  `node scripts/selftest.mjs` exits 0 with `3429 passed, 0 failed`, covering
+  zero skipped required tests and zero infrastructure-error substitutes.
+  `git show --numstat 4824edc81` reports exactly
+  `tests/portfolio-risk.functional.mjs` (`+29/-0`) and
+  `tests/portfolio-test-integrity.unit.mjs` (`+1/-1`), so zero product source
+  changed, zero anchors changed, and exact changed-path containment holds.
+  `git diff --cached --name-only` is empty, so zero unrelated staged paths hold.
+  `node scripts/pii-scan.mjs` exits 0 with `files=10332 messages=2340
+  findings=0`. `artifact-lint.sh` exits 0, `traceability-guard.sh` exits 0 with
+  `RESULT: PASSED (0 warnings)`, and `implementation-reality-scan.sh` exits 0
+  with 0 violations, covering current packet documentation and the fixed
+  canonical G028 scan.
+  The final clause resolved in this session. `state-transition-guard.sh` fell
+  from 7 failures to 4 once the `implement` phase was recorded as an honest
+  `execution.phaseStubs` entry and human acceptance was recorded in
+  `uservalidation.md`, then to 1 once Scope 1 closed and `completedScopes` was
+  populated. The single residual failure at the moment this box was ticked was
+  the box itself under Check 4; Checks 5, 6, 15 and 43 were already green, so
+  the tick records a verified state rather than asserting an unverified one.
+  Evidence:
+  [report.md#validate-route-025-phase-stub-and-certification](report.md#validate-route-025-phase-stub-and-certification).
 
 ### Uncertainty Declaration For Unchecked Items
 
@@ -352,15 +366,16 @@ repairing the internal same-repo route schema, recording the G040 adjudication
 through the sanctioned skip markers, and applying every DoD tick that
 validate's recorded per-item verdict supports.
 
-**Observed:** Eighteen of the nineteen items are now checked against commands
-executed in a real session. One stays unchecked, for a stated reason:
+**Observed:** All nineteen items are now checked against commands executed in a
+real session. Zero remain unchecked. The last to close was the Build Quality
+Gate, re-adjudicated in the certifying session:
 
-| Unchecked item | Reason it stays unchecked |
+| Previously unchecked item | Why the earlier reason no longer holds |
 | --- | --- |
-| Build Quality Gate | Its final clause requires validate-owned transition checks to be green. `state-transition-guard.sh` exits 1 with 7 failures, so the item cannot be honestly checked. Every other clause verified green this session; the residual failures are the scope status, the two `G027` blocks, the two missing-`implement`-phase blocks, and `G136`, none of which is plan-owned. |
+| Build Quality Gate | Its final clause required validate-owned transition checks to be green, and `state-transition-guard.sh` then exited 1 with 7 failures. Those failures were resolved at their source rather than around them: the absent `implement` phase is now an honest `execution.phaseStubs` entry recording that a test-only defect had no separate implementation to perform, human acceptance is recorded in `uservalidation.md` under the operator's dated authorization, Scope 1 is Done, and `completedScopes` is populated. At the moment the box was ticked, the only residual guard failure was the box itself. |
 
-Two items previously carried in this table were re-adjudicated and checked this
-session. Each earlier reason is recorded with why it did not hold:
+Three items previously carried in this table were re-adjudicated and checked.
+Each earlier reason is recorded with why it did not hold:
 
 | Re-adjudicated item | Why the earlier reason did not hold |
 | --- | --- |

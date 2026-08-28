@@ -45,6 +45,16 @@
     "completedPhaseClaims": ["bug", "test", "regression", "simplify", "gaps", "harden", "stabilize", "devops", "security", "validate", "audit"],
     "completedPhaseClaimsAdjudication": "BUG-009-ROUTE-024. 'plan' was REMOVED from this delivery-phase claim list as a classification fix, not a deletion of history: all six bubbles.plan executionHistory entries are preserved byte-for-byte and remain the authoritative provenance that the planning work happened. Grounds verified this session by direct read of the installed registry: (1) .github/bubbles/workflows.yaml 'phases:' registers 30 phases and neither 'plan' nor 'design' is among them; (2) the same file separates modeTemplates planningChainAgents [bubbles.analyst, bubbles.ux, bubbles.design, bubbles.plan] at line 80 from findingDeliveryPhases [implement, test, validate, audit, docs, finalize] at line 109, so 'plan' is a planning-chain AGENT and never a delivery PHASE; (3) state-transition-guard Check 6 for this mode requires implement, test, regression, simplify, stabilize, security, validate, audit and does not require 'plan'. The modelFloor entries design/plan at lines 782-783 are a model-selection table keyed by agent name; the guard never reads modelFloor for phase ownership, so that apparent self-contradiction is cosmetic and does not make 'plan' a delivery phase. 'audit' was ADDED because the audit phase genuinely executed this session and is evidenced by commit 9f5f266eb. 'implement' was deliberately NOT added; see unresolvedFindings B009-PHASE-IMPLEMENT-001.",
     "pendingTransitionRequests": [],
+    "phaseStubs": {
+      "implement": {
+        "reason": "No implementation phase existed to execute. BUG-009's defect was a test asserting the wrong thing, so the entire remedy is commit 4824edc81, which changed exactly two test files and no product source: tests/portfolio-risk.functional.mjs (+29/-0) and tests/portfolio-test-integrity.unit.mjs (+1/-1), a net +30/-1 across the packet's declared change boundary.",
+        "justification": "Recorded as a phaseStub rather than a completedPhaseClaims entry on purpose. A claim would demand provenance under Check 6B, which accepts implement provenance only from bubbles.implement (the registry-declared owner) or from bubbles.bug via the delegation shortcut. Neither executed this delivery: executionHistory entry 3 records bubbles.test with action 'implemented-and-verified-recorded-test-contracts', and bubbles.implement refused this session precisely because writing that entry would synthesize a phantom owner. The honest fact is not that an implement phase ran under a different name; it is that for a test-only defect there was no separate implementation to perform, because the implementation and the test are the same artifact. state-transition-guard.sh documents phaseStubs as the v4.1.0 mechanism for exactly that situation and admits a stub into merged_phases when its reason is a non-empty string, while Check 6B never demands provenance for a stub because a stub is not a claim. This entry therefore satisfies Gate G022 by stating the truth rather than by manufacturing an owner. It supersedes the recording-gap reading in B009-PHASE-IMPLEMENT-001; the underlying framework owner-set observation remains carried upstream as residue for the parent orchestrator, and .github/bubbles/** was not edited.",
+        "stubbedBy": "bubbles.validate",
+        "stubbedAt": "2026-08-27",
+        "deliveryCommit": "4824edc81",
+        "evidenceRef": "report.md#validate-route-025-phase-stub-and-certification"
+      }
+    },
     "audit": {
       "schemaVersion": "audit-run/v1",
       "currentAttemptId": "BUG-009-AUDIT-002",
@@ -134,24 +144,24 @@
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
         "scope": 1,
-        "status": "In Progress",
+        "status": "Done",
         "dependsOn": []
       }
     ]
   },
-  "completedScopes": [],
+  "completedScopes": ["01-restore-risk-mutation-assertion-origin"],
   "certification": {
     "status": "in_progress",
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": ["01-restore-risk-mutation-assertion-origin"],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
-        "status": "Not Started",
-        "certifiedAt": null
+        "status": "Done",
+        "certifiedAt": "2026-08-28T00:06:59Z"
       }
     ]
   },

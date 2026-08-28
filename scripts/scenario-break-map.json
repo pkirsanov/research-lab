@@ -815,6 +815,19 @@
       "control": "the audited F008-PORTFOLIO-LIFECYCLE-001 defect is present in the shipped tree, so a removal returns the unchanged row set and the protective carrier no longer passes green on shipped - the integrity file's own green-on-shipped obligation fails",
       "claim": "Every audited Feature 008 defect class is absent from the shipped tree and its protective carrier is proven load-bearing by failing when that defect is represented",
       "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-019": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-019 parameter uncertainty is separate from path randomness",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "r.influence.assumption + \" over \" + r.influence.rangeLow.toFixed(6)",
+          "replace": "\"unknown\" + \" over \" + r.influence.rangeLow.toFixed(6)"
+        }
+      ],
+      "control": "the most influential assumption is no longer named on the surface, so a reader is shown a parameter-uncertainty spread without being told which input drives it and cannot judge which assumption to challenge",
+      "claim": "Path randomness and parameter uncertainty are presented as separate distributions, and the assumption most responsible for the parameter spread is named on the surface",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

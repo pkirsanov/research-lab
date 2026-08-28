@@ -1641,7 +1641,32 @@ if [[ -f "$current_report_file" ]] && [[ "$state_status" == "done" ]]; then
   evidence_nontranscript_skipped=0
   duplicate_evidence=0
   cw_evidence_fingerprints=""
-  cw_marker_count=$(grep -cF -- '<!-- bubbles:certifying-window-begin -->' "$current_report_file" || true)
+  # Fence-aware marker count. It MUST agree with the consumer loop below, which
+  # honors the marker only outside a fenced block (`in_code_block -eq 0`). A
+  # fence-blind count split the two on byte-identical content, and the
+  # disagreement broke in BOTH directions: a report that merely QUOTES the
+  # marker inside an evidence block was failed as "Multiple markers", and a
+  # report carrying ONLY a quoted occurrence had in_pre_window latched on with
+  # nothing left to clear it — skipping every block as prior-window history and
+  # silently disabling Check 3 for the whole file. Fast path first: text absent
+  # anywhere cannot be present outside a fence, so only reports that actually
+  # use the feature pay the per-line scan. Fence convention is the loop's own:
+  # '^```' opens, '^```$' closes.
+  cw_marker_count=0
+  if grep -qF -- '<!-- bubbles:certifying-window-begin -->' "$current_report_file"; then
+    cw_scan_in_code_block=0
+    while IFS= read -r cw_scan_line; do
+      if [[ "$cw_scan_in_code_block" -eq 0 ]] && [[ "$cw_scan_line" == *"<!-- bubbles:certifying-window-begin -->"* ]]; then
+        cw_marker_count=$((cw_marker_count + 1))
+        continue
+      fi
+      if [[ "$cw_scan_in_code_block" -eq 0 ]] && grep -qE '^```' <<< "$cw_scan_line"; then
+        cw_scan_in_code_block=1
+      elif [[ "$cw_scan_in_code_block" -eq 1 ]] && grep -qE '^```$' <<< "$cw_scan_line"; then
+        cw_scan_in_code_block=0
+      fi
+    done < "$current_report_file"
+  fi
   if [[ "$cw_marker_count" -gt 1 ]]; then
     fail "Multiple <!-- bubbles:certifying-window-begin --> markers ($cw_marker_count) in $(relative_artifact_path "$current_report_file") — at most one is allowed (it marks the single current certifying-window start)"
   elif [[ "$cw_marker_count" -eq 1 ]]; then

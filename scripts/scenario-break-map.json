@@ -398,6 +398,19 @@
       "control": "the full personal clear stops reporting that its tombstone was committed, so a completed clear becomes indistinguishable from one whose durable record was never written and the deletion cannot be verified after the fact",
       "claim": "A full personal clear commits a tombstone before deletion and reports that commit, so the clear is verifiable rather than merely asserted",
       "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-032": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-032 efficiency claim is scoped to one tested information set",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "      allFormsRefuted: false,",
+          "replace": "      allFormsRefuted: true,"
+        }
+      ],
+      "control": "a result measured against one information set reports that every form of market efficiency has been refuted, so a narrow empirical finding is widened into a claim about markets in general that the sample cannot support",
+      "claim": "An efficiency finding stays scoped to the one information set actually tested and never generalizes into refuting the semi-strong or strong form",
+      "implementationRefs": ["rlportfolioanalytics.js"]
     }
   }
 }

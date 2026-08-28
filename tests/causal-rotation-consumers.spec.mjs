@@ -114,7 +114,9 @@ async function openOwner(page, file, { disableCausal = false } = {}) {
   if (disableCausal) {
     /* Refusing the two causal modules is the cleanest way to produce a genuine "before" page:
        the owner code path is untouched and the bridge simply never exists. */
+    // bubbles:fault-injection-begin reason=refuses the causal modules to produce a genuine before-page; the owner code path is untouched and the live page still renders and refuses on its own logic, so this is a stimulus rather than a canned response
     await page.route('**/rlcausal*.js', (route) => route.fulfill({ status: 200, contentType: 'text/javascript', body: '/* disabled */' }));
+    // bubbles:fault-injection-end
   }
   await page.goto(`${baseUrl}/${file}`);
   await page.waitForLoadState('networkidle');
@@ -256,12 +258,14 @@ test('Regression: consumers reject unknown causal versions while owner models re
   /* Serve a config whose snapshot contract version is unknown to the reader. The causal modules
      must be re-enabled here, or this would only re-measure the disabled page and prove nothing. */
   await page.unrouteAll();
+  // bubbles:fault-injection-begin reason=takes the REAL config via route.fetch() and perturbs exactly one field, contracts.snapshot, to an unknown version; every other value stays as served, so the reader still parses real data and refuses on its own contract check
   await page.route('**/causal-rotation.config.json', async (route) => {
     const response = await route.fetch();
     const config = await response.json();
     config.contracts.snapshot = 'causal-snapshot/v99-unknown';
     await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(config) });
   });
+  // bubbles:fault-injection-end
 
   await page.goto(`${baseUrl}/sector-research-lab.html`);
   await page.waitForLoadState('networkidle');

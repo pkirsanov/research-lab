@@ -179,6 +179,32 @@ SCN-008-048 executes through `tests/portfolio-analytics.unit.mjs`,
 `tests/portfolio-survival-paths.spec.mjs`. The live tests use the real fixture-overlay server without request
 interception or test-injected DOM.
 
+The four carriers and their recorded exit codes, from [Test Evidence](#test-evidence):
+
+```text
+$ node --test tests/portfolio-analytics.unit.mjs                                  # TP-22-01 scenario identity
+exit: 0   tests 89   pass 89   fail 0   skipped 0   todo 0
+
+$ node --test tests/portfolio-paths.functional.mjs                                # TP-22-02 compute lifecycle
+exit: 0   tests 2   pass 2   fail 0   skipped 0   todo 0
+  ✔ TP-22-02 chunk controller cancellation and supersession preserve the last valid result
+  ✔ TP-22-02 complete multi-path flow and distribution records survive a public JSON round trip
+
+$ npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0   11 passed (45.7s)
+  ✓ SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path
+  ✓ SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view
+
+$ node --test --test-name-pattern="Adversarial: reduced ScenarioSpecification and median only survival cannot pass" tests/portfolio-analytics.unit.mjs
+exit: 0   tests 1   pass 1   fail 0
+```
+
+The two exact `SCN-008-048` browser rows carry the scenario end to end: the first proves complete scenario
+identity, all-path cash needs, and compute tokens govern every path; the second proves the compute lifecycle,
+because a cancelled or superseded job cannot replace the last valid view. The adversarial unit row is what makes
+the identity claim non-vacuous — a reduced `ScenarioSpecification` with median-only survival is refused rather
+than accepted, so separate uncertainty distributions cannot be collapsed to a point estimate and still pass.
+
 ## Coverage Report
 
 The unit matrix covers every exact nested scenario boundary and every identity field. Functional coverage exercises

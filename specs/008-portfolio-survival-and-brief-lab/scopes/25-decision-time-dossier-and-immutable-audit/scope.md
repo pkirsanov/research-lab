@@ -40,6 +40,10 @@ Scenario: A user audits and corrects a cost-aware walk-forward allocation dossie
 
 ## Change Boundary
 
+**Allowed file families:** the walk-forward and dossier regions of `rlportfolioanalytics.js` and `rlportfolio.js`, the Dossier route regions of `portfolio-survival-allocation-lab.html`, `tests/portfolio-allocation.functional.mjs`, `tests/portfolio-dossier.functional.mjs`, `tests/portfolio-survival-allocation.spec.mjs`, and the dossier fixtures under `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** `market-brief.html`, `market-brief.*.json`, `brief-history*.jsonl`, `scripts/brief-*`, `rlbrief.js`, `rlportfoliobrief.js` behavior ranking, the core path-generation, dependence/hedge, and allocation-solver math in `rlportfolioanalytics.js` outside typed result consumption, `rldata.js`, `rlnav.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** walk-forward/dossier portions of `rlportfolioanalytics.js` and `rlportfolio.js`, Dossier route regions, dossier fixtures, `tests/portfolio-allocation.functional.mjs`, a focused dossier functional carrier, and `tests/portfolio-survival-allocation.spec.mjs`.
 - **Excluded:** public publisher, behavior ranking, core path generation, dependence/hedge calculations except typed results, allocation solver math except typed results, registry/docs, and framework-managed files.
 
@@ -59,6 +63,8 @@ Scenario: A user audits and corrects a cost-aware walk-forward allocation dossie
 | Dossier route and reload | The complete hash chain preserves every prior record, correction, state, and active head. |
 | Privacy clear and private export | Dossier state remains clearable, previewed, user-selected, local, and absent from public surfaces. |
 | Allocation, stress, view, and hedge trials | Every inspected variant enters the ledger exactly once with decision-time provenance. |
+
+The consumer-facing surface is the `portfolio-survival-allocation-lab.html#dossier` deep link (`workspaceTabDossier`), which reload restores directly. The sweep is a stale-reference scan confirming that hash, its tab id, and the ledger record field names stay identical for the allocation, stress, view, and hedge trial writers.
 
 ## UI Scenario Matrix
 
@@ -88,7 +94,13 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
 - [x] SCN-008-051 is implemented with decision-time walk-forward, complete cost/trial/state records, append corrections, persistence, and private export. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-25-03).
+- [ ] A user audits and corrects a cost-aware walk-forward allocation dossier: given explicit decision dates, rebalance dates, embargo, cost components, source vintages, and tried variant identities, walk-forward evaluation fits only decision-time evidence; in-sample, out-of-sample, stress, gross, net, not-evaluated, infeasible, and unavailable states remain distinct; commission, spread, slippage, turnover, financing, carry, and rebalance timing are itemized or net remains unavailable; every tried method, parameter, sample, stress, view, and hedge ratio is counted; an appended correction supersedes without rewriting the prior record; and reload plus explicit private export preserve identities, provenance, invalidation, and privacy warnings.
 - [x] TP-25-01 allocation functional evidence passes. Evidence: [TP-25-01](report.md#tp-25-01).
 - [x] TP-25-02 dossier functional evidence passes. Evidence: [TP-25-02](report.md#tp-25-02).
 - [x] TP-25-03 real-page regression passes. Evidence: [TP-25-03](report.md#tp-25-03).

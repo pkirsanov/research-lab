@@ -71,6 +71,19 @@ Scenario: SCN-008-014 - The latest portfolio path has not recovered its prior pe
 
 **Rollback/restore:** remove Scope 07 exact analytics/route/test/fixture blocks. The Brief remains complete; Risk X-Ray returns to a truthful unavailable owner state with no fabricated metric or public registration.
 
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches the rollback sentence directly above, where `remove` falls within 160 characters of `route`. That sentence describes reverting this scope's own additive blocks, not retiring a route any consumer holds. Scope 07 introduces the new file `rlportfolioanalytics.js` and fills the existing `#risk-xray` regions; no route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| `#risk-xray` Simple and Power projections | Return, compounding, drawdown, and recovery bands are added to an existing empty route region | The scope's focused browser rows assert nonblank canvas and the adjacent semantic table on the real route |
+| `rlportfolioanalytics.js` exported contracts | New dual-runtime file; `alignPortfolioReturns`, `computeReturnMetrics`, and `computeDrawdown` are additions with no prior name to displace | The analytics unit rows call the production functions directly |
+| `WorkspaceIdentity` and its child identities | Parameter changes create a child identity rather than refetching frozen observations | Assertions fail if production logic degrades to a pass-through or substitutes a missing value |
+| Portfolio Brief | Read-only consumer of the same frozen return sample; must stay complete if this scope is reverted | The rollback statement above is proven by rerunning the Brief carriers |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
+
 ## Scenario-First Red/Green Contract
 
 Write independently calculated formula, cutoff mutation, chart/table, and persistent browser assertions first. Run exact commands through the tool log with `SCOPE-07` and red/green tags. RED must identify a numeric identity, cutoff, copy, pixel, table, keyboard, or geometry defect; asserting fixture literals that bypass production computation is invalid.
@@ -86,6 +99,10 @@ Write independently calculated formula, cutoff mutation, chart/table, and persis
 | TP-07-05 | Broader Regression E2E | e2e-ui | SCN-008-013, SCN-008-014 | `tests/portfolio-survival-risk.spec.mjs` | Execute the complete cumulative Feature 008 Risk X-Ray browser suite after every focused row | `npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-07-05` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

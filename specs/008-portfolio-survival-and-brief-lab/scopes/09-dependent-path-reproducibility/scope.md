@@ -76,6 +76,10 @@ Scenario: SCN-008-038 - A user clears all personal data after running dependent-
 
 ## Change Boundary And Rollback
 
+**Allowed file families:** `rlportfolioanalytics.js` (path/scenario regions), `portfolio-survival-allocation-lab.html` (Path Lab regions), `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-survival-paths.spec.mjs`, `tests/portfolio-survival.support.mjs`, `tests/fixtures/portfolio-survival-allocation/**` (Scope 09 entries), and — per the F-09-PERSISTENCE-BOUNDARY amendment below, for the scenario-persistence field only — `rlportfolio.js`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, and `tests/portfolio-survival-foundation.spec.mjs`.
+
+**Excluded surfaces:** `rldata.js`, `rlnav.js`, `rlportfoliobrief.js`, `rlbrief.js`, `market-brief.html`, `market-brief.*.json`, `scripts/brief-*`, every private-storage behavior in `rlportfolio.js` other than the scenario-persistence field, the cash-need/survival regions owned by Scope 10, the dependence/hedge/allocation/dossier regions of `rlportfolioanalytics.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 **Allowed files:** `rlportfolioanalytics.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-survival-paths.spec.mjs`, `tests/portfolio-survival.support.mjs`, and Scope 09 fixture entries.
 
 **Amended 2026-08-13 (F-09-PERSISTENCE-BOUNDARY):** `rlportfolio.js`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, and `tests/portfolio-survival-foundation.spec.mjs` are added to the allowed set, for the scenario-persistence field only.
@@ -89,6 +93,22 @@ The original boundary excluded private storage while this scope requires a saved
 **Still excluded:** every other private-storage behavior, `rldata.js`, `rlnav.js`, generic Market Brief surfaces, cash-need/survival logic owned by Scope 10, dependence/hedge/allocation/dossier logic, registries/docs, package/source-lock files, Feature 001-007 work, unrelated tools/tests, and framework-managed files.
 
 **Rollback/restore:** remove Scope 09 exact path/config/route/test/fixture blocks. Risk X-Ray/Brief remain complete, and Path Lab returns a designed unavailable state with no generated or synthetic path.
+
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches the rollback sentence directly above, where `remove` falls within 160 characters of `route`. That sentence describes reverting this scope's own additive blocks, not retiring a route any consumer holds. Scope 09 fills the existing Path Lab route regions and adds one `scenarios` category to the workspace schema; no route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated.
+
+One consumer effect here is real and is recorded rather than smoothed over. Adding a declared personal category is an **additive** schema change, but Scope 03 deliberately pins facts that quantify over the whole category set, so the addition made those pins go red by design. Per the F-09-PERSISTENCE-BOUNDARY amendment above, each pin was updated to cover `scenarios` genuinely — seeded through `buildScenarioCandidate` — and none was relaxed to accept an empty container.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| Path Lab route regions and controls | Scenario controls, identity band, path fan, uncertainty bands, progress and cancel are added to the existing tab | The scope's focused browser rows drive the real route, including obsolete-token cancellation and last-valid preservation |
+| `rlportfolioanalytics.js` path/scenario region | New `mulberry32`, index generation, parameter grid, and `ScenarioSpecification/v1` validation exports | Independently checked index and path hashes; deterministic-repeat mutations must fail a pass-through |
+| Workspace schema in `rlportfolio.js` — the `scenarios` slot only | A saved scenario must survive a reload and be swept by the existing full-personal clear; storing it outside the workspace would create a top-level key the clear would miss | SCN-008-038 asserts the clear empties stored scenarios; `slotA`/`slotB` are already on the clear list |
+| Scope 03 privacy-inventory pins in `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, and `tests/portfolio-survival-foundation.spec.mjs` | Category count, not-representable set, behavior-clear survivor set, and rendered category list all quantify over the declared category set | Each was updated to populate the new category through its real builder; the no-write-path pin keeps the sweep from being vacuously true |
+| Risk X-Ray and Portfolio Brief | Read-only consumers that must stay complete if this scope is reverted | The rollback statement above is proven by rerunning their carriers |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
 
 ## Scenario-First Red/Green Contract
 
@@ -119,6 +139,11 @@ Author index/path hash, parameter-band, identity mutation, cancellation, canvas/
 
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

@@ -20,23 +20,11 @@ Record G093-compatible changed-path classification and path-scoped git evidence 
 
 ## Test Evidence
 
-Each section receives the exact command, exit code, claim source, and raw output from the matching tool-log execution.
-
-### TP-10-01
-
-### TP-10-02
-
-### TP-10-03
-
-### TP-10-04
-
-### TP-10-05
+Each section receives the exact command, exit code, claim source, and raw output from the matching tool-log execution. The per-row TP-10-01 through TP-10-05 and per-scenario SCN-008-020/021 blocks are recorded below under their explicit anchors.
 
 ## Scenario Contract Evidence
 
-### Scenario SCN-008-020
-
-### Scenario SCN-008-021
+Recorded below under the explicit `scenario-scn-008-020` and `scenario-scn-008-021` anchors.
 
 ## Coverage Report
 

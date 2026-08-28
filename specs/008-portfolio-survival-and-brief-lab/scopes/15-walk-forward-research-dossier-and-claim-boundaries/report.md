@@ -217,9 +217,11 @@ correlation number would be answering to a tax authority on their behalf.
 
 ### <a id="s15-e2e-a11y"></a>TP-15-06 - Responsive and accessible dossier
 
+**Phase:** implement
 **Command:** `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Feature 008 dossier ledgers" --reporter=list`
 **Exit Code:** 0
 **Claim Source:** executed
+**Carrier row:** `tests/portfolio-survival-allocation.spec.mjs:505`
 **Output:**
 
 ```text
@@ -280,3 +282,74 @@ introduces a config key or a persisted noun must touch the contract owner. The
 pattern is structural, so the fix belongs in how boundaries are authored rather
 than in another per-scope note. It is a real finding against the plan, not
 against the implementation.
+
+**Current-session re-verification receipts.** The DoD item that cites this
+section asserts execution outcomes (`git diff --check`, artifact lint/freshness,
+clean boundary), so the narrative above is backed here by commands actually run
+in this session rather than by prose alone.
+
+**Command:** `git diff --check`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:** empty. Per the repository empty-output sentinel convention, exit 0
+with no output is the "no whitespace or conflict damage found" result, which is
+why the exit code is recorded explicitly beside it.
+
+```text
+$ git diff --check
+$ echo "diff-check exit=$?"
+diff-check exit=0
+```
+
+**Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:** captured through `evidence-capture.sh`, so the recorded exit code and
+hash were produced by the run itself and can be re-derived with the verify line.
+
+```text
+# artifact-lint specs/008-portfolio-survival-and-brief-lab
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab
+exit: 0
+lines: 406
+sha256: ed9142d7152044254040019b1b8b5bda8eb2f0e069f511acdd675c357cff0950
+--- last 6 ---
+✅ No unfilled evidence template placeholders in scopes/27-accessible-six-tab-interaction/report.md
+✅ No unfilled evidence template placeholders in scopes/28-spec-driven-adversarial-test-replacement/report.md
+✅ No unfilled evidence template placeholders in scopes/29-documentation-and-registry-truth/report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+<!-- verify: bash bubbles/scripts/evidence-capture.sh --verify ed9142d7152044254040019b1b8b5bda8eb2f0e069f511acdd675c357cff0950 -- bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab -->
+
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:** the canonical repository check. Note the count is **3426 passed, 0
+failed**, not the 1640 recorded earlier in this report — the repository has grown
+since that run. This receipt is the current observation and is not a restatement
+of the historical number.
+
+```text
+# node scripts/selftest.mjs (canonical repository check)
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3912
+sha256: 2ef1284cf3af2f7bfef64894a1abb1597bbcc58760df8dfaa477550e53af3152
+--- last 3 ---
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+<!-- verify: bash bubbles/scripts/evidence-capture.sh --verify 2ef1284cf3af2f7bfef64894a1abb1597bbcc58760df8dfaa477550e53af3152 -- node scripts/selftest.mjs -->
+
+**Not re-run, and therefore not claimed here:** the scope-local
+`traceability-guard.sh … --current-scope` invocation. That DoD item requires it
+to be executed while Scope 15 is the active scope in `state.json`; the active
+scope is currently 27, so running it now would report a different scope and would
+not be evidence for this one. The whole-feature `--all-scopes` run is recorded in
+Scope 16, which is where the Feature Completion Gate places it.

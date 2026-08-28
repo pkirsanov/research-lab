@@ -40,6 +40,10 @@ Scenario: A portfolio combines weight-only listed assets cash and a manual alter
 
 ## Change Boundary
 
+**Allowed file families:** the eligibility, alignment, concentration, CAPM, factor, covariance, and risk-contribution regions of `rlportfolioanalytics.js`, the Risk X-Ray regions of `portfolio-survival-allocation-lab.html`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-risk.functional.mjs`, `tests/portfolio-survival-risk.spec.mjs`, and the risk/coverage fixtures under `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** the storage-lifecycle regions of `rlportfolio.js`, `rlportfoliobrief.js` ranking, the path, dependence/hedge, allocation-solver, and dossier regions of `rlportfolioanalytics.js` and their carriers (`tests/portfolio-paths.functional.mjs`, `tests/portfolio-diversification.functional.mjs`, `tests/portfolio-allocation.functional.mjs`, `tests/portfolio-dossier.functional.mjs`), `rldata.js`, `rlnav.js`, `rlbrief.js`, `market-brief.*`, `scripts/brief-*`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** `rlportfolioanalytics.js`, risk projections in the route, Feature 008 risk/coverage fixtures, `tests/portfolio-analytics.unit.mjs`, a focused risk functional carrier, and `tests/portfolio-survival-risk.spec.mjs`.
 - **Excluded:** personal storage lifecycle, brief ranking, path cash-flow engine, dependence/hedge formulas, allocation solvers, dossier persistence, registry/docs, and framework-managed files.
 
@@ -58,6 +62,8 @@ Scenario: A portfolio combines weight-only listed assets cash and a manual alter
 | Risk X-Ray Simple and Power | Both render identical eligibility, coverage, covariance, factor, and reconciliation states. |
 | Path, dependence, hedge, and allocation foundations | Typed aligned-return, covariance, and eligibility outputs remain consumable without route-local repair. |
 | Dossier diagnostics | Raw and conditioned identities, exclusions, and uncertainty remain attributable. |
+
+The consumer-facing surface is the `portfolio-survival-allocation-lab.html#risk-xray` deep link (`workspaceTabRiskXray`), which both Simple and Power render from. The sweep is a stale-reference scan confirming that hash, its tab id, and the typed eligibility/covariance field names stay identical for the downstream path, dependence, hedge, and allocation consumers.
 
 ## UI Scenario Matrix
 
@@ -86,6 +92,12 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
+- [x] SCN-008-047 behavior: a portfolio that combines weight-only listed assets, cash, and a manual alternative keeps every eligible holding contributing to its supported return and risk metrics, gives cash and manual alternatives explicit treatment frequency and unavailable fields, lets one unsupported holding limit only the affected metrics instead of refusing the portfolio, derives CAGR from exact elapsed dates while look-through, CAPM, covariance, and asset/factor contributions expose coverage uncertainty and reconciliation, and keeps non-positive-definite or conditioned covariance visibly distinct. Evidence: [report.md#tp-21-03](report.md#tp-21-03) — the complete Risk X-Ray carrier passes 13/13 including `SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth` and `Risk X-Ray retains partial eligible results rather than whole-refusing`; [report.md#coverage-report](report.md#coverage-report) — six input classes across five metric families, exact elapsed CAGR, actual-frequency manual results, concentration, CAPM, proxy factors, raw/conditioned covariance, and asset/factor/return contributions; [report.md#tp-21-04](report.md#tp-21-04) — the reduced-input adversarial row cannot satisfy Risk X-Ray; [report.md#spot-check-recommendations](report.md#spot-check-recommendations) — the singular-matrix case and the `lambdaWasAutoRaised:false` assertion together keep conditioned covariance distinct from silent repair.
 - [x] SCN-008-047 is implemented with partial eligibility, complete diagnostics, and no silent covariance repair. Evidence: [report.md#validation-summary](report.md#validation-summary), [report.md#red-and-green](report.md#red-and-green), [report.md#code-diff-evidence](report.md#code-diff-evidence).
 - [x] TP-21-01 unit evidence passes. Evidence: [report.md#tp-21-01](report.md#tp-21-01).
 - [x] TP-21-02 functional evidence passes. Evidence: [report.md#tp-21-02](report.md#tp-21-02).

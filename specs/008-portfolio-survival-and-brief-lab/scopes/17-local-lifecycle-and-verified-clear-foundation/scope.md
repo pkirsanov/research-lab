@@ -51,6 +51,10 @@ Scenario: A user clears every personal category from populated durable and live 
 
 ## Change Boundary
 
+**Allowed file families:** `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, `tests/fixtures/portfolio-survival-allocation/**`, `scripts/validate-spec-test-paths.mjs`, `scripts/validate-spec-test-paths.baseline`, and the `scripts/selftest.mjs` validator assertions that exercise that shared guard.
+
+**Excluded surfaces:** `rldata.js`, `rlnav.js`, `rlbrief.js`, `rlportfolioanalytics.js`, `market-brief.html`, `market-brief.*.json`, `brief-history*.jsonl`, `scripts/brief-*`, `watchlist.json`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, Feature 008 foundation/privacy fixtures, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, `scripts/validate-spec-test-paths.mjs`, and only the `scripts/selftest.mjs` validator assertions needed to exercise that shared guard.
 - **Excluded:** public Market Brief artifacts and publisher scripts, provider credential storage, `rldata.js`, analytics/optimizer formulas, registry/docs surfaces, and framework-managed files.
 - Existing dossier, scenario, allocation, return-context, and UI keys may be read through their declared contracts; their domain calculations remain unchanged.
@@ -67,6 +71,10 @@ Scenario: A user clears every personal category from populated durable and live 
 
 ## Consumer Impact Sweep
 
+**No consumer-facing interface is renamed or retired here.** The rename/removal detector matches two lines that describe **user data** operations, not interface identity: per-row `edit/remove` in the route editor, and the `Add, edit, remove, empty, confirm, reload, and export` contract row below. Removing a holdings row is something the user does to their own data; the editor, the route, and the revision contract keep their names throughout.
+
+One internal replacement is real and is named rather than glossed. Implementation item 2 **replaces** fixed-key deletion with a personal-category registry derived from the runtime. The clear control's own identity does not change — same control, same route, same typed confirmation — but the set it sweeps stops being a hand-written key list, so every consumer that reads that set is re-verified below.
+
 | Consumer | Required proof |
 |---|---|
 | Setup editor and import/export controls | Add, edit, remove, empty, confirm, reload, and export consume one immutable revision contract. |
@@ -74,6 +82,8 @@ Scenario: A user clears every personal category from populated durable and live 
 | Brief, risk, paths, allocation, and dossier tabs | A new revision supersedes prior result identities without rewriting them. |
 | Public generic assets and watchlist | Full clear preserves byte-identical public content and reports any mismatch. |
 | All specs consumed by `scripts/validate-spec-test-paths.mjs` | Planned-only missing paths are visible non-failing debt only for their own Not Started `(spec, path)` classification. A planned row cannot mask an authored, executed, or active missing-path reference in another spec, and existing active/baseline failure behavior remains intact. |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface for this scope. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above, and the one shared consumer that does exist — `scripts/validate-spec-test-paths.mjs`, which every spec's structured test paths flow through — carries its own row.
 
 ## UI Scenario Matrix
 
@@ -104,7 +114,14 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
 - [x] Portfolio lifecycle and full-clear behavior satisfy SCN-008-042 and SCN-008-043 without changing public assets or external accounts. Evidence: [Test Evidence](report.md#test-evidence).
+- [ ] SCN-008-042 holds as written: a user who adds, edits, and removes holdings revises the portfolio without replacing the draft — one immutable replacement revision contains exactly the confirmed rows, removing the final holding produces Portfolio empty rather than an all-cash assumption or rejection, and prior result identities remain linked as superseded rather than silently rewritten. Verifying rows: TP-17-01 and TP-17-03.
+- [ ] SCN-008-043 holds as written: when a user clears every personal category from populated durable and live state, a validated tombstone commits before destructive deletion, every runtime-derived personal category is empty on storage reread and live-controller inspection, public generic evidence and the public watchlist stay byte-identical, and any retained key or non-sentinel value produces a named partial-clear failure instead of success. Verifying rows: TP-17-02, TP-17-04, and TP-17-05.
 - [x] TP-17-01 unit evidence passes with no skips. Evidence: [TP-17-01](report.md#tp-17-01).
 - [x] TP-17-02 functional evidence passes with adapter and controller rereads. Evidence: [TP-17-02](report.md#tp-17-02).
 - [x] TP-17-03 lifecycle regression E2E passes against the real route. Evidence: [TP-17-03](report.md#tp-17-03).

@@ -129,6 +129,10 @@ Add every window/source/floor/ranking and browser assertion before composer/rend
 
 ### Definition of Done
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
 #### Core Delivery Items
 
 - [x] FR-039 through FR-044, FR-047 through FR-050, FR-056 through FR-061, and FR-064 through FR-067 are fully implemented with default Brief, exact windows/clocks, separate direct/inferred sources, insufficient/stale/no-action truth, bounded visible queue, owner links, and one complete brief identity.

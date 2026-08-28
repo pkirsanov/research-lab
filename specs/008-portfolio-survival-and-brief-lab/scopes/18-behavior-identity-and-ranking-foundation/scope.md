@@ -38,6 +38,10 @@ Scenario: Repeated completed research produces one consistent relevance result
 
 ## Change Boundary
 
+**Allowed file families:** `rlportfolio.js` (behavior-event and occurrence regions), `rlportfoliobrief.js`, the Brief and Why-shown regions of `portfolio-survival-allocation-lab.html`, `tests/portfolio-behavior-occurrence.unit.mjs`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, and the behavior fixtures under `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** the mandate/optimizer, risk, and path regions of `rlportfolioanalytics.js`, `rldata.js` generic evidence acquisition, `rlnav.js`, `rlbrief.js`, `market-brief.html`, `market-brief.*.json`, `scripts/brief-*`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** `rlportfolio.js`, `rlportfoliobrief.js`, the Brief/Why-shown route regions, behavior fixtures, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-privacy.functional.mjs`, and `tests/portfolio-survival-brief.spec.mjs`.
 - **Excluded:** mandate/optimizer inputs, public publisher outputs, generic evidence acquisition, risk/path math, registry/docs, and framework-managed files.
 
@@ -56,6 +60,8 @@ Scenario: Repeated completed research produces one consistent relevance result
 | Behavior store and privacy clear | Occurrences retain complete identities and remain clearable without changing explicit portfolio facts. |
 | Portfolio Brief and Why shown | Both consume the same rank result, reasons, and suppressed-action inventory. |
 | Route rows and dossier records | Action IDs, order, cutoff, and policy fingerprint remain identical across projections. |
+
+This scope keeps every consumer identifier stable, so the sweep is a stale-reference scan over the two in-tool deep links the ranking result reaches — `portfolio-survival-allocation-lab.html#brief` (`workspaceTabBrief`) and `portfolio-survival-allocation-lab.html#dossier` (`workspaceTabDossier`) — confirming action IDs, reason keys, and the suppressed-action inventory resolve identically from both.
 
 ## UI Scenario Matrix
 
@@ -84,7 +90,13 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
 - [x] SCN-008-044 is implemented with one canonical ranking projection and no engagement or constraint inference. → Evidence: [TP-18-01](report.md#tp-18-01), [TP-18-03](report.md#tp-18-03), [Scenario Contract Evidence](report.md#scenario-contract-evidence)
+- [ ] Repeated completed research produces one consistent relevance result: only exact semantic duplicates collapse, future-dated events are rejected or quarantined instead of receiving extra weight, the evidence floor uses distinct eligible dates and completion identities rather than raw event count, and storage, Portfolio Brief, Why shown, and route order expose the same canonical ranked action identities. Verifying rows: TP-18-01, TP-18-03, and TP-18-04.
 - [x] TP-18-01 functional evidence passes. → Evidence: [TP-18-01](report.md#tp-18-01)
 - [x] TP-18-02 privacy functional evidence passes. → Evidence: [TP-18-02](report.md#tp-18-02)
 - [x] TP-18-03 real-page regression passes. → Evidence: [TP-18-03](report.md#tp-18-03)

@@ -73,6 +73,10 @@ Scenario: SCN-008-002 - A malformed or secret-bearing import cannot partially re
 
 ## Change Boundary And Rollback
 
+**Allowed file families:** `portfolio-survival-allocation.config.json`, `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, `tests/portfolio-survival.support.mjs`, `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** `rldata.js`, `rlnav.js`, `rlapp.js`, `rlbrief.js`, `market-brief.html`, `market-brief.*.json`, `brief-history*.jsonl`, `scripts/brief-*`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, every other root `rl*.js` module, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 **Allowed new files:** `portfolio-survival-allocation.config.json`, `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, `tests/portfolio-survival.support.mjs`, and `tests/fixtures/portfolio-survival-allocation/**` entries owned by Scopes 01-04.
 
 **Allowed existing-file edit:** none in Scope 01.
@@ -97,10 +101,18 @@ Before production behavior, add the named unit/functional assertion and persiste
 | TP-01-04 | Regression E2E | e2e-ui | SCN-008-002 | `tests/portfolio-survival-foundation.spec.mjs` | `Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted` | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted" --reporter=list` | Yes | `report.md#scenario-scn-008-002` |
 | TP-01-05 | Persistence Regression E2E | e2e-ui | SCN-008-001, SCN-008-002 | `tests/portfolio-survival-foundation.spec.mjs` | `Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes` | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 atomic slots preserve last valid portfolio in durable session and memory modes" --reporter=list` | Yes | `report.md#tp-01-05` |
 | TP-01-06 | Broader Regression E2E | e2e-ui | SCN-008-001, SCN-008-002 | `tests/portfolio-survival-foundation.spec.mjs` | Execute the complete cumulative Feature 008 foundation browser suite over the real fixture-overlay HTTP server | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-01-06` |
+| TP-01-07 | Shared-infrastructure canary | functional | SCN-008-001, SCN-008-002 | `scripts/selftest.mjs` and `tests/portfolio-foundation.unit.mjs` | Canary: run the repository selftest and the direct `RLCONTRACTS` namespace import ahead of the TP-01-06 broad rerun, so the shared `rlcontracts.js` canonicalization/hash exports and the closed `rlPortfolio*`/`rlReturnContextV1` storage namespaces are proven unchanged by this scope before any broad suite result is read | `node scripts/selftest.mjs` then `node --test tests/portfolio-foundation.unit.mjs` | No | `report.md#current-session-re-verification` |
 
 Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `npx --no-install playwright --version`; the latter must print exactly `Version 1.61.1`. These environment/source gates do not replace Test Plan rows.
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified
+  - **Documented at:** the `Rollback/restore` paragraph of [Change Boundary And Rollback](#change-boundary-and-rollback) — remove only Scope 01 new files and fixture entries, never a user personal storage key.
+  - **Verifying rows:** TP-01-01 for the incompatible-newer-record safety path and TP-01-05 for last-known-good retention across durable, session-only, and memory-only modes.
 
 #### Core Delivery Items
 
@@ -162,7 +174,7 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
   - **Claim Source:** executed
   - **Evidence:** [per-row current-session RED/GREEN transcripts](report.md#test-evidence), recorded before the [TP-01-06 cumulative run](report.md#tp-01-06).
 
-#### Test Evidence Items - Exact Parity With 6 Test Plan Rows
+#### Test Evidence Items - Exact Parity With 7 Test Plan Rows
 
 - [x] TP-01-01 unit evidence proves the closed contracts, identities, import, secret rejection, atomic slots, faults, migration, and fallback-state behavior.
   - **Phase:** implement
@@ -200,6 +212,9 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
   - **Exit Code:** 0
   - **Claim Source:** executed
   - **Evidence:** [TP-01-06 raw cumulative output: 3 tests passed](report.md#tp-01-06).
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns
+  - **Verifying row:** TP-01-07.
+  - **Resolution condition:** the TP-01-07 command pair is recorded as having run BEFORE the TP-01-06 cumulative browser row in the same session, and its output is read against the three canaries named in [Shared Infrastructure Impact Sweep](#shared-infrastructure-impact-sweep) — the unchanged shared `rlcontracts.js` namespace, the closed `rlPortfolio*`/`rlReturnContextV1` key inventory, and the zero-interception request ledger. A canary recorded only after the broad rerun does not resolve this item, because ordering is the whole content of the claim.
 
 #### Scenario Behavioral Claims
 

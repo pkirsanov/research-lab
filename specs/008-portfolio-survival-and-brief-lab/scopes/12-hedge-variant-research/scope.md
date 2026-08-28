@@ -65,6 +65,20 @@ Scenario: SCN-008-025 - A user compares a currency-hedged and unhedged research 
 
 **Rollback/restore:** remove Scope 12 exact hedge/config/route/test/fixture blocks. Scope 11 dependence/alternative behavior remains complete, and hedge state becomes explicitly unavailable rather than zero-cost or implicitly unhedged.
 
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches the rollback sentence directly above, where `remove` falls within 160 characters of `route`. That sentence describes reverting this scope's own additive blocks, not retiring a route any consumer holds. Scope 12 adds hedge-variant rows beside Scope 11's dependence rows in the same Diversification route; no route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| Diversification route regions | Unhedged, hedged, and partial-hedge rows, assumptions, and the same-basis Path link are added to the existing tab | The scope's focused browser rows drive the real page, including no-execution and no-prescription copy |
+| `rlportfolioanalytics.js` hedge region | New `computeHedgeVariant` exported beside Scope 11's dependence exports | Independently derived overlay, basis, and cost arithmetic; missing-component states must return unavailable rather than zero cost |
+| `portfolio-survival-allocation.config.json` and its exact-key validator in `rlportfolio.js` | Commission, spread, slippage, rebalance frequency, proxy basis correlation, instrument class, and liquidity are declared in visible config instead of defaulted in code — the fourth occurrence of the F-08-CONFIG-BOUNDARY class | The exact-key validator rejects any undeclared key; behavior and settings mutation rows prove no ratio is inferred |
+| Scope 09 path identities | Hedge ratios are evaluated across the same base random draws, so the comparison basis is reused rather than redefined | Same-basis path identity is asserted directly |
+| Current portfolio | Read-only; a hedge variant is research output and never mutates holdings | Asserted alongside the no-execution copy |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
+
 ## Scenario-First Red/Green Contract
 
 Author independent overlay/cost/basis, missing-net, same-basis identity, no-prescription, canvas/table, and persistent browser assertions first. Run exact commands through the tool log with `SCOPE-12` and red/green tags. RED must identify decomposition/state/identity/copy/pixel/parity failure; fixture pass-through or zero-cost substitution is invalid.
@@ -80,6 +94,10 @@ Author independent overlay/cost/basis, missing-net, same-basis identity, no-pres
 | TP-12-05 | Broader Regression E2E | e2e-ui | SCN-008-022 through SCN-008-025 | `tests/portfolio-survival-diversification.spec.mjs` | Execute the complete cumulative Feature 008 Diversification browser suite after every hedge-focused row | `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-12-05` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

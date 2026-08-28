@@ -71,11 +71,28 @@ Scenario: SCN-008-012 - The local ranking model evaluates user activity
 
 ## Change Boundary And Rollback
 
+**Allowed file families:** `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, `tests/fixtures/portfolio-survival-allocation/**` (Scope 03 behavior/clear entries).
+
+**Excluded surfaces:** `rldata.js`, `rlnav.js`, `rlbrief.js`, `rlportfolioanalytics.js`, `market-brief.html`, `market-brief.*.json`, `brief-history*.jsonl`, `scripts/brief-*`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, unrelated root `rl*.js` tools and their tests, and `.github/bubbles/**`.
+
 **Allowed files:** `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, and Scope 03 fixture entries.
 
 **Explicitly excluded:** `rldata.js`, `rlnav.js`, `rlbrief.js`, generic Market Brief artifacts/scripts/scheduler, analytics formulas, registries/docs, package/source-lock files, Feature 001-007 work, unrelated tools/tests, and framework-managed files.
 
 **Rollback/restore:** remove only Scope 03 marker-bounded behavior/privacy/UI/test additions. Reopen Scope 02 state and prove portfolio/mandate hashes and storage generation are preserved. A source rollback does not clear browser data; shipped clear controls own explicit local deletion.
+
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches two incidental lines, and neither is an interface mutation. The first is captured assertion output stating that no inventory or export **path** **removes** personal data — a sentence about what the clear control does to stored bytes, not about a path being deleted. The second is the recorded PII remediation note, where an operator home path in a sibling bug report was redacted; that **removed** an **identifier** from committed evidence text, not from any consumer contract. Scope 03 adds the behavior-privacy inventory and clear controls; no route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| Privacy sheet and behavior inventory | New inventory rendering and clear controls | The scope's focused browser rows drive the real sheet |
+| Behavior-history consumers in `rlportfolio.js` | Clearing history must remove its influence without touching portfolio or mandate state | Portfolio and mandate hashes and storage generation are asserted preserved after a clear |
+| `portfolio-survival-allocation.config.json` policy keys | New behavior/clear policy keys are added to the exact-key set | The exact-key validator rejects any undeclared key |
+| `specs/_bugs/BUG-008-fx-route-claims-unregistered/report.md` | Evidence text redacted to a sanctioned home-path segment | `pii-scan` returns zero findings; the redaction preserves the evidence shape and meaning |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
 
 ## Scenario-First Red/Green Contract
 
@@ -93,6 +110,11 @@ Write every closed-event, clear, inventory, UI, and sentinel assertion before pr
 | TP-03-06 | Broader Regression E2E | e2e-ui | SCN-008-001 through SCN-008-004, SCN-008-011, SCN-008-012 | `tests/portfolio-survival-foundation.spec.mjs` | Execute the cumulative foundation route, including behavior-only clear, full-personal clear, partial deletion failure, and prior import/mandate preservation | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-03-06` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

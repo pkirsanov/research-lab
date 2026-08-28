@@ -95,6 +95,19 @@ Scenario: SCN-008-040 - A user clears all personal data after producing a walk-f
 
 **Rollback/restore:** remove Scope 15 exact walk-forward/dossier/claim/route/test/fixture blocks. Scope 14 comparisons remain complete but validation/cost/tax/efficiency claims show not evaluated/unavailable; prior local records are not deleted or rewritten by source rollback.
 
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches the rollback sentence directly above, where `remove` falls within 160 characters of `route`. That sentence describes reverting this scope's own additive blocks, not retiring a route any consumer holds. Scope 15 fills the existing Research Dossier route regions and appends dossier records; no route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated. The rollback path is explicitly non-destructive to already-written local records.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| Research Dossier route regions | Walk-forward, stress, gross-versus-net, and claim-boundary displays are added to the existing tab | The scope's focused browser rows drive the real route and its equivalent tables |
+| Append-oriented local dossier records | New records are appended; prior records are never rewritten in place | SCN-008-040 asserts a full-personal clear empties stored dossiers, and rollback leaves prior records intact |
+| Scope 14 comparison displays | They gain validation, cost, tax, and efficiency claim labels; without this scope those claims read not evaluated or unavailable rather than silently absent | The rollback statement above is proven by rerunning the Scope 14 carriers |
+| Scope 09 path identities and Scope 13 allocation basis | Read-only inputs for reconstruction; identities are cited, never redefined | Every result must be reconstructable from the recorded identity |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
+
 ## Scenario-First Red/Green Contract
 
 Author decision-time availability, cost/trial, append-only, claim-boundary, forbidden-copy, responsive table, and persistent browser assertions first. Run exact commands through the tool log with `SCOPE-15` and red/green tags. RED must identify look-ahead, cost substitution, trial omission, history rewrite, overclaim, tax verdict, or UI defect; dossier fixture echoes without production projection are invalid.
@@ -113,6 +126,10 @@ Author decision-time availability, cost/trial, append-only, claim-boundary, forb
 | TP-15-08 | Discharged clear conjunct functional | functional | SCN-008-040 | `tests/portfolio-allocation.functional.mjs` | Persist at least one dossier, then prove a full-personal clear leaves the dossier section empty on a storage reread while public generic assets stay byte-identical. Carries Scope 03's discharged `dossiers` conjunct under register rule 2. Shares TP-15-02's file rather than naming a new one, so the frozen spec-test-path baseline does not grow | `node --test tests/portfolio-allocation.functional.mjs` | No | `report.md#tp-15-08` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

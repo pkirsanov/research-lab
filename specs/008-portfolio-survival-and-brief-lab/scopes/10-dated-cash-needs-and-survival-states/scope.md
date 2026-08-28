@@ -70,6 +70,19 @@ Scenario: SCN-008-021 - The user runs paths without a floor or goal horizon
 
 **Rollback/restore:** remove Scope 10 exact cash-flow/survival/route/test/fixture blocks. Scope 09 path distributions remain reproducible; Path Lab shows survival/collision unavailable rather than inventing a result.
 
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches the rollback sentence directly above, where `remove` falls within 160 characters of `route`. That sentence describes reverting this scope's own additive blocks, not retiring a route any consumer holds. Scope 10 adds cash-flow timing and survival regions beside Scope 09's path regions in the same Path Lab route; no route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| Path Lab route regions | Survival definition, cash-flow timeline, collision selection, and funded/at-risk results are added to the existing tab | The scope's focused browser rows drive the real route and the equivalent ordered table |
+| `rlportfolioanalytics.js` cash-flow and survival region | New `computeSurvival` and dated contribution/withdrawal/`CashNeed` ordering exported beside Scope 09's path exports | Independently calculated start-of-step and end-of-step, date-boundary, ordering, currency, and collision cases |
+| Scope 09 `ScenarioSpecification` consumers | Survival reads the same specification; distribution-only output is preserved when survival inputs are absent | Scope 09 path distributions must stay reproducible when this scope is reverted |
+| Explicit mandate and `CashNeed` inputs from Scope 02 | Read-only; no floor, horizon, withdrawal rate, liquidity need, or treatment may be derived from portfolio, behavior, settings, or config | SCN-008-021 asserts a missing survival definition creates no default |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
+
 ## Scenario-First Red/Green Contract
 
 Author chronological cash-flow, collision, unavailable survival, timeline/table/canvas, and persistent browser assertions first. Execute each row through the tool log with `SCOPE-10` and red/green tags. RED must identify date/order/capital/floor/identity/UI failure; a test that seeds the asserted collision output instead of computing it is invalid.
@@ -85,6 +98,10 @@ Author chronological cash-flow, collision, unavailable survival, timeline/table/
 | TP-10-05 | Broader Regression E2E | e2e-ui | SCN-008-018 through SCN-008-021 | `tests/portfolio-survival-paths.spec.mjs` | Execute the complete cumulative Feature 008 Path Lab browser suite after every Scope 10 focused row | `npx --no-install playwright test tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-10-05` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

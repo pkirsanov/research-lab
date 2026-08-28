@@ -74,11 +74,28 @@ Scenario: SCN-008-017 - Risk contributions are available for the current covaria
 
 ## Change Boundary And Rollback
 
+**Allowed file families:** `rlportfolioanalytics.js` (concentration, CAPM, factor, covariance, and risk-contribution regions only), `portfolio-survival-allocation-lab.html` (Risk X-Ray regions), `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-survival-risk.spec.mjs`, and `tests/fixtures/portfolio-survival-allocation/**` (Scope 08 entries).
+
+**Excluded surfaces:** `rlportfolio.js`, `rlportfoliobrief.js`, `rldata.js`, `rlnav.js`, `rlbrief.js`, `market-brief.html`, `market-brief.*.json`, `scripts/brief-*`, the path/dependence/hedge/allocation/dossier regions of `rlportfolioanalytics.js` and their carriers (`tests/portfolio-paths.functional.mjs`, `tests/portfolio-diversification.functional.mjs`, `tests/portfolio-allocation.functional.mjs`, `tests/portfolio-dossier.functional.mjs`, `tests/portfolio-survival-paths.spec.mjs`, `tests/portfolio-survival-diversification.spec.mjs`, `tests/portfolio-survival-allocation.spec.mjs`), `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 **Allowed files:** `rlportfolioanalytics.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-survival-risk.spec.mjs`, and Scope 08 fixture entries.
 
 **Explicitly excluded:** `rlportfolio.js`, `rlportfoliobrief.js`, `rldata.js`, `rlnav.js`, generic Market Brief surfaces, path/dependence/hedge/allocation/dossier implementation, registries/docs, package/source-lock files, Feature 001-007 work, unrelated tools/tests, and framework-managed files.
 
 **Rollback/restore:** remove Scope 08 exact analytics/route/test/fixture blocks. Scope 07 return/drawdown remains complete, and its focused/broader risk tests pass without the later diagnostics.
+
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches the rollback sentence directly above, where `remove` falls within 160 characters of `route`. That sentence describes reverting this scope's own additive blocks, not retiring a route any consumer holds. Scope 08 adds concentration, CAPM, factor, covariance, and risk-contribution regions beside the Scope 07 return and drawdown regions in the same `#risk-xray` route; no route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| `#risk-xray` route regions | New concentration, beta/R-squared/residual, and risk-contribution bands are added to the existing tab | The scope's focused browser rows drive the real route and assert the adjacent tables |
+| `rlportfolioanalytics.js` concentration/CAPM/covariance/contribution regions | New exports added beside Scope 07's; the Scope 07 names are untouched | Scope 07's focused and broader risk rows must still pass without the later diagnostics |
+| `portfolio-survival-allocation.config.json` | New exact-key policy entries for the added diagnostics | The exact-key validator rejects any undeclared key |
+| Scope 07 return and drawdown results | Shared typed inputs only; the return sample and identity are read, never redefined | Marginal and total risk contribution reconcile against the same frozen sample |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
 
 ## Scenario-First Red/Green Contract
 
@@ -96,6 +113,11 @@ Author coverage, regression identity, covariance, contribution, copy, chart/tabl
 | TP-08-06 | Broader Regression E2E | e2e-ui | SCN-008-013 through SCN-008-017 | `tests/portfolio-survival-risk.spec.mjs` | Execute the complete cumulative Feature 008 Risk X-Ray browser suite after every Scope 08 focused row | `npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-08-06` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

@@ -68,6 +68,19 @@ Scenario: SCN-008-004 - A portfolio can be researched before goals are entered
 
 **Rollback/restore:** remove only Scope 02 marker-bounded contract/editor/test additions. Reopen the Scope 01 valid portfolio and prove its current revision, import, storage, and privacy behavior are byte-equivalent; no mandate rollback deletes or rewrites portfolio data.
 
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches the rollback sentence directly above, where `remove` falls within 160 characters of `contract`. That sentence describes reverting this scope's own additive blocks, not retiring an interface any consumer holds. Scope 02 only adds `MandateRevision/v1`, `CashNeed/v1`, and the mandate editor beside what Scope 01 shipped; no route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated. The rows below are therefore an additive-consumer sweep, not a stale-reference remediation.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| Mandate and cash-need editor in the bounded sheet | New editor, impact preview, and visible conflict set | TP-02-03 drives the real editor; TP-02-05 proves Scope 01 import/storage behavior is unchanged |
+| `#risk-xray`, `#path-lab`, and `#allocation` shell states | Each projects the same confirmed revision and must keep goal-fit/survival unavailable without one | TP-02-04 visits all three hashes and asserts the exact unavailable reason |
+| `WorkspaceIdentity` inputs and dependent result identities | A mandate change supersedes dependent identities without mutating the current portfolio | TP-02-01 and TP-02-02 assert deterministic revision identity and supersession |
+| `rlportfolio.js` exact-key validators | New mandate/cash-need keys are added beside the existing portfolio keys | TP-02-01 exercises the production validators directly |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
+
 ## Scenario-First Red/Green Contract
 
 Add each named assertion and persistent title before mandate behavior. Execute every row through `.github/bubbles/scripts/tool-log.sh` with the Feature 008 spec, `SCOPE-02`, `TP-*`, and red/green tags. RED must identify missing explicit authority or an invented-value defect; rerun the identical command after the smallest owned change.
@@ -83,6 +96,10 @@ Add each named assertion and persistent title before mandate behavior. Execute e
 | TP-02-05 | Broader Regression E2E | e2e-ui | SCN-008-001 through SCN-008-004 | `tests/portfolio-survival-foundation.spec.mjs` | Execute the cumulative foundation browser suite and prove mandate additions preserve Scope 01 import/storage behavior | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-02-05` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

@@ -42,6 +42,10 @@ Scenario: A user switches modes tabs and owning tools while a newer workspace co
 
 ## Change Boundary
 
+**Allowed file families:** the controller and navigation regions of `portfolio-survival-allocation-lab.html`, one additive strict `ReturnContext/v1` consumer block in `rlnav.js`, the handoff helpers in `rlportfolio.js`, `tests/portfolio-workspace.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, `tests/portfolio-survival-mobile.spec.mjs`, the workspace fixtures under `tests/fixtures/portfolio-survival-allocation/**`, and the named existing-consumer navigation canaries.
+
+**Excluded surfaces:** the analytics formulas in `rlportfolioanalytics.js`, `rlportfoliobrief.js` behavior ranking, `market-brief.*` and `scripts/brief-*`, `rlbrief.js`, provider credentials in `rldata.js`, every `rlnav.js` region outside the strict ReturnContext marker, `rlapp.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** controller/navigation regions of `portfolio-survival-allocation-lab.html`, additive strict `rlnav.js` ReturnContext consumer, `rlportfolio.js` handoff helpers, workspace fixtures, focused workspace functional tests, Feature 008 brief/mobile browser tests, and named existing-consumer navigation canaries.
 - **Excluded:** analytics formulas, behavior ranking, public publisher, provider credentials, global `rlnav` behavior unrelated to strict ReturnContext, registry/docs, and framework-managed files.
 
@@ -93,7 +97,13 @@ All six rows are authored and executed. TP-26-01 and TP-26-05 are carried by `te
 
 ### Definition of Done - Tiered Validation
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
 - [x] SCN-008-052 is implemented with one compute, token/last-valid/rebase safety, visible owner-return strip, and exact focus restoration. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-26-03).
+- [ ] A user switches modes, tabs, and owning tools while a newer workspace compute completes: given one active immutable workspace view model and one later draft identity, mode and tab navigation render the active view model without recomputing analytics; only the newest matching compute token may publish while last-valid results remain visible; an explicit rebase atomically replaces every sibling projection under one identity; ReturnContext is consumed by the owning destination and renders a visible From Portfolio Brief return strip; and returning restores the original action disclosure and keyboard focus without private URL or public read data.
 - [x] TP-26-01 workspace functional evidence passes. Evidence: [TP-26-01](report.md#tp-26-01).
 - [x] TP-26-02 ReturnContext functional evidence passes. Evidence: [TP-26-02](report.md#tp-26-02).
 - [x] TP-26-03 one-compute/rebase real-page regression passes. Evidence: [TP-26-03](report.md#tp-26-03).

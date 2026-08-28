@@ -95,6 +95,9 @@ Author independent posterior/sensitivity identities, trial counts, mutation isol
 
 ### Definition of Done
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+
 #### Core Delivery Items
 
 - [x] FR-130 through FR-140 are fully implemented with separate benchmark/implied/user-view/confidence/posterior/weights, zero behavior/settings view input, explicit MVO policy, complete states, no relaxation, full outcomes/sensitivity ranges, instability/precision truth, no universal winner, and reversal conditions. Evidence: [report.md#scope-14-execution](report.md#scope-14-execution)

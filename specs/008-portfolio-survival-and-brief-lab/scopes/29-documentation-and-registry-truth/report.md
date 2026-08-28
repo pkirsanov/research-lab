@@ -401,6 +401,64 @@ injected defects were each caught; had the parity assertions been weakened to ma
 pass, this count would fall and the row would fail rather than silently certifying a carrier
 that can no longer detect anything.
 
+## Broader Feature 008 Browser Regression
+
+**Phase:** test
+**Executed:** YES (in current session)
+**Claim Source:** executed
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 29 broader Feature 008 browser regression matrix" -- timeout 1740 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+
+```text
+# Scope 29 broader Feature 008 browser regression matrix
+$ timeout 1740 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+lines: 304
+sha256: 254fedd3e4cd59e807db3ec744f7a912957ab07125868aaa386deb1ee0dde26d
+--- first 20 ---
+
+Running 95 tests using 2 workers
+
+  ✓   1 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:109:1 › Regression: SCN-008-026 all six allocation methods share one frozen basis (2.8s)
+  ✓   2 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:89:1 › Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete (3.8s)
+  ✓   3 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:137:1 › Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner (2.1s)
+  ✓   5 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:158:1 › Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation (2.1s)
+  ✓   8 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:501:1 › Adversarial: SCN-008-053 reduced accessibility implementations fail closed (6.9s)
+--- omitted 264 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓  92 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:565:1 › Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio (1.4s)
+  ✓  93 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:405:1 › Regression: Feature 008 an incomplete cash need is refused rather than partly assumed (3.1s)
+  ✓  94 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:422:1 › Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path (6.9s)
+  ✓  95 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:463:1 › Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view (4.7s)
+
+  95 passed (2.9m)
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 254fedd3e4cd59e807db3ec744f7a912957ab07125868aaa386deb1ee0dde26d -- timeout 1740 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list -->
+
+**Result:** PASS. `Running 95 tests using 2 workers` opens the run and `95 passed (2.9m)` closes
+it, so discovery equals passes: zero failed, zero flaky, zero skipped.
+
+**Why this row belongs to Scope 29 rather than being borrowed from Scope 28.** TP-29-02 executes
+one grepped title. That is the right shape for proving the entry-route contract, and it is the
+wrong shape for proving that Scope 29 broke nothing else, because the file this scope changed,
+`tests/portfolio-survival-brief.spec.mjs`, carries many other rows that a single-title grep never
+reaches. This matrix runs that whole file inside the full eight-spec Feature 008 set, so the
+carrier Scope 29 edited is exercised together with every sibling row it sits beside.
+
+**Scope 29's own carrier is inside this run.** The SCN-008-055 regression is declared at
+`tests/portfolio-survival-brief.spec.mjs:1215` and the brief spec is one of the eight files
+above, so this matrix subsumes TP-29-02 rather than running beside it.
+
+One drift is recorded rather than silently corrected: TP-29-02 and the Definition of Done cite
+that carrier at `:1078`. The exact title is unchanged and still resolves, and the grep-based
+TP-29-02 command matches on title rather than on line, so neither the row nor its command is
+affected. The line moved because the file grew. Repointing the DoD citation is
+`bubbles.implement`'s edit, not this reconciliation's.
+
+The recorded count is 95 rather than the 93 in Scope 28's TP-28-03 receipt because the matrix has
+grown since that capture. The increment is not attributed here.
+
 ## Uncertainty Declarations
 
 - **The pre-fix defect count is not this report's execution evidence.** The account handed to

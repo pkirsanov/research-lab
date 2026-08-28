@@ -81,6 +81,10 @@ Scenario: SCN-008-035 - One holding has stale prices and another lacks factor hi
 
 ## Change Boundary And Rollback
 
+**Allowed file families:** `tests/portfolio-publisher-boundary.functional.mjs`, `tests/fixtures/portfolio-survival-allocation/**` (Scope 04 entries), one marker-bounded Feature 008 block in each of `rldata.js` and `scripts/selftest.mjs`, plus `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, and `tests/portfolio-survival.support.mjs`.
+
+**Excluded surfaces:** `market-brief.html`, `market-brief.payload.json`, `market-brief.snapshot.json`, `market-brief.config.json`, `brief-history*.jsonl`, `scripts/brief-refresh.mjs`, `scripts/brief-refresh-and-push.sh`, `scripts/brief-refresh-scheduled.sh`, `scripts/com.researchlab.brief-refresh.plist`, `rlbrief.js`, `rlnav.js`, `rlapp.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `data/bars/**`, `watchlist.json`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 **Allowed new files:** `tests/portfolio-publisher-boundary.functional.mjs` and Scope 04 fixture entries.
 
 **Allowed edits:** one exact marker-bounded Feature 008 block in `rldata.js`; `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, `tests/portfolio-survival.support.mjs`, and one marker-bounded Feature 008 selftest canary block in `scripts/selftest.mjs`.
@@ -107,6 +111,11 @@ Create each coverage, boundary, partial-state, sentinel, and real-page assertion
 | TP-04-08 | Broader Regression E2E | e2e-ui | SCN-008-001 through SCN-008-005, SCN-008-011, SCN-008-012, SCN-008-035 | `tests/portfolio-survival-foundation.spec.mjs` | Execute the complete cumulative foundation browser suite after shared coverage and privacy-boundary checks are green | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-04-08` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

@@ -446,7 +446,7 @@ test-phase verdict is controlling for this invocation: selftest, artifact lint, 
 Research Lab is build-free. The canonical project check is `node scripts/selftest.mjs`, which
 enforces registry and navigation parity, model invariants and the shared-shell contracts.
 
-### Build Quality Gate — Current Session 2026-08-23
+### Build Quality Gate — Current Session 2026-08-23 <a id="build-quality-gate--current-session-2026-08-23"></a>
 
 ```
 $ node scripts/selftest.mjs

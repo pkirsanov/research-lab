@@ -97,6 +97,10 @@ No API client, generated client, server route, authentication redirect, breadcru
 
 ## Change Boundary And Rollback
 
+**Allowed file families:** `notes/portfolio-survival-allocation-lab.md` (new), final marker-bounded edits to `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `rlportfolio.js`, `rlportfolioanalytics.js`, `rlportfoliobrief.js`, `tests/portfolio-*.mjs`, and `tests/fixtures/portfolio-survival-allocation/**`, plus exact additive Feature 008 entries in `scripts/selftest.mjs`, `rlnav.js`, `tools.json`, `index.html`, and `README.md`.
+
+**Excluded surfaces:** `market-brief.html`, `market-brief.payload.json`, `market-brief.snapshot.json`, `market-brief.config.json`, `brief-history*.jsonl`, `scripts/brief-*`, `rlbrief.js`, every other root `rl*.js` helper, `package.json`, `package-lock.json`, `.github/workflows/**`, `notes/**` other than the new tool note, `specs/001-*` through `specs/007-*`, unrelated tools/tests/docs, and `.github/bubbles/**`. Within `rlnav.js`, `tools.json`, `index.html`, `README.md`, and `scripts/selftest.mjs` only the exact additive Feature 008 insertion is in bounds; surrounding entries, order, and bytes stay untouched.
+
 **Allowed new file:** `notes/portfolio-survival-allocation-lab.md`.
 
 **Allowed edits:** final marker-bounded route/config/modules/tests/fixtures; exact additive Feature 008 blocks/entries in `scripts/selftest.mjs`, `rlnav.js`, `tools.json`, `index.html`, and README.
@@ -127,6 +131,8 @@ Author identity, accessibility, pixel/table, deep-link, privacy, registry, stale
 | TP-16-10 | Complete Feature 008 Regression E2E | e2e-ui | SCN-008-001 through SCN-008-036 | tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs | Execute every exact Feature 008 Regression title over real fixture-overlay HTTP servers with no request interception | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-16-10` |
 | TP-16-11 | Existing shared-consumer Regression E2E | e2e-ui | SCN-008-036 | tests/provider-credentials.spec.mjs tests/causal-rotation-lab.spec.mjs tests/bond-regime-lab.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs tests/palm-springs-rental-market-lab.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs tests/technical-analysis-decision-lab.spec.mjs | Preserve provider credentials, Causal, Bond, FX, Palm Springs, Trend Dynamics, and Technical Analysis behavior after RLDATA/rlnav/registry/selftest additions | `npx --no-install playwright test tests/provider-credentials.spec.mjs tests/causal-rotation-lab.spec.mjs tests/bond-regime-lab.spec.mjs tests/fx-regime-relative-value-lab.spec.mjs tests/palm-springs-rental-market-lab.spec.mjs tests/trend-dynamics-cycle-lab.spec.mjs tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-16-11` |
 | TP-16-12 | Whole-set clear closure functional | functional | SCN-008-038, SCN-008-039, SCN-008-040, SCN-008-041 | `tests/portfolio-privacy.functional.mjs` | Populate every personal category the finished six-tab route can create, then prove a full-personal clear empties every declared category on a storage reread, leaves no personal key outside the declared sweep, keeps public generic assets byte-identical, and derives the declared category set from the runtime rather than a hand-written list. Carries Scope 03's discharged `UI state` conjunct and the whole-set closure under register rule 2, and supplies the public-cache preservation conjunct shared by SCN-008-038 through SCN-008-040. Shares TP-16-04's complete-privacy file rather than naming a new one, so the frozen spec-test-path baseline does not grow; the assertions are storage-level, which is what makes `functional` the honest category | `node --test tests/portfolio-privacy.functional.mjs` | No | `report.md#tp-16-12` |
+| TP-16-13a | Shared-infrastructure canary | functional | SCN-008-036 | `scripts/selftest.mjs` | Canary: after each exact additive Feature 008 insertion into `scripts/selftest.mjs`, `rlnav.js`, `tools.json`, `index.html`, and `README.md`, and BEFORE the TP-16-10 and TP-16-11 broad reruns, execute the complete repository selftest so existing group order, registry order, and navigation are proven unchanged by this scope | `node scripts/selftest.mjs` | No | `report.md#s16-suite` |
+| TP-16-13b | Shared-infrastructure canary | e2e-ui | SCN-008-036 | `tests/provider-credentials.spec.mjs` | Canary: after each exact additive Feature 008 insertion into the five high-fan-out surfaces named in [Shared Infrastructure Impact Sweep](#shared-infrastructure-impact-sweep), and BEFORE the TP-16-10 and TP-16-11 broad reruns, execute the provider-credentials browser suite so shared `RLDATA` credential behavior is proven unchanged by this scope | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#s16-suite` |
 
 ### PSA-PAGE-INLINE-ID
 
@@ -137,6 +143,19 @@ PAGE=portfolio-survival-allocation-lab.html node -e 'const fs=require("node:fs")
 Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` and require exact output `Version 1.61.1`. Dependency provisioning uses `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci --ignore-scripts` only when the checkout-local install is absent/stale or the committed lockfile changed; Scope 16 does not edit package/source-lock files.
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns
+  - **Verifying rows:** TP-16-13a (repository selftest) and TP-16-13b (provider-credentials browser suite), one per canary named in the `Independent Canary Before Broad Tests` column of [Shared Infrastructure Impact Sweep](#shared-infrastructure-impact-sweep).
+  - **Resolution condition:** both commands are recorded as having run after the additive Feature 008 insertions into the five high-fan-out surfaces and BEFORE the TP-16-10 and TP-16-11 broad reruns. A canary recorded only alongside or after the broad reruns does not resolve this item, because the ordering is what makes the canary independent rather than a duplicate of the broad result.
+  - **Unresolved:** [report.md#s16-suite](report.md#s16-suite) records `node scripts/selftest.mjs` and both browser matrices at exit 0, but records no execution order relative to the broad reruns, and the registration whose insertions the canary would guard was reverted ([report.md#s16-registration-finding](report.md#s16-registration-finding)). The ordering this item asks for is therefore not evidenced, so the box stays unchecked.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified
+  - **Documented at:** the `Rollback/restore` paragraph of [Change Boundary And Rollback](#change-boundary-and-rollback) — remove only the exact Feature 008 registry/README/note/`rlnav.js`/selftest entries and final route blocks; browser personal keys are never deleted by a source rollback.
+  - **Rollback unit per surface:** the `Rollback Unit` column of [Shared Infrastructure Impact Sweep](#shared-infrastructure-impact-sweep) names one unit for each of the five high-fan-out surfaces.
+  - **Verifying rows:** TP-16-13a and TP-16-13b for the pre-broad canary and TP-16-11 for the post-change existing-consumer proof that the restore boundary held.
 
 #### Core Delivery Items
 
@@ -150,7 +169,7 @@ Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` an
 - [x] Atomic release adds the route to `index.html`, `tools.json`, `rlnav.js`, README and the note only after the direct unregistered route, privacy, accessibility, canvas/table and focused domain tests are green. Evidence: [report.md#s16-registration-finding](report.md#s16-registration-finding)
 - [x] Every Scope 16 behavior has intended RED and same-command GREEN evidence before the complete Feature 008 and existing-consumer browser matrices. Evidence: [report.md#s16-closure](report.md#s16-closure)
 
-#### Test Evidence Items - Exact Parity With 12 Test Plan Rows
+#### Test Evidence Items - Exact Parity With 14 Test Plan Rows
 
 - [x] TP-16-01 functional evidence proves the committed Node/Playwright source-lock graph is exact and trusted before browser execution. Evidence: [report.md#s16-suite](report.md#s16-suite)
 - [x] TP-16-02 selftest evidence proves all Feature 008 production/registry/shared contracts and every existing repository invariant. Evidence: [report.md#s16-suite](report.md#s16-suite)
@@ -164,6 +183,12 @@ Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` an
 - [x] TP-16-10 complete Feature 008 E2E evidence proves every exact SCN-008-001 through SCN-008-036 Regression title passes without interception or external providers. Evidence: [report.md#s16-suite](report.md#s16-suite)
 - [x] TP-16-11 existing-consumer E2E evidence proves provider credentials and every named Feature 001-007/shared route remain green after high-fan-out changes. Evidence: [report.md#s16-suite](report.md#s16-suite)
 - [x] TP-16-12 SCN-008-041 whole-set closure functional evidence proves every personal category the finished six-tab route can create is populated, swept by one full-personal clear, and derived from the runtime rather than a hand-written list. Evidence: [report.md#s16-closure](report.md#s16-closure)
+- [ ] Independent selftest canary for shared registry/navigation contracts passes before broad suite reruns
+  - **Verifying row:** TP-16-13a.
+  - **Resolution condition:** the shared ordering condition stated under `Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns` above, read against TP-16-13a's own recorded output.
+- [ ] Independent provider-credentials browser canary for shared fixture/bootstrap contracts passes before broad suite reruns
+  - **Verifying row:** TP-16-13b.
+  - **Resolution condition:** the shared ordering condition stated under `Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns` above, read against TP-16-13b's own recorded output.
 
 #### Build Quality Gate
 

@@ -41,6 +41,10 @@ Scenario: A user compares six allocations with exclusions cash leverage turnover
 
 ## Change Boundary
 
+**Allowed file families:** the allocation, Black-Litterman, and sensitivity regions of `rlportfolioanalytics.js`, the Allocation route and view-editor regions of `portfolio-survival-allocation-lab.html`, the allocation policy block of `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-allocation.functional.mjs`, `tests/portfolio-survival-allocation.spec.mjs`, and the allocation fixtures under `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** the store-lifecycle regions of `rlportfolio.js`, `rlportfoliobrief.js` ranking, `market-brief.*` and `scripts/brief-*`, the path-generator internals of `rlportfolioanalytics.js` except typed common-path consumption, dossier persistence (`tests/portfolio-dossier.functional.mjs`), `rldata.js`, `rlnav.js`, `rlbrief.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** allocation/BL/sensitivity portions of `rlportfolioanalytics.js`, Allocation route/editor regions, policy/fixtures, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-allocation.functional.mjs`, and `tests/portfolio-survival-allocation.spec.mjs`.
 - **Excluded:** personal store lifecycle, brief ranking, generic publisher, path generator internals except typed common-path consumption, dossier persistence, registry/docs, and framework-managed files.
 
@@ -60,6 +64,8 @@ Scenario: A user compares six allocations with exclusions cash leverage turnover
 | Allocation Simple and Power | Six stable method rows share one basis, state vocabulary, costs, paths, and no-winner boundary. |
 | Black-Litterman editor | Explicit views, uncertainty, posterior, and resulting allocation remain attributable and behavior-independent. |
 | Dossier and sensitivity views | Every solver attempt, residual, constraint, perturbation, and outcome retains its identity. |
+
+The consumer-facing surface is the `portfolio-survival-allocation-lab.html#allocation` deep link (`workspaceTabAllocation`), which hosts the six method rows and the Black-Litterman view editor. The sweep is a stale-reference scan confirming that hash, its tab id, and the per-method result field names stay identical for the sensitivity and dossier consumers.
 
 ## UI Scenario Matrix
 
@@ -91,6 +97,12 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
+- [x] SCN-008-050 behavior: a user compares six allocations with exclusions, cash, leverage, turnover, groups, and an explicit Black Litterman view, and each method enforces the common applicable constraints or returns infeasible with diagnostics, risk parity solves contribution balance rather than inverse volatility, constrained MVO optimizes inside the feasible set rather than clipping an unconstrained answer, the explicit BL horizon, magnitude, range, confidence, source, and uncertainty produce the posterior returns its own allocation uses, and every candidate exposes convergence, constraint, cost, contribution, path, survival, turnover, and sensitivity outcomes without a winner. Evidence: [TP-24-03 and complete carrier](report.md#tp-24-03-and-tp-24-05) — 15/15 including `SCN-008-050 six real methods enforce one complete basis and explicit views`, `SCN-008-050 infeasible constraints remain visible and explicit posterior changes allocation`, `SCN-008-026 all six allocation methods share one frozen basis`, `SCN-008-027 allocation comparison presents tradeoffs and no universal winner`, `SCN-008-029 conflicting constraints remain infeasible without relaxation`, and `SCN-008-030 explicit BL keeps equilibrium, view, posterior, and uncertainty separate`; [TP-24-04](report.md#tp-24-04) — inverse volatility as ERC, post-hoc clipping, ignored asset bounds, missing benchmark identity, posterior-disconnected weights, and structurally impossible minimums without an irreducible conflict set are each independently rejected; [TP-24-01](report.md#tp-24-01) and [coverage](report.md#coverage-report) — all six interfaces, ERC/KKT identities, BL equilibrium and posterior, costs, contributions, common paths, survival, every sensitivity axis, and irreducible conflicts.
 - [x] SCN-008-050 is implemented with real constrained methods, explicit BL posterior, complete outcomes, and no universal winner. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-24-03-and-tp-24-05).
 - [x] TP-24-01 unit evidence passes. Evidence: [TP-24-01](report.md#tp-24-01).
 - [x] TP-24-02 functional evidence passes. Evidence: [TP-24-02](report.md#tp-24-02).

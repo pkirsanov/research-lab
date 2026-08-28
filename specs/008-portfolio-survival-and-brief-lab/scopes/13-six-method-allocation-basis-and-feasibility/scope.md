@@ -96,6 +96,20 @@ Scenario: SCN-008-039 - A user clears all personal data after computing allocati
 
 **Rollback/restore:** remove Scope 13 exact basis/solver/route/test/fixture blocks. Prior risk/path/diversification behavior remains complete; Allocation shows an explicit unavailable owner state and never mutates the current portfolio.
 
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches the rollback sentence directly above, where `remove` falls within 160 characters of `route`. That sentence describes reverting this scope's own additive blocks, not retiring a route any consumer holds. Scope 13 fills the existing `#allocation` route regions and adds `AllocationBasis/v1`; no route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| `#allocation` route regions | Six stable candidate rows, the basis band, the tradeoff projection, and infeasible-conflict display are added to the existing tab | The scope's focused browser rows drive the real route, its equivalent tables, and mobile disclosures |
+| `rlportfolioanalytics.js` basis and solver region | New `AllocationBasis/v1`, projection, feasibility proof, and the six candidate methods are exported beside the risk, path, and dependence regions | Independently checked convex cases, risk-budget identities, bounds and turnover conflicts, and convergence failures |
+| Scope 09 path identities and Scope 02 mandate constraints | Read-only; the scenario basis and constraints are consumed, never redefined or relaxed | Basis fingerprint equality is asserted; the irreducible conflict set is labelled irreducible, never globally smallest unless proven |
+| Current portfolio | Read-only; the current baseline is an observation and there is no apply or rebalance path | Current-portfolio immutability is asserted directly |
+| `portfolio-survival-allocation.config.json` | Covariance, mean, risk-aversion, cash, cost, iteration, and tolerance policy are declared keys | A missing expected-return policy makes MVO unavailable rather than defaulted |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
+
 ## Scenario-First Red/Green Contract
 
 Author independent objective/constraint/residual, basis equality, infeasibility, no-winner, immutability, canvas/table, and persistent browser assertions first. Run exact commands through the tool log with `SCOPE-13` and red/green tags. RED must identify solver/constraint/state/identity/copy/pixel/parity failure; heuristic inverse-volatility or fixture-supplied weights are invalid substitutes.
@@ -114,6 +128,10 @@ Author independent objective/constraint/residual, basis equality, infeasibility,
 | TP-13-08 | Discharged clear conjunct functional | functional | SCN-008-039 | `tests/portfolio-allocation.functional.mjs` | Persist at least one allocation candidate, then prove a full-personal clear leaves the allocation section empty on a storage reread while public generic assets stay byte-identical. Carries Scope 03's discharged `allocations` conjunct under register rule 2 | `node --test tests/portfolio-allocation.functional.mjs` | No | `report.md#tp-13-08` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

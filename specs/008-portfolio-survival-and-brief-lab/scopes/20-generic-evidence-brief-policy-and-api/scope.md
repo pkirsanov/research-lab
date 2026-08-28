@@ -40,6 +40,10 @@ Scenario: Portfolio Brief composes a DST-boundary window from generic evidence a
 
 ## Change Boundary
 
+**Allowed file families:** `rlportfoliobrief.js`, the Brief and Why-shown regions of `portfolio-survival-allocation-lab.html`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-publisher-boundary.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, the generic-evidence fixtures under `tests/fixtures/portfolio-survival-allocation/**`, and the Feature 008 API canaries in `scripts/selftest.mjs`.
+
+**Excluded surfaces:** `market-brief.html`, `market-brief.payload.json`, `market-brief.snapshot.json`, `market-brief.config.json`, `brief-history*.jsonl`, `scripts/brief-refresh.mjs`, `scripts/brief-refresh-and-push.sh`, `scripts/brief-refresh-scheduled.sh`, `rlbrief.js`, the personal-store schema in `rlportfolio.js`, the risk/path/allocation regions of `rlportfolioanalytics.js`, provider credentials in `rldata.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** `rlportfoliobrief.js`, the Brief/Why-shown route regions, Feature 008 generic fixtures, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-publisher-boundary.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, and API canaries in `scripts/selftest.mjs`.
 - **Excluded:** public publisher writes/scheduler, personal store schema, risk/path/allocation math, provider credentials, registry/docs surfaces, and framework-managed files.
 
@@ -59,6 +63,8 @@ Scenario: Portfolio Brief composes a DST-boundary window from generic evidence a
 | Generic snapshot, payload, history, watchlist, and owner reads | Every required identity enters one validated local projection without personal publication. |
 | Browser and CommonJS consumers | All eight functions expose identical frozen behavior and closed error shapes. |
 | Brief lanes, Why shown, and lifecycle controls | One queue order, cap, stale policy, and last-valid identity remain consistent. |
+
+The consumer surfaces are the `rlportfoliobrief.js` API client — the same eight frozen functions loaded by both the browser page and the CommonJS test carriers — and the `portfolio-survival-allocation-lab.html#brief` deep link (`workspaceTabBrief`) that renders the lanes and Why shown. The sweep is a stale-reference scan confirming every exported function name and closed error code is identical under both loaders.
 
 ## UI Scenario Matrix
 
@@ -88,6 +94,11 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 - Reverting this scope restores only the brief module, route projection, fixtures, and tests; it never rewrites public brief history.
 
 ### Definition of Done - Tiered Validation
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 - [x] Portfolio Brief composes a DST-boundary window from generic evidence and local scope; SCN-008-046 also proves the full API, closed errors, one global queue cap, and no personal publisher flow. Evidence: [Code Diff Evidence](report.md#code-diff-evidence), [TP-20-01](report.md#tp-20-01), [TP-20-02](report.md#tp-20-02), [TP-20-03](report.md#tp-20-03), [TP-20-04](report.md#tp-20-04).
 - [x] TP-20-01 functional evidence passes. Evidence: [TP-20-01](report.md#tp-20-01).

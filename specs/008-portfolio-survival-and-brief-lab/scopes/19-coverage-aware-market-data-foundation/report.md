@@ -10,6 +10,34 @@ same-date rows, measures actual bounds, and refuses completeness until currency,
 freshness, and requested-bound requirements all hold. The original synchronous three-argument measurement
 and existing `ensureBars` Promise remain compatible.
 
+**Shared Infrastructure Impact Sweep.** The only shared-foundation file touched is `rldata.js`; the remaining
+changed paths are `scripts/selftest.mjs` and the two test carriers, per the `git status --short` output under
+[Code Diff Evidence](#code-diff-evidence). No provider credential UI/schema, public bar file, analytics
+formula, personal storage, publisher artifact, registry, or documentation file was changed.
+
+**Additive rollback proof.** The change is additive rather than a replacement, so removing it restores the
+prior contract with no migration:
+
+```text
+$ node --test tests/portfolio-bar-coverage.functional.mjs   # Intended RED, pre-implementation
+legacy ensureBars and three-argument coverage retain cache and Promise compatibility: PASS
+
+$ npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+tests: 8
+pass: 8
+fail: 0
+
+$ node scripts/selftest.mjs
+exit: 0
+Research-Lab self-test: 3189 passed, 0 failed
+```
+
+The legacy compatibility row passed *before* the source change existed, which is what proves the new contract
+is additive: the pre-existing synchronous three-argument call and the existing `ensureBars` Promise were
+already satisfied by the old implementation. The unchanged 8/8 provider credential matrix and the 3,189-assertion
+selftest confirm no shared consumer regressed after the change landed.
+
 ## Decision Record
 
 Coverage acquisition remains a protected shared-data foundation, so compatibility and credential-boundary
@@ -68,6 +96,8 @@ validation.
 
 ### TP-19-01
 
+**Claim Source:** executed
+
 ```text
 # Feature 008 Scope 19 final repository selftest
 $ node scripts/selftest.mjs
@@ -76,6 +106,11 @@ lines: 3640
 sha256: c6291782133c541d95a2472278321d45fec6a3403e61f8c035b608b39eb6a251
 Research-Lab self-test: 3189 passed, 0 failed
 ```
+
+The shared unit/selftest canary is the whole-repository suite, so it is the row that would fail first if the
+additive `ensureBarCoverage` contract had disturbed any existing shared-cache consumer. It reports 3,189
+assertions passing with 0 failed, 0 skipped, and 0 todo. The recorded line count and digest identify the exact
+captured run.
 
 ### TP-19-02
 
@@ -159,6 +194,27 @@ clear, legacy cleanup, inaccessible-storage handling, and cancellation behavior.
 SCN-008-045 is exercised by the real-runtime functional carrier, repository selftest, exact live-page title,
 and the unchanged provider credential matrix. The adversarial row proves requested labels and large row counts
 cannot substitute for actual date bounds.
+
+The carriers that execute the scenario, with the exit codes recorded under [Test Evidence](#test-evidence):
+
+```text
+$ node --test tests/portfolio-bar-coverage.functional.mjs                       # TP-19-02
+exit: 0   tests: 6   pass: 6   fail: 0   skipped: 0
+
+$ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth" --reporter=list
+exit: 0   1 passed
+requested: 2021-08-20..2026-08-20
+actual: 2024-07-25..2026-08-20
+rows: 520   state: partial   requests: /data/bars/MSFT.json
+
+$ node --test --test-name-pattern="Adversarial: requested range labels and row counts cannot fake date coverage" tests/portfolio-bar-coverage.functional.mjs   # TP-19-04
+exit: 0   tests: 1   pass: 1   fail: 0   skipped: 0
+```
+
+The date/consent/source semantics are explicit in the live row: the requested five-year bound is *not* claimed,
+the measured actual bound stops at the real snapshot edge, and the state is reported `partial` rather than
+`complete`. The only request issued is the same-origin `/data/bars/MSFT.json`, so no personal request field and
+no provider credential is involved under same-origin-only policy.
 
 ## Coverage Report
 

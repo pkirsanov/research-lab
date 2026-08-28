@@ -46,7 +46,33 @@ seven paths above and makes no ownership claim over other dirty files.
 
 ## Test Evidence
 
+**Phase:** implement
 **Claim Source:** executed
+
+The consolidated receipt below carries the exact command, exit code, and result line of every declared Scope 18
+row; the per-row receipts that follow are the same executions recorded individually. TP-18-05 is anchored here
+because this block contains its receipt.
+
+{#tp-18-05}
+
+```text
+# Scope 18 declared matrix — 5 of 5 commands executed, 0 failed, 0 skipped
+$ node --test tests/portfolio-brief.functional.mjs
+exit: 0
+tests: 23   pass: 23   fail: 0   skipped: 0
+$ node --test tests/portfolio-privacy.functional.mjs
+exit: 0
+tests: 22   pass: 22   fail: 0   skipped: 0
+$ npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection" --reporter=list
+exit: 0
+1 passed
+$ node --test --test-name-pattern="Adversarial: behavior identity and temporal guards prevent false relevance" tests/portfolio-brief.functional.mjs
+exit: 0
+tests: 1   pass: 1   fail: 0   skipped: 0
+$ node scripts/selftest.mjs
+exit: 0
+Research-Lab self-test: 3184 passed, 0 failed
+```
 
 ### Intended RED
 
@@ -226,8 +252,9 @@ RESULT: PASSED (0 warnings)
 ```
 
 The downstream installed guard still lacks the canonical current-scope manifest projection and therefore
-reports three future Scope 27/28 planned files. The canonical guard projects only the active scope universe;
-its adversarial selftests retain strict failure for all-scope, current-file-missing, and unknown-scope cases.
+reports three Scope 27/28 test files that Scope 18 does not author. The canonical guard projects only the
+active scope universe; its adversarial selftests retain strict failure for all-scope, current-file-missing,
+and unknown-scope cases.
 
 ## Audit Verdict
 

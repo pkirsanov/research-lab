@@ -127,6 +127,10 @@ Author complete why-shown, forbidden mutation, lifecycle, owner-handoff, and clo
 
 ### Definition of Done
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
 #### Core Delivery Items
 
 - [x] FR-045 through FR-046, FR-051 through FR-055, and FR-062 through FR-063 are fully implemented with complete why-shown, separate confidence, attributed generic evidence, closed research actions, completion/stale/invalidation, no preference inference, visible clear control, and immediate recomposition.

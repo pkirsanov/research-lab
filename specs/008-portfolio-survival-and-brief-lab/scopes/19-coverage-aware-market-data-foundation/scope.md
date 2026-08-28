@@ -39,6 +39,10 @@ Scenario: A five-year request starts from a short same-origin cache
 
 ## Change Boundary
 
+**Allowed file families:** the additive coverage-API block in `rldata.js`, `portfolio-survival-allocation.config.json`, `tests/portfolio-bar-coverage.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, `tests/portfolio-survival-risk.spec.mjs`, the coverage fixtures under `tests/fixtures/portfolio-survival-allocation/**`, and the Feature 008 canary block in `scripts/selftest.mjs`.
+
+**Excluded surfaces:** the existing `ensureBars` body and provider-credential schema/UI inside `rldata.js`, `data/bars/**` public snapshots, `rlportfolioanalytics.js`, the personal-storage regions of `rlportfolio.js`, `rlnav.js`, `rlbrief.js`, `market-brief.html`, `market-brief.*.json`, `scripts/brief-*`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** additive `rldata.js` coverage API, `portfolio-survival-allocation.config.json`, Feature 008 coverage fixtures, `scripts/selftest.mjs`, a focused coverage functional carrier, and Feature 008 foundation/risk browser tests.
 - **Excluded:** provider credential schemas/UI, existing `ensureBars` semantics, public bar files, analytics formulas, personal storage, publisher artifacts, and registry/docs.
 
@@ -58,6 +62,8 @@ Scenario: A five-year request starts from a short same-origin cache
 | Existing `ensureBars` callers | Name, arguments, Promise behavior, cache shape, and provider authority remain compatible. |
 | Provider credentials and data settings | Consent and public-only request fields remain controlled by the existing capability path. |
 | Risk, paths, dependence, hedge, and allocation | Every consumer receives exact bounds, source identities, disputes, and partial state. |
+
+The shared consumer surface is the `RLDATA` API client in `rldata.js`: the additive `ensureBarCoverage` entry point sits beside the existing `ensureBars` export, and the central provider-access deep link `index.html#data-settings` that `rlapp.js` renders still targets the same settings panel. The sweep is a stale-reference scan over `RLDATA.` call sites confirming every existing caller still resolves against the unchanged `ensureBars` signature.
 
 ## Test Plan
 
@@ -79,6 +85,12 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
+- [x] SCN-008-045 behavior: a five-year request that starts from a short same-origin cache appends and de-duplicates eligible static dates before coverage is measured, returns retained partial rows with exact first and last dates under same-origin-only, requests only the public symbol interval and range when public lookup is enabled, and reports `complete` only when actual dates satisfy the target-years and source checks, while existing `ensureBars` callers keep their prior behavior. → Evidence: [TP-19-02](report.md#tp-19-02) — six rows covering same-origin append with retained partial truth, qualified public lookup, conflict exclusion, false-completeness rejection, legacy `ensureBars` compatibility, and fail-before-mutation validation; [TP-19-03](report.md#tp-19-03) — live page requests `2021-08-20..2026-08-20`, measures actual `2024-07-25..2026-08-20` over 520 rows, reports `state: partial`, and issues only the same-origin `/data/bars/MSFT.json`; [TP-19-04](report.md#tp-19-04) — 1,300 rows and five-year request labels still cannot return `complete` while both required bounds are absent
 - [x] SCN-008-045 is implemented with explicit date/consent/source semantics and no personal request fields. → Evidence: [Scenario Contract Evidence](report.md#scenario-contract-evidence)
 - [x] TP-19-01 shared unit/selftest canaries pass. → Evidence: [TP-19-01](report.md#tp-19-01)
 - [x] TP-19-02 functional acquisition/coverage proof passes. → Evidence: [TP-19-02](report.md#tp-19-02)

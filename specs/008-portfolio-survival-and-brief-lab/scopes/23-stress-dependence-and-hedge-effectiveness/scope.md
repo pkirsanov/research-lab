@@ -40,6 +40,10 @@ Scenario: A user evaluates diversification and hedge effectiveness across normal
 
 ## Change Boundary
 
+**Allowed file families:** the dependence, stress-sample, and hedge-effectiveness regions of `rlportfolioanalytics.js`, the Diversification regions of `portfolio-survival-allocation-lab.html`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-diversification.functional.mjs`, `tests/portfolio-survival-diversification.spec.mjs`, and the dependence/hedge fixtures under `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** `rlportfolio.js` personal store, `rlportfoliobrief.js` ranking, `market-brief.*` and `scripts/brief-*`, the core path engine in `rlportfolioanalytics.js` except typed consumption, its allocation-solver regions, dossier persistence (`tests/portfolio-dossier.functional.mjs`), `rldata.js`, `rlnav.js`, `rlbrief.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** dependence/hedge portions of `rlportfolioanalytics.js`, Diversification route regions, related fixtures, `tests/portfolio-analytics.unit.mjs`, a focused diversification functional carrier, and `tests/portfolio-survival-diversification.spec.mjs`.
 - **Excluded:** personal store, brief ranking, generic publisher, core path engine except typed consumption, allocation solvers, dossier persistence, registry/docs, and framework-managed files.
 
@@ -59,6 +63,8 @@ Scenario: A user evaluates diversification and hedge effectiveness across normal
 | Diversification Simple and Power | Raw, adjusted, tail, downside, drawdown, recovery, and appraisal states stay separate. |
 | Hedge comparison | Ratio, horizon, regression, residual, cost, and common-path identities remain explicit. |
 | Allocation and dossier | Qualified dependence, path, cost, and tried-variant records remain reusable without reinterpretation. |
+
+The consumer-facing surface is the `portfolio-survival-allocation-lab.html#diversification` deep link (`workspaceTabDiversification`), which carries the Simple and Power dependence, stress, and hedge panels. The sweep is a stale-reference scan confirming that hash, its tab id, and the qualified dependence/hedge field names stay identical for the allocation and dossier consumers.
 
 ## UI Scenario Matrix
 
@@ -89,6 +95,12 @@ All six remediation rows are authored. Their current execution evidence is recor
 
 ### Definition of Done - Tiered Validation
 
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Change Boundary is respected and zero excluded file families were changed
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
+
+- [x] SCN-008-049 behavior: a user evaluates diversification and hedge effectiveness across normal, stress, and path states, and raw and Forbes-Rigobon qualified stress estimates report sample, variance, orientation, and intervals separately, tail co-exceedance, downside, drawdown, and recovery overlap stay distinct, appraisal assets expose valuation age, liquidity, cost, smoothing, and de-smoothing sensitivity before any conclusion, hedge ratio, horizon, carry, direct cost, turnover, liquidity, basis regression, and residual exposure are explicit, and all three effectiveness states share one scenario basis without prescribing a personal hedge. Evidence: [TP-23-03 and complete carrier](report.md#tp-23-03-and-tp-23-05) — 10/10 including `SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence`, `SCN-008-049 hedge variants reuse the selected survival scenario and path identities`, and the sibling `SCN-008-022`/`SCN-008-024`/`SCN-008-025` rows that keep raw versus qualified adjustment, appraisal smoothing, and carry versus basis risk apart; [TP-23-01](report.md#tp-23-01) and [coverage](report.md#coverage-report) — sample identity, stress selection, raw and adjusted estimates, intervals, tail events, downside, drawdown, recovery, de-smoothing, hedge regression, costs, and opaque common paths; [TP-23-04](report.md#tp-23-04) — reduced diversification and hedge shortcuts are refused; [uncertainty declarations](report.md#uncertainty-declarations) — the route makes no personal hedge recommendation.
 - [x] SCN-008-049 is implemented with distinct samples, qualified adjustment, appraisal limits, regression basis risk, costs, and common paths. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-23-03-and-tp-23-05).
 - [x] TP-23-01 unit evidence passes. Evidence: [TP-23-01](report.md#tp-23-01).
 - [x] TP-23-02 functional evidence passes. Evidence: [TP-23-02](report.md#tp-23-02).

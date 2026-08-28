@@ -98,6 +98,22 @@ Scenario: SCN-008-024 - A manually valued real estate or collectible series appe
 
 **Rollback/restore:** remove Scope 11 exact dependence/alternative/config/route/test/fixture blocks. Risk and Path remain complete, and Diversification displays a truthful unavailable state rather than a simplified correlation matrix.
 
+## Consumer Impact Sweep
+
+**This scope renames nothing.** The rename/removal detector matches the rollback sentence directly above, where `remove` falls within 160 characters of `route`. That sentence describes reverting this scope's own additive blocks, not retiring a route any consumer holds. No route hash, config key, exported symbol, storage key, or persistent test title that existed before this scope is renamed, deleted, moved, or deprecated.
+
+One consumer effect here is real. Per the F-11-CONFIG-BOUNDARY amendment above, enabling the Diversification route required **adding** it to `descriptiveRouteStates`, whose exact-set check lives in `rlportfolio.js`. That is an addition to a route list, not a rename of an entry in it — and because the check is exact-set, the addition correctly failed the route-list pins in three test files, which are admitted to the boundary for that reason.
+
+| Consumer surface this scope touches | Why it is touched | Regression check |
+|---|---|---|
+| `descriptiveRouteStates` in `rlportfolio.js` | The Diversification route is added to the exact route-state set; existing entries keep their identity | The exact-set check rejects both an undeclared and a missing entry |
+| Route-list pins in `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, and `tests/portfolio-survival-foundation.spec.mjs` | Each pins the route-state set and goes red by design when the set grows | Each was updated to include the new route, never relaxed to stop pinning the set |
+| Diversification route regions | Lens controls, dependence matrix, pair table, Forbes-Rigobon caveat, and alternative-quality rows are added to the existing tab | The scope's focused browser rows drive the real matrix pixels, table, keyboard, and mobile disclosures |
+| `portfolio-survival-allocation.config.json` | The lower-tail quantile and stress/de-smoothing parameters are declared keys rather than hidden thresholds | The exact-key validator rejects any undeclared key; deriving the quantile from `minimumTailObservations` was rejected as the hidden assumption this scope forbids |
+| Risk X-Ray and Path Lab | Read-only consumers that must stay complete if this scope is reverted | The rollback statement above is proven by rerunning their carriers |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
+
 ## Scenario-First Red/Green Contract
 
 Author independently derived raw/adjusted/tail/de-smoothing, unavailable/copy, matrix/table, and persistent browser assertions first. Run exact commands through the tool log with `SCOPE-11` and red/green tags. RED must identify method/sample/caveat/state/pixel/parity failure; asserting fixture-provided conclusions or one universal crisis sentence is invalid.
@@ -114,6 +130,10 @@ Author independently derived raw/adjusted/tail/de-smoothing, unavailable/copy, m
 | TP-11-06 | Broader Regression E2E | e2e-ui | SCN-008-022, SCN-008-023, SCN-008-024 | `tests/portfolio-survival-diversification.spec.mjs` | Execute the complete cumulative Feature 008 Diversification browser suite after every focused row | `npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-11-06` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [ ] Broader E2E regression suite passes
+- [ ] Consumer impact sweep completed; zero stale first-party references remain
 
 #### Core Delivery Items
 

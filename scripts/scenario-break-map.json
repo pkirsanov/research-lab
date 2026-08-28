@@ -708,6 +708,19 @@
       "control": "each Why shown disclosure reports a constant evidence identity instead of the one the route actually validated, so a reader cannot confirm that every visible action was composed from the same atomic generic evidence window",
       "claim": "Every rendered action's Why shown disclosure carries the same generic evidence identity the route validated, so the whole visible brief is provably composed from one atomic evidence window",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-052": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "node.setAttribute(\"data-active-tab\", state.route);",
+          "replace": "node.setAttribute(\"data-active-tab\", \"brief\");"
+        }
+      ],
+      "control": "the workspace stops reporting the tab it is actually showing and always names the brief, so a reader auditing which view produced a figure is told the wrong one on every tab except the first",
+      "claim": "The workspace reports the tab it is actually showing, so every mode and tab combination renders one identifiable active view against one published identity",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

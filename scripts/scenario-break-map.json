@@ -828,6 +828,19 @@
       "control": "the most influential assumption is no longer named on the surface, so a reader is shown a parameter-uncertainty spread without being told which input drives it and cannot judge which assumption to challenge",
       "claim": "Path randomness and parameter uncertainty are presented as separate distributions, and the assumption most responsible for the parameter spread is named on the surface",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-022": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "and are not a property \" +",
+          "replace": "and are a property \" +"
+        }
+      ],
+      "control": "the dependence claim boundary inverts and asserts that a windowed correlation IS a property of the pair, so a reader takes a stress-window figure as a permanent characteristic of the two assets",
+      "claim": "The dependence surface states its own claim boundary - a correlation measured on one named window is not a property of the pair, heteroskedasticity alone can produce a rise, and no contagion label is applied automatically",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

@@ -38,9 +38,12 @@ this report was being written, not the delivery, and it is now an ancestor of `H
 ## The Publisher Fix
 
 **`executed (artifact turn)`** — `grep -n 'windowCutoffAt' scripts/brief-refresh.mjs` then
-`sed -n '2628,2642p' scripts/brief-refresh.mjs`
+`sed -n '2628,2642p' scripts/brief-refresh.mjs` at the artifact turn. The range has since
+DRIFTED by six lines; re-verified below at its current location, where it returns the same
+fifteen lines byte-for-byte:
 
 ```
+$ sed -n '2634,2648p' scripts/brief-refresh.mjs
   // deterministic slice the browser cockpit reads (market-brief.html overlays it as the "Computed (Tier-A)" line)
   // asOf is the analyzed WINDOW's evidence cutoff, not the run clock: a run that starts at 11:37 still
   // publishes the 11:00 morning window, and every consumer refuses evidence dated past the window it declares.
@@ -469,13 +472,27 @@ because it was run as a verification gate, not because this packet authored it.
 
 **`executed (artifact turn)`** — `git log --oneline -3` and `git status --porcelain`
 
+The artifact-turn capture recorded `648e0992b` as `HEAD` and the delivery as uncommitted. Both
+halves have since gone stale: the delivery is committed in `899c7a40e`, and `HEAD` has advanced
+many commits. Re-verified against the committed tree rather than left describing a repository
+state that no longer exists:
+
 ```
-648e0992b (HEAD -> main) docs(008): reconcile Scope 27 evidence wording
+$ git merge-base --is-ancestor 899c7a40e HEAD && echo "delivery commit is an ancestor of HEAD"
+delivery commit is an ancestor of HEAD
+$ git show HEAD:scripts/brief-refresh.mjs | grep -c windowCutoffAt
+3
+$ echo "exit=$?"
+exit=0
 ```
 
-The fix is present in the working tree at `648e0992b` and is **uncommitted**. The artifact
-turn was explicitly scoped to documentation and was instructed not to commit or push, so no
-commit was created and none is claimed. `autoCommit` is `off` in the policy snapshot.
+The artifact turn's own reading was the single line
+`648e0992b (HEAD -> main) docs(008): reconcile Scope 27 evidence wording`, and its
+accompanying paragraph read: *"The fix is present in the working tree at `648e0992b` and is
+**uncommitted**. The artifact turn was explicitly scoped to documentation and was instructed
+not to commit or push, so no commit was created and none is claimed. `autoCommit` is `off` in
+the policy snapshot."* Both are quoted here verbatim rather than deleted, because both were
+true when taken.
 
 > **Superseded — kept because it was true when captured.** The block and paragraph above are
 > the artifact turn's genuine reading and are left byte-intact rather than rewritten. Both

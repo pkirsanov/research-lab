@@ -476,6 +476,26 @@
       "control": "a behavior occurrence dated after the brief's own cutoff is admitted as eligible instead of quarantined, so activity that had not happened when the brief was composed is counted into its ranking",
       "claim": "A behavior occurrence dated past the brief cutoff is quarantined rather than counted, so a brief never ranks on activity later than itself",
       "implementationRefs": ["rlportfoliobrief.js"]
+    },
+    "SCN-008-041": {
+      "test": "tests/portfolio-privacy.functional.mjs#TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "  var FOUNDATION_SESSION_KEYS = Object.freeze([",
+            "    \"rlPortfolioWorkspaceSessionV1\",",
+            "    \"rlReturnContextV1\"",
+            "  ]);"
+          ],
+          "replace": [
+            "  var FOUNDATION_SESSION_KEYS = Object.freeze([]);"
+          ]
+        }
+      ],
+      "control": "the session-scoped personal keys are removed from the sweep entirely, so one full-personal clear no longer reaches the session store and a whole personal category the route can create survives the clear",
+      "claim": "One full-personal clear sweeps every personal category the finished route can create, including the session-scoped ones",
+      "implementationRefs": ["rlportfolio.js"]
     }
   }
 }

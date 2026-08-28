@@ -1,13 +1,17 @@
 # User Validation: BUG-011 — Declaring The Budget These Tests Actually Need
 
-The code change is applied in the working tree, and the verification that would prove it works has
-**not** reported. Every item below therefore ships **unchecked**, including the automation-readiness
-items whose command was already run — because a readiness box records a fact this agent observed
-first-hand, and no measurement in this packet was executed by this agent. All Playwright and selftest
-figures were produced by the operator and are recorded in `report.md` as reported observations.
+The Automation Readiness items below remain **unchecked**, and deliberately so: a readiness box
+records a fact this agent observed first-hand, and no Playwright or selftest measurement in this
+packet was executed by this agent. All such figures were produced by the operator and are recorded
+in `report.md` as reported observations. This update did not change that, and did not tick them.
 
-Automation may check the Automation Readiness section, and doing so grants no acceptance whatsoever.
-Acceptance is the Checklist section plus the acceptance record, and only a human establishes it.
+What changed is the Checklist. Its items are now checked, and the basis is the repository operator's
+explicit authorization dated 2026-08-27, transcribed here by automation. They are **not** checked on
+automation's own judgement. A checked readiness box would not have granted acceptance in any case —
+acceptance is the Checklist plus the acceptance record, and only a human establishes it.
+
+Acceptance is not certification. This packet's `status` and `certification.status` remain
+`in_progress`, and gates other than G136 are still failing.
 
 ## Automation Readiness
 
@@ -36,25 +40,32 @@ Acceptance is the Checklist section plus the acceptance record, and only a human
 
 ## Checklist
 
-- [ ] Running the whole test suite the way the repository runs it no longer reports
+- [x] Running the whole test suite the way the repository runs it no longer reports
       `tests/causal-rotation-consumers.spec.mjs` as red on a busy machine.
-- [ ] The two Feature 001 guarantees those tests exist to hold — that causal context may sit beside
+- [x] The two Feature 001 guarantees those tests exist to hold — that causal context may sit beside
       an owner verdict, and may never change one — are still being checked. The red went away because
       the tests were given the time their work takes, not because anything is checked less.
-- [ ] Nothing became easier to pass: no retries were added, no test was skipped or marked fixme, no
+- [x] Nothing became easier to pass: no retries were added, no test was skipped or marked fixme, no
       assertion was deleted, and `enterOwnerView` still fails when no owner view can be reached.
-- [ ] The suite still contains every test it contained before the change.
-- [ ] The limitation is understood and accepted as the scope of this packet: the `networkidle` settle
+- [x] The suite still contains every test it contained before the change.
+- [x] The limitation is understood and accepted as the scope of this packet: the `networkidle` settle
       is still timing-dependent, and only its allowance grew. A slower machine can still exhaust the
       larger budget. Replacing that wait with a condition-based one needs a readiness marker the three
       owner pages do not expose, and is recorded in `spec.md` as out of scope, not as done.
 
+Each box above was checked on the operator's instruction dated 2026-08-27 and transcribed by
+automation. Automation did not judge these statements to be true and is not asserting them.
+
 ## Human Acceptance Record
 
-Acceptance has not occurred. The change is applied but unverified — the run that would let a human
-see the suite green has not reported — so there is no acceptor, no acceptance date, and no acceptance
-method to record. A human completes this section after exercising the delivered behaviour.
+The repository operator granted acceptance as a batch directive during the working session of
+2026-08-27/28. The operator did not separately exercise this behaviour in a live session; they
+authorized on the basis of the verification reported to them. That is exactly why the method below
+is `external-record` rather than `human-interactive` — the accepting act happened in the session,
+outside this file, and the operator's dated directive **is** the record. No UAT ticket, sign-off ID,
+or other external artifact exists, and none is claimed.
 
-- acceptedBy: [unfilled]
-- acceptedAt: [unfilled]
-- method: [unfilled]
+- acceptedBy: pkirsanov
+- acceptedAt: 2026-08-27
+- method: external-record
+- record: Operator directive in the 2026-08-27/28 working session, quoted verbatim — "authorized, approved, update all user validations as approved" and "Don't stop for user review, commit, continue, user approves all". Transcribed by automation 2026-08-28; the directive itself is the acceptance artifact and no external ticket exists.

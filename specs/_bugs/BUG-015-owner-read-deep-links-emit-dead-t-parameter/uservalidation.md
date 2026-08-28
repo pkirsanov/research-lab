@@ -1,14 +1,19 @@
-# User Validation: BUG-015 — Filed, Nothing Delivered
+# User Validation: BUG-015 — Owner-Read Deep Links Emit A Dead `t` Parameter
 
-This packet files a defect and implements nothing. There is no delivered behaviour to exercise.
+This file was authored when the packet was a filing only, and its title and opening paragraph said
+so. That is now stale: both scopes record **Status: Done** and all 18 Definition-of-Done items in
+`scopes.md` are checked, with zero unchecked. The header has been corrected rather than left to
+contradict the packet's own record.
 
-The Automation Readiness items below record facts about the **filing** — that the defect is real,
-grounded, and correctly attributed. They are ticked where an executed check establishes them.
+The Automation Readiness items below record facts about the **filing** — that the defect was real,
+grounded, and correctly attributed. They are ticked where an executed check established them, and
+this turn ticked no further one.
 
 **Ticking an Automation Readiness item grants no acceptance whatsoever.** Acceptance is the
-Checklist section plus the acceptance record, and only a human establishes it. Every Checklist item
-is unticked and the Human Acceptance Record is unfilled, because nothing has been fixed and the
-product question at the centre of the remedy has not been answered.
+Checklist section plus the acceptance record. The Checklist is now checked on the repository
+operator's explicit authorization dated 2026-08-27, transcribed by automation — not on automation's
+own judgement. Acceptance is not certification: `status` and `certification.status` remain
+`in_progress`, and gates other than G136 are still failing.
 
 ## Automation Readiness
 
@@ -28,25 +33,39 @@ product question at the centre of the remedy has not been answered.
 - [ ] The outcome for a subject that cannot be honoured is chosen. **Left unticked deliberately. `refused`, `absent` and out-of-catalog currently collapse to silence. What replaces that is a product choice, enumerated as open question 1 in `design.md` and owned by Scope 1.**
 - [ ] Whether these routes should be openable by link at all is answered. **Left unticked deliberately. Open question 4 in `design.md`. If the answer is no, the correct remedy is to stop publishing a subject-bearing link, and Scope 2 shrinks to deleting two expressions.**
 
+*Note (2026-08-28): the two items above were written while Scope 1 was open, and both scopes have
+since closed. They are still left unticked. A readiness box records a fact this agent observed
+first-hand, and this turn did not re-derive either answer from `design.md` — it recorded the
+operator's acceptance and nothing more. Leaving them unticked understates the packet; ticking them
+would overstate what was checked, and only the second failure mode is a fabrication.*
+
 ## Checklist
 
-- [ ] The defect as filed is the real defect: a published link names a company, and following it opens something else without saying so.
-- [ ] Filing it is the right response to a routed finding nobody received. The routing out of Feature 027 was correct and it went nowhere, which is why this packet exists.
-- [ ] The two-halves finding is understood as the substantive addition. Copying the precedent's one-line swap would look like a fix and would change nothing a reader can see, because these routes read no subject parameter at all.
-- [ ] The silence is understood as the reason this is worth filing rather than noting. A link that broke loudly would have been found the day it shipped.
-- [ ] The half-migrated state is understood as a second, independent reason to close this. Two conventions are live and neither is marked provisional, so the next route to publish a subject link has an even chance of copying the dead one.
-- [ ] Widening `F027_SUBJECT_ROUTES` is understood as part of the remedy, not an optional extra. Landing the code fix without it leaves the same blind spot for the next route.
-- [ ] The coupled test at `tests/technical-analysis-decision-lab.spec.mjs:922` is understood as part of the fix surface, not collateral damage.
-- [ ] Deciding the unhonourable-subject outcome is **your** decision, not the filing agent's. That the packet enumerates the cases and selects none is the intended outcome, not an incomplete one.
-- [ ] Open question 4 in `design.md` deserves an answer first, because a "no" makes the whole receiving half unnecessary and shrinks the remedy substantially.
-- [ ] Not adding a selftest assertion in this packet is understood as correct. An assertion that fails on a known-open defect turns the suite red for work nobody is yet authorised to do.
+- [x] The defect as filed is the real defect: a published link names a company, and following it opens something else without saying so.
+- [x] Filing it is the right response to a routed finding nobody received. The routing out of Feature 027 was correct and it went nowhere, which is why this packet exists.
+- [x] The two-halves finding is understood as the substantive addition. Copying the precedent's one-line swap would look like a fix and would change nothing a reader can see, because these routes read no subject parameter at all.
+- [x] The silence is understood as the reason this is worth filing rather than noting. A link that broke loudly would have been found the day it shipped.
+- [x] The half-migrated state is understood as a second, independent reason to close this. Two conventions are live and neither is marked provisional, so the next route to publish a subject link has an even chance of copying the dead one.
+- [x] Widening `F027_SUBJECT_ROUTES` is understood as part of the remedy, not an optional extra. Landing the code fix without it leaves the same blind spot for the next route.
+- [x] The coupled test at `tests/technical-analysis-decision-lab.spec.mjs:922` is understood as part of the fix surface, not collateral damage.
+- [x] Deciding the unhonourable-subject outcome is **your** decision, not the filing agent's. That the packet enumerates the cases and selects none is the intended outcome, not an incomplete one.
+- [x] Open question 4 in `design.md` deserves an answer first, because a "no" makes the whole receiving half unnecessary and shrinks the remedy substantially.
+- [x] Not adding a selftest assertion in this packet is understood as correct. An assertion that fails on a known-open defect turns the suite red for work nobody is yet authorised to do.
+
+Each box above was checked on the operator's instruction dated 2026-08-27 and transcribed by
+automation. Several of these items are decision requests addressed to the operator; checking them
+records that the operator accepted the framing, not that automation judged it correct.
 
 ## Human Acceptance Record
 
-Acceptance has not occurred and cannot occur yet. This packet delivers no behaviour to exercise; it
-delivers a defect description, an executed grounding for it, and a decision request. Automation
-cannot fill this section and nothing above substitutes for it.
+The repository operator granted acceptance as a batch directive during the working session of
+2026-08-27/28. The operator did not separately exercise the delivered behaviour in a live session;
+they authorized on the basis of the verification reported to them. That is exactly why the method
+below is `external-record` rather than `human-interactive` — the accepting act happened in the
+session, outside this file, and the operator's dated directive **is** the record. No UAT ticket,
+sign-off ID, or other external artifact exists, and none is claimed.
 
-- acceptedBy: [unfilled]
-- acceptedAt: [unfilled]
-- method: [unfilled]
+- acceptedBy: pkirsanov
+- acceptedAt: 2026-08-27
+- method: external-record
+- record: Operator directive in the 2026-08-27/28 working session, quoted verbatim — "authorized, approved, update all user validations as approved" and "Don't stop for user review, commit, continue, user approves all". Transcribed by automation 2026-08-28; the directive itself is the acceptance artifact and no external ticket exists.

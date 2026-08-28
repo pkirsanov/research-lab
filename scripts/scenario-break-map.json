@@ -760,6 +760,19 @@
       "control": "the six-tab strip stops containing its own horizontal overflow, so at mobile width and under zoom the tablist pushes the document wider than the viewport and the reader gets a horizontally scrolling page",
       "claim": "Every route holds its layout at desktop, mobile, and zoom with long content - no overlap, no clipping, and no horizontal body overflow",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-042": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "revision.holdings.length + \" holdings\"",
+          "replace": "(revision.holdings.length + 1) + \" holdings\""
+        }
+      ],
+      "control": "the confirmed revision line overstates the holding count by one, so the portfolio a reader believes they committed does not match the positions actually stored and a removal appears not to have taken effect",
+      "claim": "A confirmed holding revision reports the count it actually contains, so adding, editing, and removing holdings leave an honest portfolio summary",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

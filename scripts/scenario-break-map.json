@@ -249,6 +249,52 @@
       "control": "the weight factor is dropped from the Euler contribution, so the marginal contribution is reported as the total contribution and the sum no longer reconciles to portfolio risk",
       "claim": "Marginal and total risk contributions are distinct and reconcile to portfolio risk by Euler decomposition",
       "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-010": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-010 insufficient completed history produces zero inferred actions",
+      "breakFile": "rlportfoliobrief.js",
+      "edits": [
+        {
+          "find": "        behaviorHistory: floor.satisfied ? \"sufficient-history\" : \"insufficient-history\",",
+          "replace": "        behaviorHistory: \"sufficient-history\","
+        }
+      ],
+      "control": "the brief always reports sufficient-history, so a history below the declared behavior floor is no longer disclosed as insufficient and the shortfall becomes invisible to the reader",
+      "claim": "Below the declared behavior floor the brief states insufficient-history rather than presenting the shortfall as sufficient evidence",
+      "implementationRefs": ["rlportfoliobrief.js"]
+    },
+    "SCN-008-014": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var recoveryDate = null, recoveryPeriods = null, recoveryState = \"unrecovered\";",
+          "replace": "    var recoveryDate = dates[dates.length - 1], recoveryPeriods = idx.length - 1, recoveryState = \"recovered\";"
+        }
+      ],
+      "control": "computeDrawdown seeds a recovery that never happened, so an episode still under water at the evidence cutoff reports a recovered state with a fabricated recovery date and duration",
+      "claim": "A drawdown unrecovered at the evidence cutoff is labelled unrecovered as of that cutoff and no recovery date or duration is fabricated",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-039": {
+      "test": "tests/portfolio-allocation.functional.mjs#TP-13-08 a saved allocation survives a reread and is emptied by the full personal clear",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "    \"rlPortfolioWorkspaceV1.pointer\",",
+            "    \"rlPortfolioWorkspaceV1.slotA\",",
+            "    \"rlPortfolioWorkspaceV1.slotB\",",
+            "    \"rlPortfolioWorkspaceV1.quarantine\","
+          ],
+          "replace": [
+            "    \"rlPortfolioWorkspaceV1.quarantine\","
+          ]
+        }
+      ],
+      "control": "the workspace record is dropped from the declared full-personal sweep, so a saved allocation is still readable off the storage adapters after a confirmed full-personal clear",
+      "claim": "The allocation section reads empty off the storage adapters after a full-personal clear",
+      "implementationRefs": ["rlportfolio.js"]
     }
   }
 }

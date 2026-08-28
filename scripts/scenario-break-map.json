@@ -604,6 +604,32 @@
       "control": "saving the same scenario twice stops being recognised as a repeat, so an identical specification accumulates duplicate rows in private storage instead of reporting that it was already saved",
       "claim": "Saving an identical scenario is a no-op that reports it was already saved rather than writing a second row, so persisted scenario storage stays one row per distinct specification",
       "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-048": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "[\"Parameter marginal\", r.distributionSet.parameterMarginal],",
+          "replace": "[\"Marginal\", r.distributionSet.parameterMarginal],"
+        }
+      ],
+      "control": "the parameter-uncertainty distribution loses the label that names it as the parameter marginal, so a reader can no longer tell which of the three distributions isolates estimation uncertainty from path randomness",
+      "claim": "The distribution set presents conditional path, parameter marginal, and combined distributions under their contracted names, so parameter uncertainty stays distinguishable from path randomness",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-049": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "{ lens: \"forbes-rigobon-adjusted\", label: \"Forbes-Rigobon adjusted\", value: evidence.adjustment }",
+          "replace": "{ lens: \"adjusted\", label: \"Forbes-Rigobon adjusted\", value: evidence.adjustment }"
+        }
+      ],
+      "control": "the volatility-adjusted dependence lens loses its contracted identity, so the row that separates a genuine rise in dependence from one driven by higher volatility can no longer be identified and the downstream estimate selection stops matching it",
+      "claim": "Stress dependence is presented through three distinct named lenses - raw normal, raw stress, and the Forbes-Rigobon volatility adjustment - so a correlation rise driven by volatility is never read as a rise in true dependence",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

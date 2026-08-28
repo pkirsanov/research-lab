@@ -1,0 +1,76 @@
+{
+  "version": "4.1.0",
+  "featureName": "BUG-024-attention-exclusion-record-asserted-as-overwritten",
+  "featureDir": "specs/_bugs/BUG-024-attention-exclusion-record-asserted-as-overwritten",
+  "workflowMode": "bugfix-fastlane",
+  "status": "in_progress",
+  "createdAt": "2026-08-28T18:05:00Z",
+  "lastUpdatedAt": "2026-08-28T18:05:00Z",
+  "filedAtCommit": "2eb14d964",
+  "planningOnly": false,
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "scopeInventory": [
+    "Scope 1: Assert Each Channel Against Its Own Requirement",
+    "Scope 2: Make An Automated Gate Execute The Attention Contract Suite"
+  ],
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "parentAgent": "bubbles.goal",
+    "executionModel": "direct-authorized-runner",
+    "currentPhase": "bug",
+    "currentPhaseStatus": "completed",
+    "currentScope": null,
+    "substate": "reported-and-root-caused",
+    "runStartedAt": "2026-08-28T17:45:00Z",
+    "completedAt": null,
+    "completedPhaseClaims": [
+      "bug"
+    ],
+    "phaseClaimNote": "Only the 'bug' phase is claimed. The defect was reported, reproduced at clean HEAD and root-caused against FR-020-023; nothing was fixed. The failing test was deliberately NOT edited, because editing it IS the fix and belongs to a scope carrying its own evidence, not to the turn that found the defect. No product code was touched.",
+    "phaseReconciliation": null,
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "specs/_bugs/BUG-024-attention-exclusion-record-asserted-as-overwritten",
+    "nextRequiredReason": "Scope the fix. Scope 1 must assert each channel against its own requirement: result.exclusions against FR-020-024 (built plus excluded equals declared) and result.payload.attentionExclusions against FR-020-023 (append-only), instead of demanding the two be deep-equal, which requires overwriting the append-only record. Scope 2 must make an automated gate execute the attention contract suite, because nine of ten tests/*.test.mjs files are unreferenced by scripts/selftest.mjs and the tenth is named only in a comment -- the blind spot that let this test stay red while the canonical check reported 3429 passed / 0 failed. A SECOND red suite, tests/rlattention.test.mjs (SCN-017-001, export surface must be exactly the sixteen contracted members), was found in the same blind spot and reproduces at clean HEAD; it is a DIFFERENT defect and needs its own packet."
+  },
+  "certification": {
+    "status": "in_progress",
+    "assuranceLevel": null,
+    "certifiedAt": null,
+    "certifiedBy": null,
+    "certifiedCompletedPhases": [],
+    "evidence": null,
+    "scopeProgress": [
+      {
+        "scopeId": "Scope 1: Assert Each Channel Against Its Own Requirement",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 5
+      },
+      {
+        "scopeId": "Scope 2: Make An Automated Gate Execute The Attention Contract Suite",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 4
+      },
+      {
+        "scopeId": "Cross-Scope Definition of Done",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 4
+      }
+    ]
+  },
+  "blockedReason": null,
+  "policySnapshot": {
+    "autoCommit": "off",
+    "tddMode": "scenario-first"
+  }
+}

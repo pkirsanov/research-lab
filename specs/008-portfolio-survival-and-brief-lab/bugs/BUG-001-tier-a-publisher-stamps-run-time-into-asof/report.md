@@ -142,7 +142,11 @@ the export at 1040, well below.
 
 One field, in each of two artifacts. `generatedAt` was not touched in either diff.
 
-**`executed (artifact turn)`** — `python3` read of the two committed artifacts
+**`executed (artifact turn)`** — `python3` read of the two committed artifacts. These values
+are a HISTORICAL reading: the Tier-A refresh regenerates both artifacts four times a day, so
+re-running the same read today returns the current window rather than the 2026-08-23 one
+recorded here. § The Two Clocks Are Traceable carries the equivalent read against the current
+artifacts, with its command inline.
 
 ```
 window     = morning
@@ -161,6 +165,7 @@ exactly why the presentation-side conflation described below was invisible.
 **`executed (artifact turn)`** — `python3` read of `market-brief.config.json` `windows`
 
 ```
+$ python3 -c "import json; cfg=json.load(open('market-brief.config.json')); [print(\"{'id': '%s', 'etTime': '%s', 'anchor': '%s', 'offsetMinutes': %s, ...}\" % (w['id'],w['etTime'],w['anchor'],w['offsetMinutes'])) for w in cfg['windows']]"
 {'id': 'pre-market',  'etTime': '07:30', 'anchor': 'open',  'offsetMinutes': -120, ...}
 {'id': 'morning',     'etTime': '11:00', 'anchor': 'open',  'offsetMinutes': 90,   ...}
 {'id': 'pre-close',   'etTime': '15:00', 'anchor': 'close', 'offsetMinutes': -60,  ...}
@@ -923,6 +928,7 @@ implementation, so drift is structurally impossible rather than merely absent to
 and only a traced value confirms they are connected:
 
 ```
+$ python3 -c "import json; s=json.load(open('market-brief.snapshot.json')); p=json.load(open('market-brief.payload.json')); cfg=json.load(open('market-brief.config.json')); w=[x for x in cfg['windows'] if x['id']==s['window']][0]; print('snapshot.window      = %-16s declared etTime = %s ET' % (s['window'], w['etTime'])); print('snapshot.asOf        = %s   <- the %s ET cutoff' % (s['asOf'], w['etTime'])); print('snapshot.generatedAt = %s   <- the run instant' % s['generatedAt']); print('payload.asOf         = %s   <- inherited, not recomputed' % p['asOf'])"
 snapshot.window      = morning          declared etTime = 11:00 ET
 snapshot.asOf        = 2026-08-27T15:00:00.000Z   <- the 11:00 ET cutoff
 snapshot.generatedAt = 2026-08-27T14:57:36.125Z   <- the run instant

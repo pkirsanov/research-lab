@@ -321,6 +321,25 @@
       "control": "appraisal and user-entered valuations are no longer flagged as smoothing-suspected, so the asset drops its de-smoothed sensitivity requirement and reads as mechanically uncorrelated",
       "claim": "An appraisal-smoothed or illiquid asset carries its smoothing caveat and requires a de-smoothed sensitivity before any diversification conclusion",
       "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-029": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "        universallyInfeasible: true,",
+            "        reason: \"minimums-exceed-full-allocation\","
+          ],
+          "replace": [
+            "        universallyInfeasible: false,",
+            "        reason: \"minimums-exceed-full-allocation\","
+          ]
+        }
+      ],
+      "control": "minimums that sum past the whole portfolio are downgraded from universally infeasible to a candidate-level miss, so a mandate no weight vector can satisfy reads as one unlucky candidate rather than a contradiction in the constraints",
+      "claim": "Mutually conflicting constraints are reported as universally infeasible and nothing is silently relaxed",
+      "implementationRefs": ["rlportfolioanalytics.js"]
     }
   }
 }

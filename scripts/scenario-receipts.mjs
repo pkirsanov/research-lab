@@ -226,7 +226,12 @@ function createWorkdir(repoRoot) {
   // Symlinked rather than copied: it is large, read-only for our purposes, and
   // `npx --no-install` resolves through the link.
   const modules = path.join(repoRoot, 'node_modules');
-  if (fs.existsSync(modules)) fs.symlinkSync(modules, path.join(workdir, 'node_modules'), 'dir');
+  const linked = path.join(workdir, 'node_modules');
+  // When repoRoot is a git worktree, its own node_modules is a link, and the copy
+  // above already carries it. lstat, not existsSync: a dangling link still EEXISTs.
+  let alreadyLinked = true;
+  try { fs.lstatSync(linked); } catch { alreadyLinked = false; }
+  if (fs.existsSync(modules) && !alreadyLinked) fs.symlinkSync(modules, linked, 'dir');
   return workdir;
 }
 

@@ -437,6 +437,32 @@
       "control": "a portfolio with ineligible holdings and incomplete daily coverage reports its risk projection as complete, so diagnostics computed over part of the portfolio present as covering all of it",
       "claim": "A risk projection over partially eligible holdings reports itself partial and names which holdings are excluded and why",
       "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-031": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-031 dossier separates in sample walk forward costs and trials",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var costAdjusted = walkForward - totalCost;",
+          "replace": "    var costAdjusted = walkForward;"
+        }
+      ],
+      "control": "the cost-adjusted result stops subtracting trading costs, so it equals the walk-forward result and an edge that costs would have consumed survives into the dossier as if it were free to capture",
+      "claim": "In-sample, walk-forward and cost-adjusted results stay three separate numbers, and the cost-adjusted one is strictly reduced by the declared costs",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-045": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth",
+      "breakFile": "rldata.js",
+      "edits": [
+        {
+          "find": "      missingBounds: { start: missingStart, end: missingEnd }, disputedDates: disputedDates,",
+          "replace": "      missingBounds: { start: false, end: false }, disputedDates: disputedDates,"
+        }
+      ],
+      "control": "a coverage envelope stops reporting which requested bound it failed to reach, so a two-year snapshot answering a five-year request no longer discloses that its start is missing",
+      "claim": "A coverage result names exactly which requested bounds are missing, so a shorter committed snapshot cannot masquerade as the full requested window",
+      "implementationRefs": ["rldata.js"]
     }
   }
 }

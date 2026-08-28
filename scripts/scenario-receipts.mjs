@@ -469,15 +469,23 @@ function runScenario(context, options, scenarioId, workdir) {
   // after implementation; the production route proves the outcome), and for a
   // browser-driven test the same command is the honest way to observe both.
   if (owesLiveProof(manifestRow)) {
-    if (!parts.file.endsWith('.spec.mjs')) {
+    // The live proof need not be the discriminator. A scenario can be discriminated
+    // at the node level and still owe a consumer-surface assertion, in which case the
+    // manifest links both. Prefer the mapped test when it is already live-category,
+    // otherwise take the first linked Playwright spec.
+    const liveIdentity = parts.file.endsWith('.spec.mjs')
+      ? testIdentity
+      : linked.find((identity) => splitTestIdentity(identity).file.endsWith('.spec.mjs'));
+    if (!liveIdentity) {
       record.outcome = 'LIVE_PROOF_UNAVAILABLE';
-      record.detail = `${scenarioId} declares a behaviour trait that owes a live route proof, but its mapped test ${parts.file} is not a live-category spec; no live receipt was emitted`;
+      record.detail = `${scenarioId} declares a behaviour trait that owes a live route proof, but no linked test is a live-category spec; no live receipt was emitted`;
       return record;
     }
-    process.stdout.write(`\n[${scenarioId}] live       (production route via ${parts.file}, must exit 0)\n`);
-    const liveCmd = testCommand(parts, { whole: false });
+    const liveParts = splitTestIdentity(liveIdentity);
+    process.stdout.write(`\n[${scenarioId}] live       (production route via ${liveParts.file}, must exit 0)\n`);
+    const liveCmd = testCommand(liveParts, { whole: false });
     const live = emitReceipt(context, options, {
-      scenarioId, phase: 'live', testIdentity, control: entry.control, claim, implRefs, scope,
+      scenarioId, phase: 'live', testIdentity: liveIdentity, control: entry.control, claim, implRefs, scope,
       command: liveCmd.command, argv: liveCmd.argv, cwd: workdir
     });
     record.phases.live = live.exitCode;

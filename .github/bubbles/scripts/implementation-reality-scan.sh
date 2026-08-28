@@ -939,6 +939,29 @@ echo ""
 # Detects tests labeled as integration/e2e/live-stack that intercept requests
 # or inject mocked backend responses, which reclassifies them out of live
 # system categories.
+#
+# Escape hatch — FAULT INJECTION regions:
+#   A live test may legitimately intercept in order to CREATE the negative
+#   condition it exists to observe. Disabling a module to produce a genuine
+#   "before" page, or calling route.fetch() to take the REAL response and
+#   perturb one field, is a STIMULUS — the live system still renders, still
+#   reads, and still refuses on its own logic. That is categorically different
+#   from serving a canned response, which replaces the system under test.
+#   A pattern match cannot tell the two apart, so the author declares it:
+#
+#       // bubbles:fault-injection-begin reason=<why this is a stimulus>
+#       await page.route('**/module.js', route => route.fulfill({ ... }));
+#       // bubbles:fault-injection-end
+#
+#   Rules that keep this from becoming a silent suppression surface:
+#     - The reason MUST be non-empty. A marker without one is itself a
+#       violation, so the escape hatch cannot be used wordlessly.
+#     - Markers MUST balance. An unmatched begin/end, or a region still open at
+#       EOF, is a violation — a stray begin cannot swallow the rest of a file.
+#     - Exemption is per-region and opt-in. A file with no markers is enforced
+#       in full, exactly as before, so this can never disable Scan 6 fleet-wide.
+#   CAUTION: this declares intent, it does not verify it. Use it for stimulus
+#   only. Wrapping a canned-response mock is the abuse Scan 6 exists to catch.
 # =============================================================================
 echo "--- Scan 6: Live-System Test Interception ---"
 
@@ -988,6 +1011,40 @@ for test_file in "${test_files[@]+"${test_files[@]}"}"; do
     ' "$test_file" | tr "\n" "," )"
   fi
 
+  # Build set of line numbers inside a balanced, justified fault-injection
+  # region. A begin marker with no reason, an unmatched marker, or a region
+  # still open at EOF is reported as a violation rather than silently honored:
+  # the exemption must be earned, and a stray begin must not swallow a file.
+  fault_injection_lines=""
+  fi_report="$(awk '
+    /bubbles:fault-injection-begin/ {
+      if (open) { print "ERR|" NR "|nested fault-injection-begin (previous opened at line " open_at ")"; next }
+      reason = $0
+      sub(/.*bubbles:fault-injection-begin/, "", reason)
+      sub(/^[[:space:]]*reason=/, "", reason)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", reason)
+      sub(/[[:space:]]*(\*\/|-->)[[:space:]]*$/, "", reason)
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", reason)
+      if (reason == "") { print "ERR|" NR "|fault-injection-begin carries no reason= justification"; next }
+      open = 1; open_at = NR; next
+    }
+    /bubbles:fault-injection-end/ {
+      if (!open) { print "ERR|" NR "|fault-injection-end with no matching begin"; next }
+      for (i = open_at; i <= NR; i++) print "LINE|" i
+      open = 0; next
+    }
+    END { if (open) print "ERR|" open_at "|fault-injection region never closed before EOF" }
+  ' "$test_file")"
+
+  while IFS='|' read -r kind a b; do
+    [[ -z "$kind" ]] && continue
+    if [[ "$kind" == "ERR" ]]; then
+      violation "$test_file" "$a" "FAULT_INJECTION_MARKER" "$b"
+    else
+      fault_injection_lines="${fault_injection_lines}${a},"
+    fi
+  done <<< "$fi_report"
+
   for pattern in "${LIVE_TEST_INTERCEPT_PATTERNS[@]}"; do
     while IFS=: read -r line_num matched_line; do
       if [[ -z "$line_num" ]]; then
@@ -998,6 +1055,10 @@ for test_file in "${test_files[@]+"${test_files[@]}"}"; do
       fi
       # Skip lines inside Python docstrings
       if [[ -n "$docstring_lines" && ",$docstring_lines," == *",$line_num,"* ]]; then
+        continue
+      fi
+      # Skip lines inside a declared, justified fault-injection region
+      if [[ -n "$fault_injection_lines" && ",$fault_injection_lines," == *",$line_num,"* ]]; then
         continue
       fi
       violation "$test_file" "$line_num" "LIVE_TEST_INTERCEPT" "$matched_line"

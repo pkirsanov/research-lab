@@ -430,6 +430,60 @@ func noop() {}
 EOF
 }
 
+create_fault_injection_fixture() {
+  local feature_dir="$FIXTURE_ROOT/fault-injection-feature"
+  local test_file="$feature_dir/tests/browser.spec.mjs"
+  mkdir -p "$(dirname "$test_file")"
+
+  cat > "$feature_dir/scopes.md" <<EOF
+# Scopes: Fault Injection Fixture
+
+## Scope 1: Real Browser Path
+
+### Implementation Files
+
+- \`$test_file\` — e2e-ui live-system carrier
+EOF
+
+  # Line 2 is exempt (declared + justified). Line 6 is the CONTROL: an
+  # undeclared interception in the same file that MUST still be reported, so a
+  # passing exemption can never be mistaken for a disabled gate.
+  cat > "$test_file" <<'EOF'
+// bubbles:fault-injection-begin reason=disables the module to produce a genuine before-page
+await page.route("**/module*.js", (route) => route.fulfill({ status: 200, body: "/* off */" }));
+// bubbles:fault-injection-end
+
+export async function installIntercept(page) {
+  await page.route("**/api/items", async (route) => {
+    await route.fulfill({ status: 200, body: "[]" });
+  });
+}
+EOF
+}
+
+create_fault_injection_wordless_fixture() {
+  local feature_dir="$FIXTURE_ROOT/fault-injection-wordless-feature"
+  local test_file="$feature_dir/tests/browser.spec.mjs"
+  mkdir -p "$(dirname "$test_file")"
+
+  cat > "$feature_dir/scopes.md" <<EOF
+# Scopes: Wordless Fault Injection Fixture
+
+## Scope 1: Real Browser Path
+
+### Implementation Files
+
+- \`$test_file\` — e2e-ui live-system carrier
+EOF
+
+  # A marker with no justification must be rejected AND must grant no exemption.
+  cat > "$test_file" <<'EOF'
+// bubbles:fault-injection-begin reason=
+await page.route("**/api/items", (route) => route.fulfill({ status: 200, body: "[]" }));
+// bubbles:fault-injection-end
+EOF
+}
+
 create_mjs_live_intercept_fixture() {
   local feature_dir="$FIXTURE_ROOT/mjs-live-intercept-feature"
   local test_file="$feature_dir/tests/browser.spec.mjs"
@@ -569,6 +623,44 @@ run_expect_fake_integration_failure "$FIXTURE_ROOT/fake-noop-integration-feature
 
 echo "Scenario: an MJS live-system carrier reaches interception detection."
 run_expect_live_intercept_failure "$FIXTURE_ROOT/mjs-live-intercept-feature" "MJS e2e-ui carrier is discovered and flagged as LIVE_TEST_INTERCEPT"
+
+# A declared, justified fault-injection region is exempt — but the SAME file
+# carries an undeclared interception that must still be reported. Asserting
+# both in one run is what proves the exemption is scoped rather than a switch
+# that turns Scan 6 off.
+create_fault_injection_fixture
+fi_out="$TMPDIR/fault-injection.txt"
+if bubbles_run_with_timeout 180 bash "$SCAN_SCRIPT" "$FIXTURE_ROOT/fault-injection-feature" --verbose > "$fi_out" 2>&1; then
+  fi_status=0
+else
+  fi_status=$?
+fi
+cat "$fi_out"
+if [[ "$fi_status" -eq 1 ]] \
+  && grep -Fq 'api/items' "$fi_out" \
+  && ! grep -Fq 'module*.js' "$fi_out" \
+  && ! grep -Fq 'FAULT_INJECTION_MARKER' "$fi_out"; then
+  pass "Justified fault-injection region is exempt while an undeclared interception in the same file still fails"
+else
+  fail "Justified fault-injection region is exempt while an undeclared interception in the same file still fails"
+fi
+
+# A marker with no reason= must be rejected AND must grant no exemption.
+create_fault_injection_wordless_fixture
+fiw_out="$TMPDIR/fault-injection-wordless.txt"
+if bubbles_run_with_timeout 180 bash "$SCAN_SCRIPT" "$FIXTURE_ROOT/fault-injection-wordless-feature" --verbose > "$fiw_out" 2>&1; then
+  fiw_status=0
+else
+  fiw_status=$?
+fi
+cat "$fiw_out"
+if [[ "$fiw_status" -eq 1 ]] \
+  && grep -Fq 'carries no reason=' "$fiw_out" \
+  && grep -Fq 'LIVE_TEST_INTERCEPT' "$fiw_out"; then
+  pass "Wordless fault-injection marker is rejected and grants no exemption"
+else
+  fail "Wordless fault-injection marker is rejected and grants no exemption"
+fi
 
 echo "Scenario: semantic Scan 2B distinguishes storage operations and exact session classification."
 run_scan_in_repo "$SENSITIVE_REPO" "$SENSITIVE_FEATURE"

@@ -36,11 +36,11 @@
       "breakFile": "rlportfolio.js",
       "edits": [
         {
-          "find": "      supersedes: draftResult.value.basePortfolioId,",
+          "find": "      supersedes: currentWorkspace.currentPortfolioId,",
           "replace": "      supersedes: null,"
         }
       ],
-      "control": "buildPortfolioRevision lineage removed: a committed revision records supersedes: null instead of the superseded portfolioId",
+      "control": "a committed second revision records supersedes: null instead of the portfolioId it replaced, so the revision chain loses its lineage and a reader cannot tell which revision any later one superseded",
       "claim": "A confirmed import commits exactly one new current revision whose lineage names the revision it superseded",
       "implementationRefs": ["rlportfolio.js"]
     },

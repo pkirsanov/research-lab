@@ -656,6 +656,32 @@
       "control": "the Black-Litterman note stops stating that nothing is prefilled or suggested from browsing behaviour, so a reader has no on-screen assurance that the views driving the posterior came from them rather than from what they happened to look at",
       "claim": "The Black-Litterman editor states that no expected return, confidence, or view is prefilled or suggested from browsing behaviour, so behaviour can never enter the posterior",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-050": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "\"None is labelled best or recommended; an in-sample lead",
+          "replace": "\"An in-sample lead"
+        }
+      ],
+      "control": "the allocation comparison stops stating that no candidate is labelled best or recommended, so a reader can take the leading row as an endorsement of a portfolio change the tool never made",
+      "claim": "The allocation comparison states that no candidate is labelled best or recommended, so an in-sample lead is never presented as an endorsement",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-051": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "[\"rebalance-timing\", fold.costs.rebalanceTiming]",
+          "replace": "[\"timing\", fold.costs.rebalanceTiming]"
+        }
+      ],
+      "control": "the rebalance-timing cost loses its contracted identity in the dossier cost table, so the seven-component cost taxonomy a net result is built from can no longer be enumerated and a reader cannot confirm which frictions were charged",
+      "claim": "The dossier enumerates all seven named cost components under their contracted identities, so a net-of-cost result can be traced to the specific frictions charged against it",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

@@ -630,6 +630,32 @@
       "control": "the volatility-adjusted dependence lens loses its contracted identity, so the row that separates a genuine rise in dependence from one driven by higher volatility can no longer be identified and the downstream estimate selection stops matching it",
       "claim": "Stress dependence is presented through three distinct named lenses - raw normal, raw stress, and the Forbes-Rigobon volatility adjustment - so a correlation rise driven by volatility is never read as a rise in true dependence",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-028": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "result.declaredPerturbations.join(\", \") + \" · instability threshold \" +",
+          "replace": "result.declaredPerturbations.join(\", \") + \" · cutoff \" +"
+        }
+      ],
+      "control": "the trial accounting stops naming the instability threshold, so a reader is shown stability verdicts without the cutoff that produced them and cannot judge whether a range was called unstable on a defensible basis",
+      "claim": "Sensitivity trial accounting discloses the valid and failed trial counts, the declared perturbations, and the instability threshold, so a weight range can be judged rather than taken on trust",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-030": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "\"confidence, or view is prefilled or suggested from what you have looked at.\";",
+          "replace": "\"confidence, or view is derived automatically.\";"
+        }
+      ],
+      "control": "the Black-Litterman note stops stating that nothing is prefilled or suggested from browsing behaviour, so a reader has no on-screen assurance that the views driving the posterior came from them rather than from what they happened to look at",
+      "claim": "The Black-Litterman editor states that no expected return, confidence, or view is prefilled or suggested from browsing behaviour, so behaviour can never enter the posterior",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

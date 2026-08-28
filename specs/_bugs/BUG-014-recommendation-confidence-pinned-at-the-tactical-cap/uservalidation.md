@@ -28,8 +28,13 @@ Automation verified these this turn. **A checked item here grants no acceptance 
 acceptance is the Checklist and the record below it.
 
 - [x] `bash .github/bubbles/scripts/artifact-lint.sh` on this packet exits 0.
-- [x] The state-transition guard reports exactly one failing gate, G136, at `failureCount: 1`,
-      so human acceptance is the only thing this packet is missing.
+- [x] The state-transition guard passes at status `done`: `failedGateIds: []`, `failureCount: 0`,
+      `exitStatus: 0`, `verdict: PASS`. **Re-measured at certification on 2026-08-28.** This bullet
+      previously read "exactly one failing gate, G136, at `failureCount: 1`, so human acceptance is
+      the only thing this packet is missing". That was true when written and is not true now — G136
+      acceptance was recorded 2026-08-27, and the two blockers that arose afterwards (promotion-tier
+      artifact-lint, then G084) have since been discharged. The claim is corrected rather than left
+      ticked over a stale measurement.
 - [x] The Scope 2 decision is present in committed config, not merely asserted in prose:
       `tacticalConfidenceCap` 55 is strictly greater than `minimumActionConfidence` 50.
 - [ ] `node scripts/selftest.mjs` reports `3200 passed, 0 failed`. **Left unticked: the suite

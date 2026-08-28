@@ -156,8 +156,14 @@ row, so neither can be traded for the other.
       Evidence: `tests/portfolio-survival-brief.spec.mjs:902`, with the in-test
       NON-TAUTOLOGY GUARD quoted in § Test Plan above and in `report.md` § Regression E2E.
 - [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior exist and
-      bind to all six of this bug's scenarios. Re-verified against the committed tree in the
-      planning turn rather than restated from the fix turn:
+      bind to all six of this bug's scenarios.
+      Evidence: `report.md` § Regression E2E — `[BUG-001] window=morning` with the
+      NON-TAUTOLOGY GUARD; and § Broader Suite On The Committed Tree — case 18 of the
+      clean-export run, `tests/portfolio-survival-brief.spec.mjs:1039:1 › Regression:
+      BUG-001 a publication later than its declared window cutoff is refused by name and
+      never empties the schedule (778ms)`, `19 passed (30.5s)`, exit 0.
+      Re-verified against the committed tree in the planning turn rather than restated
+      from the fix turn:
       `tests/portfolio-survival-brief.spec.mjs:1039` — `Regression: BUG-001 a publication
       later than its declared window cutoff is refused by name and never empties the
       schedule` — carries SCN-B001-LATE-PUBLICATION-REFUSED, SCN-B001-SCHEDULE-SURVIVES-REFUSAL
@@ -172,10 +178,6 @@ row, so neither can be traded for the other.
       `rlportfoliobrief.js` export cited as `:1040` now sits at `:1134`. The test *titles* are
       the stable identity, and they are what `scenario-manifest.json` binds.
       Evidence: `report.md` § Regression E2E — `[BUG-001] window=morning` with the
-      NON-TAUTOLOGY GUARD, and § Broader Suite On The Committed Tree — case 18 of the
-      clean-export playwright run, `tests/portfolio-survival-brief.spec.mjs:1039:1 ›
-      Regression: BUG-001 a publication later than its declared window cutoff is refused
-      by name and never empties the schedule (778ms)`, `19 passed (30.5s)`, exit 0.
 - [x] Broader E2E regression suite passes on the current tree. Closed by execution, not by
       waiting: the obstruction was that the working tree carries another packet's uncommitted
       edits to `tests/portfolio-brief.functional.mjs` and `rlportfoliobrief.js`, so a run here

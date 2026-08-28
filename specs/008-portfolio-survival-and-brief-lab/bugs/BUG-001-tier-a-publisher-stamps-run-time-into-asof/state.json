@@ -339,7 +339,13 @@
     {
       "at": "2026-08-28T16:46:33Z",
       "agent": "bubbles.test",
-      "phase": "test"
+      "phase": "test",
+      "action": "verified",
+      "note": "Closed Gate G060 by making the packet's real red->green ordering legible and then reproducible. Root cause was a marker-form mismatch, not missing evidence: scopes.md read 'RED (before the fix)' and 'RED (' is not an accepted form, so the first recognised red marker fell through to a line carrying BOTH red and green ('3 passed / 14 failed'), and first-red < first-green could never hold. Relabelled to 'RED stage' / 'GREEN stage'; no number changed and no run was invented. Then reconstructed the red inside an isolated git-archive export: baseline 19 passed exit 0; fix reverted at its single asserted site -> 15 failed / 4 passed exit 1; export restored -> 19 passed exit 0. Recorded explicitly as a reconstruction performed now, never as the original historical red run. Four rows survived the revert, including this bug's own row at :1039, because it overrides both artifacts with its own late fixture before asserting -- so a publisher-side defect is invisible to it by construction. That limitation is recorded rather than glossed.",
+      "phasesExecuted": [
+        "test"
+      ],
+      "provenanceMode": "specialist"
     }
   ],
   "activeBugs": [],

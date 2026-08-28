@@ -290,7 +290,21 @@ and that nothing is invented to fill the gap — `#briefLanes li` count `0`.
 
 ## Test Evidence
 
-**`executed (fix turn)`** — all five commands were run during the fix and observed directly.
+Recorded in stage order, because the order is itself part of the claim: the failure was
+observed while the defect was still present, not deduced afterwards from the fix.
+
+### RED stage — the failing proof
+
+**`executed (fix turn)`** — `tests/portfolio-survival-brief.spec.mjs`, run before any fix
+existed, against the real published artifacts rather than a fixture. Fourteen of the
+seventeen rows then in the suite went down. The figure is not a weak-assertion artifact:
+`#briefWindow` rendered zero options, so the tab could not compose at all, and every row that
+needed the brief surface failed with it.
+
+### GREEN stage — the passing proof
+
+**`executed (fix turn)`** — the same suite, plus four further verification commands, after
+the fix. All five were run during the fix turn and observed directly.
 
 | Command | Before fix | After fix |
 |---|---|---|
@@ -300,9 +314,75 @@ and that nothing is invented to fill the gap — `#briefLanes li` count `0`.
 | `node scripts/selftest.mjs` | — | exit `0`, **3314 passed, 0 failed** |
 | `git diff --check` | — | exit `0` |
 
-The RED figure is not a weak-assertion artifact. The tab genuinely could not compose,
-`#briefWindow` rendered zero options, and every row needing the brief surface failed against
-the real published artifacts rather than against a fixture.
+## RED Stage Reconstruction
+
+**`executed (test turn)`** — a reconstruction performed now, **not** the original run. The
+figures above were captured during the fix turn and are left exactly as recorded; nothing
+below is offered as historical evidence. Its purpose is narrower and worth stating plainly:
+the red above is attested, and this makes it *reproducible*.
+
+It ran entirely inside an isolated `git archive` export of the committed tree. No product
+source, test file, or published artifact in the repository was modified — which also sidesteps
+the contamination named in § Broader Suite On The Committed Tree, where the working tree
+carries another packet's uncommitted edits.
+
+**Baseline, before any perturbation** — export of `6b48cd428`:
+
+```
+19 passed (30.7s)
+GREEN_BASELINE_EXIT=0
+```
+
+**The perturbation** — the fix reverted at its single site, and the published artifacts set to
+what that reverted line emits. `asOf` returns to the run clock, which is this bug exactly as
+`bug.md` states it:
+
+```
+scripts/brief-refresh.mjs:2639   asOf: windowCutoffAt -> asOf: snap.ts   (1 site; count asserted, not assumed)
+market-brief.snapshot.json       asOf 2026-08-27T15:00:00.000Z -> 2026-08-27T14:57:36.125Z
+market-brief.payload.json        asOf 2026-08-27T15:00:00.000Z -> 2026-08-27T15:30:59.849Z
+```
+
+The payload's run clock lands 15:30:59 against a 15:00 `morning` cutoff — thirty-one minutes
+late, the same shape as the 11:37 run of the 11:00 window that opened this bug.
+
+**RED** — same suite, same export, same command:
+
+```
+$ npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+  15 failed
+  4 passed (2.4m)
+RED_RECONSTRUCTION_EXIT=1
+```
+
+Captured under `evidence-capture.sh` — 429 lines,
+`sha256:b477396557f6c07a11a990c0efaaabb873988c82dac3933a2aee40929f0f9044`, so the run is
+re-derivable rather than quoted.
+
+**GREEN again, after restoring the export** — re-extracted from `b18b61183`:
+
+```
+19 passed (25.8s)
+GREEN_RESTORE_EXIT=0
+```
+
+`HEAD` advanced between the two green runs because other sessions commit to this repository.
+That does not weaken the comparison, and the point is checkable rather than asserted: every
+file the suite touches resolves to the same blob at both commits — `scripts/brief-refresh.mjs`,
+both published artifacts, `tests/portfolio-survival-brief.spec.mjs`, `rlportfoliobrief.js`,
+`portfolio-survival-allocation-lab.html` — and `git diff --stat 6b48cd428 b18b61183` is one
+unrelated file (`scripts/scenario-break-map.json`, `42 +`).
+
+**Four rows survived the perturbation, and that is the informative part.** Lines 716, 941,
+1215, and — notably — 1039, this bug's own adversarial regression row. Row 1039 is unmoved
+because it overrides both published artifacts with its own late fixture before asserting
+anything, so a defect in what the *publisher* writes is invisible to it by construction. It
+guards the other half of the contract: that a refusal is named on screen and does not empty
+the schedule. The publisher half is guarded by the fifteen rows that read the real published
+artifacts — precisely the set that went red. The two halves have distinct guards, and neither
+substitutes for the other. A single row asserted to cover both would have been the weaker
+claim.
 
 ## Provenance Verification
 

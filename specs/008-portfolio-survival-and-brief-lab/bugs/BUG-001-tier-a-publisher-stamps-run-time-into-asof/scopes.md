@@ -66,13 +66,19 @@ Scenario: SCN-B001-NO-WALLCLOCK-FALLBACK
 
 Scenario-first ordering, proven in both directions.
 
-**RED (before the fix).** `tests/portfolio-survival-brief.spec.mjs` reported
+**RED stage (before the fix).** `tests/portfolio-survival-brief.spec.mjs` reported
 **3 passed / 14 failed**. The failure was not a weak assertion — the tab genuinely could
 not compose, `#briefWindow` rendered zero options, and every row that needed the brief
 surface failed against the real published artifacts.
 
-**GREEN (after the fix).** The same suite reports **17 passed / 0 failed**, with the
+**GREEN stage (after the fix).** The same suite reports **17 passed / 0 failed**, with the
 adversarial regression row added alongside the fix.
+
+Those two figures are the historical run and are left exactly as captured. They are no
+longer the only support for the ordering: the defect was reintroduced later, in an isolated
+export of the committed tree, and the same suite went red again on demand. That
+reconstruction is recorded — and labelled as a reconstruction, not as the original run — in
+`report.md` § RED Stage Reconstruction.
 
 **Non-tautology, asserted inside the test rather than claimed here.** The regression row
 serves a fixture that is deliberately 37 minutes past its own window cutoff and asserts that

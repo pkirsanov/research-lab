@@ -5673,3 +5673,166 @@ was modified, `.github/bubbles/**` was not edited, the concurrent session's
 working-tree transaction were neither staged nor reverted, and nothing was
 pushed.
 
+<a id="validate-route-027-target-status-remeasure"></a>
+
+## Validation Evidence — Independent Re-Measurement At The Target Status
+
+Run under repository-binding preflight decision
+`rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:12` at control revision 12
+(`PREFLIGHT_COMMITTED`, exit 0). The instruction for this pass was to certify
+BUG-009 or report honestly why not. It reports why not.
+
+A gate result is only meaningful at the status being claimed. Both gates were
+therefore re-run twice: once at the inbound `in_progress`, and once with
+`status` and `certification.status` set to `done`, `completedAt`, `certifiedAt`
+and `certification.certifiedCompletedPhases` populated. The `done`
+configuration was a measurement only; it was reverted with
+`git checkout HEAD -- state.json` and nothing claiming `done` was committed.
+
+**Claim Source:** executed
+
+#### 1. Baseline at `in_progress` — both gates green
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh <packet>
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ Mode-specific report gates skipped (status not in promotion set)
+Artifact lint PASSED.
+ARTIFACT_LINT_INPROGRESS_EXIT=0
+
+$ bash .github/bubbles/scripts/state-transition-guard.sh <packet>
+🟡 TRANSITION PERMITTED with 2 warning(s)
+failedGateIds: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+GUARD_INPROGRESS_EXIT=0
+```
+
+The `in_progress` pass is not evidence that `done` is reachable. The lint line
+`Mode-specific report gates skipped (status not in promotion set)` states
+plainly that a class of checks does not run below the promotion set.
+
+#### 2. `artifact-lint.sh` at `done` — exit 0, upstream fix confirmed
+
+```
+$ grep -c 'phaseStubs' .github/bubbles/scripts/artifact-lint.sh
+5
+
+$ bash .github/bubbles/scripts/artifact-lint.sh <packet>          # status: done
+✅ DoD completion gate passed for status 'done' (all DoD checkboxes are checked)
+✅ Workflow mode 'bugfix-fastlane' permits current status 'done' (ceiling: done)
+✅ All 1 scope(s) in scopes.md are marked Done
+✅ Required specialist phase 'implement' found in execution/certification phase records
+✅ Phase-scope coherence verified (Gate G027)
+✅ workflowMode gate satisfied: ### Validation Evidence
+✅ workflowMode gate satisfied: ### Audit Evidence
+ℹ️  Skipped 134 evidence blocks before <SENTINEL> (prior-window history)
+✅ All 145 evidence blocks in report.md contain legitimate terminal output
+Artifact lint PASSED.
+ARTIFACT_LINT_DONE_EXIT=0
+```
+
+`<SENTINEL>` above is a verbatim elision of the certifying-window begin marker.
+The literal token is deliberately not reproduced here: Gates G040, G084 and G095
+each count occurrences of that marker across the whole file and block on more
+than one, so quoting the linter's output literally would forge a second
+certifying window. The single real marker remains at its original position.
+
+The artifact surface is certifiable. `implement` is accepted from
+`execution.phaseStubs`, not from a fabricated claim: `certifiedCompletedPhases`
+was populated with 11 phases and `jq '... index("implement") != null'` returned
+`false` while the linter still printed that the phase was found and recorded.
+
+#### 3. `state-transition-guard.sh` at `done` — exit 1, Gate G089
+
+```
+$ bash .github/bubbles/scripts/state-transition-guard.sh <packet>   # status: done
+--- Check 31: Inter-Spec Dependency Enforcement (Gate G089) ---
+🔴 BLOCK: Inter-spec dependency guard failed — Gate G089.
+🔴 TRANSITION BLOCKED: 1 failure(s), 1 warning(s)
+state.json status MUST NOT be set to 'done'.
+auditProfile: delivery-completion-v1
+failedGateIds: [G089]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 1
+exitStatus: 1
+verdict: FAIL
+GUARD_DONE_EXIT=1
+
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh <packet>
+G089 inter_spec_dependency_gate violation: ... has status 'done' while
+requiresRevalidation:true is unresolved; demote the spec or recertify after revalidation
+G089 inter_spec_dependency_gate blocked: findings=1 dependencies=0 requiresRevalidation=true
+INTER_SPEC_EXIT=1
+```
+
+The blocker is the **top-level** `"requiresRevalidation": true` at
+`state.json:18`, which is a distinct field from the
+`certification.requiresRevalidation` at line 282 that this pass had set to
+`false`. Setting the certification-scoped field did not and should not clear
+the top-level one. This gate is not reachable at `in_progress`, which is why
+the prior pass's green guard did not predict it.
+
+This finding was **not** cleared. Flipping `requiresRevalidation` to `false` is
+editing the exact field the failing gate reads, in order to make that gate
+report success, which is gate-gaming rather than gate-satisfaction. The packet
+is linked to `specs/008-portfolio-survival-and-brief-lab`, whose committed
+status is `in_progress`, so the flag is consistent with reality.
+
+#### 4. Audit refusal is unretracted — independent of the gates
+
+```
+$ jq -r '.execution.audit.attempts[]? | "id=\(.attemptId) state=\(.resultState) verdict=\(.auditVerdict) delivery=\(.deliveryEvaluation) evidenceRef=\(.evidenceRef // "NULL") unresolved=\((.unresolvedFindings // []) | length)"' state.json
+id=BUG-009-AUDIT-001  state=SUPERSEDED  verdict=DO_NOT_SHIP       delivery=REFUSED  evidenceRef=NULL  unresolved=4
+id=BUG-009-AUDIT-002  state=ACTIVE      verdict=REWORK_REQUIRED   delivery=REFUSED  evidenceRef=NULL  unresolved=3
+
+$ jq -r '.execution.audit.attempts[]? | select(.resultState=="ACTIVE") | .unresolvedFindings[]?' state.json
+B009-PHASE-IMPLEMENT-001
+B009-FRAMEWORK-PHASE-REGISTRY-001
+B009-FRAMEWORK-G040-EXCLUSION-001
+```
+
+The guard's silence on this is structural, and was verified rather than assumed:
+
+```
+$ for t in REWORK_REQUIRED DO_NOT_SHIP auditVerdict deliveryEvaluation SHIP_IT unresolvedFindings evidenceRef; do
+    printf '%-22s %s\n' "$t" "$(grep -c "$t" .github/bubbles/scripts/state-transition-guard.sh)"; done
+REWORK_REQUIRED        0
+DO_NOT_SHIP            0
+auditVerdict           0
+deliveryEvaluation     0
+SHIP_IT                0
+unresolvedFindings     0
+evidenceRef            0
+```
+
+The guard's attempt-state enforcement is gated on `planning-maturity-v1`; this
+packet resolves to `delivery-completion-v1`. A green guard here therefore
+carries no information about whether the audit cleared the packet.
+
+#### 5. Disposition
+
+Certification was refused on two independent grounds, either of which is
+sufficient:
+
+| # | Ground | Measured |
+|---|--------|----------|
+| 1 | `state-transition-guard.sh` fails at `done` | `failedGateIds: [G089]`, `failureCount: 1`, exit 1 |
+| 2 | Current audit attempt `ACTIVE` with `REWORK_REQUIRED`, `REFUSED`, `evidenceRef: NULL`, 3 unresolved findings | validate is forbidden to write audit-owned state or certify over a non-clean verdict with no `AUDIT_RESULT_V1` transcript |
+
+`BUG-009-ROUTE-026` was already `resolved` before this pass; the open request is
+`BUG-009-ROUTE-027`, addressed to `bubbles.audit`. It was left open, because
+closing another owner's routing request while its stated refusal stands would
+discard the routing rather than satisfy it.
+
+`status` and `certification.status` remain `in_progress`. The fifth
+`## Automation Readiness` item stays unchecked, because it asserts that
+validate-owned certification completed and it did not. `## Checklist` and
+`## Human Acceptance Record` were untouched, no historical evidence block was
+rewritten or deleted, `.github/bubbles/**` was not modified, the concurrent
+session's `specs/007-technical-analysis-decision-lab/` files and the unrelated
+working-tree transaction were neither staged nor reverted, and nothing was
+pushed.
+

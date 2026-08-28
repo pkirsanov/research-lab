@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-28T01:49:04Z",
+  "lastUpdatedAt": "2026-08-28T02:01:33Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -912,6 +912,19 @@
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#validate-route-026-artifact-closure"
+    },
+    {
+      "at": "2026-08-28T02:01:33Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "re-measured-both-gates-at-target-status-and-refused-certification-on-G089-and-unretracted-audit-refusal",
+      "note": "Under repository-binding preflight decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:12 at control revision 12 (PREFLIGHT_COMMITTED, exit 0), request-class CONTINUATION, host adapter confirming sessionId vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05 and expectedControlRevision 11. The instruction was to certify BUG-009 or report honestly why not; it reports why not, on two independent grounds. (a) A gate result is only meaningful at the status being claimed, so both gates were run twice. At the inbound in_progress both are green: artifact-lint.sh exit 0, and state-transition-guard.sh exit 0 with failureCount 0, failedGateIds [], verdict PASS. That green is not evidence done is reachable, and the linter says so in its own output line, Mode-specific report gates skipped (status not in promotion set). (b) With status and certification.status set to done, completedAt, certifiedAt and certifiedCompletedPhases populated, artifact-lint.sh exits 0 and prints Artifact lint PASSED. The upstream fix is confirmed landed: the installed linter carries 5 phaseStubs references and prints that required specialist phase implement was found and recorded, while jq index(\"implement\") on certifiedCompletedPhases returns false, so implement is resolved from execution.phaseStubs and was never claimed. plan was not added either; no mode phaseOrder contains it. (c) BLOCKER 1, measured not assumed: state-transition-guard.sh at done exits 1 with failedGateIds [G089], failureCount 1, blockingCode DELIVERY_COMPLETION_FAILED, verdict FAIL, auditProfile delivery-completion-v1. inter-spec-dependency-guard.sh exits 1: findings=1 dependencies=0 requiresRevalidation=true. The cause is the TOP-LEVEL requiresRevalidation true at state.json line 18, which is a different field from certification.requiresRevalidation at line 282; setting the certification-scoped one to false did not and should not clear it. This gate is unreachable at in_progress, which is why the prior pass's green guard did not predict it. The finding was NOT cleared: flipping the top-level flag is editing the exact field the failing gate reads in order to make that gate report success, which is gate-gaming, and the flag is consistent with reality because linkedImplementationSpec specs/008-portfolio-survival-and-brief-lab is itself in_progress at HEAD. (d) BLOCKER 2, independent of the gates and sufficient on its own: execution.audit.currentAttemptId BUG-009-AUDIT-002 is ACTIVE with auditVerdict REWORK_REQUIRED, deliveryEvaluation REFUSED, outcome route_required, evidenceRef NULL and three unresolvedFindings B009-PHASE-IMPLEMENT-001, B009-FRAMEWORK-PHASE-REGISTRY-001, B009-FRAMEWORK-G040-EXCLUSION-001. Validate may not certify over a non-clean verdict with no AUDIT_RESULT_V1 transcript, and may not repair audit-owned state. The guard's silence was verified rather than inherited: grep -c over state-transition-guard.sh returns 0 for each of REWORK_REQUIRED, DO_NOT_SHIP, auditVerdict, deliveryEvaluation, SHIP_IT, unresolvedFindings and evidenceRef, and its attempt-state enforcement is gated on planning-maturity-v1 while this packet resolves to delivery-completion-v1, so a green guard carries no information about the audit's conclusion. (e) The done configuration was a measurement only and was reverted with git checkout HEAD -- state.json; status, certification.status, completedAt, certifiedAt, certifiedCompletedPhases and requiresRevalidation are unchanged from their inbound values and nothing claiming done was committed. (f) The task brief asked to resolve BUG-009-ROUTE-026, but that request was already resolved before this pass; the open request is BUG-009-ROUTE-027, addressed to bubbles.audit, and it was left open because closing another owner's routing request while its stated refusal stands would discard the routing rather than satisfy it. executionHistory is append-only and retains all 26 prior entries including all 7 from bubbles.plan. The fifth Automation Readiness item in uservalidation.md remains unchecked because it asserts validate-owned certification completed and it did not; Checklist and Human Acceptance Record were untouched. No historical evidence block was rewritten or deleted, no product source or test file was modified, .github/bubbles/** was not edited, the concurrent session's specs/007-technical-analysis-decision-lab/ files and the unrelated working-tree transaction were neither staged nor reverted, and nothing was pushed. Evidence: report.md#validate-route-027-target-status-remeasure.",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "provenanceMode": "specialist",
+      "outcome": "blocked",
+      "evidenceRef": "report.md#validate-route-027-target-status-remeasure"
     }
   ],
   "addressedFindings": [

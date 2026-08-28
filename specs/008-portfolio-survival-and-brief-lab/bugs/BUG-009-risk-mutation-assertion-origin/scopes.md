@@ -336,15 +336,17 @@ contract.
   zero unrelated staged paths, exact changed-path containment, current packet
   documentation, fixed canonical G028 scan, artifact lint, traceability, and
   validate-owned transition checks green.
-  Evidence: recorded inline immediately below, rather than as a `report.md`
-  anchor reference. The anchor this item previously cited,
-  `report.md#validate-route-025-phase-stub-and-certification`, does not exist:
-  it resolves to 0 matches in `report.md`, while all thirteen other anchors
-  cited in this file resolve to exactly 1. Creating that anchor would require
-  editing `report.md`, which is outside this pass's change boundary, so the
-  evidence is attached inline instead of pointing at a link that cannot
-  resolve. Each figure below is the observed output of the command shown,
-  re-executed in this session rather than carried forward.
+  Evidence: recorded inline immediately below, and additionally at
+  [report.md#validate-route-025-phase-stub-and-certification](report.md#validate-route-025-phase-stub-and-certification).
+  That anchor did not exist when this item was first written — it resolved to 0
+  matches in `report.md` while all thirteen other anchors cited in this file
+  resolved to exactly 1 — because an earlier pass authored the references and
+  ran out of budget before authoring the target, and creating it was outside
+  that pass's change boundary. The certifying validate pass wrote the missing
+  section, so the anchor now resolves to exactly 1 like every other anchor cited
+  here. The inline evidence below is retained rather than replaced: each figure
+  is the observed output of the command shown, re-executed in the session that
+  recorded it rather than carried forward.
   - Command: `node scripts/selftest.mjs` — Exit Code: 0 — reports
     `Research-Lab self-test: 3429 passed, 0 failed` across 3898 captured lines
     (sha256 `db954920fb3f6528b69d943b6c2e4eed232d8aea49fb909ad07ee964c46d39bb`).

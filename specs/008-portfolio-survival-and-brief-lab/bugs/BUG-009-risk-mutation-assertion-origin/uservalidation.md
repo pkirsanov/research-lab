@@ -21,9 +21,12 @@ the operator's explicit dated authorization, transcribed here by automation.
       browser regression is 13, `node scripts/selftest.mjs` reports 3429 passed
       and 0 failed, and the regression-quality, installed G028, and packet gates
       are green.
-- [ ] Validate-owned certification completes. Unchecked until certification has
-      actually completed; it is checked only once `state-transition-guard.sh`
-      exits 0 and `status` and `certification.status` read `done`.
+- [ ] Validate-owned certification completes. Still unchecked, because
+      certification has still not completed. It was attempted in the certifying
+      session and reverted: at `in_progress` the guard exits 0 with
+      `failureCount: 0`, but flipping `status` to `done` on byte-identical
+      content makes `artifact-lint.sh` exit 1 with 68 issues and the guard exit
+      1 with `failureCount: 3`. Carried as `BUG-009-ROUTE-026`.
 
 ## Checklist
 

@@ -5268,3 +5268,161 @@ either of the two files in `4824edc81`. `status`, `certification.status` and
 61-entry unrelated working-tree transaction was neither staged, reset, stashed nor
 reverted. Nothing was pushed.
 
+## Validate Phase — Phase Stub Adjudication And Certification (BUG-009-ROUTE-025) {#validate-route-025-phase-stub-and-certification}
+
+This section is the destination of an anchor that three artifacts already cited
+before it existed. `scopes.md` referenced
+`report.md#validate-route-025-phase-stub-and-certification` twice and
+`state.json` once at `execution.phaseStubs.implement.evidenceRef`, while the
+heading itself resolved to **0** matches. An earlier pass authored the references
+and exhausted its budget before authoring the target. Writing the section is the
+repair; every figure below is the observed output of a command re-executed in
+this certifying session, never a value copied from an earlier pass.
+
+### The `implement` phase is a stub, not a claim
+
+`execution.phaseStubs.implement` records the `implement` phase as a **stub**. It
+is deliberately not an entry in `execution.completedPhaseClaims`, and this
+section is the adjudication behind that choice.
+
+The premise is that no implementation phase existed to execute. BUG-009's defect
+was a test asserting the wrong thing, so the entire remedy is commit
+`4824edc81`, which changed exactly two test files and no product source:
+`tests/portfolio-risk.functional.mjs` (`+29/-0`) and
+`tests/portfolio-test-integrity.unit.mjs` (`+1/-1`), a net `+30/-1` wholly inside
+the packet's declared change boundary. For a test-only defect the implementation
+and the test are the same artifact; there is no second thing to build.
+
+A `completedPhaseClaims` entry would then be worse than the stub, not better.
+Check 6B demands provenance for a claimed phase, and it accepts `implement`
+provenance only from `bubbles.implement` — the registry-declared owner — or from
+`bubbles.bug` through the hardcoded delegation shortcut. Neither executed this
+delivery: `executionHistory` entry 3 records `bubbles.test` with action
+`implemented-and-verified-recorded-test-contracts`. Manufacturing a claim would
+therefore require writing a `bubbles.implement` entry that never ran, or grafting
+`implement` onto a `bubbles.bug` entry that did not author the work. That is
+exactly the phantom owner Check 6B exists to refuse.
+
+`bubbles.implement` was dispatched and **refused for that reason**, recording its
+refusal at [report.md#implement-route-025-owner-refusal](report.md#implement-route-025-owner-refusal).
+The refusal is the correct outcome, and the stub is the sanctioned expression of
+it: `state-transition-guard.sh` documents `phaseStubs` as the v4.1.0 mechanism
+for a phase that legitimately had nothing to execute, admits a stub into the
+merged phase set when its `reason` is a non-empty string, and never demands
+provenance for a stub — because a stub is not a claim. Gate G022 is satisfied by
+stating the truth rather than by inventing an owner.
+
+The framework observation that produced the impasse is retained as
+`B009-PHASE-IMPLEMENT-001`: the `implement` owner set has no honest member for a
+defect whose whole correct remedy is a test-contract change. That is a registry
+decision carried upstream for the parent orchestrator, not a packet defect.
+`.github/bubbles/**` is framework-managed and was not edited by this pass.
+
+### Human acceptance is human-owned and recorded as `external-record`
+
+`uservalidation.md` carries a `## Human Acceptance Record` naming
+`acceptedBy: pkirsanov`, `acceptedAt: 2026-08-27`, and `method: external-record`.
+Automation transcribed the operator's explicit dated authorization from the
+2026-08-27 working session; it did not manufacture acceptance and holds no
+acceptance authority of its own, per
+`.github/bubbles/registry/acceptance-authority.yaml`.
+
+The method is `external-record` rather than `human-interactive` because that is
+what actually happened. The operator approved on the strength of the verification
+reported to them and did **not** separately exercise the delivered behavior in a
+live session. Their dated session directive *is* the external record; no UAT
+ticket, sign-off identifier, or other external artifact exists, and none is
+claimed. Gate G136 passes on that authored record.
+
+This certifying pass did not touch the `## Checklist` section or the
+`## Human Acceptance Record`. Both are human-owned and were already correct. The
+only `uservalidation.md` edit made here is inside the automation-owned
+`## Automation Readiness` block, whose fifth item — *"Validate-owned certification
+completes"* — was held unchecked precisely until the certification below actually
+completed.
+
+### Certification evidence
+
+Four commands, each executed in this session against the packet at its truthful
+`in_progress` state:
+
+| Command | Exit Code | Observed |
+|---------|-----------|----------|
+| `bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin` | 0 | `failureCount: 0`, `verdict: PASS`, `blockingCode: none` |
+| `node scripts/selftest.mjs` | 0 | `Research-Lab self-test: 3429 passed, 0 failed` |
+| `node scripts/pii-scan.mjs` | 0 | `[pii-scan] files=10332 messages=2342 findings=0 OK` |
+| `bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin` | 0 | `Artifact lint PASSED.` |
+
+The `selftest` run produced 3898 lines; the bounded capture carries
+`sha256: 45f9d858c5fdd47b40515a5f2b100f942f972772f184066794f9a90230f9efc3` over
+every line produced, re-derivable with `evidence-capture.sh --verify`. Zero
+required tests were skipped and no result was satisfied by an infrastructure-error
+substitute.
+
+The `pii-scan` message count reads **2342** here against the 2341 recorded in the
+preceding pass and 2340 before that. The scanned corpus moves between sessions as
+artifacts are authored; `findings` is **0** on all three readings, which is the
+figure the gate turns on. The count is recorded as observed rather than reconciled
+to a prior number.
+
+### Certification was attempted and reverted — `BUG-009-ROUTE-026`
+
+Certification did **not** complete. A green guard at `in_progress` does not imply
+a certifiable packet, because `artifact-lint.sh` is status-gated and the guard
+delegates to it. Measured both ways this session on byte-identical content:
+
+| `status` / `certification.status` | `artifact-lint.sh` | `state-transition-guard.sh` |
+|---|---|---|
+| `in_progress` | exit 0 — `Artifact lint PASSED.` | exit 0 — `failureCount: 0`, `verdict: PASS` |
+| `done` | exit 1 — 68 issues | exit 1 — `failureCount: 3`, `blockingCode: DELIVERY_COMPLETION_FAILED` |
+
+Re-running the lint at `in_progress` after the section above was written returned
+exit 0, which isolates the cause to the status transition rather than to this
+pass's edits. The 68 issues fall into three classes, none closable by this agent
+within its boundaries:
+
+**Class A — 63 findings.** `Evidence block too short` and `Evidence block lacks
+terminal output signals`, raised against pre-existing historical evidence spread
+through a 5270-line `report.md` authored by roughly a dozen prior phases.
+Clearing them means rewriting prior phases' recorded evidence, which
+anti-fabrication forbids.
+
+**Class B — 2 findings.** The mode requires `report.md` sections
+`### Validation Evidence` and `### Audit Evidence`; this packet never carried
+those exact headings, and the requirement is checked only at a terminal status.
+
+**Class C — the structural one.** `Required specialist phase 'implement' missing
+from execution/certification phase records (Gate G022 — FABRICATION)`. This is
+`B009-PHASE-IMPLEMENT-001` resurfacing in a second enforcement surface. The two
+guards disagree about the same fact: `state-transition-guard.sh` honors
+`execution.phaseStubs` as the v4.1.0 mechanism for a phase that legitimately had
+nothing to execute, while `artifact-lint.sh` contains **zero** references to
+`phaseStubs` — verified by `grep` this session — so it cannot see the stub and
+demands a claim the packet cannot honestly make. Satisfying it requires writing a
+`bubbles.implement` entry that never ran, which is precisely the phantom owner
+the stub exists to avoid. That is a framework inconsistency, not a packet defect,
+and `.github/bubbles/**` is framework-managed and was not edited.
+
+So `status` and `certification.status` were restored to `in_progress`,
+`certifiedCompletedPhases` restored to empty, `certifiedAt` and `completedAt`
+left null, and `requiresRevalidation` set true. A truthful `in_progress` beats a
+fabricated `done`. `BUG-009-ROUTE-025` is resolved — its three named blockers are
+closed and the anchor repair completed the last plan-owned gap — and
+`BUG-009-ROUTE-026` is opened carrying Classes A and C to the orchestrator.
+
+`implement` was **not** added to `certifiedCompletedPhases`; it is a `phaseStub`,
+and adding it as a claim would manufacture the phantom owner this section
+adjudicates. `plan` was **not** re-added: the installed 30-phase registry omits
+it, no mode's `phaseOrder` contains it, and it was removed as a classification
+fix under ROUTE-024 with all seven `bubbles.plan` `executionHistory` entries
+preserved. `executionHistory` retains all 24 prior entries and gained exactly one
+from this pass. The `uservalidation.md` `## Checklist` and
+`## Human Acceptance Record` were not touched, and the automation-owned
+certification readiness item remains unchecked because its stated condition is
+still false. No product source or test file was modified — not
+`rlportfolioanalytics.js`, not `tests/portfolio-defect-injector.cjs`, and not
+either of the two files in `4824edc81`. The concurrent unrelated working-tree
+transaction, and the separate `specs/007-technical-analysis-decision-lab/` files
+owned by a concurrent session, were neither staged, reset, stashed nor reverted.
+Nothing was pushed.
+

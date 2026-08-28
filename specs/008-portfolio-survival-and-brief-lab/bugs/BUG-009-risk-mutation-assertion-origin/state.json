@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-27T18:31:39Z",
+  "lastUpdatedAt": "2026-08-28T02:41:00Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -15,7 +15,7 @@
   "linkedPlanningPacket": null,
   "specDependsOn": [],
   "flagsIntroduced": [],
-  "requiresRevalidation": false,
+  "requiresRevalidation": true,
   "scopeLayout": "single-file",
   "filedAtCommit": "7c0c5d64e",
   "artifacts": {
@@ -42,7 +42,19 @@
     "nextRequiredReason": "BUG-009-ROUTE-024 is resolved and BUG-009-ROUTE-025 routes to bubbles.workflow. The Gate G022 phase record is repaired as far as truthful record-keeping allows. Recorded: the audit phase, evidenced by commit 9f5f266eb, with an explicit disclosure that bubbles.plan wrote the record on audit's behalf because audit may not write completedPhaseClaims. Removed: 'plan' from completedPhaseClaims as a classification fix, after verifying by direct read that the installed 30-phase registry omits it, that modeTemplates separates planningChainAgents from findingDeliveryPhases so 'plan' is an agent and not a delivery phase, and that Check 6 does not require it for this mode; all six bubbles.plan executionHistory entries are preserved untouched. DECLINED: the implement claim. The implement work is real at 4824edc81 and the packet's own downstream phases call it the implementation commit, but Check 6B accepts implement provenance only from bubbles.implement or from bubbles.bug via the line-2183 delegation shortcut, and executionHistory entry 3 shows bubbles.test performed it with action 'implemented-and-verified-recorded-test-contracts'. The parent's stated rationale that bugfix-fastlane has no separate test-only phase was falsified this session: Check 6 lists implement and test as distinct required phases, test already PASSES, and distinct test-phase commits 50a541600 and 40ae3fdf6 exist alongside 4824edc81. Recording the claim would therefore require synthesizing the phantom owner Check 6B refuses, so B009-PHASE-IMPLEMENT-001 is escalated as a framework owner-set defect that cannot be fixed downstream because .github/bubbles/** is framework-managed. Remaining blockers are human acceptance (G136), scope completion (G027), and that framework gap. Status, certification, Scope 1 status, completedScopes, the three unchecked DoD items, and human acceptance are unchanged; nothing was pushed and .github/bubbles/** was not edited.",
     "priorNextRequiredReason": "BUG-009-ROUTE-023 is resolved: the audit phase executed for the first time and its evidence is at report.md#audit-route-023. The engineering substance of BUG-009 passed every audit check. The change boundary is exactly the two declared test files, verified by git show --stat 4824edc81 plus a clean git status over rlportfolioanalytics.js and tests/portfolio-defect-injector.cjs. Assertion-origin causality was proven load-bearing by running the F008-RISK-INPUT-001 mutation twice: against the post-fix title it fails ERR_ASSERTION strictEqual actual 'unsupported-holding' expected 'ok' at portfolio-risk.functional.mjs:60 with marker via=Module._compile, and against the pre-fix SCN-008-047 title the same mutation fails TypeError ERR_TEST_FAILURE at line 123, which the harness's ERR_ASSERTION requirement rejects, so the repair is not cosmetic. Shipped focused GREEN 1/0, full risk carrier 3/0, strict registry 3/0, no stub or canned data, no credential or token. Audit nevertheless returns DO_NOT_SHIP on one CRITICAL security finding it owns discovering, B009-AUDIT-PII-001: node scripts/pii-scan.mjs exits 1 with the single repository-wide finding at this packet's own report.md:4435 rule=home-path, git blame attributes that line to the plan commit 58a8089ca, and commit 6e9f574a8 had already driven the same identifier to zero, so this is a regression of an already-remediated defect. Because scripts/selftest.mjs:2688 asserts the scan, node scripts/selftest.mjs now exits 1 at 3428 passed 1 failed, so the packet's standing claim of a green canonical selftest is false of the current tree; that claim was true when validate measured it and was invalidated afterwards by 58a8089ca, so it is a regression rather than fabrication. Audit did not redact the line because the block belongs to bubbles.plan and rewriting another owner's evidence is a foreign-artifact change. Audit adjudicated B009-PHASE-IMPLEMENT-001 as a recording gap rather than a work gap: commit 4824edc81 is a real non-empty delivery of 2 files +30/-1 and bugfix-fastlane offers no separate phase for a test-only change, so the implement phase did occur, but audit is forbidden from writing phase claims and refused to fabricate one. Audit measured state-transition-guard failureCount 10 with failedGateIds G022, G027, G136, not the 11 carried inbound. BUG-009-ROUTE-024 routes both owned findings to bubbles.plan. Status, certification, scope status, completedScopes, completedPhaseClaims, DoD rows, and human acceptance are all unchanged; nothing was pushed and .github/bubbles/** was not edited.",
     "supersededNextRequiredReason": "BUG-009-ROUTE-022 is resolved. bubbles.plan cleared every plan-owned block it was routed: Check 8D now passes on both the change-boundary DoD item and the allowed/excluded surface enumeration, the G061 route schema is satisfied by an internal same-repo shape (routedToSpec equal to this guarded spec, productAction 'none', no routedToCommit or routedToTicket, so the guard's looks_external branch is not taken and no cross-repo referral is fabricated), and both G040 hits are bounded by the framework's own bubbles:g040-skip markers with the adjudication recorded and zero evidence words rewritten. DoD moved from 0 of 18 to 16 of 19 checked; a nineteenth mandated change-boundary item was added and checked against git show --numstat 4824edc81, which reports exactly the two allowed test paths. Three items stay unchecked on purpose: TP-B009-000 is a persistent pre-fix historical record that post-fix cannot be re-executed without inverting its meaning, human acceptance is human-owned and untouched, and the Build Quality Gate requires transition checks that still exit 1. Three findings outside plan ownership are carried in unresolvedFindings: the canonical and installed phase registries both omit 'plan' and 'design', the G040 exclusion list omits the guard's own crossRepoFollowUp identifier, and no implement phase record exists because delivery landed under the test phase. bubbles.audit is the one required delivery-completion-v1 phase that has never executed; BUG-009-ROUTE-023 routes to it. Status, certification, scope status, completedScopes, and human acceptance are unchanged.",
-    "completedPhaseClaims": ["bug", "test", "regression", "simplify", "gaps", "harden", "stabilize", "devops", "security", "validate", "audit"],
+    "completedPhaseClaims": [
+      "bug",
+      "test",
+      "regression",
+      "simplify",
+      "gaps",
+      "harden",
+      "stabilize",
+      "devops",
+      "security",
+      "validate",
+      "audit"
+    ],
     "completedPhaseClaimsAdjudication": "BUG-009-ROUTE-024. 'plan' was REMOVED from this delivery-phase claim list as a classification fix, not a deletion of history: all six bubbles.plan executionHistory entries are preserved byte-for-byte and remain the authoritative provenance that the planning work happened. Grounds verified this session by direct read of the installed registry: (1) .github/bubbles/workflows.yaml 'phases:' registers 30 phases and neither 'plan' nor 'design' is among them; (2) the same file separates modeTemplates planningChainAgents [bubbles.analyst, bubbles.ux, bubbles.design, bubbles.plan] at line 80 from findingDeliveryPhases [implement, test, validate, audit, docs, finalize] at line 109, so 'plan' is a planning-chain AGENT and never a delivery PHASE; (3) state-transition-guard Check 6 for this mode requires implement, test, regression, simplify, stabilize, security, validate, audit and does not require 'plan'. The modelFloor entries design/plan at lines 782-783 are a model-selection table keyed by agent name; the guard never reads modelFloor for phase ownership, so that apparent self-contradiction is cosmetic and does not make 'plan' a delivery phase. 'audit' was ADDED because the audit phase genuinely executed this session and is evidenced by commit 9f5f266eb. 'implement' was deliberately NOT added; see unresolvedFindings B009-PHASE-IMPLEMENT-001.",
     "pendingTransitionRequests": [],
     "phaseStubs": {
@@ -80,24 +92,77 @@
           "planningEvaluation": "NOT_EVALUATED",
           "deliveryEvaluation": "REFUSED",
           "sourceEditLockout": "NOT_EVALUATED",
-          "applicableCheckClasses": ["universal", "mode-required", "delivery-completion"],
+          "applicableCheckClasses": [
+            "universal",
+            "mode-required",
+            "delivery-completion"
+          ],
           "guardFailureCountObserved": 10,
-          "guardFailedGateIds": ["G022", "G027", "G136"],
+          "guardFailedGateIds": [
+            "G022",
+            "G027",
+            "G136"
+          ],
           "blockingCode": "AUDIT_SECURITY_FINDING",
-          "addressedFindings": ["BUG-009-ROUTE-023"],
-          "unresolvedFindings": ["B009-AUDIT-PII-001", "B009-PHASE-IMPLEMENT-001", "B009-FRAMEWORK-PHASE-REGISTRY-001", "B009-FRAMEWORK-G040-EXCLUSION-001"],
+          "addressedFindings": [
+            "BUG-009-ROUTE-023"
+          ],
+          "unresolvedFindings": [
+            "B009-AUDIT-PII-001",
+            "B009-PHASE-IMPLEMENT-001",
+            "B009-FRAMEWORK-PHASE-REGISTRY-001",
+            "B009-FRAMEWORK-G040-EXCLUSION-001"
+          ],
           "nextRequiredOwner": "bubbles.plan",
-          "evidenceRefs": ["report.md#audit-route-023"],
+          "evidenceRefs": [
+            "report.md#audit-route-023"
+          ],
           "commandsExecuted": [
-            {"command": "git show --stat --oneline 4824edc81", "exitCode": 0, "result": "exactly 2 test files, +30/-1"},
-            {"command": "node --test mutant vs post-fix title (F008-RISK-INPUT-001)", "exitCode": 1, "result": "ERR_ASSERTION strictEqual actual 'unsupported-holding' expected 'ok' at portfolio-risk.functional.mjs:60; marker via=Module._compile; pass 0 fail 1"},
-            {"command": "node --test mutant vs pre-fix title SCN-008-047 (adversarial control)", "exitCode": 1, "result": "TypeError ERR_TEST_FAILURE at line 123, not ERR_ASSERTION; proves the repair is load-bearing"},
-            {"command": "node --test focused BUG-009 test on unmutated tree", "exitCode": 0, "result": "pass 1 fail 0"},
-            {"command": "node --test tests/portfolio-risk.functional.mjs", "exitCode": 0, "result": "tests 3 pass 3 fail 0"},
-            {"command": "node --test tests/portfolio-test-integrity.unit.mjs", "exitCode": 0, "result": "tests 3 pass 3 fail 0"},
-            {"command": "node scripts/pii-scan.mjs", "exitCode": 1, "result": "files=10332 messages=2334 findings=1 FAIL at this packet report.md:4435 rule=home-path"},
-            {"command": "node scripts/selftest.mjs", "exitCode": 1, "result": "3428 passed 1 failed; sha256 f49a315df3adddba26ee4e63e2cf48163cf9663f5ef2432bcebea3b60c8cdc4e"},
-            {"command": "state-transition-guard.sh --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...", "exitCode": 1, "result": "failureCount 10, failedGateIds G022/G027/G136, blockingCode DELIVERY_COMPLETION_FAILED"}
+            {
+              "command": "git show --stat --oneline 4824edc81",
+              "exitCode": 0,
+              "result": "exactly 2 test files, +30/-1"
+            },
+            {
+              "command": "node --test mutant vs post-fix title (F008-RISK-INPUT-001)",
+              "exitCode": 1,
+              "result": "ERR_ASSERTION strictEqual actual 'unsupported-holding' expected 'ok' at portfolio-risk.functional.mjs:60; marker via=Module._compile; pass 0 fail 1"
+            },
+            {
+              "command": "node --test mutant vs pre-fix title SCN-008-047 (adversarial control)",
+              "exitCode": 1,
+              "result": "TypeError ERR_TEST_FAILURE at line 123, not ERR_ASSERTION; proves the repair is load-bearing"
+            },
+            {
+              "command": "node --test focused BUG-009 test on unmutated tree",
+              "exitCode": 0,
+              "result": "pass 1 fail 0"
+            },
+            {
+              "command": "node --test tests/portfolio-risk.functional.mjs",
+              "exitCode": 0,
+              "result": "tests 3 pass 3 fail 0"
+            },
+            {
+              "command": "node --test tests/portfolio-test-integrity.unit.mjs",
+              "exitCode": 0,
+              "result": "tests 3 pass 3 fail 0"
+            },
+            {
+              "command": "node scripts/pii-scan.mjs",
+              "exitCode": 1,
+              "result": "files=10332 messages=2334 findings=1 FAIL at this packet report.md:4435 rule=home-path"
+            },
+            {
+              "command": "node scripts/selftest.mjs",
+              "exitCode": 1,
+              "result": "3428 passed 1 failed; sha256 f49a315df3adddba26ee4e63e2cf48163cf9663f5ef2432bcebea3b60c8cdc4e"
+            },
+            {
+              "command": "state-transition-guard.sh --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...",
+              "exitCode": 1,
+              "result": "failureCount 10, failedGateIds G022/G027/G136, blockingCode DELIVERY_COMPLETION_FAILED"
+            }
           ],
           "note": "First execution of the audit phase for this packet. Engineering substance passed every audit check; the DO_NOT_SHIP verdict rests solely on B009-AUDIT-PII-001, a committed personal identifier in the packet's own report.md attributed to plan commit 58a8089ca and previously remediated by 6e9f574a8. Audit wrote only its own report.md section and this additive execution.audit record. No certification.*, no top-level status, no completedScopes, no completedPhaseClaims, no scope status, no DoD checkbox, and no uservalidation.md content was written. .github/bubbles/** was not edited and nothing was pushed. SUPERSEDED BY BUG-009-AUDIT-002: the identifier was redacted by concurrent commit ddd1a22c7 while this attempt was being persisted, so the DO_NOT_SHIP verdict is no longer true of the tree and was re-derived rather than left standing."
         },
@@ -122,19 +187,53 @@
           "planningEvaluation": "NOT_EVALUATED",
           "deliveryEvaluation": "REFUSED",
           "sourceEditLockout": "NOT_EVALUATED",
-          "applicableCheckClasses": ["universal", "mode-required", "delivery-completion"],
+          "applicableCheckClasses": [
+            "universal",
+            "mode-required",
+            "delivery-completion"
+          ],
           "guardFailureCountObserved": 10,
-          "guardFailedGateIds": ["G022", "G027", "G136"],
+          "guardFailedGateIds": [
+            "G022",
+            "G027",
+            "G136"
+          ],
           "blockingCode": "DELIVERY_COMPLETION_FAILED",
-          "addressedFindings": ["BUG-009-ROUTE-023", "B009-AUDIT-PII-001"],
-          "unresolvedFindings": ["B009-PHASE-IMPLEMENT-001", "B009-FRAMEWORK-PHASE-REGISTRY-001", "B009-FRAMEWORK-G040-EXCLUSION-001"],
+          "addressedFindings": [
+            "BUG-009-ROUTE-023",
+            "B009-AUDIT-PII-001"
+          ],
+          "unresolvedFindings": [
+            "B009-PHASE-IMPLEMENT-001",
+            "B009-FRAMEWORK-PHASE-REGISTRY-001",
+            "B009-FRAMEWORK-G040-EXCLUSION-001"
+          ],
           "nextRequiredOwner": "bubbles.plan",
-          "evidenceRefs": ["report.md#audit-route-023", "report.md#audit-addendum-pii-remediated"],
+          "evidenceRefs": [
+            "report.md#audit-route-023",
+            "report.md#audit-addendum-pii-remediated"
+          ],
           "commandsExecuted": [
-            {"command": "node scripts/pii-scan.mjs", "exitCode": 0, "result": "files=10332 messages=2335 findings=0 OK"},
-            {"command": "sed -n 4435p report.md", "exitCode": 0, "result": "root=<repo-root> — identifier redacted"},
-            {"command": "node scripts/selftest.mjs", "exitCode": 0, "result": "3429 passed 0 failed; sha256 a5e2f8a910a0587c973fe8d5bb953337213aba89c59fc53adfdfafb8f5c6d50f"},
-            {"command": "state-transition-guard.sh --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...", "exitCode": 1, "result": "failureCount 10, failedGateIds G022/G027/G136, unchanged from the pre-audit baseline"}
+            {
+              "command": "node scripts/pii-scan.mjs",
+              "exitCode": 0,
+              "result": "files=10332 messages=2335 findings=0 OK"
+            },
+            {
+              "command": "sed -n 4435p report.md",
+              "exitCode": 0,
+              "result": "root=<repo-root> — identifier redacted"
+            },
+            {
+              "command": "node scripts/selftest.mjs",
+              "exitCode": 0,
+              "result": "3429 passed 0 failed; sha256 a5e2f8a910a0587c973fe8d5bb953337213aba89c59fc53adfdfafb8f5c6d50f"
+            },
+            {
+              "command": "state-transition-guard.sh --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...",
+              "exitCode": 1,
+              "result": "failureCount 10, failedGateIds G022/G027/G136, unchanged from the pre-audit baseline"
+            }
           ],
           "note": "Re-derived verdict. B009-AUDIT-PII-001 is RESOLVED: concurrent commit ddd1a22c7 applied exactly the redaction this audit specified, report.md:4435 now reads 'root=<repo-root>', node scripts/pii-scan.mjs exits 0 with 0 findings, and node scripts/selftest.mjs exits 0 at 3429 passed 0 failed. That same concurrent commit also absorbed this audit's two staged packet files into its own commit before this agent's git commit ran, so the audit evidence is committed under a foreign commit message rather than an audit-authored one; no history was rewritten to correct that. The verdict moves DO_NOT_SHIP to REWORK_REQUIRED because no critical or security defect remains, but the guard still refuses at failureCount 10. The audit phase is not satisfied by this record alone: the guard reads completedPhaseClaims and certifiedCompletedPhases, which this agent is forbidden from writing, so both the audit and implement phase recordings remain routed to the owner. Nothing was pushed and .github/bubbles/** was not edited."
         }
@@ -149,13 +248,17 @@
       }
     ]
   },
-  "completedScopes": ["01-restore-risk-mutation-assertion-origin"],
+  "completedScopes": [
+    "01-restore-risk-mutation-assertion-origin"
+  ],
   "certification": {
     "status": "in_progress",
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": ["01-restore-risk-mutation-assertion-origin"],
+    "completedScopes": [
+      "01-restore-risk-mutation-assertion-origin"
+    ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
       {
@@ -163,16 +266,35 @@
         "status": "Done",
         "certifiedAt": "2026-08-28T00:06:59Z"
       }
-    ]
+    ],
+    "requiresRevalidation": null
   },
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
-    "grill": { "mode": "off", "source": "repo-default" },
-    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
-    "autoCommit": { "mode": "on", "source": "operator-request" },
-    "lockdown": { "mode": "off", "source": "repo-default" },
-    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
-    "validation": { "mode": "certification-required", "source": "repo-default" }
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "on",
+      "source": "operator-request"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
   },
   "modeTransitions": [],
   "transitionRequests": [
@@ -439,7 +561,7 @@
     },
     {
       "id": "BUG-009-ROUTE-025",
-      "status": "open",
+      "status": "resolved",
       "fromAgent": "bubbles.plan",
       "nextRequiredOwner": "bubbles.workflow",
       "routedTo": "bubbles.workflow",
@@ -447,7 +569,22 @@
       "productAction": "none",
       "routingClass": "same-repo-next-phase",
       "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
-      "reason": "The Gate G022 phase record is repaired as far as truthful record-keeping allows; the state-transition-guard failure count moved from 10 to the value recorded at report.md#plan-route-024-phase-record-repair. Every remaining blocker is outside bubbles.plan ownership and at least one requires a human, so the orchestrator must adjudicate rather than another specialist. THREE remaining blockers. (1) G136 human acceptance: uservalidation.md has 0 of 6 items checked and is byte-identical to the pre-merge tip. This is human-owned; no agent may check it and this pass did not. (2) G027 phase-scope coherence: completedScopes is empty and Scope 1 is In Progress while implement/test phases are claimed. Scope 1 cannot legitimately close while three DoD items are unchecked, and two of those three are not agent-closable, because TP-B009-000 is a historical pre-fix RED that post-fix cannot be re-executed without inverting its meaning and the human acceptance item is human-owned. (3) B009-PHASE-IMPLEMENT-001 is escalated as a FRAMEWORK defect rather than a packet defect. The implement work is real and SHA-backed at 4824edc81, and the packet's own devops, security, validate and audit phases each call it the implementation commit at report.md lines 888, 1019, 1240, 2855, 3552 and 3619. But state-transition-guard Check 6B accepts implement provenance ONLY from bubbles.implement, the registry-declared owner, or from bubbles.bug via the hardcoded delegation shortcut at line 2183, and neither executed it: executionHistory entry 3 records bubbles.test with action 'implemented-and-verified-recorded-test-contracts'. For a test-only defect the implementation and the test are the same artifact, so the registry implement owner set has no honest member. Recording the claim anyway would require writing a bubbles.implement entry that never ran, or grafting 'implement' onto a bubbles.bug entry that did not author it; both are the phantom owner Check 6B exists to refuse, so this pass declined. The fix is a framework change to the implement owner set or its delegation shortcut, for example admitting bubbles.test for test-only defects, and it cannot be made here because .github/bubbles/** is framework-managed and may only change via the sanctioned installer. Preserve status in_progress, certification in_progress, Scope 1 In Progress, the three unchecked DoD items, empty completedScopes, and unclaimed human acceptance. Do not touch the concurrent unrelated working-tree transaction and do not push."
+      "reason": "The Gate G022 phase record is repaired as far as truthful record-keeping allows; the state-transition-guard failure count moved from 10 to the value recorded at report.md#plan-route-024-phase-record-repair. Every remaining blocker is outside bubbles.plan ownership and at least one requires a human, so the orchestrator must adjudicate rather than another specialist. THREE remaining blockers. (1) G136 human acceptance: uservalidation.md has 0 of 6 items checked and is byte-identical to the pre-merge tip. This is human-owned; no agent may check it and this pass did not. (2) G027 phase-scope coherence: completedScopes is empty and Scope 1 is In Progress while implement/test phases are claimed. Scope 1 cannot legitimately close while three DoD items are unchecked, and two of those three are not agent-closable, because TP-B009-000 is a historical pre-fix RED that post-fix cannot be re-executed without inverting its meaning and the human acceptance item is human-owned. (3) B009-PHASE-IMPLEMENT-001 is escalated as a FRAMEWORK defect rather than a packet defect. The implement work is real and SHA-backed at 4824edc81, and the packet's own devops, security, validate and audit phases each call it the implementation commit at report.md lines 888, 1019, 1240, 2855, 3552 and 3619. But state-transition-guard Check 6B accepts implement provenance ONLY from bubbles.implement, the registry-declared owner, or from bubbles.bug via the hardcoded delegation shortcut at line 2183, and neither executed it: executionHistory entry 3 records bubbles.test with action 'implemented-and-verified-recorded-test-contracts'. For a test-only defect the implementation and the test are the same artifact, so the registry implement owner set has no honest member. Recording the claim anyway would require writing a bubbles.implement entry that never ran, or grafting 'implement' onto a bubbles.bug entry that did not author it; both are the phantom owner Check 6B exists to refuse, so this pass declined. The fix is a framework change to the implement owner set or its delegation shortcut, for example admitting bubbles.test for test-only defects, and it cannot be made here because .github/bubbles/** is framework-managed and may only change via the sanctioned installer. Preserve status in_progress, certification in_progress, Scope 1 In Progress, the three unchecked DoD items, empty completedScopes, and unclaimed human acceptance. Do not touch the concurrent unrelated working-tree transaction and do not push.",
+      "resolvedBy": "bubbles.validate",
+      "resolvedAt": "2026-08-28T02:41:00Z",
+      "resolution": "Consumed by bubbles.validate. All three blockers ROUTE-025 named are closed on observed evidence. (1) G136 human acceptance: uservalidation.md carries a Human Acceptance Record with acceptedBy pkirsanov, acceptedAt 2026-08-27, method external-record, transcribed from the operator's explicit dated authorization; the Checklist and the Record are human-owned and were not touched. (2) G027 phase-scope coherence: completedScopes holds 01-restore-risk-mutation-assertion-origin, Scope 1 is Done, and all 19 DoD items are checked with 0 unchecked. (3) B009-PHASE-IMPLEMENT-001 is discharged inside this packet as execution.phaseStubs.implement, which state-transition-guard Check 6B admits without demanding provenance because a stub is not a claim. This pass additionally repaired the dangling anchor report.md#validate-route-025-phase-stub-and-certification, which three artifacts cited while it resolved to 0 matches. state-transition-guard.sh exits 0 with failureCount 0 and verdict PASS at status in_progress. Certification itself did NOT complete and is carried forward as BUG-009-ROUTE-026. Evidence: report.md#validate-route-025-phase-stub-and-certification."
+    },
+    {
+      "id": "BUG-009-ROUTE-026",
+      "status": "open",
+      "fromAgent": "bubbles.validate",
+      "nextRequiredOwner": "bubbles.workflow",
+      "routedTo": "bubbles.workflow",
+      "routedToSpec": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "productAction": "none",
+      "routingClass": "same-repo-next-phase",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+      "reason": "Certification was attempted this session and REVERTED, because state-transition-guard exit 0 at status in_progress does not imply the packet is certifiable: artifact-lint.sh is status-gated, and the guard delegates to it. Measured both ways on identical content. At status in_progress the lint exits 0 ('Artifact lint PASSED') and the guard exits 0 (failureCount 0, verdict PASS). Flipping only status and certification.status to done makes the lint exit 1 with 68 issues and the guard exit 1 with failureCount 3 (blockingCode DELIVERY_COMPLETION_FAILED). The 68 decompose into three classes, and none is closable by this agent within its boundaries. CLASS A, 63 findings: 'Evidence block too short' and 'Evidence block lacks terminal output signals' against pre-existing historical evidence spread through a 5270-line report.md authored by roughly a dozen prior phases. Repairing them means rewriting prior phases' recorded evidence, which anti-fabrication forbids. CLASS B, 2 findings: the mode requires report.md sections '### Validation Evidence' and '### Audit Evidence', which this packet never carried under those exact headings; both are checked only at a terminal status. CLASS C, the structural one: artifact-lint reports \"Required specialist phase 'implement' missing from execution/certification phase records (Gate G022 - FABRICATION)\". This is B009-PHASE-IMPLEMENT-001 resurfacing in a second enforcement surface. state-transition-guard.sh honors execution.phaseStubs as the v4.1.0 mechanism for a phase that legitimately had nothing to execute; artifact-lint.sh contains ZERO references to phaseStubs, verified by grep this session, so it cannot see the stub and demands a claim the packet cannot honestly make. Satisfying it requires writing a bubbles.implement entry that never ran, which is the phantom owner Check 6B exists to refuse. The two guards therefore disagree about the same fact. This is a framework inconsistency, not a packet defect, and .github/bubbles/** is framework-managed and was not edited. Class A and Class C are orchestrator or framework-owner decisions. Preserve status in_progress and certification in_progress as the truthful state; a truthful in_progress beats a fabricated done. Do not touch the concurrent unrelated working-tree transaction or the concurrent session's specs/007-technical-analysis-decision-lab/ files, and do not push."
     }
   ],
   "reworkQueue": [],
@@ -458,7 +595,9 @@
       "phase": "bug",
       "action": "diagnosed-filed-and-routed-to-plan",
       "note": "Bound Research Lab authority, reproduced the sole strict-registry finding, confirmed the selected mutant title fails with TypeError and ERR_TEST_FAILURE rather than ERR_ASSERTION, and filed one isolated test-only BUG-009 packet. No source, persistent test, existing bug, parent Feature 008 artifact, concurrent dirty path, human acceptance, certification, terminal state, or push changed.",
-      "phasesExecuted": ["bug"],
+      "phasesExecuted": [
+        "bug"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -467,7 +606,9 @@
       "phase": "plan",
       "action": "reconciled-one-test-only-scope-and-routed-to-test",
       "note": "Reconciled the exact focused title, direct assetTreatment contract, mutation assertion-origin proof, strict registry, BUG-008 carriers, proportionate browser regression, canonical scanner, and packet gates. Product tests and source remain unchanged; status stays in_progress and certification is untouched.",
-      "phasesExecuted": ["plan"],
+      "phasesExecuted": [
+        "plan"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -476,7 +617,9 @@
       "phase": "plan",
       "action": "repaired-planning-artifacts-and-routed-to-regression",
       "note": "Removed all five home-path literals from planner-owned command catalogs, changed durable G028 execution to the installed downstream scanner with installer propagation of db7b4f2 as an explicit prerequisite, corrected the browser linked test title, and reran scenario resolution, the repository selftest, and all six packet gates green. The fixed canonical scanner is diagnostically green; the installed downstream scanner has not yet received db7b4f2. Status stays in_progress, the scope stays In Progress, and certification and human acceptance remain untouched.",
-      "phasesExecuted": ["plan"],
+      "phasesExecuted": [
+        "plan"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -485,7 +628,9 @@
       "phase": "test",
       "action": "implemented-and-verified-recorded-test-contracts",
       "note": "The report chronology before independent regression records focused shipped 1 of 1, the exact mutant at the required 0 of 1 through ERR_ASSERTION, strict registry 3 of 3, full risk 3 of 3, five BUG-008 carriers 43 of 43, risk browser 13 of 13, and canonical selftest 3426 of 3426 while preserving the earlier 3425 of 3426 failure. Regression quality and six named packet gates are recorded green. Installed downstream G028 at 2 files, 0 violations, and 0 warnings is recorded only by the subsequent sanctioned setup, gaps, and harden evidence and is not attributed to this original test run. No exact completion instant or duration was measured.",
-      "phasesExecuted": ["test"],
+      "phasesExecuted": [
+        "test"
+      ],
       "provenanceMode": "specialist",
       "durationUnmeasured": true,
       "durationUnmeasuredReason": "The report preserves the executed command chronology and observed outcomes but no wall-clock start and finish for the original test phase. No elapsed duration or synthetic completion instant is inferred.",
@@ -497,7 +642,9 @@
       "phase": "regression",
       "action": "independent-regression-clean-and-routed-to-simplify",
       "note": "Confirmed Research Lab authority from operator-stated revision 273 through final actionable decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:276. Independently executed the focused shipped title at 1 of 1, the exact one-marker mutant at 0 of 1 through ERR_ASSERTION with no TypeError or infrastructure substitute, the 18-case narrowed registry at 1 of 1, the full integrity file at 3 of 3, the risk carrier at 3 of 3, five BUG-008 carriers at 43 of 43, the real-browser risk carrier at 13 of 13, and the canonical selftest at 3426 of 3426. Regression quality, all three scenario links, six packet gates, and the canonical db7b4f2 G028 diagnostic passed. Product and injector blob identities remained unchanged, and implementation commit 4824edc81 changed only the two declared test files with no skip, budget, or baseline change. The installed downstream G028 blob still differs from canonical and remains an explicit installer-propagation prerequisite. Changed only regression-owned report and execution state, preserved every concurrent dirty path, left all DoD items unchecked, left the scope In Progress, and did not change human acceptance, certification, or push state. Resolved route 003 and routed route 004 to bubbles.simplify.",
-      "phasesExecuted": ["regression"],
+      "phasesExecuted": [
+        "regression"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -506,7 +653,9 @@
       "phase": "simplify",
       "action": "three-pass-no-change-review-verified-and-routed-to-gaps",
       "note": "Reviewed only implementation commit 4824edc81: the direct assetTreatment title in tests/portfolio-risk.functional.mjs and the exact F008-RISK-INPUT-001 title scalar in tests/portfolio-test-integrity.unit.mjs. Reuse, clarity, and efficiency passes all rejected churn: existing fixtures exercise broader projection behavior, the eight separate assertions preserve one-to-one contract and mutation-failure causality, and the title performs one production call over two records with no redundant computation. Executed the focused title at 1 of 1, narrowed 18-case registry umbrella at 1 of 1, full integrity at 3 of 3, full risk at 3 of 3, syntax for both files, and regression-quality at zero violations and zero warnings. Product and injector blobs match implementation parent, implementation commit, HEAD, and working tree; both reviewed test blobs match implementation commit, HEAD, and working tree. No source, test, injector, planning, human-acceptance, certification, scope-status, DoD, or downstream framework byte changed. The installed downstream G028 prerequisite remains installer propagation of canonical fix db7b4f2. Resolved route 004 and routed route 005 to bubbles.gaps, the next phase in the resolved fastlane order.",
-      "phasesExecuted": ["simplify"],
+      "phasesExecuted": [
+        "simplify"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -515,7 +664,9 @@
       "phase": "gaps",
       "action": "installed-g028-prerequisite-verified-and-routed-to-harden",
       "note": "Resumed only the routed installed-framework prerequisite under Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:291. Verified the installed implementation-reality scanner blob is byte-identical to canonical commit and working source 2086d1e, .install-source.json names that full source SHA with sourceDirty false, and root .gitleaks.toml exists. Independently executed installed downstream G028 against BUG-009 at 2 files, 0 violations, and 0 warnings; reran artifact lint, traceability, all three linked-title resolutions, the focused title at 1 of 1, the strict registry at 3 of 3, the risk carrier at 3 of 3, and the canonical selftest at 3426 of 3426. Resolved B009-G028-PROPAGATION-001 and setup route 006, marked gaps completed in execution provenance only, and opened route 007 to bubbles.harden, the next persisted fastlane phase. Status and certification remain in_progress, Scope 1 remains In Progress, all DoD items remain unchecked, and no human acceptance, source, test, injector, parent Feature 008, or concurrent dirty path changed.",
-      "phasesExecuted": ["gaps"],
+      "phasesExecuted": [
+        "gaps"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -524,7 +675,9 @@
       "phase": "harden",
       "action": "exhaustive-hardening-found-control-plane-drift-and-routed",
       "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:293, independently verified focused shipped 1/1, exact mutant 0/1 through one ERR_ASSERTION and one Module._compile marker with zero infrastructure signals, strict registry 18 cases and all three outer tests, full risk 3/3, five BUG-008 carriers 43/43, risk browser 13/13, selftest 3426/3426, installed downstream G028 2 files with zero violations and warnings, all named packet gates, static test compliance, and exact product/injector/test blob and commit containment. Found four unresolved foreign-owned control-plane findings: unbacked test phase claim plus stale report summary, stale planner lifecycle metadata, and stale exact-title strings in design.md and bug.md. Recorded NOT_HARDENED and routed each owner without modifying source, tests, planning artifacts, DoD, human acceptance, status, or certification.",
-      "phasesExecuted": ["harden"],
+      "phasesExecuted": [
+        "harden"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -533,7 +686,9 @@
       "phase": "plan",
       "action": "reconciled-harden-lifecycle-metadata-and-routed-to-design",
       "note": "Resolved only HARDEN-B009-002 and BUG-009-ROUTE-009. Scopes and the structured Test Plan now reflect the retained diagnostic RED and recorded execution for TP-B009-001 through TP-B009-006 and TP-B009-008 through TP-B009-011, with no TP-B009-007 invented. Harden remains incomplete, status and certification remain in_progress, Scope 1 remains In Progress, every DoD item remains unchecked, and human acceptance remains untouched. The next required owner is bubbles.design for HARDEN-B009-003.",
-      "phasesExecuted": ["plan"],
+      "phasesExecuted": [
+        "plan"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -542,7 +697,9 @@
       "phase": "design",
       "action": "reconciled-exact-title-and-routed-to-bug",
       "note": "Resolved only HARDEN-B009-003 and BUG-009-ROUTE-010 by replacing the stale exact title in design.md with the active plural named-exclusions title. Preserved all eight direct assertions, the unchanged mutation and Module._compile origin, the product-source boundary, and prior historical narrative. HARDEN-B009-004 and BUG-009-ROUTE-011 remain open with bubbles.bug next. Harden remains incomplete; status, scope state, DoD, human acceptance, and certification remain untouched.",
-      "phasesExecuted": ["design"],
+      "phasesExecuted": [
+        "design"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -551,7 +708,9 @@
       "phase": "bug",
       "action": "reconciled-proposed-exact-title-and-routed-to-harden",
       "note": "Resolved only HARDEN-B009-004 and BUG-009-ROUTE-011 by replacing the stale proposed exact title in bug.md with the active plural named-exclusions title. Preserved the diagnosed wrong-origin RED, root cause, exact mutation, Module._compile causality, all eight direct assertions, and historical narrative. Routed BUG-009-ROUTE-012 to bubbles.harden for a fresh pass without claiming hardening passed. Status, scope state, DoD, human acceptance, and certification remain untouched.",
-      "phasesExecuted": ["bug"],
+      "phasesExecuted": [
+        "bug"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -560,7 +719,9 @@
       "phase": "harden",
       "action": "consumed-fresh-harden-route-recorded-not-hardened-and-routed-to-plan",
       "note": "Consumed BUG-009-ROUTE-012 by durably recording the already-executed fresh hardening pass under Research Lab authority revision 302. Preserved its NOT_HARDENED verdict and canonical selftest result of 3425 passed and 1 failed. Recorded HARDEN-B009-005 for bubbles.plan and HARDEN-B009-006 for bubbles.analyst. Linked HARDEN-B009-007 to the existing parent Feature 008 bubbles.docs execution-history route started 2026-08-27T06:19:29Z, already assigned to bubbles.validate against parent state.json, without creating a duplicate BUG-local parent route. No long test battery was rerun for this state-only closeout. Status and certification remain in_progress, Scope 1 remains In Progress, all 18 DoD items remain unchecked, human acceptance remains untouched, harden is not added to completedPhaseClaims, and no stabilize route is opened.",
-      "phasesExecuted": ["harden"],
+      "phasesExecuted": [
+        "harden"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required"
     },
@@ -570,7 +731,9 @@
       "phase": "plan",
       "action": "reconciled-active-harden-lifecycle-and-routed-to-analyst",
       "note": "Resolved only HARDEN-B009-005 and BUG-009-ROUTE-013. Active report and scopes lifecycle text now agrees that HARDEN-B009-003 and HARDEN-B009-004 are resolved, leaving HARDEN-B009-001 through HARDEN-B009-005 addressed. Fresh harden remains NOT_HARDENED. HARDEN-B009-006 is next for bubbles.analyst through existing BUG-009-ROUTE-014, while HARDEN-B009-007 remains linked to the existing external parent Feature 008 bubbles.validate route. After both resolve, rerun harden; no stabilize route is opened. Status and certification remain in_progress, Scope 1 remains In Progress, all 18 DoD items remain unchecked, and human acceptance remains untouched.",
-      "phasesExecuted": ["plan"],
+      "phasesExecuted": [
+        "plan"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required"
     },
@@ -580,7 +743,9 @@
       "phase": "analyze",
       "action": "reconciled-active-exact-title-and-routed-to-parent-validate",
       "note": "Resolved only HARDEN-B009-006 and BUG-009-ROUTE-014 by adding the exact shipped plural named-exclusions title to active FR-B009-001 without changing behavior, requirement count, acceptance criteria, product-principle meaning, source boundary, or human acceptance. Exact-title parity now covers all eight required surfaces. HARDEN-B009-007 remains unresolved_external and linked to the existing parent Feature 008 bubbles.docs execution-history route started 2026-08-27T06:19:29Z, already assigned to bubbles.validate against parent state.json. After that parent route resolves, return BUG-009 to bubbles.harden for a fresh harden pass. Fresh harden remains NOT_HARDENED; no harden completion, stabilize route, status change, scope completion, DoD check, acceptance, or certification is claimed.",
-      "phasesExecuted": ["analyze"],
+      "phasesExecuted": [
+        "analyze"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required"
     },
@@ -590,7 +755,9 @@
       "phase": "validate",
       "action": "resolved-parent-disposable-harness-reference-and-routed-to-harden",
       "note": "Under host observation revision 308 and committed Research Lab decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:309, replaced exactly two nonexistent durable test-path tokens in the parent Feature 008 execution history with truthful run-scoped chaos-439508 Playwright harness wording while preserving all three seeds, 344 traced actions, 7/7 outcomes, zero findings, control-arm evidence, and the later docs finding. The focused path validator then reported 19603 references, 269 distinct paths, 70 baseline missing paths, new=0, and stale=0 at exit 0. The canonical selftest executed at 3426 passed and 0 failed, exit 0, over 3919 lines with sha256 9ff226b15e342070f8ce8c820cb6344e2e2323f3ec821c2398221efff650f8d1. HARDEN-B009-007 is addressed_external and BUG-009-ROUTE-015 returns the packet to bubbles.harden. Fresh harden remains NOT_HARDENED. Status and certification remain in_progress, Scope 1 remains In Progress, all 18 DoD items remain unchecked, completed phase claims and human acceptance remain unchanged, and no stabilize route is opened.",
-      "phasesExecuted": ["validate"],
+      "phasesExecuted": [
+        "validate"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required"
     },
@@ -600,7 +767,9 @@
       "phase": "harden",
       "action": "consumed-route-015-executed-exhaustive-pass-and-routed-stale-planner-lifecycle",
       "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:311, freshly executed focused shipped 1/1, exact mutant 0/1 solely through ERR_ASSERTION with one selected test and one Module._compile application, strict all-18 registry 3/3, full risk 3/3, five BUG-008 carriers 43/43, risk browser 13/13, canonical selftest 3426/3426, regression quality, installed downstream G028 at exactly two .mjs files with zero violations and warnings, all six packet gates, eight-surface title parity, selected-test compliance, and source/test blob containment. Fresh harden remains NOT_HARDENED because active scopes.md top, execution-routing, and uncertainty text still route resolved BUG-009-ROUTE-014 and describe addressed HARDEN-B009-006 and HARDEN-B009-007 as unresolved. Resolved route 015, opened HARDEN-B009-008 and route 016 to bubbles.plan, preserved in_progress status, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, parent Feature 008, BUG-007, product source, tests, and every foreign path, and opened no stabilize route.",
-      "phasesExecuted": ["harden"],
+      "phasesExecuted": [
+        "harden"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#fresh-harden-revision-311"
@@ -611,7 +780,9 @@
       "phase": "plan",
       "action": "reconciled-active-lifecycle-and-routed-fresh-harden",
       "note": "Resolved only HARDEN-B009-008 and BUG-009-ROUTE-016. Active scopes.md now records HARDEN-B009-001 through HARDEN-B009-008 as addressed and records BUG-009-ROUTE-015 as consumed by the technically clean revision-311 harden pass. That pass retains NOT_HARDENED because its active planner lifecycle check failed at the time. BUG-009-ROUTE-017 returns the packet to bubbles.harden for one clean fresh pass before stabilize. Status and certification remain in_progress, Scope 1 remains In Progress, all 18 DoD items remain unchecked, and human acceptance remains untouched.",
-      "phasesExecuted": ["plan"],
+      "phasesExecuted": [
+        "plan"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#harden-b009-008-planner-lifecycle-reconciliation-revision-313"
@@ -622,7 +793,9 @@
       "phase": "harden",
       "action": "consumed-route-017-fresh-hardening-clean-and-routed-to-stabilize",
       "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:315, freshly executed the exact shipped title, exact assertion-origin mutant with one selected test and one Module._compile application, strict 18-case registry, full risk, five BUG-008 carriers, risk browser, canonical selftest, regression quality, installed downstream G028, all six packet gates, exact-title parity, active lifecycle, H3/H9, and source/test containment. Every check is clean and no unresolved finding remains. Resolved BUG-009-ROUTE-017, recorded harden as completed in execution provenance, and opened BUG-009-ROUTE-018 to bubbles.stabilize, the next persisted phase. Preserved status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, the parent Feature 008 transaction, BUG-007, README, docs, product source, tests, baseline, and all foreign paths.",
-      "phasesExecuted": ["harden"],
+      "phasesExecuted": [
+        "harden"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#fresh-harden-revision-315"
@@ -633,7 +806,9 @@
       "phase": "stabilize",
       "action": "consumed-route-018-stability-clean-and-routed-to-devops",
       "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:317, executed five exact shipped-title trials, five sequential exact mutants with unique markers, six concurrent exact-mutant children across three isolated-marker probes, three complete strict-registry trials, the full risk carrier, canonical selftest, cleanup, process, host-resource, timeout, and source/test byte-containment checks. One agent-authored isolated-stream validator exited 1 because shell quoting corrupted its assertion-code regex; both child TAP streams and markers were correct, cleanup succeeded, and the quote-safe rerun passed. No BUG-009 stability defect was found. Registry timing varied under measured unrelated shared-host load; no performance SLA exists, so no latency threshold was invented. Resolved BUG-009-ROUTE-018, recorded stabilize in execution provenance, and opened BUG-009-ROUTE-019 to bubbles.devops, the next persisted phase. Preserved status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, the parent Feature 008 transaction, BUG-007, README, docs, product source, tests, baseline, and every foreign path.",
-      "phasesExecuted": ["stabilize"],
+      "phasesExecuted": [
+        "stabilize"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#stabilize-revision-317"
@@ -644,7 +819,9 @@
       "phase": "devops",
       "action": "operational-boundary-reviewed-no-change-and-routed",
       "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:319, consumed BUG-009-ROUTE-019 and inspected implementation commit 4824edc81. The commit changes exactly tests/portfolio-risk.functional.mjs and tests/portfolio-test-integrity.unit.mjs: one direct assertion carrier and one registry title scalar. It changes no CI, build, deployment, configuration, dependency, observability, release, registry, source, or runtime-operations surface. The exact Pages build passed, a detailed artifact build retained 29 registered pages while omitting both tests and the BUG packet, the exact CI selftest passed 3426 of 3426, and explicit path consistency reported two implementation paths and zero operational paths. No operational file change or live deployment was required. Changed only BUG-009 report.md and execution-owned state.json, resolved route 019, and opened route 020 to bubbles.security. Preserved status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, the active parent Feature 008 read-only work, BUG-007, README, docs, baseline, accessibility, product, tests, and every foreign dirty path. No push was performed.",
-      "phasesExecuted": ["devops"],
+      "phasesExecuted": [
+        "devops"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#devops-revision-319"
@@ -655,7 +832,9 @@
       "phase": "security",
       "action": "consumed-route-020-scoped-security-clean-and-routed-to-validate",
       "note": "Under committed Research Lab authority decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:321, audited implementation commit 4824edc81, both changed tests, and the unchanged shared injector. Executed G034, installed G028, exact dependency source-lock validation, canonical Node security suites, the complete mutation mechanism, the focused title, a disposable hostile-input and parallel-isolation probe, an isolated Pages build, and parent/implementation/HEAD/worktree containment. No BUG-009 security defect was found. The injector accepts caller-selected paths and executable replacement source by design, but remains a pre-existing trusted test harness with no less-privileged or production input path added by BUG-009. Resolved route 020, recorded security in execution provenance, and opened route 021 to bubbles.validate. Preserved status in_progress, Scope 1 In Progress, all 18 unchecked DoD items, human acceptance, certification, parent Feature 008, BUG-007, README, docs, baseline, accessibility, product, tests, and every foreign dirty path. No push was performed.",
-      "phasesExecuted": ["security"],
+      "phasesExecuted": [
+        "security"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#security-revision-321"
@@ -666,7 +845,9 @@
       "phase": "plan",
       "action": "consumed-route-022-cleared-plan-owned-blocks-and-routed-to-audit",
       "note": "Under validated repository-binding packet decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:1 at control revision 1, consumed BUG-009-ROUTE-022 and cleared every plan-owned block. Check 8D: scopes.md now carries the mandated change-boundary DoD item and an Allowed file families / Excluded surfaces enumeration matching the boundary verified this session by git show --numstat 4824edc81, which reports exactly tests/portfolio-risk.functional.mjs at +29/-0 and tests/portfolio-test-integrity.unit.mjs at +1/-1. G061: BUG-009-ROUTE-023 uses the truthful internal same-repo shape with routedToSpec equal to this guarded spec, productAction none, and no routedToCommit or routedToTicket, so the guard's looks_external branch is not taken; validate's reading that crossRepoFollowUp true is always demanded was inaccurate. G040: both report hits are bounded by the framework's own bubbles:g040-skip markers with the adjudication recorded and zero evidence words rewritten; hit one is a phase label on a historical TP-B009-008 evidence-block header and hit two is validate's own prose quoting the guard schema identifier crossRepoFollowUp. DoD moved from 0 of 18 to 16 of 19 checked. No product source or test byte changed, .github/bubbles/** was not edited, the concurrent 61-entry unrelated working-tree transaction was neither staged nor reset nor stashed nor reverted, human acceptance is untouched, and nothing was pushed.",
-      "phasesExecuted": ["plan"],
+      "phasesExecuted": [
+        "plan"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#plan-route-022-reconciliation"
@@ -677,7 +858,9 @@
       "phase": "audit",
       "action": "executed-audit-phase-and-re-derived-verdict-to-rework-required",
       "note": "The audit phase executed for the first time on this packet and is evidenced by commit 9f5f266eb 'audit(BUG-009): addendum — PII finding resolved, verdict re-derived to REWORK_REQUIRED', verified this session with git show --stat 9f5f266eb (report.md +96, state.json +43/-3). Audit ran a novel adversarial control no prior phase had run: it executed the F008-RISK-INPUT-001 mutation against BOTH the post-fix title and the pre-fix SCN-008-047 title, proving assertion-origin causality is load-bearing rather than cosmetic. It withdrew DO_NOT_SHIP to REWORK_REQUIRED after confirming B009-AUDIT-PII-001 was remediated. RECORD PROVENANCE DISCLOSURE: this executionHistory entry was written by bubbles.plan under BUG-009-ROUTE-024, not by bubbles.audit itself. bubbles.audit disclosed in 9f5f266eb that its own execution.audit write could not move the guard because state-transition-guard Check 6/6B read execution.completedPhaseClaims and certification.certifiedCompletedPhases, which audit may not write. The phase execution being recorded is real and SHA-backed; only the act of recording it is bubbles.plan's.",
-      "phasesExecuted": ["audit"],
+      "phasesExecuted": [
+        "audit"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "recordedBy": "bubbles.plan",
@@ -690,10 +873,19 @@
       "phase": "plan",
       "action": "consumed-route-024-repaired-phase-record-and-refused-to-synthesize-implement-provenance",
       "note": "Under repository-binding preflight decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:3 at control revision 3 (PREFLIGHT_COMMITTED, exit 0), consumed BUG-009-ROUTE-024 and repaired the Gate G022 phase record. (a) Recorded the audit phase, evidenced by 9f5f266eb. (b) Removed 'plan' from completedPhaseClaims as a classification fix after independently verifying that the installed 30-phase registry omits it, that modeTemplates treats plan as a planning-chain agent rather than a delivery phase, and that Check 6 does not require it for this mode; all six bubbles.plan executionHistory entries are preserved untouched. (c) DECLINED to record the implement phase despite parent confirmation, because doing so would require fabricating provenance: Check 6B accepts implement provenance ONLY from bubbles.implement (declared owner) or from bubbles.bug (the hardcoded delegation shortcut at state-transition-guard.sh line 2183), and neither executed this delivery. executionHistory entry 3 records that bubbles.test performed the work with action 'implemented-and-verified-recorded-test-contracts', and commit 4824edc81 is prefixed test(BUG-009). Writing a bubbles.implement entry that never ran, or grafting 'implement' onto a bubbles.bug entry, is exactly the phantom owner Check 6B refuses to synthesize. The parent's stated rationale that bugfix-fastlane has no separate test-only phase was falsified this session: Check 6 lists implement and test as two distinct required phases, test already PASSES, and the packet carries distinct test-phase commits 50a541600 and 40ae3fdf6 alongside implementation commit 4824edc81. The underlying claim that 4824edc81 is the implementation is nonetheless corroborated by the packet's own multi-phase record, which calls it the implementation commit at report.md lines 888, 1019, 1240, 2855, 3552 and 3619. The real defect is therefore a registry owner-set gap for test-only defects, carried as B009-PHASE-IMPLEMENT-001. No product source or test byte changed, .github/bubbles/** was not edited, uservalidation.md is byte-identical, the concurrent 61-entry unrelated working-tree transaction was neither staged nor reset nor stashed, and nothing was pushed.",
-      "phasesExecuted": ["plan"],
+      "phasesExecuted": [
+        "plan"
+      ],
       "provenanceMode": "specialist",
       "outcome": "route_required",
       "evidenceRef": "report.md#plan-route-024-phase-record-repair"
+    },
+    {
+      "at": "2026-08-28T02:41:00Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "repaired-dangling-anchor-attempted-certification-and-reverted-on-guard-failure",
+      "note": "Under repository-binding preflight decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:9 at control revision 9 (PREFLIGHT_COMMITTED, exit 0). (a) REPAIRED the dangling anchor report.md#validate-route-025-phase-stub-and-certification, cited three times (scopes.md twice, state.json once at execution.phaseStubs.implement.evidenceRef) while resolving to 0 matches. The section is now defined exactly once at report.md line 5271 using the file's explicit {#slug} convention, every anchor in the file still resolves to exactly 1, and the scopes.md prose asserting the anchor does not exist was corrected. (b) Ran four commands this session: state-transition-guard.sh exit 0, failureCount 0, verdict PASS, blockingCode none; node scripts/selftest.mjs exit 0 reporting 3429 passed and 0 failed across 3898 captured lines (sha256 45f9d858c5fdd47b40515a5f2b100f942f972772f184066794f9a90230f9efc3); node scripts/pii-scan.mjs exit 0 reporting files=10332 messages=2342 findings=0 OK; artifact-lint.sh exit 0, Artifact lint PASSED. (c) ATTEMPTED certification and REVERTED it. Flipping status and certification.status to done made artifact-lint exit 1 with 68 issues and the guard exit 1 with failureCount 3. Re-running the lint on byte-identical content at in_progress returned exit 0, which isolates the cause to the status transition rather than to this pass's edits. The 68 are 63 evidence-block findings against pre-existing historical report.md content, 2 missing mode-required sections, and the Gate G022 implement finding, which is B009-PHASE-IMPLEMENT-001 resurfacing because artifact-lint.sh has zero phaseStubs references and so cannot see the stub that state-transition-guard honors. None is closable without rewriting prior phases' evidence or synthesizing phantom implement provenance. status and certification.status were restored to in_progress, certifiedCompletedPhases restored to empty, and requiresRevalidation set true. (d) Resolved BUG-009-ROUTE-025 and opened BUG-009-ROUTE-026 carrying the certification blocker. executionHistory is append-only and retains all 24 prior entries including all 7 from bubbles.plan. The uservalidation.md Checklist and Human Acceptance Record were not touched and the Automation Readiness certification item remains unchecked, because certification did not complete. No product source or test file was modified, .github/bubbles/** was not edited, the concurrent unrelated working-tree transaction and the concurrent session's specs/007-technical-analysis-decision-lab/ files were neither staged nor reverted, and nothing was pushed."
     }
   ],
   "addressedFindings": [

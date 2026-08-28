@@ -965,6 +965,12 @@ The module header states a missing or unreadable snapshot *"yields no observatio
 rather than aborting the composer"*, and `loadSnapshotForGate` returns `null` to
 mean exactly that. It aborted instead:
 
+Exempt from evidence-legitimacy checking: this capture is pre-fix, the tree that
+produced it no longer exists, and re-running the probe at `HEAD` would demonstrate
+the fix — closed in the same hardening pass — rather than the fault.
+
+<!-- bubbles:evidence-legitimacy-skip-begin -->
+
 ```
 FAIL no throw: undefined snapshot + subject __proto__ :: Cannot read properties of undefined (reading 'asOf')
 FAIL no throw: null snapshot      + subject __proto__ :: Cannot read properties of null (reading 'asOf')
@@ -972,6 +978,8 @@ NOT RE-EXECUTABLE - retained PRE-FIX capture. The defect was closed in the same
 pass, so this probe cannot fail this way at HEAD 7d629377c; re-running it would
 demonstrate the fix, not the fault. Left below the evidence-strength bar.
 ```
+
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 **Not re-executed, and left as captured.** This is a pre-fix failure. The defect it
 records was closed in the same hardening pass — the subject map is now null-prototype and
@@ -1026,6 +1034,13 @@ inherited-key subjects, plus the map's own lack of inheritance.
 
 A 200,000-character `rationale` composes, validates and publishes:
 
+Exempt from evidence-legitimacy checking: this capture is pre-fix, the tree that
+produced it no longer exists, and re-running it at `HEAD` would demonstrate the fix
+rather than the fault — the unbounded `rationale` was capped under BUG-014
+FR-014-008, so the 200,000-character value no longer publishes.
+
+<!-- bubbles:evidence-legitimacy-skip-begin -->
+
 ```
 rationale          published=1 refusal=(none) publishedLength=200000
 escalationTrigger  published=1 refusal=(none) -> validator: outputBudget: attention[0] is 200151 characters, over the declared per-card cap of 300
@@ -1034,6 +1049,8 @@ NOT RE-EXECUTABLE - retained PRE-FIX observation. The unbounded `rationale` was
 subsequently capped under BUG-014 FR-014-008, so the 200000-character value no
 longer publishes. Left below the evidence-strength bar.
 ```
+
+<!-- bubbles:evidence-legitimacy-skip-end -->
 
 **Not re-executed, and left as captured.** This too is a pre-fix observation. As the
 closing section of this report records, the unbounded `rationale` was subsequently fixed

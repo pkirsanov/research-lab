@@ -243,6 +243,21 @@ function splitTestIdentity(identity) {
   return { file: identity.slice(0, hash), testName: identity.slice(hash + 1) };
 }
 
+/**
+ * GREEN_LIVE is a trait-derived state: only a scenario whose manifest declares a
+ * behaviour trait that owes a live route proof is required to hold it. This set
+ * is kept aligned BY NAME with LIVE_TRAITS in
+ * `.github/bubbles/scripts/scenario-state-resolve.sh`; if the framework set
+ * changes, the resolver refuses and this list must be reconciled rather than
+ * guessed at.
+ */
+const LIVE_TRAITS = new Set(['user-visible-ui', 'api-contract', 'mutable-state', 'degraded-state',
+  'shared-consumer', 'dependency-path', 'responsive-accessible', 'runtime-config']);
+
+function owesLiveProof(manifestRow) {
+  return (manifestRow.behaviorTraits || []).some((trait) => LIVE_TRAITS.has(trait));
+}
+
 function testCommand({ file, testName }, { whole }) {
   const select = !whole && testName !== null;
   if (file.endsWith('.spec.mjs')) {
@@ -440,6 +455,37 @@ function runScenario(context, options, scenarioId, workdir) {
     record.outcome = 'GREEN_FAILED';
     record.detail = `the restored tree did not pass the discriminator (exit ${green.exitCode})`;
     return record;
+  }
+
+  // --- live ------------------------------------------------------------------
+  // Only for a scenario whose manifest traits owe a live route proof, and only
+  // from a Playwright spec: that runner boots a real server and drives the real
+  // page, so the execution genuinely crosses the production boundary. A
+  // `node --test` file drives no route, so emitting `live` from one would claim
+  // a boundary the run never crossed - it refuses instead.
+  //
+  // This is a SEPARATE execution from `green`, not a relabelling of it. The two
+  // establish different facts about the same behaviour (the targeted test passes
+  // after implementation; the production route proves the outcome), and for a
+  // browser-driven test the same command is the honest way to observe both.
+  if (owesLiveProof(manifestRow)) {
+    if (!parts.file.endsWith('.spec.mjs')) {
+      record.outcome = 'LIVE_PROOF_UNAVAILABLE';
+      record.detail = `${scenarioId} declares a behaviour trait that owes a live route proof, but its mapped test ${parts.file} is not a live-category spec; no live receipt was emitted`;
+      return record;
+    }
+    process.stdout.write(`\n[${scenarioId}] live       (production route via ${parts.file}, must exit 0)\n`);
+    const liveCmd = testCommand(parts, { whole: false });
+    const live = emitReceipt(context, options, {
+      scenarioId, phase: 'live', testIdentity, control: entry.control, claim, implRefs, scope,
+      command: liveCmd.command, argv: liveCmd.argv, cwd: workdir
+    });
+    record.phases.live = live.exitCode;
+    if (live.exitCode !== 0) {
+      record.outcome = 'LIVE_FAILED';
+      record.detail = `the live route run over ${parts.file} exited ${live.exitCode}`;
+      return record;
+    }
   }
 
   // --- regression ------------------------------------------------------------

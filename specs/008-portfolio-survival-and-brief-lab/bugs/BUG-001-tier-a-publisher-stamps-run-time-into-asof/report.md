@@ -895,11 +895,144 @@ Verdict **SHIP_WITH_NOTES**. What the round established, each by execution:
 - 0 TODO, FIXME or HACK markers and 0 skip markers in added lines.
 - All three `phaseStubs` judged honest, none a disguised skip.
 
-Three non-blocking observations were raised rather than waived. `F3` (the adversarial
-regression row cited at `:902` against the real `:1039`) is closed above in § The Adversarial
-Row. `N1` records a pre-existing duplicate `newYorkCivilCutoff` at
-`portfolio-survival-allocation-lab.html:7906` which this fix did not introduce and does not
-touch. `N2` narrowed the `simplify` stub's closing clause to its verified grounds.
+Three non-blocking observations were raised rather than waived. Their disposition is recorded
+in § Validation Evidence, and two sentences that stood here were corrected there rather than
+left to read as settled — this paragraph named a section that does not exist, and it claimed a
+narrowing that had not been applied.
+
+### Validation Evidence
+
+**`executed (validate turn)`** — `bubbles.validate`, 2026-08-28. Every command below ran in
+this turn against an isolated `git archive HEAD` export at `7c89497277`, with `node_modules`
+and `.git` symlinked into it. The export is not a convenience: the working tree carries
+eighty-four uncommitted files from other sessions, so a run there would not measure this
+delivery. The `.git` symlink is equally load-bearing — two selftest groups shell out to git,
+and without it they report failures that are artifacts of the export rather than of the code.
+
+```
+$ git rev-parse HEAD
+7c89497277d2de69265b68d22c1f5fd515229aee
+$ git status --porcelain | wc -l
+84
+$ git status --porcelain -- <packet> | wc -l
+0
+$ node scripts/selftest.mjs | tail -2
+Research-Lab self-test: 3429 passed, 0 failed
+================================================
+$ node scripts/pii-scan.mjs | tail -1
+[pii-scan] files=10342 messages=2447 findings=0 OK
+```
+
+**The scenario was replayed, not re-read.** Recorded evidence proves the behaviour worked once;
+a replay proves it works now, and the gap between the two is where a regression would sit. The
+whole suite was re-run live, and case 18 is this bug's own row emitting its receipts:
+
+```
+$ npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
+[BUG-001] window=morning cutoffAt=2026-08-27T15:00:00.000Z publishedLateAt=2026-08-27T15:37:00.000Z
+[BUG-001] options=4 state=unavailable named=generic-evidence-cutoff-conflict
+  ✓  18 [system-chrome] › tests/portfolio-survival-brief.spec.mjs:1039:1 › Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule (1.3s)
+  19 passed (42.6s)
+REPLAY_EXIT=0
+```
+
+**The publisher half was replayed against the real published artifacts**, which is the half the
+row above cannot see. This is the strongest single observation in the turn, and it was not
+arranged: the live payload's own run clock lands thirty-one minutes past the cutoff of the
+window it declares, so the currently published brief is exactly the late run that opened this
+bug — and it publishes honestly rather than being refused.
+
+```
+$ node -e 'read both published artifacts and print window, asOf, generatedAt'
+market-brief.snapshot.json  window=morning  asOf=2026-08-27T15:00:00.000Z  generatedAt=2026-08-27T14:57:36.125Z
+market-brief.payload.json   window=morning  asOf=2026-08-27T15:00:00.000Z  generatedAt=2026-08-27T15:30:59.849Z
+distinct(asOf,generatedAt) = true
+$ node scripts/validate-brief-payload.mjs | tail -2
+[brief-contract] every evidence timestamp is at or before the declared window cutoff: PASS
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+PAYLOAD_GATE_EXIT=0
+```
+
+`asOf` reads 15:00:00Z — 11:00 ET, the declared `morning` cutoff — while `generatedAt` reads
+15:30:59Z. Under the defect the two would be equal at 15:30:59Z, the consumer would refuse its
+own publisher's output, and the cutoff assertion above would fail rather than pass.
+
+**The `:1039` division of labour was confirmed structurally, not accepted from the record.** The
+row rewrites `asOf` in *both* served artifacts before it asserts anything, so no value the
+publisher writes ever reaches the page it inspects:
+
+```
+$ awk 'NR>=1039 && NR<=1105' tests/portfolio-survival-brief.spec.mjs | grep -n "market-brief"
+19:      '/market-brief.snapshot.json': JSON.stringify({ ...snapshot, asOf: publishedLateAt, generatedAt: publishedLateAt }),
+20:      '/market-brief.payload.json': JSON.stringify({ ...payload, asOf: publishedLateAt })
+```
+
+That is why it survived the revert while fifteen sibling rows went red, and the division is
+real rather than a rationalisation: `:1039` guards the consumer half (a refusal is named and
+the schedule is not emptied), the fifteen rows that read the real published artifacts guard the
+publisher half, and § RED Stage Reconstruction records the 15-failed/4-passed measurement that
+separates them. Neither substitutes for the other. What remains slightly misleading is only the
+row's *name*, which reads as though it guards the publisher defect it structurally cannot see;
+the coverage itself is sound and § Regression E2E states the limitation plainly.
+
+**Disposition of the three audit observations.** `F3` is closed: § Regression E2E carries a
+verified `grep -n` locate placing the row at `:1039` and states that the test *title*, not the
+line number, is the stable identity `scenario-manifest.json` binds. The earlier cross-reference
+in § Audit Evidence pointed at a section named "The Adversarial Row", which does not exist in
+this report; it has been repointed to the section that actually carries the closure.
+
+`N2` was **not** closed, and the sentence claiming it had been is withdrawn. Measured this turn,
+`execution.phaseStubs.simplify.reason` still ends "So there remains nothing for a simplify pass
+to collapse" — the narrowing was asserted but never applied. The stub text is left unchanged
+because `execution.phaseStubs` is not a certification field, and rewriting another phase's
+justification would make the record say that phase wrote something it did not. The scoped
+reading is recorded here instead, which is what the audit asked for: the clause is sound only
+as a statement about `windowCutoffAt`, which is unique at `rlportfoliobrief.js:171`. It is not
+a statement about the codebase, and `N1` is the counterexample that bounds it.
+
+`N1` is real, pre-existing, and now filed rather than absorbed. It is recorded as residue in
+`.specify/memory/open-work.md` as `res-alloc-lab-duplicate-civil-cutoff`, with an owner and a
+next action, because a duplicate that only this report mentions is one nobody will act on:
+
+```
+$ grep -n 'newYorkCivilCutoff' portfolio-survival-allocation-lab.html
+7906:            function newYorkCivilCutoff(date, time) {
+7974:                var cutoffAt = newYorkCivilCutoff(tradingDate, window_.etTime);
+$ grep -n 'rlportfoliobrief' portfolio-survival-allocation-lab.html
+1248:    <script src="rlportfoliobrief.js"></script>
+$ git show 899c7a40e -- portfolio-survival-allocation-lab.html | grep -c '^[+-].*newYorkCivilCutoff'
+0
+```
+
+The page defines its own copy of a primitive that `rlportfoliobrief.js` already exports at
+`:1133`, while loading that very module. The count is 1 at `899c7a40e^`, 1 at `899c7a40e` and 1
+at `HEAD`, and the delivery diff touches the symbol zero times, so it is out of blast radius and
+is not repaired here.
+
+**Gate results.** Both were measured at the *target* status, not the current one:
+`artifact-lint.sh` skips its mode-specific report gates below the promotion set, so a green lint
+at `in_progress` predicts nothing about `done`. The packet was copied to a scratch directory with
+both `status` and `certification.status` flipped — flipping only one manufactures a spurious
+mismatch issue — and linted there.
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh <scratch-copy-flipped-to-done>   # BEFORE
+❌ Required specialist phase 'validate' missing from execution/certification phase records (Gate G022 — FABRICATION)
+❌ 1 of 4 required specialist phases are MISSING
+❌ state.json workflowMode 'bugfix-fastlane' requires report.md section: ### Validation Evidence
+❌ Required specialist phase 'validate' NOT in execution/certification phase records (Gate G022 violation)
+Artifact lint FAILED with 4 issue(s).
+LINT_BEFORE_EXIT=1
+$ bash .github/bubbles/scripts/state-transition-guard.sh <packet>                # BEFORE
+failedGateIds: [G022]
+failureCount: 2
+verdict: FAIL
+```
+
+All four issues were the `validate` phase or its required section, and both guard failures were
+the same missing phase. Thirty-two evidence blocks already passed the anti-fabrication check.
+The after-state is recorded in § Certification below.
 
 ## Completion Statement
 
@@ -913,9 +1046,20 @@ contract and asserts its own non-tautology. Five verification commands pass; the
 figure of 3314 assertions was the count at the fix turn and now reads 3429 — the suite grew
 under other work, and the number is quoted here as a historical reading, not a current one.
 
-**What is not established.** Certification has not been performed and none is claimed:
-`certification.status` is `in_progress` and `certifiedAt` is `null`. An audit round ran and
-returned `REWORK_REQUIRED` rather than a clean verdict — see § Audit Evidence.
+**What is not established.** Two things, and neither is a defect in the delivery. The
+adversarial row at `tests/portfolio-survival-brief.spec.mjs:1039` does not guard the publisher
+half of this contract and structurally cannot, because it overrides both published artifacts
+before it asserts anything; that half rests on the fifteen sibling rows measured in § RED Stage
+Reconstruction, not on the row whose name implies it. And the duplicate `newYorkCivilCutoff`
+recorded as `N1` is knowingly left unrepaired, filed as residue in
+`.specify/memory/open-work.md` rather than absorbed into this packet.
+
+A sentence that stood here has been withdrawn rather than deleted, on the same principle as the
+two below. "Certification has not been performed and none is claimed: `certification.status` is
+`in_progress` and `certifiedAt` is `null`" was true when written and is now false — the
+`validate` phase ran on 2026-08-28 and certified this packet, with its gate results recorded in
+§ Certification. The `REWORK_REQUIRED` verdict that sentence cited was round 2; round 3
+returned `SHIP_WITH_NOTES` and is the operative one.
 
 Two sentences that stood here were withdrawn as stale rather than left to read as current.
 "They were not re-run while these artifacts were written" was true when written and is now

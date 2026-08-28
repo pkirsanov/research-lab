@@ -3,9 +3,9 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-001-tier-a-publisher-stamps-run-time-into-asof",
   "featureName": "BUG-001 The Tier-A Publisher Stamps Run Time Into asOf, So A Late Run Publishes A Brief Its Own Consumer Must Refuse",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-23T21:15:37Z",
-  "certifiedAt": null,
-  "status": "in_progress",
+  "lastUpdatedAt": "2026-08-28T21:53:24Z",
+  "certifiedAt": "2026-08-28T21:53:24Z",
+  "status": "done",
   "blockedReason": null,
   "priorBlockedReason": null,
   "blockedReasonResolved": null,
@@ -49,7 +49,8 @@
       "implement",
       "test",
       "regression",
-      "audit"
+      "audit",
+      "validate"
     ],
     "phaseClaimNote": "Two claims were WITHDRAWN as framework-integrity violations, not because the work was absent. 'design' is not a registered phase in .github/bubbles/workflows.yaml (registered phases were enumerated; design resolves owner=None), so claiming it asserts a phase this workflow does not have. The design work itself is real and lives in design.md, produced during the 'bug' phase, which is exactly what executionHistory records (agent bubbles.bug). 'regression' IS registered but its owner is bubbles.regression, while executionHistory attributes it to bubbles.bug -- an owner-contract violation. The claim is withdrawn rather than relabelled; a real bubbles.regression run is what would restore it. 'test' is ADDED with genuine provenance: bubbles.test executed the phase in this session and committed 86c4a360f at 2026-08-28T16:46:33Z, closing Gate G060 by reconstructing the red stage inside an isolated git-archive export (15 failed / 4 passed with the fix reverted, restored to 19 passed). Timestamps here are real commit times, not placeholders; the pre-existing history entries all carry 2026-08-23T00:00:00Z, which is a placeholder midnight and is left untouched as inherited record rather than back-filled with invented precision.",
     "audit": {
@@ -338,15 +339,23 @@
     "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible"
   ],
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "lockdownState": "unlocked",
-    "completedAt": null,
-    "certifiedAt": null,
+    "completedAt": "2026-08-28T21:52:56Z",
+    "certifiedAt": "2026-08-28T21:53:24Z",
+    "certifiedBy": "bubbles.validate",
     "completedScopes": [
       "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible"
     ],
-    "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status mirrors the top-level status and is deliberately in_progress: no validate phase has certified this packet, so no certification is claimed. scopeProgress records 19 checked / 0 unchecked with scope status Done, and completedScopes mirrors that SCOPE claim only. Scope completion and packet certification are separate claims and only the first is made here. The 19th item was closed by execution: the working tree carries another packet's uncommitted edits, so HEAD (17cb5335d) was exported with git archive into an isolated directory and all three suites passed there at exit 0 - selftest 3429/0, portfolio-brief.functional 34/34, playwright portfolio-survival-brief 19 passed. See report.md section 'Broader Suite On The Committed Tree'.",
+    "certifiedCompletedPhases": [
+      "bug",
+      "implement",
+      "test",
+      "regression",
+      "audit",
+      "validate"
+    ],
+    "certificationFieldWriteNote": "Certified by bubbles.validate on 2026-08-28. completedAt (21:52:56Z) and certifiedAt (21:53:24Z) are distinct real clock readings, not a placeholder pair; the inherited 2026-08-23T00:00:00Z stamps elsewhere in this file are placeholder midnights and are deliberately left as inherited record rather than back-filled with invented precision. This note REPLACES an earlier one stating that certification was deliberately withheld, which was true when written and is false now. What validate verified, each by execution rather than by reading the record: selftest 3429 passed / 0 failed and pii-scan 0 findings on an isolated git-archive export of HEAD 7c89497277 with .git symlinked; the live scenario suite REPLAYED at 19 passed including this bug's own row at tests/portfolio-survival-brief.spec.mjs:1039; and the publisher half replayed against the real published artifacts, where the payload's generatedAt of 2026-08-27T15:30:59.849Z sits 30m59s past its own declared 15:00:00.000Z cutoff while asOf correctly reads the cutoff -- the currently published brief IS the late run this bug was filed for, and it publishes honestly. Measured at the TARGET status, because artifact-lint skips its mode-specific report gates below the promotion set: the packet was copied to a scratch directory with BOTH status and certification.status flipped to done and linted there, going 4 issues -> 0. certifiedCompletedPhases mirrors completedPhaseClaims; validate confirmed each named phase carries real evidence in report.md, and G027 phase-scope coherence holds because the single scope 01 is Done at 19/0. THREE audit observations were dispositioned rather than absorbed: F3 closed, N2 REOPENED after measurement showed the claimed narrowing was never applied to execution.phaseStubs.simplify.reason (the stub text is left untouched because it is not a certification field; the scoped reading is recorded in report.md instead), and N1 filed as residue res-alloc-lab-duplicate-civil-cutoff in .specify/memory/open-work.md.",
     "scopeProgress": [
       {
         "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
@@ -472,6 +481,17 @@
       "note": "Round-3 audit on a clean git-archive export of HEAD 5112a5317 (.git symlinked, so the two false selftest failures do not appear); every code read came from HEAD via git show because the working tree carries ~85 foreign uncommitted files including rlportfoliobrief.js itself. All four prior findings were re-derived rather than accepted from the round-2 summary. F1 closed: brief-narrative-parallel.mjs carries newYorkCivilCutoff 0 times before and after, and its actual 9-line hunk is a fallback-chain removal (FR-B001-009), not a cutoff duplicate; the validate-brief-payload.mjs:975 hunk is verbatim and its '-' side already called the shared module. F2 closed exhaustively: a recursive walk of every leaf of state.json plus a sweep of all packet .md files found 12 stale-marker hits and zero LIVE stale claims -- all are filing-time metadata, quoted-and-withdrawn corrections, true statements about the foreign dirty files, or historical audit records; bug.md:3 is true because 648e0992b precedes 899c7a40e. F4 closed: :2672 exit convention verbatim, ordering append :2632 -> throw :2638 -> write :2640, throw confirmed a '+' line, and process.exit untouched by the delivery. F5 closed: 0 secret/network tokens in added source, setText resolved to a real textContent sink, the only raw-HTML sink is a clear-to-empty, and the four input guards were verified by execution. All nine FR-B001-001..009 verified, with FR-B001-001 proven by executing the shared rule against the real config: an 11:37 ET run of the 11:00 ET morning window returns 11:00 ET, a genuine transformation rather than a passthrough. rlportfoliobrief.js is 16 insertions and 0 deletions, so the consumer boundary cannot have been weakened. Independently re-ran selftest 3429 passed / 0 failed, pii-scan 0 findings, artifact-lint exit 0; 0 TODO/FIXME/HACK and 0 skip markers in added lines; DoD 19/19 with an incremental, non-batched check history. All three phaseStubs judged honest and none a disguised skip. Verdict SHIP_WITH_NOTES with three non-blocking observations left for validate to attach: F3 (adversarialRegression.line 902 vs the real :1039), N1 (pre-existing duplicate newYorkCivilCutoff at portfolio-survival-allocation-lab.html:7906, route-only), and N2 (the simplify stub's closing clause is broader than its verified grounds). status and certification.status deliberately untouched.",
       "phasesExecuted": [
         "audit"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-28T21:53:24Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "verified",
+      "note": "Certified. Measured at the TARGET status throughout, which is the only way this packet's real bar is visible: artifact-lint skips its mode-specific report gates below the promotion set, so a green lint at in_progress predicts nothing about done. The packet was copied to a scratch directory with BOTH status and certification.status flipped (flipping one alone manufactures a spurious mismatch issue) and linted there: 4 issues BEFORE, every one of them the missing validate phase or its required report section, and 0 AFTER. Transition guard went failureCount 2 / failedGateIds [G022] -> 0 / []. All runs used an isolated git archive HEAD export at 7c89497277 with node_modules AND .git symlinked; the working tree carries 84 foreign uncommitted files from other sessions, and without the .git symlink two selftest groups that shell out to git report failures that are artifacts of the export. Executed: selftest 3429 passed / 0 failed, pii-scan files=10342 findings=0, both exit 0. THE SCENARIO WAS REPLAYED RATHER THAN RE-READ, because recorded evidence proves the behavior worked once and only a replay proves it works now: the live suite returned 19 passed including case 18, this bug's own row at tests/portfolio-survival-brief.spec.mjs:1039, emitting options=4 state=unavailable named=generic-evidence-cutoff-conflict. The publisher half was replayed separately against the REAL published artifacts and is the strongest observation of the turn, unarranged: market-brief.payload.json carries generatedAt 2026-08-27T15:30:59.849Z against its own declared cutoff of 15:00:00.000Z -- 30m59s late, the exact defect shape from bug.md -- while asOf correctly reads 15:00:00.000Z, and validate-brief-payload.mjs passes with 'every evidence timestamp is at or before the declared window cutoff: PASS'. Under the defect the two would be equal and the consumer would refuse its own publisher's output. THE :1039 DIVISION OF LABOUR WAS CONFIRMED STRUCTURALLY, not accepted from the record: awk over the row shows it rewrites asOf in BOTH served artifacts before asserting, so no publisher-written value reaches the page it inspects, which is why it survived the revert while 15 sibling rows went red. The division is real -- :1039 guards the consumer half, the 15 rows that read the real artifacts guard the publisher half -- and only the row's NAME is misleading; the coverage is sound and report.md states the limitation plainly. TWO CLAIMED-CLOSED OBSERVATIONS DID NOT SURVIVE VERIFICATION and were corrected rather than carried forward. F3 IS closed: the report carries a verified grep -n locate at :1039 and states that the test title, not the line number, is the stable identity scenario-manifest.json binds; but its cross-reference pointed at a section named 'The Adversarial Row' that does not exist in the report, and has been repointed to Regression E2E. N2 is NOT closed and the sentence asserting it was is withdrawn: execution.phaseStubs.simplify.reason still ends 'So there remains nothing for a simplify pass to collapse', so the narrowing was asserted but never applied. The stub text is deliberately left unchanged because execution.phaseStubs is not a certification field and rewriting another phase's justification would make the record say that phase wrote something it did not; the scoped reading is recorded in report.md instead. N1 was NOT absorbed silently: filed as residue res-alloc-lab-duplicate-civil-cutoff in .specify/memory/open-work.md with owner bubbles.implement and a concrete next action. Investigating it upgraded the finding -- the two implementations DIVERGE rather than merely duplicate, proven by executing both side by side: for the nonexistent civil time 2026-03-08 02:30 inside the spring-forward gap the shared version returns null while the local copy returns 2026-03-08T06:30:00.000Z, a fabricated instant for a moment that never occurred, which is the same class of defect this bug was filed for. It is pre-existing (1 before, 1 after, 0 touched by the delivery diff) and out of blast radius, so it was recorded and not repaired here.",
+      "phasesExecuted": [
+        "validate"
       ],
       "provenanceMode": "specialist"
     }

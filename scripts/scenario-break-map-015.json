@@ -51,6 +51,27 @@
       "control": "a resolved-flat outcome is routed to the number side instead of the count side, so an outcome that genuinely resolved to flat stops being counted as resolved and is folded into the numeric summary it was deliberately kept out of",
       "claim": "A resolved-flat outcome is reported as resolved and stays distinguishable from unresolved in both the record and the report",
       "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-001": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": [
+            "        if (claim.predicate === null) {",
+            "            return { reason: \"no-authored-predicate\", field: \"predicate\" };",
+            "        }"
+          ],
+          "replace": [
+            "        if (false) {",
+            "            return { reason: \"no-authored-predicate\", field: \"predicate\" };",
+            "        }"
+          ]
+        }
+      ],
+      "control": "a claim carrying no authored predicate is accepted instead of refused, so a claim can be minted with nothing frozen and later scored against whatever predicate is convenient",
+      "claim": "A claim is proposed only with an authored predicate, frozen at mint, so what was claimed cannot be decided after the outcome is known",
+      "implementationRefs": ["rlclaims.js"]
     }
   }
 }

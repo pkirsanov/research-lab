@@ -508,7 +508,12 @@ The worktree path above uses the canonical `<repo-root>` placeholder. The `home-
 rule refuses a real account name or absolute home path on the committed surface, and
 the placeholder carries the same meaning for a reader without publishing either.
 
-### E13 — Pre-delivery verification: the canonical gate was green while the feed was dead
+### Validation Evidence
+
+**E13 — Pre-delivery verification: the canonical gate was green while the feed was dead.**
+The original descriptive heading is retained verbatim here as sub-text so the `§E13`
+references elsewhere in this report continue to resolve to this content. The run's
+baseline and commit context are stated inline beneath the transcript.
 
 **Claim Source: `executed`**
 
@@ -671,7 +676,9 @@ not produce.
 
 ---
 
-## Audit Evidence
+## Independent Audit
+
+### Audit Evidence
 
 **Agent:** `bubbles.audit` (independent). **Date:** 2026-08-20. **Baseline:**
 `origin/main` at `6a887dd4e`, read in an isolated detached worktree. **Verdict:**

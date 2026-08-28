@@ -78,6 +78,28 @@ convention every reader already knows for one they would have to learn.
 recognise it, so the declared budget would become invisible to the mechanism that exists to keep
 budgets honest. That is precisely the blind spot BUG-009 was written to close.
 
+### Single-Implementation Justification
+
+This fix has exactly one concrete implementation, and building a capability foundation around it
+would be premature abstraction.
+
+The change is a declared number: five `test(..., { timeout: 180_000 }, ...)` annotations replacing
+an inherited Playwright default of 30000 ms. Section 2.3 above already recorded why the per-test
+form was chosen over the two alternatives — a file-wide hook has no precedent in this repository,
+and `test.describe.configure` is invisible to the BUG-009 budget guard. Those alternatives were
+*rejected*, not *deferred*: no second implementation is waiting to be built, so a foundation would
+have nothing to hold.
+
+There are no variation axes to enumerate, and inventing two to satisfy a section shape would be
+fabrication. A timeout does not vary by provider, environment, or strategy. It is one value, read
+by one runner, from one config, and its only meaningful property is whether a human chose it.
+Section 2.1 records why that value is `180_000` — measured headroom over the 23.7 s worst observed
+run, not a round number picked for comfort.
+
+Gate G094 fires here on a single ordinary-English trigger word: `cost driver`, at line 63 of this
+file. The gate's own diagnostic notes that keywords do not promote the shape. This section records
+the proportionality decision rather than reshaping accurate prose to silence a pattern match.
+
 ## 3. Why the `networkidle` wait was NOT replaced
 
 The stronger long-term fix would replace `waitForLoadState('networkidle')` with a wait on the

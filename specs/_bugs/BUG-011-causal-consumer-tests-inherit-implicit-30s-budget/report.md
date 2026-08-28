@@ -9,6 +9,14 @@ measured cost and the honest limitation. A post-fix full-suite run at the suite'
 reported no failure in this file at all. Six of the nine Definition of Done items are now ticked
 against executed or reported evidence; three remain open and are named below rather than argued away.
 
+**RED stage — the failing proof, recorded before the fix.** *(Claim Source: prior execution, this
+session — reported observation, not re-derived by this run.)* Before `5c978c5cb`, the full suite
+reported 4 failed in `tests/causal-rotation-consumers.spec.mjs` at tree `0e51d602f`, and 1 failed at
+tree `adb97b983`. Every one of those reported `Test timeout of 30000ms exceeded` inside
+`page.waitForLoadState('networkidle')` at `openOwner`. The full tallies, the third observation
+recorded in `bug.md`, and why the count moves between runs are set out under *Pre-fix full-suite
+failures* below. The GREEN stage that follows this red is recorded under *Post-fix full suite*.
+
 - **Changed and committed:** `tests/causal-rotation-consumers.spec.mjs` at `5c978c5cb` (`11 +`,
   `0 -`: five `test.setTimeout` declarations plus one explanatory comment), and this packet under
   `specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget/`. The file is untouched
@@ -197,6 +205,63 @@ returns nothing, and `retries` appears nowhere in the diff.
 The magnitude is not new: `tests/attention-browser.spec.mjs:650`,
 `tests/contextual-tooltip.spec.mjs:26,70,161` and `tests/trend-dynamics-cycle-lab.spec.mjs:987` all
 declare `test.setTimeout(180_000)`.
+
+### Code Diff Evidence
+
+**Executed by this run:** YES
+**Claim Source:** executed
+**Command:** GIT_PAGER=cat git show 5c978c5cb --stat -- tests/causal-rotation-consumers.spec.mjs
+
+```text
+$ GIT_PAGER=cat git show 5c978c5cb --stat -- tests/causal-rotation-consumers.spec.mjs
+ tests/causal-rotation-consumers.spec.mjs | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+$ GIT_PAGER=cat git log --oneline -1 5c978c5cb
+5c978c5cb fix(BUG-011): declare the budget these causal consumer tests actually need
+
+$ git --no-pager show 5c978c5cb --numstat --format='' -- tests/causal-rotation-consumers.spec.mjs
+11      0       tests/causal-rotation-consumers.spec.mjs
+```
+
+The delivery is one file, eleven inserted lines, zero deleted. The hunks below are the complete
+change — `git --no-pager show 5c978c5cb --format='' --unified=1 -- tests/causal-rotation-consumers.spec.mjs`:
+
+```diff
+@@ -103,2 +103,8 @@ async function enterOwnerView(page) {
+ 
++/* Every test below drives this helper one to three times, and each call is a FULL load of a heavy
++   analytics page plus a network settle. Measured on one worker with no contention, the sector test
++   spends 23.7 s of the 30 s Playwright applies when a config declares no timeout — 79% of a budget
++   nobody chose. Under the suite's own four-worker parallelism that margin is gone, so each test
++   declares the budget its work actually needs. The settle below is still timing-dependent; only its
++   allowance grew. See specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget. */
+ async function openOwner(page, file, { disableCausal = false } = {}) {
+@@ -118,2 +124,3 @@ async function openOwner(page, file, { disableCausal = false } = {}) {
+ test('Regression: served owner timing reads and causal snapshot share compatible exposure contracts', async ({ page }) => {
++  test.setTimeout(180_000);
+   await openOwner(page, 'sector-research-lab.html');
+@@ -151,2 +158,3 @@ test('Regression: served owner timing reads and causal snapshot share compatible
+ test('Regression: Sector acceleration remains visible while cause is unverified', async ({ page }) => {
++  test.setTimeout(180_000);
+   const selectors = ['#simpleView', '#modeSeg'];
+@@ -187,2 +195,3 @@ test('Regression: Sector acceleration remains visible while cause is unverified'
+ test('Regression: A country causal read disagrees with its market model', async ({ page }) => {
++  test.setTimeout(180_000);
+   const selectors = ['#leaderboard', '#narrative'];
+@@ -213,2 +222,3 @@ test('Regression: A country causal read disagrees with its market model', async
+ test('Regression: Energy equities strengthen while the underlying proxy remains weak', async ({ page }) => {
++  test.setTimeout(180_000);
+   const selectors = ['#simpleView'];
+@@ -240,2 +250,3 @@ test('Regression: Energy equities strengthen while the underlying proxy remains
+ test('Regression: consumers reject unknown causal versions while owner models remain usable', async ({ page }) => {
++  test.setTimeout(180_000);
+   const selectors = ['#simpleView', '#modeSeg'];
+```
+
+Every hunk is a pure insertion. No assertion was weakened, no test was skipped, no retry was added,
+and `page.waitForLoadState('networkidle')` is unmodified — it only moved from line 114 to line 120
+because the six-line comment above `openOwner()` was inserted. That is the whole delivery.
 
 ### `playwright.config.mjs` untouched
 

@@ -552,6 +552,19 @@
       "control": "the relevance-confidence disclosure drops the clause separating relevance from a success probability, so a reader can take a relevance score as the odds of the trade working - the exact conflation FR-046 exists to prevent",
       "claim": "Every rendered item opens a reachable Why shown disclosure whose relevance confidence is labelled as relevance and never as a success probability",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-009": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-009 TP-06-04 settings parameters and window changes leave event interest and action identity unchanged",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "row.setAttribute(\"data-ranking-fingerprint\", ranked.value.rankingFingerprint);",
+          "replace": "row.setAttribute(\"data-ranking-fingerprint\", \"unversioned:\" + ranked.value.rankingFingerprint);"
+        }
+      ],
+      "control": "the rendered rank fingerprint is emitted under an unversioned digest label, so the identity a reader would use to prove two views share one immutable global ranking no longer carries its contracted form and cannot be compared across windows",
+      "claim": "Each rendered action carries a contracted sha256 rank fingerprint, and the visible actions share one immutable global rank identity that display activity and window changes do not alter",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

@@ -411,6 +411,32 @@
       "control": "a result measured against one information set reports that every form of market efficiency has been refuted, so a narrow empirical finding is widened into a claim about markets in general that the sample cannot support",
       "claim": "An efficiency finding stays scoped to the one information set actually tested and never generalizes into refuting the semi-strong or strong form",
       "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-027": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "      claimBoundary: \"None is labelled best or recommended; an in-sample lead is the weakest kind of evidence. No candidate is universally best, suitable, or authorized to replace the current portfolio.\"",
+          "replace": "      claimBoundary: \"An in-sample lead is the weakest kind of evidence. No candidate is universally best, suitable, or authorized to replace the current portfolio.\""
+        }
+      ],
+      "control": "the allocation comparison drops its statement that no candidate is labelled best or recommended, so the surface stops disclaiming the ranking it presents and an in-sample lead reads as a recommendation",
+      "claim": "The allocation comparison presents tradeoffs and states plainly that none of the six methods is labelled best or recommended",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-047": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var partial = weightResult.state === \"partial\" || dailyCoverage < 1 - 1e-9 || eligibility.some(function (entry) { return entry.state === \"unavailable\"; });",
+          "replace": "    var partial = false;"
+        }
+      ],
+      "control": "a portfolio with ineligible holdings and incomplete daily coverage reports its risk projection as complete, so diagnostics computed over part of the portfolio present as covering all of it",
+      "claim": "A risk projection over partially eligible holdings reports itself partial and names which holdings are excluded and why",
+      "implementationRefs": ["rlportfolioanalytics.js"]
     }
   }
 }

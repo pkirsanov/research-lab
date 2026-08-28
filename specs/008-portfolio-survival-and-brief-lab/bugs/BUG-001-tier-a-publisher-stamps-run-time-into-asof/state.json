@@ -50,7 +50,7 @@
       "implement",
       "regression"
     ],
-    "phaseClaimNote": "Only phases actually executed are listed. bug: the defect was reproduced against the live published artifacts and its provenance established by two surgical reverts. design: the decision not to weaken the consumer boundary, and the shared-helper approach. implement: the seven-surface fix and the two data corrections. regression: the adversarial row at tests/portfolio-survival-brief.spec.mjs:902 plus the four verification gates. NOT claimed: validate, docs, audit, security, simplify — none were dispatched."
+    "phaseClaimNote": "Only phases actually executed are listed. bug: the defect was reproduced against the live published artifacts and its provenance established by two surgical reverts. design: the decision not to weaken the consumer boundary, and the shared-helper approach. implement: the seven-surface fix and the two data corrections. regression: the adversarial row at tests/portfolio-survival-brief.spec.mjs:902 plus the four verification gates. NOT claimed: validate, docs, audit, security, simplify \u2014 none were dispatched."
   },
   "defect": {
     "severity": "High",
@@ -104,17 +104,61 @@
     "conclusion": "A latent defect exposed by that day's publication timing, not introduced by recent scope delivery. It had been publishing correct-looking artifacts for as long as runs happened to land close enough to their window boundary."
   },
   "fixSurfaces": [
-    { "path": "scripts/brief-refresh.mjs", "change": "asOf bound to the analyzed window's evidence cutoff; generatedAt unchanged; throws when a window has no resolvable cutoff", "numstat": "9 +, 2 -" },
-    { "path": "rlportfoliobrief.js", "change": "ADDITIVE ONLY: shared windowCutoffAt() helper (line 171) and its export (line 1040)", "numstat": "16 +, 0 -" },
-    { "path": "portfolio-survival-allocation-lab.html", "change": "schedule rendered before composition; refusal named via data-generic-window-error; publication clock reads snapshotRef.generatedAt", "numstat": "50 +, 13 -" },
-    { "path": "scripts/brief-narrative-parallel.mjs", "change": "payload inherits the published cutoff; wall-clock fallback chain replaced with a loud throw", "numstat": "8 +, 1 -" },
-    { "path": "scripts/validate-brief-payload.mjs", "change": "derives the cutoff through the shared helper", "numstat": "2 +, 2 -" },
-    { "path": "notes/market-brief.md", "change": "the sentence documenting the defect as intended behaviour replaced with the implemented rule", "numstat": "1 +, 1 -" },
-    { "path": "market-brief.snapshot.json", "change": "asOf corrected to the window cutoff; generatedAt untouched", "numstat": "1 +, 1 -" },
-    { "path": "market-brief.payload.json", "change": "asOf corrected under the same rule", "numstat": "1 +, 1 -" },
-    { "path": "market-brief.page.json", "change": "derived page artifact regenerated", "numstat": "single-line artifact" },
-    { "path": "market-brief.snapshot.page.json", "change": "derived page artifact regenerated", "numstat": "single-line artifact" },
-    { "path": "tests/portfolio-survival-brief.spec.mjs", "change": "adversarial regression row at line 902", "numstat": "84 +, 0 -" }
+    {
+      "path": "scripts/brief-refresh.mjs",
+      "change": "asOf bound to the analyzed window's evidence cutoff; generatedAt unchanged; throws when a window has no resolvable cutoff",
+      "numstat": "9 +, 2 -"
+    },
+    {
+      "path": "rlportfoliobrief.js",
+      "change": "ADDITIVE ONLY: shared windowCutoffAt() helper (line 171) and its export (line 1040)",
+      "numstat": "16 +, 0 -"
+    },
+    {
+      "path": "portfolio-survival-allocation-lab.html",
+      "change": "schedule rendered before composition; refusal named via data-generic-window-error; publication clock reads snapshotRef.generatedAt",
+      "numstat": "50 +, 13 -"
+    },
+    {
+      "path": "scripts/brief-narrative-parallel.mjs",
+      "change": "payload inherits the published cutoff; wall-clock fallback chain replaced with a loud throw",
+      "numstat": "8 +, 1 -"
+    },
+    {
+      "path": "scripts/validate-brief-payload.mjs",
+      "change": "derives the cutoff through the shared helper",
+      "numstat": "2 +, 2 -"
+    },
+    {
+      "path": "notes/market-brief.md",
+      "change": "the sentence documenting the defect as intended behaviour replaced with the implemented rule",
+      "numstat": "1 +, 1 -"
+    },
+    {
+      "path": "market-brief.snapshot.json",
+      "change": "asOf corrected to the window cutoff; generatedAt untouched",
+      "numstat": "1 +, 1 -"
+    },
+    {
+      "path": "market-brief.payload.json",
+      "change": "asOf corrected under the same rule",
+      "numstat": "1 +, 1 -"
+    },
+    {
+      "path": "market-brief.page.json",
+      "change": "derived page artifact regenerated",
+      "numstat": "single-line artifact"
+    },
+    {
+      "path": "market-brief.snapshot.page.json",
+      "change": "derived page artifact regenerated",
+      "numstat": "single-line artifact"
+    },
+    {
+      "path": "tests/portfolio-survival-brief.spec.mjs",
+      "change": "adversarial regression row at line 902",
+      "numstat": "84 +, 0 -"
+    }
   ],
   "notThisPacket": {
     "note": "Modified in the same working tree but belonging to Scope 28 (spec-driven adversarial test replacement). Named so this bug's footprint is not later misread from the diff.",
@@ -129,16 +173,36 @@
       "specs/008-portfolio-survival-and-brief-lab/scopes/_index.md",
       "specs/008-portfolio-survival-and-brief-lab/test-plan.json"
     ],
-    "clarification": "tests/portfolio-publisher-boundary.functional.mjs appears in report.md § Test Evidence because it was run as a verification gate, not because this packet authored it."
+    "clarification": "tests/portfolio-publisher-boundary.functional.mjs appears in report.md \u00a7 Test Evidence because it was run as a verification gate, not because this packet authored it."
   },
   "verification": {
-    "claimSource": "executed (fix turn) — run and observed during the fix earlier in this session; NOT re-run while these artifacts were written",
+    "claimSource": "executed (fix turn) \u2014 run and observed during the fix earlier in this session; NOT re-run while these artifacts were written",
     "results": [
-      { "command": "tests/portfolio-survival-brief.spec.mjs", "before": "3 passed / 14 failed", "after": "17 passed / 0 failed" },
-      { "command": "node --test tests/portfolio-publisher-boundary.functional.mjs", "before": null, "after": "exit 0, fail 0" },
-      { "command": "node scripts/validate-brief-payload.mjs", "before": null, "after": "exit 0, PASS" },
-      { "command": "node scripts/selftest.mjs", "before": null, "after": "exit 0, 3314 passed, 0 failed" },
-      { "command": "git diff --check", "before": null, "after": "exit 0" }
+      {
+        "command": "tests/portfolio-survival-brief.spec.mjs",
+        "before": "3 passed / 14 failed",
+        "after": "17 passed / 0 failed"
+      },
+      {
+        "command": "node --test tests/portfolio-publisher-boundary.functional.mjs",
+        "before": null,
+        "after": "exit 0, fail 0"
+      },
+      {
+        "command": "node scripts/validate-brief-payload.mjs",
+        "before": null,
+        "after": "exit 0, PASS"
+      },
+      {
+        "command": "node scripts/selftest.mjs",
+        "before": null,
+        "after": "exit 0, 3314 passed, 0 failed"
+      },
+      {
+        "command": "git diff --check",
+        "before": null,
+        "after": "exit 0"
+      }
     ]
   },
   "adversarialRegression": {
@@ -173,28 +237,44 @@
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [
-      "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible"
-    ],
+    "completedScopes": [],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status mirrors the top-level status and is deliberately in_progress: no validate phase ran in this turn, so no certification is claimed. completedScopes mirrors SCOPE status, which is Done with 17 of 17 Definition of Done items checked and evidenced; scope completion and packet certification are separate claims and only the first is made here.",
+    "certificationFieldWriteNote": "certification.status mirrors the top-level status and is deliberately in_progress: no validate phase ran in this turn, so no certification is claimed. completedScopes is now EMPTY and scopeProgress records 18 checked / 1 unchecked with scope status In Progress. This is a correction, not a regression: a planning turn added the two regression-E2E DoD items Gate G068 requires, and the broader-suite item is honestly unchecked because the recorded suite run predates edits to the files it measures. A scope carrying an unchecked DoD item is not Done, so the earlier 'Done with 17 of 17' claim no longer describes the artifact and was withdrawn rather than left to read as a summary of a state the artifact has left.",
     "scopeProgress": [
       {
         "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
-        "status": "Done",
-        "dodChecked": 17,
-        "dodUnchecked": 0
+        "status": "In Progress",
+        "dodChecked": 18,
+        "dodUnchecked": 1
       }
     ]
   },
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
-    "grill": { "mode": "off", "source": "repo-default" },
-    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
-    "autoCommit": { "mode": "off", "source": "repo-default" },
-    "lockdown": { "mode": "off", "source": "repo-default" },
-    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
-    "validation": { "mode": "certification-required", "source": "repo-default" }
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
   },
   "modeTransitions": [],
   "transitionRequests": [],
@@ -205,8 +285,10 @@
       "agent": "bubbles.bug",
       "phase": "bug",
       "action": "filed",
-      "note": "Filed against a live reproduction: the Portfolio Brief tab could not compose and #briefWindow rendered zero options, with tests/portfolio-survival-brief.spec.mjs at 3 passed / 14 failed. Provenance was established rather than assumed — rlnav.js was reverted to 744ac6a54^ and portfolio-survival-allocation-lab.html to 0972ddd75^, the failure survived both, and both files were restored clean.",
-      "phasesExecuted": ["bug"],
+      "note": "Filed against a live reproduction: the Portfolio Brief tab could not compose and #briefWindow rendered zero options, with tests/portfolio-survival-brief.spec.mjs at 3 passed / 14 failed. Provenance was established rather than assumed \u2014 rlnav.js was reverted to 744ac6a54^ and portfolio-survival-allocation-lab.html to 0972ddd75^, the failure survived both, and both files were restored clean.",
+      "phasesExecuted": [
+        "bug"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -215,7 +297,9 @@
       "phase": "design",
       "action": "decided",
       "note": "Decided NOT to weaken the consumer boundary at rlportfoliobrief.js. Relaxing the comparison was the cheapest fix and would have destroyed Feature 008's decision-time evidence guarantee. The publisher was identified as the wrong side on three pieces of already-committed evidence: the runbook definition, the runbook's own admission of the violation, and scripts/brief-publication.mjs:275 which already bound asOf to the evidence cutoff.",
-      "phasesExecuted": ["design"],
+      "phasesExecuted": [
+        "design"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -224,7 +308,9 @@
       "phase": "implement",
       "action": "delivered",
       "note": "Seven surfaces plus two corrected data artifacts and their derived page files. The shared windowCutoffAt() helper was placed in rlportfoliobrief.js so the publisher imports the consumer's own definition of the boundary it will later be judged against, rather than a second implementation that merely agrees today. The presentation-side conflation at portfolio-survival-allocation-lab.html:8110 was found because the publisher fix made the two clocks differ and exposed it.",
-      "phasesExecuted": ["implement"],
+      "phasesExecuted": [
+        "implement"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -233,7 +319,9 @@
       "phase": "regression",
       "action": "verified",
       "note": "tests/portfolio-survival-brief.spec.mjs moved from 3 passed / 14 failed to 17 passed / 0 failed. The adversarial row at line 902 serves a fixture 37 minutes past its declared cutoff and asserts that lateness about its own fixture before asserting anything about the page, so it cannot pass vacuously. node scripts/selftest.mjs reported 3314 passed / 0 failed; the payload validator and the publisher-boundary functional suite both passed; git diff --check exited 0.",
-      "phasesExecuted": ["regression"],
+      "phasesExecuted": [
+        "regression"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -242,7 +330,9 @@
       "phase": "bug",
       "action": "artifacts-recorded",
       "note": "Recorded bug.md, spec.md, design.md, scopes.md, report.md and this state file. The turn was scoped to documentation: no source, test, script, config or data file was modified, no long test suite was run, and nothing was committed. Every structural claim in the artifacts was re-derived from the committed working tree in this turn and tagged 'executed (artifact turn)'; the five test results were tagged 'executed (fix turn)' because they were observed earlier in the session and not re-run here.",
-      "phasesExecuted": ["bug"],
+      "phasesExecuted": [
+        "bug"
+      ],
       "provenanceMode": "specialist"
     }
   ],

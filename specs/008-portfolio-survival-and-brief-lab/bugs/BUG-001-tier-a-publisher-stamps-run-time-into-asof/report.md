@@ -23,8 +23,17 @@ control instead of explaining itself. The Portfolio Brief tab read as "nothing h
 and the consumer share. The consumer boundary is byte-identical. The schedule renders before
 composition is attempted, and a refusal names its contract code and reason on screen.
 
-Scope 1 is delivered with 17 of 17 Definition of Done items evidenced. The delivery is
-present in the working tree at `648e0992b` and is **not committed**; see § Delivery State.
+Scope 1 is delivered with 18 of 19 Definition of Done items evidenced. The nineteenth is
+unchecked on purpose: the broader-suite item requires a run against a tree that is not
+carrying another packet's uncommitted edits, and no such run is claimed until it exists.
+
+The delivery is committed. `scripts/brief-refresh.mjs` carries the fix in `899c7a40e`
+("fix(brief): bind asOf to the analyzed window") and it is present at `HEAD`
+(`git show HEAD:scripts/brief-refresh.mjs | grep -c windowCutoffAt` → 3). The earlier
+sentence here read "present in the working tree at `648e0992b` and is **not committed**";
+both halves had gone stale. `648e0992b` is the docs commit that happened to be `HEAD` while
+this report was being written, not the delivery, and it is now an ancestor of `HEAD`
+(`git merge-base --is-ancestor 648e0992b HEAD` → true). See § Delivery State.
 
 ## The Publisher Fix
 

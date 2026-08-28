@@ -8,7 +8,7 @@
 
 ## Scope 1 — Bind `asOf` to the analyzed window, and make a refusal legible
 
-**Status:** Done
+**Status:** In Progress
 
 ### Implementation Files
 

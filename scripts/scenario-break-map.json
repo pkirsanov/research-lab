@@ -496,6 +496,23 @@
       "control": "the session-scoped personal keys are removed from the sweep entirely, so one full-personal clear no longer reaches the session store and a whole personal category the route can create survives the clear",
       "claim": "One full-personal clear sweeps every personal category the finished route can create, including the session-scoped ones",
       "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-026": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-026 all six allocation methods share one frozen basis",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "      return allocationUnavailableCandidate(\"constrained-mvo\", context, \"expected-returns-or-risk-aversion\");",
+          "replace": "      return allocationUnavailableCandidate(\"constrained-mvo-renamed\", context, \"expected-returns-or-risk-aversion\");"
+        },
+        {
+          "find": "    return allocationCandidate(\"constrained-mvo\", context.normalized, context.fingerprint, solved, expectedReturns);",
+          "replace": "    return allocationCandidate(\"constrained-mvo-renamed\", context.normalized, context.fingerprint, solved, expectedReturns);"
+        }
+      ],
+      "control": "the sixth candidate is emitted under a different method identity in both its solved and its unavailable branch, so the comparison no longer presents the contracted six-method set and a reader cannot find constrained-mvo among the candidates",
+      "claim": "All six allocation methods are projected against one frozen basis, each appearing under its contracted method identity with its own assumption row and availability state",
+      "implementationRefs": ["rlportfolioanalytics.js"]
     }
   }
 }

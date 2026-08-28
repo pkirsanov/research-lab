@@ -1,0 +1,254 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/008-portfolio-survival-and-brief-lab",
+  "readme": [
+    "Declarative controlled-break map consumed by scripts/scenario-receipts.mjs.",
+    "",
+    "One record per scenario id. The runner applies `edits` to `breakFile` inside an",
+    "ISOLATED COPY of the working tree, never in the shared tree, then emits the four",
+    "receipts scenario-state-resolve.sh derives RED_VERIFIED / IMPLEMENTED /",
+    "GREEN_TARGETED / REGRESSION_GREEN from.",
+    "",
+    "Fields:",
+    "  test               test identity, sourced from the manifest `linkedTests` and",
+    "                     verified against it at run time (a mismatch is refused).",
+    "  breakFile          repo-relative file the break is applied to.",
+    "  edits[]            {find, replace}; each `find` MUST occur exactly once or the",
+    "                     scenario is refused rather than guessed at. Either side may",
+    "                     be an array of lines, which is joined with newlines.",
+    "  control            the negative control. RED and GREEN cite it byte-identically;",
+    "                     scenario-state-resolve.sh:406 refuses SCS-CONTROL-SUBSTITUTED",
+    "                     otherwise. The runner emits one string to both, so they cannot drift.",
+    "  claim              the claim the receipt is evidence for.",
+    "  implementationRefs production paths the scenario's behavior lives in.",
+    "  vacuous            set true, with vacuousReason, when the behavior CANNOT be broken",
+    "                     in a way that fails its own test. That is a real finding about the",
+    "                     test, and it is recorded here rather than papered over with an",
+    "                     invented break.",
+    "",
+    "An entry is only worth anything once the runner has actually executed it and",
+    "observed the red fail at its own assertion. An unverified entry is worse than an",
+    "absent one, because it looks like coverage."
+  ],
+  "entries": {
+    "SCN-008-001": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-001 valid local portfolio import creates one current revision",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "      supersedes: draftResult.value.basePortfolioId,",
+          "replace": "      supersedes: null,"
+        }
+      ],
+      "control": "buildPortfolioRevision lineage removed: a committed revision records supersedes: null instead of the superseded portfolioId",
+      "claim": "A confirmed import commits exactly one new current revision whose lineage names the revision it superseded",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-002": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "  function secretFieldName(value, policy) {",
+            "    var normalized = normalizeFieldName(value);",
+            "    return policy.import.secretFieldTokens.some(function (token) { return normalized.indexOf(token) !== -1; });",
+            "  }",
+            "",
+            "  function secretValue(value, policy) {",
+            "    if (typeof value !== \"string\") return false;",
+            "    return policy.import.secretValuePrefixes.some(function (prefix) {",
+            "      return value.length >= policy.import.secretValueMinimumLength && value.indexOf(prefix) === 0;",
+            "    });",
+            "  }"
+          ],
+          "replace": [
+            "  function secretFieldName(value, policy) {",
+            "    return false;",
+            "  }",
+            "",
+            "  function secretValue(value, policy) {",
+            "    return false;",
+            "  }"
+          ]
+        }
+      ],
+      "control": "secret detection removed: secretFieldName and secretValue always return false, so a secret-bearing import raises no P008-IMPORT-SECRET",
+      "claim": "A secret-bearing or invalid import is rejected atomically and its value is redacted rather than stored",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-003": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-003 explicit mandate alone supplies every hard constraint",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "    var absentFields = MANDATE_NULLABLE_POLICY_FIELDS.filter(function (name) { return body[name] === null; });",
+          "replace": "    var absentFields = [];"
+        }
+      ],
+      "control": "MANDATE_NULLABLE_POLICY_FIELDS absent-detection removed so absent policy fields report 0 instead of 4",
+      "claim": "Only the explicit mandate supplies hard constraints, and an absent policy field is reported absent rather than inferred",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-004": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "    policy.mandate.neverInferredFields.forEach(function (name) { inferredValues[name] = null; });",
+          "replace": "    policy.mandate.neverInferredFields.forEach(function (name) { inferredValues[name] = 0.07; });"
+        }
+      ],
+      "control": "projectRouteStates never-inferred fields seeded with 0.07 instead of null, so a missing mandate renders an inferred number",
+      "claim": "With no mandate, goal fit and survival are reported unavailable rather than inferred from a default",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-005": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "                    metrics: { privacyBoundary: \"local-only\", personalDataIncluded: false },",
+          "replace": "                    metrics: { privacyBoundary: \"local-only\", personalDataIncluded: true },"
+        }
+      ],
+      "control": "the published tool read declares personalDataIncluded: true, so the constant privacy boundary no longer asserts that nothing personal crossed into the shared cache",
+      "claim": "Private portfolio state coexists with the shared public cache, and the only published read is the constant privacy boundary",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+
+    "SCN-008-011": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "    candidate.behaviorEvents = [];",
+            "    candidate.interestSignals = [];",
+            "    candidate.actionOutcomes = retainedOutcomes;"
+          ],
+          "replace": [
+            "    candidate.interestSignals = [];",
+            "    candidate.actionOutcomes = retainedOutcomes;"
+          ]
+        }
+      ],
+      "control": "buildBehaviorClearCandidate no longer empties behaviorEvents, so a behavior clear leaves the ranking influence it claims to remove",
+      "claim": "Clearing behavior removes behavior-derived ranking influence and preserves the portfolio",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-012": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "  function forbiddenBehaviorField(name, policy) {",
+            "    var normalized = normalizeFieldName(name);",
+            "    return policy.behavior.forbiddenEventFields.some(function (token) { return normalized.indexOf(token) !== -1; });",
+            "  }"
+          ],
+          "replace": [
+            "  function forbiddenBehaviorField(name, policy) {",
+            "    return false;",
+            "  }"
+          ]
+        }
+      ],
+      "control": "forbiddenBehaviorField always returns false, so engagement and sensitive-profiling fields are accepted into behavior evidence",
+      "claim": "Behavior evidence excludes engagement metrics and sensitive profiling fields",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-013": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "      compoundedCagr: compounded,",
+          "replace": "      compoundedCagr: arithmetic,"
+        }
+      ],
+      "control": "compoundedCagr is assigned the arithmetic annualized value, so the CAGR row reproduces the arithmetic row instead of compounding the wealth index",
+      "claim": "Arithmetic annualized return, compounded CAGR and observed volatility drag are rendered as three separate quantities and are never collapsed into one return",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+
+    "SCN-008-015": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-015 concentration lenses expose overlap and missing look through",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "      missing.push(displayId);",
+            "    }",
+            "",
+            "    var buckets = Object.keys(totals).sort().map(function (name) {"
+          ],
+          "replace": [
+            "      totals[\"Other\"] = (totals[\"Other\"] || 0) + weight;",
+            "      coveredWeight += weight;",
+            "      includedIds.push(record.id);",
+            "    }",
+            "",
+            "    var buckets = Object.keys(totals).sort().map(function (name) {"
+          ]
+        }
+      ],
+      "control": "a holding the lens cannot classify is bucketed as Other and counted as covered, so an unmeasurable lens renders as complete",
+      "claim": "Concentration lenses expose overlap and missing look-through rather than folding unclassifiable holdings into a complete-looking distribution",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+
+    "SCN-008-016": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-016 beta alpha R squared and residual risk stay separate",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "    if (sxx <= 0) return { state: \"benchmark-degenerate\", sampleSize: n };",
+            "",
+            "    var beta = sxy / sxx;",
+            "    var alphaPeriod = my - beta * mx;"
+          ],
+          "replace": [
+            "    if (sxx <= 0) return { state: \"benchmark-degenerate\", sampleSize: n };",
+            "",
+            "    var beta = sxy / syy;",
+            "    var alphaPeriod = my - beta * mx;"
+          ]
+        }
+      ],
+      "control": "beta is divided by the portfolio's own variance instead of the benchmark's, conflating the regression slope with an inverse-scaled correlation",
+      "claim": "Beta, alpha, R squared and residual risk are computed and reported as separate quantities",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+
+    "SCN-008-017": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-017 marginal and total risk contributions reconcile",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "      marginal.push(mrc);",
+            "      contribution.push(w[i] * mrc);",
+            "      total += w[i] * mrc;"
+          ],
+          "replace": [
+            "      marginal.push(mrc);",
+            "      contribution.push(mrc);",
+            "      total += mrc;"
+          ]
+        }
+      ],
+      "control": "the weight factor is dropped from the Euler contribution, so the marginal contribution is reported as the total contribution and the sum no longer reconciles to portfolio risk",
+      "claim": "Marginal and total risk contributions are distinct and reconcile to portfolio risk by Euler decomposition",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    }
+  }
+}

@@ -209,6 +209,7 @@ $ sed -n '8093,8102p' portfolio-survival-allocation-lab.html
 And the refusal is named in the `.catch()`:
 
 ```js
+$ sed -n '8134,8147p' portfolio-survival-allocation-lab.html
                         var refusal = state.genericWindowError;
                         var named = refusal.code + " / " + refusal.reason;
                         setText("briefTimes", state.genericWindow
@@ -268,10 +269,15 @@ sentence that recorded the defect as intended behaviour was replaced.
 
 ## Regression E2E
 
-`tests/portfolio-survival-brief.spec.mjs:902`
+`tests/portfolio-survival-brief.spec.mjs:1039` — recorded as `:902` during the fix turn; the
+row has since moved. The test TITLE is the stable identity that `scenario-manifest.json`
+binds, and it is unchanged:
 
 ```
-Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule
+$ grep -n 'Regression: BUG-001 a publication later' tests/portfolio-survival-brief.spec.mjs
+1039:test('Regression: BUG-001 a publication later than its declared window cutoff is refused by name and never empties the schedule'
+$ echo "exit=$?"
+exit=0
 ```
 
 **`executed (fix turn)`** — the row's own receipts:
@@ -441,6 +447,7 @@ exposed it.
 **`executed (artifact turn)`** — `git diff --numstat`, this bug's surfaces only
 
 ```
+$ git show --numstat 899c7a40e | grep -E 'market-brief|rlportfoliobrief|brief-refresh|allocation-lab|validate-brief|narrative'
 1       1       market-brief.payload.json
 1       1       market-brief.snapshot.json
 1       1       notes/market-brief.md

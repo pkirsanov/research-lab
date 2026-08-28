@@ -3,11 +3,11 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-28T02:54:16Z",
+  "lastUpdatedAt": "2026-08-28T03:18:17Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
-  "blockedReason": null,
+  "blockedReason": "Certification at done is BLOCKED by B009-LINT-WINDOW-MARKER-001, independently re-measured this session at repository-binding decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:16. Measured directly, not inherited: grep -cF of the certifying-window token over report.md returns 2, at line 5429 (the one real marker, outside any fence) and line 5891 (a verbatim line of artifact-lint's own success transcript sitting INSIDE a fenced code block). With status flipped to done on otherwise byte-identical content, artifact-lint.sh exits 1 with 64 issues, the first being the multiple-marker error and the remaining 63 being the downstream evidence findings the disabled window stops exempting; state-transition-guard.sh exits 1 with failureCount 5 and failedGateIds [G040,G084,G088,G095]. On the same content at in_progress, artifact-lint.sh exits 0 and the packet is clean. Run standalone, pre-existing-deferral-guard.sh and discovered-issue-disposition-guard.sh both abort at exit 2 naming the same multiple-marker condition, so G040, G084 and G095 are one condition and not three. G088 is NOT an independent blocker: post-cert-spec-edit-guard.sh exits 0 at in_progress and exits 2 at done only because that minimal probe left certifiedAt unset, which real certification would populate. The blocking condition is therefore singular. It is not repairable by bubbles.validate: the counter at artifact-lint.sh:1644 uses fence-blind grep -cF while its own consumer at :1663 requires in_code_block -eq 0, and that inconsistency lives in .github/bubbles/**, which is framework-managed and out of bounds; the only downstream alternative would rewrite a verbatim transcript inside bubbles.audit's recorded evidence block, which is evidence tampering and is refused. Independently, execution.audit.currentAttemptId BUG-009-AUDIT-003 is ACTIVE carrying auditVerdict REWORK_REQUIRED, deliveryEvaluation REFUSED and outcome route_required; a non-clean delivery verdict forbids terminal certification, and repairing audit-owned history to manufacture a clean one is out of bounds. BUG-009-ROUTE-028 is open to bubbles.audit. A truthful in_progress is recorded instead of a fabricated done.",
   "workflowMode": "bugfix-fastlane",
   "planningOnly": false,
   "planningOnlyJustification": null,
@@ -31,9 +31,9 @@
   "execution": {
     "activeAgent": "bubbles.validate",
     "currentPhase": "validate",
-    "currentPhaseStatus": "route_required",
+    "currentPhaseStatus": "blocked",
     "executionModel": "direct-authorized-runner",
-    "substate": "artifact_surface_clean_at_done_pending_audit_reaudit",
+    "substate": "certification_refused_single_framework_marker_condition_confirmed_twice",
     "parentAgent": null,
     "completedAt": null,
     "currentScope": "01-restore-risk-mutation-assertion-origin",
@@ -1098,6 +1098,19 @@
       "provenanceMode": "direct-execution",
       "outcome": "route_required",
       "evidenceRef": "report.md#validate-route-027-revalidation-decision"
+    },
+    {
+      "at": "2026-08-28",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "independently-re-measured-certification-blockers-and-refused-done",
+      "note": "Under repository-binding preflight decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:16 at control revision 16 (PREFLIGHT_COMMITTED, exit 0, actionable, repository research-lab). Invoked to CERTIFY on the stated premise that all blockers were cleared. Two of the premises held and one did not, so certification was REFUSED and the packet stays at in_progress. HELD: requiresRevalidation is false and G089 now PASSES, appearing in passedGateIds of the guard run at target status done, so the fix landed at 58a2d4f11 did what it claimed. HELD: DoD is 19 checked and 0 unchecked and scope 01 is Done. DID NOT HOLD: the premise that artifact-lint exits 0 at done. Measured, not inherited: with status and certification.status flipped to done on otherwise byte-identical content, artifact-lint.sh exits 1 with 64 error lines and state-transition-guard.sh exits 1 with failureCount 5 and failedGateIds [G040,G084,G088,G095]; the probe was reverted with git checkout and the packet verified clean against HEAD 58a2d4f11 before and after. Root cause independently reproduced rather than accepted from the record: grep -cF of the certifying-window token over report.md returns 2, resolving to line 5429 (the single real marker) and line 5891 (a verbatim line of artifact-lint's own success transcript inside a fenced code block). Run standalone at the committed in_progress status, pre-existing-deferral-guard.sh and discovered-issue-disposition-guard.sh each abort at exit 2 naming that same multiple-marker condition, which collapses G040, G084 and G095 into ONE condition. NEW FACT this pass, correcting the earlier record: G088 is not a fourth blocker. post-cert-spec-edit-guard.sh exits 0 at in_progress and exits 2 at done only because the minimal probe left certifiedAt unset, reporting that G088 requires top-level certifiedAt for a certified spec, which genuine certification would supply. NOT REPAIRED, and deliberately so: the counter at artifact-lint.sh:1644 uses fence-blind grep -cF while its own consumer at :1663 requires in_code_block -eq 0, and that inconsistency is in .github/bubbles/**, which is framework-managed and out of bounds for this repository; the only downstream alternative would rewrite a verbatim transcript line inside bubbles.audit's recorded evidence block, which is evidence tampering and was refused for the same reason audit itself refused to clear requiresRevalidation to turn a gate green. SECOND, INDEPENDENT REFUSAL GROUND: execution.audit.currentAttemptId BUG-009-AUDIT-003 is ACTIVE and records auditVerdict REWORK_REQUIRED, deliveryEvaluation REFUSED, outcome route_required and blockingCode DELIVERY_COMPLETION_FAILED. Terminal certification requires a clean delivery verdict, and execution.audit is audit-owned state that validate may not repair, so no clean attempt was manufactured. The instruction to resolve BUG-009-ROUTE-027 was based on stale information: 027 is already resolved and BUG-009-ROUTE-028, opened afterwards, is the open route and already targets bubbles.audit; it was left open rather than duplicated. Likewise B009-PHASE-IMPLEMENT-001 had already been reconciled out of the top-level ledger by the prior pass, so no ledger edit was needed and the two genuine upstream framework findings remain unresolved. NOT WRITTEN, because certification did not complete: status, certification.status, completedAt, certification.completedAt, certifiedAt and certifiedCompletedPhases are all unchanged, so certifiedCompletedPhases remains empty; implement was never claimed and plan was never added; certification.scopeProgress was not stamped. uservalidation.md was not touched at all, so its Checklist, Human Acceptance Record and all five Automation Readiness items are byte-identical, and the fifth item correctly remains unchecked because validate-owned certification did not complete. executionHistory is append-only and retains all 29 prior entries including all 7 from bubbles.plan. node scripts/pii-scan.mjs was run before committing. Product source, tests and .github/bubbles/** were untouched; specs/007-technical-analysis-decision-lab/ was neither read, staged, reset nor reverted, and its 10 dirty files belong to a concurrent session; the commit used an explicit pathspec and nothing was pushed.",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "provenanceMode": "direct-execution",
+      "outcome": "blocked",
+      "evidenceRef": "report.md#validate-certification-refusal-marker-condition"
     }
   ],
   "addressedFindings": [
@@ -1342,7 +1355,8 @@
       "owner": "bubbles.audit",
       "status": "unresolved",
       "routedTo": "bubbles.audit",
-      "evidenceRef": "report.md#validate-route-027-revalidation-decision"
+      "evidenceRef": "report.md#validate-route-027-revalidation-decision",
+      "corroboration": "CONFIRMED a second time on 2026-08-28 by an independent bubbles.validate pass at binding decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:16, re-deriving every number by execution rather than reading them from this record. Reproduced: grep -cF returns 2 markers at lines 5429 and 5891; artifact-lint.sh exits 1 with 64 issues at done and 0 at in_progress on byte-identical content; pre-existing-deferral-guard.sh and discovered-issue-disposition-guard.sh each abort at exit 2 on the multiple-marker condition. CORRECTION to the earlier measurement: state-transition-guard.sh at target status done reports failureCount 5 and failedGateIds [G040,G084,G088,G095], not [G040,G084,G095]. G088 is NOT part of this finding and is NOT an independent blocker: post-cert-spec-edit-guard.sh exits 0 at in_progress and exits 2 at done solely because the probe left certifiedAt unset, which genuine certification populates. G089 now PASSES at done, so the requiresRevalidation ground is fully retired and this marker condition is the SINGLE remaining blocker. Both admissible repairs still belong to other owners and neither was attempted."
     }
   ]
 }

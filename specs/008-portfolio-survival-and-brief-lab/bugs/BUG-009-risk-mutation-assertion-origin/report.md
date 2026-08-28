@@ -6189,3 +6189,141 @@ including all 7 from `bubbles.plan`. Product source, tests, and
 `specs/007-technical-analysis-decision-lab/` files and the unrelated working-tree
 transaction were neither staged nor reverted. Nothing was pushed.
 
+## Validate Phase — Certification Refused On A Single Framework Marker Condition {#validate-certification-refusal-marker-condition}
+
+**Phase Agent:** bubbles.validate
+
+> **Transcript elision, disclosed.** Tool lines below name the report's
+> window-boundary marker. Every occurrence is rendered as the bare backticked
+> token `certifying-window-begin`, never in its literal comment form, because
+> the literal form is the control token this section is about and a verbatim
+> paste would add further occurrences to this file — the exact accident being
+> diagnosed. Wording is otherwise unaltered; the convention matches the one
+> already disclosed above in this report.
+
+This pass was invoked to certify `done` on the premise that every blocker was
+cleared. Two premises held; one did not. Every number below was produced by a
+command run in this session under binding decision
+`rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:16`, not carried over from the record.
+
+**Held.** `requiresRevalidation` is `false` and G089 now passes, appearing in
+`passedGateIds` of the guard run at target status `done`. DoD is 19 checked, 0
+unchecked; scope 01 is `Done`.
+
+**Did not hold.** The premise that `artifact-lint.sh` exits 0 at `done`. It exits
+1 with 64 issues. The packet's own committed finding
+`B009-LINT-WINDOW-MARKER-001` already said so, and this pass reproduced it.
+
+### Marker count reproduced from the artifact, not from the record
+
+```
+$ grep -cF -- '`certifying-window-begin`' report.md      # literal form elided
+2
+$ grep -nF -- '`certifying-window-begin`' report.md      # literal form elided
+5429:`certifying-window-begin`
+5891:ℹ️  Skipped 134 evidence blocks before `certifying-window-begin` (prior-window history) in report.md
+```
+
+Line 5429 is the one real marker. Line 5891 is a verbatim line of
+`artifact-lint`'s own success transcript sitting inside a fenced code block. The
+counter at `artifact-lint.sh:1644` uses fence-blind `grep -cF` and sees 2; its
+own consumer at `:1663` requires `in_code_block -eq 0` and correctly sees 1.
+
+### Both gates measured at the final `done` status
+
+`status` and `certification.status` were flipped to `done` on otherwise
+byte-identical content, both gates were run, and the probe was reverted with
+`git checkout`; the packet was verified clean against HEAD `58a2d4f11` before and
+after.
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh <packet>     # status=done
+❌ Multiple `certifying-window-begin` markers (2) in report.md — at most one is allowed (it marks the single current certifying-window start)
+❌ Evidence block lacks terminal output signals (1/2 required):
+❌ Evidence block too short (1 lines):
+ARTIFACT_LINT_DONE_PROBE_EXIT=1
+$ ... | grep -c '^❌'
+64
+```
+
+```
+$ bash .github/bubbles/scripts/state-transition-guard.sh <packet>   # status=done
+passedGateIds: [G057,G061,G053,G051,G068,G082,G083,G128,G085,G086,G091,G087,G093,G089,G092,G090,G094,G097,G098,G099,G100,G130,G131,G136]
+failedGateIds: [G040,G084,G088,G095]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 5
+exitStatus: 1
+verdict: FAIL
+GUARD_DONE_PROBE_EXIT=1
+```
+
+On the same content at `in_progress`, `artifact-lint.sh` exits 0 and reports
+`Artifact lint PASSED.`
+
+### Four failing gates are one condition, not four
+
+```
+$ bash .github/bubbles/scripts/pre-existing-deferral-guard.sh <packet>
+pre-existing-deferral-guard: multiple certifying-window markers (2) in .../report.md — at most one is allowed
+pre-existing-deferral-guard_EXIT=2
+$ bash .github/bubbles/scripts/discovered-issue-disposition-guard.sh <packet>
+G095 ERROR: multiple certifying-window markers (2) in .../report.md — at most one is allowed
+discovered-issue-disposition-guard_EXIT=2
+```
+
+G040, G084 and G095 all abort on the same multiple-marker condition. **G088 is
+not a fourth blocker**, correcting the earlier record:
+
+```
+$ bash .github/bubbles/scripts/post-cert-spec-edit-guard.sh <packet>   # in_progress
+post-cert-spec-edit-guard: PASS Gate G088 ... status=in_progress is not certified done
+post-cert-spec-edit-guard_EXIT=0
+$ bash .github/bubbles/scripts/post-cert-spec-edit-guard.sh <packet>   # done probe
+post-cert-spec-edit-guard: G088 requires top-level certifiedAt for certified spec ... (status=done)
+G088_DONE_EXIT=2
+```
+
+G088 fired only because the minimal probe left `certifiedAt` unset, which genuine
+certification would populate. The blocking condition is therefore **singular**.
+
+### Why this pass did not repair it
+
+Neither admissible repair belongs to `bubbles.validate`. The counter/consumer
+inconsistency is in `.github/bubbles/**`, which is framework-managed and out of
+bounds. The only downstream alternative would rewrite a verbatim transcript line
+inside `bubbles.audit`'s recorded evidence block — evidence tampering, refused
+for exactly the reason audit itself refused to clear `requiresRevalidation` to
+turn a gate green.
+
+### Second, independent refusal ground
+
+`execution.audit.currentAttemptId` `BUG-009-AUDIT-003` is `ACTIVE` and records
+`auditVerdict: REWORK_REQUIRED`, `deliveryEvaluation: REFUSED`, `outcome:
+route_required`, `blockingCode: DELIVERY_COMPLETION_FAILED`. Terminal
+certification requires a clean delivery verdict, and `execution.audit` is
+audit-owned state that validate may not repair. No clean attempt was
+manufactured. `BUG-009-ROUTE-027` is already `resolved`; the open route is
+`BUG-009-ROUTE-028`, which already targets `bubbles.audit` and was left open
+rather than duplicated.
+
+### Ownership Routing Summary
+
+| Finding | Owner Required | Reason | Re-validation Needed |
+|---------|----------------|--------|----------------------|
+| B009-LINT-WINDOW-MARKER-001 | bubbles.audit (or framework) | Audit re-states its transcript token, or the framework makes the marker counter fence-aware to match its consumer | yes |
+| BUG-009-AUDIT-003 non-clean verdict | bubbles.audit | Fresh delivery audit must issue a clean verdict; validate may not repair audit history | yes |
+
+### What was not written
+
+`status`, `certification.status`, `completedAt`, `certification.completedAt`,
+`certifiedAt` and `certifiedCompletedPhases` are unchanged, so
+`certifiedCompletedPhases` remains empty. `implement` was never claimed and
+`plan` was never added. `certification.scopeProgress` was not stamped.
+`uservalidation.md` was not touched, so its Checklist, Human Acceptance Record
+and all five Automation Readiness items are byte-identical; the fifth item
+correctly remains unchecked because validate-owned certification did not
+complete. `executionHistory` is append-only and retains all 29 prior entries
+including all 7 from `bubbles.plan`. Product source, tests and
+`.github/bubbles/**` were untouched. `specs/007-technical-analysis-decision-lab/`
+was neither read, staged, reset nor reverted. Nothing was pushed.
+

@@ -295,6 +295,32 @@
       "control": "the workspace record is dropped from the declared full-personal sweep, so a saved allocation is still readable off the storage adapters after a confirmed full-personal clear",
       "claim": "The allocation section reads empty off the storage adapters after a full-personal clear",
       "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-023": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-023 finite tail evidence never claims universal correlation one",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    if (joint < opts.minimumJointEvents) {",
+          "replace": "    if (false) {"
+        }
+      ],
+      "control": "the joint-event floor in lowerTailDependence is removed, so a tail sample below the configured minimum yields a point estimate instead of being withheld as thin-tail-sample",
+      "claim": "Finite tail evidence below the declared joint-event floor is explicitly unavailable rather than reported as a number",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-024": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-024 appraisal smoothing and illiquidity block mechanical decorrelation",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var smoothed = asset.valuationMethod === \"appraisal\" || asset.valuationMethod === \"user-entered\";",
+          "replace": "    var smoothed = false;"
+        }
+      ],
+      "control": "appraisal and user-entered valuations are no longer flagged as smoothing-suspected, so the asset drops its de-smoothed sensitivity requirement and reads as mechanically uncorrelated",
+      "claim": "An appraisal-smoothed or illiquid asset carries its smoothing caveat and requires a de-smoothed sensitivity before any diversification conclusion",
+      "implementationRefs": ["rlportfolioanalytics.js"]
     }
   }
 }

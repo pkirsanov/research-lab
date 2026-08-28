@@ -808,13 +808,21 @@ cutoff through one exported helper, so they cannot drift. The consumer boundary 
 byte-identical, proven by `16 +, 0 -`. A refused evidence window leaves the public schedule
 populated and names its contract code and reason on screen. The presentation-side conflation
 of the same two fields is corrected. An adversarial regression row pins both halves of the
-contract and asserts its own non-tautology. Five verification commands pass, including the
-full 3314-assertion selftest.
+contract and asserts its own non-tautology. Five verification commands pass; the selftest
+figure of 3314 assertions was the count at the fix turn and now reads 3429 — the suite grew
+under other work, and the number is quoted here as a historical reading, not a current one.
 
-**What is not established.** Certification was not performed in this turn, and none is
-claimed: `certification.status` is `in_progress` and `certifiedAt` is `null`. The five test
-commands were executed during the fix turn and are recorded as observed then; they were not
-re-run while these artifacts were written. No commit exists for the delivery.
+**What is not established.** Certification has not been performed and none is claimed:
+`certification.status` is `in_progress` and `certifiedAt` is `null`. An audit round ran and
+returned `REWORK_REQUIRED` rather than a clean verdict — see § Audit Evidence.
+
+Two sentences that stood here were withdrawn as stale rather than left to read as current.
+"They were not re-run while these artifacts were written" was true when written and is now
+false: the regression phase re-ran the delivery's consumers on a clean `git archive` export of
+HEAD, all exit 0 — selftest 3429/0, `validate-brief-payload` PASS, publisher-boundary 5/5,
+`brief.functional` 34/34, plus six browser suites. "No commit exists for the delivery" is
+likewise false: the fix is committed in `899c7a40e` and is present at `HEAD`, verified by
+`git show HEAD:scripts/brief-refresh.mjs | grep -c windowCutoffAt` → 3.
 
 **What is deliberately left open.** Whether a persistently late publication should surface
 its lateness as an operational signal, rather than only being made honest about it. Recorded

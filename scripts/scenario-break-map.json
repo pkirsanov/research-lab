@@ -747,6 +747,19 @@
       "control": "the tool opens into the dense Power view for a reader with no stored preference, so the decision-first Simple cockpit is no longer the default and a first-time reader meets the drill-down instead",
       "claim": "Simple is the default view, and Power adds evidence without altering the citation, identity, or verdict that Simple already showed",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-053": {
+      "test": "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "overflow-x: auto;",
+          "replace": "overflow-x: visible;"
+        }
+      ],
+      "control": "the six-tab strip stops containing its own horizontal overflow, so at mobile width and under zoom the tablist pushes the document wider than the viewport and the reader gets a horizontally scrolling page",
+      "claim": "Every route holds its layout at desktop, mobile, and zoom with long content - no overlap, no clipping, and no horizontal body overflow",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

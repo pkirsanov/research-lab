@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/015-recommendation-outcome-ledger-and-track-record",
+  "readme": [
+    "Controlled-break declarations for spec 015, consumed by scripts/scenario-receipts.mjs",
+    "via --map. Same contract as scripts/scenario-break-map.json; kept in a separate file",
+    "because the runner validates every entry id against ONE spec's scenario-manifest.json,",
+    "so a shared file would refuse each spec's entries while running the other.",
+    "",
+    "Spec 015 differs from 008 in one way that matters when authoring: its manifest links",
+    "tests at FILE level (tests/recommendation-track-record.unit.mjs) rather than at",
+    "file#testname. The red run therefore executes the whole file, so a break anywhere in",
+    "that file's covered surface produces a red. That makes it EASIER to get a non-zero exit",
+    "and correspondingly easier to record a red that does not actually demonstrate the",
+    "scenario's own claim. Every entry here must still break the behavior its scenario names,",
+    "and the control line must say which specific assertion the break defeats.",
+    "",
+    "No entry is committed until the runner reports COMPLETE for it. SURVIVED means the",
+    "declared break is not discriminated and the entry must be fixed or removed, never kept."
+  ],
+  "entries": {
+    "SCN-015-008": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": [
+            "            return {",
+            "                ok: false,",
+            "                error: { code: PREDICATE_AMEND_CODE, reason: \"predicate-amend-refused\", field: \"claimHash\", path: relativePath }",
+            "            };"
+          ],
+          "replace": [
+            "            return { ok: true, path: relativePath, written: false, reused: true };"
+          ]
+        }
+      ],
+      "control": "a claim whose hashed predicate terms differ from the already-stored ones is accepted as a reuse instead of refused, so a predicate can be amended after the fact and the record no longer proves what was actually claimed at the time",
+      "claim": "A predicate amended after the claim was minted is structurally refused rather than silently rewritten",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-004": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        \"resolved-flat\": CONTRIBUTION_COUNT,",
+          "replace": "        \"resolved-flat\": CONTRIBUTION_NUMBER,"
+        }
+      ],
+      "control": "a resolved-flat outcome is routed to the number side instead of the count side, so an outcome that genuinely resolved to flat stops being counted as resolved and is folded into the numeric summary it was deliberately kept out of",
+      "claim": "A resolved-flat outcome is reported as resolved and stays distinguishable from unresolved in both the record and the report",
+      "implementationRefs": ["rlclaims.js"]
+    }
+  }
+}

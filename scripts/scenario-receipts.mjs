@@ -232,22 +232,28 @@ function createWorkdir(repoRoot) {
 
 /* ------------------------------------------------------------- test command */
 
+/**
+ * A manifest may link a test at file level (`tests/x.unit.mjs`) or at test level
+ * (`tests/x.unit.mjs#name`). Spec 008 uses the second form, spec 015 the first.
+ * A file-level identity means the whole file IS the discriminator.
+ */
 function splitTestIdentity(identity) {
   const hash = identity.indexOf('#');
-  if (hash === -1) fail(`test identity has no '#<test name>' part: ${identity}`);
+  if (hash === -1) return { file: identity, testName: null };
   return { file: identity.slice(0, hash), testName: identity.slice(hash + 1) };
 }
 
 function testCommand({ file, testName }, { whole }) {
+  const select = !whole && testName !== null;
   if (file.endsWith('.spec.mjs')) {
     const argv = ['--no-install', 'playwright', 'test', file,
       '--config=playwright.config.mjs', '--project=system-chrome'];
-    if (!whole) argv.push('--grep', reEscape(testName));
+    if (select) argv.push('--grep', reEscape(testName));
     argv.push('--reporter=list');
     return { command: 'npx', argv };
   }
   const argv = ['--test'];
-  if (!whole) argv.push('--test-name-pattern', reEscape(testName));
+  if (select) argv.push('--test-name-pattern', reEscape(testName));
   argv.push(file);
   return { command: 'node', argv };
 }
@@ -257,6 +263,7 @@ function testCommand({ file, testName }, { whole }) {
  * exactly like a killed mutant and fabricate a RED. Probe the selection first.
  */
 function probeSelection(parts, cwd) {
+  if (parts.testName === null) return { ok: true, note: 'file-level identity runs the whole file; there is no selection to probe' };
   if (!parts.file.endsWith('.spec.mjs')) return { ok: true, note: 'node --test selection is checked from the run output' };
   const result = spawnSync('npx', ['--no-install', 'playwright', 'test', parts.file,
     '--config=playwright.config.mjs', '--project=system-chrome',

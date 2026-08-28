@@ -565,6 +565,45 @@
       "control": "the rendered rank fingerprint is emitted under an unversioned digest label, so the identity a reader would use to prove two views share one immutable global ranking no longer carries its contracted form and cannot be compared across windows",
       "claim": "Each rendered action carries a contracted sha256 rank fingerprint, and the visible actions share one immutable global rank identity that display activity and window changes do not alter",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-018": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "\"|meanBlockSessions=\" + spec.method.blockPolicy.meanBlockSessions +",
+          "replace": ""
+        }
+      ],
+      "control": "the reproducibility identity omits the mean block length entirely, so two runs whose only difference is block policy present identical identities and a reader comparing them cannot tell that the sampling assumption changed",
+      "claim": "The scenario identity names every field that changes a result, including the block policy, so an identical specification is provably the same run rather than an opaque token",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-020": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-020 dated cash need records before and after collision capital",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "and is never moved to a better one.",
+          "replace": "and may be adjusted."
+        }
+      ],
+      "control": "the modeled-calendar note drops the stated guarantee that a dated need is never moved to a more favourable session, so a reader can no longer tell from the screen whether the landing step was chosen to flatter the result",
+      "claim": "The modeled calendar states on screen that a dated cash need lands on the first modeled session on or after its stated date and is never moved to a better one",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-038": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "var duplicate = candidate.scenarios.some(function (entry) { return entry.scenarioId === scenario.scenarioId; });",
+          "replace": "var duplicate = false;"
+        }
+      ],
+      "control": "saving the same scenario twice stops being recognised as a repeat, so an identical specification accumulates duplicate rows in private storage instead of reporting that it was already saved",
+      "claim": "Saving an identical scenario is a no-op that reports it was already saved rather than writing a second row, so persisted scenario storage stays one row per distinct specification",
+      "implementationRefs": ["rlportfolio.js"]
     }
   }
 }

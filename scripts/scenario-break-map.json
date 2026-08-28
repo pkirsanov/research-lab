@@ -682,6 +682,32 @@
       "control": "the rebalance-timing cost loses its contracted identity in the dossier cost table, so the seven-component cost taxonomy a net result is built from can no longer be enumerated and a reader cannot confirm which frictions were charged",
       "claim": "The dossier enumerates all seven named cost components under their contracted identities, so a net-of-cost result can be traced to the specific frictions charged against it",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-034": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle verbs only",
+      "breakFile": "rlportfoliobrief.js",
+      "edits": [
+        {
+          "find": "researchVerb: primary === \"held\" ? \"review\" : \"inspect\"",
+          "replace": "researchVerb: primary === \"held\" ? \"rebalance\" : \"inspect\""
+        }
+      ],
+      "control": "a held subject is authored with a portfolio-execution verb outside the closed research set, so the route issues an instruction to change a position instead of proposing a research step",
+      "claim": "Every authored action verb comes from the closed research set, so the brief proposes research and lifecycle steps and never an order, size, or rebalance instruction",
+      "implementationRefs": ["rlportfoliobrief.js"]
+    },
+    "SCN-008-046": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "why.setAttribute(\"data-generic-evidence-identity\", state.genericWindow.genericEvidenceIdentity);",
+          "replace": "why.setAttribute(\"data-generic-evidence-identity\", \"sha256:\" + \"0\".repeat(64));"
+        }
+      ],
+      "control": "each Why shown disclosure reports a constant evidence identity instead of the one the route actually validated, so a reader cannot confirm that every visible action was composed from the same atomic generic evidence window",
+      "claim": "Every rendered action's Why shown disclosure carries the same generic evidence identity the route validated, so the whole visible brief is provably composed from one atomic evidence window",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
     }
   }
 }

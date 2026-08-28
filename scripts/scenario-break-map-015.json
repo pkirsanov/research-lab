@@ -150,6 +150,25 @@
       "control": "legacy anonymous rows are routed into the ordinary unresolved bucket instead of their own permanent one, so rows nobody ever attributed to a claim are folded into the population being scored rather than held apart from it",
       "claim": "A legacy anonymous row stays in its own permanent unresolvable-legacy bucket and is never folded into the scoreable population",
       "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-009": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": [
+            "            if (existing === bytes) return { ok: true, path: relativePath, written: false, reused: true };",
+            "            var incomingTerms = stableStringify(hashedTermsOf(claim));"
+          ],
+          "replace": [
+            "            if (existing === bytes) return { ok: true, path: relativePath, written: true, reused: false };",
+            "            var incomingTerms = stableStringify(hashedTermsOf(claim));"
+          ]
+        }
+      ],
+      "control": "a byte-identical re-mint reports itself as a fresh write rather than a reuse, so re-running the resolver stops being observably a no-op and the store can no longer show that a second pass changed nothing",
+      "claim": "Re-running the resolver changes nothing: a byte-identical claim resolves to the same object and is reported as reused rather than written again",
+      "implementationRefs": ["rlclaims.js"]
     }
   }
 }

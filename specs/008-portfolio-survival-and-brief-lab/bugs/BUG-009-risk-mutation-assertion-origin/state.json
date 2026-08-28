@@ -69,7 +69,7 @@
     },
     "audit": {
       "schemaVersion": "audit-run/v1",
-      "currentAttemptId": "BUG-009-AUDIT-002",
+      "currentAttemptId": "BUG-009-AUDIT-003",
       "attempts": [
         {
           "attemptId": "BUG-009-AUDIT-001",
@@ -168,7 +168,10 @@
         },
         {
           "attemptId": "BUG-009-AUDIT-002",
-          "resultState": "ACTIVE",
+          "resultState": "SUPERSEDED",
+          "supersededByAttemptId": "BUG-009-AUDIT-003",
+          "closedAt": "2026-08-28T00:00:00Z",
+          "closureReason": "Superseded by BUG-009-AUDIT-003 and closed with a terminal resultState. This attempt refused on DELIVERY_COMPLETION_FAILED with failureCount 10 across G022/G027/G136; all three have since cleared, so its verdict is no longer true of the tree and was re-derived rather than left standing. Closing it removes the unretracted-refusal ground that was independently blocking certification.",
           "supersedesAttemptId": "BUG-009-AUDIT-001",
           "at": "2026-08-27T17:49:00Z",
           "agent": "bubbles.audit",
@@ -236,6 +239,137 @@
             }
           ],
           "note": "Re-derived verdict. B009-AUDIT-PII-001 is RESOLVED: concurrent commit ddd1a22c7 applied exactly the redaction this audit specified, report.md:4435 now reads 'root=<repo-root>', node scripts/pii-scan.mjs exits 0 with 0 findings, and node scripts/selftest.mjs exits 0 at 3429 passed 0 failed. That same concurrent commit also absorbed this audit's two staged packet files into its own commit before this agent's git commit ran, so the audit evidence is committed under a foreign commit message rather than an audit-authored one; no history was rewritten to correct that. The verdict moves DO_NOT_SHIP to REWORK_REQUIRED because no critical or security defect remains, but the guard still refuses at failureCount 10. The audit phase is not satisfied by this record alone: the guard reads completedPhaseClaims and certifiedCompletedPhases, which this agent is forbidden from writing, so both the audit and implement phase recordings remain routed to the owner. Nothing was pushed and .github/bubbles/** was not edited."
+        },
+        {
+          "attemptId": "BUG-009-AUDIT-003",
+          "resultState": "ACTIVE",
+          "supersedesAttemptId": "BUG-009-AUDIT-002",
+          "at": "2026-08-28T00:00:00Z",
+          "agent": "bubbles.audit",
+          "consumedRoute": "BUG-009-ROUTE-027",
+          "openedRoute": "BUG-009-ROUTE-028",
+          "bindingDecisionId": "rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:14",
+          "bindingControlRevision": 14,
+          "workflowMode": "bugfix-fastlane",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "targetRevision": "sha256:b0b5f435d0505b08153c43f7e45586521adda2c2cf9ea0367272c50e28ada19e",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "certifiedStatus": "none",
+          "planningEvaluation": "NOT_EVALUATED",
+          "deliveryEvaluation": "REFUSED",
+          "sourceEditLockout": "NOT_EVALUATED",
+          "applicableCheckClasses": [
+            "universal",
+            "mode-required",
+            "delivery-completion"
+          ],
+          "guardFailureCountObserved": 0,
+          "guardFailedGateIds": [],
+          "blockingCode": "DELIVERY_COMPLETION_FAILED",
+          "blockingGateAtTargetStatus": "G089",
+          "addressedFindings": [
+            "BUG-009-ROUTE-027",
+            "B009-PHASE-IMPLEMENT-001"
+          ],
+          "unresolvedFindings": [
+            "B009-FRAMEWORK-PHASE-REGISTRY-001",
+            "B009-FRAMEWORK-G040-EXCLUSION-001",
+            "B009-REVALIDATION-RESIDUE-001"
+          ],
+          "nextRequiredOwner": "bubbles.validate",
+          "evidenceRef": "report.md#audit-attempt-003-refusal-restated",
+          "evidenceRefs": [
+            "report.md#audit-attempt-003-refusal-restated"
+          ],
+          "findingAdjudication": [
+            {
+              "findingId": "B009-PHASE-IMPLEMENT-001",
+              "verdict": "RESOLVED",
+              "reason": "BUG-009 was a test-only defect: commit 4824edc81 changed exactly two test files, +30/-1, with no product source, which is precisely the situation execution.phaseStubs exists to record. The framework defect that made the stub invisible is fixed: grep -c phaseStubs .github/bubbles/scripts/artifact-lint.sh returns 5 (was 0), landed here at 07c89e991 from canonical bf49806. artifact-lint.sh run against a status=done copy now reports 'Required specialist phase implement recorded in execution/certification phase records' and exits 0, and G022 appears in passedGateIds. No phantom implement owner was synthesized."
+            },
+            {
+              "findingId": "B009-FRAMEWORK-PHASE-REGISTRY-001",
+              "verdict": "STILL_STANDING_UPSTREAM_NOT_BLOCKING",
+              "reason": "The phase registry omits 'plan' and 'design' in both the installed copy and canonical bubbles, so this is a canonical framework gap rather than install staleness. It is not closable from inside this repository, .github/bubbles/** is out of bounds, and it is already filed as residue in .specify/memory/open-work.md by commit b65fefc06. G022 no longer fails on it, so it constrains nothing about this packet's promotion."
+            },
+            {
+              "findingId": "B009-FRAMEWORK-G040-EXCLUSION-001",
+              "verdict": "STILL_STANDING_UPSTREAM_NOT_BLOCKING",
+              "reason": "Same class as the phase-registry finding: an upstream framework observation carried as residue, not a packet defect. G040 appears in passedGateIds in this session's state-transition-guard.sh run, so it does not block promotion of this packet."
+            },
+            {
+              "findingId": "B009-REVALIDATION-RESIDUE-001",
+              "verdict": "RECORDED_NOT_EDITED",
+              "reason": "Top-level requiresRevalidation:true at state.json is judged STALE REVERT RESIDUE rather than a genuine revalidation obligation, but the field was deliberately NOT edited because clearing a field purely to turn a failing gate green is gate-gaming. Evidence: the flag was false through dfe6c95ab and set true at d18731c51, whose own note records 'status and certification.status were restored to in_progress, certifiedCompletedPhases restored to empty, and requiresRevalidation set true' while unwinding a failed certification; specDependsOn is [] so no dependency demotion could justify it; git log -S'inter-spec-dependency-revalidation' over this packet returns no commits, so the legitimate propagation mechanism never marked it; and certifiedAt is null, so the packet was never certified and has nothing to be revalidated against. The motivating cause, 68 artifact-lint issues at done, was a framework defect fixed at 07c89e991 and verified cleared this session. G089's own remediation text is 'demote the spec or recertify after revalidation', and a post-fix revalidation has now been performed and recorded, so clearing the flag as the documented outcome of a completed revalidation would be legitimate. That decision belongs to bubbles.validate, not to audit."
+            }
+          ],
+          "commandsExecuted": [
+            {
+              "command": "repository-binding.sh preflight --request-class CONTINUATION --expected-control-revision 13",
+              "exitCode": 0,
+              "result": "PREFLIGHT_COMMITTED decision=rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:14 revision=14 repository=research-lab"
+            },
+            {
+              "command": "jq -r '.execution.phaseStubs.implement' state.json",
+              "exitCode": 0,
+              "result": "non-empty reason present; stubbedBy bubbles.validate; deliveryCommit 4824edc81"
+            },
+            {
+              "command": "git show --stat --oneline 4824edc81",
+              "exitCode": 0,
+              "result": "2 test files changed, 30 insertions, 1 deletion, no product source"
+            },
+            {
+              "command": "grep -c phaseStubs .github/bubbles/scripts/artifact-lint.sh",
+              "exitCode": 0,
+              "result": "5"
+            },
+            {
+              "command": "artifact-lint.sh <packet> (committed status in_progress)",
+              "exitCode": 0,
+              "result": "Artifact lint PASSED; note 'Mode-specific report gates skipped (status not in promotion set)' so this run does not evidence the done case"
+            },
+            {
+              "command": "artifact-lint.sh <out-of-repo copy at status=done>",
+              "exitCode": 0,
+              "result": "Artifact lint PASSED; implement/test/validate/audit all recorded; 150 in-window evidence blocks legitimate, 134 prior-window skipped; the previously reported 68 issues are gone"
+            },
+            {
+              "command": "transition-contract-resolver.sh <packet>",
+              "exitCode": 0,
+              "result": "workflowMode bugfix-fastlane, auditProfile delivery-completion-v1, targetStatus done, contractDigest sha256:aa91472c..."
+            },
+            {
+              "command": "state-transition-guard.sh <packet> --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...",
+              "exitCode": 0,
+              "result": "failureCount 0, failedGateIds [], blockingCode none, verdict PASS; G022/G027/G136/G040/G089 all in passedGateIds. Measures the committed in_progress configuration, NOT certifiability at done"
+            },
+            {
+              "command": "sed -n '275,276p' .github/bubbles/scripts/inter-spec-dependency-guard.sh",
+              "exitCode": 0,
+              "result": "guard branches on the status FIELD, not --target-status: requiresRevalidation==true AND status in (done, done_with_concerns) raises a standalone violation independent of specDependsOn"
+            },
+            {
+              "command": "inter-spec-dependency-guard.sh <packet>",
+              "exitCode": 0,
+              "result": "PASS Gate G089 dependencies=0 acceptedDependencies=none requiresRevalidation=true; the dependency arm is clean, the requiresRevalidation arm is what fires at done"
+            },
+            {
+              "command": "inter-spec-dependency-guard.sh <out-of-repo copy>",
+              "exitCode": 2,
+              "result": "unable to resolve repository root from specDir; exit 2 is a runtime error not a finding, so the copy's G088/G089 results are discarded as probe artifacts"
+            },
+            {
+              "command": "git log --oneline --all -S'inter-spec-dependency-revalidation' -- <packet>",
+              "exitCode": 0,
+              "result": "no commits; the revalidation propagation mechanism never marked this packet"
+            }
+          ],
+          "auditResultTranscript": "BEGIN AUDIT_RESULT_V1\nschemaVersion: audit-result/v1\nrunId: bug009-audit-close-2026-08-28\nattemptId: BUG-009-AUDIT-003\ntarget: specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin\ntargetRevision: sha256:b0b5f435d0505b08153c43f7e45586521adda2c2cf9ea0367272c50e28ada19e\nworkflowMode: bugfix-fastlane\nmodeClass: none\nauditClass: delivery-completion\nstatusCeiling: done\nrequestedStatus: done\nauditVerdict: REWORK_REQUIRED\noutcome: route_required\nresultState: ACTIVE\ncertifiedStatus: none\nplanningEvaluation: NOT_EVALUATED\ndeliveryEvaluation: REFUSED\nsourceEditLockout: NOT_EVALUATED\napplicableCheckClasses: [universal,mode-required,delivery-completion]\nnotApplicableChecks: []\npassedGateIds: [G022,G027,G040,G136]\nfailedGateIds: [G089]\nfailedChecks: [inter-spec-dependency-enforcement-at-target-status]\nblockingCode: DELIVERY_COMPLETION_FAILED\nunresolvedFields: []\ncontradictions: []\ncontractRef: bubbles/workflows/modes.yaml#bugfix-fastlane\ncontractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f\nevidenceRefs: [report.md#audit-attempt-003-refusal-restated]\naddressedFindings: [BUG-009-ROUTE-027,B009-PHASE-IMPLEMENT-001]\nunresolvedFindings: [B009-FRAMEWORK-PHASE-REGISTRY-001,B009-FRAMEWORK-G040-EXCLUSION-001,B009-REVALIDATION-RESIDUE-001]\nnextRequiredOwner: bubbles.validate\nsupersedesAttemptId: BUG-009-AUDIT-002\nresumeFromPhase: none\nEND AUDIT_RESULT_V1",
+          "note": "Terminal audit record for this packet. The engineering substance is SOUND and was independently re-verified this session; every gate attempt 002 refused on (G022, G027, G136) now passes. The refusal is nevertheless RESTATED on a single narrower ground that attempt 002 never named: G089 blocks deterministically at the target status because top-level requiresRevalidation is true, and inter-spec-dependency-guard.sh lines 275-276 raise that violation from the status FIELD rather than from the --target-status flag. The green guard at the committed in_progress status therefore does not evidence certifiability, which is the exact trap validate warned about at d18731c51. This is a pure function of two fields read directly this session, and it corroborates the independent real-path measurement at e7468c902. The refusal was NOT lifted merely because a lift was requested. Audit wrote only its own report.md section and this additive execution.audit record: no certification.*, no top-level status, no completedScopes, no completedPhaseClaims, no scope status, no DoD checkbox, and no uservalidation.md content. requiresRevalidation was deliberately left untouched. .github/bubbles/** was not edited, specs/007-technical-analysis-decision-lab/ was neither staged nor reverted, and nothing was pushed."
         }
       ]
     },
@@ -925,6 +1059,19 @@
       "provenanceMode": "specialist",
       "outcome": "blocked",
       "evidenceRef": "report.md#validate-route-027-target-status-remeasure"
+    },
+    {
+      "at": "2026-08-28T00:00:00Z",
+      "agent": "bubbles.audit",
+      "phase": "audit",
+      "action": "closed-attempt-002-opened-terminal-attempt-003-refusal-restated-on-G089",
+      "note": "Under repository-binding preflight decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:14 at control revision 14 (PREFLIGHT_COMMITTED, exit 0). Closed BUG-009-AUDIT-002, which had been left ACTIVE / REWORK_REQUIRED / REFUSED and was independently blocking certification, by marking it SUPERSEDED with a closureReason; opened BUG-009-AUDIT-003 as the single ACTIVE terminal record carrying an AUDIT_RESULT_V1 transcript and a non-null evidenceRef at report.md#audit-attempt-003-refusal-restated. Verified all three post-fix claims by execution: execution.phaseStubs.implement.reason is non-empty and 4824edc81 is 2 test files +30/-1 with no product source; grep -c phaseStubs artifact-lint.sh returns 5; and artifact-lint.sh exits 0 at status done on an out-of-repo copy, where the previously reported 68 issues are gone and implement resolves from the stub. Adjudicated the three unresolved findings: B009-PHASE-IMPLEMENT-001 RESOLVED; B009-FRAMEWORK-PHASE-REGISTRY-001 and B009-FRAMEWORK-G040-EXCLUSION-001 STILL STANDING upstream but not blocking, already filed as residue by b65fefc06. REFUSAL RESTATED, not lifted: state-transition-guard.sh exits 0 with failureCount 0 at the committed in_progress status, but inter-spec-dependency-guard.sh lines 275-276 branch on the status FIELD rather than --target-status, so requiresRevalidation:true plus status done raises a standalone G089 violation independent of specDependsOn, which is [] and whose dependency arm passes cleanly. Recorded B009-REVALIDATION-RESIDUE-001 judging top-level requiresRevalidation:true to be stale revert residue (set by d18731c51 while unwinding a failed certification, never propagated by inter-spec-dependency-revalidation.sh, certifiedAt null) without editing the field, because clearing a field to turn a failing gate green is gate-gaming and the decision is validate's. Top-level unresolvedFindings was left untouched because its B009-PHASE-IMPLEMENT-001 entry is owned by bubbles.workflow; it needs owner reconciliation against this adjudication. No status, certification.*, completedScopes, completedPhaseClaims, scope status, DoD checkbox, or uservalidation.md content was written. executionHistory is append-only and retains all 27 prior entries including all 7 from bubbles.plan. product source, tests and .github/bubbles/** were untouched, specs/007-technical-analysis-decision-lab/ was neither staged nor reverted, and nothing was pushed.",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "provenanceMode": "direct-execution",
+      "outcome": "route_required",
+      "evidenceRef": "report.md#audit-attempt-003-refusal-restated"
     }
   ],
   "addressedFindings": [

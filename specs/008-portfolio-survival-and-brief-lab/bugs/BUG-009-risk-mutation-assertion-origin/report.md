@@ -5836,3 +5836,205 @@ session's `specs/007-technical-analysis-decision-lab/` files and the unrelated
 working-tree transaction were neither staged nor reverted, and nothing was
 pushed.
 
+## Audit Phase — Attempt `BUG-009-AUDIT-003`: Refusal Restated On Re-Executed Evidence (BUG-009-ROUTE-027) {#audit-attempt-003-refusal-restated}
+
+Attempt `BUG-009-AUDIT-002` was `ACTIVE` / `REWORK_REQUIRED` / `REFUSED` and was
+blocking certification. This attempt supersedes it, closes it with a terminal
+`resultState`, and re-derives the verdict from commands executed this session
+under repository-binding decision
+`rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:14` at control revision 14
+(`PREFLIGHT_COMMITTED`, exit 0).
+
+**Outcome: the refusal is RESTATED, on a narrower and different ground than
+attempt 002 used.** Attempt 002 refused on `DELIVERY_COMPLETION_FAILED` with
+`failureCount 10` across `G022` / `G027` / `G136`. Every one of those has since
+cleared. One blocker that attempt 002 never named now stands alone: `G089`.
+
+### The three post-fix verifications
+
+All three of the claims put to this audit are confirmed by direct execution.
+
+```text
+$ jq -r '.execution.phaseStubs.implement.stubbedBy, .execution.phaseStubs.implement.deliveryCommit' state.json
+bubbles.validate
+4824edc81
+exit 0
+
+$ git show --stat --oneline 4824edc81
+4824edc81 test(BUG-009): assert named risk exclusions
+ tests/portfolio-risk.functional.mjs     | 29 +++++++++++++++++++++++++++++
+ tests/portfolio-test-integrity.unit.mjs |  2 +-
+ 2 files changed, 30 insertions(+), 1 deletion(-)
+exit 0
+
+$ grep -c phaseStubs .github/bubbles/scripts/artifact-lint.sh
+5
+exit 0
+```
+
+The delivery is test-only: two test files, `+30/-1`, no product source. That is
+the precise situation `phaseStubs` exists to record, so the `implement` stub is
+honest rather than a recording gap.
+
+Claim 3 required care. `artifact-lint.sh` is **status-gated**, so running it
+against the packet at its committed `in_progress` status skips the promotion-set
+gates and proves nothing about `done`. It was therefore re-run against an
+out-of-repo copy at `status=done`, leaving the real packet untouched.
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh <tmp>/pkt      # copy at status=done
+✅ Required specialist phase 'implement' recorded in execution/certification phase records
+✅ Required specialist phase 'test' recorded in execution/certification phase records
+✅ Required specialist phase 'validate' recorded in execution/certification phase records
+✅ Required specialist phase 'audit' recorded in execution/certification phase records
+✅ Phase-scope coherence verified (Gate G027)
+ℹ️  Skipped 134 evidence blocks before <!-- bubbles:certifying-window-begin --> (prior-window history) in report.md
+✅ All 150 evidence blocks in report.md contain legitimate terminal output
+Artifact lint PASSED.
+exit 0
+
+$ git status --porcelain -- <packet> | wc -l
+0
+```
+
+The 68 issues previously seen at `done` are gone, and `implement` now resolves
+from the stub. The framework defect is genuinely fixed.
+
+### The decisive blocker: `G089`
+
+The guard was run in assertion-only form against the registry-resolved contract.
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh <packet> \
+    --target-status done --expect-workflow-mode bugfix-fastlane \
+    --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+passedGateIds: [...,G022,G027,G136,G040,G089,...]
+failedGateIds: []
+failureCount: 0
+verdict: PASS
+exit 0
+```
+
+**This green result must not be read as certifiability.** It measures the packet
+at its committed `in_progress` status. `inter-spec-dependency-guard.sh` branches
+on the `status` field in `state.json`, not on the `--target-status` flag:
+
+```text
+$ sed -n '275,276p' .github/bubbles/scripts/inter-spec-dependency-guard.sh
+if [[ "$requires_revalidation" == "true" && ( "$current_status" == "done" || "$current_status" == "done_with_concerns" ) ]]; then
+  violation "$spec_rel has status '$current_status' while requiresRevalidation:true is unresolved; demote the spec or recertify after revalidation"
+
+$ jq -r '.requiresRevalidation' state.json
+true
+exit 0
+```
+
+Both operands of that conjunction are established: `requiresRevalidation` is
+`true` today, and `status` becomes `done` on promotion. The violation therefore
+fires deterministically at the target status. This is a pure function of two
+fields read directly, not an inference. It corroborates the independent real-path
+measurement recorded at commit `e7468c902` (`failedGateIds [G089]`,
+`failureCount 1`).
+
+Note that `specDependsOn` is `[]` and the guard passes standalone:
+
+```text
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh <packet>
+inter-spec-dependency-guard: PASS Gate G089 (inter_spec_dependency_gate) - spec=<packet> dependencies=0 acceptedDependencies=none requiresRevalidation=true acknowledgedUnstableDependencies=0
+exit 0
+```
+
+The dependency arm of `G089` is clean. The blocker is the standalone
+`requiresRevalidation` arm at lines 275-276, which is independent of dependencies
+entirely.
+
+A `status=done` probe on the out-of-repo copy additionally reported `G088` and
+`G089`, but that probe is **not** valid evidence for either gate: both guards
+resolve paths against the repository root and the copy lives outside it.
+
+```text
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh <tmp>/pkt
+inter-spec-dependency-guard: unable to resolve repository root from specDir: <tmp>/pkt
+exit 2
+```
+
+Exit 2 is a runtime error, not a finding. `G088` is discarded as a probe
+artifact; it is not carried as a finding against this packet.
+
+### Adjudication of the three unresolved findings
+
+| Finding | Verdict | Ground |
+|---|---|---|
+| `B009-PHASE-IMPLEMENT-001` | **RESOLVED** | The stub is honest for a test-only defect (`4824edc81`: 2 test files, `+30/-1`, no product source), `artifact-lint.sh` now honors `phaseStubs` (`grep -c` = 5, landed at `07c89e991`), lint at `done` reports `implement` recorded, and `G022` passes. No phantom owner was synthesized. |
+| `B009-FRAMEWORK-PHASE-REGISTRY-001` | **STILL STANDING upstream, NOT blocking here** | The registry gap (`plan`/`design` unregistered) is a canonical framework defect, not a packet defect; it is filed as residue at `.specify/memory/open-work.md` by `b65fefc06`. It is not closable from inside this repository and `G022` no longer fails on it. |
+| `B009-FRAMEWORK-G040-EXCLUSION-001` | **STILL STANDING upstream, NOT blocking here** | Same class: an upstream observation. `G040` appears in `passedGateIds` in the guard run above, so it constrains nothing about this packet's promotion. |
+
+Two of three remain open, but neither is a delivery defect and neither is the
+reason this audit refuses. The sole reason is `G089`.
+
+### `requiresRevalidation` assessment (recorded as a finding; field NOT edited)
+
+Recorded as `B009-REVALIDATION-RESIDUE-001`. Judgment: **stale revert residue,
+not a genuine revalidation obligation** — with the caveat that clearing it is
+not this agent's call.
+
+```text
+$ for c in dfe6c95ab d18731c51 e7468c902; do git show "$c:<packet>/state.json" | jq -r '.requiresRevalidation'; done
+false
+true
+true
+
+$ git log --oneline --all -S'inter-spec-dependency-revalidation' -- <packet>
+(no output)
+exit 0
+
+$ jq -r '{certifiedAt, certRequiresReval: .certification.requiresRevalidation}' state.json
+{ "certifiedAt": null, "certRequiresReval": null }
+```
+
+Four facts support the residue reading. The flag was set by validate itself as
+part of unwinding a failed certification — `d18731c51`'s own note states
+"`status` and `certification.status` were restored to `in_progress`,
+`certifiedCompletedPhases` restored to empty, and `requiresRevalidation` set
+true". `specDependsOn` is `[]`, so no dependency demotion could have justified
+it. `inter-spec-dependency-revalidation.sh`, the mechanism that legitimately
+marks dependents, has never touched this packet. And `certifiedAt` is `null`, so
+the packet was never certified and has nothing to be revalidated *against*.
+
+Decisively, the condition that motivated the flag is gone: it was set because
+certification failed with 68 lint issues at `done`, and that failure was a
+framework defect fixed at `07c89e991` and verified cleared above.
+
+This does **not** license clearing it here. Validate was right that editing the
+field a failing gate reads, purely to make it pass, is gate-gaming. But the
+gate's own remediation text is "demote the spec or **recertify after
+revalidation**" — the flag means *revalidation pending*, and a post-fix
+revalidation has now in fact been performed and recorded (`f56b36e7c`,
+`e7468c902`, and this attempt). Clearing it as the documented outcome of a
+completed revalidation would be legitimate; clearing it to turn a gate green
+would not. That distinction, and the decision, belong to `bubbles.validate`.
+
+### Verdict
+
+`REWORK_REQUIRED`. Engineering substance is sound and independently
+re-verified — the mutation evidence, the test suites, `selftest`, the lint at
+both statuses, and every previously failing gate. The refusal is restated on the
+single remaining ground that `G089` blocks deterministically at the target
+status while `requiresRevalidation:true` stands unresolved.
+
+The circularity in the prior standoff is broken by this record: attempt 002 is
+now closed with a terminal `resultState` and a non-null `evidenceRef`, so
+"audit refusal unretracted" is no longer a reason for validate to refuse. What
+remains for the owner is a single, specific decision about one field.
+
+### Boundaries honored
+
+`status` and `certification.status` were not changed and remain `in_progress`;
+no DoD checkbox, scope status, `completedScopes`, `completedPhaseClaims`, or
+`certification.*` field was written. `requiresRevalidation` was not edited.
+`executionHistory` was appended to only. `uservalidation.md`, product source,
+tests, and `.github/bubbles/**` were untouched. The concurrent session's
+`specs/007-technical-analysis-decision-lab/` files and the unrelated working-tree
+transaction were neither staged nor reverted. `node scripts/pii-scan.mjs` was run
+before committing. Nothing was pushed.
+

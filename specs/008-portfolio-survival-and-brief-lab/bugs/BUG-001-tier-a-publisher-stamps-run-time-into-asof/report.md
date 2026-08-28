@@ -1021,3 +1021,131 @@ Four corrections, none of which require re-running a phase:
    and set `adversarialRegression.line` to `1039`.
 4. Optionally, narrow the `stabilize` and `security` stub reasons to what was actually
    measured. Both conclusions survive; only their stated grounds need to match.
+
+## Audit Evidence Round 2
+
+Re-audit of commit `20b3f9602`, which claims to remediate F1, F2, F4 and F5.
+**Verdict: `REWORK_REQUIRED`. The `audit` phase was NOT recorded.**
+
+Nothing here was taken on trust. Every remediated claim was re-derived from a clean
+`git archive HEAD` export, because `rlportfoliobrief.js` is itself one of the ~85 foreign
+uncommitted files in the working tree — auditing the tree would read a surface this packet
+did not deliver. That the export was necessary rather than ceremonial is itself measured:
+`diff -q` between the export and the working-tree copy of `rlportfoliobrief.js` reports the
+files differ.
+
+### AUDIT-F1 — ADDRESSED. The corrected reason is true, not merely different.
+
+This was the load-bearing finding, because the guard admits a `phaseStub` if and only if its
+reason is non-empty; truth is not machine-checkable, so this phase is the only control on it.
+
+| Clause of the new reason | Command | Result |
+|---|---|---|
+| `brief-narrative-parallel.mjs` has `newYorkCivilCutoff` 0× before | `git show 899c7a40e^:scripts/brief-narrative-parallel.mjs \| grep -c` | `0` |
+| …and 0× at HEAD | `grep -c` on the export | `0` |
+| …and `windowCutoffAt` 0× | `grep -c` on the export | `0` |
+| …and never references `rlportfoliobrief` | `grep -nEi` on the export | no match |
+| the real hunk is `validate-brief-payload.mjs:975` | `grep -n windowCutoffAt` | `975:` |
+| `function windowCutoffAt` exists exactly once | repo-wide `grep -rn`, `node_modules` excluded | `1`, at `rlportfoliobrief.js:171` |
+
+The original reason was therefore genuinely false, and the finding was correct. The
+**narrowing** is confirmed independently by the diff itself: the `-` side already read
+`RLPORTFOLIOBRIEF.newYorkCivilCutoff(...)`, so that consumer was already calling the shared
+module and was never "a second implementation". And `windowCutoffAt` does derive the civil
+date internally — `rlportfoliobrief.js:178-179` computes `civilParts(instant, "America/New_York")`
+and passes the assembled date to the primitive.
+
+One wording nuance is recorded rather than glossed. The `tradingDate` **statement** at
+`validate-brief-payload.mjs:974` still exists at HEAD; it survived as a context line and now
+feeds only the two error messages at `:976` and `:980`. Read with its restrictive clause —
+"the local trading-date derivation *that fed the lower-level primitive*" — the reason is
+accurate, because that feed is what the fix removed. A reader could still take it as deletion.
+This does not change the stub's conclusion, which is independently verified.
+
+### AUDIT-F4 — ADDRESSED. Both narrowed statements verified.
+
+`scripts/brief-refresh.mjs:2672` reads `process.exit(process.argv.includes('--strict') ? 1 : 0)`
+verbatim, with `:2671` logging `'fatal'` versus `'soft-fail'` on the same condition — so
+without `--strict` the process exits 0, exactly as the corrected stub now says. The
+partial-write window is real and in the stated order: `appendFileSync(... 'brief-history.jsonl' ...)`
+at `:2632`, the new `if (!windowCutoffAt) throw ...` at `:2638`, and
+`writeFileSync(... 'market-brief.snapshot.json' ...)` at `:2640`. The throw appears as a `+`
+line in `git show 899c7a40e -- scripts/brief-refresh.mjs`, confirming the stub's claim that
+this window did not exist before the fix.
+
+### AUDIT-F5 — ADDRESSED. The widened scope holds, including the `textContent` conclusion.
+
+`portfolio-survival-allocation-lab.html` shows `63` changed lines in the diffstat, consistent
+with the stated 50 + / 13 -. Every DOM sink in the **added** lines was enumerated:
+`select.innerHTML = ""` (a clear-to-empty, not an injection sink), `option.textContent = ...`,
+and `setAttribute("data-generic-window-error", ...)` (a `data-*` attribute). So refusal text
+does reach the DOM through `textContent`, and no raw-HTML sink is introduced. A credential and
+network sweep over every added line of `rlportfoliobrief.js`, `scripts/`, the allocation lab and
+`tests/` returned no `apikey`, `api_key`, `token`, `secret`, `password`, `credential`,
+`localStorage`, `proxy` or `fetch(`.
+
+### AUDIT-F2 — NOT ADDRESSED. This is what blocks.
+
+The remediation corrected `report.md` and `execution.nextRequiredReason`, but the identical
+false claim survives **live and unannotated** in two top-level `state.json` fields:
+
+| Path | Surviving text | Status at HEAD |
+|---|---|---|
+| `terminalTransitionBlockers[0]` | "The delivery is present in the working tree at `648e0992b` and is uncommitted … no commit exists for the fix" | **false** |
+| `knownLimitation.statement` | "What is NOT established: certification, **a commit for the delivery**, …" | **false** |
+
+The ground truth: `git merge-base --is-ancestor 899c7a40e HEAD` succeeds, and
+`git show HEAD:scripts/brief-refresh.mjs | grep -c windowCutoffAt` returns `3`. `648e0992b`
+is a plain ancestor of HEAD, not the delivery.
+
+This is not a missed edge case. The prior round named the field **by path** twice — once in
+its finding table at `report.md:925` ("`state.json` `knownLimitation.statement` … stale,
+**no annotation**") and again in its own remediation list at item 3 above. Both fields remain
+bare, with no sibling `asOf`, note, or historical marker scoping them.
+
+It matters beyond tidiness. `terminalTransitionBlockers` exists to tell the next owner what
+stands in the way of the terminal transition, and the next owner is `bubbles.validate`, which
+would read that it must obtain a commit that already exists. `knownLimitation.recordedIn` also
+mirrors the claim into `report.md` "Completion Statement", `report.md` "Delivery State" and
+`design.md`, so it propagates into the human-facing narrative.
+
+**The intended quotation judgement was confirmed rather than assumed.** The other F2 classes
+are correctly closed. The surviving "not re-run" strings live in `defect.measurementNote`,
+`verification.claimSource`, `executionHistory[4].note` and the prior audit note — all
+turn-scoped provenance that was true of the turn each describes, and which should *not* be
+rewritten, since rewriting historical provenance would be the worse error. The surviving
+`3314` figures are covered by the explicit historical annotation at `report.md:812`.
+
+### AUDIT-F3 — still open, and judged NOT to block on its own.
+
+`adversarialRegression.line` is `902`; at HEAD line 902 is
+`'no personal value enters a public artifact request').toBe(false);`, an unrelated privacy
+assertion, while the real BUG-001 regression is at `:1039` — which this packet's own
+`executionHistory` cites four times.
+
+The finding is real, but it is a stale bookkeeping pointer, not a defect in delivered code and
+not a claim that satisfies a gate. The regression itself exists, is adversarial, and was
+executed by the regression phase; a reader following the packet's evidence reaches the right
+test. LOW is precisely the class the framework allows to be carried as a surfaced observation
+attached at certification. **Had F2 been closed, the phase would have been recorded and F3 left
+for `bubbles.validate` to attach.** F3 is not what blocks this round.
+
+### Observation — a pre-existing duplicate, out of blast radius (non-blocking)
+
+`portfolio-survival-allocation-lab.html:7906` defines its own `function newYorkCivilCutoff`
+and calls it at `:7974`, while also loading `rlportfoliobrief.js` at `:1248` — so it is a
+genuine duplicate of the lower-level primitive, which slightly exceeds the `simplify` stub's
+closing sentence. It is **not** this packet's to repair: the count is `1` before and `1` after,
+and the delivery diff touches neither symbol in that file. Route-only, recorded so it does not
+disappear.
+
+### What would clear this audit
+
+One correction, requiring no phase re-run:
+
+1. Withdraw or annotate the two surviving false claims — `terminalTransitionBlockers[0]` and
+   `knownLimitation.statement` — the same way `execution.nextRequiredReason` was corrected.
+2. Optionally close F3 by setting `adversarialRegression.line` to `1039`.
+
+Owner: `bubbles.implement`. Both fields are outside this agent's write authority — audit owns
+only its `report.md` evidence and its additive `execution.audit` attempt record.

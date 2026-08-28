@@ -169,6 +169,24 @@
       "control": "a byte-identical re-mint reports itself as a fresh write rather than a reuse, so re-running the resolver stops being observably a no-op and the store can no longer show that a second pass changed nothing",
       "claim": "Re-running the resolver changes nothing: a byte-identical claim resolves to the same object and is reported as reused rather than written again",
       "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-014": {
+      "test": "tests/recommendation-track-record.integration.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": [
+            "        if (contractVersion === ROW_CONTRACT_V1) return ROW_V1_FIELDS;",
+            "        if (contractVersion === ROW_CONTRACT_V2) return ROW_V2_FIELDS;"
+          ],
+          "replace": [
+            "        if (contractVersion === ROW_CONTRACT_V2) return ROW_V2_FIELDS;"
+          ]
+        }
+      ],
+      "control": "the dual-version reader stops recognising v1 at all, so the 240 committed v1 rows resolve to no field set and every one of them becomes an invalid row rather than a valid older shape",
+      "claim": "A v1 row and a v2 row are both valid under one reader, so the older committed shape keeps working alongside the newer one",
+      "implementationRefs": ["rlclaims.js"]
     }
   }
 }

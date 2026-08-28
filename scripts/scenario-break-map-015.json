@@ -72,6 +72,32 @@
       "control": "a claim carrying no authored predicate is accepted instead of refused, so a claim can be minted with nothing frozen and later scored against whatever predicate is convenient",
       "claim": "A claim is proposed only with an authored predicate, frozen at mint, so what was claimed cannot be decided after the outcome is known",
       "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-015": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        if (!Object.prototype.hasOwnProperty.call(row, CLAIM_REF_FIELD)) {",
+          "replace": "        if (false) {"
+        }
+      ],
+      "control": "a ledger row carrying no claim reference stops being refused as unscoreable, so a resolution can be written against a row that never named a claim and an outcome is attributed to something that was never proposed",
+      "claim": "A resolution cannot be written against a claimless row, so every scored outcome traces to a claim that was actually minted",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-010": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        \"no-committed-series\",",
+          "replace": ""
+        }
+      ],
+      "control": "no-committed-series is removed from the closed mint-refusal set, so a claim with no committed price series is no longer classified not-evaluable and silently rejoins the scoreable population it was excluded from",
+      "claim": "A claim with no committed series is minted and recorded as not-evaluable rather than dropped from or counted in the denominator",
+      "implementationRefs": ["rlclaims.js"]
     }
   }
 }

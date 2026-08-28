@@ -2,16 +2,44 @@
 
 ## How to read this checklist
 
-This packet is `blocked` and implemented nothing. Following the BUG-004 / BUG-005 /
-BUG-006 convention, a checked box below means **the acceptance question has been
-recorded and evidenced in this packet**. It explicitly does **not** claim the
-repository satisfies it. These are not DoD boxes; the DoD boxes live in
-[scopes.md](scopes.md) and every one of them is unchecked.
+**Corrected 2026-08-28.** This preamble was written while the packet was an investigation and
+said: "This packet is `blocked` and implemented nothing … the DoD boxes live in
+[scopes.md](scopes.md) and every one of them is unchecked." Both statements are now false and
+have been corrected rather than left to contradict the packet's own record. All four scopes are
+`Done`, all 31 Definition-of-Done items are checked, and the remedy landed: the decision-attention
+feed publishes again. Verified this turn — `market-brief.payload.json` carries 1 attention item,
+where the finding below recorded 0.
+
+The checklist items themselves are kept exactly as authored, and they retain their original
+meaning: following the BUG-004 / BUG-005 / BUG-006 convention, a checked box records that **the
+acceptance question has been recorded and evidenced in this packet**. Each is a finding, a
+correction, or a decision, and each carries its own evidence pointer. They are not DoD boxes.
 
 Where a question is answered by executed evidence, the answer is stated. Where it is
 an open owner decision, that is stated instead.
 
+Acceptance is not certification. This packet's `status` and `certification.status` remain
+`in_progress`. Recording acceptance here clears Gate G136 and nothing else; four change-boundary
+findings against `scopes.md` are still open and untouched.
+
 ---
+
+## Automation Readiness
+
+Automation verified these this turn. **A checked item here grants no acceptance whatsoever**;
+acceptance is the Checklist and the record at the foot of this file.
+
+- [x] The remedy actually landed, rather than being described: `market-brief.payload.json`
+      carries 1 `attention` item and 5 `attentionExclusions`, against the 0 items this packet
+      was filed to explain.
+- [x] All four scopes are `Done` and `state.json` `certification.completedScopes` lists all
+      four, so the scope record and the artifact record agree.
+- [x] `bash .github/bubbles/scripts/artifact-lint.sh` on this packet exits 0.
+- [x] The state-transition guard attributes exactly one failing gate to this packet, G136.
+- [ ] The band values in `attention-detection-policy/v1` have been reviewed by the owner.
+      **Left unticked: Scope 1 states the values "were authored under explicit delegation and
+      still await owner review". The 2026-08-27 directive accepts the delivered behaviour; it
+      is not a review of those specific numbers, and recording it as one would overstate it.**
 
 ## Checklist
 
@@ -116,31 +144,32 @@ an open owner decision, that is stated instead.
   - **Expected:** the eight untracked entries belong to a concurrent session and are unrelated
   - **Verify:** `report.md` §E11
   - **Evidence:** report.md#e11-clean-tree-evidence
-  - **Notes:** An empty honest feed is correct; a populated invented one is not. That constraint outranked restoring the feed.
+  - **Notes:** An empty honest feed is correct; a populated invented one is not. That constraint outranked restoring the feed. **Scoped note added 2026-08-28:** this item describes the *investigation* round at HEAD `373f4572d`, and it is left checked because that is what it recorded and evidenced. It is not a claim about the packet as a whole — the remedy rounds that followed did modify source and did add tests, which is why all four scopes are now `Done`.
 
-## What acceptance still requires, and why an agent did not supply it
+## Human Acceptance Record
 
-This section is deliberately NOT the acceptance record, and adding it did not and
-cannot satisfy Gate G136. It exists so the remaining step is three lines of typing
-rather than a research task.
+The repository operator granted acceptance as a batch directive during the working session of
+2026-08-27/28. The operator did not separately exercise this behaviour in a live session; they
+authorized on the basis of the verification reported to them. That is exactly why the method below
+is `external-record` rather than `human-interactive` — the accepting act happened in the session,
+outside this file, and the operator's dated directive **is** the record. No UAT ticket, sign-off ID,
+or other external artifact exists, and none is claimed.
 
-Every checklist item above is checked and the acceptance library reports exactly one
-finding, `PD12-NO-RECORD`: the file carries no authored `## Human Acceptance Record`.
-Checked boxes are deliberately not sufficient, because a template can ship pre-checked.
+What is being accepted is the behaviour this bug restored: the attention feed publishes again,
+currently one item, having published nothing for ten days. The evidence is in `report.md`; the two
+open reader-experience questions are recorded in `market-brief.config.json` under
+`measuredBaseline` and `rationaleMeasuredNote`, and neither blocks acceptance of the restored
+behaviour. The band values noted as awaiting owner review in Scope 1 are **not** accepted by this
+record and remain open.
 
-The gate is not merely unsatisfied by an agent — it refuses one. `acceptance-authority-lib.sh`
-emits `PD12-AUTOMATION-ACCEPTOR` when `acceptedBy` is an automation identity, and its own
-comment states that checking a box on the author's behalf "would fabricate the one fact
-this whole surface exists to require". So the omission below is the gate working, not an
-unfinished task.
+- acceptedBy: pkirsanov
+- acceptedAt: 2026-08-27
+- method: external-record
+- record: Operator directive in the 2026-08-27/28 working session, quoted verbatim — "authorized, approved, update all user validations as approved" and "Don't stop for user review, commit, continue, user approves all". Transcribed by automation 2026-08-28; the directive itself is the acceptance artifact and no external ticket exists.
 
-To accept, add a `## Human Acceptance Record` heading carrying the three required fields
-`acceptedBy`, `acceptedAt`, and `method`. `method` is a closed vocabulary of exactly
-`human-interactive` or `external-record`; choosing `external-record` additionally requires
-a `record` field pointing at where the acceptance happened. `acceptedAt` is an ISO instant.
-
-What is being accepted is the behavior this bug restored: the attention feed publishes
-again, currently one item, having published nothing for ten days. The evidence is in
-`report.md`; the two open reader-experience questions are recorded in
-`market-brief.config.json` under `measuredBaseline` and `rationaleMeasuredNote`, and
-neither blocks acceptance of the restored behavior.
+This section replaces a passage headed "What acceptance still requires, and why an agent did not
+supply it", which stated that the record was absent and that the omission "is the gate working, not
+an unfinished task". That was true when written and is false now, so it has been removed rather
+than left to contradict the record above it. The rule it described is unchanged and still holds: an
+agent cannot accept for a human, and `acceptedBy` above is the repository git identity `pkirsanov`,
+which does not match the forbidden `^bubbles\.` pattern.

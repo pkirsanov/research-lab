@@ -1,12 +1,16 @@
-# User Validation: BUG-012 — Delivered, Awaiting Human Acceptance
+# User Validation: BUG-012 — Delivered, Accepted On Operator Authorization
 
 The fix is delivered across three commits. The Automation Readiness items below record facts about
 that fix and are ticked where an executed check or a reported execution establishes them.
 
 **Ticking an Automation Readiness item grants no acceptance whatsoever.** Acceptance is the
-Checklist section plus the acceptance record, and only a human establishes it. The Human Acceptance
-Record remains unfilled, and the Checklist items remain unticked, because no human has exercised
-this yet.
+Checklist section plus the acceptance record, and only a human establishes it. Both are now
+complete: the repository operator authorized acceptance on 2026-08-27 and automation transcribed
+that authorization below. One Automation Readiness item is still deliberately unticked, because the
+evidence for it was never produced and an authorization to accept is not evidence that a suite ran.
+
+Acceptance is not certification. This packet's `status` and `certification.status` remain
+`in_progress`, and gates other than G136 are still failing.
 
 ## Automation Readiness
 
@@ -49,33 +53,42 @@ this yet.
 
 ## Checklist
 
-- [ ] A bar in `data/bars/` never claims a low above its own close. The four prices in a row describe
+- [x] A bar in `data/bars/` never claims a low above its own close. The four prices in a row describe
       one trade sequence, on one basis.
-- [ ] The ingestion contract was **chosen deliberately** — adjust all four fields together, or keep
+- [x] The ingestion contract was **chosen deliberately** — adjust all four fields together, or keep
       the four raw and give the adjusted close its own field — with the reason recorded, rather than
       inherited from a bug report.
-- [ ] Existing history was repaired too, not only future writes. Leaving 71,714 incoherent rows in
+- [x] Existing history was repaired too, not only future writes. Leaving 71,714 incoherent rows in
       place while fixing the writer would leave the defect live and the six tests red.
-- [ ] `rlagenda.js` still refuses an impossible bar. The red went away because the data became
+- [x] `rlagenda.js` still refuses an impossible bar. The red went away because the data became
       correct, not because the check became lenient.
-- [ ] A scheduled data refresh can no longer turn a committed test red. The test that broke here
+- [x] A scheduled data refresh can no longer turn a committed test red. The test that broke here
       broke without any code change, which is the property being removed.
-- [ ] When something on this page does fail, the page says so instead of hanging. The explanation it
+- [x] When something on this page does fail, the page says so instead of hanging. The explanation it
       already computes reaches whatever is watching, rather than sitting in the DOM while an observer
       waits without bound.
-- [ ] Nothing became easier to pass: no global Playwright `timeout` was added, no `retries`, no test
+- [x] Nothing became easier to pass: no global Playwright `timeout` was added, no `retries`, no test
       skipped or marked `fixme`, no assertion deleted. A 240 s budget was tried during diagnosis and
       the tests still failed, so a larger budget was never a fix — only a way to stop seeing this.
-- [ ] The separate provenance concern is understood as **still open**: a published historical row
+- [x] The separate provenance concern is understood as **still open**: a published historical row
       changed value in place with no trace, and deciding a policy for that is recorded in `spec.md`
       as out of scope for this packet rather than as done.
 
+Each box above was checked on the repository operator's explicit instruction dated 2026-08-27 and
+transcribed by automation on 2026-08-28. The judgement recorded by these boxes is the operator's,
+not automation's. The last item in particular is an acknowledgement that a concern stays open, which
+is a thing only the party accepting the packet can agree to leave open.
+
 ## Human Acceptance Record
 
-Acceptance has not occurred. The fix is delivered and there is now behaviour for a human to
-exercise, but no human has exercised it. Automation cannot fill this section and nothing above
-substitutes for it.
+The repository operator granted acceptance as a batch directive during the working session of
+2026-08-27/28. The operator did not separately exercise this behaviour in a live session; they
+authorized on the basis of the verification reported to them. That is exactly why the method below
+is `external-record` rather than `human-interactive` — the accepting act happened in the session,
+outside this file, and the operator's dated directive **is** the record. No UAT ticket, sign-off ID,
+or other external artifact exists, and none is claimed.
 
-- acceptedBy: [unfilled]
-- acceptedAt: [unfilled]
-- method: [unfilled]
+- acceptedBy: pkirsanov
+- acceptedAt: 2026-08-27
+- method: external-record
+- record: Operator directive in the 2026-08-27/28 working session, quoted verbatim — "authorized, approved, update all user validations as approved" and "Don't stop for user review, commit, continue, user approves all". Transcribed by automation 2026-08-28; the directive itself is the acceptance artifact and no external ticket exists.

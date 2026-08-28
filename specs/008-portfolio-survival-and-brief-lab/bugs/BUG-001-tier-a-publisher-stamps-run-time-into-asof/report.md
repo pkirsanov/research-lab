@@ -172,6 +172,7 @@ on that date — the value now stamped.
 **`executed (artifact turn)`** — `sed -n '8105,8112p' portfolio-survival-allocation-lab.html`
 
 ```js
+$ sed -n '8105,8112p' portfolio-survival-allocation-lab.html
                         state.briefWindowId = projection.genericWindow.windowId;
                         /* Publication time is `generatedAt`; the analyzed window instant is `asOf`.
                            They are deliberately DISTINCT clocks, so the publication clock must come
@@ -190,6 +191,7 @@ morning-window brief claim publication at 11:00 regardless of when it actually r
 **`executed (artifact turn)`** — `sed -n '8093,8102p' portfolio-survival-allocation-lab.html`
 
 ```js
+$ sed -n '8093,8102p' portfolio-survival-allocation-lab.html
                         /* The SCHEDULE and the EVIDENCE WINDOW are two different transactions, and
                            collapsing them is what turns one refused publication into a dead tab. The
                            schedule has loaded by this point, so the selector is populated from it
@@ -350,6 +352,8 @@ carries another packet's uncommitted edits.
 **Baseline, before any perturbation** — export of `6b48cd428`:
 
 ```
+$ npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
 19 passed (30.7s)
 GREEN_BASELINE_EXIT=0
 ```
@@ -384,6 +388,8 @@ re-derivable rather than quoted.
 **GREEN again, after restoring the export** — re-extracted from `b18b61183`:
 
 ```
+$ npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
 19 passed (25.8s)
 GREEN_RESTORE_EXIT=0
 ```
@@ -410,6 +416,7 @@ claim.
 **`executed (artifact turn)`** — `git log --oneline -1 744ac6a54` and `-1 0972ddd75`
 
 ```
+$ git log --oneline -1 744ac6a54 && git log --oneline -1 0972ddd75
 744ac6a54 feat(008): complete immutable workspace navigation
 0972ddd75 feat(008): implement accessible six-tab interaction
 ```

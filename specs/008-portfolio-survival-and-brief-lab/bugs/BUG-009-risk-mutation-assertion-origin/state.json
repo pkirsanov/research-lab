@@ -3,11 +3,12 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
   "featureName": "BUG-009 Risk Mutation Assertion Origin",
   "createdAt": "2026-08-27",
-  "lastUpdatedAt": "2026-08-28T03:18:17Z",
-  "completedAt": null,
-  "certifiedAt": null,
-  "status": "in_progress",
-  "blockedReason": "Certification at done is BLOCKED by B009-LINT-WINDOW-MARKER-001, independently re-measured this session at repository-binding decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:16. Measured directly, not inherited: grep -cF of the certifying-window token over report.md returns 2, at line 5429 (the one real marker, outside any fence) and line 5891 (a verbatim line of artifact-lint's own success transcript sitting INSIDE a fenced code block). With status flipped to done on otherwise byte-identical content, artifact-lint.sh exits 1 with 64 issues, the first being the multiple-marker error and the remaining 63 being the downstream evidence findings the disabled window stops exempting; state-transition-guard.sh exits 1 with failureCount 5 and failedGateIds [G040,G084,G088,G095]. On the same content at in_progress, artifact-lint.sh exits 0 and the packet is clean. Run standalone, pre-existing-deferral-guard.sh and discovered-issue-disposition-guard.sh both abort at exit 2 naming the same multiple-marker condition, so G040, G084 and G095 are one condition and not three. G088 is NOT an independent blocker: post-cert-spec-edit-guard.sh exits 0 at in_progress and exits 2 at done only because that minimal probe left certifiedAt unset, which real certification would populate. The blocking condition is therefore singular. It is not repairable by bubbles.validate: the counter at artifact-lint.sh:1644 uses fence-blind grep -cF while its own consumer at :1663 requires in_code_block -eq 0, and that inconsistency lives in .github/bubbles/**, which is framework-managed and out of bounds; the only downstream alternative would rewrite a verbatim transcript inside bubbles.audit's recorded evidence block, which is evidence tampering and is refused. Independently, execution.audit.currentAttemptId BUG-009-AUDIT-003 is ACTIVE carrying auditVerdict REWORK_REQUIRED, deliveryEvaluation REFUSED and outcome route_required; a non-clean delivery verdict forbids terminal certification, and repairing audit-owned history to manufacture a clean one is out of bounds. BUG-009-ROUTE-028 is open to bubbles.audit. A truthful in_progress is recorded instead of a fabricated done.",
+  "lastUpdatedAt": "2026-08-28T04:17:30Z",
+  "completedAt": "2026-08-28T00:28:40Z",
+  "certifiedAt": "2026-08-28T04:17:30Z",
+  "status": "done",
+  "blockedReason": null,
+  "supersededBlockedReason": "SUPERSEDED by certification at 2026-08-28T04:17:30Z. The single blocking condition named below, B009-LINT-WINDOW-MARKER-001, was fixed upstream in canonical Bubbles 53d6270, propagated into this repository at c3a6e115e, and re-verified by execution this session: artifact-lint.sh on this packet at status done exits 0 with 0 issues and state-transition-guard.sh exits 0 with failureCount 0. The audit refusal it rested on was also lifted by attempt BUG-009-AUDIT-004 (SHIP_WITH_NOTES, deliveryEvaluation CERTIFIED). Retained verbatim below rather than deleted, following this packet's own priorNextRequiredReason/supersededNextRequiredReason convention. ORIGINAL TEXT: Certification at done is BLOCKED by B009-LINT-WINDOW-MARKER-001, independently re-measured this session at repository-binding decision rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:16. Measured directly, not inherited: grep -cF of the certifying-window token over report.md returns 2, at line 5429 (the one real marker, outside any fence) and line 5891 (a verbatim line of artifact-lint's own success transcript sitting INSIDE a fenced code block). With status flipped to done on otherwise byte-identical content, artifact-lint.sh exits 1 with 64 issues, the first being the multiple-marker error and the remaining 63 being the downstream evidence findings the disabled window stops exempting; state-transition-guard.sh exits 1 with failureCount 5 and failedGateIds [G040,G084,G088,G095]. On the same content at in_progress, artifact-lint.sh exits 0 and the packet is clean. Run standalone, pre-existing-deferral-guard.sh and discovered-issue-disposition-guard.sh both abort at exit 2 naming the same multiple-marker condition, so G040, G084 and G095 are one condition and not three. G088 is NOT an independent blocker: post-cert-spec-edit-guard.sh exits 0 at in_progress and exits 2 at done only because that minimal probe left certifiedAt unset, which real certification would populate. The blocking condition is therefore singular. It is not repairable by bubbles.validate: the counter at artifact-lint.sh:1644 uses fence-blind grep -cF while its own consumer at :1663 requires in_code_block -eq 0, and that inconsistency lives in .github/bubbles/**, which is framework-managed and out of bounds; the only downstream alternative would rewrite a verbatim transcript inside bubbles.audit's recorded evidence block, which is evidence tampering and is refused. Independently, execution.audit.currentAttemptId BUG-009-AUDIT-003 is ACTIVE carrying auditVerdict REWORK_REQUIRED, deliveryEvaluation REFUSED and outcome route_required; a non-clean delivery verdict forbids terminal certification, and repairing audit-owned history to manufacture a clean one is out of bounds. BUG-009-ROUTE-028 is open to bubbles.audit. A truthful in_progress is recorded instead of a fabricated done.",
   "workflowMode": "bugfix-fastlane",
   "planningOnly": false,
   "planningOnlyJustification": null,
@@ -31,14 +32,14 @@
   "execution": {
     "activeAgent": "bubbles.validate",
     "currentPhase": "validate",
-    "currentPhaseStatus": "blocked",
+    "currentPhaseStatus": "completed",
     "executionModel": "direct-authorized-runner",
-    "substate": "certification_refused_single_framework_marker_condition_confirmed_twice",
+    "substate": "certified_done_after_audit_attempt_004_reconciliation",
     "parentAgent": null,
-    "completedAt": null,
+    "completedAt": "2026-08-28T04:04:26Z",
     "currentScope": "01-restore-risk-mutation-assertion-origin",
-    "nextRequiredOwner": "bubbles.audit",
-    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin",
+    "nextRequiredOwner": null,
+    "nextRequiredTarget": null,
     "nextRequiredReason": "BUG-009-ROUTE-026 is resolved and BUG-009-ROUTE-027 routes to bubbles.audit for a delivery re-audit. The artifact surface is now certifiable and the audit record is not. artifact-lint.sh at status done went from 65 issues to 0 (Artifact lint PASSED, exit 0) with zero historical evidence blocks edited, using the framework's documented opt-in append-only certifying-window sentinel placed exactly once above this pass's fresh section; state-transition-guard.sh reports failureCount 0, failedGateIds [], blockingCode none, verdict PASS, exit 0. Certification was available and was DECLINED: execution.audit.currentAttemptId BUG-009-AUDIT-002 is ACTIVE and still records verdict REWORK_REQUIRED, deliveryEvaluation REFUSED and no evidenceRef, so no AUDIT_RESULT_V1 transcript exists to adjudicate, and execution.audit is audit-owned state that bubbles.validate may not repair. Nothing mechanical would have refused, because the guard never reads those fields under delivery-completion-v1, which is exactly why the refusal had to be honoured by judgement rather than by a failing check. PRIOR CONTEXT FROM BUG-009-ROUTE-025 FOLLOWS, PRESERVED VERBATIM. The Gate G022 phase record is repaired as far as truthful record-keeping allows. Recorded: the audit phase, evidenced by commit 9f5f266eb, with an explicit disclosure that bubbles.plan wrote the record on audit's behalf because audit may not write completedPhaseClaims. Removed: 'plan' from completedPhaseClaims as a classification fix, after verifying by direct read that the installed 30-phase registry omits it, that modeTemplates separates planningChainAgents from findingDeliveryPhases so 'plan' is an agent and not a delivery phase, and that Check 6 does not require it for this mode; all six bubbles.plan executionHistory entries are preserved untouched. DECLINED: the implement claim. The implement work is real at 4824edc81 and the packet's own downstream phases call it the implementation commit, but Check 6B accepts implement provenance only from bubbles.implement or from bubbles.bug via the line-2183 delegation shortcut, and executionHistory entry 3 shows bubbles.test performed it with action 'implemented-and-verified-recorded-test-contracts'. The parent's stated rationale that bugfix-fastlane has no separate test-only phase was falsified this session: Check 6 lists implement and test as distinct required phases, test already PASSES, and distinct test-phase commits 50a541600 and 40ae3fdf6 exist alongside 4824edc81. Recording the claim would therefore require synthesizing the phantom owner Check 6B refuses, so B009-PHASE-IMPLEMENT-001 is escalated as a framework owner-set defect that cannot be fixed downstream because .github/bubbles/** is framework-managed. Remaining blockers are human acceptance (G136), scope completion (G027), and that framework gap. Status, certification, Scope 1 status, completedScopes, the three unchecked DoD items, and human acceptance are unchanged; nothing was pushed and .github/bubbles/** was not edited.",
     "priorNextRequiredReason": "BUG-009-ROUTE-023 is resolved: the audit phase executed for the first time and its evidence is at report.md#audit-route-023. The engineering substance of BUG-009 passed every audit check. The change boundary is exactly the two declared test files, verified by git show --stat 4824edc81 plus a clean git status over rlportfolioanalytics.js and tests/portfolio-defect-injector.cjs. Assertion-origin causality was proven load-bearing by running the F008-RISK-INPUT-001 mutation twice: against the post-fix title it fails ERR_ASSERTION strictEqual actual 'unsupported-holding' expected 'ok' at portfolio-risk.functional.mjs:60 with marker via=Module._compile, and against the pre-fix SCN-008-047 title the same mutation fails TypeError ERR_TEST_FAILURE at line 123, which the harness's ERR_ASSERTION requirement rejects, so the repair is not cosmetic. Shipped focused GREEN 1/0, full risk carrier 3/0, strict registry 3/0, no stub or canned data, no credential or token. Audit nevertheless returns DO_NOT_SHIP on one CRITICAL security finding it owns discovering, B009-AUDIT-PII-001: node scripts/pii-scan.mjs exits 1 with the single repository-wide finding at this packet's own report.md:4435 rule=home-path, git blame attributes that line to the plan commit 58a8089ca, and commit 6e9f574a8 had already driven the same identifier to zero, so this is a regression of an already-remediated defect. Because scripts/selftest.mjs:2688 asserts the scan, node scripts/selftest.mjs now exits 1 at 3428 passed 1 failed, so the packet's standing claim of a green canonical selftest is false of the current tree; that claim was true when validate measured it and was invalidated afterwards by 58a8089ca, so it is a regression rather than fabrication. Audit did not redact the line because the block belongs to bubbles.plan and rewriting another owner's evidence is a foreign-artifact change. Audit adjudicated B009-PHASE-IMPLEMENT-001 as a recording gap rather than a work gap: commit 4824edc81 is a real non-empty delivery of 2 files +30/-1 and bugfix-fastlane offers no separate phase for a test-only change, so the implement phase did occur, but audit is forbidden from writing phase claims and refused to fabricate one. Audit measured state-transition-guard failureCount 10 with failedGateIds G022, G027, G136, not the 11 carried inbound. BUG-009-ROUTE-024 routes both owned findings to bubbles.plan. Status, certification, scope status, completedScopes, completedPhaseClaims, DoD rows, and human acceptance are all unchanged; nothing was pushed and .github/bubbles/** was not edited.",
     "supersededNextRequiredReason": "BUG-009-ROUTE-022 is resolved. bubbles.plan cleared every plan-owned block it was routed: Check 8D now passes on both the change-boundary DoD item and the allowed/excluded surface enumeration, the G061 route schema is satisfied by an internal same-repo shape (routedToSpec equal to this guarded spec, productAction 'none', no routedToCommit or routedToTicket, so the guard's looks_external branch is not taken and no cross-repo referral is fabricated), and both G040 hits are bounded by the framework's own bubbles:g040-skip markers with the adjudication recorded and zero evidence words rewritten. DoD moved from 0 of 18 to 16 of 19 checked; a nineteenth mandated change-boundary item was added and checked against git show --numstat 4824edc81, which reports exactly the two allowed test paths. Three items stay unchecked on purpose: TP-B009-000 is a persistent pre-fix historical record that post-fix cannot be re-executed without inverting its meaning, human acceptance is human-owned and untouched, and the Build Quality Gate requires transition checks that still exit 1. Three findings outside plan ownership are carried in unresolvedFindings: the canonical and installed phase registries both omit 'plan' and 'design', the G040 exclusion list omits the guard's own crossRepoFollowUp identifier, and no implement phase record exists because delivery landed under the test phase. bubbles.audit is the one required delivery-completion-v1 phase that has never executed; BUG-009-ROUTE-023 routes to it. Status, certification, scope status, completedScopes, and human acceptance are unchanged.",
@@ -69,7 +70,7 @@
     },
     "audit": {
       "schemaVersion": "audit-run/v1",
-      "currentAttemptId": "BUG-009-AUDIT-003",
+      "currentAttemptId": "BUG-009-AUDIT-004",
       "attempts": [
         {
           "attemptId": "BUG-009-AUDIT-001",
@@ -242,7 +243,10 @@
         },
         {
           "attemptId": "BUG-009-AUDIT-003",
-          "resultState": "ACTIVE",
+          "resultState": "SUPERSEDED",
+          "supersededByAttemptId": "BUG-009-AUDIT-004",
+          "closedAt": "2026-08-28T04:04:26Z",
+          "closureReason": "Superseded by BUG-009-AUDIT-004 and closed with a terminal resultState by bubbles.validate during certification reconciliation. Audit itself declared the supersession: the committed attempt-004 transcript at report.md#audit-attempt-004-marker-residue-self-corrected carries supersedesAttemptId BUG-009-AUDIT-003. Both grounds this attempt restated have been re-executed and cleared. G089: top-level requiresRevalidation is false since 58a2d4f11 and inter-spec-dependency-guard.sh exits 0 reporting dependencies=0 requiresRevalidation=false. B009-LINT-WINDOW-MARKER-001: fixed upstream in canonical 53d6270, propagated at c3a6e115e, and artifact-lint.sh on this packet now exits 0 with 0 issues. This attempt's targetRevision sha256:b0b5f435 no longer matches the packet, so its verdict was not reusable and was re-derived rather than left standing. Closing it removes the unretracted-refusal ground that was independently blocking certification.",
           "supersedesAttemptId": "BUG-009-AUDIT-002",
           "at": "2026-08-28T00:00:00Z",
           "agent": "bubbles.audit",
@@ -370,6 +374,132 @@
           ],
           "auditResultTranscript": "BEGIN AUDIT_RESULT_V1\nschemaVersion: audit-result/v1\nrunId: bug009-audit-close-2026-08-28\nattemptId: BUG-009-AUDIT-003\ntarget: specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin\ntargetRevision: sha256:b0b5f435d0505b08153c43f7e45586521adda2c2cf9ea0367272c50e28ada19e\nworkflowMode: bugfix-fastlane\nmodeClass: none\nauditClass: delivery-completion\nstatusCeiling: done\nrequestedStatus: done\nauditVerdict: REWORK_REQUIRED\noutcome: route_required\nresultState: ACTIVE\ncertifiedStatus: none\nplanningEvaluation: NOT_EVALUATED\ndeliveryEvaluation: REFUSED\nsourceEditLockout: NOT_EVALUATED\napplicableCheckClasses: [universal,mode-required,delivery-completion]\nnotApplicableChecks: []\npassedGateIds: [G022,G027,G040,G136]\nfailedGateIds: [G089]\nfailedChecks: [inter-spec-dependency-enforcement-at-target-status]\nblockingCode: DELIVERY_COMPLETION_FAILED\nunresolvedFields: []\ncontradictions: []\ncontractRef: bubbles/workflows/modes.yaml#bugfix-fastlane\ncontractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f\nevidenceRefs: [report.md#audit-attempt-003-refusal-restated]\naddressedFindings: [BUG-009-ROUTE-027,B009-PHASE-IMPLEMENT-001]\nunresolvedFindings: [B009-FRAMEWORK-PHASE-REGISTRY-001,B009-FRAMEWORK-G040-EXCLUSION-001,B009-REVALIDATION-RESIDUE-001]\nnextRequiredOwner: bubbles.validate\nsupersedesAttemptId: BUG-009-AUDIT-002\nresumeFromPhase: none\nEND AUDIT_RESULT_V1",
           "note": "Terminal audit record for this packet. The engineering substance is SOUND and was independently re-verified this session; every gate attempt 002 refused on (G022, G027, G136) now passes. The refusal is nevertheless RESTATED on a single narrower ground that attempt 002 never named: G089 blocks deterministically at the target status because top-level requiresRevalidation is true, and inter-spec-dependency-guard.sh lines 275-276 raise that violation from the status FIELD rather than from the --target-status flag. The green guard at the committed in_progress status therefore does not evidence certifiability, which is the exact trap validate warned about at d18731c51. This is a pure function of two fields read directly this session, and it corroborates the independent real-path measurement at e7468c902. The refusal was NOT lifted merely because a lift was requested. Audit wrote only its own report.md section and this additive execution.audit record: no certification.*, no top-level status, no completedScopes, no completedPhaseClaims, no scope status, no DoD checkbox, and no uservalidation.md content. requiresRevalidation was deliberately left untouched. .github/bubbles/** was not edited, specs/007-technical-analysis-decision-lab/ was neither staged nor reverted, and nothing was pushed."
+        },
+        {
+          "attemptId": "BUG-009-AUDIT-004",
+          "resultState": "ACTIVE",
+          "supersedesAttemptId": "BUG-009-AUDIT-003",
+          "at": "2026-08-28T03:58:29Z",
+          "agent": "bubbles.audit",
+          "consumedRoute": "BUG-009-ROUTE-028",
+          "openedRoute": null,
+          "bindingDecisionId": null,
+          "bindingControlRevision": null,
+          "workflowMode": "bugfix-fastlane",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "targetRevision": "sha256:4f38e969f5d581ee91b4b9c8f2cca8ca0bbba253ec825e4f0371ba0e35ec4bde",
+          "auditVerdict": "SHIP_WITH_NOTES",
+          "outcome": "completed_diagnostic",
+          "certifiedStatus": "none",
+          "planningEvaluation": "NOT_EVALUATED",
+          "deliveryEvaluation": "CERTIFIED",
+          "sourceEditLockout": "NOT_EVALUATED",
+          "applicableCheckClasses": [
+            "universal",
+            "mode-required",
+            "delivery-completion"
+          ],
+          "guardFailureCountObserved": 0,
+          "guardFailedGateIds": [],
+          "blockingCode": "none",
+          "addressedFindings": [
+            "BUG-009-ROUTE-028",
+            "B009-LINT-WINDOW-MARKER-001",
+            "B009-REVALIDATION-RESIDUE-001"
+          ],
+          "unresolvedFindings": [
+            "B009-FRAMEWORK-PHASE-REGISTRY-001",
+            "B009-FRAMEWORK-G040-EXCLUSION-001",
+            "B009-FRAMEWORK-MARKER-COUNTER-FANOUT-001"
+          ],
+          "nextRequiredOwner": "bubbles.validate",
+          "evidenceRef": "report.md#audit-attempt-004-marker-residue-self-corrected",
+          "evidenceRefs": [
+            "report.md#audit-attempt-004-marker-residue-self-corrected"
+          ],
+          "findingAdjudication": [
+            {
+              "findingId": "B009-REVALIDATION-RESIDUE-001",
+              "verdict": "RESOLVED",
+              "reason": "Re-executed rather than assumed. jq -r .requiresRevalidation returns false, and inter-spec-dependency-guard.sh exits 0 reporting dependencies=0 acceptedDependencies=none requiresRevalidation=false. The flag was cleared at 58a2d4f11 as the documented outcome of a completed revalidation, which is the disposition audit attempt 003 explicitly delegated to bubbles.validate."
+            },
+            {
+              "findingId": "B009-LINT-WINDOW-MARKER-001",
+              "verdict": "RESOLVED",
+              "reason": "The second occurrence of the window token sat inside a fenced block at report.md:5891, pasted by 87c1c728d, the commit that opened attempt BUG-009-AUDIT-003. It was therefore audit's own residue and audit owned the repair, applying this report's existing disclosed elision convention to its own evidence block. No other agent's evidence was touched, no count or exit code was altered, and the single real marker stayed at its original position. G040, G084 and G095 all cleared; artifact-lint.sh exits 0."
+            },
+            {
+              "findingId": "B009-FRAMEWORK-PHASE-REGISTRY-001",
+              "verdict": "STILL_STANDING_UPSTREAM_NOT_BLOCKING",
+              "reason": "Retained observation. The phase registry omits plan and design in both the installed copy and canonical Bubbles, so it is a canonical framework gap rather than install staleness. Not closable from inside this repository, .github/bubbles/** is out of bounds, and it is already filed as residue in .specify/memory/open-work.md. G022 passes, so it constrains nothing about this packet's promotion."
+            },
+            {
+              "findingId": "B009-FRAMEWORK-G040-EXCLUSION-001",
+              "verdict": "STILL_STANDING_UPSTREAM_NOT_BLOCKING",
+              "reason": "Retained observation of the same class. G040 appears in passedGateIds of this session's state-transition-guard.sh run, so it does not block promotion of this packet."
+            },
+            {
+              "findingId": "B009-FRAMEWORK-MARKER-COUNTER-FANOUT-001",
+              "verdict": "NEW_UPSTREAM_NOT_BLOCKING_HERE",
+              "reason": "New observation opened by attempt 004. Canonical 53d6270 made the window-marker counter fence-aware in artifact-lint.sh only; state-transition-guard.sh:4251, pre-existing-deferral-guard.sh:355 and discovered-issue-disposition-guard.sh:219 still count with fence-blind grep -cF while their own consumers are fence-aware. Non-blocking here because the trigger was removed from this packet. Owner is upstream Bubbles, remedy is the same sanctioned installer path that delivered 53d6270."
+            }
+          ],
+          "commandsExecuted": [
+            {
+              "command": "jq -r .requiresRevalidation <packet>/state.json",
+              "exitCode": 0,
+              "result": "false"
+            },
+            {
+              "command": "inter-spec-dependency-guard.sh <packet>",
+              "exitCode": 0,
+              "result": "PASS Gate G089 dependencies=0 acceptedDependencies=none requiresRevalidation=false"
+            },
+            {
+              "command": "artifact-lint.sh <packet>",
+              "exitCode": 0,
+              "result": "Artifact lint PASSED; no unfilled evidence template placeholders"
+            },
+            {
+              "command": "node --test --test-name-pattern='^BUG-009 risk mapping: unsupported holdings remain named exclusions$' tests/portfolio-risk.functional.mjs",
+              "exitCode": 0,
+              "result": "pass 1 fail 0"
+            },
+            {
+              "command": "node --test tests/portfolio-test-integrity.unit.mjs",
+              "exitCode": 0,
+              "result": "pass 3 fail 0; all 18 mutations execute and each fails through its protective assertion"
+            },
+            {
+              "command": "node --test tests/portfolio-risk.functional.mjs",
+              "exitCode": 0,
+              "result": "pass 3 fail 0"
+            },
+            {
+              "command": "fence-aware count of the certifying-window token over report.md",
+              "exitCode": 0,
+              "result": "REAL (unfenced) = 1 | fenced/quoted = 0 | total = 1"
+            },
+            {
+              "command": "pre-existing-deferral-guard.sh <packet>",
+              "exitCode": 0,
+              "result": "PASS Gate G084 scannedFiles=1 violations=0"
+            },
+            {
+              "command": "discovered-issue-disposition-guard.sh <packet>",
+              "exitCode": 0,
+              "result": "G095 discovered-issue disposition clean (no unfiled deferrals)"
+            },
+            {
+              "command": "state-transition-guard.sh <packet> --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c...",
+              "exitCode": 0,
+              "result": "TRANSITION PERMITTED with 2 warning(s); failedGateIds [], blockingCode none, failureCount 0, verdict PASS"
+            }
+          ],
+          "auditResultTranscript": "BEGIN AUDIT_RESULT_V1\nschemaVersion: audit-result/v1\nrunId: none\nattemptId: BUG-009-AUDIT-004\ntarget: specs/008-portfolio-survival-and-brief-lab/bugs/BUG-009-risk-mutation-assertion-origin\ntargetRevision: sha256:4f38e969f5d581ee91b4b9c8f2cca8ca0bbba253ec825e4f0371ba0e35ec4bde\nworkflowMode: bugfix-fastlane\nmodeClass: none\nauditClass: delivery-completion\nstatusCeiling: done\nrequestedStatus: done\nauditVerdict: SHIP_WITH_NOTES\noutcome: completed_diagnostic\nresultState: ACTIVE\ncertifiedStatus: none\nplanningEvaluation: NOT_EVALUATED\ndeliveryEvaluation: CERTIFIED\nsourceEditLockout: NOT_EVALUATED\napplicableCheckClasses: [universal,mode-required,delivery-completion]\nnotApplicableChecks: []\npassedGateIds: [G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G022,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G040,G044,G047,G048,G051,G053,G055,G056,G057,G059,G060,G061,G068,G082,G083,G084,G085,G086,G087,G088,G089,G090,G091,G092,G093,G094,G095,G097,G098,G099,G100,G128,G130,G131,G136]\nfailedGateIds: []\nfailedChecks: []\nblockingCode: none\nunresolvedFields: []\ncontradictions: []\ncontractRef: bubbles/workflows/modes.yaml#bugfix-fastlane\ncontractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f\nevidenceRefs: [report.md#audit-attempt-004-marker-residue-self-corrected]\naddressedFindings: [BUG-009-ROUTE-028,B009-LINT-WINDOW-MARKER-001,B009-REVALIDATION-RESIDUE-001]\nunresolvedFindings: [B009-FRAMEWORK-PHASE-REGISTRY-001,B009-FRAMEWORK-G040-EXCLUSION-001,B009-FRAMEWORK-MARKER-COUNTER-FANOUT-001]\nnextRequiredOwner: bubbles.validate\nsupersedesAttemptId: BUG-009-AUDIT-003\nresumeFromPhase: none\nEND AUDIT_RESULT_V1",
+          "note": "Terminal audit record for this packet; the refusal is LIFTED. Verdict SHIP_WITH_NOTES with deliveryEvaluation CERTIFIED: the delivery is sound on re-executed evidence and the transition guard permits promotion at the resolved contract. It is not SHIP_IT because three upstream framework findings remain open as non-blocking observations and two guard warnings are unresolved. Both grounds attempt 003 restated were re-executed at c3a6e115e and both cleared. The remaining blocker turned out to be audit's own residue: a literal window-marker token pasted inside a fenced block at report.md:5891 by 87c1c728d, the commit that opened attempt 003; audit repaired its own evidence block using this report's disclosed elision convention, altering no count and no exit code. Audit wrote only its own report.md section (commit 0b1820731, 247 insertions to report.md and nothing else): no certification.*, no top-level status, no completedScopes, no completedPhaseClaims, no scope status, no DoD checkbox, and no uservalidation.md content. This execution.audit record was therefore written by bubbles.validate during certification reconciliation, transcribed from the committed attempt-004 evidence rather than re-derived; bindingDecisionId and bindingControlRevision are null because attempt 004 recorded none and none was invented. Certification is validate's call and is recorded separately in certification.*. specs/007-technical-analysis-decision-lab/ was untouched and nothing was pushed."
         }
       ]
     },
@@ -386,14 +516,30 @@
     "01-restore-risk-mutation-assertion-origin"
   ],
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "lockdownState": "unlocked",
-    "completedAt": null,
-    "certifiedAt": null,
+    "completedAt": "2026-08-28T00:28:40Z",
+    "certifiedAt": "2026-08-28T04:17:30Z",
+    "assurance": {
+      "level": "full",
+      "missingForFull": []
+    },
     "completedScopes": [
       "01-restore-risk-mutation-assertion-origin"
     ],
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "bug",
+      "test",
+      "regression",
+      "simplify",
+      "gaps",
+      "harden",
+      "stabilize",
+      "devops",
+      "security",
+      "validate",
+      "audit"
+    ],
     "scopeProgress": [
       {
         "scopeId": "01-restore-risk-mutation-assertion-origin",
@@ -736,7 +882,8 @@
     },
     {
       "id": "BUG-009-ROUTE-028",
-      "status": "open",
+      "status": "resolved",
+      "resolution": "Consumed by bubbles.audit as attempt BUG-009-AUDIT-004 and closed. The route asked audit to either withdraw its refusal on re-executed evidence or repair the marker residue it owned; audit did both. B009-LINT-WINDOW-MARKER-001 is RESOLVED: the second token occurrence at report.md:5891 was audit's own paste from 87c1c728d and audit applied this report's disclosed elision convention to its own evidence block, altering no count and no exit code; G040, G084 and G095 all cleared and artifact-lint.sh exits 0 with 0 issues. The refusal is LIFTED: attempt 004 records auditVerdict SHIP_WITH_NOTES, deliveryEvaluation CERTIFIED, outcome completed_diagnostic, blockingCode none, and its transcript names supersedesAttemptId BUG-009-AUDIT-003, so the ACTIVE refusal that independently blocked certification is retired. bubbles.validate reconciled execution.audit to that committed outcome and certified the packet at done; execution.audit.currentAttemptId is BUG-009-AUDIT-004. Three upstream framework findings remain open as non-blocking observations, one of them new (B009-FRAMEWORK-MARKER-COUNTER-FANOUT-001), and are carried as residue for the parent orchestrator rather than as packet defects.",
       "fromAgent": "bubbles.validate",
       "nextRequiredOwner": "bubbles.audit",
       "routedTo": "bubbles.audit",

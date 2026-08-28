@@ -5426,3 +5426,250 @@ transaction, and the separate `specs/007-technical-analysis-decision-lab/` files
 owned by a concurrent session, were neither staged, reset, stashed nor reverted.
 Nothing was pushed.
 
+<!-- bubbles:certifying-window-begin -->
+
+## Validate Phase — Artifact Closure Under The Repaired Linter (BUG-009-ROUTE-026) {#validate-route-026-artifact-closure}
+
+**Phase:** validate
+**Agent:** bubbles.validate
+**Route consumed:** BUG-009-ROUTE-026
+**Repository authority:** `rb:vscode-8c5a5a2683cf16f2dcec3bf76c6a9d05:11`,
+control revision 11, `PREFLIGHT_COMMITTED`, exit 0.
+
+Every block below this point is inside the current certifying window and is
+enforced at full strictness by Check 3. Nothing above it was edited, reworded,
+or removed by this pass.
+
+### The Certifying-Window Boundary And Why It Is Placed Here
+
+`BUG-009-ROUTE-026` recorded 68 lint issues at `status: done`, of which 63 were
+Check 3 evidence-block findings against historical content. This pass measured
+them again after the framework repair and found 63 still standing, distributed
+across roughly a dozen prior phases between report line 555 and line 4955, plus
+five inside the ROUTE-025 implement section.
+
+Those 63 were inspected rather than assumed. A representative sample is real
+recorded output that simply does not carry two of the eight transcript-shaped
+signals the heuristic counts: a `git show --stat` file-list, a `phaseOrder`
+excerpt quoted from `modes.yaml`, a shell excerpt quoted from
+`state-transition-guard.sh`, an `executionHistory` JSON object, a two-line
+`grep -n` result already labelled `**Exit Code:** 0` and
+`**Claim Source:** executed`, and a key/value verification dump of commit
+hashes and blob digests. None is empty, fabricated, or placeholder content.
+
+Making those blocks emit two signals would mean editing another phase's
+recorded output until it looked more like a transcript, which is fabrication.
+Deleting them would destroy the audit trail. The framework anticipates exactly
+this and provides a single opt-in, append-only certifying-window sentinel,
+documented at `artifact-lint.sh` as the way to let a long-running spec promote
+"instead of retroactively rewriting hundreds of historical blocks (which the
+append-only audit rule forbids)". Exactly one sentinel is permitted per file;
+more than one fails loud. This pass placed the one sentinel immediately above
+this section, so the boundary falls between the last prior specialist round and
+this pass's own fresh evidence. The exemption buys nothing for this pass: every
+block it authors sits after the sentinel and is checked in full.
+
+The scan that located the 63, replicated from the linter's own block walk:
+
+```text
+$ node /tmp/bug009-block-scan.mjs specs/.../BUG-009-.../report.md
+totalBlocks=134 failingBlocks=63
+L1704-1706 lang='text' too-short(1)
+L4348-4351 lang='text' too-short(2)
+L5200-5204 lang='' signals(0/2)[]
+```
+
+### Validation Evidence
+
+Baseline at `status: done` before this pass changed any artifact. The count is
+65, not the 68 `BUG-009-ROUTE-026` recorded, because the framework repair landed
+in between:
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/.../BUG-009-...
+[required-section findings, quoted verbatim, 2 of them]
+   state.json workflowMode 'bugfix-fastlane' requires report.md section: Validation Evidence
+   state.json workflowMode 'bugfix-fastlane' requires report.md section: Audit Evidence
+   Evidence block lacks terminal output signals (1/2 required):
+   Evidence block too short (1 lines):
+Artifact lint FAILED with 65 issue(s).
+ARTIFACT_LINT_DONE_BEFORE_EXIT=1
+```
+
+The three that disappeared are the Gate G022 implement findings. Canonical
+Bubbles commit `bf49806` taught `artifact-lint.sh` to honour
+`execution.phaseStubs`, which `state-transition-guard.sh` has honoured since
+v4.1.0. Both of the linter's required-specialist check sites now resolve the
+stub instead of demanding the phantom `bubbles.implement` owner that
+`B009-PHASE-IMPLEMENT-001` refused to synthesize:
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/.../BUG-009-...
+   Required specialist phase 'implement' found in execution/certification phase records
+   Required specialist phase 'test' found in execution/certification phase records
+   Required specialist phase 'implement' recorded in execution/certification phase records
+   Required specialist phase 'audit' recorded in execution/certification phase records
+```
+
+The two missing sections were a real artifact defect, not a heuristic artifact.
+The mode requires headings named `Validation Evidence` and `Audit Evidence`, and
+the packet carried `Validation Summary` and `Audit Verdict` instead. This
+section and the next supply them. Disclosure, so the check cannot be mistaken
+for self-satisfying: the verbatim lint lines quoted above name those two
+headings inside a fenced block, and the linter's section grep is not
+fence-aware, so it would match the quotation as well as the real headings. Both
+real headings exist regardless, at this document's `### Validation Evidence` and
+`### Audit Evidence`.
+
+Canonical repository checks, both green in this session:
+
+```text
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3429 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+```text
+$ node scripts/pii-scan.mjs
+[pii-scan] files=10332 messages=2344 findings=0 OK
+PII_SCAN_EXIT=0
+```
+
+The transition guard resolves the delivery contract and permits the `done`
+target with no failures:
+
+```text
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/.../BUG-009-...
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+failedGateIds: []
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+```
+
+### Audit Evidence
+
+The audit phase executed and its evidence is recorded in this file at
+`#audit-route-023` and at `#audit-addendum-pii-remediated`. This section reports
+that record; it does not re-perform the audit, which `bubbles.validate` does not
+own and may not write.
+
+The audit's first attempt returned `DO_NOT_SHIP` on `B009-AUDIT-PII-001`. The
+addendum withdrew that verdict once the finding was remediated and re-derived
+`REWORK_REQUIRED`, on the explicit ground that "`SHIP_IT` is not available
+either: the guard still refuses at `failureCount 10`", pending scope completion
+that could only resolve downstream. The currently active attempt therefore still
+records a delivery refusal:
+
+```text
+$ node -e '...read ./state.json execution.audit...'
+currentAttemptId=BUG-009-AUDIT-002
+attemptId=BUG-009-AUDIT-002 resultState=ACTIVE agent=bubbles.audit
+verdict=REWORK_REQUIRED
+deliveryEvaluation=REFUSED
+outcome=route_required
+evidenceRef=(none)
+unresolvedFindings=["B009-PHASE-IMPLEMENT-001","B009-FRAMEWORK-PHASE-REGISTRY-001","B009-FRAMEWORK-G040-EXCLUSION-001"]
+```
+
+Two properties of that record decide this pass's disposition.
+
+First, the attempt carries no `evidenceRef`, so there is no `AUDIT_RESULT_V1`
+transcript to adjudicate. The framework's own contract lint cannot be pointed at
+anything, because it requires a result file:
+
+```text
+$ bash .github/bubbles/scripts/audit-result-contract-lint.sh --spec-dir specs/.../BUG-009-...
+Usage:
+  bash bubbles/scripts/audit-result-contract-lint.sh --result FILE
+  bash bubbles/scripts/audit-result-contract-lint.sh --agent-contract FILE
+AUDIT_CONTRACT_LINT_EXIT=64
+```
+
+Second, nothing mechanical will refuse on that verdict under this profile. The
+guard's attempt-state and verdict enforcement is written for
+`planning-maturity-v1`; a grep of `state-transition-guard.sh` for
+`REWORK_REQUIRED`, `DO_NOT_SHIP`, `auditVerdict` and `deliveryEvaluation`
+returns zero matches, so `delivery-completion-v1` reaches `verdict: PASS`
+without ever reading the audit's conclusion.
+
+That combination is precisely why this pass stops short of certifying. The
+grounds the audit named are discharged: `pii-scan` reports `findings=0`, Scope 1
+is `Done`, `completedScopes` is populated, all 19 Definition of Done items are
+checked, and the guard reports `failureCount 0` rather than the 10 the addendum
+was waiting on. But discharging an auditor's stated grounds is not the same as
+the auditor withdrawing its refusal, and `execution.audit` is audit-owned state
+that `bubbles.validate` is forbidden to repair. Writing `certification.status:
+done` over an unretracted `deliveryEvaluation: REFUSED` would publish a
+machine-readable completion claim that the packet's own independent check still
+denies, and downstream consumers read that field without reading this paragraph.
+That is the same phantom-green pattern `B009-PHASE-IMPLEMENT-001` refused, in a
+different field.
+
+The correct next step is the one the verdict names. `REWORK_REQUIRED` means
+rework, then re-audit; the rework is done, so the packet routes to
+`bubbles.audit` for a delivery re-audit that can either lift the refusal or
+state a surviving reason.
+
+### Result At `status: done` After This Pass
+
+Re-measured on the same status flip that produced 65, after the two headings
+were authored and the sentinel placed:
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/.../BUG-009-...
+   Skipped 134 evidence blocks before the certifying-window sentinel (prior-window history) in report.md
+Artifact lint PASSED.
+ARTIFACT_LINT_DONE_AFTER_EXIT=0
+```
+
+The exemption is bounded and verifiable. The file now holds 142 fenced blocks
+and exactly one sentinel, `grep -cF` returns 1, and 134 are skipped, so the 8
+this pass authored were checked at full strictness and passed. Every one of the
+63 findings lies inside the skipped span; not one of them was edited.
+
+Flipping status also surfaced two gates that a partial flip cannot satisfy,
+which is the correct behaviour rather than a defect:
+
+```text
+$ bash .github/bubbles/scripts/post-cert-spec-edit-guard.sh specs/.../BUG-009-...
+post-cert-spec-edit-guard: G088 requires top-level certifiedAt for certified spec ... (status=done)
+G088_EXIT=2
+$ bash .github/bubbles/scripts/inter-spec-dependency-guard.sh specs/.../BUG-009-...
+G089 inter_spec_dependency_gate violation: ... has status 'done' while requiresRevalidation:true is unresolved
+G089_EXIT=1
+```
+
+Both name fields that a genuine certification populates, so they are the
+remaining mechanical conditions rather than obstacles. The flip was reverted.
+`status`, `certification.status`, `certifiedAt`, `completedAt`,
+`certifiedCompletedPhases` and `requiresRevalidation` all hold their inbound
+values, and both checks are green at the restored status:
+
+```text
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/.../BUG-009-...
+Artifact lint PASSED.
+LINT_INPROGRESS_EXIT=0
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/.../BUG-009-...
+failedGateIds: []
+failureCount: 0
+verdict: PASS
+GUARD_INPROGRESS_EXIT=0
+```
+
+### Disposition
+
+This pass closed the artifact half of `BUG-009-ROUTE-026` and left the audit
+half to its owner. The fifth `## Automation Readiness` item in
+`uservalidation.md` stays unchecked, because it asserts that validate-owned
+certification completed and it did not. The `## Checklist` and the
+`## Human Acceptance Record` were not touched. No product source or test file
+was modified, `.github/bubbles/**` was not edited, the concurrent session's
+`specs/007-technical-analysis-decision-lab/` files and the unrelated 61-entry
+working-tree transaction were neither staged nor reverted, and nothing was
+pushed.
+

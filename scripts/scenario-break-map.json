@@ -773,6 +773,19 @@
       "control": "the confirmed revision line overstates the holding count by one, so the portfolio a reader believes they committed does not match the positions actually stored and a removal appears not to have taken effect",
       "claim": "A confirmed holding revision reports the count it actually contains, so adding, editing, and removing holdings leave an honest portfolio summary",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-037": {
+      "test": "tests/portfolio-privacy.functional.mjs#SCN-008-037 TP-06-08: a full-personal clear empties genuinely persisted interests and outcomes on a storage reread",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "\"rlPortfolioWorkspaceV1.pointer\",\n    \"rlPortfolioWorkspaceV1.slotA\",",
+          "replace": "\"rlPortfolioWorkspaceV1.slotA\","
+        }
+      ],
+      "control": "the workspace pointer is dropped from the full-personal clear key list, so a personal pointer survives the clear and a storage reread no longer returns exactly the generic public caches",
+      "claim": "One full-personal clear removes every persisted personal key, so a storage reread afterwards holds exactly the generic public caches and no derived interest or action outcome",
+      "implementationRefs": ["rlportfolio.js"]
     }
   }
 }

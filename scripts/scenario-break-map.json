@@ -353,6 +353,19 @@
       "control": "an unavailable survival definition is treated as available, so a survival probability is computed against a floor the user never stated instead of the distributions rendering without one",
       "claim": "A missing survival definition suppresses the survival probability rather than defaulting to a fabricated floor",
       "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-035": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "        valueIncluded: included,",
+          "replace": "        valueIncluded: true,"
+        }
+      ],
+      "control": "a holding with no usable price evidence is reported as included in valuation, so an unevidenced position is silently valued instead of being excluded by name with no substitute applied",
+      "claim": "A holding whose price evidence is missing is excluded from valuation by name and no stand-in number is substituted for it",
+      "implementationRefs": ["rlportfolio.js"]
     }
   }
 }

@@ -62,12 +62,11 @@ falling back to anything, so the class of defect cannot recur silently under a n
 
 ## One Cutoff Rule
 
-**`executed (artifact turn)`** — `grep -n 'windowCutoffAt' rlportfoliobrief.js`
-
-```
-171:  function windowCutoffAt(windows, windowId, instant) {
-1040:    windowCutoffAt: windowCutoffAt,
-```
+**`executed (artifact turn)`** — `grep -n 'windowCutoffAt' rlportfoliobrief.js` returned two
+lines at that time: `171:  function windowCutoffAt(windows, windowId, instant) {` and
+`1040:    windowCutoffAt: windowCutoffAt,`. The export line has since drifted, so that reading
+is quoted here rather than presented as current, and the re-verification below is the
+authoritative one.
 
 **`executed (validation turn)`** — re-verified against the committed tree. The export line has
 DRIFTED since the artifact turn, so the capture above is retained as a true reading at its
@@ -148,11 +147,11 @@ re-running the same read today returns the current window rather than the 2026-0
 recorded here. § The Two Clocks Are Traceable carries the equivalent read against the current
 artifacts, with its command inline.
 
-```
-window     = morning
-asOf       = 2026-08-23T15:00:00.000Z
-generatedAt= 2026-08-23T15:37:31.147Z
-payload asOf       = 2026-08-23T15:00:00.000Z
+That artifact-turn reading was: `window = morning`, `asOf = 2026-08-23T15:00:00.000Z`,
+`generatedAt = 2026-08-23T15:37:31.147Z`, `payload asOf = 2026-08-23T15:00:00.000Z`. The two
+clocks differ by 37 minutes and the payload inherits the cutoff rather than the run instant,
+which is the property this section demonstrates. It is quoted rather than re-run because the
+Tier-A refresh has regenerated both artifacts many times since.
 payload generatedAt= 2026-08-23T16:24:27.665Z
 payload window     = morning
 ```
@@ -285,9 +284,11 @@ $ echo "exit=$?"
 exit=0
 ```
 
-**`executed (fix turn)`** — the row's own receipts:
+**`executed (fix turn)`** — the row's own receipts, emitted by the test as it ran:
 
 ```
+$ npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs \
+    --config=playwright.config.mjs --project=system-chrome --reporter=list
 [BUG-001] window=morning cutoffAt=2026-08-23T15:00:00.000Z publishedLateAt=2026-08-23T15:37:00.000Z
 [BUG-001] options=4 state=unavailable named=generic-evidence-cutoff-conflict
 ```
@@ -376,13 +377,13 @@ GREEN_BASELINE_EXIT=0
 
 **The perturbation** — the fix reverted at its single site, and the published artifacts set to
 what that reverted line emits. `asOf` returns to the run clock, which is this bug exactly as
-`bug.md` states it:
-
-```
-scripts/brief-refresh.mjs:2639   asOf: windowCutoffAt -> asOf: snap.ts   (1 site; count asserted, not assumed)
-market-brief.snapshot.json       asOf 2026-08-27T15:00:00.000Z -> 2026-08-27T14:57:36.125Z
-market-brief.payload.json        asOf 2026-08-27T15:00:00.000Z -> 2026-08-27T15:30:59.849Z
-```
+`bug.md` states it. The three edits applied inside the isolated export were:
+`scripts/brief-refresh.mjs:2639` changed `asOf: windowCutoffAt` to `asOf: snap.ts` at one site,
+with the site count asserted rather than assumed; `market-brief.snapshot.json` `asOf` set from
+`2026-08-27T15:00:00.000Z` to `2026-08-27T14:57:36.125Z`; and `market-brief.payload.json`
+`asOf` set from `2026-08-27T15:00:00.000Z` to `2026-08-27T15:30:59.849Z`. This is a
+description of the perturbation, not captured output, and is written as prose so it cannot be
+mistaken for a transcript.
 
 The payload's run clock lands 15:30:59 against a 15:00 `morning` cutoff — thirty-one minutes
 late, the same shape as the 11:37 run of the 11:00 window that opened this bug.

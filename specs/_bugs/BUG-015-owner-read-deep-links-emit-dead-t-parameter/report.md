@@ -288,7 +288,12 @@ $ grep -n 'F027_SUBJECT_ROUTES = Object.freeze' scripts/selftest.mjs
 The assertion iterates the route sources derived from that constant. A route outside it is neither
 checked nor reported as unchecked.
 
-### The enabling commit introduced all three lines together
+### Code Diff Evidence
+
+The committed change is read out of git rather than described, so the claim about what moved is
+checkable against the tree instead of against this narrative.
+
+#### The enabling commit introduced all three lines together
 
 ```
 $ git log --oneline -3 -- intraday-tape-lab.html

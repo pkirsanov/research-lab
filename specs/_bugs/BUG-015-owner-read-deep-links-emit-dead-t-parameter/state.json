@@ -140,7 +140,10 @@
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": [
+      "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
+      "02-make-the-published-link-live-in-both-directions"
+    ],
     "certifiedCompletedPhases": [],
     "certificationFieldWriteNote": "certification.status mirrors the top-level status and stays in_progress; NO certification is asserted here and completedScopes and certifiedCompletedPhases stay EMPTY, because certification is bubbles.validate's to write and no independent party has re-derived report.md. scopeProgress below is DERIVED BOOKKEEPING, not a certification claim, and it was reconciled on 2026-08-24 against the checkboxes in scopes.md. The prior text of this note asserted 'two scopes Not Started, zero Definition of Done items ticked, the central product question unanswered'. That was FALSE at the time it was read: commits 7abfe8fbf and 1bd5be8d7 closed both scopes, scopes.md carries 18 ticked and 0 unticked Definition of Done items across Scope 1 (5), Scope 2 (9) and the Cross-Scope block (4), and report.md carries the matching execution evidence under 'Scope 1 Execution', 'Scope 2 Execution' and 'Execution Closeout', including browser proof in both directions and red-green revert verification. The stale text is corrected rather than carried forward, because it was read as fact during spec 027's certification and produced a false claim in a certified report.",
     "scopeProgress": [

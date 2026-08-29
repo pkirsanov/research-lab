@@ -114,6 +114,21 @@ function allFiles(root, relative = '') {
   return rows.sort();
 }
 
+function checkoutByteInventory(root) {
+  return allFiles(root).map((relativePath) => {
+    const bytes = readFileSync(path.join(root, relativePath));
+    return { path: relativePath, byteLength: bytes.length, sha256: sha(bytes) };
+  });
+}
+
+function baselineByteInventory(entries) {
+  return entries.map(({ path: relativePath, byteLength, sha256 }) => ({
+    path: relativePath,
+    byteLength,
+    sha256
+  }));
+}
+
 async function materializeBriefCandidate(candidateRoot, frozen, ownerRead) {
   const { buildPublishSet, validatePublishSet, validateRunIdentity, promotePublishSet } =
     await import('../scripts/brief-publication.mjs');
@@ -749,6 +764,10 @@ test('Regression E2E: SCN-028-022 dry run reaches coherence and leaves repositor
   const sandbox = mkdtempSync(path.join(tmpdir(), 'company-publication-scope03-dry-run-'));
   try {
     const fixture = await createScope03TransactionFixture(sandbox, 'dry-run');
+    const transactionBaseline = JSON.parse(readFileSync(
+      path.join(fixture.transaction, 'transaction-baseline.json'),
+      'utf8'
+    ));
     const remoteBefore = requireSuccess(
       run('git', ['ls-remote', '--heads', 'origin', 'refs/heads/main'], fixture.publication),
       'dry-run remote before'
@@ -766,16 +785,32 @@ test('Regression E2E: SCN-028-022 dry run reaches coherence and leaves repositor
     assert.equal(requireSuccess(run('git', ['rev-parse', 'HEAD'], fixture.candidate), 'dry-run candidate HEAD'), fixture.baseCommit);
     assert.equal(requireSuccess(run('git', ['rev-parse', 'HEAD'], fixture.publication), 'dry-run publication HEAD'), fixture.baseCommit);
     assert.equal(requireSuccess(run('git', ['write-tree'], fixture.candidate), 'dry-run candidate index'),
-      JSON.parse(readFileSync(path.join(fixture.transaction, 'transaction-baseline.json'), 'utf8')).candidate.indexTree);
+      transactionBaseline.candidate.indexTree);
     assert.equal(requireSuccess(run('git', ['write-tree'], fixture.publication), 'dry-run publication index'),
-      JSON.parse(readFileSync(path.join(fixture.transaction, 'transaction-baseline.json'), 'utf8')).publication.indexTree);
+      transactionBaseline.publication.indexTree);
     assert.equal(requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], fixture.candidate), 'dry-run candidate clean'), '');
     assert.equal(requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], fixture.publication), 'dry-run publication clean'), '');
+    assert.deepEqual(
+      checkoutByteInventory(fixture.candidate),
+      baselineByteInventory(transactionBaseline.candidate.entries),
+      'the candidate checkout restores every captured path, byte length, and SHA-256'
+    );
+    assert.deepEqual(
+      checkoutByteInventory(fixture.publication),
+      baselineByteInventory(transactionBaseline.publication.entries),
+      'the publication checkout restores every captured path, byte length, and SHA-256'
+    );
     assert.equal(
       existsSync(path.join(fixture.publication, fixture.plan.companyVersionPaths[0])),
       false,
       'the coherent private dry-run version never becomes a published checkout version'
     );
+    if (process.env.SCOPE03_DRY_RUN_NEGATIVE_CONTROL === 'retain-private-checkpoint') {
+      mkdirSync(fixture.transaction, { recursive: true });
+      writeFileSync(path.join(fixture.transaction, 'leaked-checkpoint.json'), '{}\n');
+    }
+    assert.equal(existsSync(fixture.transaction), false,
+      'a completed dry run removes every private transaction checkpoint and journal');
     assert.equal(
       requireSuccess(run('git', ['ls-remote', '--heads', 'origin', 'refs/heads/main'], fixture.publication), 'dry-run remote after'),
       remoteBefore,
@@ -904,6 +939,63 @@ test('Regression E2E: commit failure restores pre-commit state while push and ac
       'private receipt failure cannot revoke verified remote authority');
     assert.equal(requireSuccess(run('git', ['rev-list', '--count', 'HEAD'], fixture.publication), 'ack failure commit count'), commitCount,
       'an acknowledgment retry creates no replacement commit');
+
+    rmSync(blockedAckParent, { force: true });
+    const recoveredAckFile = path.join(blockedAckParent, 'private-ack.json');
+    const recoveredAcknowledgment = fixture.PUB.pushCoupledTransaction({
+      transactionDir: fixture.transaction,
+      candidateRoot: fixture.candidate,
+      publicationRoot: fixture.publication,
+      remote: 'origin',
+      branch: 'main',
+      acknowledgmentFile: recoveredAckFile
+    });
+    assert.equal(recoveredAcknowledgment.ok, true,
+      recoveredAcknowledgment.ok ? '' : JSON.stringify(recoveredAcknowledgment.error));
+    assert.equal(recoveredAcknowledgment.value.state, 'acknowledged');
+    assert.equal(recoveredAcknowledgment.value.commit, exactCommit);
+    assert.equal(recoveredAcknowledgment.value.pushAttempted, false,
+      'acknowledgment reconstruction verifies ancestry without pushing or recreating the generation');
+    assert.equal(recoveredAcknowledgment.value.acknowledgmentPersisted, true);
+    const recoveredAck = JSON.parse(readFileSync(recoveredAckFile, 'utf8'));
+    assert.equal(recoveredAck.commit, exactCommit);
+    assert.equal(recoveredAck.generationId, fixture.frozen.generation.generationId);
+    assert.equal(requireSuccess(run('git', ['rev-list', '--count', 'HEAD'], fixture.publication),
+      'ack reconstruction commit count'), commitCount);
+
+    const understagedSandbox = path.join(sandbox, 'understaged');
+    mkdirSync(understagedSandbox);
+    const understaged = await createScope03TransactionFixture(understagedSandbox, 'understaged');
+    const understagedPromotion = run(process.execPath, [
+      understaged.cli,
+      'promote',
+      '--transaction-dir', understaged.transaction,
+      '--publication-root', understaged.publication
+    ], understaged.candidate);
+    assert.equal(JSON.parse(requireSuccess(understagedPromotion, 'understaged promotion')).ok, true);
+    if (process.env.SCOPE03_INDEX_NEGATIVE_CONTROL !== 'retain-complete-index') {
+      requireSuccess(run('git', [
+        'reset', 'HEAD', '--', 'data/company-intelligence/publication-current.json'
+      ], understaged.publication), 'remove the coupled selector from the exact staged inventory');
+    }
+    const incompleteCommit = understaged.PUB.commitCoupledTransaction({
+      transactionDir: understaged.transaction,
+      candidateRoot: understaged.candidate,
+      publicationRoot: understaged.publication,
+      subject: 'company-brief: incomplete staged inventory must refuse'
+    });
+    assert.equal(incompleteCommit.ok, false,
+      'the commit boundary refuses when one declared authoritative pointer is absent from the index');
+    assert.equal(incompleteCommit.error.code, 'C028-COMMIT');
+    assert.equal(incompleteCommit.restoration.state, 'aborted-pre-commit');
+    assert.equal(requireSuccess(run('git', ['rev-parse', 'HEAD'], understaged.publication),
+      'understaged refusal HEAD'), understaged.baseCommit);
+    assert.equal(requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'],
+      understaged.publication), 'understaged refusal publication clean'), '');
+    assert.equal(requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'],
+      understaged.candidate), 'understaged refusal candidate clean'), '');
+    assert.equal(existsSync(path.join(understaged.transaction, 'transaction-journal.json')), false,
+      'a refused incomplete index creates no exact-commit journal');
 
     const unknownSandbox = path.join(sandbox, 'unknown');
     mkdirSync(unknownSandbox);

@@ -457,27 +457,93 @@ exit: 0
 
 #### TP-03-01
 
-Planned evidence for company-success and brief-failure restoration.
+**Phase:** implement
+**Executed:** YES (current session)
+**Command:** `node --test tests/company-intelligence-publication.integration.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Structured receipt:** stdout SHA-256 `a74e4f7a4d09b5e56798233f339ba74c68ccb5ec86931d51472e4c9c44ca4e83`
+**Input closure:** production SHA-256 `ad0759cf3e754f91a5ffcfc67bd9e1e275a2d950835af3b1a7e22855adb1dc2a`
+**Input closure:** brief primitive SHA-256 `d6fc3862962e6862659a2f2ef83296dfb4c37ef1cbefbb4f31d521ed9aced9e3`
+**Input closure:** integration test SHA-256 `a7eea89c46255de8634e07505b65dc3b93fb77bc6354d9cb3cd32e51d6513c3b`
+**Result:** 8 tests passed. Zero tests failed, skipped, cancelled, or remained todo.
+**Scenario result:** SCN-028-015 restored both checkout baselines. It removed the unpublished company version and retained the private validated checkpoint.
+**Authority result:** The remote ref and prior company-and-brief pair remained unchanged.
 
 #### TP-03-02
 
-Planned evidence for brief-success and company-failure restoration.
+**Phase:** implement
+**Executed:** YES (current session)
+**Command:** `node --test tests/company-intelligence-publication.integration.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Structured receipt:** stdout SHA-256 `80542df06701ffd9064d3c4f645f02c1be4ba4cf8fe2c6e5c76aef7b16e3babf`
+**Input closure:** production SHA-256 `ad0759cf3e754f91a5ffcfc67bd9e1e275a2d950835af3b1a7e22855adb1dc2a`
+**Input closure:** brief primitive SHA-256 `d6fc3862962e6862659a2f2ef83296dfb4c37ef1cbefbb4f31d521ed9aced9e3`
+**Input closure:** integration test SHA-256 `a7eea89c46255de8634e07505b65dc3b93fb77bc6354d9cb3cd32e51d6513c3b`
+**Result:** 8 tests passed. Zero tests failed, skipped, cancelled, or remained todo.
+**Scenario result:** SCN-028-016 restored the valid brief baseline after company validation failed.
+**Authority result:** No company pointer or final brief from the failed generation became authoritative.
 
 #### TP-03-03
 
-Planned evidence for covered-set atomicity.
+**Phase:** implement
+**Executed:** YES (current session)
+**Command:** `node --test tests/company-intelligence-publication.integration.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Structured receipt:** stdout SHA-256 `3c6dcd7d22ec44a20cd5fdea1624a32a633085b6d3c3de5ab05cc1b41b5e9d14`
+**Input closure:** production SHA-256 `ad0759cf3e754f91a5ffcfc67bd9e1e275a2d950835af3b1a7e22855adb1dc2a`
+**Input closure:** brief primitive SHA-256 `d6fc3862962e6862659a2f2ef83296dfb4c37ef1cbefbb4f31d521ed9aced9e3`
+**Input closure:** integration test SHA-256 `a7eea89c46255de8634e07505b65dc3b93fb77bc6354d9cb3cd32e51d6513c3b`
+**Result:** 8 tests passed. Zero tests failed, skipped, cancelled, or remained todo.
+**Scenario result:** SCN-028-017 failed the synthetic second subject by name.
+**Authority result:** Zero covered-subject pointers and zero brief artifacts advanced. The committed policy remained `company:msft` only.
 
 #### TP-03-04
 
-Planned evidence for dry-run byte identity across worktree, index, pointers, artifacts, and remote.
+**Phase:** implement
+**Executed:** YES (current session)
+**Command:** `node --test tests/company-intelligence-publication.e2e.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Structured receipt:** stdout SHA-256 `84b41e6ed7bdd8d17b9d5b076c02719ff6536588f90bc031bcac7be800d26e4c`
+**Input closure:** production SHA-256 `ad0759cf3e754f91a5ffcfc67bd9e1e275a2d950835af3b1a7e22855adb1dc2a`
+**Input closure:** brief primitive SHA-256 `d6fc3862962e6862659a2f2ef83296dfb4c37ef1cbefbb4f31d521ed9aced9e3`
+**Input closure:** process test SHA-256 `96631317f1fb9a9d09151db85f71c7f1a969fecc1bdcbeab641ce5abda67b566`
+**Result:** 4 process tests passed. Zero tests failed, skipped, cancelled, or remained todo.
+**Scenario result:** SCN-028-022 compared both checkout inventories, both index trees, both heads, all captured bytes, and the bare remote ref.
+**Cleanup result:** The completed dry run removed the private transaction directory and published no candidate.
 
 #### TP-03-05
 
-Planned evidence for commit failure, push failure, and acknowledgment ambiguity recovery.
+**Phase:** implement
+**Executed:** YES (current session)
+**Command:** `node --test tests/company-intelligence-publication.e2e.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Structured receipt:** stdout SHA-256 `6c6a49ee91c7e7d98d856660b947db61a9507a785629923964b8ac44213900e3`
+**Input closure:** production SHA-256 `ad0759cf3e754f91a5ffcfc67bd9e1e275a2d950835af3b1a7e22855adb1dc2a`
+**Input closure:** brief primitive SHA-256 `d6fc3862962e6862659a2f2ef83296dfb4c37ef1cbefbb4f31d521ed9aced9e3`
+**Input closure:** process test SHA-256 `96631317f1fb9a9d09151db85f71c7f1a969fecc1bdcbeab641ce5abda67b566`
+**Result:** 4 process tests passed. Zero tests failed, skipped, cancelled, or remained todo.
+**Commit result:** A real rejected pre-commit restored both checkouts. An index missing the coupled selector also refused before commit.
+**Remote result:** Rejected push, unknown outcome, ancestry reconciliation, failed private receipt, and receipt reconstruction retained one exact commit.
 
 #### TP-03-06
 
-Planned evidence for the existing brief atomicity canary.
+**Phase:** implement
+**Executed:** YES (current session)
+**Command:** `node --test tests/brief-refresh-atomicity.test.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Structured receipt:** stdout SHA-256 `945023b510bf0457ea8f8eef1bb0e4062633269709acdc55c49ecf90e1045c17`
+**Input closure:** worker SHA-256 `3d763d61808bde06b3a8993d7955f74ad412a557402f90388e3067bb92ff843a`
+**Input closure:** support SHA-256 `1c980cb3a0ae106bef240602a07fc73654333e79bad88d29cbd2a93c0fdea2ac`
+**Input closure:** canary SHA-256 `1b12dd7f3d12d8b033bf2c706ef3bde9ffe2a328f8785c5b0d4b2108748ccb0e`
+**Result:** 42 tests passed. Zero tests failed, skipped, cancelled, or remained todo.
+**Canary result:** The existing worker restored every prior company and brief owned path after the coupled injected failure.
+**Isolation result:** The suite used temporary repositories and left no fixture or process residue.
 
 #### TP-04-01
 
@@ -3145,3 +3211,311 @@ SCN-028-021 also has declared row and DoD mappings, current receipt-derived `REG
 ### Scope 02 Certification Disposition
 
 Scope 02 is validate-certified `Done`. Scope 01 remains certified `Done`. `certification.completedScopes` contains exactly those two scope IDs. The top-level and certification status mirrors remain `in_progress`. Human acceptance remains untouched. Scope 03 is the next sequential target for `bubbles.implement`.
+
+## Scope 03 Implement-Owned Transaction Restoration — 2026-08-29
+
+### Scope 03 Authority and Checkpoint Reverification
+
+**Phase:** implement
+**Claim Source:** executed
+**Repository packet:** decision `rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:11`, control revision `11`
+**Checkpoint:** `031d64b54ff8348bb4217ac3516c3be8d89b7ad4`
+**Scope 02 base:** `cfbfd60c0b360a083fbda70957213823cd834b48`
+
+The installed packet validator accepted the exact actionable r4 packet before repository reads. Goal Contract revision 3 then verified. G128 reported zero inherited wall-clock minutes and zero inherited tool calls. The persisted `full-delivery` mode resolved through its required grandfather path with `statusCeiling: done`.
+
+The checkpoint commit states that Scope 03 is unverified. This invocation trusted no checkpoint test or completion claim. It reread the active requirements, design, Scope 03, report, state, current production and test files, and the complete checkpoint delta.
+
+### Scope 03 Contract Audit and Repair
+
+**Phase:** implement
+**Claim Source:** interpreted
+**Interpretation:** The audit combines current source inspection with the executed tests and negative controls cited in this section.
+
+| Contract branch | Current mechanism | Current proof |
+| --- | --- | --- |
+| Bidirectional baseline restoration | `abortCoupledTransaction()` restores both clean checkouts from one captured base. | TP-03-01 and TP-03-02 |
+| Failing covered subject | `composeCoveredSubjects()` fails the missing synthetic subject by name before authority changes. | TP-03-03 |
+| Pre-commit restoration | `commitCoupledTransaction()` routes commit and index refusals through full checkout restoration. | TP-03-05 |
+| Exact local commit retention | The private journal stores one commit and every declared hash. Push retries require that exact `HEAD`. | TP-03-05 |
+| Unknown remote outcome | Failed classification persists `remote-outcome-unknown` and blocks new generation admission. | TP-03-05 |
+| Ancestry reconciliation | Fetch plus `merge-base --is-ancestor` determines reachability before authority changes. | TP-03-05 |
+| Acknowledgment recovery | A failed private receipt cannot revoke remote authority. A second call reconstructs the receipt without another push or commit. | TP-03-05 |
+| Dry-run byte identity | The dry run reaches coherence, restores both inventories and indexes, removes private checkpoints, and leaves the bare remote unchanged. | TP-03-04 |
+| Sanitized attempt records | `sanitizedFailure()` replaces authored reasons and excludes private paths, credentials, and pair-authority fields. | TP-03-01 and TP-03-05 |
+| No one-sided authority | Only the coupled selector represents pair authority. Failed, pending, unknown, and dry-run attempts set `authoritativeUnchanged`. | TP-03-01 through TP-03-05 |
+
+Two real checkpoint gaps were reproduced before repair.
+
+1. A completed dry run retained its private transaction checkpoints.
+2. The commit boundary accepted a staged subset when the coupled selector was absent from the index.
+
+The production repair removes the successful dry-run transaction directory after exact restoration. It also reads every declared Git-index blob before commit. A missing or byte-different entry now returns `C028-COMMIT` and restores both checkouts.
+
+The process regression now checks complete checkout inventories. It also proves private acknowledgment reconstruction and incomplete-index refusal. No Scope 04 trigger or Scope 05 registration, route, UI, or public-data behavior changed.
+
+### Scope 03 Exact Commit and Remote Authority
+
+**Phase:** implement
+**Claim Source:** executed
+
+The TP-03-05 test uses real temporary repositories, a real bare remote, a rejecting pre-commit hook, and a rejecting pre-receive hook. It also removes the coupled selector from the real Git index.
+
+```text
+✔ Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority
+✔ Regression E2E: Scope 02 production CLI promotes one coherent generation and rejects illegal phase transitions
+✔ Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical
+✔ Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+The exact TP-03-05 replay exited `0`. Its current structured stdout hash is `6c6a49ee91c7e7d98d856660b947db61a9507a785629923964b8ac44213900e3`.
+
+### Scope 03 Attempt Safety and Authority Separation
+
+**Phase:** implement
+**Claim Source:** executed
+
+The integration and process tests insert private paths, authored rejection text, password-like text, and remote errors into failure inputs. The production result retains only the closed code, phase, safe field, and safe cause code.
+
+The tests assert that every attempt record omits `pairAuthority`. Failed and pending attempts keep the prior generation authoritative. An acknowledged attempt records its generation but remains a diagnostic record. The coupled selector remains the only pair-authority source.
+
+```text
+TP-03-01_RESULT tests=8 pass=8 fail=0 skipped=0 stderrBytes=0
+TP-03-02_RESULT tests=8 pass=8 fail=0 skipped=0 stderrBytes=0
+TP-03-03_RESULT tests=8 pass=8 fail=0 skipped=0 stderrBytes=0
+TP-03-04_RESULT tests=4 pass=4 fail=0 skipped=0 stderrBytes=0
+TP-03-05_RESULT tests=4 pass=4 fail=0 skipped=0 stderrBytes=0
+TP-03-06_RESULT tests=42 pass=42 fail=0 skipped=0 stderrBytes=0
+CANARY_RESULT tests=101 pass=101 fail=0 skipped=0 stderrBytes=0
+REMOTE_AUTHORITY_SOURCE=verified ancestry of exact journaled commit
+ATTEMPT_AUTHORITY_FIELD=absent
+COUPLED_SELECTOR_AUTHORITY=unchanged on every non-acknowledged branch
+```
+
+### Scope 03 Scenario-First RED and GREEN Evidence
+
+**Phase:** implement
+**Claim Source:** executed
+
+The first sensitivity probe changed the production restoration command from `reset --hard` to `reset --mixed`. The complete integration suite failed and then passed after exact byte restoration.
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            SCN-028-015/016/017 pre-commit restoration requires hard reset of both checkouts
+file:             scripts/company-intelligence-publication.mjs
+mutation:         ['reset', '--hard', baseline.head]  ->  ['reset', '--mixed', baseline.head]   (1 occurrence(s))
+command:          node --test tests/company-intelligence-publication.integration.mjs
+red-exit:         1
+red-summary:        }
+green-exit:       0
+green-summary:    ℹ duration_ms 2150.65325
+revert-verified:  yes (committed=d641ef28cc328da74e302aeb769567c81c5fa87b restored=d641ef28cc328da74e302aeb769567c81c5fa87b)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+The production probe capture is `ee60017ed165efc28da914e1e131a037a1cdb1f2c9967fb6779133ae0a15e35c`.
+
+The new dry-run cleanup assertion first failed because the private transaction still existed. The new exact-index assertion first failed because the incomplete index committed successfully. Their pre-fix captures are `8a9219f08529076c6dae22be8c5f169340ec44857a7d37f0f774cc0827d5fcec` and `8e88f82c6671fe665726ceb623468431becbfe642ee9b9d53d9e09351590ddb3`.
+
+Persistent test-only controls then reproduced both detector failures against final source bytes. Their RED captures are `efc05de102bc224d19d5253f3e10ff2847a199b64889d1c953814ed659b90bc5` and `2be03f4a9d8ebb968d28a7a385ad29edb5a4899b2f36ac8f0d6541be62a2540a`. Removing the controls produced two current-input GREEN executions with aggregate capture `6e4007e209b5c6d9565c36135319c5b595c1bf3cb96416aa92a963ebcd96a2c0`.
+
+### Scope 03 Shared Impact and Change Boundary
+
+**Phase:** implement
+**Claim Source:** executed
+
+The complete existing atomicity file executed 42 tests. The Scope 03 canary changed a company pointer and created an unpublished company version inside the worker transaction. A later brief projection failure restored both company paths and every brief-owned baseline.
+
+The certified Scope 01 and Scope 02 canary command executed 101 tests with `--trace-warnings`. It reported 101 passes, zero failures, zero skips, zero todos, and zero warning bytes. Its full-output capture is `bf5e59de9b331623dbb6fbf84a4db6cc17e797f3a3e99ce8c60d6a76360345af`.
+
+The final strict changed-path classifier appears in [Scope 03 Final Implement Quality Gates](#scope-03-final-implement-quality-gates). It treats the certified Scope 02 delta as inherited. It permits only the two Scope 03 implementation paths and three execution artifacts beyond that delta.
+
+### Scope 03 Pre-Recording Quality Matrix
+
+**Phase:** implement
+**Claim Source:** executed
+
+| Check | Exit | Current result | Receipt stdout SHA-256 |
+| --- | ---: | --- | --- |
+| Node source lock | 0 | Exact lock passed and 16 adversarial source mutations were rejected. | `e9bb9b552e92cd5b05328a34448e33d4bcc2b39dfe4f5ae0e430911374c711b1` |
+| Regression quality | 0 | Five Scope 03 test files reported zero violations and zero warnings. | `12e7967a31e83a8b5445984d9f810b8ee605c68b3963c3fa0f69ede4a812877a` |
+| Environment isolation | 0 | No test-to-production write was detected. | `935699c5a0a653f9335fa685d89080c1dddd0b94c93dea63fffa4c5d99971c61` |
+| Implementation reality | 0 | Five declared implementation files resolved with zero violations and zero warnings. | `2061bb11dd26ecdf2ca2c0522622100a6202ca8ff6639cb15dea9ce24bb65b77` |
+| Artifact lint | 0 | Artifact structure and existing checked evidence passed before Scope 03 recording. | `6fa07b59f80a34023a08a8bdf519737216e354b5c39c62ba12d9a556cba683b3` |
+| Artifact freshness | 0 | Zero failures and zero warnings. | `2395dc59ae2472bfbb21b864558e2e9a1e0513987a18cbfb0f46713b138e9d73` |
+| Goal fidelity | 0 | Revision 3 accepted the post-finding boundary. | `bb777a7f384a28a8160279b55f018680351f98493b2b0c78ffe4ff255b049ad8` |
+| Scenario obligations | 0 | All 22 scenario obligation matrices were coherent. | `b83fa7583517d153789f13facf79bd25e61529881fc9a25b3e8c41d409788078` |
+| Test mechanisms | 0 | All 22 declared mechanisms were coherent. | `796e7eae922225a7c8d9252387e0051b698195dc5462834cd979c16af0f0ec88` |
+| Claim source | 0 | Every pre-existing execution block carried a valid source tag. | `6210f5e85489b86b19520504105d7179d5a7ea0713dc6e42187cd3d35c5d4653` |
+| Collected test count | 0 | No Feature 028 evidence claimed a zero-test run. | `8a2f6cfb05a82590a5196d0af831c77d60bc6e5be992e4b23c255f8b254a4e05` |
+| Execution substate | 0 | Execution and certification vocabularies remained separate. | `282c18a1883a31f7cd787c869919d94b3d6dd80ef4d12e3932db4fda12230a79` |
+| Domain invariants | 0 | Six declared invariants had adversarial test anchors. | `c65822642cc1859bba887ee1e695f944bb0ffeab8763df7eed30ac2e17d123be` |
+| Domain model | 0 | Shared domain declarations remained consistent. | `1650f6d349fdff760d20bc3e7dced3fd3f9653b85be47e09c05d4739ac456b32` |
+
+The combined 14-check capture is `efab7801937226ca3f03b163eb3607b11a60f08cfdf586fc036a96fd8548aed1`.
+
+### Scope 03 Receipt Freshness and Cleanup
+
+**Phase:** implement
+**Claim Source:** executed
+
+The strict receipt check initially found two stale pre-fix RED rows after production changed. Append-only current-input RED and GREEN executions superseded those rows. The final strict check reported 31 total rows, 25 current identities, 6 superseded rows, 11 closure-bearing rows, 11 valid rows, zero stale rows, and zero unknown closure-bearing rows. Its capture is `f372af5c2f0b57f7dc8e35337d429891b35f72b8c9dbaf7527ff7b88c3e77e45`.
+
+The first process-residue diagnostic matched its own command text and exited `1`. The corrected checks separated filesystem and process scans. Fixture capture `785c678a0c162c5331236c3e67e6f42403592bc71691d7e9dc03dc5083711aa7` found zero matching directories. Process capture `965f6c0d7010fa6ef58bd74cc9d75148ee45388b0ee0ea6841d4d226868b1002` found zero matching child processes.
+
+### Scope 03 Implement Finding Accounting
+
+**Phase:** implement
+**Claim Source:** interpreted
+**Interpretation:** Each finding below maps to current executed evidence or an explicit later-scope diagnostic.
+
+| Finding | Disposition | Evidence |
+| --- | --- | --- |
+| `IMP-028-S03-DRY-RUN-CHECKPOINT-RESIDUE` | Addressed | Current-input RED and GREEN plus TP-03-04 |
+| `IMP-028-S03-INCOMPLETE-INDEX-COMMIT` | Addressed | Current-input RED and GREEN plus TP-03-05 |
+| `IMP-028-S03-ACK-RECONSTRUCTION-COVERAGE` | Addressed | TP-03-05 reconstructs the private receipt without another push or commit. |
+| `IMP-028-S03-TITLE-RESOLUTION` | Addressed | All six Test Plan titles occur exactly once on one source line. The canonical resolver has no Scope 03 title failure. |
+| `IMP-028-S03-RESIDUE-DIAGNOSTIC-SELF-MATCH` | Addressed | Corrected fixture and process scans both exit `0`. |
+
+No implement-owned Scope 03 finding remains open in this record. Whole-feature checks still name Scope 04, Scope 05, terminal specialist, human-acceptance, and installed-framework conditions. The final diagnostic section preserves their nonzero exits without converting them into Scope 03 passes.
+
+### Scope 03 Final Implement Quality Gates
+
+**Phase:** implement
+**Claim Source:** executed
+
+```text
+FINAL_SYNTAX files=8 failures=0
+NODE_SOURCE_LOCK exit=0 adversarialRejected=16
+REGRESSION_QUALITY exit=0 files=5 violations=0 warnings=0
+ENVIRONMENT_ISOLATION exit=0 productionWrites=0
+IMPLEMENTATION_REALITY exit=0 files=5 violations=0 warnings=0
+ARTIFACT_LINT exit=0
+ARTIFACT_FRESHNESS exit=0 failures=0 warnings=0
+GOAL_FIDELITY exit=0 boundary=post-finding
+SCENARIO_OBLIGATIONS exit=0 scenarios=22
+TEST_MECHANISMS exit=0 mechanisms=22
+CLAIM_SOURCE exit=0
+COLLECTED_TEST_COUNT exit=0
+RECEIPT_FRESHNESS exit=0 valid=11 stale=0
+EXACT_TITLE_RESOLUTION exit=0 rows=6 titles=6 checkedDoD=6
+FIXTURE_RESIDUE exit=0 count=0
+PROCESS_RESIDUE exit=0 count=0
+STRICT_CHANGE_BOUNDARY exit=0 expected=10 observed=10 unexpected=0
+IMMUTABLE_HISTORY deletedOrRenamed=0 forbiddenChanged=0
+```
+
+The changed-module parse capture is `e81ab52d68968014b71f49ec454666ebdfe62cf2f89a83326dbd73847ccc78d4`. The post-recording artifact-lint capture is `6fa07b59f80a34023a08a8bdf519737216e354b5c39c62ba12d9a556cba683b3`. The final post-recording governance capture is `a91cfa04817f90c023ef3572e1c55e94cca6b0157a570789089a5e416981cd78`.
+
+The exact title check found each TP-03-01 through TP-03-06 title once and on one source line. It also found six JSON rows, six Scope 03 Markdown rows, and six checked test DoD rows. The corrected capture is `02b6e95b037fc50dd65fd467dd651e6d2b11e586a2e5616ba147aeeb90e37689`.
+
+The strict change boundary compared the final candidate against certified Scope 02 base `cfbfd60c0b360a083fbda70957213823cd834b48`. It found ten expected paths, ten observed paths, one worktree control, zero staged paths, zero forbidden paths, and zero deleted or renamed paths. The corrected capture is `6aabcbc3d185673e4cad4365f284ef7f47a05a5351df1bc4b3ed8a6ef30c63f5`.
+
+## Scope 03 Test-Owned Independent Verification — 2026-08-29
+
+### Scope 03 Test Authority and Current Candidate
+
+**Phase:** test
+**Claim Source:** executed
+**Repository packet:** decision `rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:11`, control revision `11`
+**Candidate commit:** `031d64b54ff8348bb4217ac3516c3be8d89b7ad4`
+**Goal Contract:** `gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3`, revision `3`
+
+The installed packet validator accepted the exact actionable r4 packet before this test phase read the repository. The persisted `full-delivery` mode resolved through its grandfather path with `statusCeiling: done`. Goal Contract revision 3 verified against source-request digest `sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f`. The test phase independently reread the Scope 03 scenarios, Test Plan, report, state, production module, integration tests, process E2E tests, and shared atomicity canary.
+
+### Scope 03 Exact Test Plan Execution
+
+**Phase:** test
+**Claim Source:** executed
+
+| Test Plan ID | Exact command | Current result | Verifiable capture SHA-256 |
+| --- | --- | --- | --- |
+| TP-03-01 | `node --test tests/company-intelligence-publication.integration.mjs` | 8 passed, 0 failed, 0 skipped | `6de3779934c9c1d7ac7c2ffc81e94e1dcd0fd6c301d35fa437e038c9ed3f72fc` |
+| TP-03-02 | `node --test tests/company-intelligence-publication.integration.mjs` | 8 passed, 0 failed, 0 skipped | `2afa26ec36cdbb53c504f15f519cf64fbbd947dd6cf1a63b4a3e3a5788e6d950` |
+| TP-03-03 | `node --test tests/company-intelligence-publication.integration.mjs` | 8 passed, 0 failed, 0 skipped | `039ad7f7aa4e05c77d416e5d89dce6484a9a3ced0c2d483452abe1dce67702ff` |
+| TP-03-04 | `node --test tests/company-intelligence-publication.e2e.mjs` | 4 passed, 0 failed, 0 skipped | `8afe9c4f9fafd455623ed6637793df5ec5674ffdd9144c6a55f895a8c6473417` |
+| TP-03-05 | `node --test tests/company-intelligence-publication.e2e.mjs` | 4 passed, 0 failed, 0 skipped | `044e06d9a05bb6690857b519630a3ba8268cd99db3d86ecbdf947e0a023ff72c` |
+| TP-03-06 | `node --test tests/brief-refresh-atomicity.test.mjs` | 42 passed, 0 failed, 0 skipped | `65bc51bc9b8e9cd96f8d1b72f99db3f80ae1edea4a220378b64b0a2b8ea853ff` |
+
+The final selected closure reran all Scope 03 suites and the affected Scope 01 and Scope 02 canaries with `--trace-warnings`.
+
+```text
+✔ Regression: SCN-028-015 brief validation failure removes company candidates and restores both baselines
+✔ Regression: SCN-028-016 company validation failure with a valid brief restores both baselines
+✔ Mutation: SCN-028-017 one failing subject aborts a synthetic two-subject covered set
+✔ Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical
+✔ Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit
+✔ Regression canary: existing brief atomicity restores every prior owned path under coupled fault injection
+ℹ tests 155
+ℹ suites 0
+ℹ pass 155
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+The full-output capture is `ac6c28e669c34ecd7656b91db8f8b758f63a2b73aca5f3c0f5811b626946dd16`.
+
+### Scope 03 Test-Owned Sensitivity Proof
+
+**Phase:** test
+**Claim Source:** executed
+
+| Scenario | Test identity | Negative control | RED capture | GREEN capture |
+| --- | --- | --- | --- | --- |
+| SCN-028-015 | TP-03-05 | Retain the complete Git index instead of removing the coupled selector | `d34ae6d3563c89411ea19ba40892715c1e7baf18ad2d4e03d21da09e4e9f659b` | `044e06d9a05bb6690857b519630a3ba8268cd99db3d86ecbdf947e0a023ff72c` |
+| SCN-028-016 | TP-03-02 | Reintroduce a brief candidate after restoration | `b340249d3ad589fc6f1ac74fa4bc6872011b53037d72386a01dfb6663b4b7192` | `2afa26ec36cdbb53c504f15f519cf64fbbd947dd6cf1a63b4a3e3a5788e6d950` |
+| SCN-028-017 | TP-03-03 | Reintroduce the failed synthetic subject pointer after restoration | `f588ee0ba2765bff68353ccd27423ff193a32898fa705f3071ffce3b18b7d3db` | `039ad7f7aa4e05c77d416e5d89dce6484a9a3ced0c2d483452abe1dce67702ff` |
+| SCN-028-022 | TP-03-04 | Recreate a private checkpoint after dry-run cleanup | `893fefb9ca82045b38c7c622eed8bd336a05c1ba070eb7d8dca8784f2d575e67` | `c51446dabbc2de4d295fe200a4a955791809a270b20349c175ad77385322ef35` |
+
+The SCN-028-016 and SCN-028-017 controls are test-only environment switches. They make the exact persistent assertion fail while leaving normal execution unchanged. Each GREEN run removed all four controls and passed on the restored r4 production bytes.
+
+### Scope 03 Test Integrity and Closure Receipts
+
+**Phase:** test
+**Claim Source:** executed
+
+The integrity audit scanned five test files. It found zero skip, only, todo, pending, interception, internal-mock, or fake-live patterns. The integration tests use real temporary Git repositories and filesystems. The process E2E tests execute the production CLI through Node, real Git indexes, real commits, a real bare remote, rejecting Git hooks, fetch, push, and ancestry classification. The shared worker doubles remain confined to the functional atomicity fixture and are not presented as integration or process E2E proof.
+
+| Check | Exit | Current signal | Verifiable capture SHA-256 |
+| --- | ---: | --- | --- |
+| Test integrity | 0 | 5 files, zero skip or fake-live matches, 8 mechanism checks passed | `a06ab2928ed64fd2032c51baf3b349cefc4254a9f599e7795037c9ab24597706` |
+| Regression quality | 0 | 5 files, 0 violations, 0 warnings | `321f369bb1af986f32a6b1294468c551b18b02a696214e9578c7a9102d5567bd` |
+| Node source lock | 0 | actual lock passed, 16 adversarial mutations rejected | `e9bb9b552e92cd5b05328a34448e33d4bcc2b39dfe4f5ae0e430911374c711b1` |
+| Environment isolation | 0 | no test-to-production write detected | `935699c5a0a653f9335fa685d89080c1dddd0b94c93dea63fffa4c5d99971c61` |
+| Scenario obligations | 0 | 22 coherent scenario matrices | `b83fa7583517d153789f13facf79bd25e61529881fc9a25b3e8c41d409788078` |
+| Test mechanisms | 0 | 22 coherent mechanisms | `796e7eae922225a7c8d9252387e0051b698195dc5462834cd979c16af0f0ec88` |
+| Scope 03 title and Test Plan resolution | 0 | 6 JSON rows, 6 Markdown rows, 6 exact titles, 4 Scope 03 scenario links | `8b36491a72c6aa77668b21aee148ca4f04ceaa87fd99073a8d5a59efe0dd51ed` |
+| Collected test count | 0 | no zero-test evidence | `8a2f6cfb05a82590a5196d0af831c77d60bc6e5be992e4b23c255f8b254a4e05` |
+| Goal fidelity | 0 | revision 3 post-finding boundary passed | `bb777a7f384a28a8160279b55f018680351f98493b2b0c78ffe4ff255b049ad8` |
+| Strict change boundary | 0 | 10 expected paths, 10 observed, 0 unexpected, 0 destructive paths | `e5fb4e94f78c8ba7f847c48e231e5a9c7153250760907edaf8ad98b95e90f859` |
+| Implementation reality | 0 | 5 files, 0 violations, 0 warnings | `2061bb11dd26ecdf2ca2c0522622100a6202ca8ff6639cb15dea9ce24bb65b77` |
+| Strict receipt freshness | 0 | 33 closure-bearing current receipts valid, 0 stale | `ab37b19f73a8c8ee02d00b236d60cb4890d12f2b8950ca2a2e44934533b49c3d` |
+
+The final filesystem residue scan found zero Scope 03 fixture directories. The corrected process scan found zero child test or fixture processes. The first process scan matched its own command text and exited nonzero; the corrected scan excluded its own diagnostic label and retained the full process table as the observation source.
+
+### Scope 03 Test Finding Accounting
+
+**Phase:** test
+**Claim Source:** interpreted
+**Interpretation:** Test-owned repairs and current executions are complete, but two foreign-owned mechanical gaps prohibit a test completion claim or state-history write.
+
+| Finding | Disposition | Evidence or owner |
+| --- | --- | --- |
+| `T028-S03-TEST-CONTROL-COVERAGE` | Addressed | Added bounded test-only controls for SCN-028-016 and SCN-028-017. Both controls produced a targeted RED and an unchanged-byte GREEN. |
+| `T028-S03-RECEIPT-FRESHNESS` | Addressed | Append-only reruns superseded each stale closure identity. Strict freshness reports 33 valid and zero stale current receipts. |
+| `T028-S03-RESIDUE-DIAGNOSTIC` | Addressed | The corrected filesystem and process checks both report zero residue. |
+| `T028-S03-IMPLEMENT-SCENARIO-BINDING` | Unresolved | `scenario-state-resolve.sh` derives all four Scope 03 scenarios only through `RED_VERIFIED`. No owner-authored `phase=implement` scenario receipt exists, so GREEN, live, and regression receipts remain blocked from advancing. Owner: `bubbles.implement`. |
+| `T028-S03-PLAN-GATE-CORRESPONDENCE` | Unresolved | The terminal guard reports Scope 03 Gate G068 DoD-to-Gherkin correspondence failures, unrecognized `Scope-Kind: runtime-behavior.`, and non-matching E2E DoD wording. These are planning-text defects. Owner: `bubbles.plan`. |
+| `T028-S04-S05-LINK-RESOLUTION` | Preserved sequential finding | The whole-feature resolver reports nine unresolved links or titles assigned to Scopes 04 and 05. The Scope 03-only resolver reports zero unresolved Scope 03 links. |
+
+The canonical scenario derivation capture is `91b89763f583c93184b2bb581469cd7b3d5f559de5eccb04009d1d347d20d5f0`. The terminal transition diagnostic is `67f212b8d05fd62a86743fe6bdbe81026e49e1dc0122e6fdcf9244ec1195bbda`. It reports failed gates G022, G068, and G136 for whole-feature completion. Human acceptance, certification, and overall status remain unchanged. Because the Scope 03 test phase is not mechanically complete, this run adds no Scope 03 test claim and no Scope 03 test execution-history row.

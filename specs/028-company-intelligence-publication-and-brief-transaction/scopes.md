@@ -56,7 +56,7 @@ Links: [spec.md](spec.md) · [design.md](design.md) · [report.md](report.md) ·
 | --- | --- | --- | --- | --- | --- |
 | 01 | Company publication foundation and headless owner-read contracts | None | UMD contracts, Node publication module, config, domain model | SCN-028-005 through SCN-028-010 | Done |
 | 02 | Coupled manifest, immutable promotion, and pointer-last success path | Scope 01 | publication module, Git primitives, company data contracts | SCN-028-011, SCN-028-013, SCN-028-014, SCN-028-021 | Done |
-| 03 | Whole-transaction restoration and non-authoritative outcomes | Scope 02 | worker transaction, restoration, private checkouts, dry run | SCN-028-015, SCN-028-016, SCN-028-017, SCN-028-022 | Not Started |
+| 03 | Whole-transaction restoration and non-authoritative outcomes | Scope 02 | worker transaction, restoration, private checkouts, dry run | SCN-028-015, SCN-028-016, SCN-028-017, SCN-028-022 | In Progress |
 | 04 | Scheduled and on-demand shared trigger integration | Scope 03 | launcher, worker, scheduler, prompt, exact resume | SCN-028-003, SCN-028-004, SCN-028-012, SCN-028-019 | Not Started |
 | 05 | Public registration, authority-aware UI, and Pages delivery | Scope 04 | registries, routes, shared UI, docs, Pages package | SCN-028-001, SCN-028-002, SCN-028-018, SCN-028-020 | Not Started |
 
@@ -540,23 +540,25 @@ And no candidate becomes a published version
 
 #### Core Outcomes
 
-- [ ] Every company-side, brief-side, covered-set, commit, and dry-run failure leaves the prior acknowledged pair authoritative.
-- [ ] Push and acknowledgment branches preserve honest remote authority and exact-resume semantics without recreating a generation.
-- [ ] Attempt records expose safe state and cause codes without granting pair authority or leaking private data.
-- [ ] The Shared Infrastructure Impact Sweep, canaries, restore paths, Consumer Impact Sweep, and Change Boundary are satisfied.
+- [x] Every company-side, brief-side, covered-set, commit, and dry-run failure leaves the prior acknowledged pair authoritative. → Evidence: [Scope 03 contract audit and repair](report.md#scope-03-contract-audit-and-repair)
+- [x] Push and acknowledgment branches preserve honest remote authority and exact-resume semantics without recreating a generation. → Evidence: [Scope 03 exact commit and remote authority](report.md#scope-03-exact-commit-and-remote-authority)
+- [x] Attempt records expose safe state and cause codes without granting pair authority or leaking private data. → Evidence: [Scope 03 attempt safety and authority separation](report.md#scope-03-attempt-safety-and-authority-separation)
+- [x] The Shared Infrastructure Impact Sweep, canaries, restore paths, Consumer Impact Sweep, and Change Boundary are satisfied. → Evidence: [Scope 03 final implement quality gates](report.md#scope-03-final-implement-quality-gates)
+- [x] Scope 03 has persistent scenario-specific regression E2E coverage for SCN-028-015, SCN-028-016, SCN-028-017, and SCN-028-022. → Evidence: [Scope 03 exact commit and remote authority](report.md#scope-03-exact-commit-and-remote-authority)
+- [x] The broader Scope 03 E2E regression suite passes with no collateral failure. → Evidence: [Scope 03 exact commit and remote authority](report.md#scope-03-exact-commit-and-remote-authority)
 
 #### Test Evidence Items — 6 rows, exact Test Plan parity
 
-- [ ] TP-03-01 proves SCN-028-015 by restoring company pointers, unpublished candidates, and brief baseline bytes. → Evidence: [TP-03-01](report.md#tp-03-01)
-- [ ] TP-03-02 proves SCN-028-016 by withholding the brief and every pointer after company validation fails. → Evidence: [TP-03-02](report.md#tp-03-02)
-- [ ] TP-03-03 proves SCN-028-017 with a failing second test subject and zero covered-set advancement. → Evidence: [TP-03-03](report.md#tp-03-03)
-- [ ] TP-03-04 proves SCN-028-022 with byte-identical worktree, index, pointers, artifacts, and remote refs. → Evidence: [TP-03-04](report.md#tp-03-04)
-- [ ] TP-03-05 proves commit restoration, exact local-commit retention, push classification, and remote-ancestry acknowledgment recovery. → Evidence: [TP-03-05](report.md#tp-03-05)
-- [ ] TP-03-06 proves the existing brief atomicity contract survives the expanded transaction inventory. → Evidence: [TP-03-06](report.md#tp-03-06)
+- [x] TP-03-01 proves SCN-028-015 by restoring company pointers, unpublished candidates, and brief baseline bytes. → Evidence: [TP-03-01](report.md#tp-03-01)
+- [x] TP-03-02 proves SCN-028-016 by withholding the brief and every pointer after company validation fails. → Evidence: [TP-03-02](report.md#tp-03-02)
+- [x] TP-03-03 proves SCN-028-017 with a failing second test subject and zero covered-set advancement. → Evidence: [TP-03-03](report.md#tp-03-03)
+- [x] TP-03-04 proves SCN-028-022 with byte-identical worktree, index, pointers, artifacts, and remote refs. → Evidence: [TP-03-04](report.md#tp-03-04)
+- [x] TP-03-05 proves commit restoration, exact local-commit retention, push classification, and remote-ancestry acknowledgment recovery. → Evidence: [TP-03-05](report.md#tp-03-05)
+- [x] TP-03-06 proves the existing brief atomicity contract survives the expanded transaction inventory. → Evidence: [TP-03-06](report.md#tp-03-06)
 
 #### Build Quality Gate
 
-- [ ] The changed files parse, isolated fault suites clean their resources, restoration hashes match, and the broad transaction canary passes.
+- [x] The changed files parse, isolated fault suites clean their resources, restoration hashes match, and the broad transaction canary passes. → Evidence: [Scope 03 final implement quality gates](report.md#scope-03-final-implement-quality-gates)
 
 ## Scope 04: Scheduled and on-demand shared trigger integration
 

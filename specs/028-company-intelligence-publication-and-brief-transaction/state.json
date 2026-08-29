@@ -3,7 +3,7 @@
   "featureDir": "specs/028-company-intelligence-publication-and-brief-transaction",
   "featureName": "Company Intelligence Public Delivery and Atomic Brief Refresh",
   "createdAt": "2026-08-28T23:01:02Z",
-  "lastUpdatedAt": "2026-08-29T20:34:24Z",
+  "lastUpdatedAt": "2026-08-29T21:31:42Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -102,11 +102,11 @@
     },
     "activeAgent": "bubbles.implement",
     "currentPhase": "implement",
-    "currentPhaseStatus": "in_progress",
+    "currentPhaseStatus": "completed",
     "currentScope": "03-transaction-restoration",
-    "substate": "needs_reverification",
+    "substate": "implemented",
     "runStartedAt": "2026-08-29T20:34:24Z",
-    "completedAt": null,
+    "completedAt": "2026-08-29T21:31:42Z",
     "completedPhaseClaims": [
       {
         "phase": "analyze",
@@ -188,10 +188,19 @@
         ],
         "claimedAt": "2026-08-29T20:26:27Z",
         "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-validate-owned-certification-after-remediation-2026-08-29"
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "scopes": [
+          "03-transaction-restoration"
+        ],
+        "claimedAt": "2026-08-29T21:31:42Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-implement-owned-transaction-restoration-2026-08-29"
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredOwner": "bubbles.test",
     "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-03-whole-transaction-restoration-and-non-authoritative-outcomes",
     "audit": {
       "schemaVersion": "audit-run/v1",
@@ -531,6 +540,30 @@
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Independently replayed Scope 02 tests and certification gates on unchanged implementation and test bytes. Closed every prior Scope 02 finding, certified only Scope 02, preserved both feature status mirrors as in_progress, left human acceptance unchanged, and selected Scope 03 for sequential implementation."
+    },
+    {
+      "agent": "bubbles.implement",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "runStartedAt": "2026-08-29T20:34:24Z",
+      "runCompletedAt": "2026-08-29T21:31:42Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "03-transaction-restoration",
+      "artifactChanges": [
+        "scripts/company-intelligence-publication.mjs",
+        "tests/company-intelligence-publication.e2e.mjs",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md",
+        "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md",
+        "specs/028-company-intelligence-publication-and-brief-transaction/state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-implement-owned-transaction-restoration-2026-08-29",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-final-implement-quality-gates"
+      ],
+      "summary": "Closed the implement-owned Scope 03 phase after reconciling the current report, all 13 checked DoD items, six Test Plan rows, finding closure, and strict change-boundary evidence. Recorded only execution provenance and routed Scope 03 to bubbles.test; certification, top-level status, and human acceptance remain unchanged."
     }
   ],
   "activeBugs": [],
@@ -578,5 +611,5 @@
     ],
     "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
   },
-  "notes": "Scopes 01 and 02 are validate-certified Done. Feature status and overall certification remain in_progress. Scopes 03 through 05 remain not_started, Scope 03 is the next sequential implementation target, and human acceptance remains unchecked."
+  "notes": "Scopes 01 and 02 are validate-certified Done. Scope 03 implementation is complete and routed to bubbles.test for independent verification; its certification entry remains not_started. Feature status and overall certification remain in_progress, Scopes 04 and 05 remain not_started, and human acceptance remains unchecked."
 }

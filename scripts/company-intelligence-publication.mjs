@@ -1511,7 +1511,7 @@ export function completeCoupledDryRun({ transactionDir, candidateRoot, publicati
   }
   const restoration = restoreCoupledCheckouts({ transactionDir, candidateRoot, publicationRoot });
   if (!restoration.ok) return restoration;
-  return ok({
+  const result = {
     state: 'dry-run-complete',
     authoritative: false,
     authoritativeUnchanged: true,
@@ -1522,7 +1522,15 @@ export function completeCoupledDryRun({ transactionDir, candidateRoot, publicati
     remoteHead: restoration.value.remoteHead,
     candidateRestored: restoration.value.candidateRestored,
     publicationRestored: restoration.value.publicationRestored
-  });
+  };
+  try {
+    rmSync(transactionDir, { recursive: true, force: true });
+  } catch (error) {
+    return fail('C028-STAGE', 'dry-run-complete',
+      'The restored dry-run transaction checkpoints could not be removed.', 'transactionDir',
+      error && typeof error.code === 'string' ? error.code : null);
+  }
+  return ok(result);
 }
 
 function loadTransactionBaseline(transactionDir, phase) {
@@ -1557,6 +1565,28 @@ function loadTransactionJournal(transactionDir) {
   );
   if (!journalDoc.ok) return journalDoc;
   return validateTransactionJournal(journalDoc.value);
+}
+
+function validateDeclaredIndex(runner, declaredFiles) {
+  for (const relativePath of Object.keys(declaredFiles).sort()) {
+    const indexed = runner(['show', `:${relativePath}`]);
+    if (!indexed || indexed.code !== 0) {
+      return fail('C028-COMMIT', 'committed',
+        'A declared publication file is absent from the Git index.', relativePath,
+        'index-path-missing');
+    }
+    const indexedBytes = Buffer.isBuffer(indexed.stdout)
+      ? indexed.stdout
+      : Buffer.from(indexed.stdout || '', 'utf8');
+    const expected = declaredFiles[relativePath];
+    if (sha256(indexedBytes) !== expected.sha256 || indexedBytes.length !== expected.byteLength) {
+      return fail('C028-COMMIT', 'committed',
+        'A declared publication file in the Git index differs from the validated candidate.',
+        relativePath,
+        'index-byte-mismatch');
+    }
+  }
+  return ok(true);
 }
 
 export function commitCoupledTransaction({
@@ -1602,6 +1632,11 @@ export function commitCoupledTransaction({
       field: 'git-index',
       causeCode: 'staged-inventory-mismatch'
     }, restoration);
+  }
+  const indexValidation = validateDeclaredIndex(runner, loaded.value.declared.files);
+  if (!indexValidation.ok) {
+    const restoration = restoreCoupledCheckouts({ transactionDir, candidateRoot, publicationRoot });
+    return restorationFailure(indexValidation.error, restoration);
   }
   const manifest = readJsonRecord(
     publicationRoot,

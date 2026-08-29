@@ -985,6 +985,12 @@ test('Regression: SCN-028-016 company validation failure with a valid brief rest
     });
     assert.equal(aborted.ok, true, aborted.ok ? '' : JSON.stringify(aborted.error));
     assert.equal(aborted.value.failure.field, 'company:msft');
+    if (process.env.SCOPE03_COMPANY_FAILURE_NEGATIVE_CONTROL === 'retain-brief-candidate') {
+      writeJson(path.join(fixture.publicationRoot, 'briefs/current.json'), {
+        runId: 'retained-invalid-brief',
+        generation: 8
+      });
+    }
     assertRestoredPair(fixture);
   } finally {
     rmSync(sandbox, { recursive: true, force: true });
@@ -1083,6 +1089,13 @@ test('Mutation: SCN-028-017 one failing subject aborts a synthetic two-subject c
     });
     assert.equal(aborted.ok, true, aborted.ok ? '' : JSON.stringify(aborted.error));
     assert.equal(aborted.value.failure.field, 'plans.company:test');
+    if (process.env.SCOPE03_COVERED_SET_NEGATIVE_CONTROL === 'retain-failed-subject-pointer') {
+      writeJson(path.join(fixture.candidateRoot,
+        'data/company-intelligence/company-test/current.json'), {
+        generationId: syntheticFrozen.value.generation.generationId,
+        versionId: 'retained-failed-subject'
+      });
+    }
     assert.equal(existsSync(path.join(fixture.candidateRoot,
       'data/company-intelligence/company-test/current.json')), false);
     assertRestoredPair(fixture);

@@ -129,7 +129,7 @@ failing cannot distinguish "the outcome is correct" from "the assertion never ra
 The Q3 derivation was measured before it was chosen:
 
 ```
-Command: node -e '…filter(f => /deepLink:\s*"[^"]*\?/.test(f.source))…'
+$ node -e '…filter(f => /deepLink:\s*"[^"]*\?/.test(f.source))…'
 derived routes (4): gamma-trading-lab.html, intraday-tape-lab.html, options-structure-lab.html, swing-structure-lab.html
 consumers: 4/4
 Exit Code: 0
@@ -292,10 +292,10 @@ red-green (runtime link):      37 passed, 1 failed  ->    38 passed             
 **Evidence** — ownership boundaries held and detection widened rather than narrowed:
 
 ```
-Command: git diff --name-only origin/main -- specs/027-company-scoped-owner-deep-links/
+$ git diff --name-only origin/main -- specs/027-company-scoped-owner-deep-links/
 (no output — 0 files)
 
-Command: git diff --name-only origin/main -- <packet>/uservalidation.md
+$ git diff --name-only origin/main -- <packet>/uservalidation.md
 (no output — 0 files; the Human Acceptance Record is human-owned and stays unfilled)
 
 F-AUDIT-02b appears in this packet's bug.md Provenance line.

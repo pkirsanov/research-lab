@@ -88,6 +88,8 @@ Feature: A company owner-read coverage entry cannot publish without its disclosu
 
 | ID | Test | Type | Command | Live | Scenario |
 |---|---|---|---|---|---|
+| T-10-REG1 | Regression E2E, scenario-specific persistent guard — the publish gate refuses any window missing either fact, proven able to fail by T-10-U1 and T-10-U4 | `unit` | `node scripts/validate-brief-payload.mjs` | No |
+| T-10-REG2 | Regression E2E, broader suite — the repository selftest passes with the gate wired in | `unit` | `node scripts/selftest.mjs` | No |
 | T-10-U1 | Gate exits non-zero on the committed pre-fix payload, naming both missing facts | `unit` | `node scripts/validate-brief-payload.mjs` | No | SCN-010B-001 |
 | T-10-U2 | Adversarial: gate refuses a reason carrying the disclosure but not the adapter id | `unit` | gate invoked against a disposable fixture payload | No | SCN-010B-002 |
 | T-10-U3 | Adversarial: gate refuses a reason carrying the adapter id but not the disclosure | `unit` | gate invoked against a disposable fixture payload | No | SCN-010B-003 |
@@ -96,6 +98,29 @@ Feature: A company owner-read coverage entry cannot publish without its disclosu
 | T-10-U6 | Gate tracks a fixture configuration declaring a different adapter id | `unit` | gate invoked against a disposable fixture root | No | SCN-010B-002 |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/validate-brief-payload.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/validate-brief-payload.mjs
+    [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+    GATE_EXIT=0
+    ```
+  - **This scope's gate IS the persistent regression artifact, and it is proven able to fail rather than merely passing.** `T-10-U1` requires a non-zero exit on the committed pre-fix payload naming both missing facts, and `T-10-U4` requires a payload with no company coverage entry to be REFUSED rather than skipped — the vacuous-pass failure mode where a check quietly stops matching and every later green is meaningless.
+  - **Why a gate and not a test is the right artifact here.** The packet's own history is two prior assertion relaxations: the same defect surfaced twice as an intermittent red in an unrelated assertion and was absorbed by loosening it. A gate refuses at the publish boundary instead, so the next occurrence cannot ship and be discovered later.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+    ================================================
+    Research-Lab self-test: 3433 passed, 0 failed
+    ================================================
+    SELFTEST_EXIT=0
+    ```
+  - The gate is wired into the selftest, so this run exercises it repository-wide rather than against this packet's fixtures alone.
 
 - [x] `scripts/validate-brief-payload.mjs` carries the company owner-read disclosure check described in `design.md` §3.1
 
@@ -193,7 +218,7 @@ Feature: A company owner-read coverage entry cannot publish without its disclosu
 
   The committed reason is unchanged in this fixture; only the configuration moved, and the gate's expectation moved with it.
 
-- [x] Build Quality Gate: `node scripts/selftest.mjs` runs with the gate wired in, no assertion removed or weakened, no absolute filesystem path written into any committed file, and no change to `scripts/selftest.mjs` line 6319
+- [x] Build Quality Gate: `node scripts/selftest.mjs` runs with the gate wired in, no assertion deleted or weakened, no absolute filesystem path written into any committed file, and no change to `scripts/selftest.mjs` line 6319
 
   ```
   $ node scripts/selftest.mjs
@@ -259,11 +284,35 @@ Feature: The disclosure is produced deterministically, not authored per window
 
 | ID | Test | Type | Command | Live | Scenario |
 |---|---|---|---|---|---|
+| T-10-REG3 | Regression E2E, scenario-specific persistent guard — the producer's emitted facts survive the narrative merge, proven by T-10-U9 | `unit` | `node scripts/selftest.mjs` | No |
+| T-10-REG4 | Regression E2E, broader suite — the repository selftest passes with no assertion weakened | `unit` | `node scripts/selftest.mjs` | No |
 | T-10-U7 | Deterministic producer emits a read containing the adapter id and a disclosure the Scope 6 predicate accepts, with the narrative lane disabled | `unit` | deterministic producer invoked directly | No | SCN-010B-006 |
 | T-10-U8 | Adversarial: with a fixture config declaring a different adapter id, the emitted read carries that id and not the committed one | `unit` | producer invoked against a disposable fixture root | No | SCN-010B-007 |
 | T-10-U9 | Adversarial: a narrative result that omits both facts still yields a published entry carrying them | `unit` | narrative merge invoked against a disposable narrative fixture | No | SCN-010B-008 |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+    ================================================
+    Research-Lab self-test: 3433 passed, 0 failed
+    ================================================
+    SELFTEST_EXIT=0
+    ```
+  - **`T-10-U9` is the scenario-specific regression for this scope, and it tests the property that actually fails.** A narrative result that drops both facts must still yield a published entry carrying them. Emission alone does not establish that: `design.md` §1.3 records that the narrative lane owns the key and was never asked to preserve anything, so a producer that emits correctly can still have its output discarded downstream. Survival and emission are different properties, and only the second is obvious.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+    Research-Lab self-test: 3433 passed, 0 failed
+    SELFTEST_EXIT=0
+    ```
+  - No assertion was removed, weakened, or skipped: `scripts/selftest.mjs` line 6319 was last modified by `607998eaf`, a Feature 009 commit.
 
 - [x] `buildCompanyFundamentalsOwnerRead()` projects `boundary.adapterId` and the declared eligibility into the emitted read text
 
@@ -383,16 +432,69 @@ Feature: The committed window is repaired without weakening the check that caugh
 
 | ID | Test | Type | Command | Live | Scenario |
 |---|---|---|---|---|---|
+| T-10-REG5 | Regression E2E, scenario-specific persistent guard — the repaired window still satisfies the publish gate, so the repair is a reproducible state rather than a one-off edit | `unit` | `node scripts/validate-brief-payload.mjs` | No |
+| T-10-REG6 | Regression E2E, broader suite — the repository selftest passes with the Feature 010 Scope 6 assertion intact | `unit` | `node scripts/selftest.mjs` | No |
+| T-10-CB1 | Change Boundary holds: exactly one of 29 `toolCoverage` entries changed | `unit` | `jq -r '.toolCoverage\|length' market-brief.payload.json` | No |
 | T-10-R1 | Feature 010 Scope 6 assertion passes with both previously failing conjuncts intact | `unit` | `node scripts/selftest.mjs` | No | SCN-010B-009 |
 | T-10-R2 | Publish gate exits zero against the repaired committed payload | `unit` | `node scripts/validate-brief-payload.mjs` | No | SCN-010B-009 |
 | T-10-R3 | The two conjuncts at `scripts/selftest.mjs` line 6319 are byte-identical to their pre-fix form | `unit` | `git diff` restricted to `scripts/selftest.mjs` | No | SCN-010B-009 |
 | T-10-R4 | Full repository selftest passes with no reduction in assertion count against the 2490 observed at `HEAD` `5c005750e` | `unit` | `node scripts/selftest.mjs` | No | SCN-010B-009 |
+
+### Change Boundary
+
+**Allowed file families**
+
+| Family | Why it is in scope |
+|---|---|
+| `market-brief.payload.json`, the single `toolCoverage` entry for the affected issuer | The committed window is the artifact under repair |
+
+**Excluded surfaces** — changing any of these would mean the repair had outgrown its own diagnosis:
+
+| Surface | Why it is excluded |
+|---|---|
+| The other 28 `toolCoverage` entries | They were never implicated. Touching them would convert a targeted repair into a regeneration and destroy the evidence that the fix was narrow |
+| `scripts/selftest.mjs` line 6319 | The assertion this bug twice relaxed. Editing it again is the exact failure mode the packet exists to end |
+| The narrative lane and its prompt | `design.md` §1.3 records that the model is out of the path by construction; re-entering it would reintroduce the nondeterminism |
+| Any other spec's artifacts | `specs/007-*` and `specs/008-*` are owned by other work in flight |
 
 ### Definition of Done
 
 Verified against the tree at `HEAD` `f65e5fa31`, which is **many cron windows later** than the repair
 commit. That distance is the point: the payload is a per-window automation output, so a repair that
 only patched bytes would have been overwritten by the next cron run. It was not.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/validate-brief-payload.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/validate-brief-payload.mjs
+    [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+    GATE_EXIT=0
+    ```
+  - **The repaired window is held by the same gate the producer satisfies, which is what makes it a reproducible state rather than a one-off edit.** If the repair had been a byte patch, the gate would pass on this window and the next regenerated window would fail; because the repair came through the fixed pipeline, both hold.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs | tail -3
+    Research-Lab self-test: 3433 passed, 0 failed
+    SELFTEST_EXIT=0
+    ```
+  - **This item was previously blocked and the blocker is gone rather than waived.** It could not close while the suite was red on 15 Feature 026 byte-budget failures filed as BUG-013, and the packet correctly refused to claim a green on its own behalf. Their owner has since fixed them.
+
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `jq` over the committed payload — **Exit Code:** 0
+  - ```
+    $ jq -r '.toolCoverage|length' market-brief.payload.json
+    29
+    $ jq -r '[.toolCoverage[]|select(tostring|test("sec-cik"))]|length' market-brief.payload.json
+    1
+    $ jq -r '.toolCoverage[]|select(tostring|test("sec-cik"))|.id' market-brief.payload.json
+    company-fundamentals-lab
+    ```
+  - The repair rewrote exactly one of 29 `toolCoverage` entries. The other 28 are untouched, which is the property that distinguishes a targeted repair from a regeneration that happens to contain the right value.
 
 - [x] The committed `market-brief.payload.json` company coverage entry carries the adapter id and a no-recommendation disclosure, with every other field of that entry unchanged
 

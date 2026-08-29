@@ -50,6 +50,98 @@
         "claimedAt": "2026-08-22T00:00:00Z",
         "evidenceRef": "report.md#test-evidence",
         "scopes": []
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T02:30:00Z",
+        "evidenceRef": "report.md#code-diff-evidence",
+        "note": "Both scopes are executed and their DoD items are ticked against raw output recorded in report.md. Scope 1 settled what a route does with a subject it cannot honour; scope 2 composed both deepLink expressions from RLTKR.SUBJECT_PARAM, read the subject back through RLTKR.linkedSubject(), and widened assertion 1.20 from an allowlist to a derived route set. The remedy applies existing precedent - 2 prior emitting applications and 5 receiving call sites - rather than introducing a mechanism."
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T02:30:00Z",
+        "evidenceRef": "report.md",
+        "note": "Every new assertion was shown able to fail by real file mutation before being trusted, which is the property that matters most here: the original defect was invisible to a guard that PASSED, so an assertion added to close that gap and never seen red would reproduce the condition that hid the bug. The fix was proven in a real browser with the republished deepLink read out of RLDATA.toolRead(...) rather than by source inspection."
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T02:30:00Z",
+        "evidenceRef": "scopes.md",
+        "note": "Executed first-hand this session: node scripts/selftest.mjs reports 3433 passed, 0 failed, exit 0; the full committed Playwright suite reports 767 passed in 14.8m with zero failure markers, and tests/technical-analysis-decision-lab.spec.mjs - the coupled test that navigates the parameter under change - is among them. The persistent guard is assertion 1.20 over the derived route set, so a new subject-bearing route is covered by existing rather than by remembering to add it."
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T02:30:00Z",
+        "evidenceRef": "scenario-manifest.json",
+        "note": "Closed the planning gaps the guard named, taking it from 32 findings to 11. G057 and G068 by naming the seven scenarios SCN-015-001..007 and citing them on the DoD items that already discharged them - no item was added, reworded or re-ticked. G094 by declaring the capability as extension rather than creation, evidenced by 7 existing call sites. G040 by stating the Q2 decision as a decision against building rather than as deferral, and by rewording two false-positive follow-up matches that described completed work. G060 by recording the red stage in both scopes. NOT INDEPENDENT: the same runner closed the gaps and validated them."
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T02:30:00Z",
+        "evidenceRef": "report.md#code-diff-evidence",
+        "note": "artifact-lint PASSED. Two of my own errors were caught by the repository's own checks rather than by review and are recorded rather than silently corrected: a scope-2 dodChecked of 15 that folded the Cross-Scope DoD section into scope 2, caught by the selftest scope-progress guard against the DoD parser's 7/11/4; and a red-stage sentence saying 'removing a route' that tripped the rename detector and created two consumer-impact findings which did not exist before I wrote it. The packet's own honest limit stands unaltered: bug.md reads 'Fixed - awaiting independent verification', because this execution measured its own remedy."
+      }
+    ],
+    "phaseStubs": {
+      "simplify": {
+        "reason": "No simplification surface. The remedy is the application of an existing convention, not new construction: the emitting shape has 2 prior applications in the tree and the receiving shape has 5, and this packet adds no helper, no branch and no abstraction that could later be withdrawn. The one structural improvement it does make - assertion 1.20 reading a DERIVED route set instead of a hand-maintained allowlist - is a simplification already taken inside scope 2 rather than work left for a later pass."
+      },
+      "stabilize": {
+        "reason": "No stability surface. The defect is a correctness defect in a published URL parameter name, not flakiness, latency, resource usage or an intermittent failure. Nothing in the packet changes timing, concurrency, retry behaviour or resource consumption, so a stabilize pass would have no measurement to take."
+      },
+      "security": {
+        "reason": "No security surface is introduced. The safety-relevant property here already exists and is inherited rather than created: RLTKR.linkedSubject() returns raw pinned to null so a refused subject can never reach a sink, and this packet routes two more consumers THROUGH that contract rather than around it. It adds no new input path, no new sink, no authentication or authorization logic and no dependency. Recording a security pass would mean claiming an assessment of a surface this packet did not create."
+      }
+    },
+    "executionHistory": [
+      {
+        "agent": "bubbles.bug",
+        "phasesExecuted": [
+          "bug"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#test-evidence",
+        "statusBefore": "not_started",
+        "statusAfter": "in_progress",
+        "startedAt": "2026-08-22T00:00:00Z",
+        "finishedAt": "2026-08-22T00:00:00Z",
+        "outcome": "completed_owned",
+        "summary": "Filed the packet: reproduced the dead parameter, traced it to the enabling commit a4b10dc5b which introduced all three lines together, and established why the defect was SILENT rather than reported - assertion 1.20 iterated a hand-maintained F027_SUBJECT_ROUTES allowlist, so a route outside it was neither checked nor flagged as unchecked. Recorded that the obstacle was authorisation rather than difficulty: both affected files were read-only to the feature that found the defect."
+      },
+      {
+        "agent": "bubbles.goal",
+        "phasesExecuted": [
+          "implement",
+          "test",
+          "regression",
+          "validate",
+          "audit"
+        ],
+        "provenanceMode": "parent-expanded",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "runSubagent dispatches in this session returned without writing artifacts, so the authorized runner executed these phases directly under the Gate G064 direct-authorized-runner model rather than reporting a dispatch that produced no work.",
+        "expansionEvidenceRef": "report.md#execution-closeout",
+        "statusBefore": "in_progress",
+        "statusAfter": "in_progress",
+        "startedAt": "2026-08-29T02:00:00Z",
+        "finishedAt": "2026-08-29T02:30:00Z",
+        "outcome": "completed_owned",
+        "summary": "Drove the packet from 32 guard findings to 11 by closing every gap that was a recording defect rather than missing work. The pattern repeated across gates: the fact existed and the artifact could not express it. G053 had real git evidence under a narrative heading; completedScopes was empty while three other places said both scopes were Done; the seven scenarios had titles but no identifiers so G068 could not match them; the capability was an extension of Feature 027's contract but was never declared as one; the Q2 answer was a decision against building recorded in deferral language. Two findings were created by my own edits and then removed - a dodChecked of 15 that folded in the cross-scope section, and a red-stage sentence whose wording tripped the rename detector. The packet's honest limits are unchanged: verification is not independent, and the server-side Tier-A producer still publishes a bare deepLink for these routes, which Q4 decided for the client half only."
       }
     ],
     "pendingTransitionRequests": [],

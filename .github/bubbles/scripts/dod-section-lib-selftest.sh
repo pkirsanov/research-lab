@@ -139,6 +139,42 @@ out="$(run_lib "$WORK/ordfence.md")"
 cb="$(printf '%s\n' "$out" | grep -c '^CHECKBOX')"
 if [[ "$cb" -eq 2 ]]; then pass "ordered-list-marker fence keeps both DoD items visible"; else fail "ordered-list-marker fence swallowed items: expected 2 CHECKBOX, got $cb"; fi
 
+# --- Fixture 10: a quoted `<!--` INSIDE a fence must not open a comment span ---
+# Markdown treats fence contents as literal text, so a comment marker that is
+# merely an argument to a shell/node command is not a comment. Regression from
+# research-lab spec 005, where `node -e '... "<!-- BEGIN" ...'` swallowed 61
+# fence lines and returned ZERO checkboxes for a packet holding 172 — a silent
+# total loss that made 61 unchecked DoD items invisible to every gate.
+cat >"$WORK/fencedcomment.md" <<'EOF'
+### Definition of Done
+- [x] alpha before the snippet
+
+```bash
+node -e 'const k=["<!-- BEGIN SUPERSEDED V1 PLAN"]; console.log(k)'
+```
+
+- [x] beta after the snippet
+- [ ] gamma still unchecked
+EOF
+out="$(run_lib "$WORK/fencedcomment.md")"
+cb="$(printf '%s\n' "$out" | grep -c '^CHECKBOX')"
+if [[ "$cb" -eq 3 ]]; then pass "quoted <!-- inside a fence does not swallow DoD items"; else fail "fenced <!-- opened a phantom comment: expected 3 CHECKBOX, got $cb"; fi
+if printf '%s\n' "$out" | grep -q '^STATUS.*parse_error'; then fail "fenced <!-- produced a false parse_error"; else pass "fenced <!-- leaves the parse clean"; fi
+if printf '%s\n' "$out" | grep -q 'gamma still unchecked'; then pass "unchecked item after a fenced <!-- stays visible to gates"; else fail "unchecked DoD item was hidden by a fenced comment marker"; fi
+
+# --- Fixture 11: a REAL HTML comment outside a fence still hides its content ---
+cat >"$WORK/realcomment.md" <<'EOF'
+### Definition of Done
+- [x] visible item
+<!--
+- [x] commented-out item
+-->
+- [x] second visible item
+EOF
+out="$(run_lib "$WORK/realcomment.md")"
+cb="$(printf '%s\n' "$out" | grep -c '^CHECKBOX')"
+if [[ "$cb" -eq 2 ]]; then pass "real HTML comment outside a fence still hides its checkbox"; else fail "comment handling regressed: expected 2 CHECKBOX, got $cb"; fi
+
 # --- Every parse emits exactly one terminal STATUS ---
 sc="$(run_lib "$WORK/tiered.md" | grep -c '^STATUS')"
 if [[ "$sc" -eq 1 ]]; then pass "exactly one terminal STATUS record per parse"; else fail "expected exactly 1 STATUS record, got $sc"; fi

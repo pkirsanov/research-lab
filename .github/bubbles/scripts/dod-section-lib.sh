@@ -55,6 +55,30 @@ dod_section_parse() {
     {
       raw = $0
 
+      # --- inside a fenced code block: only a CLOSING fence is meaningful ---
+      #
+      # Markdown treats every byte inside a fence as literal text, and that
+      # includes `<!--`. The HTML-comment check below therefore MUST NOT run
+      # while fenced, or a comment marker that is merely quoted inside a shell
+      # or node snippet opens a comment span that was never written.
+      #
+      # When it did run, the damage was silent and total. On research-lab spec
+      # 005 a single `node -e` argument containing the string "<!-- BEGIN"
+      # opened a phantom comment that swallowed 61 fence lines before finding
+      # an unrelated `-->`. The parser then reported an unterminated fence and
+      # returned ZERO checkboxes for a packet holding 172 of them, so every
+      # DoD-reading gate saw an empty Definition of Done and had nothing left
+      # to fail on. A packet with 61 unchecked items looked complete.
+      #
+      # Same family as the list-marker fence fix below: a parser-state bug that
+      # DROPS evidence instead of reporting that it could not read it.
+      if (in_fence) {
+        if (raw ~ /^[[:space:]]*([-*+][[:space:]]+|[0-9]+[.)][[:space:]]+)?(```|~~~)/) {
+          in_fence = 0
+        }
+        next
+      }
+
       # --- HTML comment span (line-oriented) ---
       if (in_comment) {
         if (index(raw, "-->") > 0) { in_comment = 0 }
@@ -65,7 +89,7 @@ dod_section_parse() {
         next
       }
 
-      # --- fenced code block toggle (``` or ~~~) ---
+      # --- fenced code block OPEN (``` or ~~~) ---
       #
       # A fence may open on a LIST-MARKER line. Markdown allows `  - ```text`,
       # and Bubbles evidence blocks use that form constantly, because a fence
@@ -87,10 +111,9 @@ dod_section_parse() {
       # is therefore consumed before testing. Same family as the phaseStubs and
       # certifying-window fence fixes.
       if (raw ~ /^[[:space:]]*([-*+][[:space:]]+|[0-9]+[.)][[:space:]]+)?(```|~~~)/) {
-        in_fence = (in_fence ? 0 : 1)
+        in_fence = 1
         next
       }
-      if (in_fence) { next }
 
       # --- ATX heading ---
       if (raw ~ /^#+[[:space:]]/) {

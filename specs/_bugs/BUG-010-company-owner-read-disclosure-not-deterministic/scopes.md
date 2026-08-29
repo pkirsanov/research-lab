@@ -20,6 +20,13 @@ whether it can refuse. That is why the gate lands first.
 
 **Status:** Done
 **Depends On:** none
+**foundation: true**
+
+> **Why the gate is the foundation and the other two scopes are applications.** Scopes 2 and 3 make
+> the current pipeline and the one already-published window correct. This scope makes a future
+> regression impossible to ship, by refusing at publish rather than surfacing later as an unrelated
+> red. That distinction is the packet's whole history: the same defect had already been absorbed
+> twice by relaxing an assertion, because nothing refused it at the boundary.
 **Owner surface:** `scripts/validate-brief-payload.mjs`
 
 ### Gherkin Scenarios
@@ -204,8 +211,7 @@ Feature: A company owner-read coverage entry cannot publish without its disclosu
 ## Scope 2: Deterministic Producer, With The Model Out Of The Path
 
 **Status:** Done
-**Depends On:** Scope 1
-**Owner surface:** `scripts/brief-refresh.mjs`, `scripts/brief-narrative-parallel.mjs`
+**Depends On:** Scope 1, the foundation scope — the gate must exist and be proven RED before a deterministic producer can be shown to turn it GREEN**Owner surface:** `scripts/brief-refresh.mjs`, `scripts/brief-narrative-parallel.mjs`
 
 Depends on Scope 1 because the gate is what proves this scope worked. Landing the producer first
 would leave its effect unverifiable at publish time.
@@ -345,7 +351,7 @@ Feature: The disclosure is produced deterministically, not authored per window
 ## Scope 3: Repair The Committed Window, With The Assertion Intact
 
 **Status:** Done
-**Depends On:** Scope 1, Scope 2
+**Depends On:** Scope 1, the foundation scope, and Scope 2 — the repaired window must satisfy the same gate the producer now satisfies, or the repair would be a one-off edit rather than a state the pipeline can reproduce
 
 **Owner surface:** `market-brief.payload.json`
 

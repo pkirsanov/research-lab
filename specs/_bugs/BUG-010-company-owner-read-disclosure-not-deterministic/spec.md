@@ -49,6 +49,26 @@ shape this bug is about.
 not a canary, and three prior commits have already moved this assertion instead of the fact behind
 it.
 
+## Domain Capability Model
+
+This packet delivers **one capability across four positions in a single pipeline**, which is why it
+reads as four edits rather than one.
+
+**The capability is deterministic owner-read disclosure:** a tool's coverage entry states which
+adapter produced the read and that no recommendation is produced, in *every* window, regardless of
+what the narrative model happened to write in that window.
+
+The defect was not that the facts were missing from the system. `§1.1` records that the
+deterministic lane already **knows** both facts and omits them from its prose; `§1.3` records that
+the narrative lane owns the key and is never asked to preserve anything. So the disclosure existed
+as data and evaporated as text — which is exactly why it presented as an intermittent assertion flap
+rather than a clean failure, and why the assertion had already been relaxed twice.
+
+A capability that depends on a model choosing to restate a fact is not a capability; it is a
+coincidence that holds most of the time. The four positions below exist to remove the model from the
+path entirely: emit the facts deterministically, preserve them across the merge, refuse at publish
+if they are absent, and repair the window that already shipped without them.
+
 ## Acceptance criteria
 
 | ID | Criterion |

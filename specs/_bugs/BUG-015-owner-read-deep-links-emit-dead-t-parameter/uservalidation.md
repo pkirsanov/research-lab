@@ -30,14 +30,31 @@ own judgement. Acceptance is not certification: `status` and `certification.stat
 - [x] The enabling commit is identified and introduced all three lines together. **`git show a4b10dc5b` adds both `deepLink` expressions and the `?t=SPY` navigation; `a4b10dc5b` is the most recent commit touching either affected file.**
 - [x] No source file was modified and no selftest assertion was added. **The only additions are this packet's seven artifacts under `specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/`.**
 - [x] The user-visible consequence was observed in a browser. **Observed against the repository's own `startStaticServer()` harness, reading `#ticker` on each real route. Control: `options-structure-lab.html?ticker=NVDA` yields `NVDA` and no query yields `SPY`, so a working corridor is detectable by this reading. `intraday-tape-lab.html?t=NVDA` and `swing-structure-lab.html?t=NVDA` both yield `SPY` — a link naming `NVDA` opens `SPY`. `intraday-tape-lab.html?ticker=NVDA` also yields `SPY`, so the emitting-half rename alone would change no observed value; the two-halves finding is measured, not derived. Full block in `report.md` § The consequence, observed in a browser. This observes the DEFECT only — Scope 2's Definition of Done still requires the post-fix reading to return `NVDA`.**
-- [ ] The outcome for a subject that cannot be honoured is chosen. **Left unticked deliberately. `refused`, `absent` and out-of-catalog currently collapse to silence. What replaces that is a product choice, enumerated as open question 1 in `design.md` and owned by Scope 1.**
-- [ ] Whether these routes should be openable by link at all is answered. **Left unticked deliberately. Open question 4 in `design.md`. If the answer is no, the correct remedy is to stop publishing a subject-bearing link, and Scope 2 shrinks to deleting two expressions.**
+- [x] The outcome for a subject that cannot be honoured is chosen. **Re-derived first-hand
+  2026-08-29 against the tree, not read out of `design.md`.** The answer is the disclosure that
+  already ships: `RLTKR.linkedSubject()` returns `status` in `accepted | absent | refused` with
+  `raw` pinned to `null`, and `showLinkNotice` renders the outcome. Verified uniform across all four
+  subject-bearing routes — `options-structure-lab.html`, `gamma-trading-lab.html`,
+  `intraday-tape-lab.html` and `swing-structure-lab.html` each carry `showLinkNotice` 3× and
+  `linkedSubject` 1×. `refused`, `absent` and out-of-catalog no longer collapse to silence.
+- [x] Whether these routes should be openable by link at all is answered. **Re-derived first-hand
+  2026-08-29.** The answer is honour the subject, not stop publishing it. Both routes compose their
+  link from `RLTKR.SUBJECT_PARAM` and read it back through `linkedSubject`, which makes all four
+  routes uniform rather than leaving two permanently unaddressable. Scope 2 therefore delivered the
+  wiring rather than shrinking to deleting two expressions.
 
-*Note (2026-08-28): the two items above were written while Scope 1 was open, and both scopes have
-since closed. They are still left unticked. A readiness box records a fact this agent observed
-first-hand, and this turn did not re-derive either answer from `design.md` — it recorded the
-operator's acceptance and nothing more. Leaving them unticked understates the packet; ticking them
-would overstate what was checked, and only the second failure mode is a fabrication.*
+*Note (2026-08-28, superseded 2026-08-29): the two items above were written while Scope 1 was open,
+and both scopes have since closed. That turn left them unticked on an explicit and correct
+condition — it "did not re-derive either answer" and recorded only the operator's acceptance. This
+turn re-derived both from the live tree with the commands above, which is the condition that note
+named, so they are now ticked on observed fact rather than on the report's prose.*
+
+*Correction found while re-deriving, recorded rather than absorbed: `report.md` attributed these
+decisions to commit `8dd19dd6e`, which is a **BUG-017** commit whose diffstat contains zero BUG-015
+files. The decisions are real and implemented; the attribution was wrong. The delivering commit is
+`5c97510b7`, established by `git log -S 'showLinkNotice'` returning exactly that one commit for both
+routes. `report.md` now carries the correction alongside the original line rather than a silent
+edit.*
 
 ## Checklist
 

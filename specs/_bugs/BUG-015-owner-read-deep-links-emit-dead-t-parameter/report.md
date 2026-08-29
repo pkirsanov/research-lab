@@ -471,7 +471,18 @@ unproven rather than asserted.
 
 ## Scope 1 Execution — The Four Open Questions Answered
 
-Measured and decided at commit `8dd19dd6e`.
+Measured and decided at commit `5c97510b7`, which carries the whole delivery:
+`intraday-tape-lab.html` (+25), `swing-structure-lab.html` (+25), `scripts/selftest.mjs` (+11) and
+`tests/technical-analysis-decision-lab.spec.mjs`.
+
+**Citation corrected 2026-08-29.** This line previously cited `8dd19dd6e`, which is not this
+packet's commit at all — it is `spec(BUG-017): decline Scope 3 on its own adversarial scenario`, and
+its diffstat touches only BUG-017's own `bug.md` and `report.md`. Zero BUG-015 files appear in it.
+The decisions recorded below were real and are implemented in the tree; only the commit they were
+attributed to was wrong. Re-derived rather than re-attributed by assumption:
+`git log -S 'showLinkNotice' -- intraday-tape-lab.html swing-structure-lab.html` returns exactly one
+commit, `5c97510b7`, and `git show 5c97510b7` confirms it adds the `showLinkNotice` disclosure and
+the `SUBJECT_PARAM` / `linkedSubject` wiring to both routes.
 
 **Q4 — do these routes need the handoff, or only a correct link? Honour the subject.** Two routes
 already ship the full handoff (`options-structure-lab.html`, `gamma-trading-lab.html`), so

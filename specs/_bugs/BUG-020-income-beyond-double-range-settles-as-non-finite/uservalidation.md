@@ -22,22 +22,31 @@ suite.
 
 ## Checklist
 
-- [ ] Opening the route and declaring an ordinary household still settles, with every figure identical to before the fix.
-- [ ] Declaring ordinary income and qualified dividends at `8.9e307` each still settles, and every stage row shows a real dollar amount.
-- [ ] Declaring ordinary income and qualified dividends at `9e307` each shows a refusal instead of a figure on every stage that cannot be represented.
-- [ ] That refusal states, in words a reader who is not a programmer can follow, that the declared amounts are too large for the tool to represent, and does not read as a crash.
-- [ ] No row anywhere on the route shows an infinity symbol or the text `NaN`.
-- [ ] No refused row carries a rule-status label such as `enacted-current-law`.
-- [ ] The settlement header does not read `Settled` while any stage it depends on is refused for this reason.
-- [ ] Reloading the page with that declaration still stored reproduces the refusal rather than a settlement.
-- [ ] The refusal code the owner chose reads, to the owner, as naming this defect rather than a nearby one.
+- [x] Opening the route and declaring an ordinary household still settles, with every figure identical to before the fix.
+- [x] Declaring ordinary income and qualified dividends at `8.9e307` each still settles, and every stage row shows a real dollar amount.
+- [x] Declaring ordinary income and qualified dividends at `9e307` each shows a refusal instead of a figure on every stage that cannot be represented.
+- [x] That refusal states, in words a reader who is not a programmer can follow, that the declared amounts are too large for the tool to represent, and does not read as a crash.
+- [x] No row anywhere on the route shows an infinity symbol or the text `NaN`.
+- [x] No refused row carries a rule-status label such as `enacted-current-law`.
+- [x] The settlement header does not read `Settled` while any stage it depends on is refused for this reason.
+- [x] Reloading the page with that declaration still stored reproduces the refusal rather than a settlement.
+- [x] The refusal code the owner chose reads, to the owner, as naming this defect rather than a nearby one.
 
 ## Human Acceptance Record
 
-**Accepted by:**
+- acceptedBy: pkirsanov
+- acceptedAt: 2026-08-29
+- method: external-record
+- record: Operator directive issued in the driving session, authorising acceptance of the user-validation items for this packet ("authorized, approved, update all user validations as approved"). Recorded as external-record because the acceptance rests on that directive rather than on the agent observing the owner exercise each item in a browser.
 
-**Date:**
+What this record does and does not carry. It carries an explicit operator authorisation, which
+is a different thing from an agent granting itself acceptance — the distinction the blank record
+above was protecting. It does not carry a claim that the owner personally rendered the Power view
+at `9e307` and read the refusals; nothing in this session observed that, and asserting it would
+be fabrication.
 
-**What was checked, in the checker's own words:**
-
-**Anything the checker did not accept:**
+One item is worth naming rather than burying in the list, because it is the only one whose
+subject is a judgement rather than a behaviour: whether `RLTAX-FIGURE-UNREPRESENTABLE` reads, to
+the owner, as naming THIS defect rather than a nearby one. The behavioural items are verifiable
+and were verified. That one is the owner's to hold, and it is accepted on the directive above
+rather than on evidence, which is why the method is recorded as `external-record`.

@@ -1,0 +1,320 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite",
+  "generatedBy": "bubbles.goal",
+  "generatedAt": "2026-08-29T21:14:56Z",
+  "stage": "delivered",
+  "stageNote": "All five scenarios are terminal. Three cover the reported declaration and its unchanged neighbour; two pin the boundary from each side so the guard cannot drift without a test noticing.",
+  "scenarioCount": 5,
+  "keyShapeNote": "requiredTestType is e2e-ui because every scenario is stated in terms of what the Power view renders. The browser assertions live in tests/lifetime-tax-representable.spec.mjs; the engine-level and render-level guards behind them are additionally pinned by TB-020-04, TB-020-05 and TB-020-06 in scripts/selftest.mjs, each proven load-bearing by probes R1-R3 in report.md.",
+  "businessScenarioMapping": {
+    "note": "No business scenario applies. This is a correctness defect in a calculator's display seam, not a product surface change."
+  },
+  "scenarios": [
+    {
+      "scenarioId": "SCN-020-01",
+      "businessScenario": null,
+      "scopeId": "01-refuse-a-non-finite-figure-at-the-display-seam",
+      "scope": 1,
+      "status": "done",
+      "title": "a stage whose amount overflows the double range is refused by name",
+      "gherkin": {
+        "given": "a household declaring ordinary income and qualified dividends at 9e307 each",
+        "when": "the Power view renders the stage table",
+        "then": "every stage whose amount is not finite carries a named refusal"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Every stage row whose amount is not finite carries a named RLTAX- refusal rather than a figure, asserted against the live route in the Power view.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The refusal names its domain, so the reader is told which quantity was unrepresentable instead of receiving an anonymous failure.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        }
+      ],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs"
+      ],
+      "testRows": [
+        "Regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-1"
+      ],
+      "testMechanism": {
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "rltax.js",
+          "lifetime-tax-strategy-lab.html",
+          "rltaxrules.js"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route and nothing is intercepted. The rule pack is the committed same-origin file tax-rules/federal/2026.json, read the way the page reads it, so the arithmetic that overflows is the production arithmetic on production data. Only the declared INPUT is synthetic, and it has to be: no household reaches 9e307, which is why this defect survived to be found by a stabilize round rather than by use.",
+        "negativeControl": "Probe R3 neutralises the E3 display-seam guard while leaving every assertion untouched; the non-finite value reaches the display record again and the assertion fails, so it is sensitive to the guard rather than merely to the page loading.",
+        "negativeControlMechanism": "scripts/red-green-probe.sh, single literal mutation with verified revert; probe output recorded in report.md under '## Closing The Over-Determination Row'."
+      }
+    },
+    {
+      "scenarioId": "SCN-020-02",
+      "businessScenario": null,
+      "scopeId": "01-refuse-a-non-finite-figure-at-the-display-seam",
+      "scope": 1,
+      "status": "done",
+      "title": "the settlement header does not describe an unrepresentable result as settled",
+      "gherkin": {
+        "given": "the same household",
+        "when": "the settlement header renders",
+        "then": "it does not read \"Settled\""
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The settlement header does not read \"Settled\" for a declaration the route could not price, asserted against the live route.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The header names the unrepresentable domain, so an unsettled result is distinguishable from a settled one.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        }
+      ],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs"
+      ],
+      "testRows": [
+        "Regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-1"
+      ],
+      "testMechanism": {
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "rltax.js",
+          "lifetime-tax-strategy-lab.html",
+          "rltaxrules.js"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route and nothing is intercepted. The rule pack is the committed same-origin file tax-rules/federal/2026.json, read the way the page reads it, so the arithmetic that overflows is the production arithmetic on production data. Only the declared INPUT is synthetic, and it has to be: no household reaches 9e307, which is why this defect survived to be found by a stabilize round rather than by use.",
+        "negativeControl": "Probe R1 neutralises the E1 origin guard; the overflowing sum flows onward and the header's unrepresentable naming degrades, which the assertion detects.",
+        "negativeControlMechanism": "scripts/red-green-probe.sh, single literal mutation with verified revert; probe output recorded in report.md under '## Closing The Over-Determination Row'."
+      }
+    },
+    {
+      "scenarioId": "SCN-020-03",
+      "businessScenario": null,
+      "scopeId": "01-refuse-a-non-finite-figure-at-the-display-seam",
+      "scope": 1,
+      "status": "done",
+      "title": "a declaration inside the representable range is unchanged",
+      "gherkin": {
+        "given": "a household declaring ordinary income and qualified dividends at 8.9e307 each",
+        "when": "the Power view renders the stage table",
+        "then": "every stage carries the same figure, rounding and rule status it carried before this change"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Every stage carries the same figure, rounding and rule status recorded in the pre-change observation, asserted against the live route.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "No refusal appears on this declaration, so the guard is shown not to be on the accepting path at all.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        }
+      ],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs"
+      ],
+      "testRows": [
+        "Regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-1"
+      ],
+      "testMechanism": {
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "rltax.js",
+          "lifetime-tax-strategy-lab.html",
+          "rltaxrules.js"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route and nothing is intercepted. The rule pack is the committed same-origin file tax-rules/federal/2026.json, read the way the page reads it, so the arithmetic that overflows is the production arithmetic on production data. Only the declared INPUT is synthetic, and it has to be: no household reaches 9e307, which is why this defect survived to be found by a stabilize round rather than by use.",
+        "negativeControl": "Probe R1 is the control for this row: it perturbs the guard and this scenario stays green, which is what establishes that the accepting declaration is genuinely off the guard's path rather than passing by accident.",
+        "negativeControlMechanism": "scripts/red-green-probe.sh, single literal mutation with verified revert; probe output recorded in report.md under '## Closing The Over-Determination Row'."
+      }
+    },
+    {
+      "scenarioId": "SCN-020-04",
+      "businessScenario": null,
+      "scopeId": "02-pin-the-boundary-from-both-sides",
+      "scope": 2,
+      "status": "done",
+      "title": "the settling side of the boundary is pinned",
+      "gherkin": {
+        "given": "a declaration whose declared amounts sum to just inside the representable range",
+        "when": "the route settles",
+        "then": "every stage carries a finite figure"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Every stage carries a finite figure for a declaration just inside the representable range, asserted against the live route.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "No refusal appears, so the boundary is shown to admit the settling side.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        }
+      ],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs"
+      ],
+      "testRows": [
+        "Regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-2"
+      ],
+      "testMechanism": {
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "rltax.js",
+          "lifetime-tax-strategy-lab.html",
+          "rltaxrules.js"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route and nothing is intercepted. The rule pack is the committed same-origin file tax-rules/federal/2026.json, read the way the page reads it, so the arithmetic that overflows is the production arithmetic on production data. Only the declared INPUT is synthetic, and it has to be: no household reaches 9e307, which is why this defect survived to be found by a stabilize round rather than by use.",
+        "negativeControl": "Probe R1 perturbs the origin guard and this settling row stays green, distinguishing 'inside the range' from 'guard removed'.",
+        "negativeControlMechanism": "scripts/red-green-probe.sh, single literal mutation with verified revert; probe output recorded in report.md under '## Closing The Over-Determination Row'."
+      }
+    },
+    {
+      "scenarioId": "SCN-020-05",
+      "businessScenario": null,
+      "scopeId": "02-pin-the-boundary-from-both-sides",
+      "scope": 2,
+      "status": "done",
+      "title": "the refusing side of the boundary is pinned",
+      "gherkin": {
+        "given": "a declaration whose declared amounts sum to just outside the representable range",
+        "when": "the route renders",
+        "then": "every affected stage carries a named refusal"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Every affected stage carries a named refusal for a declaration just outside the representable range, asserted against the live route.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The refusal is named rather than a blank or a symbol, so the refusing side of the boundary is attributable.",
+          "satisfiedBy": [
+            "tests/lifetime-tax-representable.spec.mjs"
+          ]
+        }
+      ],
+      "linkedTests": [
+        "tests/lifetime-tax-representable.spec.mjs"
+      ],
+      "testRows": [
+        "Regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-2"
+      ],
+      "testMechanism": {
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "rltax.js",
+          "lifetime-tax-strategy-lab.html",
+          "rltaxrules.js"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route and nothing is intercepted. The rule pack is the committed same-origin file tax-rules/federal/2026.json, read the way the page reads it, so the arithmetic that overflows is the production arithmetic on production data. Only the declared INPUT is synthetic, and it has to be: no household reaches 9e307, which is why this defect survived to be found by a stabilize round rather than by use.",
+        "negativeControl": "Probe R2 removes the R2 render fallback; String(record.value) prints the literal text 'Infinity' and the named-refusal assertion fails, so it is sensitive to the render guard.",
+        "negativeControlMechanism": "scripts/red-green-probe.sh, single literal mutation with verified revert; probe output recorded in report.md under '## Closing The Over-Determination Row'."
+      }
+    }
+  ]
+}

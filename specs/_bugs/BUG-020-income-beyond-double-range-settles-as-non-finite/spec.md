@@ -118,3 +118,28 @@ fails.
   vocabulary that makes the code choice an owner decision.
 - `rltax.js`, `formatForDisplay` — the seam that already refuses on one input and
   not on the other.
+
+
+## Domain Capability Model
+
+### Single-Capability Justification
+
+One capability: **refuse a figure the double range cannot represent, at every seam where it
+could otherwise reach a reader.** Not a foundation, and the difference is what decides
+whether the right artefact is a reusable abstraction or three guards.
+
+There is no second consumer. The three seams — the arithmetic origin, the display formatter,
+the render fallback — are not implementations of a shared interface; they are three points on
+one value's path through one route. A "finiteness guard" abstraction over them would have to
+be called from each of the three places anyway, so it would add a hop without removing a
+decision, and the thing it centralised is already a single language primitive,
+`Number.isFinite`.
+
+Nor is there a variant to hold. The refusal is the same refusal at every seam; only the
+DOMAIN differs, and the domain is deliberately different because it is what tells a reader
+which quantity was unrepresentable. Collapsing the three into one parameterised guard would
+make that domain a caller-supplied argument, which is precisely the coupling that let the
+origin refusal silently degrade into the display refusal before `TB-020-05` pinned it.
+
+The proportionality trigger words that brought this gate into force come from the packet's
+diagnostic prose about layers and seams. Those describe defence in depth, not a provider set.

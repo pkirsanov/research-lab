@@ -3,7 +3,24 @@
 **Filed at commit:** `7f0c6ce38`
 
 **Filed by:** a `bubbles.stabilize` round against the Lifetime Tax Strategy Lab
-route. Nothing was delivered. No shipped file changed.
+route. That round delivered nothing and changed no shipped file, which is the
+correct boundary for a diagnostic round.
+
+**Delivered at commits:** `7577d5ad3` (the three guards and the vocabulary member) and
+`d0ec2b542` (the per-layer assertions that make each guard load-bearing).
+
+## Red → Green At A Glance
+
+**Red stage.** At `7f0c6ce38` the reported declaration renders six stage rows reading `$∞`
+or `$NaN`, each carrying `enacted-current-law`, under a header reading `Settled`. Targeted
+assertions written against that declaration fail there: the test fails because a figure is
+present and is not a number.
+
+**Green stage.** At `7577d5ad3` the same declaration is refused by name at its origin, no
+stage carries a standing on a figure that does not exist, and the whole suite passes —
+`3435 passed, 0 failed` after the assertion round. The full before-and-after measurement,
+the per-layer probes, and the diff are recorded under `## Red → Green` and
+`### Code Diff Evidence` below.
 
 ## Summary
 
@@ -1258,3 +1275,82 @@ wrong — the harness was reporting, accurately, that no assertion depended on E
 
 Suite after all three assertions: `3435 passed, 0 failed`, up from `3433`, with no
 assertion removed.
+
+## Red → Green
+
+**Red stage — before `7577d5ad3`.** A household declaring ordinary income and qualified
+dividends at `9e307` each summed beyond the double range. The Power view rendered six stage
+rows reading `$∞` or `$NaN`, the settlement header read `Settled`, and every one of those
+rows carried the standing `enacted-current-law`. The route's promise is that a figure
+carries the legal standing of the rule it came from and that anything it cannot price is
+named rather than filled in; here it did neither. The targeted browser assertions written
+against that declaration fail at this commit — the test fails because the figure is present
+and is not a number.
+
+**Green stage — after `7577d5ad3`.** The same declaration is refused by name at its origin,
+and no stage carries a standing on a figure that does not exist:
+
+```
+$ node -e 'const T=require("./rltax.js"),R=require("./rltaxrules.js"); ...9e307 x2...'
+ REFUSAL grossSupportedIncome | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL appliedDeduction     | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL totalTaxableIncome   | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL ordinaryTax          | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL totalFederalTax      | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL averageRate          | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+```
+
+The suite is green alongside it: `node scripts/selftest.mjs` → **3435 passed, 0 failed**.
+
+### Code Diff Evidence
+
+```
+$ git show --stat --format='%h %s' 7577d5ad3
+7577d5ad3 BUG-020: refuse an unrepresentable figure at its origin, at the display seam and in the header
+ lifetime-tax-strategy-lab.html                     |  50 +++++++--
+ rltax.js                                           |  54 +++++++++-
+ rltaxrules.js                                      |  13 ++-
+ scripts/selftest.mjs                               | 114 ++++++++++++++++-----
+ .../spec.md                                        |  17 +++
+ 5 files changed, 207 insertions(+), 41 deletions(-)
+```
+
+Three guards, one per layer, plus the vocabulary member they raise:
+
+```
+$ git show 7577d5ad3 -- rltaxrules.js | grep '^+' | head -4
++  /* The closed refusal vocabulary. Fifteen members: Feature 021's twelve, unchanged in meaning
++     and in raising site, the two the jurisdiction axis needs, and the one BUG-020 needs. This is
++     the ONLY declaration in the repository; every consumer imports it and none extends it. */
++    "RLTAX-PACK-YEAR-MISMATCH": true,
+```
+
+```
+$ git show 7577d5ad3 -- rltax.js
++    if (!Number.isFinite(gross)) {                        /* E1, arithmetic origin */
++      var overflow = rules.unavailable("RLTAX-FIGURE-UNREPRESENTABLE", "income:grossSupportedIncome",
++        "each declared amount is inside the range a double can represent and their sum is not, ...",
++        "declare amounts whose sum is at most 1.7976931348623157e+308");
+...
++    if (!Number.isFinite(valueRecord.value)) {            /* E3, display seam */
++      return rules.unavailable("RLTAX-FIGURE-UNREPRESENTABLE", "display:value", ...);
+```
+
+```
+$ git show 7577d5ad3 -- lifetime-tax-strategy-lab.html
+             function stageValueText(record) {
+                 if (RULES.isUnavailable(record)) return record.code + " · " + record.reason;
+                 if (money(record) !== null) return money(record);
++                if (!Number.isFinite(record.value)) return "no figure";   /* R2, render */
+                 return String(record.value);
+             }
+```
+
+The later assertion round (`d0ec2b542`) changed only `scripts/selftest.mjs`, adding
+`TB-020-05` and `TB-020-06` so that E1 and R2 each became load-bearing. No shipped file
+changed in that round — the guards were already correct; what was missing was coverage
+proving each one necessary.
+
+Outside this packet's own artifacts, the files touched are `rltax.js`,
+`rltaxrules.js`, `lifetime-tax-strategy-lab.html` and `scripts/selftest.mjs`. No other tool
+HTML, no `data/` payload, and no `.github/bubbles/**` file.

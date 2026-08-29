@@ -443,3 +443,30 @@ guard and a narrowed guard both survive a single-sided assertion.
   can carry a non-finite parameter past pack validation was not established, so
   it is a separate finding with a separate origin, not a branch of this one.
 - **Narrowing what the input accepts.** Forbidden by `FR-020-006`.
+
+
+## Implementation Shape
+
+### Single-Implementation Justification
+
+Three guards on one value's path, deliberately not unified: E1 at the arithmetic origin, E3 at
+the display formatter, R2 at the render fallback.
+
+Defence in depth is the shape, and it has a specific justification here rather than being
+belt-and-braces. Each seam is the last point at which a different failure mode can be caught:
+E1 catches a sum that overflowed, before any downstream stage derives from it; E3 catches a
+record that reached the formatter by some other path; R2 catches a value that reached the DOM
+with `money()` returning null, where `String(Infinity)` would print the literal text
+`"Infinity"`. A single guard at any one of those points would leave the other two paths open.
+
+They are not a foundation with concrete implementations because there is no seam to abstract:
+each is a two-line check against `Number.isFinite` at a place its own function already owns.
+Extracting them would centralise the check while leaving all three call sites, and would turn
+the refusal DOMAIN — the field that tells a reader which quantity failed — into a parameter
+passed from outside.
+
+The honest cost of the shape is that the outcome assertion `TB-020-03` is over-determined:
+with three sufficient layers, removing any one leaves the visible outcome intact. That is
+handled by per-layer assertions (`TB-020-04`, `TB-020-05`, `TB-020-06`), each proven
+load-bearing by probes `R1` to `R3`, rather than by reducing the defence to make the test
+easier.

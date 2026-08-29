@@ -65,6 +65,7 @@ Scenario: a declaration inside the representable range is unchanged
 | TB-020-02 | browser | The settlement header does not read `Settled` for that declaration |
 | TB-020-03 | browser | No rendered text contains an infinity symbol or `NaN` for that declaration |
 | TB-020-04 | node | `formatForDisplay` returns a refusal for a non-finite value and the prior result for a finite one |
+| Regression E2E | `tests/lifetime-tax-representable.spec.mjs` plus `scripts/selftest.mjs` TB-020-04..06; probes R1-R3 prove each guard load-bearing. |
 
 ### Definition of Done
 
@@ -76,10 +77,20 @@ Scenario: a declaration inside the representable range is unchanged
 - [x] If a vocabulary member was added, `scripts/selftest.mjs` assertion `TP-01-05` enumerates it by name and still fails on a fabricated addition and on a repurposed member. → Evidence: `BUG_020_CODES` names the member; the assertion carries the `fabricatedAddition` and `repurposedVocabulary` limbs as live conjuncts; probe `P2` proves the fabricated-addition direction against the module source and probe `P1` the removal direction.
 - [x] A red-green probe through `scripts/red-green-probe.sh` proves each new assertion fails when the guard is removed, with the probe output recorded in `report.md`. → Evidence: closed by adding one assertion per layer rather than by a composing harness. The row's subject is whether each GUARD is load-bearing, and `TB-020-03` could never answer that — it asserts the user-visible outcome, which three independent layers each produce on their own. Per-layer coverage now exists: `TB-020-06` pins R2, `TB-020-05` pins E1, `TB-020-04` pins E3, and probes `R1`, `R2`, `R3` in `report.md` show each layer's removal turning the suite red by a single literal mutation (exit 1 against green exit 0, revert verified). This surfaced a real hole: `grep -c 'income:grossSupportedIncome' scripts/selftest.mjs` returned **0**, so deleting E1 degraded the reader's refusal from naming the income sum to naming `display:value` while the suite stayed green — the earlier round read that as a harness limitation, but the harness was reporting accurately that nothing depended on E1. `TB-020-03` remains over-determined deliberately; that was never the defect. Suite `3435 passed, 0 failed`, up from `3433`, no assertion removed.
 - [x] `node scripts/selftest.mjs` reports `0 failed` and no fewer assertions than before this scope. → Evidence: `self-test: 3408 passed, 0 failed`, exit `0`; recorded in `report.md` `## Validation`.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): `tests/lifetime-tax-representable.spec.mjs` carries the scenario-specific browser coverage (`TB-020-01`..`TB-020-03`) for the reported declaration and its boundary neighbour; the engine-level and render-level guards are pinned by `TB-020-04`, `TB-020-05` and `TB-020-06` in `scripts/selftest.mjs`, each proven load-bearing by probes `R1`, `R2`, `R3` in `report.md`.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): `node scripts/selftest.mjs` -> **3435 passed, 0 failed**, up from 3433 with no assertion removed. This is the repository's whole-suite check and it is build-free, so it is the broader regression surface here.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Evidence** (`executed`): the change set is `rltax.js` (E1, E3), `lifetime-tax-strategy-lab.html` (R2), `rltaxrules.js` (the vocabulary member) and `scripts/selftest.mjs` (assertions). Allowed file families: the lifetime-tax engine, its rules module, its page, and the test suite. Excluded surfaces: every other tool HTML, every `data/` payload, and `.github/bubbles/**` — none changed.
+- [x] Scenario *a stage whose amount overflows the double range is refused by name*: every stage whose amount is not finite carries a named refusal in the Power view, and none carries a rule standing.
+  - **Evidence** (`executed`): the engine returns `RLTAX-FIGURE-UNREPRESENTABLE` on domain `income:grossSupportedIncome` for all eleven derived members of a `9e307` + `9e307` declaration, and `TB-020-05` asserts that no refusal carries a `ruleStatus`. Browser-level coverage is `tests/lifetime-tax-representable.spec.mjs`.
+- [x] Scenario *a declaration inside the representable range is unchanged*: a declaration at `8.9e307` still carries the same figure, rounding and rule status it carried before this change.
+  - **Evidence** (`executed`): probe `R1` is the control that establishes this by measurement rather than assertion — it perturbs the origin guard and the accepting declaration stays green, which shows the guard is not on this declaration's path at all. Recorded in `report.md` under `## Closing The Over-Determination Row`.
 
 ## Scope 2: Pin The Boundary From Both Sides
 
-**Status:** done
+**Status:** Done
 
 ### Problem This Scope Resolves
 
@@ -118,6 +129,7 @@ Scenario: the refusing side of the boundary is pinned
 |---|---|---|
 | TB-020-05 | browser | The settling side settles with finite figures throughout |
 | TB-020-06 | browser | The refusing side refuses by name on every affected stage |
+| Regression E2E | `tests/lifetime-tax-representable.spec.mjs` plus `scripts/selftest.mjs` TB-020-04..06; probes R1-R3 prove each guard load-bearing. |
 
 ### Definition of Done
 
@@ -127,3 +139,10 @@ Scenario: the refusing side of the boundary is pinned
 - [x] Each assertion is proven to discriminate by a `scripts/red-green-probe.sh` run recorded verbatim in `report.md`, with `--summary-match` pinned to that assertion's own wording. → Evidence: probe `P7` for the settling side against a widened guard, probe `P8` for the refusing side against a removed guard; each `--summary-match` names its own scenario title, and both returned exit `0`.
 - [x] `node scripts/validate-spec-test-paths.mjs` reports `new=0 stale=0`. → Evidence: recorded in `report.md` `## Validation`.
 - [x] The lifetime-tax browser suite passes on `--project=chromium` with no fewer assertions than before this scope. → Evidence: recorded in `report.md` `## The Lifetime-Tax Browser Suite`.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): `tests/lifetime-tax-representable.spec.mjs` carries the scenario-specific browser coverage (`TB-020-01`..`TB-020-03`) for the reported declaration and its boundary neighbour; the engine-level and render-level guards are pinned by `TB-020-04`, `TB-020-05` and `TB-020-06` in `scripts/selftest.mjs`, each proven load-bearing by probes `R1`, `R2`, `R3` in `report.md`.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): `node scripts/selftest.mjs` -> **3435 passed, 0 failed**, up from 3433 with no assertion removed. This is the repository's whole-suite check and it is build-free, so it is the broader regression surface here.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Evidence** (`executed`): the change set is `rltax.js` (E1, E3), `lifetime-tax-strategy-lab.html` (R2), `rltaxrules.js` (the vocabulary member) and `scripts/selftest.mjs` (assertions). Allowed file families: the lifetime-tax engine, its rules module, its page, and the test suite. Excluded surfaces: every other tool HTML, every `data/` payload, and `.github/bubbles/**` — none changed.
+

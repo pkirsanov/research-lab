@@ -1,0 +1,127 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter",
+  "generatedBy": "bubbles.goal",
+  "generatedAt": "2026-08-29T02:10:00Z",
+  "stage": "post-implementation",
+  "stageNote": "Authored after both scopes reached Done, from the Gherkin blocks already present in scopes.md. The seven scenarios carried titles but no identifiers, so Gate G068 had nothing to match and reported six of them as having no DoD item even though each had one. The identifiers SCN-015-001 through SCN-015-007 were assigned in scopes.md and are TRANSCRIBED here in the order the Gherkin blocks appear; every title, scopeId and linkedTests value comes from those blocks and from the Test Plan rows that satisfied them, rather than being composed here. No DoD item was added, reworded or re-ticked to make a scenario match. This manifest reports the plan that was executed and adds no claim of its own.",
+  "scenarioCount": 7,
+  "keyShapeNote": "Keys scenarios on `scenarioId`, matching every pre-existing manifest in this repository. Scope 1 is a decision scope, so its scenarios link to a review row and a selftest assertion rather than to browser tests; scope 2 is the implementing scope and its scenarios link to the assertion and browser rows that prove the round trip in both directions.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-015-001",
+      "title": "A named subject the route can serve",
+      "scopeId": "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "manual",
+      "regressionRequired": false,
+      "linkedTests": [
+        "scopes.md scope 1 Test Plan: Review row - the recorded decision names the chosen outcome per status and its cost"
+      ],
+      "evidenceRefs": [
+        "scopes.md#scope-1",
+        "design.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-015-002",
+      "title": "A named subject the route refuses",
+      "scopeId": "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "scripts/selftest.mjs - an assertion pins the chosen outcome so it cannot regress to silence"
+      ],
+      "evidenceRefs": [
+        "scopes.md#scope-1",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-015-003",
+      "title": "A grammar-valid subject the route does not carry",
+      "scopeId": "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
+      "scope": 1,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "scripts/selftest.mjs - an assertion pins the chosen outcome so it cannot regress to silence"
+      ],
+      "evidenceRefs": [
+        "scopes.md#scope-1",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-015-004",
+      "title": "The emitted parameter is the canonical one",
+      "scopeId": "02-make-the-published-link-live-in-both-directions",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "scripts/selftest.mjs assertion 1.20 - four emitted names, all resolving through RLTKR.SUBJECT_PARAM",
+        "scripts/selftest.mjs - zero occurrences of a hard-coded ?t= emission remain in any root route"
+      ],
+      "evidenceRefs": [
+        "scopes.md#scope-2",
+        "report.md#code-diff-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-015-005",
+      "title": "Following the published link lands on the named subject",
+      "scopeId": "02-make-the-published-link-live-in-both-directions",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/ - each route loaded at ?ticker=<SYMBOL> renders that symbol and republishes a deepLink naming it",
+        "tests/ - each route loaded with a refused subject produces the Scope 1 outcome"
+      ],
+      "evidenceRefs": [
+        "scopes.md#scope-2",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-015-006",
+      "title": "The convention guard covers every subject-bearing route",
+      "scopeId": "02-make-the-published-link-live-in-both-directions",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "linkedTests": [
+        "scripts/selftest.mjs assertion 1.20 over the widened F027_SUBJECT_ROUTES"
+      ],
+      "evidenceRefs": [
+        "scopes.md#scope-2",
+        "report.md"
+      ]
+    },
+    {
+      "scenarioId": "SCN-015-007",
+      "title": "The coupled test moves with the fix",
+      "scopeId": "02-make-the-published-link-live-in-both-directions",
+      "scope": 2,
+      "status": "done",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/technical-analysis-decision-lab.spec.mjs - the reconciled navigation still passes"
+      ],
+      "evidenceRefs": [
+        "scopes.md#scope-2",
+        "report.md#code-diff-evidence"
+      ]
+    }
+  ],
+  "businessScenarioMapping": "SCN-015-001 through SCN-015-007 are the seven scenarios carrying a Gherkin block in scopes.md, one per behaviour each scope actually delivered. The split is not arbitrary: scope 1 answers what a route DOES with a subject it cannot honour, which is a decision with three outcomes (serve, refuse, out-of-catalog) and therefore three scenarios; scope 2 makes the link live in BOTH directions, which is why emission (-004) and reception (-005) are separate scenarios rather than one round-trip scenario. They fail independently and are fixed independently, so collapsing them would hide the case where a corrected emitter publishes a canonical link the route still cannot read. SCN-015-006 covers the enforcement half - a route outside F027_SUBJECT_ROUTES is neither checked nor reported as unchecked, which is why the original defect was silent. SCN-015-007 exists because the coupled test navigates the parameter under change and would otherwise be reconciled after the fact rather than moved with it."
+}

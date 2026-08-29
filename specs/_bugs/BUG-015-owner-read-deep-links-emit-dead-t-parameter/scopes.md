@@ -55,18 +55,18 @@ two expressions.
 ```gherkin
 Feature: A reader learns when the subject they named was not honoured
 
-  Scenario: A named subject the route can serve
+  Scenario: SCN-015-001 A named subject the route can serve
     Given a published deep link naming a subject the route carries
     When a reader follows it
     Then the route opens on that subject
 
-  Scenario: A named subject the route refuses
+  Scenario: SCN-015-002 A named subject the route refuses
     Given a deep link carrying a value outside SUBJECT_PATTERN
     When a reader follows it
     Then the outcome the owner selected is visible
     And the route does not present its default as the subject that was named
 
-  Scenario: A grammar-valid subject the route does not carry
+  Scenario: SCN-015-003 A grammar-valid subject the route does not carry
     Given a deep link naming a symbol absent from this route's catalog
     When a reader follows it
     Then the outcome the owner selected is visible
@@ -89,8 +89,8 @@ Feature: A reader learns when the subject they named was not honoured
 
 ### Definition of Done
 
-- [x] Open question 4 is answered: whether these two routes are openable by a subject-bearing link.
-- [x] The outcome for `refused`, `absent`, and out-of-catalog is chosen and recorded with its reason.
+- [x] **SCN-015-001** — Open question 4 is answered: whether these two routes are openable by a subject-bearing link.
+- [x] **SCN-015-002**, **SCN-015-003** — The outcome for `refused`, `absent`, and out-of-catalog is chosen and recorded with its reason.
 - [x] The recorded decision names what it gives up, not only what it achieves.
 - [x] Open questions 1, 2 and 3 from `design.md` each carry a recorded owner answer, including where that answer is to leave the question open with a stated reason.
 - [x] No source file was modified by this scope.
@@ -127,25 +127,25 @@ together or the defect stands.
 ```gherkin
 Feature: A published subject-bearing deep link opens on the subject it names
 
-  Scenario: The emitted parameter is the canonical one
+  Scenario: SCN-015-004 The emitted parameter is the canonical one
     Given a route that publishes a subject-bearing deepLink
     When the published link is read out of the owner read
     Then its subject parameter is RLTKR.SUBJECT_PARAM
 
-  Scenario: Following the published link lands on the named subject
+  Scenario: SCN-015-005 Following the published link lands on the named subject
     Given a published deepLink naming a company
     When a reader follows that exact link in a browser
     Then the route renders that company
     And the owner read it republishes names the same company
 
-  Scenario: The convention guard covers every subject-bearing route
+  Scenario: SCN-015-006 The convention guard covers every subject-bearing route
     Given the four routes that publish a subject-bearing deepLink
     When scripts/selftest.mjs assertion 1.20 runs
     Then all four are inside its subject set
     And every emitted name resolves to SUBJECT_PARAM
     And every one of the four delegates its query read to RLTKR.linkedSubject
 
-  Scenario: The coupled test moves with the fix
+  Scenario: SCN-015-007 The coupled test moves with the fix
     Given tests/technical-analysis-decision-lab.spec.mjs navigates swing-structure-lab
     When the emission is corrected
     Then that navigation uses the canonical parameter
@@ -176,12 +176,12 @@ Feature: A published subject-bearing deep link opens on the subject it names
 
 ### Definition of Done
 
-- [x] Both `deepLink` expressions compose their parameter from `RLTKR.SUBJECT_PARAM` (FR-014-001).
-- [x] Both routes read the subject back through `RLTKR.linkedSubject(window.location.search)` and open on an `accepted` subject (FR-014-002).
+- [x] **SCN-015-004** — Both `deepLink` expressions compose their parameter from `RLTKR.SUBJECT_PARAM` (FR-014-001).
+- [x] **SCN-015-005** — Both routes read the subject back through `RLTKR.linkedSubject(window.location.search)` and open on an `accepted` subject (FR-014-002).
 - [x] The Scope 1 outcome for a subject that cannot be honoured is implemented and asserted (FR-014-003).
 - [x] `grep -rn '?t=' *.html` returns zero emission sites (FR-014-004).
-- [x] `F027_SUBJECT_ROUTES` contains all four subject-bearing routes and assertion 1.20 passes over the widened set (FR-014-005).
-- [x] `tests/technical-analysis-decision-lab.spec.mjs:922` navigates the canonical parameter and passes (FR-014-006).
+- [x] **SCN-015-006** — `F027_SUBJECT_ROUTES` contains all four subject-bearing routes and assertion 1.20 passes over the widened set (FR-014-005).
+- [x] **SCN-015-007** — `tests/technical-analysis-decision-lab.spec.mjs:922` navigates the canonical parameter and passes (FR-014-006).
 - [x] The fix is proven in a real browser, with the republished `deepLink` read out of `RLDATA.toolRead(...)`, not by source match alone.
 - [x] Every new assertion was proven able to fail, by real file mutation, before being trusted.
 - [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count from the baseline at the fixing commit (FR-014-007).

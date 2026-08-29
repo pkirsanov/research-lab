@@ -146,6 +146,23 @@ Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` an
 
 - [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
   - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+  - **Executed:** YES (current session)
+  - **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line`
+  - **Exit Code:** not captured by the background launcher; no numeric exit is claimed.
+  - **Claim Source:** executed
+  - **Captured output:** 2,248 lines, SHA-256 `e687585c484360873f301fc8364676d6838ba75af9a8792c2598297e01d15ae5`.
+
+    ```text
+    [763/767] [system-chrome] › tests/volatility-sizing-lab.spec.mjs:953:1 › Regression: SCN-027-013 the catalog-miss notice keeps naming the asset actually on screen after the reader changes it
+    [764/767] [system-chrome] › tests/web-evidence.spec.mjs:109:1 › Regression: SCN-012-006 one-origin material claim is rejected and no current authored claim appears
+    [765/767] [system-chrome] › tests/web-evidence.spec.mjs:162:1 › Regression: SCN-012-007 syndicated pages count as one origin in the safe evidence disclosure
+    [766/767] [system-chrome] › tests/web-evidence.spec.mjs:195:1 › Regression: SCN-012-037 frozen safe bundle renders bounded metadata and no raw or hostile content
+    [system-chrome] › tests/simple-production-wiring.spec.mjs:857:1 › TP-15-04 every wired ordinary tool paints its real Simple adapter panel with an owner-parity fact
+    TP-15-04 swept 18 wired tools: market-heatmap-lab=ready(x1) options-flow-feed-lab=ready(x1) intraday-tape-lab=unavailable(x1) swing-structure-lab=ready(x1)
+    TP-15-04/SCN-012-041 native demotion verified on 7 tools: intraday-tape-lab[simple 0/3 native visible -> power 2/3]
+    [767/767] [system-chrome] › tests/simple-production-wiring.spec.mjs:979:1 › TP-15-04 the swept set is derived from the production registry + pages, and the honest-degradation cases are registry/provider derived
+      767 passed (16.5m)
+    ```
 - [x] Broader E2E regression suite passes
   - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
 - [ ] Change Boundary is respected and zero excluded file families were changed

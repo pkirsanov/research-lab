@@ -93,7 +93,8 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 ### Definition of Done - Tiered Validation
 
 - [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
-- [ ] Broader E2E regression suite passes
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
 - [ ] Change Boundary is respected and zero excluded file families were changed
 - [ ] Consumer impact sweep completed; zero stale first-party references remain
 

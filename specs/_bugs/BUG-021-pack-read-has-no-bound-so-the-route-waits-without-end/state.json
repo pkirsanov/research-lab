@@ -4,8 +4,8 @@
   "featureName": "BUG-021 A Pack Read That Never Completes Leaves The Route Waiting Without End",
   "createdAt": "2026-08-24T00:00:00Z",
   "lastUpdatedAt": "2026-08-24T00:00:00Z",
-  "certifiedAt": null,
-  "status": "in_progress",
+  "certifiedAt": "2026-08-29T17:45:20Z",
+  "status": "done",
   "blockedReason": null,
   "priorBlockedReason": null,
   "blockedReasonResolved": null,
@@ -132,10 +132,10 @@
     }
   },
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "certifiedBy": null,
-    "certifiedAt": null,
-    "assuranceLevel": null,
+    "certifiedAt": "2026-08-29T17:45:20Z",
+    "assuranceLevel": "prototype",
     "evidence": null,
     "scopeProgress": [
       {
@@ -152,11 +152,26 @@
       }
     ],
     "lockdownState": "off",
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "stabilize",
+      "validate",
+      "audit"
+    ],
     "completedScopes": [
       "01-bound-every-declared-document-read",
       "02-pin-both-sides-of-the-bound"
-    ]
+    ],
+    "assurance": {
+      "level": "prototype",
+      "missingForFull": [
+        "independent-validate",
+        "independent-audit"
+      ],
+      "detail": "Five of the eight required phases were re-derived by bubbles.goal rather than executed by their registered specialist owner, so neither validate nor audit is INDEPENDENT. stabilize is the exception and is attributed to bubbles.stabilize, which executed the filing round. The delivery evidence itself is strong - eight adversarial probes drive each assertion red before it is allowed to pass - but strong evidence re-read by the same runner that closed the findings is not independent verification, and the level says so."
+    }
   },
   "policySnapshot": {
     "capturedAt": "2026-08-24T00:00:00Z",
@@ -220,5 +235,6 @@
       "expansionReason": "runSubagent was unavailable in this nested runtime, so the parent re-derived these phases from committed evidence instead of dispatching each registered specialist owner.",
       "expansionEvidenceRef": "report.md"
     }
-  ]
+  ],
+  "completedAt": "2026-08-29T17:45:20Z"
 }

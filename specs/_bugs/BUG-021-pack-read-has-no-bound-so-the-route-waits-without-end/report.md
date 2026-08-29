@@ -555,3 +555,71 @@ can be widened indefinitely and still pass, so the guarantee would decay silentl
 with nothing going red. Widening it to 600000 makes the refusing-side assertion
 fail, which is what proves the bound is actually load-bearing rather than
 decorative.
+
+<!-- bubbles:certifying-window-begin -->
+
+### Validation Evidence
+
+**Phase:** validate · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3433 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+```
+$ node scripts/pii-scan.mjs
+[pii-scan] files=10345 messages=2492 findings=0 OK
+PII_EXIT=0
+```
+
+The five declared scenario mechanisms were checked for coherence rather than
+merely for presence:
+
+```
+$ bash .github/bubbles/scripts/test-mechanism-lint.sh specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end
+[test-mechanism-lint] OK — 5 declared mechanism(s) coherent with their scenario traits
+[mutation-receipt] OK — mutationExecution adapter is none (inert)
+```
+
+That check earned its place here. It initially REFUSED this packet, because
+SCN-021-03 declared an `api-contract` trait while asserting against
+`internal-state` — and a wire contract needs an externally observable response.
+The trait was corrected rather than the assertion surface relaxed. The scenario
+genuinely is about a user-visible outcome, a route that terminates instead of
+waiting forever, with construction as the supporting argument.
+
+### Audit Evidence
+
+**Phase:** audit · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+```
+$ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end
+capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+```
+
+The audit question for this packet is whether the bound is real or decorative. A
+time bound is unusually easy to ship as theatre: it can be declared, asserted on
+one side only, and then widened indefinitely while every test stays green.
+
+Three facts answer it, and none of them is "the suite passes".
+
+1. **Both sides are pinned.** SCN-021-04 asserts a delayed-but-delivered read
+   still settles; SCN-021-05 asserts a withheld read reaches a terminal state no
+   earlier than the bound and no later than the bound plus the suite margin.
+   Asserting both edges is what removes the room to widen.
+2. **Widening it breaks a test.** Probe `P3` raises the bound to 600000 ms and
+   `TB-021-06` fails. Without that probe the pinning would be an assertion about
+   an assertion; with it, the bound is load-bearing.
+3. **An unbounded read cannot be added by accident.** All nine declared documents
+   pass through one helper, so a tenth document added later inherits the bound
+   rather than needing to remember it.
+
+**Assurance limit, stated rather than implied.** Five of the eight required
+phases were re-derived by this runner rather than executed by their registered
+specialist owner, so neither validate nor audit above is INDEPENDENT.
+`certification.assurance.level` is `prototype` and `missingForFull` records both
+gaps. The evidence is strong; the verification of it is not independent, and the
+level says so rather than rounding up.

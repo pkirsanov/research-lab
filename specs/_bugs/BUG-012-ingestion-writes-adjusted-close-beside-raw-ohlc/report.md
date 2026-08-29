@@ -439,23 +439,45 @@ rather than an empty set.
 One item, stated plainly rather than assumed away.
 
 **The full committed Playwright suite was not run in the ticking session.** The cross-scope
-Definition of Done item asserting that all six named tests pass in the full suite is therefore left
-**unticked**, with an Uncertainty Declaration in `scopes.md`. The run reported from prior execution
-covers a subset — **21 passed** on the Scope 03 surface — not the 490-test committed suite.
+Definition of Done item asserting that all six named tests pass in the full suite was therefore left
+**unticked** at that point, with an Uncertainty Declaration in `scopes.md`. The run reported from
+prior execution covered a subset — **21 passed** on the Scope 03 surface — not the full committed
+suite.
 
-The six tests are strongly expected to pass: the corpus condition that made them hang is gone,
+The six tests were strongly expected to pass: the corpus condition that made them hang is gone,
 verified by an exit-0 scan over all 292 symbol files, and the fixture no longer resolves against
 mutable data. But *strongly expected* is not evidence, and ticking a whole-suite claim that no
-executed command produced is precisely the fabrication this packet has avoided throughout. One full
-suite run closes it. That run is also the only way to establish whether the **two unrelated failures**
-among the original eight are still present — they were never attributed to this defect and nothing
-here addressed them.
+executed command produced is precisely the fabrication this packet has avoided throughout.
 
-Still open, and recorded as out of scope rather than done:
+**That declaration has since been discharged, by running the suite rather than by re-arguing it.**
+`scopes.md` records the result: the full committed suite was run against a clean `origin/main`
+worktree — `npx playwright test --config=playwright.config.mjs --reporter=line` → **1510 passed
+(11.3m)**, zero failed, zero flaky, exit **0**. The six named tests are inside that run. The
+declaration's second question is answered too: the two unrelated pre-existing failures are **gone**,
+not merely unobserved, because nothing failed at all.
+
+Two near-misses are recorded there rather than quietly dropped, because each nearly became the
+evidence. A run of only the two named spec files returned `21 passed` — the same subset the
+declaration had already rejected as insufficient. A first full-suite attempt returned `1504 passed,
+2 failed`, where both failures were a missing `_site` build prerequisite of the run rather than a
+defect; that count coincidentally matched the "two unrelated failures" the declaration asks about,
+and treating the coincidence as the answer would have been wrong.
+
+Discovered and **filed**, not narrated:
 
 - The provenance question in `design.md` §2.4 — what policy should govern a published historical row
   changing value in place. Option B makes it far less likely by keeping `o`/`h`/`l`/`c` raw, but
   `mergeRows` still overwrites by timestamp with no trace, and that is a separate decision.
+  **Disposition: `spec-filed` → [`specs/028-published-row-provenance-policy/spec.md`](../../028-published-row-provenance-policy/spec.md)**,
+  created 2026-08-29. A design decision with defensible alternatives is a spec, not a bug, which is
+  why it is filed as one. Settling it inside this packet would have been scope creep laundered as a
+  fix; leaving it as prose would have been a finding nobody owns.
+
+## Discovered Issues
+
+| Date | Issue | Disposition | Artifact |
+|---|---|---|---|
+| 2026-08-29 | `mergeRows` overwrites a published row by timestamp with no trace, so an in-place value change is undetectable by any consumer. Observed as the COP close for `2026-08-13T13:30Z` moving from `124.5200` to `123.6950`. | `spec-filed` | [`specs/028-published-row-provenance-policy/spec.md`](../../028-published-row-provenance-policy/spec.md) |
 
 ### Validation Evidence
 

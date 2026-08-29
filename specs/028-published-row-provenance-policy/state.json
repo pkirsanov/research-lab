@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "featureName": "published-row-provenance-policy",
+  "featureDir": "specs/028-published-row-provenance-policy",
+  "status": "not_started",
+  "workflowMode": "full-delivery",
+  "createdAt": "2026-08-29T18:05:00Z",
+  "lastUpdatedAt": "2026-08-29T18:05:00Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "scopeLayout": "single-file",
+  "planningOnly": false,
+  "requiresRevalidation": false,
+  "blockedReason": null,
+  "filedBy": "bubbles.goal",
+  "filedAsDispositionFor": "specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc",
+  "filingNote": "Filed 2026-08-29 as the spec-filed disposition required by Gate G095 for a discovered issue BUG-012 recorded as 'out of scope rather than done'. Under the Discovered-Issue Disposition rule a disposition is discharged by CREATING the tracked artifact, not by narrating the finding, so this packet exists on disk as of that turn. It is a design decision with defensible alternatives rather than a defect with one correct fix, which is why it is a spec and not a bug.",
+  "policySnapshot": {
+    "workflowMode": "full-delivery",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "repo-default" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "execution": {
+    "activeAgent": null,
+    "currentPhase": null,
+    "currentPhaseStatus": "not_started",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": null,
+    "completedPhaseClaims": [],
+    "phaseReconciliation": null,
+    "reworkQueue": [],
+    "transitionQueue": []
+  },
+  "executionHistory": [
+    {
+      "agent": "bubbles.goal",
+      "startedAt": "2026-08-29T18:00:00Z",
+      "finishedAt": "2026-08-29T18:05:00Z",
+      "outcome": "completed_owned",
+      "phasesExecuted": [],
+      "provenanceMode": "specialist",
+      "summary": "Filed this packet as the spec-filed disposition for a discovered issue in BUG-012. No scope work was started and no phase was executed, so phasesExecuted is empty rather than populated with claims nothing has earned."
+    }
+  ],
+  "certification": {
+    "status": "not_started",
+    "certifiedAt": null,
+    "certifiedCompletedPhases": [],
+    "completedScopes": [],
+    "lockdownState": "off",
+    "scopeProgress": [
+      {
+        "scopeId": "01-measure-exposure-and-record-decision",
+        "status": "Not Started",
+        "dodChecked": 0,
+        "dodUnchecked": 6
+      }
+    ],
+    "assurance": {
+      "level": "prototype",
+      "missingForFull": ["independent-validate", "independent-audit"],
+      "detail": "Nothing has been executed against this packet, so there is no measurement for a validator to re-derive and no delivery for an auditor to attack. The level records the absence of independent verification rather than implying any verification occurred."
+    }
+  },
+  "specDependsOn": [],
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md"
+  }
+}

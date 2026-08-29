@@ -1,0 +1,97 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-d3a1cc3514ed848849a70b44e5c29718926c966cd9a4945ee0e5bf239601c3fb",
+  "generationId": "generation-72e8e8bd81a9edcd7099726ef4842615a1a5219eda613d70eaf36c1f20b64b4c",
+  "topicId": "food-inputs-outlook",
+  "attemptedAt": "2026-08-29T11:01:49.243Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "cadence",
+  "selectionReason": "cadence-elapsed",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "topic-model-not-applicable",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "grains-outlook",
+      "status": "unavailable",
+      "interpretation": "No current public grains observation is available for this generation. The acquisition bundle retained zero sources and the material claim 'public-crop-and-input-observations' (coverage: grains) is unauthorable (uncorroborated, freshness unsupported), so no observed-fact grains read can be authored and no prior dossier exists to carry forward.",
+      "gaps": [
+        "Unmet source requirement public-crop-and-input-observations (source classes official, industry-data) covering grains: zero retained sources, claim unauthorable.",
+        "No committed or acquired grains production, inventory, trade, or weather observation within the 720h freshness window."
+      ]
+    },
+    {
+      "sectionId": "fertilizer-inputs",
+      "status": "unavailable",
+      "interpretation": "No current public fertilizer observation is available. Both material claims bearing fertilizer coverage ('public-crop-and-input-observations' and 'fertilizer-cost-and-energy-inputs') are unauthorable with no retained sources, so nitrogen, phosphate, potash, ammonia, and feedstock readings cannot be authored from observed fact.",
+      "gaps": [
+        "Unmet source requirement fertilizer-cost-and-energy-inputs (official, industry-data) covering fertilizer: zero retained sources, claim unauthorable.",
+        "No nitrogen, phosphate, potash, ammonia, or natural-gas feedstock price observation within the 720h freshness window."
+      ]
+    },
+    {
+      "sectionId": "input-cost-transmission",
+      "status": "unavailable",
+      "interpretation": "Input-cost transmission into crop economics cannot be re-read because its upstream fertilizer and energy inputs are unavailable this generation. With no authorable fertilizer-cost-and-energy-inputs claim, there is no observed input-cost delta from which to trace a causal path to crop-economics.",
+      "gaps": [
+        "Depends on unmet fertilizer-cost-and-energy-inputs and public-crop-and-input-observations requirements; no input-cost datapoint to transmit.",
+        "No prior dossier available to carry a prior transmission read forward."
+      ]
+    },
+    {
+      "sectionId": "declared-catalysts",
+      "status": "unavailable",
+      "interpretation": "No declared catalyst can be evidenced. Both requirements list 'catalyst' in required claim coverage, and both underlying claims are unauthorable with zero retained sources, so no export-restriction, weather, or policy catalyst can be recorded as an observed fact.",
+      "gaps": [
+        "Catalyst claim coverage from public-crop-and-input-observations and fertilizer-cost-and-energy-inputs is uncorroborated and unauthorable.",
+        "No export-restriction, weather, or feedstock-policy observation retained within the freshness window."
+      ]
+    },
+    {
+      "sectionId": "move-ranges",
+      "status": "unavailable",
+      "interpretation": "No committed public bars were retained for the declared agriculture and materials proxies, so there is no observed price series behind a move-range read. Authoring a range here would require inventing a proxy range, which is out of scope for this side process.",
+      "gaps": [
+        "Unmet committed-public-bars requirement (source class committed-bar) covering public-bar: zero retained bars.",
+        "No same-origin committed bar snapshot available for the declared proxies."
+      ]
+    },
+    {
+      "sectionId": "invalidations",
+      "status": "unavailable",
+      "interpretation": "No later public observation is available to supersede a prior crop or fertilizer input, and there is no prior dossier finding to invalidate. With an empty evidence bundle, no invalidation condition can be evaluated as met or unmet on observed fact.",
+      "gaps": [
+        "No superseding public observation retained; input-observation-superseded condition is unevaluable.",
+        "priorDossier is null, so there is no prior input to test for supersession."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The acquisition bundle retained zero sources and zero excerpts (retainedSourceCount 0, independentOriginCount 0); all three material claims were rejected. There are no sources to enumerate in the ledger for this generation.",
+      "gaps": [
+        "Zero retained sources across all three source requirements.",
+        "All material claims (public-crop-and-input-observations, fertilizer-cost-and-energy-inputs, committed-public-bars) unauthorable."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "There is no predecessor to assess: priorDossier is null and committedEvidence is empty. No change direction can be observed because neither a prior situation nor current evidence exists. This side process authors no changeAssessment.",
+      "gaps": [
+        "priorDossier is null; no predecessor situation to compare against.",
+        "No current evidence retained this generation to measure change from a predecessor."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

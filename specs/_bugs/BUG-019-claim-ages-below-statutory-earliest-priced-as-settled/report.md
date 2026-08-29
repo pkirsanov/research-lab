@@ -745,3 +745,76 @@ It is kept in `## Probe Evidence` beside the attempt that worked, rather than re
 because a probe that fails to discriminate is evidence about the probe — and silently swapping it
 for a working one would leave the record implying the first attempt never happened.
 
+### Validation Evidence
+
+**Phase:** validate · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3433 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+```
+$ node scripts/pii-scan.mjs
+[pii-scan] files=10352 messages=2503 findings=0 OK
+PII_EXIT=0
+```
+
+The eleven declared scenario mechanisms were checked for coherence, not merely for presence:
+
+```
+$ bash .github/bubbles/scripts/test-mechanism-lint.sh specs/_bugs/BUG-019-...
+[test-mechanism-lint] OK — 11 declared mechanism(s) coherent with their scenario traits
+$ bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/_bugs/BUG-019-...
+[scenario-obligation-lint] OK — 9 scenario(s) with a coherent derived obligation matrix
+```
+
+Both checks earned their place. The mechanism lint initially REFUSED three scenarios that declared
+an `api-contract` trait while asserting against a returned value — and it was right: those are
+module-level assertions on a pack figure, not wire contracts. The trait was corrected rather than
+the assertion surface relaxed, and where no trait in the recognised vocabulary fits, the trait is
+omitted with the reason recorded instead of filled in with a plausible-looking wrong one.
+
+The obligation lint then caught four scenarios declaring `user-visible-ui` with nothing covering it.
+Each now names the visible property that actually distinguishes the fix — row count for the
+comparison table, a refusal code rather than an absence for the sub-zero band.
+
+### Audit Evidence
+
+**Phase:** audit · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+```
+$ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/_bugs/BUG-019-...
+capability-foundation-guard: spec.md contains Domain Capability Model
+capability-foundation-guard: design.md contains capability foundation split with sufficient variation axes
+capability-foundation-guard: UX primitive check not applicable: screenCount=0 uiReuseHits=0
+capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+```
+
+The audit question here is whether the bound is auditable or merely present. A statutory limit that
+exists only as a number in code is indistinguishable from a guess, and the first time it disagreed
+with the authority somebody would adjust the number to make a test pass.
+
+Three facts answer it:
+
+1. **The figure is sourced.** The pack carries it with a source reference and a locator, so it can
+   be checked against the cited authority rather than against itself.
+2. **The engine holds no copy.** `SCN-019-03` searches the claim-age module for a literal earliest
+   age and requires that none exists. Without that assertion the bound could be duplicated later and
+   the duplicate would drift invisibly.
+3. **Absence refuses rather than defaults.** A pack that never retrieved the figure returns an
+   explicit `AbsentFigure`. A default would price forbidden ages while looking correct — the
+   original defect wearing a different hat.
+
+**Assurance limit, stated rather than implied.** Five of the eight required phases were re-derived by
+this runner rather than executed by their registered specialist owner, so neither validate nor audit
+above is INDEPENDENT. `certification.assurance.level` is `prototype` and `missingForFull` records
+both gaps.
+
+One item in `uservalidation.md` deserves particular care and is flagged there rather than here: it
+asks a human to read the cited authority *directly rather than taking the pack's own summary of it*.
+That check's entire value is that a person performed it, so it is recorded as operator-authorized,
+not as independently performed.
+

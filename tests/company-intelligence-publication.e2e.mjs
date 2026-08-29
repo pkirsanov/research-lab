@@ -45,6 +45,15 @@ function requireSuccess(result, label) {
   return result.stdout.trim();
 }
 
+function requireRefusal(result, label, code) {
+  assert.equal(result.error, undefined,
+    `${label}\nprocess error: ${result.error?.message}\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+  assert.notEqual(result.status, 0, `${label} unexpectedly succeeded\nstdout:\n${result.stdout}`);
+  const record = JSON.parse(result.stderr.trim());
+  assert.equal(record.code, code, `${label}\nstderr:\n${result.stderr}`);
+  return record;
+}
+
 function copyRelative(candidate, relativePath) {
   const destination = path.join(candidate, relativePath);
   mkdirSync(path.dirname(destination), { recursive: true });
@@ -141,6 +150,67 @@ test('Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute t
     }, null, 2)}\n`);
 
     const cli = path.join(candidate, 'scripts/company-intelligence-publication.mjs');
+    const ownerReadsPath = path.join(candidate, 'market-brief.owner-reads.json');
+    const ownerReadsBefore = readFileSync(ownerReadsPath);
+    const ownerReads = JSON.parse(ownerReadsBefore.toString('utf8'));
+    const msftOwners = Object.keys(ownerReads.ownerReads)
+      .filter((toolId) => ownerReads.ownerReads[toolId]?.MSFT)
+      .sort();
+    assert.ok(msftOwners.length >= 2, 'the process fixture exposes independent missing and stale owner controls');
+
+    const degradedOwnerReads = structuredClone(ownerReads);
+    delete degradedOwnerReads.ownerReads[msftOwners[0]].MSFT;
+    degradedOwnerReads.ownerReads[msftOwners[1]].MSFT = {
+      ...degradedOwnerReads.ownerReads[msftOwners[1]].MSFT,
+      state: 'stale',
+      gapReason: 'The owner read exceeded its declared freshness window.'
+    };
+    writeFileSync(ownerReadsPath, `${JSON.stringify(degradedOwnerReads, null, 2)}\n`);
+    const degradedTransaction = path.join(sandbox, 'degraded-transaction');
+    const degraded = run(process.execPath, [
+      cli,
+      'prepare',
+      '--transaction-dir', degradedTransaction,
+      '--candidate-root', candidate,
+      '--trigger-file', triggerFile
+    ], candidate);
+    const degradedOutput = JSON.parse(requireSuccess(degraded, 'prepare with missing and stale owner reads'));
+    assert.equal(degradedOutput.ok, true);
+    const degradedBase = JSON.parse(readFileSync(
+      path.join(degradedTransaction, 'base-candidates', 'company-msft.json'),
+      'utf8'
+    ));
+    assert.ok(degradedBase.dimensionReads.some((read) =>
+      read.state === 'unavailable' && read.reasonCode === 'no-shared-read'));
+    assert.ok(degradedBase.dimensionReads.some((read) =>
+      read.state === 'stale' && read.reasonCode === 'read-aged-past-window'));
+    assert.ok(degradedBase.horizons.some((horizon) =>
+      horizon.gapEffect.includes('did not reach this read')));
+    rmSync(degradedTransaction, { recursive: true, force: true });
+
+    const lateOwnerReads = structuredClone(ownerReads);
+    lateOwnerReads.ownerReads[msftOwners[0]].MSFT = {
+      ...lateOwnerReads.ownerReads[msftOwners[0]].MSFT,
+      state: 'current',
+      asOf: '2026-08-28T14:00:00.001Z'
+    };
+    writeFileSync(ownerReadsPath, `${JSON.stringify(lateOwnerReads, null, 2)}\n`);
+    const lateTransaction = path.join(sandbox, 'late-transaction');
+    const late = run(process.execPath, [
+      cli,
+      'prepare',
+      '--transaction-dir', lateTransaction,
+      '--candidate-root', candidate,
+      '--trigger-file', triggerFile
+    ], candidate);
+    const lateRefusal = requireRefusal(late, 'prepare with post-cutoff owner read', 'C028-EVIDENCE-CUTOFF');
+    assert.match(lateRefusal.field, /^sources\.owner:/);
+    rmSync(lateTransaction, { recursive: true, force: true });
+
+    writeFileSync(ownerReadsPath, ownerReadsBefore);
+    assert.deepEqual(readFileSync(ownerReadsPath), ownerReadsBefore,
+      'the process controls restore the committed owner-read fixture byte-for-byte');
+
     const prepared = run(process.execPath, [
       cli,
       'prepare',
@@ -159,7 +229,7 @@ test('Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute t
     assert.ok(request.sourceCatalogue.length > 0);
     assert.equal(request.horizons.length, 4);
     const responseFile = path.join(sandbox, 'plan-response.json');
-    writeFileSync(responseFile, `${JSON.stringify({
+    const response = {
       contractVersion: 'company-plan-author-response/v1',
       requestFingerprint: request.requestFingerprint,
       plan: {
@@ -182,7 +252,25 @@ test('Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute t
           stoppedBy: 'question-answered'
         }]
       }
-    }, null, 2)}\n`);
+    };
+    writeFileSync(responseFile, `${JSON.stringify(response, null, 2)}\n`);
+
+    const unsignedResponseFile = path.join(sandbox, 'unsigned-plan-response.json');
+    const unsignedResponse = structuredClone(response);
+    delete unsignedResponse.requestFingerprint;
+    writeFileSync(unsignedResponseFile, `${JSON.stringify(unsignedResponse, null, 2)}\n`);
+    const refusedPlan = run(process.execPath, [
+      cli,
+      'bind-plan',
+      '--transaction-dir', transaction,
+      '--response-file', unsignedResponseFile
+    ], candidate);
+    requireRefusal(refusedPlan, 'bind-plan with unsigned response', 'C028-PLAN-AUTHOR');
+    const afterRefusedPlan = allFiles(transaction);
+    assert.equal(afterRefusedPlan.some((relativePath) =>
+      relativePath.startsWith('plans/') || relativePath.startsWith('versions/') ||
+      relativePath === 'company-owner-read.json'), false,
+    'an unsigned plan creates no plan, version, or owner-read candidate');
 
     const bound = run(process.execPath, [
       cli,

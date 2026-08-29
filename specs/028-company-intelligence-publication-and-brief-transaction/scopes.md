@@ -54,7 +54,7 @@ Links: [spec.md](spec.md) · [design.md](design.md) · [report.md](report.md) ·
 
 | Scope | Name | Depends On | Primary surfaces | Scenario set | Status |
 | --- | --- | --- | --- | --- | --- |
-| 01 | Company publication foundation and headless owner-read contracts | None | UMD contracts, Node publication module, config, domain model | SCN-028-005 through SCN-028-010 | In Progress |
+| 01 | Company publication foundation and headless owner-read contracts | None | UMD contracts, Node publication module, config, domain model | SCN-028-005 through SCN-028-010 | Done |
 | 02 | Coupled manifest, immutable promotion, and pointer-last success path | Scope 01 | publication module, Git primitives, company data contracts | SCN-028-011, SCN-028-013, SCN-028-014, SCN-028-021 | Not Started |
 | 03 | Whole-transaction restoration and non-authoritative outcomes | Scope 02 | worker transaction, restoration, private checkouts, dry run | SCN-028-015, SCN-028-016, SCN-028-017, SCN-028-022 | Not Started |
 | 04 | Scheduled and on-demand shared trigger integration | Scope 03 | launcher, worker, scheduler, prompt, exact resume | SCN-028-003, SCN-028-004, SCN-028-012, SCN-028-019 | Not Started |
@@ -91,7 +91,7 @@ The revised `allowedPaths` must cover the design-owned implementation inventory 
 
 ## Scope 01: Company publication foundation and headless owner-read contracts
 
-**Status:** In Progress  
+**Status:** Done
 **Tags:** foundation:true.  
 **Depends On:** None.  
 **Scope-Kind:** runtime-behavior

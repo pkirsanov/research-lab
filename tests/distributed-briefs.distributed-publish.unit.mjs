@@ -24,10 +24,6 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import {
-  publishDistributedBriefs, buildDistributedRun, buildToolBriefBundle,
-  validateToolBriefBundle, loadInputs, readPriorFromRoot
-} from '../scripts/brief-distributed-publish.mjs';
-import {
   buildPublishSet, validatePublishSet, validateRunIdentity, canonicalMonthFromEtRunDate
 } from '../scripts/brief-publication.mjs';
 import { validateCurrentGraph, validateHistoryGraph } from '../scripts/validate-distributed-briefs.mjs';
@@ -35,7 +31,15 @@ import { validateCurrentGraph, validateHistoryGraph } from '../scripts/validate-
 import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
-await import('../rldata.js');
+Object.defineProperty(globalThis, 'localStorage', {
+  value: undefined,
+  configurable: true,
+  writable: true
+});
+const {
+  publishDistributedBriefs, buildDistributedRun, buildToolBriefBundle,
+  validateToolBriefBundle, loadInputs, readPriorFromRoot
+} = await import('../scripts/brief-distributed-publish.mjs');
 const RLDATA = globalThis.RLDATA;
 
 function sha(bytes) { return `sha256:${createHash('sha256').update(bytes).digest('hex')}`; }

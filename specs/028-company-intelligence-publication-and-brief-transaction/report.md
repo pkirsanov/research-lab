@@ -9,6 +9,7 @@ Links: [scopes.md](scopes.md) · [uservalidation.md](uservalidation.md)
 **Production control:** `scripts/company-intelligence-publication.mjs` changed `POLICY_CONTRACT` from `company-publication-policy/v1` to `company-publication-policy/v9` for the bounded probe only. The identical targeted command ran before and after exact restoration.
 
 **RED-stage:** failing proof captured before restoration  
+**Claim Source:** executed
 **Command:** `node --test tests/company-intelligence-publication.unit.mjs`  
 **Exit Code:** 1
 
@@ -71,6 +72,7 @@ test at tests/company-intelligence-publication.unit.mjs:451:1
 **Restoration:** the production file returned to Git object `8f0fe32c0978f05e145acfa5364b1a45996994d6` and SHA-256 `f65c329138190ad050e0aa54ba09460783ce3c5519ca9c36fa24b7efbca85231`, exactly matching the pre-probe values.
 
 **GREEN-stage:** passing proof captured after exact restoration  
+**Claim Source:** executed
 **Command:** `node --test tests/company-intelligence-publication.unit.mjs`  
 **Exit Code:** 0
 
@@ -517,6 +519,152 @@ The `.bubbles-worktree` control marker records `createdAt: 2026-08-28T13:45:28Z`
 | Change hygiene | 0 | 0 whitespace errors and 0 incomplete markers | `c45e0eb9ca2e026a472b2b7d655bdcbec84499a15d50337e0694c7fcc701a791` |
 | Implementation reality scan | 0 | 0 violations; one file-discovery fallback warning | `50fb939a25a90e7be6fb6659878f7eeeda463722c04f2cab83c50bc5c895df7e` |
 | Artifact lint before evidence update | 0 | Artifact lint passed | `40054627ee759c118d599693cb399528ef26d4f34bf28e09e3cbc6295930c25b` |
+
+**Current literal bounded verification — `VAL-028-S01-CORE-EVIDENCE`:**
+
+**Executed:** YES (current session)
+**Command:** `node --test tests/company-intelligence-publication.unit.mjs tests/company-intelligence-publication.integration.mjs tests/company-intelligence-publication.e2e.mjs tests/company-intelligence.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture:** `5251f9ebafaee1bed63139fe96f939d527c83f93733f10e964c9ea9d7e55996a` over all 107 output lines.
+
+```text
+# VAL-028-S01 implement-owned Scope 01 foundation and Feature 025 compatibility
+$ node --test tests/company-intelligence-publication.unit.mjs tests/company-intelligence-publication.integration.mjs tests/company-intelligence-publication.e2e.mjs tests/company-intelligence.unit.mjs
+exit: 0
+lines: 107
+sha256: 5251f9ebafaee1bed63139fe96f939d527c83f93733f10e964c9ea9d7e55996a
+--- first 20 ---
+✔ Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority (671.097291ms)
+✔ SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome (43.821041ms)
+✔ SCN-028-006 headless composition preserves fifteen states and four isolated horizons (39.7825ms)
+✔ Mutation: SCN-028-007 missing and stale owner reads remain named and cannot become fresh claims (6.906625ms)
+✔ Mutation: SCN-028-008 evidence after the frozen cutoff is rejected from every horizon (1.30275ms)
+✔ SCN-028-009 signed bounded plan is enriched from the frozen source catalogue (5.76875ms)
+✔ Mutation: SCN-028-010 malformed unsigned cross-subject late and over-budget plans fail closed (6.114375ms)
+✔ Privacy mutation: company owner reads reject private fields and action authority (5.559208ms)
+✔ coverage account holds one row per registry dimension and totals sum to the registry length (5.500375ms)
+✔ SCN-025-001 a subject carrying committed bars and a cached options chain accounts for every mandatory dimension in the closed five-state vocabulary (1.028458ms)
+✔ every one of the five evidence states is produced by a real adapter outcome (1.243833ms)
+✔ a read aged past its window stays in the denominator as stale rather than becoming neutral (3.301ms)
+✔ non-financial event dimension reads unavailable with no-source-exists and carries no value (1.369333ms)
+✔ an unavailable dimension never renders as a zero or a neutral number (2.377166ms)
+✔ an unresolvable identifier raises C025-IDENTITY-UNRESOLVED and composes no horizon (0.53975ms)
+✔ a company outside every corpus yields four horizons with absent quality and none direction (1.333ms)
+✔ every claim cites a value present in its own horizon input set (3.227625ms)
+✔ a claim citing a value outside its own input set raises C025-HORIZON-ISOLATION (1.469208ms)
+✔ four unavailable contributors downgrade evidence quality and populate gapEffect (2.396875ms)
+✔ a horizon whose signalled dimensions are evenly opposed composes flat rather than picking a winner (2.378333ms)
+--- omitted 67 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✔ the configuration records the branch budget and the refused-branch counting decision with written rationales (0.0645ms)
+✔ the committed MSFT research plan and version tree are authored, dated and free of any position value (0.817125ms)
+✔ adversarial: an owner envelope naming another company ONLY by ticker, or ONLY by cik, is refused (1.672292ms)
+✔ the coverage account refuses a read set missing any one registry dimension rather than dropping the row (0.644458ms)
+✔ a past-dated event still classed scheduled is partitioned as occurred, not presented as a forecast (0.129125ms)
+✔ makeRead refuses a non-current read whose reason code is outside the closed vocabulary (1.643458ms)
+✔ 027 security — no hostile subject can give the composed owner href a scheme, an authority, a second parameter or a fragment (0.998125ms)
+✔ 027 security — the receiver refuses every hostile subject outright and returns no field carrying it (0.361458ms)
+✔ 027 security — an accepted subject cannot leave data/options/, cannot become a storage key and cannot reach a prototype (1.407167ms)
+✔ 027 security — ownerBareReason reaches the reader as text only, never an attribute, an href or markup (0.544709ms)
+✔ 027 security — no markup-bearing subject can reach a receiver markup sink, and every subject-fed sink escapes (2.896416ms)
+✔ Regression canary: Feature 025 UMD and v1 contracts remain readable beside publication v2 (0.6655ms)
+ℹ tests 99
+ℹ suites 0
+ℹ pass 99
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 719.816917
+```
+
+**Executed:** YES (current session)
+**Command:** `node --trace-warnings --test tests/distributed-briefs.authorship.unit.mjs tests/distributed-briefs.authorship.e2e.mjs tests/distributed-briefs.distributed-publish.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture:** `cd68d2e24faf20c1bc4f9e737d2b39c7cde7c9d3c944bb139b4d1075ea802a06` over all 16 output lines.
+
+```text
+# VAL-028-S01 implement-owned shared-author and downstream-consumer canaries
+$ node --trace-warnings --test tests/distributed-briefs.authorship.unit.mjs tests/distributed-briefs.authorship.e2e.mjs tests/distributed-briefs.distributed-publish.unit.mjs
+exit: 0
+lines: 16
+sha256: cd68d2e24faf20c1bc4f9e737d2b39c7cde7c9d3c944bb139b4d1075ea802a06
+--- output ---
+✔ Regression: SCN-002-004 every registry source read reaches one truthful validated brief outcome (9.768917ms)
+✔ Regression: SCN-002-005 unchanged and duplicate work creates no author prose event or cost churn (2.298375ms)
+✔ Regression: SCN-002-006 recommendation lifecycle preserves prior terms merges origins and exposes conflicts (0.783292ms)
+✔ SCN-002-004: brief validation binds recommendations to eligible owner evidence (2.109625ms)
+✔ SCN-002-005: compaction honors exact profile caps and stable whole-fact priority (1.555833ms)
+✔ distributed publisher builds a SCHEMA-VALID publish set and authors rich vs coverage-only briefs honestly (34.517334ms)
+✔ distributed publisher appends history generation over generation and is idempotent on an unchanged run (21.002667ms)
+✔ distributed publisher writes ONLY under briefs/ and never mutates market-brief.* or data/ (11.570291ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 122.054542
+```
+
+**Executed:** YES (current session)
+**Command:** bounded classifier over `git diff --name-status HEAD^..HEAD`, `git status --short --untracked-files=all`, and the exact Scope 01 allowed, Feature 028 artifact, current shared-consumer canary, Feature 025 immutable, worktree-control, and excluded path families
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture:** `0828f8c5c5bc4d7b1809f0605462f173fe1765cfc96fdebf2bbe97b9b9be6069` over all 56 output lines.
+
+```text
+# VAL-028-S01 implement-owned changed-path and excluded-family classification
+exit: 0
+lines: 56
+sha256: 0828f8c5c5bc4d7b1809f0605462f173fe1765cfc96fdebf2bbe97b9b9be6069
+--- first 20 ---
+CHECKPOINT_COMMIT_DELTA_BEGIN
+M       company-intelligence.config.json
+M       config/domain-model.yaml
+M       rlcompanyintel.js
+M       scripts/brief-author.mjs
+A       scripts/company-intelligence-publication.mjs
+A       specs/028-company-intelligence-publication-and-brief-transaction/design.md
+A       specs/028-company-intelligence-publication-and-brief-transaction/report.md
+A       specs/028-company-intelligence-publication-and-brief-transaction/scenario-manifest.json
+A       specs/028-company-intelligence-publication-and-brief-transaction/scopes.md
+A       specs/028-company-intelligence-publication-and-brief-transaction/spec.md
+A       specs/028-company-intelligence-publication-and-brief-transaction/state.json
+A       specs/028-company-intelligence-publication-and-brief-transaction/test-plan.json
+A       specs/028-company-intelligence-publication-and-brief-transaction/uservalidation.md
+A       tests/company-intelligence-publication.e2e.mjs
+A       tests/company-intelligence-publication.integration.mjs
+A       tests/company-intelligence-publication.unit.mjs
+M       tests/company-intelligence.unit.mjs
+CHECKPOINT_COMMIT_DELTA_END
+CURRENT_WORKTREE_DELTA_BEGIN
+--- omitted 16 line(s); sha256 above covers the full output ---
+--- last 20 ---
+CHANGED_PATH_CLASS=FEATURE028_ARTIFACT PATH=specs/028-company-intelligence-publication-and-brief-transaction/state.json
+CHANGED_PATH_CLASS=FEATURE028_ARTIFACT PATH=specs/028-company-intelligence-publication-and-brief-transaction/test-plan.json
+CHANGED_PATH_CLASS=FEATURE028_ARTIFACT PATH=specs/028-company-intelligence-publication-and-brief-transaction/uservalidation.md
+CHANGED_PATH_CLASS=SCOPE01_IMPLEMENTATION_OR_TEST PATH=tests/company-intelligence-publication.e2e.mjs
+CHANGED_PATH_CLASS=SCOPE01_IMPLEMENTATION_OR_TEST PATH=tests/company-intelligence-publication.integration.mjs
+CHANGED_PATH_CLASS=SCOPE01_IMPLEMENTATION_OR_TEST PATH=tests/company-intelligence-publication.unit.mjs
+CHANGED_PATH_CLASS=SCOPE01_IMPLEMENTATION_OR_TEST PATH=tests/company-intelligence.unit.mjs
+CHANGED_PATH_CLASS=CURRENT_SHARED_CONSUMER_CANARY PATH=tests/distributed-briefs.distributed-publish.unit.mjs
+CHANGED_PATH_CLASS=WORKTREE_CONTROL PATH=.bubbles-worktree
+CHANGE_BOUNDARY_BASE=b4dbe7bf83e69f9a2c2a75f8377178859396c3d7
+CHANGE_BOUNDARY_HEAD=5f5caf16ac914bae67b990cc40bd7d1e025250c3
+CHANGED_PATH_UNIQUE_COUNT=19
+SCOPE01_IMPLEMENTATION_OR_TEST_COUNT=9
+FEATURE028_ARTIFACT_COUNT=8
+SHARED_CONSUMER_CANARY_PATH_COUNT=1
+WORKTREE_CONTROL_PATH_COUNT=1
+FEATURE025_SPEC_ARTIFACT_CHANGED_COUNT=0
+FEATURE025_IMMUTABLE_FAMILY_CHANGED_COUNT=0
+EXCLUDED_FAMILY_COUNT=0
+CHANGE_BOUNDARY_RESULT=PASS
+```
 
 The broad regression-quality scan also returned exit 1 with 15 matches in the pre-existing Feature 025 security test region of `tests/company-intelligence.unit.mjs`. Every reported match is an adversarial `.innerHTML` detector or mutation fixture. The changed compatibility canary contains none of those matches. The guard rerun against all three new Scope 01 files returned exit 0 with zero violations and zero warnings.
 
@@ -1383,3 +1531,467 @@ sha256: 948bbdc4ca8e240e77c7cc4b07b0ec2c6aa104b3f843efe05cc05a38597c7595
 ✅ G097: no concrete security/contract mechanism named in requirements — not applicable
 G097_DIRECT_OBSERVED_EXIT=0
 ```
+
+## Scope 01 Fresh Validate-Owned Certification Replay — 2026-08-29
+
+**Agent:** `bubbles.validate`
+**Scope:** `01-company-publication-foundation`
+**Mode:** `full-delivery`
+**Captured at:** `2026-08-29T16:54:38Z`
+**Candidate revision:** `5f5caf16ac914bae67b990cc40bd7d1e025250c3`
+
+### Fresh Authority and Outcome-Contract Verification
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The exact repository packet, Goal Contract revision 3, G134 pre-certification boundary, G128 session cap, and transition contract all passed. The full Feature 028 Success Signal remains incomplete by design because Scopes 02 through 05 have not started. Scope 01's declared contribution is the certifying outcome evaluated here.
+
+| Field | Current evidence | Scope 01 status |
+| --- | --- | --- |
+| Intent | The focused production tests execute the headless company publication foundation without granting publication authority. | Pass |
+| Success Signal contribution | The owner-read integration produces one real Company Intelligence source read and no coverage-only company outcome. | Pass |
+| Hard Constraints | The 99-test replay preserves fifteen dimensions, four isolated horizons, explicit missing/stale states, cutoff refusal, bounded plans, privacy boundaries, and Feature 025 compatibility. | Pass |
+| Failure Condition | The process test refuses `promote` and proves source pointer and brief bytes remain unchanged. Later coupled-publication failure conditions are not claimed by Scope 01. | Pass for Scope 01 |
+
+**Phase:** validate
+**Command:** exact packet validation, Goal Contract revision 3 verification, G134 pre-certification guard, G128 session-cap guard, and transition-contract resolver
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Feature 028 Scope 01 fresh binding and transition contract replay
+exit: 0
+lines: 13
+sha256: 884376de0a9b3d0815dc82b84078fbc788646e9a55ca2687a892fb09dc306499
+REPOSITORY PACKET VALID actionable=true repository=research-lab-company-intelligence-delivery-r2 decision=rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:5 revision=5
+PACKET_EXIT=0
+goal-contract: verified gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3 revision 3
+GOAL_VERIFY_EXIT=0
+goal-fidelity-guard: PASS boundary=pre-certification
+GOAL_FIDELITY_EXIT=0
+PASS Gate G128 (session_cap_enforcement_gate) — no aggregate cap exceeded
+SESSION_CAP_EXIT=0
+TRANSITION_RESOLVER_EXIT=0
+BINDING_TRANSITION_REPLAY_EXIT=0
+```
+
+The pre-report resolver returned `workflowMode=full-delivery`, `auditProfile=delivery-completion-v1`, `statusCeiling=done`, `targetStatus=done`, and contract digest `sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93`. The first post-append resolver returned target revision `sha256:8f53aaf05f58613c3d029c79a83f3d591219645dc63d2853f9cbe30b73da7760`; its structural capture is `sha256:e3a6d1df53f35d2ae0f2272e70f77ef62eec070d082d4e40beb3d81e448e8bb2`. That revision identifies that executed replay, not a self-referential claim about later report text.
+
+### Fresh Scope 01 Product Replay
+
+**Phase:** validate
+**Command:** `node --test tests/company-intelligence-publication.unit.mjs tests/company-intelligence-publication.integration.mjs tests/company-intelligence-publication.e2e.mjs tests/company-intelligence.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Feature 028 Scope 01 fresh 99-test certification replay
+exit: 0
+lines: 107
+sha256: d00b3c74795ae422496c732daec6dd2ae8b7cbd7a61a1adec9f1c2d3d4969c73
+✔ Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority
+✔ SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome
+✔ SCN-028-006 headless composition preserves fifteen states and four isolated horizons
+✔ Mutation: SCN-028-007 missing and stale owner reads remain named and cannot become fresh claims
+✔ Mutation: SCN-028-008 evidence after the frozen cutoff is rejected from every horizon
+✔ SCN-028-009 signed bounded plan is enriched from the frozen source catalogue
+✔ Mutation: SCN-028-010 malformed unsigned cross-subject late and over-budget plans fail closed
+✔ Privacy mutation: company owner reads reject private fields and action authority
+✔ Regression canary: Feature 025 UMD and v1 contracts remain readable beside publication v2
+ℹ tests 99
+ℹ suites 0
+ℹ pass 99
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+The current build, source lock, each exact TP-01 command, Feature 025 canary, and shared author/bundle canaries also ran in one bounded replay. Every command exited `0`; the complete 187-line capture is `sha256:7cb52289de4ca19ad21b5ab441ef24c3702b627c916c736157a3836f233d6cf2`. The shared distributed-publisher canary emitted Node's `ExperimentalWarning` for unavailable `localStorage`; this replay does not describe that command as warning-free.
+
+The Scope 01 anti-mock, interception, skip, exclusive-run, todo, and regression-quality checks exited `0`. They reported zero matching files, zero regression violations, and zero regression warnings. The 22-line capture is `sha256:c0c3c17590c62c4c903501196332c50a7b5db230acb3833d4526cf9acb67cc58`.
+
+### Fresh Governance Replay
+
+| Command or check | Exit | Current result |
+| --- | ---: | --- |
+| `node scripts/build-pages-site.mjs` | 0 | Pages build completed. |
+| `node scripts/validate-node-source-lock.mjs` | 0 | Actual source lock passed and 16 adversarial mutations were rejected. |
+| `bash .github/bubbles/scripts/artifact-lint.sh <feature>` | 0 | Artifact structure passed. |
+| `bash .github/bubbles/scripts/scenario-obligation-lint.sh <feature>` | 0 | All 22 scenario obligation matrices were coherent. |
+| `bash .github/bubbles/scripts/test-mechanism-lint.sh <feature> --repo-root .` | 0 | All 22 declared mechanisms were coherent. |
+| `bash .github/bubbles/scripts/implementation-reality-scan.sh <feature> --verbose` | 0 | Zero violations; one design-fallback discovery warning. |
+| `bash .github/bubbles/scripts/artifact-freshness-guard.sh <feature>` | 0 | Zero failures and zero warnings. |
+| `bash .github/bubbles/scripts/execution-substate-guard.sh <feature>` | 0 | Namespace and vocabulary passed. |
+| `bash .github/bubbles/scripts/domain-invariant-guard.sh <feature>` | 0 | Six declared invariants were anchored. |
+| `bash .github/bubbles/scripts/domain-model-consistency.sh <feature>` | 0 | Shared model consistency passed. |
+| `bash .github/bubbles/scripts/collected-test-count-guard.sh <feature> --verbose` | 0 | No Feature 028 evidence claims a zero-test run. |
+| `bash .github/bubbles/scripts/env-pollution-scan.sh .` | 0 | No test-to-production write was detected. |
+| `bash .github/bubbles/scripts/done-spec-audit.sh --profile changed <feature>` | 0 | One nonterminal spec scanned; terminal completion checks correctly skipped. |
+| `bash .github/bubbles/scripts/handoff-cycle-check.sh .github/agents` | 0 | No handoff cycle or missing target. |
+| `bash .github/bubbles/scripts/traceability-guard.sh <feature> --all-scopes` | 1 | Scope 01 mappings resolve; ten missing-file findings belong to Scopes 04 and 05. |
+| `node scripts/selftest.mjs` | 1 | 3,459 passed and nine failed. The failures remain assigned to unimplemented Scopes 04 and 05. Capture: `sha256:e7f16edb74fe2f7d755b4302e201508e0287de7a6389c9a6beb2b1d23f3d87b7`. |
+| `bash .github/bubbles/scripts/requirement-mechanism-guard.sh <feature>` | 1 | The feature-wide guard finds the Scope 05 CSP mitigation before Scope 05 implementation. |
+| `bash .github/bubbles/scripts/claim-source-lint.sh <feature>` | 0 advisory | Two test-owned RED/GREEN sub-blocks lack local Claim Source tags. |
+| `bash .github/bubbles/scripts/cli.sh framework-write-guard` | 1 | Five pre-existing framework-managed agent files differ from the installed checksum snapshot. |
+| `bash .github/bubbles/scripts/cli.sh doctor` | 1 | Framework drift plus repository-wide zero-test evidence drift. |
+| `bash .github/bubbles/scripts/cli.sh repo-readiness .` | 0 | Nine checks passed, zero warned, zero failed. |
+
+### Receipt-Derived Scenario-State Failure
+
+**Phase:** validate
+**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/028-company-intelligence-publication-and-brief-transaction --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+# Feature 028 current receipt-derived scenario certification states
+exit: 1
+lines: 133
+sha256: 0dc31dfb36172de0ea3885e311d4cd6f2c9108fd0c6dad8bd77366fe91916693
+scenario-state-resolve: specs/028-company-intelligence-publication-and-brief-transaction
+  source revision: 5f5caf16ac91
+  SCN-028-005  state=PLANNED  derived=[PLANNED]
+  SCN-028-006  state=PLANNED  derived=[PLANNED]
+  SCN-028-007  state=PLANNED  derived=[PLANNED]
+  SCN-028-008  state=PLANNED  derived=[PLANNED]
+  SCN-028-009  state=PLANNED  derived=[PLANNED]
+  SCN-028-010  state=PLANNED  derived=[PLANNED]
+--- omitted 93 line(s); sha256 above covers the full output ---
+  certifiable: no
+```
+
+The repository has no `.specify/runtime/tool-calls.jsonl`. Fresh passing test output cannot be converted into receipt-derived RED, implementation, green, live, and regression states by narrative interpretation. This is a Scope 01 certification blocker.
+
+### Registry-Asserted Transition Result
+
+**Phase:** validate
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/028-company-intelligence-publication-and-brief-transaction --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+# Feature 028 Scope 01 post-first-append transition guard
+exit: 1
+lines: 568
+sha256: 7dfc70ec50c870af5eb07e25406453101d3b76736048b6fb0826a747d029c8d6
+workflowMode: full-delivery
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+targetRevision: sha256:8f53aaf05f58613c3d029c79a83f3d591219645dc63d2853f9cbe30b73da7760
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+passedGateIds: [G057,G053,G040,G051,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G098,G099,G100,G130,G131]
+failedGateIds: [G022,G027,G068,G097,G136]
+failedChecks: [Check-4-scenario-states,Check-5-all-done,Check-8-file-existence]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 49
+exitStatus: 1
+verdict: FAIL
+```
+
+This command is the whole-feature terminal guard. Its Scope 01-specific failures remain blocking. Its later-scope and terminal-only failures are preserved below and are not relabelled as Scope 01 passes.
+
+### Scope 01 Certification Finding Accounting
+
+#### Addressed Findings
+
+| Finding | Current closure evidence |
+| --- | --- |
+| `VAL-028-PHASE-ANALYZE` | Fresh transition Check 6B and Check 7C accept one `bubbles.ux` claim backed by one execution-history row. |
+| `VAL-028-S01-G057` | G057 manifest integrity passes. Every Scope 01 linked test resolves; the unresolved references are later-scope paths or titles. |
+| `VAL-028-S01-G060` | The transition guard accepts the ordered RED-stage and GREEN-stage evidence. |
+| `VAL-028-S01-G068` | None of the twelve fresh G068 gaps belongs to Scope 01. The six Scope 01 scenario claims now map faithfully. |
+| `VAL-028-S01-REGRESSION-DOD` | The guard recognizes Scope 01's scenario-specific regression item, broader regression item, and explicit regression Test Plan row. |
+| `VAL-028-S01-BOUNDARY-DOD` | The guard recognizes Scope 01's Change Boundary section, DoD containment item, and allowed/excluded inventory. |
+| `VAL-028-S01-BUILD-EVIDENCE` | The Build Quality DoD now resolves to executed output; G053 passes with Git-backed non-artifact paths. |
+| `VAL-028-S01-TEST-OUTCOME` | The fresh 99-test replay passes with zero failures, cancellations, skips, or todos. Test-integrity and Feature 025 compatibility checks pass. |
+
+#### Unresolved Findings
+
+| Finding | Current evidence | Required owner |
+| --- | --- | --- |
+| `VAL-028-S01-SCENARIO-RECEIPTS` | All six Scope 01 scenarios remain receipt-derived `PLANNED`; the resolver exits 1. | `bubbles.test` first, then `bubbles.implement`, then `bubbles.test`, preserving RED → implementation → green/live/regression ordering. |
+| `VAL-028-S01-TEST-PROVENANCE` | State has no `test` completed-phase claim or test execution-history row. Validate-owned test execution cannot impersonate `bubbles.test`. | `bubbles.test` |
+| `VAL-028-S01-G072` | Claim-source lint reports missing local tags at report lines 13 and 75 in test-owned RED/GREEN sub-blocks. | `bubbles.test` |
+| `VAL-028-S01-CORE-EVIDENCE` | Check 9 still classifies `#scope-01-implement-owned-quality-evidence` as prose-only command evidence for one checked core DoD item. | `bubbles.implement` |
+| `VAL-028-S01-G027` | Implementation is claimed while zero scopes are artifact-marked Done and `certification.completedScopes` is empty. Certification cannot resolve this until the four Scope 01 evidence/provenance findings above close. | `bubbles.validate` after owner closure |
+| `VAL-028-S01-SHARED-WARNING` | The shared distributed-publisher canary passes but emits Node's experimental `localStorage` warning. | `bubbles.test` |
+| `VAL-028-LATER-TRACEABILITY` | Scenario resolution has 17 unresolved references and all-scope traceability has ten failures, all assigned to Scopes 02 through 05, including the two not-yet-authored Scope 04/05 test files. | `bubbles.implement` and `bubbles.test` in their planned scopes |
+| `VAL-028-LATER-G068-AND-DOD` | Twelve G068 gaps, eight regression-DoD gaps, one Scope 05 consumer-impact DoD gap, and trailing Scope-Kind punctuation on Scopes 02 through 04 remain. | `bubbles.plan` before the affected scopes execute |
+| `VAL-028-LATER-G097` | The feature-wide mechanism guard sees the Scope 05 design's CSP mitigation before Scope 05 code and browser proof exist. | `bubbles.design` or `bubbles.implement` within Scope 05 |
+| `VAL-028-LATER-SELFTEST` | The core selftest exits 1 with nine failures: two planned test paths and eight stale registration/route assertions assigned to Scopes 04 and 05. | `bubbles.implement` in the planned later scopes |
+| `VAL-028-TERMINAL-G022` | Eleven full-delivery phases remain unclaimed. | Their registered phase owners during later-scope delivery |
+| `VAL-028-TERMINAL-G136` | Human acceptance remains unchecked and no acceptance record exists. This replay did not inspect, alter, or claim human acceptance. | Human acceptance authority after delivery |
+| `VAL-RL-FRAMEWORK-INTEGRITY` | Framework-write-guard and doctor report five installed agent files with checksum drift. The checkpoint delta contains no framework-managed path. | Framework install owner; no downstream manual edit |
+| `VAL-RL-G133-BASELINE` | The Feature 028 test-count guard passes, but repository-wide doctor finds 18 zero-test evidence blocks under Features 022 through 024. | Owners of those historical packets |
+| `VAL-RL-STOCK-BASH-PARSE` | A diagnostic `/bin/bash` 3.2 invocation stopped at a parser error while the canonical PATH-resolved `bash` invocation completed and emitted the transition result above. | Upstream Bubbles portability owner |
+
+### Fresh Certification Disposition
+
+Scope 01 is **not certified** by this replay. `certification.completedScopes` remains empty. Scope 01 remains `in_progress`, and both feature status mirrors remain `in_progress`. Scope 02 was not started. Feature 025, human acceptance, product source, tests, later scopes, and framework-managed files were not modified by this validation invocation.
+
+The concrete route is `route_required` to `bubbles.test` for `VAL-028-S01-SCENARIO-RECEIPTS`, `VAL-028-S01-TEST-PROVENANCE`, `VAL-028-S01-G072`, and `VAL-028-S01-SHARED-WARNING`. The complete unresolved set above remains open; no later-scope or repository-global failure is hidden by the focused product pass.
+
+## Scope 01 Test-Owned Receipt and Provenance Closure — 2026-08-29
+
+### Current Authority and Boundary
+
+**Phase:** test
+**Claim Source:** executed
+**Repository packet:** `rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:5`, control revision `5`
+**Repository:** `research-lab-company-intelligence-delivery-r2`
+**Scope:** `01-company-publication-foundation`
+
+The exact user-supplied packet passed the installed `repository-binding.sh validate-packet` command before repository-local inspection. This test phase changed only two test files plus this test-owned report section and test execution provenance in `state.json`. It did not change product implementation, Feature 025, later-scope tests, human acceptance, or framework-managed files.
+
+### Current Receipt-Bound RED Controls
+
+**Phase:** test
+**Claim Source:** executed
+**Receipt carrier:** `.specify/runtime/tool-calls.jsonl`
+**Source revision:** `5f5caf16ac914bae67b990cc40bd7d1e025250c3`
+
+| Scenario | Current discriminating control | RED exit | Full-output capture |
+| --- | --- | ---: | --- |
+| `SCN-028-005` | Omit the injected company owner read from the persisted snapshot while retaining owner-read and bundle assertions. | 1 | `a7a70fae0d0c16f02d654b145afeef44c537cd70552af96637828813b2c71710` |
+| `SCN-028-006` | Remove one coverage dimension while retaining the fifteen-state assertion. | 1 | `abdb417ed07dc090439393a4e3158529ca71b0d1dc7fbdd775812101ffab0dc5` |
+| `SCN-028-007` | Return the deliberately aged owner read to `current` while retaining the stale-state assertion. | 1 | `9c55e0dc9a46cac73dcdd423c5cdca2438eb9c637181ee6ea8ccb917208d2683` |
+| `SCN-028-008` | Move the post-cutoff source to the exact cutoff while retaining cutoff-refusal assertions. | 1 | `2c9e65594c0700f14aaba0ba156e21ca01f18c660bfcc0893a739d6f7c6d27c5` |
+| `SCN-028-009` | Replace the authored response fingerprint with a nonmatching digest while retaining valid-plan assertions. | 1 | `15752789c0029f5d38490c6b04578add50006fc20ff5a249bfdd21e67906ad71` |
+| `SCN-028-010` | Leave the supposedly unsigned response fingerprint intact while retaining unsigned-refusal assertions. | 1 | `cf3392f143e9fffead99ecfb95285f1c442b12da40f1b47a05f0859dd751fa66` |
+
+The two temporarily controlled test files were restored exactly before any GREEN execution. Git object comparison returned `RESTORE_EXACT=PASS` for objects `56c00d2f67de178eda28cb12378e68fd65eec91d` and `c6b0fa2a88b4fcf320a8c3e0492adb0f9d66c87a`.
+
+The newly created runtime log initially contained two setup-trial RED rows whose labels did not exactly describe their perturbations. Those two rows were excluded before evidence admission. No inherited tool-call log existed. Every retained RED row above comes from the corrected current execution, and the final resolver reports no Scope 01 receipt refusal.
+
+### Current Exact Eight-Row Test Plan Replay
+
+**Phase:** test
+**Claim Source:** executed
+
+| Test Plan row | Exact command | Exit | Tests passed / failed / skipped | Full-output capture |
+| --- | --- | ---: | --- | --- |
+| `TP-01-01` | `node --test tests/company-intelligence-publication.integration.mjs` | 0 | 1 / 0 / 0 | `8676f6dc33d79f04287ba4c6b3651a2a7086a0a22cf134715cba0c6545dea46d` |
+| `TP-01-02` | `node --test tests/company-intelligence-publication.unit.mjs` | 0 | 6 / 0 / 0 | `174cf9baa8979b2e6d23b12716312d64718753d17ad210a923069bcbdf8ee19b` |
+| `TP-01-03` | `node --test tests/company-intelligence-publication.unit.mjs` | 0 | 6 / 0 / 0 | `7063db8b20ff58c3992084372e7ea7fe58e619f069080434a894e34c2b4e3235` |
+| `TP-01-04` | `node --test tests/company-intelligence-publication.unit.mjs` | 0 | 6 / 0 / 0 | `38ee75e9a9134f8016e15addbab00cda95e0b7d7de4b974eab4c577453dc80be` |
+| `TP-01-05` | `node --test tests/company-intelligence-publication.unit.mjs` | 0 | 6 / 0 / 0 | `f2504b58d0c47357387c2e89fd3aaafb30e060fbc809f4bbf4a75b3ea4162dd4` |
+| `TP-01-06` | `node --test tests/company-intelligence-publication.unit.mjs` | 0 | 6 / 0 / 0 | `23876e1fb9a96119e572ae7e21cc377acf3a16756d15dc6fdea7b91b8b7829ec` |
+| `TP-01-07` | `node --test tests/company-intelligence-publication.e2e.mjs` | 0 | 1 / 0 / 0 | `daf697bc6df1a39ea406c0f4ec53a8b4cebe92360c452a4ac1d7046e66da593e` |
+| `TP-01-08` | `node --test tests/company-intelligence.unit.mjs` | 0 | 91 / 0 / 0 | `53ae1ac29fad1e9ab96a69f89e20cd16482c6fe932debd3a5e733da721fdb019` |
+
+The strengthened TP-01-07 process test still has one exact Test Plan title. It now drives the production CLI through real temporary Git checkouts for named missing/stale evidence, post-cutoff refusal, unsigned-plan refusal, valid private candidate creation, owner-read injection, absent promotion authority, and source-byte restoration.
+
+### Current GREEN LIVE and Regression Receipt Matrix
+
+**Phase:** test
+**Claim Source:** executed
+
+| Scenario | Highest applicable receipt-derived state | Live proof | Regression capture |
+| --- | --- | --- | --- |
+| `SCN-028-005` | `REGRESSION_GREEN` | TP-01-07 real temporary Git process, capture `42a941a49e8dc85dfeba36c9c3d18d661c6b49e324eb3d7115690066d8d1df31` | `d93ad255affe0390a47ae8ab87f87a4c4f7d80ee1e7714b964d60be68cee6163` |
+| `SCN-028-006` | `REGRESSION_GREEN` | Not applicable to its pure-calculation traits | TP-01-08 capture `53ae1ac29fad1e9ab96a69f89e20cd16482c6fe932debd3a5e733da721fdb019` |
+| `SCN-028-007` | `REGRESSION_GREEN` | Strengthened TP-01-07 missing/stale CLI path, capture `1788a736e53b0862e33d7d2a2d8bf4f5224ea48014e1fcf87119cef5dd735617` | `70495fe029f3cc9029a730a51b069a9e6e397f92c58e57d5f9edded66d129c6b` |
+| `SCN-028-008` | `REGRESSION_GREEN` | Strengthened TP-01-07 post-cutoff CLI refusal, capture `e493388a1bc9abf926bdf7a9f0039b7edcbf1555e1e32c8aa07b0b7ec9c59789` | `0fbe7f4ff3154732cda7428933798f3bf2448fa0e2a1cbd7afaa10a4a7eb5942` |
+| `SCN-028-009` | `REGRESSION_GREEN` | Not applicable to its pure-calculation traits | `9d875af4729fda863fac1b8915321e2c5cb65cdd4082d08e1165a173dd1bd8bb` |
+| `SCN-028-010` | `REGRESSION_GREEN` | Strengthened TP-01-07 unsigned-plan CLI refusal, capture `daf697bc6df1a39ea406c0f4ec53a8b4cebe92360c452a4ac1d7046e66da593e` | `5001a80274dd1b58e7317c99d6a78ffd39a7e265bb3155ec742f722bdc5393ea` |
+
+`OBSERVED` is not applicable to any Scope 01 scenario because none declares the `sla-sensitive` trait. The resolver therefore requires no telemetry receipt for this scope.
+
+### Receipt-Derived State Resolver Result
+
+**Phase:** test
+**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/028-company-intelligence-publication-and-brief-transaction --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable`
+**Exit Code:** 1
+**Claim Source:** interpreted
+**Interpretation:** Every Scope 01 scenario reaches `REGRESSION_GREEN`, including trait-applicable `GREEN_LIVE`; the whole-feature command remains nonzero only because Scopes 02 through 05 correctly remain `PLANNED`. It does not certify Scope 01 or the feature.
+**Capture:** `0f3c12ed463050c3ebf85344b082a02ca4517288969d7f37927a28ce8d6bb6d5`, lines 1-14 of 105:
+
+```text
+scenario-state-resolve: specs/028-company-intelligence-publication-and-brief-transaction
+  source revision: 5f5caf16ac91
+  SCN-028-001  state=PLANNED  derived=[PLANNED]
+  SCN-028-002  state=PLANNED  derived=[PLANNED]
+  SCN-028-003  state=PLANNED  derived=[PLANNED]
+  SCN-028-004  state=PLANNED  derived=[PLANNED]
+  SCN-028-005  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-028-006  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED REGRESSION_GREEN]
+  SCN-028-007  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-028-008  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-028-009  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED REGRESSION_GREEN]
+  SCN-028-010  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-028-011  state=PLANNED  derived=[PLANNED]
+  SCN-028-012  state=PLANNED  derived=[PLANNED]
+```
+
+### Shared Distributed-Publisher Warning Closure
+
+**Phase:** test
+**Command:** `node --trace-warnings --test tests/distributed-briefs.distributed-publish.unit.mjs`
+**RED Exit Code:** 0 with warning
+**GREEN Exit Code:** 0 without warning
+**Claim Source:** executed
+
+The RED trace identified `rldata.js:12` accessing Node's experimental built-in `localStorage` getter before the test could declare its intended no-storage environment. The first test-only placement was still too late because ESM static imports are hoisted. The final test change declares `globalThis.localStorage` as unavailable before dynamically importing the distributed publisher. It does not filter stderr, pass a warning-suppression flag, or change production code.
+
+```text
+(node:8906) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+    at Object.get (node:internal/webstorage:42:21)
+    at get (node:internal/process/pre_execution:452:58)
+    at /private/tmp/research-lab-company-intelligence-delivery-r2/rldata.js:12:37
+    at /private/tmp/research-lab-company-intelligence-delivery-r2/rldata.js:12:133
+    at Object.<anonymous> (/private/tmp/research-lab-company-intelligence-delivery-r2/rldata.js:1180:3)
+✔ distributed publisher builds a SCHEMA-VALID publish set and authors rich vs coverage-only briefs honestly
+✔ distributed publisher appends history generation over generation and is idempotent on an unchanged run
+✔ distributed publisher writes ONLY under briefs/ and never mutates market-brief.* or data/
+ℹ tests 3
+ℹ pass 3
+ℹ fail 0
+```
+
+The RED warning trace capture is `020e09e4f649364eea60d19b3678342c8e2b09c8286b41a47f1b4014514d1bae`. The final unfiltered GREEN trace emitted no warning:
+
+```text
+✔ distributed publisher builds a SCHEMA-VALID publish set and authors rich vs coverage-only briefs honestly
+✔ distributed publisher appends history generation over generation and is idempotent on an unchanged run
+✔ distributed publisher writes ONLY under briefs/ and never mutates market-brief.* or data/
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 109.262666
+[tool-log] recorded exit=0 duration=151ms → .specify/runtime/tool-calls.jsonl
+```
+
+The GREEN warning-trace capture is `88da4f0472447f959e5279b6a011b9e61cd909b4deea6656eac5796c7f031acf`.
+
+### Current Test and Receipt Tooling Matrix
+
+**Phase:** test
+**Claim Source:** executed
+
+| Command | Exit | Current result | Full-output capture |
+| --- | ---: | --- | --- |
+| `node scripts/validate-node-source-lock.mjs` | 0 | Actual lock passed; all 16 adversarial source mutations were rejected. | `f6405b236d828970f364a85f7354362477bc971915cab74775ab3710147565c8` |
+| `bash .github/bubbles/scripts/regression-quality-guard.sh` over the three Scope 01 publication tests and shared publisher canary | 0 | 4 files, 0 violations, 0 warnings. | `cf802231e7cee1389c0d3c03cbb5e9af6a9ece2d06fee1a7dbea4c3e9f57e661` |
+| `bash .github/bubbles/scripts/collected-test-count-guard.sh <feature> --verbose` | 0 | No Feature 028 evidence claims a zero-test run. | `5684e05261b503684315d95f4101abbe5d6596051f1e5797cfaf9f595628a5bb` |
+| Scope 01 mock/interception and skip/exclusive/todo scan | 0 | 0 mock/interception matches and 0 skip/exclusive/todo matches. | `ef0017d51c526e9208a464a0f4a24df43d833c42d1e2b0882bb77150afa30a46` |
+| `bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict` | 0 | 0 stale receipts; scenario receipts use source-revision binding rather than optional input closures. | `23784a48ba9f251d02aff3c3a7e66e8a6b54fa56e8e7c77178f91247cdeb02a1` |
+| `bash .github/bubbles/scripts/receipt-identity-selftest.sh` | 0 | 20 passed, 0 failed. | `3ced4914073d35996088ebaef08fa40bd3e3776aea824a305e1452572a845e4c` |
+| `bash .github/bubbles/scripts/scenario-test-resolve.sh <feature> --repo-root .` | 1 | All 7 Scope 01 linked targets resolve. The reported 17 unresolved references belong only to Scopes 02 through 05. | `2b0a0ddb471c14df9bfbda33a60f97b196e109f692d225f007d802cfbb33110a` |
+
+The test-mechanism, self-validating, and mock audits remain coherent with the planned mechanisms. The RED controls perturb inputs that production code validates or transforms. The GREEN assertions observe production-computed state, refusal codes, persisted private candidates, real Git status, and exact restored bytes. None can pass by replacing the owning production path with `return input`.
+
+### Test-Owned Finding Accounting
+
+| Finding | Test-owned disposition |
+| --- | --- |
+| `VAL-028-S01-SCENARIO-RECEIPTS` | Closed for `SCN-028-005` through `SCN-028-010`: current RED, Git-backed implementation observation, GREEN_TARGETED, applicable GREEN_LIVE, and REGRESSION_GREEN receipts derive correctly. `OBSERVED` is not applicable. |
+| `VAL-028-S01-TEST-PROVENANCE` | Closed by the matching `test` completed-phase claim and execution-history row in `state.json`, backed by this section. |
+| `VAL-028-S01-G072` | Closed by local `**Claim Source:** executed` tags on the two ordered RED/GREEN sub-blocks. |
+| `VAL-028-S01-SHARED-WARNING` | Closed by the test-owned ESM load-order fix and unfiltered warning-traced GREEN run. |
+
+Scope 01 remains `in_progress`. No certification field was changed, Scope 02 was not started, and human acceptance was not inspected or altered.
+
+## Scope 01 Validate-Owned Certification — 2026-08-29
+
+**Agent:** `bubbles.validate`
+**Scope:** `01-company-publication-foundation`
+**Candidate revision:** `5f5caf16ac914bae67b990cc40bd7d1e025250c3`
+**Claim Source:** interpreted
+**Interpretation:** Scope 01 is independently certifiable. The canonical whole-feature terminal checks remain nonzero only for later-scope, full-pipeline, and human-acceptance obligations. This certification does not claim Scope 02 or whole-feature completion.
+
+### Outcome Contract Verification
+
+| Field | Scope 01 evidence | Status |
+| --- | --- | --- |
+| Intent | The production CLI executes `prepare`, `bind-plan`, and `inject-owner-read` without publication authority. | Pass |
+| Success Signal contribution | SCN-028-005 produces one real company owner read and no coverage-only company outcome. | Pass |
+| Hard Constraints | SCN-028-006 through SCN-028-010 preserve fifteen dimensions, four isolated horizons, explicit degraded states, cutoff refusal, bounded plans, privacy, and Feature 025 compatibility. | Pass |
+| Failure Condition | The process replay refuses promotion and leaves source pointer and brief bytes unchanged. Coupled-publication and public-delivery conditions remain owned by later scopes. | Pass for Scope 01 |
+
+### Current Command Matrix
+
+| Command | Exit | Scope 01 interpretation |
+| --- | ---: | --- |
+| `node scripts/build-pages-site.mjs` | 0 | Current Pages build completed. |
+| `node scripts/validate-node-source-lock.mjs` | 0 | Source lock passed; 16 adversarial mutations rejected. |
+| `node --test tests/company-intelligence-publication.unit.mjs tests/company-intelligence-publication.integration.mjs tests/company-intelligence-publication.e2e.mjs tests/company-intelligence.unit.mjs` | 0 | 99 passed, 0 failed, 0 skipped. |
+| `node --trace-warnings --test tests/distributed-briefs.distributed-publish.unit.mjs` | 0 | 3 passed with no warning. |
+| `bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict` | 0 | No stale receipt. |
+| `bash .github/bubbles/scripts/scenario-state-resolve.sh ... --certifiable` | 1 | SCN-028-005 through SCN-028-010 are `REGRESSION_GREEN`; only later scenarios are `PLANNED`. |
+| `bash .github/bubbles/scripts/artifact-lint.sh <feature>` | 0 | Checked evidence and artifact shape pass. |
+| `bash .github/bubbles/scripts/regression-quality-guard.sh <four Scope 01 tests>` | 0 | 0 violations, 0 warnings. |
+| `bash .github/bubbles/scripts/claim-source-lint.sh <feature>` | 0 | Every execution block has a valid tag. |
+| `bash .github/bubbles/scripts/state-transition-guard.sh <feature> --target-status done ...` | 1 | Check 9 accepts all 16 checked DoD items. Remaining terminal failures are not Scope 01 obligations. |
+| `node scripts/selftest.mjs` | 1 | 3,459 pass and nine failures remain assigned to planned Scopes 04 and 05. |
+
+### Current Scope 01 Product Replay
+
+**Phase:** validate
+**Command:** `node --test tests/company-intelligence-publication.unit.mjs tests/company-intelligence-publication.integration.mjs tests/company-intelligence-publication.e2e.mjs tests/company-intelligence.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture:** `9256e7d440ed8059d1a4ac9531b64309ab0f4c319c1693d0882ae2cbeab830c8` over 107 output lines.
+
+```text
+# Scope 01 current 99-test replay
+$ node --test tests/company-intelligence-publication.unit.mjs tests/company-intelligence-publication.integration.mjs tests/company-intelligence-publication.e2e.mjs tests/company-intelligence.unit.mjs
+exit: 0
+lines: 107
+sha256: 9256e7d440ed8059d1a4ac9531b64309ab0f4c319c1693d0882ae2cbeab830c8
+✔ Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority
+✔ SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome
+✔ SCN-028-006 headless composition preserves fifteen states and four isolated horizons
+✔ Mutation: SCN-028-007 missing and stale owner reads remain named and cannot become fresh claims
+✔ Mutation: SCN-028-008 evidence after the frozen cutoff is rejected from every horizon
+✔ SCN-028-009 signed bounded plan is enriched from the frozen source catalogue
+✔ Mutation: SCN-028-010 malformed unsigned cross-subject late and over-budget plans fail closed
+✔ Privacy mutation: company owner reads reject private fields and action authority
+✔ Regression canary: Feature 025 UMD and v1 contracts remain readable beside publication v2
+ℹ tests 99
+ℹ pass 99
+ℹ fail 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+### Current Receipt and Guard Classification
+
+**Phase:** validate
+**Command:** strict receipt check, receipt-derived scenario-state resolver, and registry-asserted state-transition guard
+**Exit Code:** 1
+**Claim Source:** interpreted
+**Interpretation:** The feature-wide resolver and terminal guard correctly remain nonzero. Their output directly shows all six Scope 01 scenarios at `REGRESSION_GREEN` and all 16 checked Scope 01 DoD items accepted. The failed rows name later-scope planning, missing later test files, unexecuted terminal phases, feature-level G097/G136, and the pre-certification empty completed-scope state.
+
+```text
+RECEIPT_CHECK_EXIT=0
+SCENARIO_STATE_RESOLVER_EXIT=1
+SCN-028-005 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-028-006 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED REGRESSION_GREEN]
+SCN-028-007 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-028-008 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-028-009 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED REGRESSION_GREEN]
+SCN-028-010 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+Check 9: DoD Evidence Presence
+PASS: All 16 checked DoD items across resolved scope files have evidence blocks
+failedGateIds: [G022,G027,G068,G097,G136]
+failedChecks: [Check-4-scenario-states,Check-5-all-done,Check-8-file-existence]
+blockingCode: DELIVERY_COMPLETION_FAILED
+exitStatus: 1
+verdict: FAIL
+```
+
+### Finding Accounting
+
+**Addressed:** `VAL-028-PHASE-ANALYZE`, `VAL-028-S01-SCENARIO-RECEIPTS`, `VAL-028-S01-TEST-PROVENANCE`, `VAL-028-S01-G072`, `VAL-028-S01-CORE-EVIDENCE`, `VAL-028-S01-G027`, `VAL-028-S01-SHARED-WARNING`, `VAL-028-S01-TEST-OUTCOME`, and `VAL-028-S01-TRACEABILITY`.
+
+**Unresolved for the feature:** later-scope `PLANNED` receipt states; Scope 02 through 05 G068 and regression-DoD gaps; missing Scope 04/05 test files and titles; Scope 05 G097; nine repository-selftest failures assigned to Scopes 04/05; unexecuted full-delivery phases; and terminal-only G136 human acceptance. These findings do not become Scope 01 passes and remain open.
+
+### Scope 01 Certification Disposition
+
+Scope 01 is certified `Done`. Feature status and overall certification remain `in_progress`. Scopes 02 through 05 remain `Not Started`. Human acceptance remains unchecked. The next eligible owner is `bubbles.implement` for Scope 02.

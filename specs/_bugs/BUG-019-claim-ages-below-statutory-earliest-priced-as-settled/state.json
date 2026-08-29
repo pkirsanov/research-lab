@@ -4,8 +4,8 @@
   "featureName": "BUG-019 Claim Ages Below The Statutory Earliest Age Are Priced As Settled",
   "createdAt": "2026-08-23T00:00:00Z",
   "lastUpdatedAt": "2026-08-24T00:00:00Z",
-  "certifiedAt": null,
-  "status": "in_progress",
+  "certifiedAt": "2026-08-29T19:37:46Z",
+  "status": "done",
   "blockedReason": null,
   "priorBlockedReason": null,
   "blockedReasonResolved": null,
@@ -135,10 +135,10 @@
     }
   },
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "certifiedBy": null,
-    "certifiedAt": null,
-    "assuranceLevel": null,
+    "certifiedAt": "2026-08-29T19:37:46Z",
+    "assuranceLevel": "prototype",
     "evidence": null,
     "scopeProgress": [
       {
@@ -161,12 +161,27 @@
       }
     ],
     "lockdownState": "off",
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "stabilize",
+      "validate",
+      "audit"
+    ],
     "completedScopes": [
       "01-declare-earliest-claim-age",
       "02-refuse-below-earliest",
       "03-cover-both-sides"
-    ]
+    ],
+    "assurance": {
+      "level": "prototype",
+      "missingForFull": [
+        "independent-validate",
+        "independent-audit"
+      ],
+      "detail": "Five of the eight required phases were re-derived by bubbles.goal rather than executed by their registered specialist owner, so neither validate nor audit is INDEPENDENT. The filing round was a real bubbles.chaos round and is recorded as such, but chaos is not the registered owner of the stabilize phase, so that phase is parent-expanded rather than mislabelled. One uservalidation item asks a human to read the cited statutory authority DIRECTLY rather than taking the pack summary of it; it is recorded as operator-authorized, not as independently performed, because recording an authorization as a completed reading would defeat the purpose of that item."
+    }
   },
   "policySnapshot": {
     "capturedAt": "2026-08-23T00:00:00Z",
@@ -229,5 +244,6 @@
       "expansionEvidenceRef": "report.md",
       "summary": "Re-derived five phase claims from committed evidence and resolved three stale In Progress statuses whose own text said all DoD items were ticked."
     }
-  ]
+  ],
+  "completedAt": "2026-08-29T19:37:46Z"
 }

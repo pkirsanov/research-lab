@@ -2,23 +2,26 @@
  *
  * This file exists SEPARATELY from `portfolio-survival-accessibility.spec.mjs`
  * because of what it does, not because of what it covers. The regression rows in
- * that file (TP-27-01, TP-27-02) drive the REAL served document end to end and
- * are classified `e2e-ui`. This row deliberately intercepts the document request
- * and serves a MUTATED copy, which the canonical taxonomy classifies as MOCKED
- * and therefore out of the live categories. Holding both in one file made the
- * whole file read as a live-system carrier while it contained an intercept, so
- * the two are split along the boundary the taxonomy already draws: intercepting
- * carriers live here, live carriers live there.
+ * that file (TP-27-01, TP-27-02) drive the SHIPPED document end to end. This row
+ * drives a deliberately REDUCED copy of it, and keeping the two apart stops a
+ * reader from mistaking a mutation case for a statement about the real page.
  *
- * The interception is the point. Each case rebuilds the SHIPPED document with one
- * accessibility affordance removed and serves that disposable copy to the browser
- * for the length of one assertion, proving the assertions in the live file
- * discriminate rather than pass by construction. Nothing is written to the
- * working tree, and nothing is mutated in place: the mutation lives only in the
- * string handed to `route.fulfill`.
+ * The mutation is the point. Each case rebuilds the shipped document with one
+ * accessibility affordance removed, writes that disposable copy next to the
+ * original, and lets the REAL static server serve it, proving the assertions in
+ * the live file discriminate rather than pass by construction.
+ *
+ * Nothing is intercepted. An earlier revision fulfilled the document request
+ * with `page.route`, which made this an interception-based carrier inside a
+ * live-category `.spec.mjs` and tripped the live-test-intercept rule. Serving a
+ * real file over the real server removes the conflict at its source instead of
+ * relabelling around it: the browser performs an ordinary fetch, and relative
+ * asset URLs resolve exactly as they do for the shipped page. The copy is
+ * removed in `afterAll` and is git-ignored so an interrupted run cannot leave
+ * the working tree dirty.
  */
 import { expect, test } from './playwright-runtime.mjs';
-import { readFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ROOT, startPortfolioServer } from './portfolio-survival.support.mjs';
 
@@ -29,19 +32,33 @@ test.beforeAll(async () => {
 });
 
 test.afterAll(async () => {
+  rmSync(MUTATION_PATH, { force: true });
   if (server) await server.close();
 });
 
 const LAB_FILE = 'portfolio-survival-allocation-lab.html';
 const LAB_SOURCE = readFileSync(resolve(ROOT, LAB_FILE), 'utf8');
 
+/* The mutated copy is a disposable SIBLING of the shipped file rather than an
+   intercepted response. It must sit in the same directory so the document's
+   relative asset URLs resolve identically to the real page. */
+const MUTATION_FILE = '.scn-008-053-reduced-lab.html';
+const MUTATION_PATH = resolve(ROOT, MUTATION_FILE);
+
 const TABS = [
   'workspaceTabBrief', 'workspaceTabRiskXray', 'workspaceTabPathLab',
   'workspaceTabDiversification', 'workspaceTabAllocation', 'workspaceTabDossier'
 ];
 
+/* Set by `serveReducedLab` and consumed by the NEXT `openLab` call, so the five
+   mutation cases below keep reading as stage-then-open without every call site
+   having to name the file. */
+let stagedLabFile = null;
+
 async function openLab(page, hash = 'brief') {
-  const response = await page.goto(`${server.baseUrl}/${LAB_FILE}#${hash}`);
+  const file = stagedLabFile ?? LAB_FILE;
+  stagedLabFile = null;
+  const response = await page.goto(`${server.baseUrl}/${file}#${hash}`);
   expect(response?.status(), 'the accessible route must be served directly').toBe(200);
   await expect(page.locator('#workspaceIdentity')).toBeVisible();
   await expect(page.locator('#portfolioName')).toBeEditable();
@@ -72,16 +89,13 @@ function mutate(source, find, replaceWith, label) {
 async function serveReducedLab(page, mutatedHtml) {
   /* Parking on about:blank first is load-bearing, not tidiness. `page.goto` to a
      URL that differs from the current one only by fragment is a SAME-DOCUMENT
-     navigation: it issues no network request, so the route below never fires and
-     the browser keeps the unmutated page while the assertions that follow claim
-     to have judged a reduced one. Forcing a real fetch is what makes this carrier
-     adversarial rather than decorative. */
+     navigation: it issues no network request, so the browser would keep the
+     previous document while the assertions that follow claim to have judged a
+     reduced one. Forcing a real fetch is what makes this carrier adversarial
+     rather than decorative. */
+  writeFileSync(MUTATION_PATH, mutatedHtml, 'utf8');
+  stagedLabFile = MUTATION_FILE;
   await page.goto('about:blank');
-  await page.route(`${server.baseUrl}/${LAB_FILE}`, (route) => route.fulfill({
-    status: 200,
-    contentType: 'text/html; charset=utf-8',
-    body: mutatedHtml
-  }));
 }
 
 /* The second half of the same guard: prove the DOCUMENT IN THE BROWSER carries

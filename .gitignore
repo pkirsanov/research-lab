@@ -27,3 +27,8 @@ __pycache__/
 
 # Transient lock held while a session appends to the state snapshot.
 *.flock
+
+# Disposable reduced copy of the allocation lab, written and removed by the
+# SCN-008-053 adversarial mutation carrier. Ignored so an interrupted run
+# cannot leave the working tree dirty.
+.scn-008-053-reduced-lab.html

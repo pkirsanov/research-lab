@@ -498,6 +498,8 @@ resolved to Option B with its reason recorded in `scopes.md` and above, but that
 in execution rather than reviewed by a design owner — which is worth stating, because it is the one
 choice in this packet with a defensible alternative.
 
+<!-- bubbles:certifying-window-begin -->
+
 ### Code Diff Evidence
 
 **Claim Source:** executed, 2026-08-29. Every commit and stat below was re-derived from the
@@ -510,6 +512,13 @@ never touched.
 ```
 $ git show --stat --format='%h %s' 8694d8696
 8694d8696 fix(BUG-012) scope 1: put every OHLC field on one basis and guard it
+
+ data/bars/AAPL.json                    |   2 +-
+ data/bars/ABBV.json                    |   2 +-
+ data/bars/ABT.json                     |   2 +-
+ ... (290 more files under data/bars/)
+ scripts/fetch-bars.mjs                 |  ...
+ scripts/validate-bars-coherence.mjs    |  ...
  298 files changed, 1142 insertions(+), 312 deletions(-)
 ```
 
@@ -542,15 +551,22 @@ all the work is proving the failed path now speaks.
 
 ```
 $ git --no-pager diff -- rlagenda.js
+(no output — byte-identical to HEAD)
 $ git --no-pager log --oneline -1 -- playwright.config.mjs
+b08ba13f4 BUG-017: correct the root cause from browser channel to worker count
+$ for c in $(git log --format=%h -- specs/_bugs/BUG-012-*); do
+    git show --name-only --format= "$c" | grep -c 'playwright.config.mjs'
+  done | paste -sd+ | bc
+0
 ```
 
 `rlagenda.js` is byte-identical — the line 1718 condition, the `RLAGENDA-MODEL-INVALID` code and the
-`currentBasis` field naming are all unchanged — and `playwright.config.mjs` is absent from the change
-set entirely. Those two absences matter more than any addition here. The original diagnosis was a
-Playwright timeout problem, and the cheapest green available at every point in this packet was to
-raise a global timeout or relax the validator. Neither was touched, and the suite is green without
-them.
+`currentBasis` field naming are all unchanged. `playwright.config.mjs` was last modified by
+`b08ba13f4`, a **BUG-017** commit, and zero commits in this packet touched it.
+
+Those two absences matter more than any addition here. The original diagnosis was a Playwright
+timeout problem, and the cheapest green available at every point in this packet was to raise a global
+timeout or relax the validator. Neither was taken, and the suite is green without them.
 
 #### RED → GREEN ordering
 

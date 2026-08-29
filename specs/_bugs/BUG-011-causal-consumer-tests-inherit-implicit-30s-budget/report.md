@@ -274,6 +274,31 @@ confirmed an ancestor of the fix. The diff from the fix to HEAD is empty. Read a
 still declares no `timeout` and no `retries` — the implicit 30 000 ms default remains the
 config-level default, which is why the budget had to be declared per test.
 
+**CORRECTION 2026-08-29 — the "diff to HEAD is empty" sentence above has since gone false, and it
+is corrected here rather than left standing.** At today's HEAD,
+`git diff 5c978c5cb..HEAD -- playwright.config.mjs` reports **20 insertions**. BUG-017 added
+`workers: 2` in `13494be66` and `b08ba13f4`, pinning the local worker count to match the pipeline
+after diagnosing a macOS `system-chrome` teardown force-kill at higher worker counts.
+
+Two parts of the original claim survive the correction, and one does not.
+
+- **Survives — the property this section exists to protect.** The *fix* did not touch the config:
+  `git show --stat 5c978c5cb -- playwright.config.mjs` is still empty. This packet bought its result
+  by declaring per-test budgets, not by loosening a global. Re-verified today:
+  `grep -cE 'retries' playwright.config.mjs` returns **0**, so no retry was ever added anywhere.
+- **Survives — the root cause.** The config still declares no `timeout`, so the implicit 30 000 ms
+  default is still what an undeclared test inherits. That is why the per-test declarations remain
+  load-bearing rather than redundant.
+- **Does not survive — the literal sentence.** The file is not unchanged at HEAD.
+
+**The consequence reaches further than this section, and is recorded in `uservalidation.md` and
+`state.json` rather than only here.** This packet was verified at the suite's then-configured
+**four**-worker parallelism, and that is the condition its decisive acceptance item names. The suite
+now runs at two. No run today can reproduce the four-worker condition, so that item is left
+unticked. The direction of the change is favourable — 180 000 ms budgets sized for higher contention
+have strictly more headroom at lower contention — but "more headroom than required" is not the same
+claim as "verified under the named condition", and it is not recorded as if it were.
+
 ### Tree state at closeout
 
 **Executed by this run:** YES

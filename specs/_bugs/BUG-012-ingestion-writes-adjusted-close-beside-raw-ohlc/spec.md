@@ -21,6 +21,31 @@ knows what went wrong and has no way to say so to anything watching for readines
 
 The three compose: a data defect becomes an unbounded hang carrying no diagnosis.
 
+## Domain Capability Model
+
+**Capability: a single-basis OHLC row, enforced wherever a row is produced or read.**
+
+The defect was not one bad number. It was a row carrying two price bases at once — a raw low beside
+an adjusted close — which is a self-contradictory row that no consumer can interpret. The capability
+this packet delivers is the invariant `l <= min(o, c)`, `h >= max(o, c)`, `l <= h`, together with the
+rule that all four fields share one basis.
+
+| Concern | Where it belongs |
+|---|---|
+| Deciding which basis a row carries | The ingestion contract, decided once |
+| Refusing to WRITE a row that violates the invariant | The writer |
+| Refusing to ACCEPT a corpus that already violates it | The corpus scan |
+| Reacting to an invalid bar at read time | `rlagenda.js`, which already did this correctly and is unchanged |
+
+Two enforcement points are required rather than one, and the reason is not symmetry. A writer-only
+guard leaves 71,714 already-committed rows broken, so the six affected tests stay red. A scan-only
+guard lets the next refresh reintroduce the defect. Fixing one without the other was explicitly
+considered and rejected in `design.md`.
+
+The capability deliberately stops at coherence. It does not police whether a published row may later
+change VALUE — that is a separate decision, filed as
+[`specs/028-published-row-provenance-policy`](../../028-published-row-provenance-policy/spec.md).
+
 ## Expected behaviour
 
 ### Data integrity

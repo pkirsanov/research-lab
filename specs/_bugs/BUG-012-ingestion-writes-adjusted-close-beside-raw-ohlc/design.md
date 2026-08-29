@@ -13,6 +13,39 @@ All measurements cited here were executed earlier in this session and are record
 with their provenance. The line and field citations below were verified by read-only inspection in
 this session and are labelled as such in `report.md`.
 
+## Capability Foundation
+
+The foundation is **one coherence predicate**, expressed once and consumed at every point where a
+bar row is produced or validated: `l <= min(o, c)`, `h >= max(o, c)`, `l <= h`.
+
+What makes this a foundation rather than a local fix is that the predicate is *shared code*, not a
+repeated condition. `scripts/validate-bars-coherence.mjs` exports `assertCoherentBar`,
+`isCoherentBar`, `partitionCoherentBars`, `validateBarsCorpus` and `formatBarsCoherenceFindings`,
+and `scripts/selftest.mjs` imports them at line 49. A second hand-written copy of the inequality in
+the writer would be free to drift from the one in the scan, and a drifted invariant is worse than no
+invariant because it still looks enforced.
+
+The foundation stops at the predicate. It does not retry, does not repair silently, and does not
+decide which basis is correct — §2 records that the basis decision is an owner choice with two
+defensible options.
+
+## Concrete Implementations
+
+| # | Implementation | Enforces at | Artifact | Failure mode it closes |
+|---|---|---|---|---|
+| 1 | Writer guard | Write time, per row | `scripts/fetch-bars.mjs` | A future vendor refresh reintroducing an adjusted close beside a raw low |
+| 2 | Corpus scan | Read time, over all committed rows | `scripts/validate-bars-coherence.mjs`, wired into `scripts/selftest.mjs` | The 71,714 rows already committed when the defect was found |
+
+Both are required. §5 records the rejected alternatives explicitly: repairing `data/bars/COP.json` by
+hand fixes one row of one file and leaves the writer free to redo it, while fixing only the writer
+leaves the pinned row broken so the six tests stay red.
+
+### Variation Axes
+
+- **Axis 1 — when the invariant is checked.** This is the axis that forced two implementations, and it is not a preference. The writer can only check rows it is about to write; it cannot reach rows already committed. The scan can only check committed rows; it cannot stop the next write. Neither position subsumes the other, which is why both exist.
+- **Axis 2 — what a violation does.** Fixed, not variable. Both implementations REFUSE and name the offending row; neither repairs silently. `rlagenda.js` already refused invalid bars correctly and is unchanged, so the read-time behaviour is inherited rather than re-invented. Holding this axis fixed is what kept `rlagenda.js` byte-identical through the whole packet.
+- **Axis deliberately NOT taken — per-symbol or per-feed tolerance.** Nothing permits a symbol to opt out of coherence or declare a looser bound. A tolerance knob would have made the red disappear without the defect being fixed, which is the single most available shortcut in this packet and the one §5 names as prohibited.
+
 ## 1. Root cause
 
 Four facts compose into the observed failure, and each is a separate defect.

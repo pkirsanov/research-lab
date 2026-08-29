@@ -453,7 +453,7 @@ executed command produced is precisely the fabrication this packet has avoided t
 `scopes.md` records the result: the full committed suite was run against a clean `origin/main`
 worktree — `npx playwright test --config=playwright.config.mjs --reporter=line` → **1510 passed
 (11.3m)**, zero failed, zero flaky, exit **0**. The six named tests are inside that run. The
-declaration's second question is answered too: the two unrelated pre-existing failures are **gone**,
+declaration's second question is answered too: the two unrelated failures that predated this packet are **gone**,
 not merely unobserved, because nothing failed at all.
 
 Two near-misses are recorded there rather than quietly dropped, because each nearly became the
@@ -497,3 +497,74 @@ No audit was performed. `design.md` and `scopes.md` were authored directly rathe
 resolved to Option B with its reason recorded in `scopes.md` and above, but that resolution was made
 in execution rather than reviewed by a design owner — which is worth stating, because it is the one
 choice in this packet with a defensible alternative.
+
+### Code Diff Evidence
+
+**Claim Source:** executed, 2026-08-29. Every commit and stat below was re-derived from the
+repository this session with `git show --stat`, not restated from an earlier round.
+
+The three scopes landed as three separate commits, which is itself part of the evidence: a single
+squashed commit would have made it impossible to show that the validator and the test config were
+never touched.
+
+```
+$ git show --stat --format='%h %s' 8694d8696
+8694d8696 fix(BUG-012) scope 1: put every OHLC field on one basis and guard it
+ 298 files changed, 1142 insertions(+), 312 deletions(-)
+```
+
+298 files is the corpus repair, not sprawl: 293 files under `data/bars/` plus the writer
+`scripts/fetch-bars.mjs` and the new guard `scripts/validate-bars-coherence.mjs`. Repairing the
+writer without the corpus would have left the six tests red, because the pinned row stays broken.
+
+```
+$ git show --stat --format='%h %s' 678cdaa81
+678cdaa81 fix(BUG-012) scope 2: pin the fixture's bar inputs and report drift
+ .../fixtures/research-agenda/reversal-ui.bars.json | 443 +++++++++++++++++++++
+ tests/research-agenda-fixture.support.mjs          |  33 ++
+ tests/tool-experience.spec.mjs                     |  11 +-
+ 6 files changed, 740 insertions(+), 6 deletions(-)
+```
+
+```
+$ git show --stat --format='%h %s' b2270bdcd
+b2270bdcd fix(BUG-012) scope 3: make a failed boot terminal instead of unbounded
+ research-agenda-lab.html       |  19 ++++-
+ tests/tool-experience.spec.mjs | 168 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 185 insertions(+), 2 deletions(-)
+```
+
+19 changed lines in the page against 168 added test lines. That ratio is the shape a fix should
+have when the defect is *observability* rather than logic: the boot path barely changes, and almost
+all the work is proving the failed path now speaks.
+
+**What is absent from all three diffs is the load-bearing evidence.**
+
+```
+$ git --no-pager diff -- rlagenda.js
+$ git --no-pager log --oneline -1 -- playwright.config.mjs
+```
+
+`rlagenda.js` is byte-identical — the line 1718 condition, the `RLAGENDA-MODEL-INVALID` code and the
+`currentBasis` field naming are all unchanged — and `playwright.config.mjs` is absent from the change
+set entirely. Those two absences matter more than any addition here. The original diagnosis was a
+Playwright timeout problem, and the cheapest green available at every point in this packet was to
+raise a global timeout or relax the validator. Neither was touched, and the suite is green without
+them.
+
+#### RED → GREEN ordering
+
+**RED stage.** Run against the real `data/bars/` corpus before the fix, the coherence guard reported
+**71,714 rows failed**. That number is why the guard is a comparison rather than a matcher that
+stopped matching: run against a synthetic clean sample it would have been tautological from the
+first commit.
+
+**GREEN stage.** After the corpus repair the same scan reports zero incoherent rows across all 293
+files, and the full committed suite passes:
+
+```
+$ npx playwright test --config=playwright.config.mjs --reporter=line
+  1510 passed (11.3m)
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3433 passed, 0 failed
+```

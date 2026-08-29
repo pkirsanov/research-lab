@@ -19,7 +19,7 @@ import { distinctRowsBy, reassertCompanyOwnerReadDisclosure, trackedAsOfReader }
 import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
 import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction } from './validate-brief-payload.mjs';
 import { attentionAuthoredKeysInstruction, attentionCardBudgetInstruction, attentionExpiryFormatInstruction, attentionHeadlineCapInstruction, attentionRationaleBudgetInstruction, attentionSubjectMenuInstruction, attentionSubjectUniquenessInstruction, attentionVerbContractInstruction, briefFreshnessBadgeInstruction, recommendationConfidenceContractInstruction } from './build-attention-items.mjs';
-import { BRIEF_NARRATIVE_FIELDS_REQUIRED, briefBackdropKeysInstruction } from './reader-vocabulary.mjs';
+import { BRIEF_NARRATIVE_FIELDS_REQUIRED, briefBackdropKeysInstruction, matchesFieldPatterns, walkBriefStrings } from './reader-vocabulary.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
 
 const ROOT = process.cwd();
@@ -191,28 +191,29 @@ function hasExactFragmentKeys(fragment, keys) {
    later as a red D13 coverage assertion against the already-committed payload. The
    required list in reader-vocabulary.mjs is the canonical answer to "which narrative
    fields must exist", so it is enforced HERE too, at the point a lane can still be
-   retried. Only literal paths are checked: the wildcard patterns ('*', '[]', '**')
-   describe shapes whose arity depends on the publish, and a lane that legitimately
-   emits zero of them is not incomplete. */
-function requiredLeavesFor(keys) {
+   retried.
+
+   Wildcard patterns used to be skipped, on the reasoning that a lane emitting zero of a
+   `**` subtree is not incomplete. The publisher disagrees: findMissingRequiredNarrativeFields
+   requires at least one string under EVERY required pattern, wildcards included. So the lane was
+   told zero was acceptable while the publish path treated it as fatal, and the disagreement was
+   paid at the worst rung — the outer narrative retry re-sends an identical prompt, so the
+   2026-08-29 morning window lost both attempts to the same five wildcard groups and published
+   nothing. Satisfaction is now decided by the PUBLISHER'S OWN matcher over the same required
+   list, so the two cannot drift and a miss is caught where the retry still carries feedback. */
+function missingRequiredFieldsFor(fragment, keys) {
     const owned = new Set(keys);
+    const present = walkBriefStrings(fragment);
     return BRIEF_NARRATIVE_FIELDS_REQUIRED
-        .filter((pattern) => !pattern.includes('*') && !pattern.includes('[]'))
-        .map((pattern) => pattern.split('.'))
-        .filter((segments) => segments.length > 1 && owned.has(segments[0]));
+        .filter((pattern) => {
+            const segments = pattern.split('.');
+            return segments.length > 1 && owned.has(segments[0]);
+        })
+        .filter((pattern) => !present.some((entry) => matchesFieldPatterns([pattern], entry.segments)));
 }
 
 function missingRequiredLeaves(fragment, keys) {
-    const missing = [];
-    for (const segments of requiredLeavesFor(keys)) {
-        let node = fragment;
-        for (const segment of segments) {
-            if (node === null || typeof node !== 'object' || !(segment in node)) { node = undefined; break; }
-            node = node[segment];
-        }
-        if (node === undefined || node === null || node === '') missing.push(segments.join('.'));
-    }
-    return missing;
+    return missingRequiredFieldsFor(fragment, keys);
 }
 
 /* Why a rejected fragment was rejected, in the lane's own vocabulary. `readCompleteFragment`

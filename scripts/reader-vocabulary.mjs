@@ -301,15 +301,37 @@ export function briefBackdropKeysInstruction() {
   const own = (prefix) => BRIEF_NARRATIVE_FIELDS_REQUIRED
     .filter((field) => field.startsWith(prefix) && field.slice(prefix.length).indexOf('.') === -1)
     .map((field) => field.slice(prefix.length));
+  /* The flat filter above drops every NESTED requirement, because `levels.*` and
+     `trendEvidence.**` both carry a dot. The publish path requires them all the same, so an
+     instruction built only from the flat names told the author less than the gate demanded:
+     the 2026-08-29 morning window lost both attempts to `regime.levels.*`,
+     `backdrop.trendEvidence.**`, `backdrop.globalBackdrop.**`, `backdrop.whatWouldChangeIt.**`
+     and `backdrop.structuralLevels.**` — none of which this instruction had ever named. The
+     author had been producing them by copying the shape of the prior payload, which works until
+     the run it doesn't. Naming them here is what makes the requirement legible to its producer. */
+  const nested = (prefix) => [...new Set(BRIEF_NARRATIVE_FIELDS_REQUIRED
+    .filter((field) => field.startsWith(prefix) && field.slice(prefix.length).indexOf('.') !== -1)
+    .map((field) => field.slice(prefix.length).split('.')[0]))];
   const regimeKeys = own('regime.');
   const backdropKeys = own('backdrop.');
+  const regimeGroups = nested('regime.');
+  const backdropGroups = nested('backdrop.');
   if (regimeKeys.length === 0 || backdropKeys.length === 0) {
     throw new Error('RLBRIEF-BACKDROP-KEYS: the declared regime/backdrop narrative keys are unreadable');
   }
+  if (regimeGroups.length === 0 || backdropGroups.length === 0) {
+    throw new Error('RLBRIEF-BACKDROP-KEYS: the declared regime/backdrop nested groups are unreadable');
+  }
+  const groupList = regimeGroups.map((key) => `regime.${key}`)
+    .concat(backdropGroups.map((key) => `backdrop.${key}`))
+    .join(', ');
   return `Author the regime block under exactly these keys: ${regimeKeys.join(', ')}. Author the `
     + `structural backdrop under exactly these: ${backdropKeys.join(', ')}. Most pairs share a name `
     + 'across the two blocks, but the backdrop\'s structural read is `primaryTrend`, not '
     + '`structuralTrend` — that one belongs to regime, and a third copy under any other key is '
     + 'carried by no renderer and reaches no reader. A key outside these lists is unguarded prose '
-    + 'and fails the payload coverage gate.';
+    + 'and fails the payload coverage gate. '
+    + `These NESTED groups are required too, and each must carry at least one populated field: ${groupList}. `
+    + 'They are required reader copy exactly like the flat keys above, and the publish path refuses '
+    + 'the whole narrative when any one of them is absent or empty.';
 }

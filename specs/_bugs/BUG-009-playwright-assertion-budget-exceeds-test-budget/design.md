@@ -169,6 +169,51 @@ be green, and a guard that is green for the wrong reason is indistinguishable fr
 guard must additionally be shown to fail on a synthetic fixture that re-introduces the defect (a wait
 declared above the default inside a test with no declaration), and to stay green on the AC-4 shapes.
 
+## Capability Foundation
+
+`scripts/validate-playwright-timeout-budgets.mjs` is the foundation. It reads every Playwright spec
+file in the repository, resolves which enclosing budget governs each declared wait, and refuses when
+a declaration cannot be honoured inside it.
+
+It is a foundation rather than a fix because its scope is the repository, not this packet's two
+files. The three sites repaired below are the contradictions that existed when it was written; the
+guard's job is the ones that do not exist yet. §3 above records the full algorithm, the deliberate
+absence of a baseline, and why an AST parser was rejected.
+
+**Known limit, stated rather than implied.** The guard evaluates DECLARED waits. A test whose settle
+is a bare `waitForLoadState('networkidle')` declares no wait, so the guard has nothing to read and
+cannot detect a budget removed from it. That limit was measured, not assumed — see BUG-011, where
+deleting a `test.setTimeout` left this guard green at `violations=0`, which is why that packet needed
+its own separate assertion rather than citing this one.
+
+## Concrete Implementations
+
+| # | Site | Feature | Act | Pre-state |
+|---|---|---|---|---|
+| 1 | `tests/contextual-tooltip.spec.mjs` lines 21, 63 | 012 | add `test.setTimeout(180_000)` | no enclosing declaration; inherits the implicit 30 s default |
+| 2 | `tests/contextual-tooltip.spec.mjs` line 153 | 012 | **replace** `test.slow()` with `test.setTimeout(180_000)` | `slow()` yields at most 90 s against a helper asking 120 s |
+| 3 | `tests/trend-dynamics-cycle-lab.spec.mjs` line 985 | 006 | add `test.setTimeout(180_000)` | two sequential 60 s polls need ≥ 120 s of wait capacity |
+
+All three take the same value, `180_000`, and the value is not arbitrary: it exceeds the 120 s the
+helper declares with room for the assertions that follow, and it is an existing in-repo magnitude
+(`attention-browser.spec.mjs:650`, `technical-analysis-decision-lab.spec.mjs:861`), so it introduces
+no new number to justify.
+
+### Variation Axes
+
+The three sites differ along three axes, and the differences are why they are enumerated separately
+rather than described as one edit repeated.
+
+| Axis | Values | Consequence |
+|---|---|---|
+| **Observed state** | red (site 1) vs **latent** (site 3) | Site 3 was measured at 4.4 s under CPU pressure, so it fixes an unreachable declaration rather than an observed failure. The contradiction is the defect; leaving it arms a trap that fires the first time the page slows. |
+| **Corrective act** | add vs **replace** | Site 2 already carried `test.slow()`. Adding alongside it would leave the weaker declaration in place, so the act there is substitution, not addition. |
+| **Wait shape** | one 120 s helper wait (sites 1–2) vs **two sequential 60 s polls** (site 3) | Sequential polls sum. Site 3 needs ≥ 120 s of capacity before any other work is counted, which is why a 90 s budget would still contradict its declarations even though no single wait exceeds 90 s. |
+
+The `slow()` axis is the one most easily missed: `3 × 30 s = 90 s < 120 s`, so `test.slow()` looks
+like the fix at every site and is the fix at none of them. `§2.3` records it as prohibited for that
+reason.
+
 ## 4. Residual fragility, recorded but not claimed
 
 `simple-production-wiring.spec.mjs:518` declares `600000 ms` inside a helper whose weakest reaching

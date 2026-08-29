@@ -63,6 +63,26 @@ budget may be raised.
 - Any change inside `specs/015-recommendation-outcome-ledger-and-track-record`. That scope is
   forbidden from touching these files and must not close `T-01-R2` by editing them.
 
+## Domain Capability Model
+
+This packet delivers **one reusable capability and three applications of it**, which is why it reads
+as repeated work rather than three unrelated edits.
+
+**The capability is budget coherence:** for any Playwright test, every wait the author declared
+inside it must fit within the enclosing test budget that governs it. A declaration that cannot be
+honoured is a contradiction the runner resolves silently, by failing at the smaller number.
+
+The capability is realised once, repository-wide, as `scripts/validate-playwright-timeout-budgets.mjs`.
+It is not scoped to the two files this packet repairs; it evaluates every declared wait in every
+spec file, which is what makes it a foundation rather than a fixture. `design.md` §3 records it as
+"the durable value of this packet" for exactly that reason: without it the next author adds a
+fourth contradiction and nothing notices.
+
+The three repairs are **instances**, not separate capabilities. Each is the same corrective act —
+raise the enclosing budget so the author's declared tolerance becomes reachable — applied at a site
+where the contradiction already exists. They are enumerated with their differences in
+`design.md` § Concrete Implementations and § Variation Axes.
+
 ## Traceability
 
 | Invariant | Scenario | Scope |

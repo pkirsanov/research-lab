@@ -14,7 +14,13 @@ written after the fix can only ever be observed green, which proves nothing.
 
 **Status:** Done
 **Depends On:** none
+**foundation: true**
 **Owner surface:** `scripts/validate-playwright-timeout-budgets.mjs`, `scripts/selftest.mjs`
+
+> **Why this scope is the foundation.** It delivers the repository-wide capability — every declared
+> wait must fit the enclosing budget that governs it — not a repair of the three sites that happened
+> to violate it. Scope 2 is an application of this scope's output, which is why the guard must be
+> proven RED here before Scope 2 turns it GREEN.
 
 > **Scope status vs packet status.** Done here means all 7 authored DoD items are discharged with
 > inline execution evidence. It is not a certification claim: the packet stays `in_progress` because
@@ -259,7 +265,8 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
 ## Scope 2: Make The Three Declarations Reachable
 
 **Status:** Done
-**Depends On:** Scope 1
+**Depends On:** Scope 1, the foundation scope — the guard must exist and be proven RED before these
+repairs can be shown to turn it GREEN
 **Owner surface:** `tests/contextual-tooltip.spec.mjs` (Feature 012), `tests/trend-dynamics-cycle-lab.spec.mjs` (Feature 006)
 
 > **Scope status vs packet status.** Done here means all 8 authored DoD items are discharged with

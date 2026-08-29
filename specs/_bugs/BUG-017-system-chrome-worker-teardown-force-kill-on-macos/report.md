@@ -885,4 +885,79 @@ That cuts both ways and is recorded as such. It weakens `bug.md` `## Processes S
 a general claim — a stall does not always leak — while the two-and-a-half-day-old survivors show
 that when it does leak, the orphans persist indefinitely.
 
+<!-- bubbles:certifying-window-begin -->
 
+## Certifying Window
+
+Everything below was executed in the certifying session, on the repository at the
+commit that carries this packet's guard-clean state. The blocks above predate it:
+they are the filing-session measurements, preserved verbatim rather than restaged,
+because rerunning them would replace observed history with a reconstruction.
+
+### Validation Evidence
+
+The whole repository check, which is the broadest surface this build-free repository
+has. It is the same command a developer runs, with no arguments narrowing it:
+
+```
+$ node scripts/selftest.mjs | tail -3
+  ✓ every declared budget in tests/causal-rotation-consumers.spec.mjs clears the 60000 ms floor
+  ✓ SCN-011B-REG ADVERSARIAL the budget matcher detects a removed declaration
+3433 passed, 0 failed
+```
+
+The privacy scan, run across the tree before every commit in this packet:
+
+```
+$ node scripts/pii-scan.mjs; echo "exit=$?"
+[pii-scan] files=10354 messages=2510 findings=0 OK
+exit=0
+```
+
+The reality scan against this packet's declared implementation files. Two files
+scanned is the correct number and matches the Implementation Files section exactly —
+an earlier run reported markers inside `node_modules/playwright/lib/runner/index.js`,
+which was the scan reading a *diagnostic citation* in Scope 1 as an implementation
+file of this packet. The citation was reworded to name it as third-party, so the
+vendored runner is no longer counted as something this packet ships:
+
+```
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/_bugs/BUG-017-*
+  Files scanned:  2
+  Violations:     0
+  Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+```
+
+### Audit Evidence
+
+The state transition guard at `targetStatus: done`, which is the gate set that
+governs promotion. It reports zero failed gates and an empty `failedChecks`:
+
+```
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-017-* | tail -9
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+parentExpandedPhases: 6
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+```
+
+One line in that output is a claim about this packet's assurance and should not pass
+without comment: `parentExpandedPhases: 6`. Six of the eight required phases were
+executed by this runner under parent expansion rather than by independently dispatched
+specialists, because `runSubagent` was not available in this runtime. That is recorded
+in `state.json` with an expansion reason and an evidence reference per phase, and it is
+why this packet certifies at **prototype** assurance rather than full. `validate` and
+`audit` did not run as independent agents; the evidence above is this runner's own
+execution of the equivalent checks, which is a weaker guarantee than an independent
+pass and is labelled as such rather than presented as one.
+
+What that assurance level does *not* qualify is the delivery itself. The remedy is in
+the tree, its effect was measured on the host where the defect reproduces, and the
+measurement is carried in the config comment beside the value it justifies.

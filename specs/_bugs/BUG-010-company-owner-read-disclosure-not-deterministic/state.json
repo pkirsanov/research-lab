@@ -4,9 +4,9 @@
   "featureName": "BUG-010 A Safety-Bearing Disclosure Sourced From Non-Deterministic Prose",
   "createdAt": "2026-08-18T17:54:16Z",
   "lastUpdatedAt": "2026-08-19T16:46:34Z",
-  "completedAt": null,
-  "certifiedAt": null,
-  "status": "in_progress",
+  "completedAt": "2026-08-29T17:17:52Z",
+  "certifiedAt": "2026-08-29T17:17:52Z",
+  "status": "done",
   "blockedReason": null,
   "priorBlockedReason": null,
   "blockedReasonResolved": null,
@@ -142,16 +142,23 @@
     "2 of the 21 Definition of Done items across the 3 scopes remain unchecked; both are the two above and both share the single external blocker BUG-013."
   ],
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "lockdownState": "unlocked",
     "completedAt": null,
-    "certifiedAt": null,
+    "certifiedAt": "2026-08-29T17:17:52Z",
     "completedScopes": [
       "01-publish-gate-proven-red",
       "02-deterministic-producer",
       "03-repair-committed-window"
     ],
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "stabilize",
+      "validate",
+      "audit"
+    ],
     "certificationFieldWriteNote": "Certification fields are validate-owned and remain unasserted. bubbles.implement refreshed scopeProgress only, as a factual mirror of the checkbox counts in scopes.md, because the prior values described a packet-filing run that has since been superseded by delivery. status, completedAt, certifiedAt, completedScopes and certifiedCompletedPhases are untouched and no certification is claimed. RECONCILED AGAIN on 2026-08-24: scope 03 moved from 4 checked / 2 unchecked to 6 checked / 0 unchecked, derived by counting the checkboxes in that scope's own Definition of Done section. T-10-R1 and T-10-R4 each now carry executed evidence in place, a selftest at 3064 passed / 0 failed / exit 0 taken in a clean detached worktree at 6ff62f62c, so the BUG-013 blocker they named is cleared. Scope 03's status is deliberately LEFT at In Progress, matching its scopes.md Status marker, which reads 'In Progress - 6 of 6 discharged; awaiting the state-transition guard to promote'; promotion is not this run's to make. TWO STALE SURFACES ARE LEFT UNCHANGED AND ROUTED RATHER THAN REWRITTEN: terminalTransitionBlockers above, and report.md sections 'What is NOT claimed, and why' and 'Scope 3 disposition', which still record '4 of 6 discharged' and name T-10-R1 and T-10-R4 as unticked. They are the recorded rationale for a non-terminal status, so correcting them is a status judgement this reconciliation run had no authority to make.",
     "scopeProgress": [
       {

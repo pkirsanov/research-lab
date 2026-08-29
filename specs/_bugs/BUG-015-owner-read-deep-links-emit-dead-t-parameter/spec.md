@@ -98,6 +98,24 @@ count of `scripts/selftest.mjs` from its baseline at the fixing commit.
 
 ---
 
+### Single-Capability Justification
+
+This packet extends the coverage of **one existing capability** rather than creating a foundation,
+which is why it carries no Domain Capability Model.
+
+The capability is the subject-parameter contract already shipped in `rlticker.js`:
+`RLTKR.SUBJECT_PARAM` as the single canonical spelling, `RLTKR.linkedSubject()` as the single reader,
+`SUBJECT_PATTERN` as the normalisation rule. Feature 027 established it and applied it to two files.
+This packet applies the same settled shape to two more routes and widens the guard that enforces it.
+
+**The evidence that this is extension and not creation is the precedent count:** the emitting shape
+has 2 prior applications in the tree and the receiving shape has 5. Seven existing call sites is not
+a foundation being invented; it is a convention being finished. A packet that had genuinely created
+a parallel capability would show zero.
+
+`design.md` records the real obstacle plainly: both affected files were read-only to the feature that
+found the defect, so what blocked the fix was authorisation, not difficulty or missing design.
+
 ## Acceptance Criteria
 
 - **AC-1.** `grep -rn '?t=' *.html` returns zero emission sites.

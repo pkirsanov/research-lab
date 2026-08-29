@@ -26,6 +26,14 @@ separate authorised run.
 
 **Status:** Done
 **Depends On:** none
+**foundation: true**
+
+> **What this scope is the foundation OF, stated precisely.** It is not the subject-parameter
+> capability itself — that is `rlticker.js` from Feature 027, and this packet does not rebuild it.
+> This scope settles the one contract question Feature 027 left open for these routes: what a route
+> does with a grammar-valid subject it cannot carry. Scope 2 cannot wire `linkedSubject()` into a
+> route's initial-state selection until that answer exists, which is why the ordering is real rather
+> than administrative.
 **Owner:** the owner of `intraday-tape-lab` / `swing-structure-lab`. **Not agent-dischargeable.**
 
 ### Problem This Scope Resolves
@@ -84,7 +92,7 @@ Feature: A reader learns when the subject they named was not honoured
 - [x] Open question 4 is answered: whether these two routes are openable by a subject-bearing link.
 - [x] The outcome for `refused`, `absent`, and out-of-catalog is chosen and recorded with its reason.
 - [x] The recorded decision names what it gives up, not only what it achieves.
-- [x] Open questions 1, 2 and 3 from `design.md` are each answered or explicitly deferred with a reason.
+- [x] Open questions 1, 2 and 3 from `design.md` each carry a recorded owner answer, including where that answer is to leave the question open with a stated reason.
 - [x] No source file was modified by this scope.
 
 **Evidence** — decisions and their tradeoffs are recorded in `report.md` § *Scope 1 Execution*.
@@ -102,7 +110,7 @@ Exit Code: 0
 ## Scope 2: Make The Published Link Live In Both Directions
 
 **Status:** Done
-**Depends On:** Scope 1
+**Depends On:** Scope 1, the foundation scope — the refusal contract must be settled before a route can be wired to honour or refuse a subject
 
 ### Problem This Scope Resolves
 

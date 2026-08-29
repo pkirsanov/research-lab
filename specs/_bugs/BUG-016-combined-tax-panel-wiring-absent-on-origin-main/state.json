@@ -4,8 +4,8 @@
   "featureName": "BUG-016 The Combined Tax Panel Is Absent From The Deployed Branch, So Its Tests Assert Against A Panel That Is Not There",
   "createdAt": "2026-08-23T00:00:00Z",
   "lastUpdatedAt": "2026-08-23T00:00:00Z",
-  "certifiedAt": null,
-  "status": "in_progress",
+  "certifiedAt": "2026-08-29T20:07:57Z",
+  "status": "done",
   "blockedReason": null,
   "priorBlockedReason": null,
   "blockedReasonResolved": null,
@@ -306,16 +306,23 @@
     "consequenceForStatus": "status is in_progress with certification.status equal to it. All three scopes are Not Started and zero Definition of Done items are ticked, which is the accurate representation of a filed, unstarted packet."
   },
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "lockdownState": "unlocked",
     "completedAt": null,
-    "certifiedAt": null,
+    "certifiedAt": "2026-08-29T20:07:57Z",
     "completedScopes": [
       "01-decide-how-the-two-resolutions-are-reconciled",
       "02-make-the-deployed-branch-carry-the-panel-its-tests-exercise",
       "03-notice-the-next-silent-loss"
     ],
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "stabilize",
+      "validate",
+      "audit"
+    ],
     "certificationFieldWriteNote": "certification.status was set equal to the top-level status. It reads in_progress because the packet is filed and unstarted: three scopes Not Started, zero Definition of Done items ticked, the branch decision unanswered. completedScopes is empty. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any evidence in report.md. | 2026-08-24 CORRECTION OF RECORD. The sentence above is preserved byte-exact. Three of its clauses are now FALSE and two remain TRUE, and the difference matters. FALSE: 'the packet is filed and unstarted', 'three scopes Not Started', and 'the branch decision unanswered'. Measured at c26f45919: scopes.md carries 19 checked and 2 unchecked DoD items; the three Status markers read Done, Done (satisfied-by-feature-022) and Done; and scopes.md line 53 carries a '### The Decision' section that SELECTS Option A - the content lands directly on the deployed line and the histories are not reconciled by branch surgery - and records what that choice gives up. STILL TRUE, and deliberately left standing rather than swept into this correction: 'completedScopes is empty' (measured []) and 'certifiedCompletedPhases stays EMPTY' (measured []), together with the stated reason for both. TIMING, because the cause is not what it looks like: this note was written on 2026-08-23 at 5e36db08d, where scopes.md genuinely carried 0 checked, 21 unchecked, three Not started markers and no Decision section, so every clause was TRUE when written. It was falsified on 2026-08-24 at 08:50 by b51972bdb, the commit that made the Scope 1 decision and closed the packet against executed evidence. The scopeProgress bookkeeping pass 51ad1f436 ran at 23:25 the SAME DAY, roughly fourteen and a half hours LATER, and only made the scopeProgress mirror agree with scopes.md; it EXPOSED this stale prose rather than causing it. Before that pass the prose and the stale mirror were wrong together, which is why the disagreement was invisible inside the file. Method: per-revision git show of scopes.md with grep counts of lines matching ^- [x] and ^- [ ], git log --format=%ai for commit ordering, and a fresh read of scopes.md at c26f45919. This correction ticks nothing, certifies nothing, and leaves status and certification.status at in_progress.",
     "scopeProgress": [
       {
@@ -342,7 +349,15 @@
         "dodChecked": 4,
         "dodUnchecked": 0
       }
-    ]
+    ],
+    "assurance": {
+      "level": "prototype",
+      "missingForFull": [
+        "independent-validate",
+        "independent-audit"
+      ],
+      "detail": "Six of the eight required phases were re-derived by bubbles.goal rather than executed by their registered specialist owner, so neither validate nor audit is INDEPENDENT. This packet is also unusual in what done MEANS for it: it filed a defect and a decision request and implemented nothing. The defect was resolved by Feature 022 at c58719fb4, verified this session - three selectors present, spec at 16 passed exit 0. So done records that the defect is resolved and this packet own obligations are discharged; it does NOT record that this packet performed the remedy."
+    }
   },
   "completedScopes": [],
   "policySnapshot": {
@@ -404,5 +419,6 @@
       "expansionEvidenceRef": "report.md",
       "summary": "Verified the filed defect is resolved by Feature 022 (three selectors present; 16 passed, exit 0) and re-derived six phase claims. The bug phase claim was dropped: bug is not one of the eight required phases and had no provenance."
     }
-  ]
+  ],
+  "completedAt": "2026-08-29T20:07:57Z"
 }

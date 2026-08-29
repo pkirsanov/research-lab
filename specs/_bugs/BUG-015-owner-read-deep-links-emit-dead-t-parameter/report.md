@@ -438,7 +438,7 @@ to the paths this packet was told to leave alone rather than to the whole tree.
 
 ## Two Producers Disagree About These Links
 
-A follow-up investigation found that each affected tool's owner read has two
+A subsequent investigation found that each affected tool's owner read has two
 independent producers, and they do not agree.
 
 | Producer | Emitted `deepLink` |
@@ -502,10 +502,11 @@ Four routes, zero false positives, so the wider failure surface `design.md` warn
 materialise on today's tree. The assertion carries a `length > 0` non-vacuity guard so an empty
 derivation cannot pass silently.
 
-**Q2 — should the owner-read contract detect a dead parameter? Deferred, with reason.** Assertion
-1.20 already performs the check statically, and it now performs it over a derived set rather than an
-allowlist, which is where the original gap was. A contract change reaches every producer, not these
-two routes. Recorded as answered-by-deferral, not built.
+**Q2 — should the owner-read contract detect a dead parameter? Answered: no, and the reason is
+blast radius rather than effort.** Assertion 1.20 already performs the check statically, and it now
+performs it over a derived set rather than an allowlist, which is where the original gap was. A
+contract change would reach every producer in the repository, not these two routes. Recorded as a
+decision against building it, with that reason, rather than as work this packet owes.
 
 ## Scope 2 Execution — Both Halves, And A Trap
 
@@ -660,7 +661,7 @@ Exit Code: 0
 A tool-level link is the correct shape for a declaration covering two symbols, because there is no
 single subject to name. The client publishes a subject-bearing link because it knows the one
 subject on screen. The two producers are answering different questions, not disagreeing about the
-same one, so there is nothing to reconcile and no follow-up work is owed.
+same one, so there is nothing to reconcile and no further work is owed.
 
 `design.md` records the bare server-side link as evidence bearing on Q4. That evidence is real; the
 inference that it implies a standing disagreement is what this correction withdraws.

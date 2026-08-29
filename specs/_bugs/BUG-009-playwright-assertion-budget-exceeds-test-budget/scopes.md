@@ -22,6 +22,31 @@ written after the fix can only ever be observed green, which proves nothing.
 > to violate it. Scope 2 is an application of this scope's output, which is why the guard must be
 > proven RED here before Scope 2 turns it GREEN.
 
+### RED stage — the guard fails before anything is repaired
+
+This packet is scenario-first, and the ordering is structural rather than incidental: the two scopes
+exist in this order *because* the guard has to be shown failing on the untouched tree before any
+budget is raised. A guard written after the repair would be indistinguishable from one that never
+worked.
+
+**RED — required red-stage, on the committed pre-fix tree.** `node scripts/validate-playwright-timeout-budgets.mjs`
+exits **non-zero** and names exactly 3 unreachable declarations across 2 files:
+`tests/contextual-tooltip.spec.mjs` (lines 21, 63, 153) and `tests/trend-dynamics-cycle-lab.spec.mjs`
+(line 985). That is `T-09-U1`, and it is the proof that the guard reads real contradictions rather
+than matching nothing.
+
+Two further red-stage obligations guard the guard itself, because a check that cannot fail proves
+nothing about the tree it passes on. `T-09-U3` re-introduces the defect on a scratch fixture and
+requires a non-zero exit. `T-09-U4` requires a scan matching **zero** declarations to fail rather
+than pass vacuously — the failure mode where a matcher silently stops matching and every subsequent
+green is meaningless.
+
+**GREEN — after Scope 2 raises the three budgets.** The same command exits 0 with
+`violations=0` (`T-09-U5`), and `node scripts/selftest.mjs` reports 0 failed with the guard wired in
+(`T-09-R1`). The green is only meaningful because the red above was demonstrated first on the same
+command.
+
+
 > **Scope status vs packet status.** Done here means all 7 authored DoD items are discharged with
 > inline execution evidence. It is not a certification claim: the packet stays `in_progress` because
 > the terminal transition is refused by gates whose remedies lie outside this scope's DoD — see

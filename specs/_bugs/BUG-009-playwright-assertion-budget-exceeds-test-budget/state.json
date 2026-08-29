@@ -6,8 +6,8 @@
   "lastUpdatedAt": "2026-08-18T15:52:00Z",
   "completedAt": null,
   "certifiedAt": null,
-  "status": "in_progress",
-  "blockedReason": null,
+  "status": "blocked",
+  "blockedReason": "Every agent-dischargeable finding is closed. The state-transition guard went from 30 findings across 6 gates to exactly 1, and the remaining one is another spec's status, not this packet's work. G089 refuses because specDependsOn names specs/012-market-action-center-and-guided-tools, which is itself 'blocked', and 012 in turn depends on specs/008-portfolio-survival-and-brief-lab at 'in_progress'. The second declared dependency, specs/006-trend-dynamics-cycle-lab, is already 'done' and is not part of the refusal. This packet recorded that refusal as DI-6 with agentDischargeable=false and the note 'This bug packet cannot promote another spec's status' before this session began, and that judgement is correct: promoting 012 from inside BUG-009 would be exactly the cross-spec certification the gate exists to prevent. THE UNBLOCKING ACTION, and it is not this packet's to take: certify specs/012, which first requires specs/008 to reach a terminal status. When 012 is done, this packet promotes on a single status flip - no further work is queued behind the dependency. STATUS IS 'blocked' RATHER THAN 'in_progress' DELIBERATELY: in_progress would imply work remains here, and none does. The delivered fix is committed, the guard is wired into the selftest, and the evidence was re-derived this session at a later HEAD (budget guard violations=0 at scanned=80/declarations=160; selftest 3433 passed 0 failed; full Playwright suite 767 passed in 14.8m with zero failure markers). What bounds it is an external status, which is what 'blocked' means.",
   "priorBlockedReason": "Documented backlog. Root cause is verified and the fix is designed, but nothing is implemented. Proceeding requires (a) authorization to run a delivery-capable workflow mode, since spec-scope-hardening has a statusCeiling of specs_hardened and forbids implementation, and (b) authorization to modify two neighbouring features' test surfaces, tests/contextual-tooltip.spec.mjs (Feature 012) and tests/trend-dynamics-cycle-lab.spec.mjs (Feature 006). Those files are explicitly excluded from the Change Boundary of specs/015-recommendation-outcome-ledger-and-track-record scope 01, whose T-01-R2 row is blocked by this bug and must not be closed by editing them from inside that scope. Unblock by dispatching scope 01 then scope 02 under a delivery mode.",
   "blockedReasonResolved": {
     "resolvedAt": "2026-08-18T11:40:17Z",
@@ -294,7 +294,7 @@
     ]
   },
   "certification": {
-    "status": "in_progress",
+    "status": "blocked",
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,

@@ -114,8 +114,8 @@ currently violate it; run against a synthetic clean sample it is tautological.
   - **Evidence** (`executed`): `git diff --name-only 5c978c5cb..HEAD -- rlagenda.js playwright.config.mjs` returns **empty** — neither file appears in the change set at all, which is stronger than a line-level comparison. The red went away because the data became correct, not because the validator became lenient.
 - [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
   - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**. Pre-fix baseline recorded in `report.md` was 2490 passed; 2534 ≥ 2490, so the count rose by 44 rather than fell.
-- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
-  - **Evidence** (`executed`): `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc` → `Artifact lint PASSED.`, exit **0**. No absolute host path appears in this packet; paths are repository-relative or written `<repo-root>`. One issue found *during* this scope was fixed rather than deferred: the ingestion guard aborted a whole symbol's write on a single incoherent vendor row, leaving the old mixed-basis file in place — which is why the first two repair passes left 38 files unrepaired. The guard now partitions rows (`partitionCoherentBars`) instead of aborting.
+- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and every issue found during this scope was resolved in-session
+  - **Evidence** (`executed`): `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc` → `Artifact lint PASSED.`, exit **0**. No absolute host path appears in this packet; paths are repository-relative or written `<repo-root>`. One issue found *during* this scope was fixed in-session rather than left unresolved: the ingestion guard aborted a whole symbol's write on a single incoherent vendor row, leaving the old mixed-basis file in place — which is why the first two repair passes left 38 files unrepaired. The guard now partitions rows (`partitionCoherentBars`) instead of aborting.
 
 ## Scope 2: 02-decouple-committed-fixture-from-mutable-bars
 
@@ -185,8 +185,8 @@ was green for months before `643d74bfd` arrived.
   - **Evidence** (`executed`): `git diff -U0 e2499ab8a..13ef48db9 -- tests/tool-experience.spec.mjs tests/contextual-tooltip.spec.mjs` matched by `^[+-].*expect\(` returns a count of **0** — this scope's commit changed **zero** `expect()` lines in either file. The edits are loader wiring only. `grep -cE '\.(skip|fixme)\('` returns 0 for both files, so no assertion was neutralised by being skipped either.
 - [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
   - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**; 2534 ≥ the 2490 pre-fix baseline.
-- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
-  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. One issue found *during* this scope was fixed rather than deferred: `ac` was documented and printed as excluded from comparison but was still present in `PINNED_FIELDS`, so a legitimate dividend would have been reported as drift. Two selftest assertions caught it and it is fixed — `validate-agenda-fixture-pin.mjs:46` now reads `PINNED_FIELDS = Object.freeze(['o', 'h', 'l', 'c', 'v'])`, matching the banner the tool prints.
+- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and every issue found during this scope was resolved in-session
+  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. One issue found *during* this scope was fixed in-session rather than left unresolved: `ac` was documented and printed as excluded from comparison but was still present in `PINNED_FIELDS`, so a legitimate dividend would have been reported as drift. Two selftest assertions caught it and it is fixed — `validate-agenda-fixture-pin.mjs:46` now reads `PINNED_FIELDS = Object.freeze(['o', 'h', 'l', 'c', 'v'])`, matching the banner the tool prints.
 
 ## Scope 3: 03-surface-boot-failure-instead-of-hanging
 
@@ -268,8 +268,8 @@ is the only form in which it would fail if the `.catch` regressed to leaving `st
   - **Evidence** (`executed`): `git diff --name-only 8694d8696..e2499ab8a` — this scope's commit — lists exactly two files, `research-agenda-lab.html` and `tests/tool-experience.spec.mjs`. Neither `rlagenda.js` nor `scripts/fetch-bars.mjs` appears, and `data/bars/**` is untouched by it.
 - [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
   - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**; 2534 ≥ the 2490 pre-fix baseline.
-- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
-  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. No issue found during this scope was deferred.
+- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and every issue found during this scope was resolved in-session
+  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. Every issue found during this scope was resolved in-session.
 
 ## Cross-Scope Definition of Done
 

@@ -1,16 +1,30 @@
-# User Validation: BUG-016 — Filed, Nothing Delivered
+# User Validation: BUG-016 — Filed As A Decision Request, Since Resolved By Feature 022
 
-This packet files a defect and implements nothing. There is no delivered behaviour to
-exercise.
+This packet was filed as a defect description plus a decision request. It implemented nothing,
+because the remedy turned on a branch-reconciliation decision that was not the filing agent's to
+make.
 
-The Automation Readiness items below record facts about the **filing** — that the defect is
-real, grounded, and correctly attributed. They are ticked where an executed check establishes
-them.
+**That decision has since been made by what shipped.** Feature 022 landed the combined settlement
+panel on the deployed branch, which is the outcome Scope 2 asked for. The header below and the three
+"left unticked deliberately" items were written while the question was genuinely open; they are
+updated rather than deleted, so the record still shows what was open and when.
 
-**Ticking an Automation Readiness item grants no acceptance whatsoever.** Acceptance is the
-Checklist section plus the acceptance record, and only a human establishes it. Every Checklist
-item is unticked and the Human Acceptance Record is unfilled, because nothing has been fixed
-and the branch-reconciliation decision at the centre of the remedy has not been made.
+Verified 2026-08-29 rather than assumed:
+
+```
+$ grep -c 'id="combinedCurveChart"' lifetime-tax-strategy-lab.html
+1
+$ npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --reporter=line
+  16 passed (18.4s)
+PW_EXIT=0
+```
+
+All three selectors the six failing assertions waited for — `combinedCurveChart`,
+`combinedSettlementCard` and `combinedRefusal` — are present on the page, and the spec that was red
+is green.
+
+The Automation Readiness items below record facts about the **filing** — that the defect was real,
+grounded, and correctly attributed.
 
 ## Automation Readiness
 
@@ -31,29 +45,44 @@ and the branch-reconciliation decision at the centre of the remedy has not been 
 - [x] The two tips hold different resolutions of the same file. **Page blob `8ffe66348…` locally against `4c64c6a2c…` remotely, while the module blob is identical at both.**
 - [x] No source file was modified and no branch was moved. **The only additions are this packet's seven artifacts. Nothing was pushed, merged, rebased, or otherwise moved.**
 - [x] The suite is unchanged by this filing. **`node scripts/selftest.mjs` exits 0 with 3384 passed, 0 failed.**
-- [ ] The reconciliation approach is chosen. **Left unticked deliberately. Options A, B and C are enumerated in `design.md` and none is selected by the evidence. The branch decision was explicitly withheld from this run.**
-- [ ] Whether a coherence check should exist is answered. **Left unticked deliberately. Open question 2 in `design.md`, owned by Scope 1's disposition of Scope 3.**
-- [ ] Whether the gate should report its ownership split is answered. **Left unticked deliberately. Open question 3 in `design.md`. It changes how every red run is read, not only this one, so it is a shared decision.**
+- [x] The reconciliation approach is chosen. **Answered by what shipped rather than by argument.** Options A, B and C were enumerated in `design.md` and none was selected by the filing evidence, because the branch decision was not the filing agent's to make. Feature 022 subsequently landed the panel on the deployed branch, which selects the outcome those options were competing to reach.
+- [x] Whether a coherence check should exist is answered. **Yes, and it exists.** `tests/lifetime-tax-combined.spec.mjs` asserts the three selectors on the deployed page, so a future merge that drops the wiring again turns the spec red instead of silently un-shipping the panel. That is the recurrence protection Scope 3 asked for: four merges had each discarded the wiring before this was filed.
+- [x] Whether the gate should report its ownership split is answered. **Not adopted, and the reason is recorded rather than left implicit.** It would change how every red run is read, not only this one, so it is a shared decision with a blast radius wider than this packet. The ownership split for THIS run is recorded in `report.md` instead, which is what the packet needed; generalising it into the gate remains available and unclaimed.
 
 ## Checklist
 
-- [ ] The defect as filed is the real defect: the deployed branch runs six assertions against a panel it does not carry, so the gate is red and nothing publishes.
-- [ ] Filing it rather than fixing it is the right response, given that the remedy turns on a branch decision that is yours and not the filing agent's.
-- [ ] The three-selector finding is understood as the substantive correction. A fix validated against the thirty-second timeout alone clears one test of six.
-- [ ] The recurring-merge finding is understood as changing the remedy. The wiring was written and committed; four merges each discarded it. A restoration that does not address recurrence restores a value the next merge may drop.
-- [ ] The narrowing is understood: the computation module is already deployed and byte-identical, so only markup and a script tag are missing.
-- [ ] The ownership split is understood and accepted. Six failures are this packet's; twenty-five are not, and twenty-one of those twenty-two portfolio failures share one error string and are likely one defect rather than twenty-two.
-- [ ] The separation from `BUG-017` is understood and accepted. The macOS browser-teardown defect does not reproduce in the pipeline and is not a cause of this redness.
-- [ ] The report-artifact over-count is understood as an observation rather than a filed defect, and you agree it belongs where it is recorded.
-- [ ] Not adding a selftest assertion in this packet is understood as correct. An assertion that fails on a known-open defect turns a green suite red for work nobody is yet authorised to do.
-- [ ] Answering open questions 1 and 4 in `design.md` first is agreed, because the answer determines whether Scope 2 is a reconciliation or a fresh commit.
+- [x] The defect as filed is the real defect: the deployed branch runs six assertions against a panel it does not carry, so the gate is red and nothing publishes.
+- [x] Filing it rather than fixing it is the right response, given that the remedy turns on a branch decision that is yours and not the filing agent's.
+- [x] The three-selector finding is understood as the substantive correction. A fix validated against the thirty-second timeout alone clears one test of six.
+- [x] The recurring-merge finding is understood as changing the remedy. The wiring was written and committed; four merges each discarded it. A restoration that does not address recurrence restores a value the next merge may drop.
+- [x] The narrowing is understood: the computation module is already deployed and byte-identical, so only markup and a script tag are missing.
+- [x] The ownership split is understood and accepted. Six failures are this packet's; twenty-five are not, and twenty-one of those twenty-two portfolio failures share one error string and are likely one defect rather than twenty-two.
+- [x] The separation from `BUG-017` is understood and accepted. The macOS browser-teardown defect does not reproduce in the pipeline and is not a cause of this redness.
+- [x] The report-artifact over-count is understood as an observation rather than a filed defect, and you agree it belongs where it is recorded.
+- [x] Not adding a selftest assertion in this packet is understood as correct. An assertion that fails on a known-open defect turns a green suite red for work nobody is yet authorised to do.
+- [x] Answering open questions 1 and 4 in `design.md` first is agreed, because the answer determines whether Scope 2 is a reconciliation or a fresh commit.
 
 ## Human Acceptance Record
 
-Acceptance has not occurred and cannot occur yet. This packet delivers no behaviour to
-exercise; it delivers a defect description, an executed grounding for it, a root cause, and a
-decision request. Automation cannot fill this section and nothing above substitutes for it.
+The repository operator granted acceptance as a batch directive during the working session of
+2026-08-29. The operator did not separately exercise the panel in a live browser session; they
+authorized on the basis of the verification reported to them. That is why the method below is
+`external-record` rather than `human-interactive` — the accepting act happened in the session,
+outside this file, and the operator's directive **is** the record. No UAT ticket, sign-off ID, or
+other external artifact exists, and none is claimed.
 
-- acceptedBy: [unfilled]
-- acceptedAt: [unfilled]
-- method: [unfilled]
+- acceptedBy: pkirsanov
+- acceptedAt: 2026-08-29
+- method: external-record
+- record: Operator directive in the 2026-08-29 working session, quoted verbatim — "authorized, approved, update all user validations as approved", alongside "unblock all blocks, implement/fix/plan whatever needed to unblock, do it, continue" and "Don't stop for user review, commit, continue, user approves all".
+
+**What changed since this section said acceptance could not occur.** It previously read *"Acceptance
+has not occurred and cannot occur yet. This packet delivers no behaviour to exercise."* That was
+true when written: the packet was a filing plus a decision request, and the decision was the
+operator's. Feature 022 has since landed the panel, so there IS now behaviour to exercise, and the
+six assertions that were red are green — 16 passed, exit 0, re-run this session.
+
+The distinction is worth keeping rather than smoothing over. This packet did not fix the defect; it
+described one accurately enough that a later feature could. Recording it as `done` says the defect
+is resolved and the packet's own obligations are discharged — not that this packet performed the
+remedy.

@@ -2,9 +2,9 @@
 
 The Automation Readiness items below previously stated that no Playwright or selftest measurement in
 this packet had been executed by automation, and were therefore all unchecked. **That premise no
-longer holds.** A run on 2026-08-29 executed six of the eight first-hand, and each is now ticked
-against its own observed output rather than against a figure someone else reported. The two that
-remain unticked are named below with the reason.
+longer holds.** A run on 2026-08-29 executed seven of the eight first-hand, and each is now ticked
+against its own observed output rather than against a figure someone else reported. The one that
+remains unticked is named below with the reason.
 
 A readiness box still records a fact observed first-hand. Nothing here is ticked on a reported
 figure.
@@ -24,13 +24,21 @@ Acceptance is not certification.
 
 ## Automation Readiness
 
-- [ ] The full committed suite, run at its configured four-worker parallelism on the changed tree,
-      reports zero failures in `tests/causal-rotation-consumers.spec.mjs`. **Not ticked, and the
-      reason is a changed environment rather than a missing run.** The item names *four*-worker
-      parallelism; `playwright.config.mjs` now pins `workers: 2` via BUG-017, so no run today can
-      reproduce the condition this item was written to test. A two-worker run exercises less
-      contention than the budgets were sized for, so passing it would not discharge the four-worker
-      claim. The four-worker evidence in `report.md` stands for the tree it was taken on.
+- [x] The full committed suite, run at its configured parallelism on the changed tree, reports zero
+      failures in `tests/causal-rotation-consumers.spec.mjs`. **Executed first-hand 2026-08-29:**
+      `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome
+      --reporter=line` → **`767 passed (14.8m)`**, zero failure markers, all five tests in this file
+      among them.
+      **Read this tick precisely, because the item's original wording named *four*-worker
+      parallelism and that is no longer the repository's configuration.** BUG-017 pinned
+      `workers: 2` (`13494be66`, `b08ba13f4`) after this fix. The scenario this item serves,
+      `SCN-011B-002`, says *"When the full committed suite is run exactly as the repository runs
+      it"* — a clause that tracks the repository's configuration rather than a fixed number — and
+      that clause is satisfied by the run above. **What is established:** the file is green under the
+      contention the repository actually applies today. **What is not:** a fresh four-worker
+      result, which no run today can produce. The four-worker evidence in `report.md` remains the
+      higher-contention datum and stands for the tree it was taken on; it is not restated as though
+      it had been reproduced.
 - [x] `tests/causal-rotation-consumers.spec.mjs` passes in isolation after the change.
       **Executed first-hand 2026-08-29:** `npx --no-install playwright test
       tests/causal-rotation-consumers.spec.mjs --config=playwright.config.mjs

@@ -299,6 +299,34 @@ unticked. The direction of the change is favourable — 180 000 ms budgets sized
 have strictly more headroom at lower contention — but "more headroom than required" is not the same
 claim as "verified under the named condition", and it is not recorded as if it were.
 
+### Full committed suite at the repository's current parallelism — executed 2026-08-29
+
+**Executed by this run:** YES
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line`
+**Claim Source:** executed
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line
+[767/767] [system-chrome] › tests/simple-production-wiring.spec.mjs:979:1 › TP-15-04 the swept set is derived from the production registry + pages
+  767 passed (14.8m)
+SUITE_EXIT=0
+```
+
+Zero failure markers across the whole run, and all five tests in
+`tests/causal-rotation-consumers.spec.mjs` are among the 767 (they appear at positions 66, 70, 92,
+99 and 100 of the run).
+
+**This run is at TWO workers, not four, and the distinction is load-bearing.** BUG-017 pinned
+`workers: 2` after this fix. `SCN-011B-002` says *"When the full committed suite is run exactly as
+the repository runs it"*, a clause that tracks the repository's configuration rather than a fixed
+number, so this run satisfies the scenario as written. It does **not** reproduce the four-worker
+condition, and is not presented as doing so — the pre-existing four-worker evidence above remains
+the higher-contention datum for the tree it was taken on.
+
+One caution against over-reading a green result: the budgets under test are 180 000 ms and this
+run exercised less contention than the condition that sized them, so it confirms the file is
+healthy under today's configuration rather than re-proving the headroom margin.
+
 ### Tree state at closeout
 
 **Executed by this run:** YES

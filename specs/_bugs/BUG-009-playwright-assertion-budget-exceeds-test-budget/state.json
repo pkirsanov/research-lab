@@ -122,6 +122,95 @@
         ],
         "evidenceRef": "report.md#delivery-evidence",
         "summary": "Both scopes delivered and verified. Scope 1 installed scripts/validate-playwright-timeout-budgets.mjs and proved it RED against the committed pre-fix tree; scope 2 raised four test budgets so the three declared waits became reachable and turned the same byte-identical guard binary GREEN. The guard was subsequently wired into scripts/selftest.mjs at commit c7fd767a1, closing the last open DoD item."
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T01:40:00Z",
+        "evidenceRef": "report.md#delivery-suite",
+        "note": "Re-derived at a later HEAD than the delivery turn rather than transcribed from it. The budget guard reports scanned=80 tests=830 declarations=160 violations=0, exit 0, against the delivery turn's 79 declarations, so the guard reads a corpus that has since grown. node scripts/selftest.mjs reports 3433 passed, 0 failed, exit 0. The adversarial and vacuous branches that make a green meaningful - T-09-U3 re-introducing the defect and T-09-U4 refusing a zero-match scan - were authored and evidenced in the delivery turn and are not re-claimed here."
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T01:40:00Z",
+        "evidenceRef": "report.md#delivery-suite",
+        "note": "Full committed Playwright suite executed first-hand: 767 passed in 14.8m, zero failure markers. This supersedes the stale 498-test figure in T-09-E3; the invariant that item protects is that no test was removed or skipped, and a suite-wide diff shows 0 removed test declarations since the fix commit. The persistent regression artifact is the guard itself, which is wired into the selftest, so every selftest run exercises it repository-wide rather than against this packet's files alone."
+      },
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T01:40:00Z",
+        "evidenceRef": "design.md",
+        "note": "This packet IS the stabilization, and the analysis that sized it is design.md 2.1-2.2 rather than a later pass. Three declared waits could not be honoured inside their enclosing budgets: a 120 s helper against an implicit 30 s default, the same helper against a test.slow() that yields at most 90 s, and two sequential 60 s polls that sum to 120 s. The remedy raises the enclosing budget at each site to a magnitude already used elsewhere in the repository, rather than shrinking the author's declared tolerance to fit an accidental cap."
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T01:40:00Z",
+        "evidenceRef": "report.md#delivery-suite",
+        "note": "Independent re-derivation at a later HEAD, plus closure of the planning gaps the guard named. G094 was closed by declaring the capability foundation the packet had already built but never described - design.md itself calls the guard 'the durable value of this packet'. G068 was closed by citing five scenario IDs onto the DoD items that already discharged them, without adding, rewording or re-ticking any item. G060 was closed by recording the RED stage where the packet performs it. NOT INDEPENDENT: executed by the same runner that closed the gaps, which is why certifiedCompletedPhases stays empty and assurance stays bounded."
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T01:40:00Z",
+        "evidenceRef": "report.md#delivery-change-boundary",
+        "note": "artifact-lint PASSED. Change boundary re-verified against each excluded family design.md 2.3 names, rather than asserted: grep -cE 'retries' playwright.config.mjs returns 0 and no timeout key was added, so the suite-wide relaxation the design prohibits did not happen; a suite-wide diff shows 0 removed test declarations; and nothing under specs/015-recommendation-outcome-ledger-and-track-record was touched, so T-01-R2 remains that scope's to close. One finding recorded rather than smoothed over: the T-09-E3 suite total of 498 is stale at 767, and the item was left standing with the staleness named because the invariant it protects still holds."
+      }
+    ],
+    "phaseStubs": {
+      "simplify": {
+        "reason": "No simplification surface remains, because the simplification decision was made during design rather than deferred to a later pass. design.md 3.4 records why the guard is a regex scanner and not an AST parser, and 3.3 records why it ships with no baseline: both are choices of the simpler construction, taken deliberately and with their limits written down. The delivered surface is one ~200-line script plus four raised budget declarations; there is no duplicated helper, no branch to collapse, and no abstraction introduced that could be withdrawn."
+      },
+      "security": {
+        "reason": "No security surface exists. The delivered change is a lint script that reads spec files and reports arithmetic mismatches, plus four test timeout declarations. It touches no production code path, no authentication or authorization, no data handling, no network egress and no dependency - the guard is dependency-free Node reading the local filesystem. There is nothing to threat-model, so recording a security pass would be fabrication."
+      }
+    },
+    "executionHistory": [
+      {
+        "agent": "bubbles.implement",
+        "phasesExecuted": [
+          "implement"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#provenance",
+        "statusBefore": "not_started",
+        "statusAfter": "in_progress",
+        "startedAt": "2026-08-18T15:52:00Z",
+        "finishedAt": "2026-08-18T15:52:00Z",
+        "outcome": "completed_owned",
+        "summary": "Scope 1 installed scripts/validate-playwright-timeout-budgets.mjs and proved it RED on the untouched tree, naming exactly 3 unreachable declarations across 2 files. Scope 2 raised four budgets so the declared waits became reachable and turned the same byte-identical guard GREEN. Delivery Evidence 1-13 record the full test surface: the RED and GREEN runs, the two near-miss shapes the guard must NOT red-line, the adversarial fixture that re-introduces the defect, and the vacuous-scan branch that must fail rather than pass on zero matches. The delivery turn re-derived rather than transcribed the earlier turn's figures, which is what surfaced two things a transcription would have missed - the declarations=77/unresolved=2 versus 79/0 discrepancy, and the missing selftest wiring later closed at c7fd767a1."
+      },
+      {
+        "agent": "bubbles.goal",
+        "phasesExecuted": [
+          "test",
+          "regression",
+          "stabilize",
+          "validate",
+          "audit"
+        ],
+        "provenanceMode": "parent-expanded",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "runSubagent dispatches in this session returned without writing artifacts, so the authorized runner executed these phases directly under the Gate G064 direct-authorized-runner model rather than reporting a dispatch that produced no work.",
+        "expansionEvidenceRef": "report.md#delivery-suite",
+        "statusBefore": "in_progress",
+        "statusAfter": "in_progress",
+        "startedAt": "2026-08-29T01:20:00Z",
+        "finishedAt": "2026-08-29T01:40:00Z",
+        "outcome": "completed_owned",
+        "summary": "REGRESSION re-derived the guard and the suite at a later HEAD than the delivery turn: node scripts/validate-playwright-timeout-budgets.mjs reports scanned=80 tests=830 declarations=160 violations=0 exit 0, against the delivery turn's 79 declarations, so the repaired budgets hold against a corpus that has since grown; node scripts/selftest.mjs reports 3433 passed 0 failed; and the full Playwright suite reports 767 passed in 14.8m with zero failure markers. STABILIZE is the packet's own subject - three declared waits that could not be honoured inside their enclosing budgets - and the analysis that sized the remedy is design.md 2.1-2.2 rather than a later pass. VALIDATE and AUDIT closed the planning gaps the guard named: G094 by declaring the capability foundation the packet had already built but never described, G068 by citing five scenario IDs onto the DoD items that already discharged them, G060 by recording the RED stage where the packet performs it, and the regression-E2E and change-boundary planning items. NOT INDEPENDENT: all four were executed by the same runner, which is why assurance stays bounded and certifiedCompletedPhases is not written here."
       }
     ],
     "pendingTransitionRequests": [],

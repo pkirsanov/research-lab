@@ -302,11 +302,21 @@ One line plus its rationale, in `tests/brief-refresh-atomicity.support.mjs`, bes
 copyFileSync(resolve(ROOT, 'company-fundamentals.config.json'), resolve(repoRoot, 'company-fundamentals.config.json'));
 ```
 
+### Code Diff Evidence
+
+What the delivery changed is read out of git rather than described, so the containment claim is
+checkable against the tree instead of against this narrative.
+
 No production file changed. `git diff --quiet` reports `scripts/validate-brief-payload.mjs`,
 `scripts/brief-refresh.mjs`, `scripts/brief-narrative-parallel.mjs`, and `scripts/selftest.mjs` all
 byte-identical to HEAD, and `scripts/selftest.mjs` line 6319 diffs clean against
 `git show HEAD:scripts/selftest.mjs`. The re-assertion was not deleted, no error is swallowed, there
 is no `try {} catch {}`, and no environment variable special-cases the fixture.
+
+Re-derived 2026-08-29: `git log -1 --format=%h -L 6319,6319:scripts/selftest.mjs` returns
+`607998eaf`, a **Feature 009** commit, so the twice-relaxed Feature 010 Scope 6 assertion was last
+touched by unrelated work and not by this packet. That is the specific claim the containment DoD
+item rests on, and it is now an executed lookup rather than an assertion.
 
 #### Adversarial proof — the guarantee still bites, in the path that was changed
 
@@ -449,10 +459,23 @@ therefore remain **unticked**:
 - T-10-R4 — repository selftest passes with no assertion removed, weakened, or skipped
 
 The prior session did observe `2490 passed, 0 failed` (row 3 of the Verification table above), and
-that observation stands as attributed prior evidence for the tree as it was then. It is **not**
-carried forward to tick these items now: BUG-013 landed after it, so a green run is no longer
-available to confirm, and an item whose command cannot be run green does not close on a stale
-observation of a different tree.
+that observation stands as attributed prior evidence for the tree as it was then.
+
+**Superseded 2026-08-29 — the blocker this paragraph described is gone.** The text below previously
+recorded that the 2490 observation could not be reused because BUG-013 had landed after it and a
+green run was no longer available, so `T-10-R1` and `T-10-R4` could not close on an executed result.
+That reasoning was correct at the time and is the right instinct: an item whose command cannot be
+run green does not close on a stale observation of a different tree.
+
+It no longer applies. `node scripts/selftest.mjs` now reports **3433 passed, 0 failed**, exit 0, on
+the current tree. Both items therefore close on an executed run of their own command rather than on
+a prior tree's number — which is the outcome the earlier refusal was holding out for, not a
+concession against it. The 2490 figure is left in place as history and is not restated as current.
+
+Re-derived alongside it, so the close rests on more than the suite tally:
+`node scripts/validate-brief-payload.mjs` exits 0 with the company owner-read check reporting PASS,
+and `scripts/selftest.mjs` line 6319 was last modified by `607998eaf`, a Feature 009 commit,
+confirming the twice-relaxed Feature 010 Scope 6 assertion was not touched by this packet.
 
 What *can* be said without running it, and is recorded in `scopes.md` as an explicitly
 `interpreted` claim rather than an executed one: both conjuncts that previously failed at

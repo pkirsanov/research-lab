@@ -7,6 +7,36 @@ and enumerates remedy options with their consequences. It selects no remedy. The
 depends on a branch-reconciliation decision that belongs to the operator and that this
 filing was explicitly forbidden to make.
 
+## Capability Foundation
+
+The foundation is **one coherence assertion: the deployed page carries the selectors its specs
+exercise**. It is a single check with a single job — make a silent loss loud.
+
+What makes this a foundation rather than a local fix is the recurrence. `## The Loss Is Recurrent,
+Not Singular` records that the wiring was written, committed, and then discarded by four separate
+merges. Restoring the markup a fifth time without the assertion would have produced the same state
+the packet was filed against, on the next merge that touched the region.
+
+The foundation stops at presence. It does not verify the panel's arithmetic — that is the module's
+own coverage, and the module was never the defect.
+
+## Concrete Implementations
+
+| # | Implementation | Asserts | Artifact | Failure mode it closes |
+|---|---|---|---|---|
+| 1 | Selector assertions on the deployed page | The mount EXISTS | `tests/lifetime-tax-combined.spec.mjs` | A merge silently dropping the wiring again |
+| 2 | Deploy-gate execution of that spec | The assertion RUNS on the branch that publishes | `pages.yml` browser step | A green local run masking a red deployed branch |
+
+Both are required and neither subsumes the other. An assertion that never runs against the deployed
+revision is exactly the gap that let a local tip diverge from `origin/main` unnoticed; a gate that
+runs specs which do not assert the mount would stay green while the panel was absent.
+
+### Variation Axes
+
+- **Axis 1 — what is asserted versus where it is asserted.** This is the axis that forced two implementations. The spec can only assert what a selector should exist; only the deploy gate can assert it against the revision that actually publishes. The original defect lived precisely in the gap between them: the wiring existed on a local tip and not on `origin/main`.
+- **Axis 2 — how a missing mount surfaces.** Fixed, not variable. It surfaces as a failing assertion naming the absent selector, not as a timeout. That distinction is load-bearing: the packet's own report records that a fix validated against the thirty-second timeout alone clears one test of six, because a timeout tells you nothing about WHICH selector is missing.
+- **Axis deliberately NOT taken — having the gate report its ownership split.** Enumerated as open question 3 and recorded as NOT adopted. It would change how every red run is read, not only this one, so its blast radius is wider than this packet. The split for this run is recorded in `report.md` instead; generalising it remains available and unclaimed.
+
 ## Mechanism
 
 The six failing tests wait for three selectors. None of the three exists on the deployed

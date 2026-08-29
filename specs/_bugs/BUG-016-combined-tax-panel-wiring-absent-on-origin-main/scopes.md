@@ -114,7 +114,9 @@ its tests pass there. No content authorship remains for this packet to perform.
 ## Scope 2: Make The Deployed Branch Carry The Panel Its Tests Exercise
 
 **Status:** Done (satisfied-by-feature-022)
-**Depends on:** Scope 1
+**Depends on:** Scope 1 for the reconciliation decision, and on Scope 3 — the foundation scope — for
+the assertion that keeps the restoration from being silently undone. A restoration without the
+foundation is the state this packet was filed against, repeated.
 
 ### Problem This Scope Resolves
 
@@ -202,6 +204,14 @@ evidence above is verification evidence.
 
 **Status:** Done
 **Disposition:** taken — recorded in Scope 1
+
+**foundation: true**
+
+This scope builds the capability the packet actually contributes: an assertion that makes a silent
+loss loud. `design.md` `## Capability Foundation` records why it is the foundation rather than the
+markup restoration — the wiring had been written and committed before, and four separate merges each
+discarded it, so restoring it a fifth time without a way to notice would have restored a value the
+next merge could drop again.
 
 ### Problem This Scope Resolves
 

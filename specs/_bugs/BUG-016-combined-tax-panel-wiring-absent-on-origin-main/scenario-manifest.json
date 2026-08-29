@@ -1,0 +1,362 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-016-combined-tax-panel-wiring-absent-on-origin-main",
+  "generatedBy": "bubbles.goal",
+  "generatedAt": "2026-08-29T21:00:00Z",
+  "stage": "post-resolution-reconciliation",
+  "stageNote": "Authored AFTER the filed defect was resolved, and labelled that way rather than backdated. This packet is unusual: it filed a defect and a decision request and implemented nothing, so the scenarios describe obligations the packet placed on OTHERS. Scope 1's two scenarios are owner decisions with no executable test, and their testMechanism is declared as such rather than fitted with a test that does not exist. Scope 2's four were resolved by Feature 022 (commit c58719fb4) and are verified by tests/lifetime-tax-combined.spec.mjs, re-run 2026-08-29 at 16 passed, exit 0. scenarioId values are positional because the scopes declare scenarios by title without identifiers; titles are carried verbatim so the mapping is checkable.",
+  "scenarioCount": 8,
+  "keyShapeNote": "businessScenario is null throughout: this is a bug packet filed from a red deploy gate, not a business scenario. Two scenarios (SCN-016-01, SCN-016-02) carry no linkedTests because they are owner decisions, not behaviours \u2014 recording a test for them would be a fabricated linkage.",
+  "businessScenarioMapping": "None. SCN-016-01 through SCN-016-08 are bug-owned identifiers with one owning scope each: 01-02 belong to Scope 1 (decision), 03-06 to Scope 2 (the deployed surface), 07-08 to Scope 3 (the coherence check). They trace to a deploy gate red for eleven consecutive runs, where six of thirty-one failures waited on three selectors the deployed branch did not carry.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-016-01",
+      "businessScenario": null,
+      "scopeId": "01-decide-how-the-two-resolutions-are-reconciled",
+      "scope": 1,
+      "status": "done",
+      "title": "The owner selects an approach",
+      "gherkin": {
+        "given": "the two branch tips hold different resolutions of the same page, and the wiring is absent at their merge base",
+        "when": "the owner selects a reconciliation approach",
+        "then": "the selection is recorded with its rationale, and Scope 2 is defined in terms of that selection"
+      },
+      "behaviorClass": "decision",
+      "changeType": "new",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "uservalidation.md",
+        "report.md#code-diff-evidence"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT rather than declared with empty fields. This scenario is an owner DECISION, not a behaviour: there is no production code that computes its result, no entrypoint that exercises it, and no input perturbation that could make it fail. A mechanism block with an empty productionOwners list would assert that a test mechanism exists and merely lacks detail, which is false \u2014 no test can exist for it. What CAN be verified is whether the outcome the decision called for actually materialised, and that is asserted by SCN-016-03 through SCN-016-08 against the real page and the real spec."
+    },
+    {
+      "scenarioId": "SCN-016-02",
+      "businessScenario": null,
+      "scopeId": "01-decide-how-the-two-resolutions-are-reconciled",
+      "scope": 1,
+      "status": "done",
+      "title": "The selection accounts for recurrence",
+      "gherkin": {
+        "given": "four merges have each discarded the wiring",
+        "when": "the owner selects a reconciliation approach",
+        "then": "the selection states whether Scope 3 is taken or declined, and a declined Scope 3 is recorded as a decision, not an omission"
+      },
+      "behaviorClass": "decision",
+      "changeType": "new",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "uservalidation.md"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT rather than declared with empty fields. This scenario is an owner DECISION, not a behaviour: there is no production code that computes its result, no entrypoint that exercises it, and no input perturbation that could make it fail. A mechanism block with an empty productionOwners list would assert that a test mechanism exists and merely lacks detail, which is false \u2014 no test can exist for it. What CAN be verified is whether the outcome the decision called for actually materialised, and that is asserted by SCN-016-03 through SCN-016-08 against the real page and the real spec."
+    },
+    {
+      "scenarioId": "SCN-016-03",
+      "businessScenario": null,
+      "scopeId": "02-make-the-deployed-branch-carry-the-panel-its-tests-exercise",
+      "scope": 2,
+      "status": "done",
+      "title": "The curve chart resolves",
+      "gherkin": {
+        "given": "the deployed revision of the lifetime tax strategy lab",
+        "when": "a test waits for the combined curve chart",
+        "then": "the element is found within the assertion budget"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The element is found WITHIN the assertion budget, not merely eventually. Timing is part of the claim: the original failure presented as a thirty-second timeout, and a fix validated against the timeout alone clears one test of six.",
+          "satisfiedBy": [
+            "TP-016-02"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "negativeControl": "Removing the markup that mounts the chart makes the wait fail. This is not hypothetical: it is the exact state four separate merges produced, and the state the packet was filed against.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-combined.spec.mjs"
+      ],
+      "testRows": [
+        "TP-016-02"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-016-04",
+      "businessScenario": null,
+      "scopeId": "02-make-the-deployed-branch-carry-the-panel-its-tests-exercise",
+      "scope": 2,
+      "status": "done",
+      "title": "The unavailability marker resolves",
+      "gherkin": {
+        "given": "a pack year mismatch and a refusing state leg",
+        "when": "a test waits for the combined settlement card unavailability marker",
+        "then": "the element is found and carries the expected reason code"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The marker is found on the rendered page under a genuine refusing condition \u2014 a pack year mismatch with a refusing state leg \u2014 rather than under a synthetic flag.",
+          "satisfiedBy": [
+            "TP-016-02"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The marker carries the EXPECTED REASON CODE, not merely a generic unavailable state. A marker that appeared without the right code would let one refusal reason masquerade as another.",
+          "satisfiedBy": [
+            "TP-016-02"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "negativeControl": "Removing the unavailability markup makes the wait fail; emitting the marker with a different reason code fails the code assertion separately.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-combined.spec.mjs"
+      ],
+      "testRows": [
+        "TP-016-02"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-016-05",
+      "businessScenario": null,
+      "scopeId": "02-make-the-deployed-branch-carry-the-panel-its-tests-exercise",
+      "scope": 2,
+      "status": "done",
+      "title": "The federal leg value resolves",
+      "gherkin": {
+        "given": "the deployed revision of the lifetime tax strategy lab",
+        "when": "a test reads the combined federal leg value",
+        "then": "the read returns without exhausting the test budget"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The read RETURNS rather than exhausting the budget. An absent selector does not error \u2014 it waits \u2014 so budget exhaustion was the original symptom and returning is the property that distinguishes a present mount from an absent one.",
+          "satisfiedBy": [
+            "TP-016-02"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "negativeControl": "Removing the federal leg markup makes the read exhaust its budget, reproducing the filed symptom exactly.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-combined.spec.mjs"
+      ],
+      "testRows": [
+        "TP-016-02"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-016-06",
+      "businessScenario": null,
+      "scopeId": "02-make-the-deployed-branch-carry-the-panel-its-tests-exercise",
+      "scope": 2,
+      "status": "done",
+      "title": "The whole spec passes, not only the quotable failure",
+      "gherkin": {
+        "given": "the three absent selectors are restored",
+        "when": "the combined spec is run against the deployed revision",
+        "then": "every test in it passes, not only the one that timed out at thirty seconds"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "EVERY test in the spec passes. Re-run 2026-08-29: 16 passed, exit 0 \u2014 more than the eight this scope anticipated, because Feature 022 added its own coverage on top. Asserting the whole spec rather than the six named failures is the stronger claim: a fix validated against the quotable timeout alone clears one test of six.",
+          "satisfiedBy": [
+            "TP-016-02"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "negativeControl": "Restoring only the selector named in the quotable timeout, and not the other two, leaves the remaining tests red \u2014 which is the partial-fix trap this scenario exists to exclude.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-combined.spec.mjs"
+      ],
+      "testRows": [
+        "TP-016-02"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-016-07",
+      "businessScenario": null,
+      "scopeId": "03-notice-the-next-silent-loss",
+      "scope": 3,
+      "status": "done",
+      "title": "A spec is present and its target selectors are not",
+      "gherkin": {
+        "given": "a spec file present on the branch, and a page it targets that lacks the selectors the spec asserts",
+        "when": "the coherence check runs",
+        "then": "the condition is reported before publication"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The condition is reported BEFORE publication. Reporting it after would preserve exactly the failure this packet documented \u2014 eleven consecutive red runs in which deployment was skipped and nobody noticed the cause.",
+          "satisfiedBy": [
+            "TP-016-03"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "negativeControl": "This scenario IS the packet's negative control. It requires the check to FAIL against a branch carrying the spec without the selectors \u2014 precisely the state four separate merges produced. A check that passed in that state would let the panel un-ship silently a fifth time, which is the whole failure mode this scope exists to close.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "tests/lifetime-tax-combined.spec.mjs"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-combined.spec.mjs"
+      ],
+      "testRows": [
+        "TP-016-03"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-016-08",
+      "businessScenario": null,
+      "scopeId": "03-notice-the-next-silent-loss",
+      "scope": 3,
+      "status": "done",
+      "title": "A coherent branch is not obstructed",
+      "gherkin": {
+        "given": "a spec file whose target selectors are all present",
+        "when": "the coherence check runs",
+        "then": "it reports nothing and does not fail"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "A coherent branch passes. This is the tolerated side, and it matters: a check that refused every branch would be trivially safe and useless, and would be removed within a week.",
+          "satisfiedBy": [
+            "TP-016-03"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "negativeControl": "Paired with SCN-016-07 as the two sides of the check. Together they pin it: 07 proves it can refuse, 08 proves it does not refuse everything. Either alone would be satisfiable by a degenerate check.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "tests/lifetime-tax-combined.spec.mjs"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-combined.spec.mjs"
+      ],
+      "testRows": [
+        "TP-016-03"
+      ],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence"
+      ]
+    }
+  ]
+}

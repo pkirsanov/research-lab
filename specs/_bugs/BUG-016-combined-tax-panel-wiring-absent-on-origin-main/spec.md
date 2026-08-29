@@ -6,6 +6,30 @@ This specification states the behaviour that would have prevented the defect in 
 the behaviour a remedy must establish. It does not select between the remedy options in
 `design.md`; that selection is an owner decision recorded there.
 
+## Domain Capability Model
+
+**Capability: the deployed branch carries the surface its own tests exercise.**
+
+The defect was not a broken computation. The combined-settlement module was deployed and
+byte-identical; what was missing was the markup and script tag that mount it. Six tests asserted
+against three selectors the page did not have, so the gate stayed red and nothing published.
+
+| Concern | Where it belongs |
+|---|---|
+| Computing the combined settlement | The module, already deployed and unchanged |
+| Mounting it on the page | The route markup and its script tag |
+| Noticing that the mount is absent | A spec asserting the selectors against the deployed page |
+| Deciding how a divergent branch is reconciled | The owner, not the filing agent |
+
+The capability that was missing is the last-but-one: **a way to notice**. The wiring had been
+written and committed before, and four separate merges each discarded it. Each loss was silent,
+because nothing asserted the mount existed — the module still computed correctly, so no unit test
+noticed, and the page simply rendered without the region.
+
+That is why this packet's durable contribution is the assertion rather than the markup. Markup can
+be restored in a commit; a restoration that does not address recurrence restores a value the next
+merge may drop again.
+
 ## Behaviour Under Specification
 
 A blocking deploy gate exists to answer one question: is this branch fit to publish. It can

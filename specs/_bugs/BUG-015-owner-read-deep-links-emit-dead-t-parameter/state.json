@@ -150,13 +150,13 @@
       {
         "scopeId": "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
         "status": "Done",
-        "dodChecked": 5,
+        "dodChecked": 7,
         "dodUnchecked": 0
       },
       {
         "scopeId": "02-make-the-published-link-live-in-both-directions",
         "status": "Done",
-        "dodChecked": 9,
+        "dodChecked": 11,
         "dodUnchecked": 0
       },
       {

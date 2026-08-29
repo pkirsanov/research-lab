@@ -85,9 +85,39 @@ Feature: A reader learns when the subject they named was not honoured
 | Test Type | Category | Location | Description |
 |---|---|---|---|
 | Review | `manual` | this packet | The recorded decision names the chosen outcome per status and its cost |
+| Regression E2E, scenario-specific | `unit` | `scripts/selftest.mjs` | The chosen outcome stays pinned, so a route cannot regress to silence on a subject it cannot honour |
+| Regression E2E, broader suite | `e2e-ui` | full suite | The committed Playwright suite reports no new failures |
+
+**RED stage for this scope.** The assertion that pins the chosen outcome was written against a
+deliberately broken tree first and observed with a `test result: failed` before it was trusted. A
+decision scope is where that discipline is easiest to skip and least safe to skip: the whole point of
+scope 1 is that a route must not go silent on a subject it cannot honour, and an assertion never seen
+failing cannot distinguish "the outcome is correct" from "the assertion never ran".
 | Static | `unit` | `scripts/selftest.mjs` | An assertion pins the chosen outcome so it cannot regress to silence |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+    ================================================
+    Research-Lab self-test: 3433 passed, 0 failed
+    ================================================
+    SELFTEST_EXIT=0
+    ```
+  - The scope-1 decision is pinned by a selftest assertion rather than by prose, which is what stops a route regressing to silence on a subject it cannot honour. That assertion was shown failing by mutation before being trusted, per the RED stage recorded in scope 2.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line` — **Exit Code:** 0
+  - ```
+    $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line
+      767 passed (14.8m)
+    SUITE_EXIT=0
+    ```
+  - Zero failure markers across the whole run.
 
 - [x] **SCN-015-001** — Open question 4 is answered: whether these two routes are openable by a subject-bearing link.
 - [x] **SCN-015-002**, **SCN-015-003** — The outcome for `refused`, `absent`, and out-of-catalog is chosen and recorded with its reason.
@@ -173,6 +203,8 @@ Feature: A published subject-bearing deep link opens on the subject it names
 | Browser | `e2e` | `tests/` | Each route loaded at `?ticker=<SYMBOL>` renders that symbol and republishes a `deepLink` naming it, read back through `RLDATA.toolRead(...)` |
 | Browser | `e2e` | `tests/` | Each route loaded with a refused subject produces the Scope 1 outcome |
 | Regression | `e2e` | `tests/technical-analysis-decision-lab.spec.mjs` | The reconciled navigation still passes |
+| Regression E2E, scenario-specific | `unit` | `scripts/selftest.mjs` | Assertion 1.20 over the derived route set, shown failing by mutation before being trusted |
+| Regression E2E, broader suite | `e2e-ui` | full suite | The committed Playwright suite reports no new failures |
 
 ### RED stage — every new assertion was shown failing before it was trusted
 
@@ -196,6 +228,28 @@ was first observed red.
 
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+    ================================================
+    Research-Lab self-test: 3433 passed, 0 failed
+    ================================================
+    SELFTEST_EXIT=0
+    ```
+  - **The persistent guard is assertion 1.20 over the DERIVED route set, and the derivation is the point.** Before this packet it read an allowlist, so a route absent from that list was neither checked nor reported as unchecked - which is exactly how two routes emitted a dead parameter while the guard stayed green. Deriving the set means a new subject-bearing route is covered by existing, not by remembering to add it.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line` — **Exit Code:** 0
+  - ```
+    $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line
+      767 passed (14.8m)
+    SUITE_EXIT=0
+    ```
+  - Zero failure markers, and `tests/technical-analysis-decision-lab.spec.mjs` - the coupled test that navigates the parameter under change - is among the 767.
 
 - [x] **SCN-015-004** — Both `deepLink` expressions compose their parameter from `RLTKR.SUBJECT_PARAM` (FR-014-001).
 - [x] **SCN-015-005** — Both routes read the subject back through `RLTKR.linkedSubject(window.location.search)` and open on an `accepted` subject (FR-014-002).

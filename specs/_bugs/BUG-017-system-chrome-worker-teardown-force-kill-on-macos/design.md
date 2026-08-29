@@ -127,3 +127,36 @@ is a worse trade.
    it regardless, which weakens the argument against Option B considerably.
 4. **Is one occurrence in two runs enough to act on?** It is not a rate. Establishing one costs
    runs; acting without one risks fixing a threshold that was never there.
+
+
+## Implementation Shape
+
+### Single-Implementation Justification
+
+One implementation, deliberately: `workers: 2` in `playwright.config.mjs`, plus the
+disclosure in `.specify/memory/agents.md` that tells a developer why it is there.
+
+A capability foundation would need a stable seam with at least two concrete
+implementations behind it. Neither half is available here, and neither absence is
+incidental:
+
+- **No seam is possible.** The value's only consumer is Playwright's runner, which
+  reads `defineConfig` directly. Any indirection this repository introduced would sit
+  beside that path rather than in front of it, so it would not intercept the behaviour
+  it claimed to abstract.
+- **No second implementation exists to hold.** The condition has been observed on one
+  platform, on one machine. A second variant would be written against a case never
+  measured, and would ship as an untested branch dressed as generality.
+
+The variation that does exist is already expressed, and expressed better than a
+foundation would express it. A developer who wants a different worker count passes
+`--workers` on the command line: Playwright's own precedence rules make the CLI win over
+the config, so the override costs this repository nothing to support and cannot drift
+from the runner's behaviour. That is the correct place for the variation — the runner
+already owns it. Reimplementing it here would mean maintaining a second copy of a rule
+Playwright will keep enforcing regardless.
+
+The honest summary is that this packet lowers exposure to a defect it does not own. The
+force-kill is emitted by the vendored runner and the other end is the operator's
+installed Chrome. Neither is in this repository, so no amount of structure here removes
+the cause — and a foundation implying otherwise would misrepresent the fix's reach.

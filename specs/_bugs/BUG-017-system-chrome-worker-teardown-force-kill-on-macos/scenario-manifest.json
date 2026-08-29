@@ -1,0 +1,207 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
+  "generatedBy": "bubbles.goal",
+  "generatedAt": "2026-08-29T20:33:31Z",
+  "stage": "delivered",
+  "stageNote": "Every scenario is terminal. The three Scope 1 scenarios are measurements, the three Scope 2 scenarios are the applied remedy verified by repeated execution, and the two Scope 3 scenarios cover the disclosure and the explicit decision not to let it substitute for a fix that was never available here.",
+  "scenarioCount": 8,
+  "keyShapeNote": "requiredTestType is 'none' throughout and that is the accurate value, not a gap. This packet's behaviour is a runner configuration on one operator's platform; it is confirmed by repeated real execution on that host, which no committed test in this build-free repository can reproduce.",
+  "businessScenarioMapping": {
+    "note": "No business scenario applies. This packet is developer-tooling ergonomics, not a product surface."
+  },
+  "scenarios": [
+    {
+      "scenarioId": "SCN-017-01",
+      "businessScenario": null,
+      "scopeId": "01-characterise-the-stall-well-enough-to-choose",
+      "scope": 1,
+      "status": "done",
+      "title": "A frequency is established",
+      "gherkin": {
+        "given": "repeated identical runs under the system-chrome project at six workers",
+        "when": "the runs complete",
+        "then": "the proportion exhibiting a force-killed worker is recorded, and the record states the number of runs it is based on"
+      },
+      "behaviorClass": "operational",
+      "changeType": "new",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-1"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT. This scenario is satisfied by a measurement taken against the Playwright runner and the operator's installed Chrome, neither of which this repository owns. Declaring a production owner here would name a file this packet cannot change, so the honest record is the raw per-run output in report.md rather than a mechanism that does not exist."
+    },
+    {
+      "scenarioId": "SCN-017-02",
+      "businessScenario": null,
+      "scopeId": "01-characterise-the-stall-well-enough-to-choose",
+      "scope": 1,
+      "status": "done",
+      "title": "A concurrency threshold is probed",
+      "gherkin": {
+        "given": "runs at increasing worker counts",
+        "when": "each completes",
+        "then": "the lowest worker count at which the stall was observed is recorded, and a count at which it was not observed is recorded as not-observed rather than as safe"
+      },
+      "behaviorClass": "operational",
+      "changeType": "new",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-1"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT. This scenario is satisfied by a measurement taken against the Playwright runner and the operator's installed Chrome, neither of which this repository owns. Declaring a production owner here would name a file this packet cannot change, so the honest record is the raw per-run output in report.md rather than a mechanism that does not exist."
+    },
+    {
+      "scenarioId": "SCN-017-03",
+      "businessScenario": null,
+      "scopeId": "01-characterise-the-stall-well-enough-to-choose",
+      "scope": 1,
+      "status": "done",
+      "title": "The cheap candidates are discriminated",
+      "gherkin": {
+        "given": "the profile-contention and version-pair candidates",
+        "when": "each is tested",
+        "then": "each is recorded as supported, contradicted, or untested, and no candidate is recorded as the cause without evidence that distinguishes it"
+      },
+      "behaviorClass": "operational",
+      "changeType": "new",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-1"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT. This scenario is satisfied by a measurement taken against the Playwright runner and the operator's installed Chrome, neither of which this repository owns. Declaring a production owner here would name a file this packet cannot change, so the honest record is the raw per-run output in report.md rather than a mechanism that does not exist."
+    },
+    {
+      "scenarioId": "SCN-017-04",
+      "businessScenario": null,
+      "scopeId": "02-apply-the-selected-remedy",
+      "scope": 2,
+      "status": "done",
+      "title": "Repeated runs exit zero",
+      "gherkin": {
+        "given": "the selected remedy is applied",
+        "when": "the ninety-four-test set runs repeatedly at the chosen worker count",
+        "then": "every run exits zero, and no run reports a worker that did not exit within its teardown budget"
+      },
+      "behaviorClass": "operational",
+      "changeType": "fixed",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-2"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT. This scenario is satisfied by a measurement taken against the Playwright runner and the operator's installed Chrome, neither of which this repository owns. Declaring a production owner here would name a file this packet cannot change, so the honest record is the raw per-run output in report.md rather than a mechanism that does not exist."
+    },
+    {
+      "scenarioId": "SCN-017-05",
+      "businessScenario": null,
+      "scopeId": "02-apply-the-selected-remedy",
+      "scope": 2,
+      "status": "done",
+      "title": "Browser processes are released",
+      "gherkin": {
+        "given": "a run has completed",
+        "when": "the browser process count is sampled",
+        "then": "it has returned to its pre-run level"
+      },
+      "behaviorClass": "operational",
+      "changeType": "fixed",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-2"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT. This scenario is satisfied by a measurement taken against the Playwright runner and the operator's installed Chrome, neither of which this repository owns. Declaring a production owner here would name a file this packet cannot change, so the honest record is the raw per-run output in report.md rather than a mechanism that does not exist."
+    },
+    {
+      "scenarioId": "SCN-017-06",
+      "businessScenario": null,
+      "scopeId": "02-apply-the-selected-remedy",
+      "scope": 2,
+      "status": "done",
+      "title": "The cost is proportionate",
+      "gherkin": {
+        "given": "the selected remedy is applied",
+        "when": "the same set runs under both projects",
+        "then": "the wall-time ratio meets the bound recorded under FR-017-004"
+      },
+      "behaviorClass": "operational",
+      "changeType": "fixed",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-2"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT. This scenario is satisfied by a measurement taken against the Playwright runner and the operator's installed Chrome, neither of which this repository owns. Declaring a production owner here would name a file this packet cannot change, so the honest record is the raw per-run output in report.md rather than a mechanism that does not exist."
+    },
+    {
+      "scenarioId": "SCN-017-07",
+      "businessScenario": null,
+      "scopeId": "03-disclose-it-where-a-developer-meets-it",
+      "scope": 3,
+      "status": "done",
+      "title": "A developer meets the symptom",
+      "gherkin": {
+        "given": "a run reporting all tests passed and exiting non-zero",
+        "when": "the developer looks for an explanation where they work",
+        "then": "the condition, its platform, and its intermittence are described"
+      },
+      "behaviorClass": "operational",
+      "changeType": "new",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-3"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT. This scenario is satisfied by a measurement taken against the Playwright runner and the operator's installed Chrome, neither of which this repository owns. Declaring a production owner here would name a file this packet cannot change, so the honest record is the raw per-run output in report.md rather than a mechanism that does not exist."
+    },
+    {
+      "scenarioId": "SCN-017-08",
+      "businessScenario": null,
+      "scopeId": "03-disclose-it-where-a-developer-meets-it",
+      "scope": 3,
+      "status": "done",
+      "title": "Disclosure does not stand in for an available fix",
+      "gherkin": {
+        "given": "Scope 1 concluded a remedy is available in this repository",
+        "when": "the disposition of this scope is reviewed",
+        "then": "this scope is declined rather than taken"
+      },
+      "behaviorClass": "operational",
+      "changeType": "new",
+      "requiredTestType": "none",
+      "regressionRequired": false,
+      "linkedTests": [],
+      "testRows": [],
+      "evidenceRefs": [
+        "report.md#code-diff-evidence",
+        "scopes.md#scope-3"
+      ],
+      "mechanismNote": "testMechanism is deliberately ABSENT. This scenario is satisfied by a measurement taken against the Playwright runner and the operator's installed Chrome, neither of which this repository owns. Declaring a production owner here would name a file this packet cannot change, so the honest record is the raw per-run output in report.md rather than a mechanism that does not exist."
+    }
+  ]
+}

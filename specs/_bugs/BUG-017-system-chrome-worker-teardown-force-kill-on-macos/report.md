@@ -2,8 +2,106 @@
 
 - **Filed at commit:** `7d592cf1b`
 - **Measured at commit:** `7d592cf1b`
-- **Phase:** bug (filing only)
-- **Delivered behaviour:** none
+- **Remedy shipped at commits:** `13494be66`, `2d79740e1`, `b08ba13f4`
+- **Phase:** bug (delivered)
+- **Delivered behaviour:** `workers: 2` pinned in `playwright.config.mjs`, and the condition disclosed in `.specify/memory/agents.md`
+
+## Red → Green
+
+The transition this packet turned, stated as the two runs that bracket it. Both were
+observed on the same macOS host, against the same ninety-four-test set, under the same
+`system-chrome` project — the worker count is the only variable.
+
+**Red stage — before `13494be66`.** At the unpinned default of six workers, the run
+reports every test passed and then **exits 1** anyway:
+
+```
+$ npx playwright test --project=system-chrome
+  94 passed (5.7m)
+Error: worker-3 process did not exit within 300000ms after stop, force-killed it
+$ echo $?
+1
+```
+
+That exit code is the defect. A green suite that returns failure is indistinguishable
+from a broken one at a glance, and it is why the condition could not simply be tolerated.
+Frequency at this worker count: **6 of 8 runs**.
+
+**Green stage — after `13494be66`.** With `workers: 2` pinned, the same set runs to a
+clean exit, and the force-kill line is absent:
+
+```
+$ npx playwright test --project=system-chrome
+  94 passed (1.4m)
+$ echo $?
+0
+```
+
+Frequency at this worker count: **0 of 3 runs** — recorded as not-observed, not as safe.
+Three clean runs bound the frequency from above; they do not prove the stall cannot occur.
+
+The repository-wide check is green alongside it: `node scripts/selftest.mjs` →
+**3433 passed, 0 failed**.
+
+### Code Diff Evidence
+
+The packet changed exactly two files. `git show --stat` on each of the three commits,
+which is what establishes that claim rather than an assertion about it:
+
+```
+$ git show --stat --format='%h %s' 13494be66
+13494be66 fix(BUG-017): pin the worker count local runs share with the pipeline
+ playwright.config.mjs                              |   6 +
+ .../report.md                                      | 200 +++++++++++++++++++--
+ .../scopes.md                                      |  32 ++--
+ 3 files changed, 211 insertions(+), 27 deletions(-)
+
+$ git show --stat --format='' 2d79740e1
+ .specify/memory/agents.md                          |  12 ++
+ playwright.config.mjs                              |  16 +-
+ .../report.md                                      | 172 ++++++++++++++++++++-
+ .../scopes.md                                      |  27 ++--
+ .../state.json                                     |  38 +++--
+ 5 files changed, 239 insertions(+), 26 deletions(-)
+
+$ git show --stat --format='' b08ba13f4
+ .specify/memory/agents.md                          | 24 ++++--
+ playwright.config.mjs                              | 22 +++--
+ .../bug.md                                         | 45 ++++++++--
+ .../report.md                                      | 95 ++++++++++++++++++++++
+ .../scopes.md                                      | 21 +++--
+ 5 files changed, 179 insertions(+), 28 deletions(-)
+```
+
+Outside this packet's own artifacts, the only paths that appear are
+`playwright.config.mjs` and `.specify/memory/agents.md`. No tool HTML, no shared
+helper, no `data/` payload, no `.github/bubbles/**` file.
+
+The runtime change itself:
+
+```
+$ git show 13494be66 -- playwright.config.mjs
+ export default defineConfig({
+   testMatch: '**/*.spec.mjs',
++  /* Match the pipeline, which pins --workers=2. Left unset, a local run defaults to half the
++     CPU count, and on a 12-core machine six concurrent system-Chrome instances intermittently
++     fail to signal their exit: the runner then waits five minutes and exits 1 with every test
++     passed. Measured at 6/8 runs stalling at six workers, 1/3 at four, 0/3 at two. A CLI
++     --workers flag still overrides this. See specs/_bugs/BUG-017-*. */
++  workers: 2,
+   projects: [
+     {
+       name: 'system-chrome',
+```
+
+Two things in that hunk are deliberate and worth naming, because both look like
+omissions until you know why they are there. The comment carries the measurement
+rather than pointing at it, so the number travels with the knob it justifies and a
+future reader deciding whether to raise the count meets the evidence at the same
+moment. And `--workers` still overrides the pin: the cause lives in Playwright's
+runner and the operator's installed Chrome, so this repository can lower its own
+exposure but cannot remove the condition, and a config that pretended otherwise
+would be lying about its own reach.
 
 ## Summary
 
@@ -467,7 +565,7 @@ re-derived any measurement recorded here.
 
 Recorded here because Scope 3's first Definition of Done item requires *Scope 1* to have recorded
 it, and the Decision above stopped at selecting Option C. Everything in this section was verified
-in this execution on the same macOS host; nothing is carried forward on trust.
+in this execution on the same macOS host; nothing here rests on trust in an earlier session.
 
 **1. The failing step belongs to the vendored runner, not to this repository.**
 

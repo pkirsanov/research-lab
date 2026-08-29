@@ -73,3 +73,31 @@ Every factual claim in this specification is established by executed evidence in
 produced in the filing session on the machine where the defect reproduces. Claims that were
 **not** established are enumerated in `bug.md` under `## What Was Not Established` and are not
 relied upon here.
+
+
+## Domain Capability Model
+
+### Single-Capability Justification
+
+This packet delivers exactly one capability: **bound the concurrency of browser-backed
+Playwright runs so the suite's exit code reports the tests rather than the teardown.**
+It is a single capability rather than a foundation, and the distinction is not a
+formality — it decides whether the right artefact here is a reusable seam or one line.
+
+There is no second consumer to generalise for. The concurrency bound has exactly one
+reader, Playwright's own runner, and exactly one place that runner looks:
+`playwright.config.mjs`. A repository cannot own an abstraction over a value that a
+third-party runner reads directly from its own config file; anything built above it
+would be a wrapper this repository maintains and nothing calls.
+
+Nor is there a second variant to hold. The natural candidates fail on inspection:
+a per-project worker count is not expressible — Playwright resolves `workers` once for
+the run, not per project — and a per-platform override would be a branch this repository
+could never exercise, since the condition has been observed on exactly one platform, on
+one machine, by one operator. Building either would create an untested path in the name
+of symmetry, which is the cost this justification exists to refuse.
+
+The proportionality trigger words that brought this gate into force appear in the
+diagnostic prose — the packet discusses browser *channels*, *projects*, and candidate
+*drivers* of the stall. Those are the vocabulary of the investigation, not of the
+delivery. The delivery is one integer and a comment explaining it.

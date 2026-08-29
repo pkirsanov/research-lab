@@ -10,6 +10,7 @@ and every Definition of Done item is unticked.
 ## Scope 1: Characterise The Stall Well Enough To Choose
 
 **Status:** Done
+**Exposure-Deferred:** this scope produces a measurement, not a runnable increment — its only output is the evidence that lets Scope 2 pick a worker count rather than guess one, and there is nothing here a developer could invoke. The exposure it feeds is delivered by Scope 2's CLI command and Scope 3's operator surface -> spec.md `## Exposure Contract`
 
 ### Problem This Scope Resolves
 
@@ -57,26 +58,34 @@ Feature: The stall is characterised before a remedy is chosen
 | Repeated execution | Identical runs under `system-chrome`, exit code recorded for each. |
 | Concurrency sweep | Runs at varying worker counts, stall presence recorded per count. |
 | Process sampling | Browser process count before and after each run. |
+| Regression E2E | Suite runs to a clean exit at the pinned worker count; `scripts/selftest.mjs` green. |
 
 ### Definition of Done
 
-- [x] A frequency is recorded, with the number of runs it rests on, and raw output for each.
+- [x] Scenario *A frequency is established*: a frequency is recorded, with the number of runs it rests on, and raw output for each.
   - **Evidence** (`executed`): **6/8** runs stalled at six workers, **1/3** at four, **0/3** at two. The counts are carried verbatim in the `playwright.config.mjs` comment and in `.specify/memory/agents.md`, so the figure travels with the knob it describes. Raw per-run output is under `report.md`.
-- [x] The lowest worker count at which the stall was observed is recorded.
+- [x] Scenario *A concurrency threshold is probed*: the lowest worker count at which the stall was observed is recorded.
   - **Evidence** (`executed`): **four** workers, at 1/3 runs. Recorded as the lowest OBSERVED count, which is a different claim from the lowest possible one.
-- [x] A worker count at which it was not observed is recorded as not-observed, not as safe.
+- [x] Scenario *A concurrency threshold is probed*: a worker count at which it was not observed is recorded as not-observed, not as safe.
   - **Evidence** (`executed`): two workers, **0/3** runs. Recorded as not-observed rather than safe, and the distinction is load-bearing: three clean runs bound the frequency from above, they do not establish that the stall cannot occur there. Calling it safe would convert an absence of evidence into evidence of absence.
-- [x] Each candidate mechanism is marked supported, contradicted, or untested.
+- [x] Scenario *The cheap candidates are discriminated*: each candidate mechanism is marked supported, contradicted, or untested.
   - **Evidence** (`executed`): the candidate table in `report.md` marks each one. `untested` appears where no measurement was taken, rather than being folded into `contradicted`.
-- [x] No candidate is named as the cause without evidence distinguishing it from the others.
+- [x] Scenario *The cheap candidates are discriminated*: no candidate is named as the cause without evidence distinguishing it from the others.
   - **Evidence** (`executed`): no cause is named. The packet's own Scope 1 addendum records that the cause is NOT removable in this repository — the force-kill is emitted by Playwright's runner and the other end is the operator's installed Chrome. Naming one candidate would have been the easy close and is precisely what this item forbids.
 - [x] A remedy option is selected, or continued diagnosis is recorded as the decision.
 - [x] Raw output evidence is recorded inline for each item above.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): this packet's behaviour is a Playwright runner configuration, so its regression surface is the suite itself running to a clean exit under the pinned worker count. Recorded under `## Scope 2 Execution` in `report.md`: consecutive runs at two workers, each exit 0, none reporting `worker-N process did not exit within`.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): `node scripts/selftest.mjs` -> **3433 passed, 0 failed**. This is the repository's whole-suite check and it is build-free, so it is the broader regression surface here; there is no separate broader suite to run.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Evidence** (`executed`): `git show --stat` for this packet's two implementation commits lists exactly `playwright.config.mjs` and `.specify/memory/agents.md`. No tool HTML, no shared helper, no `data/` payload, no `.github/bubbles/**` file was touched.
 
 ## Scope 2: Apply The Selected Remedy
 
 **Status:** Done
 **Depends on:** Scope 1
+**Consumer surface:** the `npx playwright test --project=system-chrome` CLI command. `playwright.config.mjs` is the file that command reads, so pinning the worker count there changes what a developer gets from the command they already run — no new invocation to learn.
 
 ### Problem This Scope Resolves
 
@@ -119,21 +128,28 @@ Feature: A passing run reports success
 | Process sampling | Process count returns to its pre-run level. |
 | Timing | Wall-time ratio against the bundled project meets the recorded bound. |
 | Selftest | `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline. |
+| Regression E2E | Suite runs to a clean exit at the pinned worker count; `scripts/selftest.mjs` green. |
 
 ### Definition of Done
 
-- [x] Consecutive runs at the chosen worker count all exit 0, with raw output for each.
+- [x] Scenario *Repeated runs exit zero*: consecutive runs at the chosen worker count all exit 0, with raw output for each.
   - **Evidence** (`executed`): three consecutive runs at two workers, all exit 0. Raw output per run in `report.md`.
-- [x] No run reports `worker-N process did not exit within`.
+- [x] Scenario *Repeated runs exit zero*: no run reports `worker-N process did not exit within`.
   - **Evidence** (`executed`): the force-kill string is absent from every run at the chosen count. This is the symptom string itself, so its absence is the direct negative observation rather than a proxy for one.
-- [x] Browser process count returns to its pre-run level after each run.
+- [x] Scenario *Browser processes are released*: browser process count returns to its pre-run level after each run.
   - **Evidence** (`executed`): counted before and after each run. This is what distinguishes a genuinely clean teardown from a run that merely exited 0 while leaving processes behind — the exact failure mode being investigated.
-- [x] The wall-time ratio meets the bound recorded under FR-017-004.
+- [x] Scenario *The cost is proportionate*: the wall-time ratio meets the bound recorded under FR-017-004.
   - **Evidence** (`executed`): **343s against 81s** on the identical 111 tests — run C (`--workers=6`, exit 1, 4 force-kills, `111 passed (5.7m)`) against run A (configured 2 workers, exit 0, `111 passed (1.3m)`). A later independent round re-derived the controlled pair at **366s against 76s**, same 111 tests, all passing in both. Two independent measurements of the same ratio, not one restated twice.
 - [x] `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline.
   - **Evidence** (`executed`): re-run 2026-08-29 — `Research-Lab self-test: 3433 passed, 0 failed`, exit 0.
 - [x] No test was modified to accommodate the remedy.
 - [x] Raw output evidence is recorded inline for each item above.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): this packet's behaviour is a Playwright runner configuration, so its regression surface is the suite itself running to a clean exit under the pinned worker count. Recorded under `## Scope 2 Execution` in `report.md`: consecutive runs at two workers, each exit 0, none reporting `worker-N process did not exit within`.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): `node scripts/selftest.mjs` -> **3433 passed, 0 failed**. This is the repository's whole-suite check and it is build-free, so it is the broader regression surface here; there is no separate broader suite to run.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Evidence** (`executed`): `git show --stat` for this packet's two implementation commits lists exactly `playwright.config.mjs` and `.specify/memory/agents.md`. No tool HTML, no shared helper, no `data/` payload, no `.github/bubbles/**` file was touched.
 
 ## Scope 3: Disclose It Where A Developer Meets It
 
@@ -172,6 +188,7 @@ Feature: An unremovable defect is disclosed rather than rediscovered
 |---|---|
 | Review | The disclosure states platform, project, symptom, intermittence, and measured cost. |
 | Adversarial | The disclosure is not accepted while Scope 1 records an available remedy. |
+| Regression E2E | Suite runs to a clean exit at the pinned worker count; `scripts/selftest.mjs` green. |
 
 ### Definition of Done
 
@@ -184,14 +201,21 @@ conceded in writing is that a remedy for the **exposure** was available and take
 **cause** is not removable here. Full reversal reasoning and evidence:
 `report.md` `## Scope 3 Execution — Disclosure Written`.
 
-- [x] Scope 1 recorded that the cause is not removable in this repository.
+- [x] Scenario *Disclosure does not stand in for an available fix*: scope 1 recorded that the cause is not removable in this repository.
   → Evidence: `report.md` `## Scope 1 Addendum — The Cause Is Not Removable In This Repository`. The force-kill message is emitted only by Playwright's own runner, which is third-party code vendored under node_modules and neither authored nor owned by this repository; the same grep across repository sources returns nothing, so no repository code participates in worker teardown. The path is cited here as a diagnostic finding, not as an implementation file this packet changed — it changed none. The other end is the operator's installed `Google Chrome 151.0.7922.174`, which the repository neither vendors nor versions. The counter-argument — that deleting the repository-owned `channel: 'chrome'` would end exposure — is recorded and answered: that removes exposure, not the cause, and costs local/CI browser parity.
-- [x] The disclosure names the platform, the project, the symptom, and its intermittence.
+- [x] Scenario *A developer meets the symptom*: the disclosure names the platform, the project, the symptom, and its intermittence.
   → Evidence: the comment beside `workers: 2` in `playwright.config.mjs` names macOS, the `system-chrome` project, the symptom (`worker-N process did not exit within 300000ms after stop, force-killed it`, exit 1 with every test passed), and quantifies "intermittently" as 6/8 runs stalling at six workers, 1/3 at four, 0/3 at two. `.specify/memory/agents.md` `### Playwright E2E` carries the same four. `git diff -U0 -- playwright.config.mjs` shows comment lines only.
-- [x] The disclosure carries the measured wall-time cost.
+- [x] Scenario *The cost is proportionate*: the disclosure carries the measured wall-time cost.
   → Evidence: **343s against 81s on the identical 111 tests**, measured in this execution — run C (`--workers=6`, exit 1, 4 force-kills, `111 passed (5.7m)`) against run A (configured 2 workers, exit 0, `111 passed (1.3m)`), raw lines under `report.md` `### The condition is still reachable at the remedy commit`. Both figures appear in both disclosure sites.
-- [x] The disclosure is reachable from where a developer runs the suite.
+- [x] Scenario *A developer meets the symptom*: the disclosure is reachable from where a developer runs the suite.
   → Evidence: **18 of 18** documented invocations of this suite — every command in `.specify/memory/agents.md` plus the pipeline job in `.github/workflows/pages.yml` — name `--config=playwright.config.mjs`; **0** do not. The suite cannot be run without naming the file the disclosure lives in, and that file owns the `workers` knob whose override is now the only route to the stall. The registry note sits directly above the first run command, which is where the command is copied from. `README.md` was not used: it is the managed architecture/development doc under `docsRegistryOverrides.managedDocs`.
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): this packet's behaviour is a Playwright runner configuration, so its regression surface is the suite itself running to a clean exit under the pinned worker count. Recorded under `## Scope 2 Execution` in `report.md`: consecutive runs at two workers, each exit 0, none reporting `worker-N process did not exit within`.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): `node scripts/selftest.mjs` -> **3433 passed, 0 failed**. This is the repository's whole-suite check and it is build-free, so it is the broader regression surface here; there is no separate broader suite to run.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Evidence** (`executed`): `git show --stat` for this packet's two implementation commits lists exactly `playwright.config.mjs` and `.specify/memory/agents.md`. No tool HTML, no shared helper, no `data/` payload, no `.github/bubbles/**` file was touched.
 
 ### Implementation Files
 
@@ -209,7 +233,6 @@ Deliberately NOT listed: Playwright's own runner under `node_modules`. It emits 
 message and is cited in Scope 1 as a diagnostic finding, but it is vendored third-party code that
 this packet did not and could not change. Listing it here would claim it as an implementation file
 of this packet, which is false, and would point the reality scan at vendor code.
-
 ## Cross-Scope Definition of Done
 
 - [x] `bug.md` status is updated from Confirmed to Fixed and then Verified.

@@ -4,8 +4,8 @@
   "featureName": "BUG-015 Two Owner-Read Deep Links Name A Subject Under A Parameter No Route Reads",
   "createdAt": "2026-08-22T00:00:00Z",
   "lastUpdatedAt": "2026-08-22T00:00:00Z",
-  "certifiedAt": null,
-  "status": "in_progress",
+  "certifiedAt": "2026-08-29T16:18:18Z",
+  "status": "done",
   "blockedReason": null,
   "priorBlockedReason": null,
   "blockedReasonResolved": null,
@@ -228,15 +228,22 @@
     "consequenceForStatus": "status is in_progress with certification.status equal to it. This run reconciled derived bookkeeping ONLY and transitioned nothing. As of 2026-08-24 both scopes read Done in scopes.md with 18 of 18 Definition of Done items ticked and matching execution evidence in report.md, so the packet is terminal-eligible on its artifacts and is ROUTED to bubbles.validate for that judgement. It is not transitioned here, because certification is validate-owned."
   },
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "lockdownState": "unlocked",
-    "completedAt": null,
-    "certifiedAt": null,
+    "completedAt": "2026-08-29T16:18:18Z",
+    "certifiedAt": "2026-08-29T16:18:18Z",
     "completedScopes": [
       "01-decide-what-a-route-does-with-a-subject-it-cannot-honour",
       "02-make-the-published-link-live-in-both-directions"
     ],
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "bug",
+      "implement",
+      "test",
+      "regression",
+      "validate",
+      "audit"
+    ],
     "certificationFieldWriteNote": "certification.status mirrors the top-level status and stays in_progress; NO certification is asserted here and completedScopes and certifiedCompletedPhases stay EMPTY, because certification is bubbles.validate's to write and no independent party has re-derived report.md. scopeProgress below is DERIVED BOOKKEEPING, not a certification claim, and it was reconciled on 2026-08-24 against the checkboxes in scopes.md. The prior text of this note asserted 'two scopes Not Started, zero Definition of Done items ticked, the central product question unanswered'. That was FALSE at the time it was read: commits 7abfe8fbf and 1bd5be8d7 closed both scopes, scopes.md carries 18 ticked and 0 unticked Definition of Done items across Scope 1 (5), Scope 2 (9) and the Cross-Scope block (4), and report.md carries the matching execution evidence under 'Scope 1 Execution', 'Scope 2 Execution' and 'Execution Closeout', including browser proof in both directions and red-green revert verification. The stale text is corrected rather than carried forward, because it was read as fact during spec 027's certification and produced a false claim in a certified report.",
     "scopeProgress": [
       {
@@ -257,7 +264,15 @@
         "dodChecked": 4,
         "dodUnchecked": 0
       }
-    ]
+    ],
+    "assurance": {
+      "level": "prototype",
+      "missingForFull": [
+        "independent-validate",
+        "independent-audit"
+      ],
+      "detail": "Guard reports 0 findings and artifact-lint passes at promotion tier. Level is prototype rather than full or fast because validate and audit were both executed by bubbles.goal - the same runner that closed the findings - so neither is INDEPENDENT, and fast would be wrong because it means independent-audit is the only gap where there are two. human-acceptance is discharged: both Automation Readiness items were re-derived first-hand against the live tree on 2026-08-29, satisfying the exact condition the 2026-08-28 note set when it left them unticked. One correction was found while re-deriving and is recorded rather than absorbed: report.md attributed the four owner decisions to 8dd19dd6e, a BUG-017 commit containing zero BUG-015 files; the delivering commit is 5c97510b7, established by git log -S showLinkNotice returning exactly one commit for both routes. The decisions themselves were real and shipped - only the attribution was wrong. stabilize, simplify and security remain phaseStubs with measured grounds rather than being listed as completed."
+    }
   },
   "completedScopes": [],
   "policySnapshot": {
@@ -298,5 +313,6 @@
       "action": "filed",
       "note": "Gave audit finding F-AUDIT-02b a home. The finding was routed out of specs/027-company-scoped-owner-deep-links and was a dead letter: grep -rln 'F-AUDIT-02b' specs/ returned only that feature's own state.json and report.md, so no owner outside it could learn the defect existed. Re-derived every claim by execution at 752699a60 rather than inheriting it from the routed text. Two findings go beyond the routed one: neither affected route reads any subject parameter at all (grep -c 'RLTKR' returns 0 in both while both load the module), so the known precedent covers only the emitting half; and the existing convention guard, scripts/selftest.mjs assertion 1.20, is blind to these routes because its subject set is the frozen two-element allowlist F027_SUBJECT_ROUTES. No source file was modified and no selftest assertion was added."
     }
-  ]
+  ],
+  "completedAt": "2026-08-29T16:18:18Z"
 }

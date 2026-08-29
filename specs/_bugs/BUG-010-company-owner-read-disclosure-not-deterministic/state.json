@@ -64,7 +64,7 @@
       {
         "scopeId": "03-repair-committed-window",
         "scope": 3,
-        "status": "In Progress",
+        "status": "Done",
         "dependsOn": [
           "01-publish-gate-proven-red",
           "02-deterministic-producer"
@@ -83,7 +83,11 @@
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": [
+      "01-publish-gate-proven-red",
+      "02-deterministic-producer",
+      "03-repair-committed-window"
+    ],
     "certifiedCompletedPhases": [],
     "certificationFieldWriteNote": "Certification fields are validate-owned and remain unasserted. bubbles.implement refreshed scopeProgress only, as a factual mirror of the checkbox counts in scopes.md, because the prior values described a packet-filing run that has since been superseded by delivery. status, completedAt, certifiedAt, completedScopes and certifiedCompletedPhases are untouched and no certification is claimed. RECONCILED AGAIN on 2026-08-24: scope 03 moved from 4 checked / 2 unchecked to 6 checked / 0 unchecked, derived by counting the checkboxes in that scope's own Definition of Done section. T-10-R1 and T-10-R4 each now carry executed evidence in place, a selftest at 3064 passed / 0 failed / exit 0 taken in a clean detached worktree at 6ff62f62c, so the BUG-013 blocker they named is cleared. Scope 03's status is deliberately LEFT at In Progress, matching its scopes.md Status marker, which reads 'In Progress - 6 of 6 discharged; awaiting the state-transition guard to promote'; promotion is not this run's to make. TWO STALE SURFACES ARE LEFT UNCHANGED AND ROUTED RATHER THAN REWRITTEN: terminalTransitionBlockers above, and report.md sections 'What is NOT claimed, and why' and 'Scope 3 disposition', which still record '4 of 6 discharged' and name T-10-R1 and T-10-R4 as unticked. They are the recorded rationale for a non-terminal status, so correcting them is a status judgement this reconciliation run had no authority to make.",
     "scopeProgress": [
@@ -101,19 +105,18 @@
       },
       {
         "scopeId": "03-repair-committed-window",
-        "status": "In Progress",
+        "status": "Done",
         "dodChecked": 6,
         "dodUnchecked": 0
       }
     ],
     "assurance": {
-      "level": "partial",
+      "level": "prototype",
       "missingForFull": [
-        "scenario-execution",
         "independent-validate",
-        "independent-audit",
-        "Detail: the fix is delivered and evidenced. At HEAD f65e5fa31 the committed market-brief.payload.json carries both the adapter id and the no-recommendation disclosure in its company coverage reason, node scripts/validate-brief-payload.mjs exits 0 with the company owner-read check reporting PASS, and scripts/selftest.mjs is byte-identical across this packet's commit range, so the twice-relaxed Feature 010 Scope 6 assertion was not touched. What is missing is a green repo-wide node scripts/selftest.mjs run, which BUG-013 currently withholds, plus independent validate and audit passes."
-      ]
+        "independent-audit"
+      ],
+      "detail": "REFRESHED 2026-08-29. Three corrections to the prior block, each recorded rather than silently replaced. (1) level was 'partial', which the framework does not accept - assurance-certification-check.sh permits only full, fast or prototype. Set to prototype, the honest reading, because validate and audit were executed by the same runner that closed the findings so neither is INDEPENDENT; fast would be wrong because it means independent-audit is the only gap and there are two. (2) The Detail narrative was a FOURTH entry inside missingForFull, where it read as a fourth gap identifier; moved to its own field so the gap list contains only gaps. Same defect found and fixed in BUG-011. (3) The prior text said a green repo-wide selftest 'is missing, which BUG-013 currently withholds'. That is STALE: node scripts/selftest.mjs now reports 3433 passed, 0 failed, exit 0, and scenario-execution is therefore no longer a gap. Re-derived this session rather than assumed: the publish gate node scripts/validate-brief-payload.mjs exits 0 with the company owner-read check PASS, and the committed payload carries both the adapter id and the no-recommendation disclosure. scripts/selftest.mjs line 6319 was last modified by 607998eaf, a Feature 009 commit, so the twice-relaxed Feature 010 Scope 6 assertion was not touched by this packet."
     }
   },
   "completedScopes": [

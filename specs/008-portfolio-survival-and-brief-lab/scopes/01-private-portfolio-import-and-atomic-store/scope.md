@@ -107,12 +107,31 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
 
 ### Definition of Done
 
-- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
-- [ ] Broader E2E regression suite passes
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Re-verified 2026-08-29 (session-bound).** The 17 passing rows include the per-scenario regressions TP-01-03 (`Regression: SCN-008-001 valid local portfolio import creates one current revision`) and TP-01-04 (`Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted`), plus the SCN-008-054 consumer-surface regression which printed `[SCN-008-054] consumerSurface rowsBefore=2 rowsAfter=1` — a value assertion, not a smoke check.
+  - **Evidence:** [report.md#tp-01-03](report.md#tp-01-03), [report.md#tp-01-04](report.md#tp-01-04), and the TP-01-06 run recorded below.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound), not inherited from the prior window:**
+
+    ```text
+    $ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs \
+        --config=playwright.config.mjs --project=system-chrome --reporter=line
+
+    [17/17] [system-chrome] › tests/portfolio-survival-foundation.spec.mjs:2179:1 ›
+      Regression: SCN-008-054 the audited lifecycle defect stays repaired at the consumer surface
+    [SCN-008-054] consumerSurface rowsBefore=2 rowsAfter=1
+
+      17 passed (1.1m)
+    TP0106_EXIT=0
+    ```
+
+  - **Evidence:** [report.md#tp-01-06](report.md#tp-01-06).
 - [ ] Change Boundary is respected and zero excluded file families were changed
-- [ ] Rollback or restore path for shared infrastructure changes is documented and verified
+  - **Deliberately NOT ticked.** This asks whether Scope 01's *implementation* changed an excluded surface (`rldata.js`, `rlnav.js`, `rlapp.js`, `rlbrief.js`, the Market Brief artifacts, registries, source-lock). Confirming the working tree is clean today does not answer it, because the implementation commits predate this session and cannot be attributed to Scope 01 with confidence. Ticking it would be a guess dressed as a check. Discharging it needs the commit range for Scope 01, then a diff against the excluded list.
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified
   - **Documented at:** the `Rollback/restore` paragraph of [Change Boundary And Rollback](#change-boundary-and-rollback) — remove only Scope 01 new files and fixture entries, never a user personal storage key.
   - **Verifying rows:** TP-01-01 for the incompatible-newer-record safety path and TP-01-05 for last-known-good retention across durable, session-only, and memory-only modes.
+  - **Re-verified 2026-08-29:** both rows are inside the 17-passing TP-01-06 run above, so the documented path is backed by executing rows rather than by prose alone.
 
 #### Core Delivery Items
 
@@ -212,7 +231,25 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
   - **Exit Code:** 0
   - **Claim Source:** executed
   - **Evidence:** [TP-01-06 raw cumulative output: 3 tests passed](report.md#tp-01-06).
-- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns
+  - **Re-verified 2026-08-29, and run BEFORE the TP-01-06 broad suite rather than after — the ordering is the whole point of this row, since a canary read after a broad pass proves nothing about what the broad pass was standing on:**
+
+    ```text
+    $ node scripts/selftest.mjs
+    Research-Lab self-test: 3433 passed, 0 failed
+    SELFTEST_EXIT=0
+
+    $ node --test tests/portfolio-foundation.unit.mjs
+    # pass 61
+    # fail 0
+    # cancelled 0
+    # skipped 0
+    # todo 0
+    # duration_ms 1692.62294
+    UNIT_EXIT=0
+    ```
+
+  - Confirms the shared `rlcontracts.js` canonicalization/hash exports and the closed `rlPortfolio*` / `rlReturnContextV1` storage namespaces were unchanged before the broad result was read.
   - **Verifying row:** TP-01-07.
   - **Resolution condition:** the TP-01-07 command pair is recorded as having run BEFORE the TP-01-06 cumulative browser row in the same session, and its output is read against the three canaries named in [Shared Infrastructure Impact Sweep](#shared-infrastructure-impact-sweep) — the unchanged shared `rlcontracts.js` namespace, the closed `rlPortfolio*`/`rlReturnContextV1` key inventory, and the zero-interception request ledger. A canary recorded only after the broad rerun does not resolve this item, because ordering is the whole content of the claim.
 

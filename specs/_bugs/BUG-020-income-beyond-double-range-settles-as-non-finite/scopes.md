@@ -146,3 +146,19 @@ Scenario: the refusing side of the boundary is pinned
 - [x] Change Boundary is respected and zero excluded file families were changed
   - **Evidence** (`executed`): the change set is `rltax.js` (E1, E3), `lifetime-tax-strategy-lab.html` (R2), `rltaxrules.js` (the vocabulary member) and `scripts/selftest.mjs` (assertions). Allowed file families: the lifetime-tax engine, its rules module, its page, and the test suite. Excluded surfaces: every other tool HTML, every `data/` payload, and `.github/bubbles/**` — none changed.
 
+## Implementation Files
+
+### Implementation Files
+
+The files this packet changed, listed here so the reality scan reads them from the plan rather
+than falling back to `design.md` to guess:
+
+- `rltax.js` — the E1 arithmetic-origin guard and the E3 display-seam guard.
+- `lifetime-tax-strategy-lab.html` — the R2 render fallback in `stageValueText`.
+- `rltaxrules.js` — the `RLTAX-FIGURE-UNREPRESENTABLE` vocabulary member the three guards raise.
+- `scripts/selftest.mjs` — `TB-020-04`, `TB-020-05`, `TB-020-06` and the extended `TP-01-05`.
+- `tests/lifetime-tax-representable.spec.mjs` — the browser-level scenario coverage.
+
+Deliberately NOT listed: `tax-rules/federal/2026.json`. The route reads it and the tests use it,
+but this packet did not change it — a rule pack is data, and listing it would claim an edit that
+never happened.

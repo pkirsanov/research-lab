@@ -3,12 +3,13 @@
   "specId": "BUG-022",
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-08-27T12:18:47Z",
-  "planningDelta": "Design-commit 359d536b reconciliation. Exact focused titles are planned-not-authored. No command result or test linkage is claimed.",
+  "generatedAt": "2026-08-28T16:53:33Z",
+  "planningDelta": "Convergence iteration 4 planning reconciliation. The scope artifact has 16 checked and zero unchecked DoD rows, so its planning status is Done. Existing report receipts resolve every Test Plan row, including the expected pre-fix RED and truthful non-terminal guard result. The three scenario receipt chains were current through REGRESSION_GREEN at source revision 4bd96545cd6673155933edf3a22492d6d1972256 before these planning artifacts changed; they now require a final input-closure refresh. No specialist phase, acceptance, certification, source, test, or terminal-status claim is added.",
   "scopes": [
     {
       "scopeId": "01-separate-active-declarations-from-historical-receipts",
       "scopeName": "Classify Declaration Authority And Close Reachability",
+      "status": "done",
       "tests": [
         {
           "id": "TP-BUG022-RED-01",
@@ -20,8 +21,9 @@
           "command": "node --test --test-name-pattern='^committed discovery boundary keeps browser specs and direct Node suites disjoint$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
           "testState": "existing-red-control",
-          "status": "planned-not-executed",
-          "expectedRed": "Non-zero with exactly eight new portfolio crossings before implementation."
+          "status": "expected-red-recorded",
+          "expectedRed": "Non-zero with exactly eight new portfolio crossings before implementation.",
+          "evidenceRef": "report.md#red-01---existing-crossing-reproduction"
         },
         {
           "id": "TP-BUG022-F01",
@@ -32,8 +34,9 @@
           "description": "Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs",
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
         },
         {
           "id": "TP-BUG022-F02",
@@ -44,8 +47,9 @@
           "description": "Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative",
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
         },
         {
           "id": "TP-BUG022-F03",
@@ -56,8 +60,9 @@
           "description": "Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority",
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
         },
         {
           "id": "TP-BUG022-F04",
@@ -68,8 +73,9 @@
           "description": "Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance",
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
         },
         {
           "id": "TP-BUG022-F05",
@@ -80,8 +86,9 @@
           "description": "Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth",
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
         },
         {
           "id": "TP-BUG022-F06",
@@ -92,8 +99,9 @@
           "description": "Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority",
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
         },
         {
           "id": "TP-BUG022-C01",
@@ -105,7 +113,8 @@
           "command": "node scripts/validate-test-file-reachability.mjs",
           "liveSystem": false,
           "testState": "existing-command",
-          "status": "planned-not-executed"
+          "status": "passed",
+          "evidenceRef": "report.md#reachability-green"
         },
         {
           "id": "TP-BUG022-C02",
@@ -117,7 +126,8 @@
           "command": "node --test tests/portfolio-*.unit.mjs tests/portfolio-*.functional.mjs",
           "liveSystem": false,
           "testState": "existing-command",
-          "status": "planned-not-executed"
+          "status": "passed",
+          "evidenceRef": "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
         },
         {
           "id": "TP-BUG022-C03",
@@ -129,7 +139,8 @@
           "command": "npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
           "testState": "existing-command",
-          "status": "planned-not-executed"
+          "status": "passed",
+          "evidenceRef": "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-protected-browser-execution"
         },
         {
           "id": "TP-BUG022-C04",
@@ -141,7 +152,8 @@
           "command": "node scripts/selftest.mjs",
           "liveSystem": false,
           "testState": "existing-command",
-          "status": "planned-not-executed"
+          "status": "passed",
+          "evidenceRef": "report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest-at-c652cd092"
         },
         {
           "id": "TP-BUG022-C05",
@@ -153,7 +165,8 @@
           "command": "git diff --exit-code 359d536b -- specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/report.md",
           "liveSystem": false,
           "testState": "existing-command",
-          "status": "planned-not-executed"
+          "status": "passed",
+          "evidenceRef": "report.md#fresh-change-boundary-containment-at-c652cd092"
         },
         {
           "id": "TP-BUG022-C06",
@@ -165,7 +178,8 @@
           "command": "bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-022-historical-report-declaration-leak",
           "liveSystem": false,
           "testState": "existing-command",
-          "status": "planned-not-executed"
+          "status": "passed",
+          "evidenceRef": "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#traceability-quality-and-acceptance-matrix"
         },
         {
           "id": "TP-BUG022-C07",
@@ -177,7 +191,8 @@
           "command": "bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-022-historical-report-declaration-leak",
           "liveSystem": false,
           "testState": "existing-command",
-          "status": "planned-not-executed"
+          "status": "expected-nonzero-recorded",
+          "evidenceRef": "report.md#truthful-transition-guard"
         }
       ]
     }

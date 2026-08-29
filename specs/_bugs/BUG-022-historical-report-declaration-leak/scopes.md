@@ -35,19 +35,29 @@ orphans. One scope therefore owns the complete vertical repair.
 4. Run reachability and confirm zero baseline growth.
 5. Run Feature 008 Node tests and Playwright tests as separate commands.
 6. Run the repository selftest, packet lint, guard, and containment checks.
+7. Treat TP-BUG022-C03's repository-default one-worker run and linked-test reconciliation as
+  the selected current route; the rejected two-worker force-kill candidate is historical and
+  does not route this packet back to stabilization.
 
-## Scope Inventory
+## Execution Inventory
 
 | # | Name | Surfaces | Tests | DoD summary | Status |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Declaration authority and reachability closure | Parser, focused Node test, command registry, BUG-022 packet | Functional, e2e-ui, integrity, governance | Structured roles, fail-closed unknowns, unchanged baseline and report, zero leakage | In Progress |
+| 1 | Declaration authority and reachability closure | Parser, focused Node test, command registry, BUG-022 packet | Functional, e2e-ui, integrity, governance | Structured roles, fail-closed unknowns, unchanged baseline and report, zero leakage | Done |
 
 ## Scope 1: Classify Declaration Authority And Close Reachability
 
-**Status:** In Progress
+**Status:** Done
 **Depends On:** none
 **Scope-Kind:** runtime-behavior
 **Requirements:** FR-BUG022-001 through FR-BUG022-007
+
+### Consumer Surface
+
+The shipped increment is exposed through the existing CLI command
+`node scripts/validate-test-file-reachability.mjs` and the current command registry in
+`.specify/memory/agents.md`. TP-BUG022-C03 preserves the existing Playwright CLI command for the
+Feature 008 browser consumer. This planning trace adds no route, UI, or source behavior.
 
 ### Change Boundary
 
@@ -158,6 +168,23 @@ Feature: Current test declarations exclude immutable historical receipts
 | GREEN-01 | GREEN after parser work | Run the six exact titles in `tests/playwright-runtime.foundation.functional.mjs` | All six pass against production collector behavior |
 | GREEN-02 | GREEN after atomic migration | Run the reachability validator | Exit 0 with no baseline or frozen-crossing growth |
 | GREEN-03 | GREEN closure | Run Feature 008 Node, Playwright, and repository suites as separate commands | Every command exits 0 and preserves runner ownership |
+
+### Scenario-First TDD Evidence Order
+
+1. **RED:** TP-BUG022-RED-01 is the pre-implementation failing proof at
+  `report.md#red-01---existing-crossing-reproduction`. It records exit 1 and exactly eight
+  report-derived portfolio crossings before the parser and registry repair, with stdout
+  SHA-256 `4c2060a926fe7b4601f8d9d146cac06bedef5021e9cfbe1f8e0bad961829b9a3`.
+2. **RED:** The next pre-implementation receipt at
+  `report.md#red-02-through-red-06-and-ctrl-01` records five failing scenario regressions and
+  the unchanged positive control, with exit 1 and stdout SHA-256
+  `0548aa4bb5f69dfbbbc781c0538489212337d4f62571062619d3fb44023e0ca0`.
+3. **GREEN:** The later targeted proof at `report.md#focused-green` runs the same six named
+  scenario regressions against the repaired production collector, with exit 0 and stdout
+  SHA-256 `1dc42df34685ba8d09d852bc584dd17e54299d6a61d0bf4b06938ed07b00c5c4`.
+  The subsequent `report.md#reachability-green` proof records repository reachability at exit
+  0 without baseline or frozen-crossing growth, with stdout SHA-256
+  `599da5809ed875ffff54f0a4befb0203252108ddd2326c078f254fdd16cfa982`.
 
 ### Consumer Impact Sweep
 

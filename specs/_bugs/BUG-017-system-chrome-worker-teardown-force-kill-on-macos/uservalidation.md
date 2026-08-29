@@ -42,16 +42,19 @@ The operator agreed to no specific one of them, so none is ticked here.
 
 ## Checklist
 
-- [ ] The defect as filed is the real defect: a run in which every test passes exits 1 because a browser worker was force-killed at its teardown budget.
-- [ ] Recording it separately from `BUG-016` is right, and merging them would have been wrong. The pipeline run accounts for all its tests, so no teardown loss occurred there, and the six tax failures have an entirely different and fully established cause.
-- [ ] The intermittence is understood as the aggravating factor rather than a mitigation. A failure that clears on rerun teaches developers to ignore the exit code, and that lesson generalises beyond this project.
-- [ ] The standing four-to-one slowdown is understood as a separate cost from the stall, present on every run at six workers whether or not the teardown hangs.
-- [ ] The honesty of the boundary is accepted: the root cause is not established, only one worker was force-killed rather than several, and the transport-level attribution was not verified in this session.
-- [ ] The process-count sampling is understood as corroboration rather than an exact leak measurement, given a browser was already open on the machine.
-- [ ] Not raising the teardown budget is understood as correct. Three hundred seconds is already long; raising it converts an intermittent false failure into an intermittent multi-minute stall.
-- [ ] Not modifying `playwright.config.mjs` during filing is understood as correct, since the remedy choice is open question 1 and belongs to you.
-- [ ] Whether diagnosis is worth its cost is **your** decision. That the packet enumerates four candidates and selects none is the intended outcome, not an incomplete one.
-- [ ] Answering open question 3 first is agreed, because the pipeline runs the system Chrome channel regardless, which materially weakens the argument against making the bundled project the local default.
+- [ ] The selected fallback is eligible only because the Foundation lifecycle candidate failed required current acceptance runs and its implementation and test changes were hash-verified as rolled back.
+- [ ] The repository config default resolves exactly one worker while retaining the existing `system-chrome` project and `channel: chrome`.
+- [ ] The exact BUG-022 C03 command reports 94 of 94 tests passing and exits zero without a command-line worker override.
+- [ ] The selected run emits no force-kill or ignored-lifecycle marker, while any future teardown force-kill remains a visible run failure rather than being suppressed.
+- [ ] Workload-owned Playwright workers and Chrome processes return to zero residue, and the run leaves no repository output artifact behind.
+- [ ] One worker is accepted only as exposure containment. It does not establish the anonymous socket owner or claim that worker count is the root cause.
+- [ ] The fallback keeps the 300000ms worker-stop budget, browser project, Chrome channel, reporter, and test selection unchanged.
+- [ ] The system-Chrome wall time remains within the FR-017-004 three-to-one bound against bundled Chromium for the identical workload at the same configured worker count.
+- [ ] SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 remain historical decision evidence rather than current success routes; SCN-BUG017-11 is the selected runtime-closure route.
+- [ ] BUG-017 remains distinct from BUG-016: this packet concerns a local browser-worker teardown outcome, not the separate deterministic pipeline tax failures.
+
+The Human Acceptance Record below predates this current one-worker checklist. It is preserved as
+historical input only; it checks none of the current items and does not establish current acceptance.
 
 ## Human Acceptance Record
 

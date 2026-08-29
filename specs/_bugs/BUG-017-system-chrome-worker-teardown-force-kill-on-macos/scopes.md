@@ -7,58 +7,92 @@ runs established. They are not rewritten or unchecked. The later evidence under
 `report.md` `Current-Revision Stabilization At d532faaac` supersedes only the inference that
 three clean runs at two workers eliminated the recurrence. The exact BUG-022 C03 portfolio
 workload failed at two workers in two of two current-revision runs after all 94 tests passed.
-Scope 4 is therefore the active closure scope. Its unchecked Definition of Done controls any
-new claim that BUG-017 is remediated for the blocked BUG-022 consumer.
+SCN-BUG017-04 and SCN-BUG017-05 therefore remain historical Scope 2 records whose RED/GREEN
+evidence is preserved; their two-worker obligations are replaced for current closure by
+SCN-BUG017-11 and are not active selected-route requirements. SCN-BUG017-06 retains the
+wall-time criterion, whose current planning authority is stated under Scope 4 without turning
+historical timing into a human acceptance result.
+Scope 4 remains the completed selected-route closure scope. Scope 2 is reopened for
+SCN-BUG017-06's committed ratio evaluator and same-revision receipt set. Its two current
+unchecked Definition of Done rows are required work assigned to `bubbles.implement`; Scope 2
+and BUG-level status remain in progress. Scope 4's Definition of Done remains satisfied by the
+current-session test evidence under `report.md` `Scope 4 Current Test Execution At 2026-08-28`.
+
+## Current Scenario Manifest Boundary
+
+The current machine-readable scenario set is exactly SCN-BUG017-01, SCN-BUG017-02,
+SCN-BUG017-03, SCN-BUG017-06, SCN-BUG017-07, SCN-BUG017-08, and SCN-BUG017-11.
+The first six remain active because the selected fix still depends on evidence-bounded
+characterisation, the FR-017-004 cost threshold, and disclosure that cannot replace the
+containment. SCN-BUG017-11 is the current runtime-closure route.
+
+SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 are absent from
+`scenario-manifest.json`. The installed schema defines no ignored or superseded archive, and
+the installed state resolver treats every scenario array entry as a current receipt obligation.
+Their exact historical Gherkin appears below as Markdown quotations, outside active scenario
+syntax. Their provisional GREEN, later RED, rollback, and rejection evidence remains in
+`report.md` and in the historical Test Plan records below.
 
 ## Execution Outline — Reopened Work
 
 ### Phase Order
 
-1. **Scope 4 candidate evaluation.** Preserve the Foundation lifecycle candidate's successful
-  and failed runs, then reject it after current finalization fails twice.
-2. **Scope 4 fallback selection.** Hash-verify candidate rollback, set the repository default
-  to one worker, and run the unchanged BUG-022 C03 command twice.
+1. **Scope 2 ratio-contract completion.** Commit the shared SCN-BUG017-06 ratio evaluator within
+  its declared change boundary, then bind its RED, GREEN, live, isolated repository-selftest,
+  and broader-regression receipts to one genuine source revision.
+2. **Scope 4 decision preservation.** Retain the Foundation lifecycle candidate's successful
+  and failed runs as rejected historical evidence without making either candidate scenario an
+  active closure obligation.
+3. **Scope 4 fallback closure.** Keep the hash-verified rollback and one-worker repository
+  default, then close only through SCN-BUG017-11's canonical functional and exact BUG-022 C03
+  references.
 
 ### New Types And Signatures
 
 - No product type, schema, route, or public API changes.
-- Planned local extension in `tests/portfolio-survival-foundation.spec.mjs`:
+- Rejected historical local extension in `tests/portfolio-survival-foundation.spec.mjs`:
   `const test = baseTest.extend({ foundationBrowserBoundary: [fixture, { auto: true,
   scope: 'worker' }] })`.
-- Planned worker owner: `let foundationBrowser`, assigned from Playwright's existing `browser`
+- Rejected historical worker owner: `let foundationBrowser`, assigned from Playwright's existing `browser`
   fixture by `foundationBrowserBoundary` without an explicit parameter at each test site.
-- Planned lifecycle signature: Foundation's existing `afterAll` closes that owned browser
+- Rejected historical lifecycle signature: Foundation's existing `afterAll` closes that owned browser
   before Playwright begins worker teardown.
-- Planned persistent canary title: `Regression: SCN-BUG017-09 Foundation-to-Paths releases
-  its worker within 15 seconds`.
+- Selected configuration contract: `playwright.config.mjs` resolves `workers: 1` while retaining
+  the existing `system-chrome` project and unchanged worker-stop budget.
 
 ### Validation Checkpoints
 
-1. The persistent Foundation-to-Paths child-process canary must report 27/27 passing and exit
-  within 15 seconds of worker stop before the complete workload may run.
-2. The exact BUG-022 C03 94-test command must pass at workers=2 with exit 0 and no force-kill
-  marker before the lifecycle candidate can be retained.
-3. A workers=1 configuration may be evaluated only after checkpoint 2 fails and the lifecycle
-  candidate is rolled back; it must pass the same exact C03 command.
-4. Packet planning lint and traceability checks gate handoff. Runtime implementation and test
-  evidence remain unchecked until executed by the next owner.
+1. The planning packet must keep SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and
+  SCN-BUG017-10 outside the current scenario manifest while leaving their successful and failed
+  evidence intact in explicit historical sections.
+2. SCN-BUG017-11 must resolve only to canonical, repository-present tests for the selected
+  one-worker fallback and the unchanged exact BUG-022 C03 workload.
+3. Scenario obligations, Markdown-to-JSON Test Plan parity, traceability, linked-test
+  resolution, and scope-progress integrity must pass before handoff.
+4. TP-BUG017-02-02 must receive its own isolated repository-selftest receipt; concurrent selftest
+  activity and receipts owned by another packet cannot satisfy it.
+5. Current test-owned execution closes the active references under the selected one-worker
+  configuration; acceptance, validation, and certification gates remain independently owned.
 
 ## Execution Inventory
 
 | Scope | Outcome | Surfaces | Primary validation | Status |
 | --- | --- | --- | --- | --- |
-| 1 | Characterise the original stall | Diagnostics | Worker sweep and candidate discrimination | Done |
-| 2 | Apply the original exposure remedy | Runner config | Complete lifetime-tax workload | Done (historical) |
-| 3 | Disclose the remaining override risk | Config and command registry | Disclosure and workload regressions | Done (historical) |
-| 4 | Resolve the current two-worker recurrence | Rejected Foundation lifecycle candidate; selected one-worker config fallback | Candidate history, rollback hashes, then two exact 94-test BUG-022 C03 runs | In Progress |
+| 1 | Characterise the original stall | Diagnostics | Worker sweep and candidate discrimination | Done; SCN-BUG017-01 through SCN-BUG017-03 remain active invariants |
+| 2 | Apply the original exposure remedy and close the active cost invariant | Ratio helper and focused regression | Deterministic ratio controls, live comparison, isolated repository selftest, and complete lifetime-tax workload | In Progress; two SCN-BUG017-06 DoD rows remain unchecked |
+| 3 | Disclose the remaining override risk | Config and command registry | Disclosure and workload regressions | Done; SCN-BUG017-07 and SCN-BUG017-08 remain active invariants |
+| 4 | Resolve the current two-worker recurrence | Rejected Foundation lifecycle candidate; selected one-worker config fallback | Historical candidate record plus SCN-BUG017-11 canonical fallback verification | Done |
 
 ## Sequencing Note
 
 Scope 1 characterises the defect well enough to choose a remedy; it is diagnostic and lands no
 behaviour change. Scope 2 applies whatever Scope 1 selects. Scope 3 is a disclosure fallback
 that is only correct if Scope 1 concludes the cause is unremovable here. Those three scopes are
-preserved as the original execution sequence. Scope 4 follows them additively and is the only
-active scope after the current-revision two-worker recurrence.
+preserved as the original execution sequence. Scope 4 follows them additively and keeps the
+selected runtime-closure route complete after the current-revision two-worker recurrence.
+Scope 2 remains in progress until SCN-BUG017-06 has its committed evaluator and one-revision
+receipt chain. The diagnostic, cost, and disclosure constraints listed in the current manifest
+remain active invariants.
 
 ## Scope 1: Characterise The Stall Well Enough To Choose
 
@@ -176,7 +210,7 @@ hash-verifies the tracked target before running the unchanged GREEN command.
 
 ## Scope 2: Apply The Selected Remedy
 
-**Status:** Done
+**Status:** In Progress
 **Depends on:** Scope 1
 
 ### Consumer Surface
@@ -193,19 +227,6 @@ than the bundled project on every run.
 
 ```gherkin
 Feature: A passing run reports success
-# SCN-BUG017-04
-  Scenario: Repeated runs exit zero
-    Given the selected remedy is applied
-    When the ninety-four-test set runs repeatedly at the chosen worker count
-    Then every run exits zero
-    And no run reports a worker that did not exit within its teardown budget
-
-# SCN-BUG017-05
-  Scenario: Browser processes are released
-    Given a run has completed
-    When the browser process count is sampled
-    Then it has returned to its pre-run level
-
 # SCN-BUG017-06
   Scenario: The cost is proportionate
     Given the selected remedy is applied
@@ -213,45 +234,159 @@ Feature: A passing run reports success
     Then the wall-time ratio meets the bound recorded under FR-017-004
 ```
 
+### Replaced Scenario Gherkin — Historical, Not Active
+
+The quotation below preserves the prior Gherkin text verbatim after each Markdown quote marker.
+It is decision history, not executable scenario syntax and not a current receipt obligation.
+
+> ```gherkin
+> Feature: A passing run reports success
+> # SCN-BUG017-04
+>   Scenario: Repeated runs exit zero
+>     Given the selected remedy is applied
+>     When the ninety-four-test set runs repeatedly at the chosen worker count
+>     Then every run exits zero
+>     And no run reports a worker that did not exit within its teardown budget
+>
+> # SCN-BUG017-05
+>   Scenario: Browser processes are released
+>     Given a run has completed
+>     When the browser process count is sampled
+>     Then it has returned to its pre-run level
+> ```
+
 ### Implementation Plan
 
 1. Apply the option selected in Scope 1.
 2. Run the set repeatedly and record every exit code.
 3. Sample browser process count either side of each run.
-4. Measure the wall-time ratio against the bundled project.
+4. Add `scripts/validate-playwright-cost-ratio.mjs` as the single ratio predicate and live
+  dual-project runner. It must enumerate exactly the 22 `lifetime-tax*.spec.mjs` files, reject
+  any configured worker count other than one, run both projects without a worker override,
+  require both commands to exit zero, and enforce the unchanged FR-017-004 maximum of 3.0.
+5. Add `Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison`
+  to `tests/playwright-runtime.foundation.functional.mjs`. It must exercise the same predicate
+  through the helper's deterministic control mode and assert its exact refusal and cleanup.
+6. Measure the wall-time ratio against the bundled project through the committed helper.
 
 ### Implementation Files
 
-- `playwright.config.mjs` owns the selected `workers: 2` exposure bound and the `system-chrome` project.
+- `playwright.config.mjs` owned the historical `workers: 2` exposure bound and owns the current
+  one-worker selection recorded under Scope 4, together with the unchanged `system-chrome` project.
+- `scripts/validate-playwright-cost-ratio.mjs` is the planned executable owner for the live pair,
+  shared ratio predicate, exact SCN-BUG017-06 refusal, and isolated deterministic control input.
+- `tests/playwright-runtime.foundation.functional.mjs` is the existing registered functional
+  family and will own the focused persistent regression for the ratio predicate.
 
 ### Consumer Proof Files
 
 - `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` are concrete tests in the unchanged 22-file remedy workload.
 - `tests/playwright-runtime.foundation.functional.mjs` is the existing repository config/runtime canary.
 
+### Change Boundary For The Ratio-Test Repair
+
+- Allowed implementation files: `scripts/validate-playwright-cost-ratio.mjs` and the smallest
+  additive SCN-BUG017-06 block in `tests/playwright-runtime.foundation.functional.mjs`.
+- Allowed planning files: this Scope 2 section, `scenario-manifest.json`, `test-plan.json`, and
+  plan-owned execution routing in `state.json`.
+- Excluded: `playwright.config.mjs`, all 22 lifetime-tax test bodies, `report.md`,
+  `uservalidation.md`, certification and status fields, project config, framework-managed files,
+  BUG-022, global stale/clone adjudication, both G136 boundaries, and unrelated concurrent work.
+- The helper may create and remove only its own uniquely named temporary comparison directory.
+  It must not write a measurement fixture, browser output, or generated artifact into the checkout.
+
 ### Test Plan
 
-| Type | Coverage |
-|---|---|
-| Repeated execution | Consecutive runs at the chosen worker count all exit 0. |
-| Process sampling | `SCN-BUG017-05 Browser processes are released` around concrete workload carriers `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs`; process count returns to its pre-run level. |
-| Timing | Wall-time ratio against the bundled project meets the recorded bound. |
-| Selftest | `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline. |
-| E2E | Scenario-specific process-level E2E verification for SCN-BUG017-04 through SCN-BUG017-06 runs the 22-file lifetime-tax system-Chrome suite at the configured worker count; concrete workload tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on`. |
-| Regression E2E | `e2e-ui` verification for SCN-BUG017-04 through SCN-BUG017-06 executes the complete 22-file lifetime-tax system-Chrome workload at the configured two-worker bound, including process release and wall-time assertions. |
+| ID | Scenario | Test Type | Category | File / exact title | Command | Live system | Required result |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| TP-BUG017-02-01 | SCN-BUG017-06 | Like-for-like timing | `e2e-ui` | Planned `scripts/validate-playwright-cost-ratio.mjs`; exact carriers remain `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` in the complete 22-file workload | `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live` | Yes | The helper requires configured workers=1, enumerates exactly 22 files, runs both projects without a worker override, requires both exits to be zero, and evaluates the measured system-Chrome/bundled-Chromium ratio as no more than the unchanged FR-017-004 maximum of 3.0. |
+| TP-BUG017-02-02 | SCN-BUG017-06 | Repository regression | `functional` | `scripts/selftest.mjs` | `node scripts/selftest.mjs` | No | The build-free repository invariant suite reports zero failures without reducing its recorded assertion baseline. |
+| TP-BUG017-02-03 | SCN-BUG017-06 | Regression E2E | `e2e-ui` | `tests/lifetime-tax-combined.spec.mjs` — `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure`; `tests/lifetime-tax-read-bound.spec.mjs` — `Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement` | `npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list && npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement$' --reporter=list` | Yes | Both exact scenario carriers pass through the selected system-Chrome configuration with no hidden lifecycle failure. |
+| TP-BUG017-02-04 | SCN-BUG017-06 | Broader Regression E2E | `e2e-ui` | `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` as concrete carriers in the complete 22-file lifetime-tax workload | `npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | The complete affected system-Chrome workload exits zero under the selected configuration and preserves the FR-017-004 comparison boundary. |
+
+#### SCN-BUG017-06 Deterministic RED Contract
+
+- Preserve TP-BUG017-02-01 as the positive live proof. It runs the identical 22-file workload
+  under `system-chrome` and bundled `chromium` at the configured one-worker setting, requires
+  both commands to exit zero, and evaluates the measured ratio against the unchanged 3.0 bound.
+- A six-worker live timing attempt does not qualify as RED evidence. Its ratio depends on
+  ambient scheduling and can remain below 3.0 even when the test is otherwise healthy.
+- The repository contains no committed SCN-BUG017-06 or FR-017-004 ratio evaluator under
+  `scripts/`, `tests/`, or the root JavaScript modules. Implement the smallest durable mechanism:
+  `scripts/validate-playwright-cost-ratio.mjs`, plus one additive regression in the existing
+  `tests/playwright-runtime.foundation.functional.mjs` family.
+- The helper has three explicit modes and no implicit fallback. `--live` executes the real pair and
+  calls the shared ratio predicate. `--control at-bound` creates a uniquely named temporary
+  comparison record with 3000/1000, calls that predicate, cleans up, and exits zero at 3.000.
+  `--control over-bound` copies that record, changes only `systemChromeWallMs` to 3001, keeps
+  `bundledChromiumWallMs` at 1000 and the maximum at 3.000, calls the same predicate, removes
+  the temporary directory in `finally`, and exits 1 with
+  `SCN-BUG017-06: wall-time ratio 3.001 exceeds FR-017-004 maximum 3.000`.
+- The exact RED command after implementation is
+  `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node scripts/validate-playwright-cost-ratio.mjs --control over-bound`.
+  The targeted GREEN command is
+  `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node scripts/validate-playwright-cost-ratio.mjs --control at-bound`.
+  Both receipts must bind the same test identity and the same negative-control text. The persistent
+  regression command is `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node --test --test-name-pattern='^Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison$' tests/playwright-runtime.foundation.functional.mjs`.
+- The control output must label its 3001/1000 values as deterministic comparison input, never as
+  observed elapsed runtime. It must not alter the production 3.0 criterion, substitute a static
+  text-presence assertion for ratio evaluation, or depend on machine load.
+- A hard-coded `gtimeout` path is invalid on this macOS environment. Every command above uses the
+  repository-supported explicit Perl alarm wrapper; the helper must also terminate both child
+  processes and remove its temporary output on interruption.
+
+### Replaced Scenario Test Record — Historical, Not Active Test Plan
+
+| Historical scenario | Former coverage | Recorded outcome and disposition |
+| --- | --- | --- |
+| SCN-BUG017-04 | Repeated complete lifetime-tax runs at the former two-worker setting | Provisional GREEN runs and their exact exits remain under `report.md` `Scope 2 Execution — Remedy Applied`. The later two-worker recurrence rejected this as current closure; SCN-BUG017-11 replaces it. |
+| SCN-BUG017-05 | Pre-run and post-run browser-process sampling at the former two-worker setting | The process-release samples remain under `report.md` `Scope 2 Execution — Remedy Applied`. The later force-kill recurrence rejected this as current closure; SCN-BUG017-11 replaces it. |
+
+### Historical Scope 2 Completion Record — Not A Current DoD Item
+
+> - [x] The historical scenario-specific E2E record for SCN-BUG017-04 through SCN-BUG017-06 remains preserved. **Claim Source:** executed. → Evidence: [BUG-017 report](report.md), `Scope 2 Execution — Remedy Applied`, records three consecutive scenario workloads with 94 passes, exit 0, no force-kill, restored process counts, and the configured worker setting; only SCN-BUG017-06 remains in the current scenario manifest.
 
 ### Definition of Done
 
-- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-04 through SCN-BUG017-06. **Claim Source:** executed. → Evidence: [BUG-017 report](report.md), `Scope 2 Execution — Remedy Applied`, records three consecutive scenario workloads with 94 passes, exit 0, no force-kill, restored process counts, and the configured worker setting; the scenario manifest preserves the exact linked tests.
-- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax system-Chrome workload at the selected two-worker configuration. **Claim Source:** executed. → Evidence: [BUG-017 report](report.md), `Scope 2 Execution — Remedy Applied`, records the complete workload passing on every configured run.
-- [x] Repeated runs exit zero: consecutive scenario-specific system-Chrome E2E workloads for SCN-BUG017-04 through SCN-BUG017-06 at the chosen worker count all exit 0, with raw output for each.
+The checked rows below preserve the original Scope 2 execution record. They are not current
+receipt requirements for SCN-BUG017-04 or SCN-BUG017-05. SCN-BUG017-06 remains active only for
+the separate FR-017-004 cost invariant.
+
+The checked SCN-BUG017-06 rows also preserve their prior positive execution record. This planning
+change alters the scenario's negative-control identity, so none is a current scenario-state receipt.
+The required helper and focused regression are assigned to `bubbles.implement`. At the genuine new
+source revision, `bubbles.test` must record the deterministic RED, targeted GREEN, real
+dual-project live proof, focused regression, isolated TP-BUG017-02-02 repository selftest, and
+broader regression chain against that one revision. Existing same-head receipts remain history
+and must not be relabeled as current.
+
+- [ ] The committed SCN-BUG017-06 ratio evaluator applies one predicate to live measurements and
+  both deterministic controls, keeps the maximum at 3.000, emits the exact 3.001 refusal, emits the
+  exact 3.000 acceptance, and removes its isolated temporary comparison directory on every exit.
+  > **Uncertainty Declaration**
+  > **What was attempted:** Searched repository scripts, tests, and root JavaScript modules for an existing SCN-BUG017-06 or FR-017-004 ratio evaluator and inspected the committed RED/GREEN helper.
+  > **What was observed:** The live ratio existed only in prior one-off execution commands. No committed executable accepts deterministic comparison input. The committed probe supplies portable Perl-alarm and restoration patterns but no ratio predicate.
+  > **Why this is uncertain:** The planned helper and focused regression do not exist yet, so planning cannot execute or claim their behavior.
+  > **What would resolve this:** Add only the two implementation files named by the Change Boundary, then run the exact over-bound, at-bound, and persistent-regression commands above.
+- [ ] Fresh SCN-BUG017-06 receipts bind the deterministic RED and targeted GREEN to the same test
+  identity and negative control, then bind the real one-worker dual-project live proof, focused
+  regression, repository selftest, and broader system-Chrome workload at one source revision.
+  > **Uncertainty Declaration**
+  > **What was attempted:** Inspected the current tool-call rows and the Scope 2 structured Test Plan after revising the scenario's negative-control identity.
+  > **What was observed:** Every existing SCN-BUG017-06 receipt predates this planning contract. The former six-worker RED either used an unavailable `gtimeout` path or completed below the 3.0 threshold, so it cannot prove the revised discriminator.
+  > **Why this is uncertain:** No execution owner has run the revised commands against the implementation because that implementation does not exist yet.
+  > **What would resolve this:** After implementation, record a non-zero over-bound receipt, zero at-bound receipt, zero live receipt, and zero regression receipts with the exact bindings declared in `scenario-manifest.json`.
+
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-06: TP-BUG017-02-03 exercises the exact `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` carriers, and TP-BUG017-02-04 preserves the complete affected workload. **Claim Source:** executed. → Evidence: the test log records the targeted GREEN receipt at `2026-08-28T15:52:11Z` with exit 0 and stdout SHA-256 `85d469faa9a706d4f3a093d375cf49960eb59077ef27a018b1d2083eae950525`, the one-worker dual-project live receipt at `2026-08-28T16:17:20Z` with exit 0 and stdout SHA-256 `dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63`, and the regression receipt at `2026-08-28T16:32:13Z` with exit 0 and stdout SHA-256 `2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf`; all three bind source revision `4bd96545cd6673155933edf3a22492d6d1972256`. [The FR-017-004 bound](report.md#the-fr-017-004-bound) records the three-to-one decision threshold and its prior like-for-like basis.
+- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax system-Chrome workload at the selected one-worker configuration. **Claim Source:** executed. → Evidence: the current live receipt at `2026-08-28T16:17:20Z` exits 0 with stdout SHA-256 `dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63`, and the current regression receipt at `2026-08-28T16:32:13Z` exits 0 with stdout SHA-256 `2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf`; both bind source revision `4bd96545cd6673155933edf3a22492d6d1972256` and the concrete carriers named by TP-BUG017-02-04.
+- [x] Historical repeated-run record: consecutive system-Chrome E2E workloads at the former chosen worker count exited 0, with raw output for each.
   → Evidence: `report.md` `## Scope 2 Execution — Remedy Applied` records three consecutive 94-test runs, all tests passing, exit 0, and zero force-kills.
 - [x] No run reports `worker-N process did not exit within`.
   → Evidence: [Scope 2 remedy runs](report.md#scope-2-execution--remedy-applied).
-- [x] Browser processes are released: the browser process count returns to its pre-run level after each run.
+- [x] Historical process-release record: the browser process count returned to its pre-run level after each recorded run.
   → Evidence: [Scope 2 remedy runs](report.md#scope-2-execution--remedy-applied).
 - [x] The cost is proportionate: the wall-time ratio meets the bound recorded under FR-017-004.
-  → Evidence: [FR-017-004 bound](report.md#the-fr-017-004-bound).
+  → Evidence: the current one-worker dual-project receipt at `2026-08-28T16:17:20Z` exits 0 with stdout SHA-256 `dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63`; [the FR-017-004 bound](report.md#the-fr-017-004-bound) records the three-to-one decision threshold and its historical like-for-like basis.
 - [x] `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline.
   → Evidence: [Scope 2 unchanged suite](report.md#the-suite-is-unchanged).
 - [x] No test was modified to accommodate the remedy, and the broader lifetime-tax E2E regression suite passes under the repository-owned `playwright.config.mjs` worker setting.
@@ -363,9 +498,9 @@ conceded in writing is that a remedy for the **exposure** was available and take
 - [x] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence` passes only when both developer-facing sites carry every required disclosure field and placement; its planned platform-removal RED probe discriminates with the specified SCN-BUG017-07 assertion message; and the five pre-existing runtime-foundation tests remain byte-unchanged and green. **Claim Source:** executed. → Evidence: [exact scenario tests](report.md#exact-scenario-tests) records the exact test at exit 0, the specified RED assertion, GREEN exit, hash restoration, the byte-identity diff, and the complete file at 14/14.
 - [x] `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin` passes only when the full disclosure and resolved two-worker pin coexist; its planned two-to-six RED probe leaves disclosure intact, discriminates with the specified SCN-BUG017-08 assertion message, and hash-verifies restoration before GREEN. **Claim Source:** executed. → Evidence: [current-main SCN-BUG017-08 evidence](report.md#current-main-scn-bug017-08-evidence).
 
-## Scope 4: Close The Foundation Browser Before Worker Teardown
+## Scope 4: Persist The Rollback-Gated One-Worker Fallback
 
-**Status:** In Progress
+**Status:** Done
 **Depends On:** Scope 3
 
 ### Fallback Selection Addendum
@@ -378,10 +513,21 @@ Commit `047292eb2` reverses the lifecycle-test commit. Commit `af119275a` revers
 implementation. The Foundation and runtime-functional files then matched baseline blobs
 `bc66800e...` and `0d319b8b...`. Shared runtime and Paths remained unchanged.
 
-The selected fallback pins one worker. Two unchanged BUG-022 C03 commands resolved one worker,
-passed 94 tests, exited zero, emitted no force-kill or ignored-lifecycle marker, and left zero
-owned residue. The packet remains in progress pending current guard recording and downstream
-validation. No acceptance or certification state changes in this scope.
+The selected fallback pins one worker. The current-session shared execution for
+TP-BUG017-04-04 and TP-BUG017-04-04B resolved one worker, retained system-Chrome and Chrome,
+passed 94 of 94 tests, exited zero, emitted no force-kill or ignored-lifecycle marker, reported
+zero skips and todos, and left zero owned residue. TP-BUG017-04-05 passed one of one with exit
+zero and zero skips or todos. Scope 4 is done. The packet, acceptance, and certification remain
+in progress for their owning gates.
+
+### FR-017-004 Planning Threshold
+
+The active wall-time threshold is no more than three times the bundled Chromium project for the
+identical workload at the same configured worker count. The threshold is adopted from the
+existing `report.md` `The FR-017-004 bound` record and the Scope 2 planning contract. It is a
+planning decision, not a claim that a human accepted the selected fallback. The historical
+two-worker measurement supports the threshold's selection but does not establish current
+one-worker acceptance; that independently owned acceptance remains unchanged.
 
 ### Consumer Surface
 
@@ -404,161 +550,166 @@ This scope therefore selects the planned rollback-gated one-worker fallback.
 ### Additive Supersession Rule
 
 The historical `0/3 at two workers` result remains a valid observation about those three runs.
-It no longer supports an elimination, safety, or closure claim. SCN-BUG017-09 through
-SCN-BUG017-11 and the unchecked rows below are the controlling current-revision contract.
+It no longer supports an elimination, safety, or closure claim. SCN-BUG017-04 and
+SCN-BUG017-05 retain the former two-worker route's decision history, and SCN-BUG017-09 through
+SCN-BUG017-10 retain the lifecycle candidate's decision history. All four are replaced as
+active runtime-closure scenarios by SCN-BUG017-11. SCN-BUG017-06 retains only the separate
+three-to-one planning threshold above; no historical timing or evidence receipt is relabeled as
+current human acceptance.
 
 ### Gherkin Scenarios
 
 ```gherkin
-Feature: Foundation releases its browser before the worker is asked to stop
-# SCN-BUG017-09
-  Scenario: The focused lifecycle boundary survives the strict canary
-    Given the system-chrome project is configured with two workers on macOS
-    And Foundation receives an automatic worker-scoped boundary fixture
-    And Foundation closes its owned browser in its existing afterAll
-    When the cumulative Foundation-to-Paths canary runs in a child process
-    Then all 27 tests pass
-    And the child exits zero within 15 seconds of worker stop
-    And no worker force-kill or ignored teardown error is reported
-
-# SCN-BUG017-10
-  Scenario: The lifecycle candidate clears the blocked complete workload
-    Given SCN-BUG017-09 has passed without an ignored lifecycle error
-    When the exact BUG-022 C03 94-test portfolio command runs at two workers
-    Then all 94 tests pass and the command exits zero
-    And no worker remains until the 300000ms force-kill boundary
-    And no Chrome process started by the workload remains after exit
-
+Feature: The selected fallback closes the current system-Chrome recurrence
 # SCN-BUG017-11
   Scenario: One worker is used only after the lifecycle candidate fails
     Given the lifecycle candidate has failed a required current acceptance run
     And the candidate changes have been hash-verified as rolled back
-    When the repository worker setting is changed from two to one
-    Then the exact BUG-022 C03 command is rerun without changing browser project
+    When the exact BUG-022 C03 command runs through the repository config default
+    Then it resolves one worker without changing browser project
     And closure requires 94 passing tests, exit zero, and no ignored force-kill error
 ```
 
+### Rejected Candidate Scenarios — Historical, Not Active Closure
+
+The quotation below preserves the candidate-planning Gherkin text verbatim after each Markdown
+quote marker. These scenarios are absent from the current manifest and are not receipt targets.
+
+> ```gherkin
+> Feature: Foundation releases its browser before the worker is asked to stop
+> # SCN-BUG017-09
+>   Scenario: The focused lifecycle boundary survives the strict canary
+>     Given the system-chrome project is configured with two workers on macOS
+>     And Foundation receives an automatic worker-scoped boundary fixture
+>     And Foundation closes its owned browser in its existing afterAll
+>     When the cumulative Foundation-to-Paths canary runs in a child process
+>     Then all 27 tests pass
+>     And the child exits zero within 15 seconds of worker stop
+>     And no worker force-kill or ignored teardown error is reported
+>
+> # SCN-BUG017-10
+>   Scenario: The lifecycle candidate clears the blocked complete workload
+>     Given SCN-BUG017-09 has passed without an ignored lifecycle error
+>     When the exact BUG-022 C03 94-test portfolio command runs at two workers
+>     Then all 94 tests pass and the command exits zero
+>     And no worker remains until the 300000ms force-kill boundary
+>     And no Chrome process started by the workload remains after exit
+> ```
+
+SCN-BUG017-09 retains its earlier strict-canary GREEN, close-removal RED, and two later failures
+at unchanged candidate bytes. SCN-BUG017-10 retains its provisional complete-workload GREEN.
+The later strict-canary failures reject both candidate routes. The explicit revert commits,
+baseline blob identities, and selected fallback evidence remain under `report.md` `Scope 4
+Finalization Validation - Candidate Rejected` and `Scope 4 Fallback Selection And Verification`.
+
 ### Implementation Plan
 
-1. Keep `system-chrome` as the exercised project and keep `workers: 2` while evaluating the
-   lifecycle candidate.
-2. In `tests/portfolio-survival-foundation.spec.mjs`, import the existing Playwright test as
-  `baseTest`, define a local `test = baseTest.extend(...)`, and use the automatic worker-scoped
-  `foundationBrowserBoundary` fixture to retain the existing `browser` owner in
-  `foundationBrowser`. Do not add a required fixture parameter to each Foundation test and do
-  not change `tests/playwright-runtime.mjs`.
-3. Add `if (foundationBrowser) await foundationBrowser.close();` to Foundation's existing
-  `afterAll`, before its existing server close and before Playwright worker teardown. A bare
-  `browser.close()` call outside the owning hook and a worker-fixture teardown that closes
-  after Foundation's hook are rejected implementation shapes.
-4. Add the persistent SCN-BUG017-09 child-process canary. Start its 15-second stop bound when
-   Playwright asks the worker to stop, not when the browser workload starts. Require the real
-   27-test Foundation-to-Paths sequence, exit 0, and absence of force-kill markers.
-5. Run the complete exact BUG-022 C03 command once the canary passes. Retain the candidate at
-   two workers only if all 94 tests pass, the command exits 0, process counts return to their
-   pre-run baseline, and no force-kill or ignored teardown error appears.
-6. If a required current candidate acceptance run fails a lifecycle criterion, preserve the
-  failure evidence. Roll back the lifecycle candidate before selecting one worker.
-7. Do not suppress, catch-and-ignore, relabel, or filter the worker force-kill error. Do not
-   switch the browser project to bundled Chromium. Do not raise the 300000ms teardown budget.
-8. Run the unchanged C03 command twice through the config default. Require one worker, 94
-  passes, exit zero, no force-kill marker, and zero owned residue in each run.
+1. Preserve the report anchors for the candidate's strict-canary GREEN, adversarial RED, later
+  strict-canary failures, provisional complete-workload pass, explicit reverts, and baseline
+  blob identities. Do not edit or reinterpret that evidence.
+2. Keep SCN-BUG017-09 and SCN-BUG017-10 out of the current scenario manifest because the
+  installed resolver has no archive state. Preserve them as historical decision records, not
+  active Gherkin or passing obligations.
+3. Keep the selected final-tree contract at one worker. Preserve the `system-chrome` project,
+  Chrome channel, 300000ms worker-stop budget, list reporter, and visible force-kill failure.
+4. Link SCN-BUG017-11 to the eight real portfolio-survival spec paths and the exact existing
+  fallback-containment test title. Use no synthetic portfolio test title.
+5. Preserve the current test-owned execution of the exact config-default BUG-022 C03 command and
+  the exact focused SCN-BUG017-11 functional command without rerunning replaced candidates.
+6. Mark Scope 4 done after all three active Test Plan rows resolve from current evidence. Keep
+  BUG-level status and certification in progress until their independent owners clear later gates.
 
 ### Implementation Files
 
-- `playwright.config.mjs` — selected one-worker fallback after hash-verified rollback.
+- `playwright.config.mjs` — selected one-worker runtime configuration.
 - `.specify/memory/agents.md` — command-registry disclosure for the selected fallback.
-- `tests/playwright-runtime.foundation.functional.mjs` — fallback pin and containment
-  regression after candidate-test rollback.
+- `tests/playwright-runtime.foundation.functional.mjs` — existing exact SCN-BUG017-11
+  containment regression.
+- The eight `tests/portfolio-survival-*.spec.mjs` files — unchanged live workload selected by
+  the exact BUG-022 C03 command.
+- `scopes.md`, `scenario-manifest.json`, and `test-plan.json` — planning-owned active-route
+  contract and test handoff.
 
 ### Change Boundary
 
-**Allowed implementation families:**
+**Allowed planning families for this reconciliation:**
 
-- `tests/portfolio-survival-foundation.spec.mjs` for the local automatic worker fixture,
-  `foundationBrowser` owner, and existing `afterAll` close.
-- `tests/playwright-runtime.foundation.functional.mjs` for the persistent lifecycle-shape and
-  child-stop regression.
-- `playwright.config.mjs` only on the conditional workers=1 branch after the complete
-  two-worker lifecycle run fails.
+- This packet's `scopes.md`, `scenario-manifest.json`, and `test-plan.json`.
+- Plan-owned execution routing metadata in `state.json`, without status, certification, or
+  acceptance changes.
+
+**Allowed next-owner activity:**
+
+- `bubbles.test` may generate distinct current receipts only for SCN-BUG017-01,
+  SCN-BUG017-02, SCN-BUG017-03, SCN-BUG017-06, SCN-BUG017-07, SCN-BUG017-08, and
+  SCN-BUG017-11. It must not rerun or relabel SCN-BUG017-04, SCN-BUG017-05,
+  SCN-BUG017-09, or SCN-BUG017-10 as current success.
 
 **Excluded surfaces:**
 
-- Portfolio assertions, scenario data, application source, generated site output, and
-  BUG-022 declaration behavior.
-- `tests/portfolio-survival-paths.spec.mjs`, which is the read-only canary terminus, and shared
-  helpers including `tests/playwright-runtime.mjs` and `tests/portfolio-survival.support.mjs`.
+- All runtime source, test bodies, runner configuration, command-registry content, application
+  source, generated site output, and BUG-022 declaration behavior.
+- The eight portfolio-survival spec files, `tests/playwright-runtime.foundation.functional.mjs`,
+  `tests/playwright-runtime.mjs`, and `tests/portfolio-survival.support.mjs` are read-and-execute
+  surfaces only for this handoff.
 - Browser-project selection, Chrome channel configuration, the 300000ms runner teardown
   budget, reporter behavior, and error handling that could hide a force-kill.
-- BUG-017 historical evidence, checked historical DoD rows, state, certification,
-  uservalidation, acceptance, and tool logs.
+- BUG-017 and BUG-022 historical report evidence, certification, uservalidation, acceptance,
+  framework-managed files, unrelated specs, and concurrent market-brief work.
 
 ### Rollback
 
-- Before the complete C03 run, record the exact candidate diff and baseline hashes for every
-  allowed implementation file.
-- If the candidate fails SCN-BUG017-10, restore only those candidate hunks and verify their
-  hashes before changing `workers: 2` to `workers: 1`.
-- If the candidate passes, rollback proof is a self-reverting mutation that removes the
-  Foundation-owned close and makes the strict canary fail on its lifecycle assertion, followed
-  by hash restoration and a green canary.
-- No rollback may alter tests outside the declared boundary or any historical packet evidence.
+- The rejected candidate rollback is a completed historical decision, not an active mutation
+  step. Its two explicit revert commits and baseline blob identities remain in `report.md`.
+- Do not restore the Foundation-owned browser-close candidate during selected-route testing.
+- A failure in either active row leaves Scope 4 in progress and routes the observed behavior to
+  `bubbles.implement`; it does not authorize a worker-count change, browser-project switch,
+  longer teardown budget, hidden force-kill, or evidence rewrite.
 
 ### Test Plan
 
 | ID | Type | Scenario | File / exact title | Command | Required result |
 | --- | --- | --- | --- | --- | --- |
-| TP-BUG017-04-01 | E2E UI regression | SCN-BUG017-09 | `tests/playwright-runtime.foundation.functional.mjs` — `Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds` | `node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs` | The test spawns `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=2 --reporter=list`; the real child reports 27/27 passing and exit 0 within 15 seconds of worker stop, with zero force-kill or ignored-error markers. |
-| TP-BUG017-04-02 | Adversarial regression | SCN-BUG017-09 | Same named canary | `scripts/red-green-probe.sh --file tests/portfolio-survival-foundation.spec.mjs --find '  if (foundationBrowser) await foundationBrowser.close();' --replace '  void foundationBrowser;' --label 'SCN-BUG017-09 Foundation-owned close is required' --bound 300 -- node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs` | RED must fail on the 15-second child-stop/lifecycle assertion, restore the Foundation file hash, and GREEN must pass. |
-| TP-BUG017-04-03 | Regression E2E | SCN-BUG017-10 | `tests/portfolio-survival-foundation.spec.mjs` plus the other seven concrete portfolio specs named in the scenario manifest | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Resolved worker count is 2; 94/94 pass; exit 0; no `worker-N process did not exit within 300000ms after stop, force-killed it`; owned Chrome and worker process counts return to baseline. |
-| TP-BUG017-04-04 | Conditional Regression E2E | SCN-BUG017-11 | `tests/portfolio-survival-foundation.spec.mjs` plus the same seven concrete portfolio specs | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Candidate rollback is hash-verified; both config-default runs resolve 1 worker; 94/94 pass; exit 0; no force-kill, ignored-error, or owned-residue marker. |
-| TP-BUG017-04-05 | Functional regression | SCN-BUG017-11 | `tests/playwright-runtime.foundation.functional.mjs` — `Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity` | `node --test --test-name-pattern='^Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity$' tests/playwright-runtime.foundation.functional.mjs` | The config resolves one worker and retains `system-chrome`; the 300000ms budget and force-kill disclosure remain; the rejected Foundation lifecycle seam remains absent. |
+| TP-BUG017-04-04 | Regression E2E | SCN-BUG017-11 | The eight real `tests/portfolio-survival-*.spec.mjs` files named in `scenario-manifest.json` | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | The config-default run resolves one worker; 94/94 tests pass; exit is zero; no force-kill or ignored-lifecycle marker appears; workload-owned process counts return to baseline. |
+| TP-BUG017-04-04B | Broader Regression E2E | SCN-BUG017-11 | The complete eight-file portfolio-survival browser suite | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | The complete selected consumer suite stays green under the same one-worker system-Chrome route. This row uses the same command as TP-BUG017-04-04 because the scenario-specific behavior is the runner-level outcome of the full suite. |
+| TP-BUG017-04-05 | Adversarial functional regression | SCN-BUG017-11 | `tests/playwright-runtime.foundation.functional.mjs` — `Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity` | `node --test --test-name-pattern='^Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity$' tests/playwright-runtime.foundation.functional.mjs` | The config resolves one worker and retains `system-chrome`; the 300000ms budget and force-kill disclosure remain; the rejected Foundation lifecycle seam remains absent. |
 
-The six-full-run diagnostic cap recorded by the current-revision stabilization round is
-exhausted. TP-BUG017-04-03 is the next implementation validation after the bounded canary, not
-another exploratory rerun. Do not spend another complete run before applying the candidate.
+The project config declares no `testImpact` or `traceContracts` map. No impact-plan or trace/SLO
+row applies to this scope.
+
+### Rejected Candidate Test Record — Historical, Not Active Test Plan
+
+| Historical ID | Replaced scenario | Recorded decision evidence |
+| --- | --- | --- |
+| TP-BUG017-04-01 | SCN-BUG017-09 | The named 27-test strict canary produced an earlier GREEN and two later failures at unchanged candidate bytes. It is removed from the final tree and does not need to pass. |
+| TP-BUG017-04-02 | SCN-BUG017-09 | The close-removal RED and exact restoration remain evidence that the rejected canary discriminated during candidate evaluation. |
+| TP-BUG017-04-03 | SCN-BUG017-10 | The two-worker complete workload passed provisionally before later strict-canary failures rejected the candidate. It remains history, not selected-route closure. |
 
 ### Definition of Done
 
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior persist for the selected fallback: TP-BUG017-04-04 maps SCN-BUG017-11 to the exact config-default 94-test system-Chrome command and asserts one resolved worker, 94/94 passing, exit 0, no force-kill or ignored lifecycle error, and zero owned residue.
-- [x] Scenario-specific evidence records every Scope 4 branch outcome. The lifecycle candidate's green and red canaries remain preserved. The selected SCN-BUG017-11 fallback functional test and two complete C03 runs pass. **Phase:** implement. **Claim Source:** executed. → Evidence: [Scope 4 finalization validation](report.md#scope-4-finalization-validation-candidate-rejected) and [Scope 4 fallback selection](report.md#scope-4-fallback-selection-and-verification).
-- [x] Broader E2E regression suite passes for the complete eight-file, 94-test BUG-022 C03 portfolio workload under the selected system-Chrome worker configuration. **Phase:** implement. **Claim Source:** executed. → Evidence: [Exact BUG-022 C03 at workers two](report.md#exact-bug-022-c03-at-workers-two).
-- [x] The additive supersession is respected: no current closure claim relies on the historical `0/3 at two workers` observation, and no historical evidence or checked row is rewritten. **Phase:** implement. **Claim Source:** executed. → Evidence: [Additive supersession integrity](report.md#additive-supersession-integrity).
-- [x] The lifecycle candidate used automatic worker-scoped ownership during evaluation. The final tree removes that candidate through explicit reverts and retains neither rejected close shape. **Phase:** implement. **Claim Source:** executed. → Evidence: [Lifecycle containment regression](report.md#lifecycle-containment-regression) and [Scope 4 fallback selection](report.md#scope-4-fallback-selection-and-verification).
-- [ ] TP-BUG017-04-01 passes the real cumulative Foundation-to-Paths canary at 27/27 with workers=2, child exit 0 within the strict 15-second worker-stop bound, and zero force-kill or ignored teardown errors. **Phase:** implement. **Claim Source:** executed. The prior green capture is preserved, but two current finalization attempts failed this lifecycle criterion at the same committed candidate bytes. → Evidence: [Persistent strict canary GREEN](report.md#persistent-strict-canary-green) and [Scope 4 finalization validation](report.md#scope-4-finalization-validation-candidate-rejected).
-- [x] TP-BUG017-04-02 proves the canary is discriminating: removing only the Foundation-owned close produces the planned lifecycle RED, then exact hash restoration returns the canary to GREEN. **Phase:** implement. **Claim Source:** executed. → Evidence: [Close-removal discriminator and exact restoration](report.md#close-removal-discriminator-and-exact-restoration).
-- [x] TP-BUG017-04-03 runs the complete exact BUG-022 C03 94-test command at workers=2 and records 94/94 passing, exit 0, no 300000ms force-kill marker, and restored owned process counts. **Phase:** implement. **Claim Source:** executed. → Evidence: [Exact BUG-022 C03 at workers two](report.md#exact-bug-022-c03-at-workers-two) and [selected route and process release](report.md#selected-route-and-process-release).
-- [x] The earlier TP-BUG017-04-03 pass retained the candidate provisionally. Two later strict-canary failures supersede that provisional route without erasing its evidence. **Phase:** implement. **Claim Source:** executed. → Evidence: [Exact BUG-022 C03 at workers two](report.md#exact-bug-022-c03-at-workers-two) and [Scope 4 finalization validation](report.md#scope-4-finalization-validation-candidate-rejected).
-- [x] Candidate rollback is hash-verified before workers=1 is selected. TP-BUG017-04-04 then passes the unchanged exact 94-test command twice through the config default. **Phase:** implement. **Claim Source:** executed. → Evidence: [Scope 4 fallback selection](report.md#scope-4-fallback-selection-and-verification).
-- [x] No force-kill error is ignored, caught as success, filtered from evidence, or relabelled; no browser-project switch or teardown-budget increase is present. **Phase:** implement. **Claim Source:** executed. → Evidence: [Lifecycle containment regression](report.md#lifecycle-containment-regression).
-- [x] The implementation diff contains only the declared allowed file families, with zero changes to excluded surfaces and zero sensitive or machine-local leakage. **Phase:** implement. **Claim Source:** executed. → Evidence: [Candidate boundary and state integrity](report.md#candidate-boundary-and-state-integrity) and [Synchronized packet guards](report.md#synchronized-packet-guards).
-- [x] Rollback is proven by explicit inverse commits and exact baseline blob identities. Foundation, shared runtime, and Paths remain at pre-candidate bytes. Historical packet evidence remains reachable. **Phase:** implement. **Claim Source:** executed. → Evidence: [Scope 4 fallback selection](report.md#scope-4-fallback-selection-and-verification).
-- [x] Packet artifact lint, planning traceability checks, and the repository baseline selftest pass after planning and implementation artifacts are synchronized. **Phase:** implement. **Claim Source:** executed. → Evidence: [Synchronized packet guards](report.md#synchronized-packet-guards).
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass: TP-BUG017-04-04 executes SCN-BUG017-11 through the exact config-default 94-test system-Chrome command and proves one resolved worker, 94/94 passing, exit zero, no force-kill or ignored lifecycle error, and zero workload-owned residue. **Claim Source:** executed. → Evidence: [Scope 4 current test execution](report.md#tp-bug017-04-04-and-tp-bug017-04-04b) records `workers=1`, `project=system-chrome`, `channel=chrome`, 94/94 passing, exit 0, zero force-kill and ignored-lifecycle markers, zero skips and todos, and `ownedResidue=0`; complete-capture SHA-256 `ed9bd75c5142d0e6d895601a4331a760c4ceab32d5ef792b7c4ff9417061b13e` covers all 313 lines.
+- [x] Broader E2E regression suite passes: TP-BUG017-04-04B executes the same complete eight-file, 94-test portfolio-survival system-Chrome suite under the selected one-worker default. **Claim Source:** executed. → Evidence: [Scope 4 current test execution](report.md#tp-bug017-04-04-and-tp-bug017-04-04b) states that TP-BUG017-04-04 and TP-BUG017-04-04B share the identical complete command, records all 94 tests passing with exit 0 and zero skips or todos, and binds the shared run to capture SHA-256 `ed9bd75c5142d0e6d895601a4331a760c4ceab32d5ef792b7c4ff9417061b13e`.
+- [x] TP-BUG017-04-05 passes the exact existing SCN-BUG017-11 fallback-containment test and proves one worker, system-Chrome parity, the unchanged 300000ms stop budget, visible force-kill disclosure, and absence of the rejected lifecycle candidate. **Claim Source:** executed. → Evidence: [Scope 4 current test execution](report.md#tp-bug017-04-05) records one of one passing with exit 0, zero skips and todos, `workers=1`, `project=system-chrome`, `channel=chrome`, `defaultWorkerStopBudgetMs=300000`, `forceKillDisclosure=present`, and `lifecycleCandidateRolledBack=true`; capture SHA-256 `f5218b8a1a3991e53cbff0be3037a58e8f24a8342388f7a432d68c93050e0489` covers the complete 15-line output.
 
-The remaining unchecked strict-canary row records the rejected candidate's unstable finalization.
-It must not be converted into a pass. The selected fallback is proven by TP-BUG017-04-04 and
-TP-BUG017-04-05 while packet status remains in progress.
+The rejected TP-BUG017-04-01 statement is no longer an active checkbox. Its failed current
+acceptance runs must never be converted into a pass. The historical candidate record above and
+the unchanged report anchors retain the complete decision evidence.
 
-### Uncertainty Declaration — Scope 4
+### Current Evidence Resolution — Scope 4
 
-**Attempted:** This planning pass reconciled the current-revision recurrence into an explicit
-implementation boundary, three scenarios, five exact test rows, a conditional decision rule,
-and rollback requirements. It did not implement or execute the lifecycle candidate.
-
-**Observed:** The current-session repository files establish the existing Foundation and Paths
-lifecycle hooks, the two-worker config, and the exact BUG-022 C03 command. The operator-supplied
-stabilization measurements are diagnostic input and are not claimed as execution by this
-planning pass.
-
-**Would resolve:** The next execution owner must produce the planned adversarial RED and GREEN
-canary, then run TP-BUG017-04-03. Only its actual result selects either the retained two-worker
-lifecycle remedy or the rollback-first one-worker branch. Every DoD row remains unchecked until
-its own command-backed evidence exists.
+The current test phase executed the active commands once each. The complete 94-test shared run
+satisfies TP-BUG017-04-04 and TP-BUG017-04-04B without reducing or repeating the workload. Its
+capture SHA-256 is `ed9bd75c5142d0e6d895601a4331a760c4ceab32d5ef792b7c4ff9417061b13e`.
+The focused one-test run satisfies TP-BUG017-04-05. Its capture SHA-256 is
+`f5218b8a1a3991e53cbff0be3037a58e8f24a8342388f7a432d68c93050e0489`.
+SCN-BUG017-09 and SCN-BUG017-10 remain replaced historical failures and were not rerun or
+relabeled. No source, configuration, test, report evidence, acceptance, certification, or
+BUG-level status is changed by this planning reconciliation.
 
 ## Cross-Scope Definition of Done
 
-The checked rows below are preserved historical closure records. They do not satisfy or waive
-any unchecked Scope 4 row, and they do not authorize BUG-022 to consume the old two-worker
+The checked rows below are preserved historical closure records. Scope 4 closes only from its
+current one-worker evidence; these rows do not authorize BUG-022 to consume the old two-worker
 closure claim.
 
 - [x] `bug.md` status is updated from Confirmed to Fixed and then Verified.

@@ -2797,4 +2797,899 @@ status stay unchanged. The next required owner remains `bubbles.plan` for the ad
 scenario/test-plan reconciliation, followed by `bubbles.validate` only after the planning repair
 and fresh test verification pass.
 
+## Scope 4 Current Test Execution At 2026-08-28 {#scope-4-current-test-execution-at-2026-08-28}
+
+**Phase:** test
+**Claim Source:** executed
+**Execution time:** 2026-08-28T05:13:36Z
+
+The active Markdown and JSON Test Plans assign one identical complete command to
+TP-BUG017-04-04 and TP-BUG017-04-04B. This phase executed that command once. The same
+execution therefore resolves both rows without reducing or repeating the workload.
+
+SCN-BUG017-09 and SCN-BUG017-10 remain replaced historical candidates. This phase did not
+execute either candidate. Their failed current evidence remains visible above.
+
+### Pre-Execution Linked-Test Resolution
+
+**Command:** `/bin/bash .github/bubbles/scripts/scenario-test-resolve.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos --repo-root .`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `c48e44229a95772b5d47958f8c04ed1be041168b8edb4df0ec1991996bc010fd`
+
+```text
+# BUG017 Scope 4 linked-test resolution safe evidence
+$ /bin/bash .github/bubbles/scripts/scenario-test-resolve.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos --repo-root .
+exit: 0
+lines: 1
+sha256: c48e44229a95772b5d47958f8c04ed1be041168b8edb4df0ec1991996bc010fd
+--- output ---
+[scenario-test-resolve] OK — 35 reference(s) resolved via literal-scan; 18 category comparison(s) not applicable (no test-discovery adapter declared)
+```
+
+The checkout-local runner and wildcard resolved before browser execution:
+
+```text
+BUG017_SCOPE4_RUNNER_AND_WORKLOAD_BEGIN
+Version 1.61.1
+WORKLOAD_FILE_COUNT=8
+WORKLOAD_FILE=tests/portfolio-survival-accessibility.spec.mjs
+WORKLOAD_FILE=tests/portfolio-survival-allocation.spec.mjs
+WORKLOAD_FILE=tests/portfolio-survival-brief.spec.mjs
+WORKLOAD_FILE=tests/portfolio-survival-diversification.spec.mjs
+WORKLOAD_FILE=tests/portfolio-survival-foundation.spec.mjs
+WORKLOAD_FILE=tests/portfolio-survival-mobile.spec.mjs
+WORKLOAD_FILE=tests/portfolio-survival-paths.spec.mjs
+WORKLOAD_FILE=tests/portfolio-survival-risk.spec.mjs
+RUNNER_IDENTITY_EXIT=0
+BUG017_SCOPE4_RUNNER_AND_WORKLOAD_END
+```
+
+### TP-BUG017-04-04 And TP-BUG017-04-04B
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Capture command:** `node /private/tmp/rl-bug017-scope4-test-probe.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `ed9bd75c5142d0e6d895601a4331a760c4ceab32d5ef792b7c4ff9417061b13e`
+
+The bounded capture hashed all 313 output lines. The probe streamed the complete child output
+without filtering. It tracked the child process tree throughout the run.
+
+```text
+# BUG017 Scope 4 TP-BUG017-04-04 and 04-04B exact C03
+$ node /private/tmp/rl-bug017-scope4-test-probe.mjs
+exit: 0
+lines: 313
+sha256: ed9bd75c5142d0e6d895601a4331a760c4ceab32d5ef792b7c4ff9417061b13e
+--- first 20 ---
+BUG017_SCOPE4_EXACT_RUN_BEGIN
+EXACT_COMMAND=npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+CONFIG_RECEIPT workers=1 project=system-chrome browser=chromium channel=chrome configOk=true
+PROCESS_BASELINE relevantCount=4 relevantPids=26206,26317,26424,26425
+
+Running 94 tests using 1 worker
+
+  ✓   1 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:89:1 › Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete (2.5s)
+  ✓   2 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:316:1 › Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision (2.2s)
+  ✓   3 [system-chrome] › tests/portfolio-survival-accessibility.spec.mjs:501:1 › Adversarial: SCN-008-053 reduced accessibility implementations fail closed (799ms)
+  ✓   4 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:109:1 › Regression: SCN-008-026 all six allocation methods share one frozen basis (399ms)
+  ✓   5 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:137:1 › Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner (389ms)
+  ✓   6 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:158:1 › Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation (393ms)
+  ✓   7 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:189:1 › Regression: Feature 008 six allocation rows preserve ordered mobile canvas table parity and infeasible states (624ms)
+  ✓   8 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:235:1 › Regression: Feature 008 Allocation refuses rather than showing candidate weights without evidence (392ms)
+  ✓   9 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:253:1 › Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions (401ms)
+  ✓  10 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:293:1 › Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence (595ms)
+  ✓  11 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:339:1 › Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium view posterior and uncertainty separate (622ms)
+  ✓  12 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:375:1 › Regression: Feature 008 allocation sensitivity ranges and Black Litterman editor preserve mobile table parity (563ms)
+  ✓  13 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:411:1 › Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views (2.2s)
+--- omitted 273 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓  83 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:143:1 › Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff (372ms)
+  ✓  84 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:180:1 › Regression: Feature 008 return and drawdown canvas tables remain equivalent at desktop mobile and zoom (446ms)
+  ✓  85 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:253:1 › Regression: SCN-008-015 concentration lenses expose overlap and missing look through (412ms)
+  ✓  86 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:286:1 › Regression: SCN-008-016 beta alpha R squared and residual risk stay separate (392ms)
+  ✓  87 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:325:1 › Regression: SCN-008-016 benchmark fit is unavailable rather than regressed against a guess (427ms)
+  ✓  88 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:344:1 › Regression: SCN-008-017 marginal and total risk contributions reconcile (395ms)
+  ✓  89 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:372:1 › Regression: SCN-008-016 declared proxy factors report exposures and name themselves proxies (387ms)
+  ✓  90 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:409:1 › Regression: SCN-008-017 return contribution stays distinct from risk contribution (395ms)
+  ✓  91 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:438:1 › Regression: SCN-008-015 manual assets and absent look through stay visible not omitted (393ms)
+  ✓  92 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:465:1 › Regression: Feature 008 concentration CAPM and contribution diagnostics preserve mobile canvas table parity (463ms)
+  ✓  93 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:527:1 › Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth (439ms)
+  ✓  94 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:565:1 › Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio (391ms)
+
+  94 passed (1.5m)
+PLAYWRIGHT_EXIT=0 PLAYWRIGHT_SIGNAL=none
+RUN_SIGNALS resolvedOne=1 passed94=1 forceKillMarkers=0 ignoredLifecycleMarkers=0 skipped=0
+PROCESS_OWNERSHIP trackedPids=199 maxConcurrent=12 ownedResidue=0 ownedResiduePids=none
+PROCESS_AFTER relevantCount=4 trackedRelevantResidue=0 ambientRelevantDelta=0
+RUN_RECEIPT accepted=1 tests=94 passed=94 failed=0 skipped=0 todo=0
+BUG017_SCOPE4_EXACT_RUN_END
+```
+
+The process baseline contained four unrelated relevant processes. The post-run sample contained
+the same count. The probe found no new ambient process and no surviving process from the tracked
+workload tree.
+
+### TP-BUG017-04-05
+
+**Command:** `node --test --test-name-pattern='^Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `f5218b8a1a3991e53cbff0be3037a58e8f24a8342388f7a432d68c93050e0489`
+
+```text
+# BUG017 Scope 4 TP-BUG017-04-05 exact functional
+$ node --test --test-name-pattern=^Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity$ tests/playwright-runtime.foundation.functional.mjs
+exit: 0
+lines: 15
+sha256: f5218b8a1a3991e53cbff0be3037a58e8f24a8342388f7a432d68c93050e0489
+--- output ---
+[SCN-BUG017-11] workers=1
+[SCN-BUG017-11] project=system-chrome
+[SCN-BUG017-11] channel=chrome
+[SCN-BUG017-11] defaultWorkerStopBudgetMs=300000
+[SCN-BUG017-11] forceKillDisclosure=present
+[SCN-BUG017-11] lifecycleCandidateRolledBack=true
+✔ Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity (4.047375ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 200.633584
+```
+
+### Mock, Skip, And Self-Validation Audit
+
+**Claim Source:** interpreted
+**Interpretation:** The one executable interception belongs to a named adversarial mutation
+carrier. It does not provide the sole proof for SCN-BUG017-11. The active live proof observes
+the real system-Chrome runner process, configured worker count, exit, diagnostics, and residue.
+
+```text
+BUG017_SCOPE4_TEST_INTEGRITY_SCAN_BEGIN
+MOCK_INTERCEPTION_SCAN
+tests/portfolio-survival-accessibility.spec.mjs:484:  await page.route(`${server.baseUrl}/${LAB_FILE}`, (route) => route.fulfill({
+tests/portfolio-survival-foundation.spec.mjs:651: * Neither row intercepts a request: no page.route/context.route/msw/nock appears here, because
+tests/portfolio-survival-foundation.spec.mjs:1019: * page's own diagnostics. No request is intercepted — no page.route/context.route/msw/nock appears
+tests/portfolio-survival-foundation.spec.mjs:1418: * Nothing here intercepts a request: no page.route/context.route/msw/nock, because an
+MOCK_SCAN_GREP_EXIT=0
+SKIP_TODO_ONLY_SCAN
+SKIP_TODO_ONLY_MATCHES=0
+SKIP_CHECK_EXIT=0
+BUG017_SCOPE4_TEST_INTEGRITY_SCAN_END
+```
+
+- **Files scanned:** nine active carrier files.
+- **Executable interception patterns:** one, in the existing accessibility adversarial carrier.
+- **Reclassifications:** the intercepted mutation remains a synthetic adversarial complement.
+- **Live-category gap:** none for SCN-BUG017-11. The exact runner-level proof stayed live.
+- **Self-validating mechanisms found:** none in the two active mechanisms. The E2E receipt
+  observes runner-produced process outcomes. The functional test reads current config and vendor
+  runner bytes, then asserts the planned containment contract.
+- **Skipped, todo, or only markers:** zero.
+
+### Active Test-Plan Result
+
+| Test Plan row | Tests | Passed | Failed | Skipped | Todo | Exit | Result |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| TP-BUG017-04-04 | 94 | 94 | 0 | 0 | 0 | 0 | PASS |
+| TP-BUG017-04-04B | 94 | 94 | 0 | 0 | 0 | 0 | PASS through the same complete execution |
+| TP-BUG017-04-05 | 1 | 1 | 0 | 0 | 0 | 0 | PASS |
+
+The active test rows now have current test-phase execution evidence. Scope 4 and both status
+mirrors remain `in_progress`. This phase changed no planning semantics, test source, runtime
+source, configuration, certification, acceptance, or historical candidate evidence.
+
+## Scope 4 Independent Regression Verification At 2026-08-28 {#scope-4-independent-regression-verification-at-2026-08-28}
+
+**Phase:** regression
+**Claim Source:** interpreted
+**Interpretation:** The protected BUG-017 route and its BUG-022 consumer have no observed
+regression. The live repository selftest is not clean because excluded concurrent work causes
+two failures. This section does not claim a repository-wide regression-free result.
+**Execution time:** 2026-08-28T05:46:03Z
+
+### Derived Protected Surface And Consumers
+
+The committed Scope 4 range starts after `2c9b6de1a` and ends at current HEAD
+`7e23e73241cf85822c6a8b6e59a9227389377ede`. Git reported thirteen changed paths.
+The selected runtime route reaches these three current surfaces:
+
+- `playwright.config.mjs`
+- `.specify/memory/agents.md`
+- `tests/playwright-runtime.foundation.functional.mjs`
+
+The two explicit revert commits restored `tests/playwright-runtime.mjs`,
+`tests/portfolio-survival-foundation.spec.mjs`, and
+`tests/portfolio-survival-paths.spec.mjs` to baseline object identities.
+The selected route also changes BUG-017 packet artifacts and two BUG-022 evidence artifacts.
+
+The canonical impact resolver derived all eleven BUG-017 scenarios as affected. It also
+derived `SCN-BUG022-003` as the affected consumer scenario. This result came from the three
+runtime and registry paths above. It did not inherit a hand-maintained consumer list.
+
+The live dirty boundary contained five BUG-017 packet files and the excluded concurrent
+market-brief and tool-brief-v2 paths. A path-limited diff against HEAD returned zero for the
+runner config, command registry, functional carrier, and all eight portfolio browser files.
+
+### Current Protected Browser Execution
+
+**Command:** `node /private/tmp/rl-bug017-scope4-test-probe.mjs`
+**Child command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `992800292ed5179ccc44555bdb06fafe04647f645f069db3c4699bcf42a1de0c`
+
+```text
+# BUG-017 regression exact BUG-022 C03 consumer with process ownership
+$ node /private/tmp/rl-bug017-scope4-test-probe.mjs
+exit: 0
+lines: 313
+sha256: 992800292ed5179ccc44555bdb06fafe04647f645f069db3c4699bcf42a1de0c
+CONFIG_RECEIPT workers=1 project=system-chrome browser=chromium channel=chrome configOk=true
+Running 94 tests using 1 worker
+94 passed (1.4m)
+PLAYWRIGHT_EXIT=0 PLAYWRIGHT_SIGNAL=none
+RUN_SIGNALS resolvedOne=1 passed94=1 forceKillMarkers=0 ignoredLifecycleMarkers=0 skipped=0
+PROCESS_OWNERSHIP trackedPids=192 maxConcurrent=12 ownedResidue=0 ownedResiduePids=none
+PROCESS_AFTER relevantCount=4 trackedRelevantResidue=0 ambientRelevantDelta=0
+RUN_RECEIPT accepted=1 tests=94 passed=94 failed=0 skipped=0 todo=0
+BUG017_SCOPE4_EXACT_RUN_END
+```
+
+This execution independently verified the selected worker count, browser project, Chrome
+channel, process exit, force-kill visibility, and process release. It executed the exact
+BUG-022 C03 consumer command once. It did not execute either rejected candidate scenario.
+
+### Current Functional And Direct-Node Families
+
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `9232b97374413397011838bac8ff55fa8e54d59f463268f4fbaac0ebbf27c49c`
+
+```text
+✔ Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs
+✔ Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative
+✔ Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority
+✔ Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance
+✔ Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth
+✔ Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority
+✔ Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity
+ℹ tests 15
+ℹ pass 15
+ℹ fail 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+**Command:** `node --test tests/portfolio-*.unit.mjs tests/portfolio-*.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `175b973fc07c2fb442ad25de3bc36c9df2c581a57781375d6d04387b3950df0c`
+
+```text
+exit: 0
+lines: 266
+sha256: 175b973fc07c2fb442ad25de3bc36c9df2c581a57781375d6d04387b3950df0c
+✔ SCN-008-046 all five public artifacts contribute independently to one local generic evidence identity
+✔ SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output
+✔ SCN-008-047 failed candidate preserves the last valid structured result
+✔ Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing
+ℹ tests 257
+ℹ pass 257
+ℹ fail 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5015.41375
+```
+
+### Traceability, Quality, And Acceptance Matrix
+
+**Claim Source:** executed
+**Capture SHA-256:** `342817098a87a8543e6e15c6d14a6c8f1b9ac0e4ebd11477f55a8a7ffff8118c`
+
+```text
+CHECK_EXIT artifact_bug017=0
+CHECK_EXIT artifact_bug022=0
+CHECK_EXIT traceability_bug017=0
+CHECK_EXIT traceability_bug022=0
+CHECK_EXIT obligations_bug017=0
+CHECK_EXIT obligations_bug022=0
+CHECK_EXIT mechanisms_bug017=0
+CHECK_EXIT mechanisms_bug022=0
+CHECK_EXIT linked_tests_bug017=0
+[scenario-test-resolve] OK — 35 reference(s) resolved via literal-scan; 18 category comparison(s) not applicable (no test-discovery adapter declared)
+CHECK_EXIT linked_tests_bug022=0
+[scenario-test-resolve] OK — 0 reference(s) resolved via literal-scan
+CHECK_EXIT spec_test_paths=0
+CHECK_EXIT scope_progress=0
+CHECK_EXIT acceptance=0
+CHECK_EXIT reachability=1
+NEW ORPHAN tests/tool-brief-v2.stress.mjs — matched by none of the 10 declared glob(s)
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+Files scanned: 9
+Files with adversarial signals: 9
+CHECK_EXIT regression_quality=0
+MATRIX_OVERALL_EXIT=1
+```
+
+BUG-017 resolved all 35 linked-test references. BUG-022 returned success with zero linked
+references. Its manifest still says tests were unauthored and keeps each `linkedTests` array
+empty. The test files now exist and executed above. This is a planning-owned manifest gap,
+not a failure of the selected BUG-017 runtime route.
+
+The active carrier scan found no executable `skip`, `todo`, `fixme`, or `only` marker.
+The focused functional inventory grew from fourteen to fifteen test declarations. Its
+`assert.*` inventory grew from 106 to 114. The command registry declares no line-coverage
+command, so this pass did not invent a coverage percentage.
+
+### Repository Selftest Attribution
+
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `bb3aa0404e464f1431104e953e01019927a08485b41d7fa9b8f29714823b03ec`
+
+```text
+# BUG-017 regression live-checkout repository selftest
+$ node scripts/selftest.mjs
+exit: 1
+lines: 3967
+sha256: bb3aa0404e464f1431104e953e01019927a08485b41d7fa9b8f29714823b03ec
+✗ FAIL: no tests/*.mjs file is unreachable outside the frozen baseline — a file no declared command selects is never run, so it reads as coverage while delivering none (1 new, 6 known-orphan, 20 stale, 11 exempt as shared-helper-module, of 207 file(s))
+✗ FAIL: market-brief.html classifies exactly 17 uniquely-named top-level blocks, six default-visible and eleven collapsed, so an unclassified block cannot reach the default view unnoticed
+================================================
+Research-Lab self-test: 3463 passed, 2 failed
+================================================
+```
+
+The same command passed at clean detached HEAD `7e23e73241cf` with 3465 passes and zero
+failures. Its capture SHA-256 is
+`0eb62babdc20d45eb6449c468e6160ce1d443d6558dffd7130c144b25b3720c9`.
+That clean run attributes the two live failures to uncommitted concurrent paths.
+It does not prove the five uncommitted BUG-017 packet files. The live browser, functional,
+Node, artifact, traceability, and scenario checks above prove the current packet surface.
+
+### Scenario State And Required Shell
+
+**Claim Source:** executed
+
+```text
+/opt/homebrew/bin/bash
+GNU bash, version 5.3.15(1)-release (aarch64-apple-darwin25.4.0)
+STATE_TRANSITION_GUARD_BASH_N_EXIT=0
+scenario-state-resolve: specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos
+source revision: 7e23e73241cf
+SCN-BUG017-01  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-02  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-03  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-04  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-05  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-06  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-07  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-08  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-09  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-10  state=PLANNED  derived=[PLANNED]
+SCN-BUG017-11  state=PLANNED  derived=[PLANNED]
+```
+
+The scenario-state capture has SHA-256
+`fb98c63924c160856ed1fb9e29f2729ae3fa853443a48fd9a9dcc8a6cf9ef65c`.
+All 325 refusal lines were revision-drift exclusions. The resolver exited zero.
+
+### Current Transition Guard
+
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos`
+**Exit Code:** 1
+**Claim Source:** executed
+**Capture SHA-256:** `c1a6c807f65628dec22fe6e446e79789ad4cf2b897d34c365c3a557f50ab9282`
+
+```text
+/opt/homebrew/bin/bash
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131]
+failedGateIds: [G017,G027,G136]
+failedChecks: [Check-4-scenario-states,Check-9-evidence]
+blockingCode: DELIVERY_COMPLETION_FAILED
+parentExpandedPhases: 0
+failureCount: 9
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+The diagnostic rerun exposed all nine blocking observations. Two observations report the same
+three-of-four completion mirror mismatch. Three observations reject the shared Scope 4 evidence
+link because its parent section contains fewer than ten non-blank lines before its first child
+heading. One observation reports stale receipts. One reports a cloned receipt identity. One
+reports the eleven unsatisfied scenario-state chains. The final observation is G136 acceptance.
+
+The guard executed through Homebrew Bash and reached its result envelope. It did not produce a
+parser error. The installed gate registry has no current G017 record. Its G016 record says it
+consolidates former G017. The guard still emits G017 for the evidence blockers. This metadata
+drift is framework-owned and remains route-only from this downstream packet.
+
+### Finding Accounting And Verdict
+
+| Finding | Classification | Evidence | Disposition |
+| --- | --- | --- | --- |
+| `F-FRAMEWORK-017-TRANSITION-GUARD-SYNTAX` | Addressed as false under the required shell | Homebrew Bash 5.3.15 resolves first and `bash -n` exits 0 | No framework edit. |
+| `F-VALIDATE-017-SCENARIO-STATES` | Unresolved and validate-owned | All eleven states derive as `PLANNED` | Preserve for `bubbles.validate`. |
+| `F-VALIDATE-017-COMPLETION-MIRROR` | Unresolved and validate-owned | Execution lists four Done scopes while certification lists three | Preserve for `bubbles.validate`. |
+| `F-ACCEPTANCE-017-G136` | Unresolved operator and validation boundary | The Human Acceptance Record exists while all ten Checklist rows remain unchecked | Preserve for the completion guard and operator boundary. |
+| `F-PLAN-017-EVIDENCE-ANCHOR-WINDOW` | Unresolved and planning-owned | Three checked Scope 4 rows link to a parent evidence heading whose pre-child block is shorter than ten non-blank lines | Route to `bubbles.plan`. |
+| `F-VALIDATE-017-STALE-RECEIPTS` | Unresolved and validate-owned | The guard reports 76 stale receipts in its evidence-integrity check | Preserve for `bubbles.validate` to classify against current obligations. |
+| `F-VALIDATE-017-RECEIPT-CLONE` | Unresolved and validate-owned | The guard reports one substantive stdout identity across incompatible or unproven receipt identities | Preserve for `bubbles.validate` and audit ownership. |
+| `F-CONCURRENT-SELFTEST` | Reproduced and route-only | Live selftest is 3463/2 while clean HEAD is 3465/0 | The active concurrent owner controls the excluded paths. |
+| `F-REGRESSION-022-LINKED-TEST-VACUITY` | New planning-owned finding | BUG-022 resolves zero linked references although its functional and browser carriers now exist | Route to `bubbles.plan` for BUG-022. |
+| `F-FRAMEWORK-017-GATE-ID-DRIFT` | New framework-owned finding | The guard emits failed gate G017 while the installed registry records G017 only as a former gate consolidated into G016 | Route to the canonical Bubbles owner. Do not edit downstream framework files. |
+
+**Protected-surface verdict:** No regression was observed in the one-worker system-Chrome
+route, the unchanged 300000ms stop budget, failure visibility, candidate rollback, process
+release, BUG-022 C03 browser consumer, or Feature 008 direct Node family.
+
+**Overall verdict:** `REGRESSION_DETECTED`. The two repository selftest failures belong to
+excluded concurrent work. A repository-wide `REGRESSION_FREE` claim is therefore not made.
+Top-level status and certification remain `in_progress`.
+
+## Current Implementation Wording Authority At 2026-08-28 {#current-implementation-wording-authority-at-2026-08-28}
+
+**Phase:** implement
+**Claim Source:** interpreted
+
+The current config disclosure does not assign the mechanism to Playwright, Chrome, or
+repository code. It records only that Playwright emits the force-kill and that the selected
+browser is operator-installed Chrome. Those ownership facts do not establish the transport or
+process mechanism.
+
+The earlier Scope 1 addendum and fallback uncertainty declaration remain historical narrative.
+They do not control the selected route's current causal statement. Their commands, exits, and
+candidate receipts remain unchanged.
+
+The rejected Foundation lifecycle candidate remains rolled back. The selected route remains
+`workers: 1` with `system-chrome`, `channel: chrome`, the 300000ms budget, and visible force-kill
+behavior. BUG-022's earlier two-worker candidate receipt remains historical. Its later fallback
+consumer receipt records the current one-worker route.
+
+`.specify/memory/agents.md` still assigns an upstream causal label. This phase does not edit that
+foreign-owned command registry. The contradiction routes to `bubbles.commands`.
+
+### Focused Current-Session Verification
+
+**Phase:** implement
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `5ba758c82c24c157dedfdcbf93e3eea0df53176d5b279b0c3e86a76677db68bb`
+
+```text
+# BUG-017 wording authority focused functional
+$ node --test tests/playwright-runtime.foundation.functional.mjs
+exit: 0
+lines: 51
+sha256: 5ba758c82c24c157dedfdcbf93e3eea0df53176d5b279b0c3e86a76677db68bb
+--- first 20 ---
+[playwright-runtime] package=node_modules/playwright
+[playwright-runtime] cli=node_modules/playwright/cli.js
+[playwright-runtime] version=1.61.1
+[playwright-runtime] browserChannel=chrome
+[playwright-runtime] apiIdentity=PASS
+[playwright-runtime] outside=sibling-repo exit=1 borrowed=false
+[playwright-runtime] outside=global-prefix exit=1 borrowed=false
+[playwright-runtime] outside=npm-cache-hash exit=1 borrowed=false
+[playwright-runtime] browserExecutableFallback=ABSENT
+[playwright-runtime] externalPackageFallback=ABSENT
+[playwright-runtime] committedBrowserConfigs=playwright.config.mjs
+[playwright-runtime] testMatch=**/*.spec.mjs
+[playwright-runtime] discoveredSpecs=81
+[playwright-runtime] sharedImporters=81
+[playwright-runtime] absoluteOverrides=0
+[playwright-runtime] matcher=**/*.spec.mjs
+[playwright-runtime] browserSelected=81
+[playwright-runtime] nodeGlobSelected=118
+[playwright-runtime] directNodeSuites=10
+[playwright-runtime] frozenCrossings=9
+--- omitted 11 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✔ every Playwright spec uses the shared seam and sole committed browser config (2697.135084ms)
+✔ committed discovery boundary keeps browser specs and direct Node suites disjoint (4.265166ms)
+✔ Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs (1.50775ms)
+✔ Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative (1.189167ms)
+✔ Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority (1.299667ms)
+✔ Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance (40.332542ms)
+✔ Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth (481.366667ms)
+✔ Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority (576.445209ms)
+✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (0.705625ms)
+✔ Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence (0.476334ms)
+✔ Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin (0.265584ms)
+✔ Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity (1.550583ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 15
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4414.938958
+```
+
+The first static wrapper searched the command registry for the clarification's wording instead
+of the registry's actual phrase. It stopped before the diff check and is not pass evidence. The
+corrected wrapper below used the exact registry phrase. No file changed between those attempts.
+
+**Phase:** implement
+**Command:** `zsh -c 'print -- "BUG017_WORDING_STATIC_BEGIN"; grep -n "workers: 1" playwright.config.mjs; grep -n "name: .system-chrome." playwright.config.mjs; grep -n "channel: .chrome." playwright.config.mjs; grep -n "300000ms" playwright.config.mjs; grep -n "force-killed it" playwright.config.mjs; if grep -nEi "cause is upstream|upstream cause|upstream socket cause|defect itself is upstream" playwright.config.mjs; then print -- "CONFIG_CAUSAL_OVERCLAIM=present"; exit 1; else print -- "CONFIG_CAUSAL_OVERCLAIM=absent"; fi; grep -n "Current Implementation Wording Authority At 2026-08-28" specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md; grep -n "candidate receipts remain unchanged" specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md; grep -n "Fallback Consumer Receipt" specs/_bugs/BUG-022-historical-report-declaration-leak/report.md; grep -n "selected the planned one-worker fallback" specs/_bugs/BUG-022-historical-report-declaration-leak/report.md; grep -n "upstream cause" .specify/memory/agents.md; registry_rc=$?; [[ $registry_rc -eq 0 ]] || exit 1; print -- "COMMAND_REGISTRY_CONTRADICTION_FOUND=true"; git diff --check -- playwright.config.mjs specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md specs/_bugs/BUG-022-historical-report-declaration-leak/report.md; diff_rc=$?; print -- "FOCUSED_DIFF_CHECK_EXIT=$diff_rc"; print -- "BUG017_WORDING_STATIC_END"; exit $diff_rc'`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG017_WORDING_STATIC_BEGIN
+24:  workers: 1,
+27:      name: 'system-chrome',
+30:        channel: 'chrome',
+8:    restored to its pre-candidate bytes. Playwright can wait out its unchanged 300000ms
+9:    teardown budget, report `worker-N process did not exit within 300000ms after stop,
+10:    force-killed it`, and exit 1 after a fully green run. Historical characterization remains
+CONFIG_CAUSAL_OVERCLAIM=absent
+3244:## Current Implementation Wording Authority At 2026-08-28 {#current-implementation-wording-authority-at-2026-08-28}
+3256:candidate receipts remain unchanged.
+1243:## BUG-017 Scope 4 Fallback Consumer Receipt {#bug-017-scope-4-fallback-consumer-receipt}
+1250:commits, and selected the planned one-worker fallback. This receipt records BUG-022's unchanged
+262:bounds exposure rather than removing the upstream cause. The full disclosure sits beside the `workers` line in
+COMMAND_REGISTRY_CONTRADICTION_FOUND=true
+FOCUSED_DIFF_CHECK_EXIT=0
+BUG017_WORDING_STATIC_END
+```
+
+## Superseding Current Wording Authority After Iteration 4 {#superseding-current-wording-authority-after-iteration-4}
+
+**Phase:** implement
+**Claim Source:** interpreted
+**Interpretation:** The live command registry, live Playwright config, and fresh iteration-4 receipt now agree on current causal wording.
+
+The [live command-registry wording](../../../.specify/memory/agents.md#playwright-e2e) and
+[live Playwright config disclosure](../../../playwright.config.mjs) say the underlying
+mechanism is not established. Both state that `workers: 1` bounds exposure.
+
+The [fresh iteration-4 test receipt](#test-phase-convergence-iteration-4-current-process-residue-proof)
+records one worker, `system-chrome`, `channel: chrome`, 94 of 94 passes, and exit 0. It records
+zero Playwright worker or remote-debugging Chrome residue. It also records zero repository or
+external probe artifacts after cleanup, with no force-kill, lifecycle, skip, `todo`, `fixme`,
+or `only` marker.
+
+The contradiction receipt in [the earlier current-authority section](#current-implementation-wording-authority-at-2026-08-28)
+remains unchanged as execution history. It is historical and non-authoritative for current
+wording.
+
+The one-worker setting provides exposure containment for the observed teardown condition. It does not
+remove, identify, or diagnose any root, upstream, socket, transport, or process mechanism.
+
+<!-- bubbles:test-iteration-4-current-proof-begin -->
+
+## Test Phase Convergence Iteration 4 Current Process-Residue Proof {#test-phase-convergence-iteration-4-current-process-residue-proof}
+
+**Phase:** test
+**Claim Source:** executed
+**Execution date:** 2026-08-28
+**Persisted mode:** `bugfix-fastlane`
+**Semantic mode:** `fix action:fastlane target:bug`
+
+This section records only commands executed in the current test invocation. It leaves the
+rejected SCN-BUG017-09 and SCN-BUG017-10 candidate receipts unchanged.
+
+### Current Mode Resolution
+
+**Command:** `bash .github/bubbles/scripts/mode-resolver.sh fix action:fastlane target:bug`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `f7ccd0bd74b094512fcd06fcd0dd30d284056b6c4e10c05ff37f1dddfe6fd544`
+
+```text
+# BUG-017 iteration 4 semantic bugfix-fastlane mode
+$ bash .github/bubbles/scripts/mode-resolver.sh fix action:fastlane target:bug
+exit: 0
+lines: 45
+sha256: f7ccd0bd74b094512fcd06fcd0dd30d284056b6c4e10c05ff37f1dddfe6fd544
+statusCeiling: done
+description: Focused bug loop with mandatory reproduction and verification. Loops until validate certifies the fix or returns a documented blocked verdict.
+transitionAudit:
+  profile: delivery-completion-v1
+  target: statusCeiling
+phaseOrder: [select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize]
+```
+
+### Current Linked-Test Resolution
+
+**Command 1:** `/bin/bash .github/bubbles/scripts/scenario-test-resolve.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos --repo-root .`
+**Command 1 Exit Code:** 0
+**Command 2:** `/bin/bash .github/bubbles/scripts/scenario-test-resolve.sh specs/_bugs/BUG-022-historical-report-declaration-leak --repo-root .`
+**Command 2 Exit Code:** 0
+**Combined wrapper Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `fd1de01200020ad3e50d8c9efe52f07a4d968615e3abed6e56851a67196d9a79`
+
+```text
+# BUG-017 and BUG-022 iteration 4 linked-test resolution
+exit: 0
+lines: 7
+sha256: fd1de01200020ad3e50d8c9efe52f07a4d968615e3abed6e56851a67196d9a79
+BUG017_LINKED_TEST_RESOLUTION_BEGIN
+[scenario-test-resolve] OK — 35 reference(s) resolved via literal-scan; 18 category comparison(s) not applicable (no test-discovery adapter declared)
+BUG017_LINKED_TEST_RESOLUTION_EXIT=0
+BUG022_LINKED_TEST_RESOLUTION_BEGIN
+[scenario-test-resolve] OK — 30 reference(s) resolved via literal-scan; 6 category comparison(s) not applicable (no test-discovery adapter declared)
+BUG022_LINKED_TEST_RESOLUTION_EXIT=0
+LINKED_TEST_RESOLUTION_END
+```
+
+### Current Focused BUG-017 And BUG-022 Functional Contracts
+
+**Command:** `node --test '--test-name-pattern=^(Regression: SCN-BUG022-|Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity$)' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `790928d37ea85d21fdc2ff54e7cec9d0dfef14adcb12f25d63fbc64b128b65e6`
+
+```text
+[SCN-BUG017-11] workers=1
+[SCN-BUG017-11] project=system-chrome
+[SCN-BUG017-11] channel=chrome
+[SCN-BUG017-11] defaultWorkerStopBudgetMs=300000
+[SCN-BUG017-11] forceKillDisclosure=present
+[SCN-BUG017-11] lifecycleCandidateRolledBack=true
+✔ Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs
+✔ Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative
+✔ Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority
+✔ Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance
+✔ Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth
+✔ Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority
+✔ Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity
+ℹ tests 7
+ℹ suites 0
+ℹ pass 7
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3351.038084
+```
+
+### Current Exact BUG-022 C03 Process-Ownership Proof
+
+**Child command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Capture command:** `node --input-type=module -`
+**Outer bound:** 900 seconds
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `d11ebe0748de9b55578374a346ecc8416fb90ed02b4ade0a0e8ec1085ff149da`
+
+The inline probe used the existing process-tree sampling pattern. It classified descendants by
+the checkout-local Playwright worker entrypoint and Chrome's remote-debugging pipe. Playwright
+created its last-run file in an external temporary path. The probe removed that file and every
+repository output path created by the run before it exited.
+
+The displayed `postRunPaths` value below normalizes the local checkout prefix to `<repo>`.
+The capture SHA-256 above covers the unmodified raw command output.
+
+```text
+# BUG-017 iteration 4 post-resolution current one-worker C03 process ownership proof
+$ node --input-type=module -
+exit: 0
+lines: 316
+sha256: d11ebe0748de9b55578374a346ecc8416fb90ed02b4ade0a0e8ec1085ff149da
+BUG017_ITERATION4_PROCESS_PROOF_BEGIN
+EXACT_COMMAND=npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+CONFIG_RECEIPT workers=1 project=system-chrome browser=chromium channel=chrome configOk=true
+PROCESS_BEFORE playwrightWorkers=0 remoteDebugChrome=0 relevant=0 competingWorkloads=0
+OUTPUT_PRE_CLEAN repositoryArtifacts=0 paths=none externalTemp=0
+OUTPUT_BASELINE repositoryArtifacts=0 externalTemp=0
+Running 94 tests using 1 worker
+94 passed (1.5m)
+PLAYWRIGHT_EXIT=0 PLAYWRIGHT_SIGNAL=none SPAWN_ERROR=none
+RUN_SIGNALS resolvedOne=1 passed94=1 forceKillMarkers=0 ignoredLifecycleMarkers=0 skipped=0 todo=0 fixme=0 only=0
+PROCESS_OWNERSHIP trackedPids=284 maxConcurrent=12 trackedPlaywrightWorkers=1 maxPlaywrightWorkers=1 trackedRemoteDebugChrome=256 maxRemoteDebugChrome=4 sampleErrors=0 ownedResidue=0
+PROCESS_AFTER playwrightWorkers=0 remoteDebugChrome=0 relevant=0 relevantDelta=0 ownedPlaywrightWorkerResidue=0 ownedRemoteDebugChromeResidue=0
+OUTPUT_ARTIFACTS postRunRepository=1 postRunPaths=<repo>/test-results externalTempCreated=1 finalRepository=0 finalExternalTemp=0 clean=1
+RUN_RECEIPT accepted=1 tests=94 passed=94 failed=0 skipped=0 todo=0 fixme=0 only=0
+BUG017_ITERATION4_PROCESS_PROOF_END
+```
+
+### Current Focused Artifact Lint
+
+**Command 1:** `/bin/bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos`
+**Command 1 Exit Code:** 0
+**Command 2:** `/bin/bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-022-historical-report-declaration-leak`
+**Command 2 Exit Code:** 0
+**Combined wrapper Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `5d419d528ea6d8729428ef9d71b7feba1d35672f265f583997e90077120ba8a2`
+
+```text
+# BUG-017 and BUG-022 iteration 4 focused artifact lint
+exit: 0
+lines: 85
+sha256: 5d419d528ea6d8729428ef9d71b7feba1d35672f265f583997e90077120ba8a2
+BUG017_ARTIFACT_LINT_BEGIN
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+Artifact lint PASSED.
+BUG017_ARTIFACT_LINT_EXIT=0
+BUG022_ARTIFACT_LINT_BEGIN
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+Artifact lint PASSED.
+BUG022_ARTIFACT_LINT_EXIT=0
+FOCUSED_ARTIFACT_LINT_END
+```
+
+The current exact C03 execution satisfied every process-proof signal requested by the active
+test finding. It did not execute either rejected candidate scenario and did not run the
+repository-wide selftest.
+
+<!-- bubbles:test-iteration-4-current-proof-end -->
+
+## Validate Phase Convergence Iteration 4 Certification Reconciliation {#validate-phase-convergence-iteration-4-certification-reconciliation}
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** Current validate execution establishes the focused command results below. The
+94-test process result remains test-phase evidence from the current-session receipt above; validate
+inspected its anchor and provenance but did not execute or adopt that browser command as its own run.
+
+### Current Test Receipt Provenance
+
+The current test section above is tagged `Phase: test`, `Claim Source: executed`, execution date
+2026-08-28, persisted mode `bugfix-fastlane`, and semantic mode
+`fix action:fastlane target:bug`. Its complete-capture SHA-256
+`d11ebe0748de9b55578374a346ecc8416fb90ed02b4ade0a0e8ec1085ff149da` covers the
+316-line process probe. The bounded receipt reports one configured worker, `system-chrome`, Chrome
+channel, 94 of 94 passing, child exit 0, no force-kill or lifecycle-ignore marker, no skipped,
+`todo`, `fixme`, or `only` marker, zero owned Playwright or Chrome residue, and complete output
+cleanup. This validate phase did not rerun SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, or
+SCN-BUG017-10. Their manifest entries remain historical and replaced by SCN-BUG017-11 where
+declared.
+
+### Validate-Owned Completion Mirror Repair
+
+The four scope artifacts are marked Done. Validate reconciled both `completedScopes` arrays and
+`certification.scopeProgress` to these exact scope IDs and DoD counts:
+
+| Scope ID | Status | Checked | Unchecked |
+| --- | --- | ---: | ---: |
+| `01-characterise-the-stall-well-enough-to-choose` | done | 10 | 0 |
+| `02-apply-the-selected-remedy` | done | 9 | 0 |
+| `03-disclose-it-where-a-developer-meets-it` | done | 8 | 0 |
+| `04-close-the-foundation-browser-before-worker-teardown` | done | 3 | 0 |
+
+Packet status and `certification.status` remain `in_progress`. No certified phase, scenario state,
+acceptance value, or execution provenance was advanced.
+
+### Current Validate Execution
+
+**Claim Source:** executed
+
+| Check | Exit | Complete-capture fact |
+| --- | ---: | --- |
+| Semantic mode resolution | 0 | 45 lines, SHA-256 `f7ccd0bd74b094512fcd06fcd0dd30d284056b6c4e10c05ff37f1dddfe6fd544`; ceiling `done`, audit profile `delivery-completion-v1` |
+| Goal fidelity at pre-certification | 1 | 3 lines, SHA-256 `a90d02e41bd4a4edf8bf5eade75a4e370b370e68336436ce5daa4778c4999161`; G070 reports no non-empty Outcome Contract and no Hard Constraints |
+| Canonical scenario-state certifiability | 1 | 393 lines, SHA-256 `05a414bf236c903598d2b70e4a0dcde190c18fb6ae3c6b1a8925955a30e46ba3`; all eleven scenarios derive only `PLANNED` at source revision `4bd96545cd66` |
+| Completion-mirror validator after repair | 0 | 2 lines, SHA-256 `b5a9ca8bc45dec0c5056a5a3a21883be1163a6a543e818f032093730455961a7`; no new DoD progress drift |
+| Artifact lint after repair | 0 | 40 lines, SHA-256 `182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567` |
+| Linked-test resolution | 0 | 35 references resolved; SHA-256 `c48e44229a95772b5d47958f8c04ed1be041168b8edb4df0ec1991996bc010fd` |
+| Traceability guard | 0 | 125 lines, SHA-256 `5ad69ecd07764052ce224dc19cf84373112523fec58170e1b3991b1bfb69100c`; 9 scenarios mapped, 25 rows checked, 0 warnings |
+| Focused BUG-017/BUG-022 functional contracts | 0 | 21 lines, SHA-256 `3a02af0a8664b23438b44d116a16e6be6a68b978660f8a2056e0bd56a4ca753d`; 7 passed, 0 failed, 0 skipped, 0 todo |
+| Asserted transition guard after mirror repair | 1 | 763 lines, SHA-256 `91dcc51a7094eef256675d474fce1b34724aad7a8f4d090eae76d4bef418c82f`; `DELIVERY_COMPLETION_FAILED` |
+
+The post-repair guard clears G027 and reports four remaining blocking conditions: scenario states
+are not receipt-derived beyond `PLANNED`; 76 current evidence receipts are stale; one substantive
+stdout hash is classified as a receipt clone across incompatible or unproven identities; and G136
+rejects the ten unchecked Checklist rows. The existing Human Acceptance Record does not override
+unchecked behavior-specific acceptance. The operator's generic authorization and approval text
+does not enumerate these ten rows, so validate did not check them or rewrite the record.
+
+No repository-wide selftest was executed by validate. Existing nonzero selftest evidence and all
+excluded market-brief, tool-brief, probe, and company-intelligence work remain outside this
+validation claim.
+
+## Validate-Owned Outcome Contract Success Signal Mapping — Iteration 4 {#validate-owned-outcome-contract-success-signal-mapping-iteration-4}
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** This section evaluates the newly declared Success Signal against the cited
+iteration-4 test evidence. It does not rerun the browser workload, create a test receipt, or decide
+whether the receipt remains admissible after later artifact edits.
+
+**Declared Success Signal:** Current selected-route evidence must show the exact config-default
+BUG-022 C03 workload at one worker under `system-chrome` with `channel: chrome`; 94 of 94 passing
+with process exit zero; no force-kill or ignored-lifecycle marker; and zero workload-owned
+Playwright or Chrome residue.
+
+| Success Signal clause | Current evidence | Evaluation |
+| --- | --- | --- |
+| Exact config-default C03 route resolves one worker, `system-chrome`, and `channel: chrome` | [Iteration-4 process-residue proof](#test-phase-convergence-iteration-4-current-process-residue-proof) records `CONFIG_RECEIPT workers=1 project=system-chrome browser=chromium channel=chrome configOk=true`. | Demonstrated by the cited test receipt. |
+| The workload reports 94 of 94 passing and exits zero | The same receipt records `Running 94 tests using 1 worker`, `94 passed`, `PLAYWRIGHT_EXIT=0`, and `RUN_RECEIPT accepted=1 tests=94 passed=94 failed=0`. | Demonstrated by the cited test receipt. |
+| No force-kill or ignored-lifecycle marker is emitted | The same receipt records `forceKillMarkers=0` and `ignoredLifecycleMarkers=0`, with zero skip, `todo`, `fixme`, or `only` markers. | Demonstrated by the cited test receipt. |
+| Zero workload-owned Playwright or Chrome residue remains | The same receipt records `ownedResidue=0`, zero post-run Playwright-worker residue, zero post-run remote-debugging Chrome residue, and `clean=1` after output cleanup. | Demonstrated by the cited test receipt. |
+
+The [current wording authority](#superseding-current-wording-authority-after-iteration-4) preserves
+the evidence boundary. Current configuration remains `workers: 1`, `system-chrome`,
+`channel: chrome`, with the 300000ms teardown budget unchanged. Any force-kill, ignored lifecycle
+error, non-zero exit, or owned residue remains a failure. The route bounds exposure only; it does
+not establish or remove a root, upstream, socket, transport, or process mechanism. Rejected
+SCN-BUG017-09 and SCN-BUG017-10 lifecycle receipts remain historical. This mapping does not claim
+the repository-wide selftest is green and does not advance scenario state, specialist phases,
+human acceptance, or certification.
+
+
+<!-- bubbles:implement-iteration-4-scn-bug017-06-evidence-begin -->
+
+## Implementation Phase Convergence Iteration 4 SCN-BUG017-06 Ratio Evaluator Evidence {#implementation-phase-convergence-iteration-4-scn-bug017-06-ratio-evaluator-evidence}
+
+**Phase:** implement
+**Claim Source:** interpreted
+**Evidence provenance:** The prior `bubbles.implement` invocation under repository-binding decision
+`rb:vscode-004aa4f6bc5dacec42ad4d9f2afe0015:8` executed the commands below. This report-only
+follow-up independently located that invocation's RESULT-ENVELOPE in the current session evidence
+and recomputed both implementation-file hashes. It did not rerun or adopt the prior commands as
+new execution evidence.
+
+### Frozen Implementation Boundary
+
+The implementation closure contains exactly two files:
+
+- `scripts/validate-playwright-cost-ratio.mjs`, SHA-256
+  `f23c862277e6b6d6bd9eee56f54f260b7b640197bedb7843fe97806ffa3fb153`.
+- `tests/playwright-runtime.foundation.functional.mjs`, SHA-256
+  `15c79fee9ae824446f60fdd02b69ace9d8743f92e755cdf4843eff1c364b70a9`.
+
+The helper defines `evaluateWallTimeRatio()` as the single FR-017-004 predicate. Both
+`runControl()` and `runLive()` call it. The predicate accepts a comparison only when
+`systemChromeWallMs / bundledChromiumWallMs <= 3.0`, and it owns the scenario message and exit
+code for both deterministic and live inputs.
+
+The CLI surface is closed to these forms:
+
+| Accepted invocation | Path |
+| --- | --- |
+| `node scripts/validate-playwright-cost-ratio.mjs --live` | Runs the complete 22-file lifetime-tax workload under bundled Chromium and system Chrome at the configured one-worker default, then applies the shared predicate. |
+| `node scripts/validate-playwright-cost-ratio.mjs --control at-bound` | Creates the isolated 3000ms-to-1000ms comparison and applies the shared predicate. |
+| `node scripts/validate-playwright-cost-ratio.mjs --control over-bound` | Creates the isolated 3001ms-to-1000ms comparison and applies the shared predicate. |
+
+`parseInvocation()` rejects every other argument shape. `main()` maps that usage rejection to exit
+64. The deterministic controls remove their owned operating-system temporary record before exit.
+
+### Prior Implementation Execution Receipts
+
+The rows below transcribe the prior implementation invocation's session evidence. They are not
+commands executed by this report-only follow-up.
+
+| Receipt | Exact inner command recorded by the prior invocation | Exit | Capture SHA-256 | Recorded signal |
+| --- | --- | ---: | --- | --- |
+| Pre-implementation RED | `node --test --test-name-pattern='^Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison$' tests/playwright-runtime.foundation.functional.mjs` | 1 | `fc5e5fff323608676732bc98e6fb815db7a0d9b6b30f0381aa1ffce0ffe07830` | `MODULE_NOT_FOUND` for `scripts/validate-playwright-cost-ratio.mjs`. |
+| Deterministic over-bound refusal | `node scripts/validate-playwright-cost-ratio.mjs --control over-bound` | 1 | `9ba8dc10d4c8fbf3b3f556b03891d7b07498c6110fab5d2c20fc7b8193248a88` | `SCN-BUG017-06: wall-time ratio 3.001 exceeds FR-017-004 maximum 3.000`. |
+| Deterministic at-bound GREEN | `node scripts/validate-playwright-cost-ratio.mjs --control at-bound` | 0 | `126769549145b36cfb711d95a4cc02d7879d38aa7e7dd3e6e1e8a0bed047de01` | `SCN-BUG017-06: wall-time ratio 3.000 meets FR-017-004 maximum 3.000`. |
+| Persistent focused regression | `node --test --test-name-pattern='^Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison$' tests/playwright-runtime.foundation.functional.mjs` | 0 | `acb4319a35943c788b1873948d7b501e97e9509720a9140bc006e290fe0942dc` | 1 test passed; 0 failed. |
+| Complete runtime functional family | `node --test tests/playwright-runtime.foundation.functional.mjs` | 0 | `7f73c531ed46a1098dd1bab09750f882ef39bc0fee55b84960db4d109b197526` | 16 tests passed; 0 failed, skipped, or todo. |
+
+### Ownership And Claim Boundary
+
+This implementation evidence establishes only the frozen evaluator and persistent functional
+regression at the source hashes above. The helper's real `--live` mode was not executed by the
+implementation invocation or by this follow-up. Fresh live-mode, repository-selftest, broader
+workload, and final SCN-BUG017-06 scenario receipts remain owned by `bubbles.test` and are unclaimed
+here. This section does not advance scenario state, terminal certification, specialist
+certification, or human acceptance.
+
+<!-- bubbles:implement-iteration-4-scn-bug017-06-evidence-end -->
+
+<!-- bubbles:certifying-window-begin -->
+
 

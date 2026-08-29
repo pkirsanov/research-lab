@@ -9,6 +9,23 @@ Define the distinction between a command declaration that governs current test
 discovery and an immutable receipt that records what ran at an earlier point in
 time.
 
+## Outcome Contract
+
+- **Intent:** Make current declaration and reachability discovery distinguish active command authority from immutable historical report receipts.
+- **Success Signal:** The selected repair demonstrates every outcome below.
+  - Historical Feature 008 report bytes remain unchanged.
+  - Active declaration sites remain authoritative with provenance.
+  - Unknown declaration candidates fail closed.
+  - The `tests/*.functional.mjs` and `tests/*.test.mjs` Node families remain explicitly reachable from current command authority.
+  - A protected active Node and Playwright crossing still blocks.
+  - The current Feature 008 consumer passes under BUG-017's selected one-worker `system-chrome` route.
+- **Hard Constraints:** Preserve authority, reachability, history, and the declared change boundary together.
+  - Do not rewrite historical evidence.
+  - Do not create a parser-only intermediate state that leaves legitimate Node families orphaned.
+  - Do not weaken the reachability baseline or the protected crossing set.
+  - Do not change protected BUG-016 through BUG-021 artifacts, concurrent work, or excluded paths.
+- **Failure Condition:** The fix fails if history gains authority, active commands lose reachability, unknown candidates disappear, or protected crossings pass. It also fails if orphan debt appears or excluded work changes.
+
 ## Product Principle Alignment
 
 ### P17 - Reachable or removed

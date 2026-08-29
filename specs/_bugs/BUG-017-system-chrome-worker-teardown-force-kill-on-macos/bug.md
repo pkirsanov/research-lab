@@ -167,21 +167,24 @@ does not decide the outcome and is not the sole cause.
 
 ## What This Means For A Developer
 
-The current recurrence reopens this defect. The pipeline and committed configuration both use
-two workers, but the exact local workload now fails at that count. The two-worker pin therefore
-modulates exposure rather than proving remediation.
+The Foundation lifecycle candidate is rejected. Two current strict canaries failed at unchanged
+candidate bytes. The explicit rollback restored Foundation and its runtime-functional canary to
+their pre-candidate bytes.
 
-Keep `system-chrome` and two workers while evaluating the Foundation lifecycle candidate. The
-candidate closes Foundation's owned browser before worker teardown. Its strict
-Foundation-to-Paths probe passed 27 of 27 tests and released both workers within 15 seconds.
-That focused result does not prove the remedy. The candidate must still pass the exact 94-test
-workload with exit 0, no force-kill marker, and no workload-owned process residue.
+The repository now selects one worker as the rollback-gated fallback. Keep `system-chrome`,
+`channel: 'chrome'`, the 300000ms worker-stop budget, and visible force-kill failures unchanged.
+Do not restore the rejected candidate or raise the default worker count as part of this route.
 
-Move the repository setting to one worker only if the lifecycle candidate fails that complete
-run and its changes are rolled back. One worker passed the current two-run sample, but it remains
-a conditional fallback rather than the selected remedy or a root-cause claim.
+Two fallback-selection runs and the current regression run each resolved one worker and passed
+all 94 tests. Each exited zero, emitted no force-kill or ignored-lifecycle marker, and left no
+workload-owned residue. These samples verify the selected containment route. One worker bounds
+measured exposure. It does not establish the socket owner, remove the root cause, or prove
+long-run immunity.
 
-## Scope Of This Packet
+## Historical Filing Scope
+
+This section preserves the filing-only boundary before Scope 4 implementation. The current
+delivery route is recorded in `scopes.md`.
 
 **In scope.** Recording the defect, its reproduction, its measured cost, and the boundary
 between what was and was not established.
@@ -197,8 +200,8 @@ between what was and was not established.
 ## Artifacts
 
 - `spec.md` — the behaviour being specified
-- `design.md` — boundary, candidate mechanisms, and remedy options
-- `scopes.md` — the fix scopes and their Definition of Done
+- `design.md` — current boundary, rejected lifecycle candidate, and selected one-worker fallback
+- `scopes.md` — historical scopes plus the current Scope 4 fallback route and Definition of Done
 - `report.md` — executed evidence behind every claim above
 - `uservalidation.md` — filing readiness and the human acceptance record
 - `state.json` — control-plane state

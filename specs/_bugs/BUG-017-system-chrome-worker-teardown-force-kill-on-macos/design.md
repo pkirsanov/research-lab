@@ -62,12 +62,12 @@ budget remain visible. A force-kill still makes the command fail.
 - Foundation and its candidate test must match their pre-candidate blobs before fallback work.
 - The selected fallback changes only the default worker count and its durable assertions.
 - The browser project, Chrome channel, timeout, and force-kill behavior remain unchanged.
+- FR-017-004 uses a three-to-one maximum wall-time ratio measured like-for-like at the same
+   configured worker count. This is a planning threshold, not a human acceptance result.
 
 ### Open Questions
 
 - No question blocks this design reconciliation.
-- The owner still must record the acceptable FR-017-004 wall-time multiple before terminal
-   acceptance. That value does not change the lifecycle acceptance gates below.
 
 ### Single-Implementation Justification
 
@@ -329,8 +329,9 @@ Diagnostics must distinguish three outcomes:
    persistent canary detects lifecycle drift after a Playwright upgrade.
 - Unrelated user Chrome or extension-host processes can corrupt naive process counts. Counts must
    be limited to workload-owned descendants and the run's remote-debugging identity.
-- The owner has not set the FR-017-004 wall-time ratio. Lifecycle acceptance can proceed, but
-   terminal feature acceptance cannot claim that requirement without the owner value.
+- The active FR-017-004 planning threshold is three to one. Terminal acceptance still requires
+   current-route evidence and the independently owned human acceptance act; the historical
+   two-worker comparison cannot be relabeled as either.
 
 ## Complexity Tracking
 

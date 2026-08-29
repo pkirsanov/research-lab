@@ -662,6 +662,64 @@ test('Regression: SCN-BUG017-03 candidate classifications require distinguishing
   );
 });
 
+test('Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison', () => {
+  const validator = resolve(ROOT, 'scripts/validate-playwright-cost-ratio.mjs');
+  const tempPrefix = 'research-lab-scn-bug017-06-';
+  const ownedTempEntries = () => readdirSync(tmpdir())
+    .filter((entry) => entry.startsWith(tempPrefix))
+    .sort();
+  const before = ownedTempEntries();
+  const atBound = spawnSync(process.execPath, [validator, '--control', 'at-bound'], {
+    cwd: ROOT,
+    encoding: 'utf8'
+  });
+  const afterAtBound = ownedTempEntries();
+  const overBound = spawnSync(process.execPath, [validator, '--control', 'over-bound'], {
+    cwd: ROOT,
+    encoding: 'utf8'
+  });
+  const afterOverBound = ownedTempEntries();
+
+  process.stdout.write(atBound.stdout ?? '');
+  process.stderr.write(atBound.stderr ?? '');
+  process.stdout.write(overBound.stdout ?? '');
+  process.stderr.write(overBound.stderr ?? '');
+
+  assert.equal(atBound.signal, null);
+  assert.equal(atBound.status, 0);
+  assert.equal(atBound.stderr, '');
+  assert.equal(
+    atBound.stdout,
+    [
+      'SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3000 bundledChromiumWallMs=1000',
+      'SCN-BUG017-06: wall-time ratio 3.000 meets FR-017-004 maximum 3.000',
+      ''
+    ].join('\n')
+  );
+  assert.match(atBound.stdout, /deterministic comparison input/);
+  assert.doesNotMatch(atBound.stdout, /\bobserved\b/i);
+  assert.deepEqual(afterAtBound, before, 'SCN-BUG017-06: at-bound control left owned temp residue');
+
+  assert.equal(overBound.signal, null);
+  assert.equal(overBound.status, 1);
+  assert.equal(overBound.stderr, '');
+  assert.equal(
+    overBound.stdout,
+    [
+      'SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3001 bundledChromiumWallMs=1000',
+      'SCN-BUG017-06: wall-time ratio 3.001 exceeds FR-017-004 maximum 3.000',
+      ''
+    ].join('\n')
+  );
+  assert.match(overBound.stdout, /deterministic comparison input/);
+  assert.doesNotMatch(overBound.stdout, /\bobserved\b/i);
+  assert.deepEqual(afterOverBound, before, 'SCN-BUG017-06: over-bound control left owned temp residue');
+
+  console.log('[SCN-BUG017-06] deterministicBoundary=3.000');
+  console.log('[SCN-BUG017-06] deterministicOverBound=3.001');
+  console.log('[SCN-BUG017-06] ownedTempResidue=0');
+});
+
 test('Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence', () => {
   for (const [site, disclosure] of bug017Disclosures()) {
     assertCompleteBug017Disclosure(site, disclosure);

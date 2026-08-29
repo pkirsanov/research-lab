@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
   "featureName": "BUG-022 Historical Report Declaration Leak",
   "createdAt": "2026-08-27T00:00:00Z",
-  "lastUpdatedAt": "2026-08-27T16:39:46Z",
+  "lastUpdatedAt": "2026-08-28T16:53:33Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -22,18 +22,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": null,
-    "currentPhase": "regression",
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-27T12:18:47Z",
+    "runStartedAt": "2026-08-28T16:53:33Z",
     "completedAt": null,
     "substate": "independently_verified",
     "currentScope": "01-separate-active-declarations-from-historical-receipts",
-    "nextRequiredOwner": "bubbles.stabilize",
-    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
-    "nextRequiredReason": "The required Feature 008 Playwright suite selected and passed all 94 scenarios at the committed two-worker setting, then Playwright force-killed worker-1 after 300000ms and exited 1 with two errors outside test bodies. BUG-017 owns this failure class and its two-worker mitigation claim must be reassessed before BUG-022 can complete regression.",
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+    "nextRequiredReason": "Refresh the distinct receipt chains for SCN-BUG022-001, SCN-BUG022-002, and SCN-BUG022-003 after this planning-owned status, G060 chronology, vertical-exposure, and routing reconciliation changed their input closure. The canonical Outcome Contract is already present and no analyst route remains. Preserve stale/clone adjudication, missing specialist phase claims, human acceptance, and excluded concurrent-work findings for their existing owners.",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -55,7 +55,7 @@
       {
         "scopeId": "01-separate-active-declarations-from-historical-receipts",
         "scope": 1,
-        "status": "In Progress",
+        "status": "Done",
         "dependsOn": []
       }
     ],

@@ -15,9 +15,11 @@ export default defineConfig({
      Switching to --project=chromium is NOT the remedy. That project was clean at six workers,
      but on two runs only, which cannot establish that it is immune; and CI runs the suite on
      system-chrome, so moving off it trades away local/CI browser parity to dodge a condition
-    this fallback only bounds. The cause is upstream, not here: the force-kill is emitted by
-     node_modules/playwright/lib/runner/index.js against the operator's installed Chrome, so
-     this line bounds exposure rather than removing the defect.
+    this fallback only bounds. The underlying transport/process mechanism is not established.
+    The narrower established facts are that Playwright's installed runner emits the force-kill
+    and the browser binary is the operator-installed Chrome; both are outside repository-owned
+    source. The selected workers=1 setting bounds exposure and does not remove or diagnose the
+    cause.
      See specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/. */
   workers: 1,
   projects: [

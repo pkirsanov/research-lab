@@ -2,6 +2,45 @@
 
 Links: [scopes.md](scopes.md) | [uservalidation.md](uservalidation.md)
 
+<!-- bubbles:bug-packet-authority-iteration-4-begin -->
+
+## Current Routing Authority After Convergence Iteration 4 {#current-routing-authority-after-convergence-iteration-4}
+
+**Phase:** bug
+**Claim Source:** interpreted
+**Interpretation:** Current implementation and test receipts supersede the filing-time routing statements below without changing their evidence.
+
+Implementation and test phases have executed for BUG-022. The
+[iteration-4 C03 consumer receipt](#test-phase-convergence-iteration-4-current-c03-consumer-receipt)
+is the current dependency-consumer authority. Its
+[linked BUG-017 process-residue proof](../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#test-phase-convergence-iteration-4-current-process-residue-proof)
+records the selected config-default one-worker route. It records `system-chrome`,
+`channel=chrome`, 94 of 94 passing, and exit 0. It records no force-kill,
+lifecycle, skip, `todo`, `fixme`, or `only` marker. Playwright workers and
+remote-debugging Chrome processes both had zero residue. Cleanup left no
+repository or external probe artifact.
+
+The `Current Packet Report` below remains a filing-time record. This section
+supersedes its statement that no implementation or test phase executed. It
+does not rewrite or erase that history.
+
+The older
+[two-worker dependency-unblock receipt](#bug-017-scope-4-dependency-unblock-receipt)
+and [fallback-ineligible follow-up](#bug-017-scope-4-finalization-follow-up)
+remain valid historical receipts. They are superseded and non-authoritative
+for current routing. The same applies to older two-worker regression and
+stabilization conclusions.
+
+The one-worker route bounds exposure to BUG-017's observed teardown condition.
+Neither current receipt claims BUG-017's mechanism or root cause was removed,
+identified, or resolved.
+
+BUG-022 remains `in_progress` pending validate-owned certification and human
+acceptance. This section changes no terminal status, certification, scenario
+state, completed phase, acceptance record, or test result.
+
+<!-- bubbles:bug-packet-authority-iteration-4-end -->
+
 ## Current Packet Report
 
 ### Summary
@@ -1238,6 +1277,8 @@ advance to regression or stabilization while the owning BUG-017 lifecycle canary
 workers=1 fallback remains ineligible under BUG-017's planned decision rule. No BUG-022 checkbox,
 state, certification, acceptance, Checklist, protected Feature 008 report, or ratchet changed.
 
+<!-- bubbles:certifying-window-begin -->
+
 ## BUG-017 Scope 4 Fallback Consumer Receipt {#bug-017-scope-4-fallback-consumer-receipt}
 
 **Phase:** stabilize
@@ -1289,3 +1330,122 @@ END TRANSITION_GUARD_RESULT_V1
 ```
 
 This is a non-terminal guard result, not a pass. No BUG-022 state or acceptance field changed.
+
+<!-- bubbles:test-iteration-4-consumer-proof-begin -->
+
+## Test Phase Convergence Iteration 4 Current C03 Consumer Receipt {#test-phase-convergence-iteration-4-current-c03-consumer-receipt}
+
+**Phase:** test
+**Claim Source:** executed
+**Execution date:** 2026-08-28
+
+The current test invocation resolved all BUG-017 and BUG-022 linked test references before the
+final browser execution. It then ran the unchanged TP-BUG022-C03 command through the bounded
+process-ownership probe at the current dirty artifact and configuration revision.
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Capture command:** `node --input-type=module -`
+**Outer bound:** 900 seconds
+**Exit Code:** 0
+**Claim Source:** executed
+**Capture SHA-256:** `d11ebe0748de9b55578374a346ecc8416fb90ed02b4ade0a0e8ec1085ff149da`
+**Evidence:** [current BUG-017 process-residue proof](../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-exact-bug-022-c03-process-ownership-proof)
+
+The referenced current-session receipt records `workers=1`, `project=system-chrome`,
+`browser=chromium`, `channel=chrome`, 94 of 94 passing, child exit 0, zero force-kill and ignored
+lifecycle markers, zero skip/todo/fixme/only markers, one observed workload-owned Playwright
+worker, 256 observed workload-owned remote-debugging Chrome processes, zero residue in either
+class, and zero repository or external output artifacts after cleanup.
+
+The focused functional command selected the six BUG-022 authority regressions and the active
+BUG-017 fallback regression. It passed 7 of 7 with exit 0, zero skips, and zero todos. Its
+capture SHA-256 is `790928d37ea85d21fdc2ff54e7cec9d0dfef14adcb12f25d63fbc64b128b65e6`.
+The combined artifact-lint command passed both packets with exit 0. Its capture SHA-256 is
+`5d419d528ea6d8729428ef9d71b7feba1d35672f265f583997e90077120ba8a2`.
+
+This receipt changes no BUG-022 planning semantics, status, certification, completed phase,
+acceptance item, source, configuration, or test.
+
+<!-- bubbles:test-iteration-4-consumer-proof-end -->
+
+## Validate Phase Convergence Iteration 4 Certification Reconciliation {#validate-phase-convergence-iteration-4-certification-reconciliation}
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** Current validate execution establishes the focused command results below. The
+94-test C03 result remains test-phase evidence from the current-session receipt above; validate
+inspected that receipt and its linked BUG-017 provenance but did not execute or claim the browser
+command.
+
+### Current Test Receipt Provenance
+
+The current test receipt is tagged `Phase: test` and `Claim Source: executed`. It cites complete
+capture SHA-256 `d11ebe0748de9b55578374a346ecc8416fb90ed02b4ade0a0e8ec1085ff149da`.
+The linked process probe reports one configured worker, `system-chrome`, Chrome channel, 94 of 94
+passing, child exit 0, no force-kill or lifecycle-ignore marker, no skipped, `todo`, `fixme`, or
+`only` marker, zero owned Playwright or Chrome residue, and complete output cleanup.
+
+### Current Validate Execution
+
+**Claim Source:** executed
+
+| Check | Exit | Complete-capture fact |
+| --- | ---: | --- |
+| Semantic mode resolution | 0 | 45 lines, SHA-256 `f7ccd0bd74b094512fcd06fcd0dd30d284056b6c4e10c05ff37f1dddfe6fd544`; ceiling `done`, audit profile `delivery-completion-v1` |
+| Goal fidelity at pre-certification | 1 | 3 lines, SHA-256 `e488ceed2f9b6ff116162597d7104aed9fedaab2c7c7dde57e694fb475679b11`; G070 reports no non-empty Outcome Contract and no Hard Constraints |
+| Canonical scenario-state certifiability | 1 | 346 lines, SHA-256 `aa393201d193de41b0416b1559dcd6268af7e8e1bca447c1f485e012da3b3b59`; all three scenarios derive only `PLANNED` at source revision `4bd96545cd66` |
+| Completion-mirror validator | 0 | 2 lines, SHA-256 `b5a9ca8bc45dec0c5056a5a3a21883be1163a6a543e818f032093730455961a7`; no new DoD progress drift |
+| Artifact lint | 0 | 40 lines, SHA-256 `182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567` |
+| Linked-test resolution | 0 | 30 references resolved; SHA-256 `10c322e89756416e0f5d50d0d0d9d144196d61865fca2b91fb5358e6369ed07f` |
+| Traceability guard | 0 | 75 lines, SHA-256 `6621b29aaa33700102ca31b00ea9fc7d735f1e4cf84661f39b2e3ecf05451d7e`; 3 scenarios mapped, 15 rows checked, 0 warnings |
+| Focused BUG-017/BUG-022 functional contracts | 0 | 21 lines, SHA-256 `3a02af0a8664b23438b44d116a16e6be6a68b978660f8a2056e0bd56a4ca753d`; 7 passed, 0 failed, 0 skipped, 0 todo |
+| Asserted transition guard | 1 | 710 lines, SHA-256 `dfc8019b142c537f9750fb1c595bdb5b2d484fd9ae72e2d63f0d3d20f92568c5`; failed gates G060, G022, G027, and G136 |
+
+The scope artifact remains In Progress despite 16 checked and zero unchecked DoD rows. The
+validate-owned `certification.scopeProgress` count already matches 16/0, and both completed-scope
+arrays remain empty to match the non-Done scope artifact. Validate did not certify phases that the
+execution record does not contain. The guard confirms `implement` and `test` provenance, while
+`regression`, `simplify`, `stabilize`, `security`, `validate`, and `audit` are absent from the
+phase-completion record.
+
+The remaining guard conditions are: scenario states are not receipt-derived beyond `PLANNED`; the
+scope artifact is not Done; the specialist chain is incomplete; G027 rejects implementation/test
+claims with no Done scope; 76 current evidence receipts are stale; one substantive stdout hash is
+classified as a receipt clone across incompatible or unproven identities; and G136 rejects all five
+unchecked Checklist rows plus the placeholder Human Acceptance Record. Validate did not check any
+human row or fill the record. The operator's generic authorization and approval text does not
+enumerate these behavior-specific acceptance rows.
+
+No repository-wide selftest was executed by validate. Existing nonzero selftest evidence and all
+excluded market-brief, tool-brief, probe, and company-intelligence work remain outside this
+validation claim.
+
+## Validate-Owned Outcome Contract Success Signal Mapping — Iteration 4 {#validate-owned-outcome-contract-success-signal-mapping-iteration-4}
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** This section evaluates the newly declared Success Signal only against receipts
+already present in this packet and its linked BUG-017 packet. It does not create new test execution,
+strengthen a receipt, or decide whether a receipt remains admissible after later artifact edits.
+
+**Declared Success Signal:** The selected repair must preserve the historical Feature 008 report
+bytes; keep active declaration sites authoritative with provenance; fail closed for unknown
+candidates; keep both current Node families explicitly reachable; keep a protected active Node and
+Playwright crossing blocking; and pass the current Feature 008 consumer through BUG-017's selected
+one-worker `system-chrome` route.
+
+| Success Signal clause | Current evidence | Evaluation |
+| --- | --- | --- |
+| Historical Feature 008 report bytes remain unchanged | [Protected Bytes And Ratchets](#protected-bytes-and-ratchets) records identical anchor and current SHA-256 values, `CONTAINMENT_FAILURES=0`, and `leakage=0`. | Demonstrated by the cited regression receipt. |
+| Active declaration sites remain authoritative with provenance | The six named BUG-022 regressions in the [iteration-4 C03 consumer receipt](#test-phase-convergence-iteration-4-current-c03-consumer-receipt) include active Test Plan and structured test-plan authority. The recorded reachability receipt identifies both current registry declarations with artifact and line provenance. | Demonstrated by the cited receipts. |
+| Unknown declaration candidates fail closed | The focused family includes `SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance`; the current seven-test family records all selected regressions passing. | Demonstrated by the cited focused receipt. |
+| `tests/*.functional.mjs` and `tests/*.test.mjs` remain explicitly reachable | The focused family includes the active-family reachability regression, and the current linked-test resolution records 30 BUG-022 references resolved. | Demonstrated by the cited receipts. |
+| A protected active Node and Playwright crossing still blocks | The focused GREEN receipt records the active broad-glob positive control and states that both active Node and Playwright selection reach the fixture specification. | Demonstrated by the cited regression receipt. |
+| The current Feature 008 consumer passes on BUG-017's selected route | The [iteration-4 C03 consumer receipt](#test-phase-convergence-iteration-4-current-c03-consumer-receipt) links to the [current BUG-017 process proof](../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#test-phase-convergence-iteration-4-current-process-residue-proof), which records one worker, `system-chrome`, Chrome channel, 94 of 94 passing, exit zero, no lifecycle marker, zero owned residue, and complete cleanup. | Demonstrated by the cited current test receipt. |
+
+The current focused receipt also records the six exact BUG-022 regressions plus the BUG-017
+fallback regression as a seven-test family, linked-test resolution, and focused artifact lint.
+This mapping makes no repository-wide selftest claim and no claim beyond the receipts identified
+above. It preserves the active-versus-historical authority boundary, excluded paths, nonzero
+historical evidence, the In Progress scope, missing specialist phase claims, human acceptance, and
+non-terminal certification state.

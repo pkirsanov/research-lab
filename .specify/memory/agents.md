@@ -259,7 +259,7 @@ measured stalled cost was 343s against 81s for the same 111 tests, and a later r
 against 76s on that same workload. A `--workers` flag overrides the fallback, so commands below
 must use the config default. Do **not** switch to `--project=chromium`: two clean six-worker runs
 do not establish immunity, and the pipeline uses `--project=system-chrome`. The one-worker pin
-bounds exposure rather than removing the upstream cause. The full disclosure sits beside the `workers` line in
+bounds exposure rather than removing or diagnosing the unestablished underlying mechanism. The full disclosure sits beside the `workers` line in
 `playwright.config.mjs`; the measurements are in
 `specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md`.
 

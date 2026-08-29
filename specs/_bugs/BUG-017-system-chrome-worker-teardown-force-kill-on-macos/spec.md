@@ -6,6 +6,22 @@ This specification states the behaviour a remedy must establish for local macOS 
 `system-chrome` browser project. It selects no remedy. `design.md` records the options and
 their consequences.
 
+## Outcome Contract
+
+- **Intent:** Make the real local macOS `system-chrome` Feature 008 workload reliably exit zero after all 94 tests pass, without hiding teardown failures.
+- **Success Signal:** Current selected-route evidence demonstrates every outcome below.
+  - The exact config-default BUG-022 C03 workload resolves one worker under `system-chrome` with `channel: chrome`.
+  - The workload reports 94 of 94 passing and exits zero.
+  - The run emits no force-kill or ignored-lifecycle marker.
+  - The run leaves zero workload-owned Playwright or Chrome residue.
+- **Hard Constraints:** Keep the selected containment route and its evidence boundary intact.
+  - Keep default `workers: 1`, `system-chrome`, `channel: chrome`, and the 300000ms teardown budget unchanged.
+  - Treat any teardown force-kill, ignored lifecycle error, non-zero process exit, or workload-owned residue as failure.
+  - Treat the one-worker route only as exposure containment. Do not claim that it establishes or removes an upstream, socket, transport, or process root cause.
+  - Keep the rejected lifecycle candidate and `SCN-BUG017-09` and `SCN-BUG017-10` receipts as historical RED/GREEN evidence, never current success.
+  - Do not weaken or skip tests, switch the browser project, inflate the teardown budget, rewrite history, or touch concurrent work.
+- **Failure Condition:** The fix fails if an all-passing selected workload exits non-zero, hides a lifecycle failure, leaves owned residue, or relies on any forbidden constraint change.
+
 ### Single-Capability Justification
 
 **Classification:** Existing-capability extension with one concrete runner configuration.

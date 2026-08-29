@@ -1,10 +1,11 @@
 {
+  "schemaVersion": 1,
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
-  "generatedAt": "2026-08-27T12:18:47Z",
+  "generatedAt": "2026-08-28T16:53:33Z",
   "generatedBy": "bubbles.plan",
-  "stage": "scope-level-planning",
-  "stageNote": "Reconciled after design commit 359d536b. testRows name planned obligations. linkedTests and evidenceRefs remain empty because the six exact BUG-022 tests have not been authored or executed. No delivery or certification is claimed.",
+  "stage": "post-implementation",
+  "stageNote": "Convergence iteration 4 planning reconciliation. This manifest records planning identity, traits, obligations, implementation references, and the existing 30 linked test references; it declares no scenario execution status. Existing report evidence resolves the scope's 16 checked DoD rows, including the expected pre-fix RED, focused GREEN, reachability, containment, clean-tree selftest, browser consumer, and truthful non-terminal guard result. Distinct current receipts reached REGRESSION_GREEN for all three scenarios at source revision 4bd96545cd6673155933edf3a22492d6d1972256 before this planning update changed their input closure. scenario-state-resolve.sh remains the sole state authority, so a final receipt refresh is required. This manifest makes no specialist-phase, human-acceptance, certification, source, test, or terminal-status claim.",
   "scenarioCount": 3,
   "scopeMapping": {
     "01-separate-active-declarations-from-historical-receipts": [
@@ -15,10 +16,10 @@
   },
   "scenarios": [
     {
+      "id": "SCN-BUG022-001",
       "scenarioId": "SCN-BUG022-001",
       "scopeId": "01-separate-active-declarations-from-historical-receipts",
       "scope": 1,
-      "status": "planned",
       "title": "Artifact role separates historical receipts from active plans",
       "gherkin": {
         "given": "identical node --test tests/portfolio-*.mjs text in a report receipt and an active scope Test Plan or structured test plan",
@@ -55,8 +56,21 @@
         "TP-BUG022-F01",
         "TP-BUG022-F02"
       ],
-      "linkedTests": [],
-      "evidenceRefs": [],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs",
+          "testState": "authored"
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative",
+          "testState": "authored"
+        }
+      ],
+      "evidenceRefs": [
+        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
+      ],
       "implementationRefs": [
         "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
         "tests/playwright-runtime.foundation.functional.mjs"
@@ -74,10 +88,10 @@
       }
     },
     {
+      "id": "SCN-BUG022-002",
       "scenarioId": "SCN-BUG022-002",
       "scopeId": "01-separate-active-declarations-from-historical-receipts",
       "scope": 1,
-      "status": "planned",
       "title": "Markdown presentation cannot manufacture authority",
       "gherkin": {
         "given": "active-looking headings inside historical evidence, fenced headings, and a glob candidate on an unrecognized artifact surface",
@@ -121,8 +135,21 @@
         "TP-BUG022-F03",
         "TP-BUG022-F04"
       ],
-      "linkedTests": [],
-      "evidenceRefs": [],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority",
+          "testState": "authored"
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance",
+          "testState": "authored"
+        }
+      ],
+      "evidenceRefs": [
+        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
+      ],
       "implementationRefs": [
         "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
         "tests/playwright-runtime.foundation.functional.mjs"
@@ -140,10 +167,10 @@
       }
     },
     {
+      "id": "SCN-BUG022-003",
       "scenarioId": "SCN-BUG022-003",
       "scopeId": "01-separate-active-declarations-from-historical-receipts",
       "scope": 1,
-      "status": "planned",
       "title": "Additive migration closes reachability without weakening runner ownership",
       "gherkin": {
         "given": "the original eight report-derived portfolio crossings and legitimate functional and test Node families",
@@ -190,8 +217,46 @@
         "TP-BUG022-C06",
         "TP-BUG022-C07"
       ],
-      "linkedTests": [],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth",
+          "testState": "authored"
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority",
+          "testState": "authored"
+        },
+        "tests/portfolio-analytics.unit.mjs",
+        "tests/portfolio-behavior-occurrence.unit.mjs",
+        "tests/portfolio-foundation.unit.mjs",
+        "tests/portfolio-stale-domain-signal.unit.mjs",
+        "tests/portfolio-test-integrity.unit.mjs",
+        "tests/portfolio-allocation.functional.mjs",
+        "tests/portfolio-bar-coverage.functional.mjs",
+        "tests/portfolio-brief.functional.mjs",
+        "tests/portfolio-diversification.functional.mjs",
+        "tests/portfolio-doc-integration.functional.mjs",
+        "tests/portfolio-dossier.functional.mjs",
+        "tests/portfolio-paths.functional.mjs",
+        "tests/portfolio-privacy.functional.mjs",
+        "tests/portfolio-publisher-boundary.functional.mjs",
+        "tests/portfolio-risk.functional.mjs",
+        "tests/portfolio-workspace.functional.mjs",
+        "tests/portfolio-survival-accessibility.spec.mjs",
+        "tests/portfolio-survival-allocation.spec.mjs",
+        "tests/portfolio-survival-brief.spec.mjs",
+        "tests/portfolio-survival-diversification.spec.mjs",
+        "tests/portfolio-survival-foundation.spec.mjs",
+        "tests/portfolio-survival-mobile.spec.mjs",
+        "tests/portfolio-survival-paths.spec.mjs",
+        "tests/portfolio-survival-risk.spec.mjs"
+      ],
       "evidenceRefs": [
+        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families",
+        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-protected-browser-execution",
+        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#traceability-quality-and-acceptance-matrix",
         "report.md#fresh-tp-bug022-c04-clean-tree-repository-selftest-at-c652cd092",
         "report.md#fresh-change-boundary-containment-at-c652cd092",
         "report.md#bug-017-scope-4-dependency-unblock-receipt",

@@ -3,8 +3,110 @@
   "specId": "BUG-017",
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-08-27T20:19:41Z",
-  "planningDelta": "Records the rejected lifecycle candidate and selects the planned one-worker fallback after hash-verified rollback. Historical execution remains preserved.",
+  "generatedAt": "2026-08-28T23:35:36Z",
+  "planningDelta": "Convergence iteration 4 correction for F-SCN06-NEGATIVE-CONTROL-NONDISCRIMINATING and F-SCN06-RED-RUNNER-127. SCN-BUG017-06 keeps its real one-worker, 22-file, dual-project live proof and unchanged FR-017-004 maximum ratio of 3.0. Its RED contract now requires a small committed ratio CLI plus focused functional regression: the CLI must use one predicate for live measurements and a labelled isolated temporary comparison whose known 3.001 ratio exits 1 with the exact scenario message. An ambient six-worker timing attempt cannot satisfy RED. All prior SCN-BUG017-06 receipts are historical after this planning-input change; bubbles.implement owns the missing executable mechanism, then bubbles.test owns a fresh RED, targeted GREEN, live pair, and broader regression chain. SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 remain non-executable history. This plan changes no report evidence, human acceptance, certification, source, test, or terminal status.",
+  "activeScenarioIds": [
+    "SCN-BUG017-01",
+    "SCN-BUG017-02",
+    "SCN-BUG017-03",
+    "SCN-BUG017-06",
+    "SCN-BUG017-07",
+    "SCN-BUG017-08",
+    "SCN-BUG017-11"
+  ],
+  "historicalScenarioRecord": {
+    "nonExecutable": true,
+    "excludedFromCurrentReceiptGeneration": true,
+    "note": "This section preserves rejected decision history only. The canonical current-certification authority is scenario-manifest.json, where none of these four scenarios appears.",
+    "scenarios": [
+      {
+        "scenarioId": "SCN-BUG017-04",
+        "title": "Repeated runs exit zero",
+        "replacedBy": "SCN-BUG017-11",
+        "gherkin": [
+          "Given the selected remedy is applied",
+          "When the ninety-four-test set runs repeatedly at the chosen worker count",
+          "Then every run exits zero",
+          "And no run reports a worker that did not exit within its teardown budget"
+        ],
+        "formerLinkedTests": [
+          "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements",
+          "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-05 the refusing side of the bound is pinned: a withheld pack is abandoned by name rather than waited on"
+        ],
+        "evidenceRefs": [
+          "report.md#scope-2-execution--remedy-applied",
+          "report.md#current-revision-stabilization-at-d532faaac",
+          "report.md#scope-4-fallback-selection-and-verification"
+        ],
+        "rejectionRationale": "The former two-worker route produced provisional clean runs, but the exact current BUG-022 C03 workload later failed twice after all 94 tests passed. Those later failures reject this route as current closure without rewriting the earlier observations."
+      },
+      {
+        "scenarioId": "SCN-BUG017-05",
+        "title": "Browser processes are released",
+        "replacedBy": "SCN-BUG017-11",
+        "gherkin": [
+          "Given a run has completed",
+          "When the browser process count is sampled",
+          "Then it has returned to its pre-run level"
+        ],
+        "formerLinkedTests": [
+          "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve is reachable by keyboard and has a text equivalent table",
+          "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-04 the tolerated side of the bound is pinned: a pack delayed below the bound is served rather than aborted"
+        ],
+        "evidenceRefs": [
+          "report.md#scope-2-execution--remedy-applied",
+          "report.md#current-revision-stabilization-at-d532faaac",
+          "report.md#scope-4-fallback-selection-and-verification"
+        ],
+        "rejectionRationale": "The former process samples remain historical evidence, but the later two-worker force-kill recurrence disproves their use as a current release guarantee. SCN-BUG017-11 owns the selected-route lifecycle result."
+      },
+      {
+        "scenarioId": "SCN-BUG017-09",
+        "title": "The focused lifecycle boundary survives the strict canary",
+        "replacedBy": "SCN-BUG017-11",
+        "gherkin": [
+          "Given the system-chrome project is configured with two workers on macOS",
+          "And Foundation receives an automatic worker-scoped boundary fixture",
+          "And Foundation closes its owned browser in its existing afterAll",
+          "When the cumulative Foundation-to-Paths canary runs in a child process",
+          "Then all 27 tests pass",
+          "And the child exits zero within 15 seconds of worker stop",
+          "And no worker force-kill or ignored teardown error is reported"
+        ],
+        "formerTestPlanIds": [
+          "TP-BUG017-04-01",
+          "TP-BUG017-04-02"
+        ],
+        "evidenceRefs": [
+          "report.md#scope-4-implementation-foundation-owned-browser-lifecycle",
+          "report.md#scope-4-finalization-validation-candidate-rejected",
+          "report.md#scope-4-fallback-selection-and-verification"
+        ],
+        "rejectionRationale": "The strict canary produced an earlier GREEN and a discriminating close-removal RED, then failed twice at unchanged candidate bytes during finalization. The candidate was explicitly reverted and hash-verified against its baseline."
+      },
+      {
+        "scenarioId": "SCN-BUG017-10",
+        "title": "The lifecycle candidate clears the blocked complete workload",
+        "replacedBy": "SCN-BUG017-11",
+        "gherkin": [
+          "Given SCN-BUG017-09 has passed without an ignored lifecycle error",
+          "When the exact BUG-022 C03 94-test portfolio command runs at two workers",
+          "Then all 94 tests pass and the command exits zero",
+          "And no worker remains until the 300000ms force-kill boundary",
+          "And no Chrome process started by the workload remains after exit"
+        ],
+        "formerTestPlanIds": [
+          "TP-BUG017-04-03"
+        ],
+        "evidenceRefs": [
+          "report.md#scope-4-implementation-foundation-owned-browser-lifecycle",
+          "report.md#scope-4-finalization-validation-candidate-rejected",
+          "report.md#scope-4-fallback-selection-and-verification"
+        ],
+        "rejectionRationale": "The two-worker complete workload passed provisionally, but selection required the strict lifecycle canary to remain green. Its later repeated failures rejected the candidate, after which the candidate was rolled back and SCN-BUG017-11 selected."
+      }
+    ]
+  },
   "scopes": [
     {
       "scopeId": "1",
@@ -19,8 +121,9 @@
           "description": "Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence",
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed",
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "report.md#focused-current-session-verification",
           "redMutations": [
             {
               "target": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md",
@@ -39,6 +142,110 @@
       ]
     },
     {
+      "scopeId": "2",
+      "scopeName": "Apply The Selected Remedy",
+      "tests": [
+        {
+          "id": "TP-BUG017-02-01",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "scripts/validate-playwright-cost-ratio.mjs",
+          "files": [
+            "scripts/validate-playwright-cost-ratio.mjs",
+            "tests/playwright-runtime.foundation.functional.mjs",
+            "tests/lifetime-tax-combined.spec.mjs",
+            "tests/lifetime-tax-read-bound.spec.mjs"
+          ],
+          "scenarioId": "SCN-BUG017-06",
+          "description": "Like-for-like timing: one committed CLI runs the complete 22-file lifetime-tax workload under system-chrome and bundled chromium at the configured one-worker default, requires both exits to be zero, and evaluates the measured ratio against the unchanged FR-017-004 maximum of 3.0",
+          "command": "/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live",
+          "liveSystem": true,
+          "testState": "implementation-required",
+          "status": "requires-refresh",
+          "evidenceRef": "report.md#the-fr-017-004-bound",
+          "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T16:17:20Z",
+          "receiptStdoutSha256": "dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63",
+          "receiptCurrent": false,
+          "receiptInvalidation": "The scenario's negative-control contract changed in convergence iteration 4. This receipt remains historical evidence for the positive live pair but cannot satisfy the new scenario receipt chain.",
+          "deterministicNegativeControl": {
+            "mechanism": "perturbed-input",
+            "helper": "scripts/validate-playwright-cost-ratio.mjs",
+            "regressionFile": "tests/playwright-runtime.foundation.functional.mjs",
+            "regressionTitle": "Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison",
+            "redCommand": "/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node scripts/validate-playwright-cost-ratio.mjs --control over-bound",
+            "expectedExit": 1,
+            "expectedMessage": "SCN-BUG017-06: wall-time ratio 3.001 exceeds FR-017-004 maximum 3.000",
+            "inputContract": "Create and remove an isolated temporary comparison record; change only systemChromeWallMs from 3000 to 3001, keep bundledChromiumWallMs at 1000, and keep the production maximum at 3.000.",
+            "targetedGreenCommand": "/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node scripts/validate-playwright-cost-ratio.mjs --control at-bound",
+            "expectedGreenExit": 0,
+            "expectedGreenMessage": "SCN-BUG017-06: wall-time ratio 3.000 meets FR-017-004 maximum 3.000",
+            "persistentRegressionCommand": "/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node --test --test-name-pattern='^Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison$' tests/playwright-runtime.foundation.functional.mjs"
+          }
+        },
+        {
+          "id": "TP-BUG017-02-02",
+          "type": "functional",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-BUG017-06",
+          "description": "The build-free repository invariant suite reports zero failures without reducing its recorded assertion baseline",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "testState": "existing-command",
+          "status": "requires-refresh",
+          "evidenceRef": "report.md#the-suite-is-unchanged",
+          "receiptCurrent": false,
+          "receiptInvalidation": "The SCN-BUG017-06 negative-control identity changed in convergence iteration 4. The prior selftest result remains historical and must be rerun after the evaluator lands."
+        },
+        {
+          "id": "TP-BUG017-02-03",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/lifetime-tax-combined.spec.mjs",
+          "files": [
+            "tests/lifetime-tax-combined.spec.mjs",
+            "tests/lifetime-tax-read-bound.spec.mjs"
+          ],
+          "scenarioId": "SCN-BUG017-06",
+          "description": "Regression: SCN-BUG017-06 executes both exact linked scenario carriers through the selected system-chrome configuration",
+          "command": "npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list && npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement$' --reporter=list",
+          "liveSystem": true,
+          "testState": "authored",
+          "status": "requires-refresh",
+          "evidenceRef": "report.md#the-fr-017-004-bound",
+          "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T15:52:11Z",
+          "receiptStdoutSha256": "85d469faa9a706d4f3a093d375cf49960eb59077ef27a018b1d2083eae950525",
+          "receiptCurrent": false,
+          "receiptInvalidation": "The SCN-BUG017-06 negative-control identity changed in convergence iteration 4. This targeted receipt remains historical and must not advance the revised scenario state."
+        },
+        {
+          "id": "TP-BUG017-02-04",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/lifetime-tax-combined.spec.mjs",
+          "files": [
+            "tests/lifetime-tax-combined.spec.mjs",
+            "tests/lifetime-tax-read-bound.spec.mjs"
+          ],
+          "scenarioId": "SCN-BUG017-06",
+          "description": "Broader regression: the complete affected lifetime-tax system-chrome workload remains green under the selected one-worker configuration",
+          "command": "npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "testState": "authored",
+          "status": "requires-refresh",
+          "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T16:32:13Z",
+          "receiptStdoutSha256": "2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf",
+          "receiptCurrent": false,
+          "receiptInvalidation": "The SCN-BUG017-06 negative-control identity changed in convergence iteration 4. This broader receipt remains historical and must be regenerated at the revised scenario revision."
+        }
+      ],
+      "receiptRefresh": {
+        "required": true,
+        "ownerAfterImplementation": "bubbles.test",
+        "reason": "The SCN-BUG017-06 planning input changed. Refresh the deterministic RED, targeted functional GREEN, real one-worker dual-project live proof, and broader system-chrome regression without relabeling prior receipts as current."
+      }
+    },
+    {
       "scopeId": "3",
       "scopeName": "Disclose It Where A Developer Meets It",
       "tests": [
@@ -51,8 +258,9 @@
           "description": "Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence",
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed",
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "report.md#focused-current-session-verification",
           "redMutations": [
             {
               "target": "playwright.config.mjs",
@@ -71,8 +279,9 @@
           "description": "Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin",
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
-          "testState": "planned-not-authored",
-          "status": "planned-not-executed",
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "report.md#focused-current-session-verification",
           "redMutations": [
             {
               "target": "playwright.config.mjs",
@@ -86,55 +295,8 @@
     },
     {
       "scopeId": "4",
-      "scopeName": "Close The Foundation Browser Before Worker Teardown",
+      "scopeName": "Persist The Rollback-Gated One-Worker Fallback",
       "tests": [
-        {
-          "id": "TP-BUG017-04-01",
-          "type": "e2e-ui",
-          "category": "e2e-ui",
-          "file": "tests/playwright-runtime.foundation.functional.mjs",
-          "scenarioId": "SCN-BUG017-09",
-          "description": "Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds",
-          "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs",
-          "innerCommand": "npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-paths.spec.mjs --config=playwright.config.mjs --project=system-chrome --workers=2 --reporter=list",
-          "liveSystem": true,
-          "testState": "retired-after-rollback",
-          "status": "executed-candidate-rejected"
-        },
-        {
-          "id": "TP-BUG017-04-02",
-          "type": "functional",
-          "category": "functional",
-          "file": "tests/playwright-runtime.foundation.functional.mjs",
-          "scenarioId": "SCN-BUG017-09",
-          "description": "Regression: SCN-BUG017-09 Foundation-owned close is required",
-          "command": "scripts/red-green-probe.sh --file tests/portfolio-survival-foundation.spec.mjs --find '  if (foundationBrowser) await foundationBrowser.close();' --replace '  void foundationBrowser;' --label 'SCN-BUG017-09 Foundation-owned close is required' --bound 300 -- node --test --test-name-pattern='^Regression: SCN-BUG017-09 Foundation-to-Paths releases its worker within 15 seconds$' tests/playwright-runtime.foundation.functional.mjs",
-          "liveSystem": true,
-          "testState": "retired-after-rollback",
-          "status": "executed-candidate-rejected"
-        },
-        {
-          "id": "TP-BUG017-04-03",
-          "type": "e2e-ui",
-          "category": "e2e-ui",
-          "file": "tests/portfolio-survival-foundation.spec.mjs",
-          "files": [
-            "tests/portfolio-survival-foundation.spec.mjs",
-            "tests/portfolio-survival-brief.spec.mjs",
-            "tests/portfolio-survival-allocation.spec.mjs",
-            "tests/portfolio-survival-risk.spec.mjs",
-            "tests/portfolio-survival-diversification.spec.mjs",
-            "tests/portfolio-survival-paths.spec.mjs",
-            "tests/portfolio-survival-accessibility.spec.mjs",
-            "tests/portfolio-survival-mobile.spec.mjs"
-          ],
-          "scenarioId": "SCN-BUG017-10",
-          "description": "Historical complete BUG-022 C03 pass at workers=2 before current finalization rejected the lifecycle candidate",
-          "command": "npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
-          "liveSystem": true,
-          "testState": "authored",
-          "status": "executed-provisional-pass"
-        },
         {
           "id": "TP-BUG017-04-04",
           "type": "e2e-ui",
@@ -151,12 +313,37 @@
             "tests/portfolio-survival-mobile.spec.mjs"
           ],
           "scenarioId": "SCN-BUG017-11",
-          "description": "Conditional one-worker configuration passes the unchanged complete BUG-022 C03 workload only after candidate failure and rollback",
+          "description": "Regression: SCN-BUG017-11 executes the unchanged complete BUG-022 C03 workload through the selected one-worker config default",
           "command": "npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
           "testState": "authored",
-          "status": "executed-pass",
-          "condition": "Selected after current candidate finalization failed twice and candidate rollback was hash-verified."
+          "status": "passed",
+          "evidenceRef": "report.md#scope-4-current-test-execution-at-2026-08-28",
+          "condition": "Eligible because current candidate finalization failed twice and candidate rollback was hash-verified."
+        },
+        {
+          "id": "TP-BUG017-04-04B",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-foundation.spec.mjs",
+          "files": [
+            "tests/portfolio-survival-foundation.spec.mjs",
+            "tests/portfolio-survival-brief.spec.mjs",
+            "tests/portfolio-survival-allocation.spec.mjs",
+            "tests/portfolio-survival-risk.spec.mjs",
+            "tests/portfolio-survival-diversification.spec.mjs",
+            "tests/portfolio-survival-paths.spec.mjs",
+            "tests/portfolio-survival-accessibility.spec.mjs",
+            "tests/portfolio-survival-mobile.spec.mjs"
+          ],
+          "scenarioId": "SCN-BUG017-11",
+          "description": "Broader regression: the complete eight-file portfolio-survival system-Chrome suite stays green under the selected one-worker default",
+          "command": "npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": "report.md#scope-4-current-test-execution-at-2026-08-28",
+          "parityNote": "This is the same complete execution as TP-BUG017-04-04 because the scenario-specific behavior is the runner-level outcome of the full consumer suite."
         },
         {
           "id": "TP-BUG017-04-05",
@@ -168,7 +355,8 @@
           "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity$' tests/playwright-runtime.foundation.functional.mjs",
           "liveSystem": false,
           "testState": "authored",
-          "status": "executed-pass"
+          "status": "passed",
+          "evidenceRef": "report.md#scope-4-current-test-execution-at-2026-08-28"
         }
       ]
     }

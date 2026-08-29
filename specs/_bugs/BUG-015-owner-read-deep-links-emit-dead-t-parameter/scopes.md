@@ -174,6 +174,27 @@ Feature: A published subject-bearing deep link opens on the subject it names
 | Browser | `e2e` | `tests/` | Each route loaded with a refused subject produces the Scope 1 outcome |
 | Regression | `e2e` | `tests/technical-analysis-decision-lab.spec.mjs` | The reconciled navigation still passes |
 
+### RED stage — every new assertion was shown failing before it was trusted
+
+The ordering here is scenario-first and it is enforced by mutation, not by sequence in a document.
+
+**RED — required red-stage, by real file mutation.** Each assertion added by this scope was made to
+fail on a deliberately broken tree before being relied on. That is `SCN-015-006`'s guard over the
+widened `F027_SUBJECT_ROUTES` and the zero-hard-coded-emission check: reverting a `deepLink` to a
+literal `t=` makes assertion 1.20 fail, and omitting a route from the derived set makes the coverage
+count fall short. A test result of `failed` on the broken tree is what licenses trusting the pass.
+
+This matters more here than in most packets, because the defect being fixed was itself **invisible
+to a guard that passed**. A route outside `F027_SUBJECT_ROUTES` was neither checked nor reported as
+unchecked, so assertion 1.20 was green while two routes emitted a dead parameter. An assertion added
+to close that gap, and never shown failing, would reproduce exactly the condition that hid the bug.
+
+**GREEN — after both halves are wired.** Assertion 1.20 passes over four routes rather than two,
+`grep -rn '?t=' *.html` returns zero emission sites, and `node scripts/selftest.mjs` reports 0 failed
+with no reduction in assertion count. The green is meaningful only because each of those assertions
+was first observed red.
+
+
 ### Definition of Done
 
 - [x] **SCN-015-004** — Both `deepLink` expressions compose their parameter from `RLTKR.SUBJECT_PARAM` (FR-014-001).

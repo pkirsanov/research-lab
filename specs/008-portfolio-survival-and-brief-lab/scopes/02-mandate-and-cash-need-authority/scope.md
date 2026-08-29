@@ -97,9 +97,24 @@ Add each named assertion and persistent title before mandate behavior. Execute e
 
 ### Definition of Done
 
-- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
-- [ ] Broader E2E regression suite passes
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Re-verified 2026-08-29 (session-bound).** Scope 02's per-scenario rows live in `tests/portfolio-survival-foundation.spec.mjs`, which was executed complete this session; the SCN-008-004 mandate/goal-field regression is among the 17 passing rows.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound), same run that discharged Scope 01 — this scope's broad row names the same suite file:**
+
+    ```text
+    $ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs \
+        --config=playwright.config.mjs --project=system-chrome --reporter=list
+
+      17 passed (1.1m)
+    TP0106_EXIT=0
+    ```
+
+  - Canary ahead of it: `node --test tests/portfolio-foundation.unit.mjs` → `# pass 61 / # fail 0`.
 - [ ] Consumer impact sweep completed; zero stale first-party references remain
+  - **Deliberately NOT ticked.** A sweep was attempted this session and did NOT establish the claim: it searched for `rlPortfolioMandate` and `rlMandate`, both of which returned zero files, so the symbols were guessed rather than derived from this scope's declared surfaces. A sweep built on names that do not exist proves nothing, and recording it as passing would convert a failed probe into false assurance.
+  - What DID hold, and is worth keeping: every `src="*.js"` the lab loads resolves to a file that exists, and `node scripts/selftest.mjs` reports `3433 passed, 0 failed`, which owns registry/navigation parity.
+  - Discharging this needs the surface list from this scope's `## Code Diff Evidence`, then a reference sweep over those exact identifiers.
 
 #### Core Delivery Items
 

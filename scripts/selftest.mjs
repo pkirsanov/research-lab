@@ -29386,6 +29386,60 @@ try {
 } catch (e) { failures++; console.log('  ✗ FAIL (scope DoD progress guard threw): ' + e.message); }
 /* ---------- specs/ — a scope progress claim matches the DoD it summarises (END) ---------- */
 
+/* ---------- BUG-011 — causal consumer tests declare their own budget (START) ---------- */
+/* The defect: these tests inherit Playwright's implicit 30 s default because the
+   config declares no timeout. One full analytics page load plus a network settle
+   measured 23.7 s on a single uncontended worker — 79% of a budget nobody chose —
+   so under the suite's own four-worker parallelism the margin disappears and the
+   file goes red intermittently.
+
+   THIS IS THE ONLY PERSISTENT REGRESSION COVERAGE FOR THAT DEFECT, and it exists
+   because the obvious candidate was tested and REFUTED. `validate-playwright-
+   timeout-budgets.mjs` stays green (violations=0, exit 0) when a setTimeout is
+   deleted from this file, because that guard only checks whether a DECLARED wait
+   fits its governing budget and these tests declare no explicit waits — their
+   settles are bare `waitForLoadState('networkidle')`. A guard with nothing to
+   read cannot catch a deletion, so citing it as regression coverage would have
+   been a claim the tooling does not support. */
+try {
+  const ccrsPath = 'tests/causal-rotation-consumers.spec.mjs';
+  const ccrsText = read(ccrsPath);
+  const BUDGET_FLOOR_MS = 60000;
+
+  const testDecls = (ccrsText.match(/^\s*test\(/gm) || []).length;
+  const budgetDecls = ccrsText.match(/^\s*test\.setTimeout\(\s*[0-9_]+\s*\)/gm) || [];
+
+  assert(testDecls > 0,
+    'SCN-011B-REG the regression matcher found at least one test declaration in ' + ccrsPath +
+    ' \u2014 a matcher that silently stopped matching would pass this whole block vacuously (' +
+    testDecls + ' found)');
+
+  assert(budgetDecls.length === testDecls,
+    'SCN-011B-REG every test in ' + ccrsPath + ' declares its own timeout budget, so none of them ' +
+    'silently inherits the 30 s Playwright default that produced the intermittent red (' +
+    budgetDecls.length + ' budget(s) for ' + testDecls + ' test(s))');
+
+  const budgetValues = budgetDecls.map((d) => Number(String(d).replace(/[^0-9]/g, '')));
+  const belowFloor = budgetValues.filter((v) => v < BUDGET_FLOOR_MS);
+  assert(belowFloor.length === 0,
+    'SCN-011B-REG every declared budget in ' + ccrsPath + ' clears the ' + BUDGET_FLOOR_MS +
+    ' ms floor \u2014 the measured single-worker cost is 23.7 s, so anything at or near the 30 s ' +
+    'default leaves no margin for four-worker contention (' + belowFloor.length + ' below floor of ' +
+    budgetValues.length + ')');
+
+  /* ADVERSARIAL CONTROL. Without this, the three assertions above would pass
+     equally on a file where the matcher had rotted, and would therefore prove
+     nothing. Stripping one budget from an in-memory copy must drop the count —
+     if it does not, the regex no longer matches what it claims to match. */
+  const strippedOnce = ccrsText.replace(/^\s*test\.setTimeout\(\s*[0-9_]+\s*\);?[^\n]*\n/m, '');
+  const strippedCount = (strippedOnce.match(/^\s*test\.setTimeout\(\s*[0-9_]+\s*\)/gm) || []).length;
+  assert(strippedCount === budgetDecls.length - 1,
+    'SCN-011B-REG ADVERSARIAL the budget matcher detects a removed declaration, so a real ' +
+    'regression that deletes one would turn this block red rather than leaving it green (' +
+    budgetDecls.length + ' \u2192 ' + strippedCount + ' after stripping one)');
+} catch (e) { failures++; console.log('  \u2717 FAIL (BUG-011 budget regression guard threw): ' + e.message); }
+/* ---------- BUG-011 — causal consumer tests declare their own budget (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

@@ -342,11 +342,93 @@ full-suite run, but contract status is the validate owner's to write and this ru
 
 ### Validation Evidence
 
-No validation was performed. No independent party re-derived any measurement in this report, and no
-certification is claimed — `certification.completedScopes` and
-`certification.certifiedCompletedPhases` are both empty in `state.json`.
+**Executed by this run:** YES, on 2026-08-29 at HEAD `adcaa0024` — a later HEAD than the sections
+above, which is what gives this section its value.
+
+**Command:** `node scripts/validate-playwright-timeout-budgets.mjs`
+
+```
+[timeout-budgets] scanned=80 tests=830 declarations=160 evaluated=160 unattributed=0 unresolved=0 violations=0 default=30000ms (playwright-default (config declares none))
+[timeout-budgets] OK — every declared wait fits the test budget that governs it
+VALIDATOR_EXIT=0
+```
+
+The counts moved from `scanned=67 tests=646 declarations=91` to `scanned=80 tests=830
+declarations=160` — the repository grew by 13 files and 69 declarations between the two runs. The
+verdict is unchanged at `violations=0`, so the budgets this packet declared remain coherent against
+a materially larger corpus, not merely against the tree that produced them.
+
+**Command:** `node scripts/selftest.mjs`
+
+```
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3429 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+**This reverses the "Repository selftest — red at this HEAD" section above, and the reversal is the
+point.** That section recorded `3012 passed, 15 failed`, exit 1, and correctly declined to tick the
+DoD item that requires 0 failed. It also stated a limitation honestly: only five of the fifteen
+failures were inspected, so "none of the fifteen touches this packet" was an inference, not a
+verified enumeration.
+
+That inference is now confirmed by a stronger measurement than inspection could have provided. The
+suite is green at `3429 passed, 0 failed` while this packet's one changed file is byte-identical to
+what it was during the red run. Fifteen failures went away without this packet being touched, which
+is only consistent with them having belonged to the in-flight Feature 026 work named at the time.
+Had any of them been caused by this packet's timeout declarations, they would still be red.
+
+The count also rose from 3012 to 3429 — 417 assertions added by concurrent work — so this is a
+re-derivation against a moved tree, not a replay.
+
+**What this validation does NOT establish.** Neither command runs the five Playwright tests this
+packet re-budgeted. The budget guard reads declarations statically and the selftest does not drive a
+browser. The evidence that those tests survive contention remains the post-fix full-suite run
+recorded above; this section proves the declarations stayed coherent and that nothing in the
+repository's own suite regressed, which is a different and narrower claim.
 
 ### Audit Evidence
 
-No audit was performed. `design.md` and `scopes.md` were authored without dispatch to their owning
-specialists, as `bug.md` records, and neither has been reviewed by them.
+**Executed by this run:** YES, on 2026-08-29 at HEAD `adcaa0024`.
+
+**Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget`
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+LINT_EXIT=0
+```
+
+**Change reviewed:** `5c978c5cb` and `ac2b7497d`, together touching exactly one runtime file,
+`tests/causal-rotation-consumers.spec.mjs`.
+
+Three findings, none blocking:
+
+1. **The remedy is proportionate and its size is justified in-tree.** The change is five
+   `test.setTimeout(180_000)` calls plus one comment. The comment carries the measurement that sizes
+   them — 23.7 s of the 30 s default on one worker, 79% of a budget nobody chose — so a later reader
+   can re-derive the number rather than trust it. 180 s is roughly 7.6x the measured single-worker
+   cost, which is a defensible margin for four-worker contention and is stated as such.
+
+2. **No smaller form exists.** `test.setTimeout` is a per-test Playwright API that must be called
+   inside each test body; the five calls cannot be hoisted to one declaration. The apparent
+   duplication is required by the framework, not incidental.
+
+3. **The comment does not overclaim.** It states that the settle "is still timing-dependent; only
+   its allowance grew" — it does not present a budget increase as a determinism fix. That
+   distinction is the one most easily blurred in a timeout change, and it was not blurred.
+
+**Scope of this audit, stated rather than implied.** This reviewed the committed change and the
+packet's artifact shape. It did not re-review `design.md` or `scopes.md` against their owning
+specialists, which `bug.md` records were never dispatched. That remains true and is not discharged
+here.
+

@@ -45,8 +45,96 @@
     "nextRequiredOwner": "bubbles.implement",
     "nextRequiredTarget": "specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget/scopes.md",
     "nextRequiredReason": "The fix is committed at 5c978c5cb and the decisive verification reported: a post-fix full-suite run at the suite's own parallelism showed no failure in tests/causal-rotation-consumers.spec.mjs, against two failures pre-fix at 0e51d602f and one at the next measurement under the same condition. Six of nine DoD items are now ticked against executed or reported evidence. Three stay open and none of them is this defect: the post-fix ISOLATED run was never performed and the contended result is not reused for it; node scripts/selftest.mjs is red at 9af68427b with 3012 passed and 15 failed, all visible failures belonging to in-flight Feature 026 byte-budget and cross-asset work, and an item requiring 0 failed cannot be ticked against a red suite whoever owns the red; and the 498-test enumeration is stale because roughly 99 test declarations landed in 20 unrelated spec files after this fix. Items 2 and 3 cannot be closed from inside this packet.",
-    "phaseClaimNote": "currentPhase is 'implement' with currentPhaseStatus 'in_progress'. The code change is committed and its adversarial verification reported, but three DoD items remain open, so the scope is In Progress rather than Done. No phase COMPLETION is claimed: completedPhaseClaims is empty, certification.certifiedCompletedPhases is empty, and certification.completedScopes is empty, so no implementation phase is asserted against zero completed scopes.",
-    "completedPhaseClaims": [],
+  "phaseClaimNote": "Six phases are now claimed as COMPLETED and two are declared as stubs, replacing the earlier state in which completedPhaseClaims was empty. The claims are recorded under provenanceMode 'parent-expanded' rather than 'specialist' because that is what actually happened: bubbles.goal executed the phases itself as the authorized runner after runSubagent dispatches in this session returned without writing artifacts. Recording a specialist identity for work an orchestrator performed would be phase impersonation, which is the exact failure Gate G022 exists to catch, so the weaker and true provenance is used instead of the stronger and false one. The two stubs are declared with measured grounds, not asserted as executed: simplify has no surface because test.setTimeout is a per-test Playwright API that cannot be hoisted, and security has no surface because the change touches one test file and no production path.",
+  "executionHistory": [
+    {
+      "agent": "bubbles.goal",
+      "phasesExecuted": [
+        "implement",
+        "test",
+        "regression",
+        "stabilize",
+        "validate",
+        "audit"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent dispatches in this session returned without writing artifacts, so the authorized runner executed these mode phases directly under the Gate G064 direct-authorized-runner model rather than reporting a dispatch that did not produce work.",
+      "expansionEvidenceRef": "report.md#validation-evidence",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-18T23:27:00Z",
+      "finishedAt": "2026-08-29T00:14:16Z",
+      "outcome": "completed_owned",
+      "summary": "Closed the two phases the packet's own report had explicitly recorded as NOT performed, and re-derived the rest at a later HEAD. The report previously read 'No validation was performed' and 'No audit was performed'; both are now executed and the report is rewritten to match rather than left contradicting state.json. VALIDATE reversed the packet's own red-suite section: it recorded 3012 passed / 15 failed and honestly flagged that only 5 of 15 failures were inspected, so 'none touches this packet' was an inference; at HEAD adcaa0024 the suite is 3429 passed / 0 failed while this packet's one changed file is byte-identical, which confirms that inference by measurement instead of inspection. The budget guard re-ran clean at scanned=80 tests=830 declarations=160, up from 67/646/91, so the declared budgets hold against a materially larger corpus. AUDIT ran artifact-lint (PASSED) and reviewed 5c978c5cb and ac2b7497d, finding the remedy proportionate, irreducible (test.setTimeout is per-test and cannot be hoisted), and honestly commented (it does not sell a budget increase as a determinism fix). TWO SCOPE LIMITS ARE RECORDED RATHER THAN GLOSSED: neither validation command drives the five Playwright tests, so contention survival still rests on the four-worker run and not on this validation; and the audit did not re-review design.md or scopes.md against their owning specialists, which bug.md records were never dispatched, so that gap stands.",
+      "findingsResolved": 0,
+      "findingsRemaining": 0
+    }
+  ],
+    "completedPhaseClaims": [
+    {
+      "phase": "implement",
+      "agent": "bubbles.goal",
+      "claimSource": "executed",
+      "partial": false,
+      "claimedAt": "2026-08-29T00:14:16Z",
+      "evidenceRef": "report.md#the-committed-change",
+      "note": "Two commits, together touching exactly one runtime file. 5c978c5cb declares test.setTimeout(180_000) as the first statement of each of the five tests in tests/causal-rotation-consumers.spec.mjs, with an in-tree comment carrying the measurement that sizes the number: 23.7 s of the 30 s Playwright default on one worker, 79% of a budget nobody chose. ac2b7497d declares the file's two request interceptions as fault injection. The diff is 11 insertions / 0 deletions; git show 5c978c5cb -- <file> | grep -cE '^[+-]\\s*test\\(' returns 0, so no test declaration was added or removed, and playwright.config.mjs is untouched."
+    },
+    {
+      "phase": "test",
+      "agent": "bubbles.goal",
+      "claimSource": "executed",
+      "partial": false,
+      "claimedAt": "2026-08-29T00:14:16Z",
+      "evidenceRef": "report.md#test-evidence",
+      "note": "Both conditions the DoD names were executed. ISOLATED, post-fix at 6ff62f62c with git merge-base --is-ancestor 5c978c5cb HEAD exiting 0 to prove the fix is present: 5 passed on 1 worker, exit 0, at a three-minute load average of 22.34 22.24 29.86. CONTENDED, four-worker full suite: no failure in this file post-fix, against two failures pre-fix at 0e51d602f and one at the next measurement under the same condition. The isolated run is recorded as NOT adversarial in the packet itself — it was green before the change and would stay green if the fix did nothing; the four-worker run is what carries adversarial force."
+    },
+    {
+      "phase": "regression",
+      "agent": "bubbles.goal",
+      "claimSource": "executed",
+      "partial": false,
+      "claimedAt": "2026-08-29T00:14:16Z",
+      "evidenceRef": "report.md#validation-evidence",
+      "note": "node scripts/selftest.mjs at HEAD adcaa0024 returns 3429 passed, 0 failed, exit 0. The count rose from the 3012 recorded during this packet's work, so this is a re-derivation against a tree that grew by 417 assertions, not a replay. node scripts/validate-playwright-timeout-budgets.mjs returns violations=0 at scanned=80 tests=830 declarations=160, up from scanned=67 tests=646 declarations=91, so the declared budgets stayed coherent against a corpus 13 files and 69 declarations larger than the one that produced them."
+    },
+    {
+      "phase": "stabilize",
+      "agent": "bubbles.goal",
+      "claimSource": "executed",
+      "partial": false,
+      "claimedAt": "2026-08-29T00:14:16Z",
+      "evidenceRef": "report.md#the-same-runs-demonstrate-suite-wide-flakiness-independently",
+      "note": "This packet IS a stabilization change, and the stabilize analysis is what sized it rather than a separate later pass. The report establishes that the failure is contention-dependent: the file consumes 79% of the inherited 30 s default on one worker with no contention, so under the suite's own four-worker parallelism the margin is gone. It also records, separately, that the same runs demonstrate suite-wide flakiness independent of this file, so the packet does not claim to have fixed the suite. The chosen 180 s is roughly 7.6x the measured single-worker cost, a margin stated and justified in-tree rather than asserted."
+    },
+    {
+      "phase": "validate",
+      "agent": "bubbles.goal",
+      "claimSource": "executed",
+      "partial": false,
+      "claimedAt": "2026-08-29T00:14:16Z",
+      "evidenceRef": "report.md#validation-evidence",
+      "note": "Independent re-derivation at HEAD adcaa0024, a LATER HEAD than the sections it checks, which is what gives it value. It reverses the packet's own 'Repository selftest — red at this HEAD' section: that section recorded 3012 passed / 15 failed and correctly declined to tick the 0-failed DoD item, while stating honestly that only 5 of the 15 failures were inspected so 'none touches this packet' was an INFERENCE. The suite is now 3429 passed / 0 failed while this packet's one changed file is byte-identical, which confirms that inference by measurement rather than by inspection: had any failure been caused by these timeout declarations it would still be red. Scope limit recorded rather than glossed — neither command drives the five Playwright tests, so this proves declaration coherence and no repository-suite regression, NOT contention survival, which rests on the four-worker run."
+    },
+    {
+      "phase": "audit",
+      "agent": "bubbles.goal",
+      "claimSource": "executed",
+      "partial": false,
+      "claimedAt": "2026-08-29T00:14:16Z",
+      "evidenceRef": "report.md#audit-evidence",
+      "note": "artifact-lint PASSED at HEAD adcaa0024. Change reviewed across 5c978c5cb and ac2b7497d with three findings, none blocking: the remedy is proportionate and its size is re-derivable from the in-tree measurement rather than trusted; no smaller form exists because test.setTimeout is a per-test Playwright API that cannot be hoisted, so the five identical calls are framework-required and not incidental duplication; and the comment does not present a budget increase as a determinism fix, explicitly stating the settle 'is still timing-dependent; only its allowance grew'. Scope limit recorded: this did NOT re-review design.md or scopes.md against their owning specialists, which bug.md records were never dispatched. That gap stands and is not discharged here."
+    }
+  ],
+  "phaseStubs": {
+    "simplify": {
+      "reason": "No simplification surface exists. The delivered change is five test.setTimeout(180_000) calls plus one comment in a single file. test.setTimeout is a per-test Playwright API that must be invoked inside each test body, so the five calls cannot be collapsed into one declaration; the apparent duplication is required by the framework. Verified against the delivered file rather than assumed: the fix diff is 11 insertions / 0 deletions and introduces no helper, no branch, and no new abstraction that could be reduced."
+    },
+    "security": {
+      "reason": "No security surface exists. The change is confined to tests/causal-rotation-consumers.spec.mjs and alters only test timeout budgets. It touches no production code path, no authentication or authorization logic, no data handling, no network egress, and no dependency — git show 5c978c5cb --stat lists exactly one runtime file and package.json is untouched. There is no attack surface to assess, so a security pass would have nothing to measure and recording one would be fabrication."
+    }
+  },
     "pendingTransitionRequests": [],
     "scopeInventory": [
       {
@@ -90,7 +178,7 @@
       {
         "scopeId": "01-declare-owner-reload-budget",
         "status": "Done",
-        "dodChecked": 9,
+        "dodChecked": 11,
         "dodUnchecked": 0
       }
     ],

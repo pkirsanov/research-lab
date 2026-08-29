@@ -77,6 +77,7 @@ item already runs; the dated enumerations stay there as observations, not as the
 | Regression, isolated | `e2e-ui` | `tests/causal-rotation-consumers.spec.mjs` | The file is green on its own after the change | `npx --no-install playwright test tests/causal-rotation-consumers.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes (local HTTP server, real pages) |
 | Regression, adversarial | `e2e-ui` | full suite | The file is green under the four-worker contention that produced the red | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line` | Yes |
 | Suite inventory | `unit` | full suite | No test removed, skipped, or renamed | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --list` | No |
+| Regression E2E, scenario-specific persistent guard | `unit` | `scripts/selftest.mjs` (`SCN-011B-REG` block) | Every test in the file still declares its own budget above a 60 s floor — the assertion that turns red if this fix is deleted | `node scripts/selftest.mjs` | No |
 | Budget coherence guard | `unit` | `scripts/validate-playwright-timeout-budgets.mjs` | No wait declaration became unreachable | `node scripts/validate-playwright-timeout-budgets.mjs` | No |
 | Repository selftest | `unit` | `scripts/selftest.mjs` | Repository invariants, including the budget guard and the PII scan | `node scripts/selftest.mjs` | No |
 | Diff review | `unit` | committed diff | The change is additive only and touches no prohibited surface | `git --no-pager diff` | No |
@@ -145,6 +146,7 @@ reintroduced is the **full-suite** run at four workers, because that is the cond
   - **Phase:** implement · **Claim Source:** executed, this session
   - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
   - ```
+    $ node scripts/selftest.mjs
     ================================================
     Research-Lab self-test: 3064 passed, 0 failed
     ================================================
@@ -204,10 +206,49 @@ reintroduced is the **full-suite** run at four workers, because that is the cond
   - **The growth reconciles exactly, with zero removals.** `git --no-pager diff 5c978c5cb..HEAD -- 'tests/*.spec.mjs' | grep -cE '^\+\s*test\('` is **106** added declarations against **0** removed, and `498 + 106 = 604`. The suite total moved because the suite grew; nothing was lost. At `6ff62f62c` the same arithmetic was `498 + 99 = 597`, and the seven-declaration delta between the two measurements is other sessions' work — this packet's file contributed to neither figure, its drift being zero.
   - **The tick stands on the invariant, not on the number.** It could not have stood on the number: the number was already false at the moment this entry was written.
 
-- [x] Build Quality Gate: artifact lint passes, `report.md` carries no absolute host path, and no issue found during this scope was deferred
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, this run
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+      ✓ SCN-011B-REG the regression matcher found at least one test declaration in tests/causal-rotation-consumers.spec.mjs (5 found)
+      ✓ SCN-011B-REG every test in tests/causal-rotation-consumers.spec.mjs declares its own timeout budget (5 budget(s) for 5 test(s))
+      ✓ SCN-011B-REG every declared budget clears the 60000 ms floor (0 below floor of 5)
+      ✓ SCN-011B-REG ADVERSARIAL the budget matcher detects a removed declaration (5 → 4 after stripping one)
+    ================================================
+    Research-Lab self-test: 3433 passed, 0 failed
+    ================================================
+    EXIT=0
+    ```
+  - **The guard is `SCN-011B-REG` in `scripts/selftest.mjs`**, added by this run because the packet had none. It asserts that every `test(` declaration in `tests/causal-rotation-consumers.spec.mjs` carries its own `test.setTimeout(...)` and that every declared budget clears a 60 s floor — the measured single-worker cost being 23.7 s, anything near the 30 s default leaves no contention margin.
+  - **ADVERSARIAL PROOF, executed rather than asserted.** One of the five `test.setTimeout(180_000)` declarations was removed from an on-disk copy and the suite re-run: `✗ FAIL: SCN-011B-REG every test ... declares its own timeout budget (4 budget(s) for 5 test(s))`. The file was then restored and `git status --porcelain` returned empty, with the suite back at `3433 passed, 0 failed`. The guard therefore turns red on exactly the regression it names.
+  - **A fourth assertion guards the guard.** `SCN-011B-REG ADVERSARIAL` strips one budget from an in-memory copy and requires the count to drop, so a matcher that silently stopped matching fails loudly instead of passing the whole block vacuously.
+  - **This item exists because the obvious candidate was tested and REFUTED.** `scripts/validate-playwright-timeout-budgets.mjs` was the natural claim for scenario-specific coverage, and it does not qualify: with a `setTimeout` deleted it still reports `violations=0`, exit 0. That guard only evaluates whether a DECLARED wait fits its governing budget, and these tests declare no explicit waits — their settles are bare `waitForLoadState('networkidle')`. A guard with nothing to read cannot catch the deletion. Citing it would have been a claim the tooling does not support, so a real guard was written instead.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, this run
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+    ================================================
+    Research-Lab self-test: 3433 passed, 0 failed
+    ================================================
+    EXIT=0
+    ```
+  - **Command:** `node scripts/validate-playwright-timeout-budgets.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/validate-playwright-timeout-budgets.mjs
+    [timeout-budgets] scanned=80 tests=830 declarations=160 evaluated=160 unattributed=0 unresolved=0 violations=0 default=30000ms (playwright-default (config declares none))
+    [timeout-budgets] OK — every declared wait fits the test budget that governs it
+    VALIDATOR_EXIT=0
+    ```
+  - **This is a re-derivation against a moved tree, not a replay.** The suite was `3012 passed, 15 failed` while this packet was in flight and is `3433 passed, 0 failed` now, with this packet's one changed file byte-identical across both. The budget guard moved from `scanned=67 tests=646 declarations=91` to `scanned=80 tests=830 declarations=160` and still reports `violations=0`.
+  - **What it does not claim.** Neither command drives the five Playwright tests. Contention survival rests on the four-worker full-suite run recorded above, not on this item.
+
+- [x] Build Quality Gate: artifact lint passes, `report.md` carries no absolute host path, and every issue found during this scope was resolved inside it
   - **Phase:** implement · **Claim Source:** executed, this run
   - **Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget` — **Exit Code:** 0
   - **Command:** a recursive grep of this packet for an absolute operator home-directory prefix — **Exit Code:** 1 (no match). Every path in `report.md` is repository-relative or written `<repo-root>`.
   - **No deferral, and the DoD is now discharged in full on execution.** Re-baselined across sessions from **three** unticked items, to **one**, and now to **zero**. The last one — *"the file passes in isolation after the change"* — was closed by finally performing the post-fix isolated run it had always named (`5 passed`, exit 0, at `6ff62f62c`, recorded above), which is the opposite of deferring it. `grep -c '^- \[ \]'` over this file now returns 0. This count is corrected here rather than left standing, because "one remaining unticked item" had become a false statement about this scope.
   - **The scope Status stays In Progress and `state.json` stays `in_progress` anyway.** A complete DoD is not a status transition. Promotion is owned by the state-transition guard and by validate-side certification, not by a checkbox, and this session did not touch `state.json` — which still carries a blocker note asserting the isolated run "was never performed". That note is stale as of this run and is left intact for its owner to clear, rather than quietly edited here to make the packet look self-consistent.
-  - Nothing found in this scope was closed by rewording it: the `networkidle` settle remains timing-dependent, `spec.md` records the condition-based replacement as out of scope rather than as done, and the source comment above `openOwner` states the limitation in the code itself.
+  - Nothing found in this scope was closed by rewording it: the `networkidle` settle remains timing-dependent, `spec.md` records the condition-based replacement as outside this packet's change boundary rather than as done, and the source comment above `openOwner` states the limitation in the code itself.

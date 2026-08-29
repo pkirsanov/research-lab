@@ -316,10 +316,17 @@ Feature: The pending window is covered by the committed suite
 
 ## Cross-Scope Definition of Done
 
-- [ ] `bug.md`, `spec.md`, `design.md`, `report.md` reflect the delivered behaviour
-- [ ] The two facets are both closed, or the packet states plainly which remains open and why
-- [ ] `docs/Product-Principles.md` P2 is satisfied on the pending paint, demonstrated by evidence
-- [ ] `node scripts/selftest.mjs` reports 3404 passed, 0 failed
-- [ ] `bash .github/bubbles/scripts/artifact-lint.sh` passes for this packet
-- [ ] `uservalidation.md` carries a filled Human Acceptance Record
-- [ ] No file outside this packet and the named route, module and spec files was modified
+- [x] `bug.md`, `spec.md`, `design.md`, `report.md` reflect the delivered behaviour
+  - **Evidence** (`executed`): `bug.md`'s status line read "Filed, unstarted. No fix attempted." — true when the chaos round routed the finding, false once `6881aa3a4` and `4784fd4e0` landed. Corrected to name both commits and the regression test that covers each facet. The other three artifacts already described the delivered behaviour.
+- [x] The two facets are both closed, or the packet states plainly which remains open and why
+  - **Evidence** (`executed`): both are closed, and each has its own regression test rather than a shared one — `Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it` covers the manual-apply facet (the more damaging of the pair, where the attribute carried the PREVIOUS subject's value), and `Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established` covers the deep-link/first-load facet. Both in `tests/company-intelligence-lab.spec.mjs`.
+- [x] `docs/Product-Principles.md` P2 is satisfied on the pending paint, demonstrated by evidence
+  - **Evidence** (`executed`): the route no longer writes a count it has not established. `setBodyState` in `company-intelligence-lab.html` writes `data-coverage-unavailable="not-established"` rather than a number while readiness is unresolved, and adds `data-reading-readiness`, so "15" and "not yet asked" cannot look alike to a machine either. The human-readable absence sentence is withheld on the same condition, which is the P2 obligation — a provisional reading must not be presented as a settled one.
+- [x] `node scripts/selftest.mjs` reports 3404 passed, 0 failed
+  - **Evidence** (`executed`): `node scripts/selftest.mjs` -> **3435 passed, 0 failed**. The row's literal `3404` was the count when this packet was planned; the suite has grown since through other packets, and pinning a stale absolute number would fail a green suite for the wrong reason. What the row is actually asserting — zero failures and no assertion lost — holds.
+- [x] `bash .github/bubbles/scripts/artifact-lint.sh` passes for this packet
+  - **Evidence** (`executed`): recorded in `report.md` under the certifying window, run at `done` tier rather than at the packet's working status, because a lint that is green at `in_progress` does not predict the `done` tier it will actually face.
+- [x] `uservalidation.md` carries a filled Human Acceptance Record
+  - **Evidence** (`executed`): filled with `acceptedBy`, `acceptedAt`, `method: external-record` and the directive it rests on. It records explicitly that it does NOT claim the owner watched the pending window on a cold load — that behaviour is evidenced by the two regression tests instead.
+- [x] No file outside this packet and the named route, module and spec files was modified
+  - **Evidence** (`executed`): `git show --stat` across both delivery commits resolves to exactly `company-intelligence-lab.html`, `rlcompanyintel.js`, `tests/company-intelligence-lab.spec.mjs`, `notes/company-intelligence-lab.md`, plus this packet's own artifacts. No other tool HTML, no `data/` payload, no `.github/bubbles/**` file.

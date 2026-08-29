@@ -42,6 +42,14 @@ $2,100 monthly and $25,200 annually unchanged. The suite is green with both side
 
 **Status:** Done (delivered; all five Definition of Done items ticked)
 
+**foundation: true**
+
+This scope builds the capability itself — the sourced bound in the pack, its explicit absent form,
+and the assertion that the engine holds no earliest age of its own. `design.md` `## Capability
+Foundation` records why that last assertion is what makes it a foundation rather than a local fix:
+it is what stops the bound being duplicated into the engine, where the copy would drift from the
+sourced figure invisibly.
+
 The pack member ships and the engine reads it. Two of the five items were wording that did not
 match what shipped, not missing behaviour; `bubbles.plan` rewrote both so that each names the
 adversarial case under which it fails, and an independent round verified both at `1cc3bd23b`.
@@ -202,6 +210,9 @@ Feature: The earliest priceable claim age is a declared pack figure
 
 **Status:** Done (delivered; all eight Definition of Done items ticked)
 
+**Depends On:** Scope 1 (the foundation scope). There is nothing to refuse against until the sourced
+bound exists. Refusing against a literal instead would have been the defect in a new form.
+
 The refusal ships and is asserted from both sides. The last item to close concerns the
 delayed-credit stopping-age disclosure, which the implementation round left unasserted and a
 later round asserted at `17dafde4f`.
@@ -334,6 +345,9 @@ Feature: A claim age the pack cannot price is refused
 ## Scope 3: Cover Both Sides Of The Boundary So It Cannot Move Quietly
 
 **Status:** Done
+
+**Depends On:** Scope 1 (the foundation scope) and Scope 2. A boundary can only be pinned once it
+exists and is applied — these assertions are about the bound Scope 1 declares and Scope 2 enforces.
 
 All five Definition of Done items are ticked with executed evidence.
 

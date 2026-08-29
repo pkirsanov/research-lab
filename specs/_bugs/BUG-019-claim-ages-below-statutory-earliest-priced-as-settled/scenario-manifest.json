@@ -1,0 +1,571 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-019-claim-ages-below-statutory-earliest-priced-as-settled",
+  "generatedBy": "bubbles.goal",
+  "generatedAt": "2026-08-29T19:45:00Z",
+  "stage": "post-delivery-reconciliation",
+  "stageNote": "Authored AFTER delivery and labelled that way rather than backdated to look like planning output. The eleven scenarios are transcribed from the three scopes' gherkin blocks in scopes.md. linkedTests and evidenceRefs are populated because the tests exist and have run: the fix shipped at e28be5814 and the assertions at eeb2ac7cc, and report.md records the run. scenarioId values are positional (SCN-019-NN) because the scopes declare scenarios by title without identifiers; the titles are carried verbatim in the title field so the mapping is checkable rather than asserted.",
+  "scenarioCount": 11,
+  "keyShapeNote": "businessScenario is null on every entry. This is a bug packet filed from a chaos round against an observed mispricing, so its scenarios descend from bug.md rather than from a BS-* business scenario, and inventing a binding would be a fabricated linkage.",
+  "businessScenarioMapping": "None. SCN-019-01 through SCN-019-11 are bug-owned identifiers with exactly one owning scope each: 01-03 belong to Scope 1, 04-08 to Scope 2, 09-11 to Scope 3. They trace to bug.md's reproduction \u2014 a claim age of 720 months priced at $1,800 monthly when the statute does not permit claiming at that age.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-019-01",
+      "businessScenario": null,
+      "scopeId": "01-declare-the-earliest-claim-age-as-a-sourced-pack-figure",
+      "scope": 1,
+      "status": "done",
+      "title": "The pack declares the earliest age with a source",
+      "gherkin": {
+        "given": "the benefit rule pack for a declared year",
+        "when": "the earliest priceable claim age is read",
+        "then": "it carries a source reference and a locator, and it is not derived from the reduction factors"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "seeded-store",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "negativeControl": "The absent form is asserted separately by SCN-019-02: a pack that never retrieved the figure must return an AbsentFigure record. An assertion that only checks the present form cannot distinguish a working pack from a missing one.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "rltaxsocialsecurity.js"
+        ]
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs"
+      ],
+      "testRows": [
+        "TP-019-01"
+      ],
+      "evidenceRefs": [
+        "report.md#the-bound-now-lives-in-the-pack",
+        "report.md#code-diff-evidence"
+      ],
+      "traitNote": "behaviorTraits and obligations are deliberately omitted rather than filled in with a trait that does not fit. The recognised coherence vocabulary is api-contract, user-visible-ui, shared-consumer and dependency-path. This scenario is a MODULE-level assertion on a returned value: it is not a wire contract, so api-contract is refused by the mechanism lint and would be false if forced through; it is not user-visible; it crosses no shared consumer and no dependency path. Declaring a wrong trait to populate an obligation matrix is worse than declaring none, because the matrix would then assert a kind of proof this test does not provide. The mechanism block below still declares entrypoint, inputOrigin, assertionSurface and a negativeControl, so the test is fully described."
+    },
+    {
+      "scenarioId": "SCN-019-02",
+      "businessScenario": null,
+      "scopeId": "01-declare-the-earliest-claim-age-as-a-sourced-pack-figure",
+      "scope": 1,
+      "status": "done",
+      "title": "A pack that has not retrieved the figure declares its absence",
+      "gherkin": {
+        "given": "a benefit rule pack whose earliest claim age was never retrieved",
+        "when": "the earliest priceable claim age is read",
+        "then": "an AbsentFigure record is returned, and no age is assumed in its place"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Absence is represented explicitly rather than defaulted. Assuming an age in place of a missing one is the failure mode this scenario exists to exclude, because a wrong assumed bound would price ages the statute forbids while looking correct.",
+          "satisfiedBy": [
+            "TP-019-01"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "negativeControl": "A pack with the figure removed must return AbsentFigure rather than any age. If the engine substituted a default the assertion fails, which is what proves no fallback exists.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "rltaxsocialsecurity.js",
+          "rltaxclaimage.js"
+        ]
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs"
+      ],
+      "testRows": [
+        "TP-019-01"
+      ],
+      "evidenceRefs": [
+        "report.md#what-the-pack-says-the-bound-is"
+      ],
+      "traitNote": "api-contract was dropped: this is a module-level assertion on a returned value, not a wire contract, and the mechanism lint correctly refuses that pairing. degraded-state is retained because it is exactly what the scenario proves \u2014 an absent figure is represented explicitly instead of defaulted."
+    },
+    {
+      "scenarioId": "SCN-019-03",
+      "businessScenario": null,
+      "scopeId": "01-declare-the-earliest-claim-age-as-a-sourced-pack-figure",
+      "scope": 1,
+      "status": "done",
+      "title": "The engine holds no earliest age of its own",
+      "gherkin": {
+        "given": "the claim-age module",
+        "when": "it is searched for a literal earliest claim age",
+        "then": "no such literal exists"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "seeded-store",
+        "assertionSurface": "internal-state",
+        "dependencyPath": "not-applicable",
+        "negativeControl": "Reintroducing a literal earliest age into the module makes the search assertion fail, which is what stops the sourced figure being shadowed by a hardcoded one.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "rltaxclaimage.js"
+        ]
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs"
+      ],
+      "testRows": [
+        "TP-019-01"
+      ],
+      "evidenceRefs": [
+        "report.md#the-bound-now-lives-in-the-pack"
+      ],
+      "traitNote": "behaviorTraits and obligations are deliberately omitted rather than filled in with a trait that does not fit. The recognised coherence vocabulary is api-contract, user-visible-ui, shared-consumer and dependency-path. This scenario is a MODULE-level assertion on a returned value: it is not a wire contract, so api-contract is refused by the mechanism lint and would be false if forced through; it is not user-visible; it crosses no shared consumer and no dependency path. Declaring a wrong trait to populate an obligation matrix is worse than declaring none, because the matrix would then assert a kind of proof this test does not provide. The mechanism block below still declares entrypoint, inputOrigin, assertionSurface and a negativeControl, so the test is fully described."
+    },
+    {
+      "scenarioId": "SCN-019-04",
+      "businessScenario": null,
+      "scopeId": "02-refuse-a-claim-age-below-the-declared-earliest-age",
+      "scope": 2,
+      "status": "done",
+      "title": "The earliest priceable age still prices",
+      "gherkin": {
+        "given": "a household born in 1962 with a declared Primary Insurance Amount",
+        "when": "the declared claim age is the pack's earliest priceable age",
+        "then": "a monthly and an annual figure are produced, and the reduction equals the maximum the pack declares"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "744 months yields $2,100 monthly and $25,200 annually, unchanged from before the fix. This is the tolerated side of the boundary: a bound that refused here would have broken working behaviour.",
+          "satisfiedBy": [
+            "TP-019-02"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "negativeControl": "Raising the bound above this age makes the assertion fail. Without this side asserted, the bound could be raised until it refused everything and no test would notice.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html",
+          "rltaxclaimage.js"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-benefit.spec.mjs"
+      ],
+      "testRows": [
+        "TP-019-02"
+      ],
+      "evidenceRefs": [
+        "report.md#both-sides-of-the-one-month-boundary"
+      ]
+    },
+    {
+      "scenarioId": "SCN-019-05",
+      "businessScenario": null,
+      "scopeId": "02-refuse-a-claim-age-below-the-declared-earliest-age",
+      "scope": 2,
+      "status": "done",
+      "title": "One month below the earliest age refuses",
+      "gherkin": {
+        "given": "the same household",
+        "when": "the declared claim age is one month below the earliest priceable age",
+        "then": "no monthly figure is produced, no annual figure is produced, and a refusal naming the earliest priceable age is shown"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The refusal is asserted on the rendered route, not on a return value: no monthly figure, no annual figure, and a visible refusal naming the earliest priceable age. A reader must be able to see WHY the figure is absent, or absence is indistinguishable from a broken section.",
+          "satisfiedBy": [
+            "TP-019-02"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "720 months yields a refusal rather than $1,800. The refusal NAMES the earliest priceable age, so the reader learns what the bound is rather than only that their input was rejected.",
+          "satisfiedBy": [
+            "TP-019-02"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "negativeControl": "Lowering the bound below this age makes the assertion fail. Paired with SCN-019-04 one month away, the two sides pin the bound so it cannot be moved in either direction without a test going red.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html",
+          "rltaxclaimage.js"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-benefit.spec.mjs"
+      ],
+      "testRows": [
+        "TP-019-02"
+      ],
+      "evidenceRefs": [
+        "report.md#both-sides-of-the-one-month-boundary",
+        "report.md#probe-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-019-06",
+      "businessScenario": null,
+      "scopeId": "02-refuse-a-claim-age-below-the-declared-earliest-age",
+      "scope": 2,
+      "status": "done",
+      "title": "The refusal reaches the comparison table row by row",
+      "gherkin": {
+        "given": "a comparison list holding one priceable and one unpriceable age",
+        "when": "the comparison table renders",
+        "then": "the priceable age carries its figure, the unpriceable age carries a refusal in its own row, and no row is dropped"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The comparison table is asserted as rendered: three rows in, three rows out, with the unpriceable age carrying its refusal in its own row. Row count is the visible property that distinguishes a refusal in place from a silently dropped row.",
+          "satisfiedBy": [
+            "TP-019-03"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Entering 60,62,67 keeps three rows: age 60 refused IN PLACE, ages 62 and 67 priced. A dropped row would hide the refusal, leaving the reader to think they mistyped rather than that the age cannot be priced.",
+          "satisfiedBy": [
+            "TP-019-03"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "negativeControl": "Filtering unpriceable ages out of the table instead of refusing them in place makes the row-count assertion fail.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-claim-age.spec.mjs"
+      ],
+      "testRows": [
+        "TP-019-03"
+      ],
+      "evidenceRefs": [
+        "report.md#both-sides-of-the-one-month-boundary"
+      ]
+    },
+    {
+      "scenarioId": "SCN-019-07",
+      "businessScenario": null,
+      "scopeId": "02-refuse-a-claim-age-below-the-declared-earliest-age",
+      "scope": 2,
+      "status": "done",
+      "title": "The section prose agrees with what the section shows",
+      "gherkin": {
+        "given": "a claim age the pack cannot price",
+        "when": "the benefit section renders",
+        "then": "the settled-fact sentence is absent, so the prose does not assert a settlement the section is refusing to make"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The sentence claiming a claim age was settled against the sourced factors is absent while the section refuses. Prose that contradicts the figures is worse than either alone, because the reader cannot tell which to believe.",
+          "satisfiedBy": [
+            "TP-019-02"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "negativeControl": "Rendering the settled-fact sentence unconditionally makes the assertion fail.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-benefit.spec.mjs"
+      ],
+      "testRows": [
+        "TP-019-02"
+      ],
+      "evidenceRefs": [
+        "report.md#both-sides-of-the-one-month-boundary"
+      ]
+    },
+    {
+      "scenarioId": "SCN-019-08",
+      "businessScenario": null,
+      "scopeId": "02-refuse-a-claim-age-below-the-declared-earliest-age",
+      "scope": 2,
+      "status": "done",
+      "title": "A claim age beyond the delayed-credit stopping age is disclosed",
+      "gherkin": {
+        "given": "a declared claim age beyond age 70",
+        "when": "the benefit section renders",
+        "then": "the age-70 figure is still shown, and the section says the declared age is beyond the point at which the credit stops"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The age-70 figure is still shown on the rendered section, together with a visible statement that the declared age is beyond where the credit stops. The figure alone would look like a correct answer to a question the user did not ask.",
+          "satisfiedBy": [
+            "TP-019-02"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The upper bound is DISCLOSED rather than silently clamped. A silent clamp shows a correct figure for an age the user did not ask about, which is the same class of defect as the one this packet fixes at the lower bound.",
+          "satisfiedBy": [
+            "TP-019-02"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "negativeControl": "Clamping silently, without the disclosure, makes the assertion fail.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-benefit.spec.mjs"
+      ],
+      "testRows": [
+        "TP-019-02"
+      ],
+      "evidenceRefs": [
+        "report.md#both-sides-of-the-one-month-boundary"
+      ]
+    },
+    {
+      "scenarioId": "SCN-019-09",
+      "businessScenario": null,
+      "scopeId": "03-cover-both-sides-so-the-boundary-cannot-move-quietly",
+      "scope": 3,
+      "status": "done",
+      "title": "The boundary is asserted one month apart",
+      "gherkin": {
+        "given": "a case at the earliest priceable age and a case one month below it",
+        "when": "both run",
+        "then": "the first asserts a figure and the second asserts a refusal"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The two cases sit ONE MONTH apart. A wider gap would leave room to move the bound between them without either assertion noticing, which is exactly how a boundary decays silently.",
+          "satisfiedBy": [
+            "TP-019-04"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "negativeControl": "Moving the bound in either direction breaks one of the two cases, because there is no gap between them to absorb the move.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html",
+          "rltaxclaimage.js"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-benefit.spec.mjs",
+        "tests/lifetime-tax-claim-age.spec.mjs"
+      ],
+      "testRows": [
+        "TP-019-04"
+      ],
+      "evidenceRefs": [
+        "report.md#both-sides-of-the-one-month-boundary"
+      ]
+    },
+    {
+      "scenarioId": "SCN-019-10",
+      "businessScenario": null,
+      "scopeId": "03-cover-both-sides-so-the-boundary-cannot-move-quietly",
+      "scope": 3,
+      "status": "done",
+      "title": "Removing the bound fails the suite",
+      "gherkin": {
+        "given": "the earliest-age comparison is removed from the module",
+        "when": "the suite runs",
+        "then": "a case fails on its figure or refusal assertion rather than on a timeout"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Each case fails FOR ITS OWN ASSERTION REASON, not on a timeout. A case that goes red because the page hung proves nothing about the bound; it would go red for any breakage at all.",
+          "satisfiedBy": [
+            "TP-019-04"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "negativeControl": "This scenario IS the negative control for the rest of the packet: it removes the earliest-age comparison from the module and requires the suite to go red on the figure or refusal assertion. report.md records probe 2 returning exit 7 on its first attempt \u2014 a probe that did NOT discriminate \u2014 kept beside the attempt that worked rather than replaced by it.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "rltaxclaimage.js"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-benefit.spec.mjs",
+        "tests/lifetime-tax-claim-age.spec.mjs"
+      ],
+      "testRows": [
+        "TP-019-04"
+      ],
+      "evidenceRefs": [
+        "report.md#probe-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-019-11",
+      "businessScenario": null,
+      "scopeId": "03-cover-both-sides-so-the-boundary-cannot-move-quietly",
+      "scope": 3,
+      "status": "done",
+      "title": "The sub-zero band is a refusal and not a silence",
+      "gherkin": {
+        "given": "a declared claim age far below the earliest priceable age",
+        "when": "the benefit section renders",
+        "then": "a refusal code is present, and the section does not omit its figures without saying why"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The rendered section carries a refusal code rather than simply omitting its figures, so the visible state distinguishes a deliberate refusal from a section that failed to render at all.",
+          "satisfiedBy": [
+            "TP-019-04"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A refusal CODE is asserted, not merely the absence of figures. Absence is ambiguous \u2014 it looks identical to a section that failed to render \u2014 so asserting absence alone would pass against a broken page.",
+          "satisfiedBy": [
+            "TP-019-04"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "synthetic-boundary",
+        "negativeControl": "Rendering an empty section with no refusal code makes the assertion fail, which is what distinguishes a deliberate refusal from a silent failure.",
+        "negativeControlMechanism": "mutation",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html"
+        ]
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-claim-age.spec.mjs"
+      ],
+      "testRows": [
+        "TP-019-04"
+      ],
+      "evidenceRefs": [
+        "report.md#both-sides-of-the-one-month-boundary"
+      ]
+    }
+  ]
+}

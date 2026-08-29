@@ -8,6 +8,39 @@ contract and therefore the shape of every future benefit pack.
 
 No fix was attempted by the round that filed this packet, and no shipped file was modified.
 
+## Capability Foundation
+
+The foundation is **one sourced bound, read from the pack and consulted everywhere a claim age is
+priced**. The pack carries the earliest priceable age with a source reference and a locator; the
+claim-age module reads it; no consumer holds a copy.
+
+What makes this a foundation rather than a local fix is the absence it creates. SCN-019-03 asserts
+that the engine contains **no literal earliest claim age at all** — the module is searched and none
+is found. That assertion is what stops the bound being duplicated into the engine later, where the
+copy would drift from the sourced figure and the drift would be invisible.
+
+The foundation stops at the bound. It does not decide the reduction factors, does not rank claim
+ages, and does not advise; those already existed and are unchanged.
+
+## Concrete Implementations
+
+| # | Implementation | Enforces | Artifact | Failure mode it closes |
+|---|---|---|---|---|
+| 1 | Pack declaration | The bound EXISTS and is sourced | `rltaxsocialsecurity.js` | A bound nobody can audit against the statute |
+| 2 | Engine refusal | The bound is APPLIED at pricing time | `rltaxclaimage.js`, `lifetime-tax-strategy-lab.html` | An age below the bound priced as settled |
+
+Both are required and neither subsumes the other. A pack figure nobody reads changes nothing; a
+refusal with no sourced figure behind it is a literal in disguise. The pack additionally declares an
+explicit `AbsentFigure` when the value was never retrieved, so a missing bound refuses rather than
+defaulting — a default would price forbidden ages while looking correct, which is the original defect
+wearing a different hat.
+
+### Variation Axes
+
+- **Axis 1 — where the bound is known versus where it is applied.** This is the axis that forced two implementations. The pack is the only place the figure can be sourced and audited; the engine is the only place it can be applied. Collapsing them would put an unauditable literal in the engine, which `SCN-019-03` exists to make impossible.
+- **Axis 2 — how a refusal surfaces.** Fixed, not variable. Every surface that would have shown a figure shows a refusal naming the earliest priceable age instead: the benefit section, the comparison table row-by-row, and the prose. Holding this axis fixed is what stops a refusal being visible in one place and silent in another, which would leave the reader believing whichever surface they happened to look at.
+- **Axis deliberately NOT taken — a per-household or per-year override.** Nothing permits a household or a declared year to relax the bound. An override would reintroduce the defect one case at a time, and unlike the original it would look deliberate.
+
 ## Mechanism
 
 ### The bound and the factors live in the same object

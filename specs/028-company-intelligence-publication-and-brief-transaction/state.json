@@ -3,7 +3,7 @@
   "featureDir": "specs/028-company-intelligence-publication-and-brief-transaction",
   "featureName": "Company Intelligence Public Delivery and Atomic Brief Refresh",
   "createdAt": "2026-08-28T23:01:02Z",
-  "lastUpdatedAt": "2026-08-29T17:47:11Z",
+  "lastUpdatedAt": "2026-08-29T20:34:24Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -100,13 +100,13 @@
       "revision": 3,
       "sourceRequestDigest": "sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f"
     },
-    "activeAgent": "bubbles.validate",
-    "currentPhase": "validate",
-    "currentPhaseStatus": "completed",
-    "currentScope": "01-company-publication-foundation",
-    "substate": "independently_verified",
-    "runStartedAt": "2026-08-29T17:42:40Z",
-    "completedAt": "2026-08-29T17:47:11Z",
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
+    "currentScope": "03-transaction-restoration",
+    "substate": "needs_reverification",
+    "runStartedAt": "2026-08-29T20:34:24Z",
+    "completedAt": null,
     "completedPhaseClaims": [
       {
         "phase": "analyze",
@@ -161,11 +161,38 @@
         ],
         "claimedAt": "2026-08-29T17:47:11Z",
         "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-validate-owned-certification-2026-08-29"
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "scopes": [
+          "02-coupled-manifest-and-promotion"
+        ],
+        "claimedAt": "2026-08-29T19:15:17Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-final-implement-owned-build-quality"
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "scopes": [
+          "02-coupled-manifest-and-promotion"
+        ],
+        "claimedAt": "2026-08-29T19:31:25Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-test-owned-independent-verification-2026-08-29"
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "scopes": [
+          "02-coupled-manifest-and-promotion"
+        ],
+        "claimedAt": "2026-08-29T20:26:27Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-validate-owned-certification-after-remediation-2026-08-29"
       }
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-02-coupled-manifest-immutable-promotion-and-pointer-last-success-path",
+    "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-03-whole-transaction-restoration-and-non-authoritative-outcomes",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,
@@ -177,7 +204,8 @@
     "status": "in_progress",
     "certifiedAt": null,
     "completedScopes": [
-      "01-company-publication-foundation"
+      "01-company-publication-foundation",
+      "02-coupled-manifest-and-promotion"
     ],
     "certifiedCompletedPhases": [
       "validate"
@@ -197,13 +225,13 @@
         "scope": 2,
         "scopeId": "02-coupled-manifest-and-promotion",
         "name": "Coupled manifest, immutable promotion, and pointer-last success path",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "01-company-publication-foundation"
         ],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": null
+        "certifiedAt": "2026-08-29T20:26:27Z"
       },
       {
         "scope": 3,
@@ -412,6 +440,97 @@
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Independently replayed Scope 01 product, receipt, provenance, traceability, and governance checks. Certified only Scope 01. Feature status remains in_progress, Scopes 02 through 05 remain not_started, and human acceptance remains unchecked."
+    },
+    {
+      "agent": "bubbles.implement",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "runStartedAt": "2026-08-29T18:00:39Z",
+      "runCompletedAt": "2026-08-29T19:15:17Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "02-coupled-manifest-and-promotion",
+      "artifactChanges": [
+        "scripts/brief-publication.mjs",
+        "scripts/company-intelligence-publication.mjs",
+        "tests/company-intelligence-publication.e2e.mjs",
+        "tests/company-intelligence-publication.integration.mjs",
+        "tests/distributed-briefs.distributed-publish.unit.mjs",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md",
+        "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md",
+        "specs/028-company-intelligence-publication-and-brief-transaction/state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-implement-owned-reverification-2026-08-29",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-final-implement-owned-build-quality"
+      ],
+      "summary": "Reconciled the existing Scope 02 candidate without redesign. Executed current syntax, TP-02-01 through TP-02-06, shared-canary, regression-quality, source-lock, implementation-reality, artifact, goal-fidelity, strict-boundary, domain, scenario-mechanism, and Test Plan checks. Recorded only the implement-owned Scope 02 claim; certification remains Scope 01 only."
+    },
+    {
+      "agent": "bubbles.test",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "test"
+      ],
+      "runStartedAt": "2026-08-29T19:24:31Z",
+      "runCompletedAt": "2026-08-29T19:31:25Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "02-coupled-manifest-and-promotion",
+      "artifactChanges": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md",
+        "specs/028-company-intelligence-publication-and-brief-transaction/state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-test-owned-independent-verification-2026-08-29",
+        ".specify/runtime/scope02-test-tool-calls.jsonl"
+      ],
+      "summary": "Independently executed TP-02-01 through TP-02-06, a discriminating self-reverting production mutation, test-integrity checks, scoped traceability, source lock, isolation, boundary, mechanism, and evidence guards. Scope 02 test verification completed with zero test failures or skips. Certification remains Scope 01 only."
+    },
+    {
+      "agent": "bubbles.plan",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "runStartedAt": "2026-08-29T19:52:49Z",
+      "runCompletedAt": "2026-08-29T20:02:49Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "02-coupled-manifest-and-promotion",
+      "artifactChanges": [
+        "scopes.md",
+        "state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-02-coupled-manifest-immutable-promotion-and-pointer-last-success-path",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#validation-scope-02-refusal"
+      ],
+      "summary": "Repaired the complete Scope 02 plan-owned validation finding set. Preserved the 11 existing checked DoD items, added two test-owned regression requirements unchecked, retained In Progress status, and made no implementation or certification claim."
+    },
+    {
+      "agent": "bubbles.validate",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "runStartedAt": "2026-08-29T20:26:03Z",
+      "runCompletedAt": "2026-08-29T20:26:27Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "02-coupled-manifest-and-promotion",
+      "artifactChanges": [
+        "scopes.md",
+        "report.md",
+        "state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-validate-owned-certification-after-remediation-2026-08-29",
+        ".specify/runtime/tool-calls.jsonl"
+      ],
+      "summary": "Independently replayed Scope 02 tests and certification gates on unchanged implementation and test bytes. Closed every prior Scope 02 finding, certified only Scope 02, preserved both feature status mirrors as in_progress, left human acceptance unchanged, and selected Scope 03 for sequential implementation."
     }
   ],
   "activeBugs": [],
@@ -459,5 +578,5 @@
     ],
     "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
   },
-  "notes": "Scope 01 is validate-certified Done. Feature status and overall certification remain in_progress. Scopes 02 through 05 remain not_started; Scope 02 is the next eligible implementation unit. Human acceptance remains unchecked."
+  "notes": "Scopes 01 and 02 are validate-certified Done. Feature status and overall certification remain in_progress. Scopes 03 through 05 remain not_started, Scope 03 is the next sequential implementation target, and human acceptance remains unchecked."
 }

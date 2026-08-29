@@ -3,8 +3,11 @@
  */
 import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import {
+  chmodSync,
   copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -18,7 +21,24 @@ import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
+const PUBLICATION_MODULE = new URL('../scripts/company-intelligence-publication.mjs', import.meta.url);
 const PROCESS_TIMEOUT_MS = 30_000;
+
+function stableValue(value) {
+  if (Array.isArray(value)) return value.map(stableValue);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, stableValue(value[key])]));
+  }
+  return value;
+}
+
+function stableJson(value) {
+  return JSON.stringify(stableValue(value));
+}
+
+function sha(bytes) {
+  return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
+}
 
 function run(command, args, cwd) {
   return spawnSync(command, args, {
@@ -94,6 +114,196 @@ function allFiles(root, relative = '') {
   return rows.sort();
 }
 
+async function materializeBriefCandidate(candidateRoot, frozen, ownerRead) {
+  const { buildPublishSet, validatePublishSet, validateRunIdentity, promotePublishSet } =
+    await import('../scripts/brief-publication.mjs');
+  const ownerBytes = Buffer.from(stableJson(ownerRead), 'utf8');
+  const ownerReadRef = sha(ownerBytes);
+  const bundleFingerprint = sha(Buffer.from(stableJson({
+    generationId: frozen.generation.generationId,
+    ownerReadFingerprint: ownerRead.fingerprint,
+    orderedSourceToolIds: frozen.registry.orderedSourceToolIds
+  }), 'utf8'));
+  const runFingerprint = sha(Buffer.from(stableJson({
+    generationId: frozen.generation.generationId,
+    bundleFingerprint
+  }), 'utf8'));
+  const runId = `scope02-${frozen.generation.window}-${runFingerprint.slice(7, 19)}`;
+  const tools = frozen.registry.orderedSourceToolIds.map((toolId) => ({
+    toolId,
+    outcome: 'newly-authored',
+    read: toolId === 'company-intelligence-lab'
+      ? ownerRead
+      : {
+          contractVersion: 'scope02-source-read/v1',
+          toolId,
+          generationId: frozen.generation.generationId,
+          read: `${toolId} frozen source read`
+        },
+    brief: null
+  }));
+  const run = {
+    runId,
+    runFingerprint,
+    etRunDate: frozen.generation.etSessionDate,
+    window: frozen.generation.window,
+    registry: {
+      fingerprint: frozen.registry.registryFingerprint,
+      orderedSourceToolIds: frozen.registry.orderedSourceToolIds.slice(),
+      orderedParticipantIds: frozen.registry.orderedParticipantIds.slice()
+    },
+    evidence: {
+      state: 'available',
+      cutoffAt: frozen.generation.evidenceCutoff,
+      body: {
+        contractVersion: 'scope02-evidence/v1',
+        generationId: frozen.generation.generationId
+      }
+    },
+    tools,
+    final: {
+      body: {
+        contractVersion: 'final-brief/v1',
+        runId,
+        toolBriefBundleRef: { fingerprint: bundleFingerprint, sourceCount: tools.length },
+        companyPublication: {
+          generationId: frozen.generation.generationId,
+          ownerReadFingerprint: ownerRead.fingerprint,
+          ownerReadRef
+        }
+      },
+      coverage: { included: tools.length }
+    },
+    recommendationEvents: [],
+    prior: null
+  };
+  const built = buildPublishSet(run);
+  assert.equal(built.ok, true, built.ok ? '' : JSON.stringify(built.error));
+  assert.equal(validatePublishSet(built.staging, { priorStreams: {}, sealedMonths: [] }).ok, true);
+  assert.equal(validateRunIdentity(built.staging, { priorGeneration: 0 }).ok, true);
+  const promoted = promotePublishSet(built.staging, candidateRoot);
+  assert.equal(promoted.ok, true, promoted.ok ? '' : JSON.stringify(promoted.error));
+  return { runId, runFingerprint, ownerReadRef };
+}
+
+async function createScope03TransactionFixture(sandbox, label) {
+  const seed = path.join(sandbox, `${label}-seed`);
+  const remote = path.join(sandbox, `${label}-remote.git`);
+  const candidate = path.join(sandbox, `${label}-candidate`);
+  const publication = path.join(sandbox, `${label}-publication`);
+  const transaction = path.join(sandbox, `${label}-private-transaction`);
+  mkdirSync(seed, { recursive: true });
+  const fixtureFiles = [
+    'rlcompanyintel.js',
+    'rlcontracts.js',
+    'rldata.js',
+    'company-intelligence.config.json',
+    'tools.json',
+    'market-brief.snapshot.json',
+    'market-brief.owner-reads.json',
+    'scripts/company-intelligence-publication.mjs',
+    'scripts/brief-author.mjs',
+    'scripts/brief-publication.mjs',
+    'scripts/recommendation-body.mjs',
+    'data/company-intelligence/company-msft/events.json',
+    'data/company-intelligence/company-msft/current.json',
+    'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json'
+  ];
+  fixtureFiles.forEach((relativePath) => copyRelative(seed, relativePath));
+  addCompanySource(path.join(seed, 'tools.json'));
+  requireSuccess(run('git', ['init', '--initial-branch=main'], seed), `${label} seed init`);
+  requireSuccess(run('git', ['config', 'user.email', 'scope03@example.invalid'], seed), `${label} seed email`);
+  requireSuccess(run('git', ['config', 'user.name', 'Scope 03 Seed'], seed), `${label} seed name`);
+  requireSuccess(run('git', ['add', '--', '.'], seed), `${label} seed add`);
+  requireSuccess(run('git', ['commit', '-m', 'scope 03 prior acknowledged pair'], seed), `${label} seed commit`);
+  requireSuccess(run('git', ['init', '--bare', '--initial-branch=main', remote], sandbox), `${label} remote init`);
+  requireSuccess(run('git', ['remote', 'add', 'origin', remote], seed), `${label} seed remote`);
+  requireSuccess(run('git', ['push', '-u', 'origin', 'main'], seed), `${label} seed push`);
+  requireSuccess(run('git', ['clone', '--quiet', '--branch', 'main', remote, candidate], sandbox), `${label} candidate clone`);
+  requireSuccess(run('git', ['clone', '--quiet', '--branch', 'main', remote, publication], sandbox), `${label} publication clone`);
+  for (const root of [candidate, publication]) {
+    requireSuccess(run('git', ['config', 'user.email', 'scope03@example.invalid'], root), `${label} checkout email`);
+    requireSuccess(run('git', ['config', 'user.name', 'Scope 03 Transaction'], root), `${label} checkout name`);
+  }
+  const baseCommit = requireSuccess(run('git', ['rev-parse', 'HEAD'], candidate), `${label} base commit`);
+  const PUB = await import(PUBLICATION_MODULE.href);
+  const captured = PUB.captureCoupledTransactionBaseline({
+    transactionDir: transaction,
+    candidateRoot: candidate,
+    publicationRoot: publication,
+    remote: 'origin',
+    branch: 'main'
+  });
+  assert.equal(captured.ok, true, captured.ok ? '' : JSON.stringify(captured.error));
+
+  const triggerFile = path.join(sandbox, `${label}-trigger.json`);
+  writeFileSync(triggerFile, `${JSON.stringify({
+    contractVersion: 'company-publication-trigger/v1',
+    trigger: 'scheduled',
+    window: 'morning',
+    generationKey: 'scheduled/2026-08-28/morning',
+    requestedAt: '2026-08-28T13:59:00.000Z',
+    frozenAt: '2026-08-28T14:00:00.000Z',
+    evidenceCutoff: '2026-08-28T14:00:00.000Z',
+    etSessionDate: '2026-08-28',
+    sourceRevision: baseCommit
+  }, null, 2)}\n`);
+  const cli = path.join(candidate, 'scripts/company-intelligence-publication.mjs');
+  const prepared = run(process.execPath, [
+    cli,
+    'prepare',
+    '--transaction-dir', transaction,
+    '--candidate-root', candidate,
+    '--trigger-file', triggerFile
+  ], candidate);
+  assert.equal(JSON.parse(requireSuccess(prepared, `${label} prepare`)).ok, true);
+  const request = JSON.parse(readFileSync(
+    path.join(transaction, 'plan-requests/company-msft.json'),
+    'utf8'
+  ));
+  const responseFile = path.join(sandbox, `${label}-plan-response.json`);
+  writeFileSync(responseFile, `${JSON.stringify({
+    contractVersion: 'company-plan-author-response/v1',
+    requestFingerprint: request.requestFingerprint,
+    plan: {
+      contractVersion: 'company-authored-plan/v2',
+      subjectId: request.subjectId,
+      generationId: request.generationId,
+      emptyReason: 'floor-was-sufficient',
+      branches: []
+    }
+  }, null, 2)}\n`);
+  const bound = run(process.execPath, [
+    cli,
+    'bind-plan',
+    '--transaction-dir', transaction,
+    '--response-file', responseFile
+  ], candidate);
+  assert.equal(JSON.parse(requireSuccess(bound, `${label} bind plan`)).ok, true);
+  const frozen = JSON.parse(readFileSync(path.join(transaction, 'frozen-inputs.json'), 'utf8'));
+  const ownerRead = JSON.parse(readFileSync(path.join(transaction, 'company-owner-read.json'), 'utf8'));
+  await materializeBriefCandidate(candidate, frozen, ownerRead);
+  const assembled = run(process.execPath, [
+    cli,
+    'assemble',
+    '--transaction-dir', transaction,
+    '--candidate-root', candidate
+  ], candidate);
+  assert.equal(JSON.parse(requireSuccess(assembled, `${label} assemble`)).ok, true);
+  const plan = JSON.parse(readFileSync(path.join(transaction, 'publication-plan.json'), 'utf8'));
+  return {
+    PUB,
+    baseCommit,
+    candidate,
+    cli,
+    frozen,
+    plan,
+    publication,
+    remote,
+    transaction
+  };
+}
+
 test('Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority', () => {
   const sourceStatusBefore = requireSuccess(
     run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),
@@ -118,6 +328,8 @@ test('Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute t
       'market-brief.owner-reads.json',
       'scripts/company-intelligence-publication.mjs',
       'scripts/brief-author.mjs',
+      'scripts/brief-publication.mjs',
+      'scripts/recommendation-body.mjs',
       'data/company-intelligence/company-msft/events.json',
       'data/company-intelligence/company-msft/current.json',
       'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json'
@@ -335,6 +547,465 @@ test('Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute t
       'the production CLI process E2E leaves the source company pointer unchanged');
     assert.deepEqual(readFileSync(sourceBriefPath), sourceBriefBefore,
       'the production CLI process E2E leaves the source brief unchanged');
+  } finally {
+    rmSync(sandbox, { recursive: true, force: true });
+  }
+});
+
+test('Regression E2E: Scope 02 production CLI promotes one coherent generation and rejects illegal phase transitions', async () => {
+  const sourceStatusBefore = requireSuccess(
+    run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),
+    'source checkout status before Scope 02 process E2E'
+  );
+  const sandbox = mkdtempSync(path.join(tmpdir(), 'company-publication-scope02-e2e-'));
+  const candidate = path.join(sandbox, 'candidate');
+  const publication = path.join(sandbox, 'publication');
+  const transaction = path.join(sandbox, 'private-transaction');
+  mkdirSync(candidate, { recursive: true });
+  mkdirSync(publication, { recursive: true });
+  const fixtureFiles = [
+    'rlcompanyintel.js',
+    'rlcontracts.js',
+    'rldata.js',
+    'company-intelligence.config.json',
+    'tools.json',
+    'market-brief.snapshot.json',
+    'market-brief.owner-reads.json',
+    'scripts/company-intelligence-publication.mjs',
+    'scripts/brief-author.mjs',
+    'scripts/brief-publication.mjs',
+    'scripts/recommendation-body.mjs',
+    'data/company-intelligence/company-msft/events.json',
+    'data/company-intelligence/company-msft/current.json',
+    'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json'
+  ];
+  try {
+    fixtureFiles.forEach((relativePath) => copyRelative(candidate, relativePath));
+    [
+      'rlcompanyintel.js',
+      'rlcontracts.js',
+      'company-intelligence.config.json',
+      'tools.json',
+      'data/company-intelligence/company-msft/current.json',
+      'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json'
+    ].forEach((relativePath) => copyRelative(publication, relativePath));
+    addCompanySource(path.join(candidate, 'tools.json'));
+    addCompanySource(path.join(publication, 'tools.json'));
+
+    requireSuccess(run('git', ['init', '-b', 'main'], publication), 'publication git init');
+    requireSuccess(run('git', ['config', 'user.email', 'scope02@example.invalid'], publication), 'publication git config email');
+    requireSuccess(run('git', ['config', 'user.name', 'Scope 02 Test'], publication), 'publication git config name');
+    requireSuccess(run('git', ['add', '.'], publication), 'publication git add baseline');
+    requireSuccess(run('git', ['commit', '-m', 'scope 02 publication baseline'], publication), 'publication git commit baseline');
+    const baselineHead = requireSuccess(run('git', ['rev-parse', 'HEAD'], publication), 'publication baseline head');
+    assert.equal(requireSuccess(run('git', ['status', '--porcelain'], publication), 'publication clean baseline'), '');
+
+    const triggerFile = path.join(sandbox, 'trigger.json');
+    writeFileSync(triggerFile, `${JSON.stringify({
+      contractVersion: 'company-publication-trigger/v1',
+      trigger: 'scheduled',
+      window: 'morning',
+      generationKey: 'scheduled/2026-08-28/morning',
+      requestedAt: '2026-08-28T13:59:00.000Z',
+      frozenAt: '2026-08-28T14:00:00.000Z',
+      evidenceCutoff: '2026-08-28T14:00:00.000Z',
+      etSessionDate: '2026-08-28',
+      sourceRevision: baselineHead
+    }, null, 2)}\n`);
+    const cli = path.join(candidate, 'scripts/company-intelligence-publication.mjs');
+    const prepared = run(process.execPath, [
+      cli,
+      'prepare',
+      '--transaction-dir', transaction,
+      '--candidate-root', candidate,
+      '--trigger-file', triggerFile
+    ], candidate);
+    const preparedOutput = JSON.parse(requireSuccess(prepared, 'Scope 02 prepare'));
+    assert.equal(preparedOutput.ok, true);
+
+    const request = JSON.parse(readFileSync(
+      path.join(transaction, 'plan-requests/company-msft.json'),
+      'utf8'
+    ));
+    const responseFile = path.join(sandbox, 'plan-response.json');
+    writeFileSync(responseFile, `${JSON.stringify({
+      contractVersion: 'company-plan-author-response/v1',
+      requestFingerprint: request.requestFingerprint,
+      plan: {
+        contractVersion: 'company-authored-plan/v2',
+        subjectId: request.subjectId,
+        generationId: request.generationId,
+        emptyReason: 'floor-was-sufficient',
+        branches: []
+      }
+    }, null, 2)}\n`);
+    const bound = run(process.execPath, [
+      cli,
+      'bind-plan',
+      '--transaction-dir', transaction,
+      '--response-file', responseFile
+    ], candidate);
+    assert.equal(JSON.parse(requireSuccess(bound, 'Scope 02 bind-plan')).ok, true);
+    const frozen = JSON.parse(readFileSync(path.join(transaction, 'frozen-inputs.json'), 'utf8'));
+    const ownerRead = JSON.parse(readFileSync(path.join(transaction, 'company-owner-read.json'), 'utf8'));
+    const brief = await materializeBriefCandidate(candidate, frozen, ownerRead);
+
+    const beforeAssembly = run(process.execPath, [
+      cli,
+      'promote',
+      '--transaction-dir', transaction,
+      '--publication-root', publication
+    ], candidate);
+    requireRefusal(beforeAssembly, 'promote before coupled assembly', 'C028-STAGE');
+    assert.equal(requireSuccess(run('git', ['status', '--porcelain'], publication), 'publication unchanged after premature promote'), '');
+
+    const assembled = run(process.execPath, [
+      cli,
+      'assemble',
+      '--transaction-dir', transaction,
+      '--candidate-root', candidate
+    ], candidate);
+    const assembledOutput = JSON.parse(requireSuccess(assembled, 'Scope 02 assemble'));
+    assert.equal(assembledOutput.ok, true);
+    assert.equal(assembledOutput.generationId, frozen.generation.generationId);
+    assert.equal(assembledOutput.briefRunId, brief.runId);
+
+    const PUB = await import(PUBLICATION_MODULE.href);
+    const initialState = PUB.createCoupledState('11111111-1111-4111-8111-111111111111');
+    assert.equal(initialState.ok, true);
+    let state = initialState.value;
+    assert.equal(PUB.advanceCoupledState(state, 'inputs-frozen').ok, false,
+      'a skipped phase is structurally refused');
+    assert.equal(PUB.advanceCoupledState(state, 'initialized').ok, false,
+      'a repeated phase is structurally refused');
+    assert.equal(PUB.advanceCoupledState(state, 'not-a-phase').ok, false,
+      'an unknown phase is structurally refused');
+    const firstAdvance = PUB.advanceCoupledState(state, PUB.COUPLED_PUBLICATION_PHASES[1]);
+    assert.equal(firstAdvance.ok, true);
+    const tamperedHistory = {
+      ...firstAdvance.value,
+      history: ['not-initialized', PUB.COUPLED_PUBLICATION_PHASES[1]]
+    };
+    assert.equal(PUB.advanceCoupledState(tamperedHistory, PUB.COUPLED_PUBLICATION_PHASES[2]).ok, false,
+      'a state carrying a forged phase-history prefix is structurally refused');
+    state = firstAdvance.value;
+    for (const phase of PUB.COUPLED_PUBLICATION_PHASES.slice(2)) {
+      const advanced = PUB.advanceCoupledState(state, phase);
+      assert.equal(advanced.ok, true, `legal coupled transition to ${phase}`);
+      state = advanced.value;
+    }
+    assert.equal(PUB.advanceCoupledState(state, 'committed').ok, false,
+      'a backward transition is structurally refused');
+
+    const promoted = run(process.execPath, [
+      cli,
+      'promote',
+      '--transaction-dir', transaction,
+      '--publication-root', publication
+    ], candidate);
+    const promotedOutput = JSON.parse(requireSuccess(promoted, 'Scope 02 promote'));
+    assert.equal(promotedOutput.ok, true);
+    assert.equal(promotedOutput.writeOrder.at(-1), 'data/company-intelligence/publication-current.json');
+    assert.equal(promotedOutput.staged.includes('data/company-intelligence/publication-current.json'), true);
+
+    const validated = run(process.execPath, [
+      cli,
+      'validate',
+      '--publication-root', publication,
+      '--generation-id', frozen.generation.generationId
+    ], candidate);
+    const validatedOutput = JSON.parse(requireSuccess(validated, 'Scope 02 validate'));
+    assert.equal(validatedOutput.ok, true);
+    assert.equal(validatedOutput.generationId, frozen.generation.generationId);
+    assert.equal(validatedOutput.briefRunId, brief.runId);
+    const staged = requireSuccess(run('git', ['diff', '--cached', '--name-only'], publication), 'publication staged inventory')
+      .split('\n').filter(Boolean);
+    assert.deepEqual(staged, promotedOutput.staged);
+    assert.equal(staged.includes('data/company-intelligence/publication-current.json'), true);
+    for (const [relativePath, expectedHash] of Object.entries(promotedOutput.stagedHashes)) {
+      const indexed = run('git', ['show', `:${relativePath}`], publication);
+      requireSuccess(indexed, `read staged bytes for ${relativePath}`);
+      assert.equal(sha(Buffer.from(indexed.stdout, 'utf8')), expectedHash,
+        `the reported staged hash comes from the actual Git index bytes for ${relativePath}`);
+    }
+    assert.equal(requireSuccess(run('git', ['rev-parse', 'HEAD'], publication), 'publication head remains baseline'), baselineHead,
+      'Scope 02 stages but does not start Scope 03 commit or restoration behavior');
+    assert.equal(
+      requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),
+        'source checkout status after Scope 02 process E2E'),
+      sourceStatusBefore,
+      'the Scope 02 process E2E leaves the source checkout byte inventory unchanged'
+    );
+  } finally {
+    rmSync(sandbox, { recursive: true, force: true });
+  }
+});
+
+test('Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical', async () => {
+  const sourceStatusBefore = requireSuccess(
+    run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),
+    'source checkout status before Scope 03 dry run'
+  );
+  const sandbox = mkdtempSync(path.join(tmpdir(), 'company-publication-scope03-dry-run-'));
+  try {
+    const fixture = await createScope03TransactionFixture(sandbox, 'dry-run');
+    const remoteBefore = requireSuccess(
+      run('git', ['ls-remote', '--heads', 'origin', 'refs/heads/main'], fixture.publication),
+      'dry-run remote before'
+    );
+    const result = fixture.PUB.completeCoupledDryRun({
+      transactionDir: fixture.transaction,
+      candidateRoot: fixture.candidate,
+      publicationRoot: fixture.publication
+    });
+    assert.equal(result.ok, true, result.ok ? '' : JSON.stringify(result.error));
+    assert.equal(result.value.state, 'dry-run-complete');
+    assert.equal(result.value.coherenceVerified, true);
+    assert.equal(result.value.authoritative, false);
+    assert.equal(result.value.generationId, fixture.frozen.generation.generationId);
+    assert.equal(requireSuccess(run('git', ['rev-parse', 'HEAD'], fixture.candidate), 'dry-run candidate HEAD'), fixture.baseCommit);
+    assert.equal(requireSuccess(run('git', ['rev-parse', 'HEAD'], fixture.publication), 'dry-run publication HEAD'), fixture.baseCommit);
+    assert.equal(requireSuccess(run('git', ['write-tree'], fixture.candidate), 'dry-run candidate index'),
+      JSON.parse(readFileSync(path.join(fixture.transaction, 'transaction-baseline.json'), 'utf8')).candidate.indexTree);
+    assert.equal(requireSuccess(run('git', ['write-tree'], fixture.publication), 'dry-run publication index'),
+      JSON.parse(readFileSync(path.join(fixture.transaction, 'transaction-baseline.json'), 'utf8')).publication.indexTree);
+    assert.equal(requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], fixture.candidate), 'dry-run candidate clean'), '');
+    assert.equal(requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], fixture.publication), 'dry-run publication clean'), '');
+    assert.equal(
+      existsSync(path.join(fixture.publication, fixture.plan.companyVersionPaths[0])),
+      false,
+      'the coherent private dry-run version never becomes a published checkout version'
+    );
+    assert.equal(
+      requireSuccess(run('git', ['ls-remote', '--heads', 'origin', 'refs/heads/main'], fixture.publication), 'dry-run remote after'),
+      remoteBefore,
+      'the bare remote ref remains byte-identical'
+    );
+    assert.equal(
+      requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),
+        'source checkout status after Scope 03 dry run'),
+      sourceStatusBefore,
+      'the dry run leaves the current Scope 02-certified checkout unchanged'
+    );
+  } finally {
+    rmSync(sandbox, { recursive: true, force: true });
+  }
+});
+
+test('Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit', async () => {
+  const sourceStatusBefore = requireSuccess(
+    run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),
+    'source checkout status before Scope 03 fault matrix'
+  );
+  const sandbox = mkdtempSync(path.join(tmpdir(), 'company-publication-scope03-faults-'));
+  try {
+    const fixture = await createScope03TransactionFixture(sandbox, 'faults');
+    const promoted = run(process.execPath, [
+      fixture.cli,
+      'promote',
+      '--transaction-dir', fixture.transaction,
+      '--publication-root', fixture.publication
+    ], fixture.candidate);
+    assert.equal(JSON.parse(requireSuccess(promoted, 'Scope 03 fault promotion')).ok, true);
+    const validated = run(process.execPath, [
+      fixture.cli,
+      'validate',
+      '--publication-root', fixture.publication,
+      '--generation-id', fixture.frozen.generation.generationId
+    ], fixture.candidate);
+    assert.equal(JSON.parse(requireSuccess(validated, 'Scope 03 fault validation')).ok, true);
+
+    const preCommitHook = path.join(fixture.publication, '.git/hooks/pre-commit');
+    writeFileSync(preCommitHook, '#!/usr/bin/env bash\nexit 41\n');
+    chmodSync(preCommitHook, 0o755);
+    const refusedCommit = fixture.PUB.commitCoupledTransaction({
+      transactionDir: fixture.transaction,
+      candidateRoot: fixture.candidate,
+      publicationRoot: fixture.publication,
+      subject: 'company-brief: scope 03 exact transaction'
+    });
+    assert.equal(refusedCommit.ok, false, 'the real pre-commit hook refuses the transaction commit');
+    assert.equal(refusedCommit.error.code, 'C028-COMMIT');
+    assert.equal(refusedCommit.restoration.state, 'aborted-pre-commit');
+    assert.equal(requireSuccess(run('git', ['rev-parse', 'HEAD'], fixture.publication), 'commit-failure HEAD'), fixture.baseCommit);
+    assert.equal(requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], fixture.publication), 'commit-failure publication clean'), '');
+    assert.equal(requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], fixture.candidate), 'commit-failure candidate clean'), '');
+    rmSync(preCommitHook, { force: true });
+
+    const retriedPromotion = run(process.execPath, [
+      fixture.cli,
+      'promote',
+      '--transaction-dir', fixture.transaction,
+      '--publication-root', fixture.publication
+    ], fixture.candidate);
+    assert.equal(JSON.parse(requireSuccess(retriedPromotion, 'Scope 03 exact retry promotion')).ok, true);
+    const committed = fixture.PUB.commitCoupledTransaction({
+      transactionDir: fixture.transaction,
+      candidateRoot: fixture.candidate,
+      publicationRoot: fixture.publication,
+      subject: 'company-brief: scope 03 exact transaction'
+    });
+    assert.equal(committed.ok, true, committed.ok ? '' : JSON.stringify(committed.error));
+    const exactCommit = committed.value.commit;
+    const commitCount = requireSuccess(run('git', ['rev-list', '--count', 'HEAD'], fixture.publication), 'commit count after exact commit');
+    const commitBody = requireSuccess(run('git', ['show', '-s', '--format=%B', exactCommit], fixture.publication), 'exact commit body');
+    assert.match(commitBody, new RegExp(`Company-Brief-Generation-Id: ${fixture.frozen.generation.generationId.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+    assert.match(commitBody, /Company-Brief-Manifest-SHA256: sha256:[a-f0-9]{64}/);
+
+    const preReceiveHook = path.join(fixture.remote, 'hooks/pre-receive');
+    writeFileSync(preReceiveHook, '#!/usr/bin/env bash\nexit 42\n');
+    chmodSync(preReceiveHook, 0o755);
+    const rejectedPush = fixture.PUB.pushCoupledTransaction({
+      transactionDir: fixture.transaction,
+      candidateRoot: fixture.candidate,
+      publicationRoot: fixture.publication,
+      remote: 'origin',
+      branch: 'main',
+      acknowledgmentFile: path.join(sandbox, 'private-ack.json')
+    });
+    assert.equal(rejectedPush.ok, true, rejectedPush.ok ? '' : JSON.stringify(rejectedPush.error));
+    assert.equal(rejectedPush.value.state, 'committed-pending-remote');
+    assert.equal(rejectedPush.value.commit, exactCommit);
+    const pendingAttempt = fixture.PUB.buildAttemptRecord({
+      attemptId: '35353535-3535-4535-8535-353535353535',
+      generationId: fixture.frozen.generation.generationId,
+      trigger: 'scheduled',
+      window: 'morning',
+      state: 'committed-pending-remote',
+      phase: 'committed',
+      startedAt: '2026-08-28T13:59:00.000Z',
+      finishedAt: '2026-08-28T14:00:00.000Z',
+      failure: null,
+      authoritativeGenerationId: 'prior-generation'
+    });
+    assert.equal(pendingAttempt.ok, true, pendingAttempt.ok ? '' : JSON.stringify(pendingAttempt.error));
+    assert.equal(pendingAttempt.value.authoritativeUnchanged, true);
+    assert.equal(Object.hasOwn(pendingAttempt.value, 'pairAuthority'), false);
+    assert.equal(requireSuccess(run('git', ['rev-parse', 'HEAD'], fixture.publication), 'push failure preserves HEAD'), exactCommit);
+    assert.equal(requireSuccess(run('git', ['rev-list', '--count', 'HEAD'], fixture.publication), 'push failure commit count'), commitCount);
+
+    rmSync(preReceiveHook, { force: true });
+    const blockedAckParent = path.join(sandbox, 'ack-parent-is-file');
+    writeFileSync(blockedAckParent, 'not a directory\n');
+    const acknowledgedWithoutReceipt = fixture.PUB.pushCoupledTransaction({
+      transactionDir: fixture.transaction,
+      candidateRoot: fixture.candidate,
+      publicationRoot: fixture.publication,
+      remote: 'origin',
+      branch: 'main',
+      acknowledgmentFile: path.join(blockedAckParent, 'private-ack.json')
+    });
+    assert.equal(acknowledgedWithoutReceipt.ok, true,
+      acknowledgedWithoutReceipt.ok ? '' : JSON.stringify(acknowledgedWithoutReceipt.error));
+    assert.equal(acknowledgedWithoutReceipt.value.state, 'acknowledged');
+    assert.equal(acknowledgedWithoutReceipt.value.commit, exactCommit);
+    assert.equal(acknowledgedWithoutReceipt.value.remoteReachable, true);
+    assert.equal(acknowledgedWithoutReceipt.value.acknowledgmentPersisted, false,
+      'private receipt failure cannot revoke verified remote authority');
+    assert.equal(requireSuccess(run('git', ['rev-list', '--count', 'HEAD'], fixture.publication), 'ack failure commit count'), commitCount,
+      'an acknowledgment retry creates no replacement commit');
+
+    const unknownSandbox = path.join(sandbox, 'unknown');
+    mkdirSync(unknownSandbox);
+    const unknown = await createScope03TransactionFixture(unknownSandbox, 'unknown');
+    const unknownPromotion = run(process.execPath, [
+      unknown.cli,
+      'promote',
+      '--transaction-dir', unknown.transaction,
+      '--publication-root', unknown.publication
+    ], unknown.candidate);
+    assert.equal(JSON.parse(requireSuccess(unknownPromotion, 'unknown promotion')).ok, true);
+    const unknownCommit = unknown.PUB.commitCoupledTransaction({
+      transactionDir: unknown.transaction,
+      candidateRoot: unknown.candidate,
+      publicationRoot: unknown.publication,
+      subject: 'company-brief: scope 03 unknown remote outcome'
+    });
+    assert.equal(unknownCommit.ok, true, unknownCommit.ok ? '' : JSON.stringify(unknownCommit.error));
+    const unknownExactCommit = unknownCommit.value.commit;
+    requireSuccess(run('git', ['remote', 'set-url', 'origin', path.join(unknownSandbox, 'missing.git')], unknown.publication),
+      'make remote outcome unknowable');
+    const ambiguous = unknown.PUB.pushCoupledTransaction({
+      transactionDir: unknown.transaction,
+      candidateRoot: unknown.candidate,
+      publicationRoot: unknown.publication,
+      remote: 'origin',
+      branch: 'main',
+      acknowledgmentFile: path.join(unknownSandbox, 'private-ack.json')
+    });
+    assert.equal(ambiguous.ok, true, ambiguous.ok ? '' : JSON.stringify(ambiguous.error));
+    assert.equal(ambiguous.value.state, 'remote-outcome-unknown');
+    assert.equal(ambiguous.value.commit, unknownExactCommit);
+    const unknownAttempt = unknown.PUB.buildAttemptRecord({
+      attemptId: '45454545-4545-4545-8545-454545454545',
+      generationId: unknown.frozen.generation.generationId,
+      trigger: 'scheduled',
+      window: 'morning',
+      state: 'remote-outcome-unknown',
+      phase: 'committed',
+      startedAt: '2026-08-28T13:59:00.000Z',
+      finishedAt: '2026-08-28T14:00:00.000Z',
+      failure: {
+        contractVersion: 'company-publication-error/v1',
+        code: 'C028-ACK-UNKNOWN',
+        phase: 'committed',
+        reason: `could not inspect ${path.join(unknownSandbox, 'missing.git')} with password=private`,
+        field: 'remoteRef',
+        causeCode: 'git-fetch-failed'
+      },
+      authoritativeGenerationId: 'prior-generation'
+    });
+    assert.equal(unknownAttempt.ok, true, unknownAttempt.ok ? '' : JSON.stringify(unknownAttempt.error));
+    assert.equal(unknownAttempt.value.authoritativeUnchanged, true);
+    assert.equal(Object.hasOwn(unknownAttempt.value, 'pairAuthority'), false);
+    assert.doesNotMatch(JSON.stringify(unknownAttempt.value), /missing\.git|password|private/);
+    const blocked = unknown.PUB.assertCoupledGenerationAdmission({ transactionDir: unknown.transaction });
+    assert.equal(blocked.ok, false, 'an unknown remote outcome blocks a new generation');
+    assert.equal(blocked.error.code, 'C028-ACK-UNKNOWN');
+
+    requireSuccess(run('git', ['remote', 'set-url', 'origin', unknown.remote], unknown.publication),
+      'restore real bare remote');
+    const reconciled = unknown.PUB.pushCoupledTransaction({
+      transactionDir: unknown.transaction,
+      candidateRoot: unknown.candidate,
+      publicationRoot: unknown.publication,
+      remote: 'origin',
+      branch: 'main',
+      acknowledgmentFile: path.join(unknownSandbox, 'private-ack.json')
+    });
+    assert.equal(reconciled.ok, true, reconciled.ok ? '' : JSON.stringify(reconciled.error));
+    assert.equal(reconciled.value.state, 'acknowledged');
+    assert.equal(reconciled.value.commit, unknownExactCommit);
+    assert.equal(reconciled.value.acknowledgmentPersisted, true);
+    const acknowledgedAttempt = unknown.PUB.buildAttemptRecord({
+      attemptId: '56565656-5656-4565-8565-565656565656',
+      generationId: unknown.frozen.generation.generationId,
+      trigger: 'scheduled',
+      window: 'morning',
+      state: 'acknowledged',
+      phase: 'remote-acknowledged',
+      startedAt: '2026-08-28T13:59:00.000Z',
+      finishedAt: '2026-08-28T14:00:00.000Z',
+      failure: null,
+      authoritativeGenerationId: unknown.frozen.generation.generationId
+    });
+    assert.equal(acknowledgedAttempt.ok, true,
+      acknowledgedAttempt.ok ? '' : JSON.stringify(acknowledgedAttempt.error));
+    assert.equal(acknowledgedAttempt.value.authoritativeUnchanged, false);
+    assert.equal(Object.hasOwn(acknowledgedAttempt.value, 'pairAuthority'), false,
+      'even an acknowledged attempt is a record, not the coupled selector');
+    assert.equal(unknown.PUB.assertCoupledGenerationAdmission({ transactionDir: unknown.transaction }).ok, true);
+    assert.equal(
+      requireSuccess(run('git', ['rev-parse', 'refs/heads/main'], unknown.remote), 'remote exact commit'),
+      unknownExactCommit,
+      'ancestry reconciliation acknowledges only the exact preserved commit'
+    );
+    assert.equal(
+      requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),
+        'source checkout status after Scope 03 fault matrix'),
+      sourceStatusBefore,
+      'the fault matrix leaves the Scope 02-certified checkout unchanged'
+    );
   } finally {
     rmSync(sandbox, { recursive: true, force: true });
   }

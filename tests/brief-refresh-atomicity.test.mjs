@@ -1855,4 +1855,53 @@ process.exit(count < 3 ? 1 : 0);
     assert.equal(publication.status, '');
     assert.equal(publication.head, fixture.initialHead);
   });
+
+  test('Regression canary: existing brief atomicity restores every prior owned path under coupled fault injection', (context) => {
+    const fixture = createBriefRefreshFixture({
+      validatorMode: 'fail-final',
+      narrativeMode: 'success',
+      agendaAssets: true,
+      companyAssets: true
+    });
+    context.after(() => fixture.cleanup());
+    const companyPointer = 'data/company-intelligence/company-msft/current.json';
+    const companyVersion = 'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json';
+    const unpublishedVersion = 'data/company-intelligence/company-msft/versions/scope03-unpublished.json';
+    const beforePointer = readFileSync(resolve(fixture.repoRoot, companyPointer));
+    const beforeVersion = readFileSync(resolve(fixture.repoRoot, companyVersion));
+    const fetchScript = resolve(fixture.repoRoot, 'scripts/fetch-options.mjs');
+    writeFileSync(fetchScript, `${readFileSync(fetchScript, 'utf8')}
+import { mkdirSync as scope03Mkdir, writeFileSync as scope03Write } from 'node:fs';
+const scope03Pointer = new URL('../${companyPointer}', import.meta.url);
+const scope03Candidate = new URL('../${unpublishedVersion}', import.meta.url);
+scope03Mkdir(new URL('../data/company-intelligence/company-msft/versions/', import.meta.url), { recursive: true });
+scope03Write(scope03Pointer, '{"generationId":"scope03-failed","versionId":"scope03-unpublished"}\\n');
+scope03Write(scope03Candidate, '{"generationId":"scope03-failed","versionId":"scope03-unpublished"}\\n');
+console.log('[scope03-canary] mutated company pointer and unpublished candidate inside the worker transaction');
+`);
+    const harnessStatus = gitFixture(fixture, [
+      'status', '--porcelain=v1', '--untracked-files=all', '--', 'scripts/fetch-options.mjs'
+    ]);
+
+    const result = runBriefRefreshFixture(fixture);
+    const publication = readPublicationState(fixture);
+
+    assert.equal(result.status, 1,
+      `coupled fault unexpectedly succeeded\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(result.stdout, /scope03-canary.*mutated company pointer and unpublished candidate/);
+    assert.match(result.stdout, /agenda transaction page projection parity failed/);
+    assert.ok(readFileSync(resolve(fixture.repoRoot, companyPointer)).equals(beforePointer),
+      'the company pointer restores byte-for-byte with the brief baselines');
+    assert.ok(readFileSync(resolve(fixture.repoRoot, companyVersion)).equals(beforeVersion),
+      'the prior immutable company version remains byte-identical');
+    assert.equal(existsSync(resolve(fixture.repoRoot, unpublishedVersion)), false,
+      'the unpublished checkout candidate is removed during full owned-path restoration');
+    assert.ok(publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']));
+    assert.ok(publication.historyBytes.equals(fixture.baseline['brief-history.jsonl']));
+    assert.ok(publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']));
+    assert.equal(publication.staged, '');
+    assert.equal(publication.status, harnessStatus,
+      'the worker restores every owned path without rewriting the test-owned fault injector');
+    assert.equal(publication.head, fixture.initialHead);
+  });
 }

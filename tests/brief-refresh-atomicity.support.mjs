@@ -392,6 +392,13 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   writeFileSync(resolve(repoRoot, 'market-brief.snapshot.json'), baselineSnapshot(baselineDate), 'utf8');
   writeFileSync(resolve(repoRoot, 'brief-history.jsonl'), fixtureHistory(baselineDate), 'utf8');
   writeFileSync(resolve(repoRoot, 'data/baseline.json'), '{"state":"baseline"}\n', 'utf8');
+  if (options.companyAssets) {
+    cpSync(
+      resolve(ROOT, 'data/company-intelligence'),
+      resolve(repoRoot, 'data/company-intelligence'),
+      { recursive: true }
+    );
+  }
   writeFileSync(resolve(repoRoot, 'unrelated.txt'), 'unrelated baseline\n', 'utf8');
 
   writeFixtureScript(resolve(repoRoot, 'scripts/fetch-options.mjs'), `

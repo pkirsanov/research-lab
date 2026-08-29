@@ -16,7 +16,7 @@
  */
 import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { ROW_CONTRACT_V2 } from './recommendation-body.mjs';
@@ -446,6 +446,203 @@ export function rollbackPublication(prior) {
 /** Serialize a pointer/body object to the same deterministic bytes buildPublishSet writes to disk. */
 export function pointerBytes(value) {
   return Buffer.from(stableStringify(value), 'utf8');
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Feature 028 Scope 02 — generic declared-inventory promotion.
+ *
+ * The existing brief publish set has one pointer. A coupled company-and-brief
+ * publication has three ordered mutable groups: subject pointers, brief
+ * pointers, and one coupled selector. These additive primitives retain the same
+ * content-hash and closed-inventory guarantees while making that order explicit.
+ * ───────────────────────────────────────────────────────────────────────────── */
+
+const DECLARED_PUBLICATION_CONTRACT = 'declared-publication-set/v1';
+
+function declaredFailure(reason, detail) {
+  return publishSetFailure(reason, detail);
+}
+
+function safeRelativePath(relativePath) {
+  return typeof relativePath === 'string' && relativePath.length > 0 &&
+    !path.isAbsolute(relativePath) && !relativePath.includes('\\') &&
+    relativePath.split('/').every((part) => part.length > 0 && part !== '.' && part !== '..');
+}
+
+function orderedPublicationPaths(staging) {
+  return [
+    ...staging.order.candidatePaths,
+    ...staging.order.subjectPointerPaths,
+    ...staging.order.briefPointerPaths,
+    staging.order.selectorPath
+  ];
+}
+
+/**
+ * Validate a closed file set whose selector is structurally the final write.
+ * Every byte hash and byte length is checked before any caller can materialize
+ * or stage the set. Immutable paths must belong to the candidate group.
+ */
+export function validateDeclaredPublication(staging) {
+  if (!staging || staging.contractVersion !== DECLARED_PUBLICATION_CONTRACT ||
+      !staging.files || typeof staging.files !== 'object' || Array.isArray(staging.files) ||
+      !staging.order || typeof staging.order !== 'object' ||
+      !Array.isArray(staging.order.candidatePaths) ||
+      !Array.isArray(staging.order.subjectPointerPaths) ||
+      !Array.isArray(staging.order.briefPointerPaths) ||
+      !safeRelativePath(staging.order.selectorPath) ||
+      !Array.isArray(staging.immutablePaths)) {
+    return declaredFailure('declared-publication-shape', 'declared-publication-set/v1');
+  }
+  if (staging.order.subjectPointerPaths.length === 0 || staging.order.briefPointerPaths.length === 0) {
+    return declaredFailure('declared-pointer-group-empty', 'subject and brief pointer groups are required');
+  }
+  const ordered = orderedPublicationPaths(staging);
+  if (ordered.some((relativePath) => !safeRelativePath(relativePath))) {
+    return declaredFailure('declared-path-invalid', ordered.find((relativePath) => !safeRelativePath(relativePath)));
+  }
+  if (new Set(ordered).size !== ordered.length) {
+    return declaredFailure('declared-path-duplicate', ordered);
+  }
+  const filePaths = Object.keys(staging.files).sort();
+  if (JSON.stringify(ordered.slice().sort()) !== JSON.stringify(filePaths)) {
+    return declaredFailure('declared-inventory-mismatch', {
+      ordered: ordered.slice().sort(),
+      files: filePaths
+    });
+  }
+  const candidateSet = new Set(staging.order.candidatePaths);
+  const immutableSet = new Set(staging.immutablePaths);
+  if (immutableSet.size !== staging.immutablePaths.length ||
+      staging.immutablePaths.some((relativePath) => !candidateSet.has(relativePath))) {
+    return declaredFailure('declared-immutable-group-invalid', staging.immutablePaths);
+  }
+  for (const relativePath of filePaths) {
+    const file = staging.files[relativePath];
+    if (!file || !Buffer.isBuffer(file.bytes) ||
+        file.sha256 !== `sha256:${sha256Hex(file.bytes)}` ||
+        file.byteLength !== file.bytes.length) {
+      return declaredFailure('declared-file-hash-mismatch', relativePath);
+    }
+  }
+  return {
+    ok: true,
+    declared: {
+      fileCount: filePaths.length,
+      immutableCount: immutableSet.size,
+      writeOrder: ordered,
+      selectorPath: staging.order.selectorPath
+    }
+  };
+}
+
+function phaseForDeclaredPath(staging, relativePath) {
+  if (staging.order.subjectPointerPaths.includes(relativePath)) return 'subject-pointer';
+  if (staging.order.briefPointerPaths.includes(relativePath)) return 'brief-pointer';
+  if (staging.order.selectorPath === relativePath) return 'coupled-selector';
+  return 'candidate';
+}
+
+/**
+ * Materialize a validated declared set. Immutable candidates are write-once:
+ * identical bytes are an idempotent reuse, while divergent bytes refuse before
+ * replacement. The coupled selector can only be reached after every preceding
+ * candidate and pointer has been written and re-read by hash.
+ */
+export function promoteDeclaredPublication(staging, targetDir, options) {
+  const validation = validateDeclaredPublication(staging);
+  if (!validation.ok) return validation;
+  if (typeof targetDir !== 'string' || !targetDir) {
+    return declaredFailure('target-required', 'promoteDeclaredPublication requires a target directory');
+  }
+  const opts = options || {};
+  const writeFile = typeof opts.writeFile === 'function'
+    ? opts.writeFile
+    : (absolutePath, bytes) => {
+        mkdirSync(path.dirname(absolutePath), { recursive: true });
+        writeFileSync(absolutePath, bytes);
+      };
+  const readBack = typeof opts.readFile === 'function' ? opts.readFile : (absolutePath) => readFileSync(absolutePath);
+  const onWrite = typeof opts.onWrite === 'function' ? opts.onWrite : () => {};
+  const immutableSet = new Set(staging.immutablePaths);
+  const written = [];
+  const reused = [];
+  for (const relativePath of validation.declared.writeOrder) {
+    const absolutePath = path.join(targetDir, relativePath);
+    const expected = staging.files[relativePath];
+    if (immutableSet.has(relativePath) && existsSync(absolutePath)) {
+      const existing = readBack(absolutePath);
+      if (!Buffer.isBuffer(existing) || !existing.equals(expected.bytes)) {
+        return declaredFailure('immutable-collision', relativePath);
+      }
+      reused.push(relativePath);
+      continue;
+    }
+    writeFile(absolutePath, expected.bytes, relativePath, phaseForDeclaredPath(staging, relativePath));
+    const persisted = readBack(absolutePath);
+    if (!Buffer.isBuffer(persisted) || `sha256:${sha256Hex(persisted)}` !== expected.sha256) {
+      return declaredFailure('promotion-byte-drift', relativePath);
+    }
+    written.push(relativePath);
+    onWrite({ path: relativePath, phase: phaseForDeclaredPath(staging, relativePath) });
+  }
+  return {
+    ok: true,
+    promoted: {
+      targetDir,
+      writeOrder: validation.declared.writeOrder.slice(),
+      written,
+      reused,
+      selectorPath: validation.declared.selectorPath
+    }
+  };
+}
+
+/**
+ * Stage only paths declared by the ordered set, then reject every pre-existing
+ * or newly cached path outside that set. A reused immutable object may be absent
+ * from the index because identical bytes create no Git delta.
+ */
+export function stageDeclaredPublication(staging, gitRunner) {
+  const validation = validateDeclaredPublication(staging);
+  if (!validation.ok) return validation;
+  if (typeof gitRunner !== 'function') {
+    return declaredFailure('git-runner-required', 'stageDeclaredPublication requires a gitRunner');
+  }
+  const declared = new Set(validation.declared.writeOrder);
+  for (const relativePath of validation.declared.writeOrder) {
+    const added = gitRunner(['add', '--', relativePath]);
+    if (!added || added.code !== 0) return declaredFailure('stage-add-failed', relativePath);
+  }
+  const cached = gitRunner(['diff', '--cached', '--name-only']);
+  if (!cached || cached.code !== 0) {
+    return declaredFailure('stage-diff-failed', cached && (cached.stderr || cached.stdout));
+  }
+  const staged = cached.stdout.split('\n').map((line) => line.trim()).filter(Boolean);
+  const undeclared = staged.filter((relativePath) => !declared.has(relativePath));
+  if (undeclared.length > 0) return declaredFailure('undeclared-staged-path', undeclared.sort());
+  const stagedHashes = {};
+  for (const relativePath of validation.declared.writeOrder) {
+    const indexed = gitRunner(['show', `:${relativePath}`]);
+    if (!indexed || indexed.code !== 0) {
+      return declaredFailure('stage-index-read-failed', relativePath);
+    }
+    const indexedBytes = Buffer.isBuffer(indexed.stdout)
+      ? indexed.stdout
+      : Buffer.from(indexed.stdout || '', 'utf8');
+    const indexedHash = `sha256:${sha256Hex(indexedBytes)}`;
+    if (indexedHash !== staging.files[relativePath].sha256 ||
+        indexedBytes.length !== staging.files[relativePath].byteLength) {
+      return declaredFailure('stage-index-hash-mismatch', relativePath);
+    }
+    stagedHashes[relativePath] = indexedHash;
+  }
+  return {
+    ok: true,
+    staged: staged.slice().sort(),
+    declared: validation.declared.fileCount,
+    stagedHashes
+  };
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────

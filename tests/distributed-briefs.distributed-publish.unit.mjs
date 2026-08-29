@@ -24,7 +24,8 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import {
-  buildPublishSet, validatePublishSet, validateRunIdentity, canonicalMonthFromEtRunDate
+  buildPublishSet, validatePublishSet, validateRunIdentity, promotePublishSet,
+  canonicalMonthFromEtRunDate
 } from '../scripts/brief-publication.mjs';
 import { validateCurrentGraph, validateHistoryGraph } from '../scripts/validate-distributed-briefs.mjs';
 
@@ -251,5 +252,56 @@ test('distributed publisher writes ONLY under briefs/ and never mutates market-b
     // No data/ directory was created; the only new top-level entry is briefs/.
     assert.equal(existsSync(path.join(fx.root, 'data')), false, 'no data/ created');
     assert.deepEqual(readdirSync(fx.root).sort(), ['briefs', 'market-brief.payload.json', 'market-brief.snapshot.json', 'tools.json'], 'briefs/ is the only new top-level entry');
+  } finally { fx.cleanup(); }
+});
+
+test('Regression canary: distributed brief publication primitives preserve content addressing and pointer-last behavior', () => {
+  const fx = makeFixtureRoot();
+  try {
+    const inputs = loadInputs(fx.root);
+    assert.equal(inputs.ok, true);
+    const frozen = RLCONTRACTS.validateRegistry(inputs.toolsJson, null);
+    assert.equal(frozen.ok, true);
+    const run = buildDistributedRun({
+      snapshot: inputs.snapshot,
+      payload: inputs.payload,
+      frozen: frozen.value,
+      snapshotSha: inputs.snapshotSha,
+      payloadSha: inputs.payloadSha,
+      prior: null
+    });
+    assert.equal(run.ok, true);
+    const built = buildPublishSet(run.run);
+    assert.equal(built.ok, true);
+    assert.equal(validatePublishSet(built.staging, { priorStreams: {}, sealedMonths: [] }).ok, true);
+    assert.equal(validateRunIdentity(built.staging, { priorGeneration: 0 }).ok, true);
+
+    const result = publishDistributedBriefs({ root: fx.root });
+    assert.equal(result.ok, true);
+    assert.ok(result.wrote.every((relativePath) => relativePath.startsWith('briefs/')));
+    assert.equal(result.wrote.includes('briefs/current.json'), true);
+    const current = readJson(fx.root, 'briefs/current.json');
+    const manifestBytes = readFileSync(path.join(fx.root, current.manifestRef.path));
+    assert.equal(sha(manifestBytes), current.manifestRef.sha256);
+    assert.equal(validateCurrentGraph(fx.root).ok, true);
+    assert.equal(validateHistoryGraph(fx.root).ok, true);
+
+    // Exercise the recorder on the primitive itself in a second isolated root so the write order is
+    // observed rather than inferred from the returned path set.
+    const recordedRoot = mkdtempSync(path.join(tmpdir(), 'rl-distpub-pointer-order-'));
+    try {
+      const writes = [];
+      const writeFile = (absolutePath, bytes) => {
+        mkdirSync(path.dirname(absolutePath), { recursive: true });
+        writeFileSync(absolutePath, bytes);
+        writes.push(path.relative(recordedRoot, absolutePath).split(path.sep).join('/'));
+      };
+      const recorded = promotePublishSet(built.staging, recordedRoot, { writeFile });
+      assert.equal(recorded.ok, true);
+      assert.equal(writes.at(-1), 'briefs/current.json');
+      assert.ok(writes.slice(0, -1).every((relativePath) => relativePath !== 'briefs/current.json'));
+    } finally {
+      rmSync(recordedRoot, { recursive: true, force: true });
+    }
   } finally { fx.cleanup(); }
 });

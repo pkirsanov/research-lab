@@ -55,7 +55,7 @@ Links: [spec.md](spec.md) · [design.md](design.md) · [report.md](report.md) ·
 | Scope | Name | Depends On | Primary surfaces | Scenario set | Status |
 | --- | --- | --- | --- | --- | --- |
 | 01 | Company publication foundation and headless owner-read contracts | None | UMD contracts, Node publication module, config, domain model | SCN-028-005 through SCN-028-010 | Done |
-| 02 | Coupled manifest, immutable promotion, and pointer-last success path | Scope 01 | publication module, Git primitives, company data contracts | SCN-028-011, SCN-028-013, SCN-028-014, SCN-028-021 | Not Started |
+| 02 | Coupled manifest, immutable promotion, and pointer-last success path | Scope 01 | publication module, Git primitives, company data contracts | SCN-028-011, SCN-028-013, SCN-028-014, SCN-028-021 | Done |
 | 03 | Whole-transaction restoration and non-authoritative outcomes | Scope 02 | worker transaction, restoration, private checkouts, dry run | SCN-028-015, SCN-028-016, SCN-028-017, SCN-028-022 | Not Started |
 | 04 | Scheduled and on-demand shared trigger integration | Scope 03 | launcher, worker, scheduler, prompt, exact resume | SCN-028-003, SCN-028-004, SCN-028-012, SCN-028-019 | Not Started |
 | 05 | Public registration, authority-aware UI, and Pages delivery | Scope 04 | registries, routes, shared UI, docs, Pages package | SCN-028-001, SCN-028-002, SCN-028-018, SCN-028-020 | Not Started |
@@ -263,9 +263,9 @@ And no brief from this generation publishes
 
 ## Scope 02: Coupled manifest, immutable promotion, and pointer-last success path
 
-**Status:** Not Started  
+**Status:** Done
 **Depends On:** Scope 01 foundation.  
-**Scope-Kind:** runtime-behavior.
+**Scope-Kind:** runtime-behavior
 
 **Consumer surface:** The production CLI command boundary exposes candidate assembly, promotion, and disk-coherence validation.
 
@@ -337,6 +337,16 @@ And it states that the conclusion is unchanged
 9. Preserve identical candidate bytes for the same generation. Refuse divergent bytes at the same identity.
 10. Record `changed`, `unchanged`, or `first` without suppressing a successful unchanged recreation.
 
+### Implementation Files
+
+The installed implementation discovery grammar normalizes text after `::`; `Node.js` is a language qualifier, not another path.
+
+- `scripts/company-intelligence-publication.mjs::Node.js`
+- `scripts/brief-publication.mjs::Node.js`
+- `tests/company-intelligence-publication.integration.mjs::Node.js`
+- `tests/company-intelligence-publication.e2e.mjs::Node.js`
+- `tests/distributed-briefs.distributed-publish.unit.mjs::Node.js`
+
 ### Shared Infrastructure Impact Sweep
 
 | Protected surface | Downstream contracts | Independent canary | Restore path |
@@ -380,27 +390,38 @@ And it states that the conclusion is unchanged
 
 #### Core Outcomes
 
-- [ ] Generation, version, manifest, pointer, and content identities are deterministic, additive, and collision-safe.
-- [ ] Candidate versions and manifests become durable before subject, brief, and coupled pointers move in the declared order.
-- [ ] Disk coherence validates every referenced byte, prior immutable hash, registry fingerprint, and matching brief source read.
-- [ ] The Shared Infrastructure Impact Sweep, canaries, restore paths, Consumer Impact Sweep, and Change Boundary are satisfied.
+- [x] Generation, version, manifest, pointer, and content identities are deterministic, additive, and collision-safe. → Evidence: [Scope 02 deterministic identity, collision, and resume](report.md#scope-02-deterministic-identity-collision-and-resume)
+- [x] Candidate versions and manifests become durable before subject, brief, and coupled pointers move in the declared order. → Evidence: [Scope 02 durability and pointer order](report.md#scope-02-durability-and-pointer-order)
+- [x] Disk coherence validates every referenced byte, prior immutable hash, registry fingerprint, and matching brief source read. → Evidence: [Scope 02 on-disk coherence](report.md#scope-02-on-disk-coherence)
+- [x] The Shared Infrastructure Impact Sweep, canaries, restore paths, Consumer Impact Sweep, and Change Boundary are satisfied. → Evidence: [Scope 02 shared impact, consumers, restore contract, and boundary](report.md#scope-02-shared-impact-consumers-restore-contract-and-boundary)
 
 #### Test Evidence Items — 6 rows, exact Test Plan parity
 
-- [ ] TP-02-01 proves SCN-028-011 with distinct same-day version files, cutoffs, predecessors, and unchanged prior bytes. → Evidence: [TP-02-01](report.md#tp-02-01)
-- [ ] TP-02-02 proves SCN-028-013 by refusing predecessor drift while preserving the baseline pointer and brief. → Evidence: [TP-02-02](report.md#tp-02-02)
-- [ ] TP-02-03 proves SCN-028-014 with recorded pointer order and a final coupled coherence check. → Evidence: [TP-02-03](report.md#tp-02-03)
-- [ ] TP-02-04 proves SCN-028-021 by appending a distinct immutable version with an explicit unchanged conclusion. → Evidence: [TP-02-04](report.md#tp-02-04)
-- [ ] TP-02-05 proves the production CLI success path and every illegal state transition through a real temporary Git checkout. → Evidence: [TP-02-05](report.md#tp-02-05)
-- [ ] TP-02-06 proves existing distributed brief primitives retain content addressing and pointer-last behavior. → Evidence: [TP-02-06](report.md#tp-02-06)
+- [x] TP-02-01 proves SCN-028-011, Four daily windows do not collide: two successful same-day publication windows create versions with distinct generation identities, preserve their own cutoffs and predecessors, and overwrite neither version. → Evidence: [TP-02-01](report.md#tp-02-01)
+- [x] TP-02-02 proves SCN-028-013, Pointer drift breaks the candidate chain: a candidate whose named predecessor differs from the baseline pointer is refused, the baseline pointer remains unchanged, and the brief candidate does not publish. → Evidence: [TP-02-02](report.md#tp-02-02)
+- [x] TP-02-03 proves SCN-028-014, Current changes only after all candidates validate: after the immutable company version is durable and the company owner read and complete brief candidate are valid, the company pointer advances as the final mutable step and a final coherence check proves both products name the same generation. → Evidence: [TP-02-03](report.md#tp-02-03)
+- [x] TP-02-04 proves SCN-028-021 by appending a distinct immutable version with an explicit unchanged conclusion. → Evidence: [TP-02-04](report.md#tp-02-04)
+- [x] TP-02-05 proves the production CLI success path and every illegal state transition through a real temporary Git checkout. → Evidence: [TP-02-05](report.md#tp-02-05)
+- [x] TP-02-06 proves existing distributed brief primitives retain content addressing and pointer-last behavior. → Evidence: [TP-02-06](report.md#tp-02-06)
+
+#### Regression and Change-Boundary Evidence
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior pass through TP-02-05. → Evidence: [TP-02-05](report.md#tp-02-05)
+  > **Phase:** test
+  > **Claim Source:** executed
+  > **Current execution:** [Scope 02 scenario-specific process E2E](report.md#scenario-specific-tp-02-05-process-e2e)
+- [x] Broader E2E regression suite passes through the complete TP-02-05 production CLI process-E2E file. → Evidence: [TP-02-05](report.md#tp-02-05)
+  > **Phase:** test
+  > **Claim Source:** executed
+  > **Current execution:** [Scope 02 broader process E2E](report.md#broader-tp-02-05-process-e2e-file)
 
 #### Build Quality Gate
 
-- [ ] The changed files parse, focused and canary suites pass, immutable-history scans remain clean, and no undeclared staged path exists.
+- [x] The changed files parse, focused and canary suites pass, immutable-history scans remain clean, and no undeclared staged path exists. → Evidence: [Scope 02 final implement-owned Build Quality](report.md#scope-02-final-implement-owned-build-quality)
 
 ## Scope 03: Whole-transaction restoration and non-authoritative outcomes
 
-**Status:** Not Started  
+**Status:** In Progress
 **Depends On:** Scope 02.  
 **Scope-Kind:** runtime-behavior.
 

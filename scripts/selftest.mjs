@@ -14264,6 +14264,79 @@ try {
       && finiteDisplay020.ruleStatus === 'enacted-current-law',
     'TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule standing, and a finite record still rounds to the value and status it carried before the guard');
 
+    /* TB-020-05 (BUG-020). The ORIGIN guard (E1), which TB-020-04 deliberately does not reach.
+       A red-green probe against E1 was non-discriminating while TB-020-04 stood alone: deleting
+       the origin guard let the overflowing sum flow onward until E3 caught it at the display
+       seam, so the suite still saw a refusal and stayed green. That is a real hole rather than a
+       probe artefact. The refusal a reader gets is not the same refusal: E1 names
+       `income:grossSupportedIncome` and tells them their declared amounts summed out of range,
+       while E3 names `display:value` and can only say a record arrived unprintable. Silently
+       trading the first for the second is the degradation this assertion exists to catch, so it
+       pins the DOMAIN and not merely the code — asserting the code alone would pass on the E3
+       cascade and reopen the hole. */
+    const overflowWorkspace020 = workspaceAt('single', 9e307);
+    overflowWorkspace020.income.qualifiedDividend = 9e307;
+    const overflowSettled020 = RLTAX.computeAnnualFederalTax(overflowWorkspace020, settlePack);
+    const overflowRefusals020 = Object.keys(overflowSettled020)
+      .map((key) => overflowSettled020[key])
+      .filter((member) => member && RLTAXRULES.isUnavailable(member));
+    assert(Number.isFinite(9e307) && !Number.isFinite(9e307 + 9e307)
+      && overflowRefusals020.length > 0
+      && overflowRefusals020.some((refusal) => refusal.code === 'RLTAX-FIGURE-UNREPRESENTABLE'
+        && refusal.domain === 'income:grossSupportedIncome')
+      /* No stage settles a figure from a sum that does not exist, and none carries a standing. */
+      && !overflowRefusals020.some((refusal) => refusal.ruleStatus !== undefined)
+      /* A settled member may legitimately carry `value: null` — that is the MeasureCompleteness
+         shape for an incomplete measure, and `modifiedAdjustedGross` uses it here. The defect
+         this pins is narrower: a member carrying an actual non-finite NUMBER while not being a
+         refusal, which is the `$∞` / `$NaN` figure the bug reported. Testing `!Number.isFinite`
+         alone would flag the null case and make this assertion fail against correct behaviour. */
+      && Object.keys(overflowSettled020).every((key) => {
+        const member = overflowSettled020[key];
+        if (!member || typeof member !== 'object' || RLTAXRULES.isUnavailable(member)) return true;
+        return !(typeof member.value === 'number' && !Number.isFinite(member.value));
+      }),
+    'TB-020-05: two declared amounts each inside double range but summing beyond it are refused at their ORIGIN with RLTAX-FIGURE-UNREPRESENTABLE on domain income:grossSupportedIncome, not merely caught downstream at the display seam, and no stage carries a rule standing on a figure that does not exist');
+
+    /* TB-020-06 (BUG-020). The R2 render fallback in lifetime-tax-strategy-lab.html, which is the
+       third and last layer and the only one with no assertion of its own until now.
+
+       Why this row exists in the form it does. TB-020-03 asserts the user-visible outcome — no
+       infinity symbol and no NaN reaches a stage row — and it is defended INDEPENDENTLY by R2, E1
+       and E3. Defence in depth is the correct engineering here, but it has a testing consequence
+       that is easy to misread: a single-mutation probe against any one layer leaves the other two
+       standing, the outcome holds, and the probe reports non-discriminating. That is not a vacuous
+       assertion. It means TB-020-03 alone cannot establish that any INDIVIDUAL layer is
+       load-bearing, so a layer could be deleted as dead code and nothing would go red.
+
+       The resolution is one assertion per layer rather than a harness that composes mutations:
+       E3 has TB-020-04, E1 has TB-020-05, and R2 has this row. Each pins the behaviour of its own
+       layer in isolation, so each layer's removal now fails something specific — which is what the
+       Definition of Done row was reaching for.
+
+       R2 is source-pinned rather than executed because it lives inside an inline <script> in a
+       page this build-free suite does not load. That is weaker than executing it, and it is
+       recorded as such: it pins the guard's presence and its ordering relative to the
+       String(record.value) fallback it protects, which is exactly what a deletion or a reorder
+       would break. */
+    const labSource020 = read('lifetime-tax-strategy-lab.html');
+    const stageValueBody020 = /function stageValueText\(record\)\s*\{[\s\S]*?\n            \}/
+      .exec(labSource020);
+    const r2Guard020 = stageValueBody020 === null ? '' : stageValueBody020[0];
+    const r2GuardAt = r2Guard020.indexOf('if (!Number.isFinite(record.value)) return "no figure";');
+    const r2FallbackAt = r2Guard020.indexOf('return String(record.value);');
+    assert(stageValueBody020 !== null
+      && r2GuardAt >= 0
+      /* Order is the whole point: the guard must precede the stringifying fallback, because
+         String(Infinity) is the literal text "Infinity" and that is the symbol the bug reported. */
+      && r2FallbackAt >= 0 && r2GuardAt < r2FallbackAt
+      /* And the refusal branch still precedes both, so a refusal renders as its code and reason
+         rather than falling through to either numeric path. */
+      && r2Guard020.indexOf('RULES.isUnavailable(record)') >= 0
+      && r2Guard020.indexOf('RULES.isUnavailable(record)') < r2GuardAt
+      && String(Infinity) === 'Infinity' && String(NaN) === 'NaN',
+    'TB-020-06: the R2 render fallback in lifetime-tax-strategy-lab.html still guards a non-finite record value before the String(record.value) fallback that would otherwise print the literal text "Infinity" or "NaN", and the refusal branch still precedes both');
+
     /* TP-02-10: every unsupported feature is surfaced and no result claims a complete federal tax. */
     const noticeIds = balancedSettled.unsupportedFeatureNotices.map((notice) => notice.id);
     const completeClaims = ['rltax.js', 'rltaxrules.js', 'rltaxworkspace.js']

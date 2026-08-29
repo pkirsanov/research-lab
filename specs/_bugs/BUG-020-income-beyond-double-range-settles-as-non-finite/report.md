@@ -1138,3 +1138,123 @@ The row therefore stays open on `TB-020-03`, and the packet's routing to
 `bubbles.design` is unchanged. Nothing here weakened an assertion, and no
 assertion text was edited.
 
+## Closing The Over-Determination Row — One Assertion Per Layer (R1 To R3)
+
+The open Definition of Done row asked for a red-green probe proving each new assertion
+fails when its guard is removed. Every row cleared except `TB-020-03`, and the recorded
+reason was that `TB-020-03` is defended independently by three layers — the R2 render
+fallback, the E1 arithmetic origin, and the E3 display seam — so removing any one of them
+left the other two standing and the probe returned non-discriminating.
+
+That diagnosis was correct and the conclusion drawn from it was too narrow. Earlier rounds
+read the problem as a harness limitation and proposed either a mutation-composing harness or
+a design amendment, both of which were held to be outside an implementer's authority. But
+the row's real subject is not `TB-020-03`. It is whether each guard is load-bearing, and
+`TB-020-03` was never the instrument that could answer that: an assertion on the
+user-visible outcome cannot distinguish which of three sufficient layers produced it.
+
+The consequence of leaving it there was concrete rather than procedural. A layer with no
+assertion of its own can be deleted as apparent dead code and nothing turns red — and the
+E1 probe below shows this was not hypothetical. So the resolution is one assertion per
+layer, each pinning its own layer in isolation.
+
+**A finding, not a formality.** Before this round, the origin domain
+`income:grossSupportedIncome` was asserted **nowhere** in the suite:
+
+```
+$ grep -c 'income:grossSupportedIncome' scripts/selftest.mjs
+0
+```
+
+`TB-020-04` states in its own comment that it exercises E3 "and nothing else". So deleting
+E1 let the overflowing sum flow downstream until E3 caught it, the suite still saw a
+refusal, and it stayed green — while the message a reader actually receives silently
+degraded from `income:grossSupportedIncome` ("your declared amounts summed out of range")
+to `display:value` ("a record arrived unprintable"). The first names the cause; the second
+can only report a symptom. That trade is the degradation `TB-020-05` now pins, and it pins
+the **domain** rather than the code, because asserting the code alone passes on the E3
+cascade and reopens the hole.
+
+### R1 — E1, the arithmetic origin, before and after its assertion existed
+
+Before `TB-020-05`, removing E1 was non-discriminating — the suite could not tell:
+
+```
+$ bash scripts/red-green-probe.sh --file rltax.js \
+    --find 'if (!Number.isFinite(gross)) {' \
+    --replace 'if (false && !Number.isFinite(gross)) {' -- node scripts/selftest.mjs
+red-exit:         0
+green-exit:       0
+discriminating:   NO (red-exit 0 == green-exit 0)
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0).
+```
+
+After `TB-020-05` landed, the same mutation is caught:
+
+```
+$ bash scripts/red-green-probe.sh --file rltax.js \
+    --find 'if (!Number.isFinite(gross)) {' \
+    --replace 'if (false && !Number.isFinite(gross)) {' \
+    --label 'BUG-020 E1 origin guard (income sum)' -- node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+```
+
+### R2 — the render fallback in `lifetime-tax-strategy-lab.html`
+
+This was the last layer with no assertion of its own. `TB-020-06` pins the guard's presence
+and its **ordering** relative to the `String(record.value)` fallback it protects, because
+`String(Infinity)` is the literal text `"Infinity"` — the symbol the bug reported:
+
+```
+$ bash scripts/red-green-probe.sh --file lifetime-tax-strategy-lab.html \
+    --find 'if (!Number.isFinite(record.value)) return "no figure";' \
+    --replace '/* R2 guard removed by probe */' \
+    --label 'BUG-020 R2 render fallback guard' -- node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (exit 1 != 0)
+```
+
+`TB-020-06` is **source-pinned rather than executed**, and that is weaker. R2 lives in an
+inline `<script>` in a page this build-free suite does not load, so the assertion pins the
+guard's presence and ordering rather than running it. That is precisely what a deletion or
+a reorder would break, which is the failure mode in scope; it would not catch a semantic
+change that preserved both. Recorded as a limit rather than left for a reader to discover.
+
+### R3 — E3, the display seam, already covered
+
+`TB-020-04` covers E3 and was already proven discriminating by probe `P3` in an earlier
+round. Re-derived here at this head for completeness:
+
+```
+$ bash scripts/red-green-probe.sh --file rltax.js \
+    --find 'if (!Number.isFinite(valueRecord.value)) {' \
+    --replace 'if (false && !Number.isFinite(valueRecord.value)) {' \
+    --label 'BUG-020 E3 display-seam guard' -- node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+```
+
+### What this does and does not establish
+
+Each of the three layers now fails a specific assertion when removed on its own, by a
+single literal mutation — no composing harness and no design amendment were required.
+
+`TB-020-03` itself remains over-determined, and that is left deliberately unchanged. It
+asserts the user-visible outcome, three independent layers is the right defence for it, and
+an assertion that went red when any one layer was removed would be asserting the
+implementation rather than the promise. The over-determination was never the defect; the
+absence of per-layer coverage was, and that is what closed.
+
+One correction to the earlier record: the round that reported `P6b` as non-discriminating
+attributed it to a harness limitation. The measurement was right and the attribution was
+wrong — the harness was reporting, accurately, that no assertion depended on E1.
+
+Suite after all three assertions: `3435 passed, 0 failed`, up from `3433`, with no
+assertion removed.

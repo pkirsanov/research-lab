@@ -124,7 +124,7 @@ Feature: A company owner-read coverage entry cannot publish without its disclosu
   exit: 0
   ```
 
-- [x] Gate exits non-zero on the committed pre-fix payload, naming both missing facts — [T-10-U1]
+- [x] **SCN-010B-001** — Gate exits non-zero on the committed pre-fix payload, naming both missing facts — [T-10-U1]
 
   The pre-fix payload was reconstructed from `git show HEAD:market-brief.payload.json` (`HEAD` `5c005750e`) into a scratch path outside the repository and fed to the **real CLI**, so the refusal is observed as a process exit code rather than only as a return value.
 
@@ -139,7 +139,7 @@ Feature: A company owner-read coverage entry cannot publish without its disclosu
 
   Two breaches, named separately, exactly as SCN-010B-001 requires.
 
-- [x] Adversarial fixture missing only the adapter id is refused — [T-10-U2]
+- [x] **SCN-010B-002** — Adversarial fixture missing only the adapter id is refused — [T-10-U2]
 
   The fixture is the repaired reason with the adapter id replaced by the words "the owning adapter": it still carries the disclosure, still has text, and violates exactly one invariant.
 
@@ -150,7 +150,7 @@ Feature: A company owner-read coverage entry cannot publish without its disclosu
   exit: 0
   ```
 
-- [x] Adversarial fixture missing only the disclosure is refused — [T-10-U3]
+- [x] **SCN-010B-003** — Adversarial fixture missing only the disclosure is refused — [T-10-U3]
 
   Mirror image: the disclosure clause removed, the adapter id retained.
 
@@ -161,7 +161,7 @@ Feature: A company owner-read coverage entry cannot publish without its disclosu
   exit: 0
   ```
 
-- [x] A payload with no company coverage entry is refused rather than skipped — [T-10-U4]
+- [x] **SCN-010B-004** — A payload with no company coverage entry is refused rather than skipped — [T-10-U4]
 
   ```
   breaches = 1
@@ -171,7 +171,7 @@ Feature: A company owner-read coverage entry cannot publish without its disclosu
 
   The refusal text names the count, so "nothing to check" cannot read as "checked and fine".
 
-- [x] The last published reason is accepted, proving the gate is not a refuse-everything check — [T-10-U5]
+- [x] **SCN-010B-005** — The last published reason is accepted, proving the gate is not a refuse-everything check — [T-10-U5]
 
   ```
   last published reason ends: ...o recommendation is produced, and no market-moving fundamental delta carries into this after-hours view.
@@ -297,7 +297,7 @@ Feature: The disclosure is produced deterministically, not authored per window
 
   A constraint asks the model to comply; re-assertion makes compliance structural. The published fact no longer depends on model behaviour at all, only on this step running — and it throws when the entry is missing or duplicated, which lands in the existing catch and restores the baseline, so a window that cannot carry the disclosure does not publish.
 
-- [x] Deterministic producer emits both facts with the narrative lane disabled — [T-10-U7]
+- [x] **SCN-010B-006** — Deterministic producer emits both facts with the narrative lane disabled — [T-10-U7]
 
   ```
   $ node tests/company-fundamentals-contracts.unit.mjs
@@ -308,7 +308,7 @@ Feature: The disclosure is produced deterministically, not authored per window
   exit: 0
   ```
 
-- [x] The emitted adapter id follows a changed fixture configuration — [T-10-U8]
+- [x] **SCN-010B-007** — The emitted adapter id follows a changed fixture configuration — [T-10-U8]
 
   ```
   $ node tests/company-fundamentals-contracts.unit.mjs
@@ -317,7 +317,7 @@ Feature: The disclosure is produced deterministically, not authored per window
   exit: 0
   ```
 
-- [x] A narrative result that drops both facts cannot produce a published entry without them — [T-10-U9]
+- [x] **SCN-010B-008** — A narrative result that drops both facts cannot produce a published entry without them — [T-10-U9]
 
   ```
   $ node tests/company-fundamentals-contracts.unit.mjs
@@ -431,7 +431,7 @@ only patched bytes would have been overwritten by the next cron run. It was not.
   changed; this one is re-emitted because `reassertCompanyOwnerReadDisclosure()` runs in the
   publication path, so the fact is produced rather than preserved.
 
-- [x] Feature 010 Scope 6 assertion passes with both previously failing conjuncts intact — [T-10-R1]
+- [x] **SCN-010B-009** — Feature 010 Scope 6 assertion passes with both previously failing conjuncts intact — [T-10-R1]
 
   **Claim Source:** executed, this session. The prior blocker is cleared: the BUG-013 Feature 026
   byte-budget failures are gone at `HEAD` `6ff62f62c`, so T-10-R1's named command now runs to a

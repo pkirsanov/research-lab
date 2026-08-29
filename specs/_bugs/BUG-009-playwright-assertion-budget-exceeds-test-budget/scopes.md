@@ -101,7 +101,7 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
     Runnable as a CLI (--explain / --root / -h), and the project default is DERIVED, not hardcoded:
       default=30000ms (playwright-default (config declares none))
     ```
-- [x] Guard exits non-zero on the committed pre-fix tree, naming exactly 3 sites in 2 files — [T-09-U1]
+- [x] **SCN-009B-003** — Guard exits non-zero on the committed pre-fix tree, naming exactly 3 sites in 2 files — [T-09-U1]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-guard-red
@@ -123,7 +123,7 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
     Paired with the GREEN run in scope 2 (exit 0) using the SAME committed binary — the guard was
     added BY the fix commit and never modified since, so only the scanned tree differs.
     ```
-- [x] Guard does not report `simple-model-adapters-macro-fundamental.spec.mjs` or `market-brief-session-date-drift.spec.mjs` — [T-09-U2]
+- [x] **SCN-009B-006** — Guard does not report `simple-model-adapters-macro-fundamental.spec.mjs` or `market-brief-session-date-drift.spec.mjs` — [T-09-U2]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-guard-nearmiss
@@ -166,7 +166,7 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
     caller declaring 180 s; the guard still fails, because it resolves a helper to the WEAKEST
     reaching caller — one compliant caller cannot launder a non-compliant one.
     ```
-- [x] A scan matching zero declarations fails rather than passing — [T-09-U4]
+- [x] **SCN-009B-005** — A scan matching zero declarations fails rather than passing — [T-09-U4]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-guard-vacuous
@@ -385,7 +385,7 @@ Feature: A wait that asks for 120 seconds is allowed to wait 120 seconds
     the SAME committed binary (sha256 acba77e..., added by this commit, unmodified since). The
     only difference between exit 1 and exit 0 is the fix itself.
     ```
-- [x] `SCN-012-003` and `SCN-012-004` pass under the same CPU pressure that reproduced the failure — [T-09-E1]
+- [x] **SCN-009B-001** — `SCN-012-003` and `SCN-012-004` pass under the same CPU pressure that reproduced the failure — [T-09-E1]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-specs-under-pressure
@@ -411,7 +411,7 @@ Feature: A wait that asks for 120 seconds is allowed to wait 120 seconds
     been killed at 30 s, which is exactly the failure Evidence 5 captured. It passes here only
     because the fix granted it 180 s. The repair is load-bearing, not cosmetic.
     ```
-- [x] Feature 006 replay regression passes — [T-09-E2]
+- [x] **SCN-009B-002** — Feature 006 replay regression passes — [T-09-E2]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-specs-under-pressure

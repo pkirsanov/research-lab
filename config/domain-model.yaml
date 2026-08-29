@@ -5,6 +5,15 @@ entities:
   ToolRead:
     states: [ fresh, stale, unavailable, not-run, not-applicable, browser-or-agent-read, fresh-headless ]
     terminal: [ fresh, stale, unavailable, not-run, not-applicable, browser-or-agent-read, fresh-headless ]
+  CompanyPublicationSubject:
+    states: [ covered, not-covered ]
+    terminal: [ covered, not-covered ]
+  CompanyReadVersion:
+    states: [ candidate, validated, published ]
+    terminal: [ published ]
+  CompanyOwnerRead:
+    states: [ fresh, stale, unavailable ]
+    terminal: [ fresh, stale, unavailable ]
 
 invariants:
 - id: INV-RL-REGISTRY-COMPLETE-TOOL-READS
@@ -19,3 +28,27 @@ invariants:
   enforcedBy: [ check ]
   provedBy:
   - "tests/distributed-briefs.contract.mjs::SCN-002-002 profile status applicability privacy and eligibility boundaries fail loud"
+- id: INV-RL-COMPANY-SUBJECTS-EXPLICIT
+  rule: "Every periodic company subject comes from one covered set"
+  kind: cardinality
+  enforcedBy: [ check ]
+  provedBy:
+  - "tests/company-intelligence-publication.e2e.mjs::Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority"
+- id: INV-RL-COMPANY-BRIEF-SAME-GENERATION
+  rule: "The final brief and every current company pointer name one generation"
+  kind: coherence
+  enforcedBy: [ check ]
+  provedBy:
+  - "tests/company-intelligence-publication.integration.mjs::Mutation: SCN-028-014 recorder proves the coupled selector is the final write"
+- id: INV-RL-COMPANY-VERSIONS-IMMUTABLE
+  rule: "A published company version never changes or disappears"
+  kind: immutability
+  enforcedBy: [ check ]
+  provedBy:
+  - "tests/company-intelligence-publication.integration.mjs::Regression: SCN-028-011 same-day publication windows create distinct files in one predecessor chain"
+- id: INV-RL-COMPANY-OWNER-READ-REAL
+  rule: "A complete run contains one real company owner read, never coverage text"
+  kind: cardinality
+  enforcedBy: [ check ]
+  provedBy:
+  - "tests/company-intelligence-publication.integration.mjs::SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome"

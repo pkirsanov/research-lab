@@ -30,6 +30,8 @@ export const AUTHOR_RESPONSE_CONTRACT = 'tool-author-response/v1';
    response); the tool-author path is byte-unchanged. */
 export const FINAL_AUTHOR_REQUEST_CONTRACT = 'final-author-request/v1';
 export const FINAL_AUTHOR_RESPONSE_CONTRACT = 'final-author-response/v1';
+export const COMPANY_PLAN_AUTHOR_REQUEST_CONTRACT = 'company-plan-author-request/v1';
+export const COMPANY_PLAN_AUTHOR_RESPONSE_CONTRACT = 'company-plan-author-response/v1';
 
 /* Closed, sanitized error taxonomy for the author boundary. No rejected narrative, prompt text,
    credential, or private field ever enters an error; only a code, a reason, and a field path. */
@@ -73,6 +75,15 @@ const FINAL_INSTRUCTION_POLICY = [
   'You may not browse, add evidence, run shell commands, or write files. Output JSON only — no prose.'
 ].join(' ');
 
+const COMPANY_PLAN_INSTRUCTION_POLICY = [
+  'You are a bounded company research-plan author. Read ONLY the frozen JSON data envelope.',
+  'Return ONE JSON object matching company-plan-author-response/v1 and company-authored-plan/v2.',
+  'Use only supplied source IDs, horizon IDs, and target IDs. Record every attempted branch, including',
+  'refused branches. Supply plain-text questions, results, refusal reasons, and bounded stop conditions.',
+  'Do not supply clocks, source fingerprints, numeric values, authority, recommendations, publication',
+  'operations, shell commands, or repository writes. Output JSON only — no prose, markup, or code fences.'
+].join(' ');
+
 function sha256Hex(value) {
   return createHash('sha256').update(value).digest('hex');
 }
@@ -97,6 +108,14 @@ function requestFingerprint(request) {
   }))}`;
 }
 
+function companyPlanRequestFingerprint(request) {
+  const body = {};
+  for (const key of Object.keys(request).sort()) {
+    if (key !== 'requestFingerprint') body[key] = request[key];
+  }
+  return `sha256:${sha256Hex(stableStringify(body))}`;
+}
+
 /* Recursively scan a value for secret-shaped keys and instruction/markup-shaped strings. Returns a
    { reason, field } finding or null. Reused by both the request builder and the envelope gate. */
 function scanUnsafe(value, field) {
@@ -114,7 +133,9 @@ function scanUnsafe(value, field) {
   }
   if (typeof value !== 'object') return { reason: 'value-type', field };
   for (const key of Object.keys(value)) {
-    if (SECRET_SHAPED_KEY.test(key)) return { reason: 'secret-shaped-field', field: `${field}.${key}` };
+    if (key !== 'disposition' && SECRET_SHAPED_KEY.test(key)) {
+      return { reason: 'secret-shaped-field', field: `${field}.${key}` };
+    }
     const found = scanUnsafe(value[key], `${field}.${key}`);
     if (found) return found;
   }
@@ -211,6 +232,89 @@ export function buildFinalAuthorRequest(compactFinalInput, identity) {
   return { ok: true, request };
 }
 
+export function buildCompanyPlanAuthorRequest(input, identity) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'company-plan-input-required', 'input');
+  }
+  if (typeof input.generationId !== 'string' || !input.generationId ||
+      typeof input.subjectId !== 'string' || !/^company:[a-z][a-z0-9.-]{0,9}$/.test(input.subjectId) ||
+      typeof input.evidenceCutoff !== 'string' || !Number.isFinite(Date.parse(input.evidenceCutoff)) ||
+      input.maxBranches !== 5 || !/^sha256:[a-f0-9]{64}$/.test(input.baseCandidateFingerprint || '') ||
+      !Array.isArray(input.sourceCatalogue) || !Array.isArray(input.horizons) || input.horizons.length !== 4) {
+    return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'company-plan-input-invalid', 'input');
+  }
+  if (!identity || typeof identity !== 'object') {
+    return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'identity-required', 'identity');
+  }
+  for (const key of REQUIRED_IDENTITY) {
+    if (typeof identity[key] !== 'string' || !SAFE_ID.test(identity[key])) {
+      return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'identity-field-invalid', `identity.${key}`);
+    }
+  }
+  if (identity.promptPolicyVersion !== 'company-plan-author/v1' ||
+      identity.schemaVersion !== 'company-authored-plan/v2' ||
+      identity.validatorVersion !== 'company-plan-validator/v1') {
+    return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'company-plan-identity-version-invalid', 'identity');
+  }
+  for (const key of Object.keys(identity)) {
+    if (SECRET_SHAPED_KEY.test(key)) {
+      return authorFailure(AUTHOR_ERRORS.UNSAFE, 'secret-shaped-identity', `identity.${key}`);
+    }
+  }
+  const data = {
+    generationId: input.generationId,
+    subjectId: input.subjectId,
+    evidenceCutoff: input.evidenceCutoff,
+    maxBranches: input.maxBranches,
+    baseCandidateFingerprint: input.baseCandidateFingerprint,
+    sourceCatalogue: input.sourceCatalogue,
+    horizons: input.horizons,
+    authorIdentity: {
+      providerId: identity.providerId,
+      modelId: identity.modelId,
+      promptPolicyVersion: identity.promptPolicyVersion,
+      schemaVersion: identity.schemaVersion,
+      validatorVersion: identity.validatorVersion
+    }
+  };
+  const unsafe = scanUnsafe(data, 'data');
+  if (unsafe) return authorFailure(AUTHOR_ERRORS.UNSAFE, unsafe.reason, unsafe.field);
+  const request = {
+    contractVersion: COMPANY_PLAN_AUTHOR_REQUEST_CONTRACT,
+    instructions: COMPANY_PLAN_INSTRUCTION_POLICY,
+    ...data
+  };
+  request.requestFingerprint = companyPlanRequestFingerprint(request);
+  return { ok: true, request: Object.freeze(request) };
+}
+
+function exactFields(value, fields) {
+  return value && typeof value === 'object' && !Array.isArray(value) &&
+    JSON.stringify(Object.keys(value).sort()) === JSON.stringify(fields.slice().sort());
+}
+
+function validateCompanyPlanEnvelopeShape(envelope) {
+  if (!exactFields(envelope, ['contractVersion', 'plan', 'requestFingerprint'])) return 'envelope-field-set-invalid';
+  const plan = envelope.plan;
+  if (!exactFields(plan, ['branches', 'contractVersion', 'emptyReason', 'generationId', 'subjectId'])) {
+    return 'plan-field-set-invalid';
+  }
+  if (plan.contractVersion !== 'company-authored-plan/v2' || !Array.isArray(plan.branches)) {
+    return 'plan-contract-invalid';
+  }
+  for (let index = 0; index < plan.branches.length; index += 1) {
+    const branch = plan.branches[index];
+    if (!exactFields(branch, [
+      'changedTargets', 'consultedSourceIds', 'disposition', 'question', 'refusalReason',
+      'relevance', 'result', 'stopCondition', 'stoppedBy'
+    ])) return `branch-${index}-field-set-invalid`;
+    if (!exactFields(branch.relevance, ['horizonId', 'targetIds']) ||
+        !Array.isArray(branch.relevance.targetIds) || !Array.isArray(branch.consultedSourceIds) ||
+        !Array.isArray(branch.changedTargets)) return `branch-${index}-collection-invalid`;
+  }
+  return null;
+}
+
 /* validateAuthorEnvelope(envelope, request, options): gate one returned author envelope. It must be
    bounded (JSON byte length <= maxStdoutBytes), a well-formed tool-author-response/v1 whose
    requestFingerprint matches the dispatched request, safe (no secret-shaped keys or instruction/markup
@@ -221,15 +325,22 @@ export function validateAuthorEnvelope(envelope, request, options) {
   const settings = options || {};
   const maxBytes = Number.isInteger(settings.maxStdoutBytes) ? settings.maxStdoutBytes : DEFAULT_MAX_STDOUT_BYTES;
   const seen = settings.seen instanceof Set ? settings.seen : null;
-  // Polymorphic on the dispatched request contract: a final request expects a final response whose payload
-  // lives under `final`; every other (tool) request keeps the byte-unchanged tool-author-response path.
+  // Polymorphic on the dispatched request contract. Existing tool/final lanes keep their byte-unchanged
+  // response paths; the company-plan lane adds one exact plan-only response with no trusted output fields.
   const isFinal = request && typeof request === 'object' && request.contractVersion === FINAL_AUTHOR_REQUEST_CONTRACT;
-  const expectedResponse = isFinal ? FINAL_AUTHOR_RESPONSE_CONTRACT : AUTHOR_RESPONSE_CONTRACT;
-  const payloadKey = isFinal ? 'final' : 'brief';
+  const isCompanyPlan = request && typeof request === 'object' && request.contractVersion === COMPANY_PLAN_AUTHOR_REQUEST_CONTRACT;
+  const expectedResponse = isFinal
+    ? FINAL_AUTHOR_RESPONSE_CONTRACT
+    : (isCompanyPlan ? COMPANY_PLAN_AUTHOR_RESPONSE_CONTRACT : AUTHOR_RESPONSE_CONTRACT);
+  const payloadKey = isFinal ? 'final' : (isCompanyPlan ? 'plan' : 'brief');
   if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return authorFailure(AUTHOR_ERRORS.MALFORMED, 'envelope-not-object', 'envelope');
   const encoded = stableStringify(envelope);
   if (Buffer.byteLength(encoded, 'utf8') > maxBytes) return authorFailure(AUTHOR_ERRORS.OVERSIZE, 'envelope-exceeds-cap', 'envelope');
   if (envelope.contractVersion !== expectedResponse) return authorFailure(AUTHOR_ERRORS.MALFORMED, 'envelope-contract-invalid', 'envelope.contractVersion');
+  if (isCompanyPlan) {
+    const shapeFailure = validateCompanyPlanEnvelopeShape(envelope);
+    if (shapeFailure) return authorFailure(AUTHOR_ERRORS.MALFORMED, shapeFailure, 'envelope.plan');
+  }
   if (!request || typeof request !== 'object' || typeof request.requestFingerprint !== 'string') return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-fingerprint-required', 'request.requestFingerprint');
   if (envelope.requestFingerprint !== request.requestFingerprint) return authorFailure(AUTHOR_ERRORS.MISMATCH, 'request-fingerprint-mismatch', 'envelope.requestFingerprint');
   if (!envelope[payloadKey] || typeof envelope[payloadKey] !== 'object' || Array.isArray(envelope[payloadKey])) return authorFailure(AUTHOR_ERRORS.MALFORMED, `${payloadKey}-not-object`, `envelope.${payloadKey}`);
@@ -272,7 +383,11 @@ export async function invokeAuthor(request, options) {
   const settings = options || {};
   const maxBytes = Number.isInteger(settings.maxStdoutBytes) ? settings.maxStdoutBytes : DEFAULT_MAX_STDOUT_BYTES;
   const timeoutMs = Number.isInteger(settings.timeoutMs) ? settings.timeoutMs : 180000;
-  if (!request || typeof request !== 'object' || (request.contractVersion !== AUTHOR_REQUEST_CONTRACT && request.contractVersion !== FINAL_AUTHOR_REQUEST_CONTRACT) || typeof request.requestFingerprint !== 'string') {
+  if (!request || typeof request !== 'object' ||
+      (request.contractVersion !== AUTHOR_REQUEST_CONTRACT &&
+       request.contractVersion !== FINAL_AUTHOR_REQUEST_CONTRACT &&
+       request.contractVersion !== COMPANY_PLAN_AUTHOR_REQUEST_CONTRACT) ||
+      typeof request.requestFingerprint !== 'string') {
     return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-invalid', 'request');
   }
   const requestJson = JSON.stringify(request);

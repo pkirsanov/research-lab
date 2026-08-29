@@ -1,0 +1,374 @@
+{
+  "version": 3,
+  "featureDir": "specs/028-company-intelligence-publication-and-brief-transaction",
+  "featureName": "Company Intelligence Public Delivery and Atomic Brief Refresh",
+  "createdAt": "2026-08-28T23:01:02Z",
+  "lastUpdatedAt": "2026-08-29T01:48:15Z",
+  "status": "in_progress",
+  "workflowMode": "full-delivery",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "deliveryTopology": "in-place",
+  "deliveryTopologyJustification": "Feature 028 plans and implements the approved company-and-brief capability within this feature packet.",
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "workBoundary": {
+    "repositoryRoots": [
+      "research-lab"
+    ],
+    "crossRepoPolicy": "forbidden",
+    "specTargets": [
+      "specs/028-company-intelligence-publication-and-brief-transaction"
+    ],
+    "allowedPaths": [
+      "specs/028-company-intelligence-publication-and-brief-transaction/**",
+      "company-intelligence-lab.html",
+      "rlcompanyintel.js",
+      "rldata.js",
+      "rlcontracts.js",
+      "rlnav.js",
+      "rlbrief.js",
+      "market-brief.html",
+      "company-intelligence.config.json",
+      "site-exclusions.json",
+      "tools.json",
+      "simple-models.json",
+      "journeys.json",
+      "tool-experience.config.json",
+      "index.html",
+      "README.md",
+      "notes/README.md",
+      "notes/company-intelligence-lab.md",
+      "config/domain-model.yaml",
+      "rlexperience-adapters/company-intelligence.js",
+      "scripts/company-intelligence-publication.mjs",
+      "scripts/brief-author.mjs",
+      "scripts/brief-refresh.mjs",
+      "scripts/brief-distributed-publish.mjs",
+      "scripts/brief-publication.mjs",
+      "scripts/brief-refresh-and-push.sh",
+      "scripts/brief-refresh-scheduled.sh",
+      "scripts/com.researchlab.brief-refresh.plist",
+      "scripts/validate-distributed-briefs.mjs",
+      "scripts/validate-brief-payload.mjs",
+      "scripts/build-pages-site.mjs",
+      "scripts/validate-tool-experience.mjs",
+      "scripts/selftest.mjs",
+      ".github/prompts/market-brief-update.prompt.md",
+      "data/company-intelligence/**",
+      "briefs/**",
+      "research/agenda/**",
+      "brief-history.jsonl",
+      "brief-history.recent.jsonl",
+      "market-brief.snapshot.json",
+      "market-brief.payload.json",
+      "market-brief.page.json",
+      "market-brief.config.json",
+      "market-brief.config.page.json",
+      "market-brief.snapshot.page.json",
+      "market-brief.tools.page.json",
+      "market-brief.experimental.json",
+      "market-brief.owner-reads.json",
+      "market-brief.scorecard.json",
+      "market-brief.attention-scorecard.json",
+      "causal-rotation.snapshot.json",
+      "tests/company-intelligence.unit.mjs",
+      "tests/company-intelligence-lab.spec.mjs",
+      "tests/brief-refresh-atomicity.support.mjs",
+      "tests/brief-refresh-atomicity.test.mjs",
+      "tests/distributed-briefs.distributed-publish.unit.mjs",
+      "tests/distributed-briefs.scheduler.unit.mjs",
+      "tests/distributed-briefs.scheduler.integration.mjs",
+      "tests/distributed-briefs.scheduler-failures.integration.mjs",
+      "tests/distributed-briefs.scheduler.e2e.mjs",
+      "tests/company-intelligence-publication.unit.mjs",
+      "tests/company-intelligence-publication.integration.mjs",
+      "tests/company-intelligence-publication.functional.mjs",
+      "tests/company-intelligence-publication.e2e.mjs",
+      "tests/company-intelligence-publication.spec.mjs",
+      "tests/tool-discovery.spec.mjs",
+      "tests/deployed-site-parity.spec.mjs"
+    ]
+  },
+  "execution": {
+    "goalContractRef": {
+      "goalId": "gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3",
+      "revision": 3,
+      "sourceRequestDigest": "sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f"
+    },
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "completed",
+    "currentScope": "01-company-publication-foundation",
+    "runStartedAt": "2026-08-29T00:29:30Z",
+    "completedAt": "2026-08-29T01:32:55Z",
+    "completedPhaseClaims": [
+      {
+        "phase": "analyze",
+        "agent": "bubbles.ux",
+        "scopes": [],
+        "claimedAt": "2026-08-28T23:05:14Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/spec.md#ui-wireframes"
+      },
+      {
+        "phase": "bootstrap",
+        "agent": "bubbles.design",
+        "scopes": [],
+        "claimedAt": "2026-08-28T23:37:31Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/design.md#design-brief"
+      },
+      {
+        "phase": "bootstrap",
+        "agent": "bubbles.plan",
+        "scopes": [
+          "01-company-publication-foundation",
+          "02-coupled-manifest-and-promotion",
+          "03-transaction-restoration",
+          "04-shared-trigger-integration",
+          "05-public-registration-and-pages"
+        ],
+        "claimedAt": "2026-08-29T00:01:02Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#execution-outline"
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "scopes": [
+          "01-company-publication-foundation"
+        ],
+        "claimedAt": "2026-08-29T01:32:55Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-implement-owned-quality-evidence"
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md",
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "in_progress",
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-company-publication-foundation",
+        "name": "Company publication foundation and headless owner-read contracts",
+        "status": "in_progress",
+        "dependsOn": [],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 2,
+        "scopeId": "02-coupled-manifest-and-promotion",
+        "name": "Coupled manifest, immutable promotion, and pointer-last success path",
+        "status": "not_started",
+        "dependsOn": [
+          "01-company-publication-foundation"
+        ],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 3,
+        "scopeId": "03-transaction-restoration",
+        "name": "Whole-transaction restoration and non-authoritative outcomes",
+        "status": "not_started",
+        "dependsOn": [
+          "02-coupled-manifest-and-promotion"
+        ],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 4,
+        "scopeId": "04-shared-trigger-integration",
+        "name": "Scheduled and on-demand shared trigger integration",
+        "status": "not_started",
+        "dependsOn": [
+          "03-transaction-restoration"
+        ],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 5,
+        "scopeId": "05-public-registration-and-pages",
+        "name": "Public registration, authority-aware UI, and Pages delivery",
+        "status": "not_started",
+        "dependsOn": [
+          "04-shared-trigger-integration"
+        ],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      }
+    ],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.plan",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "runStartedAt": "2026-08-28T23:56:58Z",
+      "runCompletedAt": "2026-08-29T00:01:02Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "scope": "planning-packet",
+      "artifactChanges": [
+        "scopes.md",
+        "report.md",
+        "uservalidation.md",
+        "scenario-manifest.json",
+        "test-plan.json",
+        "state.json"
+      ],
+      "summary": "Created a five-scope single-file plan for 38 requirements and 22 scenarios. Product implementation, tests, and certification were not claimed."
+    },
+    {
+      "agent": "bubbles.plan",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "runStartedAt": "2026-08-29T00:10:59Z",
+      "runCompletedAt": "2026-08-29T00:14:18Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "scope": "planning-packet",
+      "artifactChanges": [
+        "scopes.md",
+        "uservalidation.md",
+        "state.json"
+      ],
+      "summary": "Revalidated the existing five-scope packet. Repaired one Markdown-to-JSON Test Plan inventory mismatch and two plan-owned prose findings. Product tests and certification remain unclaimed."
+    },
+    {
+      "agent": "bubbles.implement",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "runStartedAt": "2026-08-29T00:29:30Z",
+      "runCompletedAt": "2026-08-29T01:32:55Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "scope": "01-company-publication-foundation",
+      "artifactChanges": [
+        "company-intelligence.config.json",
+        "config/domain-model.yaml",
+        "rlcompanyintel.js",
+        "scripts/brief-author.mjs",
+        "scripts/company-intelligence-publication.mjs",
+        "tests/company-intelligence.unit.mjs",
+        "tests/company-intelligence-publication.unit.mjs",
+        "tests/company-intelligence-publication.integration.mjs",
+        "tests/company-intelligence-publication.e2e.mjs"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-redgreen-provenance",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-contract-and-boundary-evidence",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-implement-owned-quality-evidence",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-independent-verification-summary",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-independent-build-quality",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#implement-result-provenance-finding"
+      ],
+      "summary": "Recorded the missing implementation provenance for Scope 01 after rechecking 13 of 13 checked DoD items, focused evidence for 99 of 99 required tests and 8 of 8 canaries with zero skips, a discriminating red/green probe, a strict boundary pass, and no Scope 01-owned selftest failure. Certification and top-level status remain unchanged."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json",
+    "lockdownApprovals": "lockdown-approvals.json",
+    "invalidationLedger": "invalidation-ledger.json",
+    "transitionRequests": "transition-requests.json",
+    "reworkQueue": "rework-queue.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "scopeDoneGates": [
+      "G020",
+      "G021",
+      "G022",
+      "G023",
+      "G024",
+      "G025",
+      "G055",
+      "G056",
+      "G057",
+      "G058",
+      "G059",
+      "G060",
+      "G061"
+    ],
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Analyst, UX, design, and scope-planning prerequisites are complete. Scope 01 is the next eligible implementation unit. Status and certification remain not_started, and no product delivery or test result is claimed."
+}

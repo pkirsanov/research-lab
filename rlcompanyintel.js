@@ -83,7 +83,21 @@
     var TOOL_READ_KEYS = ["asOf", "availability", "computedAt", "contractVersion", "deepLink", "freshUntil", "id", "metrics", "read"];
 
     var TOOL_ID = "company-intelligence-lab";
-    var CONFIG_VERSION = "company-intelligence-config/v1";
+    var CONFIG_VERSION = "company-intelligence-config/v2";
+    var LEGACY_CONFIG_VERSION = "company-intelligence-config/v1";
+    var PUBLICATION_POLICY_VERSION = "company-publication-policy/v1";
+    var GENERATION_VERSION = "company-publication-generation/v1";
+    var RESEARCH_PLAN_V2 = "company-research-plan/v2";
+    var READ_VERSION_V2 = "company-read-version/v2";
+    var COMPANY_OWNER_ADAPTER = "company-intelligence-owner-v1";
+    var COMPANY_MODEL_VERSION = "company-intelligence/v2";
+    var SOURCE_DESCRIPTOR_STATES = ["current", "partial", "stale", "conflicted", "unavailable"];
+    var SOURCE_PROVENANCE_CLASSES = ["observed", "derived", "proxy", "modelled", "unavailable"];
+    var PUBLICATION_ERROR_CODES = [
+        "C028-SUBJECT-POLICY", "C028-EVIDENCE-CUTOFF", "C028-SOURCE-CYCLE",
+        "C028-PLAN-AUTHOR", "C028-PLAN-SCHEMA", "C028-PLAN-BUDGET",
+        "C028-COMPANY-CANDIDATE", "C028-OWNER-READ", "C028-PRIVACY"
+    ];
     var FIXTURE_PATH_MARKER = "tests/fixtures/";
 
     /* A bare same-origin route file, the only shape an owner deep link may take. The pattern
@@ -215,6 +229,72 @@
         return contracts().contentSha256(value, contractVersion);
     }
 
+    function contractFingerprint(kind, value) {
+        return contracts().fingerprint(kind, value);
+    }
+
+    function publicationError(code, phase, reason, field, causeCode) {
+        if (!contains(PUBLICATION_ERROR_CODES, code)) {
+            throw new Error("RLCOMPANYINTEL_UNKNOWN_PUBLICATION_ERROR_CODE:" + code);
+        }
+        return deepFreeze({
+            contractVersion: "company-publication-error/v1",
+            code: code,
+            phase: phase,
+            reason: reason,
+            field: isNonEmptyString(field) ? field : null,
+            causeCode: isNonEmptyString(causeCode) ? causeCode : null
+        });
+    }
+
+    function publicationFailure(code, phase, reason, field, causeCode) {
+        return deepFreeze({ ok: false, error: publicationError(code, phase, reason, field, causeCode) });
+    }
+
+    function publicationSuccess(value) {
+        return deepFreeze({ ok: true, value: value });
+    }
+
+    function publicationRaise(code, phase, reason, field, causeCode) {
+        var record = publicationError(code, phase, reason, field, causeCode);
+        var error = new Error(code + ": " + reason);
+        error.code = code;
+        error.record = record;
+        throw error;
+    }
+
+    function publicationResult(thunk, code, phase) {
+        try {
+            return publicationSuccess(thunk());
+        } catch (error) {
+            if (error && error.record && error.record.contractVersion === "company-publication-error/v1") {
+                return deepFreeze({ ok: false, error: error.record });
+            }
+            return publicationFailure(code, phase, "The publication contract rejected the supplied value.",
+                null, error && isNonEmptyString(error.code) ? error.code : null);
+        }
+    }
+
+    function cloneValue(value) {
+        return JSON.parse(JSON.stringify(value));
+    }
+
+    function exactKeys(value, expected) {
+        if (!isPlainObject(value)) return false;
+        return JSON.stringify(Object.keys(value).sort()) === JSON.stringify(expected.slice().sort());
+    }
+
+    function safeAuthoredText(value) {
+        return isNonEmptyString(value) && !/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(value) &&
+            !/<[a-z!/]|javascript:|data:text\/html|`{3}|\bignore (?:all |previous )/i.test(value);
+    }
+
+    function sourceInstant(value) {
+        if (isIsoInstant(value)) return value;
+        if (isIsoDate(value)) return value + "T00:00:00.000Z";
+        return null;
+    }
+
     /* ---------- subject resolution ---------- */
 
     function resolveSubject(identifier, sources) {
@@ -278,18 +358,96 @@
 
     /* ---------- coverage registry ---------- */
 
+    function coveredSubjectDeclarationPaths(value, path, found) {
+        if (!value || typeof value !== "object") return found;
+        Object.keys(value).forEach(function (key) {
+            var next = path ? path + "." + key : key;
+            if (key === "coveredSubjects") found.push(next);
+            coveredSubjectDeclarationPaths(value[key], next, found);
+        });
+        return found;
+    }
+
+    function readPublicationPolicy(config) {
+        if (!isPlainObject(config) || config.contractVersion !== CONFIG_VERSION) {
+            publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                "Publication policy requires company-intelligence-config/v2.", "contractVersion");
+        }
+        var declarations = coveredSubjectDeclarationPaths(config, "", []);
+        if (declarations.length !== 1 || declarations[0] !== "publication.coveredSubjects") {
+            publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                "publication.coveredSubjects must be the sole covered-subject declaration.",
+                declarations.join(", "));
+        }
+        if (Object.prototype.hasOwnProperty.call(config, "maxBranches")) {
+            publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                "The branch budget belongs only to the publication policy.", "maxBranches");
+        }
+        var declared = config.publication;
+        var policyFields = ["benchmarkSymbol", "branchBudget", "contractVersion", "coveredSubjects", "ownerReadAdapterId"];
+        if (!exactKeys(declared, policyFields) || declared.contractVersion !== PUBLICATION_POLICY_VERSION) {
+            publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                "The publication policy has an invalid or incomplete field set.", "publication");
+        }
+        if (!Array.isArray(declared.coveredSubjects) || declared.coveredSubjects.length === 0) {
+            publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                "The publication policy must declare at least one covered subject.", "publication.coveredSubjects");
+        }
+        if (!Number.isInteger(declared.branchBudget) || declared.branchBudget !== 5) {
+            publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                "The publication policy must declare the five-attempt branch budget.", "publication.branchBudget");
+        }
+        if (!isNonEmptyString(declared.benchmarkSymbol) || !/^[A-Z][A-Z0-9.-]{0,9}$/.test(declared.benchmarkSymbol)) {
+            publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                "The publication benchmark symbol is invalid.", "publication.benchmarkSymbol");
+        }
+        if (declared.ownerReadAdapterId !== COMPANY_OWNER_ADAPTER) {
+            publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                "The publication owner-read adapter identity is invalid.", "publication.ownerReadAdapterId");
+        }
+        var seen = {};
+        var subjects = declared.coveredSubjects.map(function (subject, index) {
+            var subjectFields = ["cik", "displayName", "subjectId", "ticker"];
+            if (!exactKeys(subject, subjectFields) || !/^company:[a-z][a-z0-9.-]{0,9}$/.test(subject.subjectId) ||
+                !/^[A-Z][A-Z0-9.-]{0,9}$/.test(subject.ticker) ||
+                subject.subjectId !== "company:" + subject.ticker.toLowerCase() ||
+                !/^\d{10}$/.test(subject.cik) || !isNonEmptyString(subject.displayName)) {
+                publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                    "Covered subject " + index + " has an invalid public identity.",
+                    "publication.coveredSubjects." + index);
+            }
+            if (seen[subject.subjectId]) {
+                publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                    "The publication policy declares a covered subject more than once.", subject.subjectId);
+            }
+            seen[subject.subjectId] = true;
+            return cloneValue(subject);
+        });
+        subjects = sortBy(subjects, function (subject) { return subject.subjectId; });
+        return deepFreeze({
+            contractVersion: PUBLICATION_POLICY_VERSION,
+            coveredSubjects: subjects,
+            benchmarkSymbol: declared.benchmarkSymbol,
+            ownerReadAdapterId: declared.ownerReadAdapterId,
+            branchBudget: declared.branchBudget
+        });
+    }
+
     function readCoverageRegistry(config) {
         if (!isPlainObject(config)) {
             raise("C025-CONFIG-SCHEMA", "The configuration is not an object.");
         }
-        if (config.contractVersion !== CONFIG_VERSION) {
+        var legacy = config.contractVersion === LEGACY_CONFIG_VERSION;
+        if (!legacy && config.contractVersion !== CONFIG_VERSION) {
             raise("C025-CONFIG-VERSION", "The configuration declares an unexpected contract version.",
                 "declared: " + String(config.contractVersion));
         }
+        var publicationPolicy = legacy ? null : readPublicationPolicy(config);
+        var maxBranches = legacy ? config.maxBranches : publicationPolicy.branchBudget;
         if (!Array.isArray(config.coverageRegistry) || config.coverageRegistry.length === 0) {
             raise("C025-CONFIG-SCHEMA", "The configuration declares no coverage registry.");
         }
-        if (!Number.isInteger(config.maxBranches) || config.maxBranches < 1) {
+        if (!Number.isInteger(maxBranches) || maxBranches < 1) {
             raise("C025-CONFIG-SCHEMA", "The configuration declares no positive branch budget.");
         }
         if (!Array.isArray(config.horizons) || config.horizons.length !== HORIZON_IDS.length) {
@@ -379,7 +537,7 @@
             raise("C025-CONFIG-SCHEMA", "The coverage registry declares a dimension twice.",
                 "duplicate: " + duplicates.join(", "));
         }
-        var eventSource = readEventSource(config.eventSource);
+        var eventSource = readEventSource(config.eventSource, publicationPolicy);
         var horizons = config.horizons.map(function (horizon, index) {
             if (!isPlainObject(horizon) || !contains(HORIZON_IDS, horizon.horizonId) ||
                 !contains(HORIZON_RANKS, horizon.rank) || !isNonEmptyString(horizon.question) ||
@@ -413,8 +571,11 @@
             rows: rows,
             horizons: horizons,
             eventSource: eventSource,
-            researchRecordSubjects: readResearchRecordSubjects(config.researchRecord),
-            maxBranches: config.maxBranches
+            researchRecordSubjects: legacy
+                ? readResearchRecordSubjects(config.researchRecord)
+                : publicationPolicy.coveredSubjects.map(function (subject) { return subject.subjectId; }),
+            maxBranches: maxBranches,
+            publicationPolicy: publicationPolicy
         });
     }
 
@@ -438,7 +599,7 @@
     /* The declared public event source. It is read here rather than in the adapter so a
        configuration that names a source without stating its access terms, its freshness window
        or the file that carries its rows is refused before any run reaches it. */
-    function readEventSource(declared) {
+    function readEventSource(declared, publicationPolicy) {
         if (!isPlainObject(declared)) {
             raise("C025-CONFIG-SCHEMA", "The configuration declares no event source.");
         }
@@ -449,21 +610,35 @@
         if (!Number.isFinite(declared.freshnessWindowDays) || declared.freshnessWindowDays <= 0) {
             raise("C025-CONFIG-SCHEMA", "The event source declares no positive freshness window.");
         }
-        if (!Array.isArray(declared.coveredSubjects)) {
-            raise("C025-CONFIG-SCHEMA", "The event source declares no covered subject list, even an empty one.");
+        var covered;
+        if (publicationPolicy && publicationPolicy.contractVersion === PUBLICATION_POLICY_VERSION) {
+            if (Object.prototype.hasOwnProperty.call(declared, "coveredSubjects")) {
+                publicationRaise("C028-SUBJECT-POLICY", "policy-validation",
+                    "The event resource cannot declare publication eligibility.", "eventSource.coveredSubjects");
+            }
+            covered = publicationPolicy.coveredSubjects.map(function (subject) {
+                return {
+                    subjectId: subject.subjectId,
+                    eventsPath: "data/company-intelligence/" + subject.subjectId.replace(/:/g, "-") + "/events.json"
+                };
+            });
+        } else {
+            if (!Array.isArray(declared.coveredSubjects)) {
+                raise("C025-CONFIG-SCHEMA", "The event source declares no covered subject list, even an empty one.");
+            }
+            covered = declared.coveredSubjects.map(function (entry, index) {
+                if (!isPlainObject(entry) || !isNonEmptyString(entry.subjectId) || !isNonEmptyString(entry.eventsPath)) {
+                    raise("C025-CONFIG-SCHEMA", "Covered subject " + index + " names no subject and committed file pair.");
+                }
+                /* Same-origin committed paths only. A covered subject that named a remote file
+                   would turn a keyless out-of-band read into a request the route issues at runtime. */
+                if (/^[a-z][a-z0-9+.-]*:/i.test(entry.eventsPath) || entry.eventsPath.charAt(0) === "/") {
+                    raise("C025-CONFIG-SCHEMA", "Covered subject " + index + " names a path that is not a same-origin committed file.",
+                        "path: " + entry.eventsPath);
+                }
+                return { subjectId: entry.subjectId, eventsPath: entry.eventsPath };
+            });
         }
-        var covered = declared.coveredSubjects.map(function (entry, index) {
-            if (!isPlainObject(entry) || !isNonEmptyString(entry.subjectId) || !isNonEmptyString(entry.eventsPath)) {
-                raise("C025-CONFIG-SCHEMA", "Covered subject " + index + " names no subject and committed file pair.");
-            }
-            /* Same-origin committed paths only. A covered subject that named a remote file
-               would turn a keyless out-of-band read into a request the route issues at runtime. */
-            if (/^[a-z][a-z0-9+.-]*:/i.test(entry.eventsPath) || entry.eventsPath.charAt(0) === "/") {
-                raise("C025-CONFIG-SCHEMA", "Covered subject " + index + " names a path that is not a same-origin committed file.",
-                    "path: " + entry.eventsPath);
-            }
-            return { subjectId: entry.subjectId, eventsPath: entry.eventsPath };
-        });
         return {
             sourceId: declared.sourceId,
             sourceName: declared.sourceName,
@@ -1858,6 +2033,282 @@
         });
     }
 
+    /* ---------- publication owner-read normalization ---------- */
+
+    function ownerMetricRows(value, prefix, rows) {
+        if (value === null || value === undefined) return rows;
+        if (typeof value === "number") {
+            if (Number.isFinite(value)) rows.push({ path: prefix, value: value });
+            return rows;
+        }
+        if (typeof value === "string" || typeof value === "boolean") {
+            rows.push({ path: prefix, value: value });
+            return rows;
+        }
+        if (Array.isArray(value)) {
+            value.forEach(function (entry, index) {
+                ownerMetricRows(entry, prefix + "-" + index, rows);
+            });
+            return rows;
+        }
+        if (isPlainObject(value)) {
+            Object.keys(value).sort().forEach(function (key) {
+                ownerMetricRows(value[key], prefix ? prefix + "-" + key : key, rows);
+            });
+        }
+        return rows;
+    }
+
+    function ownerMetricId(dimensionId, path) {
+        return (dimensionId + "-" + path).replace(/([a-z0-9])([A-Z])/g, "$1-$2")
+            .replace(/[^A-Za-z0-9]+/g, "-").replace(/^-+|-+$/g, "").toLowerCase();
+    }
+
+    function normalizeOwnerDimensionRead(descriptor, ownerRead, subject, cutoff) {
+        if (!isPlainObject(descriptor) || !isNonEmptyString(descriptor.dimensionId) ||
+            !isNonEmptyString(descriptor.ownerToolId) || !contains(HORIZON_RANKS, descriptor.maxHorizon)) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "Owner-read normalization requires a complete dimension descriptor.", "descriptor");
+        }
+        if (!isPlainObject(subject) || subject.contractVersion !== "company-subject/v1") {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "Owner-read normalization requires one resolved company subject.", "subject");
+        }
+        if (!isIsoInstant(cutoff)) {
+            publicationRaise("C028-EVIDENCE-CUTOFF", "company-composition",
+                "Owner-read normalization requires a canonical frozen cutoff.", "cutoff");
+        }
+        var row = {
+            dimensionId: descriptor.dimensionId,
+            ownerToolId: descriptor.ownerToolId,
+            ownerDeepLink: isNonEmptyString(descriptor.ownerDeepLink) ? descriptor.ownerDeepLink : null,
+            freshnessWindowDays: descriptor.freshnessWindowDays,
+            maxHorizon: descriptor.maxHorizon
+        };
+        if (!isPlainObject(ownerRead)) {
+            return unavailableRead(row, subject, "no-shared-read", "none",
+                "The declared owner " + descriptor.ownerToolId + " supplied no frozen read for " + subject.ticker + ".");
+        }
+        if (ownerRead.toolId !== descriptor.ownerToolId) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "The consumed owner read does not match the configured owner tool.",
+                descriptor.dimensionId + ".ownerToolId");
+        }
+        if (envelopeSubjectMismatch(ownerRead, subject)) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "The consumed owner read names another company.", descriptor.dimensionId + ".subjectId");
+        }
+        var asOfInstant = sourceInstant(ownerRead.asOf || descriptor.asOf);
+        if (asOfInstant !== null && Date.parse(asOfInstant) > Date.parse(cutoff)) {
+            publicationRaise("C028-EVIDENCE-CUTOFF", "company-composition",
+                "Source " + String(descriptor.sourceId) + " is newer than cutoff " + cutoff + ".",
+                String(descriptor.sourceId) + ".asOf");
+        }
+        var sourceState = contains(SOURCE_DESCRIPTOR_STATES, descriptor.state)
+            ? descriptor.state : ownerRead.state;
+        if (!contains(SOURCE_DESCRIPTOR_STATES, sourceState)) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "The consumed owner read has an unknown evidence state.", descriptor.dimensionId + ".state");
+        }
+        var limitation = isNonEmptyString(ownerRead.gapReason)
+            ? ownerRead.gapReason
+            : (Array.isArray(ownerRead.limitations) && ownerRead.limitations.length > 0
+                ? ownerRead.limitations.join(" ")
+                : null);
+        if (sourceState === "unavailable") {
+            return unavailableRead(row, subject, "no-shared-read", "owner-read",
+                limitation || "The declared owner read is unavailable for this subject.");
+        }
+        var asOfDay = asOfInstant === null ? null : asOfInstant.slice(0, 10);
+        if (asOfDay === null) {
+            return unavailableRead(row, subject, "source-not-published", "owner-read",
+                "The declared owner read carries no source-qualified as-of clock.");
+        }
+        var provenance = contains(SOURCE_PROVENANCE_CLASSES, descriptor.provenanceClass)
+            ? descriptor.provenanceClass : ownerRead.provenanceClass;
+        if (!contains(PROVENANCE_CLASSES, provenance)) provenance = "derived";
+        var metricRows = ownerMetricRows(ownerRead.metrics, "", []);
+        var values = metricRows.map(function (metric) {
+            return makeValue(ownerMetricId(descriptor.dimensionId, metric.path),
+                metric.path.replace(/-/g, " "), metric.value, "owner-value", provenance,
+                descriptor.ownerToolId + " frozen owner read", asOfDay);
+        });
+        var ageDays = Math.floor((Date.parse(cutoff) - Date.parse(asOfInstant)) / 86400000);
+        var aged = Number.isFinite(descriptor.freshnessWindowDays) && ageDays > descriptor.freshnessWindowDays;
+        if (sourceState === "stale" || aged) {
+            return staleRead(row, subject, {
+                values: values,
+                sourceClass: "owner-read",
+                sourceName: descriptor.ownerToolId + " frozen owner read",
+                asOf: asOfDay,
+                ageDays: ageDays,
+                limitations: [limitation || "The owner read exceeded its declared freshness window."]
+            });
+        }
+        if (sourceState === "conflicted") {
+            return makeRead({
+                dimensionId: descriptor.dimensionId,
+                subjectId: subject.subjectId,
+                state: "conflicted",
+                reasonCode: "sources-disagree",
+                maxHorizon: descriptor.maxHorizon,
+                values: values,
+                directionalSignal: null,
+                ownerToolId: descriptor.ownerToolId,
+                ownerDeepLink: descriptor.ownerDeepLink,
+                sourceClass: "owner-read",
+                sourceName: descriptor.ownerToolId + " frozen owner read",
+                asOf: asOfDay,
+                ageDays: ageDays,
+                limitations: [limitation || "The owner read reports a source conflict."]
+            });
+        }
+        var state = sourceState === "partial" || values.length === 0 ? "partial" : "current";
+        return makeRead({
+            dimensionId: descriptor.dimensionId,
+            subjectId: subject.subjectId,
+            state: state,
+            reasonCode: state === "current" ? null : "source-not-published",
+            maxHorizon: descriptor.maxHorizon,
+            values: values,
+            directionalSignal: contains(["constructive", "pressured", "flat"], ownerRead.directionalSignal)
+                ? ownerRead.directionalSignal : null,
+            ownerToolId: descriptor.ownerToolId,
+            ownerDeepLink: descriptor.ownerDeepLink,
+            sourceClass: "owner-read",
+            sourceName: descriptor.ownerToolId + " frozen owner read",
+            asOf: asOfDay,
+            ageDays: ageDays,
+            limitations: limitation ? [limitation] : []
+        });
+    }
+
+    /* ---------- generation-bound research plan ---------- */
+
+    function validateResearchPlanV2(plan, generation, sources) {
+        return publicationResult(function () {
+            var planFields = ["authoredAt", "authoredBy", "branches", "budgetRemaining", "contractVersion",
+                "emptyReason", "generationId", "maxBranches", "refusals", "requestFingerprint",
+                "responseFingerprint", "subjectId"];
+            if (!exactKeys(plan, planFields) || plan.contractVersion !== RESEARCH_PLAN_V2) {
+                publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                    "The enriched research plan has an invalid field set.", "plan");
+            }
+            if (!isPlainObject(generation) || generation.contractVersion !== GENERATION_VERSION ||
+                plan.generationId !== generation.generationId) {
+                publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                    "The research plan does not belong to the frozen generation.", "plan.generationId");
+            }
+            if (!/^company:[a-z][a-z0-9.-]{0,9}$/.test(plan.subjectId)) {
+                publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                    "The research plan has an invalid company subject.", "plan.subjectId");
+            }
+            if (!isPlainObject(plan.authoredBy) || !isIsoInstant(plan.authoredAt) ||
+                !/^sha256:[a-f0-9]{64}$/.test(plan.requestFingerprint) ||
+                !/^sha256:[a-f0-9]{64}$/.test(plan.responseFingerprint)) {
+                publicationRaise("C028-PLAN-AUTHOR", "plan-validation",
+                    "The research plan has no complete boundary-owned authorship identity.", "plan.authoredBy");
+            }
+            ["providerId", "modelId", "promptPolicyVersion", "schemaVersion", "validatorVersion"]
+                .forEach(function (key) {
+                    if (!isNonEmptyString(plan.authoredBy[key]) || !/^[a-z0-9][a-z0-9._:/-]*$/.test(plan.authoredBy[key])) {
+                        publicationRaise("C028-PLAN-AUTHOR", "plan-validation",
+                            "The research plan author identity is incomplete.", "plan.authoredBy." + key);
+                    }
+                });
+            if (!Number.isInteger(plan.maxBranches) || plan.maxBranches !== 5 ||
+                !Array.isArray(plan.branches) || plan.branches.length > plan.maxBranches ||
+                plan.budgetRemaining !== plan.maxBranches - plan.branches.length) {
+                publicationRaise("C028-PLAN-BUDGET", "plan-validation",
+                    "The research plan does not preserve the five-attempt budget.", "plan.maxBranches");
+            }
+            if (plan.branches.length === 0 && !contains(["floor-was-sufficient", "every-branch-refused"], plan.emptyReason)) {
+                publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                    "An empty research plan must state its closed empty reason.", "plan.emptyReason");
+            }
+            if (plan.branches.length > 0 && plan.emptyReason !== null) {
+                publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                    "A populated research plan cannot state an empty reason.", "plan.emptyReason");
+            }
+            var catalogue = {};
+            (Array.isArray(sources) ? sources : []).forEach(function (source, index) {
+                if (!isPlainObject(source) || !isNonEmptyString(source.sourceId) || catalogue[source.sourceId]) {
+                    publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                        "The plan source catalogue contains an invalid or duplicate source.", "sources." + index);
+                }
+                catalogue[source.sourceId] = source;
+            });
+            var expectedRefusals = [];
+            plan.branches.forEach(function (branch, index) {
+                var branchFields = ["branchId", "changedTargets", "consulted", "contractVersion", "disposition",
+                    "question", "refusalReason", "relevance", "result", "stopCondition", "stoppedBy"];
+                if (!exactKeys(branch, branchFields) || branch.contractVersion !== "company-research-branch/v2" ||
+                    !safeAuthoredText(branch.question) || !safeAuthoredText(branch.result) ||
+                    !safeAuthoredText(branch.stopCondition) || !contains(DISPOSITIONS, branch.disposition) ||
+                    !contains(STOPPED_BY, branch.stoppedBy)) {
+                    publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                        "Research branch " + index + " has an invalid authored field.", "plan.branches." + index);
+                }
+                if (!isPlainObject(branch.relevance) || !contains(HORIZON_IDS, branch.relevance.horizonId) ||
+                    !Array.isArray(branch.relevance.targetIds) || branch.relevance.targetIds.length === 0 ||
+                    branch.relevance.targetIds.some(function (target) { return !isNonEmptyString(target); })) {
+                    publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                        "Research branch " + index + " has an invalid horizon target set.",
+                        "plan.branches." + index + ".relevance");
+                }
+                if (!Array.isArray(branch.changedTargets) || branch.changedTargets.some(function (target) {
+                    return !isNonEmptyString(target) || branch.relevance.targetIds.indexOf(target) === -1;
+                })) {
+                    publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                        "Research branch " + index + " changes a target outside its named horizon set.",
+                        "plan.branches." + index + ".changedTargets");
+                }
+                if (!Array.isArray(branch.consulted) || branch.consulted.length === 0) {
+                    publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                        "Research branch " + index + " names no consulted source.",
+                        "plan.branches." + index + ".consulted");
+                }
+                branch.consulted.forEach(function (source, sourceIndex) {
+                    if (!isPlainObject(source) || !catalogue[source.sourceId] ||
+                        source.fingerprint !== catalogue[source.sourceId].fingerprint) {
+                        publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                            "Research branch " + index + " cites a source outside the frozen catalogue.",
+                            "plan.branches." + index + ".consulted." + sourceIndex);
+                    }
+                    var instant = sourceInstant(source.asOf);
+                    if (instant !== null && Date.parse(instant) > Date.parse(generation.evidenceCutoff)) {
+                        publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                            "Research branch " + index + " cites evidence after the frozen cutoff.",
+                            "plan.branches." + index + ".consulted." + sourceIndex + ".asOf");
+                    }
+                    if (source.subjectId !== null && source.subjectId !== plan.subjectId) {
+                        publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                            "Research branch " + index + " cites another company.",
+                            "plan.branches." + index + ".consulted." + sourceIndex + ".subjectId");
+                    }
+                });
+                if (branch.disposition === "refused") {
+                    if (!safeAuthoredText(branch.refusalReason) || branch.changedTargets.length > 0) {
+                        publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                            "A refused research branch must state a reason and change no target.",
+                            "plan.branches." + index + ".refusalReason");
+                    }
+                    expectedRefusals.push({ branchId: branch.branchId, reason: branch.refusalReason });
+                } else if (branch.refusalReason !== null) {
+                    publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                        "A non-refused branch cannot carry a refusal reason.",
+                        "plan.branches." + index + ".refusalReason");
+                }
+            });
+            if (!Array.isArray(plan.refusals) || canonical(plan.refusals, "company-plan-refusals/v1") !==
+                canonical(expectedRefusals, "company-plan-refusals/v1")) {
+                publicationRaise("C028-PLAN-SCHEMA", "plan-validation",
+                    "The plan refusal account does not match its attempted branches.", "plan.refusals");
+            }
+            return deepFreeze(cloneValue(plan));
+        }, "C028-PLAN-SCHEMA", "plan-validation");
+    }
+
     /* ---------- read version ---------- */
 
     function buildReadVersion(parts, decisionTime) {
@@ -1906,6 +2357,434 @@
         return deepFreeze(version);
     }
 
+    function generationVersionId(subject, generation) {
+        if (!isPlainObject(subject) || subject.contractVersion !== "company-subject/v1" ||
+            !isPlainObject(generation) || generation.contractVersion !== GENERATION_VERSION) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "Version identity requires a resolved subject and frozen generation.", "versionId");
+        }
+        var suffix = generation.generationId.split(":").pop();
+        if (!/^[a-f0-9]{16}$/.test(suffix)) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "The generation identity has no canonical digest suffix.", "generation.generationId");
+        }
+        return "company:" + subject.ticker.toLowerCase() + ":" + generation.etSessionDate +
+            ":" + generation.window + ":" + suffix;
+    }
+
+    function buildReadVersionV2(parts, generation, predecessor) {
+        if (!isPlainObject(parts) || !isPlainObject(generation) || generation.contractVersion !== GENERATION_VERSION) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "A v2 read version requires composed parts and one frozen generation.", "parts");
+        }
+        var subject = parts.subject;
+        var dimensionReads = sortBy(Array.isArray(parts.dimensionReads) ? parts.dimensionReads : [],
+            function (read) { return read.dimensionId; });
+        var horizons = sortBy(Array.isArray(parts.horizons) ? parts.horizons : [],
+            function (horizon) { return horizon.horizonId; });
+        if (!isPlainObject(subject) || subject.contractVersion !== "company-subject/v1" ||
+            dimensionReads.length !== MANDATORY_DIMENSION_IDS.length || horizons.length !== HORIZON_IDS.length) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "A v2 read version requires one subject, fifteen dimensions, and four horizons.", "parts");
+        }
+        if (!isPlainObject(parts.coverageAccount) || parts.coverageAccount.contractVersion !== "company-coverage-account/v1" ||
+            !isPlainObject(parts.evidenceFamilies) || parts.evidenceFamilies.contractVersion !== "company-evidence-family-group/v1" ||
+            !isPlainObject(parts.researchPlan) || parts.researchPlan.contractVersion !== RESEARCH_PLAN_V2 ||
+            !isPlainObject(parts.events) || parts.events.contractVersion !== "company-event-selection/v1" ||
+            !Array.isArray(parts.sourceManifest)) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "A v2 read version is missing a coverage, evidence, plan, event, or source contract.", "parts");
+        }
+        if (!contains(["changed", "unchanged", "first"], parts.conclusionChange)) {
+            publicationRaise("C028-COMPANY-CANDIDATE", "company-composition",
+                "A v2 read version must classify its conclusion lineage.", "parts.conclusionChange");
+        }
+        var body = {
+            contractVersion: READ_VERSION_V2,
+            versionId: generationVersionId(subject, generation),
+            generationId: generation.generationId,
+            subjectId: subject.subjectId,
+            composedAt: generation.frozenAt,
+            evidenceCutoff: generation.evidenceCutoff,
+            priorVersionId: isNonEmptyString(predecessor) ? predecessor : null,
+            conclusionChange: parts.conclusionChange,
+            subject: subject,
+            dimensionReads: dimensionReads,
+            horizons: horizons,
+            coverageAccount: parts.coverageAccount,
+            evidenceFamilies: parts.evidenceFamilies,
+            contradictions: sortBy(Array.isArray(parts.contradictions) ? parts.contradictions : [],
+                function (record) { return record.contradictionId; }),
+            researchPlan: parts.researchPlan,
+            events: parts.events,
+            sourceManifest: sortBy(parts.sourceManifest, function (source) { return source.sourceId; }),
+            refusals: sortBy(Array.isArray(parts.refusals) ? parts.refusals : [], function (refusal) {
+                return String(refusal.code) + ":" + String(refusal.field || refusal.detail);
+            })
+        };
+        var version = cloneValue(body);
+        version.contentFingerprint = fingerprintOf(body, READ_VERSION_V2);
+        return deepFreeze(version);
+    }
+
+    function validateReadVersionV2(version, generation, policy) {
+        return publicationResult(function () {
+            var fields = ["conclusionChange", "contentFingerprint", "contractVersion", "contradictions",
+                "coverageAccount", "dimensionReads", "evidenceCutoff", "evidenceFamilies", "events",
+                "generationId", "horizons", "priorVersionId", "refusals", "researchPlan", "sourceManifest",
+                "subject", "subjectId", "composedAt", "versionId"];
+            if (!exactKeys(version, fields) || version.contractVersion !== READ_VERSION_V2 ||
+                !isPlainObject(generation) || generation.contractVersion !== GENERATION_VERSION ||
+                !isPlainObject(policy) || policy.contractVersion !== PUBLICATION_POLICY_VERSION) {
+                publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                    "The company version has an invalid v2 field set or validation context.", "version");
+            }
+            var admitted = policy.coveredSubjects.filter(function (subject) { return subject.subjectId === version.subjectId; });
+            if (admitted.length !== 1 || version.generationId !== generation.generationId ||
+                version.evidenceCutoff !== generation.evidenceCutoff || version.composedAt !== generation.frozenAt ||
+                version.versionId !== generationVersionId(version.subject, generation) ||
+                version.subject.subjectId !== version.subjectId) {
+                publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                    "The company version does not match its subject, policy, or generation.", "version.subjectId");
+            }
+            if (!contains(["changed", "unchanged", "first"], version.conclusionChange) ||
+                (version.priorVersionId === null) !== (version.conclusionChange === "first")) {
+                publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                    "The company version has an invalid predecessor classification.", "version.conclusionChange");
+            }
+            if (!Array.isArray(version.dimensionReads) || version.dimensionReads.length !== MANDATORY_DIMENSION_IDS.length ||
+                new Set(version.dimensionReads.map(function (read) { return read.dimensionId; })).size !== MANDATORY_DIMENSION_IDS.length ||
+                canonical(version.dimensionReads.map(function (read) { return read.dimensionId; }).sort(), "company-dimension-id-set/v1") !==
+                canonical(MANDATORY_DIMENSION_IDS.slice().sort(), "company-dimension-id-set/v1")) {
+                publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                    "The company version does not account for all fifteen dimensions exactly once.", "version.dimensionReads");
+            }
+            version.dimensionReads.forEach(function (read, index) {
+                if (!isPlainObject(read) || read.contractVersion !== "company-dimension-read/v1" ||
+                    read.subjectId !== version.subjectId || !contains(EVIDENCE_STATES, read.state)) {
+                    publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                        "A company dimension read is invalid.", "version.dimensionReads." + index);
+                }
+                var instant = sourceInstant(read.asOf);
+                if (instant !== null && Date.parse(instant) > Date.parse(generation.evidenceCutoff)) {
+                    publicationRaise("C028-EVIDENCE-CUTOFF", "company-validation",
+                        "A company dimension cites evidence after the frozen cutoff.",
+                        "version.dimensionReads." + index + ".asOf");
+                }
+                if (read.state === "unavailable" && (read.values.length !== 0 || read.directionalSignal !== null)) {
+                    publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                        "An unavailable dimension carries a value or direction.",
+                        "version.dimensionReads." + index);
+                }
+            });
+            if (!Array.isArray(version.horizons) || version.horizons.length !== HORIZON_IDS.length ||
+                canonical(version.horizons.map(function (horizon) { return horizon.horizonId; }).sort(), "company-horizon-id-set/v1") !==
+                canonical(HORIZON_IDS.slice().sort(), "company-horizon-id-set/v1") ||
+                Object.prototype.hasOwnProperty.call(version, "combinedDirection")) {
+                publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                    "The company version must retain exactly four isolated horizons.", "version.horizons");
+            }
+            version.horizons.forEach(function (horizon, index) {
+                if (!isPlainObject(horizon) || horizon.contractVersion !== "company-horizon-read/v1" ||
+                    horizon.subjectId !== version.subjectId || !/^sha256:[a-f0-9]{64}$/.test(horizon.inputFingerprint) ||
+                    Object.prototype.hasOwnProperty.call(horizon, "combinedDirection")) {
+                    publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                        "A company horizon is not an isolated Feature 025 read.", "version.horizons." + index);
+                }
+            });
+            var planValidation = validateResearchPlanV2(version.researchPlan, generation, version.sourceManifest);
+            if (!planValidation.ok) publicationRaise(planValidation.error.code, "company-validation",
+                planValidation.error.reason, "version.researchPlan", planValidation.error.causeCode);
+            if (!isPlainObject(version.coverageAccount) || version.coverageAccount.rows.length !== 15 ||
+                Object.keys(version.coverageAccount.totals).reduce(function (total, state) {
+                    return total + version.coverageAccount.totals[state];
+                }, 0) !== 15 || !isPlainObject(version.evidenceFamilies) ||
+                version.evidenceFamilies.groupedCount !== 15) {
+                publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                    "The company version coverage account does not total fifteen dimensions.", "version.coverageAccount");
+            }
+            var body = {};
+            Object.keys(version).forEach(function (key) {
+                if (key !== "contentFingerprint") body[key] = version[key];
+            });
+            if (version.contentFingerprint !== fingerprintOf(body, READ_VERSION_V2)) {
+                publicationRaise("C028-COMPANY-CANDIDATE", "company-validation",
+                    "The company version content fingerprint does not match its content.", "version.contentFingerprint");
+            }
+            return deepFreeze(cloneValue(version));
+        }, "C028-COMPANY-CANDIDATE", "company-validation");
+    }
+
+    function uniqueStrings(values) {
+        return values.filter(function (value, index) {
+            return isNonEmptyString(value) && values.indexOf(value) === index;
+        }).sort();
+    }
+
+    function versionLimitations(version) {
+        var values = [];
+        version.dimensionReads.forEach(function (read) {
+            values = values.concat(Array.isArray(read.limitations) ? read.limitations : []);
+        });
+        version.horizons.forEach(function (horizon) {
+            if (Array.isArray(horizon.unavailableDimensionIds) && horizon.unavailableDimensionIds.length > 0) {
+                values.push(horizon.horizonId + " horizon: " + horizon.gapEffect);
+            }
+        });
+        return uniqueStrings(values);
+    }
+
+    function ownerReadStatus(versions) {
+        var states = [];
+        versions.forEach(function (version) {
+            version.dimensionReads.forEach(function (read) { states.push(read.state); });
+        });
+        if (contains(states, "current")) return "fresh";
+        if (contains(states, "partial") || contains(states, "stale") || contains(states, "conflicted")) return "stale";
+        return "unavailable";
+    }
+
+    function buildCompanyToolModelRead(generation, versions) {
+        if (!isPlainObject(generation) || generation.contractVersion !== GENERATION_VERSION ||
+            !Array.isArray(versions) || versions.length === 0) {
+            publicationRaise("C028-OWNER-READ", "owner-read", "A company owner read requires one frozen generation and candidate set.", "versions");
+        }
+        var ordered = sortBy(versions, function (version) { return version.subjectId; });
+        var seen = {};
+        ordered.forEach(function (version, index) {
+            if (!isPlainObject(version) || version.contractVersion !== READ_VERSION_V2 ||
+                version.generationId !== generation.generationId || seen[version.subjectId]) {
+                publicationRaise("C028-OWNER-READ", "owner-read",
+                    "The company owner-read candidate set is incomplete, duplicated, or generation-mismatched.",
+                    "versions." + index);
+            }
+            seen[version.subjectId] = true;
+        });
+        var acceptedInstants = [];
+        ordered.forEach(function (version) {
+            version.dimensionReads.forEach(function (read) {
+                var instant = sourceInstant(read.asOf);
+                if (instant !== null && (read.state === "current" || read.state === "partial" || read.state === "stale")) {
+                    acceptedInstants.push(instant);
+                }
+            });
+        });
+        acceptedInstants.sort();
+        var planTimes = ordered.map(function (version) { return version.researchPlan.authoredAt; })
+            .filter(isIsoInstant).sort();
+        var sourceRefs = {};
+        ordered.forEach(function (version) {
+            version.sourceManifest.forEach(function (source) { sourceRefs[source.sourceId] = source; });
+        });
+        var evidenceRefs = Object.keys(sourceRefs).sort().map(function (sourceId) {
+            return {
+                evidenceType: "company-source",
+                fingerprint: sourceRefs[sourceId].fingerprint,
+                sourceId: sourceId,
+                state: sourceRefs[sourceId].state
+            };
+        });
+        var subjects = ordered.map(function (version) {
+            return {
+                subjectId: version.subjectId,
+                ticker: version.subject.ticker,
+                versionId: version.versionId,
+                priorVersionId: version.priorVersionId,
+                contentFingerprint: version.contentFingerprint,
+                conclusionChange: version.conclusionChange,
+                coverage: {
+                    dimensionCount: version.dimensionReads.length,
+                    totals: cloneValue(version.coverageAccount.totals)
+                },
+                horizons: sortBy(version.horizons.map(function (horizon) {
+                    return {
+                        horizonId: horizon.horizonId,
+                        direction: horizon.direction,
+                        evidenceQuality: horizon.evidenceQuality,
+                        inputFingerprint: horizon.inputFingerprint
+                    };
+                }), function (horizon) { return horizon.horizonId; }),
+                limitations: versionLimitations(version),
+                deepLink: "company-intelligence-lab.html?symbol=" + encodeURIComponent(version.subject.ticker) +
+                    "&generation=" + encodeURIComponent(generation.generationId)
+            };
+        });
+        var limitations = uniqueStrings(subjects.reduce(function (all, subject) {
+            return all.concat(subject.limitations);
+        }, []));
+        var readText = subjects.map(function (subject) {
+            return subject.ticker + " has four isolated horizon reads in version " + subject.versionId + ".";
+        }).join(" ");
+        var body = {
+            contractVersion: "tool-model-read/v1",
+            toolId: TOOL_ID,
+            role: "source",
+            profile: "live-market",
+            adapter: {
+                adapterId: COMPANY_OWNER_ADAPTER,
+                readContractVersion: "tool-model-read/v1",
+                owningModelVersion: COMPANY_MODEL_VERSION
+            },
+            status: ownerReadStatus(ordered),
+            generationId: generation.generationId,
+            evaluatedAt: generation.frozenAt,
+            modelAsOf: ordered.map(function (version) { return version.composedAt; }).sort().pop(),
+            sourceAsOf: acceptedInstants.length > 0 ? acceptedInstants[acceptedInstants.length - 1] : null,
+            evidenceCutoff: generation.evidenceCutoff,
+            clocks: {
+                frozenAt: generation.frozenAt,
+                oldestAcceptedSourceAt: acceptedInstants.length > 0 ? acceptedInstants[0] : null,
+                newestAcceptedSourceAt: acceptedInstants.length > 0 ? acceptedInstants[acceptedInstants.length - 1] : null,
+                composedAt: ordered.map(function (version) { return version.composedAt; }).sort().pop(),
+                planAuthoredAt: planTimes.length > 0 ? planTimes[planTimes.length - 1] : null
+            },
+            summary: readText,
+            read: readText,
+            subjects: subjects,
+            coverageSummary: {
+                coveredSubjectCount: subjects.length,
+                candidateVersionCount: ordered.length,
+                dimensionCountPerSubject: 15,
+                failedSubjectCount: 0
+            },
+            horizonSummary: {
+                horizonIds: HORIZON_IDS.slice(),
+                combinedDirection: null
+            },
+            limitations: limitations,
+            deepLink: subjects[0].deepLink,
+            deepLinks: {
+                subjects: subjects.reduce(function (links, subject) {
+                    links[subject.subjectId] = subject.deepLink;
+                    return links;
+                }, {}),
+                matchingBrief: "market-brief.html?generation=" + encodeURIComponent(generation.generationId) + "#brief"
+            },
+            evidenceRefs: evidenceRefs,
+            evidenceApplicability: {
+                status: "applicable",
+                reason: "Validated covered company candidates produced one generation-bound owner read."
+            },
+            evidenceInterpretations: [],
+            recommendationEligibility: {
+                eligible: false,
+                reasonCode: "educational-company-context-only",
+                permittedActionFamilies: [],
+                permittedSubjectBoundary: TOOL_ID
+            },
+            metrics: {
+                generationId: generation.generationId,
+                coveredSubjectCount: subjects.length,
+                contentFingerprint: subjects.length === 1 ? subjects[0].contentFingerprint : null,
+                versionFingerprints: subjects.map(function (subject) { return subject.contentFingerprint; })
+            },
+            source: "validated-company-candidate-set",
+            sources: Object.keys(sourceRefs).sort().map(function (sourceId) { return cloneValue(sourceRefs[sourceId]); }),
+            facts: [],
+            evidenceBoundary: ["Educational company context only. No recommendation, order, sizing, approval, execution, routing, or alert authority."]
+        };
+        var read = cloneValue(body);
+        read.fingerprint = contractFingerprint("tool-model-read", body);
+        return deepFreeze(read);
+    }
+
+    function forbiddenOwnerReadField(value, path) {
+        if (!value || typeof value !== "object") return null;
+        var keys = Object.keys(value);
+        for (var index = 0; index < keys.length; index += 1) {
+            var key = keys[index];
+            var next = path ? path + "." + key : key;
+            var permitted = next === "recommendationEligibility" ||
+                next === "recommendationEligibility.permittedActionFamilies";
+            if (!permitted && /(?:authorization|cookie|credential|api[-_]?key|password|passphrase|secret|token|account|holding|position|cost[-_]?basis|pnl|profit|loss|proceeds|order|approval|execution|routing|alert|sizing|quantity)/i.test(key)) {
+                return next;
+            }
+            var nested = forbiddenOwnerReadField(value[key], next);
+            if (nested) return nested;
+        }
+        return null;
+    }
+
+    function validateCompanyToolModelRead(read, generation, versions) {
+        return publicationResult(function () {
+            var fields = ["adapter", "clocks", "contractVersion", "coverageSummary", "deepLink", "deepLinks",
+                "evaluatedAt", "evidenceApplicability", "evidenceBoundary", "evidenceCutoff", "evidenceInterpretations",
+                "evidenceRefs", "facts", "fingerprint", "generationId", "horizonSummary", "limitations", "metrics",
+                "modelAsOf", "profile", "read", "recommendationEligibility", "role", "source", "sourceAsOf",
+                "sources", "status", "subjects", "summary", "toolId"];
+            if (!exactKeys(read, fields) || read.contractVersion !== "tool-model-read/v1" || read.toolId !== TOOL_ID ||
+                read.role !== "source" || read.profile !== "live-market" ||
+                !isPlainObject(generation) || generation.contractVersion !== GENERATION_VERSION ||
+                read.generationId !== generation.generationId || read.evidenceCutoff !== generation.evidenceCutoff ||
+                !contains(["fresh", "stale", "unavailable"], read.status)) {
+                publicationRaise("C028-OWNER-READ", "owner-read-validation",
+                    "The company owner read has an invalid base contract or generation identity.", "read");
+            }
+            if (!isPlainObject(read.adapter) || read.adapter.adapterId !== COMPANY_OWNER_ADAPTER ||
+                read.adapter.readContractVersion !== "tool-model-read/v1" ||
+                read.adapter.owningModelVersion !== COMPANY_MODEL_VERSION) {
+                publicationRaise("C028-OWNER-READ", "owner-read-validation",
+                    "The company owner read has invalid adapter provenance.", "read.adapter");
+            }
+            if (!Array.isArray(versions) || !Array.isArray(read.subjects) || read.subjects.length !== versions.length ||
+                read.coverageSummary.coveredSubjectCount !== versions.length ||
+                read.coverageSummary.candidateVersionCount !== versions.length ||
+                read.coverageSummary.dimensionCountPerSubject !== 15 ||
+                read.coverageSummary.failedSubjectCount !== 0) {
+                publicationRaise("C028-OWNER-READ", "owner-read-validation",
+                    "The company owner read does not account for the complete candidate set.", "read.subjects");
+            }
+            var versionBySubject = {};
+            versions.forEach(function (version) { versionBySubject[version.subjectId] = version; });
+            read.subjects.forEach(function (subject, index) {
+                var version = versionBySubject[subject.subjectId];
+                if (!version || subject.versionId !== version.versionId ||
+                    subject.contentFingerprint !== version.contentFingerprint ||
+                    subject.priorVersionId !== version.priorVersionId || subject.horizons.length !== 4 ||
+                    subject.coverage.dimensionCount !== 15 ||
+                    Object.keys(subject.coverage.totals).reduce(function (total, state) {
+                        return total + subject.coverage.totals[state];
+                    }, 0) !== 15) {
+                    publicationRaise("C028-OWNER-READ", "owner-read-validation",
+                        "A company owner-read subject does not match its candidate version.",
+                        "read.subjects." + index);
+                }
+            });
+            if (!isPlainObject(read.horizonSummary) || read.horizonSummary.combinedDirection !== null ||
+                canonical(read.horizonSummary.horizonIds.slice().sort(), "company-horizon-id-set/v1") !==
+                canonical(HORIZON_IDS.slice().sort(), "company-horizon-id-set/v1") ||
+                !isPlainObject(read.recommendationEligibility) || read.recommendationEligibility.eligible !== false ||
+                read.recommendationEligibility.reasonCode !== "educational-company-context-only" ||
+                !Array.isArray(read.recommendationEligibility.permittedActionFamilies) ||
+                read.recommendationEligibility.permittedActionFamilies.length !== 0 ||
+                read.recommendationEligibility.permittedSubjectBoundary !== TOOL_ID ||
+                !Array.isArray(read.evidenceInterpretations) || read.evidenceInterpretations.length !== 0) {
+                publicationRaise("C028-OWNER-READ", "owner-read-validation",
+                    "The company owner read carries combined-direction or action authority.",
+                    "read.recommendationEligibility");
+            }
+            var forbidden = forbiddenOwnerReadField(read, "");
+            if (forbidden) {
+                publicationRaise("C028-PRIVACY", "owner-read-validation",
+                    "The company owner read contains a private or consequential authority field.", forbidden);
+            }
+            if (!safeAuthoredText(read.read) || !safeAuthoredText(read.summary) ||
+                read.limitations.some(function (line) { return !safeAuthoredText(line); })) {
+                publicationRaise("C028-PRIVACY", "owner-read-validation",
+                    "The company owner read contains non-text-safe authored content.", "read.read");
+            }
+            var body = {};
+            Object.keys(read).forEach(function (key) {
+                if (key !== "fingerprint") body[key] = read[key];
+            });
+            if (read.fingerprint !== contractFingerprint("tool-model-read", body)) {
+                publicationRaise("C028-OWNER-READ", "owner-read-validation",
+                    "The company owner-read fingerprint does not match its content.", "read.fingerprint");
+            }
+            return deepFreeze(cloneValue(read));
+        }, "C028-OWNER-READ", "owner-read-validation");
+    }
+
     /* ---------- append-only version tree ---------- */
 
     /* A version id carries colons, which a committed file name should not. One helper owns that
@@ -1936,7 +2815,8 @@
         var refusals = [];
         var versions = [];
         records.forEach(function (record, index) {
-            if (!isPlainObject(record) || record.contractVersion !== "company-read-version/v1" ||
+            if (!isPlainObject(record) ||
+                (record.contractVersion !== "company-read-version/v1" && record.contractVersion !== READ_VERSION_V2) ||
                 !isNonEmptyString(record.versionId) || !isIsoInstant(record.composedAt)) {
                 refusals.push(makeError("C025-READ-CONTRACT",
                     "A committed version record fails the read-version contract, so it is not shown as history.",
@@ -1953,7 +2833,7 @@
             Object.keys(record).forEach(function (key) {
                 if (key !== "contentFingerprint") body[key] = record[key];
             });
-            var recomputed = fingerprintOf(body, "company-read-version/v1");
+            var recomputed = fingerprintOf(body, record.contractVersion);
             if (record.contentFingerprint !== recomputed) {
                 refusals.push(makeError("C025-READ-CONTRACT",
                     "A committed version record no longer matches the fingerprint it shipped with.",
@@ -1971,7 +2851,8 @@
         var known = versions.map(function (entry) { return entry.versionId; });
         var currentVersionId = null;
         if (pointer !== null) {
-            if (pointer.contractVersion !== "company-version-pointer/v1" || pointer.subjectId !== subject.subjectId ||
+            if ((pointer.contractVersion !== "company-version-pointer/v1" && pointer.contractVersion !== "company-version-pointer/v2") ||
+                pointer.subjectId !== subject.subjectId ||
                 !contains(known, pointer.versionId)) {
                 refusals.push(makeError("C025-READ-CONTRACT",
                     "The committed pointer does not name a readable version of this company, so no current version is claimed.",
@@ -2131,6 +3012,13 @@
     return {
         CONTRACT_VERSION: "company-intelligence/v1",
         CONFIG_VERSION: CONFIG_VERSION,
+        LEGACY_CONFIG_VERSION: LEGACY_CONFIG_VERSION,
+        PUBLICATION_POLICY_VERSION: PUBLICATION_POLICY_VERSION,
+        GENERATION_VERSION: GENERATION_VERSION,
+        RESEARCH_PLAN_V2: RESEARCH_PLAN_V2,
+        READ_VERSION_V2: READ_VERSION_V2,
+        COMPANY_OWNER_ADAPTER: COMPANY_OWNER_ADAPTER,
+        COMPANY_MODEL_VERSION: COMPANY_MODEL_VERSION,
         TOOL_ID: TOOL_ID,
         EVIDENCE_STATES: Object.freeze(EVIDENCE_STATES.slice()),
         HORIZON_RANKS: Object.freeze(HORIZON_RANKS.slice()),
@@ -2145,14 +3033,17 @@
         COVERAGE_READINESS_STATES: Object.freeze(COVERAGE_READINESS_STATES.slice()),
         REASON_CODES: Object.freeze(REASON_CODES.slice()),
         ERROR_CODES: Object.freeze(ERROR_CODES.slice()),
+        PUBLICATION_ERROR_CODES: Object.freeze(PUBLICATION_ERROR_CODES.slice()),
         MANDATORY_DIMENSION_IDS: Object.freeze(MANDATORY_DIMENSION_IDS.slice()),
         MANDATORY_BRANCH_FIELDS: Object.freeze(MANDATORY_BRANCH_FIELDS.slice()),
         TOOL_READ_KEYS: Object.freeze(TOOL_READ_KEYS.slice()),
         ADAPTER_IDS: Object.freeze(ADAPTERS.map(function (adapter) { return adapter.adapterId; })),
         resolveSubject: resolveSubject,
         refuseInput: refuseInput,
+        readPublicationPolicy: readPublicationPolicy,
         readCoverageRegistry: readCoverageRegistry,
         describeDimensionOwner: describeDimensionOwner,
+        normalizeOwnerDimensionRead: normalizeOwnerDimensionRead,
         runAdapters: runAdapters,
         buildCoverageAccount: buildCoverageAccount,
         groupEvidenceFamilies: groupEvidenceFamilies,
@@ -2168,7 +3059,12 @@
         eventsPathFor: eventsPathFor,
         attachResearchPlan: attachResearchPlan,
         agentAuthoredPlanSource: agentAuthoredPlanSource,
+        validateResearchPlanV2: validateResearchPlanV2,
         buildReadVersion: buildReadVersion,
+        buildReadVersionV2: buildReadVersionV2,
+        validateReadVersionV2: validateReadVersionV2,
+        buildCompanyToolModelRead: buildCompanyToolModelRead,
+        validateCompanyToolModelRead: validateCompanyToolModelRead,
         versionPathsFor: versionPathsFor,
         readVersionHistory: readVersionHistory,
         planVersionWrite: planVersionWrite,

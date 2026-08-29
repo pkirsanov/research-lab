@@ -18,9 +18,14 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const require_ = createRequire(import.meta.url);
 const INTEL = require_('../rlcompanyintel.js');
 const CONTRACTS = require_('../rlcontracts.js');
-const CONFIG = JSON.parse(readFileSync(join(ROOT, 'company-intelligence.config.json'), 'utf8'));
+const PUBLICATION_CONFIG = JSON.parse(readFileSync(join(ROOT, 'company-intelligence.config.json'), 'utf8'));
 const MODULE_SOURCE = readFileSync(join(ROOT, 'rlcompanyintel.js'), 'utf8');
 const ROUTE_SOURCE = readFileSync(join(ROOT, 'company-intelligence-lab.html'), 'utf8');
+const PUBLICATION_MODULE_SOURCE = readFileSync(join(ROOT, 'scripts', 'company-intelligence-publication.mjs'), 'utf8');
+const LEGACY_CONFIG_BLOCK = /<script type="application\/json" data-embedded-config="company-intelligence\.config\.json">([\s\S]*?)<\/script>/
+    .exec(ROUTE_SOURCE);
+assert.ok(LEGACY_CONFIG_BLOCK, 'the excluded Feature 025 route retains its v1 configuration cache');
+const CONFIG = JSON.parse(LEGACY_CONFIG_BLOCK[1]);
 
 const DECISION_TIME = '2026-08-18T00:00:00.000Z';
 const SESSION_MS = 86400000;
@@ -839,9 +844,20 @@ test('a dimension with no owner renders no deep link and states that no owner ex
 
 test('every exported function of the module has a caller inside the route source', () => {
     const exported = Object.keys(INTEL).filter((name) => typeof INTEL[name] === 'function');
+    const headlessOnly = new Set([
+        'readPublicationPolicy',
+        'normalizeOwnerDimensionRead',
+        'validateResearchPlanV2',
+        'buildReadVersionV2',
+        'validateReadVersionV2',
+        'buildCompanyToolModelRead',
+        'validateCompanyToolModelRead'
+    ]);
     assert.ok(exported.length >= 15, exported.length + ' functions are exported');
     exported.forEach((name) => {
-        assert.ok(ROUTE_SOURCE.includes('INTEL.' + name + '('), 'the route calls ' + name);
+        const consumer = headlessOnly.has(name) ? PUBLICATION_MODULE_SOURCE : ROUTE_SOURCE;
+        assert.ok(consumer.includes('INTEL.' + name + '('),
+            (headlessOnly.has(name) ? 'the headless publication module calls ' : 'the route calls ') + name);
     });
     /* Adversarial: the detector really fails for a name the route never calls. */
     assert.ok(!ROUTE_SOURCE.includes('INTEL.definitelyNotCalled('));
@@ -1951,16 +1967,15 @@ test('every declared ownerSubjectParam is the single shared parameter name and n
     });
 });
 
-test('the registry embedded in the route is identical to the committed registry file', () => {
-    /* The route ships the registry twice so a reader with no server can still compose (a
-       null-origin document cannot fetch at all). Two copies are only safe while they cannot
-       disagree, so this is the guard that keeps them one artifact. */
+test('the excluded route retains a readable byte-stable v1 registry cache', () => {
+    /* Scope 01 keeps the excluded Feature 025 route unchanged while the committed publication
+       policy advances additively to v2. The route cache remains a readable historical v1 input. */
     const block = /<script type="application\/json" data-embedded-config="([^"]+)">([\s\S]*?)<\/script>/
         .exec(ROUTE_SOURCE);
     assert.ok(block, 'the route carries an embedded coverage registry block');
     assert.equal(block[1], 'company-intelligence.config.json', 'the block names the file it mirrors');
     const embedded = JSON.parse(block[2]);
-    assert.deepEqual(embedded, CONFIG, 'the embedded registry equals the committed registry file');
+    assert.deepEqual(embedded, CONFIG, 'the embedded registry equals the captured v1 route cache');
 
     /* The embedded copy really is a working registry, not merely equal-looking text. */
     assert.equal(INTEL.readCoverageRegistry(embedded).rows.length, 15);
@@ -1968,7 +1983,7 @@ test('the registry embedded in the route is identical to the committed registry 
     /* ADVERSARIAL COUNTER-CASE: the check can fail. A single drifted field is caught. */
     const drifted = JSON.parse(JSON.stringify(embedded));
     drifted.coverageRegistry[0].freshnessWindowDays += 1;
-    assert.notDeepEqual(drifted, CONFIG, 'a one-field drift is detectable');
+    assert.notDeepEqual(drifted, CONFIG, 'a one-field v1 cache drift is detectable');
 });
 
 test('readCoverageRegistry raises C025-REGISTRY-INCOMPLETE when a mandatory dimension is absent', () => {
@@ -1985,28 +2000,31 @@ test('readCoverageRegistry raises C025-REGISTRY-INCOMPLETE when a mandatory dime
             'removing ' + dimensionId + ' is refused'
         );
     });
+    assert.equal(INTEL.readCoverageRegistry(PUBLICATION_CONFIG).rows.length, 15,
+        'the additive v2 configuration is also admitted');
     assert.throws(
-        () => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, { contractVersion: 'company-intelligence-config/v2' })),
+        () => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, { contractVersion: 'company-intelligence-config/v3' })),
         (error) => error.code === 'C025-CONFIG-VERSION'
     );
-    /* The shipped configuration passes, so the guard is not refusing everything. */
+    /* Both supported configurations pass, so the guard is not refusing everything. */
     assert.equal(INTEL.readCoverageRegistry(CONFIG).rows.length, 15);
 });
 
 test('the shipped configuration declares exactly fifteen registry rows and four horizons', () => {
-    assert.equal(CONFIG.contractVersion, 'company-intelligence-config/v1');
-    assert.equal(CONFIG.coverageRegistry.length, 15);
-    assert.equal(CONFIG.horizons.length, 4);
-    assert.equal(CONFIG.decisionTimeSource, 'caller');
-    assert.ok(Number.isInteger(CONFIG.maxBranches) && CONFIG.maxBranches > 0);
-    assert.ok(!/key|token|secret|password/i.test(JSON.stringify(CONFIG)), 'the config carries no credential');
-    CONFIG.coverageRegistry.forEach((row) => {
+    assert.equal(PUBLICATION_CONFIG.contractVersion, 'company-intelligence-config/v2');
+    assert.equal(PUBLICATION_CONFIG.coverageRegistry.length, 15);
+    assert.equal(PUBLICATION_CONFIG.horizons.length, 4);
+    assert.equal(PUBLICATION_CONFIG.decisionTimeSource, 'caller');
+    assert.equal(PUBLICATION_CONFIG.publication.branchBudget, 5);
+    assert.ok(!Object.prototype.hasOwnProperty.call(PUBLICATION_CONFIG, 'maxBranches'));
+    assert.ok(!/key|token|secret|password/i.test(JSON.stringify(PUBLICATION_CONFIG)), 'the config carries no credential');
+    PUBLICATION_CONFIG.coverageRegistry.forEach((row) => {
         assert.ok(INTEL.HORIZON_RANKS.includes(row.maxHorizon), row.dimensionId);
         assert.equal(row.ownerToolId === null, row.ownerDeepLink === null, row.dimensionId);
     });
     /* Every dimension is a primary contributor to at least one horizon, so none is unreachable. */
     const claimed = new Set();
-    CONFIG.horizons.forEach((horizon) => horizon.primaryDimensionIds.forEach((id) => claimed.add(id)));
+    PUBLICATION_CONFIG.horizons.forEach((horizon) => horizon.primaryDimensionIds.forEach((id) => claimed.add(id)));
     assert.deepEqual([...claimed].sort(), INTEL.MANDATORY_DIMENSION_IDS.slice().sort());
 
     /* Every other floor assertion in this suite compares the registry against
@@ -2022,7 +2040,7 @@ test('the shipped configuration declares exactly fifteen registry rows and four 
     assert.equal(FLOOR_NAMED_BY_FR_025_004.length, 15);
     assert.deepEqual(INTEL.MANDATORY_DIMENSION_IDS.slice().sort(), FLOOR_NAMED_BY_FR_025_004.slice().sort(),
         'the module constant carries exactly the fifteen dimensions FR-025-004 names');
-    assert.deepEqual(CONFIG.coverageRegistry.map((row) => row.dimensionId).sort(), FLOOR_NAMED_BY_FR_025_004.slice().sort(),
+    assert.deepEqual(PUBLICATION_CONFIG.coverageRegistry.map((row) => row.dimensionId).sort(), FLOOR_NAMED_BY_FR_025_004.slice().sort(),
         'the committed registry carries exactly the fifteen dimensions FR-025-004 names');
 });
 
@@ -3529,4 +3547,69 @@ test('027 security — no markup-bearing subject can reach a receiver markup sin
             .filter((m) => !isWrapped(line.slice(0, m.index), line.slice(m.index + m[0].length)));
         assert.ok(hits.length > 0, 'the sink scan is blind to a real shape it exists to catch: ' + label);
     });
+});
+
+test('Regression canary: Feature 025 UMD and v1 contracts remain readable beside publication v2', () => {
+    const embeddedMatch = /<script type="application\/json" data-embedded-config="company-intelligence\.config\.json">([\s\S]*?)<\/script>/
+        .exec(ROUTE_SOURCE);
+    assert.ok(embeddedMatch, 'the excluded Feature 025 route retains its committed-first-read v1 configuration');
+    const legacyConfig = JSON.parse(embeddedMatch[1]);
+    assert.equal(legacyConfig.contractVersion, 'company-intelligence-config/v1');
+    const legacyRegistry = INTEL.readCoverageRegistry(legacyConfig);
+    assert.equal(legacyRegistry.rows.length, 15);
+    assert.equal(legacyRegistry.maxBranches, 5);
+
+    assert.equal(PUBLICATION_CONFIG.contractVersion, 'company-intelligence-config/v2');
+    const policy = INTEL.readPublicationPolicy(PUBLICATION_CONFIG);
+    assert.equal(policy.contractVersion, 'company-publication-policy/v1');
+    assert.deepEqual(policy.coveredSubjects.map((subject) => subject.subjectId), ['company:msft']);
+    assert.equal(policy.branchBudget, 5);
+    const coveredPaths = [];
+    const visit = (value, at = '') => {
+        if (!value || typeof value !== 'object') return;
+        Object.keys(value).forEach((key) => {
+            const next = at ? at + '.' + key : key;
+            if (key === 'coveredSubjects') coveredPaths.push(next);
+            visit(value[key], next);
+        });
+    };
+    visit(PUBLICATION_CONFIG);
+    assert.deepEqual(coveredPaths, ['publication.coveredSubjects']);
+    const duplicatedAuthority = structuredClone(PUBLICATION_CONFIG);
+    duplicatedAuthority.eventSource.coveredSubjects = [{
+        subjectId: 'company:msft',
+        eventsPath: 'data/company-intelligence/company-msft/events.json'
+    }];
+    assert.throws(() => INTEL.readPublicationPolicy(duplicatedAuthority),
+        (error) => error.code === 'C028-SUBJECT-POLICY');
+    const currentRegistry = INTEL.readCoverageRegistry(PUBLICATION_CONFIG);
+    assert.equal(currentRegistry.rows.length, 15);
+    assert.equal(currentRegistry.maxBranches, policy.branchBudget);
+    assert.deepEqual(currentRegistry.researchRecordSubjects, ['company:msft']);
+    assert.equal(INTEL.eventsPathFor(currentRegistry, 'company:msft'),
+        'data/company-intelligence/company-msft/events.json');
+    assert.equal(currentRegistry.rows.find((row) => row.dimensionId === 'performance').ownerToolId,
+        'etf-momentum-lab');
+    assert.equal(currentRegistry.rows.find((row) => row.dimensionId === 'technicals').ownerToolId,
+        'swing-structure-lab');
+    assert.equal(currentRegistry.rows.find((row) => row.dimensionId === 'sentiment').ownerToolId, null);
+
+    const historical = readJson(PRIOR_VERSION_FILE_PATH);
+    const history = INTEL.readVersionHistory(subjectOf(), sourcesOf({
+        versionTree: versionTree([historical], historical.versionId)
+    }));
+    assert.equal(history.currentVersionId, historical.versionId);
+    assert.equal(history.versions.length, 1);
+    assert.deepEqual(history.refusals, []);
+
+    [
+        'readPublicationPolicy',
+        'normalizeOwnerDimensionRead',
+        'validateResearchPlanV2',
+        'buildReadVersionV2',
+        'validateReadVersionV2',
+        'buildCompanyToolModelRead',
+        'validateCompanyToolModelRead'
+    ].forEach((name) => assert.equal(typeof INTEL[name], 'function', name + ' is an additive UMD export'));
+    assert.equal(Object.isFrozen(INTEL), true);
 });

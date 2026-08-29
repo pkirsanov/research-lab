@@ -1,8 +1,21 @@
 {
-  "contractVersion": "company-intelligence-config/v1",
-  "note": "Coverage registry and composition policy for the Company Multi-Horizon Intelligence Lab. Fifteen dimensions are mandatory on every run; a dimension with no source answers with an explicit unavailable state and a named reason rather than a blank. decisionTimeSource is 'caller' because every composition function takes an explicit decisionTime and the module reads no clock.",
+  "contractVersion": "company-intelligence-config/v2",
+  "note": "Coverage registry, composition policy, and publication eligibility for the Company Multi-Horizon Intelligence Lab. publication.coveredSubjects is the only periodic-publication subject authority. Fifteen dimensions are mandatory on every run; a dimension with no source answers with an explicit unavailable state and a named reason rather than a blank. decisionTimeSource is 'caller' because every composition function takes an explicit decisionTime and the module reads no clock.",
   "decisionTimeSource": "caller",
-  "maxBranches": 5,
+  "publication": {
+    "contractVersion": "company-publication-policy/v1",
+    "coveredSubjects": [
+      {
+        "subjectId": "company:msft",
+        "ticker": "MSFT",
+        "cik": "0000789019",
+        "displayName": "Microsoft Corporation"
+      }
+    ],
+    "benchmarkSymbol": "SPY",
+    "ownerReadAdapterId": "company-intelligence-owner-v1",
+    "branchBudget": 5
+  },
   "branchBudgetRationale": "maxBranches is 5: five discretionary branches per run. The number is chosen against the fifteen-dimension mandatory floor rather than against an agent's appetite: the floor already answers the coverage question, so a branch exists only to settle a question the floor raised, and a single company read raises far fewer than fifteen such questions. A budget of 5 leaves room for one branch per horizon plus one contradiction follow-up, which is the largest set observed while composing the four horizons. A larger budget would let a run wander past the decision it was opened for; a smaller one would refuse a legitimate contradiction follow-up. Raising this integer to make a failing budget test pass is forbidden.",
   "refusedBranchCounting": {
     "countsAgainstBudget": true,
@@ -13,19 +26,7 @@
     "sourceName": "SEC EDGAR company submissions",
     "sourceUrl": "https://data.sec.gov/submissions/",
     "accessTerms": "United States government work in the public domain. The endpoint needs no credential, no account, no registration and no server of our own; the SEC asks every caller to declare a User-Agent and to stay under ten requests a second. Rows are read out of band, verified once, and committed under data/company-intelligence/ so the route reads them same-origin and issues no external request.",
-    "freshnessWindowDays": 120,
-    "coveredSubjects": [
-      {
-        "subjectId": "company:msft",
-        "eventsPath": "data/company-intelligence/company-msft/events.json"
-      }
-    ]
-  },
-  "researchRecord": {
-    "note": "Subjects that carry a committed authored research plan and an append-only version tree under data/company-intelligence/<subjectId>/. A subject absent from this list carries neither, so the route requests nothing for it and the research plan and outcome record workspaces state that absence themselves.",
-    "coveredSubjects": [
-      "company:msft"
-    ]
+    "freshnessWindowDays": 120
   },
   "freshnessWindowDays": {
     "committed-file": 400,
@@ -38,9 +39,9 @@
     {
       "dimensionId": "performance",
       "label": "Own and relative price performance",
-      "ownerToolId": "market-brief",
-      "ownerDeepLink": "market-brief.html",
-      "ownerBareReason": "market-scoped",
+      "ownerToolId": "etf-momentum-lab",
+      "ownerDeepLink": "etf-momentum-lab.html",
+      "ownerSubjectParam": "ticker",
       "freshnessWindowDays": 7,
       "maxHorizon": "swing"
     },
@@ -65,9 +66,9 @@
     {
       "dimensionId": "technicals",
       "label": "Technical structure",
-      "ownerToolId": "technical-analysis-decision-lab",
-      "ownerDeepLink": "technical-analysis-decision-lab.html",
-      "ownerBareReason": "fixed-subject",
+      "ownerToolId": "swing-structure-lab",
+      "ownerDeepLink": "swing-structure-lab.html",
+      "ownerSubjectParam": "ticker",
       "freshnessWindowDays": 7,
       "maxHorizon": "tactical"
     },
@@ -152,9 +153,8 @@
     {
       "dimensionId": "sentiment",
       "label": "Sentiment backdrop",
-      "ownerToolId": "market-brief",
-      "ownerDeepLink": "market-brief.html",
-      "ownerBareReason": "market-scoped",
+      "ownerToolId": null,
+      "ownerDeepLink": null,
       "freshnessWindowDays": 3,
       "maxHorizon": "tactical"
     },

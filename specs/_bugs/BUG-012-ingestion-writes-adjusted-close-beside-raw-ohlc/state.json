@@ -204,19 +204,19 @@
       {
         "scopeId": "01-restore-ohlc-coherence-in-bars-ingestion",
         "status": "Done",
-        "dodChecked": 8,
+        "dodChecked": 11,
         "dodUnchecked": 0
       },
       {
         "scopeId": "02-decouple-committed-fixture-from-mutable-bars",
         "status": "Done",
-        "dodChecked": 7,
+        "dodChecked": 12,
         "dodUnchecked": 0
       },
       {
         "scopeId": "03-surface-boot-failure-instead-of-hanging",
         "status": "Done",
-        "dodChecked": 8,
+        "dodChecked": 13,
         "dodUnchecked": 0
       },
       {

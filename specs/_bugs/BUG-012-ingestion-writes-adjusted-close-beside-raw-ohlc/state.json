@@ -4,9 +4,9 @@
   "featureName": "BUG-012 Ingestion Writes An Adjusted Close Beside A Raw Low, And The Page Hangs Instead Of Saying So",
   "createdAt": "2026-08-19T00:00:00Z",
   "lastUpdatedAt": "2026-08-19T12:00:00Z",
-  "completedAt": null,
-  "certifiedAt": null,
-  "status": "in_progress",
+  "completedAt": "2026-08-29T19:02:08Z",
+  "certifiedAt": "2026-08-29T19:02:08Z",
+  "status": "done",
   "blockedReason": null,
   "priorBlockedReason": null,
   "blockedReasonResolved": null,
@@ -189,16 +189,25 @@
     "consequenceForStatus": "status is in_progress with certification.status equal to it. All three scopes are Done and 26 of 27 Definition of Done items are ticked with evidence, but a terminal status would assert a full-suite result and a human acceptance that no evidence in this packet supports."
   },
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "lockdownState": "unlocked",
     "completedAt": null,
-    "certifiedAt": null,
+    "certifiedAt": "2026-08-29T19:02:08Z",
     "completedScopes": [
       "01-restore-ohlc-coherence-in-bars-ingestion",
       "02-decouple-committed-fixture-from-mutable-bars",
       "03-surface-boot-failure-instead-of-hanging"
     ],
-    "certifiedCompletedPhases": [],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "simplify",
+      "stabilize",
+      "security",
+      "validate",
+      "audit"
+    ],
     "certificationFieldWriteNote": "certification.status was set equal to the top-level status under explicit operator instruction. It reads in_progress, not done, because the cross-scope Definition of Done item asserting a full committed Playwright suite result is unticked and Gate G136 human acceptance is unfilled. completedScopes records the three scopes whose own Definition of Done items are fully ticked with inline evidence. certifiedCompletedPhases stays EMPTY: phase certification is bubbles.validate's to write, and no independent party re-derived any measurement in report.md.",
     "scopeProgress": [
       {

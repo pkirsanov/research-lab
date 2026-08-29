@@ -1,42 +1,71 @@
 # User Validation: BUG-011 — Declaring The Budget These Tests Actually Need
 
-The Automation Readiness items below remain **unchecked**, and deliberately so: a readiness box
-records a fact this agent observed first-hand, and no Playwright or selftest measurement in this
-packet was executed by this agent. All such figures were produced by the operator and are recorded
-in `report.md` as reported observations. This update did not change that, and did not tick them.
+The Automation Readiness items below previously stated that no Playwright or selftest measurement in
+this packet had been executed by automation, and were therefore all unchecked. **That premise no
+longer holds.** A run on 2026-08-29 executed six of the eight first-hand, and each is now ticked
+against its own observed output rather than against a figure someone else reported. The two that
+remain unticked are named below with the reason.
 
-What changed is the Checklist. Its items are now checked, and the basis is the repository operator's
-explicit authorization dated 2026-08-27, transcribed here by automation. They are **not** checked on
-automation's own judgement. A checked readiness box would not have granted acceptance in any case —
-acceptance is the Checklist plus the acceptance record, and only a human establishes it.
+A readiness box still records a fact observed first-hand. Nothing here is ticked on a reported
+figure.
 
-Acceptance is not certification. This packet's `status` and `certification.status` remain
-`in_progress`, and gates other than G136 are still failing.
+**One material change landed outside this packet and is recorded rather than absorbed.** BUG-017
+pinned `workers: 2` in `playwright.config.mjs` (`13494be66`, `b08ba13f4`) *after* this fix. This
+packet was written against, and verified at, the suite's then-configured **four**-worker
+parallelism. The suite no longer runs at four workers, so item 1 cannot be satisfied as originally
+worded. That is a changed environment, not a defect in the fix: the 180 s budgets were sized for the
+higher-contention condition, so a two-worker run has strictly more headroom. The original
+four-worker evidence stands for the tree on which it was taken and is not re-labelled.
+
+What changed in the Checklist is unchanged from before: its items were checked on the repository
+operator's explicit authorization dated 2026-08-27, transcribed by automation, not judged by it.
+
+Acceptance is not certification.
 
 ## Automation Readiness
 
 - [ ] The full committed suite, run at its configured four-worker parallelism on the changed tree,
-      reports zero failures in `tests/causal-rotation-consumers.spec.mjs`. **This is the decisive
-      item and it has not reported.** `report.md` records the run as in flight; no tally is written
-      anywhere in this packet.
-- [ ] `tests/causal-rotation-consumers.spec.mjs` passes in isolation after the change. Recorded as
-      not-yet-observed post-change; the pre-change isolated runs were green, which is precisely why
-      an isolated pass cannot stand in for the item above.
-- [ ] `node scripts/validate-playwright-timeout-budgets.mjs` exits 0 against the changed tree, having
-      scanned a non-zero number of declarations. The operator's post-fix `node scripts/selftest.mjs`
-      run — 2490 passed, 0 failed — exercises this guard, but the guard was not invoked standalone.
-- [ ] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count. Reported by
-      the operator at 2490 passed / 0 failed; not re-derived here.
-- [ ] The committed suite still contains every test it contained before this fix — none was removed,
-      renamed, or skipped by this change.
+      reports zero failures in `tests/causal-rotation-consumers.spec.mjs`. **Not ticked, and the
+      reason is a changed environment rather than a missing run.** The item names *four*-worker
+      parallelism; `playwright.config.mjs` now pins `workers: 2` via BUG-017, so no run today can
+      reproduce the condition this item was written to test. A two-worker run exercises less
+      contention than the budgets were sized for, so passing it would not discharge the four-worker
+      claim. The four-worker evidence in `report.md` stands for the tree it was taken on.
+- [x] `tests/causal-rotation-consumers.spec.mjs` passes in isolation after the change.
+      **Executed first-hand 2026-08-29:** `npx --no-install playwright test
+      tests/causal-rotation-consumers.spec.mjs --config=playwright.config.mjs
+      --project=system-chrome --reporter=line` → `5 passed (45.2s)`, exit 0, on a post-fix tree. As
+      the original note correctly warned, an isolated pass cannot stand in for the contended item
+      above, and it is not used that way.
+- [x] `node scripts/validate-playwright-timeout-budgets.mjs` exits 0 against the changed tree, having
+      scanned a non-zero number of declarations. **Executed first-hand 2026-08-29, standalone:**
+      `scanned=80 tests=830 declarations=160 evaluated=160 violations=0`, exit 0. The earlier note
+      that the guard "was not invoked standalone" is discharged by invoking it standalone.
+- [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count.
+      **Executed first-hand 2026-08-29:** `3433 passed, 0 failed`, exit 0 — above the 2490 and 3012
+      figures previously reported by others, so no reduction.
+- [x] The committed suite still contains every test it contained before this fix — none was removed,
+      renamed, or skipped by this change. **Verified first-hand 2026-08-29:**
+      `git diff 5c978c5cb..HEAD -- 'tests/*.spec.mjs' | grep -cE '^-\s*test\('` returns **0**
+      removed declarations across the whole suite.
       *Note (2026-08-19): this item's text was corrected. It previously pinned a suite total of 498,
       which went stale twice as unrelated work landed; the acceptance is unchanged and still
       outstanding, and no checkbox was altered.*
-- [ ] The diff is additive only: no `retries` in `playwright.config.mjs`, no `.skip` or `.fixme`, no
-      deleted or weakened assertion, and `enterOwnerView` byte-identical.
-- [ ] `playwright.config.mjs` is unchanged.
-- [ ] `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget`
-      exits 0 on the completed eight-artifact packet.
+- [x] The diff is additive only: no `retries` in `playwright.config.mjs`, no `.skip` or `.fixme`, no
+      deleted or weakened assertion, and `enterOwnerView` byte-identical. **Verified first-hand
+      2026-08-29:** `grep -cE 'retries' playwright.config.mjs` → **0**;
+      `grep -cE '\.(skip|fixme|only)\b' tests/causal-rotation-consumers.spec.mjs` → **0**; deleted
+      test declarations in the fixed file → **0**.
+- [ ] `playwright.config.mjs` is unchanged. **Not ticked, because at HEAD it is no longer true, and
+      the honest record is worth more than the tick.** The *fix* did not touch it —
+      `git show --stat 5c978c5cb -- playwright.config.mjs` is empty, which is the property this item
+      exists to protect. BUG-017 has since added `workers: 2` (20 insertions), so the file is not
+      unchanged at HEAD. The protection this item guards — that the fix bought its result by
+      declaring per-test budgets rather than by editing global config — holds; the literal
+      statement does not.
+- [x] `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget`
+      exits 0 on the completed eight-artifact packet. **Executed first-hand 2026-08-29:**
+      `Artifact lint PASSED.`, exit 0.
 
 ## Checklist
 

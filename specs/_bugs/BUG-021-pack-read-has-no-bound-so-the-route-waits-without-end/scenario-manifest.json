@@ -1,0 +1,303 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end",
+  "generatedBy": "bubbles.goal",
+  "generatedAt": "2026-08-29T17:40:00Z",
+  "stage": "post-delivery-reconciliation",
+  "stageNote": "Authored AFTER delivery, not before it, and labelled that way rather than backdated to look like planning output. The five scenarios are transcribed verbatim from the two scopes' gherkin blocks in scopes.md; nothing here restates a scenario in different words. linkedTests and evidenceRefs are populated because the tests exist and have run: tests/lifetime-tax-read-bound.spec.mjs is on disk and report.md records the browser family at 111 passed and the node self-test at 3409 passed, 0 failed. Each scenario also names the probe that drives its assertion red, because a passing assertion that cannot fail proves nothing, and a time bound is precisely the kind of guarantee that decays silently when only one side of it is pinned.",
+  "scenarioCount": 5,
+  "keyShapeNote": "scenarioId is the identifier the scope's gherkin block declares. businessScenario is null on every entry: this is a bug packet filed from an observed hang, so its scenarios descend from bug.md rather than from a BS-* business scenario, and inventing a binding would be a fabricated linkage.",
+  "businessScenarioMapping": "None. SCN-021-01 through SCN-021-05 are bug-owned scenario identifiers, each with exactly one owning scope. SCN-021-01/02/03 belong to Scope 1 and SCN-021-04/05 to Scope 2. They trace to bug.md's filed condition \u2014 a declared document read that never returns \u2014 not to a business scenario.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-021-01",
+      "businessScenario": null,
+      "scopeId": "01-bound-every-declared-document-read",
+      "scope": 1,
+      "status": "done",
+      "title": "a declared document that never arrives reaches a terminal named state",
+      "gherkin": {
+        "given": "an origin that accepts the request for one declared pack and never responds",
+        "when": "the route boots",
+        "then": "the document body carries a terminal display-state attribute within the declared bound, the settlement header no longer reads \"Loading\", and the message names the document that did not arrive"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "A terminal data-rl-tax-state attribute and a header other than Loading arrive within the declared bound plus the suite margin, asserted against the live route.",
+          "satisfiedBy": [
+            "TB-021-01"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The withheld document is named together with the bound it exceeded, so the failure is attributable rather than anonymous.",
+          "satisfiedBy": [
+            "TB-021-01"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html",
+          "rltaxworkspace.js"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route; only the ORIGIN behaviour is synthesised. Playwright intercepts one declared path to withhold or delay a real committed document, which is the only way to observe a read that never returns without depending on a genuinely broken network. Each withheld assertion also checks the handler was actually entered, so a selector that stopped matching would fail rather than pass by intercepting nothing.",
+        "negativeControl": "Probe P1 removes the abort signal from the fetch call while leaving every assertion untouched. The pre-change hang returns and TB-021-01 fails, so the assertion is sensitive to the abort actually being applied rather than merely to the page loading.",
+        "negativeControlMechanism": "mutation"
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs"
+      ],
+      "testRows": [
+        "TB-021-01",
+        "TB-021-REG1",
+        "TB-021-REG2"
+      ],
+      "evidenceRefs": [
+        "report.md#validation",
+        "report.md#code-diff-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-021-02",
+      "businessScenario": null,
+      "scopeId": "01-bound-every-declared-document-read",
+      "scope": 1,
+      "status": "done",
+      "title": "a read that completes inside the bound is unaffected",
+      "gherkin": {
+        "given": "an origin that delays one declared pack by less than the declared bound",
+        "when": "the route boots",
+        "then": "the route settles with the same figures it settles with when that pack is served immediately"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The whole stage table from an undelayed boot is compared against the same table after a 3000 ms delay on the same declared pack, so a bound that silently truncated a slow-but-valid read would be caught.",
+          "satisfiedBy": [
+            "TB-021-02"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html",
+          "rltaxworkspace.js"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route; only the ORIGIN behaviour is synthesised. Playwright intercepts one declared path to withhold or delay a real committed document, which is the only way to observe a read that never returns without depending on a genuinely broken network. Each withheld assertion also checks the handler was actually entered, so a selector that stopped matching would fail rather than pass by intercepting nothing.",
+        "negativeControl": "Probe P8 lowers the declared bound to 1000 ms, below a delay a real read has taken. The delayed pack is then aborted instead of served and the stage table diverges, so TB-021-02 fails \u2014 proving the comparison detects a bound that truncates a slow but valid read.",
+        "negativeControlMechanism": "mutation"
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs"
+      ],
+      "testRows": [
+        "TB-021-02",
+        "TB-021-REG1",
+        "TB-021-REG2"
+      ],
+      "evidenceRefs": [
+        "report.md#validation",
+        "report.md#code-diff-evidence"
+      ]
+    },
+    {
+      "scenarioId": "SCN-021-03",
+      "businessScenario": null,
+      "scopeId": "01-bound-every-declared-document-read",
+      "scope": 1,
+      "status": "done",
+      "title": "an unbounded read is impossible by construction",
+      "gherkin": {
+        "given": "the helper that reads declared documents",
+        "when": "a read is issued",
+        "then": "that read carries a bound and is aborted when the bound elapses"
+      },
+      "behaviorClass": "api",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The abort is proven where it is observable, not only where it is declared. Test 1 withholds a pack read and test 2 withholds the configuration read; both strata reach a terminal state on the live route within the declared bound, which is what an aborted read looks like from outside. The structural checks are SUPPORTING evidence for the \"by construction\" half of the claim: the route holds exactly one window.fetch(, zero bare fetch(, zero other transports, and seven loadJson( call sites covering all nine declared documents, and TB-021-04 asserts the helper arms its AbortController from the RESOLVED bound rather than a literal.",
+          "satisfiedBy": [
+            "TB-021-03",
+            "TB-021-04"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": [
+          "rltaxworkspace.js",
+          "lifetime-tax-strategy.config.json",
+          "lifetime-tax-strategy-lab.html"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route; only the ORIGIN behaviour is synthesised. Playwright intercepts one declared path to withhold or delay a real committed document, which is the only way to observe a read that never returns without depending on a genuinely broken network. Each withheld assertion also checks the handler was actually entered, so a selector that stopped matching would fail rather than pass by intercepting nothing.",
+        "negativeControl": "Probe P4 seeds stratum 0 from a literal instead of the resolved declaration, and P7 withholds the signal from fetch. Both make the construction assertions fail, so they are sensitive to where the bound comes from and not only to its presence.",
+        "negativeControlMechanism": "mutation"
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs"
+      ],
+      "testRows": [
+        "TB-021-03",
+        "TB-021-04",
+        "TB-021-REG1",
+        "TB-021-REG2"
+      ],
+      "evidenceRefs": [
+        "report.md#validation",
+        "report.md#code-diff-evidence"
+      ],
+      "traitNote": "Previously declared api-contract, which the mechanism lint correctly refused: a wire contract needs an externally observable response, and the distinctive assertion here is structural. The trait is corrected rather than the surface relaxed, because the scenario genuinely is about a user-visible outcome \u2014 a route that terminates instead of waiting forever \u2014 with construction as the supporting argument."
+    },
+    {
+      "scenarioId": "SCN-021-04",
+      "businessScenario": null,
+      "scopeId": "02-pin-both-sides-of-the-bound",
+      "scope": 2,
+      "status": "done",
+      "title": "the tolerated side of the bound is pinned",
+      "gherkin": {
+        "given": "an origin that delays one declared pack by less than the declared bound",
+        "when": "the route boots",
+        "then": "the route settles"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Test 5 delays the declared medicare pack by 3000 ms \u2014 the delay the filing round observed settling at 3058 ms \u2014 and asserts the route reaches ready, settles, and records no document as unread, so the read was served rather than aborted.",
+          "satisfiedBy": [
+            "TB-021-05"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html",
+          "rltaxworkspace.js"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route; only the ORIGIN behaviour is synthesised. Playwright intercepts one declared path to withhold or delay a real committed document, which is the only way to observe a read that never returns without depending on a genuinely broken network. Each withheld assertion also checks the handler was actually entered, so a selector that stopped matching would fail rather than pass by intercepting nothing.",
+        "negativeControl": "Probe P2 lowers the bound below a delay a real read has taken, turning a served read into an aborted one. TB-021-05 fails, so the tolerated side is genuinely pinned rather than passing because nothing was delayed.",
+        "negativeControlMechanism": "mutation"
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs"
+      ],
+      "testRows": [
+        "TB-021-05",
+        "TB-021-REG3",
+        "TB-021-REG4"
+      ],
+      "evidenceRefs": [
+        "report.md#validation",
+        "report.md#probes"
+      ]
+    },
+    {
+      "scenarioId": "SCN-021-05",
+      "businessScenario": null,
+      "scopeId": "02-pin-both-sides-of-the-bound",
+      "scope": 2,
+      "status": "done",
+      "title": "the refusing side of the bound is pinned",
+      "gherkin": {
+        "given": "an origin that never responds for one declared pack",
+        "when": "the route boots",
+        "then": "the route reaches a terminal named state rather than settling"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Test 6 withholds the same pack and asserts the terminal state arrives no earlier than the declared bound and no later than that bound plus the suite margin. Asserting BOTH edges is what stops the bound being widened until it asserts nothing.",
+          "satisfiedBy": [
+            "TB-021-06"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The withheld document is recorded as unread rather than settled as though it had arrived.",
+          "satisfiedBy": [
+            "TB-021-06"
+          ]
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": [
+          "lifetime-tax-strategy-lab.html",
+          "rltaxworkspace.js"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "mechanismNote": "The route under test is the real production route; only the ORIGIN behaviour is synthesised. Playwright intercepts one declared path to withhold or delay a real committed document, which is the only way to observe a read that never returns without depending on a genuinely broken network. Each withheld assertion also checks the handler was actually entered, so a selector that stopped matching would fail rather than pass by intercepting nothing.",
+        "negativeControl": "Probe P3 widens the bound to 600000 ms, past any wait the suite can make. TB-021-06 fails, which is the control that matters most here: without it a bound could be widened indefinitely and still pass, and the guarantee would decay with nothing going red.",
+        "negativeControlMechanism": "mutation"
+      },
+      "linkedTests": [
+        "tests/lifetime-tax-read-bound.spec.mjs"
+      ],
+      "testRows": [
+        "TB-021-06",
+        "TB-021-REG3",
+        "TB-021-REG4"
+      ],
+      "evidenceRefs": [
+        "report.md#validation",
+        "report.md#probes"
+      ]
+    }
+  ]
+}

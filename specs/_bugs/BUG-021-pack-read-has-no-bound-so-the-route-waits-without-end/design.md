@@ -12,6 +12,43 @@ nothing. That revision is superseded by `## The Decision` below, which the owner
 authorised on 2026-08-24. The mechanism sections are unchanged and still
 current.
 
+## Capability Foundation
+
+The foundation is **one bounded-read capability**, expressed as a single helper
+that every declared document read passes through. `### R2 — the bounded read`
+specifies it: resolve a bound, arm an `AbortController` from the resolved value,
+race the read against it, pass the signal to `fetch`, and clear the timer on both
+settlement paths.
+
+What makes this a foundation rather than a local fix is the count. The route
+declares nine documents. Bounding them one call site at a time would leave nine
+places where the next added document could be missed, and the defect this packet
+fixes is precisely a read that nobody remembered to bound. Routing all nine
+through one helper makes an unbounded read impossible by construction, which is
+what SCN-021-03 asserts.
+
+The foundation deliberately stops at the read boundary. It does not retry, does
+not back off, and does not introduce a new failure code. `### What must not
+change` records why: downstream handlers already treat a failed read correctly,
+and a bound rejection is the same event to them.
+
+## Concrete Implementations
+
+| # | Implementation | Governs | Declared in | Resolved by |
+|---|---|---|---|---|
+| 1 | Stratum 0 — `CONFIG_READ_BOUND_MS` | The one read that fetches the configuration document | `rltaxworkspace.js` line 33, exported at line 842 | The browser's `<script src>` tag, before the inline script defines `boot` |
+| 2 | Stratum 1 — `rules.packReadBoundMs` | The eight pack reads the configuration declares | `lifetime-tax-strategy.config.json` line 16 | `boot`, by plain assignment immediately after `state.config = config` and before any pack read is issued |
+
+Two implementations, nine documents, one helper. `### C4 — the stratum-0
+declaration` and `### C1 — the configuration document` carry the full contract
+for each.
+
+### Variation Axes
+
+- **Axis 1 — when the bound becomes knowable.** This is the only axis that forced a second implementation, and it is not a preference. Stratum 1 lives in a document that must itself be read; stratum 0 governs that read. A single declaration surface would be circular, which `### How the circularity is resolved` sets out in full. Option C in `## Remedy Options` — bound only the configuration and rule-pack stages — was rejected for the mirror-image reason: it would have left the eight pack reads unbounded.
+- **Axis 2 — how a bound rejection surfaces.** Fixed, not variable. Every stratum produces the same outcome: the document is recorded as unread and the existing per-stage handler receives it exactly as it receives a read that failed outright. `### R3 — naming the document that did not arrive` specifies the message. Holding this axis fixed is what kept the change to five `.catch(function () { return null; })` → `.catch(recordUnreadDocument)` replacements with no new branch and no new `RLTAX-` code.
+- **Axis deliberately NOT taken — per-document bounds.** Nothing in the design permits a document to declare its own bound. Nine independently tunable bounds would restore, one document at a time, exactly the situation this packet exists to remove: a read whose bound nobody checked. `### Why 10000` records the single value and its sizing.
+
 ## Mechanism
 
 ### The one unbounded call

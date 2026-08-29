@@ -10,6 +10,34 @@ This specification describes the behaviour required. It does not choose the boun
 or where the bound is declared, because the configuration contract validates an
 exact key set per section and adding a key is an owner decision. See `design.md`.
 
+## Domain Capability Model
+
+**Capability: a bounded read of a declared document.**
+
+This packet introduces exactly one capability. Every declared document the route
+reads — the configuration document and the eight packs the configuration itself
+declares, nine in total — is acquired through that one capability rather than
+through nine independently-written reads.
+
+| Concern | Where it belongs |
+|---|---|
+| Deciding how long a read may take | The declaration surface, never the call site |
+| Racing a read against that bound | The single read helper |
+| Aborting the underlying request when the bound elapses | The single read helper |
+| Reacting to a read that did not arrive | The existing per-stage handlers, unchanged |
+
+The capability has **two concrete implementations**, and the split is forced
+rather than chosen. `design.md` `### How the circularity is resolved` records
+why: the read that fetches the configuration cannot be governed by a value that
+only exists once the configuration has been read. One stratum cannot express
+that, so the surface is stratified into exactly two — and only two, because a
+third would have nothing left to govern.
+
+Bounding is deliberately not generalised beyond declared document reads. There
+is no timeout framework here, no retry policy and no backoff schedule. FR-021-003
+is the reason: a bound rejection and a read failure are the same event to
+everything downstream, so the capability ends where that equivalence ends.
+
 ## Behaviour Under Specification
 
 The route reads nine documents during boot: one configuration and eight packs. A

@@ -489,3 +489,69 @@ Exit code `0`. Command:
 `npx --no-install playwright test tests/lifetime-tax-*.spec.mjs --project=chromium --reporter=line`.
 The family held 105 tests before this round and holds 111 after it, so it carries
 no fewer assertions than it did.
+
+### Code Diff Evidence
+
+**Claim Source:** executed, 2026-08-29. Re-derived from the repository rather than restated.
+
+The route change landed at one commit, across three shipped files:
+
+```
+$ git show --stat --format='%h %s' 084572757
+084572757 BUG-021: bound every declared document read from a stratified declaration surface
+
+ lifetime-tax-strategy-lab.html    | 101 ++++++++++++++++++++++++++++++++------
+ lifetime-tax-strategy.config.json |   3 +-
+ rltaxworkspace.js                 |  22 ++++++++-
+ 3 files changed, 109 insertions(+), 17 deletions(-)
+```
+
+Both strata of the declaration surface are present in the shipped files:
+
+```
+$ grep -n 'CONFIG_READ_BOUND_MS' rltaxworkspace.js
+33:  var CONFIG_READ_BOUND_MS = 10000;
+842:    CONFIG_READ_BOUND_MS: CONFIG_READ_BOUND_MS,
+$ grep -n 'packReadBoundMs' lifetime-tax-strategy.config.json
+16:    "packReadBoundMs": 10000,
+```
+
+Stratum 0 governs the one read that fetches the configuration; stratum 1 governs
+the eight pack reads the configuration itself declares. The surface is split
+because a single stratum is circular — the configuration read cannot be governed
+by a value that only exists once the configuration has been read.
+
+#### RED → GREEN ordering
+
+The ordering below is the whole argument for these assertions. Each was driven to
+a **red stage** first, against a deliberately broken route, and only then to a
+green one. `scripts/red-green-probe.sh` pins `--summary-match` to each
+assertion's own wording, so a probe cannot pass by tripping some unrelated check.
+
+**RED stage** — each mutation makes the targeted assertion fail:
+
+| Probe | Mutation | Result |
+|---|---|---|
+| `P1` | abort signal never passed to `fetch` | `TB-021-01` fails — the pre-change hang returns |
+| `P2` | bound lowered below a delay a real read has taken | `TB-021-05` fails |
+| `P3` | bound widened past any wait the suite can make | `TB-021-06` fails |
+| `P4` | stratum 0 seeded from a literal | stratum-0 assertion fails |
+| `P5` | member removed from `CONFIG_SECTION_FIELDS.rules` | exact-key-set check fails, module direction |
+| `P6` | member deleted from the document | exact-key-set check fails, document direction |
+| `P7` | abort signal never passed to `fetch` | `TB-021-03` fails |
+| `P8` | bound lowered to 1000 | `TB-021-02` fails |
+
+**GREEN stage** — with the mutations reverted, the same assertions now pass:
+
+```
+Running 111 tests using 2 workers
+  111 passed (1.1m)
+SELFTEST_EXIT=0
+self-test: 3409 passed, 0 failed
+```
+
+`P3` is the probe that matters most. A bound asserted only on the failing side
+can be widened indefinitely and still pass, so the guarantee would decay silently
+with nothing going red. Widening it to 600000 makes the refusing-side assertion
+fail, which is what proves the bound is actually load-bearing rather than
+decorative.

@@ -43,20 +43,93 @@
     "nextRequiredTarget": "specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end/state.json",
     "nextRequiredReason": "The filed condition is driven again and reaches a terminal named state inside the declared bound, on both declaration strata; eight red-green probes show every new assertion failing under the mutation design.md names for it. What remains is the terminal status transition, which the implementing round does not own.",
     "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented'. The route change landed at commit 084572757 in an earlier round; this round added tests/lifetime-tax-read-bound.spec.mjs, six browser assertions driven against the filed condition rather than against a fast read, and eight red-green probes proving each of them fails under the adversarial mutation design.md names. Both declaration strata are exercised separately: five assertions drive a pack read that stratum 1 governs, and one withholds the configuration document itself, which only the stratum-0 module constant can bound. Validation: self-test 3409 passed 0 failed exit 0; validate-spec-test-paths new=0 stale=0 exit 0 on the run captured, with a later stale=1 caused by an untracked file from a concurrent session recorded in report.md; lifetime-tax browser family 111 passed exit 0 on --project=chromium. No certification field was written.",
-    "executionHistory": [
+    "transitionQueue": [],
+    "reworkQueue": [],
+    "completedPhaseClaims": [
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T17:25:00Z",
+        "evidenceRef": "report.md#what-changed",
+        "provenanceMode": "parent-expanded",
+        "note": "The route change landed at commit 084572757 across three shipped files: lifetime-tax-strategy-lab.html, lifetime-tax-strategy.config.json and rltaxworkspace.js. Verified this session with git show --stat: 3 files changed, 109 insertions, 17 deletions. The bound is declared on a stratified surface, stratum 0 CONFIG_READ_BOUND_MS for the configuration read and stratum 1 rules.packReadBoundMs for the eight pack reads the configuration itself declares.",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "runSubagent was unavailable in this nested runtime, so the parent re-derived the phase from committed evidence rather than dispatching its registered specialist owner.",
+        "expansionEvidenceRef": "report.md#what-changed"
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T17:25:00Z",
+        "evidenceRef": "report.md#the-harness",
+        "provenanceMode": "parent-expanded",
+        "note": "tests/lifetime-tax-read-bound.spec.mjs carries the assertions. Both sides of the bound are pinned rather than the failing side alone, which is what stops the bound being widened until it asserts nothing.",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "runSubagent was unavailable in this nested runtime, so the parent re-derived the phase from committed evidence rather than dispatching its registered specialist owner.",
+        "expansionEvidenceRef": "report.md#the-harness"
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T17:25:00Z",
+        "evidenceRef": "report.md#probes",
+        "provenanceMode": "parent-expanded",
+        "note": "Eight adversarial probes P1 through P8 establish that each assertion can fail: signal-not-passed, bound lowered below a real read, bound widened past any wait the suite can make, stratum-0 seeded from a literal, and the exact-key-set check driven in both module and document directions. A passing assertion that cannot fail is the vacuous-pass mode these probes exist to exclude.",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "runSubagent was unavailable in this nested runtime, so the parent re-derived the phase from committed evidence rather than dispatching its registered specialist owner.",
+        "expansionEvidenceRef": "report.md#probes"
+      },
       {
         "phase": "stabilize",
         "agent": "bubbles.stabilize",
-        "startedAt": "2026-08-24T00:00:00Z",
-        "completedAt": "2026-08-24T00:00:00Z",
-        "durationUnmeasured": true,
-        "durationUnmeasuredReason": "The round was driven as many separate browser measurement runs rather than as one timed invocation, so no single elapsed measurement describes it and none is asserted.",
-        "outcome": "completed_diagnostic",
-        "summary": "Stabilization round against the Lifetime Tax Strategy Lab route. Sixteen damage modes driven; one unbounded-read defect reproduced deterministically and filed as this packet. No shipped file changed."
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T17:25:00Z",
+        "evidenceRef": "report.md#test-evidence",
+        "provenanceMode": "specialist",
+        "note": "The filing round was executed by bubbles.stabilize and is recorded in executionHistory with durationUnmeasured true. It produced the damage sweep and the optional-pack refusal."
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T17:25:00Z",
+        "evidenceRef": "report.md#validation",
+        "provenanceMode": "parent-expanded",
+        "note": "Validation section records the final validator reading and one near-miss residue call, plus the lifetime-tax browser suite.",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "runSubagent was unavailable in this nested runtime, so the parent re-derived the phase from committed evidence rather than dispatching its registered specialist owner.",
+        "expansionEvidenceRef": "report.md#validation"
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.audit",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-29T17:25:00Z",
+        "evidenceRef": "report.md#a-finding-this-round-produced-that-the-design-did-not-anticipate",
+        "provenanceMode": "parent-expanded",
+        "note": "The round recorded a finding the design did not anticipate rather than absorbing it silently, and a separate section states what the round did NOT establish.",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "runSubagent was unavailable in this nested runtime, so the parent re-derived the phase from committed evidence rather than dispatching its registered specialist owner.",
+        "expansionEvidenceRef": "report.md#a-finding-this-round-produced-that-the-design-did-not-anticipate"
       }
     ],
-    "transitionQueue": [],
-    "reworkQueue": []
+    "phaseStubs": {
+      "simplify": {
+        "reason": "No simplification surface. The delivery declares one bound on a two-stratum surface and threads an abort signal into reads that already existed. It introduces no duplicated helper, no branch to collapse and no abstraction that could be withdrawn. Collapsing the two strata was considered and rejected in design.md, because the configuration read cannot be governed by a value that only exists once the configuration has been read; that circularity is the reason the surface is stratified at all."
+      },
+      "security": {
+        "reason": "No security surface. The change adds a time bound to same-origin reads of documents the page already declared and already fetched. It introduces no new origin, no credential, no user input path and no privilege boundary. A bound makes an unbounded wait terminate; it grants nothing."
+      }
+    }
   },
   "certification": {
     "status": "in_progress",
@@ -68,19 +141,84 @@
       {
         "scopeId": "01-bound-every-declared-document-read",
         "status": "done",
-        "dodChecked": 8,
+        "dodChecked": 10,
         "dodUnchecked": 0
       },
       {
         "scopeId": "02-pin-both-sides-of-the-bound",
         "status": "done",
-        "dodChecked": 6,
+        "dodChecked": 8,
         "dodUnchecked": 0
       }
+    ],
+    "lockdownState": "off",
+    "certifiedCompletedPhases": [],
+    "completedScopes": [
+      "01-bound-every-declared-document-read",
+      "02-pin-both-sides-of-the-bound"
     ]
   },
   "policySnapshot": {
     "capturedAt": "2026-08-24T00:00:00Z",
-    "source": "bubbles.stabilize filing"
-  }
+    "source": "bubbles.stabilize filing",
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "executionHistory": [
+    {
+      "phase": "stabilize",
+      "agent": "bubbles.stabilize",
+      "startedAt": "2026-08-24T00:00:00Z",
+      "completedAt": "2026-08-24T00:00:00Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The round was driven as many separate browser measurement runs rather than as one timed invocation, so no single elapsed measurement describes it and none is asserted.",
+      "outcome": "completed_diagnostic",
+      "summary": "Stabilization round against the Lifetime Tax Strategy Lab route. Sixteen damage modes driven; one unbounded-read defect reproduced deterministically and filed as this packet. No shipped file changed.",
+      "phasesExecuted": [
+        "stabilize"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "agent": "bubbles.goal",
+      "startedAt": "2026-08-29T17:20:00Z",
+      "finishedAt": "2026-08-29T17:27:15Z",
+      "outcome": "completed_owned",
+      "summary": "Re-derived the six phase claims from committed evidence and discharged the guard findings. Verified rather than assumed: commit 084572757 changed three shipped files (git show --stat), and tests/lifetime-tax-read-bound.spec.mjs exists on disk. Five phases are parent-expanded because runSubagent was unavailable in this nested runtime; stabilize remains attributed to its own specialist, which really did execute the filing round.",
+      "phasesExecuted": [
+        "implement",
+        "test",
+        "regression",
+        "validate",
+        "audit"
+      ],
+      "provenanceMode": "parent-expanded",
+      "expandedBy": "bubbles.goal",
+      "expansionReason": "runSubagent was unavailable in this nested runtime, so the parent re-derived these phases from committed evidence instead of dispatching each registered specialist owner.",
+      "expansionEvidenceRef": "report.md"
+    }
+  ]
 }

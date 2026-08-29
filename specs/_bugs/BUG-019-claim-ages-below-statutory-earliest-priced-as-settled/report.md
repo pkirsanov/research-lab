@@ -689,3 +689,59 @@ predates the filing.
 
 Both rows hold and are ticked by this round.
 
+<!-- bubbles:certifying-window-begin -->
+
+### Code Diff Evidence
+
+**Claim Source:** executed, 2026-08-29. Both commits re-derived from the repository this session
+with `git show --stat`, not restated from an earlier round.
+
+The delivery is two commits, and the split is the point: the bound landed separately from the
+assertions that pin it, so neither can be mistaken for the other.
+
+```
+$ git show --stat --format='%h %s' e28be5814
+e28be5814 BUG-019: declare the earliest priceable claim age in the benefit pack and refuse below it
+
+ lifetime-tax-strategy-lab.html | 13 +++++++++++
+ rltaxclaimage.js               | 21 ++++++++++++++++-
+ rltaxsocialsecurity.js         | 47 ++++++++++++++++++++++++++++++++++++++
+ scripts/selftest.mjs           | 52 +++++++++++++++++++++++++++++++++++++++++-
+```
+
+```
+$ git show --stat --format='%h %s' eeb2ac7cc
+eeb2ac7cc BUG-019: assert the earliest-claim-age boundary from both sides
+
+ tests/lifetime-tax-benefit.spec.mjs   | 68 +++++++++++++++++++++++++++++++++++
+ tests/lifetime-tax-claim-age.spec.mjs | 40 +++++++++++++++++++++
+ 2 files changed, 108 insertions(+)
+```
+
+**The bound lives in the pack, not in the engine.** `rltaxsocialsecurity.js` gains the sourced
+figure and `rltaxclaimage.js` reads it; the engine holds no earliest age of its own. That placement
+is what makes the figure auditable against the cited authority instead of being a constant somebody
+would eventually adjust to make a test pass.
+
+#### RED → GREEN ordering
+
+**RED stage.** The canonical reproduction priced 720 months — an age the statute does not permit —
+at $1,800 monthly. The route settled rather than refusing, so nothing was red until these assertions
+existed.
+
+**GREEN stage.**
+
+```
+$ node scripts/selftest.mjs
+self-test: 3405 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+Re-run on 2026-08-29 the same command reports **3433 passed, 0 failed** — the suite has grown as
+other packets landed, and both readings clear the 3404 floor this packet asserts.
+
+**One probe is recorded that did NOT discriminate.** Probe 2 returned exit 7 on its first attempt.
+It is kept in `## Probe Evidence` beside the attempt that worked, rather than replaced by it,
+because a probe that fails to discriminate is evidence about the probe — and silently swapping it
+for a working one would leave the record implying the first attempt never happened.
+

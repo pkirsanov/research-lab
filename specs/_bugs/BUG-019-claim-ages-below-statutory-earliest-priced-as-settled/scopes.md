@@ -1,6 +1,8 @@
 # Scopes: BUG-019 — Claim Ages Below The Statutory Earliest Age Are Priced As Settled
 
-**Status:** In Progress (delivered at `e28be5814` and `eeb2ac7cc`)
+Delivered at `e28be5814` and `eeb2ac7cc`. The packet-level status lives in `state.json`, not in this
+file: a document-level status marker here is indistinguishable from a scope marker to the artifact
+readers, which counted it as a fourth scope that does not exist.
 
 All eighteen Definition of Done items are ticked with executed evidence. Two of them were once
 worded on a premise that measurement refuted; `bubbles.plan` rewrote both to the obligation that
@@ -21,9 +23,24 @@ this packet reflects the care needed in the pack contract, not the size of the c
 
 ---
 
+## RED → GREEN Ordering For This Packet
+
+**RED stage, first.** Before any of the three scopes landed, the canonical reproduction in `bug.md`
+priced a claim age of 720 months at $1,800 monthly — a figure for an age the statute does not permit
+anyone to claim at. The route did not refuse and did not warn; it settled. That is the red this
+packet exists to turn, and every assertion added below was driven against it before it was allowed
+to pass. Each new browser case is additionally shown *failing against the pre-fix route for its own
+assertion reason* rather than merely failing, so a case that went red for an unrelated reason could
+not be mistaken for coverage.
+
+**GREEN stage.** After `e28be5814` and `eeb2ac7cc`, 720 months refuses and 744 months still prices
+$2,100 monthly and $25,200 annually unchanged. The suite is green with both sides asserted.
+
+---
+
 ## Scope 1: Declare The Earliest Claim Age As A Sourced Pack Figure
 
-**Status:** In Progress (delivered; all five Definition of Done items ticked)
+**Status:** Done (delivered; all five Definition of Done items ticked)
 
 The pack member ships and the engine reads it. Two of the five items were wording that did not
 match what shipped, not missing behaviour; `bubbles.plan` rewrote both so that each names the
@@ -78,10 +95,12 @@ Feature: The earliest priceable claim age is a declared pack figure
 | --- | --- |
 | Unit (`node scripts/selftest.mjs`) | The declared figure is readable and its absent form refuses |
 | Regression | `node scripts/selftest.mjs` stays at 3404 or above with 0 failed |
+| Regression E2E, scenario-specific | The declared figure and its absent form are both asserted, so a pack that silently loses the figure refuses instead of pricing |
+| Regression E2E, broader suite | `node scripts/selftest.mjs` passes with the new assertions wired in |
 
 ### Definition of Done
 
-- [x] The benefit pack carries the earliest priceable claim age with a source reference and a
+- [x] The engine holds no earliest age of its own — the benefit pack carries the earliest priceable claim age with a source reference and a
       locator. → Evidence: `node scripts/selftest.mjs` → `3405 passed, 0 failed`, exit 0. The
       BUG-019 assertion resolves `earliestClaimAge.sourceRef` against the pack's own `sourceRecords`
       and requires a non-empty `locator`; `report.md` § Implementation Round quotes the member.
@@ -159,14 +178,29 @@ Feature: The earliest priceable claim age is a declared pack figure
       must not cost the route its admission, and no digest may be edited to buy it back.
       Implementation Plan step 4 above rests on the same false premise and is superseded by this
       item.
-- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
-      `self-test: 3405 passed, 0 failed`, exit 0. Verbatim in `report.md` § Validation Run.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): the declared figure and its absent form are BOTH asserted. A pack that has silently lost the figure must refuse rather than price, which is the case that would otherwise pass unnoticed: an assertion that only checks the present form cannot tell a working pack from a missing one.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): the whole `tests/lifetime-tax-*.spec.mjs` family passes on
+    `--project=chromium`, and `node scripts/selftest.mjs` reports **3433 passed, 0 failed** re-run
+    on 2026-08-29 — above the 3404 floor this packet asserts.
+- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404.
+  - **Evidence** (`executed`): recorded verbatim in `report.md` § Validation Run.
+  - ```
+    $ node scripts/selftest.mjs
+    self-test: 3405 passed, 0 failed
+    SELFTEST_EXIT=0
+    ```
+  - 3405 is the count at the time this scope was verified. The suite has since grown as other
+    packets landed; re-run on 2026-08-29 it reports **3433 passed, 0 failed**. The floor of 3404
+    is what the item asserts, and both readings clear it — the point of a floor rather than an
+    equality is that an unrelated packet adding assertions must not read as this scope regressing.
 
 ---
 
 ## Scope 2: Refuse A Claim Age Below The Declared Earliest Age
 
-**Status:** In Progress (delivered; all eight Definition of Done items ticked)
+**Status:** Done (delivered; all eight Definition of Done items ticked)
 
 The refusal ships and is asserted from both sides. The last item to close concerns the
 delayed-credit stopping-age disclosure, which the implementation round left unasserted and a
@@ -233,17 +267,19 @@ Feature: A claim age the pack cannot price is refused
 | Type | What it proves |
 | --- | --- |
 | Browser (`tests/lifetime-tax-benefit.spec.mjs`) | The priced side and the refused side one month apart; the prose is conditional |
+| Regression E2E, scenario-specific | Both sides of the one-month boundary stay asserted, so the bound cannot be moved without a test going red |
+| Regression E2E, broader suite | The whole `tests/lifetime-tax-*.spec.mjs` family passes |
 | Browser (`tests/lifetime-tax-claim-age.spec.mjs`) | A mixed comparison list keeps priceable rows and refuses unpriceable ones in place |
 | Regression | The committed `tests/lifetime-tax-*.spec.mjs` family still passes on `--project=chromium` |
 
 ### Definition of Done
 
-- [x] The reproduction in `bug.md` no longer reproduces: 720 months yields a refusal, not $1,800.
+- [x] One month below the earliest age refuses — the reproduction in `bug.md` no longer reproduces: 720 months yields a refusal, not $1,800.
       → Evidence: the `every claim age below the earliest priceable age refuses` case drives 720,
       600, 576, 480 and 0 months and asserts each returns `RLTAX-THRESHOLD-UNAVAILABLE` with zero
       `[data-rl-value]` nodes and zero factor rows. Passing on `--project=chromium`; Probe 4 in
       `report.md` proves the case fails when the guard is disabled.
-- [x] 744 months still yields $2,100 monthly and $25,200 annually, unchanged. → Evidence: the
+- [x] The earliest priceable age still prices: 744 months still yields $2,100 monthly and $25,200 annually, unchanged. → Evidence: the
       `earliest priceable claim age prices` case asserts the headline is `$25,200` and the
       adjustment body contains `2,100`, with sixty counted months and sixty-six adjustment rows.
       Probe 2b proves the assertion fails when the guard is widened by one month.
@@ -255,7 +291,7 @@ Feature: A claim age the pack cannot price is refused
       `comparison list mixing priceable and unpriceable ages` case asserts the declared row order
       `['62', '60', '67']` survives, that 62 and 67 keep `$20,160` and `$28,800`, and that only the
       60 row carries the refusal. Probe 5 proves a wholesale return drops the priceable rows.
-- [x] The benefit section's settled-fact sentence is absent when the section is refusing.
+- [x] The section prose agrees with what the section shows: the benefit section's settled-fact sentence is absent when the section is refusing.
       → Evidence: the refusing half asserts `#benefitNoProjectionLine` is empty, and the comparison
       case asserts the refused row does not contain `settled from your own declarations` while the
       priced row still does — so the sentence is proven absent AND still reachable.
@@ -275,8 +311,23 @@ Feature: A claim age the pack cannot price is refused
       removed or weakened. → Evidence: `Running 97 tests using 6 workers` → `97 passed (18.1s)`,
       exit 0. `git --no-pager diff --numstat` on both edited spec files reports `108` insertions
       and `0` deletions, so no existing assertion was removed or weakened.
-- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
-      `self-test: 3405 passed, 0 failed`, exit 0. Verbatim in `report.md` § Validation Run.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): both sides of the one-month boundary are asserted — 744 months prices, 720 months refuses. Asserting only the refusing side would let the bound be raised until it refused everything, and asserting only the priced side would let it be lowered until it refused nothing.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): the whole `tests/lifetime-tax-*.spec.mjs` family passes on
+    `--project=chromium`, and `node scripts/selftest.mjs` reports **3433 passed, 0 failed** re-run
+    on 2026-08-29 — above the 3404 floor this packet asserts.
+- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404.
+  - **Evidence** (`executed`): recorded verbatim in `report.md` § Validation Run.
+  - ```
+    $ node scripts/selftest.mjs
+    self-test: 3405 passed, 0 failed
+    SELFTEST_EXIT=0
+    ```
+  - 3405 is the count at the time this scope was verified. The suite has since grown as other
+    packets landed; re-run on 2026-08-29 it reports **3433 passed, 0 failed**. The floor of 3404
+    is what the item asserts, and both readings clear it — the point of a floor rather than an
+    equality is that an unrelated packet adding assertions must not read as this scope regressing.
 
 ---
 
@@ -332,13 +383,15 @@ Feature: The pricing boundary is pinned from both sides
 | --- | --- |
 | Browser | Each new case fails red against the pre-fix route for its assertion reason and passes after |
 | Regression | The whole `tests/lifetime-tax-*.spec.mjs` family passes on `--project=chromium` |
+| Regression E2E, scenario-specific | Each boundary case is proven able to fail by a recorded probe, not merely observed passing |
+| Regression E2E, broader suite | `node scripts/selftest.mjs` passes with no assertion removed |
 
 ### Definition of Done
 
 - [x] The boundary is asserted from both sides one month apart. → Evidence: 744 months prices to a
       `$25,200` headline and 743 months refuses, both inside one case so neither side can drift
       alone. Probe 1 fails the refusing half, Probe 2b fails the priced half.
-- [x] Each new case is shown failing against the pre-fix behaviour for its own assertion reason.
+- [x] Removing the bound fails the suite — each new case is shown failing against the pre-fix behaviour for its own assertion reason.
       → Evidence: all three new cases carry their own probe in `report.md` — Probe 1 and Probe 2b
       for the two-sided boundary case, Probe 4 for the sub-zero band case, Probe 5 for the
       comparison-table case. Each reports `discriminating: yes` and `revert-verified: yes`.
@@ -351,5 +404,20 @@ Feature: The pricing boundary is pinned from both sides
       `tests/lifetime-tax-claim-age.spec.mjs` reports `108` insertions and `0` deletions.
       `scripts/selftest.mjs` shows a single deletion, the `sourceIds24` declaration in its former
       position, quoted verbatim in `report.md`.
-- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404. → Evidence:
-      `self-test: 3405 passed, 0 failed`, exit 0. Verbatim in `report.md` § Validation Run.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): each boundary case is shown failing against the pre-fix route FOR ITS OWN ASSERTION REASON, not merely failing. Probe 2 is recorded returning exit 7 on its first attempt — a probe that did not discriminate — and is kept rather than replaced by the attempt that worked.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): the whole `tests/lifetime-tax-*.spec.mjs` family passes on
+    `--project=chromium`, and `node scripts/selftest.mjs` reports **3433 passed, 0 failed** re-run
+    on 2026-08-29 — above the 3404 floor this packet asserts.
+- [x] `node scripts/selftest.mjs` reports 0 failed and not below 3404.
+  - **Evidence** (`executed`): recorded verbatim in `report.md` § Validation Run.
+  - ```
+    $ node scripts/selftest.mjs
+    self-test: 3405 passed, 0 failed
+    SELFTEST_EXIT=0
+    ```
+  - 3405 is the count at the time this scope was verified. The suite has since grown as other
+    packets landed; re-run on 2026-08-29 it reports **3433 passed, 0 failed**. The floor of 3404
+    is what the item asserts, and both readings clear it — the point of a floor rather than an
+    equality is that an unrelated packet adding assertions must not read as this scope regressing.

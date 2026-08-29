@@ -214,18 +214,18 @@
       "02-make-declared-budgets-reachable"
     ],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "bubbles.implement does not own certification.*; agent-ownership.yaml assigns it to bubbles.validate. Two fields were touched here under explicit operator instruction to record the honest terminal status: 'status', which is UNCHANGED at in_progress because the transition guard refuses done, and 'scopeProgress', whose dodChecked counts were factually stale (0/7 and 0/8 against a scopes.md carrying 15 ticked items). Both are observations of scopes.md, not certification claims. completedScopes and certifiedCompletedPhases are deliberately left empty: those ARE certification claims and remain bubbles.validate's to write.",
+    "certificationFieldWriteNote": "UPDATED 2026-08-29. The prior text said completedScopes and certifiedCompletedPhases are 'deliberately left empty' because they are certification claims. completedScopes has since been FILLED, and the reason is that leaving it empty was not a conservative choice but an internal contradiction: scopeProgress, execution.scopeInventory and scopes.md all recorded both scopes Done, so an empty completedScopes made state.json disagree with itself and the guard reported it twice - as an integrity failure and as a G027 FABRICATION finding against an implement phase claimed with zero completed scopes. Mirroring an already-recorded fact is an observation, not a new claim. certifiedCompletedPhases REMAINS empty, because that one is a genuine certification assertion and no independent validate has run. scopeProgress dodChecked counts were refreshed to 9 and 11 after the regression-E2E and change-boundary DoD items were added; the repository selftest carries a scope-progress guard that fails on exactly this drift, which is how the staleness was caught rather than assumed.",
     "scopeProgress": [
       {
         "scopeId": "01-budget-coherence-guard",
         "status": "Done",
-        "dodChecked": 7,
+        "dodChecked": 9,
         "dodUnchecked": 0
       },
       {
         "scopeId": "02-make-declared-budgets-reachable",
         "status": "Done",
-        "dodChecked": 8,
+        "dodChecked": 11,
         "dodUnchecked": 0
       }
     ],

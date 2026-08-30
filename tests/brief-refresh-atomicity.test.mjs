@@ -1904,4 +1904,35 @@ console.log('[scope03-canary] mutated company pointer and unpublished candidate 
       'the worker restores every owned path without rewriting the test-owned fault injector');
     assert.equal(publication.head, fixture.initialHead);
   });
+
+  test('Regression canary: brief atomicity remains intact after shared launcher and worker integration', (context) => {
+    const fixture = createBriefRefreshFixture({
+      narrativeMode: 'success',
+      companyAssets: true
+    });
+    context.after(() => fixture.cleanup());
+    const companyPointerPath = resolve(
+      fixture.repoRoot,
+      'data/company-intelligence/company-msft/current.json'
+    );
+    const companyPointerBefore = readFileSync(companyPointerPath);
+    const result = runBriefRefreshFixture(fixture);
+    const publication = readPublicationState(fixture);
+    const worker = readFileSync(
+      resolve(fixture.repoRoot, 'scripts/brief-refresh-and-push.sh'),
+      'utf8'
+    );
+
+    assert.equal(result.status, 0,
+      `worker canary failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
+    assert.match(worker, /BRIEF_COUPLED_PIPELINE_CONTRACT="company-brief-eighteen-phase-v1"/);
+    assert.match(result.stdout, /selected transaction=matching-pair/);
+    assert.ok(!publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']));
+    assert.ok(!publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']));
+    assert.ok(readFileSync(companyPointerPath).equals(companyPointerBefore),
+      'the legacy canary branch does not grant company-pointer authority outside the shared transaction');
+    assert.equal(publication.staged, '');
+    assert.notEqual(publication.head, fixture.initialHead,
+      'one complete validated brief transaction reaches the isolated Git history');
+  });
 }

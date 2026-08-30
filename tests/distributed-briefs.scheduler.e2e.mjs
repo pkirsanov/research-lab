@@ -7,7 +7,7 @@
  */
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -19,17 +19,18 @@ import {
   makeSchedulerRepo, schedulerDeps, snapshotTree, stagedPaths, runGit, remoteTreePaths, remoteHeadTrailers, envelopeFinalAuthorFn
 } from './fixtures/feature-002/scheduler/scheduler-fixture-builder.mjs';
 
-function cloneRemote(repo) {
+function cloneRemote(repo, context) {
   const dir = mkdtempSync(path.join(tmpdir(), 'rl-e2e-verify-'));
+  context.after(() => rmSync(dir, { recursive: true, force: true }));
   execFileSync('git', ['clone', '--quiet', repo.remote, dir]);
   return dir;
 }
-function remoteCurrentRunId(repo) {
-  const dir = cloneRemote(repo);
+function remoteCurrentRunId(repo, context) {
+  const dir = cloneRemote(repo, context);
   return JSON.parse(readFileSync(path.join(dir, 'briefs/current.json'), 'utf8')).runId;
 }
 
-test('Regression: SCN-002-010 evidence then owners then all briefs then final then atomic publish commit and push', async () => {
+test('Regression: SCN-002-010 evidence then owners then all briefs then final then atomic publish commit and push', async (context) => {
   const repo = makeSchedulerRepo();
   try {
     const deps = schedulerDeps(repo, 'morning');
@@ -44,7 +45,7 @@ test('Regression: SCN-002-010 evidence then owners then all briefs then final th
 
     // The remote carries the exact run: trailers, whole graph, and coherent compatibility projection.
     assert.ok(remoteHeadTrailers(repo.remote).some((t) => t === `Brief-Run-Id: ${result.runId}`));
-    const verify = cloneRemote(repo);
+    const verify = cloneRemote(repo, context);
     assert.equal(validateCurrentGraph(verify).ok, true);
     assert.equal(validateCurrentGraph(verify).runId, result.runId);
     assert.equal(validateHistoryGraph(verify).ok, true);
@@ -52,13 +53,13 @@ test('Regression: SCN-002-010 evidence then owners then all briefs then final th
   } finally { repo.cleanup(); }
 });
 
-test('Regression: SCN-002-011 every required-phase failure leaves prior current authority unchanged', async () => {
+test('Regression: SCN-002-011 every required-phase failure leaves prior current authority unchanged', async (context) => {
   const repo = makeSchedulerRepo();
   try {
     // Establish prior current authority.
     const first = await runBriefRefresh(schedulerDeps(repo, 'morning'));
     assert.equal(first.ok, true);
-    assert.equal(remoteCurrentRunId(repo), first.runId);
+    assert.equal(remoteCurrentRunId(repo, context), first.runId);
     const rootBefore = snapshotTree(repo.root);
 
     // A distinct later run that faults at a required phase must not disturb the prior current pointer.
@@ -70,7 +71,7 @@ test('Regression: SCN-002-011 every required-phase failure leaves prior current 
       const faulted = await runBriefRefresh(deps);
       assert.equal(faulted.ok, false, `${fault.name} refuses`);
       assert.equal(faulted.refusal.code, fault.code);
-      assert.equal(remoteCurrentRunId(repo), first.runId, `${fault.name}: prior current authority unchanged`);
+      assert.equal(remoteCurrentRunId(repo, context), first.runId, `${fault.name}: prior current authority unchanged`);
     }
     assert.deepEqual(snapshotTree(repo.root), rootBefore, 'root unchanged across required-phase failures');
   } finally { repo.cleanup(); }

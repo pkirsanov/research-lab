@@ -20,9 +20,11 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
+import { createBriefRefreshFixture } from './brief-refresh-atomicity.support.mjs';
+
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 const PUBLICATION_MODULE = new URL('../scripts/company-intelligence-publication.mjs', import.meta.url);
-const PROCESS_TIMEOUT_MS = 30_000;
+const PROCESS_TIMEOUT_MS = 120_000;
 
 function stableValue(value) {
   if (Array.isArray(value)) return value.map(stableValue);
@@ -40,7 +42,7 @@ function sha(bytes) {
   return `sha256:${createHash('sha256').update(bytes).digest('hex')}`;
 }
 
-function run(command, args, cwd) {
+function run(command, args, cwd, extraEnv = {}) {
   return spawnSync(command, args, {
     cwd,
     encoding: 'utf8',
@@ -53,7 +55,8 @@ function run(command, args, cwd) {
       COMPANY_PLAN_AUTHOR_MODEL_ID: 'configured-research-model',
       COMPANY_PLAN_AUTHOR_PROMPT_POLICY_VERSION: 'company-plan-author/v1',
       COMPANY_PLAN_AUTHOR_SCHEMA_VERSION: 'company-authored-plan/v2',
-      COMPANY_PLAN_AUTHOR_VALIDATOR_VERSION: 'company-plan-validator/v1'
+      COMPANY_PLAN_AUTHOR_VALIDATOR_VERSION: 'company-plan-validator/v1',
+      ...extraEnv
     }
   });
 }
@@ -318,6 +321,468 @@ async function createScope03TransactionFixture(sandbox, label) {
     transaction
   };
 }
+
+function createScope04LauncherFixture(label) {
+  const atomic = createBriefRefreshFixture({
+    narrativeMode: 'success',
+    companyAssets: true,
+    baselineDate: '2026-08-28',
+    candidateDate: '2026-08-29'
+  });
+  const sandbox = atomic.fixtureRoot;
+  const source = atomic.repoRoot;
+  const remote = atomic.remoteRoot;
+  const statusFile = path.join(sandbox, 'scheduler.status');
+  const transactionRoot = path.join(sandbox, 'transactions');
+  for (const relativePath of [
+    'rlcompanyintel.js',
+    'company-intelligence.config.json',
+    'market-brief.owner-reads.json',
+    'scripts/brief-refresh-and-push.sh',
+    'scripts/brief-refresh-scheduled.sh',
+    'scripts/company-intelligence-publication.mjs'
+  ]) copyRelative(source, relativePath);
+  addCompanySource(path.join(source, 'tools.json'));
+  requireSuccess(run('git', ['add', '--', '.'], source), `${label} shared trigger add`);
+  requireSuccess(run('git', ['commit', '-m', 'scope 04 shared trigger baseline'], source), `${label} shared trigger commit`);
+  requireSuccess(run('git', ['push', 'origin', 'main'], source), `${label} shared trigger push`);
+  const snapshot = JSON.parse(readFileSync(path.join(source, 'market-brief.snapshot.json'), 'utf8'));
+  const requestedAt = new Date(Date.parse(snapshot.asOf) - 60_000).toISOString();
+  const window = snapshot.window;
+  const etSessionDate = atomic.candidateDate;
+  const env = {
+    BRIEF_SCHEDULE_SOURCE_ROOT: source,
+    BRIEF_SCHEDULE_STATUS_FILE: statusFile,
+    BRIEF_SCHEDULE_TRANSACTION_ROOT: transactionRoot,
+    BRIEF_SCHEDULE_LOCK_DIR: path.join(sandbox, 'branch.lock'),
+    BRIEF_SCHEDULE_REQUESTED_AT: requestedAt,
+    BRIEF_SCHEDULE_ET_SESSION_DATE: etSessionDate,
+    BRIEF_COPILOT_BIN: atomic.copilotPath,
+    BRIEF_NARRATIVE_ATTEMPTS: '1',
+    BRIEF_LANE_ATTEMPTS: '1',
+    BRIEF_LANE_CONCURRENCY: '4',
+    BRIEF_SKIP_NARRATIVE: '0',
+    BUG002_BOUNDARY_LOG: atomic.boundaryLog,
+    BUG002_CANDIDATE_DATE: atomic.candidateDate,
+    BUG002_COPILOT_ATTEMPT_FILE: atomic.copilotAttemptFile,
+    BUG002_COPILOT_AUDIT_FILE: atomic.copilotAuditFile,
+    BUG002_NARRATIVE_MODE: atomic.narrativeMode,
+    BUG002_VALIDATOR_COUNT_FILE: atomic.validatorCountFile,
+    GIT_AUTHOR_NAME: 'Scope 04 Publisher',
+    GIT_AUTHOR_EMAIL: 'scope04@example.invalid',
+    GIT_COMMITTER_NAME: 'Scope 04 Publisher',
+    GIT_COMMITTER_EMAIL: 'scope04@example.invalid'
+  };
+  return {
+    sandbox,
+    source,
+    remote,
+    statusFile,
+    transactionRoot,
+    window,
+    etSessionDate,
+    env,
+    boundaryLog: atomic.boundaryLog,
+    launcher: path.join(source, 'scripts/brief-refresh-scheduled.sh'),
+    cleanup() { atomic.cleanup(); }
+  };
+}
+
+function runScope04Launcher(fixture, trigger, extraEnv = {}) {
+  const args = ['--trigger', trigger, '--window', fixture.window];
+  if (trigger === 'scheduled') args.push('--due-only');
+  return run('/bin/bash', args.length ? [fixture.launcher, ...args] : [fixture.launcher],
+    fixture.source, { ...fixture.env, ...extraEnv });
+}
+
+function jsonLines(text) {
+  const values = [];
+  for (const line of String(text || '').split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith('{') || !trimmed.endsWith('}')) continue;
+    try { values.push(JSON.parse(trimmed)); } catch { /* non-JSON diagnostic */ }
+  }
+  return values;
+}
+
+function sharedResult(result) {
+  return jsonLines(result.stdout).find((value) => value.ok === true && Array.isArray(value.phaseHistory));
+}
+
+function phaseHistory(result) {
+  return jsonLines(result.stdout)
+    .filter((value) => value.contractVersion === 'company-publication-phase/v1')
+    .map((value) => value.phase);
+}
+
+function normalizedPhaseRecords(result) {
+  return jsonLines(result.stdout)
+    .filter((value) => value.contractVersion === 'company-publication-phase/v1')
+    .map(({ attemptId, generationId, trigger, ...value }) => ({
+      ...value,
+      ...(trigger === undefined ? {} : { trigger: '<trigger-identity>' })
+    }));
+}
+
+function documentShape(value) {
+  if (Array.isArray(value)) return value.map(documentShape);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(Object.keys(value).sort().map((key) => [key, documentShape(value[key])]));
+  }
+  return value === null ? 'null' : typeof value;
+}
+
+function remoteJson(fixture, relativePath) {
+  const result = run('git', ['--git-dir', fixture.remote, 'show', `main:${relativePath}`], fixture.sandbox);
+  return JSON.parse(requireSuccess(result, `remote read ${relativePath}`));
+}
+
+function remotePaths(fixture) {
+  return requireSuccess(
+    run('git', ['--git-dir', fixture.remote, 'ls-tree', '-r', '--name-only', 'main'], fixture.sandbox),
+    'remote path inventory'
+  ).split('\n').filter(Boolean);
+}
+
+test('Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief', async () => {
+  const fixture = createScope04LauncherFixture('scheduled');
+  try {
+    const baselineCommitCount = Number(requireSuccess(
+      run('git', ['--git-dir', fixture.remote, 'rev-list', '--count', 'main'], fixture.sandbox),
+      'scheduled baseline remote commit count'
+    ));
+    if (process.env.SCOPE04_SCN003_NEGATIVE_CONTROL === 'drop-final-company-binding') {
+      const publisherPath = path.join(fixture.source, 'scripts/brief-distributed-publish.mjs');
+      const publisher = readFileSync(publisherPath, 'utf8');
+      const binding = 'if (companyPublication !== null) finalBody.companyPublication = companyPublication;';
+      assert.equal(publisher.includes(binding), true,
+        'the SCN-028-003 mutant must bind to the final company-publication assignment');
+      writeFileSync(publisherPath, publisher.replace(binding,
+        'if (companyPublication !== null) finalBody.companyPublicationOmittedByMutation = companyPublication;'));
+      requireSuccess(run('git', ['add', '--', 'scripts/brief-distributed-publish.mjs'], fixture.source),
+        'SCN-028-003 mutant add');
+      requireSuccess(run('git', ['commit', '-m', 'SCN-028-003 omit final company binding'], fixture.source),
+        'SCN-028-003 mutant commit');
+      requireSuccess(run('git', ['push', 'origin', 'main'], fixture.source),
+        'SCN-028-003 mutant push');
+    }
+    const sourceBefore = checkoutByteInventory(fixture.source);
+    const result = runScope04Launcher(fixture, 'scheduled');
+    const output = requireSuccess(result, 'scheduled shared launcher');
+    const completed = sharedResult(result);
+    assert.ok(completed, `shared result missing\n${output}`);
+    assert.equal(completed.trigger, 'scheduled');
+    assert.equal(completed.sourceObservationCount, 1);
+    assert.equal(completed.authorInvocationCount, 1);
+    assert.deepEqual(completed.phaseHistory, (await import(PUBLICATION_MODULE.href)).COUPLED_PUBLICATION_PHASES);
+    assert.deepEqual(phaseHistory(result), completed.phaseHistory,
+      'the process emits every coupled phase once in canonical order');
+
+    const selector = remoteJson(fixture, 'data/company-intelligence/publication-current.json');
+    const manifest = remoteJson(fixture, selector.publicationManifestRef.path);
+    const pointer = remoteJson(fixture, 'data/company-intelligence/company-msft/current.json');
+    const final = remoteJson(fixture, manifest.brief.manifestPath);
+    const versionPaths = remotePaths(fixture).filter((relativePath) =>
+      relativePath.startsWith('data/company-intelligence/company-msft/versions/') &&
+      !relativePath.endsWith('company-msft-2026-08-11.json'));
+    assert.equal(versionPaths.length, 1, 'one new immutable MSFT version reaches the remote');
+    assert.equal(pointer.generationId, selector.generationId);
+    assert.equal(pointer.versionRef.path, versionPaths[0]);
+    assert.equal(manifest.generation.generationId, selector.generationId);
+    assert.equal(manifest.brief.runId, selector.briefRunId);
+    assert.equal(manifest.companyOwnerRead.toolId, 'company-intelligence-lab');
+    assert.equal(final.runId, selector.briefRunId);
+    const finalBody = remoteJson(fixture, final.finalRef.path);
+    assert.equal(finalBody.companyPublication.generationId, selector.generationId);
+    assert.equal(finalBody.companyPublication.ownerReadRef, manifest.companyOwnerRead.readRef);
+    const commitBody = requireSuccess(
+      run('git', ['--git-dir', fixture.remote, 'show', '-s', '--format=%B', 'main'], fixture.sandbox),
+      'scheduled remote commit body'
+    );
+    for (const trailer of [
+      'Brief-Run-Id:',
+      'Brief-Run-Fingerprint:',
+      'Brief-Manifest-SHA256:',
+      'Company-Brief-Generation-Id:',
+      'Company-Brief-Manifest-SHA256:'
+    ]) assert.match(commitBody, new RegExp(`^${trailer}`, 'm'), `${trailer} must bind the full coupled commit`);
+    assert.equal(
+      Number(requireSuccess(run('git', ['--git-dir', fixture.remote, 'rev-list', '--count', 'main'], fixture.sandbox),
+        'scheduled remote commit count')),
+      baselineCommitCount + 1,
+      'the full transaction adds one coupled publication commit to the established fixture baseline'
+    );
+    assert.deepEqual(checkoutByteInventory(fixture.source), sourceBefore,
+      'the shared launcher leaves its source checkout byte-identical');
+  } finally {
+    fixture.cleanup();
+  }
+});
+
+test('Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract', async () => {
+  const scheduled = createScope04LauncherFixture('parity-scheduled');
+  const onDemand = createScope04LauncherFixture('parity-on-demand');
+  const heldLease = createScope04LauncherFixture('parity-held-lease');
+  const failedScheduled = createScope04LauncherFixture('parity-failed-scheduled');
+  const failedOnDemand = createScope04LauncherFixture('parity-failed-on-demand');
+  try {
+    const scheduledRun = runScope04Launcher(scheduled, 'scheduled');
+    const onDemandRun = runScope04Launcher(onDemand, 'on-demand');
+    requireSuccess(scheduledRun, 'scheduled parity launcher');
+    requireSuccess(onDemandRun, 'on-demand parity launcher');
+    const scheduledResult = sharedResult(scheduledRun);
+    const onDemandResult = sharedResult(onDemandRun);
+    assert.deepEqual(scheduledResult.phaseHistory, onDemandResult.phaseHistory);
+    assert.deepEqual(scheduledResult.phaseHistory,
+      (await import(PUBLICATION_MODULE.href)).COUPLED_PUBLICATION_PHASES);
+    assert.equal(scheduledResult.sourceObservationCount, onDemandResult.sourceObservationCount);
+    assert.equal(scheduledResult.authorInvocationCount, onDemandResult.authorInvocationCount);
+    assert.deepEqual(normalizedPhaseRecords(scheduledRun), normalizedPhaseRecords(onDemandRun),
+      'both trigger adapters emit the same phase outcomes after trigger identities are normalized');
+    assert.notEqual(scheduledResult.generationId, onDemandResult.generationId,
+      'trigger identity changes the logical generation without changing its contract');
+    const scheduledSelector = remoteJson(scheduled, 'data/company-intelligence/publication-current.json');
+    const onDemandSelector = remoteJson(onDemand, 'data/company-intelligence/publication-current.json');
+    const scheduledManifest = remoteJson(scheduled, scheduledSelector.publicationManifestRef.path);
+    const onDemandManifest = remoteJson(onDemand, onDemandSelector.publicationManifestRef.path);
+    assert.deepEqual(documentShape(scheduledManifest), documentShape(onDemandManifest),
+      'scheduled and on-demand publications have the same complete manifest contract shape');
+    assert.equal(scheduledManifest.generation.trigger, 'scheduled');
+    assert.equal(onDemandManifest.generation.trigger, 'on-demand');
+    const prompt = readFileSync(path.join(ROOT, '.github/prompts/market-brief-update.prompt.md'), 'utf8');
+    assert.match(prompt, /brief-refresh-scheduled\.sh --trigger on-demand --window/);
+    assert.doesNotMatch(prompt, /git\s+(?:add|commit|push)|writeFile|market-brief\.payload\.json|brief-history\.jsonl/);
+    const launchd = readFileSync(path.join(ROOT, 'scripts/com.researchlab.brief-refresh.plist'), 'utf8');
+    assert.match(launchd, /<string>--trigger<\/string>\s*<string>scheduled<\/string>\s*<string>--due-only<\/string>/);
+    assert.doesNotMatch(launchd, /<key>BRIEF_SCHEDULE_DUE_ONLY<\/key>/,
+      'launchd passes the scheduled due-only contract as explicit arguments');
+    assert.ok(onDemandRun.stdout.indexOf('company-publication-trigger-request/v1') <
+      onDemandRun.stdout.indexOf('cloning one verified base'),
+    'the on-demand UUID is persisted before checkout and source work');
+
+    if (process.env.SCOPE04_SCN004_NEGATIVE_CONTROL === 'bypass-shared-lease') {
+      const launcherSource = readFileSync(heldLease.launcher, 'utf8');
+      const leaseBoundary = 'if [ "$lock_live" -eq 1 ]; then';
+      assert.equal(launcherSource.includes(leaseBoundary), true,
+        'the SCN-028-004 mutant must bind to the shared live-lease refusal');
+      writeFileSync(heldLease.launcher,
+        launcherSource.replace(leaseBoundary, 'if [ "$lock_live" -eq 2 ]; then'));
+    }
+    mkdirSync(heldLease.env.BRIEF_SCHEDULE_LOCK_DIR, { recursive: true });
+    writeFileSync(path.join(heldLease.env.BRIEF_SCHEDULE_LOCK_DIR, 'pid'), `${process.pid}\n`);
+    writeFileSync(path.join(heldLease.env.BRIEF_SCHEDULE_LOCK_DIR, 'started-epoch'), `${Math.floor(Date.now() / 1000)}\n`);
+    const heldRemoteBefore = requireSuccess(
+      run('git', ['--git-dir', heldLease.remote, 'rev-parse', 'main'], heldLease.sandbox),
+      'held-lease remote before'
+    );
+    for (const trigger of ['scheduled', 'on-demand']) {
+      const refused = runScope04Launcher(heldLease, trigger);
+      assert.notEqual(refused.status, 0, `${trigger} must refuse an already-held shared publication lease`);
+      assert.match(`${refused.stdout}\n${refused.stderr}`, /C028-RUN-IN-PROGRESS/);
+      assert.equal(existsSync(heldLease.transactionRoot), false,
+        `${trigger} lease refusal must precede trigger persistence and checkout creation`);
+      assert.equal(
+        requireSuccess(run('git', ['--git-dir', heldLease.remote, 'rev-parse', 'main'], heldLease.sandbox),
+          `${trigger} held-lease remote after`),
+        heldRemoteBefore,
+        `${trigger} lease refusal must leave remote authority unchanged`
+      );
+    }
+
+    for (const [trigger, faulted] of [
+      ['scheduled', failedScheduled],
+      ['on-demand', failedOnDemand]
+    ]) {
+      const hookRoot = path.join(faulted.sandbox, 'hooks');
+      mkdirSync(hookRoot, { recursive: true });
+      const preCommit = path.join(hookRoot, 'pre-commit');
+      writeFileSync(preCommit, '#!/usr/bin/env bash\nexit 44\n');
+      chmodSync(preCommit, 0o755);
+      const remoteBefore = requireSuccess(
+        run('git', ['--git-dir', faulted.remote, 'rev-parse', 'main'], faulted.sandbox),
+        `${trigger} fault remote before`
+      );
+      const fault = runScope04Launcher(faulted, trigger, {
+        GIT_CONFIG_COUNT: '1',
+        GIT_CONFIG_KEY_0: 'core.hooksPath',
+        GIT_CONFIG_VALUE_0: hookRoot
+      });
+      assert.notEqual(fault.status, 0, `${trigger} commit fault must refuse publication`);
+      assert.match(`${fault.stdout}\n${fault.stderr}`, /C028-COMMIT/);
+      assert.equal(
+        requireSuccess(run('git', ['--git-dir', faulted.remote, 'rev-parse', 'main'], faulted.sandbox),
+          `${trigger} fault remote after`),
+        remoteBefore,
+        `${trigger} commit fault must preserve prior remote authority`
+      );
+      const parent = path.join(faulted.transactionRoot, `${trigger}-${faulted.window}`);
+      for (const checkout of ['candidate', 'publication']) {
+        assert.equal(
+          requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'],
+            path.join(parent, checkout)), `${trigger} ${checkout} restoration`),
+          '',
+          `${trigger} commit fault must restore the ${checkout} checkout`
+        );
+      }
+    }
+  } finally {
+    scheduled.cleanup();
+    onDemand.cleanup();
+    heldLease.cleanup();
+    failedScheduled.cleanup();
+    failedOnDemand.cleanup();
+  }
+});
+
+test('Regression E2E: SCN-028-012 identical retry resumes one remote generation and refuses divergent content', () => {
+  const exact = createScope04LauncherFixture('exact-resume');
+  const divergent = createScope04LauncherFixture('divergent-resume');
+  const interrupted = createScope04LauncherFixture('interrupted-parent');
+  try {
+    const exactBaselineCommitCount = Number(requireSuccess(
+      run('git', ['--git-dir', exact.remote, 'rev-list', '--count', 'main'], exact.sandbox),
+      'exact baseline remote commit count'
+    ));
+    const divergentBaselineCommitCount = Number(requireSuccess(
+      run('git', ['--git-dir', divergent.remote, 'rev-list', '--count', 'main'], divergent.sandbox),
+      'divergent baseline remote commit count'
+    ));
+    const rejectHook = path.join(exact.remote, 'hooks/pre-receive');
+    writeFileSync(rejectHook, '#!/usr/bin/env bash\nexit 42\n');
+    chmodSync(rejectHook, 0o755);
+    const first = runScope04Launcher(exact, 'scheduled');
+    assert.notEqual(first.status, 0, 'the remote rejection preserves a pending exact commit');
+    const exactParent = path.join(exact.transactionRoot, `scheduled-${exact.window}`);
+    const exactJournal = JSON.parse(readFileSync(
+      path.join(exactParent, 'transaction/transaction-journal.json'),
+      'utf8'
+    ));
+    const exactCheckpoint = JSON.parse(readFileSync(
+      path.join(exactParent, 'transaction/execution-checkpoint.json'),
+      'utf8'
+    ));
+    assert.equal(exactJournal.state, 'committed-pending-remote');
+    assert.equal(exactCheckpoint.sourceObservationCount, 1);
+    assert.equal(exactCheckpoint.authorInvocationCount, 1);
+    rmSync(path.join(exactParent, 'candidate/market-brief.owner-reads.json'));
+    rmSync(path.join(exactParent, 'transaction/plan-responses/company-msft.json'));
+    rmSync(rejectHook);
+    const resumed = runScope04Launcher(exact, 'scheduled');
+    requireSuccess(resumed, 'exact commit resume');
+    assert.match(resumed.stdout, /"outcome":"resume-exact-commit"/);
+    const resumedResult = sharedResult(resumed);
+    assert.equal(resumedResult.resumed, true);
+    assert.equal(resumedResult.commit, exactJournal.commit);
+    assert.equal(resumedResult.sourceObservationCount, 1);
+    assert.equal(resumedResult.authorInvocationCount, 1);
+    assert.equal(
+      Number(requireSuccess(run('git', ['--git-dir', exact.remote, 'rev-list', '--count', 'main'], exact.sandbox),
+        'exact remote commit count')),
+      exactBaselineCommitCount + 1,
+      'exact resume adds one coupled publication commit to the established fixture baseline'
+    );
+
+    const hookDir = path.join(divergent.sandbox, 'hooks');
+    mkdirSync(hookDir);
+    const preCommit = path.join(hookDir, 'pre-commit');
+    writeFileSync(preCommit, '#!/usr/bin/env bash\nexit 43\n');
+    chmodSync(preCommit, 0o755);
+    const hookEnv = {
+      GIT_CONFIG_COUNT: '1',
+      GIT_CONFIG_KEY_0: 'core.hooksPath',
+      GIT_CONFIG_VALUE_0: hookDir
+    };
+    const blockedCommit = runScope04Launcher(divergent, 'scheduled', hookEnv);
+    assert.notEqual(blockedCommit.status, 0, 'the pre-commit hook leaves validated checkpoints resumable');
+    const divergentParent = path.join(divergent.transactionRoot, `scheduled-${divergent.window}`);
+    const privateFiles = allFiles(path.join(divergentParent, 'transaction/publication-files'));
+    assert.ok(privateFiles.length > 0);
+    const divergentFile = path.join(divergentParent, 'transaction/publication-files', privateFiles[0]);
+    const originalBytes = readFileSync(divergentFile);
+    writeFileSync(divergentFile, Buffer.concat([originalBytes, Buffer.from('\nchanged-content') ]));
+    rmSync(preCommit);
+    const refused = runScope04Launcher(divergent, 'scheduled', hookEnv);
+    assert.notEqual(refused.status, 0, 'changed checkpoint bytes refuse instead of forking history');
+    assert.match(`${refused.stdout}\n${refused.stderr}`, /C028-GENERATION-COLLISION|C028-STAGE/);
+    assert.equal(
+      Number(requireSuccess(run('git', ['--git-dir', divergent.remote, 'rev-list', '--count', 'main'], divergent.sandbox),
+        'divergent remote commit count')),
+      divergentBaselineCommitCount,
+      'divergent checkpoint content creates no second remote generation'
+    );
+    writeFileSync(divergentFile, originalBytes);
+    const recovered = runScope04Launcher(divergent, 'scheduled', hookEnv);
+    requireSuccess(recovered, 'checkpoint reuse after exact byte restoration');
+    const recoveredResult = sharedResult(recovered);
+    assert.equal(recoveredResult.sourceObservationCount, 1);
+    assert.equal(recoveredResult.authorInvocationCount, 1);
+    assert.equal(
+      Number(requireSuccess(run('git', ['--git-dir', divergent.remote, 'rev-list', '--count', 'main'], divergent.sandbox),
+        'recovered divergent remote commit count')),
+      divergentBaselineCommitCount + 1,
+      'restoring the exact checkpoint bytes publishes one and only one coupled commit'
+    );
+
+    const interruptedWorker = path.join(interrupted.source, 'scripts/brief-refresh-and-push.sh');
+    const originalWorkerBytes = readFileSync(interruptedWorker);
+    const originalWorker = originalWorkerBytes.toString('utf8');
+    const workerNeedle = '  "$NODE_BIN" scripts/company-intelligence-publication.mjs "${coupled_args[@]}"\n  exit $?\nfi';
+    assert.equal(originalWorker.includes(workerNeedle), true,
+      'the interruption control must bind to the shared worker return boundary');
+    writeFileSync(interruptedWorker, originalWorker.replace(workerNeedle, [
+      '  "$NODE_BIN" scripts/company-intelligence-publication.mjs "${coupled_args[@]}"',
+      '  coupled_exit=$?',
+      '  if [ "$coupled_exit" -eq 0 ]; then kill -TERM "$PPID"; fi',
+      '  exit "$coupled_exit"',
+      'fi'
+    ].join('\n')));
+    requireSuccess(run('git', ['add', '--', 'scripts/brief-refresh-and-push.sh'], interrupted.source),
+      'interrupted worker add');
+    requireSuccess(run('git', ['commit', '-m', 'scope 04 parent interruption control'], interrupted.source),
+      'interrupted worker commit');
+    requireSuccess(run('git', ['push', 'origin', 'main'], interrupted.source),
+      'interrupted worker push');
+    if (process.env.SCOPE04_SCN012_NEGATIVE_CONTROL === 'discard-interrupted-parent') {
+      const launcherSource = readFileSync(interrupted.launcher, 'utf8');
+      const cleanupBoundary = '  if [ "$PRESERVE_PUBLISH_PARENT" != "1" ] && [ -n "$PUBLISH_PARENT" ] && [ -d "$PUBLISH_PARENT" ]; then';
+      assert.equal(launcherSource.includes(cleanupBoundary), true,
+        'the SCN-028-012 mutant must bind to interrupted transaction preservation');
+      writeFileSync(interrupted.launcher, launcherSource.replace(cleanupBoundary,
+        '  if [ -n "$PUBLISH_PARENT" ] && [ -d "$PUBLISH_PARENT" ]; then'));
+    }
+    const interruptedRun = runScope04Launcher(interrupted, 'scheduled');
+    assert.notEqual(interruptedRun.status, 0,
+      'the launcher parent interruption must occur after the exact commit reaches the remote');
+    const interruptedParent = path.join(interrupted.transactionRoot, `scheduled-${interrupted.window}`);
+    assert.equal(existsSync(interruptedParent), true,
+      'an interrupted launcher must preserve the exact transaction journal and checkout pair');
+    const interruptedJournal = JSON.parse(readFileSync(
+      path.join(interruptedParent, 'transaction/transaction-journal.json'),
+      'utf8'
+    ));
+    assert.equal(interruptedJournal.state, 'acknowledged');
+    assert.equal(
+      requireSuccess(run('git', ['--git-dir', interrupted.remote, 'rev-parse', 'main'], interrupted.sandbox),
+        'interrupted remote exact commit'),
+      interruptedJournal.commit,
+      'the interrupted parent must not erase the remotely acknowledged exact commit identity'
+    );
+    writeFileSync(path.join(interruptedParent, 'candidate/scripts/brief-refresh-and-push.sh'), originalWorkerBytes);
+    const interruptedResume = runScope04Launcher(interrupted, 'scheduled');
+    requireSuccess(interruptedResume, 'interrupted parent exact resume');
+    const interruptedResult = sharedResult(interruptedResume);
+    assert.equal(interruptedResult.resumed, true);
+    assert.equal(interruptedResult.commit, interruptedJournal.commit);
+    assert.equal(interruptedResult.sourceObservationCount, 1);
+    assert.equal(interruptedResult.authorInvocationCount, 1);
+    assert.equal(existsSync(interruptedParent), false,
+      'a confirmed exact resume removes the private transaction root');
+  } finally {
+    exact.cleanup();
+    divergent.cleanup();
+    interrupted.cleanup();
+  }
+});
 
 test('Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority', () => {
   const sourceStatusBefore = requireSuccess(

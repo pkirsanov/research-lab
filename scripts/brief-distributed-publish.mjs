@@ -223,40 +223,45 @@ export function buildToolBriefBundle(context) {
       limitation = 'Explicit coverage state only; no server-side owner read or recommendation is fabricated.';
     }
 
-    const read = {
-      contractVersion: 'tool-model-read/v1',
-      toolId,
-      role: 'source',
-      profile,
-      status: readStatus,
-      adapter: {
-        adapterId: entry.readAdapter,
-        readContractVersion: entry.readContractVersion,
-        owningModelVersion: `${entry.readAdapter}/scheduled-v1`
-      },
-      evaluatedAt: asOf,
-      modelAsOf: readAsOf,
-      sourceAsOf: readAsOf,
-      evidenceCutoff: asOf,
-      summary,
-      metrics,
-      source,
-      marketSessionEvidenceRef: null,
-      evidenceRefs: [],
-      evidenceApplicability: { status: applicabilityStatus, reason: applicabilityReason },
-      evidenceInterpretations: [],
-      recommendationEligibility: {
-        eligible: false,
-        reasonCode: outcome === 'newly-authored' ? 'deterministic-context-only' : applicabilityStatus,
-        permittedActionFamilies: [],
-        permittedSubjectBoundary: toolId
-      },
-      facts: [],
-      evidenceBoundary: [limitation],
-      limitations: [limitation],
-      deepLink: coverage.deepLink || (toolReads[toolId] && toolReads[toolId].deepLink) || `${toolId}.html`
-    };
-    read.fingerprint = RLCONTRACTS.fingerprint('tool-model-read', read);
+    let read;
+    if (toolId === 'company-intelligence-lab' && hasRead) {
+      read = JSON.parse(JSON.stringify(toolReads[toolId]));
+    } else {
+      read = {
+        contractVersion: 'tool-model-read/v1',
+        toolId,
+        role: 'source',
+        profile,
+        status: readStatus,
+        adapter: {
+          adapterId: entry.readAdapter,
+          readContractVersion: entry.readContractVersion,
+          owningModelVersion: `${entry.readAdapter}/scheduled-v1`
+        },
+        evaluatedAt: asOf,
+        modelAsOf: readAsOf,
+        sourceAsOf: readAsOf,
+        evidenceCutoff: asOf,
+        summary,
+        metrics,
+        source,
+        marketSessionEvidenceRef: null,
+        evidenceRefs: [],
+        evidenceApplicability: { status: applicabilityStatus, reason: applicabilityReason },
+        evidenceInterpretations: [],
+        recommendationEligibility: {
+          eligible: false,
+          reasonCode: outcome === 'newly-authored' ? 'deterministic-context-only' : applicabilityStatus,
+          permittedActionFamilies: [],
+          permittedSubjectBoundary: toolId
+        },
+        facts: [],
+        evidenceBoundary: [limitation],
+        limitations: [limitation],
+        deepLink: coverage.deepLink || (toolReads[toolId] && toolReads[toolId].deepLink) || `${toolId}.html`
+      };
+      read.fingerprint = RLCONTRACTS.fingerprint('tool-model-read', read);
+    }
     const readSha = stableSha(read);
     const inputFingerprint = RLCONTRACTS.fingerprint('tool-brief-input', {
       contractVersion: 'tool-brief-input/v1', readFingerprint: read.fingerprint, profile, snapshotSha, window
@@ -383,6 +388,22 @@ export function buildDistributedRun(context) {
   if (!prepared.ok) return prepared;
   const { bundle, richCount, coverageCount } = prepared;
   const tools = bundle.tools;
+  const companyRegistered = frozen.orderedSourceToolIds.includes('company-intelligence-lab');
+  const companyOutcomes = tools.filter((tool) => tool.toolId === 'company-intelligence-lab');
+  let companyPublication = null;
+  if (companyRegistered) {
+    if (companyOutcomes.length !== 1 || companyOutcomes[0].outcome !== 'newly-authored' ||
+        !companyOutcomes[0].read ||
+        typeof companyOutcomes[0].read.generationId !== 'string' ||
+        typeof companyOutcomes[0].read.fingerprint !== 'string') {
+      return fail('company-owner-read-required', 'company-intelligence-lab');
+    }
+    companyPublication = {
+      generationId: companyOutcomes[0].read.generationId,
+      ownerReadFingerprint: companyOutcomes[0].read.fingerprint,
+      ownerReadRef: stableSha(companyOutcomes[0].read)
+    };
+  }
 
   const runFingerprint = stableSha({
     contractVersion: 'brief-distributed-run-identity/v1',
@@ -437,6 +458,7 @@ export function buildDistributedRun(context) {
     },
     derivation: 'deterministic-from-snapshot-and-payload-no-llm'
   };
+  if (companyPublication !== null) finalBody.companyPublication = companyPublication;
 
   const run = {
     runId, runFingerprint, etRunDate, window,

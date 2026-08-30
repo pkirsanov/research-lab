@@ -100,13 +100,13 @@
       "revision": 3,
       "sourceRequestDigest": "sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f"
     },
-    "activeAgent": "bubbles.validate",
-    "currentPhase": "validate",
-    "currentPhaseStatus": "completed",
-    "currentScope": "03-transaction-restoration",
-    "substate": "independently_verified",
-    "runStartedAt": "2026-08-30T06:34:10Z",
-    "completedAt": "2026-08-30T06:39:31Z",
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
+    "currentScope": "04-shared-trigger-integration",
+    "substate": "needs_reverification",
+    "runStartedAt": "2026-08-30T06:52:26Z",
+    "completedAt": null,
     "completedPhaseClaims": [
       {
         "phase": "analyze",

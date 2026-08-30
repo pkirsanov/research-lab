@@ -51,10 +51,16 @@
 set -uo pipefail
 
 export BRIEF_PIPELINE_CONTRACT="pull-data-tools-final-ack-v2"
+export BRIEF_COUPLED_PIPELINE_CONTRACT="company-brief-eighteen-phase-v1"
 
 DRY_RUN=0
 [ "${1:-}" = "--dry-run" ] && DRY_RUN=1
 REQUIRE_COMPLETE_RUN="${BRIEF_REQUIRE_COMPLETE_RUN:-0}"
+COUPLED_STAGE="${BRIEF_COUPLED_STAGE:-}"
+case "$COUPLED_STAGE" in
+  ''|source|final) ;;
+  *) echo "[brief-timer] unknown coupled worker stage: $COUPLED_STAGE"; exit 2 ;;
+esac
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="${BRIEF_REPO_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
@@ -79,6 +85,32 @@ fi
 [ -z "$NODE_BIN" ] && { echo "[brief-timer] node not found — skipping"; exit 0; }
 [ -z "$GIT_BIN" ]  && { echo "[brief-timer] git not found — skipping"; exit 0; }
 
+# Feature 028 Scope 04. The shared launcher supplies these values as one closed
+# set for scheduled and on-demand runs. This branch executes before the legacy
+# single-checkout worker mutates any publication path. The Node boundary owns
+# the complete eighteen-phase company-plus-brief state machine, two-checkout
+# restoration, exact commit, push, and remote acknowledgment.
+if [ -n "${BRIEF_COUPLED_REQUEST_FILE:-}" ] && [ -z "$COUPLED_STAGE" ]; then
+  [ -n "${BRIEF_COUPLED_TRANSACTION_DIR:-}" ] || { echo "[brief-timer] coupled transaction is missing BRIEF_COUPLED_TRANSACTION_DIR"; exit 1; }
+  [ -n "${BRIEF_COUPLED_PUBLICATION_ROOT:-}" ] || { echo "[brief-timer] coupled transaction is missing BRIEF_COUPLED_PUBLICATION_ROOT"; exit 1; }
+  [ -n "${BRIEF_COUPLED_ACKNOWLEDGMENT_FILE:-}" ] || { echo "[brief-timer] coupled transaction is missing BRIEF_COUPLED_ACKNOWLEDGMENT_FILE"; exit 1; }
+  [ -n "${BRIEF_PUBLICATION_REMOTE:-}" ] || { echo "[brief-timer] coupled transaction is missing BRIEF_PUBLICATION_REMOTE"; exit 1; }
+  [ -n "${BRIEF_PUBLICATION_BRANCH:-}" ] || { echo "[brief-timer] coupled transaction is missing BRIEF_PUBLICATION_BRANCH"; exit 1; }
+  coupled_args=(
+    run-shared
+    --transaction-dir "$BRIEF_COUPLED_TRANSACTION_DIR"
+    --candidate-root "$REPO_ROOT"
+    --publication-root "$BRIEF_COUPLED_PUBLICATION_ROOT"
+    --request-file "$BRIEF_COUPLED_REQUEST_FILE"
+    --remote "$BRIEF_PUBLICATION_REMOTE"
+    --branch "$BRIEF_PUBLICATION_BRANCH"
+    --acknowledgment-file "$BRIEF_COUPLED_ACKNOWLEDGMENT_FILE"
+  )
+  [ "$DRY_RUN" = "1" ] && coupled_args+=(--dry-run)
+  "$NODE_BIN" scripts/company-intelligence-publication.mjs "${coupled_args[@]}"
+  exit $?
+fi
+
 DATA_FILES=(market-brief.snapshot.json brief-history.jsonl)
 PAYLOAD="market-brief.payload.json"
 CONFIG="market-brief.config.json"
@@ -91,11 +123,13 @@ OWNED_PATHS=("${DATA_FILES[@]}" "$PAYLOAD" "$CONFIG" "${PAGE_FILES[@]}" "${DERIV
 
 # Refuse before any fetch or refresh when a wrapper-owned path is staged,
 # unstaged, or untracked. Unrelated dirt is intentionally outside this query.
-owned_status="$("$GIT_BIN" status --porcelain=v1 --untracked-files=all -- "${OWNED_PATHS[@]}")"
-if [ -n "$owned_status" ]; then
-  echo "[brief-timer] refusing: wrapper-owned publication paths are dirty"
-  printf '%s\n' "$owned_status"
-  exit 1
+if [ "$COUPLED_STAGE" != "final" ]; then
+  owned_status="$("$GIT_BIN" status --porcelain=v1 --untracked-files=all -- "${OWNED_PATHS[@]}")"
+  if [ -n "$owned_status" ]; then
+    echo "[brief-timer] refusing: wrapper-owned publication paths are dirty"
+    printf '%s\n' "$owned_status"
+    exit 1
+  fi
 fi
 
 # A broken published pair is not a valid transaction baseline. Repair requires
@@ -297,7 +331,9 @@ run_with_timeout() {
 et_h=$(TZ=America/New_York date +%H); et_m=$(TZ=America/New_York date +%M)
 mins=$((10#$et_h * 60 + 10#$et_m))
 PUBLICATION_LEAD_MINUTES="${BRIEF_PUBLICATION_LEAD_MINUTES:-12}"
-if   [ "$mins" -ge $((1020 - PUBLICATION_LEAD_MINUTES)) ]; then WINDOW=after-hours
+if [ -n "$COUPLED_STAGE" ]; then
+  WINDOW="${BRIEF_COUPLED_WINDOW:?BRIEF_COUPLED_WINDOW is required for a coupled worker stage}"
+elif [ "$mins" -ge $((1020 - PUBLICATION_LEAD_MINUTES)) ]; then WINDOW=after-hours
 elif [ "$mins" -ge $((900 - PUBLICATION_LEAD_MINUTES))  ]; then WINDOW=pre-close
 elif [ "$mins" -ge $((660 - PUBLICATION_LEAD_MINUTES))  ]; then WINDOW=morning
 else WINDOW=pre-market; fi
@@ -352,6 +388,7 @@ fi
 
 echo "[brief-timer] $(TZ=America/New_York date '+%Y-%m-%d %H:%M:%S %Z') — window=$WINDOW @ $REPO_ROOT (node=$NODE_BIN git=$GIT_BIN copilot=${COPILOT_BIN:-<none>} binding=$COPILOT_BINDING model=$MODEL dry=$DRY_RUN)"
 
+if [ "$COUPLED_STAGE" != "final" ]; then
 # 1) Refresh canonical daily bars once for the union of every tool, then fetch
 #    option chains and attach those same bar rows. Tier A and browser tools reuse
 #    the resulting same-origin snapshots without another ticker-history request.
@@ -420,13 +457,19 @@ run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/evaluate-recommendations.
 run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-attention-scorecard.mjs \
   --as-of "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
   || echo "[brief-timer] attention scoring returned non-zero (soft) — continuing"
+fi
+
+if [ "$COUPLED_STAGE" = "source" ]; then
+  echo "[brief-timer] coupled source stage completed; publication authority remains unchanged"
+  exit 0
+fi
 
 SHARDED_HISTORY=0
 
 # 1c) Freeze and validate one truthful brief outcome for every registry source BEFORE final authorship.
 # Scheduled runs require this complete barrier; the exact bytes are passed to every final-author lane and
 # later to the distributed publisher, which rejects any snapshot/registry/fingerprint drift.
-TOOL_BRIEF_BUNDLE="$BASELINE_DIR/tool-brief-bundle.json"
+TOOL_BRIEF_BUNDLE="${BRIEF_COUPLED_TOOL_BUNDLE_PATH:-$BASELINE_DIR/tool-brief-bundle.json}"
 TOOL_BRIEF_BUNDLE_READY=0
 if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
   if "$NODE_BIN" scripts/brief-distributed-publish.mjs --prepare-tools --root . --output "$TOOL_BRIEF_BUNDLE"; then
@@ -706,6 +749,11 @@ else
   else
     echo "[brief-timer] post-build payload/page validation not applicable — raw-data-only publishes no brief pair"
   fi
+fi
+
+if [ "$COUPLED_STAGE" = "final" ]; then
+  echo "[brief-timer] coupled final candidate completed; commit and acknowledgment remain with the shared transaction"
+  exit 0
 fi
 
 if ! "$GIT_BIN" add -- "${SELECTED_FILES[@]}"; then

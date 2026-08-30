@@ -39,13 +39,61 @@ unset BRIEF_SCHEDULE_IMMUTABLE_EXECUTION BRIEF_SCHEDULE_ENTRYPOINT BRIEF_SCHEDUL
 
 set -uo pipefail
 
+TRIGGER_MODE="scheduled"
+TRIGGER_EXPLICIT=0
+REQUESTED_WINDOW=""
+DRY_RUN=0
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --trigger)
+      [ "$#" -ge 2 ] || { echo "[brief-scheduler] --trigger requires scheduled or on-demand"; exit 2; }
+      TRIGGER_MODE="$2"
+      TRIGGER_EXPLICIT=1
+      shift 2
+      ;;
+    --window)
+      [ "$#" -ge 2 ] || { echo "[brief-scheduler] --window requires a declared window"; exit 2; }
+      REQUESTED_WINDOW="$2"
+      shift 2
+      ;;
+    --due-only)
+      DUE_ONLY=1
+      shift
+      ;;
+    --dry-run)
+      DRY_RUN=1
+      shift
+      ;;
+    *)
+      echo "[brief-scheduler] unknown option: $1"
+      exit 2
+      ;;
+  esac
+done
+case "$TRIGGER_MODE" in
+  scheduled|on-demand) ;;
+  *) echo "[brief-scheduler] trigger must be scheduled or on-demand"; exit 2 ;;
+esac
+case "$REQUESTED_WINDOW" in
+  ''|pre-market|morning|pre-close|after-hours) ;;
+  *) echo "[brief-scheduler] window is not declared: $REQUESTED_WINDOW"; exit 2 ;;
+esac
+if [ "$TRIGGER_MODE" = "on-demand" ] && [ -z "$REQUESTED_WINDOW" ]; then
+  echo "[brief-scheduler] on-demand publication requires --window"
+  exit 2
+fi
+if [ "$TRIGGER_MODE" = "on-demand" ] && [ "${DUE_ONLY:-0}" = "1" ]; then
+  echo "[brief-scheduler] --due-only is valid only for scheduled publication"
+  exit 2
+fi
+
 SCRIPT_DIR="$(cd "$(dirname "$LAUNCHER_SOURCE")" && pwd)"
 SOURCE_ROOT="${BRIEF_SCHEDULE_SOURCE_ROOT:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 BRANCH="${BRIEF_SCHEDULE_BRANCH:-main}"
 REMOTE_NAME="${BRIEF_SCHEDULE_REMOTE:-origin}"
 LOCK_DIR="${BRIEF_SCHEDULE_LOCK_DIR:-${TMPDIR:-/tmp}/research-lab-brief-publisher.lock}"
 LOCK_STALE_AFTER="${BRIEF_SCHEDULE_LOCK_STALE_AFTER:-21600}"
-DUE_ONLY="${BRIEF_SCHEDULE_DUE_ONLY:-0}"
+DUE_ONLY="${DUE_ONLY:-${BRIEF_SCHEDULE_DUE_ONLY:-0}}"
 PUBLICATION_LEAD_MINUTES="${BRIEF_PUBLICATION_LEAD_MINUTES:-30}"
 
 export PATH="/opt/homebrew/bin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin"
@@ -71,7 +119,9 @@ export BRIEF_REPAIR_INVALID_BASELINE="${BRIEF_REPAIR_INVALID_BASELINE:-1}"
 export BRIEF_REQUIRE_COMPLETE_RUN=1
 export BRIEF_PUBLICATION_LEAD_MINUTES="$PUBLICATION_LEAD_MINUTES"
 GIT_BIN="$(command -v git 2>/dev/null || true)"
+NODE_BIN="$(command -v node 2>/dev/null || true)"
 [ -z "$GIT_BIN" ] && { echo "[brief-scheduler] git not found"; exit 1; }
+[ -z "$NODE_BIN" ] && { echo "[brief-scheduler] node not found"; exit 1; }
 
 if [ ! -d "$SOURCE_ROOT/.git" ] && [ ! -f "$SOURCE_ROOT/.git" ]; then
   echo "[brief-scheduler] source checkout is not a git worktree: $SOURCE_ROOT"
@@ -98,10 +148,18 @@ if ! mkdir "$LOCK_DIR" 2>/dev/null; then
     *) kill -0 "$lock_pid" 2>/dev/null && lock_live=1 ;;
   esac
   if [ "$lock_live" -eq 1 ]; then
+    if [ "$TRIGGER_EXPLICIT" -eq 1 ]; then
+      echo "[brief-scheduler] C028-RUN-IN-PROGRESS: another shared publication is active (pid=$lock_pid)"
+      exit 1
+    fi
     echo "[brief-scheduler] another scheduled publication is active (pid=$lock_pid) — skipping overlap"
     exit 0
   fi
   if [ -z "$lock_pid" ] && { [ -z "$lock_age" ] || [ "$lock_age" -lt "$LOCK_STALE_AFTER" ]; }; then
+    if [ "$TRIGGER_EXPLICIT" -eq 1 ]; then
+      echo "[brief-scheduler] C028-RUN-IN-PROGRESS: another shared publication holds the branch lease"
+      exit 1
+    fi
     echo "[brief-scheduler] another scheduled publication is active (pid=$lock_pid) — skipping overlap"
     exit 0
   fi
@@ -145,7 +203,9 @@ RUN_WINDOW=""
 # evidence dated after its own cutoff, which every generic-evidence consumer refuses outright. Four
 # of the last forty publications carried that conflict. Past the cutoff the honest answer is that no
 # window is due, so the previous valid brief stands rather than being replaced by an unusable one.
-if [ "$et_minutes" -ge $((1020 - PUBLICATION_LEAD_MINUTES)) ] && [ "$et_minutes" -le 1020 ]; then
+if [ -n "$REQUESTED_WINDOW" ]; then
+  RUN_WINDOW="$REQUESTED_WINDOW"
+elif [ "$et_minutes" -ge $((1020 - PUBLICATION_LEAD_MINUTES)) ] && [ "$et_minutes" -le 1020 ]; then
   RUN_WINDOW="after-hours"
 elif [ "$et_minutes" -ge $((900 - PUBLICATION_LEAD_MINUTES)) ] && [ "$et_minutes" -le 900 ]; then
   RUN_WINDOW="pre-close"
@@ -154,13 +214,51 @@ elif [ "$et_minutes" -ge $((660 - PUBLICATION_LEAD_MINUTES)) ] && [ "$et_minutes
 elif [ "$et_minutes" -ge $((450 - PUBLICATION_LEAD_MINUTES)) ] && [ "$et_minutes" -le 450 ]; then
   RUN_WINDOW="pre-market"
 fi
-if [ -n "${BRIEF_SCHEDULE_RUN_KEY:-}" ]; then
+
+COUPLED_MODE="$TRIGGER_EXPLICIT"
+PUBLISH_PARENT=""
+REQUEST_FILE=""
+COUPLED_ACK_FILE=""
+PRESERVE_PUBLISH_PARENT=0
+if [ "$COUPLED_MODE" = "1" ] && [ -n "$RUN_WINDOW" ]; then
+  transaction_root="${BRIEF_SCHEDULE_TRANSACTION_ROOT:-${STATUS_FILE}.transactions}"
+  PUBLISH_PARENT="$transaction_root/${TRIGGER_MODE}-${RUN_WINDOW}"
+  REQUEST_FILE="$PUBLISH_PARENT/request.json"
+  COUPLED_ACK_FILE="$PUBLISH_PARENT/acknowledgment.json"
+  mkdir -p "$PUBLISH_PARENT" || {
+    echo "[brief-scheduler] cannot create the private trigger transaction root"
+    exit 1
+  }
+  # Preserve the exact request, checkouts, checkpoints, and commit whenever the
+  # launcher is interrupted. Cleanup becomes safe only after this process has
+  # confirmed dry-run restoration or a remotely acknowledged journal.
+  PRESERVE_PUBLISH_PARENT=1
+  REQUESTED_AT="${BRIEF_SCHEDULE_REQUESTED_AT:-$STARTED_AT}"
+  ET_SESSION_DATE="${BRIEF_SCHEDULE_ET_SESSION_DATE:-$(TZ=America/New_York date +%Y-%m-%d)}"
+  request_output="$("$NODE_BIN" "$SOURCE_ROOT/scripts/company-intelligence-publication.mjs" request \
+    --output "$REQUEST_FILE" \
+    --trigger "$TRIGGER_MODE" \
+    --window "$RUN_WINDOW" \
+    --et-session-date "$ET_SESSION_DATE" \
+    --requested-at "$REQUESTED_AT")" || {
+      request_exit=$?
+      printf '%s\n' "$request_output"
+      echo "[brief-scheduler] trigger identity persistence failed"
+      exit "$request_exit"
+    }
+  printf '%s\n' "$request_output"
+  RUN_KEY="$("$NODE_BIN" -e 'const fs=require("node:fs");const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(r.generationKey);' "$REQUEST_FILE")" || {
+    echo "[brief-scheduler] persisted trigger identity is unreadable"
+    exit 1
+  }
+elif [ -n "${BRIEF_SCHEDULE_RUN_KEY:-}" ]; then
   RUN_KEY="$BRIEF_SCHEDULE_RUN_KEY"
 elif [ -n "$RUN_WINDOW" ]; then
   RUN_KEY="$(TZ=America/New_York date +%Y-%m-%d)/$RUN_WINDOW"
 else
   RUN_KEY=""
 fi
+
 FINISHED_AT=""
 FINISHED_EPOCH=""
 RUN_STATE="running"
@@ -265,10 +363,9 @@ ack_commit_is_remote() {
   "$GIT_BIN" -C "$SOURCE_ROOT" merge-base --is-ancestor "$ACK_COMMIT" FETCH_HEAD
 }
 
-PUBLISH_PARENT=""
 cleanup() {
   local cleanup_pid
-  if [ -n "$PUBLISH_PARENT" ] && [ -d "$PUBLISH_PARENT" ]; then
+  if [ "$PRESERVE_PUBLISH_PARENT" != "1" ] && [ -n "$PUBLISH_PARENT" ] && [ -d "$PUBLISH_PARENT" ]; then
     rm -rf "$PUBLISH_PARENT"
   fi
   cleanup_pid=""
@@ -341,25 +438,54 @@ if [ -z "$REMOTE_URL" ]; then
   exit 1
 fi
 
-PUBLISH_PARENT="$(mktemp -d "${TMPDIR:-/tmp}/research-lab-brief-publisher.XXXXXX")" || {
-  echo "[brief-scheduler] cannot create disposable publication checkout"
-  exit 1
-}
-PUBLISH_ROOT="$PUBLISH_PARENT/repo"
-
-echo "[brief-scheduler] cloning $REMOTE_NAME/$BRANCH into a disposable checkout"
-if ! "$GIT_BIN" clone --quiet --origin "$REMOTE_NAME" --branch "$BRANCH" --single-branch "$REMOTE_URL" "$PUBLISH_ROOT"; then
-  echo "[brief-scheduler] clone failed"
-  exit 1
+if [ "$COUPLED_MODE" = "1" ]; then
+  CANDIDATE_ROOT="$PUBLISH_PARENT/candidate"
+  PUBLISH_ROOT="$PUBLISH_PARENT/publication"
+  TRANSACTION_DIR="$PUBLISH_PARENT/transaction"
+  if [ ! -d "$CANDIDATE_ROOT/.git" ] && [ ! -d "$PUBLISH_ROOT/.git" ]; then
+    echo "[brief-scheduler] cloning one verified base into candidate and publication checkouts"
+    if ! "$GIT_BIN" clone --quiet --origin "$REMOTE_NAME" --branch "$BRANCH" --single-branch "$REMOTE_URL" "$CANDIDATE_ROOT" \
+      || ! "$GIT_BIN" clone --quiet --origin "$REMOTE_NAME" --branch "$BRANCH" --single-branch "$REMOTE_URL" "$PUBLISH_ROOT"; then
+      PRESERVE_PUBLISH_PARENT=1
+      echo "[brief-scheduler] coupled checkout creation failed"
+      exit 1
+    fi
+    candidate_head="$($GIT_BIN -C "$CANDIDATE_ROOT" rev-parse HEAD 2>/dev/null || true)"
+    publication_head="$($GIT_BIN -C "$PUBLISH_ROOT" rev-parse HEAD 2>/dev/null || true)"
+    remote_line="$($GIT_BIN -C "$SOURCE_ROOT" ls-remote --heads "$REMOTE_NAME" "refs/heads/$BRANCH" 2>/dev/null || true)"
+    remote_head="${remote_line%%$'\t'*}"
+    if [ -z "$candidate_head" ] || [ "$candidate_head" != "$publication_head" ] || [ "$candidate_head" != "$remote_head" ]; then
+      PRESERVE_PUBLISH_PARENT=1
+      echo "[brief-scheduler] candidate, publication, and remote base commits do not match"
+      exit 1
+    fi
+  elif [ ! -d "$CANDIDATE_ROOT/.git" ] || [ ! -d "$PUBLISH_ROOT/.git" ]; then
+    PRESERVE_PUBLISH_PARENT=1
+    echo "[brief-scheduler] pending coupled transaction has an incomplete checkout pair"
+    exit 1
+  else
+    echo "[brief-scheduler] resuming the persisted candidate and publication checkouts"
+  fi
+else
+  PUBLISH_PARENT="$(mktemp -d "${TMPDIR:-/tmp}/research-lab-brief-publisher.XXXXXX")" || {
+    echo "[brief-scheduler] cannot create disposable publication checkout"
+    exit 1
+  }
+  PUBLISH_ROOT="$PUBLISH_PARENT/repo"
+  CANDIDATE_ROOT="$PUBLISH_ROOT"
+  echo "[brief-scheduler] cloning $REMOTE_NAME/$BRANCH into a disposable checkout"
+  if ! "$GIT_BIN" clone --quiet --origin "$REMOTE_NAME" --branch "$BRANCH" --single-branch "$REMOTE_URL" "$PUBLISH_ROOT"; then
+    echo "[brief-scheduler] clone failed"
+    exit 1
+  fi
+  echo "[brief-scheduler] pulling latest $REMOTE_NAME/$BRANCH before tool updates"
+  if ! "$GIT_BIN" -C "$PUBLISH_ROOT" pull --ff-only "$REMOTE_NAME" "$BRANCH"; then
+    echo "[brief-scheduler] fast-forward pull failed"
+    exit 1
+  fi
 fi
 
-echo "[brief-scheduler] pulling latest $REMOTE_NAME/$BRANCH before tool updates"
-if ! "$GIT_BIN" -C "$PUBLISH_ROOT" pull --ff-only "$REMOTE_NAME" "$BRANCH"; then
-  echo "[brief-scheduler] fast-forward pull failed"
-  exit 1
-fi
-
-WORKER="$PUBLISH_ROOT/scripts/brief-refresh-and-push.sh"
+WORKER="$CANDIDATE_ROOT/scripts/brief-refresh-and-push.sh"
 if [ ! -f "$WORKER" ]; then
   echo "[brief-scheduler] pulled worker is unavailable: $WORKER"
   exit 1
@@ -368,30 +494,88 @@ if ! grep -q '^export BRIEF_PIPELINE_CONTRACT="pull-data-tools-final-ack-v2"$' "
   echo "[brief-scheduler] pulled worker does not satisfy pull-data-tools-final-ack-v2 — publish the scheduler changes before the next run"
   exit 1
 fi
+if [ "$COUPLED_MODE" = "1" ] &&
+   ! grep -q '^export BRIEF_COUPLED_PIPELINE_CONTRACT="company-brief-eighteen-phase-v1"$' "$WORKER"; then
+  PRESERVE_PUBLISH_PARENT=1
+  echo "[brief-scheduler] pulled worker does not satisfy company-brief-eighteen-phase-v1"
+  exit 1
+fi
 
 echo "[brief-scheduler] publisher checkout ready; developer worktree remains untouched"
 echo "[brief-scheduler] narrative policy: ${BRIEF_NARRATIVE_ATTEMPTS} attempt(s), ${BRIEF_NARRATIVE_TIMEOUT}s each"
 echo "[brief-scheduler] lane policy: ${BRIEF_LANE_CONCURRENCY} concurrent, ${BRIEF_LANE_ATTEMPTS} attempt(s) each, ${BRIEF_LANE_TRANSIENT_BACKOFF_SECONDS}s transient-service backoff, ${BRIEF_LANE_EXIT_GRACE}s post-write exit grace"
 echo "[brief-scheduler] invalid-baseline repair: $BRIEF_REPAIR_INVALID_BASELINE (final validation remains mandatory)"
-BRIEF_REPO_ROOT="$PUBLISH_ROOT" \
-BRIEF_PUBLICATION_ACK_FILE="$ACK_FILE" \
-BRIEF_PUBLICATION_ACK_TOKEN="$PUBLICATION_ACK_TOKEN" \
-BRIEF_PUBLICATION_RUN_KEY="$RUN_KEY" \
-BRIEF_PUBLICATION_WINDOW="$RUN_WINDOW" \
-BRIEF_PUBLICATION_REMOTE="$REMOTE_NAME" \
-/bin/bash "$WORKER" "$@"
-exit_code=$?
-if [ "$exit_code" -eq 0 ]; then
-  if load_publication_ack && ack_matches_current_run && [ "$ACK_TOKEN" = "$PUBLICATION_ACK_TOKEN" ]; then
-    RUN_STATE="success"
-    PUBLISHED_COMMIT="$ACK_COMMIT"
+if [ "$COUPLED_MODE" = "1" ]; then
+  if [ "$DRY_RUN" = "1" ]; then
+    BRIEF_REPO_ROOT="$CANDIDATE_ROOT" \
+    BRIEF_COUPLED_REQUEST_FILE="$REQUEST_FILE" \
+    BRIEF_COUPLED_TRANSACTION_DIR="$TRANSACTION_DIR" \
+    BRIEF_COUPLED_PUBLICATION_ROOT="$PUBLISH_ROOT" \
+    BRIEF_COUPLED_ACKNOWLEDGMENT_FILE="$COUPLED_ACK_FILE" \
+    BRIEF_PUBLICATION_REMOTE="$REMOTE_NAME" \
+    BRIEF_PUBLICATION_BRANCH="$BRANCH" \
+    /bin/bash "$WORKER" --dry-run
+  else
+    BRIEF_REPO_ROOT="$CANDIDATE_ROOT" \
+    BRIEF_COUPLED_REQUEST_FILE="$REQUEST_FILE" \
+    BRIEF_COUPLED_TRANSACTION_DIR="$TRANSACTION_DIR" \
+    BRIEF_COUPLED_PUBLICATION_ROOT="$PUBLISH_ROOT" \
+    BRIEF_COUPLED_ACKNOWLEDGMENT_FILE="$COUPLED_ACK_FILE" \
+    BRIEF_PUBLICATION_REMOTE="$REMOTE_NAME" \
+    BRIEF_PUBLICATION_BRANCH="$BRANCH" \
+    /bin/bash "$WORKER"
+  fi
+  exit_code=$?
+  if [ "$exit_code" -eq 0 ] && [ "$DRY_RUN" = "1" ]; then
+    RUN_STATE="dry-run-complete"
+    PRESERVE_PUBLISH_PARENT=0
+  elif [ "$exit_code" -eq 0 ] && [ -r "$TRANSACTION_DIR/transaction-journal.json" ]; then
+    journal_state="$($NODE_BIN -e 'const fs=require("node:fs");const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(String(j.state||""));' "$TRANSACTION_DIR/transaction-journal.json" 2>/dev/null || true)"
+    PUBLISHED_COMMIT="$($NODE_BIN -e 'const fs=require("node:fs");const j=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(String(j.commit||""));' "$TRANSACTION_DIR/transaction-journal.json" 2>/dev/null || true)"
+    if [ "$journal_state" = "acknowledged" ] && [ -n "$PUBLISHED_COMMIT" ]; then
+      RUN_STATE="success"
+      PRESERVE_PUBLISH_PARENT=0
+    else
+      exit_code=1
+      RUN_STATE="failed"
+      PRESERVE_PUBLISH_PARENT=1
+      echo "[brief-scheduler] coupled worker returned without an acknowledged exact commit"
+    fi
   else
     RUN_STATE="failed"
-    exit_code=1
-    echo "[brief-scheduler] publisher returned success without a matching post-push acknowledgment"
+    PRESERVE_PUBLISH_PARENT=1
   fi
 else
-  RUN_STATE="failed"
+  if [ "$DRY_RUN" = "1" ]; then
+    BRIEF_REPO_ROOT="$PUBLISH_ROOT" \
+    BRIEF_PUBLICATION_ACK_FILE="$ACK_FILE" \
+    BRIEF_PUBLICATION_ACK_TOKEN="$PUBLICATION_ACK_TOKEN" \
+    BRIEF_PUBLICATION_RUN_KEY="$RUN_KEY" \
+    BRIEF_PUBLICATION_WINDOW="$RUN_WINDOW" \
+    BRIEF_PUBLICATION_REMOTE="$REMOTE_NAME" \
+    /bin/bash "$WORKER" --dry-run
+  else
+    BRIEF_REPO_ROOT="$PUBLISH_ROOT" \
+    BRIEF_PUBLICATION_ACK_FILE="$ACK_FILE" \
+    BRIEF_PUBLICATION_ACK_TOKEN="$PUBLICATION_ACK_TOKEN" \
+    BRIEF_PUBLICATION_RUN_KEY="$RUN_KEY" \
+    BRIEF_PUBLICATION_WINDOW="$RUN_WINDOW" \
+    BRIEF_PUBLICATION_REMOTE="$REMOTE_NAME" \
+    /bin/bash "$WORKER"
+  fi
+  exit_code=$?
+  if [ "$exit_code" -eq 0 ]; then
+    if load_publication_ack && ack_matches_current_run && [ "$ACK_TOKEN" = "$PUBLICATION_ACK_TOKEN" ]; then
+      RUN_STATE="success"
+      PUBLISHED_COMMIT="$ACK_COMMIT"
+    else
+      RUN_STATE="failed"
+      exit_code=1
+      echo "[brief-scheduler] publisher returned success without a matching post-push acknowledgment"
+    fi
+  else
+    RUN_STATE="failed"
+  fi
 fi
 echo "[brief-scheduler] publisher finished with exit=$exit_code"
 exit "$exit_code"

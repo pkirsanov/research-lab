@@ -57,7 +57,7 @@ Links: [spec.md](spec.md) · [design.md](design.md) · [report.md](report.md) ·
 | 01 | Company publication foundation and headless owner-read contracts | None | UMD contracts, Node publication module, config, domain model | SCN-028-005 through SCN-028-010 | Done |
 | 02 | Coupled manifest, immutable promotion, and pointer-last success path | Scope 01 | publication module, Git primitives, company data contracts | SCN-028-011, SCN-028-013, SCN-028-014, SCN-028-021 | Done |
 | 03 | Whole-transaction restoration and non-authoritative outcomes | Scope 02 | worker transaction, restoration, private checkouts, dry run | SCN-028-015, SCN-028-016, SCN-028-017, SCN-028-022 | Done |
-| 04 | Scheduled and on-demand shared trigger integration | Scope 03 | launcher, worker, scheduler, prompt, exact resume | SCN-028-003, SCN-028-004, SCN-028-012, SCN-028-019 | Not Started |
+| 04 | Scheduled and on-demand shared trigger integration | Scope 03 | launcher, worker, scheduler, prompt, exact resume | SCN-028-003, SCN-028-004, SCN-028-012, SCN-028-019 | In Progress |
 | 05 | Public registration, authority-aware UI, and Pages delivery | Scope 04 | registries, routes, shared UI, docs, Pages package | SCN-028-001, SCN-028-002, SCN-028-018, SCN-028-020 | Not Started |
 
 ## Shared Planning Expectations
@@ -576,9 +576,9 @@ The installed implementation discovery grammar normalizes text after `::`; `Node
 
 ## Scope 04: Scheduled and on-demand shared trigger integration
 
-**Status:** Not Started  
+**Status:** In Progress
 **Depends On:** Scope 03.  
-**Scope-Kind:** runtime-behavior.
+**Scope-Kind:** runtime-behavior
 
 **Consumer surface:** The shared production CLI command accepts scheduled and on-demand trigger requests through one launcher.
 
@@ -654,6 +654,24 @@ And no company pointer or brief artifact advances
 11. Resume a committed generation by pushing its exact commit and no other phase.
 12. Emit safe phase lines with attempt, generation, phase, and closed outcome codes.
 
+### Implementation Files
+
+The installed implementation-discovery grammar normalizes text after `::`; the language suffix identifies the file type and is not part of the repository path.
+
+- `.github/prompts/market-brief-update.prompt.md::Markdown`
+- `scripts/brief-distributed-publish.mjs::Node.js`
+- `scripts/brief-refresh-and-push.sh::Shell`
+- `scripts/brief-refresh-scheduled.sh::Shell`
+- `scripts/com.researchlab.brief-refresh.plist::XML.md`
+- `scripts/company-intelligence-publication.mjs::Node.js`
+- `tests/brief-refresh-atomicity.test.mjs::Node.js`
+- `tests/company-intelligence-publication.e2e.mjs::Node.js`
+- `tests/company-intelligence-publication.functional.mjs::Node.js`
+- `tests/distributed-briefs.scheduler.e2e.mjs::Node.js`
+- `tests/distributed-briefs.scheduler-failures.integration.mjs::Node.js`
+- `tests/distributed-briefs.scheduler.integration.mjs::Node.js`
+- `tests/distributed-briefs.scheduler.unit.mjs::Node.js`
+
 ### Shared Infrastructure Impact Sweep
 
 | Protected surface | Downstream contracts | Independent canary | Restore path |
@@ -700,16 +718,23 @@ And no company pointer or brief artifact advances
 - [ ] Scheduled and on-demand requests differ only in trigger identity fields and use one phase, validation, restoration, commit, and acknowledgment path.
 - [ ] Exact checkpoint and commit resume never reacquire frozen evidence, reinvoke a validated author, or fork one generation.
 - [ ] Registry and dependency drift refuse before authority changes and name the changed boundary.
-- [ ] The Shared Infrastructure Impact Sweep, canaries, restore paths, Consumer Impact Sweep, and Change Boundary are satisfied.
+- [ ] The Shared Infrastructure Impact Sweep is complete. TP-04-05 and TP-04-06 independently validate due-window ordering, locks, cleanup, process boundaries, and restoration. The canaries run before broader suites. The documented launcher and worker restore paths are verified.
+- [ ] Consumer Impact Sweep is complete, and zero stale first-party references remain across the launchd template, scheduler entry, on-demand prompt, worker option parser, production callers, and tests.
+- [ ] Change Boundary is respected and zero excluded file families were changed.
 
 #### Test Evidence Items — 6 rows, exact Test Plan parity
 
-- [ ] TP-04-01 proves SCN-028-003 through the shared launcher, complete transaction, and real bare remote. → Evidence: [TP-04-01](report.md#tp-04-01)
-- [ ] TP-04-02 proves SCN-028-004 with matching scheduled and on-demand phase, manifest, restoration, and acknowledgment contracts. → Evidence: [TP-04-02](report.md#tp-04-02)
-- [ ] TP-04-03 proves SCN-028-012 with one exact retry identity, one remote generation, and divergent-content refusal. → Evidence: [TP-04-03](report.md#tp-04-03)
-- [ ] TP-04-04 proves SCN-028-019 by mutating participant, order, count, fingerprint, self-source, and final-brief dependency. → Evidence: [TP-04-04](report.md#tp-04-04)
-- [ ] TP-04-05 proves existing scheduler windows, locks, failures, cleanup, and process behavior remain intact. → Evidence: [TP-04-05](report.md#tp-04-05)
-- [ ] TP-04-06 proves brief atomicity after the launcher and worker call graph changes. → Evidence: [TP-04-06](report.md#tp-04-06).
+- [ ] TP-04-01 proves SCN-028-003, A scheduled brief and company read publish together. A scheduled window is due. The committed covered set contains only `company:msft`. The shared launcher publishes one immutable MSFT version. The final brief consumes that version's owner read. The brief and company pointer identify one generation. → Evidence: [TP-04-01](report.md#tp-04-01)
+- [ ] TP-04-02 proves SCN-028-004, On-demand publication cannot use a weaker path. An operator requests a declared window. The path refreshes `company:msft` before final publication. It executes the scheduled phases, validation, restoration, manifest, and rollback contract. It acknowledges one coupled publication. → Evidence: [TP-04-02](report.md#tp-04-02)
+- [ ] TP-04-03 proves SCN-028-012, Retrying one logical generation does not fork history. The generation failed before acknowledgment. A retry uses the same frozen inputs. It resolves the same candidate identity and creates no divergent duplicate version. It refuses changed content at that identity. One successful acknowledgment closes the generation. → Evidence: [TP-04-03](report.md#tp-04-03)
+- [ ] TP-04-04 proves SCN-028-019, The source set cannot change or become cyclic during a generation. The registry and source fingerprints are frozen. Separate mutations alter the participant, order, count, fingerprint, self-source, and final-brief dependency. Each mutation refuses the generation before a pointer or brief advances. The refusal identifies the changed boundary. → Evidence: [TP-04-04](report.md#tp-04-04)
+- [ ] TP-04-05 provides the scheduler canary for SCN-028-003 and SCN-028-004. It preserves declared windows, locks, failure cleanup, and scheduler process behavior. Both trigger adapters still share one launcher contract. → Evidence: [TP-04-05](report.md#tp-04-05)
+- [ ] TP-04-06 provides the transaction canary for SCN-028-003 and SCN-028-004. It preserves company-and-brief atomicity, baseline restoration, and acknowledgment boundaries after the shared call graph changes. → Evidence: [TP-04-06](report.md#tp-04-06)
+
+#### Regression and Impact Evidence
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior pass for SCN-028-003, SCN-028-004, and SCN-028-012. The proportionate functional mutation regression for SCN-028-019 also passes.
+- [ ] Broader E2E regression suite passes for the complete shared launcher and worker path, including the scheduler canary matrix in TP-04-05 and the transaction canary in TP-04-06.
 
 #### Build Quality Gate
 

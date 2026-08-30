@@ -9,7 +9,7 @@
  */
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { mkdtempSync } from 'node:fs';
+import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
@@ -17,10 +17,11 @@ import test from 'node:test';
 import { runBriefRefresh } from '../scripts/brief-refresh.mjs';
 import { validateCurrentGraph, validateHistoryGraph, validateCompatibilityProjection } from '../scripts/validate-distributed-briefs.mjs';
 import {
-  makeSchedulerRepo, schedulerDeps, snapshotTree, stagedPaths, remoteTreePaths, remoteHeadTrailers
+  envelopeFinalAuthorFn, makeSchedulerRepo, remoteHeadTrailers, remoteTreePaths,
+  runGit, schedulerDeps, snapshotTree, stagedPaths
 } from './fixtures/feature-002/scheduler/scheduler-fixture-builder.mjs';
 
-test('scheduler publishes one exact run through isolated worktree commit and temporary remote', async () => {
+test('scheduler publishes one exact run through isolated worktree commit and temporary remote', async (context) => {
   const repo = makeSchedulerRepo();
   try {
     const rootBefore = snapshotTree(repo.root);
@@ -54,6 +55,7 @@ test('scheduler publishes one exact run through isolated worktree commit and tem
 
     // Clone the disposable remote and validate the whole distributed-briefs graph on disk.
     const verifyDir = mkdtempSync(path.join(tmpdir(), 'rl-sched-verify-'));
+    context.after(() => rmSync(verifyDir, { recursive: true, force: true }));
     execFileSync('git', ['clone', '--quiet', repo.remote, verifyDir]);
     assert.equal(validateCurrentGraph(verifyDir).ok, true, 'current graph reconciles');
     assert.equal(validateCurrentGraph(verifyDir).runId, result.runId);
@@ -65,5 +67,44 @@ test('scheduler publishes one exact run through isolated worktree commit and tem
     assert.deepEqual(stagedPaths(repo.root), [], 'root index carries no staged run path');
   } finally {
     repo.cleanup();
+  }
+});
+
+test('Regression canary: existing due windows locks failures and scheduler process behavior remain intact', async () => {
+  const success = makeSchedulerRepo();
+  const held = makeSchedulerRepo();
+  const failed = makeSchedulerRepo();
+  try {
+    const successRootBefore = snapshotTree(success.root);
+    const published = await runBriefRefresh(schedulerDeps(success, 'morning'));
+    assert.equal(published.ok, true);
+    assert.equal(published.push.branch, 'main');
+    assert.ok(remoteTreePaths(success.remote).includes('briefs/current.json'));
+    assert.deepEqual(snapshotTree(success.root), successRootBefore,
+      'the successful scheduler process leaves its source worktree unchanged');
+
+    const heldDeps = schedulerDeps(held, 'morning');
+    const heldRemoteBefore = remoteTreePaths(held.remote);
+    heldDeps.lease.forceHold();
+    const heldResult = await runBriefRefresh(heldDeps);
+    assert.equal(heldResult.ok, false);
+    assert.equal(heldResult.refusal.code, 'B002-RUN-IN-PROGRESS');
+    assert.deepEqual(remoteTreePaths(held.remote), heldRemoteBefore,
+      'the held lease permits no publication process output beyond its exact baseline');
+
+    const failedHead = runGit(failed.remote, ['rev-parse', 'main']).stdout.trim();
+    const failedRootBefore = snapshotTree(failed.root);
+    const failedResult = await runBriefRefresh(schedulerDeps(failed, 'pre-close', {
+      finalAuthorFn: envelopeFinalAuthorFn('omit-source')
+    }));
+    assert.equal(failedResult.ok, false);
+    assert.equal(failedResult.refusal.code, 'B002-FINAL-AUTHOR');
+    assert.equal(runGit(failed.remote, ['rev-parse', 'main']).stdout.trim(), failedHead);
+    assert.deepEqual(snapshotTree(failed.root), failedRootBefore,
+      'the failed scheduler process restores its isolated source worktree');
+  } finally {
+    success.cleanup();
+    held.cleanup();
+    failed.cleanup();
   }
 });

@@ -9,7 +9,7 @@
  * trigger-adapter, registry-activation, or public-route authority. Shared browser math remains in
  * the UMD rlcompanyintel.js module.
  */
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import {
@@ -65,6 +65,9 @@ const ATTEMPT_STATES = Object.freeze([
 const TRANSACTION_BASELINE_FILE = 'transaction-baseline.json';
 const TRANSACTION_JOURNAL_CONTRACT = 'company-publication-transaction-journal/v1';
 const TRANSACTION_JOURNAL_FILE = 'transaction-journal.json';
+const TRIGGER_REQUEST_CONTRACT = 'company-publication-trigger-request/v1';
+const EXECUTION_CHECKPOINT_CONTRACT = 'company-publication-execution-checkpoint/v1';
+const EXECUTION_CHECKPOINT_FILE = 'execution-checkpoint.json';
 const COUPLED_SELECTOR_PATH = 'data/company-intelligence/publication-current.json';
 const COUPLED_MANIFEST_ROOT = 'data/company-intelligence/manifests';
 const PUBLICATION_FILES_ROOT = 'publication-files';
@@ -80,6 +83,7 @@ const SOURCE_KINDS = Object.freeze([
 const SOURCE_STATES = Object.freeze(['current', 'partial', 'stale', 'conflicted', 'unavailable']);
 const PROVENANCE_CLASSES = Object.freeze(['observed', 'derived', 'proxy', 'modelled', 'unavailable']);
 const CLOSED_CODES = Object.freeze([
+  'C028-RUN-IN-PROGRESS',
   'C028-TRIGGER',
   'C028-BASELINE',
   'C028-SUBJECT-POLICY',
@@ -351,6 +355,44 @@ function validateFrozenIdentity(frozen) {
   return ok(frozen);
 }
 
+/**
+ * Revalidate the three identities that may drift between the initial freeze and
+ * final bundle assembly. The caller must supply freshly observed registry,
+ * source, and cutoff values. A persisted checkpoint is never treated as a fresh
+ * observation of those mutable boundaries.
+ */
+export function validateFrozenPublicationBoundary(frozen, current) {
+  const frozenValidation = validateFrozenIdentity(frozen);
+  if (!frozenValidation.ok) return frozenValidation;
+  if (!current || typeof current !== 'object' || Array.isArray(current)) {
+    return fail('C028-FROZEN-INPUT-DRIFT', 'final-boundary-validation',
+      'Fresh registry, source, and cutoff observations are required.', 'current');
+  }
+  if (!registryFingerprintMatches(current.registry) ||
+      stableStringify(current.registry) !== stableStringify(frozen.registry)) {
+    return fail('C028-REGISTRY-DRIFT', 'final-boundary-validation',
+      'The registry participant, order, count, metadata, or fingerprint changed after freeze.',
+      'current.registry');
+  }
+  if (current.evidenceCutoff !== frozen.evidenceCutoff) {
+    return fail('C028-EVIDENCE-CUTOFF', 'final-boundary-validation',
+      'The evidence cutoff changed after the generation freeze.', 'current.evidenceCutoff');
+  }
+  if (!Array.isArray(current.sources) ||
+      current.sources.some((source) => !sourceFingerprintMatches(source)) ||
+      stableStringify(current.sources) !== stableStringify(frozen.sources)) {
+    return fail('C028-FROZEN-INPUT-DRIFT', 'final-boundary-validation',
+      'A source participant, fingerprint, or payload changed after freeze.', 'current.sources');
+  }
+  return ok({
+    registryFingerprint: frozen.registry.registryFingerprint,
+    participantCount: frozen.registry.participantCount,
+    sourceCount: frozen.sources.length,
+    evidenceCutoff: frozen.evidenceCutoff,
+    frozenInputFingerprint: frozen.frozenInputFingerprint
+  });
+}
+
 export function validatePublicationPolicy(document) {
   try {
     const policy = INTEL.readPublicationPolicy(document);
@@ -403,6 +445,74 @@ export function createGeneration(trigger, context) {
     coveredSubjectSetFingerprint: context.coveredSubjectSetFingerprint,
     frozenInputFingerprint: context.frozenInputFingerprint
   });
+}
+
+function generationIdFromRequest(request) {
+  const suffix = sha256(request.generationKey).slice(7, 23);
+  return `company-brief:${request.etSessionDate}:${request.window}:${suffix}`;
+}
+
+function validateTriggerRequest(request) {
+  if (!exactFields(request, [
+    'attemptId', 'contractVersion', 'etSessionDate', 'generationKey',
+    'requestedAt', 'trigger', 'window'
+  ]) || request.contractVersion !== TRIGGER_REQUEST_CONTRACT ||
+      !UUID.test(request.attemptId || '') || !isIsoDate(request.etSessionDate) ||
+      !isIsoInstant(request.requestedAt) || !WINDOWS.includes(request.window) ||
+      !['scheduled', 'on-demand'].includes(request.trigger)) {
+    return fail('C028-TRIGGER', 'initialized',
+      'The persisted trigger request has an invalid closed shape.', 'triggerRequest');
+  }
+  if (request.trigger === 'scheduled' &&
+      request.generationKey !== `scheduled/${request.etSessionDate}/${request.window}`) {
+    return fail('C028-TRIGGER', 'initialized',
+      'The scheduled trigger request has an invalid generation key.', 'triggerRequest.generationKey');
+  }
+  if (request.trigger === 'on-demand' &&
+      !UUID.test(request.generationKey.startsWith('on-demand/')
+        ? request.generationKey.slice('on-demand/'.length)
+        : '')) {
+    return fail('C028-TRIGGER', 'initialized',
+      'The on-demand trigger request has no persisted request UUID.', 'triggerRequest.generationKey');
+  }
+  return ok(request);
+}
+
+/** Persist or reuse one logical trigger identity before any source work starts. */
+export function persistTriggerRequest({ file, trigger, window, etSessionDate, requestedAt }) {
+  if (typeof file !== 'string' || !file || !['scheduled', 'on-demand'].includes(trigger) ||
+      !WINDOWS.includes(window) || !isIsoDate(etSessionDate) || !isIsoInstant(requestedAt)) {
+    return fail('C028-TRIGGER', 'initialized',
+      'Trigger persistence requires an output path and exact trigger identity fields.', 'triggerRequest');
+  }
+  if (existsSync(file)) {
+    const existing = readJson(file, 'C028-TRIGGER', 'initialized');
+    if (!existing.ok) return existing;
+    const validated = validateTriggerRequest(existing.value);
+    if (!validated.ok) return validated;
+    if (validated.value.trigger !== trigger || validated.value.window !== window ||
+        validated.value.etSessionDate !== etSessionDate) {
+      return fail('C028-GENERATION-COLLISION', 'initialized',
+        'A pending trigger request belongs to another trigger, window, or session date.',
+        'triggerRequest');
+    }
+    return ok({ ...validated.value, resumed: true, generationId: generationIdFromRequest(validated.value) });
+  }
+  const requestId = randomUUID();
+  const request = {
+    contractVersion: TRIGGER_REQUEST_CONTRACT,
+    attemptId: randomUUID(),
+    trigger,
+    window,
+    etSessionDate,
+    generationKey: trigger === 'scheduled'
+      ? `scheduled/${etSessionDate}/${window}`
+      : `on-demand/${requestId}`,
+    requestedAt
+  };
+  const written = writeJsonExact(file, request);
+  if (!written.ok) return written;
+  return ok({ ...request, resumed: false, generationId: generationIdFromRequest(request) });
 }
 
 export function freezePublicationInputs(inputs) {
@@ -945,7 +1055,14 @@ export function injectCompanyOwnerRead(snapshot, ownerRead, registry) {
       'The candidate snapshot carries duplicate Company Intelligence coverage rows.', 'toolCoverage');
     if (rows.length === 1) {
       rows[0].status = 'fresh-headless';
-      rows[0].reason = null;
+      rows[0].reason = ownerRead.read;
+    } else {
+      copy.toolCoverage.push({
+        id: INTEL.TOOL_ID,
+        deepLink: 'company-intelligence-lab.html',
+        status: 'fresh-headless',
+        reason: ownerRead.read
+      });
     }
   }
   return ok(copy);
@@ -2896,7 +3013,7 @@ function sourceInputs(candidateRoot, policy, ownerReads, snapshot) {
   return ok({ sources, subjectInputs });
 }
 
-export function prepareTransaction({ transactionDir, candidateRoot, triggerFile }) {
+export function prepareTransaction({ transactionDir, candidateRoot, triggerFile, authorIdentity }) {
   const privateCheck = ensurePrivateTransaction(transactionDir, candidateRoot);
   if (!privateCheck.ok) return privateCheck;
   const triggerDoc = readJson(triggerFile, 'C028-TRIGGER', 'prepare');
@@ -2948,7 +3065,7 @@ export function prepareTransaction({ transactionDir, candidateRoot, triggerFile 
     subjectInputs: sourced.value.subjectInputs
   });
   if (!frozen.ok) return frozen;
-  const identity = envAuthorIdentity();
+  const identity = authorIdentity === undefined ? envAuthorIdentity() : ok(authorIdentity);
   if (!identity.ok) return identity;
   const frozenWrite = writeJsonExact(path.join(transactionDir, 'frozen-inputs.json'), frozen.value);
   if (!frozenWrite.ok) return frozenWrite;
@@ -3025,6 +3142,791 @@ export function injectOwnerReadTransaction({ transactionDir, snapshotFile }) {
   });
 }
 
+function deterministicFloorAuthorIdentity() {
+  return {
+    providerId: 'deterministic-floor',
+    modelId: 'none',
+    promptPolicyVersion: 'company-plan-author/v1',
+    schemaVersion: 'company-authored-plan/v2',
+    validatorVersion: 'company-plan-validator/v1'
+  };
+}
+
+function deterministicFloorResponse(request) {
+  return {
+    contractVersion: 'company-plan-author-response/v1',
+    requestFingerprint: request.requestFingerprint,
+    plan: {
+      contractVersion: 'company-authored-plan/v2',
+      subjectId: request.subjectId,
+      generationId: request.generationId,
+      emptyReason: 'floor-was-sufficient',
+      branches: []
+    }
+  };
+}
+
+function executionCheckpointPath(transactionDir) {
+  return path.join(transactionDir, EXECUTION_CHECKPOINT_FILE);
+}
+
+function readExecutionCheckpoint(transactionDir, request) {
+  const file = executionCheckpointPath(transactionDir);
+  if (!existsSync(file)) {
+    return ok({
+      contractVersion: EXECUTION_CHECKPOINT_CONTRACT,
+      attemptId: request.attemptId,
+      generationId: generationIdFromRequest(request),
+      phase: 'initialized',
+      history: ['initialized'],
+      sourceObservationCount: 0,
+      authorInvocationCount: 0
+    });
+  }
+  const parsed = readJson(file, 'C028-FROZEN-INPUT-DRIFT', 'checkpoint-resume');
+  if (!parsed.ok) return parsed;
+  const checkpoint = parsed.value;
+  const phaseIndex = COUPLED_PUBLICATION_PHASES.indexOf(checkpoint.phase);
+  if (!exactFields(checkpoint, [
+    'attemptId', 'authorInvocationCount', 'contractVersion', 'generationId',
+    'history', 'phase', 'sourceObservationCount'
+  ]) || checkpoint.contractVersion !== EXECUTION_CHECKPOINT_CONTRACT ||
+      checkpoint.attemptId !== request.attemptId ||
+      checkpoint.generationId !== generationIdFromRequest(request) ||
+      phaseIndex < 0 || !Array.isArray(checkpoint.history) ||
+      checkpoint.history.length !== phaseIndex + 1 ||
+      checkpoint.history.some((phase, index) => phase !== COUPLED_PUBLICATION_PHASES[index]) ||
+      !Number.isInteger(checkpoint.sourceObservationCount) || checkpoint.sourceObservationCount < 0 ||
+      !Number.isInteger(checkpoint.authorInvocationCount) || checkpoint.authorInvocationCount < 0) {
+    return fail('C028-FROZEN-INPUT-DRIFT', 'checkpoint-resume',
+      'The persisted execution checkpoint is missing or incoherent.', EXECUTION_CHECKPOINT_FILE);
+  }
+  return ok(checkpoint);
+}
+
+function persistExecutionCheckpoint(transactionDir, checkpoint) {
+  return writePrivateMutableJson(executionCheckpointPath(transactionDir), checkpoint);
+}
+
+function advanceExecutionCheckpoint(transactionDir, checkpoint, phase) {
+  const advanced = advanceCoupledState({
+    contractVersion: 'coupled-publication-state/v1',
+    attemptId: checkpoint.attemptId,
+    phase: checkpoint.phase,
+    history: checkpoint.history
+  }, phase);
+  if (!advanced.ok) return advanced;
+  const next = {
+    ...checkpoint,
+    phase: advanced.value.phase,
+    history: advanced.value.history
+  };
+  const persisted = persistExecutionCheckpoint(transactionDir, next);
+  return persisted.ok ? ok(next) : persisted;
+}
+
+function checkpointAtLeast(checkpoint, phase) {
+  return COUPLED_PUBLICATION_PHASES.indexOf(checkpoint.phase) >=
+    COUPLED_PUBLICATION_PHASES.indexOf(phase);
+}
+
+function advanceCheckpointThrough(transactionDir, checkpoint, targetPhase, emit, outcome) {
+  let current = checkpoint;
+  const target = COUPLED_PUBLICATION_PHASES.indexOf(targetPhase);
+  if (target < 0) {
+    return fail('C028-COHERENCE', 'state-transition',
+      'The requested checkpoint phase is unknown.', 'phase');
+  }
+  while (COUPLED_PUBLICATION_PHASES.indexOf(current.phase) < target) {
+    const nextPhase = COUPLED_PUBLICATION_PHASES[
+      COUPLED_PUBLICATION_PHASES.indexOf(current.phase) + 1
+    ];
+    const advanced = advanceExecutionCheckpoint(transactionDir, current, nextPhase);
+    if (!advanced.ok) return advanced;
+    current = advanced.value;
+    emit(nextPhase, outcome);
+  }
+  return ok(current);
+}
+
+function buildPreparedTrigger(request, candidateRoot) {
+  const runner = gitRunnerFor(candidateRoot);
+  const revision = commandValue(
+    runner,
+    ['rev-parse', 'HEAD'],
+    'C028-TRIGGER',
+    'checkouts-ready',
+    'sourceRevision'
+  );
+  if (!revision.ok || !REVISION.test(revision.value)) {
+    return revision.ok
+      ? fail('C028-TRIGGER', 'checkouts-ready',
+        'The candidate checkout has no exact source revision.', 'sourceRevision')
+      : revision;
+  }
+  const snapshot = readJson(
+    path.join(candidateRoot, 'market-brief.snapshot.json'),
+    'C028-FROZEN-INPUT-DRIFT',
+    'inputs-frozen'
+  );
+  if (!snapshot.ok) return snapshot;
+  const evidenceCutoff = snapshot.value.asOf;
+  if (!isIsoInstant(evidenceCutoff)) {
+    return fail('C028-EVIDENCE-CUTOFF', 'inputs-frozen',
+      'The candidate snapshot has no canonical evidence cutoff.',
+      'market-brief.snapshot.json');
+  }
+  const frozenAt = new Date(Math.max(
+    Date.parse(request.requestedAt),
+    Date.parse(evidenceCutoff)
+  )).toISOString();
+  return ok({
+    contractVersion: 'company-publication-trigger/v1',
+    trigger: request.trigger,
+    window: request.window,
+    generationKey: request.generationKey,
+    requestedAt: request.requestedAt,
+    frozenAt,
+    evidenceCutoff,
+    etSessionDate: request.etSessionDate,
+    sourceRevision: revision.value
+  });
+}
+
+function revalidateTransactionBoundary(transactionDir, candidateRoot) {
+  const frozenDoc = readJson(
+    path.join(transactionDir, 'frozen-inputs.json'),
+    'C028-FROZEN-INPUT-DRIFT',
+    'final-boundary-validation'
+  );
+  if (!frozenDoc.ok) return frozenDoc;
+  const frozen = frozenDoc.value;
+  const toolsDoc = readJson(
+    path.join(candidateRoot, 'tools.json'),
+    'C028-REGISTRY-DRIFT',
+    'final-boundary-validation'
+  );
+  if (!toolsDoc.ok) return toolsDoc;
+  const registry = RLCONTRACTS.validateRegistry(toolsDoc.value, null);
+  if (!registry.ok) {
+    return fail('C028-REGISTRY-DRIFT', 'final-boundary-validation',
+      'The current registry no longer validates.', 'current.registry',
+      registry.error?.reason);
+  }
+  const ownerReads = readJson(
+    path.join(candidateRoot, 'market-brief.owner-reads.json'),
+    'C028-FROZEN-INPUT-DRIFT',
+    'final-boundary-validation'
+  );
+  if (!ownerReads.ok) return ownerReads;
+  const snapshot = readJson(
+    path.join(candidateRoot, 'market-brief.snapshot.json'),
+    'C028-FROZEN-INPUT-DRIFT',
+    'final-boundary-validation'
+  );
+  if (!snapshot.ok) return snapshot;
+  const sourced = sourceInputs(candidateRoot, frozen.policy, ownerReads.value, snapshot.value);
+  if (!sourced.ok) return sourced;
+  const refrozen = freezePublicationInputs({
+    policy: frozen.policy,
+    coverageRegistry: frozen.coverageRegistry,
+    registry: registry.value,
+    trigger: frozen.trigger,
+    etSessionDate: frozen.etSessionDate,
+    frozenAt: frozen.frozenAt,
+    evidenceCutoff: frozen.evidenceCutoff,
+    sourceRevision: frozen.sourceRevision,
+    baselinePointers: frozen.baselinePointers,
+    baselineVersions: frozen.baselineVersions,
+    sources: sourced.value.sources,
+    subjectInputs: sourced.value.subjectInputs
+  });
+  if (!refrozen.ok) return refrozen;
+  return validateFrozenPublicationBoundary(frozen, {
+    registry: registry.value,
+    sources: refrozen.value.sources,
+    evidenceCutoff: snapshot.value.asOf
+  });
+}
+
+function validateCheckpointReuseBoundary(transactionDir, candidateRoot) {
+  const frozenDoc = readJson(
+    path.join(transactionDir, 'frozen-inputs.json'),
+    'C028-FROZEN-INPUT-DRIFT',
+    'checkpoint-resume'
+  );
+  if (!frozenDoc.ok) return frozenDoc;
+  const baseline = loadTransactionBaseline(transactionDir, 'checkpoint-resume');
+  if (!baseline.ok) return baseline;
+  const toolsDoc = readJson(
+    path.join(candidateRoot, 'tools.json'),
+    'C028-REGISTRY-DRIFT',
+    'checkpoint-resume'
+  );
+  if (!toolsDoc.ok) return toolsDoc;
+  const registry = RLCONTRACTS.validateRegistry(toolsDoc.value, null);
+  if (!registry.ok) return fail('C028-REGISTRY-DRIFT', 'checkpoint-resume',
+    'The registry no longer validates before reuse of a publication plan.',
+    'tools.json', registry.error?.reason);
+  const registryBoundary = validateFrozenPublicationBoundary(frozenDoc.value, {
+    registry: registry.value,
+    sources: frozenDoc.value.sources,
+    evidenceCutoff: frozenDoc.value.evidenceCutoff
+  });
+  if (!registryBoundary.ok) return registryBoundary;
+  const ownerReadsPath = 'market-brief.owner-reads.json';
+  const ownerReads = readJson(
+    path.join(candidateRoot, ownerReadsPath),
+    'C028-FROZEN-INPUT-DRIFT',
+    'checkpoint-resume'
+  );
+  if (!ownerReads.ok) return ownerReads;
+  const ownerMap = ownerReads.value?.ownerReads;
+  for (const ownerToolId of [INTEL.TOOL_ID, frozenDoc.value.registry.aggregatorToolId]) {
+    if (!ownerMap || !ownerMap[ownerToolId]) continue;
+    if (frozenDoc.value.policy.coveredSubjects.some((subject) => ownerMap[ownerToolId][subject.ticker])) {
+      return fail('C028-SOURCE-CYCLE', 'checkpoint-resume',
+        `Owner ${ownerToolId} would make a resumed company generation consume itself or the final brief.`,
+        `ownerReads.${ownerToolId}`);
+    }
+  }
+  const baselineOwnerReads = baseline.value.candidate.entries.find(
+    (entry) => entry.path === ownerReadsPath
+  );
+  const currentOwnerReads = readFileRecord(
+    candidateRoot,
+    ownerReadsPath,
+    'C028-FROZEN-INPUT-DRIFT',
+    'checkpoint-resume'
+  );
+  if (!currentOwnerReads.ok) return currentOwnerReads;
+  if (!baselineOwnerReads || baselineOwnerReads.sha256 !== currentOwnerReads.value.sha256 ||
+      baselineOwnerReads.byteLength !== currentOwnerReads.value.byteLength) {
+    return fail('C028-FROZEN-INPUT-DRIFT', 'checkpoint-resume',
+      'A source payload changed before reuse of a validated publication plan.',
+      ownerReadsPath);
+  }
+  const runner = gitRunnerFor(candidateRoot);
+  const status = commandValue(
+    runner,
+    ['status', '--porcelain=v1', '--untracked-files=all'],
+    'C028-FROZEN-INPUT-DRIFT',
+    'checkpoint-resume',
+    'candidate.status'
+  );
+  if (!status.ok) return status;
+  if (status.value !== '') {
+    return fail('C028-FROZEN-INPUT-DRIFT', 'checkpoint-resume',
+      'The restored candidate checkout changed before reuse of a validated publication plan.',
+      'candidate.status');
+  }
+  return ok(true);
+}
+
+function copyPrivateCandidateSnapshot(transactionDir, candidateRoot) {
+  const source = path.join(transactionDir, 'candidate-snapshot.json');
+  const target = path.join(candidateRoot, 'market-brief.snapshot.json');
+  try {
+    const bytes = readFileSync(source);
+    writeFileSync(target, bytes);
+    return ok({ sha256: sha256(bytes), byteLength: bytes.length });
+  } catch (error) {
+    return fail('C028-STAGE', 'company-owner-read-frozen',
+      'The validated company owner read could not enter the candidate snapshot.',
+      'market-brief.snapshot.json', error?.code);
+  }
+}
+
+function copyPrivateCompanyReadToPayload(transactionDir, candidateRoot) {
+  const owner = readJson(
+    path.join(transactionDir, 'company-owner-read.json'),
+    'C028-OWNER-READ',
+    'company-owner-read-frozen'
+  );
+  if (!owner.ok) return owner;
+  const payloadPath = path.join(candidateRoot, 'market-brief.payload.json');
+  const payload = readJson(
+    payloadPath,
+    'C028-BRIEF-CANDIDATE',
+    'company-owner-read-frozen'
+  );
+  if (!payload.ok) return payload;
+  const next = clone(payload.value);
+  if (!next.toolReads || typeof next.toolReads !== 'object' || Array.isArray(next.toolReads)) {
+    next.toolReads = {};
+  }
+  next.toolReads[INTEL.TOOL_ID] = clone(owner.value);
+  if (!Array.isArray(next.toolCoverage)) next.toolCoverage = [];
+  const rows = next.toolCoverage.filter((row) => row && row.id === INTEL.TOOL_ID);
+  if (rows.length > 1) {
+    return fail('C028-OWNER-READ', 'company-owner-read-frozen',
+      'The candidate payload carries duplicate Company Intelligence coverage rows.',
+      'market-brief.payload.json.toolCoverage');
+  }
+  if (rows.length === 1) {
+    rows[0].status = 'fresh-headless';
+    rows[0].reason = owner.value.read;
+  } else {
+    next.toolCoverage.push({
+      id: INTEL.TOOL_ID,
+      deepLink: 'company-intelligence-lab.html',
+      status: 'fresh-headless',
+      reason: owner.value.read
+    });
+  }
+  try {
+    writeFileSync(payloadPath, `${JSON.stringify(next, null, 2)}\n`);
+    return ok({ ownerReadFingerprint: owner.value.fingerprint });
+  } catch (error) {
+    return fail('C028-STAGE', 'company-owner-read-frozen',
+      'The validated company owner read could not enter the candidate final-brief input.',
+      'market-brief.payload.json', error?.code);
+  }
+}
+
+function sharedFailure(result, context) {
+  if (existsSync(path.join(context.transactionDir, TRANSACTION_BASELINE_FILE)) &&
+      !existsSync(path.join(context.transactionDir, TRANSACTION_JOURNAL_FILE))) {
+    const restoration = abortCoupledTransaction({
+      transactionDir: context.transactionDir,
+      candidateRoot: context.candidateRoot,
+      publicationRoot: context.publicationRoot,
+      failure: result.error
+    });
+    if (!restoration.ok) {
+      return deepFreeze({
+        ok: false,
+        error: clone(result.error),
+        restorationError: clone(restoration.error)
+      });
+    }
+  }
+  return result;
+}
+
+function runCoupledWorkerStage(context, stage, extraEnvironment = {}) {
+  const worker = path.join(context.candidateRoot, 'scripts/brief-refresh-and-push.sh');
+  const result = spawnSync('/bin/bash', [worker], {
+    cwd: context.candidateRoot,
+    encoding: 'utf8',
+    timeout: 14_400_000,
+    killSignal: 'SIGTERM',
+    env: {
+      ...process.env,
+      BRIEF_REPO_ROOT: context.candidateRoot,
+      BRIEF_REQUIRE_COMPLETE_RUN: '1',
+      BRIEF_COUPLED_STAGE: stage,
+      BRIEF_COUPLED_WINDOW: context.request.window,
+      ...extraEnvironment
+    }
+  });
+  for (const line of String(result.stdout || '').split('\n')) {
+    if (line) context.log(line);
+  }
+  for (const line of String(result.stderr || '').split('\n')) {
+    if (line) context.log(line);
+  }
+  if (result.error || result.status !== 0) {
+    return fail(stage === 'source' ? 'C028-FROZEN-INPUT-DRIFT' : 'C028-BRIEF-CANDIDATE',
+      stage === 'source' ? 'inputs-frozen' : 'final-brief-authored',
+      `The shared worker ${stage} stage did not complete.`,
+      `worker.${stage}`,
+      result.error?.code || `worker-exit-${String(result.status)}`);
+  }
+  return ok({ stage, exitCode: result.status });
+}
+
+/** Execute or resume the shared eighteen-phase transaction for either trigger. */
+export async function runSharedCoupledPublication(options) {
+  const context = options || {};
+  const required = [
+    'transactionDir', 'candidateRoot', 'publicationRoot', 'requestFile',
+    'remote', 'branch', 'acknowledgmentFile'
+  ];
+  if (required.some((key) => typeof context[key] !== 'string' || !context[key])) {
+    return fail('C028-TRIGGER', 'initialized',
+      'The shared transaction requires exact private, checkout, remote, branch, and acknowledgment paths.',
+      'options');
+  }
+  const requestDoc = readJson(context.requestFile, 'C028-TRIGGER', 'initialized');
+  if (!requestDoc.ok) return requestDoc;
+  const requestValidation = validateTriggerRequest(requestDoc.value);
+  if (!requestValidation.ok) return requestValidation;
+  const request = requestValidation.value;
+  context.request = request;
+  const log = typeof context.log === 'function' ? context.log : () => {};
+  const emit = (phase, outcome, detail = {}) => log(stableStringify({
+    contractVersion: 'company-publication-phase/v1',
+    attemptId: request.attemptId,
+    generationId: generationIdFromRequest(request),
+    phase,
+    outcome,
+    ...detail
+  }));
+  emit('initialized', 'request-persisted', {
+    trigger: request.trigger,
+    window: request.window
+  });
+
+  let checkpointResult = readExecutionCheckpoint(context.transactionDir, request);
+  if (!checkpointResult.ok) return checkpointResult;
+  let checkpoint = checkpointResult.value;
+  if (!existsSync(executionCheckpointPath(context.transactionDir))) {
+    const persisted = persistExecutionCheckpoint(context.transactionDir, checkpoint);
+    if (!persisted.ok) return persisted;
+  }
+  let advanced = advanceCheckpointThrough(
+    context.transactionDir,
+    checkpoint,
+    'checkouts-ready',
+    emit,
+    checkpointAtLeast(checkpoint, 'checkouts-ready') ? 'checkpoint-reused' : 'validated'
+  );
+  if (!advanced.ok) return advanced;
+  checkpoint = advanced.value;
+
+  const journalPath = path.join(context.transactionDir, TRANSACTION_JOURNAL_FILE);
+  if (existsSync(journalPath)) {
+    const journal = loadTransactionJournal(context.transactionDir);
+    if (!journal.ok) return journal;
+    if (!checkpointAtLeast(checkpoint, 'committed')) {
+      advanced = advanceCheckpointThrough(
+        context.transactionDir,
+        checkpoint,
+        'committed',
+        emit,
+        'checkpoint-reused'
+      );
+      if (!advanced.ok) return advanced;
+      checkpoint = advanced.value;
+    }
+    emit('committed', 'resume-exact-commit', {
+      sourceObservationCount: checkpoint.sourceObservationCount,
+      authorInvocationCount: checkpoint.authorInvocationCount
+    });
+    const pushed = pushCoupledTransaction({
+      transactionDir: context.transactionDir,
+      candidateRoot: context.candidateRoot,
+      publicationRoot: context.publicationRoot,
+      remote: context.remote,
+      branch: context.branch,
+      acknowledgmentFile: context.acknowledgmentFile
+    });
+    if (!pushed.ok) return pushed;
+    if (pushed.value.state !== 'acknowledged') {
+      const code = pushed.value.state === 'remote-outcome-unknown'
+        ? 'C028-ACK-UNKNOWN'
+        : 'C028-PUSH';
+      return fail(code, 'remote-acknowledged',
+        'The exact commit is preserved but is not remotely acknowledged.',
+        'transactionJournal');
+    }
+    advanced = advanceCheckpointThrough(
+      context.transactionDir,
+      checkpoint,
+      'remote-acknowledged',
+      emit,
+      'validated'
+    );
+    if (!advanced.ok) return advanced;
+    return ok({
+      trigger: request.trigger,
+      window: request.window,
+      attemptId: request.attemptId,
+      generationId: journal.value.generationId,
+      commit: journal.value.commit,
+      resumed: true,
+      sourceObservationCount: checkpoint.sourceObservationCount,
+      authorInvocationCount: checkpoint.authorInvocationCount,
+      phaseHistory: advanced.value.history
+    });
+  }
+
+  if (!existsSync(path.join(context.transactionDir, TRANSACTION_BASELINE_FILE))) {
+    const baseline = captureCoupledTransactionBaseline({
+      transactionDir: context.transactionDir,
+      candidateRoot: context.candidateRoot,
+      publicationRoot: context.publicationRoot,
+      remote: context.remote,
+      branch: context.branch
+    });
+    if (!baseline.ok) return baseline;
+  }
+
+  if (!checkpointAtLeast(checkpoint, 'inputs-frozen') &&
+      !existsSync(path.join(context.transactionDir, 'frozen-inputs.json'))) {
+    const sourceStage = runCoupledWorkerStage(context, 'source');
+    if (!sourceStage.ok) return sharedFailure(sourceStage, context);
+  }
+
+  const triggerFile = path.join(context.transactionDir, 'trigger.json');
+  if (!existsSync(triggerFile)) {
+    const trigger = buildPreparedTrigger(request, context.candidateRoot);
+    if (!trigger.ok) return sharedFailure(trigger, context);
+    const written = writeJsonExact(triggerFile, trigger.value);
+    if (!written.ok) return sharedFailure(written, context);
+  }
+
+  if (!existsSync(path.join(context.transactionDir, 'frozen-inputs.json'))) {
+    const prepared = prepareTransaction({
+      transactionDir: context.transactionDir,
+      candidateRoot: context.candidateRoot,
+      triggerFile,
+      authorIdentity: deterministicFloorAuthorIdentity()
+    });
+    if (!prepared.ok) return sharedFailure(prepared, context);
+    checkpoint = {
+      ...checkpoint,
+      sourceObservationCount: checkpoint.sourceObservationCount + 1
+    };
+    const persisted = persistExecutionCheckpoint(context.transactionDir, checkpoint);
+    if (!persisted.ok) return persisted;
+  }
+  advanced = advanceCheckpointThrough(
+    context.transactionDir,
+    checkpoint,
+    'company-candidates-composed',
+    emit,
+    checkpoint.sourceObservationCount > 0 ? 'validated' : 'checkpoint-reused'
+  );
+  if (!advanced.ok) return advanced;
+  checkpoint = advanced.value;
+
+  const ownerReadPath = path.join(context.transactionDir, 'company-owner-read.json');
+  if (!existsSync(ownerReadPath)) {
+    const requestPath = path.join(
+      context.transactionDir,
+      'plan-requests',
+      'company-msft.json'
+    );
+    const planRequest = readJson(
+      requestPath,
+      'C028-PLAN-AUTHOR',
+      'company-plans-authored'
+    );
+    if (!planRequest.ok) return sharedFailure(planRequest, context);
+    const responsePath = path.join(
+      context.transactionDir,
+      'plan-responses',
+      'company-msft.json'
+    );
+    const responseWrite = writeJsonExact(
+      responsePath,
+      deterministicFloorResponse(planRequest.value)
+    );
+    if (!responseWrite.ok) return sharedFailure(responseWrite, context);
+    const bound = bindPlanTransaction({
+      transactionDir: context.transactionDir,
+      responseFile: responsePath
+    });
+    if (!bound.ok) return sharedFailure(bound, context);
+    checkpoint = {
+      ...checkpoint,
+      authorInvocationCount: checkpoint.authorInvocationCount + 1
+    };
+    const persisted = persistExecutionCheckpoint(context.transactionDir, checkpoint);
+    if (!persisted.ok) return persisted;
+  }
+  advanced = advanceCheckpointThrough(
+    context.transactionDir,
+    checkpoint,
+    'company-owner-read-frozen',
+    emit,
+    checkpoint.authorInvocationCount > 0 ? 'validated' : 'checkpoint-reused'
+  );
+  if (!advanced.ok) return advanced;
+  checkpoint = advanced.value;
+
+  const promotionPlanPath = path.join(context.transactionDir, 'publication-plan.json');
+  const reuseValidatedPlan = checkpointAtLeast(checkpoint, 'coherence-verified');
+  if (reuseValidatedPlan && !existsSync(promotionPlanPath)) {
+    return fail('C028-STAGE', 'checkpoint-resume',
+      'A coherence-verified checkpoint has no reusable private publication plan.',
+      'publication-plan.json');
+  }
+  if (!reuseValidatedPlan) {
+    const candidateSnapshotPath = path.join(context.transactionDir, 'candidate-snapshot.json');
+    if (!existsSync(candidateSnapshotPath)) {
+      const injected = injectOwnerReadTransaction({
+        transactionDir: context.transactionDir,
+        snapshotFile: path.join(context.candidateRoot, 'market-brief.snapshot.json')
+      });
+      if (!injected.ok) return sharedFailure(injected, context);
+    }
+    const copied = copyPrivateCandidateSnapshot(context.transactionDir, context.candidateRoot);
+    if (!copied.ok) return sharedFailure(copied, context);
+    const payloadCopy = copyPrivateCompanyReadToPayload(
+      context.transactionDir,
+      context.candidateRoot
+    );
+    if (!payloadCopy.ok) return sharedFailure(payloadCopy, context);
+
+    const boundary = revalidateTransactionBoundary(
+      context.transactionDir,
+      context.candidateRoot
+    );
+    if (!boundary.ok) return sharedFailure(boundary, context);
+    const toolBundlePath = path.join(context.transactionDir, 'tool-brief-bundle.json');
+    if (!checkpointAtLeast(checkpoint, 'final-brief-validated')) {
+      const finalStage = runCoupledWorkerStage(context, 'final', {
+        BRIEF_COUPLED_TOOL_BUNDLE_PATH: toolBundlePath
+      });
+      if (!finalStage.ok) return sharedFailure(finalStage, context);
+    }
+    const bundleDoc = readJson(
+      toolBundlePath,
+      'C028-OWNER-READ',
+      'source-bundle-frozen'
+    );
+    if (!bundleDoc.ok) return sharedFailure(bundleDoc, context);
+    const companyOutcomes = bundleDoc.value.tools.filter(
+      (entry) => entry.toolId === INTEL.TOOL_ID
+    );
+    if (companyOutcomes.length !== 1 || companyOutcomes[0].outcome !== 'newly-authored') {
+      return sharedFailure(fail('C028-OWNER-READ', 'source-bundle-frozen',
+        'A complete recreation requires exactly one real company owner read.',
+        'toolBriefBundle'), context);
+    }
+    advanced = advanceCheckpointThrough(
+      context.transactionDir,
+      checkpoint,
+      'source-bundle-frozen',
+      emit,
+      'validated'
+    );
+    if (!advanced.ok) return advanced;
+    checkpoint = advanced.value;
+
+    advanced = advanceCheckpointThrough(
+      context.transactionDir,
+      checkpoint,
+      'final-brief-validated',
+      emit,
+      'validated'
+    );
+    if (!advanced.ok) return advanced;
+    checkpoint = advanced.value;
+
+    const assembled = assembleCoupledPublication({
+      transactionDir: context.transactionDir,
+      candidateRoot: context.candidateRoot
+    });
+    if (!assembled.ok) return sharedFailure(assembled, context);
+  } else {
+    const reuseBoundary = validateCheckpointReuseBoundary(
+      context.transactionDir,
+      context.candidateRoot
+    );
+    if (!reuseBoundary.ok) return sharedFailure(reuseBoundary, context);
+    emit('coherence-verified', 'checkpoint-reused', {
+      sourceObservationCount: checkpoint.sourceObservationCount,
+      authorInvocationCount: checkpoint.authorInvocationCount
+    });
+  }
+
+  if (context.dryRun === true) {
+    const dry = completeCoupledDryRun({
+      transactionDir: context.transactionDir,
+      candidateRoot: context.candidateRoot,
+      publicationRoot: context.publicationRoot
+    });
+    return dry.ok ? ok({
+      ...dry.value,
+      trigger: request.trigger,
+      window: request.window,
+      attemptId: request.attemptId,
+      resumed: checkpoint.sourceObservationCount === 0,
+      sourceObservationCount: checkpoint.sourceObservationCount,
+      authorInvocationCount: checkpoint.authorInvocationCount,
+      phaseHistory: COUPLED_PUBLICATION_PHASES.slice(0, 16)
+    }) : dry;
+  }
+
+  const promoted = promoteCoupledPublication({
+    transactionDir: context.transactionDir,
+    publicationRoot: context.publicationRoot
+  });
+  if (!promoted.ok) return sharedFailure(promoted, context);
+  advanced = advanceCheckpointThrough(
+    context.transactionDir,
+    checkpoint,
+    'pointers-advanced',
+    emit,
+    promoted.value.resumed ? 'checkpoint-reused' : 'validated'
+  );
+  if (!advanced.ok) return advanced;
+  checkpoint = advanced.value;
+  const coherent = validateCoupledPublication(
+    context.publicationRoot,
+    promoted.value.generationId
+  );
+  if (!coherent.ok) return sharedFailure(coherent, context);
+  advanced = advanceCheckpointThrough(
+    context.transactionDir,
+    checkpoint,
+    'coherence-verified',
+    emit,
+    'validated'
+  );
+  if (!advanced.ok) return advanced;
+  checkpoint = advanced.value;
+
+  const committed = commitCoupledTransaction({
+    transactionDir: context.transactionDir,
+    candidateRoot: context.candidateRoot,
+    publicationRoot: context.publicationRoot,
+    subject: `company-brief: publish ${promoted.value.generationId}`
+  });
+  if (!committed.ok) return committed;
+  advanced = advanceCheckpointThrough(
+    context.transactionDir,
+    checkpoint,
+    'committed',
+    emit,
+    'validated'
+  );
+  if (!advanced.ok) return advanced;
+  checkpoint = advanced.value;
+  const pushed = pushCoupledTransaction({
+    transactionDir: context.transactionDir,
+    candidateRoot: context.candidateRoot,
+    publicationRoot: context.publicationRoot,
+    remote: context.remote,
+    branch: context.branch,
+    acknowledgmentFile: context.acknowledgmentFile
+  });
+  if (!pushed.ok) return pushed;
+  if (pushed.value.state !== 'acknowledged') {
+    const code = pushed.value.state === 'remote-outcome-unknown'
+      ? 'C028-ACK-UNKNOWN'
+      : 'C028-PUSH';
+    return fail(code, 'remote-acknowledged',
+      'The exact commit is preserved but is not remotely acknowledged.',
+      'transactionJournal');
+  }
+  advanced = advanceCheckpointThrough(
+    context.transactionDir,
+    checkpoint,
+    'remote-acknowledged',
+    emit,
+    'validated'
+  );
+  if (!advanced.ok) return advanced;
+  return ok({
+    trigger: request.trigger,
+    window: request.window,
+    attemptId: request.attemptId,
+    generationId: promoted.value.generationId,
+    briefRunId: promoted.value.briefRunId,
+    commit: committed.value.commit,
+    manifestSha256: promoted.value.manifestSha256,
+    resumed: promoted.value.resumed,
+    sourceObservationCount: checkpoint.sourceObservationCount,
+    authorInvocationCount: checkpoint.authorInvocationCount,
+    phaseHistory: advanced.value.history
+  });
+}
+
 function parseOptions(argv, expected) {
   const values = {};
   for (let index = 0; index < argv.length; index += 1) {
@@ -3054,8 +3956,43 @@ function cliResult(result) {
   process.stdout.write(`${JSON.stringify({ ok: true, ...result.value })}\n`);
 }
 
-function main(argv) {
+async function main(argv) {
   const command = argv[0];
+  if (command === 'request') {
+    const options = parseOptions(argv.slice(1), [
+      '--output', '--trigger', '--window', '--et-session-date', '--requested-at'
+    ]);
+    if (!options.ok) return cliResult(options);
+    return cliResult(persistTriggerRequest({
+      file: path.resolve(options.value['--output']),
+      trigger: options.value['--trigger'],
+      window: options.value['--window'],
+      etSessionDate: options.value['--et-session-date'],
+      requestedAt: options.value['--requested-at']
+    }));
+  }
+  if (command === 'run-shared') {
+    const args = argv.slice(1);
+    const dryRun = args.includes('--dry-run');
+    const valued = args.filter((token) => token !== '--dry-run');
+    const options = parseOptions(valued, [
+      '--transaction-dir', '--candidate-root', '--publication-root', '--request-file',
+      '--remote', '--branch', '--acknowledgment-file'
+    ]);
+    if (!options.ok) return cliResult(options);
+    const result = await runSharedCoupledPublication({
+      transactionDir: path.resolve(options.value['--transaction-dir']),
+      candidateRoot: path.resolve(options.value['--candidate-root']),
+      publicationRoot: path.resolve(options.value['--publication-root']),
+      requestFile: path.resolve(options.value['--request-file']),
+      remote: options.value['--remote'],
+      branch: options.value['--branch'],
+      acknowledgmentFile: path.resolve(options.value['--acknowledgment-file']),
+      dryRun,
+      log: (line) => process.stdout.write(`${line}\n`)
+    });
+    return cliResult(result);
+  }
   if (command === 'prepare') {
     const options = parseOptions(argv.slice(1), ['--transaction-dir', '--candidate-root', '--trigger-file']);
     if (!options.ok) return cliResult(options);
@@ -3111,5 +4048,9 @@ function main(argv) {
 
 if (process.argv[1] &&
     realpathSync(path.resolve(process.argv[1])) === realpathSync(fileURLToPath(import.meta.url))) {
-  main(process.argv.slice(2));
+  main(process.argv.slice(2)).catch((error) => {
+    cliResult(fail('C028-COHERENCE', 'cli',
+      'The shared publication command failed at its process boundary.',
+      'command', error?.code));
+  });
 }

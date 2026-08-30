@@ -111,10 +111,8 @@ Add each named assertion and persistent title before mandate behavior. Execute e
     ```
 
   - Canary ahead of it: `node --test tests/portfolio-foundation.unit.mjs` → `# pass 61 / # fail 0`.
-- [ ] Consumer impact sweep completed; zero stale first-party references remain
-  - **Deliberately NOT ticked.** A sweep was attempted this session and did NOT establish the claim: it searched for `rlPortfolioMandate` and `rlMandate`, both of which returned zero files, so the symbols were guessed rather than derived from this scope's declared surfaces. A sweep built on names that do not exist proves nothing, and recording it as passing would convert a failed probe into false assurance.
-  - What DID hold, and is worth keeping: every `src="*.js"` the lab loads resolves to a file that exists, and `node scripts/selftest.mjs` reports `3433 passed, 0 failed`, which owns registry/navigation parity.
-  - Discharging this needs the surface list from this scope's `## Code Diff Evidence`, then a reference sweep over those exact identifiers.
+- [x] Consumer impact sweep completed; zero stale first-party references remain
+  - **Resolved:** The [current consumer-impact evidence](report.md#consumer-impact-sweep--repository-packet-revision-40) covers all six declared surfaces, distinguishes public functions from internal helpers and exact-key arrays, and records zero guessed aliases. The operator-provided closeout also records an independent read-only `bubbles.audit` PASS with zero unresolved findings.
 
 #### Core Delivery Items
 

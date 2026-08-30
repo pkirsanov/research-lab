@@ -3,7 +3,7 @@
   "featureDir": "specs/028-company-intelligence-publication-and-brief-transaction",
   "featureName": "Company Intelligence Public Delivery and Atomic Brief Refresh",
   "createdAt": "2026-08-28T23:01:02Z",
-  "lastUpdatedAt": "2026-08-30T00:52:00Z",
+  "lastUpdatedAt": "2026-08-30T06:39:31Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -100,13 +100,13 @@
       "revision": 3,
       "sourceRequestDigest": "sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f"
     },
-    "activeAgent": "bubbles.test",
-    "currentPhase": "test",
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
     "currentPhaseStatus": "completed",
     "currentScope": "03-transaction-restoration",
     "substate": "independently_verified",
-    "runStartedAt": "2026-08-30T00:33:26Z",
-    "completedAt": "2026-08-30T00:52:00Z",
+    "runStartedAt": "2026-08-30T06:34:10Z",
+    "completedAt": "2026-08-30T06:39:31Z",
     "completedPhaseClaims": [
       {
         "phase": "analyze",
@@ -206,11 +206,20 @@
         ],
         "claimedAt": "2026-08-30T00:52:00Z",
         "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-current-r6-test-phase-closure-2026-08-30"
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "scopes": [
+          "03-transaction-restoration"
+        ],
+        "claimedAt": "2026-08-30T06:39:31Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-validate-owned-certification-after-anchor-repair-2026-08-30"
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.validate",
-    "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-03-whole-transaction-restoration-and-non-authoritative-outcomes",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-04-scheduled-and-on-demand-shared-trigger-integration",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,
@@ -223,7 +232,8 @@
     "certifiedAt": null,
     "completedScopes": [
       "01-company-publication-foundation",
-      "02-coupled-manifest-and-promotion"
+      "02-coupled-manifest-and-promotion",
+      "03-transaction-restoration"
     ],
     "certifiedCompletedPhases": [
       "validate"
@@ -255,13 +265,13 @@
         "scope": 3,
         "scopeId": "03-transaction-restoration",
         "name": "Whole-transaction restoration and non-authoritative outcomes",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "02-coupled-manifest-and-promotion"
         ],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": null
+        "certifiedAt": "2026-08-30T06:39:31Z"
       },
       {
         "scope": 4,
@@ -615,6 +625,27 @@
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Independently executed all six Scope 03 Test Plan rows, four discriminating negative controls, the complete selected closure, and required integrity, source-lock, isolation, scenario, receipt, goal, and boundary checks. All four Scope 03 scenarios derive REGRESSION_GREEN. Certification, later scopes, overall status, and human acceptance remain unchanged."
+    },
+    {
+      "agent": "bubbles.validate",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "runStartedAt": "2026-08-30T06:34:10Z",
+      "runCompletedAt": "2026-08-30T06:39:31Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "03-transaction-restoration",
+      "artifactChanges": [
+        "scopes.md",
+        "report.md",
+        "state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-validate-owned-certification-after-anchor-repair-2026-08-30"
+      ],
+      "summary": "Revalidated the sole Scope 03 evidence-anchor repair, strict exact-HEAD receipts, scenario states, traceability, implementation reality, artifact freshness, and certification guards. Certified only Scope 03, preserved both feature status mirrors as in_progress, left human acceptance unchanged, and selected Scope 04 as the next eligible implementation target without starting it."
     }
   ],
   "activeBugs": [],
@@ -662,5 +693,5 @@
     ],
     "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
   },
-  "notes": "Scopes 01 and 02 remain validate-certified Done. Scope 03 remains In Progress after independent test-phase closure and routes to bubbles.validate. Scope 03 certification remains not_started. Feature status and overall certification remain in_progress. Scopes 04 and 05 remain not_started, and human acceptance remains unchecked."
+  "notes": "Scopes 01 through 03 are validate-certified Done. Feature status and overall certification remain in_progress. Scopes 04 and 05 remain not_started, Scope 04 is the next eligible implementation target, and human acceptance remains unchecked."
 }

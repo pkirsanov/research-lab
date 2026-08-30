@@ -56,7 +56,7 @@ Links: [spec.md](spec.md) · [design.md](design.md) · [report.md](report.md) ·
 | --- | --- | --- | --- | --- | --- |
 | 01 | Company publication foundation and headless owner-read contracts | None | UMD contracts, Node publication module, config, domain model | SCN-028-005 through SCN-028-010 | Done |
 | 02 | Coupled manifest, immutable promotion, and pointer-last success path | Scope 01 | publication module, Git primitives, company data contracts | SCN-028-011, SCN-028-013, SCN-028-014, SCN-028-021 | Done |
-| 03 | Whole-transaction restoration and non-authoritative outcomes | Scope 02 | worker transaction, restoration, private checkouts, dry run | SCN-028-015, SCN-028-016, SCN-028-017, SCN-028-022 | In Progress |
+| 03 | Whole-transaction restoration and non-authoritative outcomes | Scope 02 | worker transaction, restoration, private checkouts, dry run | SCN-028-015, SCN-028-016, SCN-028-017, SCN-028-022 | Done |
 | 04 | Scheduled and on-demand shared trigger integration | Scope 03 | launcher, worker, scheduler, prompt, exact resume | SCN-028-003, SCN-028-004, SCN-028-012, SCN-028-019 | Not Started |
 | 05 | Public registration, authority-aware UI, and Pages delivery | Scope 04 | registries, routes, shared UI, docs, Pages package | SCN-028-001, SCN-028-002, SCN-028-018, SCN-028-020 | Not Started |
 
@@ -421,7 +421,7 @@ The installed implementation discovery grammar normalizes text after `::`; `Node
 
 ## Scope 03: Whole-transaction restoration and non-authoritative outcomes
 
-**Status:** In Progress
+**Status:** Done
 **Depends On:** Scope 02.  
 **Scope-Kind:** runtime-behavior
 
@@ -556,7 +556,7 @@ The installed implementation discovery grammar normalizes text after `::`; `Node
 - [x] Push and acknowledgment branches preserve honest remote authority and exact-resume semantics without recreating a generation. → Evidence: [Scope 03 exact commit and remote authority](report.md#scope-03-exact-commit-and-remote-authority)
 - [x] Attempt records expose safe state and cause codes without granting pair authority or leaking private data. → Evidence: [Scope 03 attempt safety and authority separation](report.md#scope-03-attempt-safety-and-authority-separation)
 - [x] The Shared Infrastructure Impact Sweep, canaries, restore paths, Consumer Impact Sweep, and Change Boundary are satisfied. → Evidence: [Scope 03 final implement quality gates](report.md#scope-03-final-implement-quality-gates)
-- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior pass for SCN-028-015, SCN-028-016, SCN-028-017, and SCN-028-022. → Evidence: [Scope 03 implement scenario-binding remediation](report.md#current-implement-scenario-receipts)
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior pass for SCN-028-015, SCN-028-016, SCN-028-017, and SCN-028-022. → Evidence: [Scope 03 implement scenario-binding remediation](report.md#current-r8-test-and-receipt-matrix)
   > **Phase:** implement
   > **Claim Source:** executed
 - [x] Broader E2E regression suite passes for the complete Scope 03 production CLI process-E2E file with no collateral failure. → Evidence: [Scope 03 exact commit and remote authority](report.md#scope-03-exact-commit-and-remote-authority)

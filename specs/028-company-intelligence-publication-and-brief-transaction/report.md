@@ -2704,7 +2704,7 @@ ASSERT_PASS transition and rework queues closed
 SCOPE02_PROVENANCE_SUMMARY dod=11/11 implementClaims=1 testClaims=1 histories=2 completedScopes=01-company-publication-foundation
 ```
 
-### Outcome Contract Verification
+### Scope 03 Outcome Contract Verification After Repair
 
 **Phase:** validate
 **Claim Source:** interpreted
@@ -3882,3 +3882,185 @@ The whole-feature linked-test resolver truthfully retains nine unresolved Scope 
 | `T028-S03-R6-RECEIPTS` | Addressed | Pre-write current view reported zero stale and zero unknown receipts |
 
 No test-owned Scope 03 finding remains unresolved. Certification, later scopes, whole-feature status, and human acceptance remain unchanged and unclaimed.
+
+## Scope 03 Fresh-r8 Validate-Owned Certification Refusal — 2026-08-30
+
+**Agent:** `bubbles.validate`
+**Scope:** `03-transaction-restoration`
+**Mode:** `full-delivery`
+**Candidate:** `5168109475308905216d80cbc88f3af34c493a28`
+**Captured at:** `2026-08-30T06:12:05Z`
+**Repository decision:** `rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:24`, control revision `24`
+**Goal Contract:** `gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3`, revision `3`
+**Claim Source:** interpreted
+**Interpretation:** The current r8 product and scenario evidence is green, but the canonical state-transition guard blocks one checked Scope 03 execution claim because its plan-owned evidence link resolves to a prose-only implement anchor. Scope 03 remains uncertified.
+
+### Scope 03 Outcome Contract Verification
+
+| Field | Current r8 evidence | Scope 03 result |
+| --- | --- | --- |
+| Intent contribution | The production transaction paths restore company and brief authority together across brief failure, company failure, covered-set failure, commit refusal, and dry run. | Demonstrated |
+| Success-signal contribution | All four Scope 03 scenarios derive `REGRESSION_GREEN` from fresh r8 receipts. | Demonstrated |
+| Hard constraints | The selected closure preserves the one-subject committed policy, immutable predecessors, pointer-last authority, exact commit identity, and non-authoritative dry-run state. | Demonstrated |
+| Failure condition | Four discriminating controls each turned RED. Their unmodified counterparts and the selected 59-test closure returned green. | Not triggered for Scope 03 behavior |
+| Certification integrity | Check 9 rejects the checked scenario-specific regression DoD item's prose-only evidence anchor. | Blocking |
+
+### Current r8 Test and Receipt Matrix
+
+| Evidence | Exit | Result | Full-output SHA-256 |
+| --- | ---: | --- | --- |
+| TP-03-01 | 0 | 8 passed, 0 failed, 0 skipped | `00c1dc74bb149b9b7e7ee6a88f5cba78ab93656123475464841300b92435aad4` |
+| TP-03-02 | 0 | 8 passed, 0 failed, 0 skipped | `cf370600af704ab1ff96de14c1dd614d0a86d2501f49722c851a9dab6ff36ff9` |
+| TP-03-03 | 0 | 8 passed, 0 failed, 0 skipped | `896c05b9725a40379859d6de04f2b0304d81858ec2751bbadad87786d6eda6f0` |
+| TP-03-04 | 0 | 5 passed, 0 failed, 0 skipped | `4be77099f49557afe9f42cbfe0554fab7d74da467988bccb41f7dd47d1f2e25c` |
+| TP-03-05 | 0 | 5 passed, 0 failed, 0 skipped | `98b0eb6b59c68bfc9233857bf364158a40836075286ef0ba6bda444fc0e7f982` |
+| TP-03-06 | 0 | 42 passed, 0 failed, 0 skipped | `e5cc3d3ee0d18311bdf1d832354e5036cba7945fcbc4fcfa0c72deded1c5e795` |
+| Selected Scope 03 closure | 0 | 59 passed, 0 failed, 0 cancelled, 0 skipped, 0 todo | `b94ef526086d70865e092914778b7f3b7c5689306feef0cda9b66501aa3776b4` |
+| Strict receipt freshness | 0 | 23 closure-bearing receipts valid, 0 stale | `b3a9db2733a384d760c5be4f9e79725b1f848ef8c4a4d0b56ebe56ee9268c81f` |
+| Receipt-derived scenario states | 0 | SCN-028-015, SCN-028-016, SCN-028-017, and SCN-028-022 are `REGRESSION_GREEN` | `d6c870fe99c7fbe05acb3599c6dc451133936b5ba7ae00c02a2717d4d62ab770` |
+
+**Phase:** validate
+**Command:** `node --trace-warnings --test tests/company-intelligence-publication.integration.mjs tests/company-intelligence-publication.e2e.mjs tests/brief-refresh-atomicity.test.mjs tests/distributed-briefs.distributed-publish.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# Feature 028 Scope 03 r8 selected 59-test closure
+$ node --trace-warnings --test tests/company-intelligence-publication.integration.mjs tests/company-intelligence-publication.e2e.mjs tests/brief-refresh-atomicity.test.mjs tests/distributed-briefs.distributed-publish.unit.mjs
+exit: 0
+lines: 190
+sha256: b94ef526086d70865e092914778b7f3b7c5689306feef0cda9b66501aa3776b4
+✔ Regression: SCN-028-015 brief validation failure removes company candidates and restores both baselines
+✔ Regression: SCN-028-016 company validation failure with a valid brief restores both baselines
+✔ Mutation: SCN-028-017 one failing subject aborts a synthetic two-subject covered set
+✔ Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical
+✔ Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit
+✔ Regression canary: existing brief atomicity restores every prior owned path under coupled fault injection
+ℹ tests 59
+ℹ suites 0
+ℹ pass 59
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 86478.268291
+```
+
+### Current r8 Discriminating Controls
+
+| Scenario | Control result | RED SHA-256 | Unmodified final receipt |
+| --- | --- | --- | --- |
+| SCN-028-015 | Retaining the complete index made the incomplete-index refusal assertion fail. | `fb3d7a6c89a9ce22623a003a5d7964bffe4f83705c70d005e16531753dc428a8` | `REGRESSION_GREEN` |
+| SCN-028-016 | Reintroducing the brief candidate left a dirty brief pointer and failed restoration. | `d36f4ba6a49181e5c2116ee8b05c11a3df7e2c539513e813f62a65a69bde34f8` | `REGRESSION_GREEN` |
+| SCN-028-017 | Reintroducing the failed synthetic subject pointer violated zero-advancement. | `d4b63d3d062c7eccdeffbdbef9839af6388a9f7f1c243b1b09e9cdd0193bc769` | `REGRESSION_GREEN` |
+| SCN-028-022 | Recreating a private checkpoint violated dry-run cleanup. | `ed21e37413dc26b70ff014b105c9c1a5dff02518c18653a80db279a336f95c58` | `REGRESSION_GREEN` |
+
+### Current r8 Validation Gate Matrix
+
+| Gate or command | Exit | Scope 03 result | Full-output SHA-256 |
+| --- | ---: | --- | --- |
+| Goal fidelity, pre-certification | 0 | Pass | `3bc6db28381ca97126677622f3eccd914d5ec26e9fae7e71814eeaf2db389a46` |
+| Pages build | 0 | Pass | `9dc91ec5001df2ee496a38f5673df69b8c6f42e43dfb97717717574da7e7a366` |
+| Node source lock | 0 | Pass; 16 adversarial mutations rejected | `e9bb9b552e92cd5b05328a34448e33d4bcc2b39dfe4f5ae0e430911374c711b1` |
+| Artifact lint | 0 | Pass | `6fa07b59f80a34023a08a8bdf519737216e354b5c39c62ba12d9a556cba683b3` |
+| Implementation reality | 0 | 7 files, 0 violations, 0 warnings | `8c42d47ae704040365670e359c436748051343b225987b63352e5d686ee9cf32` |
+| Regression quality | 0 | 5 files, 0 violations, 0 warnings | `b51df2412348f2ff003a895d5df8c45e65cac77b92591cd31a7c616aa51e0b5a` |
+| Scenario obligations and test mechanisms | 0 | 22 coherent scenario matrices and 22 coherent mechanisms | `b83fa7583517d153789f13facf79bd25e61529881fc9a25b3e8c41d409788078`, `796e7eae922225a7c8d9252387e0051b698195dc5462834cd979c16af0f0ec88` |
+| Environment isolation | 0 | Pass | `935699c5a0a653f9335fa685d89080c1dddd0b94c93dea63fffa4c5d99971c61` |
+| Artifact freshness | 0 | 0 failures, 0 warnings | `72ec6c1adde17438f91ae8704ca5b4ec3eb702762a75d9ad85b8ced52bb94605` |
+| Claim source, collected-test count, execution substate | 0 | Pass | `6210f5e85489b86b19520504105d7179d5a7ea0713dc6e42187cd3d35c5d4653`, `8a2f6cfb05a82590a5196d0af831c77d60bc6e5be992e4b23c255f8b254a4e05`, `282c18a1883a31f7cd787c869919d94b3d6dd80ef4d12e3932db4fda12230a79` |
+| Domain invariant and model consistency | 0 | 6 invariants anchored; model consistent | `c65822642cc1859bba887ee1e695f944bb0ffeab8763df7eed30ac2e17d123be`, `1650f6d349fdff760d20bc3e7dced3fd3f9653b85be47e09c05d4739ac456b32` |
+| Changed-spec audit | 0 | One in-progress spec; terminal checks correctly skipped | `3062a89f8962f4e5410e63ffe61fa760fbc8e839534dc4cca2a85fd3f0f61766` |
+| Observability SLO applicability | 0 | G100 no-op because no `traceContracts.observability` block exists | `2079b4a7a16b34289e44c11606457351773c1e059a3b4e49440f20f8d1ada585` |
+| Post-test byte boundary and residue | 0 | Exact candidate bytes; only `.bubbles-worktree`; 0 staged, fixture, or process residue | `3fe4042f13e69f9f96979596c394d5e922601a4a2aac5e9e79d0d5501adb2c18` |
+
+### Blocking Scope 03 Finding
+
+`VAL-028-S03-EVIDENCE-ANCHOR` is unresolved. The registry-asserted state-transition guard exited `1` with bounded capture `c0c338075c43c27cedaea0cc1ce8c367d6db288ab643f89738404515ca5df87e` and diagnostic capture `6d3474dad89d627ce71c5737e45b275a1dd566e911d5c2bf2f22b3f002b6b403`. Check 9 reported that the checked Scope 03 scenario-specific regression item links to `#current-implement-scenario-receipts`, whose resolved report block has no command-output signature. The item asserts an execution outcome, so prose-only receipt metadata cannot satisfy it.
+
+The required owner is `bubbles.plan`. The plan owner must change only that DoD evidence reference to a real executed evidence anchor, preserving the DoD text, all 13 checked boxes, all six Test Plan rows, and every other scope. This r8 section provides the current executed anchor. Validation must re-run the affected lint, receipt, traceability, transition, and G128 checks after that owner write.
+
+### Preserved Non-Scope-03 Conditions
+
+- The whole-feature linked-test resolver and traceability guard remain nonzero only for nine unresolved Scope 04 and Scope 05 targets and ten corresponding missing-file mappings.
+- Gate G068 reports six missing DoD-to-Gherkin mappings only in Scope 04 and Scope 05.
+- Gate G097 reports the planned Scope 05 Content-Security-Policy mechanism before Scope 05 implementation.
+- The repository selftest remains nonzero with 3,459 passes and nine failures assigned to planned Scope 04 and Scope 05 test and registration work.
+- Gate G022 still requires later full-delivery phases. Gate G136 still requires human acceptance only for the eventual terminal transition.
+- Framework-write-guard and doctor retain five pre-existing installed-agent checksum drifts. The Scope 03 candidate contains no framework-managed path.
+
+### Finding Accounting and Disposition
+
+**Addressed in r8:** exact packet and Goal Contract validation; all six Test Plan executions; all four RED controls; current implementation, GREEN, live, and regression receipts; selected 59-test closure; exact titles; 13-of-13 checked DoD inventory; implementation reality; source lock; isolation; domain; byte identity; and residue checks.
+
+**Unresolved Scope 03:** `VAL-028-S03-EVIDENCE-ANCHOR` only.
+**Disposition:** `route_required` to `bubbles.plan`.
+**Certification:** withheld. Scope 03 remains `In Progress`; both feature status mirrors remain `in_progress`; certified Scopes 01 and 02, Scopes 04 and 05, and human acceptance remain unchanged.
+
+## Scope 03 Validate-Owned Certification After Evidence-Anchor Repair — 2026-08-30 {#scope-03-validate-owned-certification-after-anchor-repair-2026-08-30}
+
+**Agent:** `bubbles.validate`
+**Scope:** `03-transaction-restoration`
+**Mode:** `full-delivery`
+**Candidate:** `5168109475308905216d80cbc88f3af34c493a28`
+**Repository decision:** `rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:25`, control revision `25`
+**Goal Contract:** `gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3`, revision `3`
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The repaired plan-owned link resolves to the existing executed r8 59-test block. Current artifact, receipt, scenario-state, traceability, reality, freshness, and transition checks no longer report a Scope 03 evidence failure. The nonzero whole-feature checks name only Scope 04, Scope 05, remaining full-delivery phases, and terminal human acceptance.
+
+### Outcome Contract Verification
+
+| Field | Scope 03 evidence | Status |
+| --- | --- | --- |
+| Intent contribution | Exact-HEAD receipts derive `REGRESSION_GREEN` for the four restoration and non-authoritative-outcome scenarios. | Demonstrated for Scope 03 |
+| Success-signal contribution | The anchored executed block proves brief failure, company failure, covered-set failure, dry run, commit recovery, and the shared atomicity canary on the r8 candidate. | Demonstrated for Scope 03 |
+| Hard constraints | The current delta contains only report evidence and the one plan-owned evidence-link correction. No source, test, subject-policy, publication-data, Feature 025, or framework path changed. | Preserved for Scope 03 |
+| Failure condition | Strict receipts report zero stale entries. The current resolver derives all four Scope 03 scenarios through `REGRESSION_GREEN`. | Not triggered for Scope 03 |
+| Whole-feature outcome | Scopes 04 and 05, remaining full-delivery phases, and human acceptance are still open. | Not claimed |
+
+### Repaired Anchor Verification
+
+The complete scope diff contains one plan-owned substitution: `report.md#current-implement-scenario-receipts` became `report.md#current-r8-test-and-receipt-matrix`. The resolved report block contains the executed command, exit `0`, `190` output lines, full-output SHA-256 `b94ef526086d70865e092914778b7f3b7c5689306feef0cda9b66501aa3776b4`, six named Scope 03 regressions, and the `59`-test zero-failure summary.
+
+Artifact lint now accepts every checked DoD item. The registry-asserted transition result omits G025 and Check 9 from its failure set. This closes `VAL-028-S03-EVIDENCE-ANCHOR` without changing the DoD text, its checked state, the six Test Plan rows, or any implementation or test file.
+
+### Current Certification Evidence
+
+**Commands:** Exact packet validation; Goal Contract verification; G128; goal fidelity; artifact lint; strict receipt check; scenario-state resolution; traceability; scenario obligations; test mechanisms; implementation reality; regression quality; claim-source lint; collected-test count; execution substate; artifact freshness; changed-spec audit; handoff-cycle check; transition-contract resolution; registry-asserted state-transition guard; Git boundary and whitespace checks.
+**Exit Code:** `0` for every Scope 03-applicable check. Whole-feature traceability and transition checks exited `1` only for classified sequential or terminal obligations. The unsupported single-file `--current-scope` traceability attempt exited `2` and was replaced by the complete all-scope diagnostic.
+**Claim Source:** interpreted
+**Interpretation:** These current commands validate the evidence repair and certification boundary. The product suites were not repeated because no implementation or test path changed; the exact-HEAD strict receipts and scenario-state resolver revalidated the already-recorded executed r8 block instead.
+
+```text
+REPOSITORY PACKET VALID actionable=true decision=rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:25 revision=25
+goal-contract: verified gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3 revision 3
+PASS Gate G128: convergence=2/10 wall-clock=41.67/1440 toolBytesMax=11604/500000 toolBytesSum=188454/10000000
+goal-fidelity-guard: PASS boundary=pre-certification
+ANCHOR_DIFF exit=0 lines=13 sha256=7f1222cc99a320bdca58bc4be214c7cc936188fb232419d70e89609faf126cca
+ARTIFACT_LINT exit=0 checked-DoD-evidence=accepted sha256=6fa07b59f80a34023a08a8bdf519737216e354b5c39c62ba12d9a556cba683b3
+STRICT_RECEIPTS exit=0 total=71 current=69 withClosure=26 valid=26 stale=0 sha256=4144f560993a620208516047508d71031c776886709790213b8df8c21bd7c410
+SCENARIO_STATE exit=0 SCN-028-015=REGRESSION_GREEN SCN-028-016=REGRESSION_GREEN
+SCENARIO_STATE exit=0 SCN-028-017=REGRESSION_GREEN SCN-028-022=REGRESSION_GREEN sha256=d6c870fe99c7fbe05acb3599c6dc451133936b5ba7ae00c02a2717d4d62ab770
+TRACEABILITY_SCOPE03 scenarios=4 testRows=6 missingFiles=0 missingEvidence=0 dodMappings=4
+TRACEABILITY_ALL_SCOPES exit=1 failures=10 scope04Or05Only=true sha256=db22a5498f707bb346a262d49ee3f8810dd914b5cca99acc10727d8df88553ce
+IMPLEMENTATION_REALITY exit=0 files=7 violations=0 warnings=0 sha256=8c42d47ae704040365670e359c436748051343b225987b63352e5d686ee9cf32
+REGRESSION_QUALITY exit=0 files=5 violations=0 warnings=0 sha256=b3c485cf7de6ac7dde80bbcbb8d2d62c6dc08a6f463fdf0266ca9f59a2f5eb41
+ARTIFACT_FRESHNESS exit=0 failures=0 warnings=0 sha256=dc034b5bc990d3f3c1b2d02c44407be2db4c87725242e2af63aa42f61da3c7c0
+CHANGED_SPEC_AUDIT exit=0 specs=1 doneSpecs=0 artifactLintPassed=1 sha256=3062a89f8962f4e5410e63ffe61fa760fbc8e839534dc4cca2a85fd3f0f61766
+STATE_TRANSITION exit=1 failedGateIds=[G022,G068,G097,G136] failedChecks=[Check-4-scenario-states,Check-5-all-done,Check-8-file-existence]
+STATE_TRANSITION failureCount=35 scope03EvidenceFailure=false sha256=6d17aacf3949b44d0df6e4a4f6d1c235682ab89a19d08d097bdabc1c92f1fc0d
+DIFF_CHECK exit=0 trackedBeforeCertification=[report.md,scopes.md] untrackedControl=.bubbles-worktree
+```
+
+### Finding Accounting and Sequential Disposition
+
+| Finding | Disposition | Evidence |
+| --- | --- | --- |
+| `VAL-028-S03-EVIDENCE-ANCHOR` | Addressed | Artifact lint accepts the repaired anchor and the state-transition failure set no longer contains G025 or Check 9. |
+| G022 remaining phase requirements | Expected sequential obligation | Scope 04, Scope 05, and terminal full-delivery phases have not run. |
+| G068 and all-scope traceability failures | Expected sequential obligation | Five missing manifest test references and five missing concrete-row references belong only to Scope 04 or Scope 05. Scope 03 reports four scenarios and six concrete rows with complete evidence. |
+| G097 Content-Security-Policy correspondence | Expected Scope 05 obligation | The named generated-script mitigation is in the Scope 05 public-delivery surface and is not a Scope 03 transaction-restoration requirement. |
+| G136 human acceptance | Expected terminal obligation | The human-owned checklist remains unchanged and unchecked. |
+
+No Scope 03 finding remains unresolved. Scope 03 is certified `Done`. Scopes 01 and 02 remain certified. Scopes 04 and 05 remain `Not Started`. Both feature status mirrors remain `in_progress`. Scope 04 is the next eligible implementation target; this certification does not start it or claim the whole feature complete.

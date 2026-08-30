@@ -249,6 +249,21 @@ function splitTestIdentity(identity) {
 }
 
 /**
+ * Older manifests store linked tests as `file#test-name` strings. Current
+ * manifests use `{ file, testId, status? }` records. Normalize both forms at
+ * the runner boundary so the map still cites one exact, comparable identity.
+ */
+function linkedTestIdentities(manifestRow) {
+  return (manifestRow.linkedTests || []).map((linked) => {
+    if (typeof linked === 'string') return linked;
+    if (!linked || typeof linked !== 'object' || typeof linked.file !== 'string') return null;
+    return typeof linked.testId === 'string' && linked.testId.length > 0
+      ? `${linked.file}#${linked.testId}`
+      : linked.file;
+  }).filter(Boolean);
+}
+
+/**
  * GREEN_LIVE is a trait-derived state: only a scenario whose manifest declares a
  * behaviour trait that owes a live route proof is required to hold it. This set
  * is kept aligned BY NAME with LIVE_TRAITS in
@@ -347,7 +362,7 @@ function runScenario(context, options, scenarioId, workdir) {
   }
 
   const testIdentity = entry.test;
-  const linked = manifestRow.linkedTests || [];
+  const linked = linkedTestIdentities(manifestRow);
   if (!linked.includes(testIdentity)) {
     record.outcome = 'TEST_NOT_LINKED';
     record.detail = `break map cites ${JSON.stringify(testIdentity)}, which is not in the manifest linkedTests for ${scenarioId}`;
@@ -527,11 +542,14 @@ function main() {
   const context = resolveContext(options);
 
   const mapped = Object.keys(context.entries);
+  const mappedManifestScenarios = context.scenarios
+    .map((scenario) => scenario && scenario.id)
+    .filter((id) => id && context.entries[id]);
   if (options.list) {
     process.stdout.write(`spec      : ${context.specRel}\n`);
     process.stdout.write(`revision  : ${context.revision}\n`);
     process.stdout.write(`manifest  : ${context.scenarios.length} scenarios\n`);
-    process.stdout.write(`break map : ${path.relative(context.repoRoot, context.mapPath)} (${mapped.length} entries)\n\n`);
+    process.stdout.write(`break map : ${path.relative(context.repoRoot, context.mapPath)} (${mappedManifestScenarios.length}/${context.scenarios.length} manifest scenarios mapped; ${mapped.length} total entries)\n\n`);
     for (const scenario of context.scenarios) {
       const entry = context.entries[scenario.id];
       const state = !entry ? 'unmapped' : (entry.vacuous ? 'VACUOUS (finding)' : `mapped -> ${entry.breakFile}`);
@@ -541,7 +559,7 @@ function main() {
   }
 
   const requested = options.all
-    ? context.scenarios.map((s) => s.id).filter((id) => context.entries[id])
+    ? context.scenarios.map((s) => s.id).filter(Boolean)
     : options.scenarios;
   if (requested.length === 0) fail('no scenarios selected');
 
@@ -594,7 +612,7 @@ function main() {
     process.stdout.write(`  vacuous    : ${vacuous.length} scenario(s) whose test discriminates nothing\n`);
     for (const record of vacuous) process.stdout.write(`               ${record.scenarioId}: ${record.detail}\n`);
   }
-  process.stdout.write(`  mapped     : ${mapped.length}/${context.scenarios.length} manifest scenarios\n`);
+  process.stdout.write(`  mapped     : ${mappedManifestScenarios.length}/${context.scenarios.length} manifest scenarios\n`);
 
   if (options.json) {
     process.stdout.write(`\n${JSON.stringify({ spec: context.specRel, revision: context.revision, treeStable, records }, null, 2)}\n`);

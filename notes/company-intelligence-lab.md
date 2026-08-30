@@ -257,6 +257,10 @@ from the same frozen `company-read-version/v1`.
   `body[data-corpus-status]` is one of `pending`, `loaded` or `unavailable`,
   reports whether the committed record files for the opened company were read,
   and always describes the company currently on screen.
+- The company publisher writes an ordinary `rl-tool-read/v1` record only when
+  the exact coverage account carries `readiness="established"`. A pending account
+  returns `C025-PUBLISH-LOSSY` and writes nothing. A settled unavailable account
+  remains eligible and publishes with `availability="unavailable"` and null clocks.
 - The page declares no `innerHTML` assignment, no `requestAnimationFrame`, no
   `setTimeout`, no password input and no provider key field.
 

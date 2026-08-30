@@ -25,6 +25,19 @@ The route has three honest states for a coverage claim, and today it renders onl
 
 The third state is the subject of this specification.
 
+## Capability Proportionality
+
+### Single-Capability Justification
+
+This packet is a narrow bug fix inside the existing Company Multi-Horizon Intelligence
+composition capability. FR-018-001 through FR-018-005 constrain the readiness semantics of its
+existing coverage account and route rendering. The mechanism in `design.md` identifies one
+additive readiness input to `buildCoverageAccount()` and applies its output on
+`company-intelligence-lab.html`. The three existing scopes repair current-subject state, pending
+composition, and the regression gap without introducing a second implementation or shared
+cross-feature surface. A separate domain capability foundation would invent variation that this
+packet neither requires nor delivers.
+
 ## Requirements
 
 ### FR-018-001 — A definite absence claim requires a resolved corpus

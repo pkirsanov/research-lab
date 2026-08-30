@@ -2090,6 +2090,10 @@
         if (!isPlainObject(version) || version.contractVersion !== "company-read-version/v1") {
             raise("C025-READ-CONTRACT", "Publication needs a composed read version.");
         }
+        if (!isPlainObject(version.coverageAccount) || version.coverageAccount.readiness !== "established") {
+            return makeError("C025-PUBLISH-LOSSY",
+                "The coverage account is not established, so no ordinary shared tool read was published.");
+        }
         if (!rldata || typeof rldata.putToolRead !== "function" || typeof rldata.toolRead !== "function") {
             return makeError("C025-PUBLISH-LOSSY",
                 "The shared data channel exposes no verifiable publication path, so nothing was published.");

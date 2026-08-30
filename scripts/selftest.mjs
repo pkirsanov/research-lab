@@ -23108,8 +23108,39 @@ try {
   const config25 = JSON.parse(read('company-intelligence.config.json'));
   const moduleSource25 = read('rlcompanyintel.js');
   const routeSource25 = read('company-intelligence-lab.html');
+  const browserSource25 = read('tests/company-intelligence-lab.spec.mjs');
   const decisionTime25 = '2026-08-18T00:00:00.000Z';
   const registry25 = INTEL25.readCoverageRegistry(config25);
+
+  const browserHeader25 = browserSource25.split("import { readFileSync } from 'node:fs';")[0];
+  const accurateBrowserProvenance25 = (text) => (
+    /Ordinary cases use the real ephemeral static server and unmodified responses\./.test(text)
+    && /annotated pass-through fault-injection cases use `page\.route\(\)` only to hold or delay a request/i.test(text)
+    && /`route\.continue\(\)` then forwards the real response unchanged\./.test(text)
+    && !/no request interception/i.test(text)
+  );
+  const staleBlanketProvenance25 = 'The route is exercised as a production user meets it: its own ephemeral static server, no request interception, no stubbed module.';
+  assert(accurateBrowserProvenance25(browserHeader25)
+    && !accurateBrowserProvenance25(staleBlanketProvenance25),
+  'BUG-018 test provenance distinguishes ordinary traffic from annotated pass-through fault injection');
+
+  const corpusRequestGate25 = extractFn(browserSource25, 'installCorpusRequestGate');
+  const bug018WindowTests25 = browserSource25.slice(browserSource25.indexOf("test('Regression: BUG-018 scope 1"));
+  const usesExplicitCorpusGate25 = (testSource) => {
+    const synchronizationSource = testSource.replace(/\btest\.setTimeout\s*\(\s*[\d_]+\s*\)\s*;?/g, '');
+    return /await corpusGate\.entered/.test(testSource)
+      && /corpusGate\.release\(\)/.test(testSource)
+      && !/setTimeout\s*\(|waitForTimeout\s*\(/.test(synchronizationSource)
+      && !/heldCorpusRequests?|heldCorpusRequestCount|requestCount/.test(testSource)
+      && /page\.route\('\*\*\/data\/\*\*'/.test(corpusRequestGate25)
+      && /entered\.resolve\(\);[\s\S]*await release\.promise;/.test(corpusRequestGate25)
+      && /route\.continue\(\)/.test(corpusRequestGate25)
+      && !/route\.(?:fulfill|abort)\(/.test(corpusRequestGate25);
+  };
+  assert(usesExplicitCorpusGate25(bug018WindowTests25)
+    && !usesExplicitCorpusGate25(bug018WindowTests25 + '\nsetTimeout(function () {}, 2500);')
+    && !usesExplicitCorpusGate25(bug018WindowTests25 + '\nlet heldCorpusRequestCount = 0;'),
+  'BUG-018 request windows use explicit entry and release gates without elapsed-time, counters, or response substitution');
 
   /* TP-025-01: the coverage floor is complete and closed. */
   assert(registry25.rows.length === 15

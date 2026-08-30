@@ -8,6 +8,20 @@ reader sees on first paint, which is a product decision. See "Open Questions For
 
 Every line reference below was read at commit `dc54a8547`.
 
+## Capability Proportionality
+
+### Single-Implementation Justification
+
+This design repairs readiness semantics inside the existing Company Multi-Horizon Intelligence
+composition. It adds one readiness input to `buildCoverageAccount()` and applies that account on
+`company-intelligence-lab.html`. The current-subject reset, pending account state, and rendered
+withholding form one route-level repair.
+
+The packet introduces no second provider, adapter, strategy, plugin, channel, driver, connector,
+variant, screen, service, or independently selectable implementation. It creates no shared
+cross-feature contract. A capability foundation would add extension points without a second
+implementation or consumer.
+
 ## Mechanism
 
 ### The composer cannot express "not yet known"

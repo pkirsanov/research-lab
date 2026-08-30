@@ -1,0 +1,359 @@
+{
+  "version": 1,
+  "specId": "BUG-018",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-30T02:10:07Z",
+  "evidenceBoundary": "Delivered-and-independently-verified planning reconciliation. TP-018-01 through TP-018-18 preserve historical planning links for Scopes 1 through 3. TP-018-19 through TP-018-25 are delivered Scope 4 tests. Scope 4 evidence covers isolated RED-to-GREEN scenario receipts, the publication-contract unit test, focused pending, loaded, and unavailable browser regressions, the complete browser regression, and the repository selftest. Four Scope 4 scenario receipts were independently audited and re-executed on 2026-08-30. This planning artifact makes no validate-owned certification claim.",
+  "scopes": [
+    {
+      "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
+      "scopeName": "Make data-corpus-status Describe The Subject On Screen",
+      "tests": [
+        {
+          "id": "TP-018-01",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-001",
+          "testId": "Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+          "description": "Sample data-corpus-status in the same task as the apply click.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 scope 1\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-02",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-002",
+          "testId": "Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+          "description": "Release the held corpus and assert recovery to loaded or unavailable.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 scope 1\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-03",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-003",
+          "testId": "Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+          "description": "Refuse both guarded input shapes and preserve the standing subject corpus state.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 scope 1\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-04",
+          "type": "broader-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-001",
+          "scenarioIds": [
+            "SCN-BUG-018-001",
+            "SCN-BUG-018-002",
+            "SCN-BUG-018-003"
+          ],
+          "description": "Run the complete Company Multi-Horizon Intelligence Lab browser suite.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-05",
+          "type": "unit-regression",
+          "category": "unit",
+          "file": "tests/company-intelligence.unit.mjs",
+          "scenarioId": "SCN-BUG-018-001",
+          "scenarioIds": [
+            "SCN-BUG-018-001",
+            "SCN-BUG-018-002",
+            "SCN-BUG-018-003"
+          ],
+          "description": "Preserve the module-level company-intelligence contracts while route ordering changes.",
+          "command": "node --test tests/company-intelligence.unit.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-018-06",
+          "type": "repository-regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-BUG-018-001",
+          "scenarioIds": [
+            "SCN-BUG-018-001",
+            "SCN-BUG-018-002",
+            "SCN-BUG-018-003"
+          ],
+          "description": "Preserve the complete build-free Research Lab invariant suite.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false
+        }
+      ]
+    },
+    {
+      "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
+      "scopeName": "Stop Asserting Absence The Route Has Not Established",
+      "tests": [
+        {
+          "id": "TP-018-07",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-004",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+          "description": "The held pending paint does not print settled absence grammar.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 scope 2\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-08",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-005",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+          "description": "Readiness wording is visible while held and absent after settlement.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 scope 2\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-09",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-006",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+          "description": "Every pending horizon card exposes not-established direction and evidence quality.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 scope 2\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-10",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-007",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+          "description": "After resolution, the MSFT account remains 13 of 15 with established directions unchanged.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 scope 2\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-11",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-008",
+          "testId": "Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero",
+          "description": "Corpus-wide request failure resolves to an established unavailable reading.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"file:// origin|every data request still outstanding|every committed source unavailable\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-12",
+          "type": "broader-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-004",
+          "scenarioIds": [
+            "SCN-BUG-018-004",
+            "SCN-BUG-018-005",
+            "SCN-BUG-018-006",
+            "SCN-BUG-018-007",
+            "SCN-BUG-018-008"
+          ],
+          "description": "Run the complete route browser suite after the readiness-contract changes.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-13",
+          "type": "unit-regression",
+          "category": "unit",
+          "file": "tests/company-intelligence.unit.mjs",
+          "scenarioId": "SCN-BUG-018-004",
+          "scenarioIds": [
+            "SCN-BUG-018-004",
+            "SCN-BUG-018-005",
+            "SCN-BUG-018-006",
+            "SCN-BUG-018-007",
+            "SCN-BUG-018-008"
+          ],
+          "description": "Preserve existing two-argument buildCoverageAccount behavior with the additive readiness input.",
+          "command": "node --test tests/company-intelligence.unit.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-018-14",
+          "type": "repository-regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-BUG-018-004",
+          "scenarioIds": [
+            "SCN-BUG-018-004",
+            "SCN-BUG-018-005",
+            "SCN-BUG-018-006",
+            "SCN-BUG-018-007",
+            "SCN-BUG-018-008"
+          ],
+          "description": "Preserve the complete build-free Research Lab invariant suite.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false
+        }
+      ]
+    },
+    {
+      "scopeId": "03-close-the-structural-test-gap",
+      "scopeName": "Close The Structural Test Gap",
+      "tests": [
+        {
+          "id": "TP-018-15",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-009",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+          "description": "Hold the corpus, wait only for composed, and assert the visible copy is not settled absence grammar.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 scope 2\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-16",
+          "type": "adversarial-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-010",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+          "description": "Run the persistent case after a bounded removal of only the pending coverage guard and require the visible-copy assertion to fail.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 scope 2\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-17",
+          "type": "broader-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-009",
+          "scenarioIds": [
+            "SCN-BUG-018-009",
+            "SCN-BUG-018-010"
+          ],
+          "description": "Run the complete route browser suite and retain all pre-existing journeys plus the pending-window case.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-18",
+          "type": "repository-regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-BUG-018-009",
+          "scenarioIds": [
+            "SCN-BUG-018-009",
+            "SCN-BUG-018-010"
+          ],
+          "description": "Preserve the complete build-free Research Lab invariant suite after closing the test gap.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false
+        }
+      ]
+    },
+    {
+      "scopeId": "04-enforce-the-shared-rldata-publication-trust-boundary",
+      "scopeName": "Enforce The Shared RLDATA Publication Trust Boundary",
+      "tests": [
+        {
+          "id": "TP-018-19",
+          "type": "publication-contract-unit-regression",
+          "category": "unit",
+          "file": "tests/company-intelligence.unit.mjs",
+          "scenarioId": "SCN-BUG-018-011",
+          "scenarioIds": [
+            "SCN-BUG-018-011",
+            "SCN-BUG-018-012",
+            "SCN-BUG-018-013"
+          ],
+          "testId": "BUG-018 company tool-read publication requires established account readiness",
+          "description": "Exercise the production company publisher with actual coverage-account outputs. A not-established account produces no ordinary write; established loaded and unavailable accounts retain valid rl-tool-read/v1 output.",
+          "command": "node --test tests/company-intelligence.unit.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-018-20",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-011",
+          "testId": "Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel",
+          "description": "Install channel observation and a held request-entry gate with entered and release signals before navigation. After request entry and before release, require a composed not-established account to create no new ordinary rl-tool-read/v1 publication.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 pending readiness\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-21",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-012",
+          "testId": "Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel",
+          "description": "Release the same observed held request-entry gate to a loaded corpus, await established readiness, and require RLDATA.toolRead('company-intelligence-lab') to carry the exact nine-key ordinary contract for the settled account.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 settled readiness\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-22",
+          "type": "scenario-specific-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-013",
+          "testId": "Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel",
+          "description": "Use the real ephemeral static server's missing-source path, await unavailable corpus status plus established readiness, and require the stored ordinary record to report availability unavailable with null asOf and freshUntil.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep \"BUG-018 unavailable settlement\"",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-23",
+          "type": "scenario-specific-functional-regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-BUG-018-014",
+          "testId": "BUG-018 test provenance distinguishes ordinary traffic from annotated pass-through fault injection",
+          "description": "Reject the stale blanket no-interception claim. Accept count-independent wording that distinguishes ordinary real-response cases from annotated page.route hold or delay regions that continue the real response unchanged.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-018-24",
+          "type": "broader-regression-e2e",
+          "category": "e2e-ui",
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-BUG-018-011",
+          "scenarioIds": [
+            "SCN-BUG-018-011",
+            "SCN-BUG-018-012",
+            "SCN-BUG-018-013",
+            "SCN-BUG-018-014"
+          ],
+          "description": "Run the complete Company Multi-Horizon Intelligence Lab browser suite without weakening settled copy, pending copy, offline first paint, refusal, or current-subject assertions.",
+          "command": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-018-25",
+          "type": "repository-regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "scenarioId": "SCN-BUG-018-011",
+          "scenarioIds": [
+            "SCN-BUG-018-011",
+            "SCN-BUG-018-012",
+            "SCN-BUG-018-013",
+            "SCN-BUG-018-014"
+          ],
+          "description": "Run the complete build-free Research Lab invariant suite and require its current zero-failure contract without pinning a stale historical pass count.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false
+        }
+      ]
+    }
+  ]
+}

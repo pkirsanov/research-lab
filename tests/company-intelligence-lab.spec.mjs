@@ -1,9 +1,10 @@
 /*
  * Company Multi-Horizon Intelligence Lab — browser surface (feature 025 scope 2).
  *
- * The route is exercised as a production user meets it: its own ephemeral static server, no
- * request interception, no stubbed module. Every assertion reads what the page actually rendered
- * from the committed corpus it actually fetched.
+ * Ordinary cases use the real ephemeral static server and unmodified responses.
+ * Explicitly annotated pass-through fault-injection cases use `page.route()` only to hold or delay a request.
+ * `route.continue()` then forwards the real response unchanged. No case fulfills or aborts a business response.
+ * Every assertion reads what the production page actually rendered from the committed corpus it fetched.
  *
  * Run: npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
  *        --config=playwright.config.mjs --project=system-chrome --reporter=list
@@ -36,6 +37,74 @@ test.afterAll(async () => {
 test.afterEach(async ({ page }) => {
     await page.unrouteAll({ behavior: 'ignoreErrors' });
 });
+
+const COMPANY_TOOL_ID = 'company-intelligence-lab';
+const ORDINARY_TOOL_READ_KEYS = [
+    'asOf', 'availability', 'computedAt', 'contractVersion', 'deepLink',
+    'freshUntil', 'id', 'metrics', 'read'
+];
+
+function deferredSignal() {
+    let resolveSignal;
+    let resolved = false;
+    const promise = new Promise((resolve) => { resolveSignal = resolve; });
+    return {
+        promise,
+        resolve: () => {
+            if (resolved) return;
+            resolved = true;
+            resolveSignal();
+        }
+    };
+}
+
+async function installCorpusRequestGate(page) {
+    const entered = deferredSignal();
+    const release = deferredSignal();
+
+    // bubbles:fault-injection-begin reason=hold matching real corpus responses behind explicit request-entry and release signals, then continue each unchanged
+    await page.route('**/data/**', async (route) => {
+        entered.resolve();
+        await release.promise;
+        try { await route.continue(); } catch { /* page or context already closing */ }
+    });
+    // bubbles:fault-injection-end
+
+    return { entered: entered.promise, release: release.resolve };
+}
+
+async function captureCompanyToolReadBaselineBeforeNavigation(page) {
+    await page.addInitScript(({ storageKey, toolId }) => {
+        const serialized = localStorage.getItem(storageKey);
+        const state = serialized === null ? null : JSON.parse(serialized);
+        const reads = state && state.toolReads && typeof state.toolReads === 'object'
+            ? state.toolReads : {};
+        window.__bug018CompanyToolReadBaseline = Object.prototype.hasOwnProperty.call(reads, toolId)
+            ? JSON.parse(JSON.stringify(reads[toolId])) : null;
+    }, { storageKey: 'rlData', toolId: COMPANY_TOOL_ID });
+}
+
+function readCompanyPublicationState(page) {
+    return page.evaluate(({ storageKey, toolId }) => {
+        const serialized = localStorage.getItem(storageKey);
+        const state = serialized === null ? null : JSON.parse(serialized);
+        const reads = state && state.toolReads && typeof state.toolReads === 'object'
+            ? state.toolReads : {};
+        return {
+            baseline: window.__bug018CompanyToolReadBaseline,
+            persistedHasKey: Object.prototype.hasOwnProperty.call(reads, toolId),
+            persistedRecord: Object.prototype.hasOwnProperty.call(reads, toolId) ? reads[toolId] : null,
+            storedRecord: window.RLDATA.toolRead(toolId)
+        };
+    }, { storageKey: 'rlData', toolId: COMPANY_TOOL_ID });
+}
+
+function expectOrdinaryCompanyToolRead(record) {
+    expect(record).not.toBeNull();
+    expect(Object.keys(record).sort()).toEqual(ORDINARY_TOOL_READ_KEYS);
+    expect(record.contractVersion).toBe('rl-tool-read/v1');
+    expect(record.id).toBe(COMPANY_TOOL_ID);
+}
 
 /* One composed run, with every runtime error and failed response captured. Every test starts
    here, so a page-level exception fails the test that would otherwise assert around it. */
@@ -1131,6 +1200,7 @@ test('the first paint composes with every data request still outstanding, then r
     let release;
     const gate = new Promise((resolve) => { release = resolve; });
 
+    // bubbles:fault-injection-begin reason=hold real fetch and XHR responses until first-paint assertions, then continue each unchanged
     await page.route('**/*', async (route, request) => {
         const kind = request.resourceType();
         if (kind !== 'fetch' && kind !== 'xhr') {
@@ -1142,6 +1212,7 @@ test('the first paint composes with every data request still outstanding, then r
         await gate;
         try { await route.continue(); } catch { /* page or context already closing */ }
     });
+    // bubbles:fault-injection-end
 
     const runtimeErrors = [];
     page.on('pageerror', (error) => runtimeErrors.push(error.message));
@@ -1553,39 +1624,43 @@ test('Regression: BUG-018 scope 1 data-corpus-status describes the subject on sc
     await openComposedRoute(page);
     await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'loaded');
 
-    /* Hold the committed corpus so the in-flight window is wide enough to be read deliberately
-       rather than raced. The attribute claim below does not depend on this delay — it is sampled
-       synchronously — but the recovery assertion needs the window to have actually existed. */
-    await page.route('**/data/**', async (route) => {
-        await new Promise((resolve) => setTimeout(resolve, 2500));
-        await route.continue();
-    });
+    /* The return-time assertion remains synchronous. Recovery now uses an explicit request-entry
+       and release gate, so elapsed time is never evidence that the corpus was in flight. */
+    const corpusGate = await installCorpusRequestGate(page);
 
     /* AAPL is covered by the committed corpus and is not the standing subject, so applying it is
        a real subject change that issues a real corpus request. */
-    const onApplyPaint = await page.evaluate(() => {
-        document.getElementById('subject-input').value = 'AAPL';
-        document.getElementById('subject-apply').click();
-        return {
-            corpusStatus: document.body.getAttribute('data-corpus-status'),
-            runStatus: document.body.getAttribute('data-run-status'),
-            identity: document.getElementById('subject-identity').textContent
-        };
-    });
+    try {
+        const onApplyPaint = await page.evaluate(() => {
+            document.getElementById('subject-input').value = 'AAPL';
+            document.getElementById('subject-apply').click();
+            return {
+                corpusStatus: document.body.getAttribute('data-corpus-status'),
+                runStatus: document.body.getAttribute('data-run-status'),
+                identity: document.getElementById('subject-identity').textContent
+            };
+        });
 
-    /* The paint really did adopt the new subject, so the attribute below is being read on a body
-       that is showing AAPL. Without this the `pending` assertion could pass on a page that simply
-       never applied anything. */
-    expect(onApplyPaint.identity, 'the apply paint did not adopt the new subject').toContain('AAPL');
-    expect(onApplyPaint.runStatus, 'the apply paint did not compose').toBe('composed');
-    expect(
-        onApplyPaint.corpusStatus,
-        `data-corpus-status read "${onApplyPaint.corpusStatus}" for a subject whose corpus had not been requested`
-    ).toBe('pending');
+        /* The paint really did adopt the new subject, so the attribute below is being read on a
+           body that is showing AAPL. Without this the `pending` assertion could pass on a page
+           that simply never applied anything. */
+        expect(onApplyPaint.identity, 'the apply paint did not adopt the new subject').toContain('AAPL');
+        expect(onApplyPaint.runStatus, 'the apply paint did not compose').toBe('composed');
+        expect(
+            onApplyPaint.corpusStatus,
+            `data-corpus-status read "${onApplyPaint.corpusStatus}" for a subject whose corpus had not been requested`
+        ).toBe('pending');
 
-    /* And the window closes: the attribute is a transient truth, not a new permanent state. */
-    await expect(page.locator('body')).toHaveAttribute('data-corpus-status', /^(loaded|unavailable)$/, { timeout: 60_000 });
-    await page.unrouteAll({ behavior: 'ignoreErrors' });
+        await corpusGate.entered;
+        corpusGate.release();
+
+        /* And the window closes: the attribute is a transient truth, not a new permanent state. */
+        await expect(page.locator('body'))
+            .toHaveAttribute('data-corpus-status', /^(loaded|unavailable)$/, { timeout: 60_000 });
+    } finally {
+        corpusGate.release();
+        await page.unrouteAll({ behavior: 'ignoreErrors' });
+    }
 
     /* A refused entry requests no corpus, so it must not claim the standing subject's corpus is
        pending either. Both refusal shapes are covered: the shared input rule refuses before the
@@ -1640,18 +1715,9 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
        settles" half of FR-018-003 is asserted against the run that carried it. */
     test.setTimeout(120_000);
 
-    let release;
-    const gate = new Promise((resolve) => { release = resolve; });
-    const heldCorpusRequests = [];
+    const corpusGate = await installCorpusRequestGate(page);
     const runtimeErrors = [];
     page.on('pageerror', (error) => runtimeErrors.push(error.message));
-
-    await page.route('**/data/**', async (route, request) => {
-        heldCorpusRequests.push(request.url());
-        await gate;
-        /* A handler that throws or never settles keeps its worker alive past the test. */
-        try { await route.continue(); } catch { /* page or context already closing */ }
-    });
 
     const readPaint = () => page.evaluate(() => ({
         corpusStatus: document.body.getAttribute('data-corpus-status'),
@@ -1673,6 +1739,7 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
 
     try {
         await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await corpusGate.entered;
         await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
 
         const pending = await readPaint();
@@ -1681,10 +1748,6 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
            that had already settled, or that had never composed at all — which is exactly how a
            test can look like coverage of this window while sitting outside it. */
         expect(pending.corpusStatus, 'the corpus must still be in flight when this paint is read').toBe('pending');
-        expect(
-            heldCorpusRequests.length,
-            'the route must actually have asked for the committed corpus, or nothing is being held'
-        ).toBeGreaterThan(0);
         expect(pending.horizons, 'the held paint must be a real composed cockpit, not an empty shell').toHaveLength(4);
 
         /* FR-018-001 — no definite absence count against an unresolved corpus, in the copy a
@@ -1726,7 +1789,7 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
 
         /* Now let the corpus answer. The settled half proves the remedy is a window and not a
            permanent withholding: the same page, reconciling. */
-        release();
+        corpusGate.release();
         await expect(page.locator('body'))
             .toHaveAttribute('data-corpus-status', /^(loaded|unavailable)$/, { timeout: 60_000 });
         await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
@@ -1752,8 +1815,90 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
     } finally {
         /* Resume every parked handler first, then drop the routes: an unhandled rejection from a
            handler that outlives its test is what keeps a Playwright worker from exiting. */
-        release();
+        corpusGate.release();
         await page.unrouteAll({ behavior: 'ignoreErrors' });
+    }
+});
+
+test('Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel', async ({ page }) => {
+    test.setTimeout(120_000);
+    await captureCompanyToolReadBaselineBeforeNavigation(page);
+    const corpusGate = await installCorpusRequestGate(page);
+
+    try {
+        await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await corpusGate.entered;
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed');
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'not-established');
+
+        const publication = await readCompanyPublicationState(page);
+        expect(publication.baseline, 'the isolated context must start without a prior company read').toBeNull();
+        expect(publication.persistedHasKey, 'the pending paint wrote the ordinary rlData.toolReads key').toBe(false);
+        expect(publication.persistedRecord, 'the pending paint persisted an ordinary record').toBeNull();
+        expect(publication.storedRecord, 'RLDATA.toolRead exposed the pending account as settled').toBeNull();
+    } finally {
+        corpusGate.release();
+        await page.unrouteAll({ behavior: 'ignoreErrors' });
+    }
+});
+
+test('Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel', async ({ page }) => {
+    test.setTimeout(120_000);
+    await captureCompanyToolReadBaselineBeforeNavigation(page);
+    const corpusGate = await installCorpusRequestGate(page);
+
+    try {
+        await page.goto(`${site.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await corpusGate.entered;
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'not-established');
+
+        const pending = await readCompanyPublicationState(page);
+        expect(pending.baseline, 'the isolated context must start without a prior company read').toBeNull();
+        expect(pending.storedRecord, 'the pending account must remain withheld before release').toBeNull();
+
+        corpusGate.release();
+        await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'loaded', { timeout: 60_000 });
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
+
+        const settled = await readCompanyPublicationState(page);
+        expect(settled.persistedHasKey, 'the established account must create the ordinary key').toBe(true);
+        expectOrdinaryCompanyToolRead(settled.storedRecord);
+        expect(settled.persistedRecord).toEqual(settled.storedRecord);
+        expect(settled.storedRecord.metrics.coverageTotals.unavailable).toBe(13);
+        expect(settled.storedRecord.read).toMatch(/^MSFT:/);
+        expect(settled.storedRecord.read).not.toContain('not-established');
+        const directed = settled.storedRecord.metrics.horizonSummaries
+            .filter((summary) => summary.direction !== 'none')
+            .map((summary) => summary.horizonId)
+            .sort();
+        expect(directed).toEqual(['event', 'immediate', 'swing']);
+    } finally {
+        corpusGate.release();
+        await page.unrouteAll({ behavior: 'ignoreErrors' });
+    }
+});
+
+test('Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel', async ({ page }) => {
+    const broken = await startStaticServer({ missing: COMMITTED_SOURCES });
+    try {
+        await captureCompanyToolReadBaselineBeforeNavigation(page);
+        await page.goto(`${broken.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'unavailable', { timeout: 30_000 });
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
+
+        const publication = await readCompanyPublicationState(page);
+        expect(publication.baseline, 'the isolated context must start without a prior company read').toBeNull();
+        expect(publication.persistedHasKey, 'unavailable settlement must create the ordinary key').toBe(true);
+        expectOrdinaryCompanyToolRead(publication.storedRecord);
+        expect(publication.persistedRecord).toEqual(publication.storedRecord);
+        expect(publication.storedRecord.availability).toBe('unavailable');
+        expect(publication.storedRecord.asOf).toBeNull();
+        expect(publication.storedRecord.freshUntil).toBeNull();
+        expect(publication.storedRecord.metrics.coverageTotals.unavailable).toBe(15);
+        expect(publication.storedRecord.metrics.horizonSummaries
+            .every((summary) => summary.direction === 'none' && summary.evidenceQuality === 'absent')).toBe(true);
+    } finally {
+        await broken.close();
     }
 });
 

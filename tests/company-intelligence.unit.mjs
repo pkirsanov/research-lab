@@ -1252,13 +1252,12 @@ test('partitionByHorizon returns four deep-frozen sets a caller cannot mutate', 
 
 /* ---------- 1.20 adversarial ---------- */
 
-function publishableVersion() {
-    const { bundle, subject } = richBundle();
+function readVersionFor(subject, bundle, coverageReadiness) {
     const horizons = composeAll(bundle);
     return INTEL.buildReadVersion({
         subject,
         horizons,
-        coverageAccount: INTEL.buildCoverageAccount(bundle, REGISTRY),
+        coverageAccount: INTEL.buildCoverageAccount(bundle, REGISTRY, coverageReadiness),
         evidenceFamilies: INTEL.groupEvidenceFamilies(bundle),
         contradictions: INTEL.extractContradictions(horizons),
         researchPlan: INTEL.attachResearchPlan(subject, sourcesOf()),
@@ -1266,6 +1265,50 @@ function publishableVersion() {
         refusals: bundle.refusals
     }, DECISION_TIME);
 }
+
+function publishableVersion() {
+    const { bundle, subject } = richBundle();
+    return readVersionFor(subject, bundle, 'established');
+}
+
+test('BUG-018 company tool-read publication requires established account readiness', () => {
+    const loaded = richBundle();
+    const pendingVersion = readVersionFor(loaded.subject, loaded.bundle, 'not-established');
+    const pendingStore = stubData();
+    const withheld = INTEL.publishToolRead(pendingVersion, pendingStore);
+
+    assert.equal(withheld.contractVersion, 'company-intel-error/v1');
+    assert.ok(INTEL.ERROR_CODES.includes(withheld.code));
+    assert.match(withheld.message, /not established/i);
+    assert.deepEqual(pendingStore.written, {}, 'not-established readiness produces no ordinary write');
+
+    const loadedVersion = readVersionFor(loaded.subject, loaded.bundle, 'established');
+    const loadedStore = stubData();
+    const publishedLoaded = INTEL.publishToolRead(loadedVersion, loadedStore);
+    assert.equal(publishedLoaded.contractVersion, 'rl-tool-read/v1');
+    assert.deepEqual(Object.keys(publishedLoaded).sort(), INTEL.TOOL_READ_KEYS.slice().sort());
+    assert.equal(publishedLoaded.metrics.coverageTotals.unavailable, loadedVersion.coverageAccount.totals.unavailable);
+    assert.deepEqual(loadedStore.written[INTEL.TOOL_ID], publishedLoaded);
+
+    const unavailableSubject = INTEL.resolveSubject('ZYX', {
+        secCompanies: [], barSymbols: ['ZYX'], decisionTime: DECISION_TIME
+    });
+    const unavailableBundle = INTEL.runAdapters(
+        unavailableSubject,
+        sourcesOf({ secCompanies: [], benchmarkSymbol: null }),
+        DECISION_TIME,
+        stubData()
+    );
+    const unavailableVersion = readVersionFor(unavailableSubject, unavailableBundle, 'established');
+    const unavailableStore = stubData();
+    const publishedUnavailable = INTEL.publishToolRead(unavailableVersion, unavailableStore);
+    assert.equal(publishedUnavailable.contractVersion, 'rl-tool-read/v1');
+    assert.deepEqual(Object.keys(publishedUnavailable).sort(), INTEL.TOOL_READ_KEYS.slice().sort());
+    assert.equal(publishedUnavailable.availability, 'unavailable');
+    assert.equal(publishedUnavailable.asOf, null);
+    assert.equal(publishedUnavailable.freshUntil, null);
+    assert.deepEqual(unavailableStore.written[INTEL.TOOL_ID], publishedUnavailable);
+});
 
 test('adversarial: an extra published key raises C025-PUBLISH-LOSSY rather than reporting success', () => {
     const version = publishableVersion();

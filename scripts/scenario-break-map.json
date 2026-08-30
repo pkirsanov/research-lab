@@ -854,6 +854,234 @@
       "control": "carry and direct cost are collapsed into one blended net figure, which is exactly the conflation that lets a large carry hide behind a large risk reduction and leaves a reader unable to see what the hedge actually costs to hold",
       "claim": "The hedge comparison keeps carry, direct cost, turnover, financing, and basis risk as separate columns, so no single blended figure can conceal one cost behind another",
       "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+
+    "SCN-BUG-018-001": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": [
+            "                var standingCorpusStatus = corpusStatus;",
+            "                corpusStatus = \"pending\";",
+            "                var result = compose();"
+          ],
+          "replace": [
+            "                var standingCorpusStatus = corpusStatus;",
+            "                var result = compose();"
+          ]
+        }
+      ],
+      "control": "the current subject is composed and painted before corpusStatus is reset, so the return-time body attribute retains the departed subject's loaded state instead of reporting pending",
+      "claim": "Applying a new subject reports pending in the same click task rather than retaining the prior subject's loaded corpus state",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-002": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": [
+            "                        if (intent !== readingIntent) return;",
+            "                        run();"
+          ],
+          "replace": [
+            "                        if (intent !== readingIntent) return;",
+            "                        if (intent > 0) return;",
+            "                        run();"
+          ]
+        }
+      ],
+      "control": "a manually applied subject's completed corpus load is prevented from repainting, so the body remains pending after the held real request is released",
+      "claim": "The current subject leaves pending and reports loaded or unavailable after its corpus request resolves",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-003": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": [
+            "                if (refusal) {",
+            "                    renderRefusal(refusal);",
+            "                    return;",
+            "                }"
+          ],
+          "replace": [
+            "                if (refusal) {",
+            "                    corpusStatus = \"pending\";",
+            "                    renderRefusal(refusal);",
+            "                    return;",
+            "                }"
+          ]
+        }
+      ],
+      "control": "the direct refusal path resets corpusStatus even though it requests no replacement corpus, so the standing subject is misreported as pending",
+      "claim": "A refused entry preserves the standing subject's settled corpus state",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-004": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                setText(\"cockpit-coverage-line\", established",
+          "replace": "                setText(\"cockpit-coverage-line\", true"
+        }
+      ],
+      "control": "the cockpit coverage branch is forced onto its settled arm while the committed corpus is held, restoring a definite unavailable-dimension count before any source has answered",
+      "claim": "The pending paint does not print settled absence grammar",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-005": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                    : \"Waiting for the committed corpus for this company. Until it answers, this run has established \" +",
+          "replace": "                    : \"This company account is incomplete. This run has established \" +"
+        }
+      ],
+      "control": "the held paint drops the route's contracted waiting-for-the-committed-corpus wording, so a body-text reader can no longer identify the pending window",
+      "claim": "The pending window is named visibly and that readiness wording disappears after settlement",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-006": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                    var direction = established ? horizon.direction : \"not-established\";",
+          "replace": "                    var direction = horizon.direction;"
+        }
+      ],
+      "control": "each pending horizon emits its computed none direction instead of not-established, making an unanswered corpus look like a settled no-direction finding",
+      "claim": "No horizon card presents a settled direction while its corpus is unresolved",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-007": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                    ? version.coverageAccount.totals.unavailable + \" of \" + version.coverageAccount.rows.length +",
+          "replace": "                    ? (version.coverageAccount.totals.unavailable + 1) + \" of \" + version.coverageAccount.rows.length +"
+        }
+      ],
+      "control": "the settled cockpit overstates unavailable coverage by one, so MSFT no longer reconciles to the established 13-of-15 account after release",
+      "claim": "The settled MSFT reading remains 13 of 15 with the established directional horizon set unchanged",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-008": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                return corpusStatus === \"pending\" ? \"not-established\" : \"established\";",
+          "replace": "                return corpusStatus === \"loaded\" ? \"established\" : \"not-established\";"
+        }
+      ],
+      "control": "an unavailable corpus is classified as not-established, so the total-outage route withholds its settled unavailable coverage rows instead of naming the absence",
+      "claim": "A corpus resolved to unavailable is an established reading rather than a perpetual pending state",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-009": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                setText(\"cockpit-coverage-line\", established",
+          "replace": "                setText(\"cockpit-coverage-line\", true"
+        }
+      ],
+      "control": "the production route's pending coverage guard is removed while the unchanged browser test still enters the held pre-settlement window and reads the visible cockpit copy",
+      "claim": "The committed browser suite samples the composed paint before corpus resolution and rejects settled absence copy there",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-010": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                setText(\"cockpit-coverage-line\", established",
+          "replace": "                setText(\"cockpit-coverage-line\", true"
+        }
+      ],
+      "control": "only the cockpit pending guard is forced onto its settled arm, and the unchanged copy assertion fails on the reintroduced definite absence sentence",
+      "claim": "The pending-window regression detects removal of the coverage guard",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-011": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel",
+      "breakFile": "rlcompanyintel.js",
+      "edits": [
+        {
+          "find": "        if (!isPlainObject(version.coverageAccount) || version.coverageAccount.readiness !== \"established\") {",
+          "replace": "        if (!isPlainObject(version.coverageAccount)) {"
+        }
+      ],
+      "control": "the company publisher no longer checks account readiness, so the held not-established paint writes an ordinary rl-tool-read/v1 record before its corpus answers",
+      "claim": "A pending company account produces no new ordinary shared tool-read publication",
+      "implementationRefs": ["rlcompanyintel.js", "company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-012": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel",
+      "breakFile": "rlcompanyintel.js",
+      "edits": [
+        {
+          "find": "        var written = rldata.putToolRead(TOOL_ID, candidate);",
+          "replace": "        var written = null;"
+        }
+      ],
+      "control": "the established publisher never calls the ordinary shared write, so releasing the held loaded corpus leaves the company tool-read key absent",
+      "claim": "An established loaded company account publishes its exact ordinary rl-tool-read/v1 record after settlement",
+      "implementationRefs": ["rlcompanyintel.js", "company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-013": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel",
+      "breakFile": "rlcompanyintel.js",
+      "edits": [
+        {
+          "find": "        if (!isPlainObject(version.coverageAccount) || version.coverageAccount.readiness !== \"established\") {",
+          "replace": [
+            "        if (!isPlainObject(version.coverageAccount) || version.coverageAccount.readiness !== \"established\" ||",
+            "                version.coverageAccount.totals.current + version.coverageAccount.totals.partial === 0) {"
+          ]
+        }
+      ],
+      "control": "the publisher treats an established account with zero answered dimensions as still unpublishable, so a settled unavailable corpus never reaches the ordinary channel",
+      "claim": "An established unavailable company account remains eligible for ordinary shared publication",
+      "implementationRefs": ["rlcompanyintel.js", "company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-014": {
+      "test": "scripts/selftest.mjs#BUG-018 test provenance distinguishes ordinary traffic from annotated pass-through fault injection",
+      "breakFile": "tests/company-intelligence-lab.spec.mjs",
+      "edits": [
+        {
+          "find": [
+            " * Ordinary cases use the real ephemeral static server and unmodified responses.",
+            " * Explicitly annotated pass-through fault-injection cases use `page.route()` only to hold or delay a request.",
+            " * `route.continue()` then forwards the real response unchanged. No case fulfills or aborts a business response."
+          ],
+          "replace": " * The route is exercised as a production user meets it: its own ephemeral static server, no request interception, no stubbed module."
+        }
+      ],
+      "control": "the browser-file header restores the stale blanket no-request-interception claim and omits the annotated pass-through hold or delay boundary",
+      "claim": "Browser-test provenance distinguishes ordinary real traffic from annotated pass-through request holds and delays",
+      "implementationRefs": ["tests/company-intelligence-lab.spec.mjs", "scripts/selftest.mjs"]
     }
   }
 }

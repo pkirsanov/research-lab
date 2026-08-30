@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** In Progress
+**Status:** Done
 
 **Scope-Kind:** runtime-behavior
 
@@ -246,7 +246,7 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
     ```
 
   - **Evidence:** [report.md#tp-01-06](report.md#tp-01-06).
-- [ ] Scope 01 attribution covers all 12 implementation-bearing files without attributing unrelated root-commit paths or claiming isolated commit history.
+- [x] Scope 01 attribution covers all 12 implementation-bearing files without attributing unrelated root-commit paths or claiming isolated commit history.
   - **Allowed-path accounting:** Account for all 12 unique files in [Code Diff Evidence](report.md#code-diff-evidence). Confirm each file is allowed by [Change Boundary And Rollback](#change-boundary-and-rollback). Map every added hunk to its declared Scope 01 purpose. Missing, duplicate, disallowed, or unmapped entries fail this item.
   - **Non-vacuous coupling inventory:** Produce an inventory that names all 12 files. Trace their imports, script loads, fetches, runtime writes, generated-artifact writes, browser-storage writes, and public consumers. No edge may reach an excluded surface. Permit only read-only contracts documented in [Historical Attribution And Coupling Contract](#historical-attribution-and-coupling-contract). Empty output, an unmatched pathspec, or a partial 12-file result fails this item.
   - **Root-commit partition:** Commit `db06c29650ba351770297acefa658f51cbc4ff00` changes 953 paths. Attribute only the 12 ledger files to Scope 01. The other 941 paths are unrelated repository context. They are not Scope 01-attributable and cannot serve as Scope 01 evidence.
@@ -256,11 +256,8 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
     - `node --test tests/portfolio-privacy.functional.mjs`
     - `node scripts/selftest.mjs`
   - Run the immutable-history and coupling inventory commands exactly as written in [Historical Attribution And Coupling Contract](#historical-attribution-and-coupling-contract). Record current-session commands, exit codes, and non-empty outputs in [report.md](report.md).
-  > **Uncertainty Declaration**
-  > **What was attempted:** Planning replaced the retrospective commit-isolation claim with a closed scope-attribution contract.
-  > **What was observed:** The report lists 12 implementation-bearing files. The root commit includes 941 other paths that this contract excludes from Scope 01.
-  > **Why this is uncertain:** No current execution-owner evidence satisfies the revised path, hunk, dependency, write, and consumer inventory.
-  > **What would resolve this:** Execute the listed commands and non-vacuous inventories. Record their current-session outputs and exit codes in the scope report.
+  > **Resolution** (supersedes the prior Uncertainty Declaration)
+  > [Independent test re-verification](report.md#scope-01-attribution-contract---independent-test-re-verification-binding-revision-36) and [implement re-execution](report.md#scope-01-historical-attribution-and-coupling-contract---implement-re-execution-2026-08-30) each establish the closed $12 + 426 + 515 = 953$ partition, exact 25-edge inventory, both negative sentinels, coherent 61/24/17/3435 results, and the no-isolated-history claim limit. The supplied current-session `/bubbles.audit` result independently returned `completed_diagnostic` / `PASS` with zero unresolved findings and accepted the one-to-one purpose ledger for all 12 whole-file additions.
 - [x] Rollback or restore path for shared infrastructure changes is documented and verified
   - **Documented at:** the `Rollback/restore` paragraph of [Change Boundary And Rollback](#change-boundary-and-rollback) — remove only Scope 01 new files and fixture entries, never a user personal storage key.
   - **Verifying rows:** TP-01-01 for the incompatible-newer-record safety path and TP-01-05 for last-known-good retention across durable, session-only, and memory-only modes.

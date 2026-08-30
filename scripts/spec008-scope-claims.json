@@ -1,0 +1,1836 @@
+{
+  "schemaVersion": "spec008-scope-claims/v1",
+  "specId": "008",
+  "entries": [
+    {
+      "itemId": "SCOPE-03-BOUNDARY-CLAIM",
+      "scopeId": "03",
+      "kind": "boundary",
+      "dodClaim": "Scope-03 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolio.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "var BEHAVIOR_EVENT_VERSION = \"BehaviorEvent/v1\";",
+              "function privacyInventory(workspace, storageAdapters, policy)",
+              "function clearAllPersonalData(request)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "id=\"privacyPanel\"",
+              "function renderPrivacyCategories()",
+              "byId(\"clearBehavior\").addEventListener"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation.config.json",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "\"contractVersion\": \"portfolio-behavior-policy/v1\"",
+              "\"forbiddenEventFields\": ["
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-foundation.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "privacy inventory reports real category counts and carries no stored subject value",
+              "behavior clear empties behavior categories only after they are proven non-empty and preserves portfolio and mandate identity"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-brief.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-privacy.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Adversarial: full personal clear detects undeclared keys live state and arbitrary residue"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-foundation.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio",
+              "Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolio.js",
+        "portfolio-survival-allocation-lab.html",
+        "portfolio-survival-allocation.config.json",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-04-BOUNDARY-CLAIM",
+      "scopeId": "04",
+      "kind": "boundary",
+      "dodClaim": "Scope-04 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rldata.js",
+          "attribution": {
+            "kind": "marker",
+            "identities": [
+              "Feature 008 Scope 04/19: coverage-aware bar reads",
+              "function ensureBarCoverage(sym, interval, target, sourcePolicy)"
+            ]
+          }
+        },
+        {
+          "path": "rlportfolio.js",
+          "attribution": {
+            "kind": "marker",
+            "identities": [
+              "Feature 008 Scope 04: public tool-read barrier",
+              "End Feature 008 Scope 04"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Feature 008 Scope 04: render what each holding's evidence supports.",
+              "function renderHoldingTruth()"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-foundation.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "SCN-008-005 TP-04-01: bar coverage is measured from actual dates and same-origin-only never issues a request"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-publisher-boundary.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "SCN-008-005 TP-04-02: no publisher script imports the personal module or names a personal storage key"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-foundation.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary"
+            ]
+          }
+        },
+        {
+          "path": "scripts/selftest.mjs",
+          "attribution": {
+            "kind": "marker",
+            "identities": [
+              "Feature 008 Scope 04 shared-consumer canary",
+              "Scope 04 TP-04-04: the additive ensureBarCoverage method is present"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rldata.js",
+        "rlportfolio.js",
+        "portfolio-survival-allocation-lab.html",
+        "tests/",
+        "scripts/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-08-BOUNDARY-CLAIM",
+      "scopeId": "08",
+      "kind": "boundary",
+      "dodClaim": "Scope-08 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolioanalytics.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 08 concentration",
+              "function computeConcentration(holdings, lens)",
+              "function riskContributions(symbols, weights, covariance, options)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 08 diagnostics",
+              "riskContributions"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation.config.json",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "\"minimumCapmObservations\": 126",
+              "\"covarianceShrinkageLambda\": 0.2",
+              "\"riskReconciliationTolerance\": 0.00000001"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-analytics.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "TP-08-01 concentration reports missing exposure rather than bucketing it",
+              "TP-08-01 risk contributions reconcile to total risk within tolerance"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-risk.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-015 concentration lenses expose overlap and missing look through"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolioanalytics.js",
+        "portfolio-survival-allocation-lab.html",
+        "portfolio-survival-allocation.config.json",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-09-BOUNDARY-CLAIM",
+      "scopeId": "09",
+      "kind": "boundary",
+      "dodClaim": "Scope-09 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolioanalytics.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 09 dependent paths",
+              "function runScenario(spec, sampleReturns, options)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 09 Path Lab",
+              "function appendPathLab(panel)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation.config.json",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "\"stationaryBootstrapMeanBlockSessions\": 10",
+              "\"pathCount\": 2000"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-analytics.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "TP-09-01 the same specification reproduces byte-identical results"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-paths.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths"
+            ]
+          }
+        },
+        {
+          "path": "rlportfolio.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "function buildScenarioCandidate(identity, label, summary, currentWorkspace, now, policy)"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-foundation.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 09 declared `scenarios`",
+              "api.buildScenarioCandidate("
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-privacy.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 09 gave `scenarios` a real write path"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-foundation.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "'quarantine', 'scenarios', 'session-fallback'"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolioanalytics.js",
+        "rlportfolio.js",
+        "portfolio-survival-allocation-lab.html",
+        "portfolio-survival-allocation.config.json",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-16-BOUNDARY-CLAIM",
+      "scopeId": "16",
+      "kind": "boundary",
+      "dodClaim": "Scope-16 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "data-tool-id=\"portfolio-survival-allocation-lab\"",
+              "id=\"workspaceTabBrief\""
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation.config.json",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "\"contractVersion\": \"portfolio-survival-allocation-policy/v1\"",
+              "\"defaultWorkspaceHash\": \"#brief\""
+            ]
+          }
+        },
+        {
+          "path": "rlportfolio.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "PortfolioWorkspaceViewModel/v1",
+              "function computeWorkspace(context, evidence, policy)"
+            ]
+          }
+        },
+        {
+          "path": "scripts/selftest.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "sitePlan.registeredPages.includes('portfolio-survival-allocation-lab.html')",
+              "Portfolio Survival, Research Agenda, Causal Rotation and Horizon Ladder append after Trend Dynamics without reordering the prior registry"
+            ]
+          }
+        },
+        {
+          "path": "rlnav.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "label: \"Portfolio Survival\"",
+              "file: \"portfolio-survival-allocation-lab.html\""
+            ]
+          }
+        },
+        {
+          "path": "tools.json",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "\"id\": \"portfolio-survival-allocation-lab\"",
+              "\"title\": \"Portfolio Survival & Allocation Lab\""
+            ]
+          }
+        },
+        {
+          "path": "index.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "id: 'portfolio-survival-allocation-lab'",
+              "file: 'portfolio-survival-allocation-lab.html'"
+            ]
+          }
+        },
+        {
+          "path": "README.md",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Portfolio Survival & Allocation Lab",
+              "portfolio-survival-allocation-lab.html"
+            ]
+          }
+        },
+        {
+          "path": "notes/portfolio-survival-allocation-lab.md",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-mobile.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-036 registration rlnav tools index README and note form one atomic release transaction"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "portfolio-survival-allocation-lab.html",
+        "portfolio-survival-allocation.config.json",
+        "rlportfolio.js",
+        "scripts/",
+        "rlnav.js",
+        "tools.json",
+        "index.html",
+        "README.md",
+        "notes/",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-17-BOUNDARY-CLAIM",
+      "scopeId": "17",
+      "kind": "boundary",
+      "dodClaim": "Scope-17 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolio.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "function editHoldingRow(draft, holdingId, patch, policy)",
+              "function removeHoldingRow(draft, holdingId, policy)",
+              "function clearAllPersonalData(request)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "id=\"emergencyClear\"",
+              "CLEAR ALL LOCAL DATA"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation.config.json",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "\"displayModeKey\": \"rlPortfolioWorkspaceV1.displayMode\"",
+              "\"returnContextKey\": \"rlReturnContextV1\""
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-foundation.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "SCN-008-042 immutable PortfolioDraft lifecycle preserves stable holdings and commits an honest empty revision",
+              "SCN-008-043 validated ClearTombstone commits before verified deletion and returns value-safe evidence"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-privacy.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "SCN-008-042 and SCN-008-043 multi-row revision and full clear round trip through fresh adapters and controller inspection"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-foundation.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio",
+              "Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolio.js",
+        "portfolio-survival-allocation-lab.html",
+        "portfolio-survival-allocation.config.json",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-18-BOUNDARY-CLAIM",
+      "scopeId": "18",
+      "kind": "boundary",
+      "dodClaim": "Scope-18 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolio.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "var BEHAVIOR_OCCURRENCE_VERSION = \"BehaviorOccurrence/v1\";",
+              "function dedupeBehaviorEvents(events, policy)"
+            ]
+          }
+        },
+        {
+          "path": "rlportfoliobrief.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "function deriveInterestSignals(input)",
+              "function rankResearchActions(input)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "behaviorRankingFingerprint",
+              "function behaviorRanking()"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-brief.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "SCN-008-044 behavior identity civil time distinct floors and global ranking are canonical"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-foundation.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "api.dedupeBehaviorEvents([atNow, atNow]"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-privacy.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "SCN-008-044 TP-18-02 canonical behavior and rank references stay minimal and full clear removes them without public-state loss"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-brief.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolio.js",
+        "rlportfoliobrief.js",
+        "portfolio-survival-allocation-lab.html",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-19-BOUNDARY-CLAIM",
+      "scopeId": "19",
+      "kind": "boundary",
+      "dodClaim": "Scope-19 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rldata.js",
+          "attribution": {
+            "kind": "marker",
+            "identities": [
+              "Feature 008 Scope 04/19: coverage-aware bar reads",
+              "function ensureBarCoverage(sym, interval, target, sourcePolicy)"
+            ]
+          }
+        },
+        {
+          "path": "scripts/selftest.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 19 TP-19-01: the exact four-argument coverage contract is Promise-based",
+              "Scope 19 TP-19-01: ensureBars name, Promise behavior, arguments and cached rows remain compatible"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-bar-coverage.functional.mjs",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-foundation.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rldata.js",
+        "scripts/",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-20-BOUNDARY-CLAIM",
+      "scopeId": "20",
+      "kind": "boundary",
+      "dodClaim": "Scope-20 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfoliobrief.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "function validateGenericWindow(input, policy, clock)",
+              "function composePortfolioBrief(input, policy)",
+              "contractVersion: \"PortfolioError/v1\""
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "function renderBrief()",
+              "genericEvidenceIdentity"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-brief.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-publisher-boundary.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "SCN-008-046 all five public artifacts contribute independently to one local generic evidence identity"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-brief.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent"
+            ]
+          }
+        },
+        {
+          "path": "scripts/selftest.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "rlportfoliobrief validateGenericWindow"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfoliobrief.js",
+        "portfolio-survival-allocation-lab.html",
+        "tests/",
+        "scripts/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-21-BOUNDARY-CLAIM",
+      "scopeId": "21",
+      "kind": "boundary",
+      "dodClaim": "Scope-21 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolioanalytics.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "contractVersion: \"AssetMetricEligibility/v1\"",
+              "contractVersion: \"RiskDiagnosticSet/v1\""
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "riskStructuredDiagnostics",
+              "function appendRiskXRay(panel)"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-analytics.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "TP-21-01 SCN-008-047 emits complete per-metric eligibility and diagnostic contracts"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-risk.functional.mjs",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-risk.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolioanalytics.js",
+        "portfolio-survival-allocation-lab.html",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-22-BOUNDARY-CLAIM",
+      "scopeId": "22",
+      "kind": "boundary",
+      "dodClaim": "Scope-22 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolioanalytics.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "ScenarioSpecification/v1",
+              "function runScenarioJob(spec, sampleReturns, options)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "contractVersion: \"ScenarioSpecification/v1\"",
+              "pathComputeStatus"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation.config.json",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "\"scenarioChunkSize\": 2000",
+              "\"scenarioMaximumWorkUnits\": 42000"
+            ]
+          }
+        },
+        {
+          "path": "rlportfolio.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "scenarioInputs: []"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-analytics.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "TP-22-01 complete ScenarioSpecification/v1 uses exact keys at every nested boundary"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-paths.functional.mjs",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-paths.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path",
+              "Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolioanalytics.js",
+        "rlportfolio.js",
+        "portfolio-survival-allocation-lab.html",
+        "portfolio-survival-allocation.config.json",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-23-BOUNDARY-CLAIM",
+      "scopeId": "23",
+      "kind": "boundary",
+      "dodClaim": "Scope-23 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolioanalytics.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 23 - complete dependence, appraisal, and hedge contracts",
+              "function qualifiedForbesRigobonAdjustment(input)",
+              "function computeHedgeVariant(input)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "dependenceMatrix",
+              "hedgeVariants"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-analytics.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Adversarial: reduced diversification and hedge shortcuts cannot satisfy the contract"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-diversification.functional.mjs",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-diversification.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence",
+              "Regression: SCN-008-049 hedge variants reuse the selected survival scenario and path identities"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolioanalytics.js",
+        "portfolio-survival-allocation-lab.html",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-24-BOUNDARY-CLAIM",
+      "scopeId": "24",
+      "kind": "boundary",
+      "dodClaim": "Scope-24 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolioanalytics.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 24 - complete constrained allocation and explicit views",
+              "function solveEqualRiskContribution(basis, riskBudget, solverPolicy)",
+              "function solveBlackLittermanAllocation(basis, blackLittermanInput, solverPolicy)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "contractVersion: \"AllocationBasis/v1\"",
+              "allocationResearchInputs"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation.config.json",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "\"allocationSensitivityAxes\": {",
+              "\"blackLittermanTau\": 0.05"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-analytics.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "TP-24-01 six real methods consume one complete basis and expose solver diagnostics"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-allocation.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "TP-24-02 six complete candidates retain one basis costs paths survival and no winner"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-allocation.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views"
+            ]
+          }
+        },
+        {
+          "path": "tests/fixtures/portfolio-survival-allocation/mandate-allocation-infeasible.json",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/fixtures/portfolio-survival-allocation/scope-24-allocation-basis.json",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolioanalytics.js",
+        "portfolio-survival-allocation-lab.html",
+        "portfolio-survival-allocation.config.json",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-25-BOUNDARY-CLAIM",
+      "scopeId": "25",
+      "kind": "boundary",
+      "dodClaim": "Scope-25 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolioanalytics.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "var DECISION_FOLD_VERSION = \"DecisionFold/v1\";",
+              "function walkForwardDossier(request)"
+            ]
+          }
+        },
+        {
+          "path": "rlportfolio.js",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "var RESEARCH_DOSSIER_VERSION = \"ResearchDossier/v1\";",
+              "function appendDossierCorrection(value, request, policy)"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 15/25 Research Dossier",
+              "dossierRecordTable"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-allocation.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "TP-25-01 decision-time folds preserve clocks costs states and exact tried variants"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-dossier.functional.mjs",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-allocation.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolioanalytics.js",
+        "rlportfolio.js",
+        "portfolio-survival-allocation-lab.html",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-26-BOUNDARY-CLAIM",
+      "scopeId": "26",
+      "kind": "boundary",
+      "dodClaim": "Scope-26 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "rlportfolio.js",
+          "attribution": {
+            "kind": "marker",
+            "identities": [
+              "Feature 008 Scope 26: ReturnContext/v1 session handoff",
+              "Feature 008 Scope 26: one orchestration compute",
+              "function computeWorkspace(context, evidence, policy)"
+            ]
+          }
+        },
+        {
+          "path": "rlnav.js",
+          "attribution": {
+            "kind": "marker",
+            "identities": [
+              "generic strict ReturnContext/v1 strip (Feature 008 Scope 26)",
+              "From Portfolio Brief"
+            ]
+          }
+        },
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Scope 26: one orchestration compute for the whole route",
+              "Scope 26: owner handoff, return restore, and the review gate"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-workspace.functional.mjs",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/portfolio-privacy.functional.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "TP-26-02 the ReturnContext handoff writes consumes and refuses under a strict closed contract"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-brief.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-mobile.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-052 owning tool consumes ReturnContext and restores Portfolio Brief focus"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "rlportfolio.js",
+        "rlnav.js",
+        "portfolio-survival-allocation-lab.html",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-27-BOUNDARY-CLAIM",
+      "scopeId": "27",
+      "kind": "boundary",
+      "dodClaim": "Scope-27 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "portfolio-survival-allocation-lab.html",
+          "attribution": {
+            "kind": "marker",
+            "identities": [
+              "Accessibility projection over Scope 26's immutable view model",
+              "Scope 27: accessibility controller",
+              "Scope 27: modal sheet semantics"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-accessibility.spec.mjs",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/portfolio-survival-mobile.spec.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow"
+            ]
+          }
+        },
+        {
+          "path": "tests/portfolio-accessibility-mutation.spec.mjs",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "portfolio-survival-allocation-lab.html",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-28-BOUNDARY-CLAIM",
+      "scopeId": "28",
+      "kind": "boundary",
+      "dodClaim": "Scope-28 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling.",
+      "attributedPaths": [
+        {
+          "path": "scripts/spec008-scope-claims.json",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "scripts/verify-spec008-scope-claims.mjs",
+          "attribution": {
+            "kind": "whole-file"
+          }
+        },
+        {
+          "path": "tests/portfolio-test-integrity.unit.mjs",
+          "attribution": {
+            "kind": "hunk",
+            "identities": [
+              "TP-28-02: Spec 008 scope-claims verifier emits the closed deterministic 41-item inventory",
+              "Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing"
+            ]
+          }
+        }
+      ],
+      "allowedFamilies": [
+        "scripts/",
+        "tests/"
+      ],
+      "excludedEdges": [
+        { "kind": "dependency", "token": "require(\"./market-brief.js\")" },
+        { "kind": "filesystem-write", "token": "writeFileSync(\"market-brief.payload.json\"" },
+        { "kind": "storage-write", "token": "localStorage.setItem(\"portfolioUserProfile\"" },
+        { "kind": "public-consumer", "token": "window.location.assign(\"market-brief.html\")" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-03-CONSUMER-CLAIM",
+      "scopeId": "03",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolio.js", "token": "BehaviorEvent/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolio.js", "token": "function privacyInventory(workspace, storageAdapters, policy)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "privacyPanel", "token": "clearBehavior" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-foundation.spec.mjs", "token": "Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolio.js", "token": "BehaviorProfile/v1" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-04-CONSUMER-CLAIM",
+      "scopeId": "04",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rldata.js", "token": "ensureBarCoverage" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rldata.js", "token": "barAlignmentStates" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "holdingTruth", "token": "renderHoldingTruth" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-foundation.spec.mjs", "token": "Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rldata.js", "token": "ensureFiveYearCoverage" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-05-CONSUMER-CLAIM",
+      "scopeId": "05",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfoliobrief.js", "token": "GenericEvidenceWindow/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfoliobrief.js", "token": "function composeBrief(input)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabBrief", "token": "briefWindow" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-brief.spec.mjs", "token": "Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfoliobrief.js", "token": "composePersonalizedBrief" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-06-CONSUMER-CLAIM",
+      "scopeId": "06",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfoliobrief.js", "token": "BehaviorWhyShown/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfoliobrief.js", "token": "function deriveInterestSignals(input)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "briefLifecycleResult", "token": "briefClearHistory" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-brief.spec.mjs", "token": "Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfoliobrief.js", "token": "engagementScore" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-07-CONSUMER-CLAIM",
+      "scopeId": "07",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "function computeReturnMetrics(aligned, options)" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function alignPortfolioReturns(input)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabRiskXray", "token": "riskReturnMetrics" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-risk.spec.mjs", "token": "Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "computeVolatilityWinner" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-08-CONSUMER-CLAIM",
+      "scopeId": "08",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "RiskDiagnosticSet/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function riskContributions(symbols, weights, covariance, options)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabRiskXray", "token": "riskContributions" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-risk.spec.mjs", "token": "Regression: SCN-008-015 concentration lenses expose overlap and missing look through" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "inverseVolatilityRiskParity" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-09-CONSUMER-CLAIM",
+      "scopeId": "09",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "ScenarioSpecification/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function runScenario(spec, sampleReturns, options)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabPathLab", "token": "pathIdentity" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-paths.spec.mjs", "token": "Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "ScenarioSpec/v0" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-10-CONSUMER-CLAIM",
+      "scopeId": "10",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "function computeSurvival(definition, pathSeries)" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function scheduleCashFlows(flows, sessionDates)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabPathLab", "token": "cashNeedTimeline" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-paths.spec.mjs", "token": "Regression: SCN-008-020 dated cash need records before and after collision capital" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "defaultWithdrawalRate" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-11-CONSUMER-CLAIM",
+      "scopeId": "11",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "ForbesRigobonAdjustment/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function compareStressDependence(request)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabDiversification", "token": "dependenceMatrix" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-diversification.spec.mjs", "token": "Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "contagionDetected" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-12-CONSUMER-CLAIM",
+      "scopeId": "12",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "function computeHedgeVariant(input)" }
+      ],
+      "sourceSurfaces": [
+        { "path": "portfolio-survival-allocation.config.json", "token": "\"hedgeRegressionMinimumObservations\": 5" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabDiversification", "token": "hedgeVariants" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-diversification.spec.mjs", "token": "Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "optimalHedgeRatio" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-13-CONSUMER-CLAIM",
+      "scopeId": "13",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "AllocationBasis/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function solveEqualRiskContribution(basis, riskBudget, solverPolicy)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabAllocation", "token": "allocationComparison" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-allocation.spec.mjs", "token": "Regression: SCN-008-026 all six allocation methods share one frozen basis" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "recommendedAllocation" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-15-CONSUMER-CLAIM",
+      "scopeId": "15",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolio.js", "token": "ResearchDossier/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function walkForwardDossier(request)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabDossier", "token": "researchDossier" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-allocation.spec.mjs", "token": "Regression: SCN-008-031 dossier separates in sample walk forward costs and trials" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolio.js", "token": "rewriteDossierRecord" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-16-CONSUMER-CLAIM",
+      "scopeId": "16",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "tools.json", "token": "\"id\": \"portfolio-survival-allocation-lab\"" }
+      ],
+      "sourceSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "token": "data-tool-id=\"portfolio-survival-allocation-lab\"" }
+      ],
+      "consumerSurfaces": [
+        { "path": "index.html", "consumerClass": "Portfolio Survival & Allocation Lab", "token": "portfolio-survival-allocation-lab.html" },
+        { "path": "rlnav.js", "consumerClass": "Portfolio Survival", "token": "portfolio-survival-allocation-lab.html" },
+        { "path": "README.md", "consumerClass": "Portfolio Survival & Allocation Lab", "token": "portfolio-survival-allocation-lab.html" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-mobile.spec.mjs", "token": "Regression: SCN-008-036 registration rlnav tools index README and note form one atomic release transaction" }
+      ],
+      "forbiddenAliases": [
+        { "path": "index.html", "token": "portfolio-allocation-lab.html" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-17-CONSUMER-CLAIM",
+      "scopeId": "17",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolio.js", "token": "clearAllPersonalData" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolio.js", "token": "function removeHoldingRow(draft, holdingId, policy)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "privacyPanel", "token": "emergencyClear" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-foundation.spec.mjs", "token": "Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolio.js", "token": "clearKnownPersonalKeys" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-18-CONSUMER-CLAIM",
+      "scopeId": "18",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolio.js", "token": "BehaviorOccurrence/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfoliobrief.js", "token": "function rankResearchActions(input)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabBrief", "token": "behaviorRankingFingerprint" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-brief.spec.mjs", "token": "Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolio.js", "token": "BehaviorEvent/v0" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-19-CONSUMER-CLAIM",
+      "scopeId": "19",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rldata.js", "token": "ensureBarCoverage" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rldata.js", "token": "function ensureBarCoverage(sym, interval, target, sourcePolicy)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "holdingTruth", "token": "window.RLDATA.ensureBarCoverage" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-foundation.spec.mjs", "token": "Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rldata.js", "token": "ensureFiveYearCoverage" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-20-CONSUMER-CLAIM",
+      "scopeId": "20",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfoliobrief.js", "token": "GenericEvidenceWindow/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfoliobrief.js", "token": "function composePortfolioBrief(input, policy)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabBrief", "token": "genericEvidenceIdentity" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-brief.spec.mjs", "token": "Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfoliobrief.js", "token": "composePersonalizedBrief" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-21-CONSUMER-CLAIM",
+      "scopeId": "21",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "AssetMetricEligibility/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "RiskDiagnosticSet/v1" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabRiskXray", "token": "riskStructuredDiagnostics" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-risk.spec.mjs", "token": "Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "RiskDiagnostic/v0" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-22-CONSUMER-CLAIM",
+      "scopeId": "22",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "ScenarioSpecification/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function runScenarioJob(spec, sampleReturns, options)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabPathLab", "token": "pathComputeStatus" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-paths.spec.mjs", "token": "Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "MAX_PATHS = 200" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-23-CONSUMER-CLAIM",
+      "scopeId": "23",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "ForbesRigobonAdjustment/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function qualifiedForbesRigobonAdjustment(input)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabDiversification", "token": "hedgeRegression" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-diversification.spec.mjs", "token": "Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "assumePerfectHedge" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-24-CONSUMER-CLAIM",
+      "scopeId": "24",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolioanalytics.js", "token": "AllocationBasis/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "function solveBlackLittermanAllocation(basis, blackLittermanInput, solverPolicy)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabAllocation", "token": "allocationResearchInputs" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-allocation.spec.mjs", "token": "Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolioanalytics.js", "token": "clipUnconstrainedWeights" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-25-CONSUMER-CLAIM",
+      "scopeId": "25",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolio.js", "token": "DossierRecord/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolioanalytics.js", "token": "DecisionFold/v1" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "workspaceTabDossier", "token": "dossierRecordTable" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-allocation.spec.mjs", "token": "Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlportfolio.js", "token": "updateDossierInPlace" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-26-CONSUMER-CLAIM",
+      "scopeId": "26",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "rlportfolio.js", "token": "ReturnContext/v1" }
+      ],
+      "sourceSurfaces": [
+        { "path": "rlportfolio.js", "token": "function computeWorkspace(context, evidence, policy)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "rlnav.js", "consumerClass": "data-return-context", "token": "From Portfolio Brief" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-mobile.spec.mjs", "token": "Regression: SCN-008-052 owning tool consumes ReturnContext and restores Portfolio Brief focus" }
+      ],
+      "forbiddenAliases": [
+        { "path": "rlnav.js", "token": "ReturnContext/v0" }
+      ]
+    },
+    {
+      "itemId": "SCOPE-27-CONSUMER-CLAIM",
+      "scopeId": "27",
+      "kind": "consumer",
+      "dodClaim": "Consumer impact sweep completed; zero stale first-party references remain.",
+      "canonicalIdentifiers": [
+        { "path": "portfolio-survival-allocation-lab.html", "token": "id=\"skipToWorkspace\"" }
+      ],
+      "sourceSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "token": "@media (prefers-reduced-motion: reduce)" }
+      ],
+      "consumerSurfaces": [
+        { "path": "portfolio-survival-allocation-lab.html", "consumerClass": "role=\"tablist\"", "token": "@media (forced-colors: active)" }
+      ],
+      "testCarriers": [
+        { "path": "tests/portfolio-survival-accessibility.spec.mjs", "token": "Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete" }
+      ],
+      "forbiddenAliases": [
+        { "path": "portfolio-survival-allocation-lab.html", "token": "workspaceTabOverview" }
+      ]
+    }
+  ]
+}

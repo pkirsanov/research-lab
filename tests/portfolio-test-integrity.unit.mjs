@@ -37,7 +37,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdtempSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -46,6 +46,42 @@ const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const INJECTOR = join(ROOT, "tests", "portfolio-defect-injector.cjs");
 const LEDGER = "specs/008-portfolio-survival-and-brief-lab/scopes/_index.md";
 const ROUTE = "portfolio-survival-allocation-lab.html";
+const SCOPE_CLAIMS_MODULE_URL = new URL("../scripts/verify-spec008-scope-claims.mjs", import.meta.url);
+const SCOPE_CLAIMS_MANIFEST = join(ROOT, "scripts", "spec008-scope-claims.json");
+const SYNTHETIC_REPOSITORY_ROOT = "/virtual/research-lab";
+const BOUNDARY_SCOPE_IDS = [3, 4, 8, 9, ...Array.from({ length: 13 }, (_, index) => index + 16)].map(scopeId);
+const CONSUMER_SCOPE_IDS = [
+  ...Array.from({ length: 11 }, (_, index) => index + 3),
+  ...Array.from({ length: 13 }, (_, index) => index + 15)
+].map(scopeId);
+
+const SCOPE_CLAIMS_REFUSALS = Object.freeze({
+  UNKNOWN_ROOT_KEY: "E008-SCOPE-CLAIMS-UNKNOWN-ROOT-KEY",
+  UNKNOWN_ENTRY_KEY: "E008-SCOPE-CLAIMS-UNKNOWN-ENTRY-KEY",
+  UNKNOWN_ATTRIBUTION_KEY: "E008-SCOPE-CLAIMS-UNKNOWN-ATTRIBUTION-KEY",
+  UNKNOWN_EXCLUDED_EDGE_KEY: "E008-SCOPE-CLAIMS-UNKNOWN-EXCLUDED-EDGE-KEY",
+  UNKNOWN_CONSUMER_KEY: "E008-SCOPE-CLAIMS-UNKNOWN-CONSUMER-KEY",
+  DUPLICATE_ITEM_ID: "E008-SCOPE-CLAIMS-DUPLICATE-ITEM-ID",
+  DUPLICATE_SCOPE_KIND: "E008-SCOPE-CLAIMS-DUPLICATE-SCOPE-KIND",
+  INVENTORY_COUNT: "E008-SCOPE-CLAIMS-INVENTORY-COUNT",
+  REQUIRED_PAIR_MISSING: "E008-SCOPE-CLAIMS-REQUIRED-PAIR-MISSING",
+  ABSOLUTE_PATH: "E008-SCOPE-CLAIMS-ABSOLUTE-PATH",
+  PARENT_TRAVERSAL: "E008-SCOPE-CLAIMS-PARENT-TRAVERSAL",
+  PATH_ESCAPE: "E008-SCOPE-CLAIMS-PATH-ESCAPE",
+  PATH_MISSING: "E008-SCOPE-CLAIMS-PATH-MISSING",
+  PATH_FAMILY: "E008-SCOPE-CLAIMS-PATH-FAMILY",
+  ATTRIBUTION_IDENTITY_REQUIRED: "E008-SCOPE-CLAIMS-ATTRIBUTION-IDENTITY-REQUIRED",
+  ATTRIBUTION_ZERO_MATCH: "E008-SCOPE-CLAIMS-ATTRIBUTION-ZERO-MATCH",
+  EXCLUDED_DEPENDENCY: "E008-SCOPE-CLAIMS-EXCLUDED-DEPENDENCY",
+  EXCLUDED_FILESYSTEM_WRITE: "E008-SCOPE-CLAIMS-EXCLUDED-FILESYSTEM-WRITE",
+  EXCLUDED_STORAGE_WRITE: "E008-SCOPE-CLAIMS-EXCLUDED-STORAGE-WRITE",
+  EXCLUDED_PUBLIC_CONSUMER: "E008-SCOPE-CLAIMS-EXCLUDED-PUBLIC-CONSUMER",
+  CANONICAL_IDENTIFIER_ZERO_MATCH: "E008-SCOPE-CLAIMS-CANONICAL-IDENTIFIER-ZERO-MATCH",
+  SOURCE_TOKEN_ZERO_MATCH: "E008-SCOPE-CLAIMS-SOURCE-TOKEN-ZERO-MATCH",
+  CONSUMER_CLASS_ZERO_MATCH: "E008-SCOPE-CLAIMS-CONSUMER-CLASS-ZERO-MATCH",
+  TEST_CARRIER_ZERO_MATCH: "E008-SCOPE-CLAIMS-TEST-CARRIER-ZERO-MATCH",
+  FORBIDDEN_ALIAS: "E008-SCOPE-CLAIMS-FORBIDDEN-ALIAS"
+});
 
 /* The remediation scopes. A ledger finding whose execution home is one of these is an audited
    defect class this file must challenge; an analyst/plan/docs/external row is not. */
@@ -272,6 +308,478 @@ function sha256(relPath) {
   return createHash("sha256").update(readFileSync(join(ROOT, relPath))).digest("hex");
 }
 
+function scopeId(value) {
+  return String(value).padStart(2, "0");
+}
+
+function addFixtureText(records, path, text) {
+  const prior = records.get(path)?.text;
+  records.set(path, {
+    type: "file",
+    realPath: join(SYNTHETIC_REPOSITORY_ROOT, path),
+    text: prior ? `${prior}\n${text}` : text
+  });
+}
+
+function boundaryAttribution(id) {
+  if (id === "03") return { kind: "marker", identities: [`SCOPE_${id}_MARKER`] };
+  if (id === "04") return { kind: "hunk", identities: [`SCOPE_${id}_HUNK`] };
+  return { kind: "whole-file" };
+}
+
+function createScopeClaimsFixture() {
+  const records = new Map();
+  const boundaryEntries = BOUNDARY_SCOPE_IDS.map((id) => {
+    const path = `owned/scope-${id}.mjs`;
+    const attribution = boundaryAttribution(id);
+    const identityText = attribution.identities?.join("\n") ?? `WHOLE_FILE_SCOPE_${id}`;
+    addFixtureText(records, path, `export const scope${id}Boundary = true;\n${identityText}`);
+    return {
+      itemId: `SCOPE-${id}-BOUNDARY-CLAIM`,
+      scopeId: id,
+      kind: "boundary",
+      dodClaim: `Scope ${id} boundary is attributed without excluded coupling`,
+      attributedPaths: [{ path, attribution }],
+      allowedFamilies: ["owned/"],
+      excludedEdges: [
+        { kind: "dependency", token: `FORBIDDEN_DEPENDENCY_${id}` },
+        { kind: "filesystem-write", token: `FORBIDDEN_FILESYSTEM_WRITE_${id}` },
+        { kind: "storage-write", token: `FORBIDDEN_STORAGE_WRITE_${id}` },
+        { kind: "public-consumer", token: `FORBIDDEN_PUBLIC_CONSUMER_${id}` }
+      ]
+    };
+  });
+
+  const consumerEntries = CONSUMER_SCOPE_IDS.map((id) => {
+    const sourcePath = `owned/scope-${id}.mjs`;
+    const consumerPath = `consumers/scope-${id}.mjs`;
+    const testPath = `tests/scope-${id}.unit.mjs`;
+    const canonicalToken = `CANONICAL_SCOPE_${id}`;
+    const sourceToken = `SOURCE_SCOPE_${id}`;
+    const consumerClass = `scope-${id}-public-ui`;
+    const consumerToken = `CONSUMER_SCOPE_${id}`;
+    const testToken = `TEST_SCOPE_${id}`;
+    addFixtureText(records, sourcePath, `export const ${canonicalToken} = "${sourceToken}";`);
+    addFixtureText(records, consumerPath, `export const consumerClass = "${consumerClass}";\nexport const consume = "${consumerToken}";`);
+    addFixtureText(records, testPath, `test("${testToken}", () => assert.ok(true));`);
+    return {
+      itemId: `SCOPE-${id}-CONSUMER-CLAIM`,
+      scopeId: id,
+      kind: "consumer",
+      dodClaim: `Scope ${id} canonical source reaches its consumer and test carrier`,
+      canonicalIdentifiers: [{ path: sourcePath, token: canonicalToken }],
+      sourceSurfaces: [{ path: sourcePath, token: sourceToken }],
+      consumerSurfaces: [{ path: consumerPath, consumerClass, token: consumerToken }],
+      testCarriers: [{ path: testPath, token: testToken }],
+      forbiddenAliases: [{ path: consumerPath, token: `STALE_SCOPE_${id}` }]
+    };
+  });
+
+  const scope03Boundary = records.get("owned/scope-03.mjs");
+  records.set("unowned/scope-03.mjs", {
+    ...scope03Boundary,
+    realPath: join(SYNTHETIC_REPOSITORY_ROOT, "unowned/scope-03.mjs")
+  });
+
+  const fixture = {
+    manifest: {
+      schemaVersion: "spec008-scope-claims/v1",
+      specId: "008",
+      entries: [...boundaryEntries, ...consumerEntries].reverse()
+    },
+    records
+  };
+  fixture.sourceReader = (path) => {
+    const record = fixture.records.get(path);
+    return record ? { ...record } : null;
+  };
+  return fixture;
+}
+
+function fixtureSignature(fixture) {
+  return JSON.stringify({
+    manifest: fixture.manifest,
+    records: [...fixture.records.entries()].sort(([left], [right]) => left.localeCompare(right))
+  });
+}
+
+function scopeClaimEntry(fixture, kind, id) {
+  const entry = fixture.manifest.entries.find((candidate) => candidate.kind === kind && candidate.scopeId === id);
+  assert.ok(entry, `synthetic fixture must contain ${kind} scope ${id}`);
+  return entry;
+}
+
+function fixtureRecord(fixture, path) {
+  const record = fixture.records.get(path);
+  assert.ok(record, `synthetic fixture must contain ${path}`);
+  return record;
+}
+
+function removeFixtureToken(fixture, path, token) {
+  const record = fixtureRecord(fixture, path);
+  assert.equal(record.text.split(token).length - 1, 1, `${path} must contain ${token} exactly once before mutation`);
+  record.text = record.text.replace(token, "REMOVED_BY_ADVERSARIAL_FIXTURE");
+}
+
+function appendFixtureToken(fixture, path, token) {
+  const record = fixtureRecord(fixture, path);
+  assert.equal(record.text.includes(token), false, `${path} must omit ${token} before mutation`);
+  record.text = `${record.text}\n${token}`;
+}
+
+async function loadScopeClaimsVerifier() {
+  let verifierModule;
+  try {
+    verifierModule = await import(SCOPE_CLAIMS_MODULE_URL.href);
+  } catch (error) {
+    if (error?.code === "ERR_MODULE_NOT_FOUND" && String(error.message).includes("verify-spec008-scope-claims.mjs")) {
+      assert.fail(`SCOPE_CLAIMS_VERIFIER_MODULE_MISSING: ${error.code}: ${error.message}`);
+    }
+    throw error;
+  }
+  assert.equal(
+    typeof verifierModule.verifySpec008ScopeClaims,
+    "function",
+    "SCOPE_CLAIMS_VERIFIER_EXPORT_MISSING: verifySpec008ScopeClaims must be a pure function"
+  );
+  assert.equal(
+    typeof verifierModule.serializeSpec008ScopeClaimsResult,
+    "function",
+    "SCOPE_CLAIMS_VERIFIER_EXPORT_MISSING: serializeSpec008ScopeClaimsResult must be a pure function"
+  );
+  return {
+    verifySpec008ScopeClaims: verifierModule.verifySpec008ScopeClaims,
+    serializeSpec008ScopeClaimsResult: verifierModule.serializeSpec008ScopeClaimsResult
+  };
+}
+
+function verifyFixture(verifier, fixture, repositoryRoot = SYNTHETIC_REPOSITORY_ROOT) {
+  return verifier.verifySpec008ScopeClaims({
+    manifest: structuredClone(fixture.manifest),
+    repositoryRoot,
+    sourceReader: fixture.sourceReader
+  });
+}
+
+function resultOrder(entries) {
+  return [...entries].sort((left, right) =>
+    Number(left.scopeId) - Number(right.scopeId) || left.kind.localeCompare(right.kind)
+  ).map(({ itemId, scopeId, kind }) => ({ itemId, scopeId, kind }));
+}
+
+function assertExactScopeClaimsResult(result, entries) {
+  assert.deepEqual(
+    Object.keys(result),
+    ["schemaVersion", "specId", "manifestSha256", "results", "summary"],
+    "result root must use the closed key order"
+  );
+  assert.equal(result.schemaVersion, "spec008-scope-claims/v1");
+  assert.equal(result.specId, "008");
+  assert.match(result.manifestSha256, /^sha256:[0-9a-f]{64}$/);
+  assert.equal(result.results.length, entries.length);
+  assert.deepEqual(
+    result.results.map(({ itemId, scopeId, kind }) => ({ itemId, scopeId, kind })),
+    resultOrder(entries),
+    "results must be ordered by numeric scope then kind regardless of manifest order"
+  );
+  for (const row of result.results) {
+    assert.deepEqual(
+      Object.keys(row),
+      ["itemId", "scopeId", "kind", "status", "checks"],
+      `${row.itemId} must use the closed result key order`
+    );
+    assert.equal(row.status, "pass", `${row.itemId} must pass on the valid fixture`);
+    assert.ok(Array.isArray(row.checks) && row.checks.length > 0, `${row.itemId} must report non-empty checks`);
+    assert.equal(new Set(row.checks).size, row.checks.length, `${row.itemId} checks must be unique`);
+  }
+  assert.deepEqual(Object.keys(result.summary), ["total", "boundary", "consumer", "pass", "fail"]);
+  assert.deepEqual(result.summary, { total: 41, boundary: 17, consumer: 24, pass: 41, fail: 0 });
+}
+
+function assertDeterministicSyntheticScopeClaims(verifier) {
+  const fixture = createScopeClaimsFixture();
+  const before = fixtureSignature(fixture);
+  const first = verifyFixture(verifier, fixture);
+  const second = verifyFixture(verifier, fixture);
+  assertExactScopeClaimsResult(first, fixture.manifest.entries);
+  assert.deepEqual(second, first, "identical in-memory inputs must produce byte-equivalent result objects");
+  assert.equal(fixtureSignature(fixture), before, "verification must not mutate the manifest or source-reader records");
+  const firstJson = verifier.serializeSpec008ScopeClaimsResult(first);
+  const secondJson = verifier.serializeSpec008ScopeClaimsResult(second);
+  assert.equal(firstJson, `${JSON.stringify(first)}\n`, "JSON output must be one exact deterministic record plus newline");
+  assert.equal(secondJson, firstJson, "repeated serialization must be byte stable");
+}
+
+function captureScopeClaimsRefusal(verifier, fixture) {
+  let returned;
+  try {
+    returned = verifyFixture(verifier, fixture);
+  } catch (error) {
+    assert.ok(error instanceof Error, "a refusal must throw an Error");
+    assert.equal(typeof error.code, "string", "a refusal must expose a stable code");
+    assert.ok(error.message.length > 0, "a refusal must expose a stable non-empty message");
+    return { code: error.code, message: error.message };
+  }
+  assert.fail(`expected a scope-claims refusal, received ${JSON.stringify(returned)}`);
+}
+
+function edgeFor(entry, kind) {
+  const edge = entry.excludedEdges.find((candidate) => candidate.kind === kind);
+  assert.ok(edge, `synthetic boundary must contain ${kind}`);
+  return edge;
+}
+
+const SCOPE_CLAIMS_ADVERSARIAL_CASES = [
+  {
+    id: "unknown root key",
+    code: SCOPE_CLAIMS_REFUSALS.UNKNOWN_ROOT_KEY,
+    mutate(fixture) { fixture.manifest.unexpectedRoot = true; }
+  },
+  {
+    id: "unknown entry key",
+    code: SCOPE_CLAIMS_REFUSALS.UNKNOWN_ENTRY_KEY,
+    mutate(fixture) { scopeClaimEntry(fixture, "boundary", "03").unexpectedEntry = true; }
+  },
+  {
+    id: "unknown attribution key",
+    code: SCOPE_CLAIMS_REFUSALS.UNKNOWN_ATTRIBUTION_KEY,
+    mutate(fixture) { scopeClaimEntry(fixture, "boundary", "03").attributedPaths[0].attribution.unexpectedAttribution = true; }
+  },
+  {
+    id: "unknown excluded-edge key",
+    code: SCOPE_CLAIMS_REFUSALS.UNKNOWN_EXCLUDED_EDGE_KEY,
+    mutate(fixture) { scopeClaimEntry(fixture, "boundary", "03").excludedEdges[0].unexpectedEdge = true; }
+  },
+  {
+    id: "unknown consumer nested key",
+    code: SCOPE_CLAIMS_REFUSALS.UNKNOWN_CONSUMER_KEY,
+    mutate(fixture) { scopeClaimEntry(fixture, "consumer", "03").consumerSurfaces[0].unexpectedConsumer = true; }
+  },
+  {
+    id: "duplicate item id",
+    code: SCOPE_CLAIMS_REFUSALS.DUPLICATE_ITEM_ID,
+    mutate(fixture) { fixture.manifest.entries[1].itemId = fixture.manifest.entries[0].itemId; }
+  },
+  {
+    id: "duplicate scope-kind pair",
+    code: SCOPE_CLAIMS_REFUSALS.DUPLICATE_SCOPE_KIND,
+    mutate(fixture) { scopeClaimEntry(fixture, "consumer", "26").scopeId = "27"; }
+  },
+  {
+    id: "wrong inventory count",
+    code: SCOPE_CLAIMS_REFUSALS.INVENTORY_COUNT,
+    mutate(fixture) { fixture.manifest.entries.pop(); }
+  },
+  {
+    id: "missing required scope-kind pair",
+    code: SCOPE_CLAIMS_REFUSALS.REQUIRED_PAIR_MISSING,
+    mutate(fixture) { scopeClaimEntry(fixture, "boundary", "03").scopeId = "05"; }
+  },
+  {
+    id: "absolute attributed path",
+    code: SCOPE_CLAIMS_REFUSALS.ABSOLUTE_PATH,
+    mutate(fixture) { scopeClaimEntry(fixture, "boundary", "03").attributedPaths[0].path = "/virtual/research-lab/owned/scope-03.mjs"; }
+  },
+  {
+    id: "parent-traversal attributed path",
+    code: SCOPE_CLAIMS_REFUSALS.PARENT_TRAVERSAL,
+    mutate(fixture) { scopeClaimEntry(fixture, "boundary", "03").attributedPaths[0].path = "../owned/scope-03.mjs"; }
+  },
+  {
+    id: "outside-root symlink escape",
+    code: SCOPE_CLAIMS_REFUSALS.PATH_ESCAPE,
+    mutate(fixture) {
+      const record = fixtureRecord(fixture, "owned/scope-03.mjs");
+      record.type = "symlink";
+      record.realPath = "/virtual/outside-repository/scope-03.mjs";
+    }
+  },
+  {
+    id: "missing attributed path",
+    code: SCOPE_CLAIMS_REFUSALS.PATH_MISSING,
+    mutate(fixture) { fixture.records.delete("owned/scope-03.mjs"); }
+  },
+  {
+    id: "disallowed attributed path family",
+    code: SCOPE_CLAIMS_REFUSALS.PATH_FAMILY,
+    mutate(fixture) { scopeClaimEntry(fixture, "boundary", "03").attributedPaths[0].path = "unowned/scope-03.mjs"; }
+  },
+  {
+    id: "marker identity missing",
+    code: SCOPE_CLAIMS_REFUSALS.ATTRIBUTION_IDENTITY_REQUIRED,
+    mutate(fixture) { scopeClaimEntry(fixture, "boundary", "03").attributedPaths[0].attribution.identities = []; }
+  },
+  {
+    id: "marker identity zero match",
+    code: SCOPE_CLAIMS_REFUSALS.ATTRIBUTION_ZERO_MATCH,
+    mutate(fixture) { removeFixtureToken(fixture, "owned/scope-03.mjs", "SCOPE_03_MARKER"); }
+  },
+  {
+    id: "hunk identity missing",
+    code: SCOPE_CLAIMS_REFUSALS.ATTRIBUTION_IDENTITY_REQUIRED,
+    mutate(fixture) { scopeClaimEntry(fixture, "boundary", "04").attributedPaths[0].attribution.identities = []; }
+  },
+  {
+    id: "hunk identity zero match",
+    code: SCOPE_CLAIMS_REFUSALS.ATTRIBUTION_ZERO_MATCH,
+    mutate(fixture) { removeFixtureToken(fixture, "owned/scope-04.mjs", "SCOPE_04_HUNK"); }
+  },
+  {
+    id: "unauthorized excluded dependency",
+    code: SCOPE_CLAIMS_REFUSALS.EXCLUDED_DEPENDENCY,
+    mutate(fixture) {
+      const entry = scopeClaimEntry(fixture, "boundary", "03");
+      appendFixtureToken(fixture, entry.attributedPaths[0].path, edgeFor(entry, "dependency").token);
+    }
+  },
+  {
+    id: "unauthorized filesystem public write",
+    code: SCOPE_CLAIMS_REFUSALS.EXCLUDED_FILESYSTEM_WRITE,
+    mutate(fixture) {
+      const entry = scopeClaimEntry(fixture, "boundary", "03");
+      appendFixtureToken(fixture, entry.attributedPaths[0].path, edgeFor(entry, "filesystem-write").token);
+    }
+  },
+  {
+    id: "unauthorized personal storage write",
+    code: SCOPE_CLAIMS_REFUSALS.EXCLUDED_STORAGE_WRITE,
+    mutate(fixture) {
+      const entry = scopeClaimEntry(fixture, "boundary", "03");
+      appendFixtureToken(fixture, entry.attributedPaths[0].path, edgeFor(entry, "storage-write").token);
+    }
+  },
+  {
+    id: "unauthorized public-consumer edge",
+    code: SCOPE_CLAIMS_REFUSALS.EXCLUDED_PUBLIC_CONSUMER,
+    mutate(fixture) {
+      const entry = scopeClaimEntry(fixture, "boundary", "03");
+      appendFixtureToken(fixture, entry.attributedPaths[0].path, edgeFor(entry, "public-consumer").token);
+    }
+  },
+  {
+    id: "zero-match canonical identifier",
+    code: SCOPE_CLAIMS_REFUSALS.CANONICAL_IDENTIFIER_ZERO_MATCH,
+    mutate(fixture) {
+      const descriptor = scopeClaimEntry(fixture, "consumer", "03").canonicalIdentifiers[0];
+      removeFixtureToken(fixture, descriptor.path, descriptor.token);
+    }
+  },
+  {
+    id: "zero-match canonical source token",
+    code: SCOPE_CLAIMS_REFUSALS.SOURCE_TOKEN_ZERO_MATCH,
+    mutate(fixture) {
+      const descriptor = scopeClaimEntry(fixture, "consumer", "03").sourceSurfaces[0];
+      removeFixtureToken(fixture, descriptor.path, descriptor.token);
+    }
+  },
+  {
+    id: "zero-match consumer class",
+    code: SCOPE_CLAIMS_REFUSALS.CONSUMER_CLASS_ZERO_MATCH,
+    mutate(fixture) {
+      const descriptor = scopeClaimEntry(fixture, "consumer", "03").consumerSurfaces[0];
+      removeFixtureToken(fixture, descriptor.path, descriptor.consumerClass);
+    }
+  },
+  {
+    id: "zero-match test carrier",
+    code: SCOPE_CLAIMS_REFUSALS.TEST_CARRIER_ZERO_MATCH,
+    mutate(fixture) {
+      const descriptor = scopeClaimEntry(fixture, "consumer", "03").testCarriers[0];
+      removeFixtureToken(fixture, descriptor.path, descriptor.token);
+    }
+  },
+  {
+    id: "forbidden stale alias",
+    code: SCOPE_CLAIMS_REFUSALS.FORBIDDEN_ALIAS,
+    mutate(fixture) {
+      const descriptor = scopeClaimEntry(fixture, "consumer", "03").forbiddenAliases[0];
+      appendFixtureToken(fixture, descriptor.path, descriptor.token);
+    }
+  }
+];
+
+function assertScopeClaimsAdversarialContract(verifier) {
+  const validFixture = createScopeClaimsFixture();
+  assertExactScopeClaimsResult(verifyFixture(verifier, validFixture), validFixture.manifest.entries);
+  const validSignature = fixtureSignature(validFixture);
+
+  for (const adversarialCase of SCOPE_CLAIMS_ADVERSARIAL_CASES) {
+    const firstFixture = createScopeClaimsFixture();
+    adversarialCase.mutate(firstFixture);
+    assert.notEqual(fixtureSignature(firstFixture), validSignature, `${adversarialCase.id} must mutate one fresh valid baseline`);
+    const firstRefusal = captureScopeClaimsRefusal(verifier, firstFixture);
+    assert.equal(firstRefusal.code, adversarialCase.code, `${adversarialCase.id} must use its stable refusal code`);
+
+    const repeatedFixture = createScopeClaimsFixture();
+    adversarialCase.mutate(repeatedFixture);
+    const repeatedRefusal = captureScopeClaimsRefusal(verifier, repeatedFixture);
+    assert.deepEqual(repeatedRefusal, firstRefusal, `${adversarialCase.id} refusal must be deterministic`);
+  }
+
+  const orderedFixture = createScopeClaimsFixture();
+  const orderedAlias = scopeClaimEntry(orderedFixture, "consumer", "03").forbiddenAliases[0];
+  appendFixtureToken(orderedFixture, orderedAlias.path, orderedAlias.token);
+  const orderedRefusal = captureScopeClaimsRefusal(verifier, orderedFixture);
+  const reversedFixture = createScopeClaimsFixture();
+  reversedFixture.manifest.entries.reverse();
+  const reversedAlias = scopeClaimEntry(reversedFixture, "consumer", "03").forbiddenAliases[0];
+  appendFixtureToken(reversedFixture, reversedAlias.path, reversedAlias.token);
+  assert.deepEqual(
+    captureScopeClaimsRefusal(verifier, reversedFixture),
+    orderedRefusal,
+    "refusal code and message must remain stable when valid entry order changes"
+  );
+}
+
+function manifestDeclaredPaths(manifest) {
+  const paths = new Set();
+  for (const entry of manifest.entries ?? []) {
+    if (entry.kind === "boundary") {
+      for (const attributedPath of entry.attributedPaths ?? []) paths.add(attributedPath.path);
+      continue;
+    }
+    for (const field of ["canonicalIdentifiers", "sourceSurfaces", "consumerSurfaces", "testCarriers", "forbiddenAliases"]) {
+      for (const descriptor of entry[field] ?? []) paths.add(descriptor.path);
+    }
+  }
+  return [...paths];
+}
+
+function canonicalManifestFixture(manifest) {
+  const records = new Map();
+  for (const relativePath of manifestDeclaredPaths(manifest)) {
+    if (typeof relativePath !== "string" || relativePath.startsWith("/") || relativePath.split("/").includes("..")) continue;
+    const absolutePath = resolve(ROOT, relativePath);
+    if (!existsSync(absolutePath)) continue;
+    const linkStat = lstatSync(absolutePath);
+    const realStat = statSync(absolutePath);
+    records.set(relativePath, {
+      type: linkStat.isSymbolicLink() ? "symlink" : realStat.isDirectory() ? "directory" : "file",
+      realPath: realpathSync(absolutePath),
+      text: realStat.isFile() ? readFileSync(absolutePath, "utf8") : ""
+    });
+  }
+  return {
+    manifest,
+    records,
+    sourceReader(path) {
+      const record = records.get(path);
+      return record ? { ...record } : null;
+    }
+  };
+}
+
+test("TP-28-02: Spec 008 scope-claims verifier emits the closed deterministic 41-item inventory", async () => {
+  const verifier = await loadScopeClaimsVerifier();
+  assertDeterministicSyntheticScopeClaims(verifier);
+  assert.ok(existsSync(SCOPE_CLAIMS_MANIFEST), "canonical scripts/spec008-scope-claims.json must exist");
+  const manifest = JSON.parse(readFileSync(SCOPE_CLAIMS_MANIFEST, "utf8"));
+  const fixture = canonicalManifestFixture(manifest);
+  const result = verifyFixture(verifier, fixture, ROOT);
+  assertExactScopeClaimsResult(result, manifest.entries);
+  assert.deepEqual(result.summary, { total: 41, boundary: 17, consumer: 24, pass: 41, fail: 0 });
+});
+
 /* One narrowed carrier run. `defect` absent => shipped tree; `defect` present => the reduced source
    is substituted in memory by the preload. TAP is forced so the counts parse identically whether or
    not a terminal is attached. */
@@ -374,7 +882,10 @@ function mutationCausalityProblems({ entry, mutant, applications }) {
   return problems;
 }
 
-test("Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing", (t) => {
+test("Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing", async (t) => {
+  const scopeClaimsVerifier = await loadScopeClaimsVerifier();
+  assertScopeClaimsAdversarialContract(scopeClaimsVerifier);
+
   const workspace = mkdtempSync(join(tmpdir(), "rl-scope28-"));
   t.after(() => rmSync(workspace, { recursive: true, force: true }));
 

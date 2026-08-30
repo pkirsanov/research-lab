@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Done
+**Status:** In Progress
 
 **Scope-Kind:** runtime-behavior
 
@@ -87,6 +87,126 @@ Scenario: SCN-008-002 - A malformed or secret-bearing import cannot partially re
 
 **Rollback/restore:** remove only Scope 01 new files and fixture entries. Browser storage rollback never deletes a user's personal keys automatically. A direct version-safety test proves incompatible newer records remain untouched, and the pre-scope repository selftest result remains the shared baseline.
 
+### Historical Attribution And Coupling Contract
+
+Scope 01 uses path-and-hunk attribution because commit `db06c29650ba351770297acefa658f51cbc4ff00` also contains repository bootstrap content. Commit-wide cleanliness cannot prove this scope boundary.
+
+The historical partition is closed:
+
+- Scope 01 attribution contains the 12 exact paths below.
+- The declared excluded set contains 426 co-committed paths.
+- The remaining non-attributable set contains 515 co-committed paths.
+- The partition accounts for all 953 changed paths: $12 + 426 + 515 = 953$.
+
+The 941 non-attributable paths are co-committed repository context. They cannot serve as Scope 01 implementation evidence. This scope does not claim that those paths were unchanged in the commit.
+
+| Scope 01-attributable path | Historical status | Required attribution |
+| --- | --- | --- |
+| `portfolio-survival-allocation.config.json` | `A` | Mandatory policy contract |
+| `rlportfolio.js` | `A` | Portfolio import and atomic storage runtime |
+| `portfolio-survival-allocation-lab.html` | `A` | Unregistered setup and Portfolio Brief route |
+| `tests/portfolio-foundation.unit.mjs` | `A` | Production-contract unit carrier |
+| `tests/portfolio-privacy.functional.mjs` | `A` | Privacy and atomicity functional carrier |
+| `tests/portfolio-survival-foundation.spec.mjs` | `A` | Real-page browser carrier |
+| `tests/portfolio-survival.support.mjs` | `A` | Scope browser and storage support |
+| `tests/fixtures/portfolio-survival-allocation/valid-portfolio.csv` | `A` | Valid import fixture |
+| `tests/fixtures/portfolio-survival-allocation/invalid-secret-portfolio.csv` | `A` | Secret-bearing rejection fixture |
+| `tests/fixtures/portfolio-survival-allocation/removable-invalid-portfolio.csv` | `A` | Row-removal fixture |
+| `tests/fixtures/portfolio-survival-allocation/manual-alternative.json` | `A` | Manual-asset fixture |
+| `tests/fixtures/portfolio-survival-allocation/provenance.json` | `A` | Fixture provenance |
+
+Every added hunk in those paths must map to the attribution shown above. Any unmapped hunk blocks the boundary item. No path outside this ledger is attributable to Scope 01.
+
+The coupling boundary distinguishes mutation from declared read-only use. `rlcontracts.js` is the sole shared production dependency and remains mutation-excluded. TP-01-07 protects its existing contract. Node built-ins, `playwright-runtime.mjs`, and Scope 01 support files are test-only dependencies.
+
+Every other excluded surface must have zero import, script-load, fetch, filesystem-write, browser-storage-write, generated-artifact, or process edge from Scope 01. The test server's `/` to `index.html` branch is not a Scope 01 edge. The browser carrier opens the lab route directly.
+
+The execution owner must run the following immutable-history checks. The resulting report evidence must use `Claim Source: interpreted` because hunk attribution requires review.
+
+```bash
+timeout 120 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 historical commit inventory" -- \
+  git diff-tree --no-commit-id --name-status -r db06c29650ba351770297acefa658f51cbc4ff00
+
+timeout 30 git diff-tree --no-commit-id --name-status -r \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  portfolio-survival-allocation.config.json \
+  rlportfolio.js \
+  portfolio-survival-allocation-lab.html \
+  tests/portfolio-foundation.unit.mjs \
+  tests/portfolio-privacy.functional.mjs \
+  tests/portfolio-survival-foundation.spec.mjs \
+  tests/portfolio-survival.support.mjs \
+  tests/fixtures/portfolio-survival-allocation/valid-portfolio.csv \
+  tests/fixtures/portfolio-survival-allocation/invalid-secret-portfolio.csv \
+  tests/fixtures/portfolio-survival-allocation/removable-invalid-portfolio.csv \
+  tests/fixtures/portfolio-survival-allocation/manual-alternative.json \
+  tests/fixtures/portfolio-survival-allocation/provenance.json
+
+timeout 120 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 explicitly excluded historical paths" -- \
+  git diff-tree --no-commit-id --name-only -r \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  rldata.js rlnav.js rlapp.js rlbrief.js market-brief.html \
+  ':(top,glob)market-brief.*.json' ':(top,glob)brief-history*.jsonl' \
+  ':(top,glob)scripts/brief-*' tools.json index.html README.md \
+  ':(top,glob)notes/**' package.json package-lock.json \
+  ':(top,glob)rl*.js' ':(exclude,top)rlportfolio.js' \
+  ':(top,glob)specs/001-*/**' ':(top,glob)specs/002-*/**' \
+  ':(top,glob)specs/003-*/**' ':(top,glob)specs/004-*/**' \
+  ':(top,glob)specs/005-*/**' ':(top,glob)specs/006-*/**' \
+  ':(top,glob)specs/007-*/**' ':(top,glob).github/bubbles/**'
+
+timeout 30 git grep -nE \
+  '(^[[:space:]]*import[[:space:]]|require\(|<script[^>]+src=|fetch\()' \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  rlportfolio.js portfolio-survival-allocation-lab.html \
+  tests/portfolio-foundation.unit.mjs \
+  tests/portfolio-privacy.functional.mjs \
+  tests/portfolio-survival-foundation.spec.mjs \
+  tests/portfolio-survival.support.mjs
+```
+
+The first capture must report 953 lines and SHA-256 `a7dbf196fa576cbc448401228c4efa2ff6c5b98ea29fd547f1125a6a69969fbf`. The second command must report exactly the 12 `A` entries in the ledger. The excluded capture must report 426 lines. Its immutable output hash is `703931fe90db2eefb7c1d0bb5ad673d641ba50d49dc905068369f5c994be0847`.
+
+The import/load inventory must contain only the declared production and test dependencies above. Run the following no-match checks separately. Each command must print its explicit pass sentinel.
+
+```bash
+if timeout 30 git grep -nE \
+  '(^|[^[:alnum:]_])(rldata\.js|rlnav\.js|rlapp\.js|rlbrief\.js|market-brief([^[:alnum:]_]|$)|brief-history|tools\.json|index\.html|package(-lock)?\.json|notes/|scripts/brief-)' \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  portfolio-survival-allocation.config.json rlportfolio.js \
+  portfolio-survival-allocation-lab.html
+then
+  printf 'SCOPE01_PRODUCTION_EXCLUDED_EDGE=FAIL\n'
+  exit 1
+else
+  result=$?
+  if [[ "$result" -ne 1 ]]; then exit "$result"; fi
+  printf 'SCOPE01_PRODUCTION_EXCLUDED_EDGE=PASS\n'
+fi
+
+if timeout 30 git grep -nE \
+  '(writeFile|appendFile|createWriteStream|renameSync|copyFile|unlink|rmSync|mkdirSync|spawnSync|execFile|execSync|child_process)' \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  portfolio-survival-allocation.config.json rlportfolio.js \
+  portfolio-survival-allocation-lab.html \
+  tests/portfolio-foundation.unit.mjs \
+  tests/portfolio-privacy.functional.mjs \
+  tests/portfolio-survival-foundation.spec.mjs \
+  tests/portfolio-survival.support.mjs
+then
+  printf 'SCOPE01_FILESYSTEM_WRITE_EDGE=FAIL\n'
+  exit 1
+else
+  result=$?
+  if [[ "$result" -ne 1 ]]; then exit "$result"; fi
+  printf 'SCOPE01_FILESYSTEM_WRITE_EDGE=PASS\n'
+fi
+```
+
+Run TP-01-01, TP-01-02, TP-01-06, and TP-01-07 after the history checks. Their evidence must prove closed browser-storage namespaces, zero excluded-surface mutation, and the declared shared read contract.
+
 ## Scenario-First Red/Green Contract
 
 Before production behavior, add the named unit/functional assertion and persistent browser title, then run the exact row command through `.github/bubbles/scripts/tool-log.sh` with `BUBBLES_SPEC=008-portfolio-survival-and-brief-lab`, `BUBBLES_SCOPE=SCOPE-01`, the `TP-*` tag, and `red`. RED is valid only when the intended contract assertion fails. After the smallest owned implementation, rerun the identical command with `green`. Syntax errors, missing Chrome, server startup errors, absent test discovery, or a different failing assertion do not satisfy RED.
@@ -126,8 +246,21 @@ Before any browser row, run `node scripts/validate-node-source-lock.mjs` and `np
     ```
 
   - **Evidence:** [report.md#tp-01-06](report.md#tp-01-06).
-- [ ] Change Boundary is respected and zero excluded file families were changed
-  - **Deliberately NOT ticked.** This asks whether Scope 01's *implementation* changed an excluded surface (`rldata.js`, `rlnav.js`, `rlapp.js`, `rlbrief.js`, the Market Brief artifacts, registries, source-lock). Confirming the working tree is clean today does not answer it, because the implementation commits predate this session and cannot be attributed to Scope 01 with confidence. Ticking it would be a guess dressed as a check. Discharging it needs the commit range for Scope 01, then a diff against the excluded list.
+- [ ] Scope 01 attribution covers all 12 implementation-bearing files without attributing unrelated root-commit paths or claiming isolated commit history.
+  - **Allowed-path accounting:** Account for all 12 unique files in [Code Diff Evidence](report.md#code-diff-evidence). Confirm each file is allowed by [Change Boundary And Rollback](#change-boundary-and-rollback). Map every added hunk to its declared Scope 01 purpose. Missing, duplicate, disallowed, or unmapped entries fail this item.
+  - **Non-vacuous coupling inventory:** Produce an inventory that names all 12 files. Trace their imports, script loads, fetches, runtime writes, generated-artifact writes, browser-storage writes, and public consumers. No edge may reach an excluded surface. Permit only read-only contracts documented in [Historical Attribution And Coupling Contract](#historical-attribution-and-coupling-contract). Empty output, an unmatched pathspec, or a partial 12-file result fails this item.
+  - **Root-commit partition:** Commit `db06c29650ba351770297acefa658f51cbc4ff00` changes 953 paths. Attribute only the 12 ledger files to Scope 01. The other 941 paths are unrelated repository context. They are not Scope 01-attributable and cannot serve as Scope 01 evidence.
+  - **Claim limit:** Do not claim isolated commit history for Scope 01. Evidence may establish only path, hunk, dependency, runtime-write, and public-consumer attribution.
+  - **Required execution before `[x]`:** `bubbles.implement` or `bubbles.test` must execute these existing commands:
+    - `node --test tests/portfolio-foundation.unit.mjs`
+    - `node --test tests/portfolio-privacy.functional.mjs`
+    - `node scripts/selftest.mjs`
+  - Run the immutable-history and coupling inventory commands exactly as written in [Historical Attribution And Coupling Contract](#historical-attribution-and-coupling-contract). Record current-session commands, exit codes, and non-empty outputs in [report.md](report.md).
+  > **Uncertainty Declaration**
+  > **What was attempted:** Planning replaced the retrospective commit-isolation claim with a closed scope-attribution contract.
+  > **What was observed:** The report lists 12 implementation-bearing files. The root commit includes 941 other paths that this contract excludes from Scope 01.
+  > **Why this is uncertain:** No current execution-owner evidence satisfies the revised path, hunk, dependency, write, and consumer inventory.
+  > **What would resolve this:** Execute the listed commands and non-vacuous inventories. Record their current-session outputs and exit codes in the scope report.
 - [x] Rollback or restore path for shared infrastructure changes is documented and verified
   - **Documented at:** the `Rollback/restore` paragraph of [Change Boundary And Rollback](#change-boundary-and-rollback) — remove only Scope 01 new files and fixture entries, never a user personal storage key.
   - **Verifying rows:** TP-01-01 for the incompatible-newer-record safety path and TP-01-05 for last-known-good retention across durable, session-only, and memory-only modes.

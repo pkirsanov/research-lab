@@ -3,7 +3,7 @@
   "featureDir": "specs/028-company-intelligence-publication-and-brief-transaction",
   "featureName": "Company Intelligence Public Delivery and Atomic Brief Refresh",
   "createdAt": "2026-08-28T23:01:02Z",
-  "lastUpdatedAt": "2026-08-29T22:36:01Z",
+  "lastUpdatedAt": "2026-08-30T00:52:00Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -100,13 +100,13 @@
       "revision": 3,
       "sourceRequestDigest": "sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f"
     },
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
     "currentPhaseStatus": "completed",
     "currentScope": "03-transaction-restoration",
-    "substate": "implemented",
-    "runStartedAt": "2026-08-29T22:21:33Z",
-    "completedAt": "2026-08-29T22:36:01Z",
+    "substate": "independently_verified",
+    "runStartedAt": "2026-08-30T00:33:26Z",
+    "completedAt": "2026-08-30T00:52:00Z",
     "completedPhaseClaims": [
       {
         "phase": "analyze",
@@ -197,10 +197,19 @@
         ],
         "claimedAt": "2026-08-29T21:31:42Z",
         "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-implement-owned-transaction-restoration-2026-08-29"
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "scopes": [
+          "03-transaction-restoration"
+        ],
+        "claimedAt": "2026-08-30T00:52:00Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-current-r6-test-phase-closure-2026-08-30"
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredOwner": "bubbles.validate",
     "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-03-whole-transaction-restoration-and-non-authoritative-outcomes",
     "audit": {
       "schemaVersion": "audit-run/v1",
@@ -585,6 +594,27 @@
         "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-test-owned-independent-verification-2026-08-29"
       ],
       "summary": "Repaired only the Scope 03 plan-to-gate correspondence finding. Preserved six Test Plan rows, prior evidence, In Progress status, human acceptance, and all certification fields."
+    },
+    {
+      "agent": "bubbles.test",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "test"
+      ],
+      "runStartedAt": "2026-08-30T00:33:26Z",
+      "runCompletedAt": "2026-08-30T00:52:00Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "03-transaction-restoration",
+      "artifactChanges": [
+        "report.md",
+        "state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-current-r6-test-phase-closure-2026-08-30",
+        ".specify/runtime/tool-calls.jsonl"
+      ],
+      "summary": "Independently executed all six Scope 03 Test Plan rows, four discriminating negative controls, the complete selected closure, and required integrity, source-lock, isolation, scenario, receipt, goal, and boundary checks. All four Scope 03 scenarios derive REGRESSION_GREEN. Certification, later scopes, overall status, and human acceptance remain unchanged."
     }
   ],
   "activeBugs": [],
@@ -632,5 +662,5 @@
     ],
     "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
   },
-  "notes": "Scopes 01 and 02 remain validate-certified Done. Scope 03 remains In Progress after its implement scenario-binding remediation. The next required owner is bubbles.test for independent closure. Scope 03 certification remains not_started. Feature status and overall certification remain in_progress. Scopes 04 and 05 remain not_started, and human acceptance remains unchecked."
+  "notes": "Scopes 01 and 02 remain validate-certified Done. Scope 03 remains In Progress after independent test-phase closure and routes to bubbles.validate. Scope 03 certification remains not_started. Feature status and overall certification remain in_progress. Scopes 04 and 05 remain not_started, and human acceptance remains unchecked."
 }

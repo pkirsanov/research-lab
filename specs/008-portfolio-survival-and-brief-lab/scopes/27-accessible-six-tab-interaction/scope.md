@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `integration:accessibility`, `remediation`
 **Depends On:** 26
@@ -95,8 +95,8 @@ Scenario: A keyboard and screen-reader user completes the portfolio workflow und
   - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
 - [x] Broader E2E regression suite passes
   - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
-- [ ] Change Boundary is respected and zero excluded file families were changed
-- [ ] Consumer impact sweep completed; zero stale first-party references remain
+- [ ] Scope-27 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 27 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 27 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
 
 - [x] SCN-008-053 is implemented across keyboard, screen reader, preferences, zoom, touch, desktop, and mobile without changing conclusions. Evidence: [scenario contract](report.md#scenario-contract-evidence), and the no-conclusion-change half is proven by the control-verified [projection-only proof](report.md#projection-only-proof) — 166 analytics-token matches in the file, 0 across all 399 added lines.
 - [ ] A keyboard and screen-reader user completes the portfolio workflow under accessibility preferences: with reduced motion, forced colors, 200 percent zoom, and text-spacing overrides active, using the skip link, navigating mode and workspace tabs with Arrow/Home/End/Enter/Space, opening and closing modal sheets, and inspecting every chart, table, and truth state keeps focus order, selection announcements, labels, errors, and return targets deterministic; modal focus is trapped only while open and returns to the invoker; every chart decision is available in an equivalent table without motion or color dependence; and no text, control, focus ring, tooltip, sheet, or status overlaps, clips, or causes body-level horizontal scrolling.

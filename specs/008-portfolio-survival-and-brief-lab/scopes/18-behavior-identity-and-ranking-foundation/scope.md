@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `foundation:true`, `remediation`
 **Depends On:** 17
@@ -94,8 +94,8 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
   - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
 - [x] Broader E2E regression suite passes
   - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
-- [ ] Change Boundary is respected and zero excluded file families were changed
-- [ ] Consumer impact sweep completed; zero stale first-party references remain
+- [ ] Scope-18 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 18 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 18 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
 
 - [x] SCN-008-044 is implemented with one canonical ranking projection and no engagement or constraint inference. → Evidence: [TP-18-01](report.md#tp-18-01), [TP-18-03](report.md#tp-18-03), [Scenario Contract Evidence](report.md#scenario-contract-evidence)
 - [ ] Repeated completed research produces one consistent relevance result: only exact semantic duplicates collapse, future-dated events are rejected or quarantined instead of receiving extra weight, the evidence floor uses distinct eligible dates and completion identities rather than raw event count, and storage, Portfolio Brief, Why shown, and route order expose the same canonical ranked action identities. Verifying rows: TP-18-01, TP-18-03, and TP-18-04.

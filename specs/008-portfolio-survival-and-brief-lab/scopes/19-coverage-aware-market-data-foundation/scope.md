@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `foundation:true`, `remediation`, `shared-infrastructure`
 **Depends On:** 18
@@ -89,8 +89,8 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
   - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
 - [x] Broader E2E regression suite passes
   - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
-- [ ] Change Boundary is respected and zero excluded file families were changed
-- [ ] Consumer impact sweep completed; zero stale first-party references remain
+- [ ] Scope-19 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 19 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 19 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
 
 - [x] SCN-008-045 behavior: a five-year request that starts from a short same-origin cache appends and de-duplicates eligible static dates before coverage is measured, returns retained partial rows with exact first and last dates under same-origin-only, requests only the public symbol interval and range when public lookup is enabled, and reports `complete` only when actual dates satisfy the target-years and source checks, while existing `ensureBars` callers keep their prior behavior. → Evidence: [TP-19-02](report.md#tp-19-02) — six rows covering same-origin append with retained partial truth, qualified public lookup, conflict exclusion, false-completeness rejection, legacy `ensureBars` compatibility, and fail-before-mutation validation; [TP-19-03](report.md#tp-19-03) — live page requests `2021-08-20..2026-08-20`, measures actual `2024-07-25..2026-08-20` over 520 rows, reports `state: partial`, and issues only the same-origin `/data/bars/MSFT.json`; [TP-19-04](report.md#tp-19-04) — 1,300 rows and five-year request labels still cannot return `complete` while both required bounds are absent
 - [x] SCN-008-045 is implemented with explicit date/consent/source semantics and no personal request fields. → Evidence: [Scenario Contract Evidence](report.md#scenario-contract-evidence)

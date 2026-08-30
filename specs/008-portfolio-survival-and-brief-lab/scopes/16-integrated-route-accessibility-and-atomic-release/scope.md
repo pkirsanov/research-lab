@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Done
+**Status:** In Progress
 
 **Scope-Kind:** runtime-behavior
 
@@ -165,8 +165,8 @@ Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` an
     ```
 - [x] Broader E2E regression suite passes
   - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
-- [ ] Change Boundary is respected and zero excluded file families were changed
-- [ ] Consumer impact sweep completed; zero stale first-party references remain
+- [ ] Scope-16 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 16 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 16 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
 - [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns
   - **Verifying rows:** TP-16-13a (repository selftest) and TP-16-13b (provider-credentials browser suite), one per canary named in the `Independent Canary Before Broad Tests` column of [Shared Infrastructure Impact Sweep](#shared-infrastructure-impact-sweep).
   - **Resolution condition:** both commands are recorded as having run after the additive Feature 008 insertions into the five high-fan-out surfaces and BEFORE the TP-16-10 and TP-16-11 broad reruns. A canary recorded only alongside or after the broad reruns does not resolve this item, because the ordering is what makes the canary independent rather than a duplicate of the broad result.

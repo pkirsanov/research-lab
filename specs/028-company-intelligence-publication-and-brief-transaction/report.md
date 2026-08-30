@@ -3519,3 +3519,148 @@ The final filesystem residue scan found zero Scope 03 fixture directories. The c
 | `T028-S04-S05-LINK-RESOLUTION` | Preserved sequential finding | The whole-feature resolver reports nine unresolved links or titles assigned to Scopes 04 and 05. The Scope 03-only resolver reports zero unresolved Scope 03 links. |
 
 The canonical scenario derivation capture is `91b89763f583c93184b2bb581469cd7b3d5f559de5eccb04009d1d347d20d5f0`. The terminal transition diagnostic is `67f212b8d05fd62a86743fe6bdbe81026e49e1dc0122e6fdcf9244ec1195bbda`. It reports failed gates G022, G068, and G136 for whole-feature completion. Human acceptance, certification, and overall status remain unchanged. Because the Scope 03 test phase is not mechanically complete, this run adds no Scope 03 test claim and no Scope 03 test execution-history row.
+
+## Scope 03 Implement Scenario-Binding Remediation — 2026-08-29
+
+### Remediation Authority and Boundary
+
+**Phase:** implement
+**Claim Source:** executed
+**Repository packet:** decision `rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:14`, control revision `14`
+**Goal Contract:** `gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3`, revision `3`
+
+The installed validator accepted the exact actionable r5 packet before repository work. Goal Contract revision 3 then verified against its persisted digest. The `full-delivery` mode has a `done` ceiling and permits this implementation repair.
+
+This repair changes one product test file. It changes no production module. The new process test creates `company:test` only inside its temporary checkout. The committed policy still contains only `company:msft`.
+
+The repair leaves certified Scopes 01 and 02 unchanged. It adds no completed phase claim and no execution-history row. The existing Scope 03 implement claim and history row remain the only such records.
+
+### SCN-028-017 Production-Process RED and GREEN
+
+**Phase:** implement
+**Claim Source:** executed
+**RED Command:** `SCOPE03_COVERED_SET_PROCESS_NEGATIVE_CONTROL=advance-failed-subject node --test tests/company-intelligence-publication.e2e.mjs`
+**RED Exit Code:** 1
+**GREEN Command:** `node --test tests/company-intelligence-publication.e2e.mjs`
+**GREEN Exit Code:** 0
+
+The test executes the production CLI in a real temporary Git checkout with a real bare remote. It adds the second subject only to the isolated checkout. A post-cutoff event makes `company:test` fail at the production input-freeze boundary.
+
+The assertions require the refusal field and reason to name `company:test`. They also require unchanged company pointers, brief bytes, Git indexes, commits, and remote refs. The negative control writes a forbidden `company:test` pointer after refusal. This makes the persistent no-advancement assertion fail.
+
+```text
+# SCN-028-017 process E2E final-byte negative control RED
+$ /usr/bin/env SCOPE03_COVERED_SET_PROCESS_NEGATIVE_CONTROL=advance-failed-subject node --test tests/company-intelligence-publication.e2e.mjs
+exit: 1
+lines: 32
+sha256: 6353c04643b728e432fea843313fa6be240b0ec0bb6c608a025207d78c190c89
+✔ Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority
+✔ Regression E2E: Scope 02 production CLI promotes one coherent generation and rejects illegal phase transitions
+✔ Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical
+✖ Regression E2E: SCN-028-017 one failed subject advances no covered pointer or brief
+✔ Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit
+ℹ tests 5
+ℹ pass 4
+ℹ fail 1
+ℹ skipped 0
+```
+
+```text
+# SCN-028-017 process E2E GREEN
+$ node --test tests/company-intelligence-publication.e2e.mjs
+exit: 0
+lines: 13
+sha256: 774f72f5ebdc9e1a5a2eff1e973eb9fcbe2682f3e187562a89c658bdde9c5bf8
+✔ Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority
+✔ Regression E2E: Scope 02 production CLI promotes one coherent generation and rejects illegal phase transitions
+✔ Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical
+✔ Regression E2E: SCN-028-017 one failed subject advances no covered pointer or brief
+✔ Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit
+ℹ tests 5
+ℹ pass 5
+ℹ fail 0
+ℹ skipped 0
+ℹ todo 0
+```
+
+The affected integration suite also passed eight tests with zero failures and zero skips. Its capture is `b52eb6ddda65c698b063d4995d17a3adb2b7284049d1052a2d2f264ba438eece`.
+
+### Current Implement Scenario Receipts
+
+**Phase:** implement
+**Claim Source:** executed
+
+Four current commands ran through the canonical recorder. Each command produced a schema-v3 `scenarioBinding` with an exact input closure. Each binding includes a meaningful negative control, claim, test identity, source revision, and production implementation references.
+
+| Scenario | Current command result | Input closure | Verifiable output SHA-256 |
+| --- | --- | ---: | --- |
+| SCN-028-015 | 5 process tests passed, 0 failed, 0 skipped | 17 files | `ae421e5b3c9bb63454a41550ff56e7da1ff0494b7b496122cc4f9074bb436806` |
+| SCN-028-016 | 8 integration tests passed, 0 failed, 0 skipped | 15 files | `866d1738488863ca07d1712e0b5eb1f3794de54bc36870de9a194ed9313b5652` |
+| SCN-028-017 | 5 process tests passed, 0 failed, 0 skipped | 17 files | `305a234a0dc328ecb76d579703adef189e7df5c17a98b91cf4aa4e135a77f6ba` |
+| SCN-028-022 | 5 process tests passed, 0 failed, 0 skipped | 18 files | `c9fd4a5cf51354b88a0ee2a2a30a11a05a2cf36938cb720722314c36925a986e` |
+
+The receipt-contract assertion produced this result:
+
+```text
+{
+  "implementReceiptCount": 4,
+  "scenarioIds": [
+    "SCN-028-015",
+    "SCN-028-016",
+    "SCN-028-017",
+    "SCN-028-022"
+  ],
+  "uniqueScenarioCount": 4,
+  "allExitZero": true,
+  "allCurrentRevision": true,
+  "allClaimsMeaningful": true,
+  "allControlsMeaningful": true,
+  "allImplementationRefsPresent": true,
+  "allImplementationRefsClosed": true,
+  "allClosuresCurrentShape": true
+}
+FINAL_IMPLEMENT_RECEIPT_CONTRACT_EXIT=0
+```
+
+The final strict freshness check reports 20 append-only rows, 13 current identities, 7 superseded rows, 13 valid closures, zero stale closures, and zero unknown closures. Its capture is `5b93cf39cf101c36b92c5f044955ab932141471f4699a6bf507c4e46e9b36a67`.
+
+### Canonical Scenario-State Advancement
+
+**Phase:** implement
+**Claim Source:** executed
+**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/028-company-intelligence-publication-and-brief-transaction --log .specify/runtime/tool-calls.jsonl --source-revision 3e4938e2eb464cb2ac2b740055513cf462df407c --format text`
+**Exit Code:** 0
+
+```text
+scenario-state-resolve: specs/028-company-intelligence-publication-and-brief-transaction
+  source revision: 3e4938e2eb46
+  SCN-028-015  state=IMPLEMENTED  derived=[PLANNED RED_VERIFIED IMPLEMENTED]
+  SCN-028-016  state=IMPLEMENTED  derived=[PLANNED RED_VERIFIED IMPLEMENTED]
+  SCN-028-017  state=GREEN_TARGETED  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED]
+  SCN-028-022  state=IMPLEMENTED  derived=[PLANNED RED_VERIFIED IMPLEMENTED]
+```
+
+The complete 24-line resolver capture is `c6cc380d65cd567a853e4c89bf1aeaf60170d5d43342aced3c18c5e7826e9e3f`. Every Scope 03 scenario now advances beyond `RED_VERIFIED`.
+
+### Cleanup and Finding Accounting
+
+**Phase:** implement
+**Claim Source:** executed
+
+```text
+SCOPE03_RESIDUE_CHECK_BEGIN
+TMP_ROOT=/var/folders/m_/25mnb8mx4ng1sb7lwd8cl9jw0000gn/T
+FIXTURE_RESIDUE_COUNT=0
+PROCESS_RESIDUE_COUNT=0
+SCOPE03_RESIDUE_CHECK_RESULT=PASS
+SCOPE03_RESIDUE_CHECK_END
+```
+
+The corrected state and boundary assertion reports 13 checked Scope 03 DoD items and zero unchecked items. It also reports one Scope 03 implement claim and one matching history row. Certified Scopes 01 and 02, later-scope text, and all certification fields remain unchanged. Its capture is `26a00608bc6e24cb2b4c71bf33e0acf8b63515ae28074e3aa24f3047ab1b4cd9`.
+
+| Finding | Disposition | Current proof |
+| --- | --- | --- |
+| `T028-S03-IMPLEMENT-SCENARIO-BINDING` | Addressed | Four current schema-v3 implement receipts and canonical scenario-state advancement |
+| Plan-routed SCN-028-017 process binding | Addressed | Final-byte RED and GREEN through the production CLI, filesystem, Git index, and bare remote |
+
+No assigned finding remains unresolved. Scope 03 remains `In Progress` because certification is validate-owned. The required next owner is `bubbles.test` for independent test-phase closure.

@@ -827,6 +827,143 @@ test('Regression E2E: SCN-028-022 dry run reaches coherence and leaves repositor
   }
 });
 
+test('Regression E2E: SCN-028-017 one failed subject advances no covered pointer or brief', async () => {
+  const sourceStatusBefore = requireSuccess(
+    run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),
+    'source checkout status before Scope 03 covered-set process E2E'
+  );
+  const sandbox = mkdtempSync(path.join(tmpdir(), 'company-publication-scope03-covered-set-'));
+  try {
+    const fixture = await createScope03TransactionFixture(sandbox, 'covered-set');
+    const restored = fixture.PUB.abortCoupledTransaction({
+      transactionDir: fixture.transaction,
+      candidateRoot: fixture.candidate,
+      publicationRoot: fixture.publication,
+      failure: {
+        contractVersion: 'company-publication-error/v1',
+        code: 'C028-COMPANY-CANDIDATE',
+        phase: 'company-candidates-validated',
+        reason: 'Reset the successful fixture before the covered-set process probe.',
+        field: 'company:msft',
+        causeCode: 'fixture-reset'
+      }
+    });
+    assert.equal(restored.ok, true, restored.ok ? '' : JSON.stringify(restored.error));
+    rmSync(fixture.transaction, { recursive: true, force: true });
+
+    const configPath = path.join(fixture.candidate, 'company-intelligence.config.json');
+    const config = JSON.parse(readFileSync(configPath, 'utf8'));
+    config.publication.coveredSubjects.push({
+      subjectId: 'company:test',
+      ticker: 'TEST',
+      cik: '0000000002',
+      displayName: 'Synthetic process-only subject'
+    });
+    writeFileSync(configPath, `${JSON.stringify(config, null, 2)}\n`);
+    const failedEventsPath = path.join(
+      fixture.candidate,
+      'data/company-intelligence/company-test/events.json'
+    );
+    mkdirSync(path.dirname(failedEventsPath), { recursive: true });
+    writeFileSync(failedEventsPath, `${JSON.stringify({
+      contractVersion: 'company-events/v1',
+      subjectId: 'company:test',
+      asOf: '2026-08-28T14:00:00.001Z',
+      events: []
+    }, null, 2)}\n`);
+
+    const transactionDir = path.join(sandbox, 'covered-set-failed-transaction');
+    const triggerFile = path.join(sandbox, 'covered-set-trigger.json');
+    const candidateBefore = checkoutByteInventory(fixture.candidate);
+    const publicationBefore = checkoutByteInventory(fixture.publication);
+    const candidateIndexBefore = requireSuccess(
+      run('git', ['write-tree'], fixture.candidate),
+      'covered-set candidate index before failed prepare'
+    );
+    const publicationIndexBefore = requireSuccess(
+      run('git', ['write-tree'], fixture.publication),
+      'covered-set publication index before failed prepare'
+    );
+    const remoteBefore = requireSuccess(
+      run('git', ['ls-remote', '--heads', 'origin', 'refs/heads/main'], fixture.publication),
+      'covered-set remote before failed prepare'
+    );
+    const failedPrepare = run(process.execPath, [
+      fixture.cli,
+      'prepare',
+      '--transaction-dir', transactionDir,
+      '--candidate-root', fixture.candidate,
+      '--trigger-file', triggerFile
+    ], fixture.candidate);
+    const refusal = requireRefusal(
+      failedPrepare,
+      'covered-set prepare with failed synthetic subject',
+      'C028-EVIDENCE-CUTOFF'
+    );
+    assert.equal(refusal.phase, 'input-freeze');
+    assert.match(refusal.field, /company:test/,
+      'the process refusal field identifies the failed covered subject by name');
+    assert.match(refusal.reason, /company:test/,
+      'the process refusal reason identifies the failed covered subject by name');
+
+    if (process.env.SCOPE03_COVERED_SET_PROCESS_NEGATIVE_CONTROL === 'advance-failed-subject') {
+      const forbiddenPointer = path.join(
+        fixture.candidate,
+        'data/company-intelligence/company-test/current.json'
+      );
+      writeFileSync(forbiddenPointer, '{"generationId":"forbidden","versionId":"forbidden"}\n');
+    }
+
+    assert.equal(existsSync(path.join(fixture.candidate,
+      'data/company-intelligence/company-test/current.json')), false,
+    'the failed synthetic subject advances no current pointer');
+    assert.deepEqual(checkoutByteInventory(fixture.candidate), candidateBefore,
+      'the failed covered set changes no candidate pointer or brief byte');
+    assert.deepEqual(checkoutByteInventory(fixture.publication), publicationBefore,
+      'the failed covered set changes no publication pointer or brief byte');
+    assert.equal(existsSync(path.join(transactionDir, 'frozen-inputs.json')), false,
+      'the failed subject creates no frozen generation candidate');
+    assert.equal(
+      requireSuccess(run('git', ['rev-parse', 'HEAD'], fixture.candidate), 'covered-set candidate HEAD'),
+      fixture.baseCommit
+    );
+    assert.equal(
+      requireSuccess(run('git', ['rev-parse', 'HEAD'], fixture.publication), 'covered-set publication HEAD'),
+      fixture.baseCommit
+    );
+    assert.equal(
+      requireSuccess(run('git', ['write-tree'], fixture.candidate), 'covered-set candidate index after refusal'),
+      candidateIndexBefore
+    );
+    assert.equal(
+      requireSuccess(run('git', ['write-tree'], fixture.publication), 'covered-set publication index after refusal'),
+      publicationIndexBefore
+    );
+    assert.equal(
+      requireSuccess(run('git', ['ls-remote', '--heads', 'origin', 'refs/heads/main'], fixture.publication),
+        'covered-set remote after failed prepare'),
+      remoteBefore
+    );
+    const sourcePolicy = JSON.parse(readFileSync(
+      path.join(ROOT, 'company-intelligence.config.json'),
+      'utf8'
+    ));
+    assert.deepEqual(
+      sourcePolicy.publication.coveredSubjects.map((subject) => subject.subjectId),
+      ['company:msft'],
+      'the synthetic second subject exists only inside the isolated test fixture'
+    );
+    assert.equal(
+      requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),
+        'source checkout status after Scope 03 covered-set process E2E'),
+      sourceStatusBefore,
+      'the covered-set process E2E leaves the current checkout unchanged'
+    );
+  } finally {
+    rmSync(sandbox, { recursive: true, force: true });
+  }
+});
+
 test('Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit', async () => {
   const sourceStatusBefore = requireSuccess(
     run('git', ['status', '--porcelain=v1', '--untracked-files=all'], ROOT),

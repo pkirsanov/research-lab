@@ -423,7 +423,7 @@ The installed implementation discovery grammar normalizes text after `::`; `Node
 
 **Status:** In Progress
 **Depends On:** Scope 02.  
-**Scope-Kind:** runtime-behavior.
+**Scope-Kind:** runtime-behavior
 
 **Consumer surface:** The production CLI command boundary exposes abort, dry-run, push-resume, and acknowledgment-reconciliation outcomes.
 
@@ -497,6 +497,18 @@ And no candidate becomes a published version
 9. Keep dry-run work inside private checkouts through coherence validation, then remove it without tracked or remote mutation.
 10. Sanitize public and private attempt records. Exclude authored rejection text, private paths, operator identity, portfolio data, and credentials.
 
+### Implementation Files
+
+The installed implementation discovery grammar normalizes text after `::`; `Node.js` is a language qualifier, not another path.
+
+- `scripts/brief-publication.mjs::Node.js`
+- `scripts/company-intelligence-publication.mjs::Node.js`
+- `tests/brief-refresh-atomicity.support.mjs::Node.js`
+- `tests/brief-refresh-atomicity.test.mjs::Node.js`
+- `tests/company-intelligence-publication.e2e.mjs::Node.js`
+- `tests/company-intelligence-publication.integration.mjs::Node.js`
+- `tests/distributed-briefs.distributed-publish.unit.mjs::Node.js`
+
 ### Shared Infrastructure Impact Sweep
 
 | Protected surface | Downstream contracts | Independent canary | Restore path |
@@ -544,15 +556,17 @@ And no candidate becomes a published version
 - [x] Push and acknowledgment branches preserve honest remote authority and exact-resume semantics without recreating a generation. → Evidence: [Scope 03 exact commit and remote authority](report.md#scope-03-exact-commit-and-remote-authority)
 - [x] Attempt records expose safe state and cause codes without granting pair authority or leaking private data. → Evidence: [Scope 03 attempt safety and authority separation](report.md#scope-03-attempt-safety-and-authority-separation)
 - [x] The Shared Infrastructure Impact Sweep, canaries, restore paths, Consumer Impact Sweep, and Change Boundary are satisfied. → Evidence: [Scope 03 final implement quality gates](report.md#scope-03-final-implement-quality-gates)
-- [x] Scope 03 has persistent scenario-specific regression E2E coverage for SCN-028-015, SCN-028-016, SCN-028-017, and SCN-028-022. → Evidence: [Scope 03 exact commit and remote authority](report.md#scope-03-exact-commit-and-remote-authority)
-- [x] The broader Scope 03 E2E regression suite passes with no collateral failure. → Evidence: [Scope 03 exact commit and remote authority](report.md#scope-03-exact-commit-and-remote-authority)
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior pass for SCN-028-015, SCN-028-016, SCN-028-017, and SCN-028-022. → Evidence: [Scope 03 implement scenario-binding remediation](report.md#current-implement-scenario-receipts)
+  > **Phase:** implement
+  > **Claim Source:** executed
+- [x] Broader E2E regression suite passes for the complete Scope 03 production CLI process-E2E file with no collateral failure. → Evidence: [Scope 03 exact commit and remote authority](report.md#scope-03-exact-commit-and-remote-authority)
 
 #### Test Evidence Items — 6 rows, exact Test Plan parity
 
-- [x] TP-03-01 proves SCN-028-015 by restoring company pointers, unpublished candidates, and brief baseline bytes. → Evidence: [TP-03-01](report.md#tp-03-01)
-- [x] TP-03-02 proves SCN-028-016 by withholding the brief and every pointer after company validation fails. → Evidence: [TP-03-02](report.md#tp-03-02)
-- [x] TP-03-03 proves SCN-028-017 with a failing second test subject and zero covered-set advancement. → Evidence: [TP-03-03](report.md#tp-03-03)
-- [x] TP-03-04 proves SCN-028-022 with byte-identical worktree, index, pointers, artifacts, and remote refs. → Evidence: [TP-03-04](report.md#tp-03-04)
+- [x] TP-03-01 proves SCN-028-015, A valid company candidate cannot escape a failed brief. All company candidates validate, but final brief validation fails. The transaction aborts. Every current company pointer keeps its baseline value. Unpublished company candidates leave the working transaction. All acknowledged brief artifacts keep their baseline bytes. → Evidence: [TP-03-01](report.md#tp-03-01)
+- [x] TP-03-02 proves SCN-028-016, A valid brief candidate cannot escape a failed company publication. The final brief candidate validates, but a company candidate or pointer validation fails. The transaction aborts. The final brief does not become authoritative. No company pointer advances. The previous acknowledged pair remains current. → Evidence: [TP-03-02](report.md#tp-03-02)
+- [x] TP-03-03 proves SCN-028-017, Covered companies publish as one set. More than one covered subject is configured, but one subject fails composition or validation. The transaction evaluates the covered-subject set. No covered-subject pointer advances. No brief artifact from that generation publishes. The failed subject is identified by name. → Evidence: [TP-03-03](report.md#tp-03-03)
+- [x] TP-03-04 proves SCN-028-022, Dry-run inspection is non-authoritative. The operator requests a dry run. Candidate composition and validation finish. No current company pointer changes. No acknowledged brief artifact changes. No candidate becomes a published version. → Evidence: [TP-03-04](report.md#tp-03-04)
 - [x] TP-03-05 proves commit restoration, exact local-commit retention, push classification, and remote-ancestry acknowledgment recovery. → Evidence: [TP-03-05](report.md#tp-03-05)
 - [x] TP-03-06 proves the existing brief atomicity contract survives the expanded transaction inventory. → Evidence: [TP-03-06](report.md#tp-03-06)
 

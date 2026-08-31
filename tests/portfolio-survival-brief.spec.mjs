@@ -953,6 +953,8 @@ test('Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one i
   const presentationsAfterImport = Number(await compute.getAttribute('data-presentation-count'));
   expect(computesAfterImport, 'importing evidence is a real compute').toBeGreaterThan(0);
   expect(token, 'the published workspace must cite its compute token').not.toBe('none');
+  await expect(compute, 'initial publication must not masquerade as an accepted rebase')
+    .toHaveAttribute('data-rebase-state', 'idle');
 
   // Every mode against every tab. Twelve presentation operations, zero computes.
   const tabs = ['workspaceTabBrief', 'workspaceTabRiskXray', 'workspaceTabPathLab',
@@ -1007,6 +1009,15 @@ test('Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one i
     { message: 'accepted new evidence must publish a new identity' }).not.toBe(beforeRebase);
   const rebasedIdentity = await compute.getAttribute('data-workspace-identity');
   const rebasedToken = await compute.getAttribute('data-compute-token');
+  const acceptedRebase = await compute.evaluate((node) => ({
+    state: node.getAttribute('data-rebase-state'),
+    changedInputs: node.getAttribute('data-rebase-changed-inputs')
+  }));
+  expect(acceptedRebase,
+    'confirmed portfolio evidence must pass through explicit preview and atomic rebase acceptance').toEqual({
+    state: 'accepted',
+    changedInputs: expect.stringMatching(/\bportfolio\b/)
+  });
   expect(rebasedToken, 'a rebase must issue a new compute token').not.toBe(token);
   for (let index = 0; index < tabs.length; index += 1) {
     await page.locator(`#${tabs[index]}`).click();

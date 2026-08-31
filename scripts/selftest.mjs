@@ -10452,6 +10452,94 @@ try {
   const publicState8 = JSON.stringify(JSON.parse(durable8.rlData).toolReads);
   assert(!/MSFT|BND|holdings|costBasis|mandate|behaviorEvents|interestSignals|rlPortfolioWorkspace/.test(publicState8),
     'Scope 04 TP-04-04: the shared public cache carries no holding, conclusion, or personal storage name');
+
+  /* TP-B007-008. Read the production modules themselves. The scanner removes comments without
+     removing quoted code, then derives every P008 code passed as the first argument of a call.
+     That excludes registry keys and comparison-only strings without maintaining a second code list. */
+  const portfolioErrorFiles8 = ['rlportfolio.js', 'rlportfoliobrief.js', 'rlportfolioanalytics.js'];
+  const portfolioErrorSources8 = Object.fromEntries(portfolioErrorFiles8.map((file) => [file, read(file)]));
+  const withoutComments8 = (source) => {
+    let output = '', state = 'code';
+    for (let index = 0; index < source.length; index += 1) {
+      const character = source[index], next = source[index + 1];
+      if (state === 'line') {
+        if (character === '\n') { output += character; state = 'code'; }
+      } else if (state === 'block') {
+        if (character === '*' && next === '/') { state = 'code'; index += 1; }
+        else if (character === '\n') output += character;
+      } else if (state !== 'code') {
+        output += character;
+        if (character === '\\') { output += next || ''; index += 1; }
+        else if (character === state) state = 'code';
+      } else if (character === '"' || character === "'" || character === '`') {
+        state = character;
+        output += character;
+      } else if (character === '/' && next === '/') {
+        state = 'line';
+        index += 1;
+      } else if (character === '/' && next === '*') {
+        state = 'block';
+        index += 1;
+      } else output += character;
+    }
+    return output;
+  };
+  const registryMatch8 = /var ERROR_CODES = Object\.freeze\(\{([\s\S]*?)\n  \}\);/.exec(portfolioErrorSources8['rlportfolio.js']);
+  const registeredCodes8 = registryMatch8
+    ? Array.from(registryMatch8[1].matchAll(/["'](P008-[A-Z-]+)["']\s*:/g), (match) => match[1])
+    : [];
+  const registeredSet8 = new Set(registeredCodes8);
+  const firstCallArgument8 = (source, openIndex) => {
+    let argument = '', depth = 0, quote = null;
+    for (let index = openIndex + 1; index < source.length; index += 1) {
+      const character = source[index];
+      if (quote !== null) {
+        argument += character;
+        if (character === '\\') { argument += source[index + 1] || ''; index += 1; }
+        else if (character === quote) quote = null;
+      } else if (character === '"' || character === "'" || character === '`') {
+        quote = character;
+        argument += character;
+      } else if (character === '(' || character === '[' || character === '{') {
+        depth += 1;
+        argument += character;
+      } else if (character === ')' || character === ']' || character === '}') {
+        if (character === ')' && depth === 0) return argument;
+        depth -= 1;
+        argument += character;
+      } else if (character === ',' && depth === 0) return argument;
+      else argument += character;
+    }
+    return argument;
+  };
+  const emittedCodesFrom8 = (source) => {
+    const code = withoutComments8(source);
+    const calls = /\b(?:failure|portfolioError|contractErr|err|clearFailure|scenarioComputeFailure)\s*\(/g;
+    const emitted = [];
+    let call;
+    while ((call = calls.exec(code)) !== null) {
+      const firstArgument = firstCallArgument8(code, code.indexOf('(', call.index));
+      emitted.push(...Array.from(firstArgument.matchAll(/["'](P008-[A-Z-]+)["']/g), (match) => match[1]));
+    }
+    return emitted;
+  };
+  const emittedByModule8 = Object.fromEntries(portfolioErrorFiles8.map((file) => [
+    file,
+    emittedCodesFrom8(portfolioErrorSources8[file])
+  ]));
+  const emittedCodes8 = Array.from(new Set(Object.values(emittedByModule8).flat())).sort();
+  const missingCodes8 = (registry, emitted) => emitted.filter((code) => !registry.has(code));
+  const missingRegisteredCodes8 = missingCodes8(registeredSet8, emittedCodes8);
+  const inventedCode8 = 'P008-SELFTEST-INVENTED';
+  const inventedCodeDetected8 = missingCodes8(registeredSet8, emittedCodes8.concat(inventedCode8)).includes(inventedCode8);
+  const removedCode8 = emittedCodes8.find((code) => registeredSet8.has(code));
+  const reducedRegistry8 = new Set(registeredCodes8);
+  reducedRegistry8.delete(removedCode8);
+  const removedCodeDetected8 = Boolean(removedCode8) && missingCodes8(reducedRegistry8, emittedCodes8).includes(removedCode8);
+  assert(registryMatch8 !== null && registeredCodes8.length === 52 && registeredSet8.size === 52
+    && emittedCodes8.length === 45 && portfolioErrorFiles8.every((file) => emittedByModule8[file].length > 0)
+    && missingRegisteredCodes8.length === 0 && inventedCodeDetected8 && removedCodeDetected8,
+  'Feature 008 PortfolioError registry covers every quoted production emitter');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 008 Scope 04 canary group threw): ' + e.message); }
 
 /* ---------- Feature 019 Scope 01: agenda registry contract ---------- */

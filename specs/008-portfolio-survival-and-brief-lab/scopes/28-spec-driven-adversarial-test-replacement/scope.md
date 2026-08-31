@@ -43,14 +43,36 @@ Scenario: A repaired Feature 008 behavior is challenged by its original reduced 
 
 ## Change Boundary
 
-**Allowed file families:** `tests/portfolio-*.mjs`, including verifier tests in `tests/portfolio-test-integrity.unit.mjs`, `tests/portfolio-defect-injector.cjs`, `tests/portfolio-survival.support.mjs`, `tests/fixtures/portfolio-survival-allocation/**`, `scripts/verify-spec008-scope-claims.mjs`, `scripts/spec008-scope-claims.json`, `scripts/validate-test-file-reachability.mjs` and its baseline, `scripts/validate-spec-test-paths.mjs` and its baseline, the Feature 008 canaries in `scripts/selftest.mjs`, and this scope's own `scope.md` and `report.md`. The v2 semantic analyzers and the exported refusal enum remain inside `scripts/verify-spec008-scope-claims.mjs`. No generic verifier package is introduced.
+**Attribution authority:** The [boundary attribution registry](../_boundary-attribution.md#scope-28) is the only authority for Scope 28 path and identity ownership. The verifier must parse that table directly before reading the implementation-owned manifest.
+
+**Closed Scope 28 attributed path set:**
+
+| Path | Attribution boundary |
+|---|---|
+| `.specify/memory/agents.md` | Exact command-registry hunk only |
+| `scripts/spec008-scope-claims.json` | Whole file |
+| `scripts/verify-spec008-scope-claims.mjs` | Whole file |
+| `specs/008-portfolio-survival-and-brief-lab/scopes/_boundary-attribution.md` | Exact Scope 28 marker pair only |
+| `specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/report.md` | Whole Scope 28 report |
+| `specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/scope.md` | Whole Scope 28 plan |
+| `tests/portfolio-defect-injector.cjs` | Exact Scope 28 marker, required inputs, and original mutation-hook identities only |
+| `tests/portfolio-publisher-boundary.functional.mjs` | Exact fixture-freshness hunks only |
+| `tests/portfolio-survival-diversification.spec.mjs` | Exact settlement-helper import and call hunks only |
+| `tests/portfolio-survival-foundation.spec.mjs` | Exact Scope 28 helper and adversarial assertion identities only |
+| `tests/portfolio-survival-paths.spec.mjs` | Exact settlement-helper import hunk only |
+| `tests/portfolio-survival.support.mjs` | Exact server-overlay and settlement-helper symbols only |
+| `tests/portfolio-test-integrity.unit.mjs` | Exact Scope 28 marker, fixture, helper, and test-title identities only |
+
+The two per-scope artifacts and the isolated manifest and verifier are the only whole-file declarations. The report row attributes the Scope 28 evidence container. It does not claim that one specialist authored every evidence block. Every shared file is identity-scoped so later bug repairs and concurrent work remain outside this scope.
 
 **Read-only authority inputs:** the exact scope artifacts named in [Canonical 41-Pair Inventory](#canonical-41-pair-inventory). The verifier may parse their exact named sections. Scope 28 must not mutate those artifacts to make an inventory comparison pass.
 
-**Excluded surfaces:** all production source (`rlportfolio.js`, `rlportfolioanalytics.js`, `rlportfoliobrief.js`, `rldata.js`, `rlnav.js`, `rlapp.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`), `market-brief.*`, `scripts/brief-*`, `tools.json`, `index.html`, `README.md`, `notes/**`, non-Feature-008 tests except the named read-only consumer executions, every scope artifact except this Scope 28 file and report, `specs/001-*` through `specs/007-*`, `.github/bubbles/**` receipt code, and the `certification.*` fields of `state.json`.
+**Read-only execution inputs:** `scripts/validate-test-file-reachability.mjs`, `scripts/validate-test-file-reachability.baseline`, `scripts/validate-spec-test-paths.mjs`, `scripts/validate-spec-test-paths.baseline`, `scripts/selftest.mjs`, and `tests/fixtures/portfolio-survival-allocation/**`. Running or reading these surfaces does not attribute them to Scope 28.
 
-- **Allowed:** Feature 008 test files, Feature 008 fixtures/support server, test declaration/reachability validators, `scripts/selftest.mjs` Feature 008 canaries, and plan/report evidence for Scope 28.
-- **Excluded:** production source, public/docs surfaces, authoritative scope inputs, unrelated Feature 001-007 tests except named read-only consumer execution, framework-managed receipt code, and certification fields.
+**Excluded surfaces:** all production source (`rlportfolio.js`, `rlportfolioanalytics.js`, `rlportfoliobrief.js`, `rldata.js`, `rlnav.js`, `rlapp.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`), `market-brief.*`, `scripts/brief-*`, tools and public registries, docs and notes, all baselines, all non-attributed tests, all fixtures, every other scope artifact, `_index.md`, `test-plan.json`, `scenario-manifest.json`, `uservalidation.md`, `state.json`, and `.github/bubbles/**` receipt code.
+
+- **Allowed:** Only the 13 exact paths above, limited to their declared whole-file or identity-level boundaries.
+- **Excluded:** Every path and identity not declared in the Scope 28 registry table.
 
 ## Shared Infrastructure Impact Sweep
 
@@ -79,7 +101,7 @@ Scenario: A repaired Feature 008 behavior is challenged by its original reduced 
 
 ## Feature-Specific Scope-Claims Verifier Contract
 
-The planned `scripts/spec008-scope-claims.json` is the closed v2 manifest for the 41 generic rows named below. It contains exactly 17 `boundary` entries and exactly 24 `consumer` entries. The verifier derives that pair set from the authoritative scope artifacts before it reads the manifest entries. The manifest cannot define its own completeness.
+The plan-owned `scopes/_boundary-attribution.md` Scope 28 table is the exact path-and-identity attribution authority. The implementation-owned `scripts/spec008-scope-claims.json` remains the closed v2 claim manifest for the 41 generic rows named below. It must match the authoritative registry rows and cannot define, expand, or repair Scope 28 ownership. It contains exactly 17 `boundary` entries and exactly 24 `consumer` entries. The verifier derives that pair set from the authoritative scope artifacts and the registry before it reads the manifest entries. The manifest cannot define its own completeness.
 
 The planned `scripts/verify-spec008-scope-claims.mjs` validates only this manifest and the declared Feature 008 repository surfaces. The utility is feature-specific. It does not establish a reusable cross-feature capability.
 

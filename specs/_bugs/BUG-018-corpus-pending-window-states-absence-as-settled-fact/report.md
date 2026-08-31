@@ -3796,3 +3796,309 @@ All requested pre-certification commands exited zero. The current transition con
 assurance derivation, strict receipt check, scenario certifiability check, goal-fidelity guard,
 artifact lint, and asserted transition guard authorize a validate-owned `done` write at full
 assurance. No in-boundary finding was produced by this certification pass.
+
+<a name="fresh-current-head-certification-bubbles-validate-2026-08-31"></a>
+## Fresh Current-HEAD Certification — bubbles.validate — 2026-08-31
+
+### Validation Evidence
+
+#### Resolved Commit Prerequisite
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+**Command:** `timeout 60 git show --no-ext-diff --format='commit=%H%ncommittedAt=%cI%nsubject=%s' --stat aae6c4f10`
+**Exit Code:** 0
+
+```text
+$ timeout 60 git show --no-ext-diff --format='commit=%H%ncommittedAt=%cI%nsubject=%s' --stat aae6c4f10
+commit=aae6c4f1097bacec71b72dedac6e6540b2ed0d6f
+committedAt=2026-08-31T01:08:52+00:00
+subject=audit(BUG-018): record independent certification evidence
+
+ .../report.md                                      | 1380 ++++++++++++++++++++
+ .../spec.md                                        |    7 +
+ .../state.json                                     |  284 +++-
+ 3 files changed, 1651 insertions(+), 20 deletions(-)
+exit: 0
+```
+
+This current-session read proves that the planning and independent-audit truth that previously
+triggered G088 is committed. The unrelated later portfolio commit moves the current source
+revision to `5bb698b4577bba93b714d12598b1d68e48f80521` without reopening that prerequisite.
+
+#### Full Scenario-State Resolution
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+**Command:** `timeout 300 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-018 fresh certification scenario state' -- timeout 240 bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable`
+**Exit Code:** 0
+
+```text
+# BUG-018 fresh certification scenario state
+$ timeout 240 bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable
+exit: 0
+lines: 1444
+sha256: 40b4b072d436046485b66b5e5b981c1cfde22b35165ad2fb51f5b0afa0c252bb
+--- first 20 ---
+scenario-state-resolve: specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+  source revision: 5bb698b4577b
+  SCN-BUG-018-001  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-002  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-003  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-004  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-005  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-006  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-007  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-008  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-009  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-010  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-011  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-012  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-013  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-014  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED REGRESSION_GREEN]
+--- omitted 1404 line(s); sha256 above covers the full output ---
+--- last 2 ---
+  (all 1426 refusals are SCS-REVISION-DRIFT: superseded receipts, excluded from derivation, not blocking)
+  certifiable: yes
+```
+
+#### Freshness, Goal, Contract, And Assurance
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+
+```text
+$ timeout 180 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict
+{
+  "total": 1523,
+  "current": 1480,
+  "superseded": 43,
+  "withClosure": 35,
+  "valid": 35,
+  "stale": 0,
+  "unknown": 1445,
+  "staleReceipts": []
+}
+exit: 0
+
+$ timeout 180 bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+goal-fidelity-guard: PASS boundary=pre-certification
+exit: 0
+
+$ timeout 120 bash .github/bubbles/scripts/transition-contract-resolver.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+{"schemaVersion":"transition-contract/v1","featureDir":"specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact","workflowMode":"bugfix-fastlane","modeClass":null,"auditProfile":"delivery-completion-v1","statusCeiling":"done","targetStatus":"done","currentStatus":"blocked","requiredGates":["G001","G002","G003","G004","G005","G006","G007","G008","G009","G010","G011","G012","G014","G015","G016","G018","G019","G020","G021","G022","G023","G024","G025","G026","G027","G028","G029","G033","G034","G035","G040","G044","G047","G048","G051","G055","G056","G057","G059","G060","G061","G094"],"phaseOrder":["select","bootstrap","implement","test","regression","simplify","gaps","harden","stabilize","devops","security","validate","audit","finalize"],"sourceEditLockoutRequired":false,"contractRef":"bubbles/workflows/modes.yaml#bugfix-fastlane","contractDigest":"sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f","targetRevision":"sha256:a1c291a2e057486a77efc1cf710dd4bf89da0a53e1fbb107d18eb6401d351c75"}
+exit: 0
+
+$ timeout 60 bash .github/bubbles/scripts/assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete true --risk-class high
+achievedLevel=full
+terminalStatus=done
+riskClass=high
+missingForFull=none
+reason=complete integrity chain (implementation + full test coverage + all tests passing + independent audit) — full assurance
+exit: 0
+
+$ timeout 60 bash .github/bubbles/scripts/is-terminal-for-mode.sh done bugfix-fastlane
+is-terminal-for-mode exit=0
+```
+
+#### Artifact Lint Before Certification Write
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+**Command:** `timeout 240 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-018 fresh certification artifact lint before write' -- timeout 180 bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact`
+**Exit Code:** 0
+
+```text
+# BUG-018 fresh certification artifact lint before write
+exit: 0
+lines: 40
+sha256: 15bf7bdf190831051b6d5fc62418356903ee7a4b79f762f6ba00c5924ba3d939
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ All checklist bullet items use checkbox syntax
+✅ uservalidation separates automation readiness from human acceptance
+✅ Detected state.json status: blocked
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'blocked'
+✅ report.md contains section matching: ###[[:space:]]+Summary|^##[[:space:]]+Summary
+✅ report.md contains section matching: ###[[:space:]]+Completion Statement|^##[[:space:]]+Completion Statement
+✅ report.md contains section matching: ###[[:space:]]+Test Evidence|^##[[:space:]]+Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+=== End Anti-Fabrication Checks ===
+Artifact lint PASSED.
+```
+
+#### Asserted Transition Guard Before Certification Write
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+**Command:** `timeout 480 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-018 fresh asserted transition guard before write' -- timeout 420 bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 0
+
+```text
+# BUG-018 fresh asserted transition guard before write
+exit: 0
+lines: 400
+sha256: 752b00f74c31f74fdedf62f4a7b7ab58a5aae782009d3eb0d11f1f016c6ddbcf
+--- first 20 ---
+============================================================
+  BUBBLES STATE TRANSITION GUARD
+  Feature: specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+  Timestamp: 2026-08-31T02:20:44Z
+============================================================
+
+--- Check 1: Required Artifacts ---
+✅ PASS: Required artifact exists: spec.md
+✅ PASS: Required artifact exists: design.md
+✅ PASS: Required artifact exists: uservalidation.md
+✅ PASS: Required artifact exists: state.json
+✅ PASS: Required artifact exists: scopes.md
+✅ PASS: Required artifact exists: report.md
+
+--- Check 2: state.json Integrity ---
+ℹ️  INFO: Current state.json status: blocked
+ℹ️  INFO: Current workflowMode: bugfix-fastlane
+
+--- Check 2B: workflowMode Consistency ---
+ℹ️  INFO: No policySnapshot.workflowMode present — skipping consistency check
+--- omitted 360 line(s); sha256 above covers the full output ---
+--- last 20 ---
+state.json status may be set to 'done'.
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:a1c291a2e057486a77efc1cf710dd4bf89da0a53e1fbb107d18eb6401d351c75
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G057,G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G136,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G059,G060,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+parentExpandedPhases: 1
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+```
+
+All pre-write checks exited zero at source revision `5bb698b4577b`. The validate-owned state write
+therefore records full assurance, high risk classification, no missing full-assurance input, and
+terminal `done` without changing any planning, source, test, framework, or user-validation file.
+
+#### Post-Write Verification
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+
+```text
+$ timeout 240 bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+exit: 0
+lines: 56
+sha256: 4520832d375d2f52f2fcd2281e9dc5d07ff8f7626c375fbd52669e79aec6f99c
+✅ Detected state.json status: done
+✅ DoD completion gate passed for status 'done' (all DoD checkboxes are checked)
+✅ workflowMode gate satisfied: ### Validation Evidence
+✅ workflowMode gate satisfied: ### Audit Evidence
+✅ All 97 evidence blocks in report.md contain legitimate terminal output
+✅ Required specialist phase 'implement' recorded in execution/certification phase records
+✅ Required specialist phase 'test' recorded in execution/certification phase records
+✅ Required specialist phase 'validate' recorded in execution/certification phase records
+✅ Required specialist phase 'audit' recorded in execution/certification phase records
+Artifact lint PASSED.
+
+$ timeout 120 bash .github/bubbles/scripts/assurance-certification-check.sh --feature-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+[assurance-certification-check] OK — recorded assurance is internally consistent (level=full, missingForFull='<none>').
+exit: 0
+
+$ timeout 180 bash .github/bubbles/scripts/post-cert-spec-edit-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+post-cert-spec-edit-guard: PASS Gate G088 (post_certification_spec_edit_gate) - spec=specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact status=done certifiedAt=2026-08-31T02:23:20Z trackedFiles=3
+exit: 0
+```
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+**Command:** `timeout 480 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-018 asserted transition guard after done write' -- timeout 420 bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 0
+
+```text
+# BUG-018 asserted transition guard after done write
+exit: 0
+lines: 400
+sha256: ef46e1c1689115093cb0d7fb008625a166d4bb5604a05426cd80f6f1aa4eeda0
+--- first 20 ---
+============================================================
+  BUBBLES STATE TRANSITION GUARD
+  Feature: specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+  Timestamp: 2026-08-31T02:29:16Z
+============================================================
+
+--- Check 1: Required Artifacts ---
+✅ PASS: Required artifact exists: spec.md
+✅ PASS: Required artifact exists: design.md
+✅ PASS: Required artifact exists: uservalidation.md
+✅ PASS: Required artifact exists: state.json
+✅ PASS: Required artifact exists: scopes.md
+✅ PASS: Required artifact exists: report.md
+
+--- Check 2: state.json Integrity ---
+ℹ️  INFO: Current state.json status: done
+ℹ️  INFO: Current workflowMode: bugfix-fastlane
+--- omitted 360 line(s); sha256 above covers the full output ---
+--- last 20 ---
+state.json status may be set to 'done'.
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:e2edc4f5df577fecee9a5d346de08061016a46bceac1a6cbb79c5369448d06d7
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G057,G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G136,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G059,G060,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+parentExpandedPhases: 1
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+```
+
+The persisted `done` state passes the complete asserted transition battery. No validation finding
+remains, and no foreign dirty path was read for modification, edited, staged, or committed.

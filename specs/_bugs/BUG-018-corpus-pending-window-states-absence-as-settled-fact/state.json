@@ -3,12 +3,20 @@
   "featureDir": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact",
   "featureName": "BUG-018 The Corpus-Pending Window States Absence As Settled Fact",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-31T01:03:30Z",
-  "certifiedAt": null,
-  "status": "blocked",
-  "blockedReason": "G088 post_certification_spec_edit_gate refuses terminal certification because spec.md has an uncommitted planning-truth edit. This validation invocation is forbidden from editing spec.md and the operator requested no commit. Commit the already-validated planning truth through its owning workflow, then run a fresh terminal certification.",
-  "priorBlockedReason": null,
-  "blockedReasonResolved": null,
+  "lastUpdatedAt": "2026-08-31T02:23:20Z",
+  "completedAt": "2026-08-31T02:23:20Z",
+  "certifiedAt": "2026-08-31T02:23:20Z",
+  "status": "done",
+  "blockedReason": null,
+  "priorBlockedReason": "G088 post_certification_spec_edit_gate refuses terminal certification because spec.md has an uncommitted planning-truth edit. This validation invocation is forbidden from editing spec.md and the operator requested no commit. Commit the already-validated planning truth through its owning workflow, then run a fresh terminal certification.",
+  "blockedReasonResolved": {
+    "resolvedAt": "2026-08-31T02:23:20Z",
+    "resolvedBy": "bubbles.validate",
+    "priorStatus": "blocked",
+    "verbatimBlockerPreservedIn": "priorBlockedReason",
+    "resolutionClass": "commit-prerequisite-satisfied",
+    "resolution": "The focused planning and independent-audit truth was committed at aae6c4f1097bacec71b72dedac6e6540b2ed0d6f. At current HEAD 5bb698b4577bba93b714d12598b1d68e48f80521, fresh validate-owned scenario-state, receipt-freshness, goal-fidelity, artifact-lint, assurance, terminal-for-mode, and asserted transition checks all exited zero. G088 is therefore no longer triggered."
+  },
   "crossFeatureEditAuthorization": null,
   "workflowMode": "bugfix-fastlane",
   "planningOnly": false,
@@ -38,13 +46,14 @@
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-30T00:37:33Z",
-    "completedAt": "2026-08-31T00:50:28Z",
-    "substate": "certification_commit_required",
+    "completedAt": "2026-08-31T02:20:44Z",
+    "substate": "certified",
     "currentScope": null,
-    "nextRequiredOwner": "bubbles.goal",
-    "nextRequiredTarget": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact",
-    "nextRequiredReason": "A focused commit of the already-validated planning and independent-audit truth is required before fresh certification.",
+    "nextRequiredOwner": null,
+    "nextRequiredTarget": null,
+    "nextRequiredReason": null,
     "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented', now covering Scopes 1, 2 and 3. Scope 2 implements the product decision recorded in design.md '## Open Questions For The Owner \u2014 Resolved 2026-08-23': Option A then Option B, withhold, taken by the orchestrating session under the operator's standing authorization and disclosed as such rather than presented as an independently reached engineering conclusion. Four shipped files changed across the packet: rlcompanyintel.js (buildCoverageAccount gains an optional third readiness argument defaulting to 'established', plus the COVERAGE_READINESS_STATES export; additive, so all 25 existing two-argument call sites are unchanged), company-intelligence-lab.html (corpusReadiness() maps corpusStatus onto that vocabulary and only 'pending' withholds, so a corpus resolved to 'unavailable' still reads settled and the offline first paint survives; the cockpit sentence, the horizon cards, the power-mode coverage tally and rows, and the body attributes all read that one readiness; the static body shell drops its literal data-coverage-unavailable=\"0\"), tests/company-intelligence-lab.spec.mjs (one added case, nothing removed or weakened) and notes/company-intelligence-lab.md (the body-attribute contract this change alters). data-run-status is untouched: 'composed' still means the paint composed its horizons, which is what the file:// and all-requests-outstanding first-paint tests wait on; the new data-reading-readiness is the single documented predicate FR-018-005 asks for. The new case fails against the pre-fix route at c402bfa3e on the copy assertion and not a timeout (Received: '15 of 15 mandatory dimensions have no usable source in this run.'), fails again on the otherwise-corrected route with only the cockpit guard reverted, and passes against the corrected route; all three runs are recorded verbatim in report.md. The scratch worktree used for those runs was removed and git worktree list reports only the main checkout. The 025 browser suite rose 38 to 39 with nothing removed, the 025 unit suite held at 90, and node scripts/selftest.mjs reported 3404 passed 0 failed measured directly in the shared working tree. specs/025-company-multi-horizon-intelligence-lab/report.md was not edited. No branch or remote was pushed, merged, rebased or moved, and every commit staged explicit paths. Ten of ten Scope 2 and six of six Scope 3 Definition of Done items are ticked; all seven cross-scope items remain unticked and are not claimed. completedPhaseClaims records the implement phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "terminalCertificationNote": "This note supersedes phaseClaimNote for current-state interpretation. Fresh validate-owned certification completed at HEAD 5bb698b4577bba93b714d12598b1d68e48f80521 after the G088 prerequisite landed at aae6c4f1097bacec71b72dedac6e6540b2ed0d6f. All fourteen scenarios are certifiable, all thirty-five input-closure receipts are fresh, the asserted bugfix-fastlane transition guard passed, and assurance derived full at high risk with no missing full-assurance input. No next owner remains.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -558,24 +567,24 @@
     "consequenceForStatus": "status stays in_progress with certification.status equal to it. Scope 1 is Done with six of six Definition of Done items ticked; Scopes 2 and 3 are Not Started with zero ticked, which is the accurate representation of a packet whose second facet is closed and whose first is not."
   },
   "currentStateReconciliation": {
-    "recordedAt": "2026-08-31T01:03:30Z",
-    "status": "blocked",
+    "recordedAt": "2026-08-31T02:23:20Z",
+    "status": "done",
     "deliveredScopes": [
       "01-make-data-corpus-status-describe-the-subject-on-screen",
       "02-stop-asserting-absence-the-route-has-not-established",
       "03-close-the-structural-test-gap",
       "04-enforce-the-shared-rldata-publication-trust-boundary"
     ],
-    "behavior": "All four scopes and their execution evidence remain complete, but terminal done certification was not accepted because G088 detects uncommitted spec, report, state planning, and independent-audit truth. The coherent pre-commit posture is blocked until those already-validated edits receive a focused commit and fresh certification runs.",
-    "planningRemediation": "The earlier G094, scenario-contract, policy-snapshot, user-acceptance-record, and live-test interception conditions are closed. User acceptance remains explicitly classified as an external-record rather than agent-observed acceptance.",
-    "remainingOwnership": "bubbles.goal owns the focused commit of the already-validated planning and independent-audit truth. A fresh bubbles.validate certification attempt is required after that commit; this repair does not claim terminal certification.",
+    "behavior": "All four scopes are Done. All forty-one DoD items remain checked with evidence. At current HEAD 5bb698b4577bba93b714d12598b1d68e48f80521, all fourteen scenarios resolve certifiable, all thirty-five closure receipts are fresh, and the asserted bugfix-fastlane transition guard authorizes done.",
+    "planningRemediation": "The earlier G088 commit prerequisite is satisfied by aae6c4f1097bacec71b72dedac6e6540b2ed0d6f. The earlier G094, scenario-contract, policy-snapshot, user-acceptance-record, and live-test interception conditions remain closed. User acceptance remains explicitly classified as an external record rather than agent-observed acceptance.",
+    "remainingOwnership": "None. Fresh validate-owned certification derived full assurance at high risk and advanced both status mirrors to done.",
     "historicalRecord": "historicalTransitionBlockersAtScope1, historicalKnownLimitationAtScope1, and execution.phaseClaimNote preserve earlier execution states and are explicitly historical, not assertions about the current four-scope packet."
   },
   "certification": {
-    "status": "blocked",
+    "status": "done",
     "lockdownState": "unlocked",
-    "completedAt": null,
-    "certifiedAt": null,
+    "completedAt": "2026-08-31T02:23:20Z",
+    "certifiedAt": "2026-08-31T02:23:20Z",
     "completedScopes": [
       "01-make-data-corpus-status-describe-the-subject-on-screen",
       "02-stop-asserting-absence-the-route-has-not-established",
@@ -592,7 +601,7 @@
       "validate",
       "audit"
     ],
-    "certificationFieldWriteNote": "This narrow bubbles.validate repair restored both status mirrors to blocked after G088 rejected the terminal done write. Terminal completion and certification timestamps and the assurance claim are cleared. completedScopes, scopeProgress, and certifiedCompletedPhases remain only as non-terminal evidence inventories for scopes and phases already recorded as complete. bubbles.goal must make the focused commit before a fresh bubbles.validate certification attempt; no terminal certification is claimed by this repair.",
+    "certificationFieldWriteNote": "Fresh bubbles.validate certification at current HEAD 5bb698b4577bba93b714d12598b1d68e48f80521 advanced both status mirrors together after the G088 prerequisite landed at aae6c4f1097bacec71b72dedac6e6540b2ed0d6f. The validate-owned run independently executed scenario-state resolution, strict receipt freshness, transition-contract resolution, goal fidelity, assurance derivation, terminal-for-mode, artifact lint, and the asserted transition guard. Every required command exited zero. completedScopes, scopeProgress, and certifiedCompletedPhases are preserved from the accepted completion record.",
     "scopeProgress": [
       {
         "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
@@ -624,7 +633,14 @@
         "dodChecked": 7,
         "dodUnchecked": 0
       }
-    ]
+    ],
+    "assurance": {
+      "level": "full",
+      "riskClass": "high",
+      "missingForFull": [],
+      "reason": "complete integrity chain (implementation + full test coverage + all tests passing + independent audit) — full assurance",
+      "evidenceRef": "report.md#fresh-current-head-certification-bubbles-validate-2026-08-31"
+    }
   },
   "transitionRequests": [],
   "reworkQueue": [],

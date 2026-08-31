@@ -414,9 +414,13 @@ test('BUG-007: normal brief order and refusal precedence remain unchanged', () =
   assert.deepEqual(localRefusal, {
     ok: false,
     error: {
+      contractVersion: 'PortfolioError/v1',
       code: 'P008-BRIEF-COMPOSED',
       reason: 'local-composition-time-required',
-      field: 'composedAt'
+      field: 'composedAt',
+      row: null,
+      valueEchoed: false,
+      recoverable: false
     }
   });
 
@@ -913,9 +917,13 @@ test('BUG-006: composeBrief validates shared evidence-age policy before Date for
     result: {
       ok: false,
       error: {
+        contractVersion: 'PortfolioError/v1',
         code: 'P008-BRIEF-COMPOSED',
         reason: 'local-composition-time-required',
-        field: 'composedAt'
+        field: 'composedAt',
+        row: null,
+        valueEchoed: false,
+        recoverable: false
       }
     }
   }, 'the existing local composition-time error must retain precedence over shared policy validation');

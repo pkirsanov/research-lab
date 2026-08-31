@@ -64,12 +64,31 @@
     "P008-CLEAR-CONFIRMATION": true,
     "P008-CLEAR-UNDECLARED": true,
     "P008-CLEAR-PARTIAL": true,
+    "P008-REBASE-PARTIAL": true,
+    "P008-TRUTH-INPUT": true,
     "P008-BEHAVIOR-IDENTITY": true,
     "P008-BEHAVIOR-TIME": true,
     "P008-BEHAVIOR-FLOOR": true,
+    "P008-BRIEF-INPUT": true,
+    "P008-BRIEF-TIME": true,
+    "P008-BRIEF-EVIDENCE": true,
+    "P008-BRIEF-COMPOSE": true,
+    "P008-BRIEF-COMPOSED": true,
+    "P008-BRIEF-CUTOFF": true,
+    "P008-BRIEF-POLICY": true,
+    "P008-BRIEF-PUBLISHED": true,
+    "P008-BRIEF-WINDOW-ID": true,
+    "P008-BRIEF-WINDOWS": true,
+    "P008-ACTION-SHAPE": true,
     "P008-ACTION-RANK": true,
     "P008-ACTION-WHY": true,
-    "P008-RETURN-CONTEXT": true
+    "P008-ACTION-LIFECYCLE": true,
+    "P008-COMPUTE-BUDGET": true,
+    "P008-COMPUTE-CANCELLED": true,
+    "P008-COMPUTE-SUPERSEDED": true,
+    "P008-WORKSPACE-COMPUTE": true,
+    "P008-RETURN-CONTEXT": true,
+    "P008-INTERNAL": true
   });
   var TOP_POLICY_FIELDS = Object.freeze([
     "analytics", "behavior", "calibration", "contractVersion", "display", "import", "mandate", "queue", "solver", "storage"
@@ -579,14 +598,20 @@
     return success(clone(value));
   }
 
+  function optionalErrorField(value, holder, key, valid) {
+    if (!Object.prototype.hasOwnProperty.call(holder, key)) return true;
+    // `PortfolioError/v1` retains all seven keys, so an inapplicable optional carries an explicit null.
+    return value === null || valid(value);
+  }
+
   function validatePortfolioError(value) {
     if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "error-required", "error", null, false);
     var unknown = hasOnlyFields(value, ERROR_FIELDS);
     if (unknown) return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown, null, false);
     if (value.contractVersion !== ERROR_VERSION || !ERROR_CODES[value.code] || !SAFE_REASON_PATTERN.test(value.reason || "") ||
         value.valueEchoed !== false || typeof value.recoverable !== "boolean" ||
-        (Object.prototype.hasOwnProperty.call(value, "field") && !nonEmptyString(value.field)) ||
-        (Object.prototype.hasOwnProperty.call(value, "row") && (!Number.isInteger(value.row) || value.row <= 0))) {
+        !optionalErrorField(value.field, value, "field", nonEmptyString) ||
+        !optionalErrorField(value.row, value, "row", function (row) { return Number.isInteger(row) && row > 0; })) {
       return failure("P008-SCHEMA-CORRUPT", "invalid-error", "error", null, false);
     }
     return success(clone(value));

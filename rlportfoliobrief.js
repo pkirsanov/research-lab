@@ -87,7 +87,7 @@
   }
 
   function ok(value) { return { ok: true, value: value }; }
-  function err(code, reason, field) { return { ok: false, error: { code: code, reason: reason, field: field || null } }; }
+  function err(code, reason, field) { return contractErr(code, reason, field, null, false); }
 
   function contractErr(code, reason, field, row, recoverable) {
     return {

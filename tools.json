@@ -1021,6 +1021,73 @@
       }
     },
     {
+      "id": "company-intelligence-lab",
+      "group": "Fundamentals",
+      "title": "Company Multi-Horizon Intelligence Lab",
+      "nav": {
+        "label": "Company Intelligence",
+        "icon": "🧩"
+      },
+      "file": "company-intelligence-lab.html",
+      "notes": "notes/company-intelligence-lab.md",
+      "data": "company-intelligence.config.json",
+      "status": "live",
+      "updated": "2026-08-28",
+      "blurb": "Trace one acknowledged Microsoft company read across four peer horizons, fifteen source-qualified dimensions, immutable lineage, and the exact Market Action brief generation that consumed it. Missing and stale evidence remain explicit; the route works from committed data with no key, account, proxy, or server and grants no action authority.",
+      "tags": [
+        "company intelligence",
+        "MSFT",
+        "four peer horizons",
+        "source provenance",
+        "immutable history",
+        "brief generation trace",
+        "committed first paint",
+        "Simple + Power",
+        "educational"
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "live-market",
+        "readAdapter": "company-intelligence-owner-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "daily-market-bars-v1",
+        "recommendationPolicy": "market-action-v1",
+        "budgetPolicy": "live-market-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": [
+          "simple",
+          "power",
+          "brief",
+          "journey"
+        ],
+        "simpleModelDefinitionId": "simple-model/company-multi-horizon/v1",
+        "simpleAdapterId": "simple-adapter/company-multi-horizon/v1",
+        "simpleAdapterModule": "rlexperience-adapters/company-intelligence.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/live-market/v1",
+        "journeyDefinitionIds": [
+          "journey/company-intelligence-lab/publication-trace/v1",
+          "journey/company-intelligence-lab/evidence-gap/v1"
+        ],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": [
+          "fundamentals",
+          "options",
+          "technical",
+          "macro-rotation",
+          "volatility",
+          "catalyst"
+        ],
+        "publicAliases": [
+          "Company Intelligence"
+        ]
+      }
+    },
+    {
       "id": "etf-momentum-lab",
       "group": "Rotation & Macro",
       "title": "ETF Momentum Research Lab",

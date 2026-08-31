@@ -7,6 +7,8 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="color-scheme" content="dark">
     <meta name="referrer" content="no-referrer">
+    <meta name="rl-file-mode" content="committed-first-paint">
+    <meta name="rlbrief-enabled" content="true">
     <title>Company Multi-Horizon Intelligence Lab - Research Lab</title>
     <!-- Inline so the browser issues no icon request. -->
     <link rel="icon"
@@ -81,6 +83,30 @@
             border-radius: 10px;
             padding: 12px 14px;
             margin: 0 0 14px;
+        }
+
+        .publication-identities {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: 8px 16px;
+        }
+
+        .publication-identities code,
+        [data-published-version-row] {
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        .publication-state {
+            font-weight: 700;
+        }
+
+        #publication-attempt-band[data-attempt-state="failed"] {
+            border-color: var(--red);
+        }
+
+        #publication-pair-band[data-pair-state="stale"] {
+            border-color: var(--amber);
         }
 
         .grid {
@@ -283,6 +309,31 @@
                 part of this page is an instruction to buy, sell, size or hold anything.</p>
         </header>
 
+        <section class="band" id="publication-pair-band" aria-labelledby="publication-pair-heading"
+            data-pair-state="unavailable" data-generation-id="" data-version-id="">
+            <h2 id="publication-pair-heading">Authoritative publication</h2>
+            <p class="publication-state" id="publication-pair-state">○ Unavailable</p>
+            <div class="publication-identities" id="publication-pair-identities"></div>
+            <p id="publication-query-state" class="muted"></p>
+            <div class="segment">
+                <a id="matching-publication-brief" href="market-brief.html#brief">Open matching Market Action brief</a>
+                <button type="button" id="open-publication-lineage">Open lineage in Power</button>
+            </div>
+        </section>
+
+        <section class="band" id="publication-attempt-band" aria-labelledby="publication-attempt-heading"
+            role="status" aria-live="polite" data-attempt-state="none" data-attempt-generation-id=""
+            data-authoritative-generation-id="">
+            <h2 id="publication-attempt-heading">Latest refresh attempt</h2>
+            <p id="publication-attempt-state">No refresh in progress</p>
+            <p id="publication-attempt-detail" class="muted">The current pair changes only after acknowledgment.</p>
+        </section>
+
+        <section class="band" id="local-composition-band" aria-labelledby="local-composition-heading">
+            <h2 id="local-composition-heading">Local composition · not published</h2>
+            <p id="publication-live-state" class="muted">Checking local reconciliation capability.</p>
+        </section>
+
         <section class="band" aria-labelledby="subject-heading">
             <h2 id="subject-heading">Company</h2>
             <div class="segment">
@@ -431,6 +482,9 @@
             </section>
         </div>
 
+        <section class="band" data-rlbrief-mount data-tool-id="company-intelligence-lab"
+            data-simple-target="rlbrief-simple" data-power-target="rlbrief-power"></section>
+
         <footer class="band">
             <p class="dim" id="page-footer">Educational research only. Not investment advice.</p>
         </footer>
@@ -457,10 +511,23 @@
          request that produces no response of any kind leaves the embedded copy standing. -->
     <script type="application/json" data-embedded-config="company-intelligence.config.json">
 {
-  "contractVersion": "company-intelligence-config/v1",
-  "note": "Coverage registry and composition policy for the Company Multi-Horizon Intelligence Lab. Fifteen dimensions are mandatory on every run; a dimension with no source answers with an explicit unavailable state and a named reason rather than a blank. decisionTimeSource is 'caller' because every composition function takes an explicit decisionTime and the module reads no clock.",
+    "contractVersion": "company-intelligence-config/v2",
+    "note": "Coverage registry, composition policy, and publication eligibility for the Company Multi-Horizon Intelligence Lab. publication.coveredSubjects is the only periodic-publication subject authority. Fifteen dimensions are mandatory on every run; a dimension with no source answers with an explicit unavailable state and a named reason rather than a blank. decisionTimeSource is 'caller' because every composition function takes an explicit decisionTime and the module reads no clock.",
   "decisionTimeSource": "caller",
-  "maxBranches": 5,
+    "publication": {
+        "contractVersion": "company-publication-policy/v1",
+        "coveredSubjects": [
+            {
+                "subjectId": "company:msft",
+                "ticker": "MSFT",
+                "cik": "0000789019",
+                "displayName": "Microsoft Corporation"
+            }
+        ],
+        "benchmarkSymbol": "SPY",
+        "ownerReadAdapterId": "company-intelligence-owner-v1",
+        "branchBudget": 5
+    },
   "branchBudgetRationale": "maxBranches is 5: five discretionary branches per run. The number is chosen against the fifteen-dimension mandatory floor rather than against an agent's appetite: the floor already answers the coverage question, so a branch exists only to settle a question the floor raised, and a single company read raises far fewer than fifteen such questions. A budget of 5 leaves room for one branch per horizon plus one contradiction follow-up, which is the largest set observed while composing the four horizons. A larger budget would let a run wander past the decision it was opened for; a smaller one would refuse a legitimate contradiction follow-up. Raising this integer to make a failing budget test pass is forbidden.",
   "refusedBranchCounting": {
     "countsAgainstBudget": true,
@@ -470,20 +537,8 @@
     "sourceId": "sec-edgar-submissions",
     "sourceName": "SEC EDGAR company submissions",
     "sourceUrl": "https://data.sec.gov/submissions/",
-    "accessTerms": "United States government work in the public domain. The endpoint needs no credential, no account, no registration and no server of our own; the SEC asks every caller to declare a User-Agent and to stay under ten requests a second. Rows are read out of band, verified once, and committed under data/company-intelligence/ so the route reads them same-origin and issues no external request.",
-    "freshnessWindowDays": 120,
-    "coveredSubjects": [
-      {
-        "subjectId": "company:msft",
-        "eventsPath": "data/company-intelligence/company-msft/events.json"
-      }
-    ]
-  },
-  "researchRecord": {
-    "note": "Subjects that carry a committed authored research plan and an append-only version tree under data/company-intelligence/<subjectId>/. A subject absent from this list carries neither, so the route requests nothing for it and the research plan and outcome record workspaces state that absence themselves.",
-    "coveredSubjects": [
-      "company:msft"
-    ]
+        "accessTerms": "United States government work in the public domain. The endpoint needs no credential, no account, no registration and no server of our own; the SEC asks every caller to declare a User-Agent and to stay under ten requests a second. Rows are read out of band, verified once, and committed under data/company-intelligence/ so the route reads them same-origin and issues no external request.",
+        "freshnessWindowDays": 120
   },
   "freshnessWindowDays": {
     "committed-file": 400,
@@ -496,9 +551,9 @@
     {
       "dimensionId": "performance",
       "label": "Own and relative price performance",
-      "ownerToolId": "market-brief",
-      "ownerDeepLink": "market-brief.html",
-      "ownerBareReason": "market-scoped",
+    "ownerToolId": "etf-momentum-lab",
+    "ownerDeepLink": "etf-momentum-lab.html",
+    "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 7,
       "maxHorizon": "swing"
     },
@@ -523,9 +578,9 @@
     {
       "dimensionId": "technicals",
       "label": "Technical structure",
-      "ownerToolId": "technical-analysis-decision-lab",
-      "ownerDeepLink": "technical-analysis-decision-lab.html",
-      "ownerBareReason": "fixed-subject",
+    "ownerToolId": "swing-structure-lab",
+    "ownerDeepLink": "swing-structure-lab.html",
+    "ownerSubjectParam": "ticker",
       "freshnessWindowDays": 7,
       "maxHorizon": "tactical"
     },
@@ -610,9 +665,8 @@
     {
       "dimensionId": "sentiment",
       "label": "Sentiment backdrop",
-      "ownerToolId": "market-brief",
-      "ownerDeepLink": "market-brief.html",
-      "ownerBareReason": "market-scoped",
+    "ownerToolId": null,
+    "ownerDeepLink": null,
       "freshnessWindowDays": 3,
       "maxHorizon": "tactical"
     },
@@ -675,6 +729,7 @@
 }
     </script>
 
+    <script src="data/company-intelligence/publication-current.js"></script>
     <script src="rldata.js"></script>
     <script src="rlapp.js"></script>
     <script src="rlcontracts.js"></script>
@@ -687,6 +742,9 @@
     <script src="rlchart.js"></script>
     <script src="rlticker.js"></script>
     <script src="rlcompanyintel.js"></script>
+    <script src="rlexperience.js"></script>
+    <script src="rlexperience-adapters/company-intelligence.js"></script>
+    <script src="rlbrief.js"></script>
     <script src="rlnav.js"></script>
     <script>
         (function () {
@@ -695,6 +753,7 @@
             var INTEL = window.RLCOMPANYINTEL;
             var COMPANY = window.RLCOMPANY;
             var REGIME = window.RLREGIME;
+            var PUBLICATION = window.RLCOMPANYINTEL_PUBLICATION || null;
 
             /* The company opened when the query string names none. This is a navigation choice,
                never a stand-in for missing evidence: a dimension with no source still reads
@@ -714,6 +773,11 @@
                absent, so a renamed region can never fail silently at the first render. */
             var ELEMENT_IDS = [
                 "page-title", "page-subtitle", "educational-notice", "page-footer",
+                "publication-pair-band", "publication-pair-heading", "publication-pair-state",
+                "publication-pair-identities", "publication-query-state", "matching-publication-brief",
+                "open-publication-lineage", "publication-attempt-band", "publication-attempt-heading",
+                "publication-attempt-state", "publication-attempt-detail", "local-composition-band",
+                "local-composition-heading", "publication-live-state",
                 "subject-heading", "subject-input", "subject-apply", "subject-help",
                 "link-notice", "subject-refusal", "subject-identity",
                 "mode-simple", "mode-power", "mode-note",
@@ -786,6 +850,134 @@
                 }
                 return node;
             }
+
+            function safePublicationId(value) {
+                return typeof value === "string" && /^[a-z0-9][a-z0-9._:/-]*$/.test(value);
+            }
+
+            function publicationQueryValue(name) {
+                return new URL(window.location.href).searchParams.get(name);
+            }
+
+            function validPublicProjection(value) {
+                return !!(value && value.contractVersion === "company-publication-projection/v1" &&
+                    value.pair && value.pair.authority === "acknowledged" &&
+                    value.pair.subjectId === "company:msft" && value.pair.ticker === "MSFT" &&
+                    safePublicationId(value.pair.generationId) && safePublicationId(value.pair.versionId) &&
+                    value.pair.version && value.pair.version.generationId === value.pair.generationId &&
+                    Array.isArray(value.pair.version.horizons) && value.pair.version.horizons.length === 4 &&
+                    Array.isArray(value.versions));
+            }
+
+            function publicVersionForCurrentTicker() {
+                if (!validPublicProjection(PUBLICATION) || currentTicker !== PUBLICATION.pair.ticker) return null;
+                var requested = publicationQueryValue("version");
+                if (requested === null) return PUBLICATION.pair.version;
+                if (!safePublicationId(requested)) return null;
+                for (var index = 0; index < PUBLICATION.versions.length; index += 1) {
+                    if (PUBLICATION.versions[index].versionId === requested) return PUBLICATION.versions[index];
+                }
+                return null;
+            }
+
+            function pairFreshnessState(pair) {
+                var cutoff = Date.parse(pair.evidenceCutoff);
+                var windowDays = config && config.freshnessWindowDays
+                    ? config.freshnessWindowDays["owner-read"] : 7;
+                if (!Number.isFinite(cutoff) || !Number.isFinite(windowDays)) return "unavailable";
+                return Math.max(0, Date.now() - cutoff) > windowDays * 86400000 ? "stale" : "current";
+            }
+
+            function appendPublicationIdentity(host, label, value) {
+                var row = el("p");
+                row.appendChild(el("strong", label + ": "));
+                row.appendChild(el("code", value));
+                host.appendChild(row);
+            }
+
+            function renderPublicationBands() {
+                var pairBand = byId("publication-pair-band");
+                var attemptBand = byId("publication-attempt-band");
+                var identities = byId("publication-pair-identities");
+                clear(identities);
+                if (!validPublicProjection(PUBLICATION)) {
+                    document.body.setAttribute("data-publication-authority", "unavailable");
+                    pairBand.setAttribute("data-pair-state", "unavailable");
+                    pairBand.setAttribute("data-generation-id", "");
+                    pairBand.setAttribute("data-version-id", "");
+                    setText("publication-pair-state", "○ Unavailable");
+                    setText("publication-query-state", "The committed acknowledged company-and-brief pair is unavailable. No direction, count, or freshness claim is inferred.");
+                    byId("matching-publication-brief").hidden = true;
+                    attemptBand.setAttribute("data-attempt-state", "none");
+                    setText("publication-attempt-state", "No public attempt record is available");
+                    setText("publication-attempt-detail", "No candidate is treated as authoritative.");
+                    return;
+                }
+
+                var pair = PUBLICATION.pair;
+                var state = pairFreshnessState(pair);
+                document.body.setAttribute("data-publication-authority", "acknowledged");
+                document.body.setAttribute("data-publication-generation-id", pair.generationId);
+                pairBand.setAttribute("data-pair-state", state);
+                pairBand.setAttribute("data-generation-id", pair.generationId);
+                pairBand.setAttribute("data-version-id", pair.versionId);
+                setText("publication-pair-state", state === "stale" ? "◐ Stale" : "● Current · fresh");
+                appendPublicationIdentity(identities, "Company version", pair.versionId);
+                appendPublicationIdentity(identities, "Matching brief generation", pair.generationId);
+                appendPublicationIdentity(identities, "Evidence cutoff", pair.evidenceCutoff);
+                appendPublicationIdentity(identities, "Composed", pair.composedAt);
+                appendPublicationIdentity(identities, "Trigger", pair.trigger);
+
+                var requestedGeneration = publicationQueryValue("generation");
+                var requestedVersion = publicationQueryValue("version");
+                if (requestedGeneration !== null && (!safePublicationId(requestedGeneration) || requestedGeneration !== pair.generationId)) {
+                    setText("publication-query-state", "Requested generation unavailable. The acknowledged current pair remains visible and unchanged.");
+                    pairBand.setAttribute("data-query-state", "unavailable");
+                } else if (requestedVersion !== null && publicVersionForCurrentTicker() === null) {
+                    setText("publication-query-state", "Requested version unavailable. The acknowledged current pair remains authoritative.");
+                    pairBand.setAttribute("data-query-state", "unavailable");
+                } else {
+                    setText("publication-query-state", state === "stale"
+                        ? "This acknowledged pair is older than its declared publication window. Read it as dated history, not as a fresh claim."
+                        : "The company version and final brief identify one acknowledged publication generation.");
+                    pairBand.setAttribute("data-query-state", "matched");
+                }
+                var briefLink = byId("matching-publication-brief");
+                briefLink.hidden = false;
+                briefLink.setAttribute("href", "market-brief.html?generation=" + encodeURIComponent(pair.generationId) + "#brief");
+
+                var attempt = PUBLICATION.attempt;
+                attemptBand.setAttribute("data-authoritative-generation-id", pair.generationId);
+                if (attempt && attempt.contractVersion === "company-publication-attempt/v1" &&
+                    safePublicationId(attempt.generationId) && attempt.authoritativeGenerationId === pair.generationId) {
+                    attemptBand.setAttribute("data-attempt-state", attempt.state);
+                    attemptBand.setAttribute("data-attempt-generation-id", attempt.generationId);
+                    if (attempt.state === "failed") {
+                        setText("publication-attempt-state", "! Update failed");
+                        setText("publication-attempt-detail", (attempt.failure ? attempt.failure.code + ": " : "") +
+                            "The attempted generation did not publish. The current pair remains authoritative.");
+                    } else if (attempt.state === "dry-run-complete") {
+                        setText("publication-attempt-state", "◇ Dry run complete · not published");
+                        setText("publication-attempt-detail", "The current pair remains authoritative and no history row changed.");
+                    } else {
+                        setText("publication-attempt-state", "No refresh in progress");
+                        setText("publication-attempt-detail", "The latest recorded attempt is " + attempt.state + ". The current pair changes only after acknowledgment.");
+                    }
+                } else {
+                    attemptBand.setAttribute("data-attempt-state", "none");
+                    attemptBand.setAttribute("data-attempt-generation-id", "");
+                    setText("publication-attempt-state", "No refresh in progress");
+                    setText("publication-attempt-detail", "The current pair changes only after acknowledgment.");
+                }
+                setText("publication-live-state", window.location.protocol === "file:"
+                    ? "Local file · live reconciliation unavailable"
+                    : "Committed publication shown · live reconciliation available on this origin");
+            }
+
+            globalThis.__rlOwnerStateProvider = globalThis.__rlOwnerStateProvider || {};
+            globalThis.__rlOwnerStateProvider["company-intelligence-lab"] = function () {
+                return { publication: PUBLICATION };
+            };
 
             /* The one documented predicate a consumer uses to decide whether the reading on
                screen is settled (BUG-018 FR-018-005):
@@ -1135,6 +1327,9 @@
                         "data-direction": direction, "data-evidence-quality": quality,
                         "data-horizon-readiness": established ? "established" : "not-established"
                     });
+                    if (version.contractVersion === "company-read-version/v2") {
+                        card.setAttribute("data-publication-horizon", horizon.horizonId);
+                    }
                     card.appendChild(el("h3", horizon.question));
                     var line = el("p");
                     line.appendChild(el("span", direction, { class: "direction", "data-direction": direction }));
@@ -1463,6 +1658,55 @@
                 var writePlan = result.writePlan;
                 var host = byId("workspace-outcome-body");
                 clear(host);
+                var publicVersion = publicVersionForCurrentTicker();
+                if (publicVersion && validPublicProjection(PUBLICATION)) {
+                    var pair = PUBLICATION.pair;
+                    host.setAttribute("data-version-id", publicVersion.versionId);
+                    host.setAttribute("data-prior-version-id", publicVersion.priorVersionId === null ? "" : publicVersion.priorVersionId);
+                    host.setAttribute("data-committed-version-count", String(PUBLICATION.versions.length));
+                    var refusedPlan = writePlan.contractVersion === "company-intel-error/v1";
+                    var createdPlan = refusedPlan ? null : writePlan.operations.filter(function (operation) {
+                        return operation.operation === "create";
+                    })[0];
+                    host.setAttribute("data-write-created-path", createdPlan ? createdPlan.path : "");
+                    host.setAttribute("data-write-untouched-paths", refusedPlan ? "" : writePlan.untouchedPaths.join(" "));
+
+                    host.appendChild(el("p", "Acknowledged publication lineage. Only immutable versions selected by the coupled manifest appear here."));
+                    appendPublicationIdentity(host, "Company version", publicVersion.versionId);
+                    appendPublicationIdentity(host, "Publication generation", publicVersion.generationId);
+                    appendPublicationIdentity(host, "Content fingerprint", publicVersion.contentFingerprint);
+                    appendPublicationIdentity(host, "Evidence cutoff", publicVersion.evidenceCutoff);
+                    appendPublicationIdentity(host, "Predecessor", publicVersion.priorVersionId || "First published version");
+                    appendPublicationIdentity(host, "Comparison", publicVersion.conclusionChange === "unchanged"
+                        ? "= Unchanged conclusion" : (publicVersion.conclusionChange === "changed" ? "Δ Changed conclusion" : "First published version"));
+                    host.appendChild(el("a", "Open matching Market Action brief", {
+                        href: "market-brief.html?generation=" + encodeURIComponent(pair.generationId) + "#brief"
+                    }));
+
+                    PUBLICATION.versions.forEach(function (entry, index) {
+                        var entryGeneration = entry.generationId || "Pre-coupled history";
+                        var entryCutoff = entry.evidenceCutoff || entry.composedAt;
+                        var entryComparison = entry.conclusionChange === "unchanged" ? "Unchanged conclusion" :
+                            (entry.conclusionChange === "changed" ? "Changed conclusion" :
+                                (entry.conclusionChange === "first" ? "First published version" : "Historical record"));
+                        var row = el("p", (index === 0 ? "Current · " : "Prior · ") + entry.versionId +
+                            " · " + entryGeneration + " · " + entryCutoff + " · " + entryComparison, {
+                            "data-version-row": entry.versionId,
+                            "data-published-version-row": entry.versionId,
+                            "data-content-fingerprint": entry.contentFingerprint,
+                            "data-version-path": entry.versionId,
+                            "data-generation-id": entry.generationId || ""
+                        });
+                        row.appendChild(document.createTextNode(" "));
+                        row.appendChild(el("a", "Open", {
+                            href: "company-intelligence-lab.html?symbol=MSFT&generation=" +
+                                encodeURIComponent(pair.generationId) + "&version=" + encodeURIComponent(entry.versionId)
+                        }));
+                        host.appendChild(row);
+                    });
+                    host.appendChild(el("p", "Failed and dry-run candidates create no published history row.", { class: "muted" }));
+                    return;
+                }
                 host.setAttribute("data-version-id", version.versionId);
                 host.setAttribute("data-prior-version-id", version.priorVersionId === null ? "" : version.priorVersionId);
                 host.setAttribute("data-committed-version-count", String(history.versions.length));
@@ -1520,45 +1764,50 @@
                 byId("subject-refusal").hidden = true;
                 var version = result.version;
                 var bundle = result.bundle;
+                var acknowledgedVersion = publicVersionForCurrentTicker();
+                var displayVersion = acknowledgedVersion || version;
+                var displayBundle = acknowledgedVersion
+                    ? { reads: acknowledgedVersion.dimensionReads, refusals: acknowledgedVersion.refusals }
+                    : bundle;
                 /* Whether the account this paint is about to render was built against a corpus
                    that had answered. When it was not, the run has established no absence, so the
                    grammar the route reserves for a settled finding is withheld rather than
                    printed with numbers nothing has confirmed (BUG-018 FR-018-001, FR-018-002). */
-                var established = version.coverageAccount.readiness !== "not-established";
-                setText("subject-identity", version.subject.displayName + " (" + version.subject.ticker + ") resolved on " +
-                    version.subject.identityBasis + (version.subject.cik ? ", SEC identity " + version.subject.cik : ", no SEC identity") + ".");
+                var established = displayVersion.coverageAccount.readiness !== "not-established";
+                setText("subject-identity", displayVersion.subject.displayName + " (" + displayVersion.subject.ticker + ") resolved on " +
+                    displayVersion.subject.identityBasis + (displayVersion.subject.cik ? ", SEC identity " + displayVersion.subject.cik : ", no SEC identity") + ".");
                 /* The readiness sentence is the user-visible surface FR-018-003 requires: a
                    reader who never opens a devtools inspector still learns that the account is
                    incomplete, and the wording disappears entirely once the corpus resolves. */
                 setText("cockpit-coverage-line", established
-                    ? version.coverageAccount.totals.unavailable + " of " + version.coverageAccount.rows.length +
+                    ? displayVersion.coverageAccount.totals.unavailable + " of " + displayVersion.coverageAccount.rows.length +
                         " mandatory dimensions have no usable source in this run. Each one names its reason below."
                     : "Waiting for the committed corpus for this company. Until it answers, this run has established " +
-                        "nothing about how many of the " + version.coverageAccount.rows.length + " mandatory dimensions " +
+                        "nothing about how many of the " + displayVersion.coverageAccount.rows.length + " mandatory dimensions " +
                         "lack a usable source, so no count is stated here yet.");
                 byId("cockpit-coverage-line").setAttribute("data-coverage-claim", established ? "settled" : "not-established");
-                renderHorizonCards(version, bundle, established);
-                setText("cockpit-contradictions", version.contradictions.length === 0
+                renderHorizonCards(displayVersion, displayBundle, established);
+                setText("cockpit-contradictions", displayVersion.contradictions.length === 0
                     ? "No two horizons oppose each other in this run."
-                    : version.contradictions.length + " horizon pairs disagree. Both readings stand.");
+                    : displayVersion.contradictions.length + " horizon pairs disagree. Both readings stand.");
                 setText("cockpit-publication", result.published.contractVersion === "company-intel-error/v1"
-                    ? result.published.code + ": " + result.published.message
-                    : "Published on the shared channel as " + result.published.id + ", availability " + result.published.availability + ".");
-                renderCoverage(version);
-                renderDimensionValues("workspace-performance-values", bundle, ["performance", "technicals", "options-flow"]);
-                renderDimensionValues("workspace-fundamentals-body", bundle, ["fundamentals"]);
-                renderDimensionValues("workspace-geopolitics-body", bundle, ["geopolitics", "sentiment"]);
-                renderDimensionValues("workspace-regime-values", bundle, ["volatility", "market-regime", "options-structure", "dealer-gamma"]);
-                renderDimensionValues("workspace-cycles-values", bundle, ["cycles"]);
-                renderDimensionValues("workspace-valuation-body", bundle, ["valuation", "company-risk"]);
-                renderCharts(bundle);
-                renderEvents(version, result.catalysts);
-                renderContradictions(version);
-                renderPlan(version);
-                renderSources(version);
+                    ? "Local composition refused: " + result.published.code + "."
+                    : "Local composition · not published · shared-cache availability " + result.published.availability + ".");
+                renderCoverage(displayVersion);
+                renderDimensionValues("workspace-performance-values", displayBundle, ["performance", "technicals", "options-flow"]);
+                renderDimensionValues("workspace-fundamentals-body", displayBundle, ["fundamentals"]);
+                renderDimensionValues("workspace-geopolitics-body", displayBundle, ["geopolitics", "sentiment"]);
+                renderDimensionValues("workspace-regime-values", displayBundle, ["volatility", "market-regime", "options-structure", "dealer-gamma"]);
+                renderDimensionValues("workspace-cycles-values", displayBundle, ["cycles"]);
+                renderDimensionValues("workspace-valuation-body", displayBundle, ["valuation", "company-risk"]);
+                renderCharts(displayBundle);
+                renderEvents(displayVersion, result.catalysts);
+                renderContradictions(displayVersion);
+                renderPlan(displayVersion);
+                renderSources(displayVersion);
                 renderOutcomeRecord(result);
                 enhanceTickers();
-                setBodyState("composed", version.coverageAccount.totals.unavailable, version.coverageAccount.readiness);
+                setBodyState("composed", displayVersion.coverageAccount.totals.unavailable, displayVersion.coverageAccount.readiness);
             }
 
             function run() {
@@ -1577,6 +1826,7 @@
                     return;
                 }
                 currentTicker = raw.toUpperCase();
+                renderPublicationBands();
                 /* Readiness has to describe the subject this paint is about to put on screen.
                    The reset used to live in loadCorpus() alone, one turn after render() had
                    already copied the departing subject's value onto the body, so the attribute
@@ -1791,6 +2041,7 @@
                 } catch (error) {
                     return false;
                 }
+                renderPublicationBands();
                 run();
                 document.body.setAttribute("data-registry-source", "embedded");
                 return true;
@@ -1820,6 +2071,11 @@
                 byId("subject-apply").addEventListener("click", applySubject);
                 byId("mode-simple").addEventListener("click", function () { setMode("simple"); });
                 byId("mode-power").addEventListener("click", function () { setMode("power"); });
+                byId("open-publication-lineage").addEventListener("click", function () {
+                    setMode("power");
+                    byId("workspace-outcome-heading").focus();
+                });
+                byId("workspace-outcome-heading").setAttribute("tabindex", "-1");
                 setMode("simple");
 
                 var paintedFrom = paintFromEmbedded() ? JSON.stringify(config) : null;
@@ -1833,6 +2089,7 @@
                         if (resolved !== paintedFrom) {
                             config = outcome.document;
                             registry = INTEL.readCoverageRegistry(config);
+                            renderPublicationBands();
                             run();
                         }
                         document.body.setAttribute("data-registry-source", outcome.source);

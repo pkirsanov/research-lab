@@ -57,6 +57,7 @@
     { label: "AI Capex Strategy", full: "AI Capex Strategy Lab", icon: "⚡", file: "ai-capex-strategy-lab.html", group: "Fundamentals" },
     { label: "MSFT July Print", full: "MSFT July-Print Margin & EPS Model", icon: "📊", file: "msft-july-print-model.html", group: "Fundamentals" },
     { label: "Company Fundamentals", full: "Company Fundamentals & Adaptive Brief Lab", icon: "🏢", file: "company-fundamentals-lab.html", group: "Fundamentals" },
+    { label: "Company Intelligence", full: "Company Multi-Horizon Intelligence Lab", icon: "🧩", file: "company-intelligence-lab.html", group: "Fundamentals" },
     { label: "ETF Momentum", full: "ETF Momentum Research Lab", icon: "📈", file: "etf-momentum-lab.html", group: "Rotation & Macro" },
     { label: "Strategy Self-Improve", full: "Strategy Self-Improvement & Walk-Forward Lab", icon: "🔬", file: "strategy-self-improvement-lab.html", group: "Strategy & Validation" },
     { label: "Strategy Validate", full: "Strategy Validation & Real-Data Walk-Forward Lab", icon: "🧪", file: "strategy-validation-lab.html", group: "Strategy & Validation" },
@@ -279,10 +280,17 @@
       if (typeof document === 'undefined' || !document.body || document.getElementById('rl-proto-warn')) return;
       var b = document.createElement('div');
       b.id = 'rl-proto-warn';
-      b.setAttribute('role', 'alert');
-      b.style.cssText = 'position:sticky;top:0;z-index:99999;background:#3a2a12;color:#f5b942;border-bottom:1px solid #6a4a1a;padding:8px 14px;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;text-align:center';
-      b.innerHTML = 'Data can\'t load over <b>file://</b> — open this tool over http. '
-        + 'Run <code>python3 -m http.server 8000</code> in the repo and use <code>http://localhost:8000/</code>';
+      var marker = document.querySelector('meta[name="rl-file-mode"][content="committed-first-paint"]');
+      if (marker) {
+        b.setAttribute('role', 'status');
+        b.style.cssText = 'position:sticky;top:0;z-index:99999;background:#102f32;color:#7ee7dc;border-bottom:1px solid #1d5a60;padding:8px 14px;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;text-align:center';
+        b.textContent = 'Local file · committed publication shown · live reconciliation unavailable';
+      } else {
+        b.setAttribute('role', 'alert');
+        b.style.cssText = 'position:sticky;top:0;z-index:99999;background:#3a2a12;color:#f5b942;border-bottom:1px solid #6a4a1a;padding:8px 14px;font:13px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;text-align:center';
+        b.innerHTML = 'Data can\'t load over <b>file://</b> — open this tool over http. '
+          + 'Run <code>python3 -m http.server 8000</code> in the repo and use <code>http://localhost:8000/</code>';
+      }
       document.body.insertBefore(b, document.body.firstChild);
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', show); else show();

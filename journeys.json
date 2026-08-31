@@ -2133,6 +2133,148 @@
     },
     {
       "contractVersion": "journey-definition/v1",
+      "definitionId": "journey/company-intelligence-lab/publication-trace/v1",
+      "definitionVersion": "v1",
+      "toolId": "company-intelligence-lab",
+      "goalId": "publication-trace",
+      "title": "Trace the acknowledged company and brief pair",
+      "outcomeDescription": "Verify the company version, publication generation, and matching Market Action brief identity without changing either artifact.",
+      "mechanism": "checklist",
+      "prerequisiteRules": [
+        {
+          "ruleId": "owner-evidence-current",
+          "predicate": "all-required-evidence-current"
+        }
+      ],
+      "contextSchema": {
+        "contractVersion": "journey-context-schema/v1",
+        "allowedFields": [
+          "evidenceIdentity",
+          "publicTargetId"
+        ],
+        "requiredFields": [
+          "evidenceIdentity"
+        ]
+      },
+      "stepIds": [
+        "journey/company-intelligence-lab/publication-trace/v1/step/verify-pair"
+      ],
+      "evidencePolicy": {
+        "requiredSlots": [
+          "owner-evidence"
+        ],
+        "allowedProvenance": [
+          "owner-evidence",
+          "public-source"
+        ]
+      },
+      "backtrackPolicy": {
+        "mode": "transitive-dependents-stale",
+        "auditPriorOutcomes": true
+      },
+      "staleEvidencePolicy": {
+        "mode": "reopen-dependent-steps",
+        "preserveAudit": true
+      },
+      "completionPolicy": {
+        "predicates": [
+          "all-required-evidence-current"
+        ],
+        "outcomes": [
+          "complete",
+          "partial",
+          "refused"
+        ]
+      },
+      "packetPolicy": {
+        "contractVersion": "journey-completion-packet/v1",
+        "humanSignoffRequired": true,
+        "noExecution": true
+      },
+      "privacyClass": "public-safe",
+      "noExecution": true,
+      "accessibility": {
+        "progressSemantics": "ordered-list",
+        "currentStepSemantics": "aria-current-step"
+      },
+      "limitations": [
+        "The journey verifies immutable public identities and cannot publish, recommend, route, or execute an action."
+      ],
+      "definitionFingerprint": null
+    },
+    {
+      "contractVersion": "journey-definition/v1",
+      "definitionId": "journey/company-intelligence-lab/evidence-gap/v1",
+      "definitionVersion": "v1",
+      "toolId": "company-intelligence-lab",
+      "goalId": "evidence-gap",
+      "title": "Trace a company evidence gap",
+      "outcomeDescription": "Trace one missing or stale dimension to its reason, clock, and owning route or explicit no-owner state.",
+      "mechanism": "checklist",
+      "prerequisiteRules": [
+        {
+          "ruleId": "owner-evidence-present",
+          "predicate": "all-required-evidence-current"
+        }
+      ],
+      "contextSchema": {
+        "contractVersion": "journey-context-schema/v1",
+        "allowedFields": [
+          "evidenceIdentity",
+          "publicTargetId"
+        ],
+        "requiredFields": [
+          "evidenceIdentity"
+        ]
+      },
+      "stepIds": [
+        "journey/company-intelligence-lab/evidence-gap/v1/step/trace-gap"
+      ],
+      "evidencePolicy": {
+        "requiredSlots": [
+          "owner-evidence"
+        ],
+        "allowedProvenance": [
+          "owner-evidence",
+          "public-source"
+        ]
+      },
+      "backtrackPolicy": {
+        "mode": "transitive-dependents-stale",
+        "auditPriorOutcomes": true
+      },
+      "staleEvidencePolicy": {
+        "mode": "reopen-dependent-steps",
+        "preserveAudit": true
+      },
+      "completionPolicy": {
+        "predicates": [
+          "explicit-choice-recorded"
+        ],
+        "outcomes": [
+          "complete",
+          "partial",
+          "refused"
+        ]
+      },
+      "packetPolicy": {
+        "contractVersion": "journey-completion-packet/v1",
+        "humanSignoffRequired": true,
+        "noExecution": true
+      },
+      "privacyClass": "public-safe",
+      "noExecution": true,
+      "accessibility": {
+        "progressSemantics": "ordered-list",
+        "currentStepSemantics": "aria-current-step"
+      },
+      "limitations": [
+        "The journey preserves missing and stale evidence as explicit gaps and cannot manufacture a replacement value."
+      ],
+      "definitionFingerprint": null
+    },
+    {
+      "contractVersion": "journey-definition/v1",
       "definitionId": "journey/etf-momentum-lab/objective-selection/v1",
       "definitionVersion": "v1",
       "toolId": "etf-momentum-lab",
@@ -5129,6 +5271,91 @@
       "accessibility": {
         "label": "Revise the linked scenario",
         "description": "Review current evidence and record a bounded linked-scenario revision."
+      },
+      "stepFingerprint": null
+    },
+    {
+      "contractVersion": "journey-step/v1",
+      "stepId": "journey/company-intelligence-lab/publication-trace/v1/step/verify-pair",
+      "definitionId": "journey/company-intelligence-lab/publication-trace/v1",
+      "title": "Verify the acknowledged publication pair",
+      "purpose": "Confirm the public company version, generation, matching brief, and immutable fingerprints name one acknowledged publication.",
+      "mechanismRole": "checklist",
+      "dependsOnStepIds": [],
+      "inputSchema": {
+        "contractVersion": "journey-step-input/v1",
+        "allowedFields": [
+          "acknowledgedEvidenceIds"
+        ],
+        "requiredFields": [
+          "acknowledgedEvidenceIds"
+        ]
+      },
+      "allowedInputProvenance": [
+        "user-assumption"
+      ],
+      "requiredEvidenceSlots": [
+        "owner-evidence"
+      ],
+      "optionalEvidenceSlots": [
+        "public-source"
+      ],
+      "completionPredicate": "all-required-evidence-current",
+      "branchRules": [],
+      "staleWhen": [
+        "owner-evidence-changed"
+      ],
+      "invalidatesStepIds": [],
+      "ownerDeepLinks": [
+        "company-intelligence-lab.html#power/outcome-record",
+        "market-brief.html#brief"
+      ],
+      "sideEffectPolicy": "none",
+      "accessibility": {
+        "label": "Verify the acknowledged publication pair",
+        "description": "Review exact company and brief identities before recording the checklist result."
+      },
+      "stepFingerprint": null
+    },
+    {
+      "contractVersion": "journey-step/v1",
+      "stepId": "journey/company-intelligence-lab/evidence-gap/v1/step/trace-gap",
+      "definitionId": "journey/company-intelligence-lab/evidence-gap/v1",
+      "title": "Trace one evidence gap",
+      "purpose": "Review one missing or stale dimension, its reason, clock, affected horizons, and owning route or no-owner explanation.",
+      "mechanismRole": "checklist",
+      "dependsOnStepIds": [],
+      "inputSchema": {
+        "contractVersion": "journey-step-input/v1",
+        "allowedFields": [
+          "choice"
+        ],
+        "requiredFields": [
+          "choice"
+        ]
+      },
+      "allowedInputProvenance": [
+        "user-assumption"
+      ],
+      "requiredEvidenceSlots": [
+        "owner-evidence"
+      ],
+      "optionalEvidenceSlots": [
+        "public-source"
+      ],
+      "completionPredicate": "explicit-choice-recorded",
+      "branchRules": [],
+      "staleWhen": [
+        "owner-evidence-changed"
+      ],
+      "invalidatesStepIds": [],
+      "ownerDeepLinks": [
+        "company-intelligence-lab.html#power/sources"
+      ],
+      "sideEffectPolicy": "none",
+      "accessibility": {
+        "label": "Trace one evidence gap",
+        "description": "Trace an explicit missing or stale dimension without replacing it with a value."
       },
       "stepFingerprint": null
     },

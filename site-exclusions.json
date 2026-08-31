@@ -37,18 +37,6 @@
     {
       "path": "lifetime-tax-strategy.config.json",
       "reason": "Mandatory configuration for the in-progress unregistered Lifetime Tax Strategy Lab route. Shipping it would place a policy document in the public site whose only consumer is not itself shipped."
-    },
-    {
-      "path": "company-intelligence-lab.html",
-      "reason": "Company Multi-Horizon Intelligence Lab route. The tool is deliberately unregistered while increment A ships the composed floor, so the public site must not carry a page that no index, navigation entry or brief can reach."
-    },
-    {
-      "path": "rlcompanyintel.js",
-      "reason": "Company Multi-Horizon Intelligence Lab composition module holding the coverage account, the horizon partition and the verified publication path. Its only production consumer is the in-progress unregistered company-intelligence route, so the packaged site would ship a module nothing reachable loads."
-    },
-    {
-      "path": "company-intelligence.config.json",
-      "reason": "Mandatory coverage registry and composition policy for the in-progress unregistered Company Multi-Horizon Intelligence Lab route. Shipping it would place a policy document in the public site whose only consumer is not itself shipped."
     }
   ]
 }

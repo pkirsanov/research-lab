@@ -94,7 +94,7 @@ Of the fifteen rows:
 The seven bare rows and their stated reasons:
 
 | Row | Owner | Reason | Why the owner cannot take a company |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | `performance` | `market-brief.html` | `market-scoped` | The brief reads the market, not one company. |
 | `sentiment` | `market-brief.html` | `market-scoped` | Same brief, same scope. |
 | `geopolitics` | `research-agenda-lab.html` | `market-scoped` | The agenda is a market-wide topic list. |
@@ -178,41 +178,34 @@ denominator as stale rather than turning into a neutral value.
 Committed coverage today is `company:msft` only. Every other company reads the
 named absence, not a blank.
 
-## Registration Status
+## Registration And Coupled Publication
 
-Deliberately unregistered. The route, its module and its config are listed in
-[`site-exclusions.json`](../site-exclusions.json) with a substantive reason
-each, so `scripts/build-pages-site.mjs` accepts the tree and the public site
-ships no page that no index, navigation entry or brief can reach. The tool is
-absent from `tools.json`, `index.html` and `rlnav.js` by design, because
-registration also requires a complete briefing block, a unique read adapter and
-a Simple adapter module, and because adding a participant would perturb the
-frozen registry fingerprint the market brief consumes.
+The route is a live registered source tool. `tools.json`, `index.html`,
+`rlnav.js`, the root README, and the notes index identify the same route and
+notes target. The shared experience registry contributes one read-only Simple
+projection, two public-safe journeys, one exact adapter allowlist entry, and one
+shared brief mount.
 
-`node scripts/selftest.mjs` holds that decision in place. One assertion states
-that the route, the module and the config appear in none of `tools.json`, the
-index or the navigation. A second asserts that all three carry a site-exclusion
-entry, and proves the claim by showing the build refuses the page once the
-route's entry is removed. Registering the tool without also retiring those
-assertions turns the suite red, so registration is a spec-owner decision rather
-than a documentation one.
+Registration is valid only when
+`data/company-intelligence/publication-current.json` selects one coherent
+company-and-brief manifest. The matching external
+`data/company-intelligence/publication-current.js` projection paints the exact
+acknowledged company version before any live reconciliation. Its JSON is encoded
+as a JSON string before the external script parses and deep-freezes it. Authored
+text therefore remains data and cannot become executable JavaScript.
 
-This notes file is not listed in [`README.md`](README.md). That index is derived
-from `tools.json`, and its parity check walks registered tools only. Listing an
-unregistered tool there would advertise a page no reader can reach.
+The authoritative publication band and latest-attempt band are separate. A
+failed or dry-run attempt cannot change the pair token or create a history row.
+The Simple view keeps four peer horizons. Power contains lineage, fingerprints,
+coverage, the research plan, and source detail. The Market Action evidence
+drawer renders the validated company owner read and links back to the exact
+generation without recomputing company math.
 
-Registering the tool would require, at minimum:
-
-- an entry in `tools.json` carrying `id`, `file` and `notes`, mirrored into the
-  `TOOLS` array in `index.html` and the `TOOLS` array in `rlnav.js`;
-- a row in the root `README.md` and a row in this folder's `README.md` index,
-  because the reader-reachability canary reads both;
-- removal of the three `site-exclusions.json` entries, so the packaged site
-  ships the route and its two dependencies;
-- a briefing block, a read adapter and a Simple adapter module, since the brief
-  pipeline treats every registered tool as a participant;
-- retirement of the two selftest assertions named above, replaced by the
-  registered-tool parity checks that every other registered tool satisfies.
+`site-exclusions.json` contains none of the route, composition module, or config
+paths. The Pages evaluator refuses registration if any of those exclusions
+returns or if a selector-referenced dependency is absent or hash-incoherent.
+`scripts/selftest.mjs` holds the positive registration, experience, brief, and
+package parity in place.
 
 ## Views
 
@@ -309,10 +302,16 @@ credential and performs no network call.
 ## Validation
 
 ```bash
+node --test tests/company-intelligence-publication.unit.mjs
+node --test tests/company-intelligence-publication.integration.mjs
+node --test tests/company-intelligence-publication.functional.mjs
+node --test tests/company-intelligence-publication.e2e.mjs
 node --test tests/company-intelligence.unit.mjs
+node scripts/validate-tool-experience.mjs
+node scripts/validate-brief-payload.mjs
 node scripts/selftest.mjs
 node scripts/build-pages-site.mjs
-npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+npx --no-install playwright test tests/company-intelligence-publication.spec.mjs tests/company-intelligence-lab.spec.mjs tests/tool-discovery.spec.mjs tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
 ```
 
 Educational research only. Not investment advice.

@@ -1373,10 +1373,58 @@
     var rows = available.map(function (row) {
       var tool = row.tool, value = row.value, href = value.deepLink || tool.file || "";
       var freshness = value.asOf ? fmtToolReadAge(value.asOf) : "as-of unknown";
-      var extra = tool.id === "bond-regime-lab" ? bondCardDetail(value) : "";
-      return '<div class="toolread" data-tkr-auto title="Latest Simple-view read from the owning tool; open it for model controls and full diagnostics."><div><b>' + esc(tool.title || tool.id) + '</b> <span class="pill ' + (row.live ? 'live' : '') + '">' + (row.live ? 'browser' : 'Tier-A') + '</span></div><div class="ay">' + esc(value.read) + '</div>' + extra + '<div class="sub">' + esc(freshness) + (href ? ' · ' + link(href, 'open tool ▸') : '') + '</div></div>';
+      var extra = tool.id === "bond-regime-lab" ? bondCardDetail(value)
+        : (tool.id === "company-intelligence-lab" ? companyCardDetail(value) : "");
+      var companyAttributes = "";
+      if (tool.id === "company-intelligence-lab" && value && Array.isArray(value.subjects) && value.subjects.length === 1) {
+        companyAttributes = ' data-company-owner-read data-generation-id="' + esc(value.generationId || "") +
+          '" data-version-id="' + esc(value.subjects[0].versionId || "") + '"';
+      }
+      return '<div class="toolread"' + companyAttributes + ' data-tkr-auto title="Latest Simple-view read from the owning tool; open it for model controls and full diagnostics."><div><b>' + esc(tool.title || tool.id) + '</b> <span class="pill ' + (row.live ? 'live' : '') + '">' + (row.live ? 'browser' : 'Tier-A') + '</span></div><div class="ay">' + esc(value.read) + '</div>' + extra + '<div class="sub">' + esc(freshness) + (href ? ' · ' + link(href, 'open tool ▸') : '') + '</div></div>';
     }).join("");
     el.innerHTML = '<div class="sub" style="margin-bottom:8px">' + available.length + ' owning-tool reads available · ' + missing.length + ' require an agent/browser read. Missing tools are explicit, never silently treated as neutral.</div>' + (rows || '<div class="sub">No owning-tool reads are available yet.</div>') + (missing.length ? '<div class="sub" style="margin-top:8px">Awaiting: ' + missing.map(function (tool) { return esc(tool.title || tool.id); }).join(', ') + '</div>' : '');
+  }
+
+  function companyPublicationId(value) {
+    return typeof value === "string" && /^[a-z0-9][a-z0-9._:/-]*$/.test(value);
+  }
+
+  function companyCardDetail(value) {
+    if (!value || value.contractVersion !== "tool-model-read/v1" || value.toolId !== "company-intelligence-lab" ||
+        !companyPublicationId(value.generationId) || !Array.isArray(value.subjects) || value.subjects.length !== 1) {
+      return '<div class="sub" data-company-owner-read-state="unavailable">○ Unavailable · no validated Company Intelligence owner read is present.</div>';
+    }
+    var subject = value.subjects[0];
+    if (subject.subjectId !== "company:msft" || subject.ticker !== "MSFT" ||
+        !companyPublicationId(subject.versionId) || !Array.isArray(subject.horizons) || subject.horizons.length !== 4) {
+      return '<div class="sub" data-company-owner-read-state="unavailable">○ Unavailable · the Company Intelligence subject, version, or four-horizon contract is invalid.</div>';
+    }
+    var state = value.status === "fresh" ? "current" : (value.status === "stale" ? "stale" : "unavailable");
+    var word = state === "current" ? "● Current" : (state === "stale" ? "◐ Stale" : "○ Unavailable");
+    var totals = subject.coverage && subject.coverage.totals ? subject.coverage.totals : {};
+    var coverage = Object.keys(totals).sort().map(function (key) {
+      return key + " " + totals[key];
+    }).join(" · ");
+    var horizons = subject.horizons.map(function (horizon) {
+      return '<li data-company-horizon="' + esc(horizon.horizonId || "") + '"><b>' +
+        esc(horizon.horizonId || "Unavailable") + '</b> · ' + esc(horizon.direction || "not established") +
+        ' · evidence ' + esc(horizon.evidenceQuality || "absent") + '</li>';
+    }).join("");
+    var limitations = (subject.limitations || []).map(function (limitation) {
+      return '<li>' + esc(limitation) + '</li>';
+    }).join("");
+    var href = 'company-intelligence-lab.html?symbol=MSFT&generation=' + encodeURIComponent(value.generationId);
+    return '<div class="brl-company" data-company-owner-read-state="' + esc(state) + '">' +
+      '<p class="sub"><b>' + esc(word) + '</b> · subject ' + esc(subject.subjectId) + '</p>' +
+      '<p class="sub rlbrief-token">Version ' + esc(subject.versionId) + ' · generation ' +
+        esc(value.generationId) + ' · cutoff ' + esc(value.evidenceCutoff) + '</p>' +
+      '<p class="sub rlbrief-token">Content fingerprint ' + esc(subject.contentFingerprint) +
+        ' · provenance validated owner read</p>' +
+      '<p class="sub">Coverage ' + esc(coverage || "unavailable") + '</p>' +
+      '<ul class="sub" data-company-horizons>' + horizons + '</ul>' +
+      (limitations ? '<details><summary>Company limitations</summary><ul class="sub">' + limitations + '</ul></details>' : '') +
+      '<p class="sub"><a class="dl" href="' + esc(href) + '">Open exact Company Intelligence read ▸</a></p>' +
+      '</div>';
   }
   /* The bond card's extra detail (spec 018 scope 5). Three publication states — admitted, stale and
      absent — share ONE geometry, so a reader who has learned one has learned all three. Every state

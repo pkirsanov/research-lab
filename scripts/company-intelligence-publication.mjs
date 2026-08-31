@@ -6,8 +6,8 @@
  * research-plan validation, one real company owner read, content-addressed coupled assembly,
  * predecessor-checked immutable promotion, ordered pointer staging, disk coherence validation,
  * two-checkout restoration, exact-commit push retry, and remote-ancestry acknowledgment. It has no
- * trigger-adapter, registry-activation, or public-route authority. Shared browser math remains in
- * the UMD rlcompanyintel.js module.
+ * trigger-adapter or registry-activation authority. Scope 05 adds one inert public projection of
+ * an acknowledged pair; shared browser math remains in the UMD rlcompanyintel.js module.
  */
 import { createHash, randomUUID } from 'node:crypto';
 import { spawnSync } from 'node:child_process';
@@ -54,6 +54,7 @@ const PROMOTION_PLAN_CONTRACT = 'company-publication-promotion-plan/v1';
 const DECLARED_PUBLICATION_CONTRACT = 'declared-publication-set/v1';
 const TRANSACTION_BASELINE_CONTRACT = 'company-publication-transaction-baseline/v1';
 const ATTEMPT_CONTRACT = 'company-publication-attempt/v1';
+const PUBLIC_PROJECTION_CONTRACT = 'company-publication-projection/v1';
 const ATTEMPT_STATES = Object.freeze([
   'preparing',
   'failed',
@@ -69,8 +70,39 @@ const TRIGGER_REQUEST_CONTRACT = 'company-publication-trigger-request/v1';
 const EXECUTION_CHECKPOINT_CONTRACT = 'company-publication-execution-checkpoint/v1';
 const EXECUTION_CHECKPOINT_FILE = 'execution-checkpoint.json';
 const COUPLED_SELECTOR_PATH = 'data/company-intelligence/publication-current.json';
+const PUBLIC_PROJECTION_PATH = 'data/company-intelligence/publication-current.js';
+const PUBLIC_ATTEMPT_POINTER_PATH = 'data/company-intelligence/attempt-current.json';
+const PUBLIC_ATTEMPT_ROOT = 'data/company-intelligence/attempts';
 const COUPLED_MANIFEST_ROOT = 'data/company-intelligence/manifests';
 const PUBLICATION_FILES_ROOT = 'publication-files';
+const PUBLIC_BRIEF_PROJECTION_PATHS = Object.freeze([
+  'brief-history.jsonl',
+  'brief-history.recent.jsonl',
+  'causal-rotation.snapshot.json',
+  'market-brief.attention-scorecard.json',
+  'market-brief.config.page.json',
+  'market-brief.experimental.json',
+  'market-brief.owner-reads.json',
+  'market-brief.page.json',
+  'market-brief.payload.json',
+  'market-brief.scorecard.json',
+  'market-brief.snapshot.json',
+  'market-brief.snapshot.page.json',
+  'market-brief.tools.page.json'
+]);
+const COUPLED_PUBLIC_BRIEF_PATHS = Object.freeze([
+  'market-brief.owner-reads.json',
+  'market-brief.page.json',
+  'market-brief.payload.json',
+  'market-brief.snapshot.json',
+  'market-brief.snapshot.page.json',
+  'market-brief.tools.page.json'
+]);
+const PUBLICATION_DELTA_PREFIXES = Object.freeze([
+  'briefs/',
+  'data/company-intelligence/',
+  'research/agenda/'
+]);
 const WINDOWS = Object.freeze(['pre-market', 'morning', 'pre-close', 'after-hours']);
 const SOURCE_KINDS = Object.freeze([
   'tool-model-read',
@@ -113,6 +145,7 @@ const HASH = /^sha256:[a-f0-9]{64}$/;
 const REVISION = /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/;
 const SUBJECT = /^company:[a-z][a-z0-9.-]{0,9}$/;
 const UUID = /^[a-f0-9]{8}-[a-f0-9]{4}-[1-5][a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
+const GIT_OUTPUT_MAX_BYTES = 64 * 1024 * 1024;
 
 export const COUPLED_PUBLICATION_PHASES = Object.freeze([
   'initialized',
@@ -1217,6 +1250,99 @@ function buildCoupledSelector(manifest, manifestPath, manifestSha256) {
   });
 }
 
+export function buildPublicCompanyProjection({
+  manifest,
+  manifestPath,
+  manifestSha256,
+  versions,
+  priorVersions = [],
+  ownerRead,
+  attempt = null
+}) {
+  if (!manifest || manifest.contractVersion !== COUPLED_MANIFEST_CONTRACT ||
+      !safeRelativePath(manifestPath) || !HASH.test(manifestSha256 || '') ||
+      !Array.isArray(versions) || versions.length !== 1 ||
+      versions[0]?.contractVersion !== 'company-read-version/v2' ||
+      versions[0]?.subjectId !== 'company:msft' || versions[0]?.subject?.ticker !== 'MSFT' ||
+      versions[0]?.generationId !== manifest.generation?.generationId ||
+      !Array.isArray(versions[0]?.horizons) || versions[0].horizons.length !== 4 ||
+      !ownerRead || ownerRead.contractVersion !== 'tool-model-read/v1' ||
+      ownerRead.toolId !== INTEL.TOOL_ID || ownerRead.generationId !== manifest.generation.generationId ||
+      ownerRead.fingerprint !== manifest.companyOwnerRead?.fingerprint ||
+      !Array.isArray(priorVersions) ||
+      (attempt !== null && (attempt.contractVersion !== ATTEMPT_CONTRACT ||
+        attempt.authoritativeGenerationId !== manifest.generation.generationId))) {
+    return fail('C028-COHERENCE', 'public-projection',
+      'The public projection requires one validated acknowledged company-and-brief pair.', PUBLIC_PROJECTION_PATH);
+  }
+  const current = versions[0];
+  const history = [current].concat(priorVersions).map(clone);
+  if (new Set(history.map((version) => version.versionId)).size !== history.length ||
+      history.some((version) => {
+        const horizons = Array.isArray(version.horizons)
+          ? version.horizons
+          : version.horizonSummaries;
+        return version.subjectId !== current.subjectId ||
+          !Array.isArray(horizons) || horizons.length !== 4;
+      })) {
+    return fail('C028-COHERENCE', 'public-projection',
+      'The public projection history is duplicated or does not preserve four peer horizons.', 'versions');
+  }
+  const pair = {
+    authority: 'acknowledged',
+    state: 'current',
+    generationId: manifest.generation.generationId,
+    subjectId: current.subjectId,
+    ticker: current.subject.ticker,
+    versionId: current.versionId,
+    priorVersionId: current.priorVersionId,
+    conclusionChange: current.conclusionChange,
+    evidenceCutoff: current.evidenceCutoff,
+    composedAt: current.composedAt,
+    trigger: manifest.generation.trigger,
+    contentFingerprint: current.contentFingerprint,
+    manifest: { path: manifestPath, sha256: manifestSha256 },
+    brief: {
+      runId: manifest.brief.runId,
+      finalRef: manifest.brief.finalRef,
+      href: `market-brief.html?generation=${encodeURIComponent(manifest.generation.generationId)}#brief`
+    },
+    version: clone(current),
+    ownerRead: clone(ownerRead)
+  };
+  return ok(deepFreeze({
+    contractVersion: PUBLIC_PROJECTION_CONTRACT,
+    pair,
+    attempt: attempt === null ? null : clone(attempt),
+    versions: history
+  }));
+}
+
+export function serializePublicCompanyProjection(projection) {
+  if (!projection || projection.contractVersion !== PUBLIC_PROJECTION_CONTRACT ||
+      projection.pair?.authority !== 'acknowledged' ||
+      projection.pair?.generationId !== projection.pair?.version?.generationId ||
+      !Array.isArray(projection.versions) || projection.versions.length === 0) {
+    return fail('C028-COHERENCE', 'public-projection',
+      'The public projection cannot be serialized from an invalid pair.', PUBLIC_PROJECTION_PATH);
+  }
+  const encodedJson = JSON.stringify(stableStringify(projection));
+  const source = [
+    '(function (root) {',
+    '  "use strict";',
+    `  var value = JSON.parse(${encodedJson});`,
+    '  function deepFreeze(node) {',
+    '    if (node === null || typeof node !== "object" || Object.isFrozen(node)) return node;',
+    '    Object.keys(node).forEach(function (key) { deepFreeze(node[key]); });',
+    '    return Object.freeze(node);',
+    '  }',
+    '  root.RLCOMPANYINTEL_PUBLICATION = deepFreeze(value);',
+    '})(typeof globalThis === "undefined" ? this : globalThis);',
+    ''
+  ].join('\n');
+  return ok(Buffer.from(source, 'utf8'));
+}
+
 function readJson(file, code, phase) {
   try {
     return ok(JSON.parse(readFileSync(file, 'utf8')));
@@ -1583,6 +1709,83 @@ export function buildAttemptRecord(input) {
     authoritativeGenerationId: input.authoritativeGenerationId,
     authoritativeUnchanged: input.state !== 'acknowledged'
   });
+}
+
+function publicAttemptPath(attemptId) {
+  return `${PUBLIC_ATTEMPT_ROOT}/${attemptId}.json`;
+}
+
+function readCurrentPublicAttempt(root, authoritativeGenerationId) {
+  if (!existsSync(path.join(root, PUBLIC_ATTEMPT_POINTER_PATH))) return ok(null);
+  const pointerRecord = readJsonRecord(
+    root,
+    PUBLIC_ATTEMPT_POINTER_PATH,
+    'C028-COHERENCE',
+    'public-attempt-validation'
+  );
+  if (!pointerRecord.ok) return pointerRecord;
+  const pointer = pointerRecord.value.value;
+  if (!exactFields(pointer, [
+    'attemptId', 'attemptRef', 'authoritativeGenerationId', 'contractVersion'
+  ]) || pointer.contractVersion !== 'company-publication-attempt-pointer/v1' ||
+      !UUID.test(pointer.attemptId || '') ||
+      pointer.authoritativeGenerationId !== authoritativeGenerationId ||
+      pointer.attemptRef?.path !== publicAttemptPath(pointer.attemptId) ||
+      !HASH.test(pointer.attemptRef?.sha256 || '')) {
+    return fail('C028-COHERENCE', 'public-attempt-validation',
+      'The public attempt pointer is malformed or names another authoritative pair.',
+      PUBLIC_ATTEMPT_POINTER_PATH);
+  }
+  const attemptRecord = readJsonRecord(
+    root,
+    pointer.attemptRef.path,
+    'C028-COHERENCE',
+    'public-attempt-validation'
+  );
+  if (!attemptRecord.ok) return attemptRecord;
+  if (attemptRecord.value.sha256 !== pointer.attemptRef.sha256) {
+    return fail('C028-COHERENCE', 'public-attempt-validation',
+      'The public attempt pointer hash does not match its immutable record.',
+      pointer.attemptRef.path);
+  }
+  const attempt = attemptRecord.value.value;
+  if (!attempt || attempt.contractVersion !== ATTEMPT_CONTRACT) {
+    return fail('C028-COHERENCE', 'public-attempt-validation',
+      'The public attempt record has an invalid contract.', pointer.attemptRef.path);
+  }
+  const rebuilt = buildAttemptRecord({
+    attemptId: attempt.attemptId,
+    generationId: attempt.generationId,
+    trigger: attempt.trigger,
+    window: attempt.window,
+    state: attempt.state,
+    phase: attempt.phase,
+    startedAt: attempt.startedAt,
+    finishedAt: attempt.finishedAt,
+    failure: attempt.failure,
+    authoritativeGenerationId: attempt.authoritativeGenerationId
+  });
+  if (!rebuilt.ok || stableStringify(rebuilt.value) !== stableStringify(attempt) ||
+      attempt.authoritativeGenerationId !== authoritativeGenerationId) {
+    return fail('C028-COHERENCE', 'public-attempt-validation',
+      'The public attempt record does not reproduce from its closed fields.',
+      pointer.attemptRef.path);
+  }
+  return ok({ pointer, attempt, pointerRecord: pointerRecord.value, attemptRecord: attemptRecord.value });
+}
+
+function writePublicMutable(file, bytes) {
+  const temporary = `${file}.tmp-${process.pid}`;
+  try {
+    mkdirSync(path.dirname(file), { recursive: true });
+    writeFileSync(temporary, bytes);
+    renameSync(temporary, file);
+    return ok(file);
+  } catch (error) {
+    try { rmSync(temporary, { force: true }); } catch { /* Preserve the original failure. */ }
+    return fail('C028-STAGE', 'public-attempt-write',
+      'A public attempt projection file could not be replaced atomically.', file, error?.code);
+  }
 }
 
 function writePrivateMutableJson(file, value) {
@@ -2050,6 +2253,40 @@ function inventoryEntry(record) {
   return { path: record.path, sha256: record.sha256, byteLength: record.byteLength };
 }
 
+function selectedWorkerDeltaRecords(candidateRoot) {
+  const runner = gitRunnerFor(candidateRoot);
+  const worktree = runner(['rev-parse', '--is-inside-work-tree']);
+  if (!worktree || worktree.code !== 0 || String(worktree.stdout).trim() !== 'true') return ok([]);
+  const status = runner(['status', '--porcelain=v1', '-z', '--untracked-files=all']);
+  if (!status || status.code !== 0) {
+    return fail('C028-STAGE', 'coupled-assembly',
+      'The shared worker publication delta could not be read.', 'candidate.status', 'git-status-failed');
+  }
+  const exact = new Set(PUBLIC_BRIEF_PROJECTION_PATHS);
+  const paths = [];
+  for (const record of String(status.stdout || '').split('\0').filter(Boolean)) {
+    const code = record.slice(0, 2);
+    const relativePath = record.slice(3);
+    if (code.includes('R') || code.includes('C') || code.includes('D')) {
+      if (exact.has(relativePath) || PUBLICATION_DELTA_PREFIXES.some((prefix) => relativePath.startsWith(prefix))) {
+        return fail('C028-STAGE', 'coupled-assembly',
+          'The shared worker selected a renamed, copied, or deleted publication path.', relativePath);
+      }
+      continue;
+    }
+    if (exact.has(relativePath) || PUBLICATION_DELTA_PREFIXES.some((prefix) => relativePath.startsWith(prefix))) {
+      paths.push(relativePath);
+    }
+  }
+  const records = [];
+  for (const relativePath of [...new Set(paths)].sort()) {
+    const record = readFileRecord(candidateRoot, relativePath, 'C028-STAGE', 'coupled-assembly');
+    if (!record.ok) return record;
+    records.push(record.value);
+  }
+  return ok(records);
+}
+
 function briefCandidate(candidateRoot, generation, versions, privateOwnerRead) {
   const currentRecord = readJsonRecord(candidateRoot, 'briefs/current.json', 'C028-BRIEF-CANDIDATE', 'coupled-assembly');
   if (!currentRecord.ok) return currentRecord;
@@ -2099,6 +2336,12 @@ function briefCandidate(candidateRoot, generation, versions, privateOwnerRead) {
     if (!added.ok) return added;
   }
   for (const record of [manifestRecord.value, historyRecord.value, currentRecord.value]) {
+    const added = addRecord(records, record, 'C028-BRIEF-CANDIDATE', 'coupled-assembly');
+    if (!added.ok) return added;
+  }
+  const workerDelta = selectedWorkerDeltaRecords(candidateRoot);
+  if (!workerDelta.ok) return workerDelta;
+  for (const record of workerDelta.value) {
     const added = addRecord(records, record, 'C028-BRIEF-CANDIDATE', 'coupled-assembly');
     if (!added.ok) return added;
   }
@@ -2340,6 +2583,25 @@ export function assembleCoupledPublication({ transactionDir, candidateRoot }) {
   const manifestAdded = addRecord(stagedRecords, manifestRecord, 'C028-STAGE', 'coupled-assembly');
   if (!manifestAdded.ok) return manifestAdded;
 
+  const publicProjection = buildPublicCompanyProjection({
+    manifest: manifest.value,
+    manifestPath,
+    manifestSha256: manifestRecord.sha256,
+    versions,
+    priorVersions: priorRecords.map((record) => record.value),
+    ownerRead: brief.value.ownerRead
+  });
+  if (!publicProjection.ok) return publicProjection;
+  const publicProjectionBytes = serializePublicCompanyProjection(publicProjection.value);
+  if (!publicProjectionBytes.ok) return publicProjectionBytes;
+  const publicProjectionAdded = addRecord(stagedRecords, {
+    path: PUBLIC_PROJECTION_PATH,
+    bytes: publicProjectionBytes.value,
+    sha256: sha256(publicProjectionBytes.value),
+    byteLength: publicProjectionBytes.value.length
+  }, 'C028-STAGE', 'coupled-assembly');
+  if (!publicProjectionAdded.ok) return publicProjectionAdded;
+
   const subjectPointerPaths = [];
   for (let index = 0; index < versions.length; index += 1) {
     const pointer = buildCompanyPointer(
@@ -2577,6 +2839,7 @@ function gitRunnerFor(root) {
     const result = spawnSync('git', args, {
       cwd: root,
       encoding: 'utf8',
+      maxBuffer: GIT_OUTPUT_MAX_BYTES,
       timeout: 30_000,
       killSignal: 'SIGKILL',
       env: {
@@ -2800,6 +3063,7 @@ export function validateCoupledPublication(root, generationId) {
   }
 
   const versions = [];
+  const priorVersions = [];
   for (const subject of manifest.subjects) {
     const versionRecord = requireInventoryRecord(root, inventoryByPath, subject.versionPath, 'C028-COMPANY-CANDIDATE');
     if (!versionRecord.ok) return versionRecord;
@@ -2838,6 +3102,7 @@ export function validateCoupledPublication(root, generationId) {
       const priorPath = INTEL.versionPathsFor(subject.subjectId, subject.priorVersionId).version;
       const priorRecord = requireInventoryRecord(root, inventoryByPath, priorPath, 'C028-IMMUTABLE-MUTATION');
       if (!priorRecord.ok) return priorRecord;
+      priorVersions.push(priorRecord.value.value);
     }
   }
 
@@ -2895,6 +3160,46 @@ export function validateCoupledPublication(root, generationId) {
     return fail('C028-BRIEF-CANDIDATE', 'coherence-validation',
       'The final brief does not consume the manifest company owner read.', current.finalRef.path);
   }
+  const publicProjectionEntries = COUPLED_PUBLIC_BRIEF_PATHS.filter((relativePath) => inventoryByPath.has(relativePath));
+  if (publicProjectionEntries.length > 0 && publicProjectionEntries.length !== COUPLED_PUBLIC_BRIEF_PATHS.length) {
+    return fail('C028-BRIEF-CANDIDATE', 'coherence-validation',
+      'The public Market Action projection is only partially present in the coupled inventory.',
+      COUPLED_PUBLIC_BRIEF_PATHS.find((relativePath) => !inventoryByPath.has(relativePath)));
+  }
+  if (publicProjectionEntries.length === COUPLED_PUBLIC_BRIEF_PATHS.length) {
+    const publicPayload = requireInventoryRecord(root, inventoryByPath, 'market-brief.payload.json', 'C028-BRIEF-CANDIDATE');
+    if (!publicPayload.ok) return publicPayload;
+    const publicSnapshot = requireInventoryRecord(root, inventoryByPath, 'market-brief.snapshot.json', 'C028-BRIEF-CANDIDATE');
+    if (!publicSnapshot.ok) return publicSnapshot;
+    const payloadCompanyRead = publicPayload.value.value?.toolReads?.[INTEL.TOOL_ID];
+    const snapshotCompanyRead = publicSnapshot.value.value?.toolReads?.[INTEL.TOOL_ID];
+    if (stableStringify(payloadCompanyRead) !== stableStringify(ownerRead.value.value) ||
+        stableStringify(snapshotCompanyRead) !== stableStringify(ownerRead.value.value)) {
+      return fail('C028-OWNER-READ', 'coherence-validation',
+        'The public Market Action payload and snapshot do not carry the exact company owner read.',
+        'market-brief.payload.json');
+    }
+  }
+  const publicAttempt = readCurrentPublicAttempt(root, generationId);
+  if (!publicAttempt.ok) return publicAttempt;
+  const expectedProjection = buildPublicCompanyProjection({
+    manifest,
+    manifestPath: selector.publicationManifestRef.path,
+    manifestSha256: selector.publicationManifestRef.sha256,
+    versions,
+    priorVersions,
+    ownerRead: ownerRead.value.value,
+    attempt: publicAttempt.value === null ? null : publicAttempt.value.attempt
+  });
+  if (!expectedProjection.ok) return expectedProjection;
+  const expectedProjectionBytes = serializePublicCompanyProjection(expectedProjection.value);
+  if (!expectedProjectionBytes.ok) return expectedProjectionBytes;
+  const actualProjection = readFileRecord(root, PUBLIC_PROJECTION_PATH, 'C028-COHERENCE', 'coherence-validation');
+  if (!actualProjection.ok) return actualProjection;
+  if (!actualProjection.value.bytes.equals(expectedProjectionBytes.value)) {
+    return fail('C028-COHERENCE', 'coherence-validation',
+      'The committed-first-paint projection differs from the acknowledged pair.', PUBLIC_PROJECTION_PATH);
+  }
   return ok({
     command: 'validate',
     generationId,
@@ -2905,6 +3210,89 @@ export function validateCoupledPublication(root, generationId) {
     inventoryCount: inventory.length,
     ownerReadFingerprint: manifest.companyOwnerRead.fingerprint,
     registryFingerprint: manifest.generation.registryFingerprint
+  });
+}
+
+export function recordPublicAttempt({ root, input }) {
+  const selectorRecord = readJsonRecord(root, COUPLED_SELECTOR_PATH, 'C028-COHERENCE', 'public-attempt-write');
+  if (!selectorRecord.ok) return selectorRecord;
+  const selector = selectorRecord.value.value;
+  const baseline = validateCoupledPublication(root, selector.generationId);
+  if (!baseline.ok) return baseline;
+  const attempt = buildAttemptRecord(input);
+  if (!attempt.ok) return attempt;
+  if (attempt.value.authoritativeGenerationId !== selector.generationId ||
+      attempt.value.state === 'acknowledged' || !attempt.value.authoritativeUnchanged) {
+    return fail('C028-COHERENCE', 'public-attempt-write',
+      'A diagnostics-only public attempt must preserve the selected acknowledged generation.',
+      'attempt.authoritativeGenerationId');
+  }
+  const manifestRecord = readJsonRecord(
+    root,
+    selector.publicationManifestRef.path,
+    'C028-COHERENCE',
+    'public-attempt-write'
+  );
+  if (!manifestRecord.ok) return manifestRecord;
+  const manifest = manifestRecord.value.value;
+  const versions = [];
+  const priorVersions = [];
+  for (const subject of manifest.subjects) {
+    const version = readJsonRecord(root, subject.versionPath, 'C028-COMPANY-CANDIDATE', 'public-attempt-write');
+    if (!version.ok) return version;
+    versions.push(version.value.value);
+    if (subject.priorVersionId !== null) {
+      const priorPath = INTEL.versionPathsFor(subject.subjectId, subject.priorVersionId).version;
+      const prior = readJsonRecord(root, priorPath, 'C028-IMMUTABLE-MUTATION', 'public-attempt-write');
+      if (!prior.ok) return prior;
+      priorVersions.push(prior.value.value);
+    }
+  }
+  const briefCurrent = readJsonRecord(root, 'briefs/current.json', 'C028-BRIEF-CANDIDATE', 'public-attempt-write');
+  if (!briefCurrent.ok) return briefCurrent;
+  const companyRef = briefCurrent.value.value?.tools?.[INTEL.TOOL_ID];
+  const ownerRead = readJsonRecord(root, companyRef?.readPath, 'C028-OWNER-READ', 'public-attempt-write');
+  if (!ownerRead.ok) return ownerRead;
+  const projection = buildPublicCompanyProjection({
+    manifest,
+    manifestPath: selector.publicationManifestRef.path,
+    manifestSha256: selector.publicationManifestRef.sha256,
+    versions,
+    priorVersions,
+    ownerRead: ownerRead.value.value,
+    attempt: attempt.value
+  });
+  if (!projection.ok) return projection;
+  const projectionBytes = serializePublicCompanyProjection(projection.value);
+  if (!projectionBytes.ok) return projectionBytes;
+  const attemptPath = publicAttemptPath(attempt.value.attemptId);
+  const attemptBytes = jsonBytes(attempt.value);
+  const pointer = {
+    contractVersion: 'company-publication-attempt-pointer/v1',
+    attemptId: attempt.value.attemptId,
+    authoritativeGenerationId: selector.generationId,
+    attemptRef: { path: attemptPath, sha256: sha256(attemptBytes) }
+  };
+  const attemptWrite = writeBytesExact(
+    path.join(root, attemptPath),
+    attemptBytes,
+    'C028-GENERATION-COLLISION',
+    'public-attempt-write'
+  );
+  if (!attemptWrite.ok) return attemptWrite;
+  const projectionWrite = writePublicMutable(path.join(root, PUBLIC_PROJECTION_PATH), projectionBytes.value);
+  if (!projectionWrite.ok) return projectionWrite;
+  const pointerWrite = writePublicMutable(path.join(root, PUBLIC_ATTEMPT_POINTER_PATH), jsonBytes(pointer));
+  if (!pointerWrite.ok) return pointerWrite;
+  const validated = validateCoupledPublication(root, selector.generationId);
+  if (!validated.ok) return validated;
+  return ok({
+    command: 'record-attempt',
+    attemptId: attempt.value.attemptId,
+    attemptPath,
+    attemptPointerPath: PUBLIC_ATTEMPT_POINTER_PATH,
+    projectionPath: PUBLIC_PROJECTION_PATH,
+    authoritativeGenerationId: selector.generationId
   });
 }
 
@@ -4041,6 +4429,16 @@ async function main(argv) {
       path.resolve(options.value['--publication-root']),
       options.value['--generation-id']
     ));
+  }
+  if (command === 'record-attempt') {
+    const options = parseOptions(argv.slice(1), ['--publication-root', '--input-file']);
+    if (!options.ok) return cliResult(options);
+    const input = readJson(path.resolve(options.value['--input-file']), 'C028-TRIGGER', 'public-attempt-write');
+    if (!input.ok) return cliResult(input);
+    return cliResult(recordPublicAttempt({
+      root: path.resolve(options.value['--publication-root']),
+      input: input.value
+    }));
   }
   return cliResult(fail('C028-TRIGGER', 'cli',
     'The command is outside the closed company publication CLI surface.', 'command'));

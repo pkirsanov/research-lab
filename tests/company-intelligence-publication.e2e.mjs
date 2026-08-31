@@ -85,8 +85,14 @@ function copyRelative(candidate, relativePath) {
 
 function addCompanySource(toolsPath) {
   const document = JSON.parse(readFileSync(toolsPath, 'utf8'));
-  assert.equal(document.tools.some((entry) => entry.id === 'company-intelligence-lab'), false,
-    'the isolated Scope 01 checkout starts without public registration');
+  const registered = document.tools.filter((entry) => entry.id === 'company-intelligence-lab');
+  assert.ok(registered.length <= 1, 'the isolated checkout must not contain duplicate Company Intelligence sources');
+  if (registered.length === 1) {
+    assert.equal(registered[0].briefing?.role, 'source');
+    assert.equal(registered[0].briefing?.readAdapter, 'company-intelligence-owner-v1');
+    assert.equal(registered[0].briefing?.readContractVersion, 'tool-model-read/v1');
+    return;
+  }
   const companySource = {
     id: 'company-intelligence-lab',
     briefing: {

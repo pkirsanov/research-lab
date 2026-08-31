@@ -91,22 +91,23 @@
       "tests/company-intelligence-publication.e2e.mjs",
       "tests/company-intelligence-publication.spec.mjs",
       "tests/tool-discovery.spec.mjs",
-      "tests/deployed-site-parity.spec.mjs"
+      "tests/deployed-site-parity.spec.mjs",
+      "rlexperience.js"
     ]
   },
   "execution": {
     "goalContractRef": {
-      "goalId": "gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3",
-      "revision": 3,
+      "goalId": "gc:vscode-1f5b7362918071b6b2de16fb3709dfae:4",
+      "revision": 4,
       "sourceRequestDigest": "sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f"
     },
-    "activeAgent": "bubbles.validate",
-    "currentPhase": "validate",
-    "currentPhaseStatus": "completed",
-    "currentScope": "04-shared-trigger-integration",
-    "substate": "independently_verified",
-    "runStartedAt": "2026-08-31T02:42:44Z",
-    "completedAt": "2026-08-31T03:46:54Z",
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "in_progress",
+    "currentScope": "05-public-registration-and-pages",
+    "substate": "implementation_in_progress",
+    "runStartedAt": "2026-08-31T04:22:02Z",
+    "completedAt": null,
     "completedPhaseClaims": [
       {
         "phase": "analyze",

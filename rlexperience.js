@@ -1595,7 +1595,8 @@
     "rlexperience-adapters/fundamental-models.js": { global: "RLFUNDAMENTALS", register: "registerFundamentalModelsAdapters" },
     "rlexperience-adapters/strategy-research.js": { global: "RLSTRATEGY", register: "registerStrategyResearchAdapters" },
     "rlexperience-adapters/property-research.js": { global: "RLPROPERTY", register: "registerPropertyResearchAdapters" },
-    "rlexperience-adapters/research-agenda.js": { global: "RLRESEARCHAGENDA", register: "registerResearchAgendaAdapters" }
+    "rlexperience-adapters/research-agenda.js": { global: "RLRESEARCHAGENDA", register: "registerResearchAgendaAdapters" },
+    "rlexperience-adapters/company-intelligence.js": { global: "RLCOMPANYEXPERIENCE", register: "registerCompanyIntelligenceAdapters" }
   };
 
   /* ─── Steerable Simple-control helpers ───────────────────────────────────────

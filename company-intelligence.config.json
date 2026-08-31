@@ -41,7 +41,7 @@
       "label": "Own and relative price performance",
       "ownerToolId": "etf-momentum-lab",
       "ownerDeepLink": "etf-momentum-lab.html",
-      "ownerSubjectParam": "ticker",
+      "ownerBareReason": "fixed-subject",
       "freshnessWindowDays": 7,
       "maxHorizon": "swing"
     },

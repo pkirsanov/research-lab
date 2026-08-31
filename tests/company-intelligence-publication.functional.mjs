@@ -10,7 +10,9 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import {
   chmodSync,
+  cpSync,
   copyFileSync,
+  existsSync,
   mkdirSync,
   mkdtempSync,
   readFileSync,
@@ -29,6 +31,9 @@ const require = createRequire(import.meta.url);
 const INTEL = require('../rlcompanyintel.js');
 const RLCONTRACTS = require('../rlcontracts.js');
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
+const PACKAGE_ROOT = process.env.COMPANY_PUBLICATION_PACKAGE_ROOT
+  ? path.resolve(process.env.COMPANY_PUBLICATION_PACKAGE_ROOT)
+  : ROOT;
 const CONFIG = JSON.parse(readFileSync(new URL('../company-intelligence.config.json', import.meta.url), 'utf8'));
 const SUBJECT_ID = 'company:msft';
 const CUTOFF = '2026-08-28T14:00:00.000Z';
@@ -165,6 +170,15 @@ function copyRelative(root, relativePath) {
 
 function addCompanySource(file) {
   const document = JSON.parse(readFileSync(file, 'utf8'));
+  const registered = document.tools.filter((entry) => entry.id === 'company-intelligence-lab');
+  assert.ok(registered.length <= 1,
+    'the isolated checkout must not contain duplicate Company Intelligence sources');
+  if (registered.length === 1) {
+    assert.equal(registered[0].briefing?.role, 'source');
+    assert.equal(registered[0].briefing?.readAdapter, 'company-intelligence-owner-v1');
+    assert.equal(registered[0].briefing?.readContractVersion, 'tool-model-read/v1');
+    return;
+  }
   const after = document.tools.findIndex((entry) => entry.id === 'company-fundamentals-lab');
   assert.ok(after >= 0);
   document.tools.splice(after + 1, 0, {
@@ -469,5 +483,127 @@ test('Mutation: SCN-028-019 registry order fingerprint participant and dependenc
     }
   } finally {
     fixture.cleanup();
+  }
+});
+
+test('Mutation: SCN-028-002 a registered company artifact with one stale exclusion is refused', async () => {
+  const builder = await import('../scripts/build-pages-site.mjs');
+  assert.equal(typeof builder.validateCompanyPublicationPackage, 'function',
+    'the production Pages evaluator must expose the Company publication package validator');
+  assert.equal(typeof builder.parsePublicCompanyProjectionSource, 'function',
+    'the production Pages evaluator must parse the deterministic projection without evaluating JavaScript');
+
+  const registry = JSON.parse(readFileSync(path.join(PACKAGE_ROOT, 'tools.json'), 'utf8'));
+  const exclusions = JSON.parse(readFileSync(path.join(PACKAGE_ROOT, 'site-exclusions.json'), 'utf8'));
+  const accepted = builder.validateCompanyPublicationPackage(PACKAGE_ROOT, { registry, exclusionsDocument: exclusions });
+  assert.equal(accepted.active, true);
+  assert.ok(accepted.requiredPaths.length > 8);
+  assert.equal(accepted.requiredPaths.includes('data/company-intelligence/publication-current.json'), true);
+  assert.equal(accepted.requiredPaths.includes('data/company-intelligence/publication-current.js'), true);
+
+  const packageDestination = `.scope05-package-contract-${process.pid}`;
+  try {
+    const packagePlan = builder.buildPagesSite({
+      root: PACKAGE_ROOT,
+      destination: packageDestination
+    });
+    const requiredIndexDirectories = new Set(accepted.requiredPaths
+      .map((relativePath) => /^(briefs\/indexes\/[a-f0-9]{64})\//.exec(relativePath)?.[1])
+      .filter(Boolean));
+    assert.deepEqual(
+      [...requiredIndexDirectories].every((directory) => packagePlan.retainedHistoryIndexDirectories.includes(directory)),
+      true,
+      'the production package plan retains every history index selected by pair authority'
+    );
+    for (const relativePath of accepted.requiredPaths) {
+      assert.equal(existsSync(path.join(PACKAGE_ROOT, packageDestination, relativePath)), true,
+        `the built package retains the authoritative dependency ${relativePath}`);
+    }
+  } finally {
+    rmSync(path.join(PACKAGE_ROOT, packageDestination), { recursive: true, force: true });
+  }
+
+  for (const stalePath of [
+    'company-intelligence-lab.html',
+    'rlcompanyintel.js',
+    'company-intelligence.config.json'
+  ]) {
+    const mutated = structuredClone(exclusions);
+    mutated.files.push({
+      path: stalePath,
+      reason: 'Mutation fixture restores one retired Company Intelligence exclusion so the production packaging refusal must name it.'
+    });
+    assert.throws(
+      () => builder.validateCompanyPublicationPackage(ROOT, { registry, exclusionsDocument: mutated }),
+      (error) => error instanceof Error && error.message.includes('C028-PACKAGING') && error.message.includes(stalePath),
+      `${stalePath} must produce a named C028-PACKAGING refusal`
+    );
+  }
+
+  const fixtureRoot = mkdtempSync(path.join(tmpdir(), 'company-publication-package-'));
+  try {
+    for (const relativePath of accepted.requiredPaths) {
+      const sourcePath = path.join(PACKAGE_ROOT, relativePath);
+      const destinationPath = path.join(fixtureRoot, relativePath);
+      assert.equal(existsSync(sourcePath), true, `accepted package path exists: ${relativePath}`);
+      mkdirSync(path.dirname(destinationPath), { recursive: true });
+      cpSync(sourcePath, destinationPath, { recursive: true });
+    }
+    const projectionPath = path.join(fixtureRoot, 'data/company-intelligence/publication-current.js');
+    const projectionSource = readFileSync(projectionPath, 'utf8');
+    const projection = builder.parsePublicCompanyProjectionSource(projectionSource);
+    const writeProjectionMutation = (mutate) => {
+      const mutated = structuredClone(projection);
+      mutate(mutated);
+      const lines = projectionSource.split('\n');
+      lines[2] = `  var value = JSON.parse(${JSON.stringify(JSON.stringify(mutated))});`;
+      writeFileSync(projectionPath, lines.join('\n'));
+    };
+    const projectionMutations = [
+      {
+        label: 'attempt identity',
+        message: 'public projection attempt does not match the selected attempt record',
+        mutate(value) {
+          assert.notEqual(value.attempt, null, 'the production projection must carry the selected failed attempt');
+          value.attempt.attemptId = '51515151-5151-4151-8151-515151515151';
+        }
+      },
+      {
+        label: 'authoritative pair generation',
+        message: 'public projection does not preserve the acknowledged pair identity',
+        mutate(value) {
+          const divergent = 'company-brief:2026-08-31:morning:ffffffffffffffff';
+          value.pair.generationId = divergent;
+          value.pair.version.generationId = divergent;
+        }
+      },
+      {
+        label: 'projection contract version',
+        message: 'public projection contract is invalid',
+        mutate(value) {
+          value.contractVersion = 'company-publication-projection/v0';
+        }
+      }
+    ];
+    for (const control of projectionMutations) {
+      writeProjectionMutation(control.mutate);
+      assert.throws(
+        () => builder.validateCompanyPublicationPackage(fixtureRoot, { registry, exclusionsDocument: exclusions }),
+        (error) => error instanceof Error && error.message.includes('C028-PACKAGING') &&
+          error.message.includes(control.message),
+        `${control.label} divergence must produce a named C028-PACKAGING refusal`
+      );
+      writeFileSync(projectionPath, projectionSource);
+    }
+
+    const missingPath = 'rlexperience-adapters/company-intelligence.js';
+    rmSync(path.join(fixtureRoot, missingPath), { force: true });
+    assert.throws(
+      () => builder.validateCompanyPublicationPackage(fixtureRoot, { registry, exclusionsDocument: exclusions }),
+      (error) => error instanceof Error && error.message.includes('C028-PACKAGING') && error.message.includes(missingPath),
+      'a missing registered adapter must produce a named C028-PACKAGING refusal'
+    );
+  } finally {
+    rmSync(fixtureRoot, { recursive: true, force: true });
   }
 });

@@ -1797,6 +1797,29 @@
                 contractVersion: ATTN_CONTRACT
             };
 
+            function renderRequestedGeneration() {
+                var host = el("toolReads");
+                if (!host) return;
+                var prior = document.getElementById("requestedGenerationState");
+                if (prior) prior.remove();
+                var requested = new URLSearchParams(window.location.search).get("generation");
+                if (requested === null) {
+                    document.body.removeAttribute("data-requested-generation-state");
+                    return;
+                }
+                var safe = /^[a-z0-9][a-z0-9._:/-]*$/.test(requested);
+                var companyRead = SNAP && SNAP.toolReads && SNAP.toolReads["company-intelligence-lab"];
+                var matched = safe && companyRead && companyRead.generationId === requested;
+                document.body.setAttribute("data-requested-generation-state", matched ? "matched" : "unavailable");
+                var state = document.createElement("p");
+                state.id = "requestedGenerationState";
+                state.className = "sub";
+                state.textContent = matched
+                    ? "Showing the Market Action generation that consumed the linked Company Intelligence read."
+                    : "Requested generation unavailable. The current acknowledged brief remains visible and unchanged.";
+                host.insertBefore(state, host.firstChild);
+            }
+
             function renderAll() {
                 renderAsOf();
                 RLBRIEF.renderFreshness(el("freshbar"), RLBRIEF.narrativeFreshness(PAYLOAD, (CFG && CFG["freshness-policy/v1"]) || null));
@@ -1846,6 +1869,7 @@
                 RLBRIEF.renderGroups(el("groups"), (PAYLOAD && PAYLOAD.groups) || (SNAP && SNAP.groups), CFG);
                 RLBRIEF.renderWatchlist(el("watchlist"), WL && WL.items, CFG, PAYLOAD && PAYLOAD.watchlistNotes);
                 RLBRIEF.renderToolReads(el("toolReads"), TOOLS && TOOLS.tools, SNAP && SNAP.toolReads, localToolReads());
+                renderRequestedGeneration();
                 renderFxGlobalRelationship();
                 renderExperimental(); renderComputed(); setWindow(pickWindow());
             }

@@ -23171,29 +23171,34 @@ try {
     && routeSource25.indexOf('INTEL.definitelyNotCalled(') < 0,
   'TP-025-08: every one of the module\u2019s ' + exported25.length + ' exported functions has a caller inside the route (' + (uncalled25.join(', ') || 'none uncalled') + ')');
 
-  /* 2.10 EXCLUSION PARITY. The route, its module and its config each carry a deploy decision. */
+  /* 2.10 FEATURE 028 SUCCESSOR REGISTRATION. Public activation is one coherent package. */
   const companySitePages = await import('./build-pages-site.mjs');
   const companyPlan25 = companySitePages.planPagesSite(ROOT);
   const exclusions25 = JSON.parse(read('site-exclusions.json'));
   const companyPaths25 = ['company-intelligence-lab.html', 'rlcompanyintel.js', 'company-intelligence.config.json'];
-  const companyEntries25 = companyPaths25.map((path) => exclusions25.files.filter((entry) => entry.path === path)[0]);
   const companyRootPages25 = readdirSync(ROOT).filter((name) => name.endsWith('.html')).sort();
-  const registeredNow25 = new Set(JSON.parse(read('tools.json')).tools.map((tool) => tool.file));
-  const withoutRoute25 = new Set(companyPlan25.excludedPaths.filter((path) => path !== 'company-intelligence-lab.html'));
-  const refusedWithout25 = companySitePages.findUnaccountedPages(companyRootPages25, registeredNow25, withoutRoute25);
-  assert(companyEntries25.every((entry) => entry && typeof entry.reason === 'string' && entry.reason.length >= 40)
-    && companyPaths25.every((path) => companyPlan25.excludedPaths.indexOf(path) >= 0)
-    && companyPlan25.registeredPages.indexOf('company-intelligence-lab.html') < 0
-    && companyRootPages25.indexOf('company-intelligence-lab.html') >= 0
-    && refusedWithout25.indexOf('company-intelligence-lab.html') >= 0,
-  'company-intelligence route, module and config each carry a site-exclusion entry with a substantive reason, and removing the route\u2019s entry is proven to make the build refuse the page');
-
-  /* The tool stays absent from every registration surface, exactly as the design recommends. */
+  const companyRegistry25 = JSON.parse(read('tools.json')).tools.filter((tool) => tool.id === 'company-intelligence-lab');
+  const companySimple25 = JSON.parse(read('simple-models.json')).definitions
+    .filter((definition) => definition.definitionId === 'simple-model/company-multi-horizon/v1');
+  const companyJourneys25 = JSON.parse(read('journeys.json')).definitions
+    .filter((definition) => /^journey\/company-intelligence-lab\/(?:publication-trace|evidence-gap)\/v1$/.test(definition.definitionId));
+  const companyAdapterAllowlist25 = JSON.parse(read('tool-experience.config.json')).adapterPolicy.moduleAllowlist
+    .filter((modulePath) => modulePath === 'rlexperience-adapters/company-intelligence.js');
   const companyRegistrationText25 = ['tools.json', 'index.html', 'rlnav.js']
-    .map((file) => read(file)).join('\n');
-  assert(!/company-intelligence/.test(companyRegistrationText25)
-    && !/rlcompanyintel/.test(companyRegistrationText25),
-  'TP-025-09: the company-intelligence route, module and config appear in none of tools.json, the index or the navigation');
+    .map((file) => read(file));
+  assert(companyPaths25.every((path) => companyPlan25.excludedPaths.indexOf(path) < 0)
+    && companyPlan25.companyPublication.active === true
+    && companyPlan25.companyPublication.requiredPaths.indexOf('data/company-intelligence/publication-current.js') >= 0
+    && companyPlan25.registeredPages.indexOf('company-intelligence-lab.html') >= 0
+    && companyRootPages25.indexOf('company-intelligence-lab.html') >= 0
+    && companyRegistry25.length === 1
+    && companySimple25.length === 1
+    && companyJourneys25.length === 2
+    && companyAdapterAllowlist25.length === 1
+    && companyRegistrationText25.every((source) => (source.match(/company-intelligence-lab/g) || []).length >= 1)
+    && /data-rlbrief-mount[^>]+data-tool-id="company-intelligence-lab"/.test(routeSource25)
+    && /data\/company-intelligence\/publication-current\.js/.test(routeSource25),
+  'TP-025-09 successor: Company Intelligence is registered once with one Simple model, two journeys, one allowed adapter, one brief mount, one acknowledged projection, and zero stale exclusions');
 
   /* 2.12 CANARY. This feature touched two shared surfaces by pure append. The concurrent Lifetime
      Tax work owns its own modules, its own route and its own exclusion entries, and this append
@@ -23201,7 +23206,7 @@ try {
   const taxExclusionPaths25 = ['rltaxrules.js', 'rltaxworkspace.js', 'rltax.js', 'rltaxstrategy.js',
     'rltaxstate.js', 'rltaxcombined.js', 'lifetime-tax-strategy-lab.html', 'lifetime-tax-strategy.config.json'];
   assert(taxExclusionPaths25.every((path) => companyPlan25.excludedPaths.indexOf(path) >= 0)
-    && exclusions25.files.length >= taxExclusionPaths25.length + companyPaths25.length + 1
+    && exclusions25.files.length >= taxExclusionPaths25.length + 1
     && exclusions25.files.every((entry) => typeof entry.reason === 'string' && entry.reason.length >= 40)
     && new Set(exclusions25.files.map((entry) => entry.path)).size === exclusions25.files.length
     && companyRootPages25.filter((name) => name.indexOf('lifetime-tax') === 0).length === 1,

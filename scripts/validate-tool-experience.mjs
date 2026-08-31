@@ -82,8 +82,7 @@ function loadActualPacket() {
     'market-brief.page.json',
     'watchlist.json',
     'market-brief.snapshot.page.json',
-    'market-brief.tools.page.json',
-    'market-brief.scorecard.json'
+    'market-brief.tools.page.json'
   ];
   const firstLoadBytes = firstLoadPaths.reduce((total, path) => total + readRequired(path).length, 0);
 

@@ -7004,6 +7004,9 @@ try {
   const scope6Payload = JSON.parse(read('market-brief.payload.json'));
   const scope6CoverageIds = scope6Payload.toolCoverage.map((entry) => entry.id);
   const scope6Coverage = scope6Payload.toolCoverage.filter((entry) => entry.id === 'company-fundamentals-lab');
+  const scope6CompanyCoverage = scope6Payload.toolCoverage.filter((entry) => entry.id === 'company-intelligence-lab');
+  const scope6CoverageOrder = scope6RegistryIds.filter((id) => id !== 'company-intelligence-lab')
+    .concat('company-intelligence-lab');
   // market-brief.payload.json is a per-window automation output (cron auto-refresh + Tier-B narrative, 4x/day). The
   // owner-read coverage status legitimately varies per window between the deterministic Tier-A view ('fresh-headless',
   // brief-refresh.mjs buildToolCoverage) and the Tier-B narrative "read-was-consumed" view ('analyzed', authored per
@@ -7018,7 +7021,17 @@ try {
   // the disclosure is PRESENT in any honest phrasing and still fails if it disappears — or if the
   // sense inverts, because 'no recommendation' must sit adjacent to the produced/fabricated verb.
   const scope6NoRecommendationDisclosure = /no recommendation[^.]*\b(?:fabricat\w*|produced|generated|issued)\b/i;
-  assert(JSON.stringify(scope6CoverageIds) === JSON.stringify(scope6RegistryIds) && scope6Coverage.length === 1 && scope6Coverage[0].deepLink === scope6Tool.file && scope6OwnerReadStatuses.includes(scope6Coverage[0].status) && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1') && scope6NoRecommendationDisclosure.test(scope6Coverage[0].reason), 'Feature 010 Scope 6 keeps exact registry-wide toolCoverage parity with one hash-verified company owner-read entry that discloses no recommendation is produced');
+  assert(JSON.stringify(scope6CoverageIds) === JSON.stringify(scope6CoverageOrder)
+    && new Set(scope6CoverageIds).size === scope6RegistryIds.length
+    && scope6Coverage.length === 1 && scope6Coverage[0].deepLink === scope6Tool.file
+    && scope6OwnerReadStatuses.includes(scope6Coverage[0].status)
+    && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1')
+    && scope6NoRecommendationDisclosure.test(scope6Coverage[0].reason)
+    && scope6CompanyCoverage.length === 1
+    && scope6CompanyCoverage[0].deepLink === 'company-intelligence-lab.html'
+    && scope6CompanyCoverage[0].status === 'fresh-headless'
+    && /four isolated horizon reads in version company:msft:/.test(scope6CompanyCoverage[0].reason),
+  'Feature 010 Scope 6 keeps exact registry-wide toolCoverage membership and successor execution order with one hash-verified fundamentals owner read, one final-phase Company Intelligence owner read, and no recommendation disclosure');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 6 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE6-END */
 
@@ -9251,7 +9264,7 @@ try {
   // the browser rendered none of it, so fetching it spent bytes without creating a reader surface.
   assert(!briefPage.includes('brief-history.recent.jsonl'), 'the cockpit does not fetch unused recent memory');
   assert(!/jl\("brief-history\.jsonl"\)/.test(briefPage), 'the cockpit no longer fetches the unbounded append log on page load');
-  ['market-brief.config.page.json', 'market-brief.page.json', 'market-brief.snapshot.page.json', 'market-brief.tools.page.json'].forEach((file) => {
+  ['market-brief.config.page.json', 'market-brief.page.json', 'watchlist.json', 'market-brief.snapshot.page.json', 'market-brief.tools.page.json'].forEach((file) => {
     assert(briefPage.includes(file), 'the cockpit fetches compact first-load artifact ' + file);
   });
   ['market-brief.config.json', 'market-brief.payload.json', 'market-brief.snapshot.json', 'tools.json'].forEach((file) => {
@@ -9259,6 +9272,13 @@ try {
   });
   assert(briefPage.includes('fetch("market-brief.experimental.json"') && briefPage.includes('experimentalDrawer'),
     'hidden experimental prose is fetched only through the drawer load path');
+  const bootFirstLoad25 = /function boot\(\) \{[\s\S]*?Promise\.all\(\[([\s\S]*?)\]\)\.then/.exec(briefPage);
+  assert(bootFirstLoad25 && !bootFirstLoad25[1].includes('market-brief.scorecard.json')
+    && briefPage.includes('function loadScorecardAfterFirstPaint()')
+    && briefPage.includes('j("market-brief.scorecard.json")')
+    && briefPage.includes('setTimeout(loadScorecardAfterFirstPaint, 0)')
+    && briefPage.includes('Published scorecard unavailable; no rate is shown.'),
+  'the scorecard is absent from the blocking first-paint batch, loads through the named post-paint path, and fails visibly without inventing a rate');
 
   const expectedPageArtifacts = pageArtifacts.buildBriefPageArtifacts(ROOT);
   Object.entries(expectedPageArtifacts).forEach(([file, value]) => {
@@ -9274,10 +9294,13 @@ try {
 
   // The whole first-load payload, measured — this is the number the defect was about.
   const firstLoad = ['market-brief.config.page.json', 'market-brief.page.json', 'watchlist.json',
-    'market-brief.snapshot.page.json', 'market-brief.tools.page.json', 'market-brief.scorecard.json']
+    'market-brief.snapshot.page.json', 'market-brief.tools.page.json']
     .reduce((total, file) => total + Buffer.byteLength(read(file), 'utf8'), 0);
+  const deferredScorecardBytes = Buffer.byteLength(read('market-brief.scorecard.json'), 'utf8');
   assert(firstLoad <= budgets.briefFirstLoadMaxBytes,
     'the cockpit\u2019s whole first-load payload is inside budget (' + Math.round(firstLoad / 1024) + ' KB <= ' + Math.round(budgets.briefFirstLoadMaxBytes / 1024) + ' KB)');
+  assert(deferredScorecardBytes > 0 && firstLoad + deferredScorecardBytes > budgets.briefFirstLoadMaxBytes,
+    'the deferred scorecard is a real ' + deferredScorecardBytes + '-byte artifact whose inclusion would exceed the blocking first-load budget');
 
   // ADVERSARIAL: the budget must actually bind. The unbounded log would blow it many times over, so
   // an assertion that passed with EITHER file would be proving nothing.
@@ -23042,9 +23065,12 @@ try {
   assert(registry25.rows.length === 15
     && JSON.stringify(registry25.rows.map((row) => row.dimensionId).sort())
       === JSON.stringify(INTEL25.MANDATORY_DIMENSION_IDS.slice().sort())
-    && config25.contractVersion === 'company-intelligence-config/v1'
+    && config25.contractVersion === 'company-intelligence-config/v2'
+    && config25.publication.contractVersion === 'company-publication-policy/v1'
+    && config25.publication.coveredSubjects.length === 1
+    && config25.publication.coveredSubjects[0].subjectId === 'company:msft'
     && registry25.horizons.length === 4,
-  'TP-025-01: the committed coverage registry declares exactly the fifteen mandatory dimensions and four horizons');
+  'TP-025-01 successor: the v2 committed coverage registry declares exactly fifteen mandatory dimensions, four horizons, and one explicit MSFT publication subject');
 
   /* A registry missing a mandatory dimension is refused rather than composed from. */
   let incompleteCode25 = null;
@@ -23164,12 +23190,26 @@ try {
     && moduleSource25.indexOf('Number.isFinite(') > 0,
   'TP-025-07: a position, size or cost-basis entry is refused, and the module declares no storage key, no DOM access, no credential read and no bare isFinite');
 
-  /* TP-025-08: every exported function has a production consumer inside the route. */
+  /* TP-025-08: every exported function has a production consumer in the registered route or
+     the coupled publication owner. Feature 028 deliberately moved seven headless contracts to
+     the publisher instead of duplicating them in browser code. */
   const exported25 = Object.keys(INTEL25).filter((name) => typeof INTEL25[name] === 'function');
-  const uncalled25 = exported25.filter((name) => routeSource25.indexOf('INTEL.' + name + '(') < 0);
-  assert(exported25.length >= 15 && uncalled25.length === 0
+  const publisherSource25 = read('scripts/company-intelligence-publication.mjs');
+  const routeCalled25 = exported25.filter((name) => routeSource25.indexOf('INTEL.' + name + '(') >= 0);
+  const publicationOnly25 = exported25.filter((name) => routeSource25.indexOf('INTEL.' + name + '(') < 0
+    && publisherSource25.indexOf('INTEL.' + name + '(') >= 0);
+  const uncalled25 = exported25.filter((name) => routeSource25.indexOf('INTEL.' + name + '(') < 0
+    && publisherSource25.indexOf('INTEL.' + name + '(') < 0);
+  const expectedPublicationOnly25 = [
+    'buildCompanyToolModelRead', 'buildReadVersionV2', 'normalizeOwnerDimensionRead',
+    'readPublicationPolicy', 'validateCompanyToolModelRead', 'validateReadVersionV2',
+    'validateResearchPlanV2'
+  ];
+  assert(exported25.length === 31 && routeCalled25.length === 24
+    && JSON.stringify(publicationOnly25.slice().sort()) === JSON.stringify(expectedPublicationOnly25)
+    && uncalled25.length === 0
     && routeSource25.indexOf('INTEL.definitelyNotCalled(') < 0,
-  'TP-025-08: every one of the module\u2019s ' + exported25.length + ' exported functions has a caller inside the route (' + (uncalled25.join(', ') || 'none uncalled') + ')');
+  'TP-025-08 successor: all 31 exported functions have a production consumer: 24 in the registered route and exactly seven v2 owner-read functions in the coupled publisher (' + (uncalled25.join(', ') || 'none uncalled') + ')');
 
   /* 2.10 FEATURE 028 SUCCESSOR REGISTRATION. Public activation is one coherent package. */
   const companySitePages = await import('./build-pages-site.mjs');
@@ -27077,9 +27117,9 @@ try {
     ((row.ownerSubjectParam !== null ? 1 : 0) + (row.ownerBareReason !== null ? 1 : 0))
       !== (row.ownerDeepLink === null ? 0 : 1)
   )).map((row) => row.dimensionId);
-  assert(f027cRegistry.rows.length === 15 && f027cCarrying.length === 4
-    && f027cBare.length === 7 && f027cOwnerless.length === 4 && f027cMisdeclared.length === 0,
-    'Feature 027 Scope 3: the shipped registry holds fifteen rows partitioned into four subject-carrying, seven bare-with-a-reason and four ownerless, and every linked row declares exactly one of the two fields ('
+  assert(f027cRegistry.rows.length === 15 && f027cCarrying.length === 5
+    && f027cBare.length === 5 && f027cOwnerless.length === 5 && f027cMisdeclared.length === 0,
+    'Feature 027 Scope 3 successor: the shipped registry holds fifteen rows partitioned into five subject-carrying, five bare-with-a-reason and five ownerless, and every linked row declares exactly one of the two fields ('
     + f027cRegistry.rows.length + ' rows, ' + f027cCarrying.length + '/' + f027cBare.length + '/'
     + f027cOwnerless.length + ', misdeclared: ' + (f027cMisdeclared.join(', ') || 'none') + ')');
 
@@ -27116,21 +27156,22 @@ try {
     + f027cAdmitted.length + '/2 admitted, ' + f027cRejected.length + '/5 refused)');
 
   /* 3.d — the two statements are distinguishable, and the published contract is unchanged. */
-  const f027cMarket = f027cIntel.describeDimensionOwner(f027cRegistry, 'performance', 'MSFT');
-  const f027cFixed = f027cIntel.describeDimensionOwner(f027cRegistry, 'fundamentals', 'MSFT');
-  const f027cCarried = f027cIntel.describeDimensionOwner(f027cRegistry, 'volatility', 'MSFT');
+  const f027cMarket = f027cIntel.describeDimensionOwner(f027cRegistry, 'geopolitics', 'MSFT');
+  const f027cFixed = f027cIntel.describeDimensionOwner(f027cRegistry, 'performance', 'MSFT');
+  const f027cCarried = f027cIntel.describeDimensionOwner(f027cRegistry, 'technicals', 'MSFT');
   const f027cKeys = Object.keys(f027cMarket).sort().join(',');
   assert(f027cMarket.statement !== f027cFixed.statement
-    && /answers a market-wide question/.test(f027cMarket.statement)
-    && /does not model an individual company you can choose/.test(f027cFixed.statement)
+    && f027cMarket.statement === 'Geopolitical and policy backdrop is owned by research-agenda-lab, which answers a market-wide question rather than a company one, so the link carries no company.'
+    && f027cFixed.statement === 'Own and relative price performance is owned by etf-momentum-lab, which does not model an individual company you can choose, so the link opens on that tool\'s own subject.'
+    && f027cCarried.statement === 'Technical structure is owned by swing-structure-lab, which opens on this company.'
     && f027cMarket.carriesSubject === false && f027cFixed.carriesSubject === false
-    && f027cMarket.ownerDeepLink === 'market-brief.html'
-    && f027cFixed.ownerDeepLink === 'company-fundamentals-lab.html'
+    && f027cMarket.ownerDeepLink === 'research-agenda-lab.html'
+    && f027cFixed.ownerDeepLink === 'etf-momentum-lab.html'
     && f027cCarried.carriesSubject === true
-    && f027cCarried.ownerDeepLink === 'volatility-sizing-lab.html?ticker=MSFT'
+    && f027cCarried.ownerDeepLink === 'swing-structure-lab.html?ticker=MSFT'
     && f027cMarket.contractVersion === 'company-dimension-owner/v1'
     && f027cKeys === 'carriesSubject,contractVersion,dimensionId,hasOwner,ownerDeepLink,ownerToolId,statement',
-    'Feature 027 Scope 3: a market-scoped and a fixed-subject row each compose a bare href with its own reason-specific statement, a declared row composes the company, and describeDimensionOwner keeps company-dimension-owner/v1 and its seven keys ('
+    'Feature 027 Scope 3 successor: geopolitics, performance, and technicals compose their exact market-scoped, fixed-subject, and company-carrying descriptions, and describeDimensionOwner keeps company-dimension-owner/v1 and its seven keys ('
     + f027cKeys + ')');
 
   /* 3.e — every declared parameter has a committed reader, which is the FR-027-027 rule that

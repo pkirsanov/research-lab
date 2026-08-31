@@ -191,7 +191,8 @@ function addCompanySource(file) {
 function createLauncherFixture() {
   const atomic = createBriefRefreshFixture({
     narrativeMode: 'success',
-    companyAssets: true,
+    companyAssets: false,
+    prePublicationCompanyIntelligence: true,
     baselineDate: '2026-08-28',
     candidateDate: '2026-08-29'
   });
@@ -200,6 +201,19 @@ function createLauncherFixture() {
   const remote = atomic.remoteRoot;
   const transactionRoot = path.join(sandbox, 'transactions');
   const statusFile = path.join(sandbox, 'scheduler.status');
+  for (const relativePath of ['market-brief.snapshot.json', 'market-brief.payload.json']) {
+    const baseline = JSON.parse(readFileSync(path.join(sourceRoot, relativePath), 'utf8'));
+    assert.equal(
+      Object.prototype.hasOwnProperty.call(baseline.toolReads || {}, 'company-intelligence-lab'),
+      false,
+      `${relativePath} must begin before the launcher creates its Company Intelligence owner read`
+    );
+    assert.equal(
+      (baseline.toolCoverage || []).filter((row) => row?.id === 'company-intelligence-lab').length,
+      0,
+      `${relativePath} must begin before the launcher creates its Company Intelligence coverage row`
+    );
+  }
   for (const relativePath of [
     'rlcompanyintel.js',
     'company-intelligence.config.json',
@@ -375,7 +389,22 @@ test('Mutation: SCN-028-019 registry order fingerprint participant and dependenc
     const blockedCommit = runLauncher(fixture, hookEnvironment);
     assert.notEqual(blockedCommit.status, 0,
       'the pre-commit fault must retain one frozen real-process generation for drift retries');
-    assert.match(`${blockedCommit.stdout}\n${blockedCommit.stderr}`, /C028-COMMIT/);
+    const blockedCommitOutput = `${blockedCommit.stdout}\n${blockedCommit.stderr}`;
+    if (!/C028-COMMIT/.test(blockedCommitOutput)) {
+      const observedCodes = [...new Set(blockedCommitOutput.match(/C028-[A-Z-]+/g) || [])];
+      const contractSignals = blockedCommitOutput.split('\n')
+        .filter((line) => /\[brief-(?:contract|timer|distributed|parallel|page)\]|^\s+- |collected nextSession/.test(line));
+      const structuredFailures = blockedCommitOutput.split('\n')
+        .filter((line) => line.includes('"code":"C028-'));
+      console.log(`SCN028019_BLOCKED_COMMIT_CODES=${observedCodes.join(',') || 'none'}`);
+      console.log(`SCN028019_STRUCTURED_FAILURES=${JSON.stringify(structuredFailures.slice(-4))}`);
+      console.log(`SCN028019_FINAL_CONTRACT_SIGNALS=${JSON.stringify(contractSignals.slice(-32))}`);
+      console.log('SCN028019_BLOCKED_COMMIT_OUTPUT_BEGIN');
+      console.log(blockedCommit.stdout);
+      console.log(blockedCommit.stderr);
+      console.log('SCN028019_BLOCKED_COMMIT_OUTPUT_END');
+    }
+    assert.match(blockedCommitOutput, /C028-COMMIT/);
     const parent = path.join(fixture.transactionRoot, `scheduled-${fixture.window}`);
     const candidate = path.join(parent, 'candidate');
     assert.equal(requireSuccess(run('git', ['status', '--porcelain=v1', '--untracked-files=all'], candidate),

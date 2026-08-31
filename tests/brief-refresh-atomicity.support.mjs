@@ -153,6 +153,18 @@ const MIME = {
   '.jsonl': 'application/x-ndjson; charset=utf-8'
 };
 
+const COMPANY_INTELLIGENCE_TOOL_ID = 'company-intelligence-lab';
+
+function omitCompanyIntelligencePublicationState(document) {
+  if (document.toolReads && typeof document.toolReads === 'object' && !Array.isArray(document.toolReads)) {
+    delete document.toolReads[COMPANY_INTELLIGENCE_TOOL_ID];
+  }
+  if (Array.isArray(document.toolCoverage)) {
+    document.toolCoverage = document.toolCoverage.filter((row) => row?.id !== COMPANY_INTELLIGENCE_TOOL_ID);
+  }
+  return document;
+}
+
 function runGit(cwd, args) {
   return execFileSync('git', args, { cwd, encoding: 'utf8' }).trim();
 }
@@ -166,7 +178,7 @@ function writeFixtureScript(path, source) {
   chmodSync(path, 0o755);
 }
 
-function baselineSnapshot(sessionDate) {
+function baselineSnapshot(sessionDate, options) {
   const snapshot = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.snapshot.json'), 'utf8'));
   snapshot.asOf = `${sessionDate}T14:00:00.000Z`;
   snapshot.generatedAt = `${sessionDate}T14:00:00.000Z`;
@@ -181,6 +193,9 @@ function baselineSnapshot(sessionDate) {
       delete toolRead.metrics.error;
       toolRead.read = `${toolId} fixture owner read is current.`;
     }
+  }
+  if (options.prePublicationCompanyIntelligence) {
+    omitCompanyIntelligencePublicationState(snapshot);
   }
   return `${JSON.stringify(snapshot, null, 2)}\n`;
 }
@@ -348,6 +363,9 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
      Derived from the required list rather than naming a field, because which field is missing
      changes per publish. */
   const conformedPayload = conformantNarrativePayload(fixturePayload);
+  if (options.prePublicationCompanyIntelligence) {
+    omitCompanyIntelligencePublicationState(conformedPayload);
+  }
   writeFileSync(fixturePayloadPath, JSON.stringify(conformedPayload, null, 2) + '\n');
   copyFileSync(resolve(ROOT, 'market-brief.config.json'), resolve(repoRoot, 'market-brief.config.json'));
   copyFileSync(resolve(ROOT, 'market-brief.scorecard.json'), resolve(repoRoot, 'market-brief.scorecard.json'));
@@ -389,7 +407,7 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
       copyFileSync(resolve(ROOT, 'data/bars', `${symbol}.json`), resolve(repoRoot, 'data/bars', `${symbol}.json`));
     }
   }
-  writeFileSync(resolve(repoRoot, 'market-brief.snapshot.json'), baselineSnapshot(baselineDate), 'utf8');
+  writeFileSync(resolve(repoRoot, 'market-brief.snapshot.json'), baselineSnapshot(baselineDate, options), 'utf8');
   writeFileSync(resolve(repoRoot, 'brief-history.jsonl'), fixtureHistory(baselineDate), 'utf8');
   writeFileSync(resolve(repoRoot, 'data/baseline.json'), '{"state":"baseline"}\n', 'utf8');
   if (options.companyAssets) {
@@ -538,6 +556,13 @@ const fragment = lane === 'research-acquisition'
   : researchTopicLane
     ? { contractVersion: 'research-situation-set/v1', generationId: laneInput.generationId, situations: [] }
     : Object.fromEntries(keys.map((key) => [key, payload[key]]));
+/* The production coverage lane consumes the frozen candidate snapshot supplied in its lane input.
+   Echoing the retained payload instead can drop an owner read injected after the prior publication,
+   which makes the fixture fail before the boundary under test. */
+if (lane === 'coverage') {
+  fragment.toolReads = laneInput.snapshot.toolReads;
+  fragment.toolCoverage = laneInput.snapshot.toolCoverage;
+}
 /* The signals lane AUTHORS its attention candidates; it does not inherit them.
    Echoing the baseline tier alone made this fixture degenerate the moment the
    live brief legitimately published an empty one — see FIXTURE_ATTENTION_CANDIDATE. */

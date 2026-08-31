@@ -1126,7 +1126,7 @@
                 title="How right this brief has actually been. Every call is scored only against the trigger and invalidation it published for itself. Misses are shown with the same prominence as hits.">
                 Track record — this brief&rsquo;s own error rate</h2>
             <div id="freshbar" role="status" hidden></div>
-            <div id="scorecard" data-tkr-auto></div>
+            <div id="scorecard" data-tkr-auto role="status">Loading published scorecard after first paint.</div>
             <section id="attentionRecord" aria-label="How the decision list has actually turned out"></section>
         </div>
 
@@ -1240,7 +1240,7 @@
                 thresholds: { attentionMaxCards: 7, macroCacheMaxAgeMin: 30, notableMemberMinMovePct: 3, notableMemberMaxCount: 4 },
                 macroEvents: []
             };
-            var CFG = null, PAYLOAD = null, WL = null, SNAP = null, TOOLS = null, SCORECARD = null, ATTENTION_RECORD = null, EXPERIMENTAL = null, experimentalLoading = false, activeWindow = null;
+            var CFG = null, PAYLOAD = null, WL = null, SNAP = null, TOOLS = null, SCORECARD = null, ATTENTION_RECORD = null, EXPERIMENTAL = null, experimentalLoading = false, scorecardLoading = false, activeWindow = null;
 
             function el(id) { return document.getElementById(id); }
             function esc(value) { return (value == null ? "" : String(value)).replace(/[&<>"']/g, function (character) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[character]; }); }
@@ -1830,7 +1830,7 @@
                 RLBRIEF.renderDarkLegs(el("darkLegs"), PAYLOAD && PAYLOAD.crossAsset);
                 RLBRIEF.renderCrossAsset(el("crossAsset"), PAYLOAD && PAYLOAD.crossAsset, CFG);
                 RLBRIEF.renderChangedList(el("changedList"), PAYLOAD && PAYLOAD.changed, PAYLOAD && PAYLOAD.rollUp);
-                RLBRIEF.renderScorecard(el("scorecard"), SCORECARD);
+                if (SCORECARD !== null) RLBRIEF.renderScorecard(el("scorecard"), SCORECARD);
                 RLBRIEF.renderRegimeStrip(el("regimeStrip"), PAYLOAD && PAYLOAD.regime);
                 RLBRIEF.renderNextSession(el("nextSession"), PAYLOAD && PAYLOAD.nextSession, PAYLOAD && PAYLOAD.recommendations, CFG, SNAP);
                 RLBRIEF.renderResearchAgenda(el("standingResearch"), PAYLOAD && PAYLOAD.researchAgenda);
@@ -1874,6 +1874,23 @@
                 renderExperimental(); renderComputed(); setWindow(pickWindow());
             }
 
+            function loadScorecardAfterFirstPaint() {
+                if (scorecardLoading || SCORECARD !== null) return;
+                scorecardLoading = true;
+                var host = el("scorecard");
+                if (host) host.setAttribute("aria-busy", "true");
+                j("market-brief.scorecard.json").then(function (scorecard) {
+                    scorecardLoading = false;
+                    if (host) host.removeAttribute("aria-busy");
+                    if (!scorecard) {
+                        if (host) host.textContent = "Published scorecard unavailable; no rate is shown.";
+                        return;
+                    }
+                    SCORECARD = scorecard;
+                    RLBRIEF.renderScorecard(host, SCORECARD);
+                });
+            }
+
             /* ── live layer: fetch macro + bars into the shared cache, recompute regime + momentum deltas ── */
             function refreshLive() {
                 var note = el("liveNote"); if (note) note.textContent = "fetching live macro + bars into the shared cache…";
@@ -1910,9 +1927,11 @@
                 if (typeof RLBRIEF === "undefined") { var b = el("regimeStrip"); if (b) b.innerHTML = '<span class="pill bad">brief components failed to load — hard-refresh the page</span>'; return; }
                 // Tier A uses the bounded 30-run projection for change detection. The browser does not:
                 // fetching unused history here spent first-load bytes without rendering any of them.
-                Promise.all([j("market-brief.config.page.json"), j("market-brief.page.json"), j("watchlist.json"), j("market-brief.snapshot.page.json"), j("market-brief.tools.page.json"), j("market-brief.scorecard.json"), j("market-brief.attention-scorecard.json")]).then(function (r) {
-                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; SNAP = r[3]; TOOLS = r[4] || { tools: [] }; SCORECARD = r[5]; ATTENTION_RECORD = r[6];
-                    renderWindows(); wire(); renderAll(); setTimeout(refreshLive, 0);
+                Promise.all([j("market-brief.config.page.json"), j("market-brief.page.json"), j("watchlist.json"), j("market-brief.snapshot.page.json"), j("market-brief.tools.page.json"), j("market-brief.attention-scorecard.json")]).then(function (r) {
+                    CFG = r[0] || INLINE_CFG; PAYLOAD = r[1]; WL = r[2] || { items: [] }; SNAP = r[3]; TOOLS = r[4] || { tools: [] }; ATTENTION_RECORD = r[5];
+                    renderWindows(); wire(); renderAll();
+                    setTimeout(loadScorecardAfterFirstPaint, 0);
+                    setTimeout(refreshLive, 0);
                 });
             }
             if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();

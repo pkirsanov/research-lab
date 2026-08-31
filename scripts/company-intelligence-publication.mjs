@@ -2278,8 +2278,12 @@ function selectedWorkerDeltaRecords(candidateRoot) {
       paths.push(relativePath);
     }
   }
+  const selectedPaths = new Set(paths);
+  if (COUPLED_PUBLIC_BRIEF_PATHS.some((relativePath) => selectedPaths.has(relativePath))) {
+    for (const relativePath of COUPLED_PUBLIC_BRIEF_PATHS) selectedPaths.add(relativePath);
+  }
   const records = [];
-  for (const relativePath of [...new Set(paths)].sort()) {
+  for (const relativePath of [...selectedPaths].sort()) {
     const record = readFileRecord(candidateRoot, relativePath, 'C028-STAGE', 'coupled-assembly');
     if (!record.ok) return record;
     records.push(record.value);

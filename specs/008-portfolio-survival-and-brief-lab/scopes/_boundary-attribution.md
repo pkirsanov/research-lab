@@ -357,16 +357,16 @@ The parser reads this file directly by the exact `## Scope NN` heading and exact
 | rlportfoliobrief.js | hunk | `historyIdentities: selectedHistoryRefs.map(function (entry) { return entry.evidenceFingerprint; })` | production | exclusive | — | — |
 | rlportfoliobrief.js | hunk | `var genericEvidenceIdentity = canonicalFingerprint("portfolio-generic-evidence", "portfolio-generic-evidence/v1", {` | production | exclusive | — | — |
 | rlportfoliobrief.js | hunk | `function rankResearchActions(input)` | production | exclusive | — | — |
-| rlportfoliobrief.js | marker-pair | `["var queue = input.policy.queue;","return contractErr(\"P008-CONFIG\", \"visible-action-cap-missing\", \"policy.queue\", null, false);"]` | production | exclusive | — | — |
-| rlportfoliobrief.js | marker-pair | `["var policyFingerprint = canonicalFingerprint(\"portfolio-behavior-rank-policy\", \"portfolio-behavior-rank-policy/v1\", {","rankingFingerprint: rankingFingerprint"]` | production | exclusive | — | — |
+| rlportfoliobrief.js | marker-pair | `["var queue = input.policy.queue;","return contractErr(\"P008-CONFIG\", \"visible-action-cap-missing\", \"policy.queue\", null, false);\n    }"]` | production | exclusive | — | — |
+| rlportfoliobrief.js | marker-pair | `["var policyFingerprint = canonicalFingerprint(\"portfolio-behavior-rank-policy\", \"portfolio-behavior-rank-policy/v1\", {","rankingFingerprint: rankingFingerprint\n    }));"]` | production | exclusive | — | — |
 | rlportfoliobrief.js | hunk | `function composePortfolioBrief(input, policy)` | production | exclusive | — | — |
-| rlportfoliobrief.js | marker-pair | `["if (input.genericWindow !== undefined &&","return contractErr(\"P008-BRIEF-EVIDENCE\", \"generic-window-rank-identity-mismatch\", \"genericWindow\", null, false);"]` | production | exclusive | — | — |
+| rlportfoliobrief.js | marker-pair | `["if (input.genericWindow !== undefined &&","return contractErr(\"P008-BRIEF-EVIDENCE\", \"generic-window-rank-identity-mismatch\", \"genericWindow\", null, false);\n    }"]` | production | exclusive | — | — |
 | rlportfoliobrief.js | marker-pair | `["legacy.value.behaviorRankResult = input.behaviorRankResult;","legacy.value.suppressedActions = input.behaviorRankResult.suppressedActions;"]` | production | exclusive | — | — |
 | rlportfoliobrief.js | hunk | `function whyShown(actionId, rankResult, genericWindow)` | production | exclusive | — | — |
-| rlportfoliobrief.js | marker-pair | `["contractVersion: \"BehaviorWhyShown/v1\",","genericWindow: genericWindow \|\| null"]` | production | exclusive | — | — |
+| rlportfoliobrief.js | marker | `contractVersion: "BehaviorWhyShown/v1",` | production | exclusive | — | — |
 | rlportfoliobrief.js | hunk | `newYorkCivilCutoff: newYorkCivilCutoff,` | production | exclusive | — | — |
 | rlportfoliobrief.js | hunk | `windowCutoffAt: windowCutoffAt,` | production | exclusive | — | — |
-| rlportfoliobrief.js | marker-pair | `["validateGenericWindow: validateGenericWindow,","reduceResearchActionLifecycle: reduceResearchActionLifecycle"]` | production | exclusive | — | — |
+| rlportfoliobrief.js | marker | `validateGenericWindow: validateGenericWindow,` | production | exclusive | — | — |
 | portfolio-survival-allocation-lab.html | hunk | `<script src="rlportfoliobrief.js"></script>` | production | exclusive | — | — |
 | portfolio-survival-allocation-lab.html | dom-id | `portfolioBrief` | dom | exclusive | — | — |
 | portfolio-survival-allocation-lab.html | dom-id | `briefWindow` | dom | exclusive | — | — |

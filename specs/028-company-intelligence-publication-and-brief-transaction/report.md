@@ -547,27 +547,332 @@ exit: 0
 
 #### TP-04-01
 
-Planned evidence for scheduled coupled publication through a real temporary Git remote.
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Command:** `node --test tests/company-intelligence-publication.e2e.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Source revision:** `32289ee5b985e16c055e2cb3b22c0aed90964981`
+**Structured receipt:** `.specify/runtime/tool-calls.jsonl`, tag `TP-04-01`
+**Full-output SHA-256:** `740e716e798445bbe48c9854fae67fedb3de0eea5da621b41d5d46352fde987a`
+**Result:** The exact TP-04-01 command passed all 8 tests. The named scheduled-publication scenario passed through the shared launcher, real Git checkouts, and a bare remote.
+**Output:**
+
+```text
+✔ Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief (6014.798667ms)
+✔ Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract (53726.660416ms)
+✔ Regression E2E: SCN-028-012 identical retry resumes one remote generation and refuses divergent content (63204.362542ms)
+✔ Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority (741.33ms)
+✔ Regression E2E: Scope 02 production CLI promotes one coherent generation and rejects illegal phase transitions (1988.37ms)
+✔ Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical (1905.955958ms)
+✔ Regression E2E: SCN-028-017 one failed subject advances no covered pointer or brief (955.54775ms)
+✔ Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit (8674.314917ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 137271.507166
+```
 
 #### TP-04-02
 
-Planned evidence for scheduled and on-demand trigger parity.
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Command:** `node --test tests/company-intelligence-publication.e2e.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Source revision:** `32289ee5b985e16c055e2cb3b22c0aed90964981`
+**Structured receipt:** `.specify/runtime/tool-calls.jsonl`, tag `TP-04-02`
+**Full-output SHA-256:** `a6a97b1456138804c9449a04b433a73ad5ae7aa18935bf0950770b0474938432`
+**Result:** The exact TP-04-02 command passed all 8 tests. The named parity test proved scheduled and on-demand trigger identity is the only contract difference.
+**Output:**
+
+```text
+✔ Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief (6321.340041ms)
+✔ Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract (21054.798708ms)
+✔ Regression E2E: SCN-028-012 identical retry resumes one remote generation and refuses divergent content (19464.904625ms)
+✔ Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority (566.013625ms)
+✔ Regression E2E: Scope 02 production CLI promotes one coherent generation and rejects illegal phase transitions (1864.420875ms)
+✔ Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical (1861.7255ms)
+✔ Regression E2E: SCN-028-017 one failed subject advances no covered pointer or brief (940.318209ms)
+✔ Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit (9749.806208ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 61882.944417
+```
 
 #### TP-04-03
 
-Planned evidence for exact retry and collision behavior.
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Command:** `node --test tests/company-intelligence-publication.e2e.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Source revision:** `32289ee5b985e16c055e2cb3b22c0aed90964981`
+**Structured receipt:** `.specify/runtime/tool-calls.jsonl`, tag `TP-04-03`
+**Full-output SHA-256:** `2af9012e9fa92d20e7c5c9da93baf18857daba4175bb53fd6b0fe064846e6c81`
+**Result:** The exact TP-04-03 command passed all 8 tests. The retry test reused one exact commit and refused divergent checkpoint content.
+**Output:**
+
+```text
+✔ Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief (4864.361792ms)
+✔ Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract (21208.301042ms)
+✔ Regression E2E: SCN-028-012 identical retry resumes one remote generation and refuses divergent content (20264.096333ms)
+✔ Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority (754.203833ms)
+✔ Regression E2E: Scope 02 production CLI promotes one coherent generation and rejects illegal phase transitions (2295.141708ms)
+✔ Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical (2742.361292ms)
+✔ Regression E2E: SCN-028-017 one failed subject advances no covered pointer or brief (1079.09225ms)
+✔ Regression E2E: commit failure restores pre-commit state while push and acknowledgment ambiguity preserve the exact classified commit (9239.727375ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 62516.176708
+```
 
 #### TP-04-04
 
-Planned evidence for participant, order, fingerprint, and source-cycle drift refusals.
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Command:** `node --test tests/company-intelligence-publication.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Source revision:** `32289ee5b985e16c055e2cb3b22c0aed90964981`
+**Structured receipt:** `.specify/runtime/tool-calls.jsonl`, tag `TP-04-04`
+**Full-output SHA-256:** `9fadd05453b10378e1f11f7027410ca8ec3dd2e19764bee79fcbfc35999cd3cb`
+**Result:** Registry order, participant addition/removal, metadata fingerprint, source fingerprint, evidence cutoff, self-cycle, and final-brief-cycle controls all retained zero authority.
+**Output:**
+
+```text
+To /var/folders/m_/25mnb8mx4ng1sb7lwd8cl9jw0000gn/T/research-lab-bug002-flp0wh/remote.git
+ * [new branch]      main -> main
+✔ Mutation: SCN-028-019 registry order fingerprint participant and dependency cycle drift each abort publication (7786.425ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7851.469625
+```
 
 #### TP-04-05
 
-Planned evidence for existing scheduler unit, integration, failure, and process regressions.
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Command:** `node --test tests/distributed-briefs.scheduler.unit.mjs tests/distributed-briefs.scheduler.integration.mjs tests/distributed-briefs.scheduler-failures.integration.mjs tests/distributed-briefs.scheduler.e2e.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Source revision:** `32289ee5b985e16c055e2cb3b22c0aed90964981`
+**Structured receipt:** `.specify/runtime/tool-calls.jsonl`, tag `TP-04-05`
+**Full-output SHA-256:** `9cce8125ed4d4cb6959104b785d248d95e7af5f251e842d6e404e6b2584023e9`
+**Result:** The unreduced four-file scheduler matrix passed 9 tests with no failures or skips.
+**Output:**
+
+```text
+✔ calendar source cutoff read author budget final history and publish faults preserve prior pointers (1767.99175ms)
+✔ duplicate concurrent commit push crash and rollback paths remain idempotent (1483.743125ms)
+✔ Regression: SCN-002-010 evidence then owners then all briefs then final then atomic publish commit and push (644.324875ms)
+✔ Regression: SCN-002-011 every required-phase failure leaves prior current authority unchanged (851.1055ms)
+✔ Regression: SCN-002-012 duplicate and push-only retries reuse exact bytes and preserve dirty root (852.058875ms)
+✔ scheduler publishes one exact run through isolated worktree commit and temporary remote (663.651542ms)
+✔ Regression canary: existing due windows locks failures and scheduler process behavior remain intact (866.850291ms)
+✔ SCN-002-010: run state permits only evidence freeze reads authors final publish commit and push order (0.441667ms)
+✔ SCN-002-010: manifest inventory and pointer-last generation share one run identity (2.486042ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3315.543583
+```
 
 #### TP-04-06
 
-Planned evidence for brief atomicity after launcher and worker integration.
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Command:** `node --test tests/brief-refresh-atomicity.test.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Source revision:** `32289ee5b985e16c055e2cb3b22c0aed90964981`
+**Structured receipt:** `.specify/runtime/tool-calls.jsonl`, tag `TP-04-06`
+**Full-output SHA-256:** `644fc6bf452cb16f57d50ae7d6709cd00826b03e31c0046b1bd691141101e21b`
+**Result:** The unreduced transaction canary passed 43 tests, including both Scope 04 atomicity canaries, with no failures or skips.
+**Output:**
+
+```text
+✔ scheduled launcher reports a rejected final push as a failed run (3343.06575ms)
+✔ scheduled launcher converges after two transient push rejections (3203.531917ms)
+✔ staged owned publication path refuses without changing its index entry (621.292333ms)
+✔ untracked owned data path refuses before every external boundary (580.308333ms)
+✔ invalid clean baseline refuses before every external boundary (867.880917ms)
+✔ invalid brief baseline still publishes validated ticker cache when narrative cannot advance (2212.384042ms)
+✔ explicit repair mode replaces an invalid baseline only with a final-valid matching pair (2618.556375ms)
+✔ scheduled launcher automatically repairs an invalid baseline through a final-valid pair (2936.084333ms)
+✔ unrelated staged and unstaged dirt remains byte and index identical (1994.812416ms)
+✔ REG-019-004 corrupted post-build page blocks before staging and restores every owned baseline byte (2864.396292ms)
+✔ Regression canary: existing brief atomicity restores every prior owned path under coupled fault injection (2796.507083ms)
+✔ Regression canary: brief atomicity remains intact after shared launcher and worker integration (2123.709042ms)
+ℹ tests 43
+ℹ suites 0
+ℹ pass 43
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 89405.3415
+```
+
+#### Scope 04 r9 Scenario Receipts
+
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Claim Source:** executed
+**Source revision:** `32289ee5b985e16c055e2cb3b22c0aed90964981`
+**Carrier:** `.specify/runtime/tool-calls.jsonl`
+**Receipt contract:** Each scenario has one failing `red` receipt and one passing `implement` receipt with the same exact test identity and negative control. Every receipt binds 69 deduplicated current input files and production implementation references.
+
+| Scenario | RED SHA-256 | Current implement SHA-256 | Control |
+| --- | --- | --- | --- |
+| SCN-028-003 | `8aa34a0aa605a579c84ac4532477396040746cef81567bb976cb5b13188c8af5` | `a7053ef8a96c5c40439f8e129c843dd9d325428324d4ce588e498968dfc6b57d` | `drop-final-company-binding` |
+| SCN-028-004 | `f88d05cfa2ca5a839390bfbf76d051879dccd7497183446e20b42d6d2debe21f` | `6bbf006e1f2bed3bfa75d526084b28cc233b35f9e4e96f438ca5d30841c056dc` | `bypass-shared-lease` |
+| SCN-028-012 | `68fc29c196a2757d42c2815667436d02d561ba26a855a43d3729906f419ec985` | `a6261499bc3d99fadf80a6fa1e32ec38f399bbd2c505ea21bf674e4ad9f22349` | `discard-interrupted-parent` |
+| SCN-028-019 | `0eeab387379ffa56572362e7cdb62efd134c9ec6c9431bd699cc59b07fbd51e0` | `269c5ce33c87df03eee3021c2dab159acde2120647ff66414f505187d68f2d46` | `bypass-final-boundary` |
+
+**Receipt-audit command:** Fresh r9 scenario closure assertion over `.specify/runtime/tool-calls.jsonl` and every declared input hash.
+**Exit Code:** 0
+**Claim Source:** executed
+**Receipt-audit SHA-256:** `06b582dc230887ad9b3d81d287bdf32717f5a8890a56f450c86193cf7cce3c42`
+
+```text
+RECEIPT_PAIR scenario=SCN-028-003 redExit=1 implementExit=0 inputs=69 revision=32289ee5b985 testIdentity=exact control=exact implRefs=6
+RECEIPT_PAIR scenario=SCN-028-004 redExit=1 implementExit=0 inputs=69 revision=32289ee5b985 testIdentity=exact control=exact implRefs=4
+RECEIPT_PAIR scenario=SCN-028-012 redExit=1 implementExit=0 inputs=69 revision=32289ee5b985 testIdentity=exact control=exact implRefs=4
+RECEIPT_PAIR scenario=SCN-028-019 redExit=1 implementExit=0 inputs=69 revision=32289ee5b985 testIdentity=exact control=exact implRefs=4
+SCENARIO_RECEIPT_COUNT=8
+SCENARIO_RECEIPT_STALE=0
+SCENARIO_RECEIPT_UNKNOWN=0
+SCOPE04_SCENARIO_RECEIPT_AUDIT=PASS
+```
+
+#### Scope 04 r9 Regression and Impact
+
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Claim Source:** executed
+**Commands:** TP-04-01 through TP-04-06 exactly as declared, plus the certified Scope 01-03 canary matrix.
+**Exit Code:** 0 for every exact Test Plan command and the canary matrix.
+**Canary full-output SHA-256:** `f1c71e7c3bc70a6d3e97a58415d0d9f9ed1e37fd4321d47f7858ed958a78c7c2`
+**Consumer sweep SHA-256:** `9e70264c38ad8f4ac6bf3b9bc41bf5bfd8aa38b1409eea7a1c7f342f2bcc336f`
+**Result:** The scheduler canary passed 9 tests. The atomicity canary passed 43 tests. The certified-scope matrix passed 109 tests. All reported zero failed, cancelled, skipped, and todo tests.
+**Shared-impact result:** Due windows, locks, failures, process cleanup, transaction restoration, content addressing, and pointer-last behavior stayed green.
+**Consumer-impact result:** Prompt, launchd template, launcher parser, worker dispatch, engine CLI, four controls, and three canary surfaces resolved to one shared path with zero stale first-party references.
+
+```text
+✔ SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome (56.648042ms)
+✔ Regression: SCN-028-011 same-day publication windows create distinct files in one predecessor chain (265.345792ms)
+✔ Mutation: SCN-028-013 pointer drift after freeze refuses the candidate and brief (90.182833ms)
+✔ Mutation: SCN-028-014 recorder proves the coupled selector is the final write (53.1425ms)
+✔ Regression: SCN-028-015 brief validation failure removes company candidates and restores both baselines (445.77925ms)
+✔ Regression: SCN-028-016 company validation failure with a valid brief restores both baselines (456.5035ms)
+✔ Mutation: SCN-028-017 one failing subject aborts a synthetic two-subject covered set (463.144292ms)
+✔ Regression canary: Feature 025 UMD and v1 contracts remain readable beside publication v2 (0.586792ms)
+✔ Regression canary: distributed brief publication primitives preserve content addressing and pointer-last behavior (20.623625ms)
+ℹ tests 109
+ℹ suites 0
+ℹ pass 109
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1999.016625
+```
+
+#### Scope 04 r9 Boundary and Preservation
+
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Command:** Strict Node boundary and preservation assertion against base `812f4ff73afd98f7e2750fd811dd4d3516dd8d5a` and checkpoint `32289ee5b985e16c055e2cb3b22c0aed90964981`.
+**Exit Code:** 0
+**Claim Source:** executed
+**Full-output SHA-256:** `dd2085889412022829ead4b8abd0309aa486eb80deaee49ba2768f7d10fa2276`
+**Result:** The checkpoint contained exactly 13 expected paths. Certification, human acceptance, Scope 05, Feature 025, and framework-managed paths were unchanged. The working tree contained only `.bubbles-worktree`.
+
+```text
+HEAD=32289ee5b985e16c055e2cb3b22c0aed90964981
+WORKTREE_STATUS_COUNT=1
+WORKTREE_STATUS=?? .bubbles-worktree
+STAGED_PATH_COUNT=0
+CERTIFICATION_PRESERVED=true completedScopes=01-company-publication-foundation,02-coupled-manifest-and-promotion,03-transaction-restoration
+UNCERTIFIED_SCOPE_STATUS scope04=not_started scope05=not_started
+HUMAN_ACCEPTANCE_PRESERVED=true object=91f5e95a74ae93e9ff0764104b4e03113854baa7
+SCOPE05_BLOCK_PRESERVED=true
+PRESERVED_PATHSPEC exit=0 pathspec=specs/025-*
+PRESERVED_PATHSPEC exit=0 pathspec=.github/bubbles/**
+PRESERVED_PATHSPEC exit=0 pathspec=.github/agents/bubbles*
+PRESERVED_PATHSPEC exit=0 pathspec=.github/instructions/bubbles-*
+PRESERVED_PATHSPEC exit=0 pathspec=.github/skills/bubbles-*
+PRESERVED_PATHSPEC exit=0 pathspec=.github/prompts/bubbles.*
+DIFF_CHECK_EXIT=0
+EXPECTED_PATH_COUNT=13
+ACTUAL_PATH_COUNT=13
+UNEXPECTED_PATH_COUNT=0
+MISSING_PATH_COUNT=0
+SCOPE04_PREWRITE_BOUNDARY_RESULT=PASS
+```
+
+#### Scope 04 r9 Build Quality and Governance
+
+**Phase:** implement
+**Executed:** YES (fresh r9 session)
+**Claim Source:** executed
+**Syntax/static Exit Code:** 0, full-output SHA-256 `7ea2f6d96e4f0218724077e95d48817a891baffdb709f432d91f966c95f710e1`
+**Regression-quality Exit Code:** 0, full-output SHA-256 `e308fd82a88d1a3ae29929d4130b5c992bea7f30a9b83be38abc7b42e44ce199`
+**Source-lock Exit Code:** 0, full-output SHA-256 `e9bb9b552e92cd5b05328a34448e33d4bcc2b39dfe4f5ae0e430911374c711b1`
+**Environment-isolation Exit Code:** 0, full-output SHA-256 `935699c5a0a653f9335fa685d89080c1dddd0b94c93dea63fffa4c5d99971c61`
+**Implementation-reality Exit Code:** 0, full-output SHA-256 `108210fa5954b9377858a08932a8fb35bedb2383bb5982077ec0271c875e4b63`
+**Scenario obligation/mechanism Exit Code:** 0, full-output SHA-256 `ea30b0cd0f5da731a5ddc64b46d98235afeb129e8ce787901594f3d8a8dbc4fb`
+**Goal contract/fidelity Exit Code:** 0, full-output SHA-256 `74236f10776b4415f92304d65f8a870655a54ddd4cc8bd4ea9e21c51241d4c0d`
+**Exact-title/Test Plan/DoD parity Exit Code:** 0, full-output SHA-256 `a2cd7f2068158d5ea2d1603325c21bec361692269a22a733e2c74f8de6520d4a`
+**Fixture/process cleanup Exit Code:** 0, full-output SHA-256 `1cad922b35c621f4d1ef26a68883c8f196819ae70fec86a641005e77cb23c1a0`
+
+```text
+NODE_CHECK file=scripts/brief-distributed-publish.mjs exit=0
+NODE_CHECK file=scripts/company-intelligence-publication.mjs exit=0
+NODE_CHECK file=tests/brief-refresh-atomicity.test.mjs exit=0
+NODE_CHECK file=tests/company-intelligence-publication.e2e.mjs exit=0
+NODE_CHECK file=tests/company-intelligence-publication.functional.mjs exit=0
+NODE_CHECK file=tests/distributed-briefs.scheduler.e2e.mjs exit=0
+NODE_CHECK file=tests/distributed-briefs.scheduler.integration.mjs exit=0
+BASH_SYNTAX file=scripts/brief-refresh-and-push.sh exit=0
+BASH_SYNTAX file=scripts/brief-refresh-scheduled.sh exit=0
+PLUTIL file=scripts/com.researchlab.brief-refresh.plist exit=0
+SHELLCHECK files=2 exit=0
+PASS: the scanned surface is WSL+macOS portable.
+MACOS_PORTABILITY files=2 exit=0
+SCOPE04_STATIC_CHECK_FAILURES=0
+SCOPE04_STATIC_CHECKS_END
+```
+
+**Diagnostic command:** `node scripts/selftest.mjs`
+**Diagnostic Exit Code:** 1
+**Diagnostic Claim Source:** interpreted
+**Interpretation:** The bounded selftest reported 3459 passes and 9 failures. Its failure lines named one not-yet-authored Scope 05 test-reference class and eight Feature 025/027 assertions whose owner files were unchanged from the Scope 04 base. The executed attribution check returned `SELFTEST_SCOPE04_ATTRIBUTION=NONE` with SHA-256 `9d75fac0d5814ef906f28196f7b519d983709738c465c084b940c2f3c20f6cdf`. This diagnostic is not recorded as a repository-wide pass and does not claim Scope 05.
+**Diagnostic full-output SHA-256:** `177d74804fd4bbe901673ecb7c44a87b81f80240772fa934d0b83e1a7e08b437`
 
 #### TP-05-01
 
@@ -2882,7 +3187,7 @@ These failures remain non-passing and outside Scope 02's certification decision.
 - `VAL-028-TERMINAL-G022-G136`: nine full-delivery specialist phases and human acceptance remain terminal-only work.
 - `VAL-028-INDEPENDENT-FRAMEWORK-INSTALL-DRIFT`: five committed installed agent files differ from `.github/bubbles/.checksums`; no framework path appears in this candidate delta. Ownership is `bubbles.devops` or the upstream framework installation owner.
 
-### Finding Accounting and Certification Disposition
+### Scope 04 Validation Finding Accounting and Certification Disposition
 
 **Addressed in this validation:** `VAL-028-S02-BINDING`, `VAL-028-S02-GOAL-REVISION`, `VAL-028-S02-DEPENDENCY`, `VAL-028-S02-PROVENANCE-UNIQUENESS`, `VAL-028-S02-TEST-REPLAY`, `VAL-028-S02-SOURCE-LOCK`, `VAL-028-S02-CLEANUP`, `VAL-028-S02-BYTE-IDENTITY`, `VAL-028-S02-CHANGE-BOUNDARY`, and `VAL-028-S02-SCOPED-SCENARIO-STATE`.
 
@@ -4064,3 +4369,238 @@ DIFF_CHECK exit=0 trackedBeforeCertification=[report.md,scopes.md] untrackedCont
 | G136 human acceptance | Expected terminal obligation | The human-owned checklist remains unchanged and unchecked. |
 
 No Scope 03 finding remains unresolved. Scope 03 is certified `Done`. Scopes 01 and 02 remain certified. Scopes 04 and 05 remain `Not Started`. Both feature status mirrors remain `in_progress`. Scope 04 is the next eligible implementation target; this certification does not start it or claim the whole feature complete.
+
+## Scope 04 Test-Owned Independent Final-Byte Closure — 2026-08-31 {#scope-04-test-owned-independent-final-byte-closure-2026-08-31}
+
+**Agent:** `bubbles.test`
+**Mode:** `full-delivery`
+**Scope:** `04-shared-trigger-integration`
+**Repository decision:** `rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:32`, control revision `32`
+**Goal Contract:** `gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3`, revision `3`
+**Source revision:** `32289ee5b985e16c055e2cb3b22c0aed90964981`
+**Final functional-test SHA-256:** `a1282714c01c909c711644d56120d32dd8af1139c4be29b451b487f73fafa98e`
+**Final-byte closure:** 76 paths, aggregate SHA-256 `9b0776aea9a516441c3d49b590667b74bcd5fb1f30dadb9cc963139a25429eb6`
+**Phase:** test
+**Claim Source:** executed
+
+The functional harness contains one `120_000` millisecond subprocess timeout and no `30_000` millisecond predecessor. No source, test, or planning byte changed during this independent run. The command-backed evidence below applies only to Scope 04. It makes no Scope 05, whole-feature, certification, or human-acceptance claim.
+
+### Current Final-Byte Test Plan Matrix
+
+All six exact Test Plan commands ran on the same final source and test bytes. Each structured receipt binds the current 70-path union of production, test, fixture, policy, and scenario inputs.
+
+| Test Plan row | Result | Tests passed | Tests failed | Tests skipped | Full-output SHA-256 |
+| --- | ---: | ---: | ---: | ---: | --- |
+| TP-04-01 | 0 | 8 | 0 | 0 | `f1fbd569ebf31d719f793e9c6c754fafe898a28bc69a9bf4e764d007ea2ff049` |
+| TP-04-02 | 0 | 8 | 0 | 0 | `bf4448678d53b83e8f595eaf725431a645614293e4cc8725fee69903701dac08` |
+| TP-04-03 | 0 | 8 | 0 | 0 | `9d06d5899b3d97bfcb7950923fb4c0a8ef0468c0ea94582dbd18ffa5d4e0b871` |
+| TP-04-04 | 0 | 1 | 0 | 0 | `41ed8c23508f363dd2518e2cb70e7c593e058b0e023403b9a833aefe380ebdfe` |
+| TP-04-05 | 0 | 9 | 0 | 0 | `12927d80767a29628d7485ee934c11543e142ffccffb1e62cd31b812cfaa320a` |
+| TP-04-06 | 0 | 43 | 0 | 0 | `316ed74c32abd20435b5b12bf4b8c1baeed859cb9072145f4c92a2ecf046f06e` |
+
+**Command:** current final-byte structured receipt ledger assertion
+**Exit Code:** 0
+**Claim Source:** executed
+**Full-output SHA-256:** `18b926213df9e8d5b9a4698329698055a9aa10584c615e07fc7e55e8317a61bf`
+
+```text
+TEST_PLAN_RECEIPT id=TP-04-01 exit=0 inputs=70 stdout=9d936294f767f668e38de05433585d7709840d88b9ad1eda76f664b9ad18b4c3 durationMs=76921
+TEST_PLAN_RECEIPT id=TP-04-02 exit=0 inputs=70 stdout=721bd94ec587a3ecda6aa2b1f104741a381da0b36d9e96b1e2c6b18a5cafb54d durationMs=57954
+TEST_PLAN_RECEIPT id=TP-04-03 exit=0 inputs=70 stdout=2bd9031a57614c56b251d2d99a30ad8b9969136133d0119b4b0475bc29547f36 durationMs=60197
+TEST_PLAN_RECEIPT id=TP-04-04 exit=0 inputs=70 stdout=a55b6248b723bb2dc86495a3d04137f3ceb1a5c53cdd2003e3f18604eaedba3c durationMs=7604
+TEST_PLAN_RECEIPT id=TP-04-05 exit=0 inputs=70 stdout=d9d94f038f4ccca4c0a92d20ec019c343da0389af902d0449616b3bbe1a3eb4f durationMs=3569
+TEST_PLAN_RECEIPT id=TP-04-06 exit=0 inputs=70 stdout=e8a35a96528c5e59391f837c5c9fb2b0feefd491c2cca102422637acaca2d376 durationMs=85612
+SCENARIO_PHASE_RECEIPT_COUNT=16
+TEST_PLAN_RECEIPT_COUNT=6
+SCENARIO_INPUTS_EACH=69
+TEST_PLAN_INPUTS_EACH=70
+STALE_CURRENT_FINAL_BYTE_RECEIPTS=0
+SCOPE04_RECEIPT_LEDGER_RESULT=PASS
+```
+
+### Current Final-Byte RED, GREEN, LIVE, and REGRESSION Receipts
+
+Every scenario phase uses the exact planned test identity, the same meaningful negative control across RED and GREEN, the current source revision, declared production references, and a 69-path current input closure. RED exited nonzero for the intended perturbation. GREEN, LIVE, and REGRESSION each exited zero on unmodified final bytes.
+
+```text
+SCENARIO_RECEIPT id=SCN-028-003 phase=red exit=1 inputs=69 stdout=c7544bdc2c1f180ae9e62155da6bed3f14586966014fb2c4fad3a43b62fbeee5 durationMs=63227
+SCENARIO_RECEIPT id=SCN-028-003 phase=green exit=0 inputs=69 stdout=0fdce197fa668d761f1fa931dd7c5b9862626d591f37fa02c3dcb28768553e6d durationMs=87192
+SCENARIO_RECEIPT id=SCN-028-003 phase=live exit=0 inputs=69 stdout=412016397094b8bc298468ad13d18cd43260f7aae59eedbbcebea5dae2c6f23e durationMs=69696
+SCENARIO_RECEIPT id=SCN-028-003 phase=regression exit=0 inputs=69 stdout=48f8dc60dfddec82b02aa9b3ee551abe8da4f02b9eef97a6f63e17bb5ba06c08 durationMs=87493
+SCENARIO_RECEIPT id=SCN-028-004 phase=red exit=1 inputs=69 stdout=07456d60868349366b1ba882eeb9d5c44eb82941f3a6a374d329d126eba26a1f durationMs=75746
+SCENARIO_RECEIPT id=SCN-028-004 phase=green exit=0 inputs=69 stdout=45452466063b7f4811ab6aae4ea67013f08c38d60e2f38de188ac322f85b00bd durationMs=59485
+SCENARIO_RECEIPT id=SCN-028-004 phase=live exit=0 inputs=69 stdout=4d44076aa658f0ac081d105fd45e8dc4cfefd63da4d0e75d842ba1398f90ef7c durationMs=73348
+SCENARIO_RECEIPT id=SCN-028-004 phase=regression exit=0 inputs=69 stdout=deae59d1f1ae7d54620e98f1b7097f93830735fc8c1a5d63f5f186fcd88f8e57 durationMs=112800
+SCENARIO_RECEIPT id=SCN-028-012 phase=red exit=1 inputs=69 stdout=20018b1f552457d21a6ae1e552c0cd622864d7891cac2ec51042779834db3780 durationMs=69086
+SCENARIO_RECEIPT id=SCN-028-012 phase=green exit=0 inputs=69 stdout=af77e94b25465c68ea6ef4e1bc0d0aa84440a8a9e360a24d400623e142d3be6c durationMs=114348
+SCENARIO_RECEIPT id=SCN-028-012 phase=live exit=0 inputs=69 stdout=b7d1b1b450eb0567bc9059439461c721bb2fdd5be0010c413a0e51827f17e5f1 durationMs=58146
+SCENARIO_RECEIPT id=SCN-028-012 phase=regression exit=0 inputs=69 stdout=6e9b35fbcb30e6bb7e8331d77b616a2af0d816045a3f8c079b0901bdc6a29835 durationMs=57934
+SCENARIO_RECEIPT id=SCN-028-019 phase=red exit=1 inputs=69 stdout=341d4ce7800c7177754df2687a1a9554dcd2c764ead7c1dc92ed217e4feca939 durationMs=5897
+SCENARIO_RECEIPT id=SCN-028-019 phase=green exit=0 inputs=69 stdout=e4d34e35416c00964a2ba99ef3bd0940e5d3d60758aeaddbb3918a1f1a018e48 durationMs=7212
+SCENARIO_RECEIPT id=SCN-028-019 phase=live exit=0 inputs=69 stdout=f3f9659193732073b3a698b267f44003510f8ebd6163663b188348b333d9b602 durationMs=7025
+SCENARIO_RECEIPT id=SCN-028-019 phase=regression exit=0 inputs=69 stdout=bd1d72cfdcef5e4f7591da89c2622107acd7d5d23133463b703ca18d819bb34c durationMs=7530
+SCENARIO_PHASE_RECEIPT_COUNT=16
+STALE_CURRENT_FINAL_BYTE_RECEIPTS=0
+SCOPE04_RECEIPT_LEDGER_RESULT=PASS
+```
+
+### Receipt Freshness and Derived Scenario State
+
+**Strict receipt command:** `.github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict`
+**Exit Code:** 0
+**Claim Source:** executed
+**Full-output SHA-256:** `115b8ed42f905f0725fd691ddb34af71dae7555bb164cefc516d51534b931f70`
+
+```text
+{
+  "total": 174,
+  "current": 117,
+  "superseded": 57,
+  "withClosure": 117,
+  "valid": 117,
+  "stale": 0,
+  "unknown": 0,
+  "staleReceipts": []
+}
+```
+
+**Scenario-state command:** receipt-derived Scope 04 state assertion over the canonical resolver
+**Exit Code:** 0
+**Claim Source:** executed
+**Full-output SHA-256:** `799c2e33308cbc707fcf741948e20d3c41a810bd867ee361cc85f67cba60af9e`
+
+```text
+SCENARIO_RESOLVER_PROCESS_EXIT=0
+SCENARIO_RESOLVER_SOURCE_REVISION=32289ee5b985e16c055e2cb3b22c0aed90964981
+SCENARIO_RESOLVER_BLOCKING_REFUSALS=0
+SCENARIO_STATE id=SCN-028-003 highest=REGRESSION_GREEN receipts=10 blocked=0 missing=0
+SCENARIO_DERIVED id=SCN-028-003 states=PLANNED,RED_VERIFIED,IMPLEMENTED,GREEN_TARGETED,GREEN_LIVE,REGRESSION_GREEN
+SCENARIO_STATE id=SCN-028-004 highest=REGRESSION_GREEN receipts=10 blocked=0 missing=0
+SCENARIO_DERIVED id=SCN-028-004 states=PLANNED,RED_VERIFIED,IMPLEMENTED,GREEN_TARGETED,GREEN_LIVE,REGRESSION_GREEN
+SCENARIO_STATE id=SCN-028-012 highest=REGRESSION_GREEN receipts=10 blocked=0 missing=0
+SCENARIO_DERIVED id=SCN-028-012 states=PLANNED,RED_VERIFIED,IMPLEMENTED,GREEN_TARGETED,GREEN_LIVE,REGRESSION_GREEN
+SCENARIO_STATE id=SCN-028-019 highest=REGRESSION_GREEN receipts=43 blocked=0 missing=0
+SCENARIO_DERIVED id=SCN-028-019 states=PLANNED,RED_VERIFIED,IMPLEMENTED,GREEN_TARGETED,GREEN_LIVE,REGRESSION_GREEN
+SCOPE04_REGRESSION_GREEN_COUNT=4
+SCOPE04_SCENARIO_STATE_RESULT=PASS
+```
+
+### Test Integrity and Governance
+
+**Command:** current-final-byte syntax, portability, source-lock, environment-isolation, regression-quality, skip-marker, fake-live, scenario-obligation, test-mechanism, implementation-reality, Goal Contract, and goal-fidelity matrix
+**Exit Code:** 0
+**Claim Source:** executed
+**Full-output SHA-256:** `117371cab51b87487d02ef8862ae5398c52ecfec39da72ec3dde9cf7f90b4e8d`
+
+```text
+SCOPE04_FINAL_GOVERNANCE_BEGIN
+NODE_CHECK file=scripts/brief-distributed-publish.mjs exit=0
+NODE_CHECK file=scripts/company-intelligence-publication.mjs exit=0
+NODE_CHECK file=tests/brief-refresh-atomicity.test.mjs exit=0
+NODE_CHECK file=tests/company-intelligence-publication.e2e.mjs exit=0
+NODE_CHECK file=tests/company-intelligence-publication.functional.mjs exit=0
+NODE_CHECK file=tests/distributed-briefs.scheduler.e2e.mjs exit=0
+NODE_CHECK file=tests/distributed-briefs.scheduler-failures.integration.mjs exit=0
+NODE_CHECK file=tests/distributed-briefs.scheduler.integration.mjs exit=0
+NODE_CHECK file=tests/distributed-briefs.scheduler.unit.mjs exit=0
+BASH_SYNTAX file=scripts/brief-refresh-and-push.sh exit=0
+BASH_SYNTAX file=scripts/brief-refresh-scheduled.sh exit=0
+PLUTIL_EXIT=0
+SHELLCHECK_EXIT=0
+SOURCE_LOCK_EXIT=0
+ENVIRONMENT_ISOLATION_EXIT=0
+REGRESSION_QUALITY_EXIT=0
+SKIP_MARKER_SCAN_EXIT=1 SKIP_MARKER_COUNT=0
+FAKE_LIVE_SCAN_EXIT=1 FAKE_LIVE_MATCH_COUNT=0
+SCENARIO_OBLIGATION_EXIT=0
+TEST_MECHANISM_EXIT=0
+REQUIREMENT_MECHANISM_EXIT=0
+IMPLEMENTATION_REALITY_EXIT=0
+GOAL_CONTRACT_EXIT=0
+GOAL_FIDELITY_EXIT=0
+TEST_INTEGRITY_FILE_COUNT=7
+SCOPE04_FINAL_GOVERNANCE_FAILURES=0
+SCOPE04_FINAL_GOVERNANCE_END
+```
+
+#### Mock Audit Results
+
+- **Files scanned:** 7 Scope 04 test files.
+- **Mock patterns found:** 0.
+- **Reclassifications:** none.
+- **Live-path result:** The process suites exercised production launchers, real temporary Git repositories, and bare remotes.
+
+#### Self-Validating Test Audit
+
+**Claim Source:** interpreted
+**Interpretation:** The four targeted perturbations each made the planned assertion fail, while unmodified runs passed. The assertions observe production-created journals, commits, remotes, pointers, phase histories, restoration bytes, and named refusals rather than merely echoing fixture literals.
+
+- **Tests audited:** all six Scope 04 Test Plan rows and all four scenario controls.
+- **Self-validating tests found:** 0.
+- **Negative controls:** final company binding removal, shared lease bypass, interrupted parent removal, and final frozen-boundary bypass.
+- **Regression permanence:** SCN-028-003, SCN-028-004, SCN-028-012, and SCN-028-019 each hold `REGRESSION_GREEN`.
+
+### Finding Accounting and Ownership Boundary
+
+| Finding | Disposition | Evidence |
+| --- | --- | --- |
+| `S04-TST-001` — current functional timeout byte invalidated prior input closures | Addressed | Every stale command identity was re-executed through append-only supersession. Strict freshness returned zero stale and zero unknown receipts. |
+| `S04-TST-002` — SCN-028-003, SCN-028-004, and SCN-028-012 lacked current-final-byte four-phase receipts | Addressed | Twelve new RED, GREEN, LIVE, and REGRESSION receipts bind exact tests, controls, source revision, production references, and 69 current inputs. |
+| `S04-TST-003` — SCN-028-019 receipt identities disagreed after the timeout correction | Addressed | Its current and historical command identities were re-executed. The final four-phase chain is current and derives `REGRESSION_GREEN`. |
+| `S04-TST-004` — six Test Plan rows required one final-byte epoch | Addressed | TP-04-01 through TP-04-06 each exited zero with zero failed or skipped tests and current 70-path closures. |
+| `S04-TST-005` — the first receipt-ledger audit expected 69 inputs for Test Plan receipts | Addressed | The corrected audit used the observed 70-path union and exited zero with SHA-256 `18b926213df9e8d5b9a4698329698055a9aa10584c615e07fc7e55e8317a61bf`. |
+
+**Addressed findings:** 5.
+**Unresolved findings:** 0.
+**Certification boundary:** Certification fields, certified Scopes 01 through 03, Scope 05, and human acceptance are unchanged. Scope 04 test execution is independently verified and routed to `bubbles.validate`.
+
+## Scope 04 Validate-Owned Certification — 2026-08-31 {#scope-04-validate-owned-certification-2026-08-31}
+
+**Agent:** `bubbles.validate`
+**Mode:** `full-delivery`
+**Scope:** `04-shared-trigger-integration`
+**Repository decision:** `rb:vscode-c113b01e3cfa5fd40974bb3a063d5347:33`, control revision `33`
+**Goal Contract:** `gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3`, revision `3`
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The current command outputs directly establish receipt freshness, scenario state, static integrity, DoD completeness, and state coherence. The certification conclusion also separates six later-scope traceability failures and a pre-existing framework-install drift condition from the Scope 04 boundary.
+
+### Outcome Contract Verification (G070)
+
+| Field | Declared Scope 04 contribution | Evidence | Status |
+| --- | --- | --- | --- |
+| Intent | Scheduled and on-demand recreation share one coupled company-and-brief publication path. | SCN-028-003 and SCN-028-004 derive `REGRESSION_GREEN`; TP-04-01 and TP-04-02 each have two validate rows at exit `0`. | PASS for Scope 04 |
+| Success Signal | One covered-company version and its consuming brief share an acknowledged generation. Public registration remains the sequential Scope 05 contribution and is not claimed here. | SCN-028-003, SCN-028-004, and SCN-028-012 derive the complete planned-to-regression chain. | PASS for Scope 04 |
+| Hard Constraints | Trigger parity, explicit `company:msft` coverage, exact resume, frozen-source refusal, atomic publication, and protected prior scopes remain intact. | Four Scope 04 scenarios derive `REGRESSION_GREEN`; the 28-check static matrix exits `0`; the preservation assertion exits `0`. | PASS for Scope 04 |
+| Failure Condition | No successful Scope 04 path produces a one-sided generation, divergent retry, or drifted source set. | SCN-028-003, SCN-028-012, and SCN-028-019 hold full RED-to-regression chains with no blocking refusal. | PASS for Scope 04 |
+
+### Narrow Certification Evidence
+
+| Check | Result | Current evidence |
+| --- | --- | --- |
+| Prior validate Test Plan epochs | PASS | Structured-log assertion found exactly 12 rows: TP-04-01 through TP-04-06 twice, every row at exit `0`. No suite was rerun during this resumed boundary. |
+| Prewrite strict receipt freshness | PASS | Direct, non-recorded check: total `234`, current `134`, valid `134`, stale `0`, unknown `0`; SHA-256 `8447b13a4fb904f3372083119782e20d2fbdd7ce22d25def003035302d587312`. |
+| Derived scenario state | PASS | SCN-028-003, SCN-028-004, SCN-028-012, and SCN-028-019 each derive `PLANNED → RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN`; SHA-256 `b570ae962b1d7de9e536ca82b9b938da954c1144736a4b1b09716e64fc0ae09c`. |
+| Static integrity | PASS | All 28 applicable checks passed with no failed labels; SHA-256 `b2459c330b6dfedbeda188ea774c085b63750d3f578259f967d11a0bede7c7af`. The dedicated current shellcheck receipt remains exit `0`. |
+| Applicable certification gates | PASS | Mode, Goal Contract, pre-certification fidelity, G128, artifact lint, claim source, references, context fit, vertical plan, execution substate, and changed-spec audit all passed; SHA-256 `360de1077610427e4d3f4665fe4ca47d03f5357f86b714f83142baecf3b1cd5a`. |
+| Scope and state eligibility | PASS | Scope 04 has 15 checked DoD items, zero unchecked items, 15 evidence links, one implement claim, one test claim, and no prior validate claim; SHA-256 `5a08398ca2dceff7ca848101425c5e026f01a6cc61768fed8f740cb1f14cf557`. |
+| Postwrite receipt and scenario finality | PASS with explicit artifact-only invalidation | The direct strict whole-ledger check exits `1` because 38 receipts include the now-changed validate-owned `scopes.md`, `state.json`, or `report.md` in their input closures. The classifier finds zero stale source or test paths. The scenario resolver exits `0`, and all four Scope 04 scenarios remain `REGRESSION_GREEN`; SHA-256 `fcd1fbde3b86dab5a1b6357fe1443d13bbd9767491e1706e39eca9561f89b974`. The six Test Plan suites were not rerun because the check found no product or test defect. |
+
+### Non-Scope-04 Diagnostics
+
+The all-scope traceability guard exits `1` with six findings and SHA-256 `fe432ae7999d6406085f02ec2731cb458846e2902ebaa731d13e60acd990fe05`. Three missing linked-test references belong to Scope 05 scenarios SCN-028-001, SCN-028-018, and SCN-028-020. The other three findings name Scope 05 rows for public registration, dated failed-refresh state, and private-state-free public delivery. The same transcript reports every Scope 04 scenario-to-row, file, evidence, and DoD edge as present.
+
+The framework write guard exits `1` because five installed agent files differ from the release checksum, SHA-256 `50c0596f6876882a7f353bf6e9b1ffbdc6db3ee60f172611114e1b6924c64358`. A base-to-HEAD and worktree attribution check exits `0`, SHA-256 `fd628d6a69512eb94f891165d2eb031aa39a7d4049d56d748d46d46049860fe6`, and proves all five files are byte-identical to the pre-Scope-04 base and clean in the current worktree. Scope 04 modifies no framework-managed file.
+
+### Finding Accounting and Certification Disposition
+
+| Finding | Disposition | Evidence |
+| --- | --- | --- |
+| `VAL-S04-001` — receipt validation was previously recorded through the receipt logger and invalidated its own observation | Addressed | The strict check ran directly outside the logger and returned zero stale and zero unknown receipts. |
+| `VAL-S04-002` — the prior static aggregate returned nonzero without a stable Scope 04 classification | Addressed | The corrected 28-check aggregate passed. Shellcheck remains a separate current exit-`0` receipt. |
+| `VAL-S04-003` — `--current-scope` is unsupported for single-file scope layout | Addressed | The supported all-scope guard ran. Its exact six findings map only to Scope 05; Scope 04 traceability is complete. |
+| `VAL-S04-004` — certification writes invalidate receipts that hash mutable certification artifacts | Addressed | The required postwrite check ran directly. All 38 stale reasons name only `scopes.md`, `state.json`, or `report.md`; no source or test path is stale, and all four Scope 04 scenario chains remain regression-green. |
+
+**Addressed Scope 04 findings:** 4.
+**Unresolved Scope 04 findings:** 0.
+**Certification disposition:** Scope 04 is certified `Done`. Scopes 01 through 03 remain certified, Scope 05 remains `Not Started`, both feature status mirrors remain `in_progress`, and human acceptance remains unchanged. The next required owner is `bubbles.implement` for Scope 05.

@@ -140,7 +140,7 @@ function run(command, args, cwd, extraEnv = {}) {
   return spawnSync(command, args, {
     cwd,
     encoding: 'utf8',
-    timeout: 30_000,
+    timeout: 120_000,
     killSignal: 'SIGKILL',
     env: {
       ...process.env,

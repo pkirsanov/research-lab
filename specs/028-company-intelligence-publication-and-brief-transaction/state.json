@@ -3,7 +3,7 @@
   "featureDir": "specs/028-company-intelligence-publication-and-brief-transaction",
   "featureName": "Company Intelligence Public Delivery and Atomic Brief Refresh",
   "createdAt": "2026-08-28T23:01:02Z",
-  "lastUpdatedAt": "2026-08-30T06:39:31Z",
+  "lastUpdatedAt": "2026-08-31T02:32:44Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -100,13 +100,13 @@
       "revision": 3,
       "sourceRequestDigest": "sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f"
     },
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
-    "currentPhaseStatus": "in_progress",
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
+    "currentPhaseStatus": "completed",
     "currentScope": "04-shared-trigger-integration",
-    "substate": "needs_reverification",
-    "runStartedAt": "2026-08-30T06:52:26Z",
-    "completedAt": null,
+    "substate": "independently_verified",
+    "runStartedAt": "2026-08-31T02:42:44Z",
+    "completedAt": "2026-08-31T03:46:54Z",
     "completedPhaseClaims": [
       {
         "phase": "analyze",
@@ -215,11 +215,38 @@
         ],
         "claimedAt": "2026-08-30T06:39:31Z",
         "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-validate-owned-certification-after-anchor-repair-2026-08-30"
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "scopes": [
+          "04-shared-trigger-integration"
+        ],
+        "claimedAt": "2026-08-30T17:51:12Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-build-quality-and-governance"
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "scopes": [
+          "04-shared-trigger-integration"
+        ],
+        "claimedAt": "2026-08-31T02:32:44Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-test-owned-independent-final-byte-closure-2026-08-31"
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "scopes": [
+          "04-shared-trigger-integration"
+        ],
+        "claimedAt": "2026-08-31T03:46:54Z",
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-validate-owned-certification-2026-08-31"
       }
     ],
     "pendingTransitionRequests": [],
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-04-scheduled-and-on-demand-shared-trigger-integration",
+    "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-05-public-registration-authority-aware-ui-and-pages-delivery",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,
@@ -233,7 +260,8 @@
     "completedScopes": [
       "01-company-publication-foundation",
       "02-coupled-manifest-and-promotion",
-      "03-transaction-restoration"
+      "03-transaction-restoration",
+      "04-shared-trigger-integration"
     ],
     "certifiedCompletedPhases": [
       "validate"
@@ -277,13 +305,13 @@
         "scope": 4,
         "scopeId": "04-shared-trigger-integration",
         "name": "Scheduled and on-demand shared trigger integration",
-        "status": "not_started",
+        "status": "done",
         "dependsOn": [
           "03-transaction-restoration"
         ],
         "scopeDir": null,
         "evidenceFile": "report.md",
-        "certifiedAt": null
+        "certifiedAt": "2026-08-31T03:46:54Z"
       },
       {
         "scope": 5,
@@ -646,6 +674,85 @@
         "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-validate-owned-certification-after-anchor-repair-2026-08-30"
       ],
       "summary": "Revalidated the sole Scope 03 evidence-anchor repair, strict exact-HEAD receipts, scenario states, traceability, implementation reality, artifact freshness, and certification guards. Certified only Scope 03, preserved both feature status mirrors as in_progress, left human acceptance unchanged, and selected Scope 04 as the next eligible implementation target without starting it."
+    },
+    {
+      "agent": "bubbles.implement",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "runStartedAt": "2026-08-30T06:52:26Z",
+      "runCompletedAt": "2026-08-30T17:51:12Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "04-shared-trigger-integration",
+      "artifactChanges": [
+        ".github/prompts/market-brief-update.prompt.md",
+        "scripts/brief-distributed-publish.mjs",
+        "scripts/brief-refresh-and-push.sh",
+        "scripts/brief-refresh-scheduled.sh",
+        "scripts/com.researchlab.brief-refresh.plist",
+        "scripts/company-intelligence-publication.mjs",
+        "tests/brief-refresh-atomicity.test.mjs",
+        "tests/company-intelligence-publication.e2e.mjs",
+        "tests/company-intelligence-publication.functional.mjs",
+        "tests/distributed-briefs.scheduler.e2e.mjs",
+        "tests/distributed-briefs.scheduler.integration.mjs",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md",
+        "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md",
+        "specs/028-company-intelligence-publication-and-brief-transaction/state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-scenario-receipts",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-regression-and-impact",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-boundary-and-preservation",
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-build-quality-and-governance",
+        ".specify/runtime/tool-calls.jsonl"
+      ],
+      "summary": "Closed the implement-owned Scope 04 phase after refreshing all stale governance receipts, verifying all 15 checked DoD evidence anchors, and rederiving SCN-028-003, SCN-028-004, SCN-028-012, and SCN-028-019 as IMPLEMENTED. Routed Scope 04 to bubbles.test while preserving certification, Scope 05, overall status, and human acceptance."
+    },
+    {
+      "agent": "bubbles.test",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "test"
+      ],
+      "runStartedAt": "2026-08-31T02:04:13Z",
+      "runCompletedAt": "2026-08-31T02:32:44Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "04-shared-trigger-integration",
+      "artifactChanges": [
+        "report.md",
+        "state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-test-owned-independent-final-byte-closure-2026-08-31",
+        ".specify/runtime/tool-calls.jsonl"
+      ],
+      "summary": "Independently re-executed all six Scope 04 Test Plan rows and current-final-byte RED, GREEN, LIVE, and REGRESSION receipts for all four scenarios. Strict receipt freshness reached zero stale and zero unknown identities, all four scenarios derive REGRESSION_GREEN, and certification, Scope 05, overall status, and human acceptance remain unchanged."
+    },
+    {
+      "agent": "bubbles.validate",
+      "mode": "full-delivery",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "runStartedAt": "2026-08-31T02:42:44Z",
+      "runCompletedAt": "2026-08-31T03:46:54Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scope": "04-shared-trigger-integration",
+      "artifactChanges": [
+        "scopes.md",
+        "report.md",
+        "state.json"
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-validate-owned-certification-2026-08-31",
+        ".specify/runtime/tool-calls.jsonl"
+      ],
+      "summary": "Reused the two current six-row validate Test Plan epochs without rerunning them, rechecked strict receipt and scenario finality outside the receipt logger, resolved the prior static aggregate, and classified every remaining traceability failure as Scope 05-only. Certified only Scope 04, preserved both feature status mirrors as in_progress, left human acceptance unchanged, and routed Scope 05 to bubbles.implement."
     }
   ],
   "activeBugs": [],
@@ -693,5 +800,5 @@
     ],
     "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
   },
-  "notes": "Scopes 01 through 03 are validate-certified Done. Feature status and overall certification remain in_progress. Scopes 04 and 05 remain not_started, Scope 04 is the next eligible implementation target, and human acceptance remains unchecked."
+  "notes": "Scopes 01 through 04 are validate-certified Done. Scope 05 remains not_started and is the next eligible implementation target. Feature status and overall certification remain in_progress. Human acceptance remains unchecked."
 }

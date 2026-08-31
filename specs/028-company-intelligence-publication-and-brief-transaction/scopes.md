@@ -576,7 +576,7 @@ The installed implementation discovery grammar normalizes text after `::`; `Node
 
 ## Scope 04: Scheduled and on-demand shared trigger integration
 
-**Status:** In Progress
+**Status:** Done
 **Depends On:** Scope 03.  
 **Scope-Kind:** runtime-behavior
 
@@ -715,30 +715,30 @@ The installed implementation-discovery grammar normalizes text after `::`; the l
 
 #### Core Outcomes
 
-- [ ] Scheduled and on-demand requests differ only in trigger identity fields and use one phase, validation, restoration, commit, and acknowledgment path.
-- [ ] Exact checkpoint and commit resume never reacquire frozen evidence, reinvoke a validated author, or fork one generation.
-- [ ] Registry and dependency drift refuse before authority changes and name the changed boundary.
-- [ ] The Shared Infrastructure Impact Sweep is complete. TP-04-05 and TP-04-06 independently validate due-window ordering, locks, cleanup, process boundaries, and restoration. The canaries run before broader suites. The documented launcher and worker restore paths are verified.
-- [ ] Consumer Impact Sweep is complete, and zero stale first-party references remain across the launchd template, scheduler entry, on-demand prompt, worker option parser, production callers, and tests.
-- [ ] Change Boundary is respected and zero excluded file families were changed.
+- [x] Scheduled and on-demand requests differ only in trigger identity fields and use one phase, validation, restoration, commit, and acknowledgment path. → Evidence: [Scope 04 r9 scenario receipts](report.md#scope-04-r9-scenario-receipts)
+- [x] Exact checkpoint and commit resume never reacquire frozen evidence, reinvoke a validated author, or fork one generation. → Evidence: [Scope 04 r9 scenario receipts](report.md#scope-04-r9-scenario-receipts)
+- [x] Registry and dependency drift refuse before authority changes and name the changed boundary. → Evidence: [Scope 04 r9 scenario receipts](report.md#scope-04-r9-scenario-receipts)
+- [x] The Shared Infrastructure Impact Sweep is complete. TP-04-05 and TP-04-06 independently validate due-window ordering, locks, cleanup, process boundaries, and restoration. The canaries run before broader suites. The documented launcher and worker restore paths are verified. → Evidence: [Scope 04 r9 regression and impact](report.md#scope-04-r9-regression-and-impact)
+- [x] Consumer Impact Sweep is complete, and zero stale first-party references remain across the launchd template, scheduler entry, on-demand prompt, worker option parser, production callers, and tests. → Evidence: [Scope 04 r9 regression and impact](report.md#scope-04-r9-regression-and-impact)
+- [x] Change Boundary is respected and zero excluded file families were changed. → Evidence: [Scope 04 r9 boundary and preservation](report.md#scope-04-r9-boundary-and-preservation)
 
 #### Test Evidence Items — 6 rows, exact Test Plan parity
 
-- [ ] TP-04-01 proves SCN-028-003, A scheduled brief and company read publish together. A scheduled window is due. The committed covered set contains only `company:msft`. The shared launcher publishes one immutable MSFT version. The final brief consumes that version's owner read. The brief and company pointer identify one generation. → Evidence: [TP-04-01](report.md#tp-04-01)
-- [ ] TP-04-02 proves SCN-028-004, On-demand publication cannot use a weaker path. An operator requests a declared window. The path refreshes `company:msft` before final publication. It executes the scheduled phases, validation, restoration, manifest, and rollback contract. It acknowledges one coupled publication. → Evidence: [TP-04-02](report.md#tp-04-02)
-- [ ] TP-04-03 proves SCN-028-012, Retrying one logical generation does not fork history. The generation failed before acknowledgment. A retry uses the same frozen inputs. It resolves the same candidate identity and creates no divergent duplicate version. It refuses changed content at that identity. One successful acknowledgment closes the generation. → Evidence: [TP-04-03](report.md#tp-04-03)
-- [ ] TP-04-04 proves SCN-028-019, The source set cannot change or become cyclic during a generation. The registry and source fingerprints are frozen. Separate mutations alter the participant, order, count, fingerprint, self-source, and final-brief dependency. Each mutation refuses the generation before a pointer or brief advances. The refusal identifies the changed boundary. → Evidence: [TP-04-04](report.md#tp-04-04)
-- [ ] TP-04-05 provides the scheduler canary for SCN-028-003 and SCN-028-004. It preserves declared windows, locks, failure cleanup, and scheduler process behavior. Both trigger adapters still share one launcher contract. → Evidence: [TP-04-05](report.md#tp-04-05)
-- [ ] TP-04-06 provides the transaction canary for SCN-028-003 and SCN-028-004. It preserves company-and-brief atomicity, baseline restoration, and acknowledgment boundaries after the shared call graph changes. → Evidence: [TP-04-06](report.md#tp-04-06)
+- [x] TP-04-01 proves SCN-028-003, A scheduled brief and company read publish together. A scheduled window is due. The committed covered set contains only `company:msft`. The shared launcher publishes one immutable MSFT version. The final brief consumes that version's owner read. The brief and company pointer identify one generation. → Evidence: [TP-04-01](report.md#tp-04-01)
+- [x] TP-04-02 proves SCN-028-004, On-demand publication cannot use a weaker path. An operator requests a declared window. The path refreshes `company:msft` before final publication. It executes the scheduled phases, validation, restoration, manifest, and rollback contract. It acknowledges one coupled publication. → Evidence: [TP-04-02](report.md#tp-04-02)
+- [x] TP-04-03 proves SCN-028-012, Retrying one logical generation does not fork history. The generation failed before acknowledgment. A retry uses the same frozen inputs. It resolves the same candidate identity and creates no divergent duplicate version. It refuses changed content at that identity. One successful acknowledgment closes the generation. → Evidence: [TP-04-03](report.md#tp-04-03)
+- [x] TP-04-04 proves SCN-028-019, The source set cannot change or become cyclic during a generation. The registry and source fingerprints are frozen. Separate mutations alter the participant, order, count, fingerprint, self-source, and final-brief dependency. Each mutation refuses the generation before a pointer or brief advances. The refusal identifies the changed boundary. → Evidence: [TP-04-04](report.md#tp-04-04)
+- [x] TP-04-05 provides the scheduler canary for SCN-028-003 and SCN-028-004. It preserves declared windows, locks, failure cleanup, and scheduler process behavior. Both trigger adapters still share one launcher contract. → Evidence: [TP-04-05](report.md#tp-04-05)
+- [x] TP-04-06 provides the transaction canary for SCN-028-003 and SCN-028-004. It preserves company-and-brief atomicity, baseline restoration, and acknowledgment boundaries after the shared call graph changes. → Evidence: [TP-04-06](report.md#tp-04-06)
 
 #### Regression and Impact Evidence
 
-- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior pass for SCN-028-003, SCN-028-004, and SCN-028-012. The proportionate functional mutation regression for SCN-028-019 also passes.
-- [ ] Broader E2E regression suite passes for the complete shared launcher and worker path, including the scheduler canary matrix in TP-04-05 and the transaction canary in TP-04-06.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior pass for SCN-028-003, SCN-028-004, and SCN-028-012. The proportionate functional mutation regression for SCN-028-019 also passes. → Evidence: [Scope 04 r9 regression and impact](report.md#scope-04-r9-regression-and-impact)
+- [x] Broader E2E regression suite passes for the complete shared launcher and worker path, including the scheduler canary matrix in TP-04-05 and the transaction canary in TP-04-06. → Evidence: [Scope 04 r9 regression and impact](report.md#scope-04-r9-regression-and-impact)
 
 #### Build Quality Gate
 
-- [ ] The changed scripts parse, focused trigger suites pass, process cleanup is complete, atomicity remains green, and no weaker on-demand write path remains.
+- [x] The changed scripts parse, focused trigger suites pass, process cleanup is complete, atomicity remains green, and no weaker on-demand write path remains. → Evidence: [Scope 04 r9 build quality and governance](report.md#scope-04-r9-build-quality-and-governance)
 
 ## Scope 05: Public registration, authority-aware UI, and Pages delivery
 

@@ -1264,5 +1264,3 @@ The parser reads this file directly by the exact `## Scope NN` heading and exact
 | tests/portfolio-test-integrity.unit.mjs | test-title | `Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing` | canary | exclusive | — | — |
 <!-- Scope 28 boundary attribution end -->
 <!-- registry-eof -->
-
-

@@ -1014,7 +1014,7 @@ The parser reads this file directly by the exact `## Scope NN` heading and exact
 | tests/portfolio-privacy.functional.mjs | test-title | `TP-26-02 the ReturnContext handoff writes consumes and refuses under a strict closed contract` | test | exclusive | — | — |
 | tests/portfolio-survival-brief.spec.mjs | test-title | `Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace` | test | exclusive | — | — |
 | tests/portfolio-survival-brief.spec.mjs | marker-pair | `["await expect(compute, 'initial publication must not masquerade as an accepted rebase')",".toHaveAttribute('data-rebase-state', 'idle');"]` | canary | exclusive | — | — |
-| tests/portfolio-survival-brief.spec.mjs | marker-pair | `["const acceptedRebase = await compute.evaluate((node) => ({","changedInputs: expect.stringMatching(/\\bportfolio\\b/)"]` | canary | exclusive | — | — |
+| tests/portfolio-survival-brief.spec.mjs | marker-pair | `["const acceptedRebase = await compute.evaluate((node) => ({","changedInputs: expect.stringMatching(/\\bportfolio\\b/)\n  });"]` | canary | exclusive | — | — |
 | tests/portfolio-survival-mobile.spec.mjs | local-symbol | `const BRIEF_CONFIG = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.config.json'), 'utf8'));` | fixture | exclusive | — | — |
 | tests/portfolio-survival-mobile.spec.mjs | local-symbol | `const BRIEF_SNAPSHOT = JSON.parse(readFileSync(resolve(ROOT, 'market-brief.snapshot.json'), 'utf8'));` | fixture | exclusive | — | — |
 | tests/portfolio-survival-mobile.spec.mjs | local-symbol | `const OWNER_WINDOW = BRIEF_CONFIG.windows.find((entry) => entry.id === BRIEF_SNAPSHOT.window);` | fixture | exclusive | — | — |

@@ -74,6 +74,7 @@ Scenario: SCN-008-041 - A user clears all personal data from the complete six-ta
 
 | Consumer / Surface | Required Change Or Proof | Stale-Reference / Regression Check |
 |--------------------|--------------------------|------------------------------------|
+| Workspace identity causal authority | `runWorkspaceCompute` → `refreshWorkspaceViews` → `renderCurrent` → `#workspaceIdentity` | TP-16-05 exact title `Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity` reads `#workspaceIdentity` across routes and asserts that Power, mobile, and deep-link values equal the Simple desktop identity. |
 | `rldata.js` | Scope 04 additive coverage/public-read block only; no final mutation | Full selftest, provider-credentials suite, constant read and personal-field absence |
 | `rlnav.js` | One tool registry entry plus one generic strict return-context block | Registry/order parity, all existing routes, fixed destination/expiry/focus/consume behavior, no event write |
 | `index.html` | One matching tool entry and working landing navigation | Registry parity, route/config/note existence, actual click/navigation |
@@ -109,7 +110,7 @@ No API client, generated client, server route, authentication redirect, breadcru
 
 **Pre-edit discipline:** capture `git status --short` and `git diff --unified=0` for every allowed shared path. If an insertion overlaps user work, mark Scope 16 Blocked; do not reorder, reformat, rewrite, or relocate surrounding content.
 
-**Rollback/restore:** remove only the exact Feature 008 registry/README/note/rlnav/selftest entries and final route blocks. Rerun registry, navigation, provider, RLDATA, fixture/server, all prior Feature 008, and Feature 001-007 canaries. Browser personal keys remain inert/local and are never silently deleted by source rollback.
+**Rollback/restore:** the design removes the newest release unit as one transaction: the exact Feature 008 route/modules/config/tests/note, the four registry/doc entries, and the marker-bounded `rlnav.js` and `scripts/selftest.mjs` additions. Shared additions may be removed only when the disposable carrier proves no other adopter depends on them. In the rolled-back mirror, rerun registry, navigation, provider, RLDATA, fixture/server, and Feature 001-007 existing-consumer canaries; Feature 008 tests removed by that transaction are not treated as rollback-state executables. Reapply every captured unit at its original anchor, require byte-for-byte equality with the pre-rollback mirror, then run the complete Feature 008 and existing-consumer matrices in the required release-validation order. Browser personal keys remain inert/local and are never silently deleted by source rollback.
 
 ## Scenario-First Red/Green Contract
 
@@ -133,6 +134,17 @@ Author identity, accessibility, pixel/table, deep-link, privacy, registry, stale
 | TP-16-12 | Whole-set clear closure functional | functional | SCN-008-038, SCN-008-039, SCN-008-040, SCN-008-041 | `tests/portfolio-privacy.functional.mjs` | Populate every personal category the finished six-tab route can create, then prove a full-personal clear empties every declared category on a storage reread, leaves no personal key outside the declared sweep, keeps public generic assets byte-identical, and derives the declared category set from the runtime rather than a hand-written list. Carries Scope 03's discharged `UI state` conjunct and the whole-set closure under register rule 2, and supplies the public-cache preservation conjunct shared by SCN-008-038 through SCN-008-040. Shares TP-16-04's complete-privacy file rather than naming a new one, so the frozen spec-test-path baseline does not grow; the assertions are storage-level, which is what makes `functional` the honest category | `node --test tests/portfolio-privacy.functional.mjs` | No | `report.md#tp-16-12` |
 | TP-16-13a | Shared-infrastructure canary | functional | SCN-008-036 | `scripts/selftest.mjs` | Canary: after each exact additive Feature 008 insertion into `scripts/selftest.mjs`, `rlnav.js`, `tools.json`, `index.html`, and `README.md`, and BEFORE the TP-16-10 and TP-16-11 broad reruns, execute the complete repository selftest so existing group order, registry order, and navigation are proven unchanged by this scope | `node scripts/selftest.mjs` | No | `report.md#s16-suite` |
 | TP-16-13b | Shared-infrastructure canary | e2e-ui | SCN-008-036 | `tests/provider-credentials.spec.mjs` | Canary: after each exact additive Feature 008 insertion into the five high-fan-out surfaces named in [Shared Infrastructure Impact Sweep](#shared-infrastructure-impact-sweep), and BEFORE the TP-16-10 and TP-16-11 broad reruns, execute the provider-credentials browser suite so shared `RLDATA` credential behavior is proven unchanged by this scope | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#s16-suite` |
+| TP-16-14 | Disposable rollback/restore Regression | e2e-ui | SCN-008-036 | `tests/portfolio-release-rollback.integration.mjs` | `Regression: TP-16-14 SCN-008-036 disposable shared-release rollback and restore preserve exact bytes and existing consumers` — create an OS-temporary repository mirror; refuse if its real path equals or contains the canonical checkout or `.git`; snapshot the full newest release unit named by the rollback contract, including route/modules/config/tests/note, registry/doc entries, and marker-bounded `rlnav.js` and `scripts/selftest.mjs` additions; remove only those units in the mirror; prove every non-owned byte and a seeded isolated-browser personal-storage sentinel are unchanged; run rollback-state registry/navigation/provider/RLDATA/fixture-server and Feature 001-007 existing-consumer canaries in that mirror; reapply every captured unit at its original anchor; require byte-for-byte equality with the pre-mutation mirror; rerun the selftest and provider canaries against the restored mirror; and delete the mirror and isolated browser profile in test cleanup. TP-16-10 and TP-16-11 then prove the byte-identical restored state through the complete Feature 008 and existing-consumer matrices. The carrier must never write to the canonical checkout, canonical structured manifests, `.git`, public snapshots, or browser storage owned by a real profile. | `node --test --test-name-pattern="Regression: TP-16-14 SCN-008-036 disposable shared-release rollback and restore preserve exact bytes and existing consumers" tests/portfolio-release-rollback.integration.mjs` | Yes, disposable test server and browser profile only | `report.md#tp-16-14` |
+
+### Release Carrier State And Required Order
+
+| Row | Carrier State | Current-Session Execution State | Required Position |
+|-----|---------------|---------------------------------|-------------------|
+| TP-16-13a | Authored in `scripts/selftest.mjs` | Not executed in this planning session; historical report output is not current evidence | After the additive shared-surface insertions and before TP-16-10 or TP-16-11 |
+| TP-16-13b | Authored in `tests/provider-credentials.spec.mjs` | Not executed in this planning session; historical report output is not current evidence | After the additive shared-surface insertions and before TP-16-10 or TP-16-11 |
+| TP-16-14 | Authored in `tests/portfolio-release-rollback.integration.mjs` | Planning metadata retains no execution credit because no report receipt is linked; the operator reports a focused 1/1 pass with zero skipped or todo, and bubbles.test must record the current receipt | After the additive shared-surface insertions and before TP-16-10 or TP-16-11; its nested rollback-state and restored-state canaries run only in the disposable mirror |
+
+The required release-validation sequence is TP-16-13a, TP-16-13b, TP-16-14, TP-16-10, then TP-16-11. TP-16-13a and TP-16-13b prove the independent pre-broad canary order on the real changed checkout. TP-16-14 separately proves that the documented shared-infrastructure rollback units can be removed and reapplied safely in an isolated mirror. TP-16-10 and TP-16-11 remain the broad post-change matrices. No historical receipt satisfies a current execution step in this sequence.
 
 ### PSA-PAGE-INLINE-ID
 
@@ -174,7 +186,8 @@ Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` an
 - [ ] Rollback or restore path for shared infrastructure changes is documented and verified
   - **Documented at:** the `Rollback/restore` paragraph of [Change Boundary And Rollback](#change-boundary-and-rollback) — remove only the exact Feature 008 registry/README/note/`rlnav.js`/selftest entries and final route blocks; browser personal keys are never deleted by a source rollback.
   - **Rollback unit per surface:** the `Rollback Unit` column of [Shared Infrastructure Impact Sweep](#shared-infrastructure-impact-sweep) names one unit for each of the five high-fan-out surfaces.
-  - **Verifying rows:** TP-16-13a and TP-16-13b for the pre-broad canary and TP-16-11 for the post-change existing-consumer proof that the restore boundary held.
+  - **Verifying rows:** TP-16-14 is the required executable disposable removal/reapplication carrier. TP-16-13a and TP-16-13b prove independent canary order before the broad matrices. TP-16-11 remains the post-change existing-consumer matrix. None substitutes for TP-16-14's byte-preserving rollback and restore assertions.
+  - **Unresolved:** TP-16-14 is authored, and the operator reports a focused 1/1 pass with zero skipped or todo. No current receipt is linked from this planning artifact or recorded in the report, and the ordered TP-16-13a -> TP-16-13b -> TP-16-14 -> TP-16-10 -> TP-16-11 campaign has not run, so this item remains unchecked.
 
 #### Core Delivery Items
 
@@ -188,7 +201,7 @@ Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` an
 - [x] Atomic release adds the route to `index.html`, `tools.json`, `rlnav.js`, README and the note only after the direct unregistered route, privacy, accessibility, canvas/table and focused domain tests are green. Evidence: [report.md#s16-registration-finding](report.md#s16-registration-finding)
 - [x] Every Scope 16 behavior has intended RED and same-command GREEN evidence before the complete Feature 008 and existing-consumer browser matrices. Evidence: [report.md#s16-closure](report.md#s16-closure)
 
-#### Test Evidence Items - Exact Parity With 14 Test Plan Rows
+#### Test Evidence Items - Exact Parity With 15 Test Plan Rows
 
 - [x] TP-16-01 functional evidence proves the committed Node/Playwright source-lock graph is exact and trusted before browser execution. Evidence: [report.md#s16-suite](report.md#s16-suite)
 - [x] TP-16-02 selftest evidence proves all Feature 008 production/registry/shared contracts and every existing repository invariant. Evidence: [report.md#s16-suite](report.md#s16-suite)
@@ -208,6 +221,9 @@ Before TP-16-05 through TP-16-11, run `npx --no-install playwright --version` an
 - [ ] Independent provider-credentials browser canary for shared fixture/bootstrap contracts passes before broad suite reruns
   - **Verifying row:** TP-16-13b.
   - **Resolution condition:** the shared ordering condition stated under `Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns` above, read against TP-16-13b's own recorded output.
+- [ ] TP-16-14 disposable rollback/restore Regression executes the documented shared-infrastructure removal and reapplication against an OS-temporary mirror, proves non-owned and personal-state preservation, restores exact bytes, and passes rollback-state and restored-state selftest/provider canaries without writing to the canonical checkout or manifests
+  - **Verifying row:** TP-16-14.
+  - **Resolution condition:** bubbles.test records current-session receipt-backed output for the exact title and command in TP-16-14. Static plan metadata, the operator-reported focused pass without a linked receipt, or TP-16-11 output cannot satisfy this item.
 
 #### Build Quality Gate
 

@@ -7,8 +7,8 @@ Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](.
 **Tags:** `integration:workspace`, `remediation`
 **Depends On:** 25
 **Entry Gate:** Every scope in `Depends On` must be Done.
-**Execution State:** Scope 26 is Done. All nine DoD items are checked with evidence in [report.md](report.md). Scope 27 is the next dependency-unblocked remediation scope and has not started. Scopes 27-29 remain Not Started.
-**Worktree Reality:** `rlportfolio.js` contains the delivered `PortfolioWorkspaceViewModel/v1` and `WorkspaceComputeController/v1` work, and `rlnav.js` contains the strict `ReturnContext/v1` consumer. All six Test Plan rows are executed and passing; see [test evidence](report.md#test-evidence).
+**Planning State:** In Progress. Unchecked DoD rows keep this scope nonterminal. Test carriers are authored, while execution and certification remain owned by their evidence and state authorities.
+**Worktree Reality:** `rlportfolio.js` contains the planned `PortfolioWorkspaceViewModel/v1` and `WorkspaceComputeController/v1` surfaces, and `rlnav.js` contains the strict `ReturnContext/v1` consumer. Carrier presence does not establish execution or completion.
 **Finding:** F008-COMPUTE-NAV-001
 **Requirements:** FR-067, FR-154; NFR-002, NFR-012, NFR-013.
 
@@ -68,6 +68,11 @@ Scenario: A user switches modes tabs and owning tools while a newer workspace co
 | Shared navigation without context | No strip, no storage allocation, no focus mutation. |
 | Tests/docs/deep links | Zero stale `#workspace`; canonical feature entry is `#brief`. |
 
+| Causal binding | Executable assertion |
+|---|---|
+| Immutable workspace publication causal authority: `computeWorkspace` → `runWorkspaceCompute` → `renderWorkspaceCompute` → `#workspaceCompute` | TP-26-03 exact title `Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace` reads `#workspaceCompute` through mode changes, all six tabs, direct navigation, and an accepted rebase, then asserts one active identity and token, unchanged compute count during presentation, and an atomic sibling rebase. |
+| Cross-page owner-return causal authority: `writeReturnContext` → `writeOwnerHandoff` → `consume` → `renderStrip` → `restoreReturnFocus` → `#rlreturn-strip` → `#workspaceCompute` | TP-26-04 exact title `Regression: SCN-008-052 owning tool consumes ReturnContext and restores Portfolio Brief focus` observes `#rlreturn-strip` on the owning page and `#workspaceCompute` after browser return, then asserts single-use session consumption, public URL shape, visible owner context, restored disclosure, action identity, and keyboard focus. |
+
 ## UI Scenario Matrix
 
 | Scenario | Preconditions | Steps | Expected | Test Type |
@@ -78,7 +83,7 @@ Scenario: A user switches modes tabs and owning tools while a newer workspace co
 
 ## Test Plan
 
-All six rows are authored and executed. TP-26-01 and TP-26-05 are carried by `tests/portfolio-workspace.functional.mjs`. Per-row results, provenance and exit codes are recorded in [report.md](report.md#test-evidence).
+Five rows have authored current declarations: TP-26-01 through TP-26-05 match exact titles in their named files. TP-26-06 remains an aggregate planned carrier because its multi-file shared-consumer command has no one exact Scope 26 title. This plan grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

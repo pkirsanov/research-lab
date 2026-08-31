@@ -763,6 +763,11 @@ async function loadScopeClaimsVerifier() {
     "SCOPE_CLAIMS_VERIFIER_EXPORT_MISSING: serializeSpec008ScopeClaimsResult must be a pure function"
   );
   assert.equal(
+    typeof verifierModule.createSpec008ScopeClaimsAnalysisCache,
+    "function",
+    "SCOPE_CLAIMS_ANALYSIS_CACHE_EXPORT_MISSING: the adversarial run needs one explicitly scoped cache"
+  );
+  assert.equal(
     verifierModule.SCOPE_CLAIMS_REFUSAL_V2 !== null && typeof verifierModule.SCOPE_CLAIMS_REFUSAL_V2 === "object",
     true,
     "SCOPE_CLAIMS_REFUSAL_V2_EXPORT_MISSING: verifier must export the v2 refusal enum"
@@ -779,6 +784,8 @@ async function loadScopeClaimsVerifier() {
   return {
     verifySpec008ScopeClaims: verifierModule.verifySpec008ScopeClaims,
     serializeSpec008ScopeClaimsResult: verifierModule.serializeSpec008ScopeClaimsResult,
+    createSpec008ScopeClaimsAnalysisCache: verifierModule.createSpec008ScopeClaimsAnalysisCache,
+    analysisCache: null,
     SCOPE_CLAIMS_REFUSAL_V2: verifierModule.SCOPE_CLAIMS_REFUSAL_V2
   };
 }
@@ -787,7 +794,8 @@ function verifyFixture(verifier, fixture) {
   return verifier.verifySpec008ScopeClaims({
     manifest: structuredClone(fixture.manifest),
     repositoryRoot: fixture.repositoryRoot,
-    sourceReader: fixture.sourceReader
+    sourceReader: fixture.sourceReader,
+    analysisCache: verifier.analysisCache ?? undefined
   });
 }
 
@@ -1509,6 +1517,87 @@ const SCOPE_CLAIMS_V2_HOSTILE_CASES = [
     }
   },
   {
+    id: "canonical producer projection cannot drift from its causal binding",
+    refusal: "CAUSAL_BINDING_DISCONNECTED",
+    fixture: "canonical",
+    mutate(fixture) {
+      firstConsumerEntry(fixture, "04").canonicalProducers[0].identity = "inventedProducer";
+    }
+  },
+  {
+    id: "canonical causal graph and projections cannot diverge from owning plan authority",
+    refusal: "CAUSAL_BINDING_DISCONNECTED",
+    fixture: "canonical",
+    mutate(fixture) {
+      const candidates = fixture.manifest.entries.filter((entry) =>
+        entry.kind === "consumer" && entry.aliases.mode === "none" && entry.causalBindings.length === 1
+      );
+      assert.ok(candidates.length >= 2, "canonical authority must expose two single-binding none-alias consumers");
+      const [target, donor] = candidates;
+      const binding = structuredClone(donor.causalBindings[0]);
+      binding.bindingId = `SCOPE-${target.scopeId}-PLAN-DIVERGENT-CONTROL`;
+      target.causalBindings = [binding];
+      target.canonicalProducers = [structuredClone(binding.producer)];
+      target.consumerSurfaces = [structuredClone(binding.consumer)];
+      target.testCarriers = [structuredClone(binding.test)];
+      target.aliases.scanSurfaces = [...new Set([
+        binding.producer.path,
+        binding.consumer.path,
+        binding.test.path
+      ])].sort();
+    }
+  },
+  {
+    id: "declared producer and consumer languages must match their paths",
+    refusal: "CAUSAL_BINDING_DISCONNECTED",
+    fixture: "canonical",
+    mutate(fixture) {
+      const entry = firstConsumerEntry(fixture, "04");
+      entry.canonicalProducers[0].language = "markdown";
+      entry.consumerSurfaces[0].language = "json";
+      entry.causalBindings[0].producer.language = "markdown";
+      entry.causalBindings[0].consumer.language = "json";
+    }
+  },
+  {
+    id: "duplicate causal bindings and binding ids are rejected",
+    refusal: "MANIFEST_SCHEMA_INVALID",
+    fixture: "canonical",
+    mutate(fixture) {
+      const entry = firstConsumerEntry(fixture, "04");
+      entry.causalBindings.push(structuredClone(entry.causalBindings[0]));
+    }
+  },
+  {
+    id: "comment-only DOM identity cannot replace real markup",
+    refusal: "IDENTITY_UNRESOLVED",
+    fixture: "canonical",
+    mutate(fixture) {
+      const route = fixtureRecord(fixture, "portfolio-survival-allocation-lab.html");
+      const matches = [...route.text.matchAll(/<section\s+id=(["'])privacyPanel\1[^>]*>/g)];
+      assert.equal(matches.length, 1, "canonical route must contain one real privacyPanel section before mutation");
+      const literal = matches[0][0];
+      const withoutId = literal.replace(/\s+id=(["'])privacyPanel\1/, "");
+      route.text = route.text.replace(literal, `<!-- ${literal} -->\n${withoutId}`);
+    }
+  },
+  {
+    id: "disconnected static-array string and comment decoys cannot define a DOM identity",
+    refusal: "IDENTITY_UNRESOLVED",
+    fixture: "canonical",
+    mutate(fixture) {
+      const route = fixtureRecord(fixture, "portfolio-survival-allocation-lab.html");
+      const connected = "[seedInput, runButton, cancelButton].forEach(function (control) { controls.appendChild(control); });";
+      assert.equal(route.text.split(connected).length - 1, 1, "canonical route must contain one connected pathCancelScenario forwarding chain");
+      route.text = route.text.replace(connected, [
+        "[seedInput, runButton].forEach(function (control) { controls.appendChild(control); });",
+        "[cancelButton].forEach(function (control) { controls.appendChild(seedInput); });",
+        "var disconnectedPathCancelScenario = \"[cancelButton].forEach(function (control) { controls.appendChild(control); });\";",
+        "// [cancelButton].forEach(function (control) { controls.appendChild(control); });"
+      ].join("\n"));
+    }
+  },
+  {
     id: "canonical manifest version mutation is schema-invalid",
     refusal: "MANIFEST_SCHEMA_INVALID",
     fixture: "canonical",
@@ -1578,22 +1667,37 @@ const SCOPE_CLAIMS_V2_HOSTILE_CASES = [
     id: "canonical manifest test-title mutation is unreachable",
     refusal: "TEST_TITLE_UNREACHABLE",
     fixture: "canonical",
-    mutate(fixture) { canonicalConsumer(fixture).causalBindings[0].test.title += " unreachable"; }
+    mutate(fixture) {
+      const entry = canonicalConsumer(fixture);
+      entry.causalBindings[0].test.title += " unreachable";
+      entry.testCarriers[0].title += " unreachable";
+    }
   },
   {
     id: "canonical manifest assertion-identity mutation is invalid",
     refusal: "ASSERTION_BINDING_INVALID",
     fixture: "canonical",
-    mutate(fixture) { canonicalConsumer(fixture).causalBindings[0].test.assertionIdentity += " unrelated"; }
+    mutate(fixture) {
+      const entry = canonicalConsumer(fixture);
+      entry.causalBindings[0].test.assertionIdentity += " unrelated";
+      entry.testCarriers[0].assertionIdentity += " unrelated";
+    }
   }
 ];
 
 function runScopeClaimsHostileCase(verifier, refusalEnum, hostileCase) {
   const control = hostileFactory(hostileCase.fixture);
   try {
+    const beforeControl = verifier.analysisCache.snapshot();
     const controlSignature = fixtureSignature(control);
     assertExactScopeClaimsResult(verifyFixture(verifier, control));
     assert.equal(fixtureSignature(control), controlSignature, `${hostileCase.id} clean control must remain immutable`);
+    if (hostileCase === SCOPE_CLAIMS_V2_HOSTILE_CASES[0]) {
+      const afterControl = verifier.analysisCache.snapshot();
+      assert.notEqual(control.sourceReader, verifier.firstSyntheticControlReader, "the reuse control must carry independent reader authority");
+      assert.equal(afterControl.misses, beforeControl.misses, "identical complete source text must not be re-analyzed for a different reader");
+      assert.ok(afterControl.hits > beforeControl.hits, "identical complete source text must reuse cached pure analyses");
+    }
   } finally {
     control.cleanup();
   }
@@ -1617,13 +1721,27 @@ function runScopeClaimsHostileCase(verifier, refusalEnum, hostileCase) {
       fixture.cleanup();
     }
   };
+  const beforeFirstMutation = verifier.analysisCache.snapshot();
   const first = runOnce();
+  const afterFirstMutation = verifier.analysisCache.snapshot();
   const second = runOnce();
+  const afterSecondMutation = verifier.analysisCache.snapshot();
   assert.deepEqual(second, first, `${hostileCase.id} refusal bytes must be deterministic`);
+  if (hostileCase.id === "exact executable test title must be present") {
+    assert.ok(afterFirstMutation.misses > beforeFirstMutation.misses, "distinct complete source text must execute a fresh analysis");
+    assert.equal(afterSecondMutation.misses, afterFirstMutation.misses, "the same changed text from a fresh reader must reuse its pure analysis");
+    assert.ok(afterSecondMutation.hits > afterFirstMutation.hits, "the repeated changed text must record analysis reuse");
+  }
+  if (hostileCase.id === "physical symlink cannot leave the repository") {
+    verifier.cachedTextPhysicalAuthorityRefused = true;
+  }
 }
 
 function assertScopeClaimsAdversarialContract(verifier) {
   const refusalEnum = verifier.SCOPE_CLAIMS_REFUSAL_V2;
+  const analysisCache = verifier.createSpec008ScopeClaimsAnalysisCache();
+  verifier.analysisCache = analysisCache;
+  assert.equal(Object.isFrozen(analysisCache), true, "the scoped analysis cache API must be immutable");
   const coveredMembers = new Set(SCOPE_CLAIMS_V2_HOSTILE_CASES.map((hostileCase) => hostileCase.refusal));
   assert.deepEqual(
     [...coveredMembers].sort(),
@@ -1632,6 +1750,7 @@ function assertScopeClaimsAdversarialContract(verifier) {
   );
 
   const syntheticControl = createScopeClaimsFixture();
+  verifier.firstSyntheticControlReader = syntheticControl.sourceReader;
   assertSyntheticV2Authority(syntheticControl);
   assertExactScopeClaimsResult(verifyFixture(verifier, syntheticControl));
 
@@ -1646,8 +1765,100 @@ function assertScopeClaimsAdversarialContract(verifier) {
     physicalControl.cleanup();
   }
 
-  for (const hostileCase of SCOPE_CLAIMS_V2_HOSTILE_CASES) {
+  const requestedHostileCase = process.env.TP_28_04_HOSTILE_CASE;
+  const selectedHostileCases = requestedHostileCase
+    ? SCOPE_CLAIMS_V2_HOSTILE_CASES.filter((hostileCase) => hostileCase.id === requestedHostileCase)
+    : SCOPE_CLAIMS_V2_HOSTILE_CASES;
+  if (requestedHostileCase) {
+    assert.equal(selectedHostileCases.length, 1, `TP_28_04_HOSTILE_CASE must select exactly one case: ${requestedHostileCase}`);
+  }
+  for (const hostileCase of selectedHostileCases) {
     runScopeClaimsHostileCase(verifier, refusalEnum, hostileCase);
+  }
+  if (!requestedHostileCase) {
+    assert.equal(verifier.cachedTextPhysicalAuthorityRefused, true, "cached analyses must not bypass physical-path authority");
+  }
+  const finalCache = analysisCache.snapshot();
+  assert.equal(Object.isFrozen(finalCache), true, "cache diagnostics must be immutable snapshots");
+  assert.equal(Object.isFrozen(finalCache.byKind), true, "per-kind diagnostics must be immutable");
+  assert.ok(finalCache.misses > 0 && finalCache.stores > 0, "the adversarial run must populate pure text analyses");
+  assert.ok(finalCache.size <= finalCache.maxEntries, "analysis cache cardinality must remain bounded");
+  assert.ok(finalCache.characters <= finalCache.maxCharacters, "analysis cache retained source text must remain bounded");
+  assert.ok(finalCache.size <= finalCache.maxEntriesPerKind * Object.keys(finalCache.byKind).length, "every closed analysis kind must retain bounded cardinality");
+  assert.ok(finalCache.characters <= finalCache.maxCharactersPerKind * Object.keys(finalCache.byKind).length, "every closed analysis kind must retain bounded authority bytes");
+}
+
+function mutateCanonicalPlanSource(fixture) {
+  const entry = canonicalConsumer(fixture);
+  const planPath = `${FEATURE_ROOT}/${entry.claimSource.artifact}`;
+  const plan = fixtureRecord(fixture, planPath);
+  plan.text = `${plan.text}\n<!-- cache-authority-plan-mutation -->\n`;
+}
+
+function mutateCanonicalExecutableSource(fixture) {
+  const entry = canonicalConsumer(fixture);
+  const source = fixtureRecord(fixture, entry.causalBindings[0].consumer.path);
+  source.text = `${source.text}\n// cache-authority-source-mutation\n`;
+}
+
+function assertDerivedConsumerContractCacheSafety(verifier) {
+  const cache = verifier.createSpec008ScopeClaimsAnalysisCache();
+  verifier.analysisCache = cache;
+  const first = createCanonicalManifestFixture();
+  assertExactScopeClaimsResult(verifyFixture(verifier, first));
+  const afterFirst = cache.snapshot();
+  assert.equal(afterFirst.byKind.derivedConsumerContract.misses, 24, "first canonical run must derive each of the 24 consumer contracts once");
+  assert.equal(afterFirst.byKind.derivedConsumerContract.stores, 24, "first canonical run must retain every derived consumer contract");
+
+  const repeated = createCanonicalManifestFixture();
+  assertExactScopeClaimsResult(verifyFixture(verifier, repeated));
+  const afterRepeated = cache.snapshot();
+  assert.equal(afterRepeated.byKind.derivedConsumerContract.misses, afterFirst.byKind.derivedConsumerContract.misses, "unchanged plan/source authority must not rederive contracts");
+  assert.equal(afterRepeated.byKind.derivedConsumerContract.hits - afterFirst.byKind.derivedConsumerContract.hits, 24, "unchanged authority must reuse all 24 derived contracts");
+
+  for (const mutate of [mutateCanonicalPlanSource, mutateCanonicalExecutableSource]) {
+    const changed = createCanonicalManifestFixture();
+    mutate(changed);
+    const beforeChanged = cache.snapshot();
+    assertExactScopeClaimsResult(verifyFixture(verifier, changed));
+    const afterChanged = cache.snapshot();
+    assert.ok(afterChanged.byKind.derivedConsumerContract.misses > beforeChanged.byKind.derivedConsumerContract.misses, "changed plan/source authority must miss and derive or refuse anew");
+  }
+
+  const manifestCache = verifier.createSpec008ScopeClaimsAnalysisCache();
+  verifier.analysisCache = manifestCache;
+  assertExactScopeClaimsResult(verifyFixture(verifier, createCanonicalManifestFixture()));
+  const manifestOnly = createCanonicalManifestFixture();
+  const candidates = manifestOnly.manifest.entries.filter((entry) =>
+    entry.kind === "consumer" && entry.aliases.mode === "none" && entry.causalBindings.length === 1
+  );
+  assert.ok(candidates.length >= 2, "canonical authority must expose two structurally valid manifest projections");
+  const [target, donor] = candidates;
+  const binding = structuredClone(donor.causalBindings[0]);
+  binding.bindingId = `SCOPE-${target.scopeId}-MANIFEST-ONLY-DIVERGENCE`;
+  target.causalBindings = [binding];
+  target.canonicalProducers = [structuredClone(binding.producer)];
+  target.consumerSurfaces = [structuredClone(binding.consumer)];
+  target.testCarriers = [structuredClone(binding.test)];
+  target.aliases.scanSurfaces = [...new Set([binding.producer.path, binding.consumer.path, binding.test.path])].sort();
+  const beforeManifest = manifestCache.snapshot();
+  const manifestRefusal = captureScopeClaimsRefusal(verifier, manifestOnly);
+  assert.equal(manifestRefusal.refusal.refusalCode, verifier.SCOPE_CLAIMS_REFUSAL_V2.CAUSAL_BINDING_DISCONNECTED);
+  const afterManifest = manifestCache.snapshot();
+  assert.equal(afterManifest.byKind.derivedConsumerContract.misses, beforeManifest.byKind.derivedConsumerContract.misses, "manifest-only drift must not change the authority cache key");
+  assert.ok(afterManifest.byKind.derivedConsumerContract.hits > beforeManifest.byKind.derivedConsumerContract.hits, "manifest-only drift must still compare against cached plan/source authority");
+
+  verifier.analysisCache = cache;
+  const physical = createPhysicalScopeClaimsFixture();
+  try {
+    assertExactScopeClaimsResult(verifyFixture(verifier, physical));
+    const outside = join(physical.physicalRoot, "cache-safety-outside.mjs");
+    writeFileSync(outside, "export const scope03Boundary = true;\n");
+    replacePhysicalPathWithSymlink(physical, "owned/scope-03.mjs", outside);
+    const physicalRefusal = captureScopeClaimsRefusal(verifier, physical);
+    assert.equal(physicalRefusal.refusal.refusalCode, verifier.SCOPE_CLAIMS_REFUSAL_V2.PATH_REPOSITORY_ESCAPE, "physical path authority must be rechecked despite cached text analyses");
+  } finally {
+    physical.cleanup();
   }
 }
 
@@ -1768,6 +1979,7 @@ function mutationCausalityProblems({ entry, mutant, applications }) {
 
 test("Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing", async (t) => {
   const scopeClaimsVerifier = await loadScopeClaimsVerifier();
+  assertDerivedConsumerContractCacheSafety(scopeClaimsVerifier);
   assertScopeClaimsAdversarialContract(scopeClaimsVerifier);
 
   const workspace = mkdtempSync(join(tmpdir(), "rl-scope28-"));

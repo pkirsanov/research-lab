@@ -97,6 +97,7 @@ No analytical canvas is added in this scope. Responsive pixel/box checks prove t
 | `rlnav.js` | No edit in this scope; return strip remains unavailable until final shared integration | Route-local return fallback to `#brief` is tested without claiming shared strip behavior |
 | Privacy inventory | Completion/dismissal/clear effects and excluded sources match stored minimal records | Functional inventory/composition parity |
 | Generic Market Brief copy | Attributed evidence may display; local command uses closed research verb | Functional and UI forbidden-language scan |
+| SCN-008-008 connected output authority | `rankResearchActions()` → `renderBrief()` → `#briefLanes` | TP-06-10 exact title `Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible` exercises the production clear path and asserts that the rendered `inferredRelevance` lane contains zero items after recomposition. The legacy `briefClearHistory` token names the initiating control, not the connected ranking output, so this current-source graph is authoritative. TP-06-09 remains the separate lifecycle-outcome carrier and cannot satisfy this ranking binding. |
 
 ## Change Boundary And Rollback
 

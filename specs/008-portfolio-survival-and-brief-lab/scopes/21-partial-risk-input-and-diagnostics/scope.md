@@ -59,6 +59,7 @@ Scenario: A portfolio combines weight-only listed assets cash and a manual alter
 
 | Consumer | Required proof |
 |---|---|
+| Risk diagnostic causal authority: `riskXRayProjection` → `riskProjection` → `appendRiskXRay` → `#riskXray` | TP-21-03 exact title `Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth` reads `#riskXray` and its `#riskStructuredDiagnostics` subtree, then asserts the partial route state, per-metric eligibility and coverage, exact-date CAGR, raw/conditioned covariance distinction, no automatic lambda increase, and identical Simple/Power structured output. |
 | Risk X-Ray Simple and Power | Both render identical eligibility, coverage, covariance, factor, and reconciliation states. |
 | Path, dependence, hedge, and allocation foundations | Typed aligned-return, covariance, and eligibility outputs remain consumable without route-local repair. |
 | Dossier diagnostics | Raw and conditioned identities, exclusions, and uncertainty remain attributable. |
@@ -74,7 +75,7 @@ The consumer-facing surface is the `portfolio-survival-allocation-lab.html#risk-
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Four rows have authored current declarations, including exact TP-21-01 through TP-21-04 titles in their named files. TP-21-05 remains an aggregate planned carrier because the named selftest file has no exact TP-21-05 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

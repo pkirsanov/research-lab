@@ -3,11 +3,11 @@
     "version": 1,
     "spec": "specs/008-portfolio-survival-and-brief-lab",
     "featureDir": "specs/008-portfolio-survival-and-brief-lab",
-    "generatedAt": "2026-08-20T15:34:33Z",
+    "generatedAt": "2026-08-31T10:34:32Z",
     "generatedBy": "bubbles.plan",
     "planningStatus": "p1-synchronized-remediation-ready",
     "scenarioCount": 55,
-    "remediationPlanNote": "SCN-008-042 through SCN-008-055 are authoritative contracts with separate authorship and execution truth. linkedTests contains authored declarations only; linkedTestContracts also retains exact planned declarations with planStatus planned-not-authored until created. SCN-008-055 has authored functional and E2E declarations owned by Scope 29, but no authorship change records execution. SCN-008-044 is deliberately retained as planned-not-authored: its title exists at tests/portfolio-survival-brief.spec.mjs:661 but the test fails at committed HEAD, so it is not yet a satisfied contract.",
+    "remediationPlanNote": "SCN-008-042 through SCN-008-055 are authoritative contracts with separate authorship and execution truth. linkedTests and linkedTestContracts identify current declarations; planStatus is authored only when the named file and exact executable title exist. SCN-008-036 links TP-16-13a, TP-16-13b, and TP-16-14 in the required order, with executionStatus retained as planned-not-executed. SCN-008-044 and SCN-008-053 exact browser titles are authored on current bytes. SCN-008-054 links authored TP-28 carriers without granting current execution credit. SCN-008-055 retains Scope 29 ownership. This reconciliation infers no pass or completion from file presence or prior receipts.",
     "scenarios": [
         {
             "id": "SCN-008-001",
@@ -1430,13 +1430,58 @@
             "lockdown": {
                 "state": "unlocked"
             },
+            "testRows": [
+                "TP-16-01",
+                "TP-16-02",
+                "TP-16-03",
+                "TP-16-04",
+                "TP-16-05",
+                "TP-16-06",
+                "TP-16-07",
+                "TP-16-08",
+                "TP-16-09",
+                "TP-16-10",
+                "TP-16-11",
+                "TP-16-13a",
+                "TP-16-13b",
+                "TP-16-14"
+            ],
             "linkedTests": [
-                "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity"
+                "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity",
+                "scripts/selftest.mjs",
+                "tests/provider-credentials.spec.mjs",
+                "tests/portfolio-release-rollback.integration.mjs#Regression: TP-16-14 SCN-008-036 disposable shared-release rollback and restore preserve exact bytes and existing consumers"
             ],
             "linkedTestContracts": [
                 {
                     "file": "tests/portfolio-survival-mobile.spec.mjs",
-                    "testId": "Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity"
+                    "testId": "Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity",
+                    "testPlanRow": "TP-16-05",
+                    "planStatus": "authored",
+                    "executionStatus": "planned-not-executed"
+                },
+                {
+                    "file": "scripts/selftest.mjs",
+                    "testPlanRow": "TP-16-13a",
+                    "planStatus": "authored",
+                    "executionStatus": "planned-not-executed",
+                    "requiredOrder": "after the additive Scope 16 shared-surface insertions and before TP-16-10 and TP-16-11"
+                },
+                {
+                    "file": "tests/provider-credentials.spec.mjs",
+                    "testPlanRow": "TP-16-13b",
+                    "planStatus": "authored",
+                    "executionStatus": "planned-not-executed",
+                    "requiredOrder": "after the additive Scope 16 shared-surface insertions and before TP-16-10 and TP-16-11"
+                },
+                {
+                    "file": "tests/portfolio-release-rollback.integration.mjs",
+                    "fileState": "existing",
+                    "testId": "Regression: TP-16-14 SCN-008-036 disposable shared-release rollback and restore preserve exact bytes and existing consumers",
+                    "testPlanRow": "TP-16-14",
+                    "planStatus": "authored",
+                    "executionStatus": "planned-not-executed",
+                    "requiredOrder": "after TP-16-13b and before TP-16-10 and TP-16-11"
                 }
             ],
             "expectedAssertions": [
@@ -1782,7 +1827,7 @@
             "implementationRefs": ["rlportfolio.js", "rlportfoliobrief.js", "portfolio-survival-allocation-lab.html"],
             "testRows": ["TP-18-01", "TP-18-02", "TP-18-03", "TP-18-04", "TP-18-05"],
             "linkedTests": ["tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection"],
-            "linkedTestContracts": [{"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection", "testPlanRow": "TP-18-03", "planStatus": "planned-not-authored"}],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-brief.spec.mjs", "testId": "Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection", "testPlanRow": "TP-18-03", "planStatus": "authored"}],
             "expectedAssertions": ["only semantic duplicates collapse", "future events do not gain weight", "all consumers expose one ranked identity set"],
             "evidenceRefs": ["scopes/18-behavior-identity-and-ranking-foundation/report.md#scenario-contract-evidence"],
             "lockdown": {"state": "unlocked"},
@@ -2147,7 +2192,7 @@
             "implementationRefs": ["portfolio-survival-allocation-lab.html"],
             "testRows": ["TP-27-01", "TP-27-02", "TP-27-03", "TP-27-04", "TP-27-05"],
             "linkedTests": ["tests/portfolio-survival-accessibility.spec.mjs#Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete", "tests/portfolio-survival-accessibility.spec.mjs#Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision", "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow"],
-            "linkedTestContracts": [{"file": "tests/portfolio-survival-accessibility.spec.mjs", "testId": "Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete", "testPlanRow": "TP-27-01", "planStatus": "planned-not-authored"}, {"file": "tests/portfolio-survival-accessibility.spec.mjs", "testId": "Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision", "testPlanRow": "TP-27-02", "planStatus": "planned-not-authored"}, {"file": "tests/portfolio-survival-mobile.spec.mjs", "testId": "Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow", "testPlanRow": "TP-27-03", "planStatus": "planned-not-authored"}],
+            "linkedTestContracts": [{"file": "tests/portfolio-survival-accessibility.spec.mjs", "testId": "Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete", "testPlanRow": "TP-27-01", "planStatus": "authored"}, {"file": "tests/portfolio-survival-accessibility.spec.mjs", "testId": "Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision", "testPlanRow": "TP-27-02", "planStatus": "authored"}, {"file": "tests/portfolio-survival-mobile.spec.mjs", "testId": "Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow", "testPlanRow": "TP-27-03", "planStatus": "authored"}],
             "expectedAssertions": ["all keyboard and modal semantics are deterministic", "chart decisions have equivalent tables", "all preference and viewport modes remain overlap-free"],
             "evidenceRefs": ["scopes/27-accessible-six-tab-interaction/report.md#scenario-contract-evidence"],
             "lockdown": {"state": "unlocked"},

@@ -61,7 +61,7 @@ Scenario: A reader opens Feature 008 from every published repository surface
 
 ## Test Plan
 
-TP-29-01 and TP-29-05 are authored in the existing foreign-owned functional carrier, and TP-29-02 is authored in the concurrently changed foreign-owned E2E carrier. Existing generic script paths do not by themselves establish TP-29-03 or TP-29-04 assertions. Every TP-29 row remains planned-not-executed while this scope is Not Started; this planning reconciliation records authorship only.
+TP-29-01, TP-29-02, and TP-29-05 have authored exact declarations in their named carriers. TP-29-03 and TP-29-04 remain aggregate planned carriers because file existence alone does not establish a scope-specific executable title. Every TP-29 row remains planned-not-executed in structured plan metadata; this reconciliation records authorship only.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

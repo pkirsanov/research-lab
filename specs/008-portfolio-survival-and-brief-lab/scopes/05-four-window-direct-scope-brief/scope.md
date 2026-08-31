@@ -94,6 +94,7 @@ No canvas is introduced in this brief-only scope. Canvas pixel/table parity begi
 | Existing owner tools | Fixed public route/hash only; no specialist formula duplicated | `tools.json` route validation and browser request/deep-link ledger |
 | Local privacy inventory | Behavior floor, event counts, direct/inferred source and queue suppression remain inspectable | Functional composition/inventory parity |
 | Route hashes | `#brief` is public; no subject, ticker, portfolio id, amount, parameter, or inference appears | Browser history/location/referrer assertions |
+| SCN-008-006 connected output authority | `composeBrief()` → `renderBrief()` → `#briefTimes` | TP-05-02 exact title `Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time` observes the rendered window, cutoff, publication time, and composition time. |
 
 ## Change Boundary And Rollback
 

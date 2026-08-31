@@ -66,6 +66,10 @@ Scenario: A user audits and corrects a cost-aware walk-forward allocation dossie
 
 The consumer-facing surface is the `portfolio-survival-allocation-lab.html#dossier` deep link (`workspaceTabDossier`), which reload restores directly. The sweep is a stale-reference scan confirming that hash, its tab id, and the ledger record field names stay identical for the allocation, stress, view, and hedge trial writers.
 
+| Causal binding | Executable assertion |
+|---|---|
+| Persisted dossier audit causal authority: `scope25SavedDossier` → `appendScope25Audit` → `#dossierRecordTable` | TP-25-03 exact title `Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export` reads `#dossierRecordTable` before and after reload, correction, and export, then asserts the prior record prefix remains unchanged while correction and export-receipt records append under new audit heads. |
+
 ## UI Scenario Matrix
 
 | Scenario | Preconditions | Steps | Expected | Test Type |
@@ -76,7 +80,7 @@ The consumer-facing surface is the `portfolio-survival-allocation-lab.html#dossi
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Four rows have authored current declarations, including exact TP-25-01 through TP-25-04 titles in their named files. TP-25-05 remains an aggregate planned carrier because the named selftest file has no exact TP-25-05 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

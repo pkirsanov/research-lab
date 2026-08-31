@@ -60,6 +60,7 @@ Scenario: Portfolio Brief composes a DST-boundary window from generic evidence a
 
 | Consumer | Required proof |
 |---|---|
+| `composePortfolioBrief` → `renderBrief` → `#briefIdentity` | TP-20-03 exact title `Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent` asserts that `#briefIdentity` carries the accepted generic evidence identity, then verifies five-source composition, the global cap, Why-shown identity parity, and last-valid preservation. |
 | Generic snapshot, payload, history, watchlist, and owner reads | Every required identity enters one validated local projection without personal publication. |
 | Browser and CommonJS consumers | All eight functions expose identical frozen behavior and closed error shapes. |
 | Brief lanes, Why shown, and lifecycle controls | One queue order, cap, stale policy, and last-valid identity remain consistent. |
@@ -77,7 +78,7 @@ The consumer surfaces are the `rlportfoliobrief.js` API client — the same eigh
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Four rows have authored current declarations, including the exact TP-20-01, TP-20-02, TP-20-03, and TP-20-04 carriers. TP-20-05 remains an aggregate planned carrier because the named selftest file has no exact TP-20-05 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

@@ -68,6 +68,10 @@ One contract effect is real. Implementation item 1 reconciles `ScenarioSpecifica
 | Allocation and hedge comparison | Common path IDs, cash-flow timing, costs, and uncertainty remain reusable. |
 | Dossier records | Scenario, calibration, cancellation, and distribution identities remain complete and reproducible. |
 
+| Causal binding | Executable assertion |
+|---|---|
+| Scenario distribution causal authority: `runScenarioJob` → `startPathScenario` → `appendPathLab` → `#pathDistributionSet` | TP-22-03 exact title `Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path` reads `#pathDistributionSet` after the matching scenario job publishes, then asserts the distribution contract and its conditional-path, parameter-marginal, combined, terminal-wealth, drawdown, and cash-need outcomes. |
+
 **Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface for this scope. The only deep links are those fixed hashes, and Path Lab's hash is unchanged by the hardcoding removal above. A stale-reference scan therefore has no first-party target outside the rows above.
 
 ## UI Scenario Matrix
@@ -81,7 +85,7 @@ One contract effect is real. Implementation item 1 reconciles `ScenarioSpecifica
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Five rows have authored current declarations, including exact TP-22-01 through TP-22-05 titles in their named files. TP-22-06 remains an aggregate planned carrier because the named selftest file has no exact TP-22-06 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

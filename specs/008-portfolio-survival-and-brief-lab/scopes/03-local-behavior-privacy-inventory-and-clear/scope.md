@@ -91,8 +91,41 @@ Scenario: SCN-008-012 - The local ranking model evaluates user activity
 | Behavior-history consumers in `rlportfolio.js` | Clearing history must remove its influence without touching portfolio or mandate state | Portfolio and mandate hashes and storage generation are asserted preserved after a clear |
 | `portfolio-survival-allocation.config.json` policy keys | New behavior/clear policy keys are added to the exact-key set | The exact-key validator rejects any undeclared key |
 | `specs/_bugs/BUG-008-fx-route-claims-unregistered/report.md` | Evidence text redacted to a sanctioned home-path segment | `pii-scan` returns zero findings; the redaction preserves the evidence shape and meaning |
+| `privacyInventory` → `renderPrivacyCategories` → `#privacyCategoryRows` | The exported inventory computes the closed personal-category counts and the route renderer projects those counts into the privacy category list. | TP-03-04 exact title `Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio` |
 
 **Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface here; Feature 008 is registered once, in Scope 16. The only deep links are those fixed hashes, which this scope does not change. A stale-reference scan therefore has no first-party target outside the rows above.
+
+### Legacy Alias Origins
+
+Owning consumer claim: `SCOPE-03-CONSUMER-CLAIM`.
+
+This origin proves that the committed v1 authority declared the alias. It does not claim that the alias was a shipped runtime producer.
+
+The single `json` fence below is the machine-readable authority. The parser must reject missing or extra keys. It must require each `Alias:` marker to match the corresponding `values[].identity` in order. It must pass the object unchanged into Scope 28's closed `aliases` union.
+
+- Alias: `BehaviorProfile/v1`
+
+```json
+{
+  "mode": "declared",
+  "values": [
+    {
+      "identity": "BehaviorProfile/v1",
+      "origin": {
+        "kind": "commit",
+        "commit": "6c84913a907b48aebac3b2e77cdbab346a9bce25",
+        "path": "scripts/spec008-scope-claims.json",
+        "identity": "BehaviorProfile/v1"
+      },
+      "scanSurfaces": [
+        "portfolio-survival-allocation-lab.html",
+        "rlportfolio.js",
+        "tests/portfolio-survival-foundation.spec.mjs"
+      ]
+    }
+  ]
+}
+```
 
 ## Scenario-First Red/Green Contract
 

@@ -102,6 +102,7 @@ One consumer effect here is real and is recorded rather than smoothed over. Addi
 
 | Consumer surface this scope touches | Why it is touched | Regression check |
 |---|---|---|
+| Path identity causal authority | `runScenarioJob` → `startPathScenario` → `appendPathLab` → `#pathIdentity` | TP-09-02 exact title `Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths` reads `#pathIdentity`, reopens Path Lab, and asserts that the rendered identity equals the first value while exposing the contract, seed, block, and horizon fields. |
 | Path Lab route regions and controls | Scenario controls, identity band, path fan, uncertainty bands, progress and cancel are added to the existing tab | The scope's focused browser rows drive the real route, including obsolete-token cancellation and last-valid preservation |
 | `rlportfolioanalytics.js` path/scenario region | New `mulberry32`, index generation, parameter grid, and `ScenarioSpecification/v1` validation exports | Independently checked index and path hashes; deterministic-repeat mutations must fail a pass-through |
 | Workspace schema in `rlportfolio.js` — the `scenarios` slot only | A saved scenario must survive a reload and be swept by the existing full-personal clear; storing it outside the workspace would create a top-level key the clear would miss | SCN-008-038 asserts the clear empties stored scenarios; `slotA`/`slotB` are already on the clear list |

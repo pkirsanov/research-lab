@@ -136,32 +136,32 @@ Scope 28 owns SCN-008-054 and the exact test-integrity audit of carriers owned t
 |---|-------|------|------------|------------------|------------------|--------|
 | 01 | [Private Portfolio Import And Atomic Store](01-private-portfolio-import-and-atomic-store/scope.md) | `foundation:true` | - | SCN-008-001, SCN-008-002 | config, `rlportfolio.js`, setup route, fixtures | Done |
 | 02 | [Mandate And Cash-Need Authority](02-mandate-and-cash-need-authority/scope.md) | `foundation:true` | 01 | SCN-008-003, SCN-008-004 | private contracts, mandate editor, route states | Done |
-| 03 | [Local Behavior, Privacy Inventory, And Clear](03-local-behavior-privacy-inventory-and-clear/scope.md) | `foundation:true` | 02 | SCN-008-011, SCN-008-012 | private store, privacy UI, lifecycle fixtures | Done |
-| 04 | [Public Evidence Barrier And Coverage](04-public-evidence-barrier-and-coverage/scope.md) | `foundation:true` | 03 | SCN-008-005, SCN-008-035 | `rldata.js`, generic evidence, privacy boundary, partial truth | Done |
-| 05 | [Four-Window Direct-Scope Brief](05-four-window-direct-scope-brief/scope.md) | `overlay:brief` | 04 | SCN-008-006, SCN-008-007, SCN-008-010 | `rlportfoliobrief.js`, Brief tab, four-window fixtures | Done |
-| 06 | [Explainable Research Action Lifecycle](06-explainable-research-action-lifecycle/scope.md) | `overlay:brief` | 05 | SCN-008-008, SCN-008-009, SCN-008-034, SCN-008-037 | brief composer, why-shown UI, action lifecycle | Done |
-| 07 | [Return And Drawdown X-Ray](07-return-and-drawdown-x-ray/scope.md) | `overlay:risk` | 06 | SCN-008-013, SCN-008-014 | analytics, Risk X-Ray route, chart/table | Done |
-| 08 | [Concentration CAPM And Risk Contribution](08-concentration-capm-and-risk-contribution/scope.md) | `overlay:risk` | 07 | SCN-008-015, SCN-008-016, SCN-008-017 | analytics, Risk X-Ray Simple/Power | Done |
-| 09 | [Dependent Path Reproducibility](09-dependent-path-reproducibility/scope.md) | `overlay:paths` | 08 | SCN-008-018, SCN-008-019, SCN-008-038 | analytics, Path Lab, path chart/table | Done |
-| 10 | [Dated Cash Needs And Survival States](10-dated-cash-needs-and-survival-states/scope.md) | `overlay:paths` | 09 | SCN-008-020, SCN-008-021 | analytics, Path Lab timeline and states | Done |
-| 11 | [Stress Tail And Alternative Dependence](11-stress-tail-and-alternative-dependence/scope.md) | `overlay:diversification` | 10 | SCN-008-022, SCN-008-023, SCN-008-024 | analytics, Diversification matrix/table | Done |
-| 12 | [Hedge Variant Research](12-hedge-variant-research/scope.md) | `overlay:diversification` | 11 | SCN-008-025 | analytics, hedge comparison UI | Done |
-| 13 | [Six-Method Allocation Basis And Feasibility](13-six-method-allocation-basis-and-feasibility/scope.md) | `overlay:allocation` | 12 | SCN-008-026, SCN-008-027, SCN-008-029, SCN-008-039 | analytics, Allocation Comparison | Done |
-| 14 | [Allocation Sensitivity And Explicit Black-Litterman](14-allocation-sensitivity-and-explicit-black-litterman/scope.md) | `overlay:allocation` | 13 | SCN-008-028, SCN-008-030 | analytics, sensitivity UI, BL editor | Done |
-| 15 | [Walk-Forward Research Dossier And Claim Boundaries](15-walk-forward-research-dossier-and-claim-boundaries/scope.md) | `overlay:dossier` | 14 | SCN-008-031, SCN-008-032, SCN-008-033, SCN-008-040 | analytics, dossier store/UI, claim validators | Done |
-| 16 | [Integrated Route Accessibility And Atomic Release](16-integrated-route-accessibility-and-atomic-release/scope.md) | `release:atomic` | 15 | SCN-008-036, SCN-008-041 | six-tab route, mobile/a11y, `rlnav.js`, registries, notes | Done |
-| 17 | [Local Lifecycle And Verified Clear Foundation](17-local-lifecycle-and-verified-clear-foundation/scope.md) | `foundation:true`, `remediation` | 16 | SCN-008-042, SCN-008-043 | store, editor, privacy, controller state | Done |
-| 18 | [Behavior Identity And Ranking Foundation](18-behavior-identity-and-ranking-foundation/scope.md) | `foundation:true`, `remediation` | 17 | SCN-008-044 | store, brief composer, Why shown, ranking | Done |
-| 19 | [Coverage-Aware Market Data Foundation](19-coverage-aware-market-data-foundation/scope.md) | `foundation:true`, `shared-infrastructure` | 18 | SCN-008-045 | `rldata.js`, coverage fixtures, provider canaries | Done |
-| 20 | [Generic Evidence Brief Policy And API](20-generic-evidence-brief-policy-and-api/scope.md) | `overlay:brief` | 19 | SCN-008-046 | generic evidence, brief API/policy, route | Done |
-| 21 | [Partial Risk Input And Diagnostics](21-partial-risk-input-and-diagnostics/scope.md) | `overlay:risk` | 20 | SCN-008-047 | analytics, Risk X-Ray Simple/Power | Done |
-| 22 | [Scenario Contract And Survival Distributions](22-scenario-contract-and-survival-distributions/scope.md) | `overlay:paths` | 21 | SCN-008-048 | analytics, Path Lab, compute lifecycle | Done |
-| 23 | [Stress Dependence And Hedge Effectiveness](23-stress-dependence-and-hedge-effectiveness/scope.md) | `overlay:diversification` | 22 | SCN-008-049 | dependence, alternatives, hedge, common paths | Done |
-| 24 | [Complete Allocation And Explicit Views](24-complete-allocation-and-explicit-views/scope.md) | `overlay:allocation` | 23 | SCN-008-050 | constrained solvers, BL editor, sensitivity | Done |
-| 25 | [Decision-Time Dossier And Immutable Audit](25-decision-time-dossier-and-immutable-audit/scope.md) | `overlay:dossier` | 24 | SCN-008-051 | walk-forward, costs/trials, dossier store/export | Done |
-| 26 | [Immutable Workspace Compute And Navigation](26-immutable-workspace-compute-and-navigation/scope.md) | `integration:workspace` | 25 | SCN-008-052 | controller, view model, ReturnContext, `rlnav.js` | Done |
-| 27 | [Accessible Six-Tab Interaction](27-accessible-six-tab-interaction/scope.md) | `integration:accessibility` | 26 | SCN-008-053 | route accessibility and responsive behavior | Done |
-| 28 | [Spec-Driven Adversarial Test Replacement](28-spec-driven-adversarial-test-replacement/scope.md) | `test-integrity` | 27 | SCN-008-054 plus all authoritative scenarios | Feature 008 tests, fixtures, support server, validators | Done |
+| 03 | [Local Behavior, Privacy Inventory, And Clear](03-local-behavior-privacy-inventory-and-clear/scope.md) | `foundation:true` | 02 | SCN-008-011, SCN-008-012 | private store, privacy UI, lifecycle fixtures | In Progress |
+| 04 | [Public Evidence Barrier And Coverage](04-public-evidence-barrier-and-coverage/scope.md) | `foundation:true` | 03 | SCN-008-005, SCN-008-035 | `rldata.js`, generic evidence, privacy boundary, partial truth | In Progress |
+| 05 | [Four-Window Direct-Scope Brief](05-four-window-direct-scope-brief/scope.md) | `overlay:brief` | 04 | SCN-008-006, SCN-008-007, SCN-008-010 | `rlportfoliobrief.js`, Brief tab, four-window fixtures | In Progress |
+| 06 | [Explainable Research Action Lifecycle](06-explainable-research-action-lifecycle/scope.md) | `overlay:brief` | 05 | SCN-008-008, SCN-008-009, SCN-008-034, SCN-008-037 | brief composer, why-shown UI, action lifecycle | In Progress |
+| 07 | [Return And Drawdown X-Ray](07-return-and-drawdown-x-ray/scope.md) | `overlay:risk` | 06 | SCN-008-013, SCN-008-014 | analytics, Risk X-Ray route, chart/table | In Progress |
+| 08 | [Concentration CAPM And Risk Contribution](08-concentration-capm-and-risk-contribution/scope.md) | `overlay:risk` | 07 | SCN-008-015, SCN-008-016, SCN-008-017 | analytics, Risk X-Ray Simple/Power | In Progress |
+| 09 | [Dependent Path Reproducibility](09-dependent-path-reproducibility/scope.md) | `overlay:paths` | 08 | SCN-008-018, SCN-008-019, SCN-008-038 | analytics, Path Lab, path chart/table | In Progress |
+| 10 | [Dated Cash Needs And Survival States](10-dated-cash-needs-and-survival-states/scope.md) | `overlay:paths` | 09 | SCN-008-020, SCN-008-021 | analytics, Path Lab timeline and states | In Progress |
+| 11 | [Stress Tail And Alternative Dependence](11-stress-tail-and-alternative-dependence/scope.md) | `overlay:diversification` | 10 | SCN-008-022, SCN-008-023, SCN-008-024 | analytics, Diversification matrix/table | In Progress |
+| 12 | [Hedge Variant Research](12-hedge-variant-research/scope.md) | `overlay:diversification` | 11 | SCN-008-025 | analytics, hedge comparison UI | In Progress |
+| 13 | [Six-Method Allocation Basis And Feasibility](13-six-method-allocation-basis-and-feasibility/scope.md) | `overlay:allocation` | 12 | SCN-008-026, SCN-008-027, SCN-008-029, SCN-008-039 | analytics, Allocation Comparison | In Progress |
+| 14 | [Allocation Sensitivity And Explicit Black-Litterman](14-allocation-sensitivity-and-explicit-black-litterman/scope.md) | `overlay:allocation` | 13 | SCN-008-028, SCN-008-030 | analytics, sensitivity UI, BL editor | In Progress |
+| 15 | [Walk-Forward Research Dossier And Claim Boundaries](15-walk-forward-research-dossier-and-claim-boundaries/scope.md) | `overlay:dossier` | 14 | SCN-008-031, SCN-008-032, SCN-008-033, SCN-008-040 | analytics, dossier store/UI, claim validators | In Progress |
+| 16 | [Integrated Route Accessibility And Atomic Release](16-integrated-route-accessibility-and-atomic-release/scope.md) | `release:atomic` | 15 | SCN-008-036, SCN-008-041 | six-tab route, mobile/a11y, `rlnav.js`, registries, notes | In Progress |
+| 17 | [Local Lifecycle And Verified Clear Foundation](17-local-lifecycle-and-verified-clear-foundation/scope.md) | `foundation:true`, `remediation` | 16 | SCN-008-042, SCN-008-043 | store, editor, privacy, controller state | In Progress |
+| 18 | [Behavior Identity And Ranking Foundation](18-behavior-identity-and-ranking-foundation/scope.md) | `foundation:true`, `remediation` | 17 | SCN-008-044 | store, brief composer, Why shown, ranking | In Progress |
+| 19 | [Coverage-Aware Market Data Foundation](19-coverage-aware-market-data-foundation/scope.md) | `foundation:true`, `shared-infrastructure` | 18 | SCN-008-045 | `rldata.js`, coverage fixtures, provider canaries | In Progress |
+| 20 | [Generic Evidence Brief Policy And API](20-generic-evidence-brief-policy-and-api/scope.md) | `overlay:brief` | 19 | SCN-008-046 | generic evidence, brief API/policy, route | In Progress |
+| 21 | [Partial Risk Input And Diagnostics](21-partial-risk-input-and-diagnostics/scope.md) | `overlay:risk` | 20 | SCN-008-047 | analytics, Risk X-Ray Simple/Power | In Progress |
+| 22 | [Scenario Contract And Survival Distributions](22-scenario-contract-and-survival-distributions/scope.md) | `overlay:paths` | 21 | SCN-008-048 | analytics, Path Lab, compute lifecycle | In Progress |
+| 23 | [Stress Dependence And Hedge Effectiveness](23-stress-dependence-and-hedge-effectiveness/scope.md) | `overlay:diversification` | 22 | SCN-008-049 | dependence, alternatives, hedge, common paths | In Progress |
+| 24 | [Complete Allocation And Explicit Views](24-complete-allocation-and-explicit-views/scope.md) | `overlay:allocation` | 23 | SCN-008-050 | constrained solvers, BL editor, sensitivity | In Progress |
+| 25 | [Decision-Time Dossier And Immutable Audit](25-decision-time-dossier-and-immutable-audit/scope.md) | `overlay:dossier` | 24 | SCN-008-051 | walk-forward, costs/trials, dossier store/export | In Progress |
+| 26 | [Immutable Workspace Compute And Navigation](26-immutable-workspace-compute-and-navigation/scope.md) | `integration:workspace` | 25 | SCN-008-052 | controller, view model, ReturnContext, `rlnav.js` | In Progress |
+| 27 | [Accessible Six-Tab Interaction](27-accessible-six-tab-interaction/scope.md) | `integration:accessibility` | 26 | SCN-008-053 | route accessibility and responsive behavior | In Progress |
+| 28 | [Spec-Driven Adversarial Test Replacement](28-spec-driven-adversarial-test-replacement/scope.md) | `test-integrity` | 27 | SCN-008-054 plus all authoritative scenarios | Feature 008 tests, fixtures, support server, validators | In Progress |
 | 29 | [Documentation And Registry Truth](29-documentation-and-registry-truth/scope.md) | `docs-integration` | 28 | SCN-008-055 | note, tools, index, rlnav, README | Done |
 
 ## Authoritative Scenario Distribution - 55 Current Contracts
@@ -190,7 +190,7 @@ The first table preserves the 41 authoritative contracts and historical Scope 01
 
 ### Remediation Scenario Ownership
 
-These stable IDs are authoritative manifest entries. Each has one owning remediation scope, exact planned test bindings, scenario-derived obligations, and a scope-local evidence target. Authoring and execution state is recorded per owning scope rather than inferred from this index. Scope 27 retains TP-27-01 through TP-27-04 as authored and TP-27-05 as an existing shared carrier, with its checked DoD items linked to the test-owned report. Scope 28 is `Done`; TP-28-04 and its in-memory injector support are authored and executed, while the disposable interception-based TP-27-04 control remains neither a persistent Scope 28 carrier nor live E2E evidence. This planning reconciliation creates no execution evidence.
+These stable IDs are authoritative manifest entries. Each has one owning remediation scope, exact planned test bindings, scenario-derived obligations, and a scope-local evidence target. Authoring and execution state is recorded per owning scope rather than inferred from this index. Scope 27 retains TP-27-01 through TP-27-04 as authored and TP-27-05 as an existing shared carrier, with execution credit owned by test and validation evidence. Scope 28 carrier authorship is reconciled from current files and exact executable titles; this planning reconciliation creates no execution evidence and does not infer execution credit from file existence or prior receipts. The disposable interception-based TP-27-04 control remains neither a persistent Scope 28 carrier nor live E2E evidence.
 
 | Scope | Scenario IDs | Exact purpose |
 |---|---|---|
@@ -332,12 +332,12 @@ The route remains directly testable and unregistered through Scopes 01-15. Scope
 
 ## Active Remediation Completion Gate
 
-Scope 27 is `Done`, matching its checked DoD and test-owned report links. Scope 28 is `Done` after its sole dependency, Scope 27, reached Done; Scope 29 is `Done` as the final execution site after Scopes 17-28 completed. Historical Scopes 01-16 remain Done records but cannot satisfy a repaired-behavior checkbox or current evidence row.
+Current scope headers are authoritative for this plan-owned mirror. Every scope with one or more unchecked DoD rows remains `In Progress`; no such scope may remain `Done` or be promoted while any DoD row is unchecked.
 
 Active completion requires all of the following:
 
 - A1, D1, and P1 remain resolved and their synchronized scenario, design, test, scope, index, and execution-routing mirrors remain coherent.
-- Scopes 17-29 are Done with every DoD item backed by current exact evidence and every audit finding accounted for by its sole owner.
+- Scopes 17-28 remain In Progress until every unchecked DoD row is resolved by its owning execution or validation authority; Scope 29 retains its current Done header.
 - Scenario/test-plan parity, declaration reachability, behavior obligations, traceability, artifact lint, scope context fit, regression quality, implementation reality, and repository selftest pass over the final authoritative scenario set.
 - Scope 28 proves each audited implementation/test defect is discriminating; old pass counts and reports remain historical context only.
 - Scope 29 proves all active public claims/links match executable behavior and `#brief`.

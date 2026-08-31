@@ -77,6 +77,7 @@ One internal replacement is real and is named rather than glossed. Implementatio
 
 | Consumer | Required proof |
 |---|---|
+| `currentRevision` → `renderCurrent` → `#currentRevision` | TP-17-03 exact title `Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio` reads `#currentRevision` after confirmation and reload, then asserts the revised holding count, the honest empty state, and the stable empty revision identity. |
 | Setup editor and import/export controls | Add, edit, remove, empty, confirm, reload, and export consume one immutable revision contract. |
 | Privacy sheet and inventory | The runtime-derived registry reports every durable, session, workspace, and controller category. |
 | Brief, risk, paths, allocation, and dossier tabs | A new revision supersedes prior result identities without rewriting them. |
@@ -95,7 +96,7 @@ One internal replacement is real and is named rather than glossed. Implementatio
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+All six rows have authored current carriers. Exact-title rows match the named files, and the aggregate selftest row has explicit TP-17-06 declarations. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

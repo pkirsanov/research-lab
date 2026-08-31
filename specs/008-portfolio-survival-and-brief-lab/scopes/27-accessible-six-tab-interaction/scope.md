@@ -61,6 +61,7 @@ Scenario: A keyboard and screen-reader user completes the portfolio workflow und
 | Mode and six-tab controls | Roving focus, activation, announcements, and active panels remain deterministic. |
 | Sheets, dialogs, tooltips, charts, and tables | Focus, semantics, equivalent content, and invoker restoration remain complete. |
 | Desktop, mobile, zoomed, spaced, reduced-motion, and forced-color projections | Every projection preserves the same identity, values, states, and conclusions. |
+| `applyDisplayMode` → `setRovingTabindex` → `#modeSimple` | TP-27-01 exact title `Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete` drives Arrow, Home, End, Enter, and Space, then observes the single roving tab stop and the selected mode's pressed state. |
 
 ## UI Scenario Matrix
 

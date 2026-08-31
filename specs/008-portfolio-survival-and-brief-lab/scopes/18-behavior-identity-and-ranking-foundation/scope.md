@@ -60,6 +60,7 @@ Scenario: Repeated completed research produces one consistent relevance result
 | Behavior store and privacy clear | Occurrences retain complete identities and remain clearable without changing explicit portfolio facts. |
 | Portfolio Brief and Why shown | Both consume the same rank result, reasons, and suppressed-action inventory. |
 | Route rows and dossier records | Action IDs, order, cutoff, and policy fingerprint remain identical across projections. |
+| `rankResearchActions` → `renderBrief` → `#briefLanes` | TP-18-03 exact title `Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection` reads the rendered action rows and proves their IDs, order, rank reasons, and ranking fingerprint match the canonical result across modes and reload. |
 
 This scope keeps every consumer identifier stable, so the sweep is a stale-reference scan over the two in-tool deep links the ranking result reaches — `portfolio-survival-allocation-lab.html#brief` (`workspaceTabBrief`) and `portfolio-survival-allocation-lab.html#dossier` (`workspaceTabDossier`) — confirming action IDs, reason keys, and the suppressed-action inventory resolve identically from both.
 
@@ -72,7 +73,7 @@ This scope keeps every consumer identifier stable, so the sweep is a stale-refer
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Four rows have authored current declarations, including TP-18-03's exact browser title. TP-18-05 remains an aggregate planned carrier because the named selftest file has no exact TP-18-05 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

@@ -67,6 +67,10 @@ Scenario: A user compares six allocations with exclusions cash leverage turnover
 
 The consumer-facing surface is the `portfolio-survival-allocation-lab.html#allocation` deep link (`workspaceTabAllocation`), which hosts the six method rows and the Black-Litterman view editor. The sweep is a stale-reference scan confirming that hash, its tab id, and the per-method result field names stay identical for the sensitivity and dossier consumers.
 
+| Causal binding | Executable assertion |
+|---|---|
+| Allocation comparison causal authority: `runAllocationComparison` → `allocationModel` → `appendAllocationComparison` → `#allocationTable` | TP-24-03 exact title `Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views` reads `#allocationTable` after explicit inputs and the view are applied, then asserts six method rows, one basis fingerprint, ERC and KKT diagnostics, shared paths, costs, survival outcomes, complete sensitivity, and the no-winner boundary. |
+
 ## UI Scenario Matrix
 
 | Scenario | Preconditions | Steps | Expected | Test Type |
@@ -78,7 +82,7 @@ The consumer-facing surface is the `portfolio-survival-allocation-lab.html#alloc
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Five rows have authored current declarations, including exact TP-24-01 through TP-24-05 titles in their named files. TP-24-06 remains an aggregate planned carrier because the named selftest file has no exact TP-24-06 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

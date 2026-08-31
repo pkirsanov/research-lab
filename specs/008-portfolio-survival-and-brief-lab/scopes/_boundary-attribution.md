@@ -27,6 +27,8 @@ The verifier checks containment twice. Lexical normalization must remain under t
 
 The parser reads this file directly by the exact `## Scope NN` heading and exact table header. It must not read a claim manifest, generated cache, allowed-family list, report path list, or implementation inventory to discover, expand, repair, or default registry rows. A manifest may supply authoring candidates only; it has no parsing or verification authority. Unknown headings inside the registry body, duplicate scope headings, duplicate tables, prose rows treated as data, unknown enum values, malformed marker pairs, undeclared cross-scope overlap, incomplete evolution chains, and any parser ambiguity fail closed before attribution succeeds.
 
+For consumer claims, this registry exhaustively attributes the participating identities but does not infer which test observes which consumer. The owning scope plan declares each exact producer-to-consumer-to-test causal binding; generated or implementation-owned manifest data cannot select or override that carrier.
+
 ## Scope 03
 
 | Path | Identity Kind | Identity | Role | Ownership Mode | Chain ID | Ordered Scope IDs |
@@ -42,7 +44,6 @@ The parser reads this file directly by the exact `## Scope NN` heading and exact
 | tests/portfolio-foundation.unit.mjs | test-title | `privacy inventory reports real category counts and carries no stored subject value` | test | exclusive | — | — |
 | tests/portfolio-foundation.unit.mjs | test-title | `behavior clear empties behavior categories only after they are proven non-empty and preserves portfolio and mandate identity` | test | exclusive | — | — |
 | tests/portfolio-brief.functional.mjs | test-title | `behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline` | test | exclusive | — | — |
-| tests/portfolio-privacy.functional.mjs | test-title | `Adversarial: full personal clear detects undeclared keys live state and arbitrary residue` | test | exclusive | — | — |
 | tests/portfolio-survival-foundation.spec.mjs | test-title | `Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio` | test | exclusive | — | — |
 | tests/portfolio-survival-foundation.spec.mjs | test-title | `Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling` | test | exclusive | — | — |
 
@@ -55,6 +56,8 @@ The parser reads this file directly by the exact `## Scope NN` heading and exact
 | rldata.js | hunk | `function barAlignmentStates(symbols, interval, policy)` | production | exclusive | — | — |
 | rlportfolio.js | marker-pair | `["/* ---------- Feature 008 Scope 04: public tool-read barrier ----------","/* ---------- End Feature 008 Scope 04 ---------- */"]` | production | exclusive | — | — |
 | portfolio-survival-allocation-lab.html | dom-id | `holdingTruth` | dom | exclusive | — | — |
+| portfolio-survival-allocation-lab.html | dom-id | `truthSummary` | dom | exclusive | — | — |
+| portfolio-survival-allocation-lab.html | dom-id | `truthRows` | dom | exclusive | — | — |
 | portfolio-survival-allocation-lab.html | marker | `Feature 008 Scope 04: render what each holding's evidence supports.` | production | exclusive | — | — |
 | portfolio-survival-allocation-lab.html | local-symbol | `function holdingEvidence(holdings)` | production | exclusive | — | — |
 | portfolio-survival-allocation-lab.html | hunk | `function renderHoldingTruth()` | production | exclusive | — | — |
@@ -229,7 +232,6 @@ The parser reads this file directly by the exact `## Scope NN` heading and exact
 | tests/portfolio-privacy.functional.mjs | local-symbol | `function scope17ClearFixture(api, policy, options = {})` | fixture | exclusive | — | — |
 | tests/portfolio-privacy.functional.mjs | test-title | `SCN-008-042 and SCN-008-043 multi-row revision and full clear round trip through fresh adapters and controller inspection` | test | exclusive | — | — |
 | tests/portfolio-privacy.functional.mjs | test-title | `Adversarial: full personal clear detects undeclared keys live state and arbitrary residue` | test | exclusive | — | — |
-| tests/portfolio-survival-foundation.spec.mjs | local-symbol | `async function confirmFullPersonalClear(page)` | fixture | exclusive | — | — |
 | tests/portfolio-survival-foundation.spec.mjs | test-title | `Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio` | test | exclusive | — | — |
 | tests/portfolio-survival-foundation.spec.mjs | test-title | `Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category` | test | exclusive | — | — |
 | scripts/validate-spec-test-paths.mjs | exported-symbol | `function collectStructuredTestPathStates(root = ROOT, specsDir = SPECS_DIR)` | validator | exclusive | — | — |

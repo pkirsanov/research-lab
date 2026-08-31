@@ -63,6 +63,7 @@ Scenario: A user evaluates diversification and hedge effectiveness across normal
 | Diversification Simple and Power | Raw, adjusted, tail, downside, drawdown, recovery, and appraisal states stay separate. |
 | Hedge comparison | Ratio, horizon, regression, residual, cost, and common-path identities remain explicit. |
 | Allocation and dossier | Qualified dependence, path, cost, and tried-variant records remain reusable without reinterpretation. |
+| `fitHedgeRegression` → `scope23HedgeEvidence` → `scope23EvidenceModel` → `appendHedgeVariants` → `#hedgeRegression` | TP-23-03 exact title `Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence` reads the rendered regression contract and residual variance before checking the separate normal, stress, and common-path effectiveness fields. |
 
 The consumer-facing surface is the `portfolio-survival-allocation-lab.html#diversification` deep link (`workspaceTabDiversification`), which carries the Simple and Power dependence, stress, and hedge panels. The sweep is a stale-reference scan confirming that hash, its tab id, and the qualified dependence/hedge field names stay identical for the allocation and dossier consumers.
 

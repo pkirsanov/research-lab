@@ -59,6 +59,7 @@ Scenario: A five-year request starts from a short same-origin cache
 
 | Consumer | Required proof |
 |---|---|
+| `coverageResult` → `acquireBarCoverage` → `#state` | TP-19-03 exact title `Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth` calls the public `ensureBarCoverage` entry point and asserts the returned `state`, exact date bounds, missing bounds, rows, source identities, request state, and qualification reasons. The legacy wrapper tokens are migration hints, while `coverageResult` produces the asserted result consumed by `acquireBarCoverage`. |
 | Existing `ensureBars` callers | Name, arguments, Promise behavior, cache shape, and provider authority remain compatible. |
 | Provider credentials and data settings | Consent and public-only request fields remain controlled by the existing capability path. |
 | Risk, paths, dependence, hedge, and allocation | Every consumer receives exact bounds, source identities, disputes, and partial state. |
@@ -67,7 +68,7 @@ The shared consumer surface is the `RLDATA` API client in `rldata.js`: the addit
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Four rows have authored current declarations. TP-19-01 has explicit selftest declarations, and TP-19-02 through TP-19-04 match exact current titles. TP-19-05 remains an aggregate planned carrier because its named shared browser file has no Scope 19-specific title. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|

@@ -24,4 +24,5 @@ Every item below starts CHECKED because it is expected to hold once the feature 
 
 - acceptedBy: operator
 - acceptedAt: 2026-08-25T16:59:38Z
-- method: human-interactive
+- method: external-record
+- record: .specify/memory/open-work.md residue row res-acceptance-method-mislabelled, and the grant quoted in res-g136-acceptance-record-backfill section OPERATOR ACCEPTANCE GRANT 2026-08-28

@@ -17,6 +17,22 @@ not claim that the current implementation satisfies them. Runtime evidence must
 be recorded in [report.md](report.md#bug-verification---after-fix) by the owning
 test and validation phases.
 
+## Human Acceptance Record
+
+- acceptedBy: operator
+- acceptedAt: 2026-08-28T04:48:18Z
+- method: external-record
+- record: .specify/memory/open-work.md residue row res-g136-acceptance-record-backfill, section OPERATOR ACCEPTANCE GRANT 2026-08-28, which quotes the operator's instruction verbatim
+
+Read this record for exactly what it claims. The operator issued a blanket
+acceptance instruction during an agent session; they did not exercise this
+behavior in a live session, which is why the method is `external-record` and not
+`human-interactive`. The checklist above records that the acceptance questions are
+present, not that anyone answered them, so the acceptance rests on the operator's
+grant over work this repository had already certified done
+(`certification.status: done`, certified 2026-07-23T03:28:14Z), not on the
+checked boxes.
+
 ## User Journey
 
 1. Configure the tailnet proxy and a browser-local key for one provider.

@@ -3,10 +3,10 @@
   "featureDir": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact",
   "featureName": "BUG-018 The Corpus-Pending Window States Absence As Settled Fact",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-30T08:53:38Z",
+  "lastUpdatedAt": "2026-08-31T01:03:30Z",
   "certifiedAt": null,
-  "status": "in_progress",
-  "blockedReason": null,
+  "status": "blocked",
+  "blockedReason": "G088 post_certification_spec_edit_gate refuses terminal certification because spec.md has an uncommitted planning-truth edit. This validation invocation is forbidden from editing spec.md and the operator requested no commit. Commit the already-validated planning truth through its owning workflow, then run a fresh terminal certification.",
   "priorBlockedReason": null,
   "blockedReasonResolved": null,
   "crossFeatureEditAuthorization": null,
@@ -32,18 +32,18 @@
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "regression",
-    "currentPhaseStatus": "pending",
+    "currentPhase": "finalize",
+    "currentPhaseStatus": "complete",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-30T00:37:33Z",
-    "completedAt": null,
-    "substate": "tested",
-    "currentScope": "cross-scope",
-    "nextRequiredOwner": "bubbles.regression",
+    "completedAt": "2026-08-31T00:50:28Z",
+    "substate": "certification_commit_required",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.goal",
     "nextRequiredTarget": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact",
-    "nextRequiredReason": "Scope 4 is Done with 12 of 12 DoD items checked. An independent bubbles.test pass re-executed SCN-BUG-018-011 through SCN-BUG-018-014 and produced a complete 4/4 isolated receipt set at revision 6c84913a907b48aebac3b2e77cdbab346a9bce25. The next required bugfix-fastlane specialist phase after test is regression; this state reconciliation does not claim that phase, validation, audit, or terminal certification.",
+    "nextRequiredReason": "A focused commit of the already-validated planning and independent-audit truth is required before fresh certification.",
     "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented', now covering Scopes 1, 2 and 3. Scope 2 implements the product decision recorded in design.md '## Open Questions For The Owner \u2014 Resolved 2026-08-23': Option A then Option B, withhold, taken by the orchestrating session under the operator's standing authorization and disclosed as such rather than presented as an independently reached engineering conclusion. Four shipped files changed across the packet: rlcompanyintel.js (buildCoverageAccount gains an optional third readiness argument defaulting to 'established', plus the COVERAGE_READINESS_STATES export; additive, so all 25 existing two-argument call sites are unchanged), company-intelligence-lab.html (corpusReadiness() maps corpusStatus onto that vocabulary and only 'pending' withholds, so a corpus resolved to 'unavailable' still reads settled and the offline first paint survives; the cockpit sentence, the horizon cards, the power-mode coverage tally and rows, and the body attributes all read that one readiness; the static body shell drops its literal data-coverage-unavailable=\"0\"), tests/company-intelligence-lab.spec.mjs (one added case, nothing removed or weakened) and notes/company-intelligence-lab.md (the body-attribute contract this change alters). data-run-status is untouched: 'composed' still means the paint composed its horizons, which is what the file:// and all-requests-outstanding first-paint tests wait on; the new data-reading-readiness is the single documented predicate FR-018-005 asks for. The new case fails against the pre-fix route at c402bfa3e on the copy assertion and not a timeout (Received: '15 of 15 mandatory dimensions have no usable source in this run.'), fails again on the otherwise-corrected route with only the cockpit guard reverted, and passes against the corrected route; all three runs are recorded verbatim in report.md. The scratch worktree used for those runs was removed and git worktree list reports only the main checkout. The 025 browser suite rose 38 to 39 with nothing removed, the 025 unit suite held at 90, and node scripts/selftest.mjs reported 3404 passed 0 failed measured directly in the shared working tree. specs/025-company-multi-horizon-intelligence-lab/report.md was not edited. No branch or remote was pushed, merged, rebased or moved, and every commit staged explicit paths. Ten of ten Scope 2 and six of six Scope 3 Definition of Done items are ticked; all seven cross-scope items remain unticked and are not claimed. completedPhaseClaims records the implement phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
     "completedPhaseClaims": [
       {
@@ -108,6 +108,67 @@
           "04-enforce-the-shared-rldata-publication-trust-boundary"
         ],
         "note": "An independently executed bubbles.test pass reran the isolated scenario-receipts command for SCN-BUG-018-011 through SCN-BUG-018-014. The captured output reported exit 0, 4 of 4 scenarios COMPLETE, red lanes non-zero, implement/green/live where applicable/regression lanes zero, all 14 manifest scenarios mapped, and the shared tree unchanged."
+      },
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.stabilize",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-30T17:40:33Z",
+        "evidenceRef": "report.md#stabilize-phase-current-session-2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "note": "Independent specialist revalidation at 095d76dc431860b0ddd904a5b0c5c4ab821f3c99: 50 of 50 repeated BUG-018 browser executions passed under --fail-on-flaky-tests, the repository selftest reported 3437 passed and 0 failed, artifact lint passed, regression quality reported 0 violations and 0 warnings, and implementation reality reported 0 violations and 0 warnings. BUG018-STABILIZE-002 and BUG018-STABILIZE-003 are closed. BUG-025 and BUG-026 remain independent routed packets and are not claimed delivered."
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-30T17:49:35Z",
+        "evidenceRef": "report.md#regression-phase-current-session-2026-08-30",
+        "receiptRef": ".specify/runtime/tool-calls.jsonl",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "note": "The bubbles.regression dispatch returned no result. The direct-authorized bubbles.goal runner executed all fourteen isolated scenario mutation cycles at the committed revision. Every RED lane exited non-zero, every restored targeted and live lane exited zero, every whole-file regression lane exited zero, and the shared tree remained unchanged."
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-30T19:03:08Z",
+        "evidenceRef": "report.md#validation-phase-current-session-2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "note": "Direct specialist validation at source revision 095d76dc431860b0ddd904a5b0c5c4ab821f3c99. Goal fidelity passed after the Success Signal demonstration was added. Unit, complete browser, selftest, scenario-state, strict receipt-freshness, implementation-reality, artifact-lint, privacy, traceability, artifact-freshness, and changed-spec checks passed. The transition guard's remaining required specialist is audit. BUG-025 and BUG-026 remain independent and are not claimed executed or delivered."
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.audit",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T00:39:35Z",
+        "evidenceRef": "report.md#independent-audit-evidence-bubbles-audit-2026-08-31",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "note": "Two independent bubbles.audit slices completed. The first independently reproduced 91 unit passes, 42 system-Chrome passes, and 3437 selftest passes with exact report parity. The second independently reproduced every contract, receipt, traceability, regression-quality, implementation-reality, security, privacy, goal-fidelity, artifact, and transition check. No in-boundary finding remains."
       }
     ],
     "pendingTransitionRequests": [],
@@ -147,6 +208,63 @@
     ],
     "executionHistory": [
       {
+        "agent": "bubbles.bug",
+        "phasesExecuted": [
+          "bug"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#test-evidence",
+        "outcome": "completed_diagnostic",
+        "scopes": [],
+        "summary": "Filed and independently reproduced both original defect facets."
+      },
+      {
+        "agent": "bubbles.implement",
+        "phasesExecuted": [
+          "implement"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#scope-4-publication-trust-boundary",
+        "outcome": "completed_owned",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "summary": "Delivered current-subject readiness, honest pending rendering, deterministic regressions, and settled-only shared publication."
+      },
+      {
+        "agent": "bubbles.simplify",
+        "phasesExecuted": [
+          "simplify"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#simplify-phase--bubblessimplify--2026-08-30",
+        "outcome": "completed_owned",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap"
+        ],
+        "summary": "Reviewed the delivered readiness path and simplified its original test-only request tracking."
+      },
+      {
+        "agent": "bubbles.security",
+        "phasesExecuted": [
+          "security"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#security-phase-bubbles-security-2026-08-30",
+        "outcome": "completed_diagnostic",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap"
+        ],
+        "summary": "Identified the publication-boundary and browser-provenance findings that Scope 4 closed."
+      },
+      {
         "agent": "bubbles.test",
         "phasesExecuted": [
           "test"
@@ -168,6 +286,122 @@
           "SCN-BUG-018-014"
         ],
         "summary": "Independently reran the isolated Scope 4 scenario receipts. The run exited 0 with 4 of 4 scenarios complete, required red failures, passing implementation/green/live/regression lanes, 14 of 14 manifest scenarios mapped, and no shared-tree mutation."
+      },
+      {
+        "agent": "bubbles.stabilize",
+        "phasesExecuted": [
+          "stabilize"
+        ],
+        "provenanceMode": "specialist",
+        "startedAt": "2026-08-30T17:39:02Z",
+        "finishedAt": "2026-08-30T17:40:33Z",
+        "outcome": "completed_diagnostic",
+        "evidenceRef": "report.md#stabilize-phase-current-session-2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "addressedFindings": [
+          "BUG018-STABILIZE-002",
+          "BUG018-STABILIZE-003"
+        ],
+        "unresolvedFindings": [],
+        "summary": "Completed an independent stabilize revalidation at 095d76dc431860b0ddd904a5b0c5c4ab821f3c99. The strict repeated browser run completed 50 of 50, selftest completed at 3437 of 3437, artifact lint passed, and both regression-quality and implementation-reality reported zero violations and zero warnings. BUG-025 and BUG-026 remain independent routed packets; this entry does not claim either packet was executed, validated, certified, or delivered."
+      },
+      {
+        "agent": "bubbles.goal",
+        "phasesExecuted": [
+          "regression"
+        ],
+        "provenanceMode": "parent-expanded",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "The runSubagent regression dispatch returned no result, so the authorized parent expanded and executed the complete regression phase directly.",
+        "expansionEvidenceRef": "report.md#regression-phase-current-session-2026-08-30",
+        "startedAt": "2026-08-30T17:05:20Z",
+        "finishedAt": "2026-08-30T17:23:00Z",
+        "outcome": "completed_owned",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "scenarioIds": [
+          "SCN-BUG-018-001",
+          "SCN-BUG-018-002",
+          "SCN-BUG-018-003",
+          "SCN-BUG-018-004",
+          "SCN-BUG-018-005",
+          "SCN-BUG-018-006",
+          "SCN-BUG-018-007",
+          "SCN-BUG-018-008",
+          "SCN-BUG-018-009",
+          "SCN-BUG-018-010",
+          "SCN-BUG-018-011",
+          "SCN-BUG-018-012",
+          "SCN-BUG-018-013",
+          "SCN-BUG-018-014"
+        ],
+        "summary": "Re-emitted and verified the complete fourteen-scenario receipt lifecycle at the committed BUG-018 revision."
+      },
+      {
+        "agent": "bubbles.validate",
+        "phasesExecuted": [
+          "validate"
+        ],
+        "provenanceMode": "specialist",
+        "finishedAt": "2026-08-30T19:03:08Z",
+        "outcome": "completed_diagnostic",
+        "evidenceRef": "report.md#validation-phase-current-session-2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "summary": "Completed the direct specialist validation pipeline at source revision 095d76dc431860b0ddd904a5b0c5c4ab821f3c99 and routed the still-required independent delivery audit. No certification or terminal-status field was changed."
+      },
+      {
+        "agent": "bubbles.goal",
+        "phasesExecuted": [
+          "audit"
+        ],
+        "provenanceMode": "parent-expanded",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "The runSubagent audit dispatch returned no result, so the authorized parent expanded and executed the complete audit phase directly.",
+        "expansionEvidenceRef": "report.md#audit-phase-current-session-2026-08-30",
+        "startedAt": "2026-08-30T19:08:00Z",
+        "finishedAt": "2026-08-30T19:30:10Z",
+        "outcome": "completed_diagnostic",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "summary": "Audited all forty-one DoD items, eight acceptance records, fourteen scenario lifecycles, the committed diff, live-test authenticity, security, privacy, and independent finding boundaries. This parent-expanded result is superseded for assurance by the later independent bubbles.audit slices."
+      },
+      {
+        "agent": "bubbles.audit",
+        "phasesExecuted": [
+          "audit"
+        ],
+        "provenanceMode": "specialist",
+        "startedAt": "2026-08-31T00:20:00Z",
+        "finishedAt": "2026-08-31T00:39:35Z",
+        "outcome": "completed_diagnostic",
+        "evidenceRef": "report.md#independent-audit-evidence-bubbles-audit-2026-08-31",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "addressedFindings": [],
+        "unresolvedFindings": [],
+        "summary": "Two independent audit slices reproduced the complete correctness and certification evidence. Unit tests passed 91 of 91, system-Chrome passed 42 of 42, selftest passed 3437 of 3437, all fourteen scenario lifecycles were certifiable, all thirty-five closure receipts were fresh, the asserted transition guard passed, and no in-boundary finding remained."
       }
     ],
     "audit": null
@@ -324,20 +558,21 @@
     "consequenceForStatus": "status stays in_progress with certification.status equal to it. Scope 1 is Done with six of six Definition of Done items ticked; Scopes 2 and 3 are Not Started with zero ticked, which is the accurate representation of a packet whose second facet is closed and whose first is not."
   },
   "currentStateReconciliation": {
-    "recordedAt": "2026-08-29T22:58:44Z",
-    "status": "in_progress",
+    "recordedAt": "2026-08-31T01:03:30Z",
+    "status": "blocked",
     "deliveredScopes": [
       "01-make-data-corpus-status-describe-the-subject-on-screen",
       "02-stop-asserting-absence-the-route-has-not-established",
-      "03-close-the-structural-test-gap"
+      "03-close-the-structural-test-gap",
+      "04-enforce-the-shared-rldata-publication-trust-boundary"
     ],
-    "behavior": "Both filed facets are recorded as delivered by the existing historical evidence. This planning reconciliation does not re-execute or re-certify that evidence.",
-    "planningRemediation": "Canonical Test Plan columns, scenario-specific and broader regression rows, faithful Gherkin-to-DoD wording, the change boundary, the policy snapshot, scenario-manifest.json, and test-plan.json are present.",
-    "remainingOwnership": "Gate G094 requires spec.md and design.md changes owned by bubbles.analyst, bubbles.ux, and bubbles.design. Missing delivery specialist phases and live-test interception findings remain outside bubbles.plan ownership.",
-    "historicalRecord": "historicalTransitionBlockersAtScope1 and historicalKnownLimitationAtScope1 preserve the accurate Scope 1 state from 2026-08-23 and are not current-state assertions."
+    "behavior": "All four scopes and their execution evidence remain complete, but terminal done certification was not accepted because G088 detects uncommitted spec, report, state planning, and independent-audit truth. The coherent pre-commit posture is blocked until those already-validated edits receive a focused commit and fresh certification runs.",
+    "planningRemediation": "The earlier G094, scenario-contract, policy-snapshot, user-acceptance-record, and live-test interception conditions are closed. User acceptance remains explicitly classified as an external-record rather than agent-observed acceptance.",
+    "remainingOwnership": "bubbles.goal owns the focused commit of the already-validated planning and independent-audit truth. A fresh bubbles.validate certification attempt is required after that commit; this repair does not claim terminal certification.",
+    "historicalRecord": "historicalTransitionBlockersAtScope1, historicalKnownLimitationAtScope1, and execution.phaseClaimNote preserve earlier execution states and are explicitly historical, not assertions about the current four-scope packet."
   },
   "certification": {
-    "status": "in_progress",
+    "status": "blocked",
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
@@ -347,8 +582,17 @@
       "03-close-the-structural-test-gap",
       "04-enforce-the-shared-rldata-publication-trust-boundary"
     ],
-    "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status remains in_progress and equal to the top-level status. All three scopes are Done and both facets are closed, but the cross-scope Definition of Done is not complete: uservalidation.md carries no filled Human Acceptance Record, scenario-manifest.json does not exist, policySnapshot is short of the fields the transition guard wants, and two findings are routed out to bubbles.plan rather than closed. certifiedCompletedPhases stays EMPTY: it is bubbles.validate's to write, and no independent party re-derived any evidence in report.md. bubbles.implement touched exactly two fields in this object, both factual mirrors of scopes.md rather than verdicts: scopeProgress, and completedScopes, which now names all three scopes because the state-transition guard reports an integrity failure when a scope artifact reads Done and this list omits it. Leaving either one behind scopes.md would itself be a false record.",
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "simplify",
+      "stabilize",
+      "security",
+      "validate",
+      "audit"
+    ],
+    "certificationFieldWriteNote": "This narrow bubbles.validate repair restored both status mirrors to blocked after G088 rejected the terminal done write. Terminal completion and certification timestamps and the assurance claim are cleared. completedScopes, scopeProgress, and certifiedCompletedPhases remain only as non-terminal evidence inventories for scopes and phases already recorded as complete. bubbles.goal must make the focused commit before a fresh bubbles.validate certification attempt; no terminal certification is claimed by this repair.",
     "scopeProgress": [
       {
         "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",

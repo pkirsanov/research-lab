@@ -12,6 +12,12 @@ preflight retried, as the kernel requires. Absolute operator paths are redacted 
 
 **Measured at commit:** `dc54a8547`.
 
+## RED Stage — Filing Reproduction
+
+The filing evidence below is the failing proof. It samples the first composed paint before the
+corpus settles and records the incorrect settled-absence claim. Later delivery evidence records
+the passing proof after the route gained explicit readiness semantics.
+
 ## Summary
 
 A `bubbles.chaos` round against `specs/025-company-multi-horizon-intelligence-lab` reported finding
@@ -2416,3 +2422,1377 @@ sha256: a3f5f7c6941af727acf047638bf1140d5ea3251e55b18fb9c1ed2c4e126d6879
 7:49AM INF no leaks found
 🫧 pii-scan: clean.
 ```
+
+<a name="stabilize-phase-current-session-2026-08-30"></a>
+## Stabilize Phase Revalidation — bubbles.stabilize — 2026-08-30
+
+### Boundary And Verdict
+
+**Phase:** stabilize
+**Agent:** `bubbles.stabilize`
+**Claim Source:** interpreted
+**Interpretation:** This diagnostic phase revalidated the BUG-018 runtime and regression boundary
+at commit `095d76dc431860b0ddd904a5b0c5c4ab821f3c99`. It changed no production source, test,
+planning artifact, user-validation artifact, top-level status, or certification field. The only
+written outputs are this evidence section and execution-owned fields in this packet's `state.json`.
+
+🟢 STABLE
+
+All BUG-018 stability checks passed across the applicable performance, reliability, resource,
+configuration, build, infrastructure, and observability domains. Fifty repeated browser
+executions completed with the strict flaky-test failure mode enabled. The repository selftest,
+artifact lint, regression-quality guard, and implementation-reality scan also completed cleanly.
+
+Domains audited: performance, infrastructure, configuration, build, reliability, resource usage,
+and observability. Security remains owned by the separately recorded `bubbles.security` phase.
+Issues found in the BUG-018 boundary: 0.
+
+### Finding Closure And Independent Routes
+
+- `BUG018-STABILIZE-002` is **CLOSED**. The Scope 1 browser case now waits on the shared
+  `installCorpusRequestGate()` entry signal and releases the held real response explicitly. It no
+  longer uses elapsed time to establish the request window. The repository selftest directly
+  rejects a reintroduced timer, and the strict 50-execution browser run stayed green.
+- `BUG018-STABILIZE-003` is **CLOSED**. The Scope 2 browser case now awaits the same explicit
+  request-entry signal before reading pending state. It contains no request counter. The
+  repository selftest directly rejects a reintroduced counter, and the strict 50-execution browser
+  run stayed green.
+- `BUG-025-company-corpus-read-never-settles` remains an **independent routed packet** for the
+  former `BUG018-STABILIZE-001` concern. This phase did not execute, validate, certify, or deliver
+  BUG-025.
+- `BUG-026-superseded-company-corpus-state-writes` remains an **independent routed packet** for
+  the former `BUG018-STABILIZE-004` concern. This phase did not execute, validate, certify, or
+  deliver BUG-026.
+
+The STABLE verdict is scoped to BUG-018. It does not convert either independent packet into a
+delivered claim.
+
+### Fifty Repeated BUG-018 Browser Executions
+
+**Phase:** stabilize
+**Executed:** YES (current session)
+**Command:** `timeout 600 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-018 stabilize 50-run browser repetition" -- timeout 540 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep 'BUG-018' --repeat-each=10 --fail-on-flaky-tests --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 stabilize 50-run browser repetition
+$ timeout 540 npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/company-intelligence-lab.spec.mjs --grep BUG-018 --repeat-each=10 --fail-on-flaky-tests --reporter=list
+exit: 0
+lines: 55
+sha256: 76900da21d382c13cac0bd13901dd065d759bfc89c9c08e24dd9b8d67f208ccf
+--- first 20 ---
+
+Running 50 tests using 2 workers
+
+  ✓   1 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1609:1 › Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it (1.3s)
+  ✓   2 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1609:1 › Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it (1.2s)
+  ✓   3 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1697:1 › Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established (937ms)
+  ✓   4 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1697:1 › Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established (814ms)
+  ✓   5 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1823:1 › Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel (575ms)
+  ✓   6 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1823:1 › Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel (534ms)
+  ✓   7 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1845:1 › Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel (836ms)
+  ✓   8 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1845:1 › Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel (885ms)
+  ✓   9 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1881:1 › Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel (712ms)
+  ✓  10 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1881:1 › Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel (646ms)
+--- omitted 15 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓  41 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1609:1 › Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it (950ms)
+  ✓  42 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1609:1 › Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it (887ms)
+  ✓  44 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1697:1 › Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established (814ms)
+  ✓  43 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1697:1 › Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established (883ms)
+  ✓  45 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1823:1 › Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel (593ms)
+  ✓  46 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1823:1 › Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel (624ms)
+  ✓  48 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1845:1 › Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel (856ms)
+  ✓  47 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1845:1 › Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel (910ms)
+  ✓  49 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1881:1 › Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel (589ms)
+  ✓  50 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1881:1 › Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel (626ms)
+
+  50 passed (30.4s)
+```
+
+### Repository Selftest
+
+**Phase:** stabilize
+**Executed:** YES (current session)
+**Command:** `timeout 960 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-018 stabilize final repository selftest" -- timeout 900 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 stabilize final repository selftest
+$ timeout 900 node scripts/selftest.mjs
+exit: 0
+lines: 3906
+sha256: 662c16f4de7d4123b5d529fc24708298333951ac1a26ed87386b811a83ce3edf
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+--- omitted 3866 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓ a scan that matches zero progress claims FAILS rather than passing vacuously — a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes
+  ✓ the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (94 claim(s) across 71 packet(s), 80 agreeing, baseline 14 entries)
+  ✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+  ✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 94 claim(s))
+  ✓ SCN-011B-REG the regression matcher found at least one test declaration in tests/causal-rotation-consumers.spec.mjs — a matcher that silently stopped matching would pass this whole block vacuously (5 found)
+  ✓ SCN-011B-REG every test in tests/causal-rotation-consumers.spec.mjs declares its own timeout budget, so none of them silently inherits the 30 s Playwright default that produced the intermittent red (5 budget(s) for 5 test(s))
+  ✓ SCN-011B-REG every declared budget in tests/causal-rotation-consumers.spec.mjs clears the 60000 ms floor — the measured single-worker cost is 23.7 s, so anything at or near the 30 s default leaves no margin for four-worker contention (0 below floor of 5)
+  ✓ SCN-011B-REG ADVERSARIAL the budget matcher detects a removed declaration, so a real regression that deletes one would turn this block red rather than leaving it green (5 → 4 after stripping one)
+
+================================================
+Research-Lab self-test: 3437 passed, 0 failed
+================================================
+```
+
+### Regression Quality Guard
+
+**Phase:** stabilize
+**Executed:** YES (current session)
+**Command:** `timeout 120 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix --verbose tests/company-intelligence-lab.spec.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+The absolute repository path in the observed output is normalized below to `~/research-lab`. No
+other output changed.
+
+```text
+============================================================
+  BUBBLES REGRESSION QUALITY GUARD
+  Repo: ~/research-lab
+  Timestamp: 2026-08-30T17:39:07Z
+  Bugfix mode: true
+============================================================
+
+ℹ️  Scanning tests/company-intelligence-lab.spec.mjs
+✅ Asserts the current surface in tests/company-intelligence-lab.spec.mjs (mixed inspection accepted)
+✅ Adversarial signal detected in tests/company-intelligence-lab.spec.mjs
+
+============================================================
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 1
+  Files with adversarial signals: 1
+============================================================
+```
+
+### Implementation Reality Scan
+
+**Phase:** stabilize
+**Executed:** YES (current session)
+**Command:** `timeout 120 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --verbose`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+ℹ️  INFO: Resolved 2 implementation file(s) to scan
+
+--- Scan 1: Gateway/Backend Stub Patterns ---
+
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+
+--- Scan 1D: External Integration Authenticity ---
+
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+
+--- Scan 2B: Sensitive Client Storage ---
+
+--- Scan 3: Frontend API Call Absence ---
+
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+
+--- Scan 5: Default/Fallback Value Patterns ---
+
+--- Scan 6: Live-System Test Interception ---
+
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+
+============================================================
+  IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+
+  Files scanned:  2
+  Violations:     0
+  Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+```
+
+### Artifact Lint After Phase Persistence
+
+**Phase:** stabilize
+**Executed:** YES (current session)
+**Command:** `timeout 120 bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ All checklist bullet items use checkbox syntax
+✅ uservalidation separates automation readiness from human acceptance
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: ###[[:space:]]+Summary|^##[[:space:]]+Summary
+✅ report.md contains section matching: ###[[:space:]]+Completion Statement|^##[[:space:]]+Completion Statement
+✅ report.md contains section matching: ###[[:space:]]+Test Evidence|^##[[:space:]]+Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+<a name="regression-phase-current-session-2026-08-30"></a>
+## Regression Phase Revalidation — parent-expanded by bubbles.goal — 2026-08-30
+
+### Boundary And Provenance
+
+**Phase:** regression
+**Claim Source:** executed
+**Provenance:** The `bubbles.regression` dispatch returned no result. The authorized top-level
+`bubbles.goal` runner therefore executed the complete regression phase directly. This is recorded
+as `parent-expanded`, not as a specialist result.
+
+### Fourteen-Scenario RED-To-GREEN Evidence
+
+```text
+# BUG-018 all-scenario current-revision receipts
+$ node scripts/scenario-receipts.mjs --spec specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --all --quiet-child
+exit: 0
+lines: 235
+sha256: 3009a3fc727ae9dc09c27d440c0d872032aeac495d33786abb6a6991f878e62f
+scenario-receipts: revision 095d76dc431860b0ddd904a5b0c5c4ab821f3c99
+scenario-receipts: 14 scenario(s) requested
+COMPLETE SCN-BUG-018-001 through SCN-BUG-018-014
+complete   : 14/14
+shared tree: unchanged for the whole window
+mapped     : 14/14 manifest scenarios
+```
+
+Every scenario produced a non-zero targeted RED receipt, an implementation receipt, a zero-exit
+targeted GREEN receipt, a zero-exit live receipt where required, and a zero-exit whole-file
+regression receipt. The append-only structured records are in
+`.specify/runtime/tool-calls.jsonl`.
+
+### Committed Boundary Evidence
+
+```text
+$ git show --stat --oneline --summary 095d76dc4
+095d76dc4 fix(BUG-018): enforce settled publication boundary
+14 files changed, 3888 insertions(+), 119 deletions(-)
+$ git diff 095d76dc4^ 095d76dc4 --check
+exit: 0
+```
+
+The commit contains the company publisher guard, deterministic request gates, three publication
+browser cases, one publication unit case, scenario contracts, evidence, and the required runner
+normalization. No Spec 007, Spec 008, portfolio, or unrelated user-validation path is present.
+
+<a name="validation-phase-current-session-2026-08-30"></a>
+## Validation Phase — bubbles.validate — 2026-08-30
+
+### Success Signal Demonstration
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** interpreted
+**Interpretation:** The complete production-route browser suite directly passed the five BUG-018
+cases that distinguish the replacement subject's pending state, unresolved visible copy, pending
+publication withholding, loaded publication, and unavailable publication. The complete company
+module suite and repository selftest both exited zero. The receipt-derived resolver then reported
+all fourteen mapped scenarios at the current source revision and `certifiable: yes`. Together,
+these current-session results demonstrate every clause of the declared Success Signal without
+claiming that BUG-025 or BUG-026 was executed or delivered.
+
+#### Complete Company Unit Suite
+
+**Command:** `timeout 180 node --test tests/company-intelligence.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 validate company unit
+$ timeout 180 node --test tests/company-intelligence.unit.mjs
+exit: 0
+lines: 556
+sha256: 5ff2dea1f72bedc78b15ca8caa494c5213b8db4de16518ed803955ce1c74e277
+--- first 20 ---
+TAP version 13
+# Subtest: coverage account holds one row per registry dimension and totals sum to the registry length
+ok 1 - coverage account holds one row per registry dimension and totals sum to the registry length
+  ---
+  duration_ms: 8.192968
+  type: 'test'
+  ...
+# Subtest: SCN-025-001 a subject carrying committed bars and a cached options chain accounts for every mandatory dimension in the closed five-state vocabulary
+ok 2 - SCN-025-001 a subject carrying committed bars and a cached options chain accounts for every mandatory dimension in the closed five-state vocabulary
+  ---
+  duration_ms: 2.053492
+  type: 'test'
+  ...
+# Subtest: every one of the five evidence states is produced by a real adapter outcome
+ok 3 - every one of the five evidence states is produced by a real adapter outcome
+  ---
+  duration_ms: 3.883085
+  type: 'test'
+  ...
+# Subtest: a read aged past its window stays in the denominator as stale rather than becoming neutral
+--- omitted 516 line(s); sha256 above covers the full output ---
+--- last 20 ---
+ok 90 - 027 security — ownerBareReason reaches the reader as text only, never an attribute, an href or markup
+  ---
+  duration_ms: 0.967396
+  type: 'test'
+  ...
+# Subtest: 027 security — no markup-bearing subject can reach a receiver markup sink, and every subject-fed sink escapes
+ok 91 - 027 security — no markup-bearing subject can reach a receiver markup sink, and every subject-fed sink escapes
+  ---
+  duration_ms: 5.790978
+  type: 'test'
+  ...
+1..91
+# tests 91
+# suites 0
+# pass 91
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 346.495761
+```
+
+#### Complete Company System-Chrome Suite
+
+**Command:** `timeout 600 npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 validate complete company browser
+$ timeout 600 npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+lines: 47
+sha256: bd08be78e683cff89086278da2704bcf503015a6181592cccd473244db4bfc91
+--- first 20 ---
+
+Running 42 tests using 1 worker
+
+  ✓   1 [system-chrome] › tests/company-intelligence-lab.spec.mjs:140:1 › four horizon regions render with four summaries and four deep-dive controls (738ms)
+  ✓   2 [system-chrome] › tests/company-intelligence-lab.spec.mjs:169:1 › Regression: SCN-025-005 four horizon cards stay peers and never merge into one direction (564ms)
+  ✓   3 [system-chrome] › tests/company-intelligence-lab.spec.mjs:200:1 › an owned dimension renders a deep link whose target is a registered route (531ms)
+  ✓   4 [system-chrome] › tests/company-intelligence-lab.spec.mjs:244:1 › every rendered numeric value carries a provenance chip, a source name and an as-of date (629ms)
+  ✓   5 [system-chrome] › tests/company-intelligence-lab.spec.mjs:271:1 › Regression: SCN-025-021 an unavailable dimension renders a named absence and never a dash or a zero (760ms)
+  ✓   6 [system-chrome] › tests/company-intelligence-lab.spec.mjs:305:1 › Regression: SCN-025-021 a scripted narrative string renders as visible escaped text (632ms)
+  ✓   7 [system-chrome] › tests/company-intelligence-lab.spec.mjs:330:1 › a position, size or cost basis entry is refused in the browser and nothing is stored (478ms)
+  ✓   8 [system-chrome] › tests/company-intelligence-lab.spec.mjs:356:1 › each canvas draws non-blank pixels and pairs with a table holding the same values (799ms)
+  ✓   9 [system-chrome] › tests/company-intelligence-lab.spec.mjs:403:1 › the route defers no drawing and schedules no timer (421ms)
+  ✓  10 [system-chrome] › tests/company-intelligence-lab.spec.mjs:431:1 › switching the mode segment triggers no request and no recomposition (501ms)
+  ✓  11 [system-chrome] › tests/company-intelligence-lab.spec.mjs:453:1 › FR-025-017 a second run reuses the cached corpus and refetches no committed bar file (514ms)
+  ✓  12 [system-chrome] › tests/company-intelligence-lab.spec.mjs:497:1 › at 375 CSS pixels the four summaries stack and the document never scrolls sideways (495ms)
+  ✓  13 [system-chrome] › tests/company-intelligence-lab.spec.mjs:523:1 › the route composes from cache first and publishes a verified owner read (538ms)
+  ✓  14 [system-chrome] › tests/company-intelligence-lab.spec.mjs:553:1 › Regression: SCN-025-016 a passed event renders as occurred and never as an upcoming catalyst (659ms)
+  ✓  15 [system-chrome] › tests/company-intelligence-lab.spec.mjs:615:1 › each research branch renders one disclosure row whose header carries the disposition word (596ms)
+  ✓  16 [system-chrome] › tests/company-intelligence-lab.spec.mjs:649:1 › an empty research plan renders its reason as readable copy rather than an empty block (681ms)
+  ✓  17 [system-chrome] › tests/company-intelligence-lab.spec.mjs:668:1 › Regression: SCN-025-022 the outcome record shows the predecessor unmodified beside the new version (725ms)
+--- omitted 7 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓  25 [system-chrome] › tests/company-intelligence-lab.spec.mjs:975:1 › Stabilize: the route writes only the shared data container and leaves a sibling tool cache intact (530ms)
+  ✓  26 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1002:1 › Stabilize: repeat composition of an unchanged subject issues no further request (760ms)
+  ✓  27 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1034:1 › Stabilize: the idle route runs no polling loop, no interval and no animation frame (4.9s)
+  ✓  28 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1072:1 › Stabilize: a version chain that points at itself terminates instead of looping (2.4s)
+  ✓  29 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1108:1 › Chaos: a background corpus paint does not close a deep dive the reader opened (5.5s)
+  ✓  30 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1144:1 › the route reaches its first paint from a file:// origin with no server and no off-origin request (399ms)
+  ✓  31 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1187:1 › the first paint composes with every data request still outstanding, then reconciles to the served registry (550ms)
+  ✓  32 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1258:1 › every interactive control on the route is reachable and operable from the keyboard alone (1.5s)
+  ✓  33 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1404:1 › Regression: SCN-027-018 every subject-carrying owner link opens its owner route on the company being read (2.0s)
+  ✓  34 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1443:1 › Regression: SCN-027-014 every bare owner row renders its stated reason beside the link on both the coverage table and the dimension card (757ms)
+  ✓  35 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1492:1 › Regression: SCN-027-010 the rendered reason is written with textContent and no registry-authored value reaches an attribute or an href (555ms)
+  ✓  36 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1537:1 › Regression: F-AUDIT-08 every currently-valid deep-link subject still opens its company (1.1s)
+  ✓  37 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1557:1 › Regression: F-AUDIT-08 a subject the shared grammar refuses never becomes the hub subject (2.1s)
+  ✓  38 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1609:1 › Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it (467ms)
+  ✓  39 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1697:1 › Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established (871ms)
+  ✓  40 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1823:1 › Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel (580ms)
+  ✓  41 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1845:1 › Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel (547ms)
+  ✓  42 [system-chrome] › tests/company-intelligence-lab.spec.mjs:1881:1 › Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel (372ms)
+
+  42 passed (42.6s)
+```
+
+#### Repository Selftest
+
+**Command:** `timeout 900 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 validate repository selftest
+$ timeout 900 node scripts/selftest.mjs
+exit: 0
+lines: 3906
+sha256: 950c6c72aee5bf3dbb1aaf2c019b73a1cca56905d52f6ade84cf7f3f7bf03a67
+--- first 20 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+  ✓ no model/config-authored field reaches innerHTML without esc()
+  ✓ the sink detector catches an unescaped model-authored title
+
+Feature 004 RLFX/RLDATA foundation
+  ✓ RLFX CommonJS import preserves the existing global and explicit decisionTime is deterministic
+  ✓ RLFX universe is bounded closed and asserts no live source authorization
+  ✓ RLDATA source envelopes preserve approved rights and clocks and reject metadata-free rows
+  ✓ RLDATA schema-one bars and legacy tool reads remain compatible beside versioned envelopes
+  ✓ RLDATA Twelve Data mapping: interval/symbol translate, values sort newest-first → oldest-first with UTC epochs, empty volume → null, error/malformed → null
+  ✓ RLFX broad dollar keeps Broad AFE EME and proxy states separate
+--- omitted 3866 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓ a registry claiming fewer ticked rows than the artifact carries FAILS too — drift in either direction is a false summary
+  ✓ a claim whose scope artifact cannot be located FAILS instead of being silently skipped — an unverifiable claim is not a verified one
+  ✓ the single-file bug-packet layout resolves all three of its claims — a numbered scope whose tiered DoD includes a deeper sub-heading, a sibling scope that has not started, and the packet-level cross-scope block — across the dodChecked, dodTicked and dodTotal spellings alike (3/3 agreeing)
+  ✓ scope 2 ends where the cross-scope block begins rather than running to end-of-file, and `## Scope Summary` is not mistaken for a scope section because it carries no ordinal (01, 02, cross-scope)
+  ✓ a `#` line inside a fenced Gherkin block is a comment rather than a heading, so it never splits a scope or ends a Definition of Done (2 real headings, 3 when fences are ignored)
+  ✓ a scope already frozen in the baseline is carried as known debt rather than failing the run, so pre-existing drift in packets this change does not own cannot turn the validation path red
+  ✓ freezing one scope does not license the next — the baseline is keyed on the SCOPE, not on the numbers, so a second drifting scope still FAILS while the frozen one passes
+  ✓ a baseline entry whose claim now matches its artifact is reported STALE while the run still exits 0, so the frozen list can only shrink
+  ✓ a scan that matches zero progress claims FAILS rather than passing vacuously — a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes
+  ✓ the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (94 claim(s) across 71 packet(s), 80 agreeing, baseline 14 entries)
+  ✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+  ✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 94 claim(s))
+  ✓ SCN-011B-REG the regression matcher found at least one test declaration in tests/causal-rotation-consumers.spec.mjs — a matcher that silently stopped matching would pass this whole block vacuously (5 found)
+  ✓ SCN-011B-REG every test in tests/causal-rotation-consumers.spec.mjs declares its own timeout budget, so none of them silently inherits the 30 s Playwright default that produced the intermittent red (5 budget(s) for 5 test(s))
+  ✓ SCN-011B-REG every declared budget in tests/causal-rotation-consumers.spec.mjs clears the 60000 ms floor — the measured single-worker cost is 23.7 s, so anything at or near the 30 s default leaves no margin for four-worker contention (0 below floor of 5)
+  ✓ SCN-011B-REG ADVERSARIAL the budget matcher detects a removed declaration, so a real regression that deletes one would turn this block red rather than leaving it green (5 → 4 after stripping one)
+
+================================================
+Research-Lab self-test: 3437 passed, 0 failed
+================================================
+```
+
+#### Current-Revision Scenario Lifecycle Resolution
+
+**Command:** `timeout 120 bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 validate scenario resolver certifiable
+$ timeout 120 bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable
+exit: 0
+lines: 1278
+sha256: 552600fbff7c6fd9e5fe418034e17d471c5b4f2f4c03da8b6c0a21d59ba61402
+--- first 20 ---
+scenario-state-resolve: specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+  source revision: 095d76dc4318
+  SCN-BUG-018-001  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-002  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-003  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-004  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-005  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-006  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-007  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-008  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-009  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-010  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-011  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-012  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-013  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-014  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED REGRESSION_GREEN]
+  REFUSED SCS-REVISION-DRIFT [SCN-008-003]: receipt cites source revision f00df35e54dc but the resolved revision is 095d76dc4318
+--- omitted 1238 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-011]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-011]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-011]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-011]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-011]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-012]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-012]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-012]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-012]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-012]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-013]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-013]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-013]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-013]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-013]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-014]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-014]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-014]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG-018-014]: receipt cites source revision 6c84913a907b but the resolved revision is 095d76dc4318
+  (all 1260 refusals are SCS-REVISION-DRIFT: superseded receipts, excluded from derivation, not blocking)
+  certifiable: yes
+```
+
+### Goal-Fidelity Pre-Certification
+
+**Phase:** validate
+**Claim Source:** executed
+**Interpretation:** The first mandatory run isolated `GF-6`. After the current-session Success
+Signal evidence above was appended, the same pre-certification boundary passed.
+
+```text
+$ timeout 120 bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+GOAL-FIDELITY[GF-6] specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact/report.md never references the declared Success Signal. G070 requires the signal to be DEMONSTRATED in evidence, not merely declared in spec.md.
+goal-fidelity-guard: FAIL boundary=pre-certification findings=1
+exit: 1
+
+$ timeout 120 bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+goal-fidelity-guard: PASS boundary=pre-certification
+exit: 0
+```
+
+### Strict Evidence-Receipt Freshness
+
+**Phase:** validate
+**Command:** `timeout 120 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```json
+{
+  "total": 1384,
+  "current": 1341,
+  "superseded": 43,
+  "withClosure": 35,
+  "valid": 35,
+  "stale": 0,
+  "unknown": 1306,
+  "staleReceipts": []
+}
+```
+
+### Validate Implementation Reality
+
+**Phase:** validate
+**Command:** `timeout 120 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --verbose`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+ℹ️  INFO: Resolved 2 implementation file(s) to scan
+
+--- Scan 1: Gateway/Backend Stub Patterns ---
+
+--- Scan 1B: Handler / Endpoint Execution Depth ---
+
+--- Scan 1C: Endpoint Not-Implemented / Placeholder Responses ---
+
+--- Scan 1D: External Integration Authenticity ---
+
+--- Scan 2: Frontend Hardcoded Data Patterns ---
+
+--- Scan 2B: Sensitive Client Storage ---
+
+--- Scan 3: Frontend API Call Absence ---
+
+--- Scan 4: Prohibited Simulation Helpers in Production ---
+
+--- Scan 5: Default/Fallback Value Patterns ---
+
+--- Scan 6: Live-System Test Interception ---
+
+--- Scan 7: IDOR / Auth Bypass Detection (Gate G047) ---
+
+--- Scan 8: Silent Decode Failure Detection (Gate G048) ---
+
+============================================================
+  IMPLEMENTATION REALITY SCAN RESULT
+============================================================
+
+  Files scanned:  2
+  Violations:     0
+  Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+```
+
+### Validate Artifact Lint
+
+**Phase:** validate
+**Command:** `timeout 120 bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ All checklist bullet items use checkbox syntax
+✅ uservalidation separates automation readiness from human acceptance
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: ###[[:space:]]+Summary|^##[[:space:]]+Summary
+✅ report.md contains section matching: ###[[:space:]]+Completion Statement|^##[[:space:]]+Completion Statement
+✅ report.md contains section matching: ###[[:space:]]+Test Evidence|^##[[:space:]]+Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+### Validate Privacy Scan
+
+**Phase:** validate
+**Command:** `timeout 120 bash .github/bubbles/scripts/pii-scan.sh`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+6:55PM INF 0 commits scanned.
+6:55PM INF scan completed in 11.1ms
+6:55PM INF no leaks found
+🫧 pii-scan: clean.
+```
+
+### Validate Scenario Traceability
+
+**Phase:** validate
+**Command:** `timeout 240 bash .github/bubbles/scripts/traceability-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact`
+**Exit Code:** 0
+**Claim Source:** executed
+
+The absolute repository path in the observed output is normalized below to `~/research-lab`. No
+other output changed.
+
+```text
+# BUG-018 validate traceability guard
+$ timeout 240 bash .github/bubbles/scripts/traceability-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+exit: 0
+lines: 134
+sha256: 705a88dc138be31edd32f98f8485061fcccecfddfd592074771d2d3f1df486fd
+--- first 20 ---
+============================================================
+  BUBBLES TRACEABILITY GUARD
+  Feature: ~/research-lab/specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+  Timestamp: 2026-08-30T19:00:49Z
+============================================================
+
+--- Scenario Manifest Cross-Check (G057/G059) ---
+✅ scenario-manifest.json covers 14 scenario contract(s)
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+✅ scenario-manifest.json linked test exists: tests/company-intelligence-lab.spec.mjs
+--- omitted 94 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✅ Scope 4: Enforce The Shared `RLDATA` Publication Trust Boundary scenario maps to DoD item: A pending company reading is withheld from the ordinary channel
+ℹ️  Scope 4: Enforce The Shared `RLDATA` Publication Trust Boundary scenario→DoD match confidence: inferred
+✅ Scope 4: Enforce The Shared `RLDATA` Publication Trust Boundary scenario maps to DoD item: A loaded company reading publishes after settlement
+ℹ️  Scope 4: Enforce The Shared `RLDATA` Publication Trust Boundary scenario→DoD match confidence: inferred
+✅ Scope 4: Enforce The Shared `RLDATA` Publication Trust Boundary scenario maps to DoD item: An unavailable company reading is settled and still publishes
+ℹ️  Scope 4: Enforce The Shared `RLDATA` Publication Trust Boundary scenario→DoD match confidence: inferred
+✅ Scope 4: Enforce The Shared `RLDATA` Publication Trust Boundary scenario maps to DoD item: Browser-test provenance distinguishes pass-through fault injection
+ℹ️  Scope 4: Enforce The Shared `RLDATA` Publication Trust Boundary scenario→DoD match confidence: inferred
+ℹ️  DoD fidelity: 14 scenarios checked, 14 mapped to DoD, 0 unmapped
+
+--- Traceability Summary ---
+ℹ️  Scenarios checked: 14
+ℹ️  Test rows checked: 25
+ℹ️  Scenario-to-row mappings: 14
+ℹ️  Concrete test file references: 14
+ℹ️  Report evidence references: 14
+ℹ️  DoD fidelity scenarios: 14 (mapped: 14, unmapped: 0)
+ℹ️  Edge confidence (IMP-015 Scope B): declared=0 inferred=17 ambiguous=11
+
+RESULT: PASSED (0 warnings)
+```
+
+### Validate Artifact Freshness And Changed-Spec Audit
+
+**Phase:** validate
+**Claim Source:** executed
+
+```text
+$ timeout 120 bash .github/bubbles/scripts/artifact-freshness-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+============================================================
+  BUBBLES ARTIFACT FRESHNESS GUARD
+  Feature: specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+  Timestamp: 2026-08-30T19:01:07Z
+============================================================
+
+--- Check 1: Freshness Boundary Isolation (spec.md / design.md) ---
+ℹ️  spec.md has no superseded/suppressed sections
+ℹ️  design.md has no superseded/suppressed sections
+ℹ️  No spec/design freshness boundaries detected
+
+--- Check 2: Superseded Scope Sections Are Non-Executable ---
+ℹ️  scopes.md has no superseded scope section
+ℹ️  No superseded scope sections detected
+
+--- Check 3: Per-Scope Directory Index References ---
+ℹ️  Single-file scope layout detected — orphaned per-scope directory check not applicable
+
+--- Check 4: Result ---
+RESULT: PASS (0 failures, 0 warnings)
+
+$ timeout 300 bash .github/bubbles/scripts/done-spec-audit.sh --profile changed specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+Done-spec audit
+- profile: changed
+- selection: explicit
+- posture: prospective blocking audit for changed/reopened/newly promoted specs
+
+=== Auditing spec: specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact (status=in_progress, profile=changed) ===
+--- Running artifact lint ---
+Lint: PASS
+Completion gates: SKIPPED (spec is not status=done)
+
+Done-spec audit summary
+- specs scanned: 1
+- done specs scanned: 0
+- artifact lint passed: 1
+- artifact lint failed: 0
+- done completion checks passed: 0
+- done completion checks failed: 0
+- reopened (--reopen-failing): 0
+```
+
+### Transition Contract And Pre-Persistence Guard
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The fresh transition contract requires `delivery-completion-v1` and retains
+`audit` after `validate` in its phase order. The asserted guard passed every listed gate except
+G022. Its three blocking lines reduce to two absent phase records plus the aggregate missing-phase
+line: this validate invocation and the still-unexecuted audit. No behavior, receipt, artifact,
+privacy, traceability, implementation-reality, or goal-fidelity gate failed.
+
+```text
+$ timeout 120 bash .github/bubbles/scripts/transition-contract-resolver.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+{"schemaVersion":"transition-contract/v1","featureDir":"specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact","workflowMode":"bugfix-fastlane","modeClass":null,"auditProfile":"delivery-completion-v1","statusCeiling":"done","targetStatus":"done","currentStatus":"in_progress","requiredGates":["G001","G002","G003","G004","G005","G006","G007","G008","G009","G010","G011","G012","G014","G015","G016","G018","G019","G020","G021","G022","G023","G024","G025","G026","G027","G028","G029","G033","G034","G035","G040","G044","G047","G048","G051","G055","G056","G057","G059","G060","G061","G094"],"phaseOrder":["select","bootstrap","implement","test","regression","simplify","gaps","harden","stabilize","devops","security","validate","audit","finalize"],"sourceEditLockoutRequired":false,"contractRef":"bubbles/workflows/modes.yaml#bugfix-fastlane","contractDigest":"sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f","targetRevision":"sha256:3b9c59cf3031665e195fe98d3abb213ac8b8c5697fa4e15d1b7a40342c1ac7db"}
+exit: 0
+
+# BUG-018 validate asserted state transition guard before phase persistence
+$ timeout 300 bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+exit: 1
+lines: 401
+sha256: 1aa8d89706a512b87294de8c8153a8642fb79029a3f57ad95efcfd7aa9ac5280
+🔴 BLOCK: Required phase 'validate' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: Required phase 'audit' NOT in execution/certification phase records (Gate G022 violation)
+🔴 BLOCK: 2 specialist phase(s) missing — work was NOT executed through the full pipeline
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:3b9c59cf3031665e195fe98d3abb213ac8b8c5697fa4e15d1b7a40342c1ac7db
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G136]
+failedGateIds: [G022]
+failedChecks: []
+blockingCode: DELIVERY_COMPLETION_FAILED
+parentExpandedPhases: 1
+failureCount: 3
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+The guard also emitted three non-blocking warnings: no top-level completion timestamp, two
+implement claims backed by one recorded run, and 12 of 69 report evidence blocks without detected
+terminal-output signals. Its advisory claim-source scan identified the pre-marker security-phase
+exit-code placement at the then-current `report.md:1902`. The vertical-plan advisory described
+Scopes 1–3 as unexposed despite their declared `Consumer Surface` lines. None appeared in
+`failedGateIds`; all remain outside this validate-owned write set.
+
+<a name="audit-phase-current-session-2026-08-30"></a>
+## Audit Evidence — parent-expanded by bubbles.goal — 2026-08-30
+
+### Audit Provenance And Verdict
+
+**Phase:** audit
+**Claim Source:** executed
+**Provenance:** The `bubbles.audit` dispatch returned no result. The authorized top-level
+`bubbles.goal` runner therefore executed the complete audit checklist directly. This is recorded
+as `parent-expanded`, not as an independent specialist audit.
+
+**Verdict:** PASS at prototype assurance. No in-boundary finding remains.
+
+### Correctness Suites
+
+```text
+# BUG-018 audit unit suite
+$ node --test tests/company-intelligence.unit.mjs
+exit: 0
+lines: 556
+sha256: fcd3b3434e4ac1da936ac1c469059929fcae92b14a050008731ccf1dbd7424c1
+tests 91
+pass 91
+fail 0
+
+# BUG-018 audit complete browser suite
+$ npx --no-install playwright test tests/company-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+lines: 47
+sha256: 2a328b97dfbc865a86f07b2c4548dc731c187cbc9f4193dda22e2ff1118598e5
+42 passed (1.0m)
+
+# BUG-018 audit repository selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3906
+sha256: ee6c02f559595b8687be42d882cdb378d0cde2c949c3eb434b1f471dcc70ab30
+Research-Lab self-test: 3437 passed, 0 failed
+```
+
+### Contract, Evidence, And Security Checks
+
+```text
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+exit: 0
+Scenarios checked: 14
+Test rows checked: 25
+DoD fidelity scenarios: 14 (mapped: 14, unmapped: 0)
+RESULT: PASSED (0 warnings)
+
+$ bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix --verbose tests/company-intelligence-lab.spec.mjs
+exit: 0
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --verbose
+exit: 0
+Files scanned: 2
+Violations: 0
+Warnings: 0
+
+$ bash .github/bubbles/scripts/security-gate.sh --repo-root .
+exit: 0
+[security-gate] OK — 10737 tracked file(s), zero G034 findings
+
+$ node scripts/pii-scan.mjs
+exit: 0
+[pii-scan] files=10736 messages=2537 findings=0 OK
+```
+
+### Completion Contract Checks
+
+```text
+$ bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --certifiable
+exit: 0
+SCN-BUG-018-001 through SCN-BUG-018-014: state=REGRESSION_GREEN
+certifiable: yes
+
+$ bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict
+exit: 0
+withClosure: 35
+valid: 35
+stale: 0
+staleReceipts: []
+
+$ bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+exit: 0
+goal-fidelity-guard: PASS boundary=pre-certification
+```
+
+The Outcome Contract is satisfied. Pending state creates neither a settled UI claim nor an
+ordinary `RLDATA` publication. A replacement subject reports its own pending state. Established
+loaded and unavailable readings remain rendered and published. Cache-first first paint, the
+settled `13 of 15` MSFT account, pass-through live-test authenticity, and the shared schema remain
+intact.
+
+BUG-025 and BUG-026 are independent under the declared contract. They add request-termination and
+arbitrary-overlap atomicity guarantees that BUG-018 does not claim. Neither changes BUG-018's
+pending copy, settled predicate, publication guard, or current-subject return-time assertion.
+
+### Assurance Boundary
+
+The audit and regression phases used parent expansion after their specialist dispatches returned
+no result. Validation ran as an independent specialist. Therefore assurance remains `prototype`,
+not `full`, with `independent-audit` as the remaining full-assurance gap. No delivery claim depends
+on upgrading that assurance label.
+
+<a name="final-validation-transition-attempt-2026-08-30"></a>
+## Final Validation Transition Attempt — bubbles.validate — 2026-08-30
+
+### Certifying-Window Transition Guard
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Command:** `timeout 360 bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 certifying-window pre-transition guard
+$ timeout 360 bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+exit: 0
+lines: 400
+sha256: 52bddfeac8fc531019874bf07e8b717122731070c3e07d7745dcce9ad2b4c393
+--- first 20 ---
+============================================================
+  BUBBLES STATE TRANSITION GUARD
+  Feature: specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+  Timestamp: 2026-08-30T19:41:35Z
+============================================================
+
+--- Check 1: Required Artifacts ---
+✅ PASS: Required artifact exists: spec.md
+✅ PASS: Required artifact exists: design.md
+✅ PASS: Required artifact exists: uservalidation.md
+✅ PASS: Required artifact exists: state.json
+✅ PASS: Required artifact exists: scopes.md
+✅ PASS: Required artifact exists: report.md
+
+--- Check 2: state.json Integrity ---
+ℹ️  INFO: Current state.json status: in_progress
+ℹ️  INFO: Current workflowMode: bugfix-fastlane
+
+--- Check 2B: workflowMode Consistency ---
+ℹ️  INFO: No policySnapshot.workflowMode present — skipping consistency check
+--- omitted 360 line(s); sha256 above covers the full output ---
+--- last 20 ---
+
+state.json status may be set to 'done'.
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:0b09312ffcd3f0f96c9bce572e73e0df736d720b094727fb9695259350bf2c05
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G057,G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G136,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G059,G060,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+parentExpandedPhases: 2
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+```
+
+### Assurance Derivation And Terminal Compatibility
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Command:** `timeout 60 bash .github/bubbles/scripts/assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete false`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+achievedLevel=fast
+terminalStatus=delivered_fast
+riskClass=unknown
+missingForFull=independent-audit
+reason=implementation + full test coverage + all tests passing, but no independent audit — fast assurance (rapid-tool-delivery achievement)
+```
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Command:** `timeout 60 bash .github/bubbles/scripts/is-terminal-for-mode.sh delivered_fast bugfix-fastlane`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+is_terminal_for_mode_exit=1
+```
+
+The guard authorizes the requested `done` transition, but the mandatory assurance derivation does
+not. The verified evidence derives `fast`, not `prototype`: implementation and test coverage are
+complete, every recorded test command exits zero, and the independent audit is absent. Its derived terminal
+status, `delivered_fast`, is not terminal for persisted `bugfix-fastlane`. Writing either
+`done` plus non-full assurance or `prototype` with only `independent-audit` missing would contradict
+the executed assurance resolver. The status mirrors therefore remain `in_progress`.
+
+<a name="independent-audit-evidence-bubbles-audit-2026-08-31"></a>
+## Independent Audit Evidence — bubbles.audit — 2026-08-31
+
+### Audit Provenance
+
+**Phase:** audit
+**Claim Source:** executed
+
+The independent `bubbles.audit` specialist completed two bounded read-only slices. The split kept
+each invocation within its execution window. Neither slice edited an artifact. This evidence
+supersedes the earlier parent-expanded audit for assurance derivation. The historical
+parent-expanded run remains labeled as such.
+
+### Independent Correctness Slice
+
+```text
+agent: bubbles.audit
+outcome: completed_diagnostic
+packetValidation: VALID
+unit: 91 passed, 0 failed
+systemChrome: 42 passed, 0 failed
+selftest: 3437 passed, 0 failed
+reportComparison: Exact match
+evidenceIntegrity: VERIFIED
+publicationGuard: established readiness is required before the ordinary write
+publicationScenarios: pending withheld; loaded published; unavailable published
+inBoundaryDefectFound: false
+```
+
+The specialist re-read the Outcome Contract, source, and tests before executing these commands.
+It independently confirmed that the report's three core counts match current execution.
+
+### Independent Contract And Integrity Slice
+
+```text
+agent: bubbles.audit
+outcome: completed_diagnostic
+auditVerdict: SHIP_WITH_NOTES
+artifactLint: exit 0; PASSED
+traceabilityGuard: exit 0; 14 scenarios, 25 test rows, 0 warnings
+regressionQualityGuard: exit 0; 0 violations, 0 warnings
+implementationRealityScan: exit 0; 2 files, 0 violations, 0 warnings
+securityGate: exit 0; 10737 tracked files, 0 G034 findings
+piiScan: exit 0; 10736 files, 2537 messages, 0 findings
+scenarioStateResolve: exit 0; certifiable=yes
+evidenceReceiptCheck: exit 0; 35 valid, 0 stale
+goalFidelity: exit 0; pre-certification PASS
+stateTransitionGuard: exit 0; failedGateIds=[], failureCount=0
+evidenceIntegrity: VERIFIED_CURRENT_CERTIFYING_WINDOW
+inBoundaryFindings: []
+```
+
+`SHIP_WITH_NOTES` records spot-check recommendations, not an open finding. The specialist found
+no in-boundary defect. It recommended manual review of interpreted evidence and the independent
+BUG-025 and BUG-026 classification. Those packets remain separate because they add termination
+and arbitrary-overlap guarantees outside BUG-018's Success Signal and Hard Constraints.
+
+### Independent Assurance Derivation
+
+```text
+$ bash .github/bubbles/scripts/assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete true
+achievedLevel=full
+terminalStatus=done
+riskClass=unknown
+missingForFull=none
+reason=complete integrity chain (implementation + full test coverage + all tests passing + independent audit) — full assurance
+```
+
+The two specialist slices constitute the independent audit required by the resolver. Final status
+and `certification.*` remain owned by `bubbles.validate`.
+
+<!-- bubbles:certifying-window-begin -->
+
+<a name="final-terminal-certification-bubbles-validate-2026-08-31"></a>
+## Final Terminal Certification — bubbles.validate — 2026-08-31
+
+### Audit Evidence
+
+The independent specialist audit evidence used by this certification is preserved at
+[`Independent Audit Evidence — bubbles.audit — 2026-08-31`](#independent-audit-evidence-bubbles-audit-2026-08-31).
+That section records two `provenanceMode: specialist` audit slices. The earlier regression and
+audit parent expansions remain explicitly labeled and are not reclassified by this certification.
+
+### Validation Evidence
+
+#### Certification Boundary And Provenance
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+
+Repository authority was validated against the inherited actionable session-control packet before
+any repository-local read or write. The two persisted independent `bubbles.audit` slices retain
+`provenanceMode: specialist` and satisfy the independent-audit assurance input. The regression
+phase retains `provenanceMode: parent-expanded`; this certification does not describe that phase as
+independent. The eight checked user-acceptance items retain `method: external-record`; this
+certification does not restate them as agent-observed acceptance.
+
+The two local absolute paths in the command and result are normalized below. The decision,
+revision, actionability, and exit status are unchanged.
+
+```text
+$ timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id 'vscode-19c7d402e6db48b0e69ee22f40cfadcf' --session-control-file '<session-control-file>' --packet-file '<binding-packet-file>'
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-19c7d402e6db48b0e69ee22f40cfadcf:12 revision=12
+exit: 0
+```
+
+### Fresh Transition Contract And Assurance Derivation
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+
+```text
+$ timeout 120 bash .github/bubbles/scripts/transition-contract-resolver.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+{"schemaVersion":"transition-contract/v1","featureDir":"specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact","workflowMode":"bugfix-fastlane","modeClass":null,"auditProfile":"delivery-completion-v1","statusCeiling":"done","targetStatus":"done","currentStatus":"in_progress","requiredGates":["G001","G002","G003","G004","G005","G006","G007","G008","G009","G010","G011","G012","G014","G015","G016","G018","G019","G020","G021","G022","G023","G024","G025","G026","G027","G028","G029","G033","G034","G035","G040","G044","G047","G048","G051","G055","G056","G057","G059","G060","G061","G094"],"phaseOrder":["select","bootstrap","implement","test","regression","simplify","gaps","harden","stabilize","devops","security","validate","audit","finalize"],"sourceEditLockoutRequired":false,"contractRef":"bubbles/workflows/modes.yaml#bugfix-fastlane","contractDigest":"sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f","targetRevision":"sha256:335378a36929e048e21387c7e1b6c7edb31ae3fdfdcf310a7a97a895b20b9b3a"}
+exit: 0
+
+$ timeout 60 bash .github/bubbles/scripts/assurance-derive.sh --implement-complete true --tests-complete true --tests-passed true --audit-complete true
+achievedLevel=full
+terminalStatus=done
+riskClass=unknown
+missingForFull=none
+reason=complete integrity chain (implementation + full test coverage + all tests passing + independent audit) — full assurance
+exit: 0
+
+$ timeout 60 bash .github/bubbles/scripts/is-terminal-for-mode.sh done bugfix-fastlane
+is_terminal_for_mode_exit=0
+```
+
+The resolver retained persisted `bugfix-fastlane`, target `done`, audit profile
+`delivery-completion-v1`, and contract digest
+`sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`.
+The assurance resolver derived `full`, terminal status `done`, and no full-assurance gap. The
+terminal-for-mode helper accepted `done` for `bugfix-fastlane`.
+
+### Strict Receipt Freshness And Goal Fidelity
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Claim Source:** executed
+
+```text
+$ timeout 180 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict
+{
+  "total": 1385,
+  "current": 1342,
+  "superseded": 43,
+  "withClosure": 35,
+  "valid": 35,
+  "stale": 0,
+  "unknown": 1307,
+  "staleReceipts": []
+}
+exit: 0
+
+$ timeout 180 bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+goal-fidelity-guard: PASS boundary=pre-certification
+exit: 0
+```
+
+### Artifact Lint Before State Write
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Command:** `timeout 180 bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 final certification artifact lint before state write
+$ timeout 180 bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+exit: 0
+lines: 40
+sha256: 182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567
+--- output ---
+✅ Required artifact exists: spec.md
+✅ Required artifact exists: design.md
+✅ Required artifact exists: uservalidation.md
+✅ Required artifact exists: state.json
+✅ Required artifact exists: scopes.md
+✅ Required artifact exists: report.md
+✅ No forbidden sidecar artifacts present
+✅ Found DoD section in scopes.md
+✅ scopes.md DoD contains checkbox items
+✅ All DoD bullet items use checkbox syntax in scopes.md
+✅ Found Checklist section in uservalidation.md
+✅ uservalidation checklist contains checkbox entries
+✅ All checklist bullet items use checkbox syntax
+✅ uservalidation separates automation readiness from human acceptance
+✅ Detected state.json status: in_progress
+✅ Detected state.json workflowMode: bugfix-fastlane
+✅ state.json v3 has required field: status
+✅ state.json v3 has required field: execution
+✅ state.json v3 has required field: certification
+✅ state.json v3 has required field: policySnapshot
+✅ state.json v3 has recommended field: transitionRequests
+✅ state.json v3 has recommended field: reworkQueue
+✅ state.json v3 has recommended field: executionHistory
+✅ Top-level status matches certification.status
+ℹ️  Workflow mode 'bugfix-fastlane' allows status 'done'; current status is 'in_progress'
+✅ report.md contains section matching: ###[[:space:]]+Summary|^##[[:space:]]+Summary
+✅ report.md contains section matching: ###[[:space:]]+Completion Statement|^##[[:space:]]+Completion Statement
+✅ report.md contains section matching: ###[[:space:]]+Test Evidence|^##[[:space:]]+Test Evidence
+✅ Mode-specific report gates skipped (status not in promotion set)
+✅ Value-first selection rationale lint skipped (not a value-first report)
+✅ Scenario path-placeholder lint skipped (no matching scenario sections found)
+
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+```
+
+### Scenario-State Certifiability
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Command:** `timeout 240 bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 final certification scenario state
+$ timeout 240 bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable
+exit: 0
+lines: 1278
+sha256: 552600fbff7c6fd9e5fe418034e17d471c5b4f2f4c03da8b6c0a21d59ba61402
+--- first 20 ---
+scenario-state-resolve: specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+  source revision: 095d76dc4318
+  SCN-BUG-018-001  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-002  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-003  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-004  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-005  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-006  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-007  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-008  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-009  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-010  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-011  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-012  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-013  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG-018-014  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED REGRESSION_GREEN]
+--- omitted 1238 line(s); sha256 above covers the full output ---
+--- last 2 ---
+  (all 1260 refusals are SCS-REVISION-DRIFT: superseded receipts, excluded from derivation, not blocking)
+  certifiable: yes
+```
+
+### Asserted Transition Guard Before State Write
+
+**Phase:** validate
+**Executed:** YES (current session)
+**Command:** `timeout 420 bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-018 final certification asserted transition guard before state write
+$ timeout 420 bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+exit: 0
+lines: 400
+sha256: 6c8ebf9a4e6636013982b8df7d56d7b09f95d94ee5863edf1ff927f594e93520
+--- first 20 ---
+============================================================
+  BUBBLES STATE TRANSITION GUARD
+  Feature: specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact
+  Timestamp: 2026-08-31T00:47:41Z
+============================================================
+
+--- Check 1: Required Artifacts ---
+✅ PASS: Required artifact exists: spec.md
+✅ PASS: Required artifact exists: design.md
+✅ PASS: Required artifact exists: uservalidation.md
+✅ PASS: Required artifact exists: state.json
+✅ PASS: Required artifact exists: scopes.md
+✅ PASS: Required artifact exists: report.md
+
+--- Check 2: state.json Integrity ---
+ℹ️  INFO: Current state.json status: in_progress
+ℹ️  INFO: Current workflowMode: bugfix-fastlane
+
+--- Check 2B: workflowMode Consistency ---
+ℹ️  INFO: No policySnapshot.workflowMode present — skipping consistency check
+--- omitted 360 line(s); sha256 above covers the full output ---
+--- last 20 ---
+state.json status may be set to 'done'.
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:335378a36929e048e21387c7e1b6c7edb31ae3fdfdcf310a7a97a895b20b9b3a
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G057,G022,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G130,G131,G136,G001,G002,G003,G004,G005,G006,G007,G008,G009,G010,G011,G012,G014,G015,G016,G018,G019,G020,G021,G023,G024,G025,G026,G027,G028,G029,G033,G034,G035,G044,G047,G048,G055,G056,G059,G060,G061]
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+parentExpandedPhases: 1
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+```
+
+### Pre-Write Certification Verdict
+
+All requested pre-certification commands exited zero. The current transition contract, fresh
+assurance derivation, strict receipt check, scenario certifiability check, goal-fidelity guard,
+artifact lint, and asserted transition guard authorize a validate-owned `done` write at full
+assurance. No in-boundary finding was produced by this certification pass.

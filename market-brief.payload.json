@@ -1,9 +1,9 @@
 {
-  "asOf": "2026-08-28T11:30:00.000Z",
+  "asOf": "2026-08-31T15:00:00.000Z",
   "attention": [
     {
       "contractVersion": "decision-attention/v1",
-      "decisionWindow": "pre-market",
+      "decisionWindow": "morning",
       "deepLink": "etf-momentum-lab.html",
       "disposition": "context",
       "escalationTrigger": "a daily close below ~117.00 that loses the 50-day and cracks the leadership",
@@ -37,7 +37,7 @@
       "gateId": null,
       "headline": "VGT leads the momentum board yet is the book's most exposed name if tech rolls over",
       "horizon": "swing",
-      "id": "attn-79bd8be384298be3",
+      "id": "attn-c05968e9f01d68e9",
       "imminence": "latent",
       "invalidation": "a daily close above ~126.00 that extends the advance and keeps leadership intact",
       "lifecycle": [
@@ -64,13 +64,13 @@
         "breadth-market-structure"
       ],
       "verb": "monitor",
-      "windowBoundaryUtc": "2026-08-28T11:30:00.000Z",
+      "windowBoundaryUtc": "2026-08-31T15:00:00.000Z",
       "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-08-28"
+      "windowTradingDate": "2026-08-31"
     },
     {
       "contractVersion": "decision-attention/v1",
-      "decisionWindow": "pre-market",
+      "decisionWindow": "morning",
       "deepLink": "etf-momentum-lab.html",
       "disposition": "context",
       "escalationTrigger": "a daily close below ~712.00 that loses the 50-day and confirms the momentum stall",
@@ -104,7 +104,7 @@
       "gateId": null,
       "headline": "QQQ holds near its high but three-month momentum has rolled negative under narrow breadth",
       "horizon": "swing",
-      "id": "attn-9c0fd09af31bd09a",
+      "id": "attn-ae60a0e24004a0e2",
       "imminence": "latent",
       "invalidation": "a daily close above ~740.00 that re-accelerates and restores the uptrend",
       "lifecycle": [
@@ -131,13 +131,13 @@
         "breadth-market-structure"
       ],
       "verb": "monitor",
-      "windowBoundaryUtc": "2026-08-28T11:30:00.000Z",
+      "windowBoundaryUtc": "2026-08-31T15:00:00.000Z",
       "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-08-28"
+      "windowTradingDate": "2026-08-31"
     },
     {
       "contractVersion": "decision-attention/v1",
-      "decisionWindow": "pre-market",
+      "decisionWindow": "morning",
       "deepLink": "etf-momentum-lab.html",
       "disposition": "context",
       "escalationTrigger": "a daily close below ~39.50 that loses the 50-day and confirms the fade",
@@ -171,7 +171,7 @@
       "gateId": null,
       "headline": "FMTM is pinned right at its 50-day as multifactor leadership loses thrust",
       "horizon": "swing",
-      "id": "attn-523a97e6d91e97e6",
+      "id": "attn-fc36fae65e62fae6",
       "imminence": "latent",
       "invalidation": "a daily close above ~42.00 that pushes off the 50-day and restores the trend",
       "lifecycle": [
@@ -198,9 +198,9 @@
         "breadth-market-structure"
       ],
       "verb": "monitor",
-      "windowBoundaryUtc": "2026-08-28T11:30:00.000Z",
+      "windowBoundaryUtc": "2026-08-31T15:00:00.000Z",
       "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-08-28"
+      "windowTradingDate": "2026-08-31"
     }
   ],
   "attentionExclusions": [
@@ -370,7 +370,7 @@
         "path": "crossAsset.dark[].substitutionRefusal"
       },
       {
-        "chars": 100,
+        "chars": 114,
         "path": "changed[].line"
       },
       {
@@ -417,13 +417,35 @@
         "path": "attention[2].rationale"
       }
     ],
-    "disclosedTotal": 139084,
-    "total": 2041,
+    "disclosedTotal": 146315,
+    "total": 2055,
     "violations": []
   },
   "changed": [
     {
       "cur": {
+        "asOf": "2026-08-28",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 43.64,
+          "low52w": 27.2,
+          "ma20": 39.26,
+          "ma200": 36.95,
+          "ma50": 39.81
+        },
+        "ma200Dist": 6.32,
+        "maStack": "tangled",
+        "px": 39.29,
+        "rrgState": "Improving ↑"
+      },
+      "kind": "levelCrossed",
+      "line": "FMTM levelCrossed",
+      "prev": {
         "asOf": "2026-08-27",
         "flags": {
           "callOpen": false,
@@ -443,10 +465,11 @@
         "px": 40.23,
         "rrgState": "Improving ↑"
       },
-      "kind": "levelCrossed",
-      "line": "FMTM levelCrossed",
-      "prev": {
-        "asOf": "2026-08-26",
+      "symbol": "FMTM"
+    },
+    {
+      "cur": {
+        "asOf": "2026-08-28",
         "flags": {
           "callOpen": false,
           "earningsWithinWindow": false,
@@ -454,21 +477,20 @@
           "persistenceGateMet": false
         },
         "levels": {
-          "high52w": 43.64,
-          "low52w": 27.2,
-          "ma20": 39.1,
-          "ma200": 36.87,
-          "ma50": 39.88
+          "high52w": 495.9,
+          "low52w": 315.03,
+          "ma20": 404.83,
+          "ma200": 414.79,
+          "ma50": 386.07
         },
-        "ma200Dist": 5.87,
+        "ma200Dist": -1.42,
         "maStack": "tangled",
-        "px": 39.04,
-        "rrgState": "Improving ↑"
+        "px": 408.89,
+        "rrgState": "Peaking ⚠"
       },
-      "symbol": "FMTM"
-    },
-    {
-      "cur": {
+      "kind": "levelCrossed",
+      "line": "GLD levelCrossed",
+      "prev": {
         "asOf": "2026-08-27",
         "flags": {
           "callOpen": false,
@@ -488,32 +510,32 @@
         "px": 422.6,
         "rrgState": "Leading"
       },
-      "kind": "stateFlipped",
-      "line": "GLD stateFlipped",
-      "prev": {
-        "asOf": "2026-08-26",
+      "symbol": "GLD"
+    },
+    {
+      "cur": {
+        "asOf": "2026-08-28",
         "flags": {
-          "callOpen": false,
+          "callOpen": true,
           "earningsWithinWindow": false,
           "gammaFlipProximity": false,
           "persistenceGateMet": false
         },
         "levels": {
-          "high52w": 495.9,
-          "low52w": 312.08,
-          "ma20": 400.69,
-          "ma200": 414.37,
-          "ma50": 385.16
+          "high52w": 746.16,
+          "low52w": 558.28,
+          "ma20": 717.94,
+          "ma200": 655.17,
+          "ma50": 712.06
         },
-        "ma200Dist": 1.68,
-        "maStack": "tangled",
-        "px": 421.32,
-        "rrgState": "Peaking ⚠"
+        "ma200Dist": 9.35,
+        "maStack": "bull-stack",
+        "px": 716.43,
+        "rrgState": "Improving ↑"
       },
-      "symbol": "GLD"
-    },
-    {
-      "cur": {
+      "kind": "levelCrossed",
+      "line": "QQQ levelCrossed",
+      "prev": {
         "asOf": "2026-08-27",
         "flags": {
           "callOpen": true,
@@ -533,32 +555,32 @@
         "px": 721.11,
         "rrgState": "Improving ↑"
       },
-      "kind": "levelCrossed",
-      "line": "QQQ levelCrossed",
-      "prev": {
-        "asOf": "2026-08-26",
+      "symbol": "QQQ"
+    },
+    {
+      "cur": {
+        "asOf": "2026-08-28",
         "flags": {
-          "callOpen": true,
+          "callOpen": false,
           "earningsWithinWindow": false,
           "gammaFlipProximity": false,
           "persistenceGateMet": false
         },
         "levels": {
-          "high52w": 746.16,
-          "low52w": 558.28,
-          "ma20": 714.64,
-          "ma200": 654.15,
-          "ma50": 712.36
+          "high52w": 655.01,
+          "low52w": 241.68,
+          "ma20": 529.5,
+          "ma200": 426.14,
+          "ma50": 550.11
         },
-        "ma200Dist": 8.75,
-        "maStack": "bull-stack",
-        "px": 711.37,
-        "rrgState": "Improving ↑"
+        "ma200Dist": 19.35,
+        "maStack": "tangled",
+        "px": 508.62,
+        "rrgState": "Lagging"
       },
-      "symbol": "QQQ"
-    },
-    {
-      "cur": {
+      "kind": "stateFlipped",
+      "line": "SOXX stateFlipped",
+      "prev": {
         "asOf": "2026-08-27",
         "flags": {
           "callOpen": false,
@@ -578,33 +600,11 @@
         "px": 525.43,
         "rrgState": "Improving ↑"
       },
-      "kind": "stateFlipped",
-      "line": "SOXX stateFlipped",
-      "prev": {
-        "asOf": "2026-08-26",
-        "flags": {
-          "callOpen": false,
-          "earningsWithinWindow": false,
-          "gammaFlipProximity": false,
-          "persistenceGateMet": false
-        },
-        "levels": {
-          "high52w": 655.01,
-          "low52w": 241.68,
-          "ma20": 528.27,
-          "ma200": 423.95,
-          "ma50": 553.25
-        },
-        "ma200Dist": 21.57,
-        "maStack": "tangled",
-        "px": 515.4,
-        "rrgState": "Lagging"
-      },
       "symbol": "SOXX"
     },
     {
       "cur": {
-        "asOf": "2026-08-27",
+        "asOf": "2026-08-28",
         "flags": {
           "callOpen": false,
           "earningsWithinWindow": false,
@@ -612,66 +612,44 @@
           "persistenceGateMet": false
         },
         "levels": {
-          "high52w": 211.39,
-          "low52w": 108.27,
-          "ma20": 132.88,
-          "ma200": null,
-          "ma50": 138.57
+          "high52w": 125.77,
+          "low52w": 83.59,
+          "ma20": 119.77,
+          "ma200": 103.11,
+          "ma50": 117.07
         },
-        "ma200Dist": null,
-        "maStack": "n/a",
-        "px": 140.87,
-        "rrgState": "n/a"
-      },
-      "kind": "levelCrossed",
-      "line": "SPCX levelCrossed",
-      "prev": {
-        "asOf": "2026-08-26",
-        "flags": {
-          "callOpen": false,
-          "earningsWithinWindow": false,
-          "gammaFlipProximity": false,
-          "persistenceGateMet": false
-        },
-        "levels": {
-          "high52w": 211.39,
-          "low52w": 108.27,
-          "ma20": 131.45,
-          "ma200": null,
-          "ma50": 139.98
-        },
-        "ma200Dist": null,
-        "maStack": "n/a",
-        "px": 139.63,
-        "rrgState": "n/a"
-      },
-      "symbol": "SPCX"
-    },
-    {
-      "cur": {
-        "asOf": "2026-08-27",
-        "flags": {
-          "callOpen": true,
-          "earningsWithinWindow": false,
-          "gammaFlipProximity": false,
-          "persistenceGateMet": false
-        },
-        "levels": {
-          "high52w": 161.66,
-          "low52w": 107.67,
-          "ma20": 149.25,
-          "ma200": 131.33,
-          "ma50": 150.35
-        },
-        "ma200Dist": 13.15,
-        "maStack": "tangled",
-        "px": 148.6,
+        "ma200Dist": 16.45,
+        "maStack": "bull-stack",
+        "px": 120.07,
         "rrgState": "Lagging"
       },
       "kind": "stateFlipped",
-      "line": "SPMO stateFlipped",
+      "line": "VGT stateFlipped",
       "prev": {
-        "asOf": "2026-08-26",
+        "asOf": "2026-08-27",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 125.62,
+          "low52w": 83.49,
+          "ma20": 119.43,
+          "ma200": 102.85,
+          "ma50": 116.99
+        },
+        "ma200Dist": 18.53,
+        "maStack": "bull-stack",
+        "px": 121.91,
+        "rrgState": "Peaking ⚠"
+      },
+      "symbol": "VGT"
+    },
+    {
+      "cur": {
+        "asOf": "2026-08-28",
         "flags": {
           "callOpen": true,
           "earningsWithinWindow": false,
@@ -679,18 +657,85 @@
           "persistenceGateMet": false
         },
         "levels": {
-          "high52w": 161.66,
-          "low52w": 107.84,
-          "ma20": 148.99,
-          "ma200": 131.52,
-          "ma50": 150.48
+          "high52w": 63.75,
+          "low52w": 42.61,
+          "ma20": 61.26,
+          "ma200": 54.35,
+          "ma50": 58.15
         },
-        "ma200Dist": 12.16,
-        "maStack": "tangled",
-        "px": 147.52,
-        "rrgState": "Improving ↑"
+        "ma200Dist": 15.32,
+        "maStack": "bull-stack",
+        "px": 62.68,
+        "rrgState": "Weakening ↓"
       },
-      "symbol": "SPMO"
+      "kind": "stateFlipped",
+      "line": "XLE stateFlipped",
+      "prev": {
+        "asOf": "2026-08-27",
+        "flags": {
+          "callOpen": true,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 63.75,
+          "low52w": 41.68,
+          "ma20": 61.1,
+          "ma200": 53.78,
+          "ma50": 57.98
+        },
+        "ma200Dist": 15.82,
+        "maStack": "bull-stack",
+        "px": 62.29,
+        "rrgState": "Leading"
+      },
+      "symbol": "XLE"
+    },
+    {
+      "cur": {
+        "asOf": "2026-08-28",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 198.21,
+          "low52w": 127.5,
+          "ma20": 185.56,
+          "ma200": 159.33,
+          "ma50": 182.78
+        },
+        "ma200Dist": 16.54,
+        "maStack": "bull-stack",
+        "px": 185.69,
+        "rrgState": "Lagging"
+      },
+      "kind": "stateFlipped",
+      "line": "XLK stateFlipped",
+      "prev": {
+        "asOf": "2026-08-27",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 197.97,
+          "low52w": 127.35,
+          "ma20": 185.04,
+          "ma200": 158.9,
+          "ma50": 182.77
+        },
+        "ma200Dist": 18.7,
+        "maStack": "bull-stack",
+        "px": 188.61,
+        "rrgState": "Peaking ⚠"
+      },
+      "symbol": "XLK"
     }
   ],
   "contractVersion": "market-brief-payload/v2",
@@ -708,8 +753,8 @@
     ],
     "legs": [
       {
-        "asOf": "2026-08-27T13:30:00.000Z",
-        "changePct": 0.96,
+        "asOf": "2026-08-28T13:30:00.000Z",
+        "changePct": 1.01,
         "claim": "the TLT price",
         "confirmation": null,
         "contractVersion": "cross-asset-reading/v1",
@@ -717,7 +762,7 @@
         "driver": "TLT",
         "label": "Rates",
         "leg": "rates",
-        "long63Pct": -1.91,
+        "long63Pct": -3.36,
         "provenance": "Observed",
         "sessions": 5,
         "shape": "measured",
@@ -725,8 +770,8 @@
         "withheld": null
       },
       {
-        "asOf": "2026-08-27T13:30:00.000Z",
-        "changePct": -3.37,
+        "asOf": "2026-08-28T13:30:00.000Z",
+        "changePct": -3.67,
         "claim": "the USO price",
         "confirmation": null,
         "contractVersion": "cross-asset-reading/v1",
@@ -734,7 +779,7 @@
         "driver": "USO",
         "label": "Energy",
         "leg": "energy",
-        "long63Pct": -0.59,
+        "long63Pct": 0.47,
         "provenance": "Observed",
         "sessions": 5,
         "shape": "measured",
@@ -742,7 +787,7 @@
         "withheld": null
       },
       {
-        "asOf": "2026-08-27",
+        "asOf": "2026-08-28",
         "confirmation": {
           "detail": "an independent credit-spread reading",
           "state": "absent"
@@ -940,7 +985,7 @@
       "title": "A late-cycle equity rotation and a risk-on real-asset bid are pulling in opposite directions under a collapsed 17.88% breadth this window — sector leadership rotates into materials (XLB Leading, accel +3.4) with healthcare the named leader (XLV) as technology peaks and rolls (XLK Peaking, accel -1.57), while real assets are led by crypto (ETH-USD 79.7, BTC-USD 70.8, IBIT 66.7) and firm broad commodities (PDBC 66.6, DBC 66.4, DBA 65.8) with gold (GLD 48.5, six-month momentum -11.49%) and silver (SLV 22.5) lagging — a cross-model tension that resolves to no single committed-universe price level"
     }
   ],
-  "generatedAt": "2026-08-28T11:36:51.544Z",
+  "generatedAt": "2026-08-31T06:40:29.259Z",
   "groups": [
     {
       "breadth": {
@@ -1358,7 +1403,7 @@
         "trigger": "Hold; confirm the repair on daily closes that hold above the 200-day (~429.3) and watch the maStack finish flipping from tangled to a bull-stack. Do not add by chasing the extended gap."
       }
     ],
-    "sessionDate": "2026-08-28",
+    "sessionDate": "2026-08-31",
     "thesis": "PRE-MARKET read on Friday 2026-08-28, building the plan for today's regular session on the completed 8/27 bar and updating only what carries into the open. The picture is the same structurally-strong, internally-hollow tape the after-hours read left, with the dealer map firming slightly. SPY sits 771.1 on a full 20>50>200 bull-stack (+2.36% over its 50-day ~753.4, +9.07% over its 200-day ~707.0, mom126/252 +12.46%/+20.85%, pctFrom52wHigh -0.87, about 0.9% under its high) and swing-structure-lab still reads Bull-stacked (20>50>200) with the Double top below-threshold in an Unknown regime (fast 768.1, slow 709.41) — the structural leg is intact. But breadth is still very narrow: market-heatmap-lab reads 17.88% of 134 (margin -42.12), so counting distinct completed market-bar dates the last three are 44.72% on 8/25, 41.72% on 8/26 and 17.88% on 8/27, none above 60% and deteriorating, so three-bar persistence above 60% is not established. The dealer walls lifted: options-structure-lab and gamma-trading-lab read SPY in POSITIVE gamma with the flip up at 768.83, spot 771.07 above it between the 770 put wall and a 772 call wall, signed net GEX +2.72B, atmIV 11.82% and a tight expected move of ±3.37 — pin-to-maxpain / patient, with slightly more room to the call wall than yesterday. Leadership stays tilted to Leading materials (XLB the highest sector rsMom) and re-strengthening energy (XLE back to Leading) funded from now-peaking tech (XLK) and weakening financials/healthcare (XLF/XLV). QQQ 721.11 holds its reclaimed 50-day while SPMO 148.6 is still fractionally below its 50-day though +13.15% over its 200-day; MSFT firmed to 505.06 with its trailing mom252 now +1.43. VIX is an easy 14.49 and volatility-sizing-lab reads NORMAL (throttle x1.37). The plan carries forward: HOLD the intact core and the first beta-add tranche while pausing the rest until breadth re-broadens and holds 60% across three bars and SPMO reclaims its 50-day, keep the rotation tilt toward materials and re-strengthening energy, and HOLD (not chase) the firmer MSFT. Today's only scheduled catalyst is the BLS preliminary benchmark revision (medium)."
   },
   "psychology": {
@@ -1432,16 +1477,16 @@
   },
   "researchAgenda": {
     "contractVersion": "research-agenda-read/v1",
-    "generationId": "generation-d0a979f91a2e267eca5f417e27cfe04f9bf85f5b49d6308a68933c7ad4c2f02c",
-    "asOf": "2026-08-28T11:02:19.547Z",
+    "generationId": "generation-e35b57f15da6e97c1e2c95686aebc7008d90d174689bc970ef43ebf7cf732351",
+    "asOf": "2026-08-31T06:40:25.165Z",
     "topics": [
       {
         "topicId": "geopolitical-supply-shock",
         "mode": "every-generation",
         "state": "unavailable",
-        "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+        "reason": "author-failed",
         "selectionReason": "mode-required",
-        "reviewId": "review-fb759041d3a2077c63b0dfd6a8aeeb39af96966afa80d1a562fef3e4c38170c2",
+        "reviewId": "review-315c7e73a84ab2a210ebc75852ffc22f9b918efa78b0265230fecf9fea4da2ac",
         "dossierId": null,
         "outcome": "unavailable",
         "changeAssessment": "insufficient-evidence",
@@ -1453,22 +1498,6 @@
       },
       {
         "topicId": "defense-earnings-acceleration",
-        "mode": "cadence",
-        "state": "unavailable",
-        "reason": "topic-model-not-applicable",
-        "selectionReason": "cadence-elapsed",
-        "reviewId": "review-e239229ce13d2b8009161534f9fe37f3f8fc7c0718ca0d8c437f4ce83e828fd5",
-        "dossierId": null,
-        "outcome": "unavailable",
-        "changeAssessment": "insufficient-evidence",
-        "newestEvidenceAgeHours": null,
-        "modelState": "unavailable",
-        "chartState": "unavailable",
-        "predecessorDossierId": null,
-        "supersedesDossierId": null
-      },
-      {
-        "topicId": "food-inputs-outlook",
         "mode": "cadence",
         "state": "not-due",
         "reason": "cadence-not-elapsed",
@@ -1482,14 +1511,30 @@
         "chartState": "unavailable",
         "predecessorDossierId": null,
         "supersedesDossierId": null
+      },
+      {
+        "topicId": "food-inputs-outlook",
+        "mode": "cadence",
+        "state": "unavailable",
+        "reason": "author-failed",
+        "selectionReason": "cadence-elapsed",
+        "reviewId": "review-d37c0db892ad7aa8b86ae529e1d8e8c6571352db1f39a1b2bc7b4ae55878aa64",
+        "dossierId": null,
+        "outcome": "unavailable",
+        "changeAssessment": "insufficient-evidence",
+        "newestEvidenceAgeHours": null,
+        "modelState": "unavailable",
+        "chartState": "unavailable",
+        "predecessorDossierId": null,
+        "supersedesDossierId": null
       }
     ],
-    "readFingerprint": "sha256:d8f1a2f88d0a38f06422fb7d6ab9eac8a908f0e16478bb5ed27435f9e8592912"
+    "readFingerprint": "sha256:a916ed281e91efe609b368e2c7122d00dd0316e729558f79cf70d5aa95f297b6"
   },
   "rollUp": {
     "baselineCount": 0,
-    "count": 6,
-    "line": "= 4 unchanged",
+    "count": 5,
+    "line": "= 5 unchanged",
     "members": [
       {
         "state": "tangled",
@@ -1504,16 +1549,12 @@
         "symbol": "MSFT"
       },
       {
-        "state": "bull-stack",
-        "symbol": "XLE"
+        "state": "n/a",
+        "symbol": "SPCX"
       },
       {
-        "state": null,
-        "symbol": "XLK"
-      },
-      {
-        "state": null,
-        "symbol": "VGT"
+        "state": "tangled",
+        "symbol": "SPMO"
       }
     ]
   },
@@ -1691,6 +1732,12 @@
       "id": "horizon-ladder-lab",
       "reason": "Long/short horizon-ladder tool with no deterministic owner adapter and no current browser read on file, so it publishes no owning-tool call this cycle; its per-horizon hit-rate arithmetic is device-published and must be opened directly before any horizon rate is cited.",
       "status": "not-relevant"
+    },
+    {
+      "deepLink": "company-intelligence-lab.html",
+      "id": "company-intelligence-lab",
+      "reason": "MSFT has four isolated horizon reads in version company:msft:2026-08-31:morning:db39f48c9689ced3.",
+      "status": "fresh-headless"
     }
   ],
   "toolId": "market-brief",
@@ -2021,6 +2068,272 @@
       "sourceAsOf": "2026-03-31",
       "status": "partial",
       "toolId": "company-fundamentals-lab"
+    },
+    "company-intelligence-lab": {
+      "adapter": {
+        "adapterId": "company-intelligence-owner-v1",
+        "owningModelVersion": "company-intelligence/v2",
+        "readContractVersion": "tool-model-read/v1"
+      },
+      "clocks": {
+        "composedAt": "2026-08-31T15:00:00.000Z",
+        "frozenAt": "2026-08-31T15:00:00.000Z",
+        "newestAcceptedSourceAt": "2026-08-31T00:00:00.000Z",
+        "oldestAcceptedSourceAt": "2026-08-18T00:00:00.000Z",
+        "planAuthoredAt": "2026-08-31T15:00:00.000Z"
+      },
+      "contractVersion": "tool-model-read/v1",
+      "coverageSummary": {
+        "candidateVersionCount": 1,
+        "coveredSubjectCount": 1,
+        "dimensionCountPerSubject": 15,
+        "failedSubjectCount": 0
+      },
+      "deepLink": "company-intelligence-lab.html?symbol=MSFT&generation=company-brief%3A2026-08-31%3Amorning%3Adb39f48c9689ced3",
+      "deepLinks": {
+        "matchingBrief": "market-brief.html?generation=company-brief%3A2026-08-31%3Amorning%3Adb39f48c9689ced3#brief",
+        "subjects": {
+          "company:msft": "company-intelligence-lab.html?symbol=MSFT&generation=company-brief%3A2026-08-31%3Amorning%3Adb39f48c9689ced3"
+        }
+      },
+      "evaluatedAt": "2026-08-31T15:00:00.000Z",
+      "evidenceApplicability": {
+        "reason": "Validated covered company candidates produced one generation-bound owner read.",
+        "status": "applicable"
+      },
+      "evidenceBoundary": [
+        "Educational company context only. No recommendation, order, sizing, approval, execution, routing, or alert authority."
+      ],
+      "evidenceCutoff": "2026-08-31T15:00:00.000Z",
+      "evidenceInterpretations": [],
+      "evidenceRefs": [
+        {
+          "evidenceType": "company-source",
+          "fingerprint": "sha256:f3d5ee05ad5206292c943e51e13522ea9f5496ec8a10902dd6e1461f87d83a84",
+          "sourceId": "committed-events:company:msft",
+          "state": "current"
+        },
+        {
+          "evidenceType": "company-source",
+          "fingerprint": "sha256:55c4ba4c3eb195d6ccb0c1d150722a16780b21910c5b9fbd1b94c872075eacdd",
+          "sourceId": "owner:etf-momentum-lab:company:msft",
+          "state": "current"
+        },
+        {
+          "evidenceType": "company-source",
+          "fingerprint": "sha256:3b8ed344bcad87f2d9cd3b4da5eff0b4ab71b088a375df726157012af81c431f",
+          "sourceId": "owner:options-structure-lab:company:msft",
+          "state": "current"
+        },
+        {
+          "evidenceType": "company-source",
+          "fingerprint": "sha256:bc209fabf99f8cbd63cbcb1f1ad3cd94a91fe787ddb68bf8f5689853effff3f2",
+          "sourceId": "owner:swing-structure-lab:company:msft",
+          "state": "current"
+        },
+        {
+          "evidenceType": "company-source",
+          "fingerprint": "sha256:08fd6d79853f3c82be8a724d4617037ed0cd9d06ac9f90218fcc397f136e35a4",
+          "sourceId": "owner:volatility-sizing-lab:company:msft",
+          "state": "current"
+        },
+        {
+          "evidenceType": "company-source",
+          "fingerprint": "sha256:2d4da00866699282c710cb14875d5ff28fb9dcd3cb9f76ef3a4e0f84a5cfbaf6",
+          "sourceId": "tier-a-market-regime",
+          "state": "current"
+        }
+      ],
+      "facts": [],
+      "fingerprint": "sha256:3c276b925d228c3eeef65633a4ed63044018d16e95c5d9c33ac0274c50763dd1",
+      "generationId": "company-brief:2026-08-31:morning:db39f48c9689ced3",
+      "horizonSummary": {
+        "combinedDirection": null,
+        "horizonIds": [
+          "immediate",
+          "event",
+          "swing",
+          "structural"
+        ]
+      },
+      "limitations": [
+        "At least one date ahead is inferred from the filing pattern rather than announced, and it states its own basis.",
+        "Dates are read from committed SEC EDGAR filing records, so an issuer announcement made after 2026-08-18 is not reflected here.",
+        "No contract and no cache slot exist for non-financial company events, so none can be reported.",
+        "No market sentiment reading is cached, so no sentiment backdrop can be reported.",
+        "Nothing in this repository owns a company risk register, so no risk read exists to compose.",
+        "The declared owner company-fundamentals-lab supplied no frozen read for MSFT.",
+        "The declared owner gamma-trading-lab supplied no frozen read for MSFT.",
+        "The declared owner options-flow-feed-lab supplied no frozen read for MSFT.",
+        "The declared owner research-agenda-lab supplied no frozen read for MSFT.",
+        "The declared owner trend-dynamics-cycle-lab supplied no frozen read for MSFT.",
+        "The regime describes the market, not MSFT.",
+        "event horizon: These dimensions did not reach this read: non-financial-events (no-source-exists).",
+        "immediate horizon: These dimensions did not reach this read: dealer-gamma (no-shared-read), options-flow (no-shared-read), sentiment (source-not-published).",
+        "structural horizon: These dimensions did not reach this read: company-risk (no-owner), fundamentals (no-shared-read), valuation (no-shared-read).",
+        "swing horizon: These dimensions did not reach this read: cycles (no-shared-read), fundamentals (no-shared-read), geopolitics (no-shared-read)."
+      ],
+      "metrics": {
+        "contentFingerprint": "sha256:025f6a3611f153c4fb58c8aa7daab33373aeaa22b0330aa726acdbb9c91003d6",
+        "coveredSubjectCount": 1,
+        "generationId": "company-brief:2026-08-31:morning:db39f48c9689ced3",
+        "versionFingerprints": [
+          "sha256:025f6a3611f153c4fb58c8aa7daab33373aeaa22b0330aa726acdbb9c91003d6"
+        ]
+      },
+      "modelAsOf": "2026-08-31T15:00:00.000Z",
+      "profile": "live-market",
+      "read": "MSFT has four isolated horizon reads in version company:msft:2026-08-31:morning:db39f48c9689ced3.",
+      "recommendationEligibility": {
+        "eligible": false,
+        "permittedActionFamilies": [],
+        "permittedSubjectBoundary": "company-intelligence-lab",
+        "reasonCode": "educational-company-context-only"
+      },
+      "role": "source",
+      "source": "validated-company-candidate-set",
+      "sourceAsOf": "2026-08-31T00:00:00.000Z",
+      "sources": [
+        {
+          "asOf": "2026-08-18",
+          "deepLink": null,
+          "fingerprint": "sha256:f3d5ee05ad5206292c943e51e13522ea9f5496ec8a10902dd6e1461f87d83a84",
+          "maxHorizon": "event",
+          "ownerToolId": null,
+          "provenanceClass": "observed",
+          "sourceId": "committed-events:company:msft",
+          "sourceKind": "committed-file",
+          "state": "current",
+          "subjectId": "company:msft"
+        },
+        {
+          "asOf": "2026-08-28T00:00:00.000Z",
+          "deepLink": "etf-momentum-lab.html#power",
+          "fingerprint": "sha256:55c4ba4c3eb195d6ccb0c1d150722a16780b21910c5b9fbd1b94c872075eacdd",
+          "maxHorizon": "structural",
+          "ownerToolId": "etf-momentum-lab",
+          "provenanceClass": "derived",
+          "sourceId": "owner:etf-momentum-lab:company:msft",
+          "sourceKind": "per-ticker-owner-read",
+          "state": "current",
+          "subjectId": "company:msft"
+        },
+        {
+          "asOf": "2026-08-28T00:00:00.000Z",
+          "deepLink": "options-structure-lab.html#power",
+          "fingerprint": "sha256:3b8ed344bcad87f2d9cd3b4da5eff0b4ab71b088a375df726157012af81c431f",
+          "maxHorizon": "structural",
+          "ownerToolId": "options-structure-lab",
+          "provenanceClass": "derived",
+          "sourceId": "owner:options-structure-lab:company:msft",
+          "sourceKind": "per-ticker-owner-read",
+          "state": "current",
+          "subjectId": "company:msft"
+        },
+        {
+          "asOf": "2026-08-28T00:00:00.000Z",
+          "deepLink": "swing-structure-lab.html#power",
+          "fingerprint": "sha256:bc209fabf99f8cbd63cbcb1f1ad3cd94a91fe787ddb68bf8f5689853effff3f2",
+          "maxHorizon": "structural",
+          "ownerToolId": "swing-structure-lab",
+          "provenanceClass": "derived",
+          "sourceId": "owner:swing-structure-lab:company:msft",
+          "sourceKind": "per-ticker-owner-read",
+          "state": "current",
+          "subjectId": "company:msft"
+        },
+        {
+          "asOf": "2026-08-28T00:00:00.000Z",
+          "deepLink": "volatility-sizing-lab.html#power",
+          "fingerprint": "sha256:08fd6d79853f3c82be8a724d4617037ed0cd9d06ac9f90218fcc397f136e35a4",
+          "maxHorizon": "structural",
+          "ownerToolId": "volatility-sizing-lab",
+          "provenanceClass": "derived",
+          "sourceId": "owner:volatility-sizing-lab:company:msft",
+          "sourceKind": "per-ticker-owner-read",
+          "state": "current",
+          "subjectId": "company:msft"
+        },
+        {
+          "asOf": "2026-08-31T15:00:00.000Z",
+          "deepLink": "market-brief.html",
+          "fingerprint": "sha256:2d4da00866699282c710cb14875d5ff28fb9dcd3cb9f76ef3a4e0f84a5cfbaf6",
+          "maxHorizon": "swing",
+          "ownerToolId": null,
+          "provenanceClass": "proxy",
+          "sourceId": "tier-a-market-regime",
+          "sourceKind": "tier-a-market",
+          "state": "current",
+          "subjectId": null
+        }
+      ],
+      "status": "fresh",
+      "subjects": [
+        {
+          "conclusionChange": "changed",
+          "contentFingerprint": "sha256:025f6a3611f153c4fb58c8aa7daab33373aeaa22b0330aa726acdbb9c91003d6",
+          "coverage": {
+            "dimensionCount": 15,
+            "totals": {
+              "conflicted": 0,
+              "current": 5,
+              "partial": 1,
+              "stale": 0,
+              "unavailable": 9
+            }
+          },
+          "deepLink": "company-intelligence-lab.html?symbol=MSFT&generation=company-brief%3A2026-08-31%3Amorning%3Adb39f48c9689ced3",
+          "horizons": [
+            {
+              "direction": "flat",
+              "evidenceQuality": "thin",
+              "horizonId": "event",
+              "inputFingerprint": "sha256:ba0401f129052fe5f987f0f6d9f7c91664d40dbe3e0402c6f3c130a048016be2"
+            },
+            {
+              "direction": "none",
+              "evidenceQuality": "absent",
+              "horizonId": "immediate",
+              "inputFingerprint": "sha256:357972f6a518886ce5304db8e98aee7ef7417cd007445604ab2c7685a5e92a9d"
+            },
+            {
+              "direction": "none",
+              "evidenceQuality": "absent",
+              "horizonId": "structural",
+              "inputFingerprint": "sha256:31157b83a3f6c1ff76ac17b2299f343e5ff48c8f4401849dda30dfea08147d82"
+            },
+            {
+              "direction": "none",
+              "evidenceQuality": "absent",
+              "horizonId": "swing",
+              "inputFingerprint": "sha256:a709e027299df2efe2ee2a77ea650665250cc3bd5ea04cd4c1a05bc4b44ac346"
+            }
+          ],
+          "limitations": [
+            "At least one date ahead is inferred from the filing pattern rather than announced, and it states its own basis.",
+            "Dates are read from committed SEC EDGAR filing records, so an issuer announcement made after 2026-08-18 is not reflected here.",
+            "No contract and no cache slot exist for non-financial company events, so none can be reported.",
+            "No market sentiment reading is cached, so no sentiment backdrop can be reported.",
+            "Nothing in this repository owns a company risk register, so no risk read exists to compose.",
+            "The declared owner company-fundamentals-lab supplied no frozen read for MSFT.",
+            "The declared owner gamma-trading-lab supplied no frozen read for MSFT.",
+            "The declared owner options-flow-feed-lab supplied no frozen read for MSFT.",
+            "The declared owner research-agenda-lab supplied no frozen read for MSFT.",
+            "The declared owner trend-dynamics-cycle-lab supplied no frozen read for MSFT.",
+            "The regime describes the market, not MSFT.",
+            "event horizon: These dimensions did not reach this read: non-financial-events (no-source-exists).",
+            "immediate horizon: These dimensions did not reach this read: dealer-gamma (no-shared-read), options-flow (no-shared-read), sentiment (source-not-published).",
+            "structural horizon: These dimensions did not reach this read: company-risk (no-owner), fundamentals (no-shared-read), valuation (no-shared-read).",
+            "swing horizon: These dimensions did not reach this read: cycles (no-shared-read), fundamentals (no-shared-read), geopolitics (no-shared-read)."
+          ],
+          "priorVersionId": "company:msft:2026-08-11",
+          "subjectId": "company:msft",
+          "ticker": "MSFT",
+          "versionId": "company:msft:2026-08-31:morning:db39f48c9689ced3"
+        }
+      ],
+      "summary": "MSFT has four isolated horizon reads in version company:msft:2026-08-31:morning:db39f48c9689ced3.",
+      "toolId": "company-intelligence-lab"
     },
     "etf-momentum-lab": {
       "asOf": "2026-08-27T13:30:00.000Z",
@@ -2934,15 +3247,15 @@
       "source": "owning-tool-functions"
     },
     "research-agenda-lab": {
-      "asOf": "2026-08-28T11:02:19.547Z",
+      "asOf": "2026-08-31T06:40:25.165Z",
       "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
       "id": "research-agenda-lab",
       "metrics": {
         "agendaRead": {
-          "asOf": "2026-08-28T11:02:19.547Z",
+          "asOf": "2026-08-31T06:40:25.165Z",
           "contractVersion": "research-agenda-read/v1",
-          "generationId": "generation-d0a979f91a2e267eca5f417e27cfe04f9bf85f5b49d6308a68933c7ad4c2f02c",
-          "readFingerprint": "sha256:d8f1a2f88d0a38f06422fb7d6ab9eac8a908f0e16478bb5ed27435f9e8592912",
+          "generationId": "generation-e35b57f15da6e97c1e2c95686aebc7008d90d174689bc970ef43ebf7cf732351",
+          "readFingerprint": "sha256:a916ed281e91efe609b368e2c7122d00dd0316e729558f79cf70d5aa95f297b6",
           "topics": [
             {
               "changeAssessment": "insufficient-evidence",
@@ -2953,28 +3266,12 @@
               "newestEvidenceAgeHours": null,
               "outcome": "unavailable",
               "predecessorDossierId": null,
-              "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
-              "reviewId": "review-fb759041d3a2077c63b0dfd6a8aeeb39af96966afa80d1a562fef3e4c38170c2",
+              "reason": "author-failed",
+              "reviewId": "review-315c7e73a84ab2a210ebc75852ffc22f9b918efa78b0265230fecf9fea4da2ac",
               "selectionReason": "mode-required",
               "state": "unavailable",
               "supersedesDossierId": null,
               "topicId": "geopolitical-supply-shock"
-            },
-            {
-              "changeAssessment": "insufficient-evidence",
-              "chartState": "unavailable",
-              "dossierId": null,
-              "mode": "cadence",
-              "modelState": "unavailable",
-              "newestEvidenceAgeHours": null,
-              "outcome": "unavailable",
-              "predecessorDossierId": null,
-              "reason": "topic-model-not-applicable",
-              "reviewId": "review-e239229ce13d2b8009161534f9fe37f3f8fc7c0718ca0d8c437f4ce83e828fd5",
-              "selectionReason": "cadence-elapsed",
-              "state": "unavailable",
-              "supersedesDossierId": null,
-              "topicId": "defense-earnings-acceleration"
             },
             {
               "changeAssessment": "insufficient-evidence",
@@ -2990,18 +3287,34 @@
               "selectionReason": "cadence-not-elapsed",
               "state": "not-due",
               "supersedesDossierId": null,
+              "topicId": "defense-earnings-acceleration"
+            },
+            {
+              "changeAssessment": "insufficient-evidence",
+              "chartState": "unavailable",
+              "dossierId": null,
+              "mode": "cadence",
+              "modelState": "unavailable",
+              "newestEvidenceAgeHours": null,
+              "outcome": "unavailable",
+              "predecessorDossierId": null,
+              "reason": "author-failed",
+              "reviewId": "review-d37c0db892ad7aa8b86ae529e1d8e8c6571352db1f39a1b2bc7b4ae55878aa64",
+              "selectionReason": "cadence-elapsed",
+              "state": "unavailable",
+              "supersedesDossierId": null,
               "topicId": "food-inputs-outlook"
             }
           ]
         },
         "contractVersion": "research-agenda-tool-read/v1",
         "deferredTopicCount": 1,
-        "generationId": "generation-d0a979f91a2e267eca5f417e27cfe04f9bf85f5b49d6308a68933c7ad4c2f02c",
-        "readFingerprint": "sha256:d8f1a2f88d0a38f06422fb7d6ab9eac8a908f0e16478bb5ed27435f9e8592912",
+        "generationId": "generation-e35b57f15da6e97c1e2c95686aebc7008d90d174689bc970ef43ebf7cf732351",
+        "readFingerprint": "sha256:a916ed281e91efe609b368e2c7122d00dd0316e729558f79cf70d5aa95f297b6",
         "reviewedTopicCount": 0,
         "unavailableTopicCount": 2
       },
-      "read": "Geopolitical supply shock: the current outcome is unavailable. Defense earnings acceleration: the current outcome is unavailable. Food, grains and fertilizer: the current outcome is not due.",
+      "read": "Geopolitical supply shock: the current outcome is unavailable. Defense earnings acceleration: the current outcome is not due. Food, grains and fertilizer: the current outcome is unavailable.",
       "source": "research-agenda-current",
       "state": "unavailable"
     },
@@ -3163,5 +3476,5 @@
       "status": "$188.61 (2026-08-28 pre-market window; the 2026-08-27 regular session is the latest completed daily bar, next session 2026-08-28 — intraday-tape-lab reads a Trend day up auction under Algo-controlled control (2026-08-27T20:00:00Z, VWAP ~770.04); snapshot asOf 2026-08-28T11:30:00.000Z) — MA stack bull-stacked (20>50>200) with price +3.2% over its 50-day (~182.8), and +18.7% over the 200-day (~158.9); -4.73% off its high (mom5 +3.01, mom21 +13.23, mom63 +1.06). This run XLK IS the rotation-OUT sector: sector-research-lab (asOf 2026-08-28T11:02:01Z, benchmark SPY, 11 sectors) rotates INTO Materials (XLB Leading, quad L, rsMom 101.21, rsRatio 100.39, accel +3.4) and OUT of Technology (XLK Peaking, quad L, rsMom 100.51, rsRatio 100.01, accel -1.57), with Health Care (XLV) the RS leader (rsRatio 101) — so Technology carries a relative-strength rotation-OUT headwind even as its own price stays bull-stacked. Structure first: HOLD on the bull-stack while treating the rotation-out as an RS headwind, with the 50-day (~182.8) the near-term support; invalidated on a daily close below the 200-day (~158.9). (MA levels are ~ approximations; single distinct market-bar date, the 2026-08-27 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     }
   },
-  "window": "pre-market"
+  "window": "morning"
 }

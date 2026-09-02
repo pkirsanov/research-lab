@@ -30,6 +30,13 @@ const RLPORTFOLIOBRIEF = createRequire(import.meta.url)(resolve(ROOT, 'rlportfol
    suites down with it (see the dataAsOf.labels note above for the measured cost). */
 export const BRIEF_PAYLOAD_BUDGET_CONTRACT = 'market-brief-payload/v2';
 
+export const BRIEF_REGIME_BIASES = Object.freeze(['bull', 'bear', 'neutral']);
+const BRIEF_REGIME_BIAS_SET = new Set(BRIEF_REGIME_BIASES);
+
+export function briefRegimeBiasInstruction() {
+  return `regime.bias must be exactly one of ${BRIEF_REGIME_BIASES.join('|')}.`;
+}
+
 /**
  * The attention field predicate, re-exported so a caller can prove by identity that the
  * publication path runs the capability module's own function. This file restates NO
@@ -486,7 +493,7 @@ export function validateBriefPayload(payload, registry, config, snapshot, agenda
 
   if (!hasObject(payload?.regime)) errors.push('regime must be a non-empty object');
   else {
-    if (!['bull', 'bear', 'neutral'].includes(payload.regime.bias)) errors.push('regime.bias must be bull|bear|neutral');
+    if (!BRIEF_REGIME_BIAS_SET.has(payload.regime.bias)) errors.push(`regime.bias must be ${BRIEF_REGIME_BIASES.join('|')}`);
     if (!hasText(payload.regime.note)) errors.push('regime.note is required');
     if (!hasObject(payload.regime.vix) || !Number.isFinite(payload.regime.vix.level)) errors.push('regime.vix.level must be finite');
   }

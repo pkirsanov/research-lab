@@ -3011,6 +3011,124 @@ try {
   assert(signalsInstruction.length > 0 && handTypedInLane.length === 0,
     'the signals lane instruction holds no second hand-maintained copy of the event key list (hand-typed: ' + handTypedInLane.join(', ') + ')');
 
+  /* F002-PUB-20260902-02 — deterministic owner reads survive model-owned coverage merges.
+     The source read is deliberately richer than the overwritten target and includes every field
+     lost by the failed scheduled publication. Both mutation directions are exercised so a helper
+     that merely assigns the snapshot object cannot satisfy the regression. */
+  const refreshModule = await import('./brief-refresh.mjs');
+  const reassertOwnerRead = refreshModule.reassertSnapshotOwnerRead;
+  assert(typeof reassertOwnerRead === 'function',
+    'the brief refresh exports a generic snapshot owner-read reassertion helper');
+  if (typeof reassertOwnerRead === 'function') {
+    const causalToolId = 'causal-rotation-lab';
+    const sourceOwnerRead = {
+      contractVersion: 'tool-model-read/v1',
+      id: causalToolId,
+      evidenceAsOf: '2026-09-02T19:00:00Z',
+      regimeVersionId: 'regime:2026-09-02:pre-close',
+      confirmation: [{ id: 'confirm:breadth', evidence: ['SPY', 'RSP'] }],
+      invalidation: [{ id: 'invalidate:credit', threshold: { relation: 'below', value: 0.97 } }],
+      metrics: { planEligible: true, stage: 'cause-confirmed' },
+      deepLink: 'causal-rotation-lab.html'
+    };
+    const ownerSnapshot = { toolReads: { [causalToolId]: sourceOwnerRead } };
+    const ownerPayload = {
+      toolReads: {
+        [causalToolId]: {
+          id: causalToolId,
+          evidenceAsOf: 'model-replaced',
+          confirmation: []
+        }
+      }
+    };
+    const sourceBytes = JSON.stringify(sourceOwnerRead);
+    const disposition = reassertOwnerRead(ownerPayload, ownerSnapshot, causalToolId);
+    assert(JSON.stringify(ownerPayload.toolReads[causalToolId]) === sourceBytes
+      && ownerPayload.toolReads[causalToolId] !== sourceOwnerRead
+      && ownerPayload.toolReads[causalToolId].confirmation !== sourceOwnerRead.confirmation
+      && ownerPayload.toolReads[causalToolId].invalidation[0].threshold !== sourceOwnerRead.invalidation[0].threshold,
+    'snapshot owner-read reassertion deep-copies the exact deterministic causal read');
+    assert(disposition.toolId === causalToolId && disposition.disposition === 'reasserted'
+      && disposition.changed === true && disposition.replaced === true,
+    'snapshot owner-read reassertion reports a useful replacement disposition');
+
+    ownerPayload.toolReads[causalToolId].confirmation[0].evidence.push('PAYLOAD-MUTATION');
+    assert(JSON.stringify(sourceOwnerRead) === sourceBytes,
+      'mutating the restored payload read cannot alias the frozen snapshot owner read');
+    reassertOwnerRead(ownerPayload, ownerSnapshot, causalToolId);
+    const restoredBytes = JSON.stringify(ownerPayload.toolReads[causalToolId]);
+    sourceOwnerRead.invalidation[0].threshold.value = 0.5;
+    assert(JSON.stringify(ownerPayload.toolReads[causalToolId]) === restoredBytes,
+      'mutating the snapshot owner read after restoration cannot alias the payload copy');
+
+    const malformedOwnerReadCases = [
+      { payload: {}, snapshot: ownerSnapshot, expected: /payload\.toolReads/ },
+      { payload: { toolReads: [] }, snapshot: ownerSnapshot, expected: /payload\.toolReads/ },
+      { payload: { toolReads: {} }, snapshot: {}, expected: /snapshot\.toolReads/ },
+      { payload: { toolReads: {} }, snapshot: { toolReads: [] }, expected: /snapshot\.toolReads/ },
+      { payload: { toolReads: {} }, snapshot: { toolReads: {} }, expected: /causal-rotation-lab/ },
+      { payload: { toolReads: {} }, snapshot: { toolReads: { [causalToolId]: null } }, expected: /causal-rotation-lab/ },
+      { payload: { toolReads: {} }, snapshot: { toolReads: { [causalToolId]: [] } }, expected: /causal-rotation-lab/ }
+    ];
+    const malformedOwnerReadRefusals = malformedOwnerReadCases.map((probe) => {
+      try {
+        reassertOwnerRead(probe.payload, probe.snapshot, causalToolId);
+        return false;
+      } catch (error) {
+        return error instanceof Error && probe.expected.test(error.message);
+      }
+    });
+    assert(malformedOwnerReadRefusals.every(Boolean),
+      'snapshot owner-read reassertion fails loud on malformed maps and absent or invalid source reads');
+  }
+
+  const laneMergeAt = laneSource.indexOf('for (const result of results) Object.assign(payload, loadFragment(result));');
+  const companyReassertAt = laneSource.indexOf('const companyDisclosure = reassertCompanyOwnerReadDisclosure');
+  const causalReassertAt = laneSource.indexOf("reassertSnapshotOwnerRead(payload, snapshot, 'causal-rotation-lab')");
+  const researchFinalizeAt = laneSource.indexOf('researchRuntime.finalizeResearchAgendaRuntime');
+  assert(laneMergeAt !== -1 && companyReassertAt > laneMergeAt && causalReassertAt > companyReassertAt
+    && researchFinalizeAt > causalReassertAt,
+  'causal owner-read restoration runs after lane merge and company disclosure but before research finalization');
+  assert(/import\s*\{[^}]*reassertSnapshotOwnerRead[^}]*\}\s*from\s*'\.\/brief-refresh\.mjs'/.test(laneSource)
+    && /snapshot\.toolReads\?\.\['causal-rotation-lab'\]\s*!==\s*undefined/.test(laneSource)
+    && /\[brief-parallel\] causal owner-read structurally reasserted/.test(laneSource),
+  'the narrative collector conditionally restores and logs the snapshot causal owner read structurally');
+
+  /* Regime vocabulary follows the same one-source pattern as the event contract above: the
+     validator owns a frozen array, derives its private membership Set and error from that array,
+     and renders the exact same values into the core-lane instruction. */
+  const validatorModule = await import('./validate-brief-payload.mjs');
+  const regimeBiases = validatorModule.BRIEF_REGIME_BIASES;
+  const regimeInstruction = typeof validatorModule.briefRegimeBiasInstruction === 'function'
+    ? validatorModule.briefRegimeBiasInstruction() : '';
+  assert(Array.isArray(regimeBiases) && Object.isFrozen(regimeBiases)
+    && JSON.stringify(regimeBiases) === JSON.stringify(['bull', 'bear', 'neutral']),
+  'the payload validator exports exactly one frozen bull bear neutral regime-bias vocabulary');
+  assert(regimeInstruction === 'regime.bias must be exactly one of bull|bear|neutral.',
+    'the regime-bias authoring instruction renders the exact validator-owned vocabulary');
+
+  const regimeErrors = (bias) => {
+    const candidate = JSON.parse(JSON.stringify(payload));
+    candidate.regime.bias = bias;
+    return validateBriefPayload(candidate, registry, config, snapshot, agendaRegistry)
+      .filter((error) => /^regime\.bias must be /.test(error));
+  };
+  assert(['bull', 'bear', 'neutral'].every((bias) => regimeErrors(bias).length === 0)
+    && regimeErrors('sideways').join(',') === 'regime.bias must be bull|bear|neutral',
+  'regime validation accepts all three owned values and rejects an outside value with the derived vocabulary');
+
+  const validatorSource = read('scripts/validate-brief-payload.mjs');
+  assert(/const BRIEF_REGIME_BIAS_SET = new Set\(BRIEF_REGIME_BIASES\)/.test(validatorSource)
+    && /BRIEF_REGIME_BIAS_SET\.has\(payload\.regime\.bias\)/.test(validatorSource)
+    && /`regime\.bias must be \$\{BRIEF_REGIME_BIASES\.join\('\|'\)\}`/.test(validatorSource)
+    && !/export\s+const\s+BRIEF_REGIME_BIAS_SET/.test(validatorSource),
+  'regime validation derives a private Set and refusal text from the one exported frozen array');
+  const regimeCoreRegion = laneSource.slice(laneSource.indexOf("id: 'core'"), laneSource.indexOf("id: 'signals'"));
+  const regimeCoreInstruction = regimeCoreRegion.slice(regimeCoreRegion.indexOf('instructions: `'), regimeCoreRegion.lastIndexOf('`'));
+  assert(/import\s*\{[^}]*briefRegimeBiasInstruction[^}]*\}\s*from\s*'\.\/validate-brief-payload\.mjs'/.test(laneSource)
+    && regimeCoreInstruction.includes('${briefRegimeBiasInstruction()}'),
+  'the core lane renders its closed regime-bias vocabulary from the payload validator');
+
   /* ── the same drift, one field over: the attention VERB vocabulary ────────────────────────────
      `verb` is closed, and the lane was told the field existed but never which values it admits.
      The 2026-08-20 02:02 EDT publication authored two well-formed items on real watchlist

@@ -15,9 +15,9 @@ import {
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
-import { distinctRowsBy, reassertCompanyOwnerReadDisclosure, trackedAsOfReader } from './brief-refresh.mjs';
+import { distinctRowsBy, reassertCompanyOwnerReadDisclosure, reassertSnapshotOwnerRead, trackedAsOfReader } from './brief-refresh.mjs';
 import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
-import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction } from './validate-brief-payload.mjs';
+import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction, briefRegimeBiasInstruction } from './validate-brief-payload.mjs';
 import { attentionAuthoredKeysInstruction, attentionCardBudgetInstruction, attentionExpiryFormatInstruction, attentionHeadlineCapInstruction, attentionRationaleBudgetInstruction, attentionSubjectMenuInstruction, attentionSubjectUniquenessInstruction, attentionVerbContractInstruction, briefFreshnessBadgeInstruction, recommendationConfidenceContractInstruction } from './build-attention-items.mjs';
 import { BRIEF_NARRATIVE_FIELDS_REQUIRED, briefBackdropKeysInstruction, matchesFieldPatterns, walkBriefStrings } from './reader-vocabulary.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
@@ -66,7 +66,7 @@ const lanes = [
         id: 'core',
         keys: ['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology'],
         web: true,
-        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. ${briefFreshnessBadgeInstruction()} Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()}`
+        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. ${briefFreshnessBadgeInstruction()} ${briefRegimeBiasInstruction()} Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()}`
     },
     {
         id: 'signals',
@@ -811,6 +811,10 @@ try {
        publish. */
     const companyDisclosure = reassertCompanyOwnerReadDisclosure(payload, (relative) => readJson(resolve(ROOT, relative)));
     console.log(`[brief-parallel] company owner-read disclosure ${companyDisclosure.reasserted ? 'reasserted' : 'already present'} on ${companyDisclosure.id}`);
+    if (snapshot.toolReads?.['causal-rotation-lab'] !== undefined) {
+        const causalOwnerRead = reassertSnapshotOwnerRead(payload, snapshot, 'causal-rotation-lab');
+        console.log(`[brief-parallel] causal owner-read structurally reasserted on ${causalOwnerRead.toolId} changed=${causalOwnerRead.changed}`);
+    }
     payload.toolId = 'market-brief';
     payload.window = windowId;
     /* The payload inherits the Tier-A window cutoff verbatim. It must never fall back to the run

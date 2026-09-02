@@ -1247,11 +1247,11 @@ paths in the form consumed by the reality scan, and the scenario manifest still 
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:1 revision=1
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:1 revision=1
 ```
 
 The exact actionable decision preserved by this phase is
-`repositoryRoot=/home/philipk/research-lab`, `repositoryAlias=research-lab`,
+`repositoryRoot=<repo-root>`, `repositoryAlias=research-lab`,
 `sessionId=vscode-20072c8d3f74af455af2514e746fced3`,
 `decisionId=rb:vscode-20072c8d3f74af455af2514e746fced3:1`, `controlRevision=1`, and
 `controlPathDigest=sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc`.
@@ -1732,7 +1732,7 @@ Artifact lint PASSED.
 **Claim Source:** executed
 
 Repository packet validation completed before repository reads with root
-`/home/philipk/research-lab`, alias `research-lab`, session
+`<repo-root>`, alias `research-lab`, session
 `vscode-0f862ced0188e21d7d00451ceb459e3d`, decision
 `rb:vscode-0f862ced0188e21d7d00451ceb459e3d:4`, revision `4`, control digest
 `sha256:f048bc37399c341a4a0fe36c254c257274428d583124ef925808c30eef62c3c5`,
@@ -1892,7 +1892,7 @@ END AUDIT_RESULT_V1
 ## Audit Persistence Closure — 2026-09-01
 
 **Phase:** audit
-**Command:** `timeout 300 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root /home/philipk/research-lab --strict`
+**Command:** `timeout 300 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root <repo-root> --strict`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -1965,7 +1965,7 @@ END AUDIT_RESULT_V1
 
 The inherited actionable packet was validated before repository reads. The validated decision is
 `rb:vscode-0f862ced0188e21d7d00451ceb459e3d:1`, control revision `1`, repository
-`research-lab`, and root `/home/philipk/research-lab`. No repository-binding preflight ran.
+`research-lab`, and root `<repo-root>`. No repository-binding preflight ran.
 
 The command-bound current-revision assertion reported HEAD
 `4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8`, mode `bugfix-fastlane`, both status mirrors
@@ -1985,7 +1985,7 @@ adjudication. The checkout-local runner identity command reported exactly `Versi
 | Repository functional regression | `timeout 1200 node scripts/selftest.mjs` | 0 | 3443 passed, 0 failed | `2598ed1e07633cdc664663268674f47f53af699c2a08227daa5fc305ec86960f` |
 | Strengthened scenario campaign | `timeout 1200 node scripts/scenario-receipts.mjs --spec specs/_bugs/BUG-025-company-corpus-read-never-settles --map scripts/scenario-break-map-bug025.json --scenarios SCN-BUG-025-006,SCN-BUG-025-007,SCN-BUG-025-008 --quiet-child --agent bubbles.validate` | 0 | 3/3 COMPLETE; each RED exited 1; restored target, live, and regression phases exited 0; shared tree unchanged | `2855d9ff4e0492acf037125c81922cbf20921f53885cd7c3cb806e27bdcde12c` |
 | Scenario-state resolution | `timeout 300 bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-025-company-corpus-read-never-settles --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable` | 0 | All eight scenarios `REGRESSION_GREEN`; certifiable yes | `291c313d907f7f45fdd651654bd60ced8cce81acdb33ddb43d71fa2fcab0dee9` |
-| Strict current receipt freshness | `timeout 300 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root /home/philipk/research-lab --strict` | 0 | 44 closure-bearing receipts valid; 0 stale | `b791e62deb2131285cf08ae62d44e9bd292fd24e0c57080f7df0d68d8f30bf59` |
+| Strict current receipt freshness | `timeout 300 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root <repo-root> --strict` | 0 | 44 closure-bearing receipts valid; 0 stale | `b791e62deb2131285cf08ae62d44e9bd292fd24e0c57080f7df0d68d8f30bf59` |
 | Regression and boundary integrity | `timeout 360 sh -c '<regression-quality, interception, skip-marker, diff, and excluded-family checks>'` | 0 | 0 regression-quality violations or warnings; no unannotated classification claim; no skip markers; diff clean; excluded tracked families equal HEAD | `7c05dedd02ad785ae2f9548999a47cacc71eea4e664eb7cbb719fa5496f70c99` |
 
 ### Individual DoD Adjudication
@@ -4221,12 +4221,12 @@ Scope 1 and both status mirrors remain in progress.
 ### Exact Revision-7 Repository Binding
 
 **Phase:** harden
-**Command:** `printf '%s\n' '{"repositoryRoot":"/home/philipk/research-lab","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-20072c8d3f74af455af2514e746fced3","decisionId":"rb:vscode-20072c8d3f74af455af2514e746fced3:7","controlRevision":7,"controlPathDigest":"sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc","authority":"explicit-repository-root","transition":"confirmed","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"local","actionable":true}}' | timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-20072c8d3f74af455af2514e746fced3 --session-control-file /run/user/1000/bubbles/repository-binding/vscode-20072c8d3f74af455af2514e746fced3/repository-binding.json --packet-file /dev/stdin`
+**Command:** `printf '%s\n' '{"repositoryRoot":"<repo-root>","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-20072c8d3f74af455af2514e746fced3","decisionId":"rb:vscode-20072c8d3f74af455af2514e746fced3:7","controlRevision":7,"controlPathDigest":"sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc","authority":"explicit-repository-root","transition":"confirmed","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"local","actionable":true}}' | timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-20072c8d3f74af455af2514e746fced3 --session-control-file /run/user/1000/bubbles/repository-binding/vscode-20072c8d3f74af455af2514e746fced3/repository-binding.json --packet-file /dev/stdin`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
 ```
 
 No repository preflight ran and the inherited control revision did not advance.
@@ -4464,7 +4464,7 @@ authors and executes the exact title.
 ### Exact Revision-7 Repository Binding
 
 **Phase:** plan
-**Command:** `cd /home/philipk/research-lab && printf '%s\n' 'binding-check:start' 'repositoryAlias=research-lab' 'sessionId=vscode-20072c8d3f74af455af2514e746fced3' 'decisionId=rb:vscode-20072c8d3f74af455af2514e746fced3:7' 'controlRevision=7' 'controlPathDigest=sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc' 'authority=explicit-repository-root' 'transition=confirmed' 'scopeKind=command' 'targetKind=repository-root' 'pathVisibility=local' 'actionable=true' && timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-20072c8d3f74af455af2514e746fced3 --session-control-file /run/user/1000/bubbles/repository-binding/vscode-20072c8d3f74af455af2514e746fced3/repository-binding.json --packet-file /tmp/bug025-harden-planning-binding.json && printf '%s\n' 'binding-check:valid'`
+**Command:** `cd <repo-root> && printf '%s\n' 'binding-check:start' 'repositoryAlias=research-lab' 'sessionId=vscode-20072c8d3f74af455af2514e746fced3' 'decisionId=rb:vscode-20072c8d3f74af455af2514e746fced3:7' 'controlRevision=7' 'controlPathDigest=sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc' 'authority=explicit-repository-root' 'transition=confirmed' 'scopeKind=command' 'targetKind=repository-root' 'pathVisibility=local' 'actionable=true' && timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-20072c8d3f74af455af2514e746fced3 --session-control-file /run/user/1000/bubbles/repository-binding/vscode-20072c8d3f74af455af2514e746fced3/repository-binding.json --packet-file /tmp/bug025-harden-planning-binding.json && printf '%s\n' 'binding-check:valid'`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -4481,7 +4481,7 @@ scopeKind=command
 targetKind=repository-root
 pathVisibility=local
 actionable=true
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
 binding-check:valid
 ```
 
@@ -4657,7 +4657,7 @@ packet and control file without mutation.
 
 | Binding field | Exact value |
 | --- | --- |
-| `repositoryRoot` | `/home/philipk/research-lab` |
+| `repositoryRoot` | `<repo-root>` |
 | `repositoryAlias` | `research-lab` |
 | `sessionId` | `vscode-20072c8d3f74af455af2514e746fced3` |
 | `decisionId` | `rb:vscode-20072c8d3f74af455af2514e746fced3:7` |
@@ -4681,7 +4681,7 @@ exit: 0
 lines: 1
 sha256: b82f3b2275969f899374fa2875ff6dfb8f21818187c38ffea4346152b62a5473
 --- output ---
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
 ```
 
 ### Repository Selftest After Mirror Reconciliation
@@ -4850,7 +4850,7 @@ exit: 0
 lines: 1
 sha256: b82f3b2275969f899374fa2875ff6dfb8f21818187c38ffea4346152b62a5473
 --- output ---
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
 ```
 
 No preflight ran and no control revision was advanced.
@@ -5116,7 +5116,7 @@ sha256: b34366959ce1cd0338fcadbc276c7183779512100dc7d7e02e159dc8b22a1fdf
 --- output ---
 ============================================================
 	BUBBLES REGRESSION QUALITY GUARD
-	Repo: /home/philipk/research-lab
+	Repo: <repo-root>
 	Timestamp: 2026-08-31T18:10:28Z
 	Bugfix mode: true
 ============================================================
@@ -5229,7 +5229,7 @@ only and is not used as this harden phase's execution evidence.
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
 ```
 
 The exact inherited actionable packet was validated before repository reads. No repository
@@ -5400,7 +5400,7 @@ sha256: 04338dd10a83c15a835cce59baf66ddd328466830a58c67dff7b294e19dfc462
 --- output ---
 ============================================================
 	BUBBLES REGRESSION QUALITY GUARD
-	Repo: /home/philipk/research-lab
+	Repo: <repo-root>
 	Timestamp: 2026-08-31T18:24:14Z
 	Bugfix mode: true
 ============================================================
@@ -5562,7 +5562,7 @@ bounded diagnostic execution and do not create a new test category.
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
 ```
 
 The exact inherited actionable packet was validated before repository reads. No preflight ran,
@@ -6127,7 +6127,7 @@ mechanical phase relevance under the registered `bugfix-fastlane` order.
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
 ```
 
 The exact inherited actionable packet was validated against the authoritative control file before
@@ -6198,7 +6198,7 @@ unrelated errors. No dependency or package-source surface changed.
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
 ```
 
 The exact inherited packet was validated before repository reads. No preflight ran, and no control
@@ -6397,7 +6397,7 @@ exit: 0
 [pii-scan] files=10737 messages=2546 findings=0 OK
 
 # BUG-025 security G034 mechanical floor
-$ timeout 240 bash .github/bubbles/scripts/security-gate.sh --repo-root /home/philipk/research-lab
+$ timeout 240 bash .github/bubbles/scripts/security-gate.sh --repo-root <repo-root>
 exit: 0
 [security-gate] OK — 10738 tracked file(s), zero G034 findings
 
@@ -6471,7 +6471,7 @@ Scope 1 remains **In Progress**. All ten DoD items remain unchecked. Top-level s
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:7 revision=7
 ```
 
 No preflight ran, and the repository decision stayed at revision 7.
@@ -6546,7 +6546,7 @@ routing metadata. Scope status, all ten DoD items, top-level status, completion 
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:8 revision=8
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:8 revision=8
 ```
 
 The exact dispatched packet was validated before any Research Lab read. No preflight ran, and the control revision remained 8.
@@ -6678,10 +6678,10 @@ Scope 1, all ten DoD items, top-level status, completion arrays, and every `cert
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:8 revision=8
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:8 revision=8
 ```
 
-The validated packet carried repository root `/home/philipk/research-lab`, alias `research-lab`,
+The validated packet carried repository root `<repo-root>`, alias `research-lab`,
 decision `rb:vscode-20072c8d3f74af455af2514e746fced3:8`, revision `8`, and digest
 `sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc`.
 No preflight ran, and the control revision remained 8.
@@ -6841,7 +6841,7 @@ history and route closure. Both status mirrors remain `in_progress`. `completedS
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:8 revision=8
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:8 revision=8
 ```
 
 ### Focused Progress Parity Before Reconciliation
@@ -7714,7 +7714,7 @@ their omitted output.
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:9 revision=9
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:9 revision=9
 ```
 
 The validated packet carried `controlRevision: 9`,
@@ -7920,7 +7920,7 @@ user validation, and `certification.*` remain unchanged and in progress.
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-20072c8d3f74af455af2514e746fced3:9 revision=9
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-20072c8d3f74af455af2514e746fced3:9 revision=9
 ```
 
 The packet carried the supplied `repositoryRoot`, `repositoryAlias`, `sessionId`, `decisionId`,
@@ -8124,7 +8124,7 @@ Research-Lab self-test: 3438 passed, 0 failed
 
 | Check | Exact bounded command | Exit | Captured signal |
 | --- | --- | ---: | --- |
-| G034 mechanical floor | `timeout 300 bash .github/bubbles/scripts/security-gate.sh --repo-root /home/philipk/research-lab` | 0 | `sha256:9d217d4ac34caf617b9d87a6b08cc121ace3e910c256e10651dc1a4a6e12abf2`; 10,739 tracked files; zero findings. |
+| G034 mechanical floor | `timeout 300 bash .github/bubbles/scripts/security-gate.sh --repo-root <repo-root>` | 0 | `sha256:9d217d4ac34caf617b9d87a6b08cc121ace3e910c256e10651dc1a4a6e12abf2`; 10,739 tracked files; zero findings. |
 | Project PII scan | `timeout 300 node scripts/pii-scan.mjs` | 0 | `sha256:25e9b8db351244e71d072d7a1fd7c4d3e3d05c94884ee41d6a5f070276db6ab0`; 10,738 files; 2,549 messages; zero findings. |
 | Dependency source lock | `timeout 300 node scripts/validate-node-source-lock.mjs` | 0 | `sha256:e9bb9b552e92cd5b05328a34448e33d4bcc2b39dfe4f5ae0e430911374c711b1`; exact Playwright 1.61.1 graph; sixteen adversarial sources rejected; zero unexpected acceptances. |
 | Bugfix regression quality | `timeout 300 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/company-intelligence-lab.spec.mjs` | 0 | `sha256:7c6325dbdeb695c12da8651befeb3ef3a8c442659dd5ae1ce180fe738c571a15`; zero violations and warnings; adversarial signal detected. |
@@ -8231,12 +8231,12 @@ with `bubbles.validate` under pending route `BUG-025-ROUTE-024`.
 ### Exact Current Repository Binding
 
 **Phase:** test
-**Command:** `cd /home/philipk/research-lab && timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-repository-binding-packet.json`
+**Command:** `cd <repo-root> && timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-repository-binding-packet.json`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
 ```
 
 The successful packet-file validation used the supplied local control file and exact actionable
@@ -8651,8 +8651,8 @@ Artifact lint PASSED.
 **Claim Source:** executed
 
 ```text
-$ timeout 60 /home/philipk/bubbles/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-validate-binding-packet.json
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
+$ timeout 60 <bubbles-root>/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-validate-binding-packet.json
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
 $ timeout 300 bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/_bugs/BUG-025-company-corpus-read-never-settles
 goal-fidelity-guard: PASS boundary=pre-certification
 $ timeout 60 bash .github/bubbles/scripts/transition-contract-resolver.sh specs/_bugs/BUG-025-company-corpus-read-never-settles
@@ -8866,12 +8866,12 @@ certification, completion inventory, or status field changed in this planning ac
 ### Repository Binding
 
 **Phase:** plan
-**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-binding-packet-vscode-7ba6dae9325d2fc0ab03ebdac1666fe9-rev3.json`
+**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-binding-packet-vscode-7ba6dae9325d2fc0ab03ebdac1666fe9-rev3.json`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
 ```
 
 ### Narrow Planning Guards
@@ -9393,7 +9393,7 @@ sha256: 307a43b218788a9d7d937ca25a41b2d47ffa7207bc16e3e4c4f9e43d45d825fc
 --- omitted 1948 line(s); sha256 above covers the full output ---
 --- last 20 ---
 
-🔍 Running project-defined gates from /home/philipk/research-lab/.github/bubbles-project.yaml...
+🔍 Running project-defined gates from <repo-root>/.github/bubbles-project.yaml...
 BEGIN TRANSITION_GUARD_RESULT_V1
 schemaVersion: transition-guard-result/v1
 workflowMode: bugfix-fastlane
@@ -9602,8 +9602,8 @@ tree after `BUG-025-ROUTE-025`, `BUG-025-VALIDATE-DELTA-001`, `BUG-025-ROUTE-026
 **Claim Source:** executed
 
 ```text
-$ timeout 120 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-final-validate-packet.json
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
+$ timeout 120 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-final-validate-packet.json
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
 $ timeout 300 bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/_bugs/BUG-025-company-corpus-read-never-settles
 goal-fidelity-guard: PASS boundary=pre-certification
 $ timeout 120 bash .github/bubbles/scripts/transition-contract-resolver.sh specs/_bugs/BUG-025-company-corpus-read-never-settles
@@ -9950,8 +9950,8 @@ status, certification field, or audit route changed.
 **Claim Source:** executed
 
 ```text
-$ timeout 120 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-g057-compatibility-packet.json
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
+$ timeout 120 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-g057-compatibility-packet.json
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
 
 # BUG-025 G057 exact manifest JSON compatibility
 exit: 0
@@ -10016,13 +10016,13 @@ It ran no product test and changed no behavior.
 ### Strict Current-Receipt Freshness
 
 **Phase:** test
-**Command:** `timeout 360 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-025 stale-receipt remediation strict freshness" -- timeout 300 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root /home/philipk/research-lab --strict`
+**Command:** `timeout 360 bash .github/bubbles/scripts/evidence-capture.sh --label "BUG-025 stale-receipt remediation strict freshness" -- timeout 300 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root <repo-root> --strict`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
 # BUG-025 stale-receipt remediation strict freshness
-$ timeout 300 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root /home/philipk/research-lab --strict
+$ timeout 300 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root <repo-root> --strict
 exit: 0
 lines: 10
 sha256: 432a992ea28b8248d0da17e1dcb7450975ddae6b608578da5c249e742432034f
@@ -10074,16 +10074,16 @@ The current host control record matches the supplied actionable binding exactly:
 | --- | --- |
 | Decision | `rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3` |
 | Control revision | `3` |
-| Repository root | `/home/philipk/research-lab` |
+| Repository root | `<repo-root>` |
 | Repository alias | `research-lab` |
 | Transition | `confirmed` |
 
-**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /dev/stdin`
+**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /dev/stdin`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
 ```
 
 No repository-binding preflight ran. The validation did not advance the control revision.
@@ -10146,12 +10146,12 @@ DoD rows remain checked, and both top-level and certification status remain `in_
 ### Exact Repository Binding
 
 **Phase:** bootstrap
-**Command:** `timeout 60 printf '%s\n' '<exact supplied actionable packet>' | timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /dev/stdin`
+**Command:** `timeout 60 printf '%s\n' '<exact supplied actionable packet>' | timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /dev/stdin`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
 ```
 
 The exact supplied packet was validated before repository reads.
@@ -10246,12 +10246,12 @@ edited or executed by this planning action.
 ### Exact Repository Binding
 
 **Phase:** plan
-**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-planning-packet-vscode-7ba6dae9325d2fc0ab03ebdac1666fe9-r3.json`
+**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-planning-packet-vscode-7ba6dae9325d2fc0ab03ebdac1666fe9-r3.json`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
 ```
 
 The exact supplied packet was validated against the current control file before repository reads.
@@ -10403,12 +10403,12 @@ validate-owned.
 ### Exact Repository Binding
 
 **Phase:** validate
-**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-route031-repository-packet-vscode-7ba6dae9325d2fc0ab03ebdac1666fe9.json`
+**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-route031-repository-packet-vscode-7ba6dae9325d2fc0ab03ebdac1666fe9.json`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3 revision=3
 ```
 
 The exact supplied packet was validated against the current control file before repository reads.
@@ -10625,12 +10625,12 @@ record uses the already-completed current-session executions and does not replay
 ### Repository Binding
 
 **Phase:** test
-**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-route032-test-binding-packet-vscode-7ba6dae9325d2fc0ab03ebdac1666fe9-r4.json`
+**Command:** `timeout 60 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-route032-test-binding-packet-vscode-7ba6dae9325d2fc0ab03ebdac1666fe9-r4.json`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:4 revision=4
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:4 revision=4
 ```
 
 ### Current-Session Bounded Capture Index
@@ -10651,7 +10651,7 @@ capture wrapper during those current-session executions.
 | Company Intelligence unit suite | `timeout 240 node --test tests/company-intelligence.unit.mjs` | 0 | 110 passed | `d88ba13c8e171ec0c69436dab80d283dc4f55cd5aeec219b28a3e01b9f97da95` |
 | Repository selftest | `timeout 1200 node scripts/selftest.mjs` | 0 | 3443 passed | `5c93f1ba0974e5c8ba40fa264081058ca2e36151075cb443de8430364e39b296` |
 | Bugfix regression-quality guard | `timeout 120 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/company-intelligence-lab.spec.mjs` | 0 | 0 violations; 0 warnings | `1e7798a723543f0b4f2e0edd81c299f0bfabfe0757aa1064659f6846b14e1bae` |
-| Strict receipt freshness | `timeout 360 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root /home/philipk/research-lab --strict` | 0 | 32 valid; 0 stale | `393a2edf1a55b20aae43c3ff53aa40263fda450dcfbabbfc7d15edb49500f281` |
+| Strict receipt freshness | `timeout 360 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root <repo-root> --strict` | 0 | 32 valid; 0 stale | `393a2edf1a55b20aae43c3ff53aa40263fda450dcfbabbfc7d15edb49500f281` |
 | Scenario-test resolver | `timeout 240 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/_bugs/BUG-025-company-corpus-read-never-settles --repo-root .` | 0 | 8 references resolved | `13944314bdad890eb9fcb00c3b5c158d924974438c8d6ad0e7c3ab3963e71d03` |
 | Scenario-state resolver | `timeout 240 bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-025-company-corpus-read-never-settles --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable` | 0 | All 8 scenarios regression-green; certifiable yes | `291c313d907f7f45fdd651654bd60ced8cce81acdb33ddb43d71fa2fcab0dee9` |
 | Implementation-reality scan | `timeout 360 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/_bugs/BUG-025-company-corpus-read-never-settles --verbose` | 0 | 7 files; 0 violations; 0 warnings | `8c42d47ae704040365670e359c436748051343b225987b63352e5d686ee9cf32` |
@@ -10716,12 +10716,12 @@ It makes no isolated-commit claim because the BUG-025 delivery remains in the wo
 ### Exact Repository Binding
 
 **Phase:** implement
-**Command:** `cd /home/philipk/research-lab && timeout 120 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file /home/philipk/.local/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-audit025dod003-binding-packet-vscode-7ba6dae9.json`
+**Command:** `cd <repo-root> && timeout 120 bash .github/bubbles/scripts/repository-binding.sh validate-packet --session-id vscode-7ba6dae9325d2fc0ab03ebdac1666fe9 --session-control-file <operator-state>/state/bubbles/repository-binding/vscode-7ba6dae9325d2fc0ab03ebdac1666fe9/repository-binding.json --packet-file /tmp/research-lab-bug025-audit025dod003-binding-packet-vscode-7ba6dae9.json`
 **Exit Code:** 0
 **Claim Source:** executed
 
 ```text
-REPOSITORY PACKET VALID actionable=true repository=research-lab root=/home/philipk/research-lab decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:4 revision=4
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=<repo-root> decision=rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:4 revision=4
 ```
 
 The exact supplied packet was validated before repository reads. No repository-binding preflight
@@ -10734,7 +10734,7 @@ checkpoint is permitted.
 **Command:**
 
 ```text
-cd /home/philipk/research-lab && timeout 60 sha256sum --check <<< $'937dffcc2c78cf29e77d280f93c39c0a38c057e3035f60966f8582f1f3d4dded  company-intelligence.config.json\n45ccdaa81ceec2b645e8203c63eab59b02fb7daace5cb1650e8b61691a1a76b8  company-intelligence-lab.html\ncafb9c69f16646a5e21f880f966a7a1974097e9a32df149cfeb151cf741301b7  rlcompanyintel.js\n402f3ba7eb0996c6849a1cb313d88034973bc0337151b23f253258d32c2341bd  tests/company-intelligence.unit.mjs\n829fb8512bf5430106318aaeb21e562504b0a8e39b4ca8b48ab9e4e8ca11e60a  scripts/selftest.mjs\n8410619a0bdc45e5139c8fe5a809841e45c5dd03971af4a33586d80a0a5220f4  notes/company-intelligence-lab.md\n4004f960d240d1a86557e1fc5220d6d99909d28c089c1eeea78ef2c7de25a68d  specs/_bugs/BUG-025-company-corpus-read-never-settles/bug.md\n37991d996e57a06857bb86fa9a3ad2c4512972a27599920dbfa8fa6833d1c89c  specs/_bugs/BUG-025-company-corpus-read-never-settles/spec.md\n0d8d4480c584133ea21716d52b703fabaf78add4ec48903ba1823cca7bc7dc00  specs/_bugs/BUG-025-company-corpus-read-never-settles/uservalidation.md\n2d03ea21025c8dfd4938d53d9cfe1d76f721add78e8f06e8cfc69a17b1a39af4  data/company-intelligence/company-msft/events.json\n5b8e2c7acb4dcd03c08a0936836dfb1ae828028299033af3f1ef2e3c9526eab4  tests/company-intelligence-lab.spec.mjs\n0fda8d898ee89085f89798bcb8a738e419565928b0d508eeb1a01ab053693e80  scripts/scenario-break-map-bug025.json'
+cd <repo-root> && timeout 60 sha256sum --check <<< $'937dffcc2c78cf29e77d280f93c39c0a38c057e3035f60966f8582f1f3d4dded  company-intelligence.config.json\n45ccdaa81ceec2b645e8203c63eab59b02fb7daace5cb1650e8b61691a1a76b8  company-intelligence-lab.html\ncafb9c69f16646a5e21f880f966a7a1974097e9a32df149cfeb151cf741301b7  rlcompanyintel.js\n402f3ba7eb0996c6849a1cb313d88034973bc0337151b23f253258d32c2341bd  tests/company-intelligence.unit.mjs\n829fb8512bf5430106318aaeb21e562504b0a8e39b4ca8b48ab9e4e8ca11e60a  scripts/selftest.mjs\n8410619a0bdc45e5139c8fe5a809841e45c5dd03971af4a33586d80a0a5220f4  notes/company-intelligence-lab.md\n4004f960d240d1a86557e1fc5220d6d99909d28c089c1eeea78ef2c7de25a68d  specs/_bugs/BUG-025-company-corpus-read-never-settles/bug.md\n37991d996e57a06857bb86fa9a3ad2c4512972a27599920dbfa8fa6833d1c89c  specs/_bugs/BUG-025-company-corpus-read-never-settles/spec.md\n0d8d4480c584133ea21716d52b703fabaf78add4ec48903ba1823cca7bc7dc00  specs/_bugs/BUG-025-company-corpus-read-never-settles/uservalidation.md\n2d03ea21025c8dfd4938d53d9cfe1d76f721add78e8f06e8cfc69a17b1a39af4  data/company-intelligence/company-msft/events.json\n5b8e2c7acb4dcd03c08a0936836dfb1ae828028299033af3f1ef2e3c9526eab4  tests/company-intelligence-lab.spec.mjs\n0fda8d898ee89085f89798bcb8a738e419565928b0d508eeb1a01ab053693e80  scripts/scenario-break-map-bug025.json'
 ```
 
 **Exit Code:** 0
@@ -10770,7 +10770,7 @@ The final two checks match the admitted current behavioral-proof identities.
 ### Generic Runner And Sibling Map Protection
 
 **Phase:** implement
-**Command:** `cd /home/philipk/research-lab && printf '%s\n' 'dynamic-map-inventory:' && timeout 60 find scripts -maxdepth 1 -type f -name 'scenario-break-map-*.json' -print && printf '%s\n' 'working-tree-control-objects:' && timeout 60 git hash-object scripts/scenario-receipts.mjs scripts/scenario-break-map-015.json && printf '%s\n' 'head-control-objects:' && timeout 60 git rev-parse HEAD:scripts/scenario-receipts.mjs HEAD:scripts/scenario-break-map-015.json && printf '%s\n' 'all-runner-map-status:' && timeout 60 git status --short --untracked-files=all -- scripts/scenario-receipts.mjs scripts/scenario-break-map-*.json && timeout 60 git diff --exit-code HEAD -- scripts/scenario-receipts.mjs 'scripts/scenario-break-map-*.json' ':(exclude)scripts/scenario-break-map-bug025.json' && printf '%s\n' 'generic-runner-and-sibling-map-head-equality: PASS'`
+**Command:** `cd <repo-root> && printf '%s\n' 'dynamic-map-inventory:' && timeout 60 find scripts -maxdepth 1 -type f -name 'scenario-break-map-*.json' -print && printf '%s\n' 'working-tree-control-objects:' && timeout 60 git hash-object scripts/scenario-receipts.mjs scripts/scenario-break-map-015.json && printf '%s\n' 'head-control-objects:' && timeout 60 git rev-parse HEAD:scripts/scenario-receipts.mjs HEAD:scripts/scenario-break-map-015.json && printf '%s\n' 'all-runner-map-status:' && timeout 60 git status --short --untracked-files=all -- scripts/scenario-receipts.mjs scripts/scenario-break-map-*.json && timeout 60 git diff --exit-code HEAD -- scripts/scenario-receipts.mjs 'scripts/scenario-break-map-*.json' ':(exclude)scripts/scenario-break-map-bug025.json' && printf '%s\n' 'generic-runner-and-sibling-map-head-equality: PASS'`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -10795,7 +10795,7 @@ and the sibling map match their HEAD objects. Only the admitted BUG-025 map has 
 ### Embedded Configuration Object Parity
 
 **Phase:** implement
-**Command:** `cd /home/philipk/research-lab && timeout 60 node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const source=fs.readFileSync("company-intelligence-lab.html","utf8"); const matches=[...source.matchAll(/<script type="application\\/json" data-embedded-config="company-intelligence\\.config\\.json">([\\s\\S]*?)<\\/script>/g)]; assert.equal(matches.length,1); const embedded=JSON.parse(matches[0][1]); const committed=JSON.parse(fs.readFileSync("company-intelligence.config.json","utf8")); assert.deepStrictEqual(embedded,committed); const event=embedded.eventSource.coveredSubjects[0]; console.log(JSON.stringify({embeddedBlockCount:matches.length,parity:true,contractVersion:embedded.contractVersion,readBoundMs:embedded.readBoundMs,eventSubjectCount:embedded.eventSource.coveredSubjects.length,eventSubject:event.subjectId,eventPath:event.eventsPath,committedObjectKeys:Object.keys(committed).length,embeddedObjectKeys:Object.keys(embedded).length,result:"PASS"},null,2));'`
+**Command:** `cd <repo-root> && timeout 60 node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const source=fs.readFileSync("company-intelligence-lab.html","utf8"); const matches=[...source.matchAll(/<script type="application\\/json" data-embedded-config="company-intelligence\\.config\\.json">([\\s\\S]*?)<\\/script>/g)]; assert.equal(matches.length,1); const embedded=JSON.parse(matches[0][1]); const committed=JSON.parse(fs.readFileSync("company-intelligence.config.json","utf8")); assert.deepStrictEqual(embedded,committed); const event=embedded.eventSource.coveredSubjects[0]; console.log(JSON.stringify({embeddedBlockCount:matches.length,parity:true,contractVersion:embedded.contractVersion,readBoundMs:embedded.readBoundMs,eventSubjectCount:embedded.eventSource.coveredSubjects.length,eventSubject:event.subjectId,eventPath:event.eventsPath,committedObjectKeys:Object.keys(committed).length,embeddedObjectKeys:Object.keys(embedded).length,result:"PASS"},null,2));'`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -10820,7 +10820,7 @@ and required exact object equality with the committed configuration.
 ### Complete Dirty-Path Inventory And Classification
 
 **Phase:** implement
-**Command:** `cd /home/philipk/research-lab && timeout 60 git status --short --untracked-files=all -- company-intelligence-lab.html company-intelligence.config.json notes/company-intelligence-lab.md rlcompanyintel.js scripts/selftest.mjs tests/company-intelligence-lab.spec.mjs tests/company-intelligence.unit.mjs scripts/scenario-break-map-bug025.json specs/_bugs/BUG-025-company-corpus-read-never-settles`
+**Command:** `cd <repo-root> && timeout 60 git status --short --untracked-files=all -- company-intelligence-lab.html company-intelligence.config.json notes/company-intelligence-lab.md rlcompanyintel.js scripts/selftest.mjs tests/company-intelligence-lab.spec.mjs tests/company-intelligence.unit.mjs scripts/scenario-break-map-bug025.json specs/_bugs/BUG-025-company-corpus-read-never-settles`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -10847,7 +10847,7 @@ These sixteen paths form the complete BUG-025 partition. The identity checks abo
 protected baseline bytes from admitted proof and packet-record deltas.
 
 **Phase:** implement
-**Command:** `cd /home/philipk/research-lab && timeout 60 git status --short --untracked-files=all -- README.md docs/DomainModel.md scripts/validate-test-file-reachability.baseline specs/007-technical-analysis-decision-lab/scopes specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys specs/_bugs/BUG-002-market-brief-session-date-drift/uservalidation.md specs/_bugs/BUG-026-superseded-company-corpus-state-writes specs/_bugs/BUG-027-per-page-check-executes-inert-json`
+**Command:** `cd <repo-root> && timeout 60 git status --short --untracked-files=all -- README.md docs/DomainModel.md scripts/validate-test-file-reachability.baseline specs/007-technical-analysis-decision-lab/scopes specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys specs/_bugs/BUG-002-market-brief-session-date-drift/uservalidation.md specs/_bugs/BUG-026-superseded-company-corpus-state-writes specs/_bugs/BUG-027-per-page-check-executes-inert-json`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -10894,7 +10894,7 @@ These thirty-six paths exactly match the prior report inventory at `report.md#co
 They remain classified as pre-existing sibling work, not BUG-025 work.
 
 **Phase:** implement
-**Command:** `cd /home/philipk/research-lab && timeout 60 node /tmp/research-lab-bug025-boundary-inventory-check.mjs`
+**Command:** `cd <repo-root> && timeout 60 node /tmp/research-lab-bug025-boundary-inventory-check.mjs`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -10918,7 +10918,7 @@ and no overlapping classification. This checkpoint does not claim whole-tree cle
 ### Focused Boundary And Excluded Families
 
 **Phase:** implement
-**Command:** `cd /home/philipk/research-lab && printf '%s\n' 'boundary-head:' && timeout 60 git rev-parse HEAD && timeout 60 git diff --check && printf '%s\n' 'git-diff-check: PASS' && timeout 60 git diff --quiet HEAD -- rldata.js rlcontracts.js site-exclusions.json package.json package-lock.json index.html rlnav.js tools.json data/company-intelligence .github && printf '%s\n' 'excluded-tracked-families-head-equality: PASS' && printf '%s\n' 'focused-tracked-delta:' && timeout 60 git diff --name-status -- company-intelligence-lab.html company-intelligence.config.json notes/company-intelligence-lab.md rlcompanyintel.js scripts/selftest.mjs tests/company-intelligence-lab.spec.mjs tests/company-intelligence.unit.mjs && printf '%s\n' 'boundary-check-result: PASS'`
+**Command:** `cd <repo-root> && printf '%s\n' 'boundary-head:' && timeout 60 git rev-parse HEAD && timeout 60 git diff --check && printf '%s\n' 'git-diff-check: PASS' && timeout 60 git diff --quiet HEAD -- rldata.js rlcontracts.js site-exclusions.json package.json package-lock.json index.html rlnav.js tools.json data/company-intelligence .github && printf '%s\n' 'excluded-tracked-families-head-equality: PASS' && printf '%s\n' 'focused-tracked-delta:' && timeout 60 git diff --name-status -- company-intelligence-lab.html company-intelligence.config.json notes/company-intelligence-lab.md rlcompanyintel.js scripts/selftest.mjs tests/company-intelligence-lab.spec.mjs tests/company-intelligence.unit.mjs && printf '%s\n' 'boundary-check-result: PASS'`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -10961,7 +10961,7 @@ against current command-bound metadata. Audit retains the final chronology and m
 ### Post-Record JSON And Artifact Validation
 
 **Phase:** implement
-**Command:** `cd /home/philipk/research-lab && timeout 120 node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const d="specs/_bugs/BUG-025-company-corpus-read-never-settles"; const state=JSON.parse(fs.readFileSync(`${d}/state.json`,"utf8")); const scope=fs.readFileSync(`${d}/scopes.md`,"utf8"); const rows=scope.split("\n").filter((line)=>/^- \[[ x]\]/.test(line)); const progress=state.certification.scopeProgress.find((row)=>row.scopeId==="01-declare-and-enforce-one-read-bound"); const inventory=state.execution.scopeInventory.find((row)=>row.scopeId==="01-declare-and-enforce-one-read-bound"); const route=state.transitionRequests.find((row)=>row.id==="BUG-025-ROUTE-030"); const finding=state.reworkQueue.find((row)=>row.id==="AUDIT-025-DOD-003"); const open=state.reworkQueue.filter((row)=>row.status==="open").map((row)=>row.id); assert.equal(state.status,"in_progress"); assert.equal(state.certification.status,"in_progress"); assert.equal(inventory.status,"In Progress"); assert.equal((scope.match(/^- \[x\]/gm)||[]).length,12); assert.equal((scope.match(/^- \[ \]/gm)||[]).length,3); assert.equal(rows.length,15); assert.ok(rows.slice(8,11).every((row)=>row.startsWith("- [ ]"))); assert.ok(rows[14].startsWith("- [x]")); assert.deepEqual(state.certification.completedScopes,[]); assert.deepEqual(progress,{scopeId:"01-declare-and-enforce-one-read-bound",status:"in_progress",dodChecked:12,dodUnchecked:3}); assert.equal(state.execution.nextRequiredOwner,"bubbles.validate"); assert.equal(route.status,"open"); assert.equal(route.nextRequiredOwner,"bubbles.validate"); assert.deepEqual(route.remainingOwnerSequence,["bubbles.validate","bubbles.audit"]); assert.equal(finding.status,"resolved"); assert.equal(finding.resolutionEvidenceRef,"report.md#implementation-owned-post-repair-boundary-2026-09-01"); assert.deepEqual(open,["AUDIT-025-EVIDENCE-001","AUDIT-025-SLICE-002","AUD-BUG025-004"]); assert.ok(fs.readFileSync(`${d}/report.md`,"utf8").includes("<a name=\"implementation-owned-post-repair-boundary-2026-09-01\"></a>")); console.log(JSON.stringify({jsonParse:"PASS",status:state.status,certificationStatus:state.certification.status,scopeStatus:inventory.status,dodChecked:12,dodUnchecked:3,rows9To11:"unchecked",row15:"checked-pending-validate-readjudication",completedScopes:state.certification.completedScopes,nextRequiredOwner:state.execution.nextRequiredOwner,route030Status:route.status,route030Remaining:route.remainingOwnerSequence,resolvedFinding:finding.id,openFindings:open,evidenceRef:finding.resolutionEvidenceRef,result:"PASS"},null,2));'`
+**Command:** `cd <repo-root> && timeout 120 node --input-type=module -e 'import fs from "node:fs"; import assert from "node:assert/strict"; const d="specs/_bugs/BUG-025-company-corpus-read-never-settles"; const state=JSON.parse(fs.readFileSync(`${d}/state.json`,"utf8")); const scope=fs.readFileSync(`${d}/scopes.md`,"utf8"); const rows=scope.split("\n").filter((line)=>/^- \[[ x]\]/.test(line)); const progress=state.certification.scopeProgress.find((row)=>row.scopeId==="01-declare-and-enforce-one-read-bound"); const inventory=state.execution.scopeInventory.find((row)=>row.scopeId==="01-declare-and-enforce-one-read-bound"); const route=state.transitionRequests.find((row)=>row.id==="BUG-025-ROUTE-030"); const finding=state.reworkQueue.find((row)=>row.id==="AUDIT-025-DOD-003"); const open=state.reworkQueue.filter((row)=>row.status==="open").map((row)=>row.id); assert.equal(state.status,"in_progress"); assert.equal(state.certification.status,"in_progress"); assert.equal(inventory.status,"In Progress"); assert.equal((scope.match(/^- \[x\]/gm)||[]).length,12); assert.equal((scope.match(/^- \[ \]/gm)||[]).length,3); assert.equal(rows.length,15); assert.ok(rows.slice(8,11).every((row)=>row.startsWith("- [ ]"))); assert.ok(rows[14].startsWith("- [x]")); assert.deepEqual(state.certification.completedScopes,[]); assert.deepEqual(progress,{scopeId:"01-declare-and-enforce-one-read-bound",status:"in_progress",dodChecked:12,dodUnchecked:3}); assert.equal(state.execution.nextRequiredOwner,"bubbles.validate"); assert.equal(route.status,"open"); assert.equal(route.nextRequiredOwner,"bubbles.validate"); assert.deepEqual(route.remainingOwnerSequence,["bubbles.validate","bubbles.audit"]); assert.equal(finding.status,"resolved"); assert.equal(finding.resolutionEvidenceRef,"report.md#implementation-owned-post-repair-boundary-2026-09-01"); assert.deepEqual(open,["AUDIT-025-EVIDENCE-001","AUDIT-025-SLICE-002","AUD-BUG025-004"]); assert.ok(fs.readFileSync(`${d}/report.md`,"utf8").includes("<a name=\"implementation-owned-post-repair-boundary-2026-09-01\"></a>")); console.log(JSON.stringify({jsonParse:"PASS",status:state.status,certificationStatus:state.certification.status,scopeStatus:inventory.status,dodChecked:12,dodUnchecked:3,rows9To11:"unchecked",row15:"checked-pending-validate-readjudication",completedScopes:state.certification.completedScopes,nextRequiredOwner:state.execution.nextRequiredOwner,route030Status:route.status,route030Remaining:route.remainingOwnerSequence,resolvedFinding:finding.id,openFindings:open,evidenceRef:finding.resolutionEvidenceRef,result:"PASS"},null,2));'`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -10994,7 +10994,7 @@ against current command-bound metadata. Audit retains the final chronology and m
 ```
 
 **Phase:** implement
-**Command:** `cd /home/philipk/research-lab && timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-025-company-corpus-read-never-settles`
+**Command:** `cd <repo-root> && timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-025-company-corpus-read-never-settles`
 **Exit Code:** 0
 **Claim Source:** executed
 

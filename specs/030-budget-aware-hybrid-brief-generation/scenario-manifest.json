@@ -1,0 +1,667 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "version": 1,
+  "featureDir": "specs/030-budget-aware-hybrid-brief-generation",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-09-02T03:11:33Z",
+  "stage": "planning",
+  "scenarioCount": 12,
+  "planningNote": "All linkedTests arrays are empty because no Feature 030 test identity is authored. plannedTest and plannedTestPlanRows record the exact intended carrier and title without claiming file content or execution.",
+  "scenarios": [
+    {
+      "id": "SCN-030-001",
+      "scenarioId": "SCN-030-001",
+      "scope": 2,
+      "scopeId": "02-exact-reuse-and-recovery",
+      "scopeRef": "scopes.md#scope-02-exact-reuse-and-recovery",
+      "title": "Identical inputs make no new model request",
+      "gherkin": {
+        "given": "a prior run has accepted outcomes for the current evidence and policy",
+        "when": "the same generation window is processed again",
+        "then": "the runtime records reuse and makes zero new model requests"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": ["mutable-state", "dependency-path", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "A repeated run writes only a reuse reference, then a fresh manifest read resolves the same accepted outcome with no duplicate body or accepted outcome.",
+          "satisfiedBy": ["test-plan:TP-030-02-02", "test-plan:TP-030-02-05"]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The real bounded adapter process records zero invocations while the production run graph reaches validated reuse.",
+          "satisfiedBy": ["test-plan:TP-030-02-02", "test-plan:TP-030-02-05"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production run executes the frozen policy and owner reuse mode when deciding whether every semantic intent is reusable.",
+          "satisfiedBy": ["test-plan:TP-030-02-02"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh.mjs#runBriefRefresh", "scripts/brief-refresh.mjs#resolveBriefReuse"],
+        "negativeControl": "Perturb one frozen evidence fingerprint while retaining the prior outcome. The run must stop classifying the stage as exact reuse and the zero-adapter assertion must fail.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs"],
+      "plannedImplementationRefs": ["rlbriefroute.js"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.scheduler.e2e.mjs#Regression: repeated and resumed runs never repeat accepted semantic work",
+      "plannedTestPlanRows": ["TP-030-02-01", "TP-030-02-02", "TP-030-02-05"],
+      "evidenceRefs": ["report.md#scenario-scn-030-001"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-002",
+      "scenarioId": "SCN-030-002",
+      "scope": 1,
+      "scopeId": "01-route-and-budget-foundation",
+      "scopeRef": "scopes.md#scope-01-route-and-budget-foundation",
+      "title": "Routine evidence avoids frontier synthesis",
+      "gherkin": {
+        "given": "admissible evidence changed without a material conflict",
+        "when": "the brief is generated",
+        "then": "no frontier request occurs and all publication checks still apply"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["pure-calculation", "mutable-state", "dependency-path", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The closed classifier and route planner transform the frozen routine facts into a non-frontier route under the declared unique ordinal.",
+          "satisfiedBy": ["test-plan:TP-030-01-01"]
+        },
+        {
+          "trait": "mutable-state",
+          "requiredProof": "The isolated run graph persists zero frontier dispatches and the accepted publication rereads through the existing validators.",
+          "satisfiedBy": ["test-plan:TP-030-01-06"]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Only the selected economical adapter receives the bounded request and the frontier adapter process records zero calls.",
+          "satisfiedBy": ["test-plan:TP-030-01-06"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production run executes the committed route ordinal, capability, privacy, materiality, and budget policy rather than a test-supplied route.",
+          "satisfiedBy": ["test-plan:TP-030-01-06"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh.mjs#runBriefRefresh", "scripts/brief-author.mjs", "market-brief.config.json"],
+        "negativeControl": "Mutate the routine frontier-rejection branch in the ephemeral test copy. A frontier call or an accepted frontier plan must make the route, receipt, and publication assertions fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs", "scripts/brief-author.mjs", "market-brief.config.json"],
+      "plannedImplementationRefs": ["rlbriefroute.js", "scripts/brief-route-runtime.mjs"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.final.e2e.mjs#Regression: runBriefRefresh enforces routine, material, and unmeasurable route outcomes",
+      "plannedTestPlanRows": ["TP-030-01-01", "TP-030-01-05", "TP-030-01-06"],
+      "evidenceRefs": ["report.md#scenario-scn-030-002"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-003",
+      "scenarioId": "SCN-030-003",
+      "scope": 1,
+      "scopeId": "01-route-and-budget-foundation",
+      "scopeRef": "scopes.md#scope-01-route-and-budget-foundation",
+      "title": "Material evidence earns one frontier request",
+      "gherkin": {
+        "given": "deterministic analysis identifies a material evidence conflict",
+        "when": "the run reaches synthesis",
+        "then": "exactly one frontier request may occur against a bounded projection"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["pure-calculation", "mutable-state", "dependency-path", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Only material or owner-permitted conflicted final synthesis satisfies every frontier eligibility predicate.",
+          "satisfiedBy": ["test-plan:TP-030-01-02"]
+        },
+        {
+          "trait": "mutable-state",
+          "requiredProof": "The run ledger persists one consumed frontier permit and one authoritative accepted or refused occurrence across reread.",
+          "satisfiedBy": ["test-plan:TP-030-01-06"]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The bounded frontier adapter receives one projection and a second attempted dispatch is refused before adapter entry.",
+          "satisfiedBy": ["test-plan:TP-030-01-04", "test-plan:TP-030-01-06"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production run executes the committed one-per-run frontier permit and final-synthesis-only rule.",
+          "satisfiedBy": ["test-plan:TP-030-01-06"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh.mjs#runBriefRefresh", "scripts/brief-author.mjs", "market-brief.config.json"],
+        "negativeControl": "Mutate the frontier-permit consumed predicate in the ephemeral test copy, attempt a second dispatch, and require the adapter call count and ledger cardinality assertions to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs", "scripts/brief-author.mjs", "market-brief.config.json"],
+      "plannedImplementationRefs": ["rlbriefroute.js", "scripts/brief-route-runtime.mjs"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.final.e2e.mjs#Regression: runBriefRefresh enforces routine, material, and unmeasurable route outcomes",
+      "plannedTestPlanRows": ["TP-030-01-02", "TP-030-01-04", "TP-030-01-06"],
+      "evidenceRefs": ["report.md#scenario-scn-030-003"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-004",
+      "scenarioId": "SCN-030-004",
+      "scope": 1,
+      "scopeId": "01-route-and-budget-foundation",
+      "scopeRef": "scopes.md#scope-01-route-and-budget-foundation",
+      "title": "Unmeasurable configured cost blocks dispatch",
+      "gherkin": {
+        "given": "a selected paid route cannot measure a configured cost dimension",
+        "when": "pre-dispatch admission evaluates the route",
+        "then": "the run refuses before any provider request"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["degraded-state", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Admission returns B030-BUDGET-UNMEASURABLE with the missing dimension and records no provider request or synthetic zero usage.",
+          "satisfiedBy": ["test-plan:TP-030-01-03", "test-plan:TP-030-01-06"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production pre-dispatch path executes the configured cap and the adapter's frozen measurable-dimension declaration.",
+          "satisfiedBy": ["test-plan:TP-030-01-03"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["scripts/brief-refresh.mjs#runBriefRefresh", "market-brief.config.json"],
+        "negativeControl": "Mutate the measurable-dimension eligibility check in the ephemeral test copy. Any provider-process entry or numeric zero receipt must fail the refusal and zero-call assertions.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs", "market-brief.config.json"],
+      "plannedImplementationRefs": ["rlbriefroute.js", "scripts/brief-route-runtime.mjs"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.final.e2e.mjs#Regression: runBriefRefresh enforces routine, material, and unmeasurable route outcomes",
+      "plannedTestPlanRows": ["TP-030-01-03", "TP-030-01-04", "TP-030-01-06"],
+      "evidenceRefs": ["report.md#scenario-scn-030-004"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-005",
+      "scenarioId": "SCN-030-005",
+      "scope": 3,
+      "scopeId": "03-failure-safe-settlement-and-publication",
+      "scopeRef": "scopes.md#scope-03-failure-safe-settlement-and-publication",
+      "title": "Exhausted budget preserves current publication",
+      "gherkin": {
+        "given": "the remaining budget cannot cover a required stage",
+        "when": "that stage requests admission",
+        "then": "the run refuses and the current publication remains unchanged"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["mutable-state", "degraded-state", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "An isolated current pointer and freshness value are read before admission and reread byte-identical after refusal, with no partial history append.",
+          "satisfiedBy": ["test-plan:TP-030-03-02", "test-plan:TP-030-03-06"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The run records B030-BUDGET-EXHAUSTED and does not publish a candidate, substitute usage, or alternate success.",
+          "satisfiedBy": ["test-plan:TP-030-03-02"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production ledger executes the frozen remaining budget and worst-permitted stage vector atomically.",
+          "satisfiedBy": ["test-plan:TP-030-03-01", "test-plan:TP-030-03-02"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh.mjs#runBriefRefresh", "scripts/brief-publication.mjs", "market-brief.config.json"],
+        "negativeControl": "Mutate the cap-plus-one reservation rejection in the ephemeral test copy. Any dispatch, pointer change, or history append must fail the byte-identity and call-count assertions.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs", "scripts/brief-publication.mjs", "market-brief.config.json"],
+      "plannedImplementationRefs": ["rlbriefroute.js", "scripts/brief-route-runtime.mjs"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.final.e2e.mjs#Regression: budget route and contract failures cannot switch providers or move current",
+      "plannedTestPlanRows": ["TP-030-03-01", "TP-030-03-02", "TP-030-03-06"],
+      "evidenceRefs": ["report.md#scenario-scn-030-005"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-006",
+      "scenarioId": "SCN-030-006",
+      "scope": 3,
+      "scopeId": "03-failure-safe-settlement-and-publication",
+      "scopeRef": "scopes.md#scope-03-failure-safe-settlement-and-publication",
+      "title": "Provider failure does not switch routes",
+      "gherkin": {
+        "given": "the policy selected one eligible route",
+        "when": "that route is unavailable",
+        "then": "the stage records a refusal and no alternate provider is selected"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["dependency-path", "degraded-state", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The selected real adapter boundary records the failure and every other registered adapter records zero entry.",
+          "satisfiedBy": ["test-plan:TP-030-03-03", "test-plan:TP-030-03-06"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The stage records B030-ROUTE-UNAVAILABLE with no substitute candidate or provider identity.",
+          "satisfiedBy": ["test-plan:TP-030-03-03"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production runtime retains the frozen selected capability, adapter config fingerprint, occurrence, and retry policy across failure.",
+          "satisfiedBy": ["test-plan:TP-030-03-03"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh.mjs#runBriefRefresh", "scripts/brief-author.mjs"],
+        "negativeControl": "Mutate the no-reroute branch in the ephemeral test copy and make the selected adapter unavailable. Any alternate adapter entry must fail the complete adapter-call ledger assertion.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs", "scripts/brief-author.mjs"],
+      "plannedImplementationRefs": ["scripts/brief-route-runtime.mjs"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.final.e2e.mjs#Regression: budget route and contract failures cannot switch providers or move current",
+      "plannedTestPlanRows": ["TP-030-03-03", "TP-030-03-05", "TP-030-03-06"],
+      "evidenceRefs": ["report.md#scenario-scn-030-006"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-007",
+      "scenarioId": "SCN-030-007",
+      "scope": 4,
+      "scopeId": "04-inert-evidence-and-shadow-evaluation",
+      "scopeRef": "scopes.md#scope-04-inert-evidence-and-shadow-evaluation",
+      "title": "Source instructions remain inert",
+      "gherkin": {
+        "given": "acquired source text requests a new tool, provider, or budget",
+        "when": "a semantic stage consumes the evidence projection",
+        "then": "the request remains data and cannot alter the run contract"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["degraded-state", "dependency-path", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Instruction-shaped content is rejected with B030-INJECTION and no candidate, log, or artifact contains the unsafe body.",
+          "satisfiedBy": ["test-plan:TP-030-04-01", "test-plan:TP-030-04-05"]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The actual acquisition-to-author boundary passes only the bounded normalized projection and grants no model web, shell, write, tool, provider, or publication authority.",
+          "satisfiedBy": ["test-plan:TP-030-04-06"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production route, budget, tool, retry, output, and consequence policies remain byte-identical before and after hostile content processing.",
+          "satisfiedBy": ["test-plan:TP-030-04-01", "test-plan:TP-030-04-06"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/web-evidence-acquire.mjs", "scripts/brief-author.mjs", "scripts/brief-refresh.mjs#runBriefRefresh"],
+        "negativeControl": "Mutate the inert-content validator in the ephemeral test copy and inject route, tool, provider, budget, publication, and consequence fields. Acceptance of any field must fail the contract-byte and authority assertions.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["scripts/web-evidence-acquire.mjs", "scripts/brief-author.mjs", "scripts/brief-refresh.mjs"],
+      "plannedImplementationRefs": ["rlbriefroute.js", "scripts/brief-route-runtime.mjs"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.final.e2e.mjs#Regression: hostile and incomplete evidence stays inert and visible through shadow comparison",
+      "plannedTestPlanRows": ["TP-030-04-01", "TP-030-04-05", "TP-030-04-06"],
+      "evidenceRefs": ["report.md#scenario-scn-030-007"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-008",
+      "scenarioId": "SCN-030-008",
+      "scope": 3,
+      "scopeId": "03-failure-safe-settlement-and-publication",
+      "scopeRef": "scopes.md#scope-03-failure-safe-settlement-and-publication",
+      "title": "Invalid stage output cannot publish",
+      "gherkin": {
+        "given": "a semantic stage returns output outside its closed contract",
+        "when": "the publication candidate is assembled",
+        "then": "validation rejects the run and advances no current pointer"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["mutable-state", "degraded-state", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "The current pointer and history are reread unchanged after malformed output reaches the real all-source and payload validators.",
+          "satisfiedBy": ["test-plan:TP-030-03-04", "test-plan:TP-030-03-06"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The run records B030-VALIDATION and cannot convert malformed output into partial, repaired, or accepted publication data.",
+          "satisfiedBy": ["test-plan:TP-030-03-04"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production run executes the declared output contract and existing payload validator without a cheaper-route exception.",
+          "satisfiedBy": ["test-plan:TP-030-03-04", "test-plan:TP-030-03-07"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh.mjs#runBriefRefresh", "scripts/validate-brief-payload.mjs", "scripts/brief-publication.mjs"],
+        "negativeControl": "Mutate the required-stage contract rejection in the ephemeral test copy and return a malformed candidate. Any pointer movement or validator success must fail the persisted-state assertions.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs", "scripts/validate-brief-payload.mjs", "scripts/brief-publication.mjs"],
+      "plannedImplementationRefs": ["rlbriefroute.js"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.final.e2e.mjs#Regression: budget route and contract failures cannot switch providers or move current",
+      "plannedTestPlanRows": ["TP-030-03-04", "TP-030-03-05", "TP-030-03-06", "TP-030-03-07"],
+      "evidenceRefs": ["report.md#scenario-scn-030-008"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-009",
+      "scenarioId": "SCN-030-009",
+      "scope": 2,
+      "scopeId": "02-exact-reuse-and-recovery",
+      "scopeRef": "scopes.md#scope-02-exact-reuse-and-recovery",
+      "title": "Recovery reuses accepted work",
+      "gherkin": {
+        "given": "a run stopped after accepted exact-input stage outcomes",
+        "when": "the operator resumes that run",
+        "then": "accepted outcomes are reused and only unresolved work may dispatch"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": ["mutable-state", "dependency-path", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "After interruption, a manifest reread resolves each accepted occurrence unchanged and writes only outcomes for previously unresolved stages.",
+          "satisfiedBy": ["test-plan:TP-030-02-03", "test-plan:TP-030-02-04", "test-plan:TP-030-02-05"]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The real adapter call ledger shows zero repeat calls for accepted stages and calls only for unresolved stages.",
+          "satisfiedBy": ["test-plan:TP-030-02-03", "test-plan:TP-030-02-05"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "Resume revalidates the frozen policy, input, adapter config, output contract, and retry profile before dispatch.",
+          "satisfiedBy": ["test-plan:TP-030-02-03"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh.mjs#runBriefRefresh", "scripts/brief-refresh-scheduled.sh"],
+        "negativeControl": "Perturb one accepted stage input identity before resume. That stage must become unresolved, and its adapter call must distinguish the control from exact accepted reuse.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs", "scripts/brief-refresh-scheduled.sh"],
+      "plannedImplementationRefs": ["rlbriefroute.js"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.scheduler.e2e.mjs#Regression: repeated and resumed runs never repeat accepted semantic work",
+      "plannedTestPlanRows": ["TP-030-02-01", "TP-030-02-03", "TP-030-02-04", "TP-030-02-05"],
+      "evidenceRefs": ["report.md#scenario-scn-030-009"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-010",
+      "scenarioId": "SCN-030-010",
+      "scope": 4,
+      "scopeId": "04-inert-evidence-and-shadow-evaluation",
+      "scopeRef": "scopes.md#scope-04-inert-evidence-and-shadow-evaluation",
+      "title": "Missing evidence stays missing",
+      "gherkin": {
+        "given": "a required claim lacks admissible evidence",
+        "when": "any model authors a candidate",
+        "then": "the gap remains explicit and unsupported material claims cannot publish"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["mutable-state", "degraded-state", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "The isolated run graph persists the named missing evidence state and no unsupported material claim enters current publication or history.",
+          "satisfiedBy": ["test-plan:TP-030-04-02", "test-plan:TP-030-04-06"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Missing, stale, conflicting, unsupported, and unavailable remain distinct; no model prose becomes evidence or a plausible positive claim.",
+          "satisfiedBy": ["test-plan:TP-030-04-02"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The existing all-source and payload validators execute unchanged authority checks for every route class.",
+          "satisfiedBy": ["test-plan:TP-030-04-02", "test-plan:TP-030-04-06"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh.mjs#runBriefRefresh", "scripts/validate-brief-payload.mjs", "scripts/brief-publication.mjs"],
+        "negativeControl": "Mutate the admissible-evidence guard in the ephemeral test copy and let model prose fill a missing claim. Any accepted claim, pointer movement, or collapsed missing-state label must fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs", "scripts/validate-brief-payload.mjs", "scripts/brief-publication.mjs"],
+      "plannedImplementationRefs": ["rlbriefroute.js"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.final.e2e.mjs#Regression: hostile and incomplete evidence stays inert and visible through shadow comparison",
+      "plannedTestPlanRows": ["TP-030-04-02", "TP-030-04-05", "TP-030-04-06"],
+      "evidenceRefs": ["report.md#scenario-scn-030-010"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-011",
+      "scenarioId": "SCN-030-011",
+      "scope": 4,
+      "scopeId": "04-inert-evidence-and-shadow-evaluation",
+      "scopeRef": "scopes.md#scope-04-inert-evidence-and-shadow-evaluation",
+      "title": "Shadow evaluation exposes quality regressions",
+      "gherkin": {
+        "given": "baseline and candidate policies process the same frozen corpus",
+        "when": "their evaluation records are compared",
+        "then": "every omission, unsupported claim, citation break, and miss is visible"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["pure-calculation", "mutable-state", "static-metadata", "runtime-config"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Equivalent frozen baseline and candidate records produce complete deterministic differences for every critical quality class and measured cost dimension.",
+          "satisfiedBy": ["test-plan:TP-030-04-03", "test-plan:TP-030-04-04"]
+        },
+        {
+          "trait": "mutable-state",
+          "requiredProof": "The immutable evaluation record rereads with all omissions, unsupported claims, citation breaks, conflicts, misses, validator results, and usage totals preserved.",
+          "satisfiedBy": ["test-plan:TP-030-04-06"]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The corpus manifest names at least thirty accepted run identities, every required stratum, one rubric version, and exact baseline/candidate refs.",
+          "satisfiedBy": ["test-plan:TP-030-04-04"]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production evaluator executes the committed sample floor, strata, quality classes, configured measurement requirements, and promotion matrix.",
+          "satisfiedBy": ["test-plan:TP-030-04-03", "test-plan:TP-030-04-06"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh.mjs", "scripts/validate-brief-payload.mjs", "market-brief.config.json"],
+        "negativeControl": "Mutate one comparison branch at a time in the ephemeral test copy to omit an unsupported claim, citation break, conflict, or miss. The corresponding complete-difference assertion must fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["scripts/brief-refresh.mjs", "scripts/validate-brief-payload.mjs", "market-brief.config.json"],
+      "plannedImplementationRefs": ["scripts/brief-shadow-evaluate.mjs"],
+      "linkedTests": [],
+      "plannedTest": "tests/distributed-briefs.final.e2e.mjs#Regression: hostile and incomplete evidence stays inert and visible through shadow comparison",
+      "plannedTestPlanRows": ["TP-030-04-03", "TP-030-04-04", "TP-030-04-06"],
+      "evidenceRefs": ["report.md#scenario-scn-030-011"],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-030-012",
+      "scenarioId": "SCN-030-012",
+      "scope": 5,
+      "scopeId": "05-atomic-cutover-and-reader-continuity",
+      "scopeRef": "scopes.md#scope-05-atomic-cutover-and-reader-continuity",
+      "title": "Public access survives generation failure",
+      "gherkin": {
+        "given": "a reader has no provider key or account",
+        "when": "the latest generation run refuses",
+        "then": "the last validated brief remains readable with its original freshness"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "status": "planned-not-executed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": ["user-visible-ui", "degraded-state", "shared-consumer", "dependency-path", "responsive-accessible"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production brief route visibly renders the prior validated content and original freshness after the latest run refuses.",
+          "satisfiedBy": ["test-plan:TP-030-05-03", "test-plan:TP-030-05-05"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "No failed candidate, newer generation timestamp, invented freshness, login wall, provider prompt, or blank state replaces the current brief.",
+          "satisfiedBy": ["test-plan:TP-030-05-03", "test-plan:TP-030-05-05"]
+        },
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "The routed publisher and current static reader agree on the same validated payload, content identity, freshness, and failure preservation.",
+          "satisfiedBy": ["parity:TP-030-05-04", "consumer-surface:TP-030-05-05"]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "A real same-origin static server serves the committed current payload and reader resources while provider access and account state are absent.",
+          "satisfiedBy": ["test-plan:TP-030-05-03", "test-plan:TP-030-05-05"]
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "The current brief retains visible freshness, keyboard order, accessibility semantics, sourced claims, dark states, and scorecard content on the production route.",
+          "satisfiedBy": ["test-plan:TP-030-05-05"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "accessibility-tree",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["market-brief.html", "rlbrief.js", "scripts/brief-refresh-and-push.sh", "scripts/brief-refresh-scheduled.sh"],
+        "negativeControl": "Mutate the isolated current pointer to the refused candidate or replace the stored freshness. The visible content, accessibility, pointer-parity, and original-freshness assertions must fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["market-brief.html", "rlbrief.js", "scripts/brief-refresh-and-push.sh", "scripts/brief-refresh-scheduled.sh"],
+      "linkedTests": [],
+      "plannedTest": "tests/market-brief-freshness.spec.mjs#Regression: failed latest generation cannot replace content freshness or accessibility of current brief",
+      "plannedTestPlanRows": ["TP-030-05-01", "TP-030-05-03", "TP-030-05-04", "TP-030-05-05"],
+      "evidenceRefs": ["report.md#scenario-scn-030-012"],
+      "lockdown": {"state": "unlocked"}
+    }
+  ]
+}

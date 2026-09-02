@@ -19,7 +19,7 @@ The host adapter first observed the operator-supplied Research Lab decision at c
 The filing's actionable decision at that time was:
 
 ```json
-{"repositoryRoot":"/home/philipk/research-lab","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-20072c8d3f74af455af2514e746fced3","decisionId":"rb:vscode-20072c8d3f74af455af2514e746fced3:2","controlRevision":2,"controlPathDigest":"sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc","authority":"explicit-repository-root","transition":"confirmed","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"local","actionable":true}}
+{"repositoryRoot":"<repo-root>","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-20072c8d3f74af455af2514e746fced3","decisionId":"rb:vscode-20072c8d3f74af455af2514e746fced3:2","controlRevision":2,"controlPathDigest":"sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc","authority":"explicit-repository-root","transition":"confirmed","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"local","actionable":true}}
 ```
 
 The supplied revision-1 decision remains origin provenance. It is no longer actionable after the required preflight revision advanced.
@@ -29,7 +29,7 @@ For this filing-artifact hygiene correction, the host adapter observed control r
 The current actionable decision is:
 
 ```json
-{"repositoryRoot":"/home/philipk/research-lab","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-20072c8d3f74af455af2514e746fced3","decisionId":"rb:vscode-20072c8d3f74af455af2514e746fced3:5","controlRevision":5,"controlPathDigest":"sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc","authority":"explicit-repository-root","transition":"confirmed","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"local","actionable":true}}
+{"repositoryRoot":"<repo-root>","repositoryAlias":"research-lab","repositoryResolution":{"sessionId":"vscode-20072c8d3f74af455af2514e746fced3","decisionId":"rb:vscode-20072c8d3f74af455af2514e746fced3:5","controlRevision":5,"controlPathDigest":"sha256:7e982c9a1b25048dd68c8c758dbc39cdc603988bddfe07251568ed72f9d0becc","authority":"explicit-repository-root","transition":"confirmed","scopeKind":"command","scopeId":null,"targetKind":"repository-root","pathVisibility":"local","actionable":true}}
 ```
 
 ## Test Evidence

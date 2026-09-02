@@ -58,15 +58,21 @@ future-dated relative to `now` crashes identically.
 
 ## Blast Radius
 
-`deriveInterestSignals` is called by `buildInterestSignalCandidate`, which is the
-only path that persists `workspace.interestSignals`. The lab reads that persisted
-array at `portfolio-survival-allocation-lab.html:3059` and feeds it to
-`RLPORTFOLIOANALYTICS.blackLittermanViews` as the exclusion accounting behind the
-Black-Litterman editor. So the failure surface is: any workspace that has carried
-a domain long enough for its evidence to age out — the normal end state of any
-research domain a user stops working — permanently breaks interest-signal
-derivation and the view-exclusion accounting that depends on it, until the user
-clears local history.
+`deriveInterestSignals` is a public `rlportfolio.js` export used by
+`buildInterestSignalCandidate`. Valid module consumers could therefore trigger
+the uncaught exception before the fix.
+
+The current registered page calls neither export. Its brief ranking uses the
+separate `RLPORTFOLIOBRIEF.deriveInterestSignals` function, which BUG-005 did not
+change. Current evidence therefore does not establish a permanent crash in a
+registered-page flow.
+
+The page separately reads `workspace.interestSignals` for Black-Litterman
+exclusion accounting. It does not call the persisted-cache writer. That wiring
+defect is tracked independently in
+[`BUG-010-persisted-interest-signal-wiring`](../BUG-010-persisted-interest-signal-wiring/).
+It does not widen BUG-005's crash blast radius. The stale-domain repair and its
+contract-only adversarial carrier remain valid.
 
 ## Divergence From The Brief
 

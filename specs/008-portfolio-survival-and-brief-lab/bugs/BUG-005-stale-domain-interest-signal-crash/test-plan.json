@@ -1,0 +1,173 @@
+{
+  "version": 1,
+  "specId": "008-BUG-005",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-09-02T08:01:59Z",
+  "planningStatus": "in-progress-plan-reconciled",
+  "tddMode": "scenario-first",
+  "evidenceBoundary": "Planning-owned structured handoff only. Existing report links are preserved, but this update re-executes no product test and makes no certification or human-acceptance claim. TP-B005-009 and TP-B005-010 are supplemental shipped-page non-movement checks; neither is direct proof of the unwired BUG-005 contract path.",
+  "commandCatalog": {
+    "CMD-B005-CARRIER": "timeout 240 node --test tests/portfolio-stale-domain-signal.unit.mjs",
+    "CMD-B005-BUG004": "timeout 240 node --test tests/portfolio-behavior-occurrence.unit.mjs",
+    "CMD-B005-BRIEF": "timeout 240 node --test tests/portfolio-brief.functional.mjs",
+    "CMD-B005-SELFTEST": "timeout 1800 node scripts/selftest.mjs",
+    "CMD-B005-ALLOCATION-E2E": "timeout 900 npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+    "CMD-B005-FEATURE-E2E": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list"
+  },
+  "scopes": [
+    {
+      "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+      "scopeName": "Omit Stale-Only Domains Instead Of Throwing",
+      "foundation": false,
+      "dependsOn": [],
+      "tests": [
+        {
+          "id": "TP-B005-001",
+          "type": "Unit",
+          "category": "unit",
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "scenarioId": "SCN-B005-STALE-OMITTED",
+          "testTitles": [
+            "BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing",
+            "BUG-005: a future-dated-only domain is omitted through the same filter without throwing"
+          ],
+          "description": "Return an ok envelope and omit stale-only and future-dated-only domains without throwing.",
+          "commandRef": "CMD-B005-CARRIER",
+          "command": "timeout 240 node --test tests/portfolio-stale-domain-signal.unit.mjs",
+          "liveSystem": false,
+          "coverageRole": "direct",
+          "evidenceRef": "report.md#focused-carrier",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B005-002",
+          "type": "Unit",
+          "category": "unit",
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "scenarioId": "SCN-B005-FRESH-SIBLING",
+          "testTitle": "BUG-005: a stale domain must not suppress the fresh domains beside it",
+          "description": "Compare the fresh sibling's mixed-workspace signal with its isolated derivation while proving the stale domain is absent.",
+          "commandRef": "CMD-B005-CARRIER",
+          "command": "timeout 240 node --test tests/portfolio-stale-domain-signal.unit.mjs",
+          "liveSystem": false,
+          "coverageRole": "direct",
+          "evidenceRef": "report.md#focused-carrier",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B005-003",
+          "type": "Adversarial regression",
+          "category": "unit",
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "scenarioId": "SCN-B005-DISCRIMINATION",
+          "testTitle": "BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red",
+          "description": "Prove the faithful pre-filter mutant handles fresh-only input and throws RangeError on stale-only input while shipped source returns an envelope.",
+          "commandRef": "CMD-B005-CARRIER",
+          "command": "timeout 240 node --test tests/portfolio-stale-domain-signal.unit.mjs",
+          "liveSystem": false,
+          "coverageRole": "direct",
+          "evidenceRef": "report.md#discrimination",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B005-004",
+          "type": "Unit",
+          "category": "unit",
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "scenarioId": "SCN-B005-FLOOR-PRESERVED",
+          "testTitle": "BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing",
+          "description": "Prove below-floor in-window evidence remains emitted with floorSatisfied false and insufficient-evidence band.",
+          "commandRef": "CMD-B005-CARRIER",
+          "command": "timeout 240 node --test tests/portfolio-stale-domain-signal.unit.mjs",
+          "liveSystem": false,
+          "coverageRole": "direct",
+          "evidenceRef": "report.md#focused-carrier",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B005-005",
+          "type": "Unit",
+          "category": "unit",
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "scenarioId": "SCN-B005-BRIEF-AGREEMENT",
+          "testTitle": "BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance",
+          "description": "Assert both production derivations deny live relevance while preserving their distinct contract forms.",
+          "commandRef": "CMD-B005-CARRIER",
+          "command": "timeout 240 node --test tests/portfolio-stale-domain-signal.unit.mjs",
+          "liveSystem": false,
+          "coverageRole": "direct",
+          "evidenceRef": "report.md#divergence",
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B005-006",
+          "type": "Regression",
+          "category": "unit",
+          "file": "tests/portfolio-behavior-occurrence.unit.mjs",
+          "description": "Keep BUG-004 storage, de-duplication, age-filter ordering, and anti-inflation behavior unchanged.",
+          "commandRef": "CMD-B005-BUG004",
+          "command": "timeout 240 node --test tests/portfolio-behavior-occurrence.unit.mjs",
+          "liveSystem": false,
+          "coverageRole": "supplemental-non-movement",
+          "evidenceRef": "report.md#bug-004-regressions",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B005-007",
+          "type": "Regression",
+          "category": "functional",
+          "file": "tests/portfolio-brief.functional.mjs",
+          "description": "Keep brief-side derivation and floor accounting unchanged.",
+          "commandRef": "CMD-B005-BRIEF",
+          "command": "timeout 240 node --test tests/portfolio-brief.functional.mjs",
+          "liveSystem": false,
+          "coverageRole": "supplemental-non-movement",
+          "evidenceRef": "report.md#bug-004-regressions",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B005-008",
+          "type": "Regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "Keep registry, navigation, and canonical model invariants green.",
+          "commandRef": "CMD-B005-SELFTEST",
+          "command": "timeout 1800 node scripts/selftest.mjs",
+          "liveSystem": false,
+          "coverageRole": "supplemental-non-movement",
+          "evidenceRef": "report.md#canonical-selftest",
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B005-009",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-allocation.spec.mjs",
+          "scenarioId": "SCN-008-030",
+          "testTitle": "Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence",
+          "description": "Validate reachable allocation-page non-movement without claiming direct execution of rlportfolio.deriveInterestSignals.",
+          "commandRef": "CMD-B005-ALLOCATION-E2E",
+          "command": "timeout 900 npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "coverageRole": "supplemental-non-movement",
+          "evidenceRef": null,
+          "redGreenRequired": false
+        },
+        {
+          "id": "TP-B005-010",
+          "type": "Broader Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-foundation.spec.mjs",
+          "description": "Run the eight Feature 008 browser carriers as broader non-movement coverage without treating them as direct BUG-005 contract proof.",
+          "commandRef": "CMD-B005-FEATURE-E2E",
+          "command": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "coverageRole": "supplemental-non-movement",
+          "evidenceRef": null,
+          "redGreenRequired": false
+        }
+      ]
+    }
+  ]
+}

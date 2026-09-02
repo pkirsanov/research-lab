@@ -2,9 +2,9 @@
  * tests/distributed-briefs.final.integration.mjs — Feature 002 Scope 08 (SCN-002-025 / SCN-002-027).
  *
  * Integration coverage for the production final barrier + author + validator path (runFinalAuthor):
- *  - the complete live registry (currently 23 participants / 22 sources, DERIVED) must present every
+ *  - the complete live registry (cardinality DERIVED at runtime) must present every
  *    owner-read AND source-brief outcome before ONE final is authored, and the resulting FinalBrief covers
- *    all 23 participants exactly once with 22 source refs (SCN-002-025);
+ *    all participants exactly once with one source ref per source (SCN-002-025);
  *  - owner disputes, thin baselines, and shared source origins remain visible context or conflict — a
  *    shared evidence origin counts once and merged confidence is the minimum retained score, while a
  *    disputed/unusual observation stays bounded educational context that consumes no action slot (SCN-002-027).
@@ -28,10 +28,12 @@ function readRealRegistry() {
 }
 
 test('complete 23-participant final input consumes all 22 owner-read and source-brief outcomes after the barrier', async () => {
-  const frozen = RLCONTRACTS.validateRegistry(readRealRegistry(), registryConfig()).value;
-  // Current-repository canary: derived, never a controlling literal.
-  assert.equal(frozen.participantCount, 28);
-  assert.equal(frozen.sourceCount, 27);
+  const realRegistry = readRealRegistry();
+  const expectedParticipantCount = realRegistry.tools.length;
+  const expectedSourceCount = realRegistry.tools.filter((tool) => tool.briefing.role === 'source').length;
+  const frozen = RLCONTRACTS.validateRegistry(realRegistry, registryConfig()).value;
+  assert.equal(frozen.participantCount, expectedParticipantCount);
+  assert.equal(frozen.sourceCount, expectedSourceCount);
 
   const eligibleId = frozen.orderedSourceToolIds.find((toolId) => frozen.entries[toolId].profile === 'live-market');
   assert.ok(eligibleId, 'the live registry has at least one live-market source');
@@ -60,10 +62,10 @@ test('complete 23-participant final input consumes all 22 owner-read and source-
 
   const result = await runFinalAuthor({ registry: frozen, reads, briefs, groups, runContext, finalBudget: finalBudget(), identity: authorIdentity(), authorFn: envelopeFinalAuthorFn('valid') });
   assert.equal(result.ok, true, result.ok ? '' : JSON.stringify(result.refusal));
-  assert.equal(result.telemetry.participantCount, 28);
-  assert.equal(result.telemetry.sourceCount, 27);
-  assert.equal(result.final.coverage.length, 28);
-  assert.equal(Object.keys(result.final.sourceRefs).length, 27);
+  assert.equal(result.telemetry.participantCount, expectedParticipantCount);
+  assert.equal(result.telemetry.sourceCount, expectedSourceCount);
+  assert.equal(result.final.coverage.length, expectedParticipantCount);
+  assert.equal(Object.keys(result.final.sourceRefs).length, expectedSourceCount);
   assert.equal(result.final.actions.length, 1);
   assert.equal(result.final.actions[0].originToolIds[0], eligibleId);
 

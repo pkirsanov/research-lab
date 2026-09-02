@@ -116,6 +116,32 @@ belong in the existing brief functional carrier and brief browser carrier.
 This filing changes no product source or persistent test. It does not touch the
 separate dirty parent Feature 008 scope and root test-plan transaction.
 
+## Finding-Owned Closure Classification {#finding-owned-closure-classification-2026-09-02}
+
+No new bug packet is required for `HARDEN-B007-PLAN-LIFECYCLE-002` or
+`HARDEN-B007-MANIFEST-DUPKEY-003`. Both findings are defects in this active
+BUG-007 planning packet.
+
+`HARDEN-B007-PLAN-LIFECYCLE-002` is an existing-packet planning-truth defect.
+The active lifecycle prose contradicts the executed `TP-B007-012` evidence and
+the checked rollback DoD. It introduces no new product failure, behavior, or
+test obligation. The filed evidence remains
+`report.md#harden-b007-plan-lifecycle-002`.
+
+`HARDEN-B007-MANIFEST-DUPKEY-003` is an existing-packet structured-planning
+defect. The duplicate key occurs inside this bug's current scenario manifest.
+It introduces no separate runtime failure or product boundary. The filed
+evidence remains `report.md#harden-b007-manifest-dupkey-003`.
+
+Both findings remain unresolved. `bubbles.analyst` owns the first planning-truth
+adjudication. Foreign-owned planning repairs then route to `bubbles.plan` for
+`scopes.md`, the active `report.md` lifecycle structure, and
+`scenario-manifest.json`.
+
+`HARDEN-B007-G061-HISTORY-001` remains separate, unresolved, and owned by
+`bubbles.validate`. This classification does not change its text, evidence,
+historical routes, or certification ownership.
+
 ## Related
 
 - Parent feature: `specs/008-portfolio-survival-and-brief-lab`

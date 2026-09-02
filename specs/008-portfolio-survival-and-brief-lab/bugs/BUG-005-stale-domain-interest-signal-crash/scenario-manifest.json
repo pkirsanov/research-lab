@@ -1,64 +1,309 @@
 {
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash",
-  "generatedAt": "2026-08-25T00:00:00Z",
-  "generatedBy": "GitHub Copilot",
-  "provenance": "Transcribed from BUG-005 scopes.md. Scenario status remains nonterminal; focused carrier execution does not certify the bug packet.",
+  "generatedAt": "2026-09-02T06:47:03Z",
+  "generatedBy": "bubbles.plan",
+  "provenance": "Planning-owned reconciliation from the current BUG-005 spec, design, and Scope 01. Existing evidence links are preserved, no product test is re-executed, and no certification or human-acceptance claim is made. The repaired contract has no shipped-page caller, so browser rows remain supplemental non-movement coverage only.",
   "scenarios": [
     {
       "scenarioId": "SCN-B005-STALE-OMITTED",
       "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
       "scope": 1,
       "title": "A domain whose every event has aged out yields no signal",
-      "status": "not_started",
+      "gherkin": {
+        "given": "a workspace whose only equity-research event occurred 190.92 days ago under a declared 56-day evidence window",
+        "when": "rlportfolio.deriveInterestSignals evaluates that workspace at the reference instant",
+        "then": "the public function returns an ok envelope without an equity-research signal and does not throw"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
       "requiredTestType": "unit",
+      "requiredTestTypes": ["unit"],
       "regressionRequired": true,
-      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
-      "evidenceRefs": ["report.md#focused-carrier"]
+      "riskTier": "high",
+      "requirementRefs": ["EB-1", "EB-2", "EB-4", "AC-1", "AC-2", "AC-5"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "A production public-function assertion transforms the stale-only workspace into an ok envelope with the stale domain absent.",
+          "satisfiedBy": ["TP-B005-001"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named stale-only and future-dated-only negative paths return honest omission with no throw or plausible default.",
+          "satisfiedBy": ["TP-B005-001"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolio.js#deriveInterestSignals"],
+        "negativeControl": "Reinstating pre-filter bucket creation must make the same stale-only input throw RangeError instead of returning the envelope.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfolio.js#deriveInterestSignals"],
+      "testRows": ["TP-B005-001"],
+      "redGreenRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "testId": "BUG-005: a domain whose every eligible event has aged out yields no signal instead of throwing",
+          "testPlanRow": "TP-B005-001",
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#focused-carrier"
+        }
+      ],
+      "expectedAssertions": [
+        "the result is an ok envelope",
+        "the stale-only domain is absent",
+        "no RangeError escapes"
+      ],
+      "evidenceRefs": ["report.md#pre-fix-reproduction", "report.md#focused-carrier"],
+      "replacedBy": null,
+      "invalidatedBy": null
     },
     {
       "scenarioId": "SCN-B005-FRESH-SIBLING",
       "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
       "scope": 1,
       "title": "A stale domain does not suppress a fresh sibling",
-      "status": "not_started",
+      "gherkin": {
+        "given": "one stale-only domain and one domain with in-window evidence in the same workspace",
+        "when": "rlportfolio.deriveInterestSignals evaluates the mixed workspace",
+        "then": "the stale domain is absent and the fresh domain retains its isolated evidenceScore and relevanceBand"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
       "requiredTestType": "unit",
+      "requiredTestTypes": ["unit"],
       "regressionRequired": true,
-      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
-      "evidenceRefs": ["report.md#focused-carrier"]
+      "riskTier": "high",
+      "requirementRefs": ["EB-3", "AC-3"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "A production public-function assertion compares the fresh signal from the mixed workspace with the same domain derived in isolation while proving the stale sibling is absent.",
+          "satisfiedBy": ["TP-B005-002"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolio.js#deriveInterestSignals"],
+        "negativeControl": "Reinstating pre-filter bucket creation must make the mixed derivation throw before the fresh sibling can be returned.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfolio.js#deriveInterestSignals"],
+      "testRows": ["TP-B005-002"],
+      "redGreenRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "testId": "BUG-005: a stale domain must not suppress the fresh domains beside it",
+          "testPlanRow": "TP-B005-002",
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#focused-carrier"
+        }
+      ],
+      "expectedAssertions": [
+        "the mixed derivation returns an ok envelope",
+        "the stale domain is absent",
+        "the fresh signal matches its isolated score and relevance band"
+      ],
+      "evidenceRefs": ["report.md#pre-fix-reproduction", "report.md#focused-carrier"],
+      "replacedBy": null,
+      "invalidatedBy": null
     },
     {
       "scenarioId": "SCN-B005-DISCRIMINATION",
       "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
       "scope": 1,
       "title": "Reinstating pre-filter bucket creation reproduces the RangeError",
-      "status": "not_started",
+      "gherkin": {
+        "given": "module source whose domain bucket is created before the age filter",
+        "when": "the stale-only fixture is derived against that source",
+        "then": "the faithful mutant throws RangeError while the shipped ordering returns an envelope"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
       "requiredTestType": "unit",
+      "requiredTestTypes": ["unit"],
       "regressionRequired": true,
-      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
-      "evidenceRefs": ["report.md#focused-carrier"]
+      "riskTier": "high",
+      "requirementRefs": ["AC-4"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The carrier invokes the shipped and faithfully mutated public function on controlled fixtures and distinguishes their transformed outcomes.",
+          "satisfiedBy": ["TP-B005-003"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The named superseded ordering throws RangeError on stale-only input after a fresh-only control proves the mutant remains executable.",
+          "satisfiedBy": ["TP-B005-003"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolio.js#deriveInterestSignals"],
+        "negativeControl": "Removing the pre-filter mutation or allowing the mutant stale-only call to return must fail the RangeError assertion.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": ["rlportfolio.js#deriveInterestSignals"],
+      "testRows": ["TP-B005-003"],
+      "redGreenRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "testId": "BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red",
+          "testPlanRow": "TP-B005-003",
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#discrimination"
+        }
+      ],
+      "expectedAssertions": [
+        "the mutant still handles fresh-only input",
+        "the mutant throws RangeError for stale-only input",
+        "the shipped function returns an envelope for the same stale-only input"
+      ],
+      "evidenceRefs": ["report.md#pre-fix-reproduction", "report.md#discrimination"],
+      "replacedBy": null,
+      "invalidatedBy": null
     },
     {
       "scenarioId": "SCN-B005-FLOOR-PRESERVED",
       "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
       "scope": 1,
       "title": "Below-floor in-window evidence remains reported",
-      "status": "not_started",
+      "gherkin": {
+        "given": "a domain with one in-window event and a declared floor of two distinct completions",
+        "when": "rlportfolio.deriveInterestSignals evaluates that workspace",
+        "then": "the domain is emitted with floorSatisfied false and relevanceBand insufficient-evidence"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
       "requiredTestType": "unit",
+      "requiredTestTypes": ["unit"],
       "regressionRequired": true,
-      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
-      "evidenceRefs": ["report.md#focused-carrier"]
+      "riskTier": "medium",
+      "requirementRefs": ["EB-5", "AC-6"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "A production public-function assertion proves in-window evidence below the floor remains in the returned signal array with the specified fields.",
+          "satisfiedBy": ["TP-B005-004"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The insufficient-evidence state is represented explicitly rather than omitted or replaced by a plausible default.",
+          "satisfiedBy": ["TP-B005-004"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolio.js#deriveInterestSignals"],
+        "negativeControl": "Dropping every below-floor domain must fail the expected emitted signal and insufficient-evidence assertions.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": ["rlportfolio.js#deriveInterestSignals"],
+      "testRows": ["TP-B005-004"],
+      "redGreenRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "testId": "BUG-005: in-window evidence below the floor is still emitted, so the fix widened nothing",
+          "testPlanRow": "TP-B005-004",
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#focused-carrier"
+        }
+      ],
+      "expectedAssertions": [
+        "the below-floor domain is emitted",
+        "floorSatisfied is false",
+        "relevanceBand is insufficient-evidence"
+      ],
+      "evidenceRefs": ["report.md#focused-carrier"],
+      "replacedBy": null,
+      "invalidatedBy": null
     },
     {
       "scenarioId": "SCN-B005-BRIEF-AGREEMENT",
       "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
       "scope": 1,
       "title": "Both derivations deny live relevance to a stale domain",
-      "status": "not_started",
+      "gherkin": {
+        "given": "the same stale-only workspace and declared evidence policy",
+        "when": "rlportfolio and rlportfoliobrief each derive interest signals",
+        "then": "rlportfolio omits the stale domain while rlportfoliobrief reports zero score no supporting occurrences and an unsatisfied floor"
+      },
+      "status": "planned",
+      "behaviorClass": "business-logic",
+      "changeType": "bugfix",
       "requiredTestType": "unit",
+      "requiredTestTypes": ["unit"],
       "regressionRequired": true,
-      "linkedTests": ["tests/portfolio-stale-domain-signal.unit.mjs"],
-      "evidenceRefs": ["report.md#focused-carrier"]
+      "riskTier": "medium",
+      "requirementRefs": ["AC-7"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "One carrier invokes both production public functions with the same stale evidence and asserts each contract's distinct zero-relevance form.",
+          "satisfiedBy": ["TP-B005-005"]
+        }
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlportfolio.js#deriveInterestSignals", "rlportfoliobrief.js#deriveInterestSignals"],
+        "negativeControl": "Emitting live relevance from either derivation for the stale domain must fail the omission or zero-support assertions.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": ["rlportfolio.js#deriveInterestSignals", "rlportfoliobrief.js#deriveInterestSignals"],
+      "testRows": ["TP-B005-005"],
+      "redGreenRequired": true,
+      "lockdown": false,
+      "linkedTests": [
+        {
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "testId": "BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance",
+          "testPlanRow": "TP-B005-005",
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#divergence"
+        }
+      ],
+      "expectedAssertions": [
+        "rlportfolio omits the stale domain",
+        "rlportfoliobrief reports score zero",
+        "rlportfoliobrief reports no supporting occurrences and an unsatisfied floor"
+      ],
+      "evidenceRefs": ["report.md#divergence", "report.md#focused-carrier"],
+      "replacedBy": null,
+      "invalidatedBy": null
     }
   ]
 }

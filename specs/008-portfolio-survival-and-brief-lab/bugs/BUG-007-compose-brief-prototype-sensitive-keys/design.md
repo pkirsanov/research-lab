@@ -10,13 +10,28 @@ subject and domain keys. That path let `__proto__`, `constructor`, and
 
 Commit `d49a2955b` hardened every affected map and caller lookup. Commits
 `82d1db5e5` and `3688388d5` repaired mutation causality and completed the
-related error contract.
+related error contract. Hardening later proved that reverting `82d1db5e5` does
+not apply cleanly to the current tree and that replacing both files with parent
+blobs removes unrelated subsequent integrity work.
+
+`TP-B007-012` now has complete test-owned rollback and restoration evidence.
+Its rollback DoD is checked, and human acceptance is recorded. Active planning
+prose still describes that proof as open, while the scenario manifest repeats
+the `executionOwner` key in its rollback object.
 
 ### Target State
 
 One active design now matches the delivered architecture. Caller strings remain
 data, accepted mutants fail through their protective assertion, and brief
-refusals use the parent's closed error contract.
+refusals use the parent's closed error contract. The shared-infrastructure
+rollback is a semantic injector-only inverse that leaves the current integrity
+carrier in place as an independent old-state oracle, then restores the exact
+final-tree bytes.
+
+One active planning truth must also match that evidence. Planning records the
+rollback proof as `executed-passed`, records acceptance without treating it as
+open, and separates reconciliation from hardening and certification. The
+rollback object contains one unambiguous `executionOwner: bubbles.test` key.
 
 ### Patterns To Follow
 
@@ -25,6 +40,12 @@ refusals use the parent's closed error contract.
 - Route every brief error through `contractErr()`.
 - Keep every production-emitted `P008-*` code in `rlportfolio.js::ERROR_CODES`.
 - Keep mutation representation process-isolated and assertion-causal.
+- Use the current integrity carrier as the independent rollback discriminator.
+- Snapshot and compare final-tree bytes before rollback and after restoration.
+- Treat undated lifecycle summaries as current views and dated evidence as
+   immutable history.
+- Keep proof, acceptance, planning, hardening, transition, scope, and
+   certification as separate state dimensions.
 
 ### Patterns To Avoid
 
@@ -36,6 +57,12 @@ refusals use the parent's closed error contract.
   mutation discrimination.
 - Do not emit the stale three-field brief error literal.
 - Do not exclude error-code registry work from this bug's implemented boundary.
+- Do not use a blind historical commit revert for shared test infrastructure.
+- Do not replace the current integrity carrier with a historical parent blob.
+- Do not treat an empty selector or an expected old-state failure as a pass.
+- Do not rewrite dated evidence to repair an undated lifecycle summary.
+- Do not use standard JSON parse success as proof that keys are unique.
+- Do not make planner reconciliation claim test execution or human acceptance.
 
 ### Resolved Decisions
 
@@ -49,10 +76,22 @@ refusals use the parent's closed error contract.
 - Route `err()` through seven-field `contractErr()` with explicit nulls.
 - Accept absent or explicit-null optional fields in shared validation.
 - Keep exact seven-field expectations for composer errors.
+- Reverse only the dual-hook coordination behavior in the injector during a
+   disposable rollback proof.
+- Keep `tests/portfolio-test-integrity.unit.mjs` byte-identical so the exact
+   `TP-B007-012` title remains an independent, non-vacuous oracle.
+- Expect that oracle to reject the resurrected dual-hook defect, then require it
+   to pass after byte-identical final-tree restoration.
+- Preserve `bubbles.test` as the `TP-B007-012` execution owner and
+   `bubbles.plan` as the reconciliation owner.
+- Hand this design to `bubbles.plan`. After reconciliation, the plan hands the
+   packet to `bubbles.harden` for a new exhaustive evaluation.
+- Keep `TP-B007-011`, Build Quality, Scope 01, packet status, certification,
+   and historical G061 normalization open under their existing owners.
 
 ### Open Questions
 
-None blocking in design. Planning must reconcile its owned test obligations.
+None. The analyst and UX contracts define every replacement value and owner.
 
 ## Purpose And Scope
 
@@ -84,6 +123,158 @@ bug design narrows those contracts to the affected implementation surfaces.
 | Functional and browser carriers | Own persistent behavior and environment-parity assertions. |
 | Parent Feature 008 design | Owns the cross-feature contract. This bug does not supersede it. |
 | BUG-007 planning artifacts | Remain owned by `bubbles.plan` and must reflect this reconciled design. |
+
+## Planning Truth Reconciliation
+
+### Repair Boundary
+
+This repair addresses only `HARDEN-B007-PLAN-LIFECYCLE-002` and
+`HARDEN-B007-MANIFEST-DUPKEY-003`. It changes no runtime behavior and adds no
+test obligation. It reconciles current planning views to evidence that already
+exists.
+
+`bubbles.plan` owns the required edits to `scopes.md`, `test-plan.json`,
+`scenario-manifest.json`, and the undated `report.md` Completion Statement.
+The plan may update execution routing metadata needed for its handoff. It must
+not change certification or any historical transition record.
+
+The repair preserves these surfaces byte-for-byte:
+
+- Every dated report section and every raw evidence block.
+- `uservalidation.md` and its human acceptance record.
+- Product source and persistent tests.
+- `state.json::certification` and top-level terminal status.
+- Existing `transitionRequests`, including the G061 history finding.
+- The `TP-B007-012` evidence section and its test ownership.
+
+### Lifecycle State Model
+
+Each dimension has one independent value. A completed dimension does not
+promote any other dimension.
+
+| Dimension | Current evidence truth | Required active planning value after repair | Owner |
+| --- | --- | --- | --- |
+| `TP-B007-012` execution | The test-owned rollback and restore sequence completed. | `executed-passed` | `bubbles.test` |
+| Rollback DoD | The existing item is checked against the dated test evidence. | checked and evidence-linked | `bubbles.plan` reconciles only |
+| Human acceptance | The human record exists. | `recorded` | human owner |
+| Planning reconciliation | Findings 002 and 003 are open before the plan edit. | `reconciled-current-evidence` | `bubbles.plan` |
+| Post-plan action | Hardening has not evaluated the repaired packet. | `exhaustive-hardening-reentry-required` | `bubbles.harden` next |
+| Transition guard | `TP-B007-011` has not run as a certifying gate. | `not-run` and unchecked | `bubbles.validate` later |
+| Build Quality | Its grouped item is open. | `unchecked` | later quality chain |
+| Scope 01 | The scope has no terminal promotion. | `Not Started` | unchanged |
+| Packet | The top-level state is nonterminal. | `in_progress` | unchanged |
+| Certification | Validate has made no terminal certification. | `in_progress` | `bubbles.validate` |
+| Historical G061 normalization | The finding remains unresolved. | `unresolved` | `bubbles.validate` |
+
+The current design invocation hands findings 002 and 003 to `bubbles.plan`.
+That routing belongs in this invocation's result envelope and execution
+metadata. The repaired planning artifacts must name `bubbles.harden` as their
+next owner because they describe the state after planner reconciliation.
+
+### Field-Level Repair Map
+
+| Artifact and active anchor | Stale or ambiguous content | Truthful replacement | Required preservation |
+| --- | --- | --- | --- |
+| `scopes.md` Implementation Plan item 5 | Calls rollback and restoration a separate open DoD obligation. | State that `TP-B007-012` is `executed-passed` by `bubbles.test` and the rollback DoD is checked against its dated evidence. | Keep the handoff procedure and evidence link. Do not claim planner execution. |
+| `scopes.md` Implementation Plan item 6 | Routes `TP-B007-012` to `bubbles.test` for work already executed. | State that no test rerun is requested. Route the reconciled packet to `bubbles.harden` for exhaustive re-entry. | Keep `TP-B007-011`, Build Quality, Scope 01, packet status, and certification open. |
+| `scopes.md` header and current dependency | Names `bubbles.harden` while planning repair is still pending. | Retain `bubbles.harden` only as the post-reconciliation owner. The design result itself routes first to `bubbles.plan`. | Keep packet status `in_progress`. |
+| `report.md#completion-statement` | Routes to hardening before this reconciliation and calls human acceptance an open gate. | Replace only the undated statement with the exact post-reconciliation copy below. | Preserve every dated section, evidence block, command, digest, and finding record. |
+| `test-plan.json::planningStatus` | `reconciled-route-to-harden` conflates an earlier route with current planning truth. | `reconciled-current-evidence` | Keep all test statuses, evidence references, commands, and test ownership. |
+| `test-plan.json` top-level routing | Planning state and next action are encoded only through prose. | Add separate `nextRequiredOwner: bubbles.harden` and `nextRequiredAction: exhaustive-hardening-reentry`. | Do not encode hardening as passed. |
+| `test-plan.json::evidenceBoundary` | Says human acceptance remains human-owned without recording its current state. | State that human acceptance is `recorded` and remains human-owned. | Keep `TP-B007-011`, Build Quality, certification, scope status, and terminal status open. |
+| `scenario-manifest.json::planningReconciliation.finalTreeRollbackRestore` | Repeats `executionOwner` twice. | Keep exactly one `executionOwner: bubbles.test`. | Keep `status: executed-passed`, the evidence reference, `reconciliationOwner: bubbles.plan`, test row, design reference, handoff reference, and required sequence. |
+
+The active `report.md` Completion Statement must use this post-reconciliation
+copy:
+
+```text
+Packet status: in_progress
+Planning reconciliation: reconciled-current-evidence
+Next required owner: bubbles.harden
+Next required action: exhaustive-hardening-reentry
+
+TP-B007-012 was executed-passed by bubbles.test. The rollback and restore DoD
+is checked against its dated evidence. Human acceptance is recorded. This
+planner reconciliation claims no test execution, hardening result, transition
+result, scope completion, packet completion, or certification.
+
+TP-B007-011 is not-run and unchecked. Build Quality is unchecked. Scope 01 is
+Not Started. Top-level status and certification.status are in_progress.
+HARDEN-B007-G061-HISTORY-001 remains unresolved under bubbles.validate.
+Historical evidence and route records remain unchanged.
+```
+
+### JSON Duplicate-Key Contract
+
+The plan removes one repeated `executionOwner` member from the rollback object.
+It must not reserialize unrelated manifest content or choose a value through
+last-write-wins parser behavior.
+
+Validation must parse `scenario-manifest.json` with duplicate-key rejection.
+Ordinary `JSON.parse()` success is insufficient because it silently keeps the
+last duplicate. The duplicate-aware parse must report zero repeated object
+members across the complete document.
+
+Follow the fail-closed decoder pattern already used by
+`.github/bubbles/scripts/scope-universe-resolver.py`: decode object pairs in
+source order, reject a key on its second occurrence, reject non-finite JSON
+constants, and reject trailing non-JSON content. Reuse the pattern as a
+validation model only. Do not modify the framework-managed resolver.
+
+After strict parsing, the rollback object must satisfy all these assertions:
+
+1. It has exactly one `executionOwner` member.
+2. `executionOwner` equals `bubbles.test`.
+3. `status` equals `executed-passed`.
+4. `evidenceRef` equals
+   `report.md#bug007-shared-infrastructure-rollback-restore`.
+5. `reconciliationOwner` equals `bubbles.plan`.
+6. Every other member and required-sequence entry remains unchanged.
+
+Any duplicate, missing member, changed owner, changed evidence reference, or
+changed status blocks the plan-to-harden handoff.
+
+### Active And Historical Prose Rules
+
+Active prose states current truth. It includes artifact headers, undated
+summaries, the scopes Execution Outline and Implementation Plan, the structured
+planning status, and the undated report Completion Statement.
+
+Historical prose records what an owner observed at a dated execution epoch. It
+includes dated report sections, raw command output, evidence digests,
+transition requests, and execution history. This repair never rewrites those
+records, even when their then-current routing differs from the new active view.
+
+The plan may replace stale active prose. It must preserve links into dated
+evidence. It must not copy a new status backward into an older evidence block.
+It must not turn planner interpretation into test-owned execution evidence.
+
+Human acceptance remains a separate historical record in `uservalidation.md`.
+Active prose may state `recorded`, but it must not rewrite the human text or
+claim that acceptance certifies the packet.
+
+### Cheap Discriminating Checks
+
+The planner repair uses planning checks only. Product and browser tests need no
+rerun because this bounded repair changes no source, test, or behavior.
+
+1. Run a duplicate-aware parse of `scenario-manifest.json` and require zero
+   duplicate members.
+2. Parse the structured artifacts and assert the exact lifecycle and routing
+   values in the field-level map.
+3. Require the two stale scopes statements to be absent from active prose.
+4. Require the exact post-reconciliation Completion Statement to be present.
+5. Inspect the scoped diff. Only the authorized plan-owned active regions and
+   execution routing metadata may change.
+6. Require every dated report section, raw evidence block, `uservalidation.md`,
+   source file, test file, certification field, and transition request to be
+   unchanged.
+7. Run artifact lint, traceability, scenario obligations, test mechanisms,
+   scope context, and capability-foundation validation against the packet.
+
+The state-transition guard remains non-certifying at this stage. Its existing
+G061 failure is validation-owned and cannot count against planner repair when
+all plan-owned checks pass. The plan must not report that guard as passed.
 
 ## Architecture Overview
 
@@ -479,18 +670,160 @@ a public artifact. The change adds no network request or storage write.
 No configuration, migration, flag, or data rewrite applies. The repair ships
 as static source and test assets.
 
-Rollback has three coherent units:
+Production and error-contract rollback has two independent coherent units:
 
 1. Reverting `d49a2955b` restores the unsafe map and lookup behavior. It also
    reopens the original high-severity integrity and availability defect.
-2. Reverting `82d1db5e5` restores the non-causal dual-hook test mechanism. It
-   changes no production runtime, but it removes trustworthy mutation proof.
-3. Reverting `3688388d5` removes the nine registry entries, restores the
+2. Reverting `3688388d5` removes the nine registry entries, restores the
    three-field local composer error, rejects explicit-null optionals, and makes
    the corrected exact expectations fail.
 
-A rollback must keep source, registry, constructor, validator, and matching
-expectations coherent. No stored state needs restoration.
+A shared-infrastructure rollback of the behavior introduced by `82d1db5e5` is
+different. It must use the final-tree-safe semantic contract below. A blind
+`git revert` is invalid because the current integrity carrier has subsequent
+changes. Replacing both files with parent blobs is invalid because it erases
+those changes and removes the independent canary title. No stored state needs
+restoration.
+
+## Final-Tree-Safe Rollback And Restore Contract
+
+### Purpose And Execution Boundary
+
+This contract proves that the current shared injector repair is reversible and
+that its canary detects the behavior which the repair removed. The proof runs
+only in a disposable clone or copy at the exact candidate revision. It never
+mutates the operator checkout, index, branch, commits, or untracked files.
+
+The proof boundary contains two shared-test paths:
+
+- `tests/portfolio-defect-injector.cjs` is the only rollback-mutated file.
+- `tests/portfolio-test-integrity.unit.mjs` remains byte-identical and acts as
+  the independent final-tree oracle.
+
+Product source, functional tests, browser tests, planning artifacts, persisted
+data, and the separate `3688388d5` error-contract batch are read-only controls.
+No history rewrite, commit, staging operation, or push is authorized.
+
+### Final-Tree Preconditions
+
+The execution owner must start from a clean disposable clone at the exact
+candidate revision and record the baseline SHA-256 for these five paths:
+
+1. `tests/portfolio-defect-injector.cjs`.
+2. `tests/portfolio-test-integrity.unit.mjs`.
+3. `rlportfolio.js`.
+4. `rlportfoliobrief.js`.
+5. `tests/portfolio-brief.functional.mjs`.
+
+At design epoch `22bd024068fd021c9ae6893ffd503bdb13a96a23`, the expected
+hashes are:
+
+| Path | Expected SHA-256 |
+| --- | --- |
+| `tests/portfolio-defect-injector.cjs` | `6b7520dfad7f348ef6ce7424d0a4337189f175d224eb7e4e7f24b616c6c8cab0` |
+| `tests/portfolio-test-integrity.unit.mjs` | `77103344c2881b11b5178be42f7721529059d6affaea948822362128d866d39e` |
+| `rlportfolio.js` | `ab595e803f91192234a14bfd4927c5fcb0394b3977c9dbfea5d4a6b7a05f20c0` |
+| `rlportfoliobrief.js` | `2c9805a22d683c407ed03c8a99b2d67b688d704ef79f2b9bab46dea6992a8d30` |
+| `tests/portfolio-brief.functional.mjs` | `875825213e53b071374454a8acd232c506f351237781ca8665de876439a95124` |
+
+If the candidate revision changes any baseline byte or adds a post-design
+injector edit, execution must stop and this semantic patch must be reconciled
+against that new final tree. Historical hashes are preconditions, not a reason
+to overwrite newer content.
+
+Before mutation, the exact title
+`BUG-007: represented mutants execute one protective assertion through one intended hook`
+must occur exactly once in the unchanged integrity carrier. The exact selector
+must collect one test and pass one of one. These checks establish that the
+oracle exists independently of the injector behavior being rolled back.
+
+### Exact Semantic Inverse
+
+Apply a reviewed reverse patch only to
+`tests/portfolio-defect-injector.cjs`. The patch reverses these exact current
+symbols and behaviors:
+
+| Current final-tree behavior | Required rollback behavior |
+| --- | --- |
+| `DOUBLE_APPLICATION_CONTROL` and `pendingTargetReads` coordinate ownership. | Remove both coordination variables. |
+| `representedSource()` validates and substitutes while `recordApplication()` records ownership. | Collapse validation, substitution, and marker append back into one `represent(source, via)` function. |
+| `takePendingTargetRead()` lets `_compile` recover the original source after the read hook represented it. | Remove `takePendingTargetRead()` entirely. |
+| `_compile` consumes a matching pending read, represents the original, and records `Module._compile`. | Represent the received `content` directly and use the legacy `require` marker label. |
+| `readFileSync` queues `{ original, mutated, markerRecorded }` and normally defers marker ownership. | Return `represent(result, "readFileSync")` immediately. |
+| The process-exit handler records an unconsumed direct-text representation once. | Remove the process-exit handler. |
+
+The reverse patch must match every named current anchor exactly once before it
+is applied. It must fail rather than partially apply when an anchor is absent or
+duplicated. It must not edit comments or any block outside those coordination
+hunks merely to resemble the historical file.
+
+Do not edit `tests/portfolio-test-integrity.unit.mjs`. In particular, preserve
+all current mutation metadata, BUG-008 and BUG-009 carriers, the v2 41-item
+scope-claims verifier, current refusal controls, helper functions, and both
+BUG-007 test titles. Byte identity of the whole file is the definitive check
+that every subsequent integrity improvement survived.
+
+The protected later-history inventory is:
+
+- `7c0c5d64`: BUG-008 hook metadata and shared mutation-causality adoption.
+- `4824edc8`: the BUG-009 named risk-exclusion carrier correction.
+- `6c84913a`: scope attribution, consumer checks, and the 41-item verifier.
+- `29a6f402`: the v2 authority-derived scope-claims and refusal contract.
+- `2fe7bec9`: bounded analysis caching and plan-authoritative causal checks.
+
+### Rollback Preservation Checks
+
+Immediately after applying the semantic inverse, all of these conditions are
+required:
+
+1. The disposable clone diff names only
+   `tests/portfolio-defect-injector.cjs`.
+2. The integrity-carrier SHA-256 still equals its baseline hash.
+3. The three `3688388d5` control-file hashes still equal their baseline hashes.
+4. The exact `TP-B007-012` title still occurs exactly once.
+5. No path is staged and the operator checkout hashes and status remain
+   unchanged.
+
+The integrity-file byte check subsumes each of the five post-`82d1db5e5`
+commits that changed that file. The three separate control hashes prove the
+`3688388d5` error constructor, registry, validator, and matching functional
+expectations were not conflated with this rollback.
+
+### Expected Reverted-State Behavior
+
+Rollback mechanics and behavioral expectation are intentionally distinct. The
+semantic inverse resurrects the old dual-hook defect for CommonJS carriers:
+
+1. `fs.readFileSync` represents and marks the target source first.
+2. `Module._compile` receives that already-represented source.
+3. The compile hook searches for the original anchor, finds zero copies, and
+   raises the injector's exact zero-anchor refusal.
+
+The unchanged current canary must detect that defect. Running its exact selector
+in the reverted state must produce a nonzero process result with exactly one
+collected top-level test, zero passes, one failure, the exact selected title,
+and the zero-anchor or infrastructure-origin diagnostic. That result is the
+expected old-state proof. It must not be reported as a passing current canary.
+
+An empty selector is never evidence. The title cardinality check and the TAP
+collection count are both mandatory, so removal of the oracle cannot turn the
+expected failure into a vacuous success.
+
+### Restore-To-Current-Tree Checks
+
+Restore only `tests/portfolio-defect-injector.cjs` from the disposable clone's
+captured final-tree baseline. Then require all of these conditions:
+
+1. All five SHA-256 values equal the pre-probe baseline values.
+2. The scoped diff across all five paths is empty.
+3. The disposable clone has no staged or unstaged change.
+4. The exact `TP-B007-012` selector collects one test and passes one of one.
+5. The exact title remains present once, with zero skipped or cancelled tests.
+6. The operator checkout status and hashes equal their pre-probe observations.
+
+Only the complete sequence proves reversibility: current GREEN, expected
+old-state detection, byte-identical restoration, and restored current GREEN.
+Failure in any phase leaves the rollback/restore obligation open.
 
 ## Observability And Failure Handling
 
@@ -585,6 +918,23 @@ An accepted mutant reports one application through its intended hook. Its one
 selected protective test fails through `ERR_ASSERTION`. The injector never
 writes represented source into a canonical module or persistent test.
 
+### Rollback And Restoration Proof
+
+The rollback proof reuses the exact current `TP-B007-012` title as an unchanged
+oracle. It does not roll that title or its assertion helpers backward. The
+required sequence is:
+
+1. Current final tree: exact title cardinality is one and the selector passes
+   one of one.
+2. Semantic injector inverse: only the injector differs; the unchanged selector
+   collects one test and fails because it detects the resurrected dual-hook
+   infrastructure defect.
+3. Final-tree restoration: all five controlled paths are byte-identical to the
+   baseline and the same selector passes one of one again.
+
+This sequence tests both directions without asking a current-behavior canary to
+pass against intentionally reverted behavior.
+
 ### Scenario-To-Test Mapping
 
 | Scenario | Persistent consumer | Required assertion |
@@ -593,6 +943,7 @@ writes represented source into a canonical module or persistent test.
 | `SCN-B007-SUBJECT-KEY-SAFETY` | functional carrier, browser-global matrix, visible `constructor` path | own subject behavior, no throw, no built-in mutation, inherited caller-map absence |
 | `SCN-B007-DOMAIN-KEY-SAFETY` | functional carrier, browser-global matrix | actual domain counts and dates, no throw, no built-in mutation |
 | `SCN-B007-MUTATION-MECHANISM-CAUSALITY` | test-integrity carrier and shared injector | one intended hook, one marker, one selected protective assertion, direct-text parity, and double-application rejection |
+| Final-tree rollback and restoration | unchanged exact `TP-B007-012` selector plus five-path byte controls | current pass, expected reverted-state detection, integrity and error-batch preservation, byte-identical restore, restored pass |
 | Parent `PortfolioError/v1` invariant | functional carrier plus emitted-code inventory | exact seven-field composer errors, explicit-null validity, and zero emitted-but-unregistered codes |
 
 ## Alternatives Considered
@@ -622,6 +973,13 @@ writes represented source into a canonical module or persistent test.
     validation would replace the named cause with schema corruption.
 11. **Reject explicit null for optional fields.** Rejected because the canonical
     brief constructor uses explicit null to retain all seven keys.
+12. **Blindly revert `82d1db5e5`.** Rejected because the current integrity file
+   contains subsequent changes and the revert conflicts on the final tree.
+13. **Replace both shared-test files with parent blobs.** Rejected because that
+   removes unrelated integrity work and the independent exact canary title.
+14. **Expect the current canary to pass in the reverted state.** Rejected
+   because rollback intentionally resurrects the defect. The valid old-state
+   assertion is that the unchanged canary collects one test and detects it.
 
 ### Single-Implementation Justification
 
@@ -655,15 +1013,22 @@ Excluded:
 - analytics behavior beyond inclusion of its emitted codes in the shared
    registry invariant.
 - Unrelated object maps elsewhere in the repository.
-- source, persistent tests, scopes, report, state, human acceptance, and
-   certification changes in this design-owner invocation.
+- source, persistent tests, scopes, report, scenario manifest, structured Test
+   Plan, human acceptance, certification, and transition-request changes in
+   this design-owner invocation.
+
+This design-owner invocation may update only this `design.md` and
+execution-owned current-agent metadata in `state.json`. Any state update must
+leave top-level status, `certification.*`, transition requests, finding history,
+and G061 evidence unchanged.
 
 The shared injector is an implemented, test-owned dependency. Its representation
 is process-isolated and memory-only with respect to canonical source. Its marker
 file is test-owned temporary output, not a represented source file.
 
-`bubbles.plan` owns reconciliation of `scopes.md`, `scenario-manifest.json`, and
-`test-plan.json` with the registry and error-contract invariants in this design.
+`bubbles.plan` owns the planning-truth reconciliation defined above. Its repair
+must remain within `scopes.md`, `test-plan.json`, `scenario-manifest.json`, the
+undated report Completion Statement, and plan-owned execution routing metadata.
 
 ## Risks And Open Questions
 
@@ -678,4 +1043,9 @@ file is test-owned temporary output, not a represented source file.
 - A new production `P008-*` code can make a truthful failure fail closed as
    schema corruption unless the registry changes with its emitter.
 - A loose or partial error assertion can let the three-field constructor return.
+- A rollback probe can become vacuous if it removes its own selector. The
+   unchanged-carrier cardinality and TAP-count checks prevent that outcome.
+- Restoring only functional behavior without restoring exact bytes can conceal
+   collateral edits. Five-path hash equality and an empty scoped diff are both
+   required.
 - Open questions: None.

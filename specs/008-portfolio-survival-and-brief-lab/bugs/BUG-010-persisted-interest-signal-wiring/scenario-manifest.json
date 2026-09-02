@@ -1,0 +1,80 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-010-persisted-interest-signal-wiring",
+  "generatedAt": "2026-09-02",
+  "generatedBy": "bubbles.bug",
+  "planningStatus": "route_required",
+  "provenance": "Bug-owner discovery inputs only. No analyst, UX, design, or plan phase has executed. The plan owner must adopt or amend these candidates before they become governed scenario contracts.",
+  "scenarios": [
+    {
+      "scenarioId": "SCN-B010-001",
+      "scopeId": "01-synchronize-persisted-interest-signals",
+      "title": "Eligible page completions persist current interest signals",
+      "status": "provisional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "testRows": ["TP-B010-001", "TP-B010-002"],
+      "linkedTests": [{"file": "tests/portfolio-survival-brief.spec.mjs", "coverageStatus": "not-run"}],
+      "evidenceRefs": ["report.md#source-call-graph-evidence"]
+    },
+    {
+      "scenarioId": "SCN-B010-002",
+      "scopeId": "01-synchronize-persisted-interest-signals",
+      "title": "Reload retains persisted signal evidence",
+      "status": "provisional",
+      "requiredTestTypes": ["e2e-ui"],
+      "testRows": ["TP-B010-002"],
+      "linkedTests": [{"file": "tests/portfolio-survival-brief.spec.mjs", "coverageStatus": "not-run"}],
+      "evidenceRefs": ["report.md#source-call-graph-evidence"]
+    },
+    {
+      "scenarioId": "SCN-B010-003",
+      "scopeId": "01-synchronize-persisted-interest-signals",
+      "title": "Stale-only evidence removes the persisted signal without throwing",
+      "status": "provisional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "testRows": ["TP-B010-001", "TP-B010-003", "TP-B010-006"],
+      "linkedTests": [{"file": "tests/portfolio-stale-domain-signal.unit.mjs", "coverageStatus": "not-run"}],
+      "evidenceRefs": ["report.md#source-call-graph-evidence"]
+    },
+    {
+      "scenarioId": "SCN-B010-004",
+      "scopeId": "01-synchronize-persisted-interest-signals",
+      "title": "Behavior clear empties events and interests on reread",
+      "status": "provisional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "testRows": ["TP-B010-001", "TP-B010-004"],
+      "linkedTests": [{"file": "tests/portfolio-privacy.functional.mjs", "coverageStatus": "not-run"}],
+      "evidenceRefs": ["report.md#source-call-graph-evidence"]
+    },
+    {
+      "scenarioId": "SCN-B010-005",
+      "scopeId": "01-synchronize-persisted-interest-signals",
+      "title": "Passive activity creates no event or interest",
+      "status": "provisional",
+      "requiredTestTypes": ["e2e-ui"],
+      "testRows": ["TP-B010-004"],
+      "linkedTests": [{"file": "tests/portfolio-survival-brief.spec.mjs", "coverageStatus": "not-run"}],
+      "evidenceRefs": ["report.md#source-call-graph-evidence"]
+    },
+    {
+      "scenarioId": "SCN-B010-006",
+      "scopeId": "01-synchronize-persisted-interest-signals",
+      "title": "Black-Litterman observes signal count and derives no behavior contribution",
+      "status": "provisional",
+      "requiredTestTypes": ["e2e-ui"],
+      "testRows": ["TP-B010-005"],
+      "linkedTests": [{"file": "tests/portfolio-survival-allocation.spec.mjs", "coverageStatus": "not-run"}],
+      "evidenceRefs": ["report.md#source-call-graph-evidence"]
+    },
+    {
+      "scenarioId": "SCN-B010-007",
+      "scopeId": "01-synchronize-persisted-interest-signals",
+      "title": "A failed combined write preserves the prior generation",
+      "status": "provisional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "testRows": ["TP-B010-001", "TP-B010-002"],
+      "linkedTests": [{"file": "tests/portfolio-survival-brief.spec.mjs", "coverageStatus": "not-run"}],
+      "evidenceRefs": ["report.md#source-call-graph-evidence"]
+    }
+  ]
+}

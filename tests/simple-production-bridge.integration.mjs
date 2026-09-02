@@ -2145,8 +2145,22 @@ test('TP-15-02 the wired-tool set is derived from the production registry + the 
     }
     /* The ref must actually RESOLVE, so an exclusion can never be justified by a path that does not
        exist. Without this, "recorded decision" degrades to "plausible-looking string". */
-    const decisionPath = wiring.decisionRef.replace(/:\d+(?:[,-]\d+)*$/, '');
+    const locatorMatch = /^(.*):(\d+(?:[,-]\d+)*)$/.exec(wiring.decisionRef);
+    if (wiring.decisionRef.includes(':')) {
+      assert.ok(locatorMatch, `SCN-012-039: ${tool.id} simpleWiring.decisionRef locator must be numeric: ${wiring.decisionRef}`);
+    }
+    const decisionPath = locatorMatch ? locatorMatch[1] : wiring.decisionRef;
     assert.equal(existsSync(new URL(decisionPath, ROOT)), true, `SCN-012-039: ${tool.id} simpleWiring.decisionRef does not resolve to a file in this repo: ${decisionPath}`);
+    if (locatorMatch) {
+      const sourceLines = readFileSync(new URL(decisionPath, ROOT), 'utf8').split(/\r?\n/);
+      for (const segment of locatorMatch[2].split(',')) {
+        const [start, end = start] = segment.split('-').map(Number);
+        assert.ok(start > 0 && end >= start && end <= sourceLines.length, `SCN-012-039: ${tool.id} simpleWiring.decisionRef locator is outside ${decisionPath}: ${locatorMatch[2]}`);
+      }
+      if (tool.id === 'horizon-ladder-lab') {
+        assert.match(sourceLines[Number(locatorMatch[2]) - 1], /^\s*function render\(\)\s*\{\s*$/, 'SCN-012-039: horizon-ladder-lab decisionRef must resolve exactly to its current function render() declaration');
+      }
+    }
   }
   console.log(`[SCN-012-039] ordinary=${ordinary.length} wired=${wiredOrdinaryIds.size} declared-unwired=${declaredOrdinaryIds.size} unaccounted=${unaccounted.length}`);
   console.log(`[SCN-012-039] declared-unwired: ${declaredOrdinary.map((tool) => `${tool.id} <- ${tool.simpleWiring.decisionRef}`).join('; ') || 'none'}`);

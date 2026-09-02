@@ -1,16 +1,16 @@
 {
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
-  "generatedAt": "2026-09-01T04:15:54Z",
+  "generatedAt": "2026-09-02T19:17:54Z",
   "generatedBy": "bubbles.plan",
-  "provenance": "Reconciled to committed delivery batches aad6fb52e, d49a2955b, 82d1db5e5, 3688388d5, and the TP-B007-008 test-authorship commit 4c9f2e87b. TP-B007-000 remains historical pre-implementation RED. HARDEN-B007-001 is admitted and implemented at 82d1db5e5, but no new test closure or validate certification is claimed. TP-B007-008 is linked as authored while its structured coverage status remains planned; report.md#bug007-tp-b007-008-current preserves the separate test-owned execution record.",
+  "provenance": "Reconciled to committed delivery batches aad6fb52e, d49a2955b, 82d1db5e5, 3688388d5, and the TP-B007-008 test-authorship commit 4c9f2e87b. TP-B007-000 remains the required historical pre-implementation RED. Durable bubbles.test evidence supports TP-B007-001 through TP-B007-010 and the complete TP-B007-012 final-tree-safe rollback/restore sequence. This planner reconciliation consumes report.md#bug007-shared-infrastructure-rollback-restore and claims no test authorship or execution, validate certification, scope completion, or terminal status.",
   "planningReconciliation": {
     "historicalRedRow": "TP-B007-000",
     "mutationCausality": {
       "finding": "HARDEN-B007-001",
       "implementationCommit": "82d1db5e5819738aa4f5049ebe7078514408620c",
       "planningStatus": "admitted-and-implemented",
-      "testStatus": "planned",
+      "testStatus": "executed-passed",
       "certificationStatus": "planned"
     },
     "laterErrorContractBatch": {
@@ -25,8 +25,18 @@
       "commit": "4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8",
       "testId": "Feature 008 PortfolioError registry covers every quoted production emitter",
       "authorshipStatus": "authored",
-      "coverageStatus": "planned",
+      "coverageStatus": "executed-passed",
       "reportBackedExecutionRef": "report.md#bug007-tp-b007-008-current"
+    },
+    "finalTreeRollbackRestore": {
+      "testPlanRow": "TP-B007-012",
+      "designRef": "design.md#final-tree-safe-rollback-and-restore-contract",
+      "handoffRef": "scopes.md#tp-b007-012-semantic-inverse-test-owner-execution-handoff",
+      "executionOwner": "bubbles.test",
+      "status": "executed-passed",
+      "evidenceRef": "report.md#bug007-shared-infrastructure-rollback-restore",
+      "reconciliationOwner": "bubbles.plan",
+      "requiredSequence": ["current-canary-1-of-1", "injector-only-semantic-inverse", "expected-old-state-detection", "protected-byte-preservation", "byte-identical-restore", "restored-current-canary-1-of-1", "unchanged-operator-worktree"]
     }
   },
   "scenarios": [
@@ -81,29 +91,29 @@
           "file": "tests/portfolio-brief.functional.mjs",
           "testId": "BUG-007: normal brief order and refusal precedence remain unchanged",
           "testPlanRow": "TP-B007-001",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-001"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004"
         },
         {
           "file": "tests/portfolio-brief.functional.mjs",
           "testId": "SCN-008-046 every public boundary emits a closed value-safe PortfolioError",
           "testPlanRow": "TP-B007-001",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-001"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004"
         },
         {
           "file": "tests/portfolio-test-integrity.unit.mjs",
           "testId": "BUG-007: represented mutants execute one protective assertion through one intended hook",
           "testPlanRow": "TP-B007-005",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-005"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-005"
         },
         {
           "file": "tests/portfolio-survival-brief.spec.mjs",
           "testId": "BUG-007: browser composer treats hostile keys as data and visible constructor remains operable",
           "testPlanRow": "TP-B007-006",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-006"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-006"
         },
         {
           "file": "scripts/selftest.mjs",
@@ -111,8 +121,8 @@
           "testPlanRow": "TP-B007-008",
           "authorshipStatus": "authored",
           "authorshipCommit": "4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#bug007-tp-b007-008-current"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-final-tp-b007-008-20260902"
         }
       ],
       "expectedAssertions": [
@@ -122,7 +132,7 @@
         "local brief and parent public-boundary errors retain exactly contractVersion code reason field row valueEchoed recoverable",
         "the current registry has 52 registered codes for 45 quoted production emitters and zero missing code"
       ],
-      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-001"],
+      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#bug007-recovery-tp-b007-001-004", "report.md#bug007-final-tp-b007-008-20260902"],
       "replacedBy": null,
       "invalidatedBy": null
     },
@@ -180,36 +190,36 @@
           "file": "tests/portfolio-brief.functional.mjs",
           "testId": "BUG-007: prototype-sensitive completion keys are safe own keys",
           "testPlanRow": "TP-B007-000",
-          "coverageStatus": "planned",
+          "coverageStatus": "required-red-observed",
           "evidenceRef": "report.md#tp-b007-000"
         },
         {
           "file": "tests/portfolio-brief.functional.mjs",
           "testId": "BUG-007: prototype-sensitive completion subjects are safe own keys",
           "testPlanRow": "TP-B007-002",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-002"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004"
         },
         {
           "file": "tests/portfolio-brief.functional.mjs",
           "testId": "BUG-007: own lookup semantics and RED cleanup preserve shared built-ins",
           "testPlanRow": "TP-B007-004",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-004"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004"
         },
         {
           "file": "tests/portfolio-test-integrity.unit.mjs",
           "testId": "BUG-007: represented mutants execute one protective assertion through one intended hook",
           "testPlanRow": "TP-B007-005",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-005"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-005"
         },
         {
           "file": "tests/portfolio-survival-brief.spec.mjs",
           "testId": "BUG-007: browser composer treats hostile keys as data and visible constructor remains operable",
           "testPlanRow": "TP-B007-006",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-006"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-006"
         }
       ],
       "expectedAssertions": [
@@ -218,7 +228,7 @@
         "shared built-ins and cleanup state remain unchanged",
         "constructor records through the production browser controls and renders visibly without an uncaught page error"
       ],
-      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-002", "report.md#tp-b007-004", "report.md#tp-b007-005", "report.md#tp-b007-006"],
+      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#bug007-recovery-tp-b007-001-004", "report.md#bug007-recovery-tp-b007-005", "report.md#bug007-recovery-tp-b007-006"],
       "replacedBy": null,
       "invalidatedBy": null
     },
@@ -271,36 +281,36 @@
           "file": "tests/portfolio-brief.functional.mjs",
           "testId": "BUG-007: prototype-sensitive completion keys are safe own keys",
           "testPlanRow": "TP-B007-000",
-          "coverageStatus": "planned",
+          "coverageStatus": "required-red-observed",
           "evidenceRef": "report.md#tp-b007-000"
         },
         {
           "file": "tests/portfolio-brief.functional.mjs",
           "testId": "BUG-007: prototype-sensitive completion domains are safe own keys",
           "testPlanRow": "TP-B007-003",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-003"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004"
         },
         {
           "file": "tests/portfolio-brief.functional.mjs",
           "testId": "BUG-007: own lookup semantics and RED cleanup preserve shared built-ins",
           "testPlanRow": "TP-B007-004",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-004"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004"
         },
         {
           "file": "tests/portfolio-test-integrity.unit.mjs",
           "testId": "BUG-007: represented mutants execute one protective assertion through one intended hook",
           "testPlanRow": "TP-B007-005",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-005"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-005"
         },
         {
           "file": "tests/portfolio-survival-brief.spec.mjs",
           "testId": "BUG-007: browser composer treats hostile keys as data and visible constructor remains operable",
           "testPlanRow": "TP-B007-006",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-006"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-006"
         }
       ],
       "expectedAssertions": [
@@ -308,7 +318,7 @@
         "all three domain keys use actual support counts and dates",
         "shared built-ins and cleanup state remain unchanged"
       ],
-      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-003", "report.md#tp-b007-004", "report.md#tp-b007-005", "report.md#tp-b007-006"],
+      "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#bug007-recovery-tp-b007-001-004", "report.md#bug007-recovery-tp-b007-005", "report.md#bug007-recovery-tp-b007-006"],
       "replacedBy": null,
       "invalidatedBy": null
     },
@@ -349,15 +359,26 @@
         "negativeControlMechanism": "mutation"
       },
       "implementationRefs": ["tests/portfolio-defect-injector.cjs", "tests/portfolio-test-integrity.unit.mjs"],
-      "testRows": ["TP-B007-005", "TP-B007-009", "TP-B007-010", "TP-B007-011"],
+      "testRows": ["TP-B007-005", "TP-B007-012", "TP-B007-009", "TP-B007-010", "TP-B007-011"],
       "lockdown": false,
       "linkedTests": [
         {
           "file": "tests/portfolio-test-integrity.unit.mjs",
           "testId": "BUG-007: represented mutants execute one protective assertion through one intended hook",
           "testPlanRow": "TP-B007-005",
-          "coverageStatus": "planned",
-          "evidenceRef": "report.md#tp-b007-005"
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-005"
+        },
+        {
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "testId": "BUG-007: represented mutants execute one protective assertion through one intended hook",
+          "testPlanRow": "TP-B007-012",
+          "coverageRole": "shared-infrastructure-independent-canary",
+          "coverageStatus": "executed-passed",
+          "evidenceRef": "report.md#bug007-shared-infrastructure-rollback-restore",
+          "rollbackRestoreStatus": "executed-passed",
+          "rollbackRestoreEvidenceRef": "report.md#bug007-shared-infrastructure-rollback-restore",
+          "rollbackRestoreHandoffRef": "scopes.md#tp-b007-012-semantic-inverse-test-owner-execution-handoff"
         }
       ],
       "expectedAssertions": [
@@ -368,7 +389,7 @@
         "double application is rejected as infrastructure failure",
         "direct fs.readFileSync text evaluation remains represented and assertion-bearing"
       ],
-      "evidenceRefs": ["report.md#tp-b007-005"],
+      "evidenceRefs": ["report.md#bug007-recovery-tp-b007-005", "report.md#bug007-shared-infrastructure-rollback-restore"],
       "replacedBy": null,
       "invalidatedBy": null
     }

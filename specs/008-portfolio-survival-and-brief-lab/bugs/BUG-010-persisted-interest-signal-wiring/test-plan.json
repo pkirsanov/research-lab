@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "specId": "008-BUG-010",
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-010-persisted-interest-signal-wiring",
+  "generatedBy": "bubbles.bug",
+  "generatedAt": "2026-09-02",
+  "planningStatus": "route_required",
+  "tddMode": "scenario-first",
+  "evidenceBoundary": "Bug-owner test inputs only. No product test ran and no plan-owned row is adopted. The canonical analyst, UX, design, and plan chain must finalize commands, mappings, and DoD parity before implementation.",
+  "commandCatalog": {
+    "CMD-B010-FUNCTIONAL": "timeout 240 node --test tests/portfolio-privacy.functional.mjs",
+    "CMD-B010-BRIEF-E2E": "timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+    "CMD-B010-ALLOCATION-E2E": "timeout 900 npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+    "CMD-B010-STALE-CARRIER": "timeout 240 node --test tests/portfolio-stale-domain-signal.unit.mjs",
+    "CMD-B010-FEATURE-E2E": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list"
+  },
+  "scopes": [],
+  "discoveryCandidates": [
+    {
+      "scopeId": "01-synchronize-persisted-interest-signals",
+      "tests": [
+        {
+          "id": "TP-B010-001",
+          "type": "Functional",
+          "category": "functional",
+          "file": "tests/portfolio-privacy.functional.mjs",
+          "scenarioIds": ["SCN-B010-001", "SCN-B010-003", "SCN-B010-004", "SCN-B010-007"],
+          "commandRef": "CMD-B010-FUNCTIONAL",
+          "liveSystem": false,
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B010-002",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "scenarioIds": ["SCN-B010-001", "SCN-B010-002", "SCN-B010-007"],
+          "commandRef": "CMD-B010-BRIEF-E2E",
+          "liveSystem": true,
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B010-003",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "scenarioIds": ["SCN-B010-003"],
+          "commandRef": "CMD-B010-BRIEF-E2E",
+          "liveSystem": true,
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B010-004",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-brief.spec.mjs",
+          "scenarioIds": ["SCN-B010-004", "SCN-B010-005"],
+          "commandRef": "CMD-B010-BRIEF-E2E",
+          "liveSystem": true,
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B010-005",
+          "type": "Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-allocation.spec.mjs",
+          "scenarioIds": ["SCN-B010-006"],
+          "commandRef": "CMD-B010-ALLOCATION-E2E",
+          "liveSystem": true,
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B010-006",
+          "type": "Adversarial regression",
+          "category": "functional",
+          "file": "tests/portfolio-stale-domain-signal.unit.mjs",
+          "scenarioIds": ["SCN-B010-003"],
+          "commandRef": "CMD-B010-STALE-CARRIER",
+          "liveSystem": false,
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-B010-007",
+          "type": "Broader Regression E2E",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-foundation.spec.mjs",
+          "scenarioIds": [],
+          "commandRef": "CMD-B010-FEATURE-E2E",
+          "liveSystem": true,
+          "redGreenRequired": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,168 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-010-persisted-interest-signal-wiring",
+  "featureName": "BUG-010 Persisted Interest-Signal Wiring",
+  "createdAt": "2026-09-02",
+  "lastUpdatedAt": "2026-09-02",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "22bd024068fd021c9ae6893ffd503bdb13a96a23",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "bug",
+    "currentPhaseStatus": "route_required",
+    "executionModel": "dispatched-single-phase",
+    "parentAgent": "bubbles.sprint",
+    "runStartedAt": "2026-09-02",
+    "completedAt": "2026-09-02",
+    "substate": "discovery_root_cause_routed",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.analyst",
+    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-010-persisted-interest-signal-wiring/spec.md",
+    "nextRequiredReason": "Author the expected-behavior outcome contract and requirements from the verified parent contract and bug-owner evidence. Then route through bubbles.ux, bubbles.design, and bubbles.plan before implementation. Preserve in_progress status, unchecked acceptance, and the no-certification boundary.",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": ["BUG-010-ROUTE-001"],
+    "scopeInventory": [
+      {
+        "scope": 1,
+        "scopeId": "01-synchronize-persisted-interest-signals",
+        "name": "Synchronize Persisted Interest Signals",
+        "status": "not_started",
+        "dependsOn": [],
+        "evidenceFile": "report.md",
+        "planningAuthority": "provisional-bug-owner-intake"
+      }
+    ]
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-synchronize-persisted-interest-signals",
+        "name": "Synchronize Persisted Interest Signals",
+        "status": "not_started",
+        "dependsOn": [],
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [
+    {
+      "id": "BUG-010-ROUTE-001",
+      "status": "open",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.analyst",
+      "target": "spec.md",
+      "reason": "Convert the grounded defect and inherited parent constraints into an analyst-owned Outcome Contract, requirements, acceptance criteria, and product-principle alignment. Preserve the owner order: bubbles.analyst, bubbles.ux, bubbles.design, bubbles.plan."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-09-02",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "confirmed-filed-and-routed",
+      "note": "Validated the inherited repository packet, read Feature 008 governing requirements and design, inspected the registered page and module call graph, read related functional and browser tests, performed one exact duplicate-packet search, assigned BUG-010, and created a full non-terminal packet. The source probe confirmed the page has no buildInterestSignalCandidate or portfolio-side deriveInterestSignals caller, commits buildBehaviorCandidate output directly, derives transient brief signals separately, and reads the durable cache for Black-Litterman accounting. No product source or test was changed or executed. No specialist, certification, acceptance, commit, push, or deploy claim was made.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist",
+      "executionModel": "dispatched-single-phase",
+      "parentAgent": "bubbles.sprint",
+      "outcome": "route_required"
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "BUG-010-DUPLICATE-CHECK",
+      "summary": "The single exact Feature 008 bug-packet search found the missing writer only inside BUG-005 discussion. No distinct existing packet owns this symptom.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#duplicate-packet-check"
+    },
+    {
+      "id": "TEST-B005-T2-A-BLAST-RADIUS",
+      "summary": "BUG-005 now distinguishes its valid module contract defect from current registered-page reachability.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "../BUG-005-stale-domain-interest-signal-crash/bug.md#blast-radius"
+    },
+    {
+      "id": "TEST-B005-T2-B-PERSISTED-SIGNAL-WIRING",
+      "summary": "The distinct persisted-cache lifecycle and coverage defect now has this complete non-terminal packet.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "bug.md#summary"
+    },
+    {
+      "id": "BUG-010-PACKET-SHAPE-001",
+      "summary": "The initial artifact lint found the provisional DoD under a non-canonical heading. The heading is now exactly '### Definition of Done', and the rerun exits 0.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#packet-governance-checks"
+    },
+    {
+      "id": "BUG-010-TRACE-SHAPE-001",
+      "summary": "The initial traceability run found no machine-traceable Gherkin. Seven provisional scenarios now map to declared Test Plan rows and DoD items, and the rerun exits 0 with zero warnings.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#packet-governance-checks"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "BUG-010-F1-PERSISTED-SIGNAL-WIRING",
+      "summary": "The registered page persists accepted behavior events but has no production caller for the only durable signal-cache writer.",
+      "owner": "bubbles.analyst",
+      "followUpOwner": "bubbles.ux",
+      "status": "route_required",
+      "evidenceRef": "report.md#source-call-graph-evidence"
+    },
+    {
+      "id": "BUG-010-F2-PERSISTED-SIGNAL-COVERAGE",
+      "summary": "Current browser rows prove persisted events and zero Black-Litterman contribution without requiring a synchronized signal cache or exact observed count.",
+      "owner": "bubbles.analyst",
+      "followUpOwner": "bubbles.plan",
+      "status": "route_required",
+      "evidenceRef": "report.md#bug-010-f2---existing-browser-coverage-does-not-assert-the-durable-cache"
+    }
+  ]
+}

@@ -231,6 +231,7 @@ test('TP-07-01 each enabled strategy-evolution parameter changes its declared ou
     }));
     assert.deepEqual(run.changedParameters, [parameterId], `changed ${parameterId}`);
     assert.equal(run.sensitivity.sharedRandomness.mode, 'common-random-numbers', `${parameterId} recompute keeps the seed (common random numbers)`);
+    assert.equal(run.sensitivity.sharedRandomness.baselinePathIdentity, run.sensitivity.sharedRandomness.currentPathIdentity, `${parameterId} recompute keeps the runtime-owned randomness path identity stable`);
     const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
     assert.ok(effect, `sensitivity effect present for ${parameterId}`);
     assert.equal(effect.outputChanged, true, `${parameterId} must change ${path}`);
@@ -301,6 +302,7 @@ test('TP-07-01 SCN-012-002 changing the seed creates a distinct run and a distin
 
   assert.notEqual(seeded.computeIdentity, baseline.computeIdentity, 'a new seed produces a distinct compute identity');
   assert.equal(seeded.sensitivity.sharedRandomness.mode, 'path-separated', 'a seed change is path-separated, not a common-random sensitivity');
+  assert.notEqual(seeded.sensitivity.sharedRandomness.baselinePathIdentity, seeded.sensitivity.sharedRandomness.currentPathIdentity, 'a seed change separates the runtime-owned randomness path identities');
   assert.equal(seeded.sensitivity.seedChanged, true, 'the run records a seed change');
   assert.deepEqual(seeded.changedParameters, [], 'a seed change is not a sensitivity parameter (path randomness, not sensitivity)');
   assert.notEqual(

@@ -157,3 +157,146 @@ This bug introduces no feature flag.
 - Replacing all repository objects with `Map`.
 - Hardening unrelated fixed-vocabulary lookup tables in this packet.
 - Editing parent Feature 008 planning artifacts.
+
+## UI Wireframes
+
+This repair changes no product UI. The wireframe below defines the canonical
+operator and agent reading order for the BUG-007 planning packet. It governs
+active lifecycle language only. Dated evidence remains historical truth.
+
+### Single-Screen Justification
+
+The repair has one operator-facing surface: the planning packet lifecycle
+summary. It introduces no product screen or reusable product UI primitive.
+
+### Screen Inventory
+
+| Screen | Actor(s) | Status | Findings Served |
+| --- | --- | --- | --- |
+| Planning Packet Lifecycle Summary | Operator, top-level workflow, specialist agent | Existing planning surface - clarify | `HARDEN-B007-PLAN-LIFECYCLE-002`, `HARDEN-B007-MANIFEST-DUPKEY-003` |
+
+### Screen: Planning Packet Lifecycle Summary
+
+**Actor:** Operator and workflow agent | **Route:** BUG-007 planning artifacts |
+**Status:** Clarify active state language
+
+```text
+┌────────────────────────────────────────────────────────────────────┐
+│ BUG-007 PLANNING PACKET                                            │
+├────────────────────────────────────────────────────────────────────┤
+│ Test proof             [executed-passed]                           │
+│ Human acceptance       [recorded]                                  │
+│ Planning repair        [required: findings 002 and 003]            │
+│ Current handoff        [bubbles.design]                             │
+│ Post-plan handoff      [bubbles.harden: exhaustive re-entry]       │
+├────────────────────────────────────────────────────────────────────┤
+│ Transition guard       [not-run / unchecked]                       │
+│ Build Quality Gate     [unchecked]                                 │
+│ Scope 01               [Not Started]                               │
+│ Packet status          [in_progress]                               │
+│ Certification status   [in_progress]                               │
+│ Historical G061 route  [unresolved: bubbles.validate]              │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+**Interactions:**
+
+- A reader follows each row independently. One row never implies another row.
+- `bubbles.design` converts this language contract into an artifact repair design.
+- `bubbles.plan` reconciles active planning text and removes the duplicate key.
+- `bubbles.harden` re-enters only after planner reconciliation completes.
+- `bubbles.validate` owns historical G061 normalization and certification.
+
+**States:**
+
+- Current state: test proof passed and human acceptance is recorded.
+- Repair state: both adjudicated planning findings remain unresolved.
+- Post-plan state: planning is reconciled and exhaustive hardening re-entry is required.
+- Nonterminal state: transition, Build Quality, scope, packet, and certification remain incomplete.
+- Invalid state: a duplicate JSON key refuses reconciliation. Parser last-write behavior never resolves ambiguity.
+
+**Responsive:**
+
+- Narrow readers stack the rows without dropping labels, owners, or evidence references.
+- Wide readers keep each state dimension on its own row.
+
+**Accessibility:**
+
+- Every status includes text. Color or punctuation never carries status alone.
+- Owner, action, and evidence remain explicit for screen-reader and plain-text consumers.
+- The reading order is proof, acceptance, planning, next action, then terminal gates.
+
+### State Language Contract
+
+Active planning surfaces must use these dimensions independently:
+
+| Dimension | Exact active value | Meaning |
+| --- | --- | --- |
+| Test execution | `executed-passed` | `bubbles.test` executed `TP-B007-012`; the durable evidence reference remains unchanged. |
+| Human acceptance | `recorded` | The human record exists. It is not an open workflow gate and does not certify the packet. |
+| Planner reconciliation before repair | `reconciliation-required` | Findings 002 and 003 still require plan-owned artifact changes. |
+| Planner reconciliation after repair | `reconciled-current-evidence` | Active planning language matches the executed proof and has unique structured keys. |
+| Post-plan workflow action | `exhaustive-hardening-reentry-required` | `bubbles.harden` must evaluate the reconciled packet. This value does not mean hardening passed. |
+| Transition guard | `not-run` | `TP-B007-011` remains unchecked. |
+| Build Quality Gate | `unchecked` | The grouped gate remains open. |
+| Scope status | `Not Started` | Scope 01 is not terminal. |
+| Packet status | `in_progress` | Top-level completion is not claimed. |
+| Certification status | `in_progress` | Validate-owned certification is not claimed. |
+| Historical route normalization | `unresolved` | `HARDEN-B007-G061-HISTORY-001` remains owned by `bubbles.validate`. |
+
+Do not use one field to encode proof, reconciliation, routing, and
+certification. In particular, `planningStatus` describes planning only.
+Owner and action require separate labels.
+
+### Exact Post-Reconciliation Copy Contract
+
+After `bubbles.plan` repairs the owned artifacts, active narrative must state:
+
+```text
+Packet status: in_progress
+Planning reconciliation: reconciled-current-evidence
+Next required owner: bubbles.harden
+Next required action: exhaustive-hardening-reentry
+
+TP-B007-012 was executed-passed by bubbles.test. The rollback and restore DoD
+is checked against its dated evidence. Human acceptance is recorded. This
+planner reconciliation claims no test execution, hardening result, transition
+result, scope completion, packet completion, or certification.
+
+TP-B007-011 is not-run and unchecked. Build Quality is unchecked. Scope 01 is
+Not Started. Top-level status and certification.status are in_progress.
+HARDEN-B007-G061-HISTORY-001 remains unresolved under bubbles.validate.
+Historical evidence and route records remain unchanged.
+```
+
+The structured Test Plan must use `planningStatus` value
+`reconciled-current-evidence`. It must carry `nextRequiredOwner` value
+`bubbles.harden` and `nextRequiredAction` value
+`exhaustive-hardening-reentry` separately.
+
+The scenario manifest must retain one `executionOwner: bubbles.test` entry for
+`finalTreeRollbackRestore`. It must retain `status: executed-passed`, the
+durable evidence reference, and `reconciliationOwner: bubbles.plan`. A
+duplicate key makes the structured planning artifact invalid and blocks the
+handoff.
+
+## User Flows
+
+### User Flow: Planning Truth Repair And Hardening Re-entry
+
+```mermaid
+stateDiagram-v2
+  [*] --> UXContract: Findings 002 and 003 adjudicated
+  UXContract --> DesignHandoff: State and exception language defined
+  DesignHandoff --> PlannerReconciliation: Artifact repair designed
+  PlannerReconciliation --> PlannerReconciliation: Duplicate key or stale active language remains
+  PlannerReconciliation --> HardeningReentry: Active language aligned and keys unique
+  HardeningReentry --> PlannerReconciliation: New plan-owned contradiction found
+  HardeningReentry --> RemainingQuality: Hardening passes
+  RemainingQuality --> Validation: TP-B007-011 and Build Quality become eligible
+  Validation --> Validation: Historical G061 normalization remains unresolved
+  Validation --> [*]: Scope, packet, and certification gates pass
+```
+
+The current invocation ends at `DesignHandoff`. It does not advance planner,
+hardening, transition, scope, packet, historical-route, or certification state.

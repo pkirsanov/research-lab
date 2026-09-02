@@ -3,11 +3,11 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash",
   "featureName": "BUG-005 Stale-Domain Interest Signal Crash",
   "createdAt": "2026-08-25T00:00:00Z",
-  "lastUpdatedAt": "2026-08-25T18:41:57Z",
+  "lastUpdatedAt": "2026-09-02T11:07:05Z",
   "completedAt": null,
   "certifiedAt": null,
-  "status": "in_progress",
-  "blockedReason": null,
+  "status": "blocked",
+  "blockedReason": "BUG-005 is blocked by two independent external prerequisites. First, the canonical Bubbles source owner must fix Gate G090's convergence-summary snapshot classification through .github/bubbles-project/proposals/20260902-g090-convergence-summary-counted-as-snapshot.md, publish and install the corrected framework in Research Lab, and re-run G090 plus BUG-005 certification without lowering the threshold or adding a bypass. Second, a human must execute and accept all six checklist items in uservalidation.md and fill acceptedBy, acceptedAt, and method to satisfy Gate G136. Until both prerequisites clear, certifiedAt, top-level completedAt, and certification.completedAt remain null and no validate or audit completion claim is permitted.",
   "workflowMode": "bugfix-fastlane",
   "planningOnly": false,
   "planningOnlyJustification": null,
@@ -15,7 +15,7 @@
   "linkedPlanningPacket": null,
   "specDependsOn": [],
   "flagsIntroduced": [],
-  "requiresRevalidation": false,
+  "requiresRevalidation": true,
   "scopeLayout": "single-file",
   "artifacts": {
     "bug": "bug.md",
@@ -27,18 +27,18 @@
     "scenarioManifest": "scenario-manifest.json"
   },
   "execution": {
-    "activeAgent": null,
-    "currentPhase": "stabilize",
-    "currentPhaseStatus": "complete",
-    "executionModel": "direct-authorized-runner",
-    "parentAgent": null,
-    "runStartedAt": "2026-08-25T00:00:00Z",
-    "completedAt": null,
-    "substate": "independently_verified",
-    "currentScope": 1,
-    "nextRequiredOwner": "bubbles.plan",
-    "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-005-stale-domain-interest-signal-crash/scopes.md",
-    "nextRequiredReason": "bubbles.validate ran and REFUSED certification; no certification field was written and status stays in_progress. TEST-B005-T3 is now addressed: bubbles.bug independently inspected production commit 732bccb6c and current rlportfolio.js, ran the current six-row carrier at 6/6 green, reproduced the historical source at 732bccb6c^ in an isolated detached worktree at 0/6 with RangeError at rlportfolio.js:2518:101 through deriveInterestSignals, verified the executable diff is confined to rlportfolio.js, the new carrier, and one registry-note row, removed the temporary worktree, and added delegated implementation provenance without claiming authorship of the original fix. Stabilize is now execution-backed at report.md#stabilize-current-session-execution-2026-08-25. G022 remains open for three absent required phases: security, validate, and audit. All other routed findings remain unresolved, including the plan-owned TEST-B005-T1 and TEST-B005-T2 route, G053/G093 delivery-delta evidence, G068 planning fidelity, G094/G097 design, traceability, and G136 human acceptance.",
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "validate",
+    "currentPhaseStatus": "blocked",
+    "executionModel": "dispatched-single-phase",
+    "parentAgent": "bubbles.sprint",
+    "runStartedAt": "2026-09-02T11:07:05Z",
+    "completedAt": "2026-09-02T11:07:05Z",
+    "substate": "blocked_external_prerequisites",
+    "currentScope": "01-omit-stale-only-domains-instead-of-throwing",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": ".github/bubbles-project/proposals/20260902-g090-convergence-summary-counted-as-snapshot.md",
+    "nextRequiredReason": "First external route: bubbles.implement in the canonical Bubbles source must repair G090 through .github/bubbles-project/proposals/20260902-g090-convergence-summary-counted-as-snapshot.md, publish and install the corrected framework in Research Lab, and re-run G090 plus BUG-005 certification without a bypass. Independent second route retained: a human must execute and accept all six uservalidation.md checklist items and fill acceptedBy, acceptedAt, and method for G136. Neither route certifies BUG-005 by itself.",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -46,13 +46,6 @@
         "claimedAt": "2026-08-25T14:07:25Z",
         "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
         "evidenceRef": "report.md#pre-fix-reproduction"
-      },
-      {
-        "phase": "test",
-        "agent": "bubbles.test",
-        "claimedAt": "2026-08-25T15:20:12Z",
-        "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
-        "evidenceRef": "report.md#test-phase-2026-08-25"
       },
       {
         "phase": "regression",
@@ -81,6 +74,20 @@
         "claimedAt": "2026-08-25T18:55:33Z",
         "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
         "evidenceRef": "report.md#security-phase-2026-08-25"
+      },
+      {
+        "phase": "harden",
+        "agent": "bubbles.harden",
+        "claimedAt": "2026-09-02T09:20:04Z",
+        "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+        "evidenceRef": "report.md#final-harden-pass-2026-09-02"
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-09-02T10:34:02Z",
+        "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
+        "evidenceRef": "report.md#convergence-iteration-2-independent-test-replay-2026-09-02"
       }
     ],
     "pendingTransitionRequests": [],
@@ -88,14 +95,14 @@
       {
         "scopeId": "01-omit-stale-only-domains-instead-of-throwing",
         "scope": 1,
-        "status": "Done",
+        "status": "In Progress",
         "dependsOn": []
       }
     ]
   },
-  "completedScopes": ["01-omit-stale-only-domains-instead-of-throwing"],
+  "completedScopes": [],
   "certification": {
-    "status": "in_progress",
+    "status": "blocked",
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
@@ -175,9 +182,138 @@
       "note": "Ran the security phase over commit 732bccb6c in this session at HEAD e4c97ca9b after repository binding decision rb:vscode-b7e2742171e5dad1325276440494236b:105. Nine commands executed at exit 0: repository-binding preflight; node --test on the carrier at 6 pass 0 fail; security-gate.sh over 9936 tracked files with zero G034 findings at full-output sha256 10e79eda0372766008f94192b0cf1f1ef4ac71cc41e21b1b1394f5c5f4bb190d; three throwaway read-only probes under /tmp/sec-b005 producing 45 PASS 0 FAIL 4 informational, a pre-versus-post characterisation, and 8 PASS 0 FAIL on the shipped surface; node scripts/selftest.mjs at 3411 passed 0 failed and sha256 c99215d3a3ee68a314665b92ddec298b6de4b0e7f661c409ade271a74cbb8b96; regression-quality-guard.sh --bugfix at 0 violations with an adversarial signal detected and sha256 5e3793bc2b6ea1e45a862660bbd6712fa9c2e6962f46d06c8188f0d20b79a9ac; and implementation-reality-scan.sh at 0 violations and 1 warning with Scan 7 IDOR and Scan 8 silent-decode both clean at sha256 4aa4d182b0eb6dae4b405d5f8886aa07f43fe2621a5b8b9ac46d1ef582a63f75. Availability: the pre-fix module rebuilt from 732bccb6c^ threw RangeError Invalid time value on the stale-only workspace while the shipped module returned ok, so the reported arm is closed at the module API, and no stored-data input found in this review still throws rather than returning a contract error, including hand-edited non-canonical occurredAt values which refuse P008-SCHEMA-CORRUPT behavior-event-invalid through validateWorkspace and the dedupe revalidation. A premise in the request was corrected: the repaired symbols have no shipped-page caller, because the single shipped call site at portfolio-survival-allocation-lab.html:6422 is window.RLPORTFOLIOBRIEF.deriveInterestSignals in the untouched brief module, dynamic bracket dispatch on the portfolio alias returns zero matches, and buildInterestSignalCandidate is the only writer of workspace.interestSignals and has no shipped caller, so this was a latent crash rather than a live outage, matching TEST-B005-T1 and TEST-B005-T2. Privacy: retention narrows rather than widens, the workspace is byte-identical after derivation, stale occurrences remain stored and auditable, no signal is emitted or persisted for a domain without live evidence, the omitted domain name appears nowhere in the output, the emitted field set is the unchanged 14 fields with sensitivityBand non-sensitive, and the brief still reports rawOccurrenceCount 1 so absence is stated rather than implied. Evidence-window integrity: maximumEvidenceAgeDays was not relaxed, the predicate moved verbatim, the boundary emits at 56 days and refuses at 56.001 days, a tightened window immediately retires evidence, and the carrier refusal assertions were independently reproduced against a validated baseline so they are real and non-vacuous. Input validation: validatePolicy still gates the path and 13 of 14 corrupt-policy mutants refuse with P008-CONFIG codes. One new LOW finding SEC-B005-S1 records that maximumEvidenceAgeDays carries no upper bound, so expiresAt overflows and throws RangeError at 99979348 days against a shipped 56, a margin of 1.79e6x; it is pre-existing with identical behaviour on both sides of the fix, is unreachable from user data because policy is fetched from a committed same-origin static asset with no localStorage or user-input path, and is routed to bubbles.plan against validatePolicy rather than repaired inline because it sits outside this packet's changed surface. SEC-B005-N1 records that halfLifeDays 0 is correctly accepted with a finite zero score while the NaN arm is refused by validateInterestSignal, so it is not a finding. Verdict FINDINGS with 1 LOW, 0 HIGH, 0 CRITICAL, and 0 findings attributable to this fix; SEC-B005-S1 does not block it. Declared limits: all probes ran in the Node lane and the browser lane was not re-run here, and the no-shipped-caller conclusion rests on executed static greps plus a zero-match dynamic-dispatch check rather than a runtime probe of the loaded page. Full evidence is report.md#security-phase-2026-08-25. This additive history row grants no certification and changes no product source, test, planning artifact, human acceptance, completedScopes, DoD checkbox, top-level status, or certification field.",
       "phasesExecuted": ["security"],
       "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T06:56:04Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "reconciled-contract-only-plan-structured-test-handoff-and-current-finding-routes",
+      "note": "Executed as the direct-authorized planning runner for active sprint goal 1. Edited only scopes.md, scenario-manifest.json, test-plan.json, report.md planning structure/dispositions, and state.json execution/finding fields. No product source, test, certification, human-acceptance, commit, push, deploy, or agent dispatch occurred. Current checks: scenario-obligation-lint exit 0 for 5 coherent scenarios; test-mechanism-lint exit 0 for 5 coherent mechanisms; artifact-lint exit 0; traceability-guard exit 0 with 5 of 5 scenarios mapped and G068 clean; scope-context-fit-lint exit 0 for 1 self-contained scope; read-only Markdown-to-JSON parity parser exit 0 for 10 ordered rows and 5 direct scenario links; goal-fidelity-guard exit 0; discovered-issue-disposition-guard exit 0. The final non-certifying state-transition guard remained exit 1 with 350 captured lines and sha256 e919868078b8bcbb1df87b597123b5c86fa1cbe7aa1fdef649d199f635c6a501; it passed G040, G057, G068, G095 and the other listed green gates, and failed only G022, G027, G090, and G136. Current source search still finds the shipped page reading workspace.interestSignals at portfolio-survival-allocation-lab.html:3060 and calling only RLPORTFOLIOBRIEF.deriveInterestSignals at :6423; rlportfolio.js:2569-2573 remains the sole buildInterestSignalCandidate writer and no shipped page calls it. TEST-B005-T2 therefore remains routed to bubbles.gaps with any product-truth correction owned by bubbles.bug.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "direct-authorized-runner"
+    },
+    {
+      "at": "2026-09-02",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "corrected-blast-radius-and-filed-distinct-persisted-signal-wiring-bug",
+      "note": "Executed as a dispatched bug-owner phase under the active bubbles.sprint. Independently read the Feature 008 contract, current source, registered page, related tests, and current packet inventory. Corrected only bug.md blast-radius semantics. Reclassified TEST-B005-T2 into an addressed BUG-005 prose correction and a distinct BUG-010 planning packet. No product source, test, certification field, acceptance record, commit, push, deploy, or agent dispatch occurred. Existing G022, G027, G090, and G136 findings remain unresolved.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T08:04:41Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "repaired-harden-test-taxonomy-and-canonical-implementation-file-inventory",
+      "note": "Executed as a direct plan-owner dispatch from the active bubbles.sprint. Reclassified TP-B005-005 from Functional/functional to Unit/unit in scopes.md and test-plan.json, synchronized SCN-B005-BRIEF-AGREEMENT requiredTestType and requiredTestTypes to unit in scenario-manifest.json, and added the canonical Scope 01 Implementation Files section. The inventory names rlportfolio.js as the changed runtime owner, rlportfoliobrief.js as an excluded read-only comparison owner, the direct unit carrier, and its feature test-registry note. Exact Markdown-to-JSON parity passed at 10 ordered rows, 5 direct scenario links, 2 supplemental browser rows, and 0 duplicate IDs. The implementation-reference audit passed with 4 existing paths, both manifest owners aligned, the brief boundary read-only, and zero BUG-010 references. scenario-obligation-lint and test-mechanism-lint each passed for 5 scenarios; requirement-mechanism-guard passed; implementation-reality-scan exited 0 with 4 files, 0 violations, 0 warnings, and no design fallback; traceability-guard exited 0 with 5 of 5 scenario mappings and 0 warnings; artifact-lint exited 0. Prior harden product and browser execution was not adopted as this phase's evidence, and no product source or test command was run. No product source, test, bug.md, design.md, uservalidation.md, DoD checkbox, certification field, commit, push, deploy, or agent dispatch changed. G022, G027, G090, and G136 remain unresolved and visible.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T08:52:06Z",
+      "agent": "bubbles.harden",
+      "phase": "harden",
+      "action": "second-hardening-pass-found-plan-evidence-provenance-gap",
+      "note": "Validated the inherited actionable research-lab binding packet before local reads. Independently rechecked exact ten-row Markdown/JSON parity, the repaired Unit/unit taxonomy, five scenario obligations and mechanisms, one four-file implementation inventory, all 22 checked DoD items with executed provenance, direct six-case behavior, adversarial bite, source lock, Playwright 1.61.1, executable browser authenticity, change confinement, consumer impact, and skip-marker absence. Re-ran the canonical selftest against the corrected diagnostic tree at 3443/3443. Verified the current test-owned 8/8 BUG-004, 34/34 brief, 16/16 allocation browser, and 95/95 Feature 008 browser records for phase, command, exit, count, hash, and anchor shape; those four lanes were not re-run by harden. The canonical claim-source lint found six plan-owned execution-evidence blocks without per-block provenance tags, so the provisional harden phase claim was removed and NOT_HARDENED is retained. Changed no production code, test, planning artifact, certification field, acceptance field, BUG-010 artifact, BUG-025 artifact, commit, push, deploy, or agent dispatch. The provenance finding routes to bubbles.plan. G090 is top-level sprint state, G136 is human-owned, and the stale BUG-025 receipt is foreign global evidence.",
+      "phasesExecuted": ["harden"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T09:08:26Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "repaired-six-plan-owned-evidence-provenance-tags",
+      "note": "Validated the exact inherited actionable research-lab binding packet before local reads. Added exactly six Claim Source executed tags to the existing plan-owned command-output blocks identified by claim-source-lint, without changing their commands, output, hashes, behavior claims, or Test Plan semantics. The tags classify those existing records and do not claim that this invocation executed their commands. The immediate canonical claim-source lint reported zero findings. Moved HARDEN-B005-PLAN-EVIDENCE-PROVENANCE-003 from unresolved to addressed and routed the packet back to bubbles.harden for independent recheck. Changed no source, test, scope plan, BUG-010 artifact, BUG-025 artifact, certification field, acceptance field, commit, push, deploy, or agent dispatch. G022, G027, G090, and G136 remain unresolved and untouched; the stale BUG-025 receipt remains foreign.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T09:20:04Z",
+      "agent": "bubbles.harden",
+      "phase": "harden",
+      "action": "final-hardening-pass-earned-after-plan-evidence-provenance-repair",
+      "note": "Validated the exact inherited actionable research-lab packet before local reads. Independently rechecked Harden H1-H9, exact ten-row Markdown/JSON parity, five direct scenario links, 22 checked DoD items, the four-file implementation inventory, all three prior harden findings, canonical Claim Source and artifact evidence shape, scenario obligations, test mechanisms, traceability, implementation reality, source locking, checkout-local Playwright 1.61.1, regression quality, executable browser authenticity, and behavior/browser input confinement. Current execution returned focused 6/6, neighboring 42/42 (BUG-004 8/8 plus brief 34/34), and canonical selftest 3443/3443. The 16/16 and 95/95 browser lanes were not rerun because current test-owned evidence was inspected and every behavior/browser input remained clean after the plan-only tag edits; they remain supplemental non-movement evidence, not direct BUG-005-path proof. The first read-only structured audit exposed and then corrected an invocation-local fenced-heading parser boundary; the corrected audit passed and no file changed between attempts. Appended one harden evidence section and one non-duplicate harden phase claim. Changed no production code, test, planning artifact, BUG-010 artifact, BUG-025 artifact, certification field, acceptance field, commit, push, deploy, or agent dispatch. The foreign stale receipt continues to name BUG-025, not this packet.",
+      "phasesExecuted": ["harden"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T09:45:44Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "independent-deep-validation-executed-certification-refused-on-repository-integration-failures",
+      "note": "Validated repository binding before local reads and independently executed the delivery validation profile. BUG-005-specific proof is green: artifact, traceability, scenario obligation, test mechanism, requirement mechanism, evidence provenance, implementation reality, regression quality, source lock, Pages build, focused 6/6, BUG-004 neighbor 8/8, brief neighbor 34/34, canonical selftest 3443/3443, all Node unit suites 666/666, all Node security suites 19/19, allocation browser 16/16, and the eight-carrier Feature 008 browser matrix 95/95. The repository-wide Node integration command is red in six stable assertions: two distributed-brief registry/final-count assertions, three simple-model adapter registry assertions, and one horizon-ladder decisionRef assertion. Those failures are outside the BUG-005 change boundary, but the deep validation profile is not green, so no validate completedPhaseClaim, certification completion, terminal status, certifiedAt, final completedAt, or human acceptance was written. The current dirty delivery delta contains no production or test path; commit 732bccb6c remains the pre-existing authored repair. BUG-010 and the foreign BUG-025 receipt were not modified. Full evidence is report.md#independent-validation-2026-09-02.",
+      "phasesExecuted": ["validate"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T10:16:45Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "action": "repaired-two-validation-discovered-horizon-ladder-production-contract-defects",
+      "note": "Validated the inherited actionable research-lab binding packet before local reads. Reconciled both routed expectations against the Feature 012 Simple Model interface, the SCN-012-039 numeric decision-reference contract, the Horizon Ladder note, the live page, neighboring adapters, registry consumers, and focused assertions. Reproduced both failures before editing. Updated createHorizonLadderAdapter.compareSensitivity to accept and preserve runtime-owned sharedRandomness and seedChanged while retaining every existing effect and owner-parity computation. Replaced tools.json decisionRef horizon-ladder-lab.html:render with horizon-ladder-lab.html:1072, which points to the current function render() declaration named by the page note. Immediate focused validation passed 8 of 8 after the first edit. The decisionRef carrier passed 6 of 6. The full integration lane passed 37 of 37. Supporting unit, selftest, registry, brief payload, Pages, projection parity, and Horizon browser checks passed. The first attempted Horizon page invocation used node --test and failed because the file is a Playwright suite. The registered checkout-local Playwright 1.61.1 command then passed 7 of 7 without a source repair. Added no test because the existing registry-derived carriers already reject a missing or changed randomness contract and a nonnumeric locator. Changed no planning content, scope status, certification field, acceptance record, BUG-010 artifact, BUG-025 receipt, commit, push, deploy, or agent dispatch. Full evidence is report.md#convergence-iteration-2-production-contract-repair-2026-09-02.",
+      "phasesExecuted": ["implement"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T10:34:02Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "independently-replayed-horizon-production-repairs-and-closed-integration-red",
+      "note": "Validated the exact inherited actionable research-lab packet before local reads. Independently inspected the Feature 012 adapter and SCN-012-039 contracts, the Horizon definition and page, the runtime randomness validator, the two production repairs, and all three prior test-owned assertion files. Executed the focused sensitivity carrier at 8/8, strict decisionRef carrier at 6/6, final full integration lane at 37/37, strategy adapter unit lane at 38/38, canonical selftest at 3443/3443, tool-experience validator, brief validator, source lock, exact Playwright 1.61.1 identity, page inline-ID check, Pages build and byte parity, stochastic browser row at 1/1, and Horizon browser suite at 7/7. Strengthened only test-owned assertions: structural lever changes must preserve runtime-owned randomness path identity, a required seed lever must separate it, numeric decision locators must be in range, and the Horizon locator must land exactly on function render(). Regression quality, adversarial, executable-interception, and skip-marker scans are clean. No production source, BUG-010, BUG-025 artifact or receipt, planning scope, certification field, human acceptance, commit, push, deploy, or agent dispatch changed. Full evidence is report.md#convergence-iteration-2-independent-test-replay-2026-09-02.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T10:46:19Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "recovery-dispatch-replayed-final-horizon-repair-and-completed-terminal-accounting",
+      "note": "Validated the unchanged inherited actionable research-lab packet before local reads. Replayed linked-title resolution, scenario obligations, test mechanisms, traceability, requirement mechanisms, implementation reality, artifact shape, focused Horizon sensitivity, numeric decisionRef resolution, the complete Node integration lane, strategy unit coverage, the canonical selftest, registry and brief validators, Node source locking, exact Playwright identity, Horizon inline IDs, Pages build and byte parity, shared-randomness browser proof, Horizon browser proof, regression quality, browser authenticity, and skip markers. Current results are 8/8, 6/6, 37/37, 38/38, 3443/3443, 1/1, and 7/7 for the named test lanes. Reordered existing completedPhaseClaims by unchanged timestamps and corrected one report-only G040 lexical false positive. Added no phase claim and changed no scope, certification, acceptance, BUG-010, BUG-025, production, test, commit, push, deploy, or dispatch surface. Full evidence is report.md#recovery-dispatch-completion-2026-09-02.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-09-02T10:58:03Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "proved-and-routed-g090-convergence-summary-snapshot-classification-defect",
+      "note": "Validated the supplied actionable research-lab packet before local reads. Read only the installed framework projection and current BUG-005 session evidence. Direct G090 execution exited 1 with snapshotCompleteness 0 while recap, handoff, and summarize counts passed. A temporary hermetic fixture with two fully paired turn-snapshot phases still exited 1; adding only the unsupported convergence completedAt field made the identical control exit 0. Filed one project-owned upstream proposal and updated only BUG-005 report and execution-owned routing state. Changed no framework-managed downstream file, Bubbles source file, source, test, scope, certification field, human acceptance record, commit, push, deployment, or agent dispatch. G136 remains separate and unchanged.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "direct-authorized-runner"
+    },
+    {
+      "at": "2026-09-02T11:07:05Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "reconciled-current-bugfix-attempt-to-honest-blocked-terminal-state",
+      "note": "Validated the exact inherited actionable research-lab packet before local reads. Independently replayed the repaired integration surface at focused 8/8, decisionRef bridge 6/6, and full integration 37/37, with artifact lint clean. Re-ran G090 and observed snapshotCompleteness 0 at exit 1 while its other budgets passed. Mechanically confirmed six unchecked human checklist items, three unfilled Human Acceptance Record fields, and one unchecked automation-certification item. Reconciled only validate-owned lifecycle and certification bookkeeping to blocked. The plan-owned scope remains In Progress and certification scope mirrors remain In Progress with completedScopes empty; all 22 checked DoD items and every earned implement/test/harden phase record remain intact. No validate completedPhaseClaim, audit claim, certifiedAt, final completion timestamp, acceptance edit, production/test edit, BUG-010 edit, BUG-025 edit, managed-framework edit, commit, push, deploy, or agent dispatch occurred.",
+      "phasesExecuted": ["validate"],
+      "provenanceMode": "specialist"
     }
   ],
   "addressedFindings": [
+    {
+      "id": "HARDEN-B005-TAXONOMY-001",
+      "summary": "Addressed on every plan-owned taxonomy surface. TP-B005-005 is Unit/unit in scopes.md and test-plan.json, and SCN-B005-BRIEF-AGREEMENT requires unit proof in scenario-manifest.json. File, command, behavior, scenario ID, assertion, direct coverage role, and browser non-movement distinctions are unchanged.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "report.md#plan-owned-harden-repair-2026-09-02"
+    },
+    {
+      "id": "HARDEN-B005-PLAN-IMPL-REFS-002",
+      "summary": "Addressed by the canonical Scope 01 Implementation Files section. The current implementation scan resolves four files directly from scopes.md with zero fallback warnings: the changed rlportfolio.js owner, excluded read-only rlportfoliobrief.js comparison owner, direct unit carrier, and feature test-registry note. Scenario implementationRefs resolve exactly to the two runtime owners, and BUG-010 is absent.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "report.md#plan-owned-harden-repair-2026-09-02"
+    },
+    {
+      "id": "HARDEN-B005-PLAN-EVIDENCE-PROVENANCE-003",
+      "summary": "Addressed by adding one executed Claim Source tag to each of the six existing plan-owned command-output blocks identified by the canonical lint. The tags classify those existing raw records; this repair does not claim their commands were executed by the current invocation. A current claim-source lint reports zero findings.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "report.md#plan-owned-evidence-provenance-repair-2026-09-02"
+    },
     {
       "id": "BUG-005-VERIFICATION-PENDING",
       "summary": "The execution-owned half is closed: pre-fix reproduction, provenance, divergence characterization, broader regression, and artifact lint were all executed and recorded in report.md. bubbles.validate independently replayed all of it and confirmed it. Certification was NOT part of this closure and was subsequently REFUSED on gate grounds — see BUG-005-CERTIFICATION-REFUSED.",
@@ -191,51 +327,141 @@
       "owner": "bubbles.bug",
       "status": "addressed",
       "evidenceRef": "report.md#implement-provenance-verification-2026-08-25"
+    },
+    {
+      "id": "TEST-B005-T1",
+      "summary": "Addressed by the contract-only planning reconciliation. TP-B005-001 through TP-B005-005 directly prove the repaired public-function contract. TP-B005-009 and TP-B005-010 are retained only as supplemental shipped-page non-movement checks and explicitly carry no direct BUG-005-path claim. Current artifact, obligation, mechanism, traceability, context-fit, and Markdown-to-JSON parity checks all pass.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "scopes.md#browser-wiring-decision"
+    },
+    {
+      "id": "BUG-005-G068-DOD-GHERKIN-FIDELITY",
+      "summary": "Addressed. Every active Gherkin scenario now has a faithful behavior-shaped DoD item and direct Test Plan row; the current traceability guard reports 5 scenarios mapped to 5 DoD claims with G068 in the transition guard passedGateIds.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "scopes.md#definition-of-done"
+    },
+    {
+      "id": "BUG-005-TRACEABILITY-GUARD",
+      "summary": "Addressed. The current traceability guard exits 0 with five declared scenario-to-row mappings, five concrete test references, five report evidence references, five faithful DoD mappings, and zero warnings.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "scenario-manifest.json"
+    },
+    {
+      "id": "BUG-005-PLAN-STRUCTURED-HANDOFF",
+      "summary": "Addressed. test-plan.json now mirrors all ten Markdown Test Plan rows, commands, categories, files, and live-system flags. Five direct rows map to the five local scenarios; the two browser rows are supplemental non-movement only.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "test-plan.json"
+    },
+    {
+      "id": "BUG-005-G040-G095-CURRENT-WINDOW",
+      "summary": "Addressed with an append-only certifying-window boundary and dated issue dispositions. The current standalone G095 guard exits 0, and the current transition guard places both G040 and G095 in passedGateIds without rewriting historical specialist evidence.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "report.md#planning-reconciliation-window---2026-09-02"
+    },
+    {
+      "id": "BUG-005-G070-OUTCOME-CONTRACT",
+      "summary": "Addressed by prior analyst and implementation work, then reconciled here from current evidence. spec.md contains a non-empty Outcome Contract and the current goal-fidelity guard exits 0 at the pre-certification boundary.",
+      "owner": "bubbles.analyst",
+      "status": "addressed",
+      "evidenceRef": "report.md#outcome-contract-demonstration---2026-08-25"
+    },
+    {
+      "id": "BUG-005-G093-G053-DELIVERY-DELTA",
+      "summary": "No longer current. The 2026-09-02 transition guard places G053 and G093 in passedGateIds. This finding is reconciled from current guard output without claiming that bubbles.plan authored the underlying delivery evidence.",
+      "owner": "bubbles.implement",
+      "status": "addressed",
+      "evidenceRef": "report.md#code-diff-evidence"
+    },
+    {
+      "id": "TEST-B005-T2",
+      "summary": "Addressed by splitting the routed product-truth question into two independently owned findings. TEST-B005-T2-A corrected BUG-005 blast-radius prose. TEST-B005-T2-B is now the distinct BUG-010 persisted-interest-signal wiring packet.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#gap-classification-phase-2026-09-02"
+    },
+    {
+      "id": "TEST-B005-T2-A-BLAST-RADIUS",
+      "summary": "Addressed in bug.md. BUG-005 now states that the repaired public module export was defective for valid module consumers, while the current registered page calls neither repaired export and therefore has no evidenced permanent crash from this defect.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "bug.md#blast-radius"
+    },
+    {
+      "id": "TEST-B005-T2-B-PERSISTED-SIGNAL-WIRING",
+      "summary": "Addressed at the bug-owner boundary by filing BUG-010 as a distinct non-terminal Feature 008 packet. BUG-010 preserves the missing production writer and missing browser-proof findings for the canonical analyst, UX, design, and plan chain.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "../BUG-010-persisted-interest-signal-wiring/report.md#source-call-graph-evidence"
+    },
+    {
+      "id": "HARDEN-B005-CHECKER-BOUNDARY-004",
+      "summary": "Addressed in the final harden invocation. The first read-only structured audit truncated a fenced transcript at a single-hash output line and exited 1; the peer-heading parser was corrected without a repository write, then the identical H4-H9 audit passed over the complete evidence blocks.",
+      "owner": "bubbles.harden",
+      "status": "addressed",
+      "evidenceRef": "report.md#final-harden-pass-2026-09-02"
+    },
+    {
+      "id": "BUG-005-IT2-HORIZON-SENSITIVITY-CONTRACT",
+      "summary": "Addressed in rlexperience-adapters/strategy-research.js and independently replayed by bubbles.test recovery. The registry-derived carrier drives all five declared parameters, requires every declared path to move, and requires structural changes to preserve the runtime-owned randomness path identity with seedChanged false. The focused carrier passes 8/8, strategy unit passes 38/38 including changed-seed path separation, shared-randomness browser proof passes 1/1, and full integration passes 37/37.",
+      "owner": "bubbles.implement",
+      "status": "addressed",
+      "evidenceRef": "report.md#recovery-dispatch-completion-2026-09-02"
+    },
+    {
+      "id": "BUG-005-IT2-HORIZON-DECISION-REF",
+      "summary": "Addressed in tools.json and independently replayed by bubbles.test recovery. The strengthened resolver requires a numeric in-range locator and requires Horizon to resolve exactly to the current function render() declaration. The bridge carrier passes 6/6 and reports ordinary 28, wired 19, declared-unwired 9, and unaccounted 0.",
+      "owner": "bubbles.implement",
+      "status": "addressed",
+      "evidenceRef": "report.md#recovery-dispatch-completion-2026-09-02"
+    },
+    {
+      "id": "BUG-005-VALIDATE-REPOSITORY-INTEGRATION-RED",
+      "summary": "Addressed across convergence iteration 2 and independently replayed by recovery. Registry-derived distributed and Simple Model assertions remain substantive, the two Horizon production contracts are green, and the complete registered Node integration lane passes 37/37 on the current bytes with sha256 f106343368d0ae3ea5058696c4435564b5b258483f681ad11ee11d5466012ca5.",
+      "owner": "bubbles.test",
+      "status": "addressed",
+      "evidenceRef": "report.md#recovery-dispatch-completion-2026-09-02"
+    },
+    {
+      "id": "BUG-005-IT2-POST-REPAIR-TEST-REPLAY",
+      "summary": "Addressed by the recovery bubbles.test replay. Linked titles resolve 5/5; focused carriers pass 8/8 and 6/6; the complete integration lane passes 37/37; strategy unit passes 38/38; canonical selftest passes 3443/3443; shared-randomness browser proof passes 1/1; Horizon browser E2E passes 7/7; and the requirement-mechanism and implementation-reality guards pass.",
+      "owner": "bubbles.test",
+      "status": "addressed",
+      "evidenceRef": "report.md#recovery-dispatch-completion-2026-09-02"
+    },
+    {
+      "id": "BUG-005-CERTIFICATION-REFUSED",
+      "summary": "Addressed as lifecycle bookkeeping, not as completion. Current validation independently replayed the repaired integration surface and reconciled both status mirrors from in_progress to blocked because G090 and G136 remain independent external prerequisites. No validate completion claim, audit claim, certifiedAt value, final completion timestamp, completed scope, or human acceptance was added.",
+      "owner": "bubbles.validate",
+      "status": "addressed",
+      "evidenceRef": "report.md#blocked-certification-reconciliation-2026-09-02"
     }
   ],
   "unresolvedFindings": [
     {
-      "id": "TEST-B005-T1",
-      "summary": "TP-B005-006 cannot be authored as specified. The row asks for a browser assertion that a stale-only workspace renders the allocation lab without an uncaught RangeError, but the repaired rlportfolio.deriveInterestSignals is reachable only through buildInterestSignalCandidate, whose only callers repository-wide are tests/portfolio-foundation.unit.mjs:1044, :1904 and tests/portfolio-privacy.functional.mjs:1704. The single page that loads rlportfolio.js aliases the API at portfolio-survival-allocation-lab.html:1253, names neither symbol, and performs no bracket dispatch. Such a row would therefore pass identically against pre-fix source — a tautological regression the repository's own guardrails forbid. bubbles.test refused to author it rather than manufacture false browser confidence. The Test Plan is plan-owned content, so re-specification against the reachable brief-side path, replacement by a wiring decision, or withdrawal with recorded rationale is routed to bubbles.plan. Reachability is reasoned from executed greps over a complete static call graph, not from a runtime probe; that uncertainty is declared at report.md#test-phase-coverage-gap.",
-      "owner": "bubbles.plan",
+      "id": "BUG-005-G022-PIPELINE-PHASES",
+      "summary": "Derivative done-target state retained honestly. The canonical bugfix-fastlane completion guard still lacks validate and audit completion claims. Validate is intentionally not claimed complete while G090 and G136 block certification, and audit cannot run before validation clears. This is not a third independent blockedReason prerequisite.",
+      "owner": "bubbles.validate",
       "status": "route_required",
-      "evidenceRef": "report.md#test-phase-coverage-gap"
+      "evidenceRef": "report.md#blocked-certification-reconciliation-2026-09-02"
     },
     {
-      "id": "TEST-B005-T2",
-      "summary": "bug.md section Blast Radius concludes the defect 'permanently breaks interest-signal derivation and the view-exclusion accounting ... until the user clears local history', on the stated basis that the lab reads the persisted array at portfolio-survival-allocation-lab.html:3059 and feeds it to RLPORTFOLIOANALYTICS.blackLittermanViews. That user-facing conclusion requires something to populate workspace.interestSignals. The only writer is rlportfolio.js:2545 inside buildInterestSignalCandidate, which no shipped page calls, and createEmptyWorkspace initialises the array to [] at rlportfolio.js:1135. The separate and larger question this raises is whether the Black-Litterman exclusion accounting is silently computing over a permanently empty array, which would be a latent product defect rather than a documentation overstatement. bubbles.test did not answer it: distinguishing 'not yet wired, by design, pending a later scope' from 'silently inert' is a spec-versus-implementation judgement outside this agent's ownership.",
-      "owner": "bubbles.gaps",
-      "followUpOwner": "bubbles.bug",
+      "id": "BUG-005-G027-STATE-COHERENCE",
+      "summary": "Derivative done-target state retained without erasing earned evidence. The plan-owned scope remains In Progress even though all 22 DoD items carry evidence; validate does not rewrite scopes.md. certification.scopeProgress remains In Progress and both completedScopes arrays remain empty to mirror that planning fact. The packet-level blocked status records the two external prerequisites without falsely changing the scope to Done or Blocked.",
+      "owner": "bubbles.validate",
       "status": "route_required",
-      "evidenceRef": "report.md#test-phase-coverage-gap"
+      "evidenceRef": "report.md#blocked-certification-reconciliation-2026-09-02"
     },
     {
-      "id": "BUG-005-CERTIFICATION-REFUSED",
-      "summary": "bubbles.validate refused certification. state-transition-guard.sh exited 1 with 33 blocking failures (failedGateIds G022, G053, G027, G068, G093, G094, G097, G136; blockingCode DELIVERY_COMPLETION_FAILED). The resolved contract is workflowMode bugfix-fastlane, auditProfile delivery-completion-v1, statusCeiling done, contractDigest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f. No certification field was written; status remains in_progress.",
-      "owner": "bubbles.plan",
-      "status": "route_required",
-      "evidenceRef": "report.md#validation-refusal"
-    },
-    {
-      "id": "BUG-005-G068-DOD-GHERKIN-FIDELITY",
-      "summary": "All five Gherkin scenarios in scopes.md have no faithful DoD item: SCN-B005-STALE-OMITTED, SCN-B005-FRESH-SIBLING, SCN-B005-DISCRIMINATION, SCN-B005-FLOOR-PRESERVED, SCN-B005-BRIEF-AGREEMENT. The DoD is organized by evidence activity (reproduce, provenance, fix, green) rather than by asserted behavior, so no DoD item restates a scenario's behavioral claim. Twelve of the 33 guard failures are this scopes.md shape: G068 (5 plus summary), missing regression-E2E planning rows (3 plus summary), missing consumer-impact-sweep section and DoD item (2 plus summary), and missing change-boundary containment items (2 plus summary).",
-      "owner": "bubbles.plan",
-      "status": "route_required",
-      "evidenceRef": "report.md#validation-refusal"
-    },
-    {
-      "id": "BUG-005-G093-G053-DELIVERY-DELTA",
-      "summary": "delivery-implementation-delta-guard.sh classifies the certification window as deliveryDeltaPaths=0, planningOnlyPaths=3, reportCodeDiffSections=0. The production change landed in 732bccb6c and HEAD has since advanced to d54a773fa, so the only currently-changed paths are report.md, scopes.md and state.json. report.md does carry the git diff under '### Fix confinement', but not under the '### Code Diff Evidence' heading G053 reads, so the guard cannot credit the implementation delta from the report either. Guard-named nextOwner: implementation.",
+      "id": "BUG-005-G090-SPRINT-SNAPSHOT",
+      "summary": "Current-session installed-source inspection, direct G090 execution, and an isolated paired-snapshot discriminator supersede the prior sprint-owner diagnosis. The sanctioned convergence writer emits startedAt and lastUpdated but no completedAt, while G090 recursively counts that summary as an incomplete snapshot. Four fully paired sanctioned-shape turn snapshots still produce snapshotCompleteness 0; adding only the unsupported summary completedAt flips it to 1. The canonical Bubbles source owner must exclude convergence summaries and preserve attributable paired-turn enforcement. No downstream framework patch or bypass is authorized.",
       "owner": "bubbles.implement",
       "status": "route_required",
-      "evidenceRef": "report.md#validation-refusal"
-    },
-    {
-      "id": "BUG-005-G022-PIPELINE-PHASES",
-      "summary": "The implement claim has delegated bubbles.bug provenance grounded in a current 6/6 GREEN, detached historical 0/6 RED, current-source inspection, and commit confinement; TEST-B005-T3 is addressed. Test, regression, simplify, and stabilize now have execution records. Stabilize is backed by a current-session interleaved benchmark at the declared 500-event cap, with full-output sha256 f8400762501f4de6da1ae88d551e7f9e0096aa2f535dae5172d9c84e3cc8b2f8. Three required phases remain absent from phase records: security, validate, and audit. The resolved phaseOrder for bugfix-fastlane is select, bootstrap, implement, test, regression, simplify, gaps, harden, stabilize, devops, security, validate, audit, finalize. Because audit is still in phaseOrder with no matching audit attempt, this packet remains pre-audit and MUST NOT write terminal certification even if every other gate were green.",
-      "owner": "bubbles.workflow",
-      "status": "route_required",
-      "evidenceRef": "report.md#validation-refusal"
+      "evidenceRef": "report.md#g090-framework-defect-route-2026-09-02"
     },
     {
       "id": "BUG-005-G136-HUMAN-ACCEPTANCE",
@@ -243,20 +469,6 @@
       "owner": "human",
       "status": "route_required",
       "evidenceRef": "uservalidation.md"
-    },
-    {
-      "id": "BUG-005-G070-OUTCOME-CONTRACT",
-      "summary": "goal-fidelity-guard.sh --boundary pre-certification exited 1 with 2 findings: spec.md has no non-empty '## Outcome Contract' section and therefore declares no Hard Constraints. The sibling BUG-004 packet carries one in spec.md, report.md and state.json, so this is a real gap in BUG-005 rather than a repository convention that does not apply.",
-      "owner": "bubbles.analyst",
-      "status": "route_required",
-      "evidenceRef": "report.md#validation-refusal"
-    },
-    {
-      "id": "BUG-005-TRACEABILITY-GUARD",
-      "summary": "traceability-guard.sh exited 1 with 6 failures, consistent with the G068 gap: scenario to Test Plan row to test file to report evidence is not fully resolvable as written.",
-      "owner": "bubbles.plan",
-      "status": "route_required",
-      "evidenceRef": "report.md#validation-refusal"
     }
   ]
 }

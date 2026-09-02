@@ -1209,6 +1209,8 @@ async function exerciseScope6Adapter(runtime, api, definition, descriptor) {
       computedAt: '2026-07-25T20:03:00.000Z'
     }));
     assert.deepEqual(run.changedParameters, [parameterId], `${definition.toolId} changed ${parameterId}`);
+    assert.equal(run.sensitivity.seedChanged, false, `${definition.toolId} ${parameterId} is a structural sensitivity, not a seed change`);
+    assert.equal(run.sensitivity.sharedRandomness.baselinePathIdentity, run.sensitivity.sharedRandomness.currentPathIdentity, `${definition.toolId} ${parameterId} preserves the runtime-owned randomness path identity`);
     const effect = run.sensitivity.effects.find((entry) => entry.parameterId === parameterId);
     assert.ok(effect, `${definition.toolId} sensitivity effect present for ${parameterId}`);
     /* A frozen-owner adapter proves a FLAT region instead of moving output: the projection cannot
@@ -1298,19 +1300,18 @@ test('TP-06-02 macro rotation and fundamental adapters: Scope 05 adapter set and
 });
 
 /*
- * TP-07-02 — Scope 07 strategy/property/method + in-Brief Center registry-derived loop + all-22+Center completeness.
+ * TP-07-02 — strategy/property/method + in-Brief Center registry-derived loop and complete-registry coverage.
  *
- * The seven Scope-07 definitions (adapterModule = strategy-research.js, property-research.js, or market-action.js
- * = six ordinary tools + the one in-Brief Center triage) register through their production factories, then this
+ * Every definition owned by strategy-research.js, property-research.js, or market-action.js registers through
+ * its production factory, then this
  * suite drives every one end-to-end through the SAME generic registry-derived exerciser the Scope-05/06 blocks
  * use (exerciseScope6Adapter): an owner-fixture prepare, an owner-parity single-source check, and a
  * per-declared-parameter recompute proving the sensitivity effect from the registry's own affectsOutputPaths.
  * Membership is registry-derived (definitions whose adapterModule is a Scope-07 module), never a hard-coded
- * adapter-ID list. A dedicated SCN-012-036 completeness test then registers ALL SEVEN Scope-07 modules alongside
- * the four Scope-05/06 modules in ONE runtime and proves all 22 ordinary registry tools resolve exactly one
- * registered owner adapter + the one Center model resolves, with zero generic fallback / tool-id branch /
- * authority — the complete 22+Center inventory the scope headline requires. Owner fixtures are copied verbatim
- * from the Scope-07 unit suite (the proven frozen owner facts).
+ * adapter-ID list. A dedicated SCN-012-036 completeness test then registers every production module in ONE
+ * runtime and proves every ordinary registry tool resolves exactly one registered owner adapter + the one Center
+ * model resolves, with zero generic fallback / tool-id branch / authority. Owner fixtures preserve the proven
+ * frozen owner facts and include later definitions that entered these modules through the live registry.
  */
 
 function loadStrategyResearch() {
@@ -1355,11 +1356,11 @@ function loadAgendaEngine() {
   return require(path);
 }
 
-const SCOPE7_MODULES = ['rlexperience-adapters/strategy-research.js', 'rlexperience-adapters/property-research.js', 'rlexperience-adapters/market-action.js'];
+const STRATEGY_PROPERTY_ACTION_MODULES = ['rlexperience-adapters/strategy-research.js', 'rlexperience-adapters/property-research.js', 'rlexperience-adapters/market-action.js'];
 
-function scope7Definitions() {
+function strategyPropertyActionDefinitions() {
   return readJson('simple-models.json').definitions
-    .filter((definition) => SCOPE7_MODULES.includes(definition.adapterModule))
+    .filter((definition) => STRATEGY_PROPERTY_ACTION_MODULES.includes(definition.adapterModule))
     .map(clone);
 }
 
@@ -1648,6 +1649,20 @@ function marketActionOwnerFixture() {
   };
 }
 
+function horizonLadderOwnerFixture() {
+  const config = readJson('horizon-ladder-universe.json');
+  return {
+    contractVersion: 'horizon-ladder-owner-state/v1',
+    toolId: 'horizon-ladder-lab',
+    asOf: config.ledgerSnapshot.asOf,
+    source: config.ledgerSnapshot.source,
+    sourceClass: 'observed-fact',
+    policy: { minResolvedSample: config.policy.minResolvedSample },
+    cells: clone(config.ledgerSnapshot.cells),
+    rates: clone(config.ledgerSnapshot.rates)
+  };
+}
+
 /* Registry-derived descriptors for the seven Scope-07 members. Each ownerFact is a genuine single-source
    owner-parity assertion; each cases entry moves one declared parameter (values proven in the unit suite). The
    generic exerciseScope6Adapter reads the declared output path from the DEFINITION's affectsOutputPaths. */
@@ -1793,6 +1808,22 @@ function makeScope7Descriptors(sr, pr, ma, rental) {
         ['catalyst-horizon', 30],
         ['risk-posture', 'defensive']
       ]
+    },
+    'horizon-ladder-lab': {
+      ownerState: () => horizonLadderOwnerFixture(),
+      base: (definition) => defaultValues(definition),
+      ownerFact: ({ summary, owner, base }) => {
+        assert.deepEqual(summary, sr.computeHorizonLadderSummary(owner, base), 'horizon-ladder summary is single-sourced from RLSTRATEGY.computeHorizonLadderSummary');
+        assert.equal(summary.gate.published, false, 'the live zero-resolution cell withholds its measured rate');
+        assert.equal(summary.probability.measuredRate, null, 'withheld means no measured rate is fabricated');
+      },
+      cases: () => [
+        ['direction', 'short'],
+        ['horizon', 'h1y'],
+        ['resolution-rule', 'touch'],
+        ['target-sigma', 1.25],
+        ['invalidation-sigma', 1]
+      ]
     }
   };
 }
@@ -1804,16 +1835,17 @@ test('TP-07-02 strategy/property/method + Center adapters: registry-derived loop
   const ma = loadMarketAction();
   const rental = loadRentalEngine();
 
-  const definitions = scope7Definitions();
-  assert.equal(definitions.length, 7, 'all seven Scope-07 definitions (six ordinary + Center) are declared in the registry');
+  const definitions = strategyPropertyActionDefinitions();
+  const deliveredAdapterIds = [...sr.supportedAdapterIds, ...pr.supportedAdapterIds, ...ma.supportedAdapterIds].slice().sort();
+  assert.ok(definitions.length > 0, 'the strategy/property/action definition set must not be empty');
+  assert.deepEqual(definitions.map((definition) => definition.adapterId).sort(), deliveredAdapterIds, 'the registry definitions exactly match the three production modules supportedAdapterIds');
 
   const runtime = makeRuntime(api, definitions);
   const results = registerScope7(runtime, api, sr, pr, ma, rental, definitions);
 
-  // Registry-derived membership: the registered Scope-07 set is EXACTLY the combined delivered supportedAdapterIds.
+  // Registry-derived membership: the registered set is EXACTLY the combined delivered supportedAdapterIds.
   const registeredAdapterIds = Object.keys(results).sort();
-  const deliveredAdapterIds = [...sr.supportedAdapterIds, ...pr.supportedAdapterIds, ...ma.supportedAdapterIds].slice().sort();
-  assert.deepEqual(registeredAdapterIds, deliveredAdapterIds, 'registered Scope-07 adapters == strategy-research + property-research + market-action supportedAdapterIds (delivered 7)');
+  assert.deepEqual(registeredAdapterIds, deliveredAdapterIds, 'registered adapters == strategy-research + property-research + market-action supportedAdapterIds');
   for (const adapterId of registeredAdapterIds) {
     assert.equal(results[adapterId].ok, true, `${adapterId} registered: ${JSON.stringify(results[adapterId].error || {})}`);
   }
@@ -1840,8 +1872,7 @@ test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Br
   const pfr = loadPortfolioResearch();
   const ra = loadResearchAgenda();
 
-  // Register ALL 26 ordinary owner adapters (Scope 05/06/07 plus the later portfolio-research and
-  // research-agenda modules) + the one in-Brief Center model into ONE runtime over
+  // Register every ordinary owner adapter (Scope 05/06/07 plus later modules) and the one in-Brief Center model into ONE runtime over
   // the FULL model registry. Each factory self-filters by its own tool IDs, so the union is the complete inventory.
   const definitions = readJson('simple-models.json').definitions.map(clone);
   const runtime = makeRuntime(api, definitions);
@@ -1864,8 +1895,12 @@ test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Br
   const registry = readJson('tools.json');
   const ordinaryToolIds = registry.tools.filter((tool) => tool.experience.kind === 'ordinary').map((tool) => tool.id);
   const centerToolIds = registry.tools.filter((tool) => tool.experience.kind === 'market-action-center').map((tool) => tool.id);
-  assert.equal(ordinaryToolIds.length, 27, 'the registry declares 27 ordinary tools');
   assert.equal(centerToolIds.length, 1, 'the registry declares exactly one in-Brief Center model');
+  assert.deepEqual(
+    definitions.filter((definition) => ordinaryToolIds.includes(definition.toolId)).map((definition) => definition.toolId).sort(),
+    ordinaryToolIds.slice().sort(),
+    'every ordinary registry tool has exactly one simple-model definition'
+  );
 
   // Every ordinary registry tool resolves EXACTLY one registered owner adapter (adapterStatus.registered = true).
   for (const toolId of ordinaryToolIds) {
@@ -1876,10 +1911,10 @@ test('TP-07-02 SCN-012-036 completeness: all 22 ordinary adapters plus the in-Br
   const centerDefinition = definitions.find((candidate) => candidate.toolId === centerToolIds[0]);
   assert.equal(requireValue(runtime.adapterStatus(centerDefinition.definitionId)).registered, true, 'the in-Brief Center triage model resolves a registered owner adapter');
 
-  // Zero generic fallback: the runtime registered EXACTLY 22 ordinary + 1 Center = 23 owner adapters, owns no
-  // tool-id branch, and owns no forbidden authority.
+  // Zero generic fallback: the runtime registered exactly one owner adapter per ordinary tool plus Center,
+  // owns no tool-id branch, and owns no forbidden authority.
   const diagnostic = requireValue(runtime.diagnostic());
-  assert.equal(diagnostic.registeredAdapterCount, 28, 'exactly 27 ordinary + 1 Center owner adapters are registered (no extras, no generic fallback)');
+  assert.equal(diagnostic.registeredAdapterCount, ordinaryToolIds.length + centerToolIds.length, 'exactly one adapter per ordinary tool plus Center is registered (no extras, no generic fallback)');
   assert.equal(diagnostic.toolIdBranchCount, 0, 'the shared runtime owns no tool-id branch');
   assert.equal(Object.values(diagnostic.authority).every((owned) => owned === false), true, 'the shared runtime owns no forbidden authority');
 });
@@ -1895,10 +1930,15 @@ test('TP-07-02 Scope 05 and Scope 06 adapter sets and a real Scope-05 owner-run 
   const ma = loadMarketAction();
   const rental = loadRentalEngine();
 
-  // Scope 07 supportedAdapterIds are byte-unchanged (no Scope-07 edit leaked into the Scope-05/06 modules).
-  assert.deepEqual(sr.supportedAdapterIds.slice().sort(), ['simple-adapter/disclosure-decay/v1', 'simple-adapter/strategy-evolution/v1', 'simple-adapter/walk-forward-validation/v1'], 'strategy-research supportedAdapterIds unchanged (3)');
-  assert.deepEqual(pr.supportedAdapterIds.slice().sort(), ['simple-adapter/location-suitability/v1', 'simple-adapter/str-scenario/ocean-shores/v1', 'simple-adapter/str-scenario/palm-springs/v1'], 'property-research supportedAdapterIds unchanged (3)');
-  assert.deepEqual(ma.supportedAdapterIds.slice().sort(), ['simple-adapter/market-action-triage/v1'], 'market-action supportedAdapterIds unchanged (1)');
+  // Each production module's supportedAdapterIds must exactly match its current registry definitions.
+  const allDefinitions = readJson('simple-models.json').definitions;
+  const expectedAdaptersFor = (adapterModule) => allDefinitions
+    .filter((definition) => definition.adapterModule === adapterModule)
+    .map((definition) => definition.adapterId)
+    .sort();
+  assert.deepEqual(sr.supportedAdapterIds.slice().sort(), expectedAdaptersFor('rlexperience-adapters/strategy-research.js'), 'strategy-research supportedAdapterIds match the registry');
+  assert.deepEqual(pr.supportedAdapterIds.slice().sort(), expectedAdaptersFor('rlexperience-adapters/property-research.js'), 'property-research supportedAdapterIds match the registry');
+  assert.deepEqual(ma.supportedAdapterIds.slice().sort(), expectedAdaptersFor('rlexperience-adapters/market-action.js'), 'market-action supportedAdapterIds match the registry');
 
   const breadthDefinition = clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'market-heatmap-lab'));
   const sectorDefinition = clone(readJson('simple-models.json').definitions.find((definition) => definition.toolId === 'sector-research-lab'));

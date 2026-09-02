@@ -3,26 +3,28 @@
   "specId": "008-BUG-007",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-09-01T04:15:54Z",
-  "planningStatus": "reconciled-route-to-test",
+  "generatedAt": "2026-09-02T19:17:54Z",
+  "planningStatus": "reconciled-current-evidence",
+  "nextRequiredOwner": "bubbles.harden",
+  "nextRequiredAction": "exhaustive-hardening-reentry",
   "tddMode": "scenario-first",
-  "evidenceBoundary": "Structured planning handoff only. TP-B007-000 retains historical pre-implementation RED semantics and must not be rerun as GREEN. Committed source, test, and injector authorship is recorded. TP-B007-008 is authored at 4c9f2e87b; its structured execution status remains planned-not-executed while report.md#bug007-tp-b007-008-current preserves report-backed test execution. Explicit human acceptance is recorded separately in uservalidation.md and closes only the acceptance-specific DoD row. No transition or certification is claimed.",
+  "evidenceBoundary": "Structured planning reconciliation only. Route 014 executed TP-B007-012 through bubbles.test; route 015 reconciled that evidence without converting product tests into planner-authored claims. This current planning repair requests no test rerun. TP-B007-000 retains required historical pre-implementation RED semantics and must not be rerun as GREEN. Product-test executions remain owned by bubbles.test; this file consumes the durable TP-B007-001 through TP-B007-010 and TP-B007-012 evidence. TP-B007-012 includes the test-owned final-tree-safe semantic inverse, expected old-state detection, protected-byte preservation, exact restoration, restored canary, and unchanged-operator proof at report.md#bug007-shared-infrastructure-rollback-restore. TP-B007-009 is supported by planner guard evidence. Human acceptance is recorded and remains human-owned. TP-B007-011, Build Quality, certification, scope status, and terminal status remain open. The reconciled packet next routes to bubbles.harden for exhaustive hardening re-entry.",
   "implementationBatches": [
     {
       "commit": "aad6fb52ebdafe5258ac77c74653c3b93770a4b5",
       "role": "persistent-red-authorship",
-      "files": ["tests/portfolio-brief.functional.mjs", "tests/portfolio-survival-brief.spec.mjs", "tests/portfolio-test-integrity.unit.mjs"]
+      "files": ["specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/report.md", "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/state.json", "tests/portfolio-brief.functional.mjs", "tests/portfolio-survival-brief.spec.mjs", "tests/portfolio-test-integrity.unit.mjs"]
     },
     {
       "commit": "d49a2955b543433fc1fd502c1e346e3fd2888e11",
       "role": "caller-key-source-repair",
-      "files": ["rlportfoliobrief.js"]
+      "files": ["rlportfoliobrief.js", "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/report.md", "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/state.json"]
     },
     {
       "commit": "82d1db5e5819738aa4f5049ebe7078514408620c",
       "role": "shared-injector-and-test-integrity-causality",
       "files": ["tests/portfolio-defect-injector.cjs", "tests/portfolio-test-integrity.unit.mjs"],
-      "findingDisposition": "HARDEN-B007-001 is planning-resolved as admitted and implemented, but not test-closed or validate-certified."
+      "findingDisposition": "HARDEN-B007-001 is planning-resolved as admitted, implemented, and covered by current test-owned evidence, but not validate-certified."
     },
     {
       "commit": "3688388d5af8012e6adfad769c68c4c1034eab6d",
@@ -42,6 +44,7 @@
   "commandCatalog": {
     "CMD-B007-FOCUSED": "timeout 240 node --test tests/portfolio-brief.functional.mjs",
     "CMD-B007-TEST-INTEGRITY": "timeout 240 node --test --test-name-pattern='^BUG-007: represented mutants execute one protective assertion through one intended hook$' tests/portfolio-test-integrity.unit.mjs",
+    "CMD-B007-SHARED-INFRA-CANARY": "timeout 240 node --test --test-name-pattern='^BUG-007: represented mutants execute one protective assertion through one intended hook$' tests/portfolio-test-integrity.unit.mjs",
     "CMD-B007-BRIEF-E2E": "timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
     "CMD-B007-FEATURE-E2E": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
     "CMD-B007-SELFTEST": "timeout 1800 node scripts/selftest.mjs",
@@ -71,7 +74,7 @@
           "command": "timeout 240 node --test tests/portfolio-brief.functional.mjs",
           "liveSystem": false,
           "evidenceRef": "report.md#tp-b007-000",
-          "status": "planned-not-executed",
+          "status": "required-red-observed",
           "expectedPreImplementationOutcome": "non-zero with the exact BUG-007 hostile-key title failing and cleanup assertions reported",
           "evidenceSemantics": "historical-red",
           "rerunPolicy": "Retain report.md#tp-b007-000 as the pre-implementation RED. Do not rerun fixed source and relabel the GREEN result as reproduction.",
@@ -95,8 +98,8 @@
           "commandRef": "CMD-B007-FOCUSED",
           "command": "timeout 240 node --test tests/portfolio-brief.functional.mjs",
           "liveSystem": false,
-          "evidenceRef": "report.md#tp-b007-001",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -112,8 +115,8 @@
           "commandRef": "CMD-B007-FOCUSED",
           "command": "timeout 240 node --test tests/portfolio-brief.functional.mjs",
           "liveSystem": false,
-          "evidenceRef": "report.md#tp-b007-002",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004",
+          "status": "executed-passed",
           "redGreenRequired": true
         },
         {
@@ -129,8 +132,8 @@
           "commandRef": "CMD-B007-FOCUSED",
           "command": "timeout 240 node --test tests/portfolio-brief.functional.mjs",
           "liveSystem": false,
-          "evidenceRef": "report.md#tp-b007-003",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004",
+          "status": "executed-passed",
           "redGreenRequired": true
         },
         {
@@ -147,8 +150,8 @@
           "commandRef": "CMD-B007-FOCUSED",
           "command": "timeout 240 node --test tests/portfolio-brief.functional.mjs",
           "liveSystem": false,
-          "evidenceRef": "report.md#tp-b007-004",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-001-004",
+          "status": "executed-passed",
           "redGreenRequired": true
         },
         {
@@ -166,12 +169,39 @@
           "commandRef": "CMD-B007-TEST-INTEGRITY",
           "command": "timeout 240 node --test --test-name-pattern='^BUG-007: represented mutants execute one protective assertion through one intended hook$' tests/portfolio-test-integrity.unit.mjs",
           "liveSystem": false,
-          "evidenceRef": "report.md#tp-b007-005",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-005",
+          "status": "executed-passed",
           "implementationCommit": "82d1db5e5819738aa4f5049ebe7078514408620c",
-          "planningDisposition": "admitted-and-implemented-not-test-closed-or-validate-certified",
+          "planningDisposition": "admitted-implemented-and-test-evidenced-not-validate-certified",
           "findingRefs": ["HARDEN-B007-001"],
           "redGreenRequired": true
+        },
+        {
+          "id": "TP-B007-012",
+          "type": "Shared-infrastructure independent canary",
+          "category": "unit",
+          "file": "tests/portfolio-test-integrity.unit.mjs",
+          "supportingFiles": ["tests/portfolio-defect-injector.cjs"],
+          "fileState": "existing",
+          "testState": "authored",
+          "scenarioId": "SCN-B007-MUTATION-MECHANISM-CAUSALITY",
+          "coversScenarioIds": ["SCN-B007-MUTATION-MECHANISM-CAUSALITY"],
+          "testTitle": "BUG-007: represented mutants execute one protective assertion through one intended hook",
+          "description": "Preserve the current independent canary before broader mutation execution. Then, in a disposable clone at the exact candidate revision, use the unchanged exact title as the final-tree oracle: require current 1/1 GREEN, apply only the design-authorized injector semantic inverse, require one collected exact-title failure with zero passes and the old dual-hook zero-anchor or infrastructure-origin diagnostic, preserve the integrity carrier and three error-contract controls byte-for-byte, restore the injector exactly, require a clean five-path diff, rerun restored 1/1 GREEN, and prove the operator checkout unchanged.",
+          "commandRef": "CMD-B007-SHARED-INFRA-CANARY",
+          "command": "timeout 240 node --test --test-name-pattern='^BUG-007: represented mutants execute one protective assertion through one intended hook$' tests/portfolio-test-integrity.unit.mjs",
+          "liveSystem": false,
+          "evidenceRef": "report.md#bug007-shared-infrastructure-rollback-restore",
+          "status": "executed-passed",
+          "rollbackRestoreStatus": "executed-passed",
+          "rollbackRestoreExecutionOwner": "bubbles.test",
+          "rollbackRestoreEvidenceRef": "report.md#bug007-shared-infrastructure-rollback-restore",
+          "rollbackRestoreDesignRef": "design.md#final-tree-safe-rollback-and-restore-contract",
+          "rollbackRestoreHandoffRef": "scopes.md#tp-b007-012-semantic-inverse-test-owner-execution-handoff",
+          "coverageRole": "shared-infrastructure-independent-canary",
+          "findingRefs": ["B007-PLAN-SHARED-INFRA-001", "HARDEN-B007-001"],
+          "executionReconciliation": "Durable bubbles.test route 014 evidence executes the unchanged exact title as current 1/1 GREEN, applies the injector-only semantic inverse, records one collected expected old-state failure with zero passes and the specified dual-hook zero-anchor diagnostic, preserves the integrity carrier and three error-contract controls byte-identically, restores all five controlled hashes, reruns restored 1/1 GREEN, removes disposable residue, and leaves the operator inventory and index unchanged. This planner reconciliation consumes that evidence and claims no product-test execution.",
+          "redGreenRequired": false
         },
         {
           "id": "TP-B007-006",
@@ -187,8 +217,8 @@
           "commandRef": "CMD-B007-BRIEF-E2E",
           "command": "timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
-          "evidenceRef": "report.md#tp-b007-006",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-006",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -204,8 +234,8 @@
           "commandRef": "CMD-B007-FEATURE-E2E",
           "command": "timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
-          "evidenceRef": "report.md#tp-b007-007",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-007",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -223,11 +253,11 @@
           "commandRef": "CMD-B007-SELFTEST",
           "command": "timeout 1800 node scripts/selftest.mjs",
           "liveSystem": false,
-          "evidenceRef": "report.md#bug007-tp-b007-008-current",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-final-tp-b007-008-20260902",
+          "status": "executed-passed",
           "authorshipCommit": "4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8",
           "reportBackedExecutionRef": "report.md#bug007-tp-b007-008-current",
-          "executionReconciliation": "Execution remains planned in this structured planning handoff; the cited report section is test-owned evidence and is not converted into a planner-authored execution claim.",
+          "executionReconciliation": "Current-session test-owned evidence records the final direct census and canonical selftest at exit 0. This planner update reconciles the structured row without converting that execution into a planner-authored claim.",
           "redGreenRequired": false
         },
         {
@@ -244,8 +274,8 @@
           "commandRef": "CMD-B007-PACKET-GUARDS",
           "command": "timeout 600 bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys && timeout 600 bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys && timeout 600 bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys && timeout 600 bash .github/bubbles/scripts/test-mechanism-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --repo-root . && timeout 600 bash .github/bubbles/scripts/scope-context-fit-lint.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys && timeout 600 bash .github/bubbles/scripts/capability-foundation-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
           "liveSystem": false,
-          "evidenceRef": "report.md#tp-b007-009",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-planner-rework-validation-20260902",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {
@@ -262,8 +292,8 @@
           "commandRef": "CMD-B007-IMPLEMENTATION-REALITY",
           "command": "timeout 600 bash .github/bubbles/scripts/implementation-reality-scan.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --verbose",
           "liveSystem": false,
-          "evidenceRef": "report.md#tp-b007-010",
-          "status": "planned-not-executed",
+          "evidenceRef": "report.md#bug007-recovery-tp-b007-010",
+          "status": "executed-passed",
           "redGreenRequired": false
         },
         {

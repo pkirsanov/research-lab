@@ -79,8 +79,15 @@ The tool list itself is **not** enumerated here — [`tools.json`](tools.json) i
 ├── rlattention.js                    # the brief's decision-attention tier — composer, validator, ranking
 ├── rlattentiongate.js                # derives each attention candidate's observed half from Tier-A state
 ├── rlviews.js  rlcontext.js          # view focus + contextual tooltips
-├── rlsession.js rlvol.js rlportfolio.js rlrental.js rlcompany.js rlfx.js rlcausal.js rlvalidation.js
-│                                     # domain engines consumed by the tools that own them
+├── rlmetrics.js                      # one definition per shared return/risk metric; engines delegate
+│                                     # here rather than defining a second Sharpe
+├── rlportfolio.js rlportfolioanalytics.js rlportfoliobrief.js
+│                                     # the portfolio-survival engine: workspace/dossier contracts,
+│                                     # cutoff-bounded basis alignment, and a pure brief composer
+├── rlsession.js rlvol.js rlrental.js rlcompany.js rlfx.js rlcausal.js rlvalidation.js
+│                                     # domain engines consumed by the tools that own them —
+│                                     # representative, not exhaustive; more engines exist than
+│                                     # this map names
 │
 │  ── registries + contracts
 ├── tools.json                        # tool registry (id, file, notes, briefing role, experience wiring)

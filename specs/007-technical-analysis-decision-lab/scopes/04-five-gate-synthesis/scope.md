@@ -111,11 +111,11 @@ Scope 04 implements `tadRankCandidates`, `tadEvaluatePrimaryGate`, `tadEvaluateR
 
 ## Change Boundary And Rollback
 
-**Allowed edits:** Feature 007 page/config/validator, Feature 007 selftest marker, Feature 007 browser file, and Feature 007 fixtures.
+**Allowed file families:** Feature 007 page/config/validator, Feature 007 selftest marker, Feature 007 browser file, and Feature 007 fixtures.
 
 **Marker-bounded page edit:** Scope 04 declarations live between `/* ---------- Feature 007 Scope 04: five-gate synthesis ---------- */` and its matching end marker. Selftest additions use the matching sub-marker.
 
-**Explicitly excluded:** shared runtime helpers, owner publishers, registries/navigation, notes/docs, Market Brief, package/workflow files, Feature 005/006 paths, and unrelated tests. Comparison, option, and cost algorithms assigned to Scopes 06-07 may appear only as explicit unavailable inputs in Scope 04 fixtures.
+**Excluded surfaces (must remain untouched):** shared runtime helpers, owner publishers, registries/navigation, notes/docs, Market Brief, package/workflow files, Feature 005/006 paths, and unrelated tests. Comparison, option, and cost algorithms assigned to Scopes 06-07 may appear only as explicit unavailable inputs in Scope 04 fixtures.
 
 **Rollback/restore:** remove only Scope 04 synthesis/config/fixture/test hunks; rerun all Scope 01-03 focused rows and cumulative suite; verify candidate ledgers and prior contract/config digests are unchanged.
 
@@ -127,7 +127,7 @@ Write the exact gate/rank assertions first, capture intended RED, implement one 
 
 | ID | Type | Category | Scenario | File / Location | Exact behavior / persistent title | Command | Live System | Evidence Anchor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-04-01 | Unit | unit | SCN-007-001, 002, 003, 004, 022, 027 | `scripts/selftest.mjs` | Execute all five gate functions, ordered synthesis, deterministic rank ties, direction exclusion, mandatory precedence, diagnostic continuation, atomic completeness, and 100 identical canonical reads for identical inputs | `node scripts/selftest.mjs` | No | `report.md#tp-04-01` |
+| TP-04-01 | Unit | unit | SCN-007-001, 002, 003, 004, 022, 027 | `scripts/selftest.mjs` | Canary: runs before any broad Scope 04 suite rerun. Execute all five gate functions, ordered synthesis, deterministic rank ties, direction exclusion, mandatory precedence, diagnostic continuation, atomic completeness, and 100 identical canonical reads for identical inputs | `node scripts/selftest.mjs` | No | `report.md#tp-04-01` |
 | TP-04-02 | Contract validator | functional | SCN-007-001, 002, 003, 004, 022, 027 | `scripts/validate-technical-analysis-decision.mjs` | Validate exactly five ordered gates, mandatory setup references, ranking enums/order, full UnifiedRead keys, closed statuses, and fixture-to-contract parity | `node scripts/validate-technical-analysis-decision.mjs` | No | `report.md#tp-04-02` |
 | TP-04-03 | Regression E2E | e2e-ui | SCN-007-001 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-001 aligned trend without governed location remains no edge` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-001 aligned trend without governed location remains no edge" --reporter=list` | Yes | `report.md#scenario-scn-007-001` |
 | TP-04-04 | Regression E2E | e2e-ui | SCN-007-002 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-002 five mandatory gates produce one complete triggered read` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-002 five mandatory gates produce one complete triggered read" --reporter=list` | Yes | `report.md#scenario-scn-007-002` |
@@ -146,13 +146,13 @@ Write the exact gate/rank assertions first, capture intended RED, implement one 
 - [x] Candidate ranking is deterministic, validation/truth/contradiction aware, direction neutral, and preserves every non-selected candidate and losing dimension. — Evidence: [report.md#scenario-scn-007-027](report.md#scenario-scn-007-027); identical ranking under reversed input, direction absent from dimensions and output, all 3 candidates retained with their missing condition. Validator `scope04-ranking-never-reads-direction` PASS.
 - [x] `tadBuildUnifiedRead` commits one frozen complete identity and never publishes a partial, canceled, invalid, or internally inconsistent result. — Evidence: [report.md#tp-04-01](report.md#tp-04-01); frozen via `tadDeepFreeze` with a 64-hex `tad-read:` identity, and it refuses to build without candidates or without an observation cutoff.
 - [x] Scope 04 marker, Shared Impact Sweep, fixtures, lifecycle preservation, and rollback boundaries preserve all prior and excluded work. — Evidence: [report.md#tp-04-09](report.md#tp-04-09); 20/20 with every Scope 01-03 title and the shared-behavior canary green, synthesis appends no candidate event, validator `scope04-marker-block-present` PASS.
-- [x] Every Scope 04 Test Plan row has intended RED and same-command GREEN evidence. — Evidence: [report.md#adversarial-verification](report.md#adversarial-verification); four controlled breaks each failed the tests asserting the removed property and no others. The RED for TP-04-01 is controlled-break rather than scenario-first and is declared as such.
+- [ ] Every Scope 04 Test Plan row has intended RED and same-command GREEN evidence. — Evidence: [report.md#adversarial-verification](report.md#adversarial-verification); four controlled breaks each failed the tests asserting the removed property and no others. The RED for TP-04-01 is controlled-break rather than scenario-first and is declared as such.
 
 #### Test Evidence Items - Exact Parity With 9 Test Plan Rows
 
 - [x] TP-04-01 unit evidence proves every gate, ranking, precedence, tie, completeness, and deterministic-repeat branch. — Evidence: [report.md#tp-04-01](report.md#tp-04-01); `node scripts/selftest.mjs` → 1811 passed, 0 failed (33 new assertions).
 - [x] TP-04-02 functional evidence proves gate/setup/ranking/UnifiedRead config and contract closure. — Evidence: [report.md#tp-04-02](report.md#tp-04-02); `node scripts/validate-technical-analysis-decision.mjs` → checks=78, result=PASS.
-- [x] TP-04-03 Regression E2E evidence proves SCN-007-001 fails location and remains `NO EDGE` despite aligned trend. — Evidence: [report.md#tp-04-03](report.md#tp-04-03); primary=pass, location=fail, readState=NO_EDGE, chaseRiskNamed=true.
+- [ ] TP-04-03 Regression E2E evidence proves SCN-007-001 fails location and remains `NO EDGE` despite aligned trend. — Evidence: [report.md#tp-04-03](report.md#tp-04-03); primary=pass, location=fail, readState=NO_EDGE, chaseRiskNamed=true.
 - [x] TP-04-04 Regression E2E evidence proves SCN-007-002 exposes one fully explained `TRIGGERED` read after all gates pass. — Evidence: [report.md#tp-04-04](report.md#tp-04-04); five passes in order, passCount=5, every gate stating observed and required.
 - [x] TP-04-05 Regression E2E evidence proves SCN-007-003 invalidation defeats correlated bullish methods. — Evidence: [report.md#tp-04-05](report.md#tp-04-05); trigger=fail on closed-beyond-invalidation with the later passing gate marked diagnosticOnly.
 - [x] TP-04-06 Regression E2E evidence proves SCN-007-004 preserves tactical/primary conflict and countertrend eligibility. — Evidence: [report.md#tp-04-06](report.md#tp-04-06); regime fails without a countertrend-eligible family and passes with one, both recording primary-not-reversed.
@@ -162,4 +162,17 @@ Write the exact gate/rank assertions first, capture intended RED, implement one 
 
 #### Build Quality Gate
 
-- [x] Focused RED/GREEN records, gate/rank semantic review, candidate-ledger immutability, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. — Evidence: [report.md#lint-and-quality](report.md#lint-and-quality); `git diff --check` clean, reader-legibility 0 leaks/27 pages, no interception or silent-pass patterns in the 6 new tests, Scope 03 ledger assertions unchanged, and four findings recorded in Uncertainty Declarations rather than deferred silently.
+- [ ] Focused RED/GREEN records, gate/rank semantic review, candidate-ledger immutability, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. — Evidence: [report.md#lint-and-quality](report.md#lint-and-quality); `git diff --check` clean, reader-legibility 0 leaks/27 pages, no interception or silent-pass patterns in the 6 new tests, Scope 03 ledger assertions unchanged, and four findings recorded in Uncertainty Declarations with a named owner rather than dropped silently.
+
+#### Scenario Fidelity And Planning Guardrails
+
+These items are authored by `bubbles.plan` to state the obligation each Gherkin scenario and each shared-surface guardrail places on this scope. They are unchecked because the planning owner authors obligations, not evidence: the executing owner marks each one and links the resolving `report.md` anchor.
+
+- [ ] SCN-007-003: correlated bullish indicators cannot override a structural break — the related indicators count within their declared families, the invalidation gate fails, and the setup is INVALIDATED.
+- [ ] SCN-007-022: when no specialist setup clears every gate the UnifiedRead is NO EDGE or MIXED, the strongest near-ready candidate and its missing condition may be shown, and no low-confidence directional signal is forced.
+- [ ] SCN-007-027: when several eligible setups compete for the overview the Overview Model selects the candidate with the strongest complete gate and validation evidence rather than the most bullish score, the non-selected candidates stay visible with their weaker or missing conditions, and evidence reused across candidates is counted once by family.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope exist as persistent `Regression:` titles and pass on their exact Test Plan commands.
+- [ ] Broader E2E regression suite passes on the complete cumulative Feature 007 browser file after every focused row in this scope.
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, covering every surface named in the Shared Infrastructure Impact Sweep above.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by reversing only the Scope 04 marker-bounded hunks and rerunning the Scope 01-03 focused rows.
+- [ ] Change Boundary is respected and zero excluded file families were changed; the allowed and excluded surfaces named above are the complete boundary for this scope.

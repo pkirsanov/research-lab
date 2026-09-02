@@ -12,17 +12,19 @@ set -euo pipefail
 #      matching scopeId and a turn-start/turn-end pair.
 #   4. In-place caller packet mutation after private capture cannot redirect.
 #   5. Atomic caller packet replacement after private capture cannot redirect.
-#   6. Successful normal + convergence updates use same-directory renames and
-#      leave no private packet capture or session-update temp file.
+#   6. Successful normal + convergence updates use one same-directory
+#      transaction rename and leave no private packet capture or transaction
+#      temp file.
 #   7. Binding validation failure cleans the private packet capture.
-#   8. Normal update rename failure cleans its update temp and packet capture.
-#   9. Convergence rename failure cleans its update temp and packet capture.
+#   8. Normal transaction rename failure preserves prior bytes and cleans up.
+#   9. Convergence transaction rename failure preserves prior bytes and cleans up.
 #  10. Missing required --phase flag → exit non-zero with error message.
 #  11. --help exits zero and prints its usage banner.
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SNAPSHOT="$SCRIPT_DIR/state-snapshot.sh"
 BINDING="$SCRIPT_DIR/repository-binding.sh"
+GUARD="$SCRIPT_DIR/convergence-cap-guard.sh"
 
 if [[ ! -x "$SNAPSHOT" ]]; then
   echo "FAIL: state-snapshot.sh is not executable at $SNAPSHOT" >&2
@@ -31,6 +33,11 @@ fi
 
 if [[ ! -x "$BINDING" ]]; then
   echo "FAIL: repository-binding.sh is not executable at $BINDING" >&2
+  exit 1
+fi
+
+if [[ ! -x "$GUARD" ]]; then
+  echo "FAIL: convergence-cap-guard.sh is not executable at $GUARD" >&2
   exit 1
 fi
 
@@ -63,6 +70,8 @@ snapshot_update_temp_count() {
   local -a temp_files=(
     "$session_directory"/.bubbles.session.json.update.*
     "$session_directory"/.bubbles.session.json.convergence.*
+    "$session_directory"/.bubbles-session.transaction.*
+    "$session_directory"/.bubbles-session.input.*
   )
   printf '%s' "${#temp_files[@]}"
 }
@@ -89,11 +98,25 @@ prepare_bound_repo() {
   local control_dir="$TMP_ROOT/control-$session_id"
   local binding_output
 
-  mkdir -p "$root/.specify/memory" "$root/bubbles/scripts" "$root/agents" "$control_dir"
+  mkdir -p \
+    "$root/.specify/memory" \
+    "$root/bubbles/scripts" \
+    "$root/agents" \
+    "$root/specs/case6" \
+    "$root/specs/case9" \
+    "$root/specs/bug-015" \
+    "$root/specs/unrelated" \
+    "$control_dir"
   chmod 700 "$control_dir"
   printf 'test-version\n' > "$root/VERSION"
   printf '#!/usr/bin/env bash\n' > "$root/install.sh"
   printf '#!/usr/bin/env bash\n' > "$root/bubbles/scripts/cli.sh"
+  cat > "$root/bubbles/workflows.yaml" <<'YAML'
+workflowModes:
+  autonomous-goal:
+    constraints:
+      maxConvergenceIterations: 10
+YAML
   git init -q "$root"
 
   BOUND_CONTROL="$control_dir/repository-binding.json"
@@ -109,6 +132,52 @@ prepare_bound_repo() {
   jq -e '.repositoryResolution.actionable == true' "$BOUND_PACKET" >/dev/null
 }
 
+freeze_bug037_goal() {
+  local session_file="$1"
+  local session_id="$2"
+  local spec_dir="$3"
+  local binding_packet="$4"
+  local request_file="$TMP_ROOT/$session_id-goal-request.txt"
+  local repository_root
+  local repository_alias
+
+  repository_root="$(jq -er '.repositoryRoot' "$binding_packet")"
+  repository_alias="$(jq -er '.repositoryAlias' "$binding_packet")"
+  mkdir -p "$repository_root/$spec_dir"
+
+  printf 'BUG-037 goal revision one for %s\n' "$spec_dir" > "$request_file"
+  bash "$SCRIPT_DIR/goal-contract.sh" freeze \
+    --session-file "$session_file" \
+    --source-request-file "$request_file" \
+    --intent "exercise BUG-037 convergence accounting" \
+    --success-signal "attempt history remains append-only and monotonic" \
+    --target "spec=$spec_dir" \
+    --repository-root "$repository_alias" \
+    --spec-target "$spec_dir" \
+    --allowed-path "$spec_dir/**" \
+    --runner bubbles.goal \
+    --session-id "$session_id" \
+    --repository-alias "$repository_alias" >/dev/null
+}
+
+revise_bug037_goal() {
+  local session_file="$1"
+  local session_id="$2"
+  local binding_packet="$3"
+  local request_file="$TMP_ROOT/$session_id-goal-request-revision-two.txt"
+  local repository_alias
+
+  repository_alias="$(jq -er '.repositoryAlias' "$binding_packet")"
+
+  printf 'BUG-037 explicitly authorized goal revision two\n' > "$request_file"
+  bash "$SCRIPT_DIR/goal-contract.sh" revise \
+    --session-file "$session_file" \
+    --source-request-file "$request_file" \
+    --approval-note "BUG-037 selftest authorizes a distinct second attempt" \
+    --runner bubbles.goal \
+    --repository-alias "$repository_alias" >/dev/null
+}
+
 REAL_BASH="$(command -v bash)"
 REAL_MV="$(command -v mv)"
 RACE_BIN="$TMP_ROOT/race-bin"
@@ -116,7 +185,7 @@ mkdir -p "$RACE_BIN"
 cat > "$RACE_BIN/bash" <<EOF
 #!$REAL_BASH
 set -euo pipefail
-if [[ "\${1:-}" == */repository-binding.sh && "\${2:-}" == "mirror-session" && -n "\${SNAPSHOT_ATTACK_KIND:-}" ]]; then
+if [[ "\${1:-}" == */repository-binding.sh && "\${2:-}" == "validate-packet" && -n "\${SNAPSHOT_ATTACK_KIND:-}" ]]; then
   packet_file=""
   next_is_packet=false
   for arg in "\$@"; do
@@ -166,6 +235,7 @@ if [[ -n "\${SNAPSHOT_RENAME_PROOF_FILE:-}" && "\$#" -eq 2 && "\${2:-}" == */.sp
   case "\$(basename "\$source_path")" in
     .bubbles.session.json.update.*) rename_kind="update" ;;
     .bubbles.session.json.convergence.*) rename_kind="convergence" ;;
+    .bubbles-session.transaction.*) rename_kind="transaction" ;;
     *) rename_kind="" ;;
   esac
 
@@ -326,22 +396,22 @@ run_atomic_success_case() {
     fail "turn snapshot posture ($turn_posture) should match session posture ($posture_recorded)"
   fi
 
-  if [[ "$(file_line_count "$rename_proof")" == "2" ]]; then
-    pass "exactly two session-file renames occur for a convergence snapshot"
+  if [[ "$(file_line_count "$rename_proof")" == "1" ]]; then
+    pass "exactly one session-file rename occurs for a composite convergence snapshot"
   else
-    fail "convergence snapshot should perform exactly two session-file renames"
+    fail "composite convergence snapshot should perform exactly one session-file rename"
   fi
 
-  if grep -Fxq 'update:same-directory:same-device' "$rename_proof" 2>/dev/null; then
-    pass "normal session update temp is renamed from the destination directory and device"
+  if grep -Fxq 'transaction:same-directory:same-device' "$rename_proof" 2>/dev/null; then
+    pass "composite transaction candidate is renamed from the destination directory and device"
   else
-    fail "normal session update did not prove same-directory same-device rename"
+    fail "composite transaction did not prove same-directory same-device rename"
   fi
 
-  if grep -Fxq 'convergence:same-directory:same-device' "$rename_proof" 2>/dev/null; then
-    pass "convergence update temp is renamed from the destination directory and device"
+  if ! grep -Eq '^(update|convergence):' "$rename_proof" 2>/dev/null; then
+    pass "snapshot exposes no intermediate turn-only or convergence-only replacement"
   else
-    fail "convergence update did not prove same-directory same-device rename"
+    fail "snapshot exposed an intermediate session replacement"
   fi
 
   if jq -e \
@@ -475,7 +545,7 @@ run_binding_failure_cleanup_case() {
 
 run_rename_failure_cleanup_case() {
   local case_name="$1"
-  local fail_kind="$2"
+  local mutation_kind="$2"
   local root="$TMP_ROOT/$case_name"
   local session_id="snapshot-$case_name"
   local capture_tmp="$TMP_ROOT/$case_name-private-captures"
@@ -483,6 +553,8 @@ run_rename_failure_cleanup_case() {
   local control_file
   local binding_packet
   local session_directory="$root/.specify/memory"
+  local session_file="$session_directory/bubbles.session.json"
+  local session_baseline="$TMP_ROOT/$case_name-session-baseline.json"
   local snapshot_output
   local snapshot_rc
   local -a convergence_args=()
@@ -491,7 +563,9 @@ run_rename_failure_cleanup_case() {
   control_file="$BOUND_CONTROL"
   binding_packet="$BOUND_PACKET"
   mkdir -p "$capture_tmp"
-  if [[ "$fail_kind" == "convergence" ]]; then
+  printf '%s\n' '{"sentinel":{"preserve":"complete-prior-bytes"}}' > "$session_file"
+  cp "$session_file" "$session_baseline"
+  if [[ "$mutation_kind" == "convergence" ]]; then
     convergence_args=(--convergence-iteration 3 --spec-dir "specs/$case_name")
   fi
 
@@ -499,7 +573,7 @@ run_rename_failure_cleanup_case() {
   snapshot_output="$(PATH="$ATOMIC_BIN:$PATH" \
     TMPDIR="$capture_tmp" \
     SNAPSHOT_RENAME_PROOF_FILE="$rename_proof" \
-    SNAPSHOT_RENAME_FAIL_KIND="$fail_kind" \
+    SNAPSHOT_RENAME_FAIL_KIND="transaction" \
     BUBBLES_AGENT_NAME="bubbles.workflow" \
     bash "$SNAPSHOT" \
     --session-id "$session_id" --session-control-file "$control_file" \
@@ -509,44 +583,43 @@ run_rename_failure_cleanup_case() {
   snapshot_rc=$?
   set -e
 
-  if [[ "$snapshot_rc" -eq 97 ]]; then
-    pass "$fail_kind rename failure propagates the injected non-zero status"
+  if [[ "$snapshot_rc" -eq 3 ]]; then
+    pass "$mutation_kind transaction rename failure returns operational status 3"
   else
-    fail "$fail_kind rename failure should exit 97 (got exit=$snapshot_rc)"
+    fail "$mutation_kind transaction rename failure should exit 3 (got exit=$snapshot_rc)"
     echo "  output: $snapshot_output"
   fi
 
-  if grep -Fxq "$fail_kind:same-directory:same-device" "$rename_proof" 2>/dev/null; then
-    pass "$fail_kind failure is injected after same-directory same-device placement proof"
+  if grep -Fxq 'transaction:same-directory:same-device' "$rename_proof" 2>/dev/null; then
+    pass "$mutation_kind failure is injected at the single same-directory transaction rename"
   else
-    fail "$fail_kind failure did not reach the instrumented session rename"
+    fail "$mutation_kind failure did not reach the instrumented transaction rename"
   fi
 
   if [[ "$(directory_entry_count "$capture_tmp")" == "0" ]]; then
-    pass "$fail_kind rename failure removes its private packet capture"
+    pass "$mutation_kind rename failure removes its private packet capture"
   else
-    fail "$fail_kind rename failure left private packet capture residue"
+    fail "$mutation_kind rename failure left private packet capture residue"
   fi
 
   if [[ "$(snapshot_update_temp_count "$session_directory")" == "0" ]]; then
-    pass "$fail_kind rename failure removes all session update temp files"
+    pass "$mutation_kind rename failure removes all transaction temp files"
   else
-    fail "$fail_kind rename failure left session update temp files"
+    fail "$mutation_kind rename failure left transaction temp files"
   fi
 
-  if [[ "$fail_kind" == "convergence" ]]; then
-    if jq -e \
-      '(.turnSnapshots | length) == 1 and (((.convergenceLoops // []) | length) == 0)' \
-      "$session_directory/bubbles.session.json" >/dev/null 2>&1; then
-      pass "convergence rename failure preserves the completed normal update only"
-    else
-      fail "convergence rename failure did not preserve the expected normal update boundary"
-    fi
+  if cmp -s "$session_baseline" "$session_file"; then
+    pass "$mutation_kind transaction rename failure leaves complete prior session bytes unchanged"
+  else
+    fail "$mutation_kind transaction rename failure changed prior session bytes"
   fi
 }
 
 echo "Running state-snapshot selftest..."
 echo "Scenario: orchestrator agents must record a per-turn snapshot in .specify/memory/bubbles.session.json without ever losing prior records."
+if [[ -n "${BUG037_EVIDENCE_ITEM:-}" ]]; then
+  printf 'BUG-037 focused evidence item: %s\n' "$BUG037_EVIDENCE_ITEM"
+fi
 
 # ---- Case 1: append to fresh session JSON ---------------------------------
 
@@ -785,6 +858,10 @@ prepare_bound_repo "$case12_root" "$case12_session_id"
 case12_control="$BOUND_CONTROL"
 case12_packet="$BOUND_PACKET"
 case12_session="$case12_root/.specify/memory/bubbles.session.json"
+case12_spec_dir="specs/038-goal-fidelity"
+case12_repository_root="$(jq -er '.repositoryRoot' "$case12_packet")"
+case12_repository_alias="$(jq -er '.repositoryAlias' "$case12_packet")"
+mkdir -p "$case12_repository_root/$case12_spec_dir"
 
 # No contract yet: a read-only or pre-IMP-038 run must still snapshot cleanly.
 BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
@@ -806,19 +883,19 @@ bash "$SCRIPT_DIR/goal-contract.sh" freeze \
   --source-request-file "$case12_request" \
   --intent "thread goal identity through snapshots" \
   --success-signal "state-snapshot-selftest exits 0" \
-  --target "spec=specs/038-goal-fidelity" \
-  --repository-root bubbles \
-  --spec-target specs/038-goal-fidelity \
-  --allowed-path 'bubbles/scripts/**' \
+  --target "spec=$case12_spec_dir" \
+  --repository-root "$case12_repository_alias" \
+  --spec-target "$case12_spec_dir" \
+  --allowed-path "$case12_spec_dir/**" \
   --runner bubbles.goal \
   --session-id "$case12_session_id" \
-  --repository-alias bubbles >/dev/null 2>&1
+  --repository-alias "$case12_repository_alias" >/dev/null 2>&1
 
 BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
   --session-id "$case12_session_id" --session-control-file "$case12_control" \
   --binding-packet-file "$case12_packet" \
   --phase phase_3_execute --mode start \
-  --convergence-iteration 1 --spec-dir specs/038-goal-fidelity >/dev/null
+  --convergence-iteration 1 --spec-dir "$case12_spec_dir" >/dev/null
 
 if jq -e '
   .turnSnapshots[-1].goalRef as $r
@@ -963,7 +1040,7 @@ case13_out="$(BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
   --binding-packet-file "$case13_goal_packet" \
   --scenario-file "$case13_scenario" --node-id "$case13_node_id" \
   --phase phase_5_remediate --scope-id bug-015 --mode start \
-  --convergence-iteration 4 --spec-dir "$case13_spec_dir" 2>&1)"
+  --convergence-iteration 2 --spec-dir "$case13_spec_dir" 2>&1)"
 case13_exit=$?
 set -e
 
@@ -992,7 +1069,7 @@ if jq -e \
   --argjson unrelated "$case13_unrelated_loop" '
   (.convergenceLoops | length) == 2
   and ([.convergenceLoops[] | select(.specDir == $spec and .agent == "bubbles.goal")] | length) == 1
-  and (.convergenceLoops[] | select(.specDir == $spec and .agent == "bubbles.goal") | .iterationCount) == 4
+  and (.convergenceLoops[] | select(.specDir == $spec and .agent == "bubbles.goal") | .iterationCount) == 2
   and (.convergenceLoops[] | select(.specDir == "specs/unrelated")) == $unrelated
 ' "$case13_session" >/dev/null 2>&1; then
   pass "Goal-node convergence updates only the matching entry and preserves unrelated entries"
@@ -1078,6 +1155,526 @@ if cmp -s "$case13_control_baseline" "$case13_control"; then
   pass "All goal-node snapshot refusals leave external control byte-identical"
 else
   fail "Goal-node snapshot refusals must leave external control byte-identical"
+fi
+
+# ---- Case 14: BUG-037 preserves a prior authorized attempt ---------------
+
+cases=$((cases + 1))
+case14_root="$TMP_ROOT/case14"
+case14_session_id="snapshot-case14"
+case14_spec_dir="bugs/BUG-037-convergence-cap-attempt-poisoning"
+prepare_bound_repo "$case14_root" "$case14_session_id"
+case14_control="$BOUND_CONTROL"
+case14_packet="$BOUND_PACKET"
+case14_session="$case14_root/.specify/memory/bubbles.session.json"
+freeze_bug037_goal "$case14_session" "$case14_session_id" "$case14_spec_dir" "$case14_packet"
+
+BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
+  --session-id "$case14_session_id" --session-control-file "$case14_control" \
+  --binding-packet-file "$case14_packet" \
+  --phase phase_bug037_revision_one --mode start \
+  --convergence-iteration 1 --spec-dir "$case14_spec_dir" >/dev/null
+case14_revision_one="$(jq -c '.convergenceLoops[] | select(.goalRef.revision == 1)' "$case14_session")"
+
+revise_bug037_goal "$case14_session" "$case14_session_id" "$case14_packet"
+BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
+  --session-id "$case14_session_id" --session-control-file "$case14_control" \
+  --binding-packet-file "$case14_packet" \
+  --phase phase_bug037_revision_two --mode start \
+  --convergence-iteration 1 --spec-dir "$case14_spec_dir" >/dev/null
+
+if jq -e --arg spec "$case14_spec_dir" '
+  [.convergenceLoops[] | select(.specDir == $spec)] as $attempts
+  | ($attempts | length) == 2
+    and ([$attempts[].goalRef.revision] | sort) == [1, 2]
+' "$case14_session" >/dev/null 2>&1; then
+  pass "BUG-037 appends revision two without erasing revision one"
+else
+  fail "BUG-037 requires one durable summary for each authorized goal revision"
+fi
+
+if jq -e --argjson expected "$case14_revision_one" '
+  any(.convergenceLoops[]; . == $expected)
+' "$case14_session" >/dev/null 2>&1; then
+  pass "BUG-037 leaves the prior attempt summary byte-equivalent after revision two starts"
+else
+  fail "BUG-037 revision two must not rewrite the prior attempt summary"
+fi
+
+# ---- Case 15: BUG-037 same attempt cannot reset --------------------------
+
+cases=$((cases + 1))
+case15_root="$TMP_ROOT/case15"
+case15_session_id="snapshot-case15"
+case15_spec_dir="bugs/BUG-037-convergence-cap-attempt-poisoning"
+prepare_bound_repo "$case15_root" "$case15_session_id"
+case15_control="$BOUND_CONTROL"
+case15_packet="$BOUND_PACKET"
+case15_session="$case15_root/.specify/memory/bubbles.session.json"
+case15_before_reset="$TMP_ROOT/case15-before-reset.json"
+freeze_bug037_goal "$case15_session" "$case15_session_id" "$case15_spec_dir" "$case15_packet"
+
+for case15_iteration in 1 2 3 4 5 6 7 8 9 10; do
+  BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
+    --session-id "$case15_session_id" --session-control-file "$case15_control" \
+    --binding-packet-file "$case15_packet" \
+    --phase phase_bug037_monotonic --mode start \
+    --convergence-iteration "$case15_iteration" --spec-dir "$case15_spec_dir" >/dev/null
+done
+cp "$case15_session" "$case15_before_reset"
+
+set +e
+case15_reset_out="$(BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
+  --session-id "$case15_session_id" --session-control-file "$case15_control" \
+  --binding-packet-file "$case15_packet" \
+  --phase phase_bug037_reset --mode start \
+  --convergence-iteration 1 --spec-dir "$case15_spec_dir" 2>&1)"
+case15_reset_exit=$?
+set -e
+
+if [[ "$case15_reset_exit" -eq 1 ]]; then
+  pass "BUG-037 refuses a lower iteration for the same authorized attempt"
+else
+  fail "BUG-037 same-attempt reset should exit 1 (got exit=$case15_reset_exit output=$case15_reset_out)"
+fi
+
+if printf '%s' "$case15_reset_out" | grep -Fq 'refusing non-monotonic convergence update'; then
+  pass "BUG-037 reset refusal names the non-monotonic update"
+else
+  fail "BUG-037 reset refusal should explain the non-monotonic convergence update"
+fi
+
+if cmp -s "$case15_before_reset" "$case15_session"; then
+  pass "BUG-037 rejected reset leaves the session file byte-identical"
+else
+  fail "BUG-037 rejected reset must not mutate turn or convergence history"
+fi
+
+set +e
+case15_agent_reset_out="$(BUBBLES_AGENT_NAME="bubbles.workflow" bash "$SNAPSHOT" \
+  --session-id "$case15_session_id" --session-control-file "$case15_control" \
+  --binding-packet-file "$case15_packet" \
+  --phase phase_bug037_agent_reset --mode start \
+  --convergence-iteration 1 --spec-dir "$case15_spec_dir" 2>&1)"
+case15_agent_reset_exit=$?
+set -e
+
+if [[ "$case15_agent_reset_exit" -eq 1 ]] &&
+  printf '%s' "$case15_agent_reset_out" | grep -Fq 'refusing non-monotonic convergence update'; then
+  pass "BUG-037 agent switching cannot reset an authorized attempt from ten to one"
+else
+  fail "BUG-037 cross-agent reset should exit 1 (exit=$case15_agent_reset_exit output=$case15_agent_reset_out)"
+fi
+
+if cmp -s "$case15_before_reset" "$case15_session"; then
+  pass "BUG-037 rejected cross-agent reset leaves the session file byte-identical"
+else
+  fail "BUG-037 rejected cross-agent reset must not mint another budget or turn"
+fi
+
+# ---- Case 16: BUG-037 ordinal progression is exact and agent-neutral ------
+
+cases=$((cases + 1))
+case16_root="$TMP_ROOT/case16"
+case16_session_id="snapshot-case16"
+case16_spec_dir="bugs/BUG-037-convergence-cap-attempt-poisoning"
+prepare_bound_repo "$case16_root" "$case16_session_id"
+case16_control="$BOUND_CONTROL"
+case16_packet="$BOUND_PACKET"
+case16_session="$case16_root/.specify/memory/bubbles.session.json"
+case16_before_first="$TMP_ROOT/case16-before-first.json"
+case16_before_gap="$TMP_ROOT/case16-before-gap.json"
+freeze_bug037_goal "$case16_session" "$case16_session_id" "$case16_spec_dir" "$case16_packet"
+cp "$case16_session" "$case16_before_first"
+
+set +e
+case16_first_gap_out="$(BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
+  --session-id "$case16_session_id" --session-control-file "$case16_control" \
+  --binding-packet-file "$case16_packet" \
+  --phase phase_bug037_first_gap --mode start \
+  --convergence-iteration 2 --spec-dir "$case16_root/$case16_spec_dir/" 2>&1)"
+case16_first_gap_exit=$?
+set -e
+
+if [[ "$case16_first_gap_exit" -eq 1 ]] &&
+  printf '%s' "$case16_first_gap_out" | grep -Fq 'first iteration must be 1'; then
+  pass "BUG-037 requires iteration one when an authorized attempt has no summary"
+else
+  fail "BUG-037 first authorized iteration should reject ordinal two (exit=$case16_first_gap_exit output=$case16_first_gap_out)"
+fi
+
+if cmp -s "$case16_before_first" "$case16_session"; then
+  pass "BUG-037 rejected first-ordinal gap leaves the session file byte-identical"
+else
+  fail "BUG-037 rejected first-ordinal gap must not mutate session state"
+fi
+
+BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
+  --session-id "$case16_session_id" --session-control-file "$case16_control" \
+  --binding-packet-file "$case16_packet" \
+  --phase phase_bug037_first --mode start \
+  --convergence-iteration 1 --spec-dir "$case16_root/$case16_spec_dir/" >/dev/null
+case16_timestamp_tmp="$TMP_ROOT/case16-timestamp.json"
+jq '(.convergenceLoops[0].lastUpdated) = "2020-01-01T00:00:00Z"' \
+  "$case16_session" > "$case16_timestamp_tmp"
+mv "$case16_timestamp_tmp" "$case16_session"
+case16_first_updated="$(jq -r '.convergenceLoops[0].lastUpdated' "$case16_session")"
+
+BUBBLES_AGENT_NAME="bubbles.workflow" bash "$SNAPSHOT" \
+  --session-id "$case16_session_id" --session-control-file "$case16_control" \
+  --binding-packet-file "$case16_packet" \
+  --phase phase_bug037_idempotent --mode start \
+  --convergence-iteration 1 --spec-dir "./$case16_spec_dir/" >/dev/null
+
+if jq -e --arg spec "$case16_spec_dir" --arg updated "$case16_first_updated" '
+  [.convergenceLoops[] | select(.specDir == $spec)] as $attempts
+  | ($attempts | length) == 1
+    and $attempts[0].iterationCount == 1
+    and $attempts[0].agents == ["bubbles.goal", "bubbles.workflow"]
+    and $attempts[0].lastUpdated == $updated
+    and ($attempts[0] | has("agent") | not)
+' "$case16_session" >/dev/null 2>&1; then
+  pass "BUG-037 idempotent replay keeps one canonical summary and unions agent attribution"
+else
+  fail "BUG-037 idempotent replay must not duplicate or refresh the attempt summary"
+fi
+
+cp "$case16_session" "$case16_before_gap"
+set +e
+case16_gap_out="$(BUBBLES_AGENT_NAME="bubbles.workflow" bash "$SNAPSHOT" \
+  --session-id "$case16_session_id" --session-control-file "$case16_control" \
+  --binding-packet-file "$case16_packet" \
+  --phase phase_bug037_gap --mode start \
+  --convergence-iteration 3 --spec-dir "$case16_spec_dir" 2>&1)"
+case16_gap_exit=$?
+set -e
+
+if [[ "$case16_gap_exit" -eq 1 ]] &&
+  printf '%s' "$case16_gap_out" | grep -Fq 'refusing skipped convergence ordinal'; then
+  pass "BUG-037 refuses a skipped ordinal for the same authorized attempt"
+else
+  fail "BUG-037 skipped ordinal should exit 1 with a specific refusal (exit=$case16_gap_exit output=$case16_gap_out)"
+fi
+
+if cmp -s "$case16_before_gap" "$case16_session"; then
+  pass "BUG-037 rejected skipped ordinal leaves the session file byte-identical"
+else
+  fail "BUG-037 rejected skipped ordinal must not mutate turn or convergence history"
+fi
+
+BUBBLES_AGENT_NAME="bubbles.workflow" bash "$SNAPSHOT" \
+  --session-id "$case16_session_id" --session-control-file "$case16_control" \
+  --binding-packet-file "$case16_packet" \
+  --phase phase_bug037_next --mode start \
+  --convergence-iteration 2 --spec-dir "$case16_spec_dir" >/dev/null
+
+if jq -e --arg spec "$case16_spec_dir" '
+  [.convergenceLoops[] | select(.specDir == $spec)] as $attempts
+  | ($attempts | length) == 1
+    and $attempts[0].iterationCount == 2
+    and $attempts[0].agents == ["bubbles.goal", "bubbles.workflow"]
+' "$case16_session" >/dev/null 2>&1; then
+  pass "BUG-037 accepts exactly the next ordinal without splitting the budget by agent"
+else
+  fail "BUG-037 next ordinal should advance the shared attempt summary to two"
+fi
+
+# ---- Case 17: BUG-037 trusted goal starts beside legacy history -----------
+
+cases=$((cases + 1))
+case17_root="$TMP_ROOT/case17"
+case17_session_id="snapshot-case17"
+case17_spec_dir="bugs/BUG-037-convergence-cap-attempt-poisoning"
+prepare_bound_repo "$case17_root" "$case17_session_id"
+case17_control="$BOUND_CONTROL"
+case17_packet="$BOUND_PACKET"
+case17_session="$case17_root/.specify/memory/bubbles.session.json"
+mkdir -p "$case17_root/$case17_spec_dir"
+
+cat > "$case17_session" <<'JSON'
+{
+  "convergenceLoops": [
+    {
+      "specDir": "bugs/BUG-037-convergence-cap-attempt-poisoning",
+      "agent": "bubbles.goal",
+      "iterationCount": 16,
+      "lastUpdated": "2026-08-28T03:24:39Z",
+      "goalRef": null,
+      "marker": "preserve-legacy-byte-equivalent"
+    }
+  ]
+}
+JSON
+
+set +e
+case17_legacy_guard_out="$(BUBBLES_REPO_ROOT="$case17_root" bash "$GUARD" "$case17_spec_dir" 2>&1)"
+case17_legacy_guard_exit=$?
+set -e
+if [[ "$case17_legacy_guard_exit" -eq 1 ]] &&
+  printf '%s' "$case17_legacy_guard_out" | grep -Fq 'active attempt:           legacy' &&
+  printf '%s' "$case17_legacy_guard_out" | grep -Fq 'observed iterationCount:  16'; then
+  pass "BUG-037 capped legacy state fails closed before trusted authorization"
+else
+  fail "BUG-037 capped legacy state should remain blocked before Goal Contract freeze (exit=$case17_legacy_guard_exit output=$case17_legacy_guard_out)"
+fi
+
+freeze_bug037_goal "$case17_session" "$case17_session_id" "$case17_spec_dir" "$case17_packet"
+case17_legacy="$(jq -c '.convergenceLoops[0]' "$case17_session")"
+
+BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
+  --session-id "$case17_session_id" --session-control-file "$case17_control" \
+  --binding-packet-file "$case17_packet" \
+  --phase phase_bug037_legacy_to_goal --mode start \
+  --convergence-iteration 1 --spec-dir "$case17_spec_dir" >/dev/null
+
+if jq -e --arg spec "$case17_spec_dir" --argjson legacy "$case17_legacy" '
+  [.convergenceLoops[] | select(.specDir == $spec)] as $attempts
+  | ($attempts | length) == 2
+    and any($attempts[]; . == $legacy)
+    and any($attempts[]; .goalRef.revision == 1 and .iterationCount == 1)
+' "$case17_session" >/dev/null 2>&1; then
+  pass "BUG-037 starts a trusted attempt beside byte-equivalent legacy history"
+else
+  fail "BUG-037 trusted attempt must not erase or rewrite the legacy capped record"
+fi
+
+set +e
+case17_trusted_guard_out="$(BUBBLES_REPO_ROOT="$case17_root" bash "$GUARD" "$case17_spec_dir" 2>&1)"
+case17_trusted_guard_exit=$?
+set -e
+if [[ "$case17_trusted_guard_exit" -eq 0 ]] &&
+  printf '%s' "$case17_trusted_guard_out" | grep -Fq 'observed=1' &&
+  printf '%s' "$case17_trusted_guard_out" | grep -Fq 'historicalMax=16'; then
+  pass "BUG-037 trusted attempt starts at one beside unchanged capped legacy history"
+else
+  fail "BUG-037 trusted attempt should pass beside capped legacy history (exit=$case17_trusted_guard_exit output=$case17_trusted_guard_out)"
+fi
+
+# ---- Case 18: BUG-037 digest conflict refuses without mutation ------------
+
+cases=$((cases + 1))
+case18_root="$TMP_ROOT/case18"
+case18_session_id="snapshot-case18"
+case18_spec_dir="bugs/BUG-037-convergence-cap-attempt-poisoning"
+prepare_bound_repo "$case18_root" "$case18_session_id"
+case18_control="$BOUND_CONTROL"
+case18_packet="$BOUND_PACKET"
+case18_session="$case18_root/.specify/memory/bubbles.session.json"
+case18_bad_state="$TMP_ROOT/case18-bad-state.json"
+case18_before_write="$TMP_ROOT/case18-before-write.json"
+freeze_bug037_goal "$case18_session" "$case18_session_id" "$case18_spec_dir" "$case18_packet"
+
+jq --arg spec "$case18_spec_dir" '
+  .convergenceLoops = [{
+    specDir: $spec,
+    goalRef: {
+      goalId: .goalContract.goalId,
+      revision: .goalContract.revision,
+      sourceRequestDigest: "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+    },
+    iterationCount: 1,
+    lastUpdated: "2026-08-30T00:00:00Z",
+    agents: ["bubbles.goal"]
+  }]
+' "$case18_session" > "$case18_bad_state"
+mv "$case18_bad_state" "$case18_session"
+cp "$case18_session" "$case18_before_write"
+
+set +e
+case18_out="$(BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
+  --session-id "$case18_session_id" --session-control-file "$case18_control" \
+  --binding-packet-file "$case18_packet" \
+  --phase phase_bug037_digest_conflict --mode start \
+  --convergence-iteration 1 --spec-dir "$case18_spec_dir" 2>&1)"
+case18_exit=$?
+set -e
+
+if [[ "$case18_exit" -eq 2 ]] &&
+  printf '%s' "$case18_out" | grep -Fq 'different sourceRequestDigest'; then
+  pass "BUG-037 snapshot writer rejects a substituted current-goal digest"
+else
+  fail "BUG-037 digest substitution should exit 2 with an identity diagnostic (exit=$case18_exit output=$case18_out)"
+fi
+
+if cmp -s "$case18_before_write" "$case18_session"; then
+  pass "BUG-037 digest-conflict refusal leaves session state byte-identical"
+else
+  fail "BUG-037 digest-conflict refusal must not mutate repository binding, turns, or convergence history"
+fi
+
+# ---- Case 19: BUG-037 pre-fix writer baseline replay ---------------------
+
+cases=$((cases + 1))
+bug037_baseline_ref="6d3e6faf84115205f87e35b24a72c50b13f999d0"
+bug037_source_root="$(cd "$SCRIPT_DIR/../.." && pwd)"
+bug037_baseline_dir="$TMP_ROOT/bug037-pre-fix-writer"
+bug037_baseline_snapshot="$bug037_baseline_dir/state-snapshot.sh"
+bug037_baseline_binding="$bug037_baseline_dir/repository-binding.sh"
+mkdir -p "$bug037_baseline_dir"
+
+if ! command -v git >/dev/null 2>&1 ||
+  ! git -C "$bug037_source_root" cat-file -e "$bug037_baseline_ref:bubbles/scripts/state-snapshot.sh" 2>/dev/null ||
+  ! git -C "$bug037_source_root" cat-file -e "$bug037_baseline_ref:bubbles/scripts/repository-binding.sh" 2>/dev/null ||
+  ! git -C "$bug037_source_root" show "$bug037_baseline_ref:bubbles/scripts/state-snapshot.sh" > "$bug037_baseline_snapshot" ||
+  ! git -C "$bug037_source_root" show "$bug037_baseline_ref:bubbles/scripts/repository-binding.sh" > "$bug037_baseline_binding"; then
+  fail "BUG-037 recorded pre-fix state snapshot is available for mutation replay"
+else
+  chmod 700 "$bug037_baseline_snapshot" "$bug037_baseline_binding"
+
+  case19_root="$TMP_ROOT/case19"
+  case19_session_id="snapshot-case19"
+  case19_spec_dir="bugs/BUG-037-convergence-cap-attempt-poisoning"
+  prepare_bound_repo "$case19_root" "$case19_session_id"
+  case19_control="$BOUND_CONTROL"
+  case19_packet="$BOUND_PACKET"
+  case19_session="$case19_root/.specify/memory/bubbles.session.json"
+  freeze_bug037_goal "$case19_session" "$case19_session_id" "$case19_spec_dir" "$case19_packet"
+
+  BUBBLES_AGENT_NAME="bubbles.goal" bash "$bug037_baseline_snapshot" \
+    --session-id "$case19_session_id" --session-control-file "$case19_control" \
+    --binding-packet-file "$case19_packet" \
+    --phase phase_bug037_red_revision_one --mode start \
+    --convergence-iteration 1 --spec-dir "$case19_spec_dir" >/dev/null
+  revise_bug037_goal "$case19_session" "$case19_session_id" "$case19_packet"
+  BUBBLES_AGENT_NAME="bubbles.goal" bash "$bug037_baseline_snapshot" \
+    --session-id "$case19_session_id" --session-control-file "$case19_control" \
+    --binding-packet-file "$case19_packet" \
+    --phase phase_bug037_red_revision_two --mode start \
+    --convergence-iteration 1 --spec-dir "$case19_spec_dir" >/dev/null
+
+  if jq -e --arg spec "$case19_spec_dir" '
+    [.convergenceLoops[] | select(.specDir == $spec)] as $attempts
+    | ($attempts | length) == 1
+      and $attempts[0].goalRef.revision == 2
+      and (any($attempts[]; .goalRef.revision == 1) | not)
+  ' "$case19_session" >/dev/null 2>&1; then
+    pass "BUG-037 RED pre-fix writer erases revision-one history on the same-agent revision-two write"
+  else
+    fail "BUG-037 pre-fix history-erasure mutation did not reproduce"
+  fi
+
+  for case19_iteration in 2 3 4 5 6 7 8 9 10; do
+    BUBBLES_AGENT_NAME="bubbles.goal" bash "$bug037_baseline_snapshot" \
+      --session-id "$case19_session_id" --session-control-file "$case19_control" \
+      --binding-packet-file "$case19_packet" \
+      --phase phase_bug037_red_reset --mode start \
+      --convergence-iteration "$case19_iteration" --spec-dir "$case19_spec_dir" >/dev/null
+  done
+
+  set +e
+  BUBBLES_AGENT_NAME="bubbles.goal" bash "$bug037_baseline_snapshot" \
+    --session-id "$case19_session_id" --session-control-file "$case19_control" \
+    --binding-packet-file "$case19_packet" \
+    --phase phase_bug037_red_reset --mode start \
+    --convergence-iteration 1 --spec-dir "$case19_spec_dir" >/dev/null 2>&1
+  case19_reset_exit=$?
+  set -e
+
+  if [[ "$case19_reset_exit" -eq 0 ]] && jq -e --arg spec "$case19_spec_dir" '
+    [.convergenceLoops[] | select(.specDir == $spec)] as $attempts
+    | ($attempts | length) == 1 and $attempts[0].iterationCount == 1
+  ' "$case19_session" >/dev/null 2>&1; then
+    pass "BUG-037 RED pre-fix writer permits a same-attempt ten-to-one reset"
+  else
+    fail "BUG-037 pre-fix reset mutation did not reproduce"
+  fi
+fi
+
+# ---- Case 20: BUG-037 physical aliases share one writer identity ---------
+
+cases=$((cases + 1))
+case20_root="$TMP_ROOT/case20"
+case20_session_id="snapshot-case20"
+case20_spec_dir="bugs/BUG-037-convergence-cap-attempt-poisoning"
+case20_alias_dir="bugs/BUG-037-convergence-cap-alias"
+case20_escape_dir="bugs/BUG-037-convergence-cap-escape"
+prepare_bound_repo "$case20_root" "$case20_session_id"
+case20_control="$BOUND_CONTROL"
+case20_packet="$BOUND_PACKET"
+case20_session="$case20_root/.specify/memory/bubbles.session.json"
+freeze_bug037_goal "$case20_session" "$case20_session_id" "$case20_spec_dir" "$case20_packet"
+ln -s "BUG-037-convergence-cap-attempt-poisoning" "$case20_root/$case20_alias_dir"
+
+BUBBLES_AGENT_NAME="bubbles.goal" bash "$SNAPSHOT" \
+  --session-id "$case20_session_id" --session-control-file "$case20_control" \
+  --binding-packet-file "$case20_packet" \
+  --phase phase_bug037_physical_target --mode start \
+  --convergence-iteration 1 --spec-dir "$case20_spec_dir" >/dev/null
+BUBBLES_AGENT_NAME="bubbles.workflow" bash "$SNAPSHOT" \
+  --session-id "$case20_session_id" --session-control-file "$case20_control" \
+  --binding-packet-file "$case20_packet" \
+  --phase phase_bug037_contained_alias --mode start \
+  --convergence-iteration 2 --spec-dir "$case20_alias_dir" >/dev/null
+
+if jq -e --arg spec "$case20_spec_dir" '
+  [.convergenceLoops[] | select(.specDir == $spec)] as $attempts
+  | (.convergenceLoops | length) == 1
+    and ($attempts | length) == 1
+    and $attempts[0].iterationCount == 2
+    and $attempts[0].agents == ["bubbles.goal", "bubbles.workflow"]
+    and ($attempts[0] | has("agent") | not)
+' "$case20_session" >/dev/null 2>&1; then
+  pass "BUG-037 writer-alias-consolidation: physical alias writes consolidate one authorized attempt"
+else
+  fail "BUG-037 direct and contained-alias writes must persist one canonical attempt summary"
+fi
+
+set +e
+case20_alias_guard_out="$(BUBBLES_REPO_ROOT="$case20_root" bash "$GUARD" "$case20_alias_dir" 2>&1)"
+case20_alias_guard_exit=$?
+set -e
+if [[ "$case20_alias_guard_exit" -eq 0 ]] &&
+  printf '%s' "$case20_alias_guard_out" | grep -Fq "specDir=$case20_spec_dir" &&
+  printf '%s' "$case20_alias_guard_out" | grep -Fq 'observed=2'; then
+  pass "BUG-037 contained alias reads the consolidated physical attempt budget"
+else
+  fail "BUG-037 contained alias should read the physical target budget (exit=$case20_alias_guard_exit output=$case20_alias_guard_out)"
+fi
+
+case20_outside="$TMP_ROOT/case20-outside-spec"
+mkdir -p "$case20_outside"
+ln -s "$case20_outside" "$case20_root/$case20_escape_dir"
+case20_before_escape="$TMP_ROOT/case20-before-escape.json"
+cp "$case20_session" "$case20_before_escape"
+
+set +e
+case20_escape_out="$(BUBBLES_AGENT_NAME="bubbles.workflow" bash "$SNAPSHOT" \
+  --session-id "$case20_session_id" --session-control-file "$case20_control" \
+  --binding-packet-file "$case20_packet" \
+  --phase phase_bug037_escape_alias --mode start \
+  --convergence-iteration 1 --spec-dir "$case20_escape_dir" 2>&1)"
+case20_escape_exit=$?
+set -e
+if [[ "$case20_escape_exit" -eq 2 ]] &&
+  printf '%s' "$case20_escape_out" | grep -Fq 'SESSION_SPEC_ESCAPES_ROOT'; then
+  pass "BUG-037 escaping writer alias is refused by physical containment"
+else
+  fail "BUG-037 escaping writer alias should exit 2 with SESSION_SPEC_ESCAPES_ROOT (exit=$case20_escape_exit output=$case20_escape_out)"
+fi
+if cmp -s "$case20_before_escape" "$case20_session"; then
+  pass "BUG-037 escaping-writer-byte-preservation: escaping alias refusal leaves the active session byte-identical"
+else
+  fail "BUG-037 escaping alias refusal must not append a turn or mutate convergence state"
+fi
+
+set +e
+case20_selector_out="$(BUBBLES_AGENT_NAME="bubbles.workflow" bash "$SNAPSHOT" \
+  --session-id "$case20_session_id" --session-control-file "$case20_control" \
+  --binding-packet-file "$case20_packet" \
+  --phase phase_bug037_selector --mode start \
+  --attempt-id forged 2>&1)"
+case20_selector_exit=$?
+set -e
+if [[ "$case20_selector_exit" -eq 2 ]] &&
+  printf '%s' "$case20_selector_out" | grep -Fq 'unknown argument: --attempt-id'; then
+  pass "BUG-037 snapshot writer exposes no caller-selected attempt option"
+else
+  fail "BUG-037 snapshot writer must reject a caller attempt selector (exit=$case20_selector_exit output=$case20_selector_out)"
+fi
+if cmp -s "$case20_before_escape" "$case20_session"; then
+  pass "BUG-037 caller attempt-selector refusal leaves the active session byte-identical"
+else
+  fail "BUG-037 rejected caller attempt selector must not mutate session state"
 fi
 
 # ---- Case 11: --help contract ----------------------------------------------

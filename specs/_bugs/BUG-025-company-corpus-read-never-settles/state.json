@@ -1,0 +1,2402 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+  "featureName": "BUG-025 A Company Corpus Read That Never Answers Never Settles",
+  "createdAt": "2026-08-30T00:00:00Z",
+  "lastUpdatedAt": "2026-09-02T00:00:39Z",
+  "status": "done",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "linkedImplementationSpec": "specs/025-company-multi-horizon-intelligence-lab",
+  "scopeLayout": "single-file",
+  "requiresRevalidation": false,
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.validate",
+    "currentPhase": "finalize",
+    "currentPhaseStatus": "completed",
+    "substate": "certified_done",
+    "executionModel": "direct-authorized-runner",
+    "runStartedAt": null,
+    "completedAt": "2026-09-02T00:00:39Z",
+    "currentScope": null,
+    "nextRequiredOwner": null,
+    "nextRequiredTarget": null,
+    "nextRequiredReason": null,
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-08-30T00:00:00Z",
+        "evidenceRef": "report.md#source-control-flow-inspection",
+        "scopes": []
+      },
+      {
+        "phase": "bootstrap",
+        "agent": "bubbles.design",
+        "claimedAt": "2026-08-31T03:41:06Z",
+        "evidenceRef": "design.md#design-brief",
+        "scopes": []
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-08-31T05:52:21Z",
+        "evidenceRef": "report.md#independent-test-phase-2026-08-31",
+        "scopes": []
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T06:06:32Z",
+        "evidenceRef": "report.md#regression-phase-2026-08-31",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Executed the complete 102-case Company Intelligence unit carrier, complete 47-case system-Chrome carrier, 3437-check repository selftest, bugfix regression-quality guard, config-consumer audit, no-interception classification audit, and protected-scenario discrimination review. No regression or conflict was found."
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T06:23:35Z",
+        "evidenceRef": "report.md#simplify-phase-2026-08-31",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Reviewed the complete BUG-025 delta across reuse, quality, and efficiency. Centralized request-timer cleanup through one promise finally path and removed the unused first-paint return. Re-executed 102 focused unit cases, five focused BUG-025 browser cases, all 47 Company Intelligence browser cases, and 3437 repository selftests with zero failures. Routed the independent inert-JSON page-check mismatch to bubbles.gaps."
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T07:47:36Z",
+        "evidenceRef": "report.md#regression-reverification-2026-08-31",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Re-verified the changed SCN-BUG-025-004 persistent browser carrier after both repository-selftest ownership findings closed. Executed six focused BUG-025 browser cases, all 48 Company Intelligence browser cases, 102 unit cases, 3437 repository selftests, the four-link scenario resolver, bugfix regression-quality guard, artifact lint, source discrimination inspection, and protected Feature 025 and BUG-018 inventory. No regression, conflict, coverage loss, or unresolved finding was found."
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T18:13:02Z",
+        "evidenceRef": "report.md#test-finding-bug-025-test-004",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Independently executed the exact SCN-BUG-025-005 carrier, seven focused BUG-025 browser cases, all 49 Company Intelligence browser cases, 102 unit cases, 3437 repository selftests after a test-owned provenance-matcher repair, the five-link scenario resolver, bugfix regression-quality guard, implementation-reality scan, artifact lint, and production/test hash boundary. Closed BUG-025-TEST-004 and BUG-025-ROUTE-013, then routed independent harden confirmation as BUG-025-HARDEN-REVERIFY."
+      },
+      {
+        "phase": "harden",
+        "agent": "bubbles.harden",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T18:24:53Z",
+        "evidenceRef": "report.md#harden-reverification-bug-025-harden-reverify-2026-08-31",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Inspected SCN-BUG-025-005, the exact server/snapshot/mutation helpers, and the production stale-intent guard. Independently executed the exact carrier, all seven focused BUG-025 browser cases, 3437 repository selftests, the five-link resolver, bugfix regression-quality guard, artifact lint, and pre/post byte boundary. The mutation removes exactly one guard, produces only the intended repaint/publication discriminator failures, rejects arbitrary browser errors, and leaves production bytes unchanged. Closed BUG-025-HARDEN-001 and BUG-025-HARDEN-REVERIFY with verdict HARDENED."
+      },
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.stabilize",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T18:41:44Z",
+        "evidenceRef": "report.md#stabilize-phase-2026-08-31",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Validated the exact revision-7 packet before repository reads. Executed 7 focused BUG-025 browser cases, 11 existing stability and race cases, five repeated out-of-order subject runs, six repeated timeout and abort runs, all 49 Company Intelligence browser cases, all 11 Company Intelligence chaos cases, 102 unit cases, 3437 repository selftests, the 172-declaration timeout-budget validator, post-run process teardown, and artifact lint. No stability finding remained. Classified the 10000 ms bound as a per-request reliability deadline rather than a latency SLA, so G026 does not require stress or load rows. Verdict STABLE."
+      },
+      {
+        "phase": "security",
+        "agent": "bubbles.security",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T19:11:55Z",
+        "evidenceRef": "report.md#security-phase-2026-08-31",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Validated the exact revision-7 packet before repository reads. Executed the 102-case unit carrier, seven focused BUG-025 browser cases, 3437 repository selftests, G034 mechanical floor, project PII scan, dependency source-lock validator, bugfix regression-quality guard, implementation-reality scan, hostile error probes, and adversarial path probes. Found BUG-025-SEC-001: a schema-accepted backslash authority in eventsPath resolves off origin and causes a real browser request. Routed the high-severity A10/A04 finding to bubbles.implement without changing production, tests, planning, DoD, status, or certification."
+      },
+      {
+        "phase": "analyze",
+        "agent": "bubbles.analyst",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T19:34:23Z",
+        "evidenceRef": "report.md#analyst-security-requirement-closure-2026-08-31",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Validated the exact revision-7 packet without preflight. Reconciled analyst-owned requirements so event coverage accepts only a closed company subject suffix and its exact derived repository path. Added fail-loud embedded and served configuration behavior plus adversarial unit and real-browser proof obligations. Routed the unchanged delivery finding to bubbles.ux without changing scope, DoD, status, completion arrays, or certification."
+      },
+      {
+        "phase": "bootstrap",
+        "agent": "bubbles.design",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T20:44:17Z",
+        "evidenceRef": "report.md#design-security-contract-reconciliation-2026-08-31",
+        "scopes": [],
+        "note": "Validated the exact revision-8 packet without preflight. Reconciled design.md with FR-025-008 through FR-025-013 and the UX refusal states. The active design now requires exact subject-derived event paths, duplicate rejection, validation before authoritative assignment, terminal config-refusal suppression, one atomic alert, focus preservation, scenario-first RED, mutation controls, and a closed six-file product/test/docs delivery boundary. Targeted design checks and artifact lint exited zero. No implementation, persistent test, planning, DoD, user-validation, status, completion, or certification content changed."
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-09-01T04:06:24Z",
+        "evidenceRef": "report.md#formal-implementation-closure-bug-025-sec-001-2026-09-01",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Validated the exact revision-9 packet before repository reads. Inspected the current production, note, test, packet, and protected bytes; captured Git object and SHA-256 boundaries; and ran git diff check, the eight-link resolver, implementation-reality scan, and artifact lint. Bound the current-session top-level runner receipts for 110 unit tests, six security browser cases, 55 complete Company Intelligence browser cases, and 3438 repository selftests to those unchanged bytes. Closed BUG-025-SEC-001-IMPLEMENTATION and BUG-025-ROUTE-023, then routed BUG-025-SECURITY-REVERIFY to bubbles.security without changing production, tests, planning, DoD, scope status, top-level status, completion arrays, user validation, or certification."
+      },
+      {
+        "phase": "security",
+        "agent": "bubbles.security",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-09-01T04:26:10Z",
+        "evidenceRef": "report.md#security-reverification-bug-025-security-reverify-2026-09-01",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Validated the exact revision-9 packet before repository reads. Read the complete current packet, production source, current unit and browser carriers, note, config, protected event data, and formal closure. Independently executed the adversarial validator matrix, three production security browser scenarios, three mutations, complete 110-test unit carrier, 3438-check repository selftest, G034, PII, dependency source lock, regression quality, implementation reality, scenario resolver, artifact lint, and before/after formal hash checks. Closed BUG-025-SECURITY-REVERIFY and BUG-025-SEC-001 with no unresolved security finding and routed final validation without changing production, tests, planning, DoD, status, completion, user validation, or certification."
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-09-01T05:38:16Z",
+        "evidenceRef": "report.md#final-tree-test-phase-2026-09-01",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Validated the exact control-revision-3 actionable packet before repository reads and without preflight. Re-read the current packet and owning source. Executed all 110 Company Intelligence unit tests, the 13-case focused BUG-025 browser selection covering all eight scenario links and three security mutations, all 55 Company Intelligence browser tests, 3438 repository selftests, the eight-link resolver, bugfix regression-quality guard, implementation-reality scan, artifact lint, interception/skip/bailout scans, and before/after protected plus sibling dirty-path hash checks. No test or guard failed, no production or persistent test file changed, all fifteen DoD items remain unchecked, and final adjudication is routed to bubbles.validate."
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-09-01T07:39:15Z",
+        "evidenceRef": "report.md#test-owned-validation-mechanics-closure-2026-09-01",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Validated the exact control-revision-3 actionable packet before repository reads and without preflight. Read the current production source, controlled-break map, Feature 025 selftest block, packet state, and canonical tool-call log. Grounded the current-session 3443-pass selftest and 8-of-8 complete controlled-break receipts, then independently reran the canonical scenario-state resolver, which derived every required applicable state for all eight scenarios with certifiable yes. Closed BUG-025-VALIDATE-SELFTEST-001, BUG-025-VALIDATE-SCENARIO-STATE-001, and BUG-025-ROUTE-025 without changing source, tests, map, planning, DoD, scope or top-level status, scope or certification completion arrays, user validation, or certification fields, and routed final adjudication to bubbles.validate under BUG-025-ROUTE-024."
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-09-01T07:53:11Z",
+        "evidenceRef": "report.md#final-validate-owned-adjudication-closure-2026-09-01",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Validated the exact actionable control-revision-3 packet before repository reads and without preflight. Replayed the 110-test unit carrier, 13-case focused live browser carrier, complete 55-case browser regression, 3443-check repository selftest, pre-certification goal-fidelity guard, and eight-scenario receipt resolver. Adjudicated all fifteen DoD rows individually as earned, marked Scope 1 Done, repaired one missing report fence without changing captured evidence bytes, reconciled validate-owned scope progress, closed BUG-025-ROUTE-024, and routed independent audit while preserving both status mirrors as in_progress."
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-09-01T19:01:16Z",
+        "evidenceRef": "report.md#test-owned-audit-route-032-closure-2026-09-01",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Recorded the current route-032 carrier repair against the exact revision-4 repository packet. Current-session evidence covers the focus-theft and duplicate-announcement controls, canonical-subject receipts, 14 BUG-025 browser cases, all 58 Company Intelligence browser cases, 110 unit cases, 3443 repository selftests, eight resolved scenario links and states, 32 valid and zero stale receipts, regression quality, implementation reality, and artifact lint. Closed BUG-025-ROUTE-032 plus AUD-BUG025-001 through AUD-BUG025-003 and routed current post-repair boundary evidence to bubbles.implement."
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.audit",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-09-01T22:35:07Z",
+        "evidenceRef": "report.md#final-independent-audit-recheck-2026-09-01",
+        "scopes": [
+          "01-declare-and-enforce-one-read-bound"
+        ],
+        "note": "Validated the exact control-revision-4 actionable packet before repository reads and without preflight. Read every BUG-025 artifact, covered the complete report and state chronologies, independently checked design/scope/manifest/map parity, protected runner and sibling-map identities, Scope 1 Done at 15/0, exact findings and routes, artifact lint, strict receipt freshness, and the registry-asserted guard. Addressed all seven original audit findings exactly once, recorded SHIP_IT with no unresolved findings, and routed terminal certification to bubbles.validate without changing certification or status fields."
+      }
+    ],
+    "scopeInventory": [
+      {
+        "scopeId": "01-declare-and-enforce-one-read-bound",
+        "scope": 1,
+        "status": "Done",
+        "dependsOn": []
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": "audit-bug025-20260901-final",
+      "currentAttemptId": "AUDIT-BUG025-20260901-PERSISTENCE-004",
+      "attempts": [
+        {
+          "attemptId": "AUDIT-BUG025-20260901-RECORD-001",
+          "resultState": "SUPERSEDED",
+          "supersededAt": "2026-09-01T22:35:07Z",
+          "supersededByAttemptId": "AUDIT-BUG025-20260901-FINAL-002",
+          "recordedDate": "2026-09-01",
+          "recordedAt": null,
+          "recordedAtReason": "Only the mandatory binding validation command ran. No clock command was permitted, so no execution timestamp is invented.",
+          "target": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+          "repositoryBinding": {
+            "sessionId": "vscode-7ba6dae9325d2fc0ab03ebdac1666fe9",
+            "decisionId": "rb:vscode-7ba6dae9325d2fc0ab03ebdac1666fe9:3",
+            "controlRevision": 3,
+            "controlPathDigest": "sha256:a0fc154b0a649a83aeee7f5de578c8263d751d95e85d51267076e455f25d4efd",
+            "repositoryRoot": "/home/philipk/research-lab",
+            "repositoryAlias": "research-lab",
+            "transition": "confirmed",
+            "actionable": true
+          },
+          "workflowMode": "bugfix-fastlane",
+          "auditProfile": "delivery-completion-v1",
+          "auditClass": "delivery-completion",
+          "targetStatus": "done",
+          "targetRevision": "UNRESOLVED",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "addressedFindings": [],
+          "unresolvedFindings": [
+            "AUDIT-025-EVIDENCE-001",
+            "AUDIT-025-SLICE-002",
+            "AUDIT-025-DOD-003",
+            "AUD-BUG025-001",
+            "AUD-BUG025-002",
+            "AUD-BUG025-003",
+            "AUD-BUG025-004"
+          ],
+          "nextRequiredOwner": "bubbles.design",
+          "ownerSequence": [
+            "bubbles.design",
+            "bubbles.plan",
+            "bubbles.test",
+            "bubbles.implement",
+            "bubbles.validate",
+            "bubbles.audit"
+          ],
+          "evidenceRefs": [
+            "report.md#record-only-audit-findings-2026-09-01"
+          ],
+          "evidenceRef": "report.md#record-only-audit-findings-2026-09-01",
+          "receiptSlice": {
+            "fullScenarioChains": "8/8",
+            "currentClosureReceipts": "17/17",
+            "staleReceipts": 0,
+            "result": "clean"
+          },
+          "note": "Persisted the complete findings from three immediately preceding bounded audit slices. No finding was resolved, no audit completedPhaseClaim was added, and full independent audit recheck remained required until superseded by AUDIT-BUG025-20260901-FINAL-002."
+        },
+        {
+          "attemptId": "AUDIT-BUG025-20260901-FINAL-002",
+          "resultState": "SUPERSEDED",
+          "supersededAt": "2026-09-01T22:47:17Z",
+          "supersededByAttemptId": "AUDIT-BUG025-20260901-PERSISTENCE-003",
+          "startedAt": "2026-09-01T22:35:07Z",
+          "completedAt": "2026-09-01T22:35:07Z",
+          "durationUnmeasured": true,
+          "durationUnmeasuredReason": "The pre-closeout guard supplied one real timestamp after bounded inspection. No separate start boundary was captured, so elapsed duration is not inferred.",
+          "target": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+          "repositoryBinding": {
+            "sessionId": "vscode-0f862ced0188e21d7d00451ceb459e3d",
+            "decisionId": "rb:vscode-0f862ced0188e21d7d00451ceb459e3d:4",
+            "controlRevision": 4,
+            "controlPathDigest": "sha256:f048bc37399c341a4a0fe36c254c257274428d583124ef925808c30eef62c3c5",
+            "repositoryRoot": "/home/philipk/research-lab",
+            "repositoryAlias": "research-lab",
+            "authority": "explicit-repository-root",
+            "transition": "confirmed",
+            "scopeKind": "command",
+            "scopeId": null,
+            "targetKind": "repository-root",
+            "pathVisibility": "local",
+            "actionable": true
+          },
+          "workflowMode": "bugfix-fastlane",
+          "auditProfile": "delivery-completion-v1",
+          "auditClass": "delivery-completion",
+          "targetStatus": "done",
+          "targetRevision": "sha256:d758ec4eb77c7b26a7ab9566a4345926d23dd5a3b48d4642c67fed3c969f43c1",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditVerdict": "SHIP_IT",
+          "outcome": "completed_diagnostic",
+          "evidenceRef": "report.md#final-independent-audit-recheck-2026-09-01",
+          "addressedFindings": [
+            "AUDIT-025-EVIDENCE-001",
+            "AUDIT-025-SLICE-002",
+            "AUDIT-025-DOD-003",
+            "AUD-BUG025-001",
+            "AUD-BUG025-002",
+            "AUD-BUG025-003",
+            "AUD-BUG025-004"
+          ],
+          "unresolvedFindings": [],
+          "nextRequiredOwner": "bubbles.validate",
+          "supersedesAttemptId": "AUDIT-BUG025-20260901-RECORD-001",
+          "receiptSlice": {
+            "fullScenarioChains": "8/8",
+            "currentClosureReceipts": "53/53",
+            "staleReceipts": 0,
+            "result": "clean"
+          },
+          "note": "Final independent delivery-completion audit covered the complete artifact and state chronologies, confirmed the reconciled controlled-break boundary, found no new issue, and returned SHIP_IT. Certification and status remain validate-owned."
+        },
+        {
+          "attemptId": "AUDIT-BUG025-20260901-PERSISTENCE-003",
+          "resultState": "SUPERSEDED",
+          "supersededAt": null,
+          "supersededAtReason": "The strict receipt recheck completed in the current session, but no clock command was requested or run, so no timestamp is invented.",
+          "supersededByAttemptId": "AUDIT-BUG025-20260901-PERSISTENCE-004",
+          "startedAt": "2026-09-01T22:47:17Z",
+          "completedAt": "2026-09-01T22:47:17Z",
+          "durationUnmeasured": true,
+          "durationUnmeasuredReason": "The assertion-only guard supplied one real timestamp after the persistence inspection. No separate start boundary was captured, so elapsed duration is not inferred.",
+          "target": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+          "repositoryBinding": {
+            "sessionId": "vscode-0f862ced0188e21d7d00451ceb459e3d",
+            "decisionId": "rb:vscode-0f862ced0188e21d7d00451ceb459e3d:4",
+            "controlRevision": 4,
+            "repositoryRoot": "/home/philipk/research-lab",
+            "repositoryAlias": "research-lab",
+            "transition": "confirmed",
+            "actionable": true
+          },
+          "workflowMode": "bugfix-fastlane",
+          "auditProfile": "delivery-completion-v1",
+          "auditClass": "delivery-completion",
+          "targetStatus": "done",
+          "targetRevision": "sha256:e57958f25949a7f3efb82be3731a4701c1a217d0a9c86356fadcd85521071738",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditVerdict": "DO_NOT_SHIP",
+          "outcome": "route_required",
+          "evidenceRef": "report.md#audit-persistence-recheck-blocker-2026-09-01",
+          "addressedFindings": [
+            "AUDIT-025-EVIDENCE-001",
+            "AUDIT-025-SLICE-002",
+            "AUDIT-025-DOD-003",
+            "AUD-BUG025-001",
+            "AUD-BUG025-002",
+            "AUD-BUG025-003",
+            "AUD-BUG025-004"
+          ],
+          "unresolvedFindings": [
+            "AUDIT-025-PERSISTENCE-STALE-001"
+          ],
+          "nextRequiredOwner": "bubbles.test",
+          "supersedesAttemptId": "AUDIT-BUG025-20260901-FINAL-002",
+          "receiptSlice": {
+            "currentClosureReceipts": "43/53",
+            "staleReceipts": 10,
+            "result": "blocked"
+          },
+          "note": "Persistence-only verification found ten stale closure-bearing receipts after report and state changed. The assertion-only guard fails applicable-integrity on that exact class. No long test ran and no status or certification field changed."
+        },
+        {
+          "attemptId": "AUDIT-BUG025-20260901-PERSISTENCE-004",
+          "resultState": "ACTIVE",
+          "startedAt": null,
+          "completedAt": null,
+          "recordedAtReason": "The strict receipt recheck completed in the current session, but no clock command was requested or run, so no timestamp is invented.",
+          "durationUnmeasured": true,
+          "durationUnmeasuredReason": "No separate start or completion clock boundary was captured, so elapsed duration is not inferred.",
+          "target": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+          "repositoryBinding": {
+            "sessionId": "vscode-0f862ced0188e21d7d00451ceb459e3d",
+            "decisionId": "rb:vscode-0f862ced0188e21d7d00451ceb459e3d:4",
+            "controlRevision": 4,
+            "controlPathDigest": "sha256:f048bc37399c341a4a0fe36c254c257274428d583124ef925808c30eef62c3c5",
+            "repositoryRoot": "/home/philipk/research-lab",
+            "repositoryAlias": "research-lab",
+            "authority": "explicit-repository-root",
+            "transition": "confirmed",
+            "scopeKind": "command",
+            "scopeId": null,
+            "targetKind": "repository-root",
+            "pathVisibility": "local",
+            "actionable": true
+          },
+          "workflowMode": "bugfix-fastlane",
+          "auditProfile": "delivery-completion-v1",
+          "auditClass": "delivery-completion",
+          "targetStatus": "done",
+          "targetRevision": "sha256:5533052fc439d04a7bfd5d8faa969809b73f989100e44813fbcb215ba9093d22",
+          "contractDigest": "sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f",
+          "auditVerdict": "SHIP_IT",
+          "outcome": "completed_diagnostic",
+          "evidenceRef": "report.md#audit-persistence-closure-2026-09-01",
+          "addressedFindings": [
+            "AUDIT-025-EVIDENCE-001",
+            "AUDIT-025-SLICE-002",
+            "AUDIT-025-DOD-003",
+            "AUD-BUG025-001",
+            "AUD-BUG025-002",
+            "AUD-BUG025-003",
+            "AUD-BUG025-004"
+          ],
+          "unresolvedFindings": [],
+          "nextRequiredOwner": "bubbles.validate",
+          "supersedesAttemptId": "AUDIT-BUG025-20260901-PERSISTENCE-003",
+          "receiptSlice": {
+            "currentClosureReceipts": "53/53",
+            "staleReceipts": 0,
+            "result": "clean"
+          },
+          "resolvedPersistenceFinding": "AUDIT-025-PERSISTENCE-STALE-001",
+          "note": "The current strict receipt checker reports all 53 closure-bearing receipts valid and zero stale. This closes the persistence-only blocker. The active audit diagnostic returns SHIP_IT with all seven original findings addressed and no unresolved findings; certification and status remain unchanged."
+        }
+      ]
+    }
+  },
+  "executionHistory": [
+    {
+      "at": "2026-08-30T00:00:00Z",
+      "phase": "bug",
+      "agent": "bubbles.bug",
+      "action": "filed-independent-finding",
+      "note": "Classified BUG018-STABILIZE-001 as an independent reliability defect, grounded the missing settlement boundary in the production fetch chain, and created the complete packet without claiming runtime reproduction or delivery."
+    },
+    {
+      "at": "2026-08-31T03:41:06Z",
+      "phase": "bootstrap",
+      "agent": "bubbles.design",
+      "action": "finalized-bound-contract-and-routed-red",
+      "note": "Selected a required 10000 ms readBoundMs, required company-intelligence-config/v2, kept the committed config and embedded first-paint mirror exact, specified one route-local AbortController helper through full body consumption with cleanup and no retries, and routed scenario-first RED to bubbles.test. Runtime behavior remains undelivered.",
+      "phasesExecuted": ["bootstrap"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress"
+    },
+    {
+      "at": "2026-08-31T04:03:17Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "captured-scenario-first-red-and-routed-implementation",
+      "note": "Added persistent config-boundary and real ephemeral HTTP regressions. The focused unit carrier has 14 intended RED assertions. The browser carrier observes accepted held requests and embedded first paint, passes the 3000 ms delayed-response control, and fails only because bar, optional-document, and served-config requests remain open beyond the 10000 ms bound.",
+      "phasesExecuted": ["test"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress"
+    },
+    {
+      "at": "2026-08-31T05:15:28Z",
+      "phase": "implement",
+      "agent": "bubbles.implement",
+      "action": "verified-owned-repair-and-routed-test-findings",
+      "note": "Re-read the finalized lifecycle and current diffs, preserved the immutable test carriers at their report-recorded hashes, restored all DoD items to unchecked, and re-executed 102 focused unit cases, four focused BUG-025 browser cases, and all 46 Company Intelligence browser cases green. Repository selftest reported 3435 passed and two failed; both failures are individually routed to bubbles.test without weakening the RED carriers.",
+      "phasesExecuted": ["implement"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress"
+    },
+    {
+      "at": "2026-08-31T05:52:21Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "independent-test-complete-and-routed-regression",
+      "note": "Validated the inherited Research Lab packet at control revision 1. Verified the repaired committed-bound watchdog, mixed fault-injection provenance, invalid embedded-config no-request case, partial-body abort, and per-request timer cleanup. Executed 102 focused unit cases, five focused BUG-025 browser cases, all 47 Company Intelligence browser cases, 3437 repository selftests, timeout-budget evaluation, regression-quality review, and artifact lint with zero failures or skips. Closed BUG-025-ROUTE-003 and routed the still-in-progress Scope 1 packet to bubbles.regression without changing certification or top-level status.",
+      "phasesExecuted": ["test"],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-TEST-001",
+        "BUG-025-TEST-002",
+        "BUG-025-ROUTE-003"
+      ],
+      "unresolvedFindings": ["BUG-025-REGRESSION-PHASE-REQUIRED"],
+      "nextRequiredOwner": "bubbles.regression",
+      "evidenceRef": "report.md#independent-test-phase-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T06:06:32Z",
+      "phase": "regression",
+      "agent": "bubbles.regression",
+      "action": "completed-protected-regression-and-routed-simplify",
+      "note": "Validated the inherited Research Lab packet at control revision 1 before repository reads. Re-executed 102 of 102 Company Intelligence unit tests, 47 of 47 Company Intelligence browser tests, and 3437 of 3437 repository selftests. Verified the no-signal failure discriminator, partial-body stall, inside-bound success, embedded first paint, one-request behavior, BUG-018 pending and settled semantics, Feature 025 behavior, mixed interception provenance, and v2 consumer synchronization. No tracked finding remains from regression.",
+      "phasesExecuted": ["regression"],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-31T05:59:42Z",
+      "finishedAt": "2026-08-31T06:06:32Z",
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "BUG-025-REGRESSION-PHASE-REQUIRED",
+        "BUG-025-ROUTE-004"
+      ],
+      "unresolvedFindings": [],
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-005",
+        "nextPhase": "simplify",
+        "nextRequiredOwner": "bubbles.simplify"
+      },
+      "evidenceRef": "report.md#regression-phase-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T06:23:35Z",
+      "phase": "simplify",
+      "agent": "bubbles.simplify",
+      "action": "simplified-bounded-read-cleanup-and-routed-gaps",
+      "note": "Validated the inherited Research Lab packet at control revision 1 before repository reads. Reviewed only the BUG-025 production and test carrier. Replaced duplicate promise cleanup branches with one finally path, removed the unused paintFromEmbedded return, and left every browser discriminator unchanged. The complete current-session verification set exited zero. The generic page one-liner rejected the inert application/json mirror, so BUG-025-SIMPLIFY-GAP-001 is preserved for the gaps phase.",
+      "phasesExecuted": ["simplify"],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SIMPLIFY-001",
+        "BUG-025-SIMPLIFY-002",
+        "BUG-025-ROUTE-005"
+      ],
+      "unresolvedFindings": ["BUG-025-SIMPLIFY-GAP-001"],
+      "nextRequiredOwner": "bubbles.gaps",
+      "evidenceRef": "report.md#simplify-phase-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T06:37:31Z",
+      "phase": "gaps",
+      "agent": "bubbles.gaps",
+      "action": "completed-fidelity-audit-and-routed-required-planning",
+      "note": "Validated the inherited Research Lab packet at control revision 1 before repository reads. Traced the complete BUG-025 contract through the current config, validator, one route helper, every request family, settled rendering, unit carrier, browser carrier, and repository selftest. No production divergence was found. A synchronous acquisition-setup failure has no persistent scenario or execution; scenario-manifest links are not mechanically resolvable; and scopes do not expose implementation paths to the reality scan. The registered page check is canonical, not ad hoc, and incorrectly executes the inert application/json mirror; existing committed unit and browser validators handle the page correctly, so that defect is independent of bounded acquisition and routed to bubbles.bug.",
+      "phasesExecuted": ["gaps"],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-ROUTE-006"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-GAPS-001",
+        "BUG-025-GAPS-002",
+        "BUG-025-GAPS-003",
+        "BUG-025-SIMPLIFY-GAP-001"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "parallelOwnerRoute": {
+        "transitionRequestId": "BUG-025-ROUTE-008",
+        "nextRequiredOwner": "bubbles.bug"
+      },
+      "evidenceRef": "report.md#gaps-phase-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T07:02:23Z",
+      "phase": "plan",
+      "agent": "bubbles.plan",
+      "action": "closed-planning-findings-and-routed-synchronous-setup-carrier",
+      "note": "Added SCN-BUG-025-004 for a synchronous selected-path fetch setup throw before a usable promise, one matching scenario-specific browser Test Plan row, and one matching unchecked DoD item. Converted the three existing scenario pointers to resolver-compatible linkedTests, added derived scenario obligations, and declared the six current BUG-025 implementation and test paths under the reality-scan heading. The scenario resolver resolved three existing links, the implementation-reality scan reported zero warnings, and artifact lint passed. The new exact test title remains planned-only and is routed to bubbles.test.",
+      "phasesExecuted": ["plan"],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-GAPS-001",
+        "BUG-025-GAPS-002",
+        "BUG-025-GAPS-003",
+        "BUG-025-ROUTE-007"
+      ],
+      "unresolvedFindings": ["BUG-025-TEST-003"],
+      "nextRequiredOwner": "bubbles.test",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-009",
+        "nextRequiredOwner": "bubbles.test"
+      },
+      "evidenceRef": "report.md#planning-finding-closure-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T07:16:05Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "closed-synchronous-setup-carrier-and-routed-regression-reverification",
+      "note": "Added the exact SCN-BUG-025-004 production-route browser carrier. The focused six-case selection, complete 48-case browser file, 102-case unit file, four-link scenario resolver, and bugfix regression-quality guard exited zero. The repository selftest remained nonzero on an excluded BUG-027 missing test path and the validate-owned BUG-025 0/8 versus 0/9 scope-progress claim. No production file, excluded packet, certification field, or DoD checkbox changed.",
+      "phasesExecuted": ["test"],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-TEST-003",
+        "BUG-025-ROUTE-009"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SELFTEST-001",
+        "BUG-025-SELFTEST-002",
+        "BUG-025-REGRESSION-REVERIFY"
+      ],
+      "nextRequiredOwner": "bubbles.regression",
+      "evidenceRef": "report.md#test-finding-closure-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T07:21:18Z",
+      "phase": "bug",
+      "agent": "bubbles.bug",
+      "action": "closed-bug-025-selftest-001-filing-artifact-hygiene",
+      "note": "Corrected only the BUG-027 filing seed and minimal BUG-025 report and execution metadata. The focused spec-test-path validator reports zero new missing paths. The repository selftest reports 3436 passed and one failed, solely the untouched validate-owned BUG-025 certification count. No BUG-025 scope, scenario, source, test, or certification field changed.",
+      "phasesExecuted": [
+        "bug"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SELFTEST-001"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SELFTEST-002",
+        "BUG-025-REGRESSION-REVERIFY"
+      ],
+      "nextRequiredOwner": "bubbles.regression",
+      "evidenceRef": "report.md#selftest-001-filing-hygiene-closure"
+    },
+    {
+      "at": "2026-08-31T07:32:55Z",
+      "phase": "validate",
+      "agent": "bubbles.validate",
+      "action": "reconciled-nonterminal-certification-scope-progress-and-routed-regression-reverification",
+      "note": "Validated the exact inherited Research Lab repository packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:6 and control revision 6 before repository reads. Reconciled only certification.scopeProgress to in_progress with 0 checked and 9 unchecked items. The focused progress guard, 3437-check repository selftest, and BUG-025 artifact lint exit zero. No DoD, scope status, packet status, completion inventory, certified phase, certifiedAt value, or promotion changed. This was surgical finding remediation, not the final validation phase.",
+      "phasesExecuted": [],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SELFTEST-002"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-REGRESSION-REVERIFY"
+      ],
+      "nextRequiredOwner": "bubbles.regression",
+      "evidenceRef": "report.md#selftest-002-certification-mirror-remediation"
+    },
+    {
+      "at": "2026-08-31T07:47:36Z",
+      "phase": "regression",
+      "agent": "bubbles.regression",
+      "action": "reverified-changed-persistent-carrier-and-routed-harden",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:6 and control revision 6 without preflight. Re-executed six focused BUG-025 browser cases, all 48 Company Intelligence browser cases, 102 unit cases, 3437 repository selftests, the four-link scenario resolver, bugfix regression-quality guard, and artifact lint. Inspected the direct synchronous throw, outer-catch discriminator, one-attempt and zero-network assertions, timer cleanup, and retained Feature 025 and BUG-018 cases. BUG-025-ROUTE-010 and BUG-025-REGRESSION-REVERIFY are closed with no new finding.",
+      "phasesExecuted": [
+        "regression"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-31T07:39:23Z",
+      "finishedAt": "2026-08-31T07:47:36Z",
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "BUG-025-ROUTE-010",
+        "BUG-025-REGRESSION-REVERIFY"
+      ],
+      "unresolvedFindings": [],
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-011",
+        "nextPhase": "harden",
+        "nextRequiredOwner": "bubbles.harden"
+      },
+      "evidenceRef": "report.md#regression-reverification-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T16:51:07Z",
+      "phase": "validate",
+      "agent": "bubbles.validate",
+      "action": "recorded-external-operator-acceptance-and-automation-readiness",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:7 and control revision 7 without preflight or revision advance. Recorded the current operator directive as external-record acceptance by pkirsanov without claiming live human exercise. Re-executed the six-case focused production-route browser selection, 102-case unit carrier, four-link scenario resolver, and BUG-025 artifact lint; all exited zero, so the four Automation Readiness items were checked. policySnapshot.autoCommit remains unchanged because mode scope is supported but source operator-directive is not. This was not the final validate phase and did not certify or promote the packet.",
+      "phasesExecuted": [],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-ACCEPTANCE-RECORD",
+        "BUG-025-AUTOMATION-READINESS"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.harden",
+      "evidenceRef": "report.md#operator-acceptance-and-automation-readiness-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T17:21:50Z",
+      "phase": "harden",
+      "agent": "bubbles.harden",
+      "action": "found-stale-intent-browser-gap-and-routed-test",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:7 and control revision 7 without preflight. Read only the bounded BUG-025 artifacts, production helper region, and persistent test carriers. The requested commands exited zero: 102 unit cases, six focused browser cases, all 48 browser cases, 3437 repository selftests, four scenario links, implementation reality, bugfix regression quality, and artifact lint. Inspection confirmed the artifact counts, external-record acceptance, one signal-bearing AbortController fetch, no retry or hidden duration, timer cleanup, and one-request controls. It also found no discriminating browser case for the readingIntent stale-completion guard: adjacent pending-state and background-repaint cases use only one new valid intent. No source, tests, scopes, DoD, status, or certification fields changed.",
+      "phasesExecuted": [
+        "harden"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-ROUTE-011"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-HARDEN-001"
+      ],
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-012",
+        "nextPhase": "test",
+        "nextRequiredOwner": "bubbles.test"
+      },
+      "evidenceRef": "report.md#harden-phase-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T17:27:15Z",
+      "phase": "plan",
+      "agent": "bubbles.plan",
+      "action": "planned-two-intent-stale-completion-carrier-and-routed-owned-work",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:7 and control revision 7 without preflight or revision advance. Added one precise two-valid-subject Gherkin scenario, one matching scenario-specific e2e-ui Test Plan row, one matching unchecked DoD item, and planned-only SCN-BUG-025-005. The contract uses the real ephemeral same-origin server, unmodified MSFT and AAPL responses, second-subject state snapshots, no-repaint and no-republication sentinels, and a high-risk mutation control against removal of the stale-intent guard. Planning closes BUG-025-HARDEN-001 as planned, not tested. BUG-025-TEST-004 is routed to bubbles.test. BUG-025-CERT-MIRROR-010 is routed to bubbles.validate because the unchanged 0/9 certification mirror must become non-terminal 0/10 before repository selftest can be green.",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-HARDEN-001",
+        "BUG-025-ROUTE-012",
+        "COMPLETENESS: SCN-BUG-025-004"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-TEST-004",
+        "BUG-025-CERT-MIRROR-010"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "prerequisiteOwnerRoute": {
+        "transitionRequestId": "BUG-025-ROUTE-014",
+        "nextRequiredOwner": "bubbles.validate",
+        "target": "Non-terminal certification.scopeProgress mirror reconciliation from 0/9 to 0/10"
+      },
+      "evidenceRef": "report.md#planning-closure-bug-025-harden-001-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T17:40:02Z",
+      "phase": "validate",
+      "agent": "bubbles.validate",
+      "action": "reconciled-tenth-nonterminal-certification-mirror-and-routed-planned-carrier",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:7 and control revision 7 without preflight or revision advance. Reconciled only certification.scopeProgress for Scope 1 from 0/9 to 0/10, closed BUG-025-ROUTE-014, and preserved every status, completion array, certified phase, lockdown field, DoD item, implementation, test, and acceptance record. The current repository selftest reported 3437 passed and 0 failed, and BUG-025 artifact lint passed while SCN-BUG-025-005 remained planned-only with no linked claim. BUG-025-TEST-004 remains unresolved and routed to bubbles.test. No certification or promotion occurred.",
+      "phasesExecuted": [],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-CERT-MIRROR-010",
+        "BUG-025-ROUTE-014"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-TEST-004"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "evidenceRef": "report.md#validate-certification-mirror-remediation-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T18:13:02Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "closed-stale-intent-carrier-and-routed-harden-reverification",
+      "note": "Validated the exact revision-7 Research Lab packet without preflight or revision advance. Independently executed the exact SCN-BUG-025-005 carrier, seven focused BUG-025 browser cases, all 49 Company Intelligence browser cases, 102 unit cases, and the repository selftest. The first selftest found a stale test-owned provenance matcher; after its narrow repair the selftest reported 3437 passed and zero failed. The five-link resolver, bugfix regression-quality guard, implementation-reality scan, artifact lint, skip-marker scan, and production/test hash boundary were clean. No production file, planning text, DoD checkbox, acceptance record, completion array, or certification field changed.",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-TEST-004",
+        "BUG-025-ROUTE-013"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-HARDEN-REVERIFY"
+      ],
+      "nextRequiredOwner": "bubbles.harden",
+      "evidenceRef": "report.md#test-finding-bug-025-test-004"
+    },
+    {
+      "at": "2026-08-31T18:24:53Z",
+      "phase": "harden",
+      "agent": "bubbles.harden",
+      "action": "closed-stale-intent-hardening-finding-and-routed-stabilize",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:7 and control revision 7 without preflight. Inspected the current SCN-BUG-025-005 carrier and production stale-intent guard. Executed the exact title, seven focused BUG-025 browser cases, 3437 repository selftests, five-link resolver, bugfix regression-quality guard, artifact lint, and production-byte boundary. The carrier uses unmodified production and repository responses, settles and publishes AAPL while MSFT is held, preserves every required AAPL snapshot after release, removes exactly one guard for the mutation, accepts only intended repaint/publication failures, rejects arbitrary browser errors, and leaves production bytes unchanged. The harden verdict is HARDENED.",
+      "phasesExecuted": [
+        "harden"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "BUG-025-HARDEN-001",
+        "BUG-025-HARDEN-REVERIFY"
+      ],
+      "unresolvedFindings": [],
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-015",
+        "nextPhase": "stabilize",
+        "nextRequiredOwner": "bubbles.stabilize"
+      },
+      "evidenceRef": "report.md#harden-reverification-bug-025-harden-reverify-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T18:41:44Z",
+      "phase": "stabilize",
+      "agent": "bubbles.stabilize",
+      "action": "completed-stability-diagnosis-and-routed-devops-relevance",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:7 and control revision 7 without preflight or revision advance. Read the active bug contract, production bound helper, current browser carriers, timeout validator, and G026 definition. Executed focused, repeated, complete, chaos, unit, selftest, timeout-budget, process-teardown, and artifact-lint checks. Every command exited zero, no selected browser or worker process remained, and no product or test byte changed. The 10000 ms contract is a per-request reliability deadline, not a latency SLA. Closed BUG-025-ROUTE-015 with verdict STABLE and routed mechanical devops relevance as BUG-025-ROUTE-016. Scope 1, all ten DoD items, top-level status, completion arrays, and certification remain in progress.",
+      "phasesExecuted": [
+        "stabilize"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "BUG-025-ROUTE-015"
+      ],
+      "unresolvedFindings": [],
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-016",
+        "nextPhase": "devops",
+        "nextRequiredOwner": "bubbles.devops"
+      },
+      "evidenceRef": "report.md#stabilize-phase-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T18:51:30Z",
+      "phase": "devops",
+      "agent": "bubbles.devops",
+      "action": "recorded-mechanical-skip-and-routed-security-relevance",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:7 and control revision 7 without preflight or revision advance. Read only current state and the Scope 1 change boundary. They name no owned CI, deployment, monitoring, or infrastructure path that contradicts the top-level mechanical result. Recorded the exact skip reason without executing DevOps checks or modifying any operational file. No completedPhaseClaim was added. Closed BUG-025-ROUTE-016 and created BUG-025-ROUTE-017 to bubbles.security for top-level mechanical relevance. Scope, DoD, statuses, completion arrays, and certification remain unchanged.",
+      "phasesExecuted": [],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "skipped",
+      "reason": "DevOps pass skipped — scope does not modify CI, deployment, monitoring, or infrastructure (runner: bubbles.goal)",
+      "rule": "scope_has_no_ci_deploy_or_infra_changes",
+      "changedSurface": [
+        "specs/_bugs/BUG-025-company-corpus-read-never-settles/report.md",
+        "specs/_bugs/BUG-025-company-corpus-read-never-settles/state.json"
+      ],
+      "reevaluated": false,
+      "addressedFindings": [
+        "BUG-025-ROUTE-016"
+      ],
+      "unresolvedFindings": [],
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-017",
+        "nextPhase": "security",
+        "nextRequiredOwner": "bubbles.security"
+      },
+      "evidenceRef": "report.md#devops-mechanical-skip-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T19:11:55Z",
+      "phase": "security",
+      "agent": "bubbles.security",
+      "action": "found-configured-path-origin-escape-and-routed-implementation",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:7 and control revision 7 without preflight or revision advance. Reviewed path/origin trust, abort and metadata semantics, config validation, input and concurrency, test authenticity, PII/secrets, and dependency supply chain. Current unit, focused browser, repository selftest, regression-quality, implementation-reality, PII, G034, and source-lock checks exited zero. Two adversarial probes proved BUG-025-SEC-001: readEventSource() accepts a backslash authority and the real browser issues an off-origin request. No production, test, planning, user-validation, scope, DoD, status, completion, or certification field changed.",
+      "phasesExecuted": [
+        "security"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-ROUTE-017"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SEC-001"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "evidenceRef": "report.md#security-phase-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T19:34:23Z",
+      "phase": "analyze",
+      "agent": "bubbles.analyst",
+      "action": "security-requirements-reconciled-and-routed-to-ux",
+      "note": "Validated the exact revision-7 Research Lab packet without preflight. Read the current bug specification, bug record, event-source config, production validator and route, security report, and subject behavior. Added FR-025-008 through FR-025-013, exact acceptance criteria, three security scenarios, a security contract, and non-goals. The long-term decision treats eventsPath as the one exact repository path derived from a closed company subject suffix, not as a relative URL. No broad test ran. bug.md remained unchanged because its original bounded-read expected behavior and root cause remain accurate. Scope, DoD, status, completion arrays, and certification remain unchanged.",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SEC-001-REQUIREMENTS"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SEC-001-UX-DESIGN-PLAN-DELIVERY"
+      ],
+      "nextRequiredOwner": "bubbles.ux",
+      "evidenceRef": "report.md#analyst-security-requirement-closure-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T20:15:23Z",
+      "phase": "analyze",
+      "agent": "bubbles.ux",
+      "action": "security-refusal-ux-reconciled-and-routed-to-design",
+      "note": "Validated the exact revision-8 Research Lab packet without preflight. Reconciled one existing Company Intelligence screen in spec.md with three ASCII states and three user flows. The contract preserves cache-first first paint, uses only the existing C025-CONFIG-SCHEMA refusal surface, separates route refusal from ordinary unavailable evidence, defines atomic screen-reader announcements without focus theft, and adds no page, modal, toast, retry, editor, normalization, fallback, external path, or user action. UX1 through UX9 and BUG-025 artifact lint exited zero. The external-record acceptance remains unchanged and no live human exercise is claimed. No production, test, planning, DoD, user-validation, status, completion, or certification content changed.",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-31T20:13:02Z",
+      "finishedAt": "2026-08-31T20:15:23Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SEC-001-UX"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SEC-001-DESIGN-PLAN-DELIVERY"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "evidenceRef": "report.md#ux-security-refusal-reconciliation-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T20:44:17Z",
+      "phase": "bootstrap",
+      "agent": "bubbles.design",
+      "action": "security-design-reconciled-and-routed-to-plan",
+      "note": "Validated the exact revision-8 Research Lab packet without preflight or revision advance. Read the current requirements, UX, design, security and analyst report sections, state, user validation, config copies, production validator and route flow, and relevant tests. Reconciled one active technical truth: each event subject derives one exact repository path, all candidates validate before assignment, invalid embedded and served config use terminal existing refusal semantics, and ordinary unavailable plus transport-only fallback remain unchanged. Design-profile checks and artifact lint exited zero. No product implementation, persistent test, scope, DoD, scenario manifest, user validation, status, or certification changed.",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-31T20:44:17Z",
+      "finishedAt": "2026-08-31T20:44:17Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The design reconciliation stored one real record instant as both startedAt and finishedAt, but no separate start boundary survives in its report evidence. Its elapsed duration is unknown rather than zero, so both original timestamps are preserved and no earlier timestamp or duration is invented.",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SEC-001-DESIGN",
+        "BUG-025-ROUTE-019"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SEC-001-PLAN-DELIVERY"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "evidenceRef": "report.md#design-security-contract-reconciliation-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T20:56:35Z",
+      "phase": "plan",
+      "agent": "bubbles.plan",
+      "action": "security-scenarios-planned-and-routed-to-red",
+      "note": "Validated the exact inherited Research Lab repository packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:8 and control revision 8 without preflight or revision advance. Reconciled Scope 1 with three exact security Gherkin scenarios, a UI scenario matrix, five matching Test Plan and unchecked DoD rows, stable planned-only SCN-BUG-025-006 through SCN-BUG-025-008 contracts, high-risk mutation controls, the closed production/test/docs boundary, and an explicit owner-gated sequence. Preserved SCN-BUG-025-001 through SCN-BUG-025-005 and all existing links. Routed BUG-025-SEC-001-RED to bubbles.test before implementation and BUG-025-CERT-MIRROR-015 to bubbles.validate before repository selftest reliance. No production, test, design, spec, UX, user-validation, certification, status, completion, config-object, or data artifact changed.",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-31T20:56:35Z",
+      "finishedAt": "2026-08-31T20:56:35Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The security-planning reconciliation stored one real record instant as both startedAt and finishedAt, but no separate start boundary survives in its report evidence. Its elapsed duration is unknown rather than zero, so both original timestamps are preserved and no earlier timestamp or duration is invented.",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SEC-001-PLAN",
+        "BUG-025-ROUTE-020"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SEC-001-RED",
+        "BUG-025-CERT-MIRROR-015"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "prerequisiteOwnerRoute": {
+        "transitionRequestId": "BUG-025-ROUTE-022",
+        "nextRequiredOwner": "bubbles.validate",
+        "target": "Non-terminal certification.scopeProgress mirror reconciliation from 0/10 to 0/15 before repository selftest reliance"
+      },
+      "evidenceRef": "report.md#planning-security-closure-bug-025-sec-001-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T21:36:01Z",
+      "phase": "validate",
+      "agent": "bubbles.validate",
+      "action": "reconciled-fifteen-item-nonterminal-certification-mirror-and-routed-security-red",
+      "note": "Validated the exact inherited Research Lab packet at decision rb:vscode-20072c8d3f74af455af2514e746fced3:8 and control revision 8 without preflight or revision advance. Reconciled only certification.scopeProgress for Scope 1 from 0/10 to 0/15 and closed BUG-025-CERT-MIRROR-015 plus BUG-025-ROUTE-022. The focused progress parity check changed from the exact 0/10 versus 0/15 NEW-DRIFT to zero new drift, and artifact lint exited zero. The diagnostic repository selftest no longer reported certification-mirror drift; it exited 1 with 3436 passed and one remaining BUG-018 test-provenance failure. BUG-025-SEC-001-RED and BUG-025-ROUTE-021 remain unresolved and routed to bubbles.test. No certification or promotion occurred.",
+      "phasesExecuted": [],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-08-31T21:34:08Z",
+      "finishedAt": "2026-08-31T21:36:01Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-CERT-MIRROR-015",
+        "BUG-025-ROUTE-022"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SEC-001-RED"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "evidenceRef": "report.md#validate-certification-mirror-015-reconciliation-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T21:49:01Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "captured-security-scenario-first-red-and-routed-implementation",
+      "note": "Validated the exact inherited revision-8 Research Lab packet without preflight or revision advance. Repaired only the stale test-owned browser-provenance predicate. The repository selftest then reported 3437 passed and zero failed. The whole unit carrier reported 103 passed and 7 failed across 110 tests, with every failure confined to the security matrix and its parent. The exact canonical unit and browser controls each passed 1 of 1. The embedded and served invalid browser carriers each failed 1 of 1 on named security discriminators without arbitrary runtime failure. All three mutation carriers stopped at exact absent-production-guard preconditions. All eight scenario links resolved, the bugfix regression-quality guard reported zero violations and warnings, skip and bailout scans were clean, and production, config, event-data, and implementation-note hashes remained unchanged.",
+      "phasesExecuted": [],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-TEST-PROVENANCE-STALE",
+        "BUG-025-SEC-001-RED",
+        "BUG-025-ROUTE-021"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SEC-001-IMPLEMENTATION"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "evidenceRef": "report.md#scenario-first-security-red-bug-025-sec-001-2026-08-31"
+    },
+    {
+      "at": "2026-08-31T22:39:53Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "corrected-quiescence-harness-and-routed-formal-implementation-closure",
+      "note": "Validated the exact revision-8 Research Lab packet without preflight or revision advance. Removed only the total static-server request-count conjunct from the embedded and served terminal aggregate checks. Preserved complete terminal-state comparison, later-settlement rejection, every precise security request discriminator, and every mutation expectation. The exact embedded and served production cases, route-suppression mutation, both equality mutations, canonical control, six-case security cluster, 13 focused BUG-025 browser cases, all 55 Company Intelligence browser cases, 110 unit tests, 3438 repository selftests, eight-link resolver, regression-quality guard, implementation-reality scan, and artifact lint exited zero. The test-owned harness finding is closed. Production closure remains owned by bubbles.implement, followed by independent bubbles.security verification.",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SEC-001-QUIESCENCE-HARNESS"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SEC-001-IMPLEMENTATION"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "evidenceRef": "report.md#bug-025-sec-001-quiescence-harness-correction-2026-08-31"
+    },
+    {
+      "at": "2026-09-01T04:06:24Z",
+      "phase": "implement",
+      "agent": "bubbles.implement",
+      "action": "recorded-formal-security-implementation-closure-and-routed-reverification",
+      "note": "Validated the exact revision-9 inherited packet before repository reads. Inspected current source and protected bytes, recorded Git object and SHA-256 boundaries, and executed only fast integrity checks. The current-session top-level runner receipts bind 110 unit tests, six security browser cases, 55 complete Company Intelligence browser cases, and 3438 repository selftests to the unchanged current bytes. No long suite was replayed. BUG-025-SEC-001-IMPLEMENTATION and BUG-025-ROUTE-023 are closed as implementation-owned records; independent security re-verification remains routed without changing any DoD, status, completion, user-validation, or certification field.",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T04:06:24Z",
+      "finishedAt": "2026-09-01T04:06:24Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The prior implementation closure stored one real record instant as both startedAt and finishedAt, but no separate start boundary survives in its report evidence or the current Git history. Its elapsed duration is unknown rather than zero, so the original timestamps are preserved and no earlier timestamp or duration is invented.",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SEC-001-IMPLEMENTATION",
+        "BUG-025-ROUTE-023"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-SECURITY-REVERIFY"
+      ],
+      "nextRequiredOwner": "bubbles.security",
+      "evidenceRef": "report.md#formal-implementation-closure-bug-025-sec-001-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T04:26:10Z",
+      "phase": "security",
+      "agent": "bubbles.security",
+      "action": "independently-reverified-security-closure-and-routed-final-validation",
+      "note": "Validated the exact revision-9 inherited packet before repository reads. The formal implementation and test hashes matched before and after execution. The production adversarial matrix, three production security browser scenarios, three mutations, complete unit carrier, repository selftest, G034, PII, dependency source lock, regression-quality guard, implementation-reality scan, scenario resolver, and artifact lint exited zero. Source review found no URL normalization or decoding bypass, alternate raw event-path authority, second fetch site, CSP dependency, unsafe DOM sink, error-detail leak, invalid shared-state assignment, stale continuation, retry, fallback, or protected-byte drift.",
+      "phasesExecuted": [
+        "security"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T04:17:05Z",
+      "finishedAt": "2026-09-01T04:26:10Z",
+      "outcome": "completed_diagnostic",
+      "addressedFindings": [
+        "BUG-025-SECURITY-REVERIFY",
+        "BUG-025-SEC-001"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.validate",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-024",
+        "nextPhase": "validate",
+        "nextRequiredOwner": "bubbles.validate"
+      },
+      "evidenceRef": "report.md#security-reverification-bug-025-security-reverify-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T05:38:16Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "executed-fresh-final-tree-test-and-routed-validation",
+      "note": "Validated the exact control-revision-3 packet before repository reads and without preflight. The complete 110-test unit carrier, 13-case focused browser selection, complete 55-test browser file, 3438-check repository selftest, eight-link resolver, regression-quality guard, implementation-reality scan, artifact lint, direct interception/skip/bailout scans, and protected plus sibling boundary checks exited clean. Production, persistent tests, planning, DoD, user validation, top-level status, completion arrays, and certification remain unchanged.",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T05:31:05Z",
+      "finishedAt": "2026-09-01T05:38:16Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-FINAL-TREE-TEST"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-ROUTE-024"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "evidenceRef": "report.md#final-tree-test-phase-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T06:10:29Z",
+      "phase": "plan",
+      "agent": "bubbles.plan",
+      "action": "reconciled-final-validation-planning-shape-and-routed-test",
+      "note": "Validated the exact control-revision-3 Research Lab packet before repository reads and without preflight. Reconciled only the canonical scenario-specific regression and Change Boundary planning shapes, plus scenario-manifest generation metadata. Preserved all eight scenario behaviors and linked test titles, the 12-row Test Plan, all 15 unchecked DoD rows, the complete delivery boundary, every validate finding, Scope 1 and both status mirrors in progress, empty certification completion arrays, and unlocked lockdown. Narrow planning guards and artifact lint exited zero. The delivery-completion guard still refused only on non-planning findings.",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T06:04:37Z",
+      "finishedAt": "2026-09-01T06:10:29Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-VALIDATE-PLAN-001"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-VALIDATE-SELFTEST-001",
+        "BUG-025-VALIDATE-SCENARIO-STATE-001",
+        "BUG-025-VALIDATE-DELTA-001",
+        "BUG-025-VALIDATE-STATE-001"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "evidenceRef": "report.md#final-validation-planning-reconciliation-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T07:00:08Z",
+      "phase": "implement",
+      "agent": "bubbles.implement",
+      "action": "closed-final-validation-delta-evidence-and-routed-foreign-state-claims",
+      "note": "Validated the exact control-revision-3 Research Lab packet before repository reads and without preflight. Read the current validation finding, packet, production and persistent test implementations, current tracked patch, dirty inventory, and path commit history. Added the executed Code Diff Evidence section without claiming an isolated commit. Reconciled only the prior bubbles.implement history span by declaring its unmeasured duration and preserving both recorded instants. Production, tests, selftest, map, product note, planning truth, DoD, user validation, status, completion arrays, and certification remain unchanged. The design-owned and plan-owned state claims remain routed separately.",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-VALIDATE-DELTA-001"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-VALIDATE-SELFTEST-001",
+        "BUG-025-VALIDATE-SCENARIO-STATE-001",
+        "BUG-025-VALIDATE-STATE-001"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "parallelOwnerRoute": {
+        "transitionRequestId": "BUG-025-ROUTE-027",
+        "nextRequiredOwner": "bubbles.plan"
+      },
+      "evidenceRef": "report.md#code-diff-evidence"
+    },
+    {
+      "at": "2026-09-01T07:21:51Z",
+      "phase": "bootstrap",
+      "agent": "bubbles.design",
+      "action": "reconciled-design-provenance-and-routed-plan-span",
+      "note": "Validated the exact control-revision-3 Research Lab packet before repository reads and without preflight. Reclassified both design-authored completed claims and both backing history records from the unregistered design name to the registered bootstrap phase. Preserved every claim instant and evidence reference. Declared the 2026-08-31T20:44:17Z design span unmeasured with its original timestamps intact. Artifact lint exited zero. The diagnostic transition guard accepted bootstrap provenance from bubbles.design, surfaced the design and implementation spans as declared unmeasured, and retained only the untouched bubbles.plan span as the zero-duration state-history blocker. No design content, source, test, map, receipt, planning, DoD, status, completion, user-validation, or certification content changed.",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T07:14:48Z",
+      "finishedAt": "2026-09-01T07:21:51Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-ROUTE-026",
+        "BUG-025-VALIDATE-STATE-001 design-owned portion"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-VALIDATE-SELFTEST-001",
+        "BUG-025-VALIDATE-SCENARIO-STATE-001",
+        "BUG-025-VALIDATE-STATE-001 plan-owned portion",
+        "BUG-025-ROUTE-027"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-027",
+        "nextPhase": "bootstrap",
+        "nextRequiredOwner": "bubbles.plan"
+      },
+      "evidenceRef": "report.md#design-provenance-reconciliation-bug-025-validate-state-001-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T07:39:15Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "closed-final-validation-test-mechanics-and-routed-adjudication",
+      "note": "Validated the exact control-revision-3 actionable Research Lab packet before repository reads and without preflight. Read the current production source, controlled-break map, modified Feature 025 selftest block, packet routing state, and canonical tool-call log. The admitted current-session selftest receipt reports exit zero and 3443 passes. The canonical controlled-break receipt reports 8 of 8 complete with the expected red and green phase exits and an unchanged shared tree. The independently rerun canonical resolver derives PLANNED, RED_VERIFIED, IMPLEMENTED, GREEN_TARGETED, GREEN_LIVE, and REGRESSION_GREEN for all eight scenarios, classifies only superseded SCS-REVISION-DRIFT receipts as nonblocking, and reports certifiable yes. No source, test, map, scope, scenario manifest, user-validation, DoD, scope or top-level status, scope or certification completion-array, or certification-field byte changed.",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-VALIDATE-SELFTEST-001",
+        "BUG-025-VALIDATE-SCENARIO-STATE-001",
+        "BUG-025-ROUTE-025"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-ROUTE-024"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "evidenceRef": "report.md#test-owned-validation-mechanics-closure-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T07:53:11Z",
+      "phase": "validate",
+      "agent": "bubbles.validate",
+      "action": "completed-final-scope-adjudication-and-routed-audit",
+      "note": "Validated the exact control-revision-3 actionable Research Lab packet before repository reads and without preflight. The current 110-test unit carrier, 13-case focused live browser replay, complete 55-case browser regression, 3443-check repository selftest, pre-certification goal-fidelity gate, and eight-scenario state resolver exited zero. Every Scope 1 DoD row was adjudicated against its exact claim and current evidence. All fifteen rows are checked, Scope 1 is Done, the completed-scope and 15/0 progress mirrors are current, and the prior malformed report fence is structurally repaired without changing captured evidence bytes. Both status mirrors remain in_progress because audit and finalize remain in the registered phase order.",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T07:50:27Z",
+      "finishedAt": "2026-09-01T07:53:11Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-ROUTE-024",
+        "BUG-025-VALIDATE-REPORT-FENCE-001"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-ROUTE-028"
+      ],
+      "nextRequiredOwner": "bubbles.audit",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-028",
+        "nextPhase": "audit",
+        "nextRequiredOwner": "bubbles.audit"
+      },
+      "evidenceRef": "report.md#final-validate-owned-adjudication-closure-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T15:07:33Z",
+      "phase": "plan",
+      "agent": "bubbles.plan",
+      "action": "repaired-g057-scenario-inventory-field-and-routed-stale-receipts",
+      "note": "Validated the exact control-revision-3 actionable Research Lab packet before repository reads and without preflight. Found that the canonical manifest and scenario-state reader use id while the installed G057 inventory counter counts only scenarioId. Added the identical scenarioId alias beside each of the eight unchanged canonical ids. Traceability, eight linked-test resolution, certifiable scenario-state derivation, artifact lint, and the full transition diagnostic were executed. G057 now passes. The transition remains blocked only by 35 stale global input-closure receipts and the missing audit phase. Both status mirrors, Scope 1, all fifteen DoD rows, certification, canonical receipts, test titles, behavior, and the existing audit route remain unchanged.",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T15:02:29Z",
+      "finishedAt": "2026-09-01T15:07:33Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-VALIDATE-G057-SCENARIO-INVENTORY"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-STALE-INPUT-CLOSURE-RECEIPTS",
+        "BUG-025-ROUTE-028"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-029",
+        "nextPhase": "test",
+        "nextRequiredOwner": "bubbles.test"
+      },
+      "evidenceRef": "report.md#planning-owned-g057-scenario-inventory-repair-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T15:23:55Z",
+      "phase": "plan",
+      "agent": "bubbles.plan",
+      "action": "revalidated-g057-compatibility-closure",
+      "note": "Validated the exact control-revision-3 actionable Research Lab packet before repository reads and without preflight. Confirmed exactly eight scenario rows, eight canonical id fields, eight scenarioId compatibility fields, and eight identical id-to-scenarioId values without duplicating or reordering fields. The scenario-test resolver resolved all eight links, the scenario-state resolver remained certifiable, artifact lint exited zero, and the transition diagnostic retained G057 in passedGateIds. Status, certification, Scope 1, all fifteen DoD rows, scenario behavior, linked tests, receipts, and the preserved audit route remain unchanged. The only remaining blocker classes are the 35 stale global input-closure receipts and the missing audit phase.",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T15:17:58Z",
+      "finishedAt": "2026-09-01T15:23:55Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-VALIDATE-G057-SCENARIO-INVENTORY"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-STALE-INPUT-CLOSURE-RECEIPTS",
+        "BUG-025-ROUTE-028"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-029",
+        "nextPhase": "test",
+        "nextRequiredOwner": "bubbles.test"
+      },
+      "evidenceRef": "report.md#surgical-g057-compatibility-revalidation-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T16:15:06Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "closed-stale-receipt-freshness-and-restored-audit-route",
+      "note": "Validated the exact control-revision-3 actionable Research Lab packet before repository reads and without preflight. Read the current append-only receipt log and reran only strict freshness. The checker reported 1672 total receipts, 1592 current, 80 superseded, 17 closure-bearing, 17 valid, zero stale, and 1575 unknown with evidence SHA-256 432a992ea28b8248d0da17e1dcb7450975ddae6b608578da5c249e742432034f. Two restored-tree RED identities intentionally remain unknown without false current closures. No behavior, source, test, map, scenario manifest, DoD, user validation, status, certification, or sibling path changed.",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T16:14:46Z",
+      "finishedAt": "2026-09-01T16:15:06Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-STALE-INPUT-CLOSURE-RECEIPTS",
+        "BUG-025-ROUTE-029"
+      ],
+      "unresolvedFindings": [
+        "BUG-025-ROUTE-028"
+      ],
+      "nextRequiredOwner": "bubbles.audit",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-028",
+        "nextPhase": "audit",
+        "nextRequiredOwner": "bubbles.audit"
+      },
+      "evidenceRef": "report.md#test-owned-stale-receipt-remediation-2026-09-01"
+    },
+    {
+      "at": null,
+      "recordedDate": "2026-09-01",
+      "recordedAtUnmeasured": true,
+      "recordedAtReason": "This record-only audit persistence step was prohibited from running a clock command, so no timestamp is invented.",
+      "phase": "audit",
+      "agent": "bubbles.audit",
+      "action": "persisted-bounded-audit-slice-findings-and-routed-rework",
+      "note": "Recorded all seven findings from the three immediately preceding bounded audit slices. The receipt slice remains clean at 8/8 full chains, 17/17 valid current closure receipts, and zero stale. No finding was resolved and no audit completedPhaseClaim was added. Design owns the first boundary and test-fidelity reconciliation, followed by plan, test, implement, validate, and audit recheck.",
+      "phasesExecuted": [],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUDIT-025-DOD-003",
+        "AUD-BUG025-001",
+        "AUD-BUG025-002",
+        "AUD-BUG025-003",
+        "AUD-BUG025-004"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-030",
+        "nextPhase": "bootstrap",
+        "nextRequiredOwner": "bubbles.design",
+        "then": [
+          "bubbles.plan",
+          "bubbles.test",
+          "bubbles.implement",
+          "bubbles.validate",
+          "bubbles.audit"
+        ]
+      },
+      "evidenceRef": "report.md#record-only-audit-findings-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T17:23:42Z",
+      "phase": "bootstrap",
+      "agent": "bubbles.design",
+      "action": "reconciled-audit-test-fidelity-design-and-routed-planning",
+      "note": "Validated the exact control-revision-3 actionable Research Lab packet before repository reads and without preflight. Reconciled design.md so the BUG-025 map is the sole admitted bug-specific declarative mechanism while the generic runner and sibling maps remain protected. Defined exact document.body initial focus, event-level non-empty alert-update counting without deduplication, bounded focus-theft and duplicate-announcement mutants, and a SCN-BUG-025-006 mutation of the actual canonical subject-acceptance predicate. The current system-Chrome diagnostic observed document.body as the active element. Design profile checks, artifact freshness, capability proportionality, and artifact lint exited zero. No source, test, map, scope, scenario manifest, DoD, user-validation, status, completion, or certification content changed. All seven audit findings remain open, with only the AUD-BUG025-004 design boundary recorded as partially reconciled, and planning is the next owner.",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T17:14:58Z",
+      "finishedAt": "2026-09-01T17:23:42Z",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "partiallyAddressedFindings": [
+        "AUD-BUG025-004"
+      ],
+      "unresolvedFindings": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUDIT-025-DOD-003",
+        "AUD-BUG025-001",
+        "AUD-BUG025-002",
+        "AUD-BUG025-003",
+        "AUD-BUG025-004"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-030",
+        "nextPhase": "bootstrap",
+        "nextRequiredOwner": "bubbles.plan",
+        "then": [
+          "bubbles.test",
+          "bubbles.implement",
+          "bubbles.validate",
+          "bubbles.audit"
+        ]
+      },
+      "evidenceRef": "report.md#audit-rework-design-reconciliation-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T17:35:09Z",
+      "phase": "bootstrap",
+      "agent": "bubbles.plan",
+      "action": "reconciled-audit-proof-planning-and-routed-nonterminal-mirror",
+      "note": "Validated the exact control-revision-3 actionable Research Lab packet before repository reads and without preflight. Reconciled the existing scope, scenario manifest, and sole BUG-025 break map with exact document.body focus, per-update live-region counting without deduplication, bounded focus-theft and duplicate-announcement controls, and the current readEventSource canonical-subject predicate. Preserved all eight scenario ids, titles, and linked tests, all twelve Test Plan rows, and all fifteen DoD rows. Reopened rows 9 through 11 and Scope 1 because historical evidence predates the strengthened controls. Planning guards, the eight-link resolver, implementation reality scan, and artifact lint exited zero. No production, persistent test, user-validation, generic-runner, sibling-map, or certification field changed.",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T17:35:09Z",
+      "finishedAt": "2026-09-01T17:35:09Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Only the completion record instant was captured after planning edits. No separate start boundary survives, so elapsed duration is not inferred.",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "AUD-BUG025-001 planning-owned portion",
+        "AUD-BUG025-002 planning-owned portion",
+        "AUD-BUG025-003 planning-owned portion",
+        "AUD-BUG025-004 planning-owned portion"
+      ],
+      "unresolvedFindings": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUDIT-025-DOD-003",
+        "AUD-BUG025-001",
+        "AUD-BUG025-002",
+        "AUD-BUG025-003",
+        "AUD-BUG025-004"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "prerequisiteOwnerRoute": {
+        "transitionRequestId": "BUG-025-ROUTE-031",
+        "nextRequiredOwner": "bubbles.validate",
+        "target": "Reconcile validate-owned Scope 1 mirrors from done 15/0 to in_progress 12/3 without certification"
+      },
+      "successorOwnerRoute": {
+        "transitionRequestId": "BUG-025-ROUTE-032",
+        "nextRequiredOwner": "bubbles.test",
+        "target": "Strengthen persistent carriers and execute the canonical-subject, focus-theft, and duplicate-announcement RED/GREEN controls"
+      },
+      "evidenceRef": "report.md#audit-rework-planning-reconciliation-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T17:44:22Z",
+      "phase": "validate",
+      "agent": "bubbles.validate",
+      "action": "reconciled-nonterminal-certification-mirrors-and-activated-test-route",
+      "note": "Validated the exact control-revision-3 actionable Research Lab packet before repository reads and without preflight. Removed Scope 1 from certification.completedScopes and reconciled certification.scopeProgress to in_progress with 12 checked and 3 unchecked rows. Preserved both in_progress status mirrors, the In Progress execution scope inventory, BUG-025-ROUTE-028, BUG-025-ROUTE-030, and all seven audit findings. The JSON and routing assertions, focused scope-progress validator, 3443-check repository selftest, and artifact lint exited zero. Resolved BUG-025-ROUTE-031 and activated BUG-025-ROUTE-032 for bubbles.test without changing source, tests, map, scopes, scenario manifest, design, user validation, or DoD checkboxes.",
+      "phasesExecuted": [],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T17:40:28Z",
+      "finishedAt": "2026-09-01T17:44:22Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-ROUTE-031"
+      ],
+      "unresolvedFindings": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUDIT-025-DOD-003",
+        "AUD-BUG025-001",
+        "AUD-BUG025-002",
+        "AUD-BUG025-003",
+        "AUD-BUG025-004"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-032",
+        "nextPhase": "test",
+        "nextRequiredOwner": "bubbles.test"
+      },
+      "evidenceRef": "report.md#validate-owned-nonterminal-mirror-reconciliation-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T19:01:16Z",
+      "phase": "test",
+      "agent": "bubbles.test",
+      "action": "closed-audit-route-032-and-routed-boundary-evidence",
+      "note": "Validated the exact control-revision-4 actionable Research Lab packet before repository reads for this closure, then re-read the current session transcript, current tool-call ledger tail, and current BUG-025 report and state. Recorded the already-completed focus-theft, duplicate-announcement, canonical-subject, focused browser, complete browser, unit, selftest, freshness, resolver, reality, quality, and lint receipts. AUD-BUG025-001 through AUD-BUG025-003 and BUG-025-ROUTE-032 are resolved. No excluded artifact or certification field changed.",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T18:06:45Z",
+      "finishedAt": "2026-09-01T19:01:16Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-ROUTE-032",
+        "AUD-BUG025-001",
+        "AUD-BUG025-002",
+        "AUD-BUG025-003"
+      ],
+      "unresolvedFindings": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUDIT-025-DOD-003",
+        "AUD-BUG025-004"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-030",
+        "nextPhase": "implement",
+        "nextRequiredOwner": "bubbles.implement"
+      },
+      "evidenceRef": "report.md#test-owned-audit-route-032-closure-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T19:09:32Z",
+      "phase": "implement",
+      "agent": "bubbles.implement",
+      "action": "recorded-post-repair-boundary-and-routed-validation",
+      "note": "Validated the exact control-revision-4 actionable Research Lab packet before repository reads and without preflight. Re-read the current scope boundary, design matrix, audit and route-032 records, state routing, and complete Git inventory. Exact SHA-256 checks preserved ten protected pre-audit identities and matched the two admitted proof deltas. Dynamic enumeration proved the generic scenario runner and every sibling map equal HEAD. Exact embedded-object extraction proved committed configuration parity. The complete 52-path dirty inventory partitions into 16 BUG-025 boundary paths and the same 36 pre-existing sibling paths recorded earlier, with zero unclassified paths. Excluded tracked families equal HEAD and git diff --check exits zero. No product, test, map, planning, user-validation, certification, or unrelated byte changed by this checkpoint.",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T19:08:16Z",
+      "finishedAt": "2026-09-01T19:09:32Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "AUDIT-025-DOD-003"
+      ],
+      "unresolvedFindings": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUD-BUG025-004"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-030",
+        "nextPhase": "validate",
+        "nextRequiredOwner": "bubbles.validate"
+      },
+      "evidenceRef": "report.md#implementation-owned-post-repair-boundary-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T20:07:39Z",
+      "phase": "validate",
+      "agent": "bubbles.validate",
+      "action": "completed-audit-rework-scope-adjudication-and-routed-independent-audit",
+      "note": "Validated the exact inherited control-revision-1 actionable Research Lab packet before repository reads and without preflight. At HEAD 4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8, executed the exact Playwright 1.61.1 system-chrome surface, 110 unit tests, 14 focused BUG-025 browser tests, all 58 Company Intelligence browser tests, 3443 repository selftests, three current controlled-break campaigns, scenario-state and receipt-freshness resolution, goal fidelity, traceability, implementation reality, artifact freshness, regression quality, diff integrity, and excluded-family checks. Rows 9 through 11 and row 15 are individually earned, Scope 1 is Done with 15/0 progress, and AUDIT-025-EVIDENCE-001 is resolved. Both status mirrors remain in_progress. AUDIT-025-SLICE-002 and AUD-BUG025-004 remain routed to independent audit.",
+      "phasesExecuted": [
+        "validate"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T20:07:39Z",
+      "finishedAt": "2026-09-01T20:07:39Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Only the completion record instant was captured after validation execution. No separate start boundary survives, so elapsed duration is not inferred.",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "AUDIT-025-EVIDENCE-001"
+      ],
+      "unresolvedFindings": [
+        "AUDIT-025-SLICE-002",
+        "AUD-BUG025-004"
+      ],
+      "nextRequiredOwner": "bubbles.audit",
+      "phaseChainRouting": {
+        "transitionRequestId": "BUG-025-ROUTE-028",
+        "nextPhase": "audit",
+        "nextRequiredOwner": "bubbles.audit"
+      },
+      "evidenceRef": "report.md#validate-audit-rework-adjudication-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T22:35:07Z",
+      "phase": "audit",
+      "agent": "bubbles.audit",
+      "action": "completed-final-independent-audit-and-routed-certification",
+      "note": "Validated the exact control-revision-4 actionable packet before repository reads and without preflight. Read every BUG-025 artifact, covered the complete report and state chronologies, independently confirmed design/scope/manifest/map parity, generic-runner and sibling-map identities, 15/0 scope state, original finding closure, artifact lint, 53-valid/zero-stale receipt freshness, and the registry-asserted guard. Returned SHIP_IT with all seven original findings addressed exactly once and none unresolved. No certification or status field changed.",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T22:35:07Z",
+      "finishedAt": "2026-09-01T22:35:07Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The pre-closeout guard supplied one real timestamp after bounded inspection. No separate start boundary was captured, so elapsed duration is not inferred.",
+      "outcome": "completed_diagnostic",
+      "auditVerdict": "SHIP_IT",
+      "addressedFindings": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUDIT-025-DOD-003",
+        "AUD-BUG025-001",
+        "AUD-BUG025-002",
+        "AUD-BUG025-003",
+        "AUD-BUG025-004"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.validate",
+      "evidenceRef": "report.md#final-independent-audit-recheck-2026-09-01"
+    },
+    {
+      "at": "2026-09-01T22:47:17Z",
+      "phase": "audit",
+      "agent": "bubbles.audit",
+      "action": "blocked-persistence-closure-on-stale-receipts",
+      "note": "Validated the exact control-revision-4 packet without preflight. The requested strict receipt check reports 53 closure-bearing receipts, 43 valid, and 10 stale after report and state changes. The assertion-only guard fails applicable-integrity on that exact class. Superseded the prior ACTIVE SHIP_IT attempt and routed canonical receipt refresh without changing status or certification.",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T22:47:17Z",
+      "finishedAt": "2026-09-01T22:47:17Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Only the assertion-only guard timestamp was captured, so elapsed duration is not inferred.",
+      "outcome": "route_required",
+      "auditVerdict": "DO_NOT_SHIP",
+      "addressedFindings": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUDIT-025-DOD-003",
+        "AUD-BUG025-001",
+        "AUD-BUG025-002",
+        "AUD-BUG025-003",
+        "AUD-BUG025-004"
+      ],
+      "unresolvedFindings": [
+        "AUDIT-025-PERSISTENCE-STALE-001"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "evidenceRef": "report.md#audit-persistence-recheck-blocker-2026-09-01"
+    },
+    {
+      "at": null,
+      "atReason": "The strict receipt recheck completed in the current session, but no clock command was requested or run, so no timestamp is invented.",
+      "phase": "audit",
+      "agent": "bubbles.audit",
+      "action": "closed-persistence-receipt-blocker-and-routed-certification",
+      "note": "Validated the exact control-revision-4 packet without preflight. The current strict receipt check reports all 53 closure-bearing receipts valid and zero stale. Superseded attempt 003, resolved AUDIT-025-PERSISTENCE-STALE-001, and recorded an ACTIVE SHIP_IT completed_diagnostic attempt with all seven original findings addressed and none unresolved. No long test ran and no status or certification field changed.",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "scope": "01-declare-and-enforce-one-read-bound",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "completed_diagnostic",
+      "auditVerdict": "SHIP_IT",
+      "addressedFindings": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUDIT-025-DOD-003",
+        "AUD-BUG025-001",
+        "AUD-BUG025-002",
+        "AUD-BUG025-003",
+        "AUD-BUG025-004",
+        "AUDIT-025-PERSISTENCE-STALE-001"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.validate",
+      "evidenceRef": "report.md#audit-persistence-closure-2026-09-01"
+    },
+    {
+      "at": "2026-09-02T00:00:39Z",
+      "phase": "finalize",
+      "agent": "bubbles.validate",
+      "action": "certified-terminal-done",
+      "note": "Validated the exact control-revision-4 actionable packet before repository reads and without preflight. Confirmed Scope 1 Done with 15 checked and zero unchecked DoD items, the ACTIVE delivery-completion audit attempt at SHIP_IT with no unresolved findings, no open transition requests or rework items, and the genuinely recorded required bugfix-fastlane phase claims. Applied the validate-owned terminal certification without changing completed scope progress, audit attempts, finding history, report evidence, or any non-state artifact.",
+      "phasesExecuted": [
+        "finalize"
+      ],
+      "scope": null,
+      "statusBefore": "in_progress",
+      "statusAfter": "done",
+      "startedAt": "2026-09-02T00:00:39Z",
+      "finishedAt": "2026-09-02T00:00:39Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "One actual UTC timestamp was captured for the atomic terminal certification boundary, so no separate elapsed duration is inferred.",
+      "outcome": "completed_owned",
+      "auditVerdict": "SHIP_IT",
+      "addressedFindings": [],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": null,
+      "evidenceRef": "report.md#audit-persistence-closure-2026-09-01"
+    }
+  ],
+  "certification": {
+    "status": "done",
+    "completedScopes": [
+      "01-declare-and-enforce-one-read-bound"
+    ],
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "simplify",
+      "stabilize",
+      "security",
+      "validate",
+      "audit"
+    ],
+    "scopeProgress": [
+      {
+        "scopeId": "01-declare-and-enforce-one-read-bound",
+        "status": "done",
+        "dodChecked": 15,
+        "dodUnchecked": 0
+      }
+    ],
+    "lockdownState": "unlocked",
+    "certifiedAt": "2026-09-02T00:00:39Z"
+  },
+  "transitionRequests": [
+    {
+      "id": "BUG-025-ROUTE-001",
+      "status": "resolved",
+      "fromAgent": "bubbles.design",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "SCN-BUG-025-001 through SCN-BUG-025-003 in tests/company-intelligence.unit.mjs and tests/company-intelligence-lab.spec.mjs",
+      "reason": "Capture the v2 config-contract and bounded-acquisition RED first. Prove the current route lacks expiry settlement while preserving the inside-bound and embedded-first controls before bubbles.implement changes product files."
+    },
+    {
+      "id": "BUG-025-ROUTE-002",
+      "status": "resolved",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "Scope 1 bounded-acquisition production surfaces",
+      "reason": "The persistent carriers now fail on the absent v2 readBoundMs contract and on three accepted HTTP requests that receive no browser abort after the required bound. The delayed valid-response control passes and the DoD remains unchecked."
+    },
+    {
+      "id": "BUG-025-ROUTE-003",
+      "status": "resolved",
+      "fromAgent": "bubbles.implement",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "Scope 1 independent test verification and repository-selftest repair",
+      "reason": "Address BUG-025-TEST-001 by making the explicit READ_BOUND_WATCHDOG_MS declaration evaluable without weakening its bound, and address BUG-025-TEST-002 by synchronizing the stale BUG-018 provenance expectation with the carrier's truthful real-server and pass-through wording. Then rerun the focused, complete-browser, and repository regression commands."
+    },
+    {
+      "id": "BUG-025-ROUTE-004",
+      "status": "resolved",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.regression",
+      "target": "Scope 1 protected-scenario and cross-spec regression evaluation",
+      "reason": "The independent TEST phase is clean on the exact focused unit, focused browser, complete Company Intelligence browser, repository selftest, timeout-budget, regression-quality, and artifact-lint checks. Execute the registered regression phase while preserving Scope 1 and packet status as in_progress and leaving certification unchanged."
+    },
+    {
+      "id": "BUG-025-ROUTE-005",
+      "status": "resolved",
+      "fromAgent": "bubbles.regression",
+      "nextRequiredOwner": "bubbles.simplify",
+      "target": "Scope 1 bounded-acquisition simplification review",
+      "reason": "The current-session regression pass is clean across protected BUG-025 scenarios, BUG-018 pending and settled semantics, Feature 025 behavior, config v2 consumers, test provenance, the complete Company Intelligence carriers, and the repository selftest. Execute the next registered bugfix-fastlane phase while keeping Scope 1, packet status, and certification in progress."
+    },
+    {
+      "id": "BUG-025-ROUTE-006",
+      "status": "resolved",
+      "fromAgent": "bubbles.simplify",
+      "nextRequiredOwner": "bubbles.gaps",
+      "target": "Scope 1 post-simplify gap analysis and BUG-025-SIMPLIFY-GAP-001 command-surface assessment",
+      "reason": "The bounded-read implementation is simpler and the complete current-session verification set exited zero. Review Scope 1 for remaining gaps. Also classify the independent repository page-check mismatch that treats the inert application/json config mirror as executable JavaScript. Do not promote Scope 1, packet status, or certification during this handoff."
+    },
+    {
+      "id": "BUG-025-ROUTE-007",
+      "status": "resolved",
+      "fromAgent": "bubbles.gaps",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "Scope 1 planning fidelity for synchronous setup failure, scenario linkedTests, and implementation path references",
+      "reason": "Add a Gherkin scenario, Test Plan row, and DoD item for a synchronous readRouteDocument setup failure that proves fail-loud caller behavior and zero live helper timers. Replace planned-only scenario test pointers with mechanically resolvable linkedTests for all three existing scenario titles. Name the current implementation and test paths in scopes.md so implementation-reality-scan.sh does not fall back to design.md. Keep the scope, top-level status, and certification in progress.",
+      "resolvedAt": "2026-08-31T07:02:23Z",
+      "resolvedBy": "bubbles.plan",
+      "resolution": "Added SCN-BUG-025-004, one matching browser Test Plan row and unchecked DoD item, resolver-compatible linkedTests for SCN-BUG-025-001 through SCN-BUG-025-003, and the scope-owned Implementation Files section. scenario-test-resolve resolved three references, implementation-reality-scan reported zero warnings, and artifact lint passed. The absent SCN-BUG-025-004 carrier is routed by BUG-025-ROUTE-009. Evidence: report.md#planning-finding-closure-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-008",
+      "status": "resolved",
+      "fromAgent": "bubbles.gaps",
+      "nextRequiredOwner": "bubbles.bug",
+      "target": "Independent project command-registry defect: the required per-page checker executes inert application/json as JavaScript",
+      "reason": "Create the separately owned bug packet for the canonical per-page command in .specify/memory/agents.md. Current execution exits 1 on the Company Intelligence inert JSON mirror, while the committed unit validator parses that mirror with JSON.parse and the complete browser route remains green. The new packet must preserve executable-script syntax and literal-ID coverage while distinguishing inert script data. Do not modify BUG-025 product source or tests for this independent command-surface defect.",
+      "resolvedAt": "2026-08-31T06:51:21Z",
+      "resolvedBy": "bubbles.bug",
+      "resolvedPacket": "specs/_bugs/BUG-027-per-page-check-executes-inert-json",
+      "resolution": "Filed BUG-027 with a current exit-1 reproduction, four adversarial scenario contracts, and an in-progress route to bubbles.design. BUG-025-SIMPLIFY-GAP-001 is filed and routed, not fixed. Evidence: ../BUG-027-per-page-check-executes-inert-json/report.md#current-session-reproduction."
+    },
+    {
+      "id": "BUG-025-ROUTE-009",
+      "status": "resolved",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "SCN-BUG-025-004 in tests/company-intelligence-lab.spec.mjs with exact title Regression: BUG-025 synchronous fetch setup failure reaches existing unavailable state with zero timers",
+      "reason": "Author and execute the planned production-route browser carrier. Before route code runs, wrap only the selected company-corpus path so fetch setup throws synchronously before returning a usable promise and delegate every other fetch unchanged. Assert embedded first paint, the existing named unavailable performance outcome, zero selected-path server requests, zero active bounded-read timers, and no new user-visible code. After the test exists, replace SCN-BUG-025-004 plannedTest with a resolver-valid linkedTests entry and rerun the focused BUG-025 command plus the canonical scenario-test resolver.",
+      "resolvedAt": "2026-08-31T07:16:05Z",
+      "resolvedBy": "bubbles.test",
+      "resolution": "Added and executed the exact production-route carrier. The focused six-case selection, complete 48-case browser file, unit file, four-link resolver, and bugfix regression-quality guard exited zero. Evidence: report.md#test-finding-closure-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-010",
+      "status": "resolved",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.regression",
+      "target": "Scope 1 persistent browser carrier and protected-scenario regression surface",
+      "reason": "Re-evaluate the changed persistent test surface before relying on the earlier regression phase. Carry the two non-green repository-selftest findings without editing excluded BUG-027 or validate-owned certification fields. Keep Scope 1, top-level status, certification status, and every DoD checkbox in progress.",
+      "resolvedAt": "2026-08-31T07:47:36Z",
+      "resolvedBy": "bubbles.regression",
+      "resolution": "Re-executed the changed persistent carrier and its affected closure after both repository-selftest ownership findings closed. The focused browser reported 6/6, complete browser 48/48, unit 102/102, repository selftest 3437/3437, scenario resolver four links, regression-quality guard zero violations and warnings, and artifact lint exit zero. The synchronous selected-path throw remains direct and discriminating through its outer-catch classification, zero selected-path network request, one-attempt, no-retry, and zero-active-timer assertions. Feature 025 and BUG-018 cases remain in the complete carrier. Evidence: report.md#regression-reverification-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-011",
+      "status": "resolved",
+      "fromAgent": "bubbles.regression",
+      "nextRequiredOwner": "bubbles.harden",
+      "target": "Scope 1 post-test-change hardening review",
+      "reason": "The regression re-verification is clean and closes BUG-025-REGRESSION-REVERIFY. Simplify and gaps already executed, and gaps introduced only the persistent test and planning records that are now regression-verified. Execute the next unexecuted bugfix-fastlane phase while keeping Scope 1, packet status, every DoD checkbox, completion arrays, and certification in progress.",
+      "resolvedAt": "2026-08-31T17:17:44Z",
+      "resolvedBy": "bubbles.harden",
+      "resolution": "Executed the exact bounded hardening checklist at repository-binding revision 7. The unit carrier reported 102/102, focused browser 6/6, complete browser 48/48, repository selftest 3437/3437, scenario resolver four links, implementation reality zero violations and warnings, bugfix regression quality zero violations and warnings, and artifact lint passed. The review itself is complete and found BUG-025-HARDEN-001: no browser case discriminates removal of the readingIntent stale-completion guard. BUG-025-ROUTE-012 routes that finding to bubbles.test. Evidence: report.md#harden-phase-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-012",
+      "status": "resolved",
+      "fromAgent": "bubbles.harden",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "BUG-025-HARDEN-001 stale-intent out-of-order browser regression in tests/company-intelligence-lab.spec.mjs",
+      "reason": "Add one persistent production-route browser case that starts a valid subject corpus read, creates a newer valid subject intent before the first read settles, releases the old read out of order, and proves the old completion cannot repaint or publish over the newer reading. The case must be discriminating against removal of the production readingIntent guard. Then rerun the focused BUG-025 and complete Company Intelligence browser carriers without editing source, scope, DoD, status, or certification.",
+      "resolvedAt": "2026-08-31T17:27:15Z",
+      "resolvedBy": "bubbles.plan",
+      "resolution": "Resolved the planning-owned portion only. Added the exact Gherkin, one matching e2e-ui Test Plan row, one matching unchecked DoD item, and planned-only SCN-BUG-025-005 with a real-origin mechanism and mutation control. No test was authored or executed. Successor BUG-025-ROUTE-013 carries BUG-025-TEST-004 to bubbles.test, and BUG-025-ROUTE-014 carries the required certification mirror reconciliation to bubbles.validate. Evidence: report.md#planning-closure-bug-025-harden-001-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-013",
+      "status": "resolved",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "BUG-025-TEST-004 exact SCN-BUG-025-005 carrier in tests/company-intelligence-lab.spec.mjs",
+      "reason": "Author `Regression: BUG-025 late valid completion cannot overwrite a newer settled subject` exactly as planned. Use the existing real ephemeral HTTP origin. Hold unmodified data/bars/MSFT.json after server entry. Apply valid AAPL and require its settlement and ordinary publication. Snapshot subject identity, corpus/readiness attributes, every horizon account, the current company tool read, DOM-node identity, and company publication count. Release MSFT. Prove zero stale repaint or publication and unchanged AAPL state. Execute the high-risk negative control through an in-memory route override that removes only the intent-versus-readingIntent return. The carrier must fail while the working tree remains unchanged. Link SCN-BUG-025-005 only after the exact title exists. Run the focused BUG-025 and complete Company Intelligence browser carriers. Repository selftest closure additionally requires BUG-025-ROUTE-014.",
+      "prerequisiteRoutes": [
+        "BUG-025-ROUTE-014"
+      ],
+      "resolvedAt": "2026-08-31T18:13:02Z",
+      "resolvedBy": "bubbles.test",
+      "resolution": "Independently executed the exact SCN-BUG-025-005 title, seven focused BUG-025 browser cases, all 49 Company Intelligence browser cases, 102 unit cases, and 3437 repository selftests after repairing one test-owned provenance matcher. The five-link resolver, bugfix regression-quality guard, implementation-reality scan, artifact lint, skip-marker scan, and production/test hash boundary were clean. BUG-025-TEST-004 is closed without changing production, planning, DoD, acceptance, completion, or certification fields. Evidence: report.md#test-finding-bug-025-test-004."
+    },
+    {
+      "id": "BUG-025-ROUTE-014",
+      "status": "resolved",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.validate",
+      "target": "BUG-025-CERT-MIRROR-010 non-terminal Scope 1 certification mirror reconciliation",
+      "reason": "Planning added the tenth unchecked Scope 1 DoD item. Reconcile only certification.scopeProgress for 01-declare-and-enforce-one-read-bound from dodChecked 0 and dodUnchecked 9 to dodChecked 0 and dodUnchecked 10. Keep scope status, top-level status, certification.status, completedScopes, certifiedCompletedPhases, certifiedAt, and every DoD checkbox unchanged and in progress. This validate-owned mirror update is required before repository selftest can be green.",
+      "resolvedAt": "2026-08-31T17:40:02Z",
+      "resolvedBy": "bubbles.validate",
+      "resolution": "Reconciled only the non-terminal Scope 1 certification mirror to 0 checked and 10 unchecked items. The repository selftest reported 3437 passed and 0 failed, and BUG-025 artifact lint passed. No status, completion array, certified phase, lockdown field, DoD item, implementation, test, acceptance record, certification, or promotion changed. BUG-025-TEST-004 remains routed to bubbles.test. Evidence: report.md#validate-certification-mirror-remediation-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-023",
+      "status": "resolved",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "BUG-025-SEC-001-IMPLEMENTATION in rlcompanyintel.js, company-intelligence-lab.html outside the embedded JSON object, and notes/company-intelligence-lab.md",
+      "reason": "Implement exact company subject grammar, subject-derived event paths, strict declared-path equality, duplicate rejection, and reconstructed frozen rows in rlcompanyintel.js. Make invalid embedded and served configuration terminal in company-intelligence-lab.html without changing the embedded JSON object bytes. Preserve focus, one safe atomic alert, hidden result and identity surfaces, not-established readiness, and zero continuation. Update only notes/company-intelligence-lab.md. Do not edit either persistent test carrier. Turn the existing unit matrix and exact browser scenarios green. Then prove the equality and route-suppression mutations bite only their named discriminators. Preserve the committed config, event data, shared contracts, all fifteen unchecked DoD items, user validation, status, completion arrays, and certification.",
+      "resolvedAt": "2026-09-01T04:06:24Z",
+      "resolvedBy": "bubbles.implement",
+      "resolution": "Formally closed BUG-025-SEC-001-IMPLEMENTATION against the exact revision-9 binding. Current production implements canonical subject-derived event identity, duplicate rejection, validation-before-assignment, terminal embedded and served configuration refusal, result suppression, fixed atomic alert semantics, focus preservation, and zero continuation. Current-session top-level receipts report 110 unit tests, six security browser cases, 55 complete Company Intelligence browser cases, and 3438 repository selftests with zero failures, bound to current Git object and SHA-256 snapshots. Only report.md and state.json changed during this closure. Evidence: report.md#formal-implementation-closure-bug-025-sec-001-2026-09-01."
+    },
+    {
+      "id": "BUG-025-SECURITY-REVERIFY",
+      "status": "resolved",
+      "fromAgent": "bubbles.implement",
+      "nextRequiredOwner": "bubbles.security",
+      "target": "Independent security re-verification of BUG-025-SEC-001 against the revision-9 implementation and current source hashes",
+      "reason": "Independently inspect the canonical event identity, validation-before-assignment, terminal refusal, alert, focus, no-continuation, and request-boundary behavior. Verify the current unit and six-case security carriers against the recorded production and test hashes before closing the security finding. Preserve all fifteen unchecked DoD items, Scope 1 and both status mirrors as in_progress, completion arrays and certified phase arrays empty, user validation unchanged, and certification unchanged.",
+      "resolvedAt": "2026-09-01T04:26:10Z",
+      "resolvedBy": "bubbles.security",
+      "resolution": "Independently executed the production validator matrix, three production security browser scenarios, three exact mutations, complete 110-test unit carrier, 3438-check repository selftest, G034 floor, PII scan, dependency source-lock validator, regression-quality guard, implementation-reality scan, eight-link scenario resolver, artifact lint, and formal before/after hash comparison. The canonical pair remains accepted; every invalid matrix entry raises exact C025-CONFIG-SCHEMA; embedded and served invalidity are terminal, request-safe, focus-safe, non-disclosing, and non-continuing; no bypass or protected-byte drift was found. BUG-025-SEC-001 and BUG-025-SECURITY-REVERIFY are closed. Evidence: report.md#security-reverification-bug-025-security-reverify-2026-09-01."
+    },
+    {
+      "id": "BUG-025-HARDEN-REVERIFY",
+      "status": "resolved",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.harden",
+      "target": "Independent closure review of the SCN-BUG-025-005 stale-intent mutation carrier",
+      "reason": "The test owner has closed BUG-025-TEST-004 and BUG-025-ROUTE-013 with current-session exact-title, focused-browser, complete-browser, unit, repository-selftest, five-link resolver, regression-quality, implementation-reality, artifact-lint, and hash-boundary evidence. Independently confirm that the original harden finding is closed before stabilization relevance is evaluated. Keep Scope 1, packet status, all ten DoD items, completion arrays, and certification in progress.",
+      "resolvedAt": "2026-08-31T18:24:53Z",
+      "resolvedBy": "bubbles.harden",
+      "resolution": "Inspected the current production guard and exact SCN-BUG-025-005 server, snapshot, mutation, and error-discrimination helpers. Independently executed the exact title, seven-case focused browser selection, repository selftest, five-link resolver, bugfix regression-quality guard, artifact lint, and pre/post byte boundary. BUG-025-HARDEN-001 and BUG-025-HARDEN-REVERIFY are closed with verdict HARDENED. Evidence: report.md#harden-reverification-bug-025-harden-reverify-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-015",
+      "status": "resolved",
+      "fromAgent": "bubbles.harden",
+      "nextRequiredOwner": "bubbles.stabilize",
+      "target": "Scope 1 stabilization phase relevance after clean harden closure",
+      "reason": "BUG-025-HARDEN-001 and BUG-025-HARDEN-REVERIFY are closed with a HARDENED verdict. The registered bugfix-fastlane phase order places stabilize after harden. Evaluate the next mechanical phase while keeping Scope 1, packet status, all ten DoD items, completion arrays, and certification in progress.",
+      "resolvedAt": "2026-08-31T18:41:44Z",
+      "resolvedBy": "bubbles.stabilize",
+      "resolution": "Executed the required stabilize phase at exact repository-binding revision 7. Focused and repeated timeout, abort, overlap, complete-browser, chaos, unit, repository-selftest, timeout-budget, process-teardown, and artifact-lint checks exited zero. No stability finding remained. The 10000 ms contract is a per-request reliability deadline rather than a latency SLA, so G026 does not require stress or load rows. Verdict STABLE. Evidence: report.md#stabilize-phase-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-016",
+      "status": "resolved",
+      "fromAgent": "bubbles.stabilize",
+      "nextRequiredOwner": "bubbles.devops",
+      "target": "Scope 1 devops phase mechanical relevance after a clean stability verdict",
+      "reason": "BUG-025-ROUTE-015 is closed with a STABLE verdict and zero findings. The registered bugfix-fastlane phase order places devops after stabilize. Evaluate deployment, CI, build, and operational relevance without changing Scope 1, packet status, all ten DoD items, completion arrays, or certification.",
+      "resolvedAt": "2026-08-31T18:51:30Z",
+      "resolvedBy": "bubbles.devops",
+      "resolution": "Recorded the top-level mechanical verdict skip without executing DevOps checks. The exact reason is: DevOps pass skipped — scope does not modify CI, deployment, monitoring, or infrastructure (runner: bubbles.goal). A read-only review of current state and the Scope 1 change boundary found no contradictory owned operational path. reevaluated is false, no completedPhaseClaim was added, and only report.md plus state.json changed. Evidence: report.md#devops-mechanical-skip-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-017",
+      "status": "resolved",
+      "fromAgent": "bubbles.devops",
+      "nextRequiredOwner": "bubbles.security",
+      "target": "Scope 1 security phase top-level mechanical relevance after the DevOps skip",
+      "reason": "BUG-025-ROUTE-016 is closed by the top-level mechanical skip because Scope 1 modifies no CI, deployment, monitoring, or infrastructure surface. Evaluate security relevance next without changing Scope 1, packet status, all ten DoD items, completion arrays, or certification.",
+      "resolvedAt": "2026-08-31T19:11:55Z",
+      "resolvedBy": "bubbles.security",
+      "resolution": "Executed the full security review against the exact revision-7 binding. Unit, focused browser, selftest, regression-quality, implementation-reality, PII, G034, and dependency source-lock checks were clean. Adversarial production-validator and real-browser probes found BUG-025-SEC-001: a backslash authority accepted as eventsPath resolves off origin and emits a browser request. Routed remediation as BUG-025-ROUTE-018. Evidence: report.md#security-phase-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-018",
+      "status": "closed",
+      "fromAgent": "bubbles.security",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "BUG-025-SEC-001 same-origin committed-path validation and persistent regression closure",
+      "reason": "Harden readEventSource() so every eventsPath is a canonical relative committed-data path and cannot resolve outside the current origin or intended namespace. Reject scheme, authority, leading slash, backslash, query, fragment, dot segment, encoded separator, and encoded dot-segment forms before returning a registry. Add adversarial unit coverage and a real-browser production-route case proving zero off-origin requests. Preserve the exact v2 read bound, cache behavior, no credentials, no retries, first paint, stale-intent guard, and current unavailable mapping. Re-run the focused unit, focused BUG-025 browser, repository selftest, bugfix regression-quality guard, implementation-reality scan, PII/security gates, dependency source-lock validator, and artifact lint, then route back to bubbles.security for independent re-verification.",
+      "supersededAt": "2026-08-31T20:44:17Z",
+      "supersededBy": "BUG-025-ROUTE-020",
+      "supersededReason": "The analyst and UX reconciliations exposed planning-owned scenario, refusal-state, focus, alert, and negative-control obligations. Direct implementation would bypass required planning and scenario-first RED."
+    },
+    {
+      "id": "BUG-025-ROUTE-019",
+      "status": "resolved",
+      "fromAgent": "bubbles.ux",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "BUG-025-SEC-001-DESIGN-PLAN-DELIVERY for scope 01-declare-and-enforce-one-read-bound",
+      "reason": "Reconcile design.md with FR-025-008 through FR-025-013 and the canonical UX states. Define validation before registry return, invalid embedded refusal before transport, invalid served refusal after first paint with no fallback or corpus continuation, settled-content suppression, and atomic alert semantics on the existing subject-refusal surface. Preserve cache-first first paint, the accepted MSFT control, existing unavailable evidence, and the no-new-page or action boundary. Then route the design-owned result to bubbles.plan.",
+      "resolvedAt": "2026-08-31T20:44:17Z",
+      "resolvedBy": "bubbles.design",
+      "resolution": "Reconciled design.md with exact subject grammar, subject-derived event paths, declared-path equality, duplicate refusal, normalized derived rows, validation-before-assignment, terminal embedded and served refusal behavior, result suppression, alert and focus semantics, scenario-first RED carriers, mutation controls, and a closed delivery boundary. Design checks and artifact lint passed. BUG-025-ROUTE-020 carries planning-owned work. Evidence: report.md#design-security-contract-reconciliation-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-020",
+      "status": "resolved",
+      "fromAgent": "bubbles.design",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "BUG-025-SEC-001-PLAN-DELIVERY for scope 01-declare-and-enforce-one-read-bound",
+      "reason": "Reconcile Scope 1 with FR-025-008 through FR-025-013 and design.md. Add three security Gherkin scenarios, matching unit and real-browser Test Plan rows, matching unchecked DoD items, stable scenario-manifest entries, and the closed implementation, test, and documentation boundary. Route scenario-first RED to bubbles.test before any production edit. RED must cover the adversarial unit matrix, embedded backslash authority with zero off-origin and route requests, served subject-path mismatch after first paint with no continuation, accepted canonical event request exactly once, and exact mutation controls. Preserve SCN-BUG-025-001 through SCN-BUG-025-005, all bounded-read and stale-intent contracts, every current in-progress status, and certification.",
+      "resolvedAt": "2026-08-31T20:56:35Z",
+      "resolvedBy": "bubbles.plan",
+      "resolution": "Added the three exact security scenarios, UI matrix, one adversarial unit row, three substantive real-browser rows, one functional contract row, five matching unchecked DoD items, stable planned-only SCN-BUG-025-006 through SCN-BUG-025-008 entries, high-risk mutation controls, the closed change boundary, and owner-gated RED and certification-mirror routes. Existing SCN-BUG-025-001 through SCN-BUG-025-005 and their links remain unchanged. Evidence: report.md#planning-security-closure-bug-025-sec-001-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-021",
+      "status": "resolved",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "BUG-025-SEC-001-RED scenario-first persistent security carriers for SCN-BUG-025-006 through SCN-BUG-025-008",
+      "reason": "Before any product implementation edit, author the exact planned unit and browser carriers in tests/company-intelligence.unit.mjs and tests/company-intelligence-lab.spec.mjs. The accepted exact MSFT unit and browser controls must remain green. The current vulnerable production must fail the complete invalid event-pair unit matrix, embedded backslash route-refusal and zero-request behavior, served MSFT-to-AAPL mismatch terminal-refusal and no-continuation behavior, and route-terminal stale-result suppression. Execute bounded in-memory mutations that replace exactly one owning guard or suppression branch, reject arbitrary runtime failures as proof, keep every planned scenario under plannedTest with no linkedTests until its exact title exists, and record the RED receipt without changing production, planning, user validation, certification, statuses, or DoD checkboxes. BUG-025-ROUTE-022 is a prerequisite only for repository selftest reliance, not for authoring or executing focused RED carriers.",
+      "resolvedAt": "2026-08-31T21:49:01Z",
+      "resolvedBy": "bubbles.test",
+      "resolution": "Executed the exact planned unit and browser carriers against vulnerable production. The canonical unit and browser controls stayed green. The invalid unit matrix and embedded plus served browser scenarios failed only through named security contracts. Equality and suppression mutation carriers stopped at exact absent-production preconditions rather than claiming post-fix bites. The eight-link resolver, regression-quality guard, skip and bailout scans, repaired repository selftest, reality scan, artifact lint, diff check, and protected hashes were clean. Evidence: report.md#scenario-first-security-red-bug-025-sec-001-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-022",
+      "status": "resolved",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.validate",
+      "target": "BUG-025-CERT-MIRROR-015 non-terminal Scope 1 certification mirror reconciliation",
+      "reason": "Planning added five unchecked Scope 1 DoD items. Reconcile only certification.scopeProgress for 01-declare-and-enforce-one-read-bound from dodChecked 0 and dodUnchecked 10 to dodChecked 0 and dodUnchecked 15. Keep Scope 1 status, top-level status, certification.status, completedScopes, certifiedCompletedPhases, lockdown state, every DoD checkbox, user validation, and all implementation and test files unchanged and in progress. This validate-owned mirror update is required before repository selftest output is accepted as current packet evidence.",
+      "resolvedAt": "2026-08-31T21:36:01Z",
+      "resolvedBy": "bubbles.validate",
+      "resolution": "Reconciled only the non-terminal Scope 1 certification mirror to 0 checked and 15 unchecked items. The focused progress parity check reports zero new drift and artifact lint passes. The diagnostic repository selftest no longer reports certification-mirror drift; its one remaining failure is the BUG-018 test-provenance check while BUG-025-SEC-001-RED remains routed to bubbles.test under BUG-025-ROUTE-021. Both status mirrors remain in_progress, completion arrays and certified phases remain empty, no certifiedAt field exists, lockdown remains unchanged, and no certification or promotion occurred. Evidence: report.md#validate-certification-mirror-015-reconciliation-2026-08-31."
+    },
+    {
+      "id": "BUG-025-ROUTE-024",
+      "status": "resolved",
+      "fromAgent": "bubbles.security",
+      "nextRequiredOwner": "bubbles.validate",
+      "target": "Final independent validation of Scope 01 after BUG-025-SEC-001 security closure",
+      "reason": "Independently validate the revision-9 implementation, all current scenario links, complete carrier evidence, artifact coherence, and transition contract. Security has closed BUG-025-SEC-001 with no unresolved finding. Preserve all fifteen DoD items, Scope 1 and both status mirrors as in_progress, completion arrays and certified phases empty, and certification unchanged unless the complete validate-owned transition contract authorizes a change.",
+      "resolvedAt": "2026-09-01T07:53:11Z",
+      "resolvedBy": "bubbles.validate",
+      "resolution": "Replayed the complete 110-test unit carrier, all 13 focused BUG-025 browser cases, the complete 55-case Company Intelligence browser file, and the 3443-check repository selftest with zero failures. The current-revision scenario resolver derives all eight scenarios through REGRESSION_GREEN with certifiable yes. All fifteen DoD rows are evidence-backed and checked, Scope 1 is Done, validate-owned progress mirrors are current, and the report-fence G095 finding is repaired. Both status mirrors remain in_progress and BUG-025-ROUTE-028 carries the required independent audit. Evidence: report.md#final-validate-owned-adjudication-closure-2026-09-01."
+    },
+    {
+      "id": "BUG-025-ROUTE-025",
+      "status": "resolved",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "BUG-025-VALIDATE-SELFTEST-001 and current-revision scenario receipt generation for SCN-BUG-025-001 through SCN-BUG-025-008",
+      "reason": "Add the missing persistent Feature 025 event-security assertions to scripts/selftest.mjs and execute the repository selftest on those bytes. Generate current-revision test-owned scenario receipts required by BUG-025-VALIDATE-SCENARIO-STATE-001 without changing scenario behavior, linked test titles, source, DoD checkboxes, status, completion arrays, or certification. Preserve BUG-025-VALIDATE-DELTA-001 and BUG-025-VALIDATE-STATE-001 for their recorded owners.",
+      "resolvedAt": "2026-09-01T07:39:15Z",
+      "resolvedBy": "bubbles.test",
+      "resolution": "The current Feature 025 selftest carries TP-025-SEC-01 through TP-025-SEC-05, and its admitted current-session run exits zero with 3443 passes and full-output SHA-256 342d6a56ee75714772110dad21ef3c04059cec44b19b358301dba345e47053c5. The canonical controlled-break run exits zero with 8 of 8 scenarios complete, the expected per-phase exits, an unchanged shared tree, and full-output SHA-256 81158849394abd45a7a251c61f8cea6777e58a1e59ad1e0bc5feb010c070fc2a. An independent canonical resolver run exits zero with SHA-256 291c313d907f7f45fdd651654bd60ced8cce81acdb33ddb43d71fa2fcab0dee9, derives every required applicable state for all eight scenarios, and reports certifiable yes. Evidence: report.md#test-owned-validation-mechanics-closure-2026-09-01."
+    },
+    {
+      "id": "BUG-025-VALIDATE-DELTA-001",
+      "status": "resolved",
+      "fromAgent": "bubbles.validate",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "Executed Code Diff Evidence for the current implementation-bearing BUG-025 working-tree delta",
+      "reason": "Add the required executed Code Diff Evidence section with current Git status, diff, and history proof. Identify the exact production, test, documentation, map, and packet paths; separate unrelated dirty paths; and do not claim an isolated commit that does not exist.",
+      "resolvedAt": "2026-09-01T07:00:08Z",
+      "resolvedBy": "bubbles.implement",
+      "resolution": "Added report.md#code-diff-evidence with current executed Git status, raw and numstat delta metadata, a bounded hash over the complete 2336-line tracked patch, complete bounded path history, and explicit unrelated-path separation. The record states that the delta is uncommitted working-tree evidence and claims no isolated BUG-025 commit."
+    },
+    {
+      "id": "BUG-025-ROUTE-026",
+      "status": "resolved",
+      "fromAgent": "bubbles.implement",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "BUG-025-VALIDATE-STATE-001 design-owned completed-phase claim and zero-duration history span",
+      "reason": "Reconcile the unregistered design completedPhaseClaim and the bubbles.design bootstrap/design history entry through an owner-attributed correction. Preserve report evidence and recorded instants; do not invent a duration or delete history. Use the supported durationUnmeasured declaration when no measured span survives.",
+      "resolvedAt": "2026-09-01T07:21:51Z",
+      "resolvedBy": "bubbles.design",
+      "resolution": "Reclassified both design-authored completed claims and both backing history records under the registered bootstrap phase without deleting evidence or changing claim instants. Preserved the 2026-08-31T20:44:17Z start and finish values and declared the elapsed duration unmeasured with a substantive reason. Artifact lint exited zero. The diagnostic transition guard accepted bootstrap provenance from bubbles.design and listed bubbles.design:bootstrap as declared unmeasured; only bubbles.plan:plan remains in the zero-duration state-history finding. Evidence: report.md#design-provenance-reconciliation-bug-025-validate-state-001-2026-09-01."
+    },
+    {
+      "id": "BUG-025-ROUTE-027",
+      "status": "resolved",
+      "fromAgent": "bubbles.implement",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "BUG-025-VALIDATE-STATE-001 plan-owned zero-duration history span",
+      "reason": "Reconcile the bubbles.plan security-planning history entry through an owner-attributed correction. Preserve its report evidence and recorded instant; do not invent a duration or delete history. Use the supported durationUnmeasured declaration when no measured span survives.",
+      "resolvedAt": "2026-09-01T07:28:37Z",
+      "resolvedBy": "bubbles.plan",
+      "resolution": "Preserved both 2026-08-31T20:56:35Z timestamps and the existing report evidence reference, then declared the elapsed span unmeasured with a substantive reason. No duration was invented, no record was deleted, and no plan completedPhaseClaim was added because bugfix-fastlane has no registered plan phase. The current specialist action remains represented under the registered bootstrap phase."
+    },
+    {
+      "id": "BUG-025-ROUTE-028",
+      "status": "resolved",
+      "fromAgent": "bubbles.validate",
+      "nextRequiredOwner": "bubbles.audit",
+      "routedTo": "bubbles.audit",
+      "routedToSpec": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+      "productAction": "none",
+      "target": "Independent delivery-completion-v1 audit of the completed BUG-025 Scope 1 packet",
+      "reason": "Validate has individually adjudicated all fifteen DoD rows, marked Scope 1 Done, reconciled the completed-scope and 15/0 progress mirrors, and preserved both status mirrors as in_progress. Independently audit evidence provenance, scenario fidelity, completion coherence, and the current registry-asserted transition contract before finalize may evaluate terminal certification.",
+      "prerequisiteRoutes": [
+        "BUG-025-ROUTE-029",
+        "BUG-025-ROUTE-030"
+      ],
+      "resolvedAt": "2026-09-01T22:35:07Z",
+      "resolvedBy": "bubbles.audit",
+      "resolutionEvidenceRef": "report.md#final-independent-audit-recheck-2026-09-01",
+      "resolution": "The final independent delivery-completion audit covered the complete BUG-025 artifact and state chronologies, confirmed all seven original findings addressed exactly once, and returned SHIP_IT with no unresolved finding."
+    },
+    {
+      "id": "BUG-025-ROUTE-029",
+      "status": "resolved",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "routedTo": "bubbles.test",
+      "routedToSpec": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+      "productAction": "none",
+      "target": "Current-tree closure of the 35 stale global input-closure receipts reported by the transition guard",
+      "reason": "The G057 scenario inventory mismatch is repaired and all eight scenario links and derived states resolve. The full transition diagnostic still reports 35 stale receipts because their captured input hashes differ from the current tree. Re-execute the affected test-owned commands or otherwise close that exact stale-receipt class through canonical test evidence without changing behavior, test titles, scenario contracts, DoD, statuses, certification, audit content, or canonical scenario receipts. When Check 43 no longer blocks, resume the preserved BUG-025-ROUTE-028 audit route.",
+      "resolvedAt": "2026-09-01T16:15:06Z",
+      "resolvedBy": "bubbles.test",
+      "resolution": "The strict current receipt check exits zero with 1672 total receipts, 1592 current, 80 superseded, 17 closure-bearing, 17 valid, zero stale, and 1575 unknown. Two restored-tree RED identities intentionally omit inputClosure and remain unknown because a post-restoration closure would falsely describe their mutated inputs. The append-only log retains prior entries and this remediation performed no rewrite or deletion. Evidence: report.md#test-owned-stale-receipt-remediation-2026-09-01."
+    },
+    {
+      "id": "BUG-025-ROUTE-030",
+      "status": "resolved",
+      "fromAgent": "bubbles.audit",
+      "nextRequiredOwner": "bubbles.audit",
+      "routedTo": "bubbles.audit",
+      "routedToSpec": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+      "productAction": "none",
+      "target": "Validate-owned non-terminal mirror reconciliation, test-owned proof repair, boundary refresh, validation, and audit recheck for all seven findings",
+      "reason": "Design, planning, non-terminal mirror reconciliation, test proof repair, implementation boundary refresh, and current-revision validate adjudication are complete. AUDIT-025-DOD-003 and AUDIT-025-EVIDENCE-001 are resolved. bubbles.audit retains AUDIT-025-SLICE-002 and AUD-BUG025-004 and owns the independent recheck through BUG-025-ROUTE-028.",
+      "findingIds": [
+        "AUDIT-025-EVIDENCE-001",
+        "AUDIT-025-SLICE-002",
+        "AUDIT-025-DOD-003",
+        "AUD-BUG025-001",
+        "AUD-BUG025-002",
+        "AUD-BUG025-003",
+        "AUD-BUG025-004"
+      ],
+      "requiredOwnerSequence": [
+        "bubbles.design",
+        "bubbles.plan",
+        "bubbles.validate",
+        "bubbles.test",
+        "bubbles.implement",
+        "bubbles.validate",
+        "bubbles.audit"
+      ],
+      "completedOwnerSequence": [
+        "bubbles.design",
+        "bubbles.plan",
+        "bubbles.validate",
+        "bubbles.test",
+        "bubbles.implement",
+        "bubbles.validate",
+        "bubbles.audit"
+      ],
+      "remainingOwnerSequence": [
+      ],
+      "resolvedAt": "2026-09-01T22:35:07Z",
+      "resolvedBy": "bubbles.audit",
+      "resolutionEvidenceRef": "report.md#final-independent-audit-recheck-2026-09-01",
+      "resolution": "The required owner sequence is complete. The audit recheck independently confirms complete chronology coverage, map-boundary protection, current receipt freshness, and closure of all seven original findings.",
+      "prerequisiteRoute": "BUG-025-ROUTE-031",
+      "testExecutionRoute": "BUG-025-ROUTE-032",
+      "resumeRoute": "BUG-025-ROUTE-028",
+      "evidenceRef": "report.md#record-only-audit-findings-2026-09-01",
+      "designEvidenceRef": "report.md#audit-rework-design-reconciliation-2026-09-01",
+      "planningEvidenceRef": "report.md#audit-rework-planning-reconciliation-2026-09-01",
+      "testEvidenceRef": "report.md#test-owned-audit-route-032-closure-2026-09-01",
+      "implementationEvidenceRef": "report.md#implementation-owned-post-repair-boundary-2026-09-01",
+      "implementationResolution": "Current protected hashes, admitted proof hashes, dynamically enumerated runner and sibling-map objects, embedded-config parity, complete dirty-path partition, excluded-family equality, and git diff --check all pass at HEAD 4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8.",
+      "validateEvidenceRef": "report.md#validate-audit-rework-adjudication-2026-09-01",
+      "validateResolution": "Current command-bound execution at HEAD 4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8 earns rows 9 through 11 and preserves row 15 as earned. Scope 1 is Done with certification progress 15/0. Both status mirrors remain in_progress and independent audit remains required."
+    },
+    {
+      "id": "BUG-025-ROUTE-031",
+      "status": "resolved",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.validate",
+      "routedTo": "bubbles.validate",
+      "routedToSpec": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+      "productAction": "none",
+      "target": "Non-terminal Scope 1 certification mirror reconciliation from done 15/0 to in_progress 12/3",
+      "reason": "Planning reopened existing DoD rows 9 through 11 because historical evidence predates the strengthened canonical-subject, exact-body-focus, and non-deduplicated alert-update controls. Remove Scope 1 from certification.completedScopes and set its certification.scopeProgress entry to status in_progress, dodChecked 12, and dodUnchecked 3. Keep top-level status and certification.status in_progress, and do not certify or alter source, tests, user validation, scenario identities, or DoD text.",
+      "successorRoute": "BUG-025-ROUTE-032",
+      "evidenceRef": "report.md#audit-rework-planning-reconciliation-2026-09-01",
+      "resolvedAt": "2026-09-01T17:40:28Z",
+      "resolvedBy": "bubbles.validate",
+      "resolutionEvidenceRef": "report.md#validate-owned-nonterminal-mirror-reconciliation-2026-09-01",
+      "resolution": "Removed Scope 1 from certification.completedScopes and reconciled certification.scopeProgress to in_progress with 12 checked and 3 unchecked rows. Both status mirrors remain in_progress, execution.scopeInventory remains In Progress, BUG-025-ROUTE-032 is active for bubbles.test, and all seven audit findings remain open. Evidence: report.md#validate-owned-nonterminal-mirror-reconciliation-2026-09-01."
+    },
+    {
+      "id": "BUG-025-ROUTE-032",
+      "status": "resolved",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "routedTo": "bubbles.test",
+      "routedToSpec": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+      "productAction": "none",
+      "target": "Persistent SCN-BUG-025-006 through SCN-BUG-025-008 carrier repair and discriminating RED/GREEN mutation execution",
+      "reason": "Preserve every existing scenario id, title, linked test, Test Plan row, and DoD row. Update the existing browser carrier to assert document.activeElement === document.body for embedded refusal and to count every non-empty live-region childList or characterData update without deduplication for embedded and served refusals. Add bounded focus-theft and duplicate-announcement mutations. Execute those mutations plus the exact readEventSource canonical-subject predicate mutation as isolated RED controls, require only their named discriminator failures, then execute unmodified GREEN carriers. Do not edit production, the generic scenario runner, sibling maps, user validation, planning artifacts, or certification fields.",
+      "prerequisiteRoutes": [
+        "BUG-025-ROUTE-031"
+      ],
+      "evidenceRef": "report.md#audit-rework-planning-reconciliation-2026-09-01",
+      "resolvedAt": "2026-09-01T19:01:16Z",
+      "resolvedBy": "bubbles.test",
+      "resolutionEvidenceRef": "report.md#test-owned-audit-route-032-closure-2026-09-01",
+      "resolution": "The persistent carrier asserts exact document.body focus and counts every non-empty live-region update without deduplication. The bounded focus-theft and duplicate-announcement controls pass, and the canonical-subject campaign records expected RED plus implement, GREEN, live, and regression receipts for SCN-BUG-025-006 through SCN-BUG-025-008. The 14-case BUG-025 selection, 58-case complete browser suite, 110-case unit suite, 3443-check repository selftest, regression-quality guard, strict freshness, both scenario resolvers, implementation-reality scan, and artifact lint exited zero."
+    },
+    {
+      "id": "BUG-025-ROUTE-033",
+      "status": "resolved",
+      "fromAgent": "bubbles.audit",
+      "nextRequiredOwner": "bubbles.test",
+      "routedTo": "bubbles.test",
+      "routedToSpec": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+      "productAction": "none",
+      "target": "Canonical refresh of the ten stale closure-bearing BUG-025 receipts",
+      "reason": "The persistence-only strict checker reports 53 closure-bearing receipts, 43 valid, and 10 stale because their report.md or state.json input hashes predate current audit persistence. Refresh that exact receipt set against current bytes without deleting history, weakening inputClosure, changing product behavior, or changing status or certification. Then route a new independent audit attempt.",
+      "evidenceRef": "report.md#audit-persistence-recheck-blocker-2026-09-01",
+      "resolvedAt": null,
+      "resolvedAtReason": "The strict receipt recheck completed in the current session, but no clock command was requested or run, so no timestamp is invented.",
+      "resolvedBy": "bubbles.audit",
+      "resolutionEvidenceRef": "report.md#audit-persistence-closure-2026-09-01",
+      "resolution": "The strict checker now reports 53 closure-bearing receipts, 53 valid, and zero stale. Audit persistence may proceed without changing status or certification."
+    }
+  ],
+  "reworkQueue": [
+    {
+      "id": "AUDIT-025-EVIDENCE-001",
+      "status": "resolved",
+      "severity": "high",
+      "summary": "Validate reconciliation metadata assertions need command-bound current-revision evidence.",
+      "owner": "bubbles.validate",
+      "route": "BUG-025-ROUTE-030",
+      "resolvedAt": "2026-09-01T20:07:39Z",
+      "resolvedBy": "bubbles.validate",
+      "resolutionEvidenceRef": "report.md#validate-audit-rework-adjudication-2026-09-01",
+      "resolution": "At current HEAD 4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8, command-bound validation re-executed the exact unit, focused system-Chrome, complete system-Chrome, repository selftest, controlled-break, scenario-state, receipt-freshness, goal-fidelity, traceability, reality, freshness, regression-quality, and boundary checks. Rows 9 through 11 and row 15 are individually adjudicated as earned; Scope 1 and its 15/0 mirrors are current."
+    },
+    {
+      "id": "AUDIT-025-SLICE-002",
+      "status": "resolved",
+      "severity": "medium",
+      "summary": "Audit needs full scope and certification mirrors plus complete claim chronology in a later full read.",
+      "owner": "bubbles.audit",
+      "route": "BUG-025-ROUTE-028",
+      "resolvedAt": "2026-09-01T22:35:07Z",
+      "resolvedBy": "bubbles.audit",
+      "resolutionEvidenceRef": "report.md#final-independent-audit-recheck-2026-09-01",
+      "resolution": "Audit read every BUG-025 artifact and covered the complete 10,810-line report chronology plus the complete 2,056-line state chronology, including all headings, finding and claim records, execution history, phase claims, routes, audit attempts, and certification mirrors."
+    },
+    {
+      "id": "AUDIT-025-DOD-003",
+      "status": "resolved",
+      "severity": "high",
+      "summary": "DoD row 15 needs current boundary evidence after the later packet and map changes.",
+      "owner": "bubbles.implement",
+      "route": "BUG-025-ROUTE-030",
+      "resolvedAt": "2026-09-01T19:09:32Z",
+      "resolvedBy": "bubbles.implement",
+      "resolutionEvidenceRef": "report.md#implementation-owned-post-repair-boundary-2026-09-01",
+      "resolution": "Current post-repair evidence preserves all ten protected pre-audit identities, matches the two admitted proof-delta identities, proves the generic runner and every sibling map equal HEAD, proves embedded configuration-object parity, partitions all 52 dirty paths into 16 BUG-025 boundary paths and 36 preserved sibling paths, confirms excluded tracked families equal HEAD, and records a clean git diff --check without claiming an isolated commit."
+    },
+    {
+      "id": "AUD-BUG025-001",
+      "status": "resolved",
+      "severity": "high",
+      "summary": "Planning required document.activeElement === document.body and a bounded focus-theft mutant that fails only that exact assertion; persistent carrier changes and RED/GREEN execution were pending when the audit finding was recorded.",
+      "owner": "bubbles.test",
+      "route": "BUG-025-ROUTE-030",
+      "testExecutionRoute": "BUG-025-ROUTE-032",
+      "designContractRef": "design.md#alert-update-and-focus-carrier-contract",
+      "resolvedAt": "2026-09-01T19:01:16Z",
+      "resolvedBy": "bubbles.test",
+      "resolutionEvidenceRef": "report.md#test-owned-audit-route-032-closure-2026-09-01",
+      "resolution": "The persistent embedded-refusal carrier now asserts document.activeElement equals document.body, and the bounded focus-theft mutation passes only when that exact discriminator detects the injected focus theft."
+    },
+    {
+      "id": "AUD-BUG025-002",
+      "status": "resolved",
+      "severity": "high",
+      "summary": "Planning required every non-empty live-region content update to count without deduplication for embedded and served refusal, plus a duplicate-announcement mutant that fails only the count assertion; persistent carrier changes and RED/GREEN execution were pending when the audit finding was recorded.",
+      "owner": "bubbles.test",
+      "route": "BUG-025-ROUTE-030",
+      "testExecutionRoute": "BUG-025-ROUTE-032",
+      "designContractRef": "design.md#alert-update-and-focus-carrier-contract",
+      "resolvedAt": "2026-09-01T19:01:16Z",
+      "resolvedBy": "bubbles.test",
+      "resolutionEvidenceRef": "report.md#test-owned-audit-route-032-closure-2026-09-01",
+      "resolution": "The persistent embedded and served refusal carriers count every non-empty child-list or character-data live-region update without deduplication, and the bounded duplicate-announcement mutation passes only when the exact count assertion detects the extra update."
+    },
+    {
+      "id": "AUD-BUG025-003",
+      "status": "resolved",
+      "severity": "high",
+      "summary": "The scope, scenario manifest, and BUG-025 map require rejection of company:msft through the unique current readEventSource canonical-subject predicate instead of eventsPathFor lookup; discriminating RED/GREEN execution was pending when the audit finding was recorded.",
+      "owner": "bubbles.test",
+      "route": "BUG-025-ROUTE-030",
+      "testExecutionRoute": "BUG-025-ROUTE-032",
+      "designContractRef": "design.md#browser-mutation-and-negative-controls",
+      "resolvedAt": "2026-09-01T19:01:16Z",
+      "resolvedBy": "bubbles.test",
+      "resolutionEvidenceRef": "report.md#test-owned-audit-route-032-closure-2026-09-01",
+      "resolution": "The canonical SCN-BUG-025-006 isolated campaign mutates the unique current readEventSource canonical-subject predicate and records the expected named RED discriminator followed by current GREEN, live, and regression receipts."
+    },
+    {
+      "id": "AUD-BUG025-004",
+      "status": "resolved",
+      "severity": "high",
+      "summary": "Design, scope, scenario manifest, and BUG-025 map now admit only the bug-specific map and protect the generic runner plus every sibling map. Independent audit confirmation remains open.",
+      "owner": "bubbles.audit",
+      "route": "BUG-025-ROUTE-030",
+      "planningResolution": "Planning aligned the scope, scenario manifest, and sole admitted BUG-025 map without changing the generic runner or sibling maps.",
+      "designContractRef": "design.md#consumer-and-change-boundary-matrix",
+      "resolvedAt": "2026-09-01T22:35:07Z",
+      "resolvedBy": "bubbles.audit",
+      "resolutionEvidenceRef": "report.md#final-independent-audit-recheck-2026-09-01",
+      "resolution": "Independent comparison confirms design, scope, scenario manifest, and BUG-025 map admit only the bug-specific map; the generic runner and every sibling map retain their independently computed Git object identities."
+    },
+    {
+      "id": "AUDIT-025-PERSISTENCE-STALE-001",
+      "status": "resolved",
+      "severity": "high",
+      "summary": "Audit persistence had made ten BUG-025 closure-bearing receipts stale.",
+      "owner": "bubbles.audit",
+      "route": "BUG-025-ROUTE-033",
+      "resolvedAt": null,
+      "resolvedAtReason": "The strict receipt recheck completed in the current session, but no clock command was requested or run, so no timestamp is invented.",
+      "resolvedBy": "bubbles.audit",
+      "resolutionEvidenceRef": "report.md#audit-persistence-closure-2026-09-01",
+      "resolution": "The current strict checker reports all 53 closure-bearing receipts valid and zero stale, closing the persistence-only blocker."
+    }
+  ],
+  "policySnapshot": {
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "repo-default" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  }
+}

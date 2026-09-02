@@ -242,14 +242,60 @@ pre-cleanup mutation, no throw, and the unchanged owner/prior-window semantics.
 
 **Phase:** test
 **Executed:** YES
-**Command:** `timeout 240 node --test tests/portfolio-test-integrity.unit.mjs`
-**Exit Code:** 0
+**Command:** `timeout 240 node --test --test-name-pattern='^BUG-007: represented mutants execute one protective assertion through one intended hook$' tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** 1
 **Claim Source:** executed
-**Evidence:** [Current mutation evidence](#bug007-current-mutation-integrity)
+**Result:** RED as required before the injector repair. The strengthened carrier
+executed exactly one selected outer test and rejected the pre-existing false
+positive identified by `HARDEN-B007-001`.
 
-Both integrity titles passed. The BUG-007 title applies each of the three exact
-in-memory substitutions once, requires its named protective title to fail, and
-hash-compares all four tracked product/test inputs before and after execution.
+```text
+# TP-B007-005 causal RED
+$ timeout 240 node --test --test-name-pattern=^BUG-007: represented mutants execute one protective assertion through one intended hook$ tests/portfolio-test-integrity.unit.mjs
+exit: 1
+lines: 58
+sha256: ab3ee469f948cb062976b1245eb57bd43d045a14216e8dd5565e7e20d5f76ace
+--- first 20 ---
+TAP version 13
+# Subtest: BUG-007: represented mutants execute one protective assertion through one intended hook
+not ok 1 - BUG-007: represented mutants execute one protective assertion through one intended hook
+  ---
+  duration_ms: 1305.171228
+  type: 'test'
+  location: '~/research-lab/tests/portfolio-test-integrity.unit.mjs:454:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    BUG-007 protections that are not load-bearing:
+      BUG-007-NULL-PROTOTYPE-MAP: the completion-category index regains Object.prototype inheritance: marker named hook readFileSync, expected Module._compile; mutant output contains forbidden infrastructure failure: error: 'portfolio-defect-injector: anchor must occur exactly once in rlportfoliobrief.js (found 0) — a defect that cannot be represented is not a proof'; mutant failure did not originate from the selected protective assertion
+      BUG-007-OWN-OWNER-LOOKUP: an inherited owner entry is accepted as though the caller supplied it: marker named hook readFileSync, expected Module._compile; mutant output contains forbidden infrastructure failure: error: 'portfolio-defect-injector: anchor must occur exactly once in rlportfoliobrief.js (found 0) — a defect that cannot be represented is not a proof'; mutant failure did not originate from the selected protective assertion
+      BUG-007-NORMAL-LANE-ORDER: watchlist is ranked ahead of held instead of preserving direct-authority order: marker named hook readFileSync, expected Module._compile; mutant output contains forbidden infrastructure failure: error: 'portfolio-defect-injector: anchor must occur exactly once in rlportfoliobrief.js (found 0) — a defect that cannot be represented is not a proof'; mutant failure did not originate from the selected protective assertion
+      DOUBLE-APPLICATION-CONTROL: observed hooks ["readFileSync"], expected ["fs.readFileSync","Module._compile"]
+      DOUBLE-APPLICATION-CONTROL: carrier did not classify two applications as infrastructure failure: marker named hook readFileSync, expected Module._compile; mutant output contains forbidden infrastructure failure: error: 'portfolio-defect-injector: anchor must occur exactly once in rlportfoliobrief.js (found 0) — a defect that cannot be represented is not a proof'; mutant failure did not originate from the selected protective assertion
+      DOUBLE-APPLICATION-CONTROL: injector/preload failure prevented the selected protective assertion
+      DIRECT-TEXT-CONTROL: marker named hook readFileSync, expected fs.readFileSync
+--- omitted 18 line(s); sha256 above covers the full output ---
+--- last 20 ---
+    4: "DOUBLE-APPLICATION-CONTROL: carrier did not classify two applications as infrastructure failure: marker named hook readFileSync, expected Module._compile; mutant output contains forbidden infrastructure failure: error: 'portfolio-defect-injector: anchor must occur exactly once in rlportfoliobrief.js (found 0) — a defect that cannot be represented is not a proof'; mutant failure did not originate from the selected protective assertion"
+    5: 'DOUBLE-APPLICATION-CONTROL: injector/preload failure prevented the selected protective assertion'
+    6: 'DIRECT-TEXT-CONTROL: marker named hook readFileSync, expected fs.readFileSync'
+  operator: 'deepStrictEqual'
+  stack: |-
+    TestContext.<anonymous> (~/research-lab/tests/portfolio-test-integrity.unit.mjs:523:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.start (node:internal/test_runner/test:944:17)
+    startSubtestAfterBootstrap (node:internal/test_runner/harness:296:17)
+  ...
+1..1
+# tests 1
+# suites 0
+# pass 0
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 1380.602627
+```
 
 ### TP-B007-006 {#tp-b007-006}
 
@@ -1931,4 +1977,316 @@ evidence:
   - report.md#harden-b007-001
   - report.md#bug007-harden-phase
 reason: The product behavior, browser matrix, repository selftest, packet guards, source integrity, parity, and receipt accounting are clean, but mutation failure causality is not. Planning must admit the shared-injector repair before test and harden rerun; stabilize is the normal next mode phase only after harden legitimately completes.
+```
+
+## Error-Contract Completion {#bug007-error-contract-completion}
+
+**Phase:** implement
+
+This section closes the in-flight `PortfolioError/v1` conformance work that the
+prior session left partially applied. It records the operator-directed
+completion of two defects that the partial state had exposed rather than
+introduced.
+
+### Registry Completeness {#bug007-registry-completeness}
+
+**Phase:** implement
+**Command:** set-difference of every `"P008-*"` literal emitted across
+`rlportfolio.js`, `rlportfoliobrief.js`, and `rlportfolioanalytics.js` against
+the `ERROR_CODES` map in `rlportfolio.js`
+**Exit Codes:** `0` (before), `0` (after)
+**Claim Source:** executed
+
+Before, the emitted set exceeded the registered set by nine codes. Because
+`validatePortfolioError` gates on `ERROR_CODES[value.code]`, every one of those
+nine was rejected as `P008-SCHEMA-CORRUPT` at the very boundary that was
+supposed to carry it, so the refusal reaching a caller named the wrong cause.
+
+```text
+$ node -e '<emitted-vs-registered set difference>'
+registered: 43 | emitted: 52
+MISSING FROM REGISTRY (9):
+  P008-BRIEF-COMPOSED
+  P008-BRIEF-CUTOFF
+  P008-BRIEF-POLICY
+  P008-BRIEF-PUBLISHED
+  P008-BRIEF-WINDOW-ID
+  P008-BRIEF-WINDOWS
+  P008-REBASE-PARTIAL
+  P008-TRUTH-INPUT
+  P008-WORKSPACE-COMPUTE
+BASELINE_EXIT=0
+```
+
+All nine were registered beside their own families: the six `P008-BRIEF-*`
+codes with the existing brief block, `P008-WORKSPACE-COMPUTE` with the
+`P008-COMPUTE-*` block, and `P008-REBASE-PARTIAL` / `P008-TRUTH-INPUT` beside
+the partial-operation codes. The same difference is now empty.
+
+```text
+$ node -e '<emitted-vs-registered set difference>'
+registered: 52 | emitted: 52
+MISSING FROM REGISTRY (0):
+  (none)
+REGISTRY_GAP_EXIT=0
+```
+
+### Expectation Correction {#bug007-expectation-correction}
+
+**Phase:** implement
+**Files:** `tests/portfolio-brief.functional.mjs:414`,
+`tests/portfolio-brief.functional.mjs:911`
+**Claim Source:** executed
+
+Two assertions pinned a three-field error literal (`code`, `reason`, `field`).
+That literal was never a conforming `PortfolioError/v1`, which retains all seven
+keys; it recorded the pre-fix brief-local `err()` shape. Once `err()` began
+delegating to `contractErr()`, both assertions turned red against the correct
+value.
+
+Both were corrected to the full conforming shape. The exact `code`, `reason`,
+and `field` assertions are retained verbatim and neither assertion was relaxed
+to a partial or loose match, so the discrimination the tests carried is
+unchanged and the added keys are what the contract already required:
+
+```text
+error: {
+  contractVersion: 'PortfolioError/v1',
+  code: 'P008-BRIEF-COMPOSED',
+  reason: 'local-composition-time-required',
+  field: 'composedAt',
+  row: null,
+  valueEchoed: false,
+  recoverable: false
+}
+```
+
+The RED evidence that these two were the only failures, and that each failed
+solely on the four missing keys rather than on `code`, `reason`, or `field`:
+
+```text
+$ node --test tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs
+✖ BUG-007: normal brief order and refusal precedence remain unchanged
+✖ BUG-006: composeBrief validates shared evidence-age policy before Date formatting
+ℹ tests 48
+ℹ pass 46
+ℹ fail 2
+
+  + actual - expected
+    {
+      error: {
+        code: 'P008-BRIEF-COMPOSED',
+  +     contractVersion: 'PortfolioError/v1',
+        field: 'composedAt',
+        reason: 'local-composition-time-required',
+  +     recoverable: false,
+  +     row: null,
+  +     valueEchoed: false
+      },
+      ok: false
+    }
+TEST_EXIT=1
+```
+
+### Verification {#bug007-contract-completion-verification}
+
+**Phase:** implement
+**Commands:** `node --test tests/portfolio-brief.functional.mjs
+tests/portfolio-behavior-occurrence.unit.mjs
+tests/portfolio-stale-domain-signal.unit.mjs`; `node scripts/selftest.mjs`
+**Exit Codes:** `0, 0`
+**Claim Source:** executed
+
+```text
+# BUG-007 contract-completion focused tests
+$ node --test tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs
+exit: 0
+lines: 298
+sha256: 90437fe6d980153a50b35e9543408b4b9d38f8f8d63af36a2fa6f286df439b19
+--- last 20 ---
+ok 47 - BUG-005: reinstating the superseded pre-filter bucket creation turns the stale-domain assertion red
+  ---
+  duration_ms: 93.089634
+  type: 'test'
+  ...
+# Subtest: BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+ok 48 - BUG-005: rlportfolio and rlportfoliobrief agree that a stale domain carries zero live relevance
+  ---
+  duration_ms: 47.186551
+  type: 'test'
+  ...
+1..48
+# tests 48
+# suites 0
+# pass 48
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 659.718878
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 90437fe6d980153a50b35e9543408b4b9d38f8f8d63af36a2fa6f286df439b19 -- node --test tests/portfolio-brief.functional.mjs tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs -->
+
+```text
+# BUG-007 contract-completion canonical selftest
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3912
+sha256: 6d99ac6604bbd58484e9cbf07edfa44c25f2eb370e0e5bba6e3072c562048a22
+--- last 20 ---
+  ✓ a scope already frozen in the baseline is carried as known debt rather than failing the run, so pre-existing drift in packets this change does not own cannot turn the validation path red
+  ✓ freezing one scope does not license the next — the baseline is keyed on the SCOPE, not on the numbers, so a second drifting scope still FAILS while the frozen one passes
+  ✓ a baseline entry whose claim now matches its artifact is reported STALE while the run still exits 0, so the frozen list can only shrink
+  ✓ a scan that matches zero progress claims FAILS rather than passing vacuously — a matcher that quietly stopped matching would otherwise reproduce the exact blind spot this guard closes
+  ✓ the scan read real progress claims against a present baseline, so a green verdict is a comparison rather than a matcher that stopped matching (85 claim(s) across 64 packet(s), 71 agreeing, baseline 14 entries)
+  ✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+  ✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 85 claim(s))
+
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify 6d99ac6604bbd58484e9cbf07edfa44c25f2eb370e0e5bba6e3072c562048a22 -- node scripts/selftest.mjs -->
+
+### Delta And Boundary {#bug007-contract-completion-delta}
+
+**Phase:** implement
+**Command:** `git --no-pager diff --stat -- rlportfolio.js rlportfoliobrief.js
+tests/portfolio-brief.functional.mjs`
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+ rlportfolio.js                       | 31 ++++++++++++++++++++++++++++---
+ rlportfoliobrief.js                  |  2 +-
+ tests/portfolio-brief.functional.mjs | 12 ++++++++++--
+ 3 files changed, 39 insertions(+), 6 deletions(-)
+```
+
+The separate dirty parent Feature 008 scope, report, and root `test-plan.json`
+transaction was already present on entry and remains untouched. Nothing was
+committed. `HARDEN-B007-001` is unaffected by this section and remains open
+and foreign-owned: this work registers error codes and corrects two
+expectations, and does not address shared-injector mutation causality.
+
+**Uncertainty declaration.** Coverage here is exactly the three named test
+files plus the canonical selftest. The nine newly registered codes are now
+*accepted* by `validatePortfolioError`, but no test in this run asserts the
+end-to-end refusal payload for any of them individually, so their per-code
+boundary behavior is admitted rather than proven. Neither the real-browser
+matrix nor the in-memory mutation carrier was rerun in this session.
+
+## RESULT-ENVELOPE
+
+```yaml
+outcome: completed_owned
+currentOwner: bubbles.implement
+bug: BUG-007-compose-brief-prototype-sensitive-keys
+addressedFindings: []
+unresolvedFindings:
+  - HARDEN-B007-001: Unchanged and still foreign-owned. Out of scope for this operator-directed error-contract completion.
+evidence:
+  - report.md#bug007-error-contract-completion
+  - report.md#bug007-registry-completeness
+  - report.md#bug007-expectation-correction
+  - report.md#bug007-contract-completion-verification
+reason: The nine emitted-but-unregistered P008 codes are registered and the emitted-minus-registered difference is empty. The two assertions that pinned the pre-fix three-field error literal now pin the full conforming PortfolioError/v1 shape with their exact code, reason and field retained. Focused tests are 48/48 at exit 0 and the canonical selftest is 3426/0 at exit 0. No commit was made, no DoD checkbox, human acceptance, certification, scope status or top-level status changed, and HARDEN-B007-001 remains open.
+```
+
+## TP-B007-008 Current Test-Owner Evidence {#bug007-tp-b007-008-current}
+
+**Phase:** test
+**Executed:** YES
+**Command:** `timeout 1800 node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** interpreted
+**Interpretation:** The source-visible assertion conjoins the exact 52/45/0
+census and both negative controls. The current selftest exits zero with no
+failed assertion, so the census assertion evaluated true.
+**Result:** PASS
+
+The current structured Test Plan intentionally pins this census. The new
+assertion derives 52 registered codes and 45 quoted production emitter codes.
+The emitted-minus-registered set is empty.
+
+The assertion reads all three planned production modules. It strips comments
+before scanning the first argument of each PortfolioError constructor call.
+It reads registry keys from `rlportfolio.js::ERROR_CODES` rather than copying
+the keys into the test.
+
+The assertion also runs two negative controls. An invented emitted code appears
+in the missing set. Removing a derived emitted code from a cloned registry also
+places that code in the missing set.
+
+```text
+# BUG-007 TP-B007-008 final-tree canonical selftest
+$ timeout 1800 node scripts/selftest.mjs
+exit: 0
+lines: 3907
+sha256: ca53c419536133497fc871e3424a788d061b2a11c022b9a47a41d61faab28e1a
+--- first 10 ---
+
+Step 1 security — escaped model sinks and CSP on every page
+  ✓ every shipped HTML page carries a Content-Security-Policy meta
+  ✓ all pages use one identical CSP instead of drifting per page
+  ✓ CSP keeps the single-file inline-script design while defaulting to self
+  ✓ CSP blocks object, base-tag, and form exfiltration paths
+  ✓ CSP connect-src is an explicit origin allowlist, never wildcard https
+  ✓ CSP preserves fixed providers, StockAnalysis, and custom-port tailnet proxy paths
+  ✓ CSP allows no open URL-forwarding relay origin
+  ✓ production pages and shared runtime contain no open URL-forwarding relay chain
+--- omitted 3887 line(s); sha256 above covers the full output ---
+--- last 10 ---
+  ✓ every committed progress claim resolves to a scope artifact the guard can actually read, so none of them is passing merely because nothing could check it (0 unresolvable)
+  ✓ no scope progress claim disagrees with its Definition of Done outside the frozen baseline — a stale count reads as a summary of the artifact while describing a state the artifact has left (0 new, 14 frozen, 0 stale of 95 claim(s))
+  ✓ SCN-011B-REG the regression matcher found at least one test declaration in tests/causal-rotation-consumers.spec.mjs — a matcher that silently stopped matching would pass this whole block vacuously (5 found)
+  ✓ SCN-011B-REG every test in tests/causal-rotation-consumers.spec.mjs declares its own timeout budget, so none of them silently inherits the 30 s Playwright default that produced the intermittent red (5 budget(s) for 5 test(s))
+  ✓ SCN-011B-REG every declared budget in tests/causal-rotation-consumers.spec.mjs clears the 60000 ms floor — the measured single-worker cost is 23.7 s, so anything at or near the 30 s default leaves no margin for four-worker contention (0 below floor of 5)
+  ✓ SCN-011B-REG ADVERSARIAL the budget matcher detects a removed declaration, so a real regression that deletes one would turn this block red rather than leaving it green (5 → 4 after stripping one)
+
+================================================
+Research-Lab self-test: 3438 passed, 0 failed
+================================================
+```
+
+<!-- verify: bash .github/bubbles/scripts/evidence-capture.sh --verify ca53c419536133497fc871e3424a788d061b2a11c022b9a47a41d61faab28e1a -- timeout 1800 node scripts/selftest.mjs -->
+
+The exact planned title is present once in the canonical selftest. The syntax
+check and whitespace check also passed.
+
+```text
+$ timeout 120 node --check scripts/selftest.mjs
+NODE_CHECK_EXIT=0
+$ timeout 30 grep -nF 'Feature 008 PortfolioError registry covers every quoted production emitter' scripts/selftest.mjs
+10542:  'Feature 008 PortfolioError registry covers every quoted production emitter');
+TITLE_GREP_EXIT=0
+TITLE_OCCURRENCES=1
+SELFTEST_DIFF_CHECK_EXIT=0
+```
+
+This execution supersedes the earlier 3426-check TP-B007-008 receipt as the
+current test-owner evidence. It does not rewrite the historical receipt.
+
+### TP-B007-008 Artifact Closeout
+
+The test-owned code and current execution are present. Planner-owned artifacts
+still describe `TP-B007-008` as planned and not authored. Its DoD row remains
+unchecked. This agent did not edit those foreign-owned artifacts.
+
+## RESULT-ENVELOPE
+
+```yaml
+outcome: route_required
+currentOwner: bubbles.test
+nextRequiredOwner: bubbles.plan
+bug: BUG-007-compose-brief-prototype-sensitive-keys
+addressedFindings:
+  - TP-B007-008: The canonical source-derived registry census assertion now passes with 52 registered codes, 45 quoted production emitter codes, and zero missing codes.
+unresolvedFindings:
+  - TP-B007-008-ARTIFACT-CLOSEOUT: Planner-owned scope and structured Test Plan status still describe this test as planned and not authored, and the DoD row remains unchecked.
+evidence:
+  - report.md#bug007-tp-b007-008-current
+reason: Test ownership added and executed the one planned assertion without changing source, other tests, planning artifacts, state, acceptance, or certification. Planning must reconcile the durable Test Plan and DoD status against this current evidence.
 ```

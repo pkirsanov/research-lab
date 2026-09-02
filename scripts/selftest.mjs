@@ -23200,17 +23200,20 @@ try {
   const decisionTime25 = '2026-08-18T00:00:00.000Z';
   const registry25 = INTEL25.readCoverageRegistry(config25);
 
-  const browserHeader25 = browserSource25.split("import { readFileSync } from 'node:fs';")[0];
+  const browserHeaderEnd25 = browserSource25.indexOf('\nimport ');
+  const browserHeader25 = browserHeaderEnd25 > 0 ? browserSource25.slice(0, browserHeaderEnd25) : '';
   const accurateBrowserProvenance25 = (text) => (
     /Ordinary cases use the real ephemeral static server and unmodified responses\./.test(text)
-    && /annotated pass-through fault-injection cases use `page\.route\(\)` only to hold or delay a request/i.test(text)
-    && /`route\.continue\(\)` then forwards the real response unchanged\./.test(text)
+    && /Explicitly annotated fault-injection cases either pass through `page\.route\(\)` unchanged or make a real[\s\S]{0,20}Node HTTP server withhold one repository file until an explicit release\./.test(text)
+    && /High-risk mutation controls may[\s\S]{0,20}serve one bounded in-memory route or module mutation; no case intercepts or fulfills a business-data response\./.test(text)
     && !/no request interception/i.test(text)
   );
   const staleBlanketProvenance25 = 'The route is exercised as a production user meets it: its own ephemeral static server, no request interception, no stubbed module.';
+  const stalePassThroughOnlyProvenance25 = 'Ordinary cases use the real ephemeral static server and unmodified responses. Explicitly annotated pass-through fault-injection cases use page.route only. No case fulfills business data.';
   assert(accurateBrowserProvenance25(browserHeader25)
-    && !accurateBrowserProvenance25(staleBlanketProvenance25),
-  'BUG-018 test provenance distinguishes ordinary traffic from annotated pass-through fault injection');
+    && !accurateBrowserProvenance25(staleBlanketProvenance25)
+    && !accurateBrowserProvenance25(stalePassThroughOnlyProvenance25),
+  'BUG-018 test provenance distinguishes ordinary unmodified traffic from annotated pass-through, real-server fault injection, and bounded route-or-module mutation controls');
 
   const corpusRequestGate25 = extractFn(browserSource25, 'installCorpusRequestGate');
   const bug018WindowTests25 = browserSource25.slice(browserSource25.indexOf("test('Regression: BUG-018 scope 1"));
@@ -23234,9 +23237,79 @@ try {
   assert(registry25.rows.length === 15
     && JSON.stringify(registry25.rows.map((row) => row.dimensionId).sort())
       === JSON.stringify(INTEL25.MANDATORY_DIMENSION_IDS.slice().sort())
-    && config25.contractVersion === 'company-intelligence-config/v1'
+    && config25.contractVersion === 'company-intelligence-config/v2'
+    && config25.readBoundMs === 10000
+    && registry25.readBoundMs === config25.readBoundMs
     && registry25.horizons.length === 4,
-  'TP-025-01: the committed coverage registry declares exactly the fifteen mandatory dimensions and four horizons');
+  'TP-025-01: the committed coverage registry declares the v2 read bound, exactly the fifteen mandatory dimensions and four horizons');
+
+  /* BUG-025 functional event security. The unit carrier owns the exhaustive invalid-input
+     matrix. This block instead locks the cross-file authority contract shared by the committed
+     config, its embedded route mirror, the validator, and the route's sole request primitive. */
+  const normalizedEvent25 = registry25.eventSource.coveredSubjects[0];
+  const canonicalEventMatch25 = /^company:([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(normalizedEvent25.subjectId);
+  const derivedEventPath25 = canonicalEventMatch25 === null ? null
+    : 'data/company-intelligence/company-' + canonicalEventMatch25[1] + '/events.json';
+  assert(registry25.eventSource.coveredSubjects.length === 1
+    && derivedEventPath25 === normalizedEvent25.eventsPath
+    && INTEL25.eventsPathFor(registry25, normalizedEvent25.subjectId) === derivedEventPath25,
+  'TP-025-SEC-01: the accepted committed company subject derives the exact event document returned to the route');
+
+  const duplicateEventConfig25 = JSON.parse(JSON.stringify(config25));
+  duplicateEventConfig25.eventSource.coveredSubjects.push(
+    JSON.parse(JSON.stringify(duplicateEventConfig25.eventSource.coveredSubjects[0]))
+  );
+  let duplicateEventCode25 = null;
+  try { INTEL25.readCoverageRegistry(duplicateEventConfig25); }
+  catch (error) { duplicateEventCode25 = error && error.code; }
+  assert(duplicateEventCode25 === 'C025-CONFIG-SCHEMA',
+  'TP-025-SEC-02: a duplicate committed event subject is refused before it can become route authority');
+
+  const embeddedConfigMatch25 = /<script type="application\/json" data-embedded-config="company-intelligence\.config\.json">([\s\S]*?)<\/script>/.exec(routeSource25);
+  let embeddedConfig25 = null;
+  try { embeddedConfig25 = embeddedConfigMatch25 === null ? null : JSON.parse(embeddedConfigMatch25[1]); }
+  catch (error) { embeddedConfig25 = null; }
+  const driftedEmbeddedConfig25 = embeddedConfig25 === null ? null : JSON.parse(JSON.stringify(embeddedConfig25));
+  if (driftedEmbeddedConfig25 !== null) driftedEmbeddedConfig25.eventSource.coveredSubjects[0].eventsPath += '?drift=1';
+  assert(embeddedConfig25 !== null
+    && JSON.stringify(embeddedConfig25) === JSON.stringify(config25)
+    && JSON.stringify(driftedEmbeddedConfig25) !== JSON.stringify(config25),
+  'TP-025-SEC-03: the embedded config object equals the committed object and a one-field event-path drift defeats parity');
+
+  const eventReaderSource25 = extractFn(moduleSource25, 'readEventSource');
+  const eventPathSource25 = extractFn(moduleSource25, 'eventsPathFor');
+  const routeReaderSource25 = extractFn(routeSource25, 'readRouteDocument');
+  const forbiddenEventMechanism25 = /\bnew\s+URL\s*\(|\bURL\s*\.\s*parse\s*\(|\bdecodeURI(?:Component)?\s*\(|\.\s*(?:normalize|resolve|join|replace|replaceAll)\s*\(/;
+  const routeFetchSites25 = routeSource25.match(/\bfetch\s*\(/g) || [];
+  const helperFetchSites25 = routeReaderSource25.match(/\bfetch\s*\(/g) || [];
+  assert(!forbiddenEventMechanism25.test(eventReaderSource25)
+    && !/\bfetch\s*\(/.test(moduleSource25)
+    && !/\bfetch\s*\(/.test(eventPathSource25)
+    && routeFetchSites25.length === 1
+    && helperFetchSites25.length === 1,
+  'TP-025-SEC-04: event authority uses no URL parsing, decoding or normalization and the route retains exactly one fetch site inside readRouteDocument');
+
+  const equalityGuard25 = 'if (entry.eventsPath !== derivedPath) {';
+  const equalityGuardCount25 = moduleSource25.split(equalityGuard25).length - 1;
+  let activeMismatchCode25 = null;
+  let equalityMutantAccepted25 = false;
+  const mismatchConfig25 = JSON.parse(JSON.stringify(config25));
+  mismatchConfig25.eventSource.coveredSubjects[0].eventsPath = 'data/company-intelligence/company-aapl/events.json';
+  try { INTEL25.readCoverageRegistry(mismatchConfig25); }
+  catch (error) { activeMismatchCode25 = error && error.code; }
+  if (equalityGuardCount25 === 1) {
+    const mutantSource25 = moduleSource25.replace(equalityGuard25, 'if (false) {');
+    const mutantSandbox25 = { module: { exports: {} }, globalThis: {} };
+    try {
+      Function('module', 'globalThis', mutantSource25)(mutantSandbox25.module, mutantSandbox25.globalThis);
+      mutantSandbox25.module.exports.readCoverageRegistry(mismatchConfig25);
+      equalityMutantAccepted25 = true;
+    } catch (error) { equalityMutantAccepted25 = false; }
+  }
+  assert(activeMismatchCode25 === 'C025-CONFIG-SCHEMA'
+    && equalityGuardCount25 === 1
+    && equalityMutantAccepted25,
+  'TP-025-SEC-05: removing the one subject-to-path equality guard admits the named mismatch, proving the functional contract check can fail');
 
   /* A registry missing a mandatory dimension is refused rather than composed from. */
   let incompleteCode25 = null;

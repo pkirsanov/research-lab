@@ -1,9 +1,34 @@
 {
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
-  "generatedAt": "2026-08-26T22:52:04Z",
+  "generatedAt": "2026-09-01T04:15:54Z",
   "generatedBy": "bubbles.plan",
-  "provenance": "Reconciled to design commit 454d7be4c81e2756a1d9dd6632f5d532e024c522 and HARDEN-B007-001. All scenario and test links remain planned; no persistent test, RED result, implementation, browser result, human acceptance, or certification is claimed.",
+  "provenance": "Reconciled to committed delivery batches aad6fb52e, d49a2955b, 82d1db5e5, 3688388d5, and the TP-B007-008 test-authorship commit 4c9f2e87b. TP-B007-000 remains historical pre-implementation RED. HARDEN-B007-001 is admitted and implemented at 82d1db5e5, but no new test closure or validate certification is claimed. TP-B007-008 is linked as authored while its structured coverage status remains planned; report.md#bug007-tp-b007-008-current preserves the separate test-owned execution record.",
+  "planningReconciliation": {
+    "historicalRedRow": "TP-B007-000",
+    "mutationCausality": {
+      "finding": "HARDEN-B007-001",
+      "implementationCommit": "82d1db5e5819738aa4f5049ebe7078514408620c",
+      "planningStatus": "admitted-and-implemented",
+      "testStatus": "planned",
+      "certificationStatus": "planned"
+    },
+    "laterErrorContractBatch": {
+      "commit": "3688388d5af8012e6adfad769c68c4c1034eab6d",
+      "files": ["rlportfolio.js", "rlportfoliobrief.js", "tests/portfolio-brief.functional.mjs"],
+      "parentInvariant": "PortfolioError/v1",
+      "registryCensus": { "registered": 52, "quotedProductionEmitters": 45, "missing": 0 },
+      "preCommitCensus": { "registered": 33, "quotedProductionEmitters": 45, "missing": 19 }
+    },
+    "registryCensusTest": {
+      "testPlanRow": "TP-B007-008",
+      "commit": "4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8",
+      "testId": "Feature 008 PortfolioError registry covers every quoted production emitter",
+      "authorshipStatus": "authored",
+      "coverageStatus": "planned",
+      "reportBackedExecutionRef": "report.md#bug007-tp-b007-008-current"
+    }
+  },
   "scenarios": [
     {
       "scenarioId": "SCN-B007-NORMAL-COMPATIBILITY",
@@ -13,7 +38,7 @@
       "gherkin": {
         "given": "the committed four-lane brief fixture and existing invalid-input controls",
         "when": "composeBrief evaluates the ordinary fixture after caller-keyed map hardening",
-        "then": "it returns ok true with lane order held watchlist completedResearch inferredRelevance, subject order MSFT BND ZZTOP semiconductors, and unchanged local and shared-policy refusal precedence"
+        "then": "it returns ok true with lane order held watchlist completedResearch inferredRelevance, subject order MSFT BND ZZTOP semiconductors, unchanged local and shared-policy refusal precedence, the parent's exact seven-field PortfolioError/v1 shape, and the committed 52-code registry covering all 45 quoted production emitters with zero missing code"
       },
       "status": "planned",
       "behaviorClass": "business-logic",
@@ -23,13 +48,20 @@
       "regressionRequired": true,
       "riskTier": "high",
       "requirementRefs": ["FR-B007-006", "AC-1"],
+      "parentScenarioRefs": ["SCN-008-046"],
+      "parentInvariantRefs": ["PortfolioError/v1", "rlportfolio.js::ERROR_CODES emitted-to-registered closure"],
       "findingRefs": ["SEC-B006-S1"],
-      "behaviorTraits": ["pure-calculation"],
+      "behaviorTraits": ["pure-calculation", "shared-consumer"],
       "obligations": [
         {
           "trait": "pure-calculation",
           "requiredProof": "The exported production composer returns the exact ordinary lane and subject order from the committed fixture.",
           "satisfiedBy": ["TP-B007-001"]
+        },
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "The brief-local constructor and parent validator preserve the same closed seven-field PortfolioError/v1 contract, and the shared registry covers every quoted code emitted by the three Feature 008 production modules.",
+          "satisfiedBy": ["parity:TP-B007-008 emitted-to-registered census", "consumer-surface:TP-B007-001 exact brief and public-boundary error titles"]
         }
       ],
       "testMechanism": {
@@ -37,11 +69,11 @@
         "inputOrigin": "recorded-fixture",
         "assertionSurface": "returned-value",
         "dependencyPath": "not-applicable",
-        "productionOwners": ["rlportfoliobrief.js#composeBrief", "portfolio-survival-allocation-lab.html#renderBrief"],
-        "negativeControl": "The persistent test-integrity carrier must use the unchanged in-memory defect injector to swap the held and watchlist entries in LANE_ORDER exactly once and fail the exact normal-order assertion without writing tracked source.",
+        "productionOwners": ["rlportfoliobrief.js#composeBrief", "rlportfoliobrief.js#contractErr", "rlportfolio.js#ERROR_CODES", "rlportfolio.js#validatePortfolioError", "rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html#renderBrief"],
+        "negativeControl": "The persistent test-integrity carrier must swap the held and watchlist entries in LANE_ORDER exactly once and fail the exact normal-order assertion. The planned repository census must also fail when one quoted emitted code is removed from ERROR_CODES. Neither control may write tracked source.",
         "negativeControlMechanism": "mutation"
       },
-      "implementationRefs": ["rlportfoliobrief.js#composeBrief", "portfolio-survival-allocation-lab.html#renderBrief"],
+      "implementationRefs": ["rlportfoliobrief.js#composeBrief", "rlportfoliobrief.js#contractErr", "rlportfolio.js#ERROR_CODES", "rlportfolio.js#validatePortfolioError", "rlportfolioanalytics.js", "portfolio-survival-allocation-lab.html#renderBrief"],
       "testRows": ["TP-B007-001", "TP-B007-005", "TP-B007-006", "TP-B007-007", "TP-B007-008"],
       "lockdown": false,
       "linkedTests": [
@@ -53,8 +85,15 @@
           "evidenceRef": "report.md#tp-b007-001"
         },
         {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "SCN-008-046 every public boundary emits a closed value-safe PortfolioError",
+          "testPlanRow": "TP-B007-001",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-001"
+        },
+        {
           "file": "tests/portfolio-test-integrity.unit.mjs",
-          "testId": "BUG-007: caller-key protections and normal ordering are load-bearing in memory",
+          "testId": "BUG-007: represented mutants execute one protective assertion through one intended hook",
           "testPlanRow": "TP-B007-005",
           "coverageStatus": "planned",
           "evidenceRef": "report.md#tp-b007-005"
@@ -65,12 +104,23 @@
           "testPlanRow": "TP-B007-006",
           "coverageStatus": "planned",
           "evidenceRef": "report.md#tp-b007-006"
+        },
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "Feature 008 PortfolioError registry covers every quoted production emitter",
+          "testPlanRow": "TP-B007-008",
+          "authorshipStatus": "authored",
+          "authorshipCommit": "4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#bug007-tp-b007-008-current"
         }
       ],
       "expectedAssertions": [
         "normal composition returns ok true",
         "lane and subject order match the committed control",
-        "existing refusal code reason field and precedence do not move"
+        "existing refusal code reason field and precedence do not move",
+        "local brief and parent public-boundary errors retain exactly contractVersion code reason field row valueEchoed recoverable",
+        "the current registry has 52 registered codes for 45 quoted production emitters and zero missing code"
       ],
       "evidenceRefs": ["report.md#before-fix-reproduction", "report.md#tp-b007-001"],
       "replacedBy": null,
@@ -128,14 +178,28 @@
       "linkedTests": [
         {
           "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "BUG-007: prototype-sensitive completion keys are safe own keys",
+          "testPlanRow": "TP-B007-000",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-000"
+        },
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
           "testId": "BUG-007: prototype-sensitive completion subjects are safe own keys",
           "testPlanRow": "TP-B007-002",
           "coverageStatus": "planned",
           "evidenceRef": "report.md#tp-b007-002"
         },
         {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "BUG-007: own lookup semantics and RED cleanup preserve shared built-ins",
+          "testPlanRow": "TP-B007-004",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-004"
+        },
+        {
           "file": "tests/portfolio-test-integrity.unit.mjs",
-          "testId": "BUG-007: caller-key protections and normal ordering are load-bearing in memory",
+          "testId": "BUG-007: represented mutants execute one protective assertion through one intended hook",
           "testPlanRow": "TP-B007-005",
           "coverageStatus": "planned",
           "evidenceRef": "report.md#tp-b007-005"
@@ -205,14 +269,28 @@
       "linkedTests": [
         {
           "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "BUG-007: prototype-sensitive completion keys are safe own keys",
+          "testPlanRow": "TP-B007-000",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-000"
+        },
+        {
+          "file": "tests/portfolio-brief.functional.mjs",
           "testId": "BUG-007: prototype-sensitive completion domains are safe own keys",
           "testPlanRow": "TP-B007-003",
           "coverageStatus": "planned",
           "evidenceRef": "report.md#tp-b007-003"
         },
         {
+          "file": "tests/portfolio-brief.functional.mjs",
+          "testId": "BUG-007: own lookup semantics and RED cleanup preserve shared built-ins",
+          "testPlanRow": "TP-B007-004",
+          "coverageStatus": "planned",
+          "evidenceRef": "report.md#tp-b007-004"
+        },
+        {
           "file": "tests/portfolio-test-integrity.unit.mjs",
-          "testId": "BUG-007: caller-key protections and normal ordering are load-bearing in memory",
+          "testId": "BUG-007: represented mutants execute one protective assertion through one intended hook",
           "testPlanRow": "TP-B007-005",
           "coverageStatus": "planned",
           "evidenceRef": "report.md#tp-b007-005"

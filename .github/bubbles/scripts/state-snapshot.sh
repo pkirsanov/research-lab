@@ -18,6 +18,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_BINDING="$SCRIPT_DIR/repository-binding.sh"
+SESSION_STATE_LIB="$SCRIPT_DIR/session-state-lib.sh"
 
 usage() {
   cat <<'EOF'
@@ -62,10 +63,13 @@ Optional:
   --mode <start|end>   Records turn-start (default) or turn-end.
   --convergence-iteration <N>
                        Integer ≥ 0. When supplied alongside --spec-dir,
-                       additively writes/updates the (specDir, agent)
-                       entry in `convergenceLoops[]`. Enforced by Gate G082
-                       via `bubbles/scripts/convergence-cap-guard.sh`. Both
-                       --convergence-iteration and --spec-dir MUST be
+                       append-preserves the summary keyed by canonical specDir
+                       plus the current Goal Contract identity core. Updates
+                       must be equal (idempotent) or advance by exactly one.
+                       Legacy goal-free records retain their historical
+                       (specDir, agent) compatibility key. Enforced by Gate
+                       G082 via `bubbles/scripts/convergence-cap-guard.sh`.
+                       Both --convergence-iteration and --spec-dir MUST be
                        supplied together; supplying only one is an error.
   --spec-dir <path>    Spec directory (repo-relative) that the
                        convergence iteration refers to. Paired with
@@ -322,295 +326,19 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 3
 fi
 
+[[ -f "$SESSION_STATE_LIB" ]] || { echo "state-snapshot: session-state library missing at $SESSION_STATE_LIB" >&2; exit 3; }
+# shellcheck source=session-state-lib.sh
+source "$SESSION_STATE_LIB"
+
 # --- Validated repository root ---------------------------------------------
 
 [[ -f "$REPOSITORY_BINDING" ]] || { echo "state-snapshot: repository binding validator missing at $REPOSITORY_BINDING" >&2; exit 3; }
 NORMALIZED_PACKET_FILE=""
-TMP_FILE=""
-CONV_TMP=""
-
-# --- Exclusive session-file lock (concurrency safety) ----------------------
-#
-# One state-snapshot run performs a read-modify-`mv` on bubbles.session.json in
-# up to three places: the mirror-session subprocess (which sets
-# `.repositoryBindingMirror`), the turnSnapshots append, and the convergenceLoops
-# update. Without a lock, two concurrent state-snapshot runs both read the same
-# session file and both `mv` their result, silently discarding one update. A lost
-# convergenceLoops update under-counts iterations and weakens Gate G082/G128
-# convergence-cap enforcement. A single exclusive lock, held from before
-# mirror-session through the final update, serializes the whole interaction so no
-# update is lost.
-#
-# Lock strategy is flock-first. `flock` (util-linux) is a kernel-managed,
-# race-free advisory lock: the kernel serializes concurrent acquirers, so there
-# is NO stale-detect/break window in which two runs could both enter the critical
-# section. It is the PRIMARY path (Linux/CI/selftest). `flock` is absent only on
-# stock macOS; there we fall back to a mkdir mutex that still uses the holder pid
-# + lock-dir mtime to DECIDE staleness and recover a lock left behind by a
-# SIGKILLed holder instead of spinning forever.
-#
-# The mkdir fallback breaks a stale lock in two separate steps — DECIDE
-# (session_lock_is_stale) then ACT (rename-claim) — and the pair is NOT atomic.
-# The rename is atomic only in the sense that exactly one concurrent breaker wins
-# it; on its own it does not prove the directory being renamed is still the
-# instance that was judged stale. Two guards close that window:
-#   1. An ABSENT lock dir is never reported as stale. There is nothing to break,
-#      so the waiter just races for mkdir again. Reporting absent as stale is what
-#      let a waiter run the destructive break after the lock had merely been
-#      released — by then a third process had legitimately won a FRESH lock, and
-#      the rename destroyed that live lock, putting two runs in the critical
-#      section and losing an update.
-#   2. The judged instance's identity (lock-dir inode + recorded holder pid) is
-#      re-verified immediately before the rename, so a lock released and re-taken
-#      between decide and act is left alone.
-SESSION_LOCK_DIR=""
-SESSION_LOCK_PID_FILE=""
-SESSION_LOCK_FILE=""
-SESSION_LOCK_MODE=""
-SESSION_LOCK_HELD=false
-# Identity of the lock instance the most recent session_lock_is_stale call judged.
-SESSION_LOCK_JUDGED_IDENTITY=""
-
-# Detect flock once at acquire time; release routes on SESSION_LOCK_MODE (the
-# strategy actually used), never on a re-probe.
-session_lock_have_flock() {
-  command -v flock >/dev/null 2>&1
-}
-
-_lock_trace() { [[ -z "${BUBBLES_LOCK_TRACE:-}" ]] || printf '%s %s %s %s\n' "$(date +%s.%N)" "$1" "$$" "$SESSION_LOCK_MODE" >> "$BUBBLES_LOCK_TRACE" 2>/dev/null || true; } # LOCKTRACE-DEBUG
-
-session_lock_mtime_epoch() {
-  stat -c %Y "$1" 2>/dev/null || stat -f %m "$1" 2>/dev/null || printf '%s' '0'
-}
-
-# Identity token for the lock-dir instance that exists right now: inode plus the
-# recorded holder pid. A release followed by a re-acquire yields a different
-# token, which is what lets a breaker distinguish "the instance I judged" from
-# "an instance created since I judged". `ls -di` is used because it is POSIX on
-# both userlands (field 1 is the inode); `stat` needs different flags per
-# userland, which is why session_lock_mtime_epoch has to try -c then -f. Prints
-# nothing when the lock dir is absent.
-session_lock_identity() {
-  local ino='' pid=''
-  [[ -d "$SESSION_LOCK_DIR" ]] || return 0
-  # shellcheck disable=SC2012  # one known path in, only field 1 (the inode number) out — no filename is parsed
-  ino="$(ls -di "$SESSION_LOCK_DIR" 2>/dev/null | awk 'NR == 1 { print $1 }' || true)"
-  if [[ -f "$SESSION_LOCK_PID_FILE" ]]; then
-    pid="$(cat "$SESSION_LOCK_PID_FILE" 2>/dev/null || true)"
-  fi
-  pid="${pid//[[:space:]]/}"
-  printf '%s:%s' "${ino:-?}" "${pid:-?}"
-}
-
-# True only while the lock dir is still the instance session_lock_is_stale
-# judged. Re-read immediately before the destructive rename, because decide and
-# act are separate steps and the judged lock can be released and legitimately
-# re-created between them.
-session_lock_identity_unchanged() {
-  [[ -n "$SESSION_LOCK_JUDGED_IDENTITY" ]] || return 1
-  [[ "$(session_lock_identity)" == "$SESSION_LOCK_JUDGED_IDENTITY" ]]
-}
-
-# Tri-state contract, read by the caller from the explicit exit code:
-#   0 = a lock instance EXISTS and is stale (safe to break)
-#   1 = a lock instance EXISTS and is held by a live, non-stale holder
-#   2 = NO lock instance exists — nothing to judge, and nothing to break
-# 2 is deliberately NOT folded into 0: an absent directory is not a stale lock.
-# On 0 and 1 the judged instance's identity is published in
-# SESSION_LOCK_JUDGED_IDENTITY for the caller to re-verify before acting on it.
-session_lock_is_stale() {
-  local pid='' mtime now age max
-  SESSION_LOCK_JUDGED_IDENTITY=''
-  [[ -d "$SESSION_LOCK_DIR" ]] || return 2
-  SESSION_LOCK_JUDGED_IDENTITY="$(session_lock_identity)"
-  # The dir can be released between the test above and this line. An instance
-  # that no longer exists is absent, not stale. Without this check the mtime
-  # lookup below falls back to epoch 0, the lock reads as ~infinitely old, and it
-  # is judged "stale by age" — absent-is-not-stale leaking in a second disguise.
-  [[ -n "$SESSION_LOCK_JUDGED_IDENTITY" ]] || return 2
-
-  if [[ -f "$SESSION_LOCK_PID_FILE" ]]; then
-    pid="$(cat "$SESSION_LOCK_PID_FILE" 2>/dev/null || true)"
-  fi
-  pid="${pid//[[:space:]]/}"
-
-  max=600
-  mtime="$(session_lock_mtime_epoch "$SESSION_LOCK_DIR")"
-  # '0' is that helper's failure sentinel: both stat forms failed because the dir
-  # was released while we were judging it. Unknown mtime must read as ABSENT, not
-  # as "aged past the cap" — a 1970 mtime makes every vanished lock look stale,
-  # which is absent-is-not-stale leaking in through the age test.
-  [[ "$mtime" != "0" ]] || return 2
-  now="$(date -u +%s 2>/dev/null || printf '%s' '0')"
-  age=-1
-  if [[ "$mtime" =~ ^[0-9]+$ && "$now" =~ ^[0-9]+$ ]]; then
-    age=$(( now - mtime ))
-  fi
-
-  if [[ -n "$pid" && "$pid" =~ ^[0-9]+$ ]]; then
-    # A holder pid is recorded: a dead holder is stale immediately; a live holder
-    # is stale only if the lock has outlived the age cap (defensive).
-    if ! kill -0 "$pid" 2>/dev/null; then
-      return 0
-    fi
-    if (( age > max )); then
-      return 0
-    fi
-    return 1
-  fi
-
-  # No holder pid recorded yet. mkdir wins the lock, THEN the holder records its
-  # pid, so there is a brief window where the dir exists with no pid file. Do NOT
-  # break a freshly created lock (that window is an in-flight acquirer, not a
-  # crash) — only a lock dir aged past the stale threshold with no live holder is
-  # genuinely stale. This closes the acquire/pid-write TOCTOU that would
-  # otherwise let two waiters both break each other's fresh lock and lose an
-  # update. A truly wedged pid-less lock is still recovered by acquire's bounded
-  # max-wait defensive break.
-  if (( age > max )); then
-    return 0
-  fi
-  return 1
-}
-
-# Take the exclusive session lock. flock-first (race-free); mkdir mutex only
-# where flock is unavailable.
-acquire_session_lock() {
-  if session_lock_have_flock; then
-    acquire_session_lock_flock
-  else
-    acquire_session_lock_mkdir
-  fi
-}
-
-# PRIMARY path: kernel-managed flock on a dedicated lock file next to the session
-# file. flock is race-free — the kernel blocks concurrent acquirers until the
-# holder releases, so there is no stale-detect/break step and therefore no window
-# in which two runs could both hold the lock (the exact residual race the mkdir
-# mutex had). A BOUNDED `-w` timeout stops a genuinely wedged holder from
-# deadlocking THIS run forever; on timeout we fail loudly and non-zero rather
-# than silently proceeding unlocked. A fixed FD (9) is used so the `exec 9>`
-# redirection works on every bash (the dynamic `exec {fd}>` form needs bash
-# >=4.1; the flock path only runs where flock exists, but a fixed FD keeps it
-# version-independent). The lock FILE is created once and never unlinked (see
-# release_session_lock).
-acquire_session_lock_flock() {
-  local flock_wait=120
-  exec 9>"$SESSION_LOCK_FILE" || {
-    echo "state-snapshot: unable to open session lock file: $SESSION_LOCK_FILE" >&2
-    exit 3
-  }
-  if ! flock -x -w "$flock_wait" 9; then
-    echo "state-snapshot: timed out after ${flock_wait}s acquiring the exclusive session lock." >&2
-    echo "  Lock file: $SESSION_LOCK_FILE" >&2
-    echo "  Another state-snapshot run appears wedged holding it; refusing to proceed unlocked." >&2
-    exec 9>&- || true
-    exit 3
-  fi
-  SESSION_LOCK_MODE="flock"
-  SESSION_LOCK_HELD=true
-  _lock_trace ACQUIRE # LOCKTRACE-DEBUG
-}
-
-# Destroy the lock instance session_lock_is_stale just judged, via an ATOMIC
-# rename-claim: renaming a directory is atomic, so exactly ONE concurrent breaker
-# wins the `mv` and only that winner removes the claimed (renamed) dir. The
-# rename alone does not establish that the dir is still the judged instance, so
-# the identity is re-verified first. Returns 1 (break refused) when the instance
-# changed under us, so the caller re-races mkdir instead of destroying a lock
-# that now belongs to somebody else.
-session_lock_break_judged_instance() {
-  local reason="$1" claim
-  if ! session_lock_identity_unchanged; then
-    _lock_trace RETRY-IDENTITY # LOCKTRACE-DEBUG
-    return 1
-  fi
-  _lock_trace "$reason" # LOCKTRACE-DEBUG
-  claim="$SESSION_LOCK_DIR.stale.$$.${RANDOM}"
-  if mv "$SESSION_LOCK_DIR" "$claim" 2>/dev/null; then
-    rm -rf "$claim" 2>/dev/null || true
-  fi
-  return 0
-}
-
-# FALLBACK path (stock macOS, no flock): mkdir mutex. Staleness is DECIDED by
-# session_lock_is_stale (holder pid liveness + lock-dir mtime); breaking is done
-# by session_lock_break_judged_instance, which acts only on the instance that was
-# judged. The absent case (exit 2) never reaches a break at all: a lock dir that
-# is gone is not a stale lock, it is an uncontended one, and the only correct
-# response is to race for mkdir again.
-acquire_session_lock_mkdir() {
-  local waited=0
-  local max_wait=600
-  local absent_spins=0
-  local absent_max=2000
-  local stale_rc
-  while true; do
-    if mkdir "$SESSION_LOCK_DIR" 2>/dev/null; then
-      printf '%s\n' "$$" > "$SESSION_LOCK_PID_FILE" 2>/dev/null || true
-      SESSION_LOCK_MODE="mkdir"
-      SESSION_LOCK_HELD=true
-      _lock_trace ACQUIRE # LOCKTRACE-DEBUG
-      return 0
-    fi
-
-    stale_rc=0
-    session_lock_is_stale || stale_rc=$?
-
-    if (( stale_rc == 2 )); then
-      # Our mkdir lost to a holder that has since released. Nothing to break.
-      _lock_trace RETRY-ABSENT # LOCKTRACE-DEBUG
-      absent_spins=$(( absent_spins + 1 ))
-      if (( absent_spins > absent_max )); then
-        # mkdir kept failing while the dir kept reading as absent, so the failure
-        # is structural (permissions, full filesystem) rather than contention.
-        # Bail loudly instead of spinning, and never proceed unlocked.
-        echo "state-snapshot: unable to create the session lock directory after ${absent_max} consecutive attempts." >&2
-        echo "  Lock dir: $SESSION_LOCK_DIR" >&2
-        echo "  mkdir kept failing while the directory read as ABSENT, which is a filesystem or permission" >&2
-        echo "  failure rather than lock contention; refusing to proceed unlocked." >&2
-        exit 3
-      fi
-      continue
-    fi
-    absent_spins=0
-
-    if (( stale_rc == 0 )); then
-      session_lock_break_judged_instance BREAK-STALE || sleep 0.1
-      continue
-    fi
-
-    waited=$(( waited + 1 ))
-    if (( waited > max_wait )); then
-      # A live holder has exceeded the wait budget; break it defensively.
-      session_lock_break_judged_instance BREAK-DEFENSIVE || sleep 0.1
-      continue
-    fi
-    sleep 0.1
-  done
-}
-
-release_session_lock() {
-  [[ "$SESSION_LOCK_HELD" == true ]] || return 0
-  _lock_trace RELEASE # LOCKTRACE-DEBUG
-  if [[ "$SESSION_LOCK_MODE" == "flock" ]]; then
-    # Release by closing the FD (drops the kernel lock). The lock FILE is
-    # deliberately LEFT in place: unlinking it would let a new acquirer create
-    # and lock a fresh inode while an old holder still holds the previous one —
-    # reintroducing a race. flock keys on the open file description, not the path.
-    exec 9>&- || true
-  else
-    rm -f "$SESSION_LOCK_PID_FILE" 2>/dev/null || true
-    rmdir "$SESSION_LOCK_DIR" 2>/dev/null || rm -rf "$SESSION_LOCK_DIR" 2>/dev/null || true
-  fi
-  SESSION_LOCK_HELD=false
-}
+SNAPSHOT_NORMALIZED_FILE=""
 
 cleanup_temp_files() {
-  release_session_lock
   [[ -z "$NORMALIZED_PACKET_FILE" ]] || rm -f "$NORMALIZED_PACKET_FILE"
-  [[ -z "$TMP_FILE" ]] || rm -f "$TMP_FILE"
-  [[ -z "$CONV_TMP" ]] || rm -f "$CONV_TMP"
+  [[ -z "$SNAPSHOT_NORMALIZED_FILE" ]] || rm -f "$SNAPSHOT_NORMALIZED_FILE"
 }
 
 trap cleanup_temp_files EXIT
@@ -624,33 +352,16 @@ cp -- "$BINDING_PACKET_FILE" "$NORMALIZED_PACKET_FILE" || {
 }
 chmod 600 "$NORMALIZED_PACKET_FILE"
 
-# Resolve the repository-local session file from the caller-normalized packet and
-# take the exclusive session lock BEFORE mirror-session runs. mirror-session
-# (repository-binding.sh) performs its own read-modify-`mv` on this same session
-# file, so the lock must span from here through the turnSnapshots +
-# convergenceLoops updates below for concurrent runs to be lose-update-free.
-# The authoritative repository root is still the packet's `.repositoryRoot`
-# (the same value mirror-session validates and uses); locking only proceeds for a
-# well-formed absolute root, so a malformed packet falls through to the existing
-# mirror-session refusal below without creating a spurious lock.
-REPO_ROOT="$(jq -r '.repositoryRoot' "$NORMALIZED_PACKET_FILE")"
-SESSION_DIR="$REPO_ROOT/.specify/memory"
-SESSION_FILE="$SESSION_DIR/bubbles.session.json"
-SESSION_LOCK_DIR="$SESSION_FILE.lock"
-SESSION_LOCK_PID_FILE="$SESSION_LOCK_DIR/holder.pid"
-SESSION_LOCK_FILE="$SESSION_FILE.flock"
-if [[ -n "$REPO_ROOT" && "$REPO_ROOT" == /* ]]; then
-  mkdir -p "$SESSION_DIR"
-  acquire_session_lock
-fi
-
+# Validate the private packet copy before trusting its repository root. This
+# read-only check also validates any requested goal node. The validated bytes
+# become immutable callback input; no repository writer is nested here.
 MIRROR_GOAL_NODE_ARGS=()
 if [[ -n "$SCENARIO_FILE" ]]; then
   MIRROR_GOAL_NODE_ARGS=(--scenario-file "$SCENARIO_FILE" --node-id "$NODE_ID")
 fi
 
 set +e
-BINDING_OUTPUT="$(bash "$REPOSITORY_BINDING" mirror-session \
+BINDING_OUTPUT="$(bash "$REPOSITORY_BINDING" validate-packet \
   --session-id "$SESSION_ID" \
   --session-control-file "$SESSION_CONTROL_FILE" \
   --packet-file "$NORMALIZED_PACKET_FILE" \
@@ -662,152 +373,379 @@ if [[ "$BINDING_RC" -ne 0 ]]; then
   exit "$BINDING_RC"
 fi
 
-mkdir -p "$SESSION_DIR"
+# Freeze all callback inputs after external packet validation. The callback
+# reads only the transaction's locked snapshot and commits mirror, turn,
+# optional decision/context, and convergence state as one object.
+PACKET_JSON="$(cat "$NORMALIZED_PACKET_FILE")"
+REPO_ROOT="$(jq -r '.repositoryRoot' <<< "$PACKET_JSON")"
+SESSION_DIR="$REPO_ROOT/.specify/memory"
+SESSION_FILE="$SESSION_DIR/bubbles.session.json"
 
-if [[ ! -f "$SESSION_FILE" ]]; then
-  printf '{}\n' > "$SESSION_FILE"
+# Preserve the repository mirror command's session-path boundary while snapshot
+# consumes the validated packet as data instead of invoking another writer.
+if [[ -L "$REPO_ROOT/.specify" || -L "$SESSION_DIR" || -L "$SESSION_FILE" ]]; then
+  printf '%s\n' 'REPOSITORY MIRROR REFUSED reason=SESSION_MIRROR_SYMLINK repoLocalSideEffects=zero' >&2
+  exit 1
+fi
+mkdir -p "$SESSION_DIR" || exit 3
+if [[ -L "$REPO_ROOT/.specify" || -L "$SESSION_DIR" || -L "$SESSION_FILE" ]] ||
+  [[ "$(cd -P "$SESSION_DIR" 2>/dev/null && pwd -P)" != "$SESSION_DIR" ]]; then
+  printf '%s\n' 'REPOSITORY MIRROR REFUSED reason=SESSION_MIRROR_SYMLINK repoLocalSideEffects=zero' >&2
+  exit 1
 fi
 
-# --- Build snapshot record -------------------------------------------------
-
+AUTHORITY_CONTEXT="$(session_state_authority_context "$REPO_ROOT" "$PACKET_JSON" packet)" || exit $?
 AGENT_NAME="${BUBBLES_AGENT_NAME:-unknown}"
+session_state_validate_agent "$AGENT_NAME" || exit $?
+
+if [[ -n "$CONV_ITER" ]]; then
+  SPEC_DIR="$(session_state_canonical_spec "$REPO_ROOT" "$SPEC_DIR")" || exit $?
+fi
+
 TIMESTAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-
-# Compute next turnNumber from existing turnSnapshots array length.
-NEXT_TURN="$(jq '
-  (.turnSnapshots // []) | length + 1
-' "$SESSION_FILE")"
-
-# Append a new record. We use --argjson for ints, --arg for strings, and
-# pass scope_id / note as strings that may be empty (mapped to null below).
-#
-# `goalRef` is DERIVED from `.goalContract` in this same read, never accepted as
-# a flag (IMP-038 SCOPE-3 / GF-1, GF-5). A caller-supplied ref could disagree
-# with the contract the turn actually ran under, which is precisely the
-# substitution this field exists to make detectable. It is `null` for a
-# read-only or pre-IMP-038 run that froze no contract. The projection matches
-# `goal-contract.sh ref` exactly: identity plus boundary, no contract prose.
-TMP_FILE="$(mktemp "$SESSION_DIR/.bubbles.session.json.update.XXXXXX")"
-
-jq \
-  --argjson turn "$NEXT_TURN" \
+SNAPSHOT_MUTATION_JSON="$(jq -cn \
   --arg timestamp "$TIMESTAMP" \
   --arg phase "$PHASE" \
-  --arg scope_id "$SCOPE_ID" \
-  --arg occurrence_id "$OCCURRENCE_ID" \
+  --arg scopeId "$SCOPE_ID" \
+  --arg occurrenceId "$OCCURRENCE_ID" \
   --arg note "$NOTE" \
   --arg mode "$MODE" \
   --arg posture "$POSTURE" \
-  --arg cbKind "$CONTEXT_BOUNDARY_KIND" \
-  --arg cbId "$CONTEXT_BOUNDARY_ID" \
+  --arg contextBoundaryKind "$CONTEXT_BOUNDARY_KIND" \
+  --arg contextBoundaryId "$CONTEXT_BOUNDARY_ID" \
   --arg decision "$DECISION" \
-  --arg dprinciple "$DECISION_PRINCIPLE" \
-  --arg dchose "$DECISION_CHOSE" \
-  --arg dconsidered "$DECISION_CONSIDERED" \
+  --arg decisionPrinciple "$DECISION_PRINCIPLE" \
+  --arg decisionChose "$DECISION_CHOSE" \
+  --arg decisionConsidered "$DECISION_CONSIDERED" \
   --arg agent "$AGENT_NAME" \
-  --arg host_session "$SESSION_ID" \
-  '
-  def goal_ref:
-    if (.goalContract | type) == "object" then
-      { goalId: .goalContract.goalId,
-        revision: .goalContract.revision,
-        sourceRequestDigest: .goalContract.sourceRequestDigest,
-        workBoundary: .goalContract.workBoundary }
-    else null end;
-  . as $root
-  | ($root | goal_ref) as $goalRef
-  | ($root + {
-      turnSnapshots: ((($root.turnSnapshots // []) + [
-        {
-          turnNumber: $turn,
-          timestamp: $timestamp,
-          phase: $phase,
-          occurrenceId: (if $occurrence_id == "" then null else $occurrence_id end),
-          scopeId: (if $scope_id == "" then null else $scope_id end),
-          mode: $mode,
-          posture: (if $posture == "" then null else $posture end),
-          note: (if $note == "" then null else $note end),
-          agent: $agent,
-          hostSessionId: (if $host_session == "" then null else $host_session end),
-          goalRef: $goalRef
-        }
-      ])),
-      autonomyPosture: (if $posture == "" then ($root.autonomyPosture // null) else $posture end),
-      contextBoundary: (
-        if $cbKind == "" then ($root.contextBoundary // null)
-        else { kind: $cbKind,
-               checkpointId: (if $cbId == "" then null else $cbId end),
-               at: $timestamp }
-        end
-      ),
-      autonomyDecisions: (
-        if $decision == "" then ($root.autonomyDecisions // [])
-        else (($root.autonomyDecisions // []) + [{
-          turnNumber: $turn,
-          timestamp: $timestamp,
-          description: $decision,
-          principle: (if $dprinciple == "" then null else $dprinciple end),
-          chose: (if $dchose == "" then null else $dchose end),
-          considered: (if $dconsidered == "" then []
-                       else ($dconsidered | split(",") | map(gsub("^ +| +$"; "")) | map(select(length > 0))) end),
-          posture: (if $posture == "" then null else $posture end),
-          agent: $agent
-        }])
-        end
-      )
-    })
-  ' "$SESSION_FILE" > "$TMP_FILE"
+  --arg hostSessionId "$SESSION_ID" \
+  --arg convergenceIteration "$CONV_ITER" \
+  --arg specDir "$SPEC_DIR" \
+  '{
+    timestamp:$timestamp,
+    phase:$phase,
+    scopeId:$scopeId,
+    occurrenceId:$occurrenceId,
+    note:$note,
+    mode:$mode,
+    posture:$posture,
+    contextBoundaryKind:$contextBoundaryKind,
+    contextBoundaryId:$contextBoundaryId,
+    decision:$decision,
+    decisionPrinciple:$decisionPrinciple,
+    decisionChose:$decisionChose,
+    decisionConsidered:$decisionConsidered,
+    agent:$agent,
+    hostSessionId:$hostSessionId,
+    convergenceIteration:(if $convergenceIteration == "" then null else ($convergenceIteration | tonumber) end),
+    specDir:(if $specDir == "" then null else $specDir end)
+  }')" || exit 2
 
-mv "$TMP_FILE" "$SESSION_FILE"
-TMP_FILE=""
+state_snapshot_goal_ref() {
+  local locked_input="$1" authority_context="$2"
+  local contract violations goal_session goal_alias authority_session authority_alias
 
-# --- Convergence loop update (Gate G082) -----------------------------------
-#
-# When both --convergence-iteration and --spec-dir are supplied, additively
-# update the `convergenceLoops[]` array entry keyed by (specDir, agent).
-# If an entry for that key already exists, replace its `iterationCount` and
-# `lastUpdated`. Otherwise append a new entry. Other entries (for other
-# specs or other agents) are NEVER touched.
-#
-# This array is consumed by `bubbles/scripts/convergence-cap-guard.sh`
-# which enforces `maxConvergenceIterations` (default 10) per Gate G082.
-if [[ -n "$CONV_ITER" && -n "$SPEC_DIR" ]]; then
-  CONV_TMP="$(mktemp "$SESSION_DIR/.bubbles.session.json.convergence.XXXXXX")"
-  jq \
-    --arg specDir "$SPEC_DIR" \
-    --arg agent "$AGENT_NAME" \
-    --argjson iterationCount "$CONV_ITER" \
-    --arg lastUpdated "$TIMESTAMP" \
-    '
-    def goal_ref:
-      if (.goalContract | type) == "object" then
-        { goalId: .goalContract.goalId,
-          revision: .goalContract.revision,
-          sourceRequestDigest: .goalContract.sourceRequestDigest,
-          workBoundary: .goalContract.workBoundary }
-      else null end;
+  if [[ "$(jq -r 'has("goalContract") and .goalContract != null' "$locked_input")" != "true" ]]; then
+    printf '%s' 'null'
+    return 0
+  fi
+
+  contract="$(jq -c '.goalContract' "$locked_input")" || return 2
+  violations="$(session_state_goal_contract_violations "$contract")" || return 2
+  if [[ -n "$violations" ]]; then
+    session_state_diagnostic state-snapshot REFUSED SESSION_GOAL_INVALID \
+      message "current Goal Contract failed complete validation" violations "$violations" >&2
+    return 2
+  fi
+
+  goal_session="$(jq -r '.provenance.sessionId' <<< "$contract")"
+  goal_alias="$(jq -r '.provenance.repositoryAlias' <<< "$contract")"
+  authority_session="$(jq -r '.sessionId' <<< "$authority_context")"
+  authority_alias="$(jq -r '.repositoryAlias' <<< "$authority_context")"
+  if [[ "$goal_session" != "$authority_session" ]]; then
+    session_state_diagnostic state-snapshot REFUSED SESSION_PROVENANCE_SESSION \
+      message "Goal Contract session does not match repository authority" \
+      goalSession "$goal_session" authoritySession "$authority_session" >&2
+    return 2
+  fi
+  if [[ "$goal_alias" != "$authority_alias" ]]; then
+    session_state_diagnostic state-snapshot REFUSED SESSION_PROVENANCE_REPOSITORY \
+      message "Goal Contract repository alias does not match repository authority" \
+      goalRepository "$goal_alias" authorityRepository "$authority_alias" >&2
+    return 2
+  fi
+
+  jq -c '{
+    goalId:.goalId,
+    revision:.revision,
+    sourceRequestDigest:.sourceRequestDigest,
+    workBoundary:.workBoundary
+  } + (if has("semanticBoundary") then {semanticBoundary:.semanticBoundary} else {} end)' <<< "$contract"
+}
+
+state_snapshot_validate_ordinal() {
+  local incoming="$1" previous="$2" authorized="$3" spec_dir="$4"
+  if [[ "$previous" == "none" ]]; then
+    if [[ "$authorized" == "true" && "$incoming" -ne 1 ]]; then
+      echo "state-snapshot: refusing convergence update for a new authorized attempt: first iteration must be 1 (requested=$incoming specDir=$spec_dir)" >&2
+      return 1
+    fi
+    return 0
+  fi
+  if [[ "$incoming" -eq "$previous" || "$incoming" -eq $((previous + 1)) ]]; then
+    return 0
+  fi
+  if [[ "$incoming" -lt "$previous" ]]; then
+    echo "state-snapshot: refusing non-monotonic convergence update for specDir=$spec_dir: current=$previous requested=$incoming" >&2
+    return 1
+  fi
+  echo "state-snapshot: refusing skipped convergence ordinal for specDir=$spec_dir: current=$previous requested=$incoming" >&2
+  return 1
+}
+
+state_snapshot_matching_spellings() {
+  local locked_input="$1" canonical_spec="$2"
+  local count index raw_spec observed result='[]'
+  count="$(jq -r '(.convergenceLoops // []) | length' "$locked_input")" || return 2
+  index=0
+  while [[ "$index" -lt "$count" ]]; do
+    raw_spec="$(jq -r --argjson index "$index" '.convergenceLoops[$index].specDir' "$locked_input")" || return 2
+    observed="$(session_state_canonical_spec "$REPO_ROOT" "$raw_spec")" || return $?
+    if [[ "$observed" == "$canonical_spec" ]]; then
+      result="$(jq -cn --argjson values "$result" --arg value "$raw_spec" '$values + [$value]')" || return 2
+    fi
+    index=$((index + 1))
+  done
+  printf '%s' "$result"
+}
+
+state_snapshot_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3"
+  local packet="$4" authority_context="$5" mutation="$6"
+  local timestamp mirror
+  local goal_ref incoming spec_dir agent authorized=false attempt='null'
+  local previous='none' matching_spellings='[]' validation_rc=0
+  : "$operation_context"
+
+  timestamp="$(jq -r '.timestamp' <<< "$mutation")" || return 2
+  mirror="$(jq -cn \
+    --argjson binding "$packet" \
+    --arg timestamp "$timestamp" \
+    '$binding + {
+      mirroredControlRevision: $binding.repositoryResolution.controlRevision,
+      mirroredAt: $timestamp
+    }')" || return 2
+  goal_ref="$(state_snapshot_goal_ref "$locked_input" "$authority_context")" || return $?
+  incoming="$(jq -r '.convergenceIteration // empty' <<< "$mutation")"
+  spec_dir="$(jq -r '.specDir // empty' <<< "$mutation")"
+  agent="$(jq -r '.agent' <<< "$mutation")"
+
+  if [[ -n "$incoming" ]]; then
+    SNAPSHOT_NORMALIZED_FILE="$(mktemp "$(dirname "$candidate")/.state-snapshot.convergence.XXXXXX")" || return 3
+    session_state_validate_convergence "$locked_input" "$REPO_ROOT" "$spec_dir" \
+      "$SNAPSHOT_NORMALIZED_FILE" || validation_rc=$?
+    if [[ "$validation_rc" -ne 0 ]]; then
+      rm -f "$SNAPSHOT_NORMALIZED_FILE"
+      SNAPSHOT_NORMALIZED_FILE=""
+      return "$validation_rc"
+    fi
+
+    if [[ "$goal_ref" != "null" ]]; then
+      authorized=true
+      attempt="$(session_state_authorized_attempt "$locked_input" "$authority_context" "$spec_dir")" || {
+        validation_rc=$?
+        rm -f "$SNAPSHOT_NORMALIZED_FILE"
+        SNAPSHOT_NORMALIZED_FILE=""
+        return "$validation_rc"
+      }
+      previous="$(jq -r --argjson attempt "$attempt" '
+        [.[] | select(
+          .goalRef != null
+          and .goalRef.goalId == $attempt.goalId
+          and .goalRef.revision == $attempt.revision
+          and .goalRef.sourceRequestDigest == $attempt.sourceRequestDigest
+        ) | .iterationCount]
+        | if length == 0 then "none" else (max | tostring) end
+      ' "$SNAPSHOT_NORMALIZED_FILE")" || validation_rc=2
+    else
+      if jq -e 'any(.[]; .goalRef != null)' "$SNAPSHOT_NORMALIZED_FILE" >/dev/null 2>&1; then
+        session_state_diagnostic state-snapshot REFUSED SESSION_GOAL_MISSING \
+          message "current Goal Contract is required for identity-bearing attempt authority" >&2
+        validation_rc=2
+      else
+        previous="$(jq -r --arg agent "$agent" '
+          [.[] | select(.goalRef == null and ((.agents // []) | index($agent) != null)) | .iterationCount]
+          | if length == 0 then "none" else (max | tostring) end
+        ' "$SNAPSHOT_NORMALIZED_FILE")" || validation_rc=2
+      fi
+    fi
+    if [[ "$validation_rc" -eq 0 ]]; then
+      matching_spellings="$(state_snapshot_matching_spellings "$locked_input" "$spec_dir")" || validation_rc=$?
+    fi
+    rm -f "$SNAPSHOT_NORMALIZED_FILE"
+    SNAPSHOT_NORMALIZED_FILE=""
+    [[ "$validation_rc" -eq 0 ]] || return "$validation_rc"
+    state_snapshot_validate_ordinal "$incoming" "$previous" "$authorized" "$spec_dir" || return $?
+  fi
+
+  if ! jq -e '
+      ((.turnSnapshots // []) | type) == "array"
+      and ((.autonomyDecisions // []) | type) == "array"
+    ' "$locked_input" >/dev/null 2>&1; then
+    session_state_diagnostic state-snapshot REFUSED SESSION_SNAPSHOT_COLLECTION_INVALID \
+      message "turnSnapshots and autonomyDecisions must be arrays when present" >&2
+    return 2
+  fi
+
+  SNAPSHOT_NEXT_TURN="$(jq -r '((.turnSnapshots // []) | length) + 1' "$locked_input")" || return 2
+  if ! [[ "$SNAPSHOT_NEXT_TURN" =~ ^[1-9][0-9]*$ ]]; then
+    session_state_diagnostic state-snapshot REFUSED SESSION_TURN_INVALID \
+      message "snapshot callback could not derive a positive committed turn number" >&2
+    return 2
+  fi
+  if ! jq \
+    --argjson mirror "$mirror" \
+    --argjson mutation "$mutation" \
+    --argjson goalRef "$goal_ref" \
+    --argjson matchingSpecSpellings "$matching_spellings" \
+    --argjson turn "$SNAPSHOT_NEXT_TURN" '
+    def same_spec:
+      .specDir as $recordSpec
+      | ($recordSpec | type) == "string"
+        and ($matchingSpecSpellings | index($recordSpec) != null);
+    def same_core($goal):
+      (.goalRef | type) == "object"
+      and .goalRef.goalId == $goal.goalId
+      and .goalRef.revision == $goal.revision
+      and .goalRef.sourceRequestDigest == $goal.sourceRequestDigest;
+    def record_agents:
+      ((.agents // []) as $recordAgents
+       | (if ($recordAgents | type) == "array" then $recordAgents else [] end)
+         + [(.agent // empty)])
+      | map(select(type == "string" and length > 0));
+    def canonical_times($records):
+      {
+        started: (
+          [$records[] | (.startedAt // .lastUpdated // .lastIterationAt // empty)
+           | select(type == "string" and length > 0)]
+          | min // $mutation.timestamp
+        ),
+        updated: (
+          [$records[] | (.lastUpdated // .lastIterationAt // empty)
+           | select(type == "string" and length > 0)]
+          | max // $mutation.timestamp
+        )
+      };
     . as $root
-    | ($root | goal_ref) as $goalRef
-    | ($root.convergenceLoops // []) as $loops
-    | ([ $loops[]
-         | select(.specDir != $specDir or .agent != $agent)
-       ] + [{
-         specDir: $specDir,
-         agent: $agent,
-         iterationCount: $iterationCount,
-         lastUpdated: $lastUpdated,
-         goalRef: $goalRef
-       }]) as $updated
-    | $root + { convergenceLoops: $updated }
-    ' "$SESSION_FILE" > "$CONV_TMP"
-  mv "$CONV_TMP" "$SESSION_FILE"
-  CONV_TMP=""
-fi
+    | ($root + {
+        repositoryBindingMirror: $mirror,
+        turnSnapshots: ((($root.turnSnapshots // []) + [{
+          turnNumber: $turn,
+          timestamp: $mutation.timestamp,
+          phase: $mutation.phase,
+          occurrenceId: (if $mutation.occurrenceId == "" then null else $mutation.occurrenceId end),
+          scopeId: (if $mutation.scopeId == "" then null else $mutation.scopeId end),
+          mode: $mutation.mode,
+          posture: (if $mutation.posture == "" then null else $mutation.posture end),
+          note: (if $mutation.note == "" then null else $mutation.note end),
+          agent: $mutation.agent,
+          hostSessionId: $mutation.hostSessionId,
+          goalRef: $goalRef
+        }])),
+        autonomyPosture: (if $mutation.posture == "" then ($root.autonomyPosture // null) else $mutation.posture end),
+        contextBoundary: (
+          if $mutation.contextBoundaryKind == "" then ($root.contextBoundary // null)
+          else {
+            kind: $mutation.contextBoundaryKind,
+            checkpointId: (if $mutation.contextBoundaryId == "" then null else $mutation.contextBoundaryId end),
+            at: $mutation.timestamp
+          }
+          end
+        ),
+        autonomyDecisions: (
+          if $mutation.decision == "" then ($root.autonomyDecisions // [])
+          else (($root.autonomyDecisions // []) + [{
+            turnNumber: $turn,
+            timestamp: $mutation.timestamp,
+            description: $mutation.decision,
+            principle: (if $mutation.decisionPrinciple == "" then null else $mutation.decisionPrinciple end),
+            chose: (if $mutation.decisionChose == "" then null else $mutation.decisionChose end),
+            considered: (
+              if $mutation.decisionConsidered == "" then []
+              else ($mutation.decisionConsidered | split(",") | map(gsub("^ +| +$"; "")) | map(select(length > 0)))
+              end
+            ),
+            posture: (if $mutation.posture == "" then null else $mutation.posture end),
+            agent: $mutation.agent
+          }])
+          end
+        )
+      }) as $snapshot
+    | if $mutation.convergenceIteration == null then
+        $snapshot
+      else
+        ($root.convergenceLoops // []) as $loops
+        | (if $goalRef != null then
+            [$loops[] | select(same_spec and same_core($goalRef))] as $current
+            | ([$current[].iterationCount] | max // null) as $previous
+            | canonical_times($current) as $times
+            | ([$current[] | record_agents[]] + [$mutation.agent] | unique) as $agents
+            | ($current[0] // {}) as $base
+            | ([$loops[] | select((same_spec and same_core($goalRef)) | not)] + [
+                ($base + {
+                  specDir: $mutation.specDir,
+                  goalRef: $goalRef,
+                  iterationCount: $mutation.convergenceIteration,
+                  startedAt: $times.started,
+                  lastUpdated: (if $previous == $mutation.convergenceIteration then $times.updated else $mutation.timestamp end),
+                  agents: $agents
+                } | del(.agent, .lastIterationAt))
+              ])
+          else
+            [$loops[]
+             | select(same_spec)
+             | select(.goalRef == null)
+             | select((.agent // "") == $mutation.agent
+                      or ((.agents // []) | if type == "array" then index($mutation.agent) != null else false end))] as $current
+            | ([$current[].iterationCount] | max // null) as $previous
+            | canonical_times($current) as $times
+            | ($current[0] // {}) as $base
+            | ([$loops[]
+                | select((same_spec
+                          and (.goalRef == null)
+                          and (((.agent // "") == $mutation.agent)
+                               or ((.agents // []) | if type == "array" then index($mutation.agent) != null else false end))) | not)] + [
+                ($base + {
+                  specDir: $mutation.specDir,
+                  agent: $mutation.agent,
+                  iterationCount: $mutation.convergenceIteration,
+                  startedAt: $times.started,
+                  lastUpdated: (if $previous == $mutation.convergenceIteration then $times.updated else $mutation.timestamp end),
+                  goalRef: null
+                } | del(.agents, .lastIterationAt))
+              ])
+          end) as $updated
+        | $snapshot + {convergenceLoops:$updated}
+      end
+    ' "$locked_input" > "$candidate"; then
+    session_state_diagnostic state-snapshot REFUSED SESSION_CANDIDATE_INVALID \
+      message "snapshot callback could not build one complete candidate object" >&2
+    return 2
+  fi
+}
 
-# Release the exclusive session lock now that every read-modify-write critical
-# section (mirror-session mirror, turnSnapshots, convergenceLoops) has completed.
-# (The EXIT trap also releases it; this frees it promptly on the happy path.)
-release_session_lock
+# Commit the validated repository mirror, turn, optional decision/context, and
+# optional convergence summary through one lock acquisition and one replacement.
+# Any callback refusal occurs before the shared transaction can replace bytes.
+SNAPSHOT_NEXT_TURN=""
+set +e
+session_state_transaction "$SESSION_FILE" initialize-object state-snapshot state_snapshot_mutation "$PACKET_JSON" "$AUTHORITY_CONTEXT" "$SNAPSHOT_MUTATION_JSON"
+TRANSACTION_RC=$?
+set -e
+if [[ "$TRANSACTION_RC" -ne 0 ]]; then
+  exit "$TRANSACTION_RC"
+fi
+NEXT_TURN="$SNAPSHOT_NEXT_TURN"
 
 # Echo a one-line summary to stdout for orchestrator log capture.
 if [[ -n "$CONV_ITER" && -n "$SPEC_DIR" ]]; then

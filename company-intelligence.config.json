@@ -1,5 +1,6 @@
 {
-  "contractVersion": "company-intelligence-config/v1",
+  "contractVersion": "company-intelligence-config/v2",
+  "readBoundMs": 10000,
   "note": "Coverage registry and composition policy for the Company Multi-Horizon Intelligence Lab. Fifteen dimensions are mandatory on every run; a dimension with no source answers with an explicit unavailable state and a named reason rather than a blank. decisionTimeSource is 'caller' because every composition function takes an explicit decisionTime and the module reads no clock.",
   "decisionTimeSource": "caller",
   "maxBranches": 5,

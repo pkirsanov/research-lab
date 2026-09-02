@@ -2,15 +2,18 @@
  * Company Multi-Horizon Intelligence Lab — browser surface (feature 025 scope 2).
  *
  * Ordinary cases use the real ephemeral static server and unmodified responses.
- * Explicitly annotated pass-through fault-injection cases use `page.route()` only to hold or delay a request.
- * `route.continue()` then forwards the real response unchanged. No case fulfills or aborts a business response.
+ * Explicitly annotated fault-injection cases either pass through `page.route()` unchanged or make a real
+ * Node HTTP server withhold one repository file until an explicit release. High-risk mutation controls may
+ * serve one bounded in-memory route or module mutation; no case intercepts or fulfills a business-data response.
  * Every assertion reads what the production page actually rendered from the committed corpus it fetched.
  *
  * Run: npx --no-install playwright test tests/company-intelligence-lab.spec.mjs \
  *        --config=playwright.config.mjs --project=system-chrome --reporter=list
  */
-import { readFileSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
+import { createServer } from 'node:http';
 import { dirname, join } from 'node:path';
+import { extname, normalize, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { test, expect } from './playwright-runtime.mjs';
 import { startStaticServer } from './provider-credentials.support.mjs';
@@ -19,6 +22,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const ROUTE = 'company-intelligence-lab.html';
 const REGISTERED_PAGES = new Set(JSON.parse(readFileSync(join(ROOT, 'tools.json'), 'utf8')).tools.map((tool) => tool.file));
 const ROUTE_SOURCE = readFileSync(join(ROOT, ROUTE), 'utf8');
+const COMMITTED_CONFIG = JSON.parse(readFileSync(join(ROOT, 'company-intelligence.config.json'), 'utf8'));
 
 let site;
 
@@ -43,6 +47,24 @@ const ORDINARY_TOOL_READ_KEYS = [
     'asOf', 'availability', 'computedAt', 'contractVersion', 'deepLink',
     'freshUntil', 'id', 'metrics', 'read'
 ];
+const REQUIRED_READ_BOUND_MS = COMMITTED_CONFIG.readBoundMs;
+const INSIDE_BOUND_DELAY_MS = Math.floor(REQUIRED_READ_BOUND_MS * 0.3);
+const CANONICAL_EVENT_SUBJECT = 'company:msft';
+const CANONICAL_EVENT_PATH = 'data/company-intelligence/company-msft/events.json';
+const MISMATCH_EVENT_PATH = 'data/company-intelligence/company-aapl/events.json';
+const BACKSLASH_AUTHORITY_PATH = '\\\\127.0.0.1:9\\collect.json';
+/* Kept literal so the repository timeout-budget validator can police it. The abort assertion
+    below binds this harness-only scheduling margin to the committed product read bound. */
+const READ_BOUND_WATCHDOG_MS = 15_000;
+const STATIC_MIME = {
+    '.css': 'text/css; charset=utf-8',
+    '.html': 'text/html; charset=utf-8',
+    '.js': 'text/javascript; charset=utf-8',
+    '.json': 'application/json; charset=utf-8',
+    '.jsonl': 'application/x-ndjson; charset=utf-8',
+    '.png': 'image/png',
+    '.svg': 'image/svg+xml; charset=utf-8'
+};
 
 function deferredSignal() {
     let resolveSignal;
@@ -57,6 +79,1124 @@ function deferredSignal() {
         }
     };
 }
+
+function serveRepositoryFile(relative, response) {
+    const filePath = resolve(ROOT, relative);
+    if ((filePath !== ROOT && !filePath.startsWith(ROOT + sep)) ||
+        !existsSync(filePath) || !statSync(filePath).isFile()) {
+        response.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
+        response.end('not found');
+        return;
+    }
+    response.writeHead(200, {
+        'cache-control': 'no-store',
+        'content-type': STATIC_MIME[extname(filePath)] || 'application/octet-stream',
+        'referrer-policy': 'no-referrer'
+    });
+    const stream = createReadStream(filePath);
+    stream.on('error', () => response.destroy());
+    stream.pipe(response);
+}
+
+function serveEphemeralBody(relative, body, response) {
+    response.writeHead(200, {
+        'cache-control': 'no-store',
+        'content-type': STATIC_MIME[extname(relative)] || 'application/octet-stream',
+        'referrer-policy': 'no-referrer'
+    });
+    response.end(body);
+}
+
+async function startWithheldStaticServer(heldPath, {
+    holdAfterHeaders = false,
+    heldResponseBody = null,
+    overrides = {}
+} = {}) {
+    const entered = deferredSignal();
+    const aborted = deferredSignal();
+    const finished = deferredSignal();
+    const routeOverrides = new Map(Object.entries(overrides));
+    const sockets = new Set();
+    const held = new Set();
+    const requestLog = [];
+    let requestCount = 0;
+    let released = false;
+    let abortObserved = false;
+    let bodyStarted = false;
+
+    const server = createServer((request, response) => {
+        const requestPath = decodeURIComponent((request.url || '/').split('?')[0]);
+        const relative = normalize(requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, ''));
+        const requestRecord = {
+            aborted: false,
+            closed: false,
+            finished: false,
+            relative,
+            source: null
+        };
+        requestLog.push(requestRecord);
+        request.once('aborted', () => { requestRecord.aborted = true; });
+        response.once('finish', () => { requestRecord.finished = true; });
+        response.once('close', () => { requestRecord.closed = true; });
+
+        // bubbles:fault-injection-begin reason=accept and withhold one real same-origin repository response until explicit release or browser abort
+        if (relative === heldPath) {
+            requestCount += 1;
+            requestRecord.source = heldResponseBody === null ? 'held-repository' : 'held-ephemeral-response';
+            const entry = { relative, response, holdAfterHeaders, heldResponseBody };
+            held.add(entry);
+            let responseFinished = false;
+            const observeAbort = () => {
+                if (responseFinished || abortObserved) return;
+                abortObserved = true;
+                aborted.resolve();
+            };
+            request.once('aborted', observeAbort);
+            response.once('finish', () => {
+                responseFinished = true;
+                held.delete(entry);
+                finished.resolve();
+            });
+            response.once('close', () => {
+                held.delete(entry);
+                if (!responseFinished) observeAbort();
+            });
+            if (holdAfterHeaders && !released) {
+                response.writeHead(200, {
+                    'cache-control': 'no-store',
+                    'content-type': STATIC_MIME[extname(relative)] || 'application/octet-stream',
+                    'referrer-policy': 'no-referrer'
+                });
+                response.flushHeaders();
+                response.write('{"partialDocument":');
+                bodyStarted = true;
+            }
+            entered.resolve();
+            if (released && !response.destroyed) {
+                if (entry.heldResponseBody === null) serveRepositoryFile(relative, response);
+                else serveEphemeralBody(relative, entry.heldResponseBody, response);
+            }
+            return;
+        }
+        // bubbles:fault-injection-end
+
+        if (routeOverrides.has(relative)) {
+            requestRecord.source = 'in-memory-route-override';
+            response.writeHead(200, {
+                'cache-control': 'no-store',
+                'content-type': STATIC_MIME[extname(relative)] || 'application/octet-stream',
+                'referrer-policy': 'no-referrer'
+            });
+            response.end(routeOverrides.get(relative));
+            return;
+        }
+        requestRecord.source = 'repository';
+        serveRepositoryFile(relative, response);
+    });
+    server.on('connection', (socket) => {
+        sockets.add(socket);
+        socket.once('close', () => sockets.delete(socket));
+    });
+    await new Promise((resolveReady) => server.listen(0, '127.0.0.1', resolveReady));
+
+    return {
+        baseUrl: `http://127.0.0.1:${server.address().port}`,
+        entered: entered.promise,
+        aborted: aborted.promise,
+        finished: finished.promise,
+        abortObserved: () => abortObserved,
+        bodyStarted: () => bodyStarted,
+        requestCount: () => requestCount,
+        requestLog: () => requestLog.map((entry) => ({ ...entry })),
+        released: () => released,
+        release: () => {
+            if (released) return;
+            released = true;
+            for (const entry of [...held]) {
+                if (entry.response.destroyed) continue;
+                if (entry.holdAfterHeaders) entry.response.destroy();
+                else if (entry.heldResponseBody === null) serveRepositoryFile(entry.relative, entry.response);
+                else serveEphemeralBody(entry.relative, entry.heldResponseBody, entry.response);
+            }
+        },
+        close: () => new Promise((resolveClosed, rejectClosed) => {
+            for (const entry of [...held]) entry.response.destroy();
+            for (const socket of sockets) socket.destroy();
+            server.close((error) => error ? rejectClosed(error) : resolveClosed());
+        })
+    };
+}
+
+async function installReadTimerTracker(page) {
+    await page.addInitScript(({ readBoundMs }) => {
+        const active = new Set();
+        const stats = { created: 0, cleared: 0 };
+        const nativeSetTimeout = window.setTimeout.bind(window);
+        const nativeClearTimeout = window.clearTimeout.bind(window);
+        window.setTimeout = function (callback, delay, ...args) {
+            const handle = nativeSetTimeout(callback, delay, ...args);
+            const callbackSource = typeof callback === 'function'
+                ? Function.prototype.toString.call(callback) : '';
+            if (delay === readBoundMs && callbackSource.includes('controller.abort')) {
+                active.add(handle);
+                stats.created += 1;
+            }
+            return handle;
+        };
+        window.clearTimeout = function (handle) {
+            if (active.delete(handle)) stats.cleared += 1;
+            return nativeClearTimeout(handle);
+        };
+        window.__bug025ReadTimerSnapshot = () => ({
+            active: active.size,
+            cleared: stats.cleared,
+            created: stats.created
+        });
+    }, { readBoundMs: REQUIRED_READ_BOUND_MS });
+}
+
+async function installSynchronousFetchSetupFailure(page, selectedPath) {
+    await page.addInitScript(({ failureMessage, readBoundMs, selectedPath }) => {
+        const activeTimers = new Set();
+        const stats = {
+            activeAtThrow: null,
+            delegatedPaths: [],
+            outerCatch: null,
+            selectedAttempts: 0,
+            timersCleared: 0,
+            timersCreated: 0
+        };
+        const nativeSetTimeout = window.setTimeout.bind(window);
+        const nativeClearTimeout = window.clearTimeout.bind(window);
+        const nativeFetch = window.fetch.bind(window);
+        const nativePromiseReject = Promise.reject;
+
+        window.setTimeout = function (callback, delay, ...args) {
+            const handle = nativeSetTimeout(callback, delay, ...args);
+            const callbackSource = typeof callback === 'function'
+                ? Function.prototype.toString.call(callback) : '';
+            if (delay === readBoundMs && callbackSource.includes('controller.abort')) {
+                activeTimers.add(handle);
+                stats.timersCreated += 1;
+            }
+            return handle;
+        };
+        window.clearTimeout = function (handle) {
+            if (activeTimers.delete(handle)) stats.timersCleared += 1;
+            return nativeClearTimeout(handle);
+        };
+        Promise.reject = function (reason) {
+            if (reason && reason.message === failureMessage && reason.rlDocument === selectedPath) {
+                stats.outerCatch = {
+                    boundExceeded: reason.boundExceeded,
+                    document: reason.rlDocument,
+                    name: reason.name,
+                    transportUnavailable: reason.transportUnavailable
+                };
+            }
+            return Reflect.apply(nativePromiseReject, this, [reason]);
+        };
+
+        // bubbles:fault-injection-begin reason=throw synchronously before native fetch for one selected same-origin corpus path and pass every other fetch through unchanged
+        window.fetch = function (input, init) {
+            const raw = typeof input === 'string' ? input : input.url;
+            const relative = decodeURIComponent(new URL(raw, window.location.href).pathname).replace(/^\/+/, '');
+            if (relative === selectedPath) {
+                stats.selectedAttempts += 1;
+                stats.activeAtThrow = activeTimers.size;
+                throw new TypeError(failureMessage);
+            }
+            stats.delegatedPaths.push(relative);
+            return nativeFetch(input, init);
+        };
+        // bubbles:fault-injection-end
+
+        window.__bug025SynchronousFailureSnapshot = () => ({
+            activeAtThrow: stats.activeAtThrow,
+            activeTimers: activeTimers.size,
+            delegatedPaths: stats.delegatedPaths.slice(),
+            outerCatch: stats.outerCatch === null ? null : { ...stats.outerCatch },
+            selectedAttempts: stats.selectedAttempts,
+            timersCleared: stats.timersCleared,
+            timersCreated: stats.timersCreated
+        });
+    }, {
+        failureMessage: 'BUG-025 selected fetch setup failed synchronously',
+        readBoundMs: REQUIRED_READ_BOUND_MS,
+        selectedPath
+    });
+}
+
+async function expectNoActiveReadTimers(page, context) {
+    await expect.poll(
+        () => page.evaluate(() => window.__bug025ReadTimerSnapshot().active),
+        { timeout: 5000, message: `${context} left a bounded-read timer active` }
+    ).toBe(0);
+    const timers = await page.evaluate(() => window.__bug025ReadTimerSnapshot());
+    expect(timers.created, `${context} did not exercise the bounded-read timer`).toBeGreaterThan(0);
+    expect(timers.cleared, `${context} did not clear every bounded-read timer`).toBe(timers.created);
+}
+
+async function installFirstPaintRecorder(page) {
+    await page.addInitScript(() => {
+        window.__bug025PaintHistory = [];
+        const record = () => {
+            if (!document.body) return;
+            const snapshot = {
+                registrySource: document.body.getAttribute('data-registry-source'),
+                corpusStatus: document.body.getAttribute('data-corpus-status'),
+                readingReadiness: document.body.getAttribute('data-reading-readiness'),
+                runStatus: document.body.getAttribute('data-run-status'),
+                horizons: Array.from(document.querySelectorAll('#cockpit-horizons [data-horizon]')).map((node) => ({
+                    id: node.getAttribute('data-horizon'),
+                    summary: (node.querySelector('[data-horizon-summary]') || { textContent: '' }).textContent.trim()
+                }))
+            };
+            const previous = window.__bug025PaintHistory[window.__bug025PaintHistory.length - 1];
+            if (!previous || JSON.stringify(previous) !== JSON.stringify(snapshot)) {
+                window.__bug025PaintHistory.push(snapshot);
+            }
+        };
+        new MutationObserver(record).observe(document, {
+            attributes: true,
+            attributeFilter: ['data-registry-source', 'data-corpus-status', 'data-reading-readiness', 'data-run-status'],
+            childList: true,
+            subtree: true
+        });
+        document.addEventListener('DOMContentLoaded', record);
+    });
+}
+
+async function expectEmbeddedFirstPaintBeforeRelease(page, withheld) {
+    await withheld.entered;
+    await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
+    const observed = await page.evaluate(() => ({
+        currentCorpusStatus: document.body.getAttribute('data-corpus-status'),
+        currentReadingReadiness: document.body.getAttribute('data-reading-readiness'),
+        firstPaint: window.__bug025PaintHistory.find((entry) => (
+            entry.runStatus === 'composed' &&
+            entry.registrySource === 'embedded' &&
+            entry.readingReadiness === 'not-established' &&
+            entry.horizons.length === 4
+        )) || null
+    }));
+    expect(withheld.requestCount(), 'the real static server must accept exactly one held request before release').toBe(1);
+    expect(withheld.released(), 'the held response was released before first-paint observation').toBe(false);
+    expect(withheld.abortObserved(), 'the held response ended before first-paint observation').toBe(false);
+    expect(observed.firstPaint, 'no composed embedded first paint was observed before release').not.toBeNull();
+    expect(observed.firstPaint.corpusStatus).toBe('pending');
+    expect(observed.currentCorpusStatus).toBe('pending');
+    expect(observed.currentReadingReadiness).toBe('not-established');
+    for (const horizon of observed.firstPaint.horizons) {
+        expect(horizon.summary.length, `${horizon.id} first-paint summary`).toBeGreaterThan(20);
+    }
+}
+
+async function expectUnderlyingRequestAbort(withheld, heldPath) {
+    expect(Number.isSafeInteger(REQUIRED_READ_BOUND_MS) && REQUIRED_READ_BOUND_MS > 0,
+        'the browser harness must read a positive safe-integer bound from committed config').toBe(true);
+    expect(READ_BOUND_WATCHDOG_MS - REQUIRED_READ_BOUND_MS,
+        'the watchdog must remain a 50% scheduling margin over the committed product bound')
+        .toBe(Math.floor(REQUIRED_READ_BOUND_MS / 2));
+    await expect.poll(
+        () => withheld.abortObserved(),
+        {
+            timeout: READ_BOUND_WATCHDOG_MS,
+            message: `underlying static-server request for ${heldPath} remained open after the declared ${REQUIRED_READ_BOUND_MS} ms read bound`
+        }
+    ).toBe(true);
+    await withheld.aborted;
+}
+
+async function expectNamedUnavailableCoverage(page, dimensionId) {
+    await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established', { timeout: 30_000 });
+    await page.locator('#mode-power').click();
+    await expect(page.locator('body')).toHaveAttribute('data-mode', 'power');
+    const row = page.locator(`#workspace-coverage-rows [data-coverage-row="${dimensionId}"]`);
+    await expect(row).toHaveAttribute('data-state', 'unavailable');
+    const reason = await row.locator('[data-reason-code]').getAttribute('data-reason-code');
+    expect(reason, `${dimensionId} must name why its held source is unavailable`).toMatch(/^[a-z][a-z-]+$/);
+    const absence = await row.locator('[data-absence-statement]').textContent();
+    expect(absence.trim().length, `${dimensionId} must render a named absence`).toBeGreaterThan(20);
+}
+
+function cloneCommittedConfig() {
+    return JSON.parse(JSON.stringify(COMMITTED_CONFIG));
+}
+
+function replaceExactlyOnce(source, needle, replacement, label) {
+    const count = source.split(needle).length - 1;
+    expect(count, `${label} must match exactly one production source region`).toBe(1);
+    const index = source.indexOf(needle);
+    const mutated = source.slice(0, index) + replacement + source.slice(index + needle.length);
+    expect(mutated.length, `${label} changed bytes outside its exact replacement`)
+        .toBe(source.length - needle.length + replacement.length);
+    return mutated;
+}
+
+function routeWithEmbeddedEventPath(eventsPath) {
+    const canonical = `"eventsPath": ${JSON.stringify(CANONICAL_EVENT_PATH)}`;
+    const replacement = `"eventsPath": ${JSON.stringify(eventsPath)}`;
+    return replaceExactlyOnce(ROUTE_SOURCE, canonical, replacement,
+        'embedded event-path fixture mutation');
+}
+
+function eventSourceModuleRegion() {
+    const start = readFileSync(join(ROOT, 'rlcompanyintel.js'), 'utf8').indexOf('function readEventSource(');
+    const source = readFileSync(join(ROOT, 'rlcompanyintel.js'), 'utf8');
+    const end = source.indexOf('\n    /* The committed file a covered subject', start);
+    expect(start, 'readEventSource must exist in the production module').toBeGreaterThanOrEqual(0);
+    expect(end, 'readEventSource must have a bounded source region').toBeGreaterThan(start);
+    return { complete: source, region: source.slice(start, end) };
+}
+
+function moduleRejectingCanonicalEventSubject() {
+    const source = eventSourceModuleRegion();
+    const predicate = '            if (subjectMatch === null) {';
+    expect(source.region.split(predicate).length - 1,
+        'the canonical-subject mutation must find exactly one readEventSource predicate').toBe(1);
+    return replaceExactlyOnce(
+        source.complete,
+        predicate,
+        '            if (subjectMatch === null || entry.subjectId === "company:msft") {',
+        'canonical-subject predicate mutation'
+    );
+}
+
+function moduleWithoutEventPathEqualityGuard() {
+    const source = eventSourceModuleRegion();
+    const guards = [...source.region.matchAll(/if\s*\(\s*entry\.eventsPath\s*!==\s*[A-Za-z_$][\w$]*\s*\)\s*\{/g)];
+    expect(guards.length,
+        'the equality mutation must find exactly one declared-versus-derived event-path guard').toBe(1);
+    const guard = guards[0][0];
+    const replacement = guard.replace(/if\s*\([\s\S]*\)\s*\{$/, 'if (false) {');
+    expect(replacement, 'the equality mutation must change the owning predicate').not.toBe(guard);
+    return replaceExactlyOnce(source.complete, guard, replacement, 'event-path equality-guard mutation');
+}
+
+function routeWithoutTerminalSurfaceSuppression() {
+    const start = ROUTE_SOURCE.indexOf('function renderRefusal(');
+    const end = ROUTE_SOURCE.indexOf('\n            function renderHorizonCards(', start);
+    expect(start, 'renderRefusal must exist in the production route').toBeGreaterThanOrEqual(0);
+    expect(end, 'renderRefusal must have a bounded source region').toBeGreaterThan(start);
+    const region = ROUTE_SOURCE.slice(start, end);
+    const patterns = [
+        /Array\.prototype\.forEach\.call\(\s*document\.querySelectorAll\(\s*["']\[data-surface\]["']\s*\)\s*,\s*function\s*\(\s*([A-Za-z_$][\w$]*)\s*\)\s*\{\s*\1\.hidden\s*=\s*true\s*;\s*\}\s*\)\s*;/g,
+        /document\.querySelectorAll\(\s*["']\[data-surface\]["']\s*\)\.forEach\(\s*function\s*\(\s*([A-Za-z_$][\w$]*)\s*\)\s*\{\s*\1\.hidden\s*=\s*true\s*;\s*\}\s*\)\s*;/g
+    ];
+    const statements = patterns.flatMap((pattern) => [...region.matchAll(pattern)].map((match) => match[0]));
+    expect(statements.length,
+        'the suppression mutation must find exactly one route-terminal data-surface hide statement').toBe(1);
+    return replaceExactlyOnce(ROUTE_SOURCE, statements[0], '', 'route-terminal result-suppression mutation');
+}
+
+function routeWithPostRevealStatement(source, statement, label) {
+    const start = source.indexOf('function renderRefusal(');
+    const end = source.indexOf('\n            function renderHorizonCards(', start);
+    expect(start, 'renderRefusal must exist in the production route').toBeGreaterThanOrEqual(0);
+    expect(end, 'renderRefusal must have a bounded source region').toBeGreaterThan(start);
+    const revealAndReturn = [
+        '                    node.hidden = false;',
+        '                    return;'
+    ].join('\n');
+    const region = source.slice(start, end);
+    expect(region.split(revealAndReturn).length - 1,
+        `${label} must find exactly one route-terminal alert reveal`).toBe(1);
+    const replacement = [
+        '                    node.hidden = false;',
+        `                    ${statement}`,
+        '                    return;'
+    ].join('\n');
+    return replaceExactlyOnce(source, revealAndReturn, replacement, label);
+}
+
+function routeWithFocusTheftAfterAlertReveal(source = ROUTE_SOURCE) {
+    return routeWithPostRevealStatement(source, 'byId("subject-input").focus();',
+        'route-terminal focus-theft mutation');
+}
+
+function routeWithDuplicateAlertUpdateAfterReveal(source = ROUTE_SOURCE) {
+    return routeWithPostRevealStatement(source, 'node.textContent = node.textContent;',
+        'route-terminal duplicate-announcement mutation');
+}
+
+async function installSecurityStateRecorder(page) {
+    await page.addInitScript(() => {
+        const records = { alerts: [], bodyStates: [] };
+        const recordBodyState = () => {
+            const body = document.body;
+            if (body) {
+                const state = {
+                    corpusStatus: body.getAttribute('data-corpus-status'),
+                    readingReadiness: body.getAttribute('data-reading-readiness'),
+                    registrySource: body.getAttribute('data-registry-source'),
+                    runStatus: body.getAttribute('data-run-status'),
+                    unavailable: body.getAttribute('data-coverage-unavailable')
+                };
+                const previous = records.bodyStates[records.bodyStates.length - 1];
+                if (!previous || JSON.stringify(previous) !== JSON.stringify(state)) records.bodyStates.push(state);
+            }
+        };
+        const record = (mutations = []) => {
+            const alert = document.getElementById('subject-refusal');
+            if (alert) mutations.forEach((mutation) => {
+                if ((mutation.type !== 'childList' && mutation.type !== 'characterData') ||
+                    (mutation.target !== alert && !alert.contains(mutation.target))) return;
+                const updateText = mutation.type === 'childList'
+                    ? Array.from(mutation.addedNodes).map((node) => node.textContent || '').join('').trim()
+                    : (mutation.target.textContent || '').trim();
+                if (updateText === '') return;
+                const state = {
+                    atomic: alert.getAttribute('aria-atomic'),
+                    code: alert.getAttribute('data-refusal-code'),
+                    live: alert.getAttribute('aria-live'),
+                    role: alert.getAttribute('role'),
+                    text: updateText,
+                    type: mutation.type
+                };
+                records.alerts.push(state);
+            });
+            recordBodyState();
+        };
+        new MutationObserver(record).observe(document, {
+            attributes: true,
+            characterData: true,
+            childList: true,
+            subtree: true
+        });
+        window.__bug025SecurityState = () => JSON.parse(JSON.stringify(records));
+    });
+}
+
+async function waitForSecurityOutcome(page) {
+    await page.waitForFunction(() => {
+        if (!document.body) return false;
+        const runStatus = document.body.getAttribute('data-run-status');
+        const readiness = document.body.getAttribute('data-reading-readiness');
+        return runStatus === 'refused' || (runStatus === 'composed' && readiness === 'established');
+    }, null, { timeout: 30_000 });
+}
+
+async function captureSecuritySnapshot(page) {
+    return page.evaluate(() => {
+        const alert = document.getElementById('subject-refusal');
+        const identity = document.getElementById('subject-identity');
+        return {
+            activeElementId: document.activeElement && document.activeElement.id
+                ? document.activeElement.id : null,
+            activeElementIsBody: document.activeElement === document.body,
+            activeElementTag: document.activeElement ? document.activeElement.tagName.toLowerCase() : null,
+            alert: {
+                atomic: alert.getAttribute('aria-atomic'),
+                code: alert.getAttribute('data-refusal-code'),
+                hidden: alert.hidden,
+                live: alert.getAttribute('aria-live'),
+                role: alert.getAttribute('role'),
+                text: alert.textContent.trim()
+            },
+            bodyText: document.querySelector('main').innerText.replace(/\s+/g, ' ').trim(),
+            corpusStatus: document.body.getAttribute('data-corpus-status'),
+            identity: {
+                display: getComputedStyle(identity).display,
+                hidden: identity.hidden,
+                text: identity.textContent.trim()
+            },
+            readingReadiness: document.body.getAttribute('data-reading-readiness'),
+            registrySource: document.body.getAttribute('data-registry-source'),
+            resultSurfaces: Array.from(document.querySelectorAll('[data-surface]')).map((node) => ({
+                display: getComputedStyle(node).display,
+                hidden: node.hidden,
+                surface: node.getAttribute('data-surface')
+            })),
+            runStatus: document.body.getAttribute('data-run-status'),
+            securityState: window.__bug025SecurityState(),
+            unavailable: document.body.getAttribute('data-coverage-unavailable')
+        };
+    });
+}
+
+function terminalSecuritySignature(snapshot) {
+    return JSON.stringify({
+        alert: snapshot.alert,
+        corpusStatus: snapshot.corpusStatus,
+        identity: snapshot.identity,
+        readingReadiness: snapshot.readingReadiness,
+        registrySource: snapshot.registrySource,
+        resultSurfaces: snapshot.resultSurfaces,
+        runStatus: snapshot.runStatus,
+        unavailable: snapshot.unavailable
+    });
+}
+
+async function exerciseCanonicalEventAuthority(browser, { moduleOverride = null } = {}) {
+    const overrides = {};
+    if (moduleOverride !== null) overrides['rlcompanyintel.js'] = moduleOverride;
+    const server = await startWithheldStaticServer(null, { overrides });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const browserRequests = [];
+    const runtimeErrors = [];
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('request', (request) => browserRequests.push(request.url()));
+
+    try {
+        await page.goto(`${server.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await waitForSecurityOutcome(page);
+        if (await page.locator('body').getAttribute('data-run-status') === 'composed') {
+            await page.locator('#mode-power').click();
+            await expect(page.locator('body')).toHaveAttribute('data-mode', 'power');
+        }
+        const snapshot = await page.evaluate(() => {
+            const alert = document.getElementById('subject-refusal');
+            const coverage = document.querySelector(
+                '#workspace-coverage-rows [data-coverage-row="financial-events"]'
+            );
+            return {
+                committedEventRows: document.querySelectorAll(
+                    '#workspace-events-body [data-event-id][data-source-class="committed-file"]'
+                ).length,
+                coverageState: coverage ? coverage.getAttribute('data-state') : null,
+                readingReadiness: document.body.getAttribute('data-reading-readiness'),
+                refusalCode: alert.getAttribute('data-refusal-code'),
+                refusalHidden: alert.hidden,
+                runStatus: document.body.getAttribute('data-run-status')
+            };
+        });
+        await page.waitForTimeout(400);
+        return {
+            browserRequests,
+            runtimeErrors,
+            serverRequests: server.requestLog(),
+            snapshot
+        };
+    } finally {
+        await context.close();
+        await server.close();
+    }
+}
+
+function canonicalEventAuthorityChecks(run, routeOrigin) {
+    const eventRequests = run.serverRequests.filter((entry) => entry.relative.endsWith('events.json'));
+    const offOrigin = run.browserRequests.filter((url) => new URL(url).origin !== routeOrigin);
+    const snapshot = run.snapshot;
+    return [
+        { id: 'run-status-composed', passed: snapshot.runStatus === 'composed' },
+        { id: 'reading-readiness-established', passed: snapshot.readingReadiness === 'established' },
+        { id: 'refusal-hidden', passed: snapshot.refusalHidden && snapshot.refusalCode === null },
+        { id: 'financial-events-current', passed: snapshot.coverageState === 'current' },
+        { id: 'committed-event-row-loaded', passed: snapshot.committedEventRows > 0 },
+        {
+            id: 'canonical-event-request-once',
+            passed: eventRequests.length === 1 && eventRequests[0].relative === CANONICAL_EVENT_PATH &&
+                eventRequests[0].finished && eventRequests[0].source === 'repository'
+        },
+        {
+            id: 'no-other-event-path',
+            passed: eventRequests.every((entry) => entry.relative === CANONICAL_EVENT_PATH)
+        },
+        { id: 'zero-off-origin-requests', passed: offOrigin.length === 0 }
+    ];
+}
+
+async function exerciseEmbeddedBackslashAuthority(browser, {
+    moduleOverride = null,
+    routeMutation = null
+} = {}) {
+    let routeSource = routeWithEmbeddedEventPath(BACKSLASH_AUTHORITY_PATH);
+    if (routeMutation !== null) routeSource = routeMutation(routeSource);
+    const overrides = { [ROUTE]: routeSource };
+    if (moduleOverride !== null) overrides['rlcompanyintel.js'] = moduleOverride;
+    const server = await startWithheldStaticServer(null, { overrides });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const browserRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => browserRequests.push({ type: request.resourceType(), url: request.url() }));
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+
+    try {
+        await installSecurityStateRecorder(page);
+        await page.goto(`${server.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await waitForSecurityOutcome(page);
+        const atOutcome = await captureSecuritySnapshot(page);
+        const requestCountAtOutcome = server.requestLog().length;
+        await page.waitForTimeout(400);
+        const afterQuietWindow = await captureSecuritySnapshot(page);
+        return {
+            afterQuietWindow,
+            atOutcome,
+            browserRequests,
+            requestCountAfterQuietWindow: server.requestLog().length,
+            requestCountAtOutcome,
+            runtimeErrors,
+            serverRequests: server.requestLog()
+        };
+    } finally {
+        await context.close();
+        await server.close();
+    }
+}
+
+function embeddedBackslashChecks(run) {
+    const routeOwned = run.browserRequests.filter((entry) => entry.type === 'fetch' || entry.type === 'xhr');
+    const invalid = run.browserRequests.filter((entry) => (
+        entry.url.includes('127.0.0.1:9') || entry.url.includes('collect.json')
+    ));
+    const origin = run.browserRequests.length > 0 ? new URL(run.browserRequests[0].url).origin : null;
+    const offOrigin = run.browserRequests.filter((entry) => origin !== null && new URL(entry.url).origin !== origin);
+    const snapshot = run.afterQuietWindow;
+    const transitions = snapshot.securityState.alerts;
+    const refusedIndex = snapshot.securityState.bodyStates.findIndex((state) => state.runStatus === 'refused');
+    const hasLaterSettledState = refusedIndex >= 0 && snapshot.securityState.bodyStates.slice(refusedIndex + 1)
+        .some((state) => state.runStatus === 'composed' || state.readingReadiness === 'established');
+    return [
+        { id: 'run-status-refused', passed: snapshot.runStatus === 'refused' },
+        { id: 'refusal-code', passed: snapshot.alert.code === 'C025-CONFIG-SCHEMA' && !snapshot.alert.hidden },
+        { id: 'reading-readiness-not-established', passed: snapshot.readingReadiness === 'not-established' },
+        { id: 'unavailable-not-established', passed: snapshot.unavailable === 'not-established' },
+        {
+            id: 'result-surfaces-hidden',
+            passed: snapshot.resultSurfaces.length === 2 && snapshot.resultSurfaces.every((surface) => surface.hidden && surface.display === 'none')
+        },
+        { id: 'subject-identity-hidden', passed: snapshot.identity.hidden && snapshot.identity.display === 'none' },
+        {
+            id: 'atomic-alert-attributes',
+            passed: snapshot.alert.role === 'alert' && snapshot.alert.live === 'assertive' && snapshot.alert.atomic === 'true'
+        },
+        { id: 'one-alert-update', passed: transitions.length === 1 && transitions[0].code === 'C025-CONFIG-SCHEMA' },
+        {
+            id: 'rejected-payload-not-disclosed',
+            passed: !snapshot.alert.text.includes(BACKSLASH_AUTHORITY_PATH) && !snapshot.bodyText.includes(BACKSLASH_AUTHORITY_PATH)
+        },
+        { id: 'initial-focus-is-body', passed: snapshot.activeElementIsBody },
+        { id: 'zero-route-owned-requests', passed: routeOwned.length === 0 },
+        { id: 'zero-invalid-path-requests', passed: invalid.length === 0 },
+        { id: 'zero-off-origin-requests', passed: offOrigin.length === 0 },
+        {
+            id: 'terminal-state-stays-terminal',
+            passed: terminalSecuritySignature(run.atOutcome) === terminalSecuritySignature(snapshot)
+                && !hasLaterSettledState
+        }
+    ];
+}
+
+async function exerciseServedSubjectPathMismatch(browser, {
+    moduleOverride = null,
+    routeOverride = null
+} = {}) {
+    const servedCandidate = cloneCommittedConfig();
+    const row = servedCandidate.eventSource.coveredSubjects.find((entry) => entry.subjectId === CANONICAL_EVENT_SUBJECT);
+    expect(row, 'the committed config must carry the canonical MSFT event declaration').toBeTruthy();
+    row.eventsPath = MISMATCH_EVENT_PATH;
+    const overrides = {};
+    if (moduleOverride !== null) overrides['rlcompanyintel.js'] = moduleOverride;
+    if (routeOverride !== null) overrides[ROUTE] = routeOverride;
+    const server = await startWithheldStaticServer('company-intelligence.config.json', {
+        heldResponseBody: JSON.stringify(servedCandidate),
+        overrides
+    });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const browserRequests = [];
+    const runtimeErrors = [];
+    page.on('request', (request) => browserRequests.push({ type: request.resourceType(), url: request.url() }));
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+
+    try {
+        await installSecurityStateRecorder(page);
+        await installFirstPaintRecorder(page);
+        await page.goto(`${server.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expectEmbeddedFirstPaintBeforeRelease(page, server);
+        await page.locator('#subject-input').focus();
+        expect(await page.evaluate(() => document.activeElement.id),
+            'the subject input must own focus before the served candidate arrives').toBe('subject-input');
+        const requestCountBeforeRelease = server.requestLog().length;
+        server.release();
+        await server.finished;
+        await waitForSecurityOutcome(page);
+        const atOutcome = await captureSecuritySnapshot(page);
+        const requestCountAtOutcome = server.requestLog().length;
+        await page.waitForTimeout(400);
+        const afterQuietWindow = await captureSecuritySnapshot(page);
+        return {
+            afterQuietWindow,
+            atOutcome,
+            browserRequests,
+            postReleaseRequests: server.requestLog().slice(requestCountBeforeRelease),
+            requestCountAfterQuietWindow: server.requestLog().length,
+            requestCountAtOutcome,
+            runtimeErrors,
+            serverRequests: server.requestLog()
+        };
+    } finally {
+        server.release();
+        await context.close();
+        await server.close();
+    }
+}
+
+function servedMismatchChecks(run) {
+    const snapshot = run.afterQuietWindow;
+    const continuation = run.postReleaseRequests.filter((entry) => (
+        entry.relative.startsWith('data/bars/') || entry.relative.startsWith('data/company-intelligence/')
+    ));
+    const mismatched = run.serverRequests.filter((entry) => entry.relative === MISMATCH_EVENT_PATH);
+    const configRequests = run.serverRequests.filter((entry) => entry.relative === 'company-intelligence.config.json');
+    const transitions = snapshot.securityState.alerts;
+    const refusedIndex = snapshot.securityState.bodyStates.findIndex((state) => state.runStatus === 'refused');
+    const hasLaterSettledState = refusedIndex >= 0 && snapshot.securityState.bodyStates.slice(refusedIndex + 1)
+        .some((state) => state.runStatus === 'composed' || state.readingReadiness === 'established');
+    return [
+        { id: 'run-status-refused', passed: snapshot.runStatus === 'refused' },
+        { id: 'registry-source-remains-embedded', passed: snapshot.registrySource === 'embedded' },
+        { id: 'refusal-code', passed: snapshot.alert.code === 'C025-CONFIG-SCHEMA' && !snapshot.alert.hidden },
+        { id: 'reading-readiness-not-established', passed: snapshot.readingReadiness === 'not-established' },
+        { id: 'unavailable-not-established', passed: snapshot.unavailable === 'not-established' },
+        {
+            id: 'result-surfaces-hidden',
+            passed: snapshot.resultSurfaces.length === 2 && snapshot.resultSurfaces.every((surface) => surface.hidden && surface.display === 'none')
+        },
+        { id: 'subject-identity-hidden', passed: snapshot.identity.hidden && snapshot.identity.display === 'none' },
+        {
+            id: 'atomic-alert-attributes',
+            passed: snapshot.alert.role === 'alert' && snapshot.alert.live === 'assertive' && snapshot.alert.atomic === 'true'
+        },
+        { id: 'one-alert-update', passed: transitions.length === 1 && transitions[0].code === 'C025-CONFIG-SCHEMA' },
+        { id: 'subject-input-retains-focus', passed: snapshot.activeElementId === 'subject-input' },
+        {
+            id: 'rejected-payload-not-disclosed',
+            passed: !snapshot.alert.text.includes(MISMATCH_EVENT_PATH) && !snapshot.bodyText.includes(MISMATCH_EVENT_PATH)
+        },
+        { id: 'zero-corpus-event-continuation', passed: continuation.length === 0 },
+        { id: 'mismatched-event-path-never-requested', passed: mismatched.length === 0 },
+        { id: 'served-config-requested-once', passed: configRequests.length === 1 },
+        {
+            id: 'no-fallback-retry-or-later-repaint',
+            passed: terminalSecuritySignature(run.atOutcome) === terminalSecuritySignature(snapshot)
+                && !hasLaterSettledState
+        }
+    ];
+}
+
+function failedSecurityChecks(checks) {
+    return checks.filter((check) => !check.passed).map((check) => check.id);
+}
+
+test('Regression: BUG-025 canonical company event path is requested once and exclusively', async ({ browser }) => {
+    test.setTimeout(60_000);
+    const run = await exerciseCanonicalEventAuthority(browser);
+    expect(run.runtimeErrors, `arbitrary runtime errors cannot prove canonical authority: ${run.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    expect(failedSecurityChecks(canonicalEventAuthorityChecks(run, new URL(run.browserRequests[0]).origin)),
+        'the accepted canonical event declaration failed a named authority discriminator')
+        .toEqual([]);
+});
+
+test('Regression: BUG-025 embedded backslash authority refuses before transport', async ({ browser }) => {
+    test.setTimeout(60_000);
+    const run = await exerciseEmbeddedBackslashAuthority(browser);
+    expect(run.runtimeErrors, `arbitrary runtime errors cannot prove refusal: ${run.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    const failures = failedSecurityChecks(embeddedBackslashChecks(run));
+    expect(failures,
+        `embedded backslash declaration survived named security discriminators: ${failures.join(', ')}`)
+        .toEqual([]);
+});
+
+test('Regression: BUG-025 served subject-path mismatch becomes terminal without continuation or focus theft', async ({ browser }) => {
+    test.setTimeout(60_000);
+    const run = await exerciseServedSubjectPathMismatch(browser);
+    expect(run.runtimeErrors, `arbitrary runtime errors cannot prove terminal refusal: ${run.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    const failures = failedSecurityChecks(servedMismatchChecks(run));
+    expect(failures,
+        `served subject-path mismatch survived named terminal discriminators: ${failures.join(', ')}`)
+        .toEqual([]);
+});
+
+test('Mutation control: BUG-025 canonical-subject predicate rejection defeats only canonical event identity discrimination', async ({ browser }) => {
+    test.setTimeout(60_000);
+    const run = await exerciseCanonicalEventAuthority(browser, {
+        moduleOverride: moduleRejectingCanonicalEventSubject()
+    });
+    expect(run.runtimeErrors,
+        `the canonical-subject mutant raised an arbitrary runtime error: ${run.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    expect(failedSecurityChecks(canonicalEventAuthorityChecks(run, new URL(run.browserRequests[0]).origin)),
+        'rejecting company:msft must fail only the canonical event identity contract')
+        .toEqual([
+            'run-status-composed',
+            'reading-readiness-established',
+            'refusal-hidden',
+            'financial-events-current',
+            'committed-event-row-loaded',
+            'canonical-event-request-once'
+        ]);
+});
+
+test('Mutation control: embedded refusal focus theft defeats only exact body-focus discrimination', async ({ browser }) => {
+    test.setTimeout(60_000);
+    const run = await exerciseEmbeddedBackslashAuthority(browser, {
+        routeMutation: routeWithFocusTheftAfterAlertReveal
+    });
+    expect(run.runtimeErrors, `the focus-theft mutant raised an arbitrary runtime error: ${run.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    expect(failedSecurityChecks(embeddedBackslashChecks(run)),
+        'focusing an explicit control after alert reveal must fail only exact initial body focus')
+        .toEqual(['initial-focus-is-body']);
+});
+
+test('Mutation control: embedded and served refusal duplicate announcement defeats only alert-update-count discrimination', async ({ browser }) => {
+    test.setTimeout(90_000);
+    const embeddedRun = await exerciseEmbeddedBackslashAuthority(browser, {
+        routeMutation: routeWithDuplicateAlertUpdateAfterReveal
+    });
+    const servedRun = await exerciseServedSubjectPathMismatch(browser, {
+        routeOverride: routeWithDuplicateAlertUpdateAfterReveal()
+    });
+    expect(embeddedRun.runtimeErrors,
+        `the embedded duplicate-announcement mutant raised an arbitrary runtime error: ${embeddedRun.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    expect(servedRun.runtimeErrors,
+        `the served duplicate-announcement mutant raised an arbitrary runtime error: ${servedRun.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    expect(failedSecurityChecks(embeddedBackslashChecks(embeddedRun)),
+        'repeating embedded refusal text must fail only the alert-update count')
+        .toEqual(['one-alert-update']);
+    expect(failedSecurityChecks(servedMismatchChecks(servedRun)),
+        'repeating served refusal text must fail only the alert-update count')
+        .toEqual(['one-alert-update']);
+});
+
+test('Mutation control: BUG-025 embedded equality-guard removal defeats named refusal discriminators', async ({ browser }) => {
+    test.setTimeout(60_000);
+    const run = await exerciseEmbeddedBackslashAuthority(browser, {
+        moduleOverride: moduleWithoutEventPathEqualityGuard()
+    });
+    expect(run.runtimeErrors, `the equality mutant raised an arbitrary runtime error: ${run.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    const failures = failedSecurityChecks(embeddedBackslashChecks(run));
+    expect(failures, 'the equality mutant did not defeat the route-level refusal').toContain('run-status-refused');
+    expect(failures, 'the equality mutant did not defeat the named refusal code').toContain('refusal-code');
+    expect(failures, 'the equality mutant did not authorize route transport').toContain('zero-route-owned-requests');
+});
+
+test('Mutation control: BUG-025 served equality-guard removal defeats named continuation discriminators', async ({ browser }) => {
+    test.setTimeout(60_000);
+    const run = await exerciseServedSubjectPathMismatch(browser, {
+        moduleOverride: moduleWithoutEventPathEqualityGuard()
+    });
+    expect(run.runtimeErrors, `the equality mutant raised an arbitrary runtime error: ${run.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    const failures = failedSecurityChecks(servedMismatchChecks(run));
+    expect(failures, 'the equality mutant did not defeat terminal refusal').toContain('run-status-refused');
+    expect(failures, 'the equality mutant did not adopt the invalid served registry').toContain('registry-source-remains-embedded');
+    expect(failures, 'the equality mutant did not start corpus continuation').toContain('zero-corpus-event-continuation');
+});
+
+test('Mutation control: BUG-025 served route suppression removal defeats only named visibility discrimination', async ({ browser }) => {
+    test.setTimeout(60_000);
+    const run = await exerciseServedSubjectPathMismatch(browser, {
+        routeOverride: routeWithoutTerminalSurfaceSuppression()
+    });
+    expect(run.runtimeErrors, `the suppression mutant raised an arbitrary runtime error: ${run.runtimeErrors.join(' | ')}`)
+        .toEqual([]);
+    expect(failedSecurityChecks(servedMismatchChecks(run)),
+        'removing only route-terminal result suppression must leave stale result surfaces visible')
+        .toEqual(['result-surfaces-hidden']);
+});
+
+test('Regression: BUG-025 an invalid embedded read bound refuses before any route-owned request', async ({ page }) => {
+    test.setTimeout(30_000);
+    const invalidRoute = ROUTE_SOURCE.replace(
+        `"readBoundMs": ${REQUIRED_READ_BOUND_MS}`,
+        '"readBoundMs": 0'
+    );
+    expect(invalidRoute, 'the fixture must replace the committed embedded read bound').not.toBe(ROUTE_SOURCE);
+    const broken = await startStaticServer({ overrides: { [ROUTE]: invalidRoute } });
+    const routeOwnedRequests = [];
+    page.on('request', (request) => {
+        if (request.resourceType() === 'fetch' || request.resourceType() === 'xhr') {
+            routeOwnedRequests.push(request.url());
+        }
+    });
+    try {
+        await installReadTimerTracker(page);
+        await page.goto(`${broken.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expect(page.locator('body')).toHaveAttribute('data-run-status', 'refused');
+        await expect(page.locator('#subject-refusal')).toHaveAttribute('data-refusal-code', 'C025-CONFIG-SCHEMA');
+        await expect(page.locator('#cockpit-horizons [data-horizon]')).toHaveCount(0);
+        expect(routeOwnedRequests, 'invalid embedded config must prevent every route-owned request').toEqual([]);
+        const timers = await page.evaluate(() => window.__bug025ReadTimerSnapshot());
+        expect(timers).toEqual({ active: 0, cleared: 0, created: 0 });
+    } finally {
+        await broken.close();
+    }
+});
+
+test('Regression: BUG-025 synchronous fetch setup failure reaches existing unavailable state with zero timers', async ({ page }) => {
+    test.setTimeout(30_000);
+    const selectedPath = 'data/bars/MSFT.json';
+    const networkFetchPaths = [];
+    page.on('request', (request) => {
+        if (request.resourceType() !== 'fetch' && request.resourceType() !== 'xhr') return;
+        networkFetchPaths.push(decodeURIComponent(new URL(request.url()).pathname).replace(/^\/+/, ''));
+    });
+
+    await installSynchronousFetchSetupFailure(page, selectedPath);
+    await installFirstPaintRecorder(page);
+    await openComposedRoute(page, { query: '?symbol=MSFT' });
+    await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
+
+    const firstPaint = await page.evaluate(() => window.__bug025PaintHistory.find((entry) => (
+        entry.runStatus === 'composed' &&
+        entry.registrySource === 'embedded' &&
+        entry.readingReadiness === 'not-established' &&
+        entry.horizons.length === 4
+    )) || null);
+    expect(firstPaint, 'the synchronous setup failure hid the embedded first paint').not.toBeNull();
+    expect(firstPaint.corpusStatus).toBe('pending');
+    for (const horizon of firstPaint.horizons) {
+        expect(horizon.summary.length, `${horizon.id} first-paint summary`).toBeGreaterThan(20);
+    }
+
+    await page.locator('#mode-power').click();
+    const account = page.locator('[data-workspace="sources"]');
+    await expect(account).toBeVisible();
+    await expect(page.locator('#workspace-coverage-totals')).toHaveAttribute('data-coverage-claim', 'settled');
+    const performance = page.locator('#workspace-coverage-rows [data-coverage-row="performance"]');
+    await expect(performance).toHaveAttribute('data-state', 'unavailable');
+    await expect(performance.locator('[data-reason-code]')).toHaveText('company-not-in-corpus');
+    await expect(performance.locator('[data-absence-statement]'))
+        .toContainText('is unavailable because company-not-in-corpus.');
+    await expect(page.locator('#subject-refusal')).toBeHidden();
+    expect(await page.locator('body').innerText()).not.toContain('BUG-025 selected fetch setup failed synchronously');
+
+    const snapshot = await page.evaluate(() => window.__bug025SynchronousFailureSnapshot());
+    expect(snapshot.selectedAttempts, 'the selected fetch setup failure must not retry').toBe(1);
+    expect(snapshot.activeAtThrow, 'the selected read timer must exist before fetch setup throws').toBe(1);
+    expect(snapshot.outerCatch, 'the synchronous outer catch did not classify the thrown setup failure').toEqual({
+        boundExceeded: false,
+        document: selectedPath,
+        name: 'TypeError',
+        transportUnavailable: false
+    });
+    expect(networkFetchPaths.filter((path) => path === selectedPath),
+        'the selected path reached the real static server').toEqual([]);
+    expect(snapshot.delegatedPaths, 'the wrapper did not delegate the served configuration unchanged')
+        .toContain('company-intelligence.config.json');
+    expect(snapshot.delegatedPaths, 'the wrapper did not delegate the benchmark bars unchanged')
+        .toContain('data/bars/SPY.json');
+    expect(networkFetchPaths.slice().sort(), 'a delegated fetch did not proceed through the real static origin')
+        .toEqual(snapshot.delegatedPaths.slice().sort());
+    expect(snapshot.activeTimers, 'a bounded-read timer remained active after caller settlement').toBe(0);
+    expect(snapshot.timersCreated, 'the route did not exercise any bounded reads').toBeGreaterThan(0);
+    expect(snapshot.timersCleared, 'not every bounded-read timer was cleared').toBe(snapshot.timersCreated);
+});
+
+test('Regression: BUG-025 a never-answering corpus request reaches a bounded unavailable result', async ({ page }) => {
+    test.setTimeout(90_000);
+    const heldPath = 'data/bars/MSFT.json';
+    const withheld = await startWithheldStaticServer(heldPath);
+    const runtimeErrors = [];
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    try {
+        await installReadTimerTracker(page);
+        await installFirstPaintRecorder(page);
+        await page.goto(`${withheld.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expectEmbeddedFirstPaintBeforeRelease(page, withheld);
+        await expectUnderlyingRequestAbort(withheld, heldPath);
+        await expectNamedUnavailableCoverage(page, 'performance');
+        expect(withheld.requestCount(), 'the aborted bar must not be retried').toBe(1);
+        await expectNoActiveReadTimers(page, 'aborted bar response');
+        expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
+    } finally {
+        withheld.release();
+        await withheld.close();
+    }
+});
+
+test('Regression: BUG-025 a never-answering optional document reaches a bounded unavailable result', async ({ page }) => {
+    test.setTimeout(90_000);
+    const heldPath = 'data/company-intelligence/company-msft/events.json';
+    const withheld = await startWithheldStaticServer(heldPath, { holdAfterHeaders: true });
+    const runtimeErrors = [];
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    try {
+        await installReadTimerTracker(page);
+        await installFirstPaintRecorder(page);
+        await page.goto(`${withheld.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expectEmbeddedFirstPaintBeforeRelease(page, withheld);
+        expect(withheld.bodyStarted(), 'the optional response must stall after headers and a partial body').toBe(true);
+        await expectUnderlyingRequestAbort(withheld, heldPath);
+        await expectNamedUnavailableCoverage(page, 'financial-events');
+        expect(withheld.requestCount(), 'the aborted optional document must not be retried').toBe(1);
+        await expectNoActiveReadTimers(page, 'aborted optional response body');
+        expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
+    } finally {
+        withheld.release();
+        await withheld.close();
+    }
+});
+
+test('Regression: BUG-025 an inside-bound response settles normally', async ({ page }) => {
+    test.setTimeout(90_000);
+    const heldPath = 'data/bars/MSFT.json';
+    const withheld = await startWithheldStaticServer(heldPath);
+    const runtimeErrors = [];
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    try {
+        await installReadTimerTracker(page);
+        await installFirstPaintRecorder(page);
+        await page.goto(`${withheld.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expectEmbeddedFirstPaintBeforeRelease(page, withheld);
+        expect(INSIDE_BOUND_DELAY_MS).toBeLessThan(REQUIRED_READ_BOUND_MS);
+        await new Promise((resolveDelay) => setTimeout(resolveDelay, INSIDE_BOUND_DELAY_MS));
+        withheld.release();
+        await withheld.finished;
+
+        await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'loaded', { timeout: 30_000 });
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
+        await page.locator('#mode-power').click();
+        const performance = page.locator('#workspace-coverage-rows [data-coverage-row="performance"]');
+        await expect(performance).toHaveAttribute('data-state', 'current');
+        expect(await page.evaluate(() => (window.RLDATA.bars('MSFT', '1d') || []).length),
+            'the released bar populated the shared production cache').toBeGreaterThan(0);
+        expect(withheld.abortObserved(), 'an inside-bound response was classified as an abort').toBe(false);
+        expect(withheld.requestCount(), 'the delayed valid response must be requested once').toBe(1);
+        await expectNoActiveReadTimers(page, 'inside-bound successful response');
+        expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
+    } finally {
+        withheld.release();
+        await withheld.close();
+    }
+});
+
+test('Regression: BUG-025 a stalled served configuration preserves embedded first paint and settles', async ({ page }) => {
+    test.setTimeout(90_000);
+    const heldPath = 'company-intelligence.config.json';
+    const withheld = await startWithheldStaticServer(heldPath);
+    const runtimeErrors = [];
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    try {
+        await installReadTimerTracker(page);
+        await installFirstPaintRecorder(page);
+        await page.goto(`${withheld.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await expectEmbeddedFirstPaintBeforeRelease(page, withheld);
+        await expectUnderlyingRequestAbort(withheld, heldPath);
+
+        await expect(page.locator('body')).toHaveAttribute('data-registry-source', 'embedded', { timeout: 30_000 });
+        await expect(page.locator('body')).toHaveAttribute('data-corpus-status', /^(loaded|unavailable)$/);
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
+        await expect(page.locator('#cockpit-horizons [data-horizon]')).toHaveCount(4);
+        expect(withheld.requestCount(), 'the stalled served config must not be retried').toBe(1);
+        await expectNoActiveReadTimers(page, 'aborted served configuration');
+        expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
+    } finally {
+        withheld.release();
+        await withheld.close();
+    }
+});
 
 async function installCorpusRequestGate(page) {
     const entered = deferredSignal();
@@ -105,6 +1245,242 @@ function expectOrdinaryCompanyToolRead(record) {
     expect(record.contractVersion).toBe('rl-tool-read/v1');
     expect(record.id).toBe(COMPANY_TOOL_ID);
 }
+
+async function installCompanyPublicationTracker(page) {
+    await page.evaluate((toolId) => {
+        const records = [];
+        const putToolRead = window.RLDATA.putToolRead;
+        window.RLDATA.putToolRead = function (id, record) {
+            if (id === toolId) records.push(JSON.stringify(record));
+            return Reflect.apply(putToolRead, window.RLDATA, [id, record]);
+        };
+        window.__bug025CompanyPublications = () => ({
+            count: records.length,
+            records: records.slice()
+        });
+    }, COMPANY_TOOL_ID);
+}
+
+async function captureLateCompletionSnapshot(page, attachHorizonSentinel = false) {
+    return page.evaluate(({ attachHorizonSentinel, toolId }) => {
+        const serialized = localStorage.getItem('rlData');
+        const state = serialized === null ? null : JSON.parse(serialized);
+        const reads = state && state.toolReads && typeof state.toolReads === 'object'
+            ? state.toolReads : {};
+        const persistedRecord = Object.prototype.hasOwnProperty.call(reads, toolId) ? reads[toolId] : null;
+        const currentRecord = window.RLDATA.toolRead(toolId);
+        const horizonNodes = Array.from(document.querySelectorAll('#cockpit-horizons [data-horizon]'));
+
+        if (attachHorizonSentinel) {
+            window.__bug025SettledHorizonNode = horizonNodes[0] || null;
+            window.__bug025PostReleasePaints = [];
+            const horizonHost = document.getElementById('cockpit-horizons');
+            new MutationObserver(() => {
+                window.__bug025PostReleasePaints.push({
+                    horizonText: horizonHost.innerText.replace(/\s+/g, ' ').trim(),
+                    subjectIdentity: document.getElementById('subject-identity').textContent
+                });
+            }).observe(horizonHost, {
+                attributes: true,
+                characterData: true,
+                childList: true,
+                subtree: true
+            });
+        }
+
+        return {
+            companyToolRead: currentRecord,
+            companyToolReadBytes: currentRecord === null ? null : JSON.stringify(currentRecord),
+            corpusStatus: document.body.getAttribute('data-corpus-status'),
+            horizonNodeMatchesSentinel: window.__bug025SettledHorizonNode === (horizonNodes[0] || null),
+            horizons: horizonNodes.map((node) => ({
+                accountBytes: node.outerHTML,
+                direction: node.getAttribute('data-direction'),
+                evidenceQuality: node.getAttribute('data-evidence-quality'),
+                horizon: node.getAttribute('data-horizon'),
+                readiness: node.getAttribute('data-horizon-readiness'),
+                summary: (node.querySelector('[data-horizon-summary]') || { textContent: '' }).textContent
+                    .replace(/\s+/g, ' ').trim()
+            })),
+            persistedToolReadBytes: persistedRecord === null ? null : JSON.stringify(persistedRecord),
+            postReleasePaints: (window.__bug025PostReleasePaints || []).map((entry) => ({ ...entry })),
+            publications: window.__bug025CompanyPublications(),
+            readingReadiness: document.body.getAttribute('data-reading-readiness'),
+            subjectIdentity: document.getElementById('subject-identity').textContent
+        };
+    }, { attachHorizonSentinel, toolId: COMPANY_TOOL_ID });
+}
+
+function lateCompletionDiscriminators(run) {
+    const newPublicationRecords = run.after.publications.records.slice(run.before.publications.records.length);
+    const postReleaseVisibleText = run.after.postReleasePaints
+        .map((paint) => `${paint.subjectIdentity} ${paint.horizonText}`).join(' ');
+    return [
+        {
+            id: 'visible-subject-identity',
+            passed: run.after.subjectIdentity === run.before.subjectIdentity && run.after.subjectIdentity.includes('AAPL')
+        },
+        { id: 'corpus-status', passed: run.after.corpusStatus === run.before.corpusStatus },
+        { id: 'reading-readiness', passed: run.after.readingReadiness === run.before.readingReadiness },
+        { id: 'horizon-accounts-and-summaries', passed: JSON.stringify(run.after.horizons) === JSON.stringify(run.before.horizons) },
+        { id: 'company-tool-read-bytes', passed: run.after.companyToolReadBytes === run.before.companyToolReadBytes },
+        { id: 'horizon-dom-node-identity', passed: run.after.horizonNodeMatchesSentinel },
+        { id: 'company-publication-count', passed: run.after.publications.count === run.before.publications.count },
+        {
+            id: 'company-publication-records',
+            passed: JSON.stringify(run.after.publications.records) === JSON.stringify(run.before.publications.records)
+        },
+        { id: 'no-post-release-repaint', passed: run.after.postReleasePaints.length === 0 },
+        {
+            id: 'stale-msft-never-visible',
+            passed: !run.after.subjectIdentity.includes('MSFT') && !postReleaseVisibleText.includes('MSFT')
+        },
+        {
+            id: 'stale-msft-never-published',
+            passed: newPublicationRecords.every((record) => !record.includes('MSFT'))
+        }
+    ];
+}
+
+async function exerciseLateValidCompletion(browser, routeOverride) {
+    const heldPath = 'data/bars/MSFT.json';
+    const overrides = routeOverride === null ? {} : { [ROUTE]: routeOverride };
+    const withheld = await startWithheldStaticServer(heldPath, { overrides });
+    const context = await browser.newContext();
+    const page = await context.newPage();
+    const runtimeErrors = [];
+    page.on('pageerror', (error) => runtimeErrors.push(error.message));
+    page.on('console', (message) => {
+        if (message.type() === 'error') runtimeErrors.push(message.text());
+    });
+
+    try {
+        await installReadTimerTracker(page);
+        await page.goto(`${withheld.baseUrl}/${ROUTE}?symbol=MSFT`);
+        await withheld.entered;
+        const routeRequest = withheld.requestLog().find((entry) => entry.relative === ROUTE);
+        expect(routeRequest).toMatchObject({
+            finished: true,
+            source: routeOverride === null ? 'repository' : 'in-memory-route-override'
+        });
+        await expect(page.locator('#subject-identity')).toContainText('MSFT');
+        await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'pending');
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'not-established');
+        await expect.poll(
+            () => withheld.requestLog().some((entry) => entry.relative === 'data/bars/SPY.json' && entry.finished),
+            { timeout: 5000, message: 'the initial real benchmark response did not finish before the overlap' }
+        ).toBe(true);
+
+        const heldBeforeApply = withheld.requestLog().find((entry) => entry.relative === heldPath);
+        expect(heldBeforeApply).toMatchObject({
+            aborted: false,
+            finished: false,
+            source: 'held-repository'
+        });
+        expect(withheld.requestCount(), 'the first valid subject must issue exactly one held MSFT bar request').toBe(1);
+        expect(withheld.released(), 'the MSFT response was released before AAPL applied').toBe(false);
+
+        await installCompanyPublicationTracker(page);
+        const aaplRequestStart = withheld.requestLog().length;
+        await page.locator('#subject-input').fill('AAPL');
+        await page.locator('#subject-apply').click();
+        await expect(page.locator('#subject-identity')).toContainText('AAPL');
+        await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'loaded', { timeout: 30_000 });
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
+        await expect.poll(
+            () => page.evaluate(() => window.__bug025CompanyPublications().count),
+            { timeout: 5000, message: 'AAPL never published its ordinary Company Intelligence tool read' }
+        ).toBe(1);
+
+        const aaplRequests = withheld.requestLog().slice(aaplRequestStart);
+        expect(aaplRequests.length, 'AAPL settlement issued no real repository request').toBeGreaterThan(0);
+        expect(aaplRequests.some((entry) => entry.relative === 'data/bars/AAPL.json'),
+            'AAPL did not request its committed bar document').toBe(true);
+        expect(aaplRequests.every((entry) => entry.source === 'repository'),
+            `an AAPL response was not a real repository response: ${JSON.stringify(aaplRequests)}`).toBe(true);
+        expect(aaplRequests.every((entry) => entry.finished && !entry.aborted),
+            `the held MSFT lifecycle canceled an AAPL peer request: ${JSON.stringify(aaplRequests)}`).toBe(true);
+        expect(withheld.abortObserved(), 'MSFT aborted while AAPL peers settled').toBe(false);
+        expect(withheld.released(), 'MSFT finished before AAPL settlement').toBe(false);
+
+        const timersWhileMsftHeld = await page.evaluate(() => window.__bug025ReadTimerSnapshot());
+        expect(timersWhileMsftHeld.active,
+            'exactly the deliberately held MSFT request must remain active after AAPL peers settle').toBe(1);
+        const before = await captureLateCompletionSnapshot(page, true);
+        expect(before.horizons, 'AAPL must publish every horizon account').toHaveLength(4);
+        expect(before.horizons.every((horizon) => horizon.readiness === 'established' && horizon.summary.length > 20),
+            `AAPL horizon account was incomplete: ${JSON.stringify(before.horizons)}`).toBe(true);
+        expect(before.companyToolReadBytes, 'AAPL did not expose a current ordinary tool read')
+            .toBe(before.persistedToolReadBytes);
+        expectOrdinaryCompanyToolRead(before.companyToolRead);
+        expect(before.companyToolRead.read, 'the ordinary read belongs to a different subject').toMatch(/^AAPL:/);
+        expect(before.publications.count, 'AAPL must publish exactly once before MSFT releases').toBe(1);
+
+        withheld.release();
+        await withheld.finished;
+        await expectNoActiveReadTimers(page, 'released stale MSFT response');
+        await expect.poll(
+            () => withheld.requestLog().some((entry) => entry.relative === heldPath && entry.finished),
+            { timeout: 5000, message: 'the real MSFT response did not finish after explicit release' }
+        ).toBe(true);
+
+        const after = await captureLateCompletionSnapshot(page);
+        expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
+        return { after, before };
+    } finally {
+        withheld.release();
+        await context.close();
+        await withheld.close();
+    }
+}
+
+function routeWithoutStaleIntentReturn() {
+    const guardedStaleIntentReturn = '                        if (routeConfigurationRefused || intent !== readingIntent) return;\n';
+    const routeTerminalReturn = '                        if (routeConfigurationRefused) return;\n';
+    expect(ROUTE_SOURCE.split(guardedStaleIntentReturn).length - 1,
+        'the mutation control must find exactly one production stale-intent predicate').toBe(1);
+    const index = ROUTE_SOURCE.indexOf(guardedStaleIntentReturn);
+    const mutated = ROUTE_SOURCE.slice(0, index) + routeTerminalReturn +
+        ROUTE_SOURCE.slice(index + guardedStaleIntentReturn.length);
+    expect(mutated.length, 'the route mutation changed bytes beyond the stale-intent predicate')
+        .toBe(ROUTE_SOURCE.length - guardedStaleIntentReturn.length + routeTerminalReturn.length);
+    expect(mutated).not.toContain(guardedStaleIntentReturn);
+    expect(mutated, 'the mutation must preserve the independent route-terminal latch')
+        .toContain(routeTerminalReturn);
+    return mutated;
+}
+
+test('Regression: BUG-025 late valid completion cannot overwrite a newer settled subject', async ({ browser }) => {
+    test.setTimeout(120_000);
+
+    const productionRun = await exerciseLateValidCompletion(browser, null);
+    const productionChecks = lateCompletionDiscriminators(productionRun);
+    for (const check of productionChecks) {
+        expect(check.passed, `production stale-completion discriminator failed: ${check.id}`).toBe(true);
+    }
+
+    /* High-risk mutation control: the served route differs by exactly the production stale-intent
+       return. The same overlap and comparison ledger must now observe the stale repaint and
+       publication. No arbitrary thrown error is accepted as proof that the carrier bites. */
+    const mutatedRun = await exerciseLateValidCompletion(browser, routeWithoutStaleIntentReturn());
+    const mutationFailures = lateCompletionDiscriminators(mutatedRun)
+        .filter((check) => !check.passed).map((check) => check.id);
+    expect(mutationFailures, 'removing the stale-intent return did not trigger the no-repaint discriminator')
+        .toContain('horizon-dom-node-identity');
+    expect(mutationFailures, 'removing the stale-intent return did not trigger the publication discriminator')
+        .toContain('company-publication-count');
+    expect(mutationFailures, 'removing the stale-intent return did not produce an observed post-release repaint')
+        .toContain('no-post-release-repaint');
+    const intendedMutationFailures = new Set([
+        'company-publication-count',
+        'company-publication-records',
+        'company-tool-read-bytes',
+        'horizon-dom-node-identity',
+        'no-post-release-repaint'
+    ]);
+    expect(mutationFailures.filter((failure) => !intendedMutationFailures.has(failure)),
+        `the mutation failed outside stale repaint/publication: ${mutationFailures.join(', ')}`).toEqual([]);
+});
 
 /* One composed run, with every runtime error and failed response captured. Every test starts
    here, so a page-level exception fails the test that would otherwise assert around it. */
@@ -400,12 +1776,13 @@ test('each canvas draws non-blank pixels and pairs with a table holding the same
     expect(performanceRows, 'the committed corpus produced plotted sessions').toBeGreaterThan(1);
 });
 
-test('the route defers no drawing and schedules no timer', async ({ page }) => {
+test('the route defers no drawing and schedules no repeating timer', async ({ page }) => {
     await openComposedRoute(page);
 
     expect(ROUTE_SOURCE).not.toContain('requestAnimationFrame');
-    expect(ROUTE_SOURCE).not.toContain('setTimeout');
     expect(ROUTE_SOURCE).not.toContain('setInterval');
+    expect((ROUTE_SOURCE.match(/\bsetTimeout\s*\(/g) || []).length,
+        'only the one bounded acquisition helper may schedule a timeout').toBeLessThanOrEqual(1);
 
     /* Shared script order: the data module runs first and navigation runs last. */
     const sources = ROUTE_SOURCE.match(/<script src="([^"]+)"><\/script>/g)
@@ -854,6 +2231,7 @@ async function watchForUnhandledRejections(page) {
 test('Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero', async ({ page }) => {
     const broken = await startStaticServer({ missing: COMMITTED_SOURCES });
     try {
+        await installReadTimerTracker(page);
         const unhandled = await watchForUnhandledRejections(page);
         const pageErrors = [];
         page.on('pageerror', (error) => pageErrors.push(error.message));
@@ -863,6 +2241,7 @@ test('Stabilize: every committed source unavailable degrades to a named absence,
            a reason for every dimension to state that it has no source. */
         await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
         await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'unavailable');
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
 
         /* Non-vacuous control: the outage really reached the coverage account. */
         const rows = await page.locator('#workspace-coverage-rows [data-coverage-row]')
@@ -894,6 +2273,7 @@ test('Stabilize: every committed source unavailable degrades to a named absence,
         }
 
         expect(await unhandled(), 'a failed load must not become an unhandled rejection').toEqual([]);
+        await expectNoActiveReadTimers(page, 'HTTP-failed corpus responses');
         expect(pageErrors, `runtime errors: ${pageErrors.join(' | ')}`).toEqual([]);
     } finally {
         await broken.close();
@@ -905,6 +2285,7 @@ test('Stabilize: a malformed committed payload degrades to an absence rather tha
     for (const path of COMMITTED_SOURCES) overrides[path] = '<<< not json at all >>>';
     const broken = await startStaticServer({ overrides });
     try {
+        await installReadTimerTracker(page);
         const unhandled = await watchForUnhandledRejections(page);
         const pageErrors = [];
         page.on('pageerror', (error) => pageErrors.push(error.message));
@@ -912,6 +2293,7 @@ test('Stabilize: a malformed committed payload degrades to an absence rather tha
         await page.goto(`${broken.baseUrl}/${ROUTE}?symbol=MSFT`);
         await expect(page.locator('body')).toHaveAttribute('data-run-status', 'composed', { timeout: 30_000 });
         await expect(page.locator('body')).toHaveAttribute('data-corpus-status', 'unavailable');
+        await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
 
         /* A payload that parses to nothing must not surface as an empty region: the plan and the
            event workspaces state the absence in words. */
@@ -920,6 +2302,7 @@ test('Stabilize: a malformed committed payload degrades to an absence rather tha
         expect(await page.locator('#workspace-plan-body [data-branch-id]')).toHaveCount(0);
 
         expect(await unhandled(), 'a malformed payload must not become an unhandled rejection').toEqual([]);
+        await expectNoActiveReadTimers(page, 'malformed corpus responses');
         expect(pageErrors, `runtime errors: ${pageErrors.join(' | ')}`).toEqual([]);
     } finally {
         await broken.close();
@@ -929,6 +2312,7 @@ test('Stabilize: a malformed committed payload degrades to an absence rather tha
 test('Stabilize: an unreadable coverage registry refuses by name instead of rendering a blank page', async ({ page }) => {
     const broken = await startStaticServer({ overrides: { 'company-intelligence.config.json': '{ not json' } });
     try {
+        await installReadTimerTracker(page);
         const unhandled = await watchForUnhandledRejections(page);
         await page.goto(`${broken.baseUrl}/${ROUTE}`);
 
@@ -944,6 +2328,7 @@ test('Stabilize: an unreadable coverage registry refuses by name instead of rend
         /* Refused is not blank: the page the reader is left with still explains what this tool is. */
         expect((await page.locator('body').innerText()).length).toBeGreaterThan(500);
         expect(await unhandled(), 'a refused boot must not leave an unhandled rejection').toEqual([]);
+        await expectNoActiveReadTimers(page, 'malformed served configuration');
     } finally {
         await broken.close();
     }
@@ -1160,6 +2545,7 @@ test('the route reaches its first paint from a file:// origin with no server and
     page.on('request', (request) => requests.push(request.url()));
     page.on('pageerror', (error) => runtimeErrors.push(error.message));
 
+    await installReadTimerTracker(page);
     await page.goto(pathToFileURL(join(ROOT, ROUTE)).href);
 
     /* First paint is the composed cockpit: the run status the route sets when it has actually
@@ -1171,6 +2557,8 @@ test('the route reaches its first paint from a file:// origin with no server and
     const summary = await page.locator('#cockpit-horizons [data-horizon-summary]').first().textContent();
     expect(summary.trim().length, 'the first paint must carry readable copy, not an empty region')
         .toBeGreaterThan(20);
+    await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
+    await expectNoActiveReadTimers(page, 'file origin transport failures');
     expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
 
     /* The invariant is ORIGIN, not request count: a committed same-origin file the route reads

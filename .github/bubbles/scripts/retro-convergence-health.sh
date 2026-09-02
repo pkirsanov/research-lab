@@ -2,6 +2,24 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SESSION_STATE_LIB="$SCRIPT_DIR/session-state-lib.sh"
+
+if [[ ! -f "$SESSION_STATE_LIB" ]]; then
+  echo "retro-convergence-health: shared session-state library not found: $SESSION_STATE_LIB" >&2
+  exit 2
+fi
+# shellcheck source=./session-state-lib.sh
+source "$SESSION_STATE_LIB"
+
+RETRO_TEMP_DIR=""
+cleanup_retro_snapshots() {
+  if [[ -n "$RETRO_TEMP_DIR" && -d "$RETRO_TEMP_DIR" ]]; then
+    rm -rf "$RETRO_TEMP_DIR"
+  fi
+}
+trap cleanup_retro_snapshots EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 spec_dir=""
 repo_root=""
@@ -30,13 +48,6 @@ Exit codes:
   1  convergence health SLO failed (Gate G090 breach)
   2  usage/runtime error
 USAGE
-}
-
-normalize_path() {
-  local value="$1"
-  value="${value#./}"
-  value="${value%/}"
-  printf '%s\n' "$value"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -95,7 +106,7 @@ while [[ $# -gt 0 ]]; do
         usage >&2
         exit 2
       fi
-      spec_dir="$(normalize_path "$1")"
+      spec_dir="$1"
       shift
       ;;
   esac
@@ -126,6 +137,13 @@ resolve_repo_root() {
 }
 
 repo_root="$(resolve_repo_root)"
+
+canonical_spec="$(session_state_canonical_spec "$repo_root" "$spec_dir")" || {
+  echo "retro-convergence-health: specDir must resolve to an existing physical directory inside $repo_root (got: $spec_dir)" >&2
+  exit 2
+}
+spec_dir="$canonical_spec"
+
 if [[ -z "$session_file" ]]; then
   session_file="$repo_root/.specify/memory/bubbles.session.json"
   # The session JSON is git-ignored, so a linked worktree never materialises one
@@ -159,8 +177,29 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 2
 fi
 
-if ! jq -e . "$session_file" >/dev/null 2>&1; then
-  echo "retro-convergence-health: malformed JSON: $session_file" >&2
+umask 077
+RETRO_TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/bubbles-retro-convergence.XXXXXX")" || {
+  echo "retro-convergence-health: could not create a private session snapshot directory" >&2
+  exit 2
+}
+SESSION_SNAPSHOT="$RETRO_TEMP_DIR/session.json"
+NORMALIZED_CONVERGENCE="$RETRO_TEMP_DIR/convergence.json"
+
+session_state_read_object "$session_file" refuse "$SESSION_SNAPSHOT" || exit $?
+session_state_validate_convergence "$SESSION_SNAPSHOT" "$repo_root" "$spec_dir" "$NORMALIZED_CONVERGENCE" || exit $?
+
+goal_contract_present="$(jq -r 'has("goalContract") and .goalContract != null' "$SESSION_SNAPSHOT")"
+identity_history_count="$(jq -r '[.[] | select(.goalRef != null)] | length' "$NORMALIZED_CONVERGENCE")"
+current_attempt='null'
+
+if [[ "$goal_contract_present" == "true" ]]; then
+  mirror_json="$(jq -c '.repositoryBindingMirror // null' "$SESSION_SNAPSHOT")"
+  authority_context="$(session_state_authority_context "$repo_root" "$mirror_json" mirror)" || exit $?
+  current_attempt="$(session_state_authorized_attempt "$SESSION_SNAPSHOT" "$authority_context" "$spec_dir")" || exit $?
+elif [[ "$identity_history_count" -gt 0 ]]; then
+  session_state_diagnostic retro-convergence-health REFUSED SESSION_GOAL_MISSING \
+    message "identity-bearing convergence history requires a current Goal Contract" \
+    specDir "$spec_dir" historyCount "$identity_history_count" >&2
   exit 2
 fi
 
@@ -180,7 +219,7 @@ exec_runtime="$(jq -r '
   (.runs // [] | last.runtime? // "") //
   (.execution.runtime? // "") //
   ""
-' "$session_file" 2>/dev/null || true)"
+' "$SESSION_SNAPSHOT" 2>/dev/null || true)"
 if [[ -z "$exec_runtime" || "$exec_runtime" == "null" ]]; then
   spec_state_file="$repo_root/$spec_dir/state.json"
   if [[ -f "$spec_state_file" ]]; then
@@ -230,15 +269,20 @@ esac
 # against ("signals not produced for THIS spec"). When there is nothing
 # attributable to measure, skip instead of counting ambient cross-spec strings.
 # ($spec_dir empty = repo/session-level invocation → keep whole-file behavior.)
-spec_attributed_count="$(jq -r --arg spec "$spec_dir" '
-  def norm: tostring | sub("^\\./"; "") | sub("/+$"; "");
-  ($spec | norm) as $t |
-  if $t == "" then 1
-  else [ .. | objects
-         | select(((.specDir // .featureDir // .spec // .feature // "") | norm) == $t) ]
-       | length
-  end
-' "$session_file" 2>/dev/null || echo 0)"
+normalized_convergence_count="$(jq -r 'length' "$NORMALIZED_CONVERGENCE")"
+if [[ "$normalized_convergence_count" -gt 0 ]]; then
+  spec_attributed_count="$normalized_convergence_count"
+else
+  spec_attributed_count="$(jq -r --arg spec "$spec_dir" '
+    def norm: tostring | sub("^\\./"; "") | sub("/+$"; "");
+    ($spec | norm) as $t |
+    if $t == "" then 1
+    else [ .. | objects
+           | select(((.specDir // .featureDir // .spec // .feature // "") | norm) == $t) ]
+         | length
+    end
+  ' "$SESSION_SNAPSHOT" 2>/dev/null || echo 0)"
+fi
 if [[ "${spec_attributed_count:-0}" -eq 0 ]]; then
   skip_reason="no convergence records attributed to ${spec_dir} — session telemetry is ambient/cross-spec and not attributable to this spec"
   skip_payload="$(jq -nc --arg reason "$skip_reason" '{
@@ -263,8 +307,64 @@ if [[ "${spec_attributed_count:-0}" -eq 0 ]]; then
   exit 0
 fi
 
+# Build one effective summary per authorized attempt before computing loop
+# statistics. Repeated pre-upgrade records for the same Goal Contract identity
+# contribute their maximum count once. Identity-free records are one legacy
+# attempt for this spec, matching Gate G082's fail-closed legacy selection.
+attempt_data="$(jq -c --argjson currentAttempt "$current_attempt" '
+  def identity_key:
+    [.specDir, .goalRef.goalId, .goalRef.revision, .goalRef.sourceRequestDigest] | @json;
+  def summarize_goal($group):
+    ($group[0].goalRef) as $ref
+    | {
+        key: ($group[0].__attemptKey),
+        kind: "goal",
+        goalId: $ref.goalId,
+        revision: $ref.revision,
+        sourceRequestDigest: $ref.sourceRequestDigest,
+        iterationCount: ([$group[].iterationCount] | max),
+        agents: ([$group[].agents[]] | unique),
+        lastUpdated: ([$group[].lastUpdated | select(. != null)] | max // null)
+      };
+  . as $matching
+  | [$matching[] | select(.goalRef != null) | . + {__attemptKey: identity_key}] as $authorized
+  | [$matching[] | select(.goalRef == null)] as $legacy
+  | ([$authorized | group_by(.__attemptKey)[] | summarize_goal(.)]) as $goalSummaries
+  | (if ($legacy | length) == 0 then [] else [{
+       key: "legacy",
+       kind: "legacy",
+       goalId: null,
+       revision: null,
+       sourceRequestDigest: null,
+       iterationCount: ([$legacy[].iterationCount] | max),
+       agents: ([$legacy[].agents[]] | unique),
+       lastUpdated: ([$legacy[].lastUpdated | select(. != null)] | max // null)
+     }] end) as $legacySummary
+  | ($goalSummaries + $legacySummary) as $summaries
+  | (if $currentAttempt == null then "legacy"
+     else [$currentAttempt.specDir, $currentAttempt.goalId, $currentAttempt.revision, $currentAttempt.sourceRequestDigest] | @json
+     end) as $currentKey
+  | ([$summaries[] | select(.key == $currentKey)] | first // null) as $current
+  | [$summaries[] | select(.key != $currentKey)] as $historical
+  | {
+      loopCounts: [$summaries[].iterationCount],
+      accounting: {
+        current: (if $current == null then null else ($current | del(.key)) end),
+        totalAttempts: ($summaries | length),
+        historicalAttempts: ($historical | length),
+        historicalMaxIterations: ([$historical[].iterationCount] | max // 0)
+      }
+    }
+' "$NORMALIZED_CONVERGENCE")"
+
 metrics_program='
-  def norm: tostring | sub("^\\./"; "") | sub("/+$"; "");
+  def norm:
+    tostring
+    | if startswith($repoRoot + "/") then ltrimstr($repoRoot + "/")
+      elif startswith("/") then ""
+      else sub("^(\\./)+"; "")
+      end
+    | sub("/+$"; "");
   def spec_match($target):
     ($target == "") or (((.specDir // .featureDir // .spec // .feature // "") | norm) == $target);
   def related_records($target):
@@ -276,8 +376,6 @@ metrics_program='
   def strings_from($records): [$records[] | .. | strings];
   def count_regex($records; $pattern):
     (strings_from($records) | map(select(test($pattern; "i"))) | length);
-  def convergence_counts($records):
-    [$records[] | .. | objects | (.iterationCount? // .convergenceIterations?) | numbers];
   def envelope_records($records):
     [$records[] | .. | objects | select(has("rawSizeBytes") or has("incomingMessage") or has("rawPointer") or has("compactedAt"))];
   def snapshot_records($records):
@@ -321,7 +419,7 @@ metrics_program='
     if $den == 0 then $empty else ($num / $den) end;
   ($spec | norm) as $specNorm |
   related_records($specNorm) as $records |
-  convergence_counts($records) as $loops |
+  ($attemptData.loopCounts // []) as $loops |
   envelope_records($records) as $envelopes |
   snapshot_records($records) as $snapshots |
   message_records($records) as $messages |
@@ -344,6 +442,7 @@ metrics_program='
     compactionFrequency: $compactionFrequency,
     preExistingDeferralCount: $preExistingDeferralCount,
     snapshotCompleteness: $snapshotCompleteness,
+    attemptAccounting: $attemptData.accounting,
     convergenceHealth: {
       recapCount: $recapCount,
       handoffCount: $handoffCount,
@@ -359,7 +458,11 @@ metrics_program='
   }
 '
 
-metrics_json="$(jq -c --arg spec "$spec_dir" "$metrics_program" "$session_file")"
+metrics_json="$(jq -c \
+  --arg spec "$spec_dir" \
+  --arg repoRoot "${repo_root%/}" \
+  --argjson attemptData "$attempt_data" \
+  "$metrics_program" "$SESSION_SNAPSHOT")"
 
 json_for_stdout() {
   if [[ "$schema" == "legacy" ]]; then
@@ -384,6 +487,9 @@ render_markdown() {
     "| Turn count | \(.convergenceHealth.turnCount) | observed |",
     "| Average loop iterations | \(.avgLoopIterations) | informational |",
     "| Max convergence iterations | \(.maxConvergenceIterations) | <= configured cap |",
+    "| Current attempt | \(if .attemptAccounting.current == null then "none" elif .attemptAccounting.current.kind == "legacy" then "legacy @ " + (.attemptAccounting.current.iterationCount | tostring) else .attemptAccounting.current.goalId + " revision " + (.attemptAccounting.current.revision | tostring) + " @ " + (.attemptAccounting.current.iterationCount | tostring) end) | current Goal Contract or legacy |",
+    "| Historical attempts | \(.attemptAccounting.historicalAttempts) | informational |",
+    "| Historical maximum | \(.attemptAccounting.historicalMaxIterations) | informational |",
     "| Compaction frequency | \(.compactionFrequency) | informational |",
     "| Pre-existing deferral count | \(.preExistingDeferralCount) | 0 |",
     "| Snapshot completeness | \(.snapshotCompleteness) | 1.0 |"

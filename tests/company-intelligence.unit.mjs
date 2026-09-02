@@ -24,6 +24,9 @@ const ROUTE_SOURCE = readFileSync(join(ROOT, 'company-intelligence-lab.html'), '
 
 const DECISION_TIME = '2026-08-18T00:00:00.000Z';
 const SESSION_MS = 86400000;
+const REQUIRED_READ_BOUND_MS = 10000;
+const CANONICAL_EVENT_SUBJECT = 'company:msft';
+const CANONICAL_EVENT_PATH = 'data/company-intelligence/company-msft/events.json';
 
 const SEC_COMPANIES = [{ ticker: 'MSFT', cik: '0000789019', displayName: 'Microsoft Corporation' }];
 
@@ -2004,14 +2007,317 @@ test('the registry embedded in the route is identical to the committed registry 
     assert.equal(block[1], 'company-intelligence.config.json', 'the block names the file it mirrors');
     const embedded = JSON.parse(block[2]);
     assert.deepEqual(embedded, CONFIG, 'the embedded registry equals the committed registry file');
+    assert.equal(embedded.contractVersion, 'company-intelligence-config/v2');
+    assert.equal(embedded.readBoundMs, REQUIRED_READ_BOUND_MS);
 
     /* The embedded copy really is a working registry, not merely equal-looking text. */
-    assert.equal(INTEL.readCoverageRegistry(embedded).rows.length, 15);
+    const registry = INTEL.readCoverageRegistry(embedded);
+    assert.equal(registry.rows.length, 15);
+    assert.equal(registry.readBoundMs, REQUIRED_READ_BOUND_MS);
 
     /* ADVERSARIAL COUNTER-CASE: the check can fail. A single drifted field is caught. */
     const drifted = JSON.parse(JSON.stringify(embedded));
     drifted.coverageRegistry[0].freshnessWindowDays += 1;
     assert.notDeepEqual(drifted, CONFIG, 'a one-field drift is detectable');
+});
+
+test('BUG-025 readCoverageRegistry accepts v2, carries the exact positive safe-integer read bound and freezes it', () => {
+    const registry = INTEL.readCoverageRegistry(Object.assign({}, CONFIG, {
+        contractVersion: 'company-intelligence-config/v2',
+        readBoundMs: REQUIRED_READ_BOUND_MS
+    }));
+
+    assert.equal(registry.contractVersion, 'company-coverage-registry/v1');
+    assert.equal(registry.readBoundMs, REQUIRED_READ_BOUND_MS);
+    assert.equal(Object.isFrozen(registry), true);
+    assert.throws(() => { registry.readBoundMs = 1; }, TypeError);
+});
+
+function cloneCommittedConfig() {
+    return JSON.parse(JSON.stringify(CONFIG));
+}
+
+function configWithEventDeclarations(declarations) {
+    const candidate = cloneCommittedConfig();
+    candidate.eventSource.coveredSubjects = declarations.map((declaration) => Object.assign({}, declaration));
+    return candidate;
+}
+
+function eventDeclaration(subjectId, eventsPath) {
+    return { subjectId, eventsPath };
+}
+
+function eventSourceFunctionSource() {
+    const start = MODULE_SOURCE.indexOf('function readEventSource(');
+    const end = MODULE_SOURCE.indexOf('\n    /* The committed file a covered subject', start);
+    assert.ok(start >= 0 && end > start, 'readEventSource has one bounded production source region');
+    return MODULE_SOURCE.slice(start, end);
+}
+
+function assertConfigSchemaRefusals(probes) {
+    const unexpectedAcceptances = [];
+    probes.forEach(({ label, subjectId = CANONICAL_EVENT_SUBJECT, eventsPath = CANONICAL_EVENT_PATH, declarations }) => {
+        const candidate = configWithEventDeclarations(
+            declarations || [eventDeclaration(subjectId, eventsPath)]
+        );
+        try {
+            INTEL.readCoverageRegistry(candidate);
+            unexpectedAcceptances.push(label);
+        } catch (error) {
+            assert.equal(error && error.code, 'C025-CONFIG-SCHEMA',
+                `${label} raised an arbitrary error instead of C025-CONFIG-SCHEMA: ${error && error.message}`);
+        }
+    });
+    assert.deepEqual(unexpectedAcceptances, [],
+        `non-canonical event declarations survived validation: ${unexpectedAcceptances.join(', ')}`);
+}
+
+function moduleWithoutEventPathEqualityGuard() {
+    const source = eventSourceFunctionSource();
+    const guards = [...source.matchAll(/if\s*\(\s*entry\.eventsPath\s*!==\s*[A-Za-z_$][\w$]*\s*\)\s*\{/g)];
+    assert.equal(guards.length, 1,
+        `the mutation must find exactly one declared-versus-derived event-path equality guard, found ${guards.length}`);
+    const guard = guards[0][0];
+    assert.equal(MODULE_SOURCE.split(guard).length - 1, 1,
+        'the equality-guard mutation target must occur exactly once in the complete production module');
+    const replacement = guard.replace(/if\s*\([\s\S]*\)\s*\{$/, 'if (false) {');
+    assert.notEqual(replacement, guard, 'the equality-guard mutation must change the owning predicate');
+    const mutatedSource = MODULE_SOURCE.replace(guard, replacement);
+    assert.equal(mutatedSource.length, MODULE_SOURCE.length - guard.length + replacement.length,
+        'the mutant changes only the exact equality-guard bytes');
+
+    const sandbox = { module: { exports: {} }, globalThis: {} };
+    try {
+        new Function('module', 'globalThis', mutatedSource)(sandbox.module, sandbox.globalThis);
+    } catch (error) {
+        assert.fail(`the exact equality-guard mutant raised an unrelated module runtime error: ${error.message}`);
+    }
+    assert.equal(typeof sandbox.module.exports.readCoverageRegistry, 'function',
+        'the mutant must expose the production registry reader');
+    return sandbox.module.exports;
+}
+
+test('BUG-025 security event declaration matrix rejects every non-canonical pair without rejecting the canonical pair', async (t) => {
+    await t.test('accepted canonical pair remains exact and deeply frozen', () => {
+        const candidate = cloneCommittedConfig();
+        const registry = INTEL.readCoverageRegistry(candidate);
+        const normalized = registry.eventSource.coveredSubjects[0];
+
+        assert.equal(normalized.subjectId, CANONICAL_EVENT_SUBJECT);
+        assert.equal(normalized.eventsPath, CANONICAL_EVENT_PATH);
+        assert.equal(INTEL.eventsPathFor(registry, CANONICAL_EVENT_SUBJECT), CANONICAL_EVENT_PATH);
+        assert.equal(Object.isFrozen(registry), true);
+        assert.equal(Object.isFrozen(registry.eventSource), true);
+        assert.equal(Object.isFrozen(registry.eventSource.coveredSubjects), true);
+        assert.equal(Object.isFrozen(normalized), true);
+    });
+
+    await t.test('normalized event authority is reconstructed instead of copied from the raw candidate', () => {
+        const candidate = cloneCommittedConfig();
+        const rawRow = candidate.eventSource.coveredSubjects[0];
+        const registry = INTEL.readCoverageRegistry(candidate);
+        const normalized = registry.eventSource.coveredSubjects[0];
+
+        assert.notStrictEqual(normalized, rawRow, 'the normalized event row is reconstructed, not returned by identity');
+        rawRow.eventsPath = '\\\\127.0.0.1:9\\collect.json';
+        assert.equal(normalized.eventsPath, CANONICAL_EVENT_PATH,
+            'mutating the untrusted candidate cannot alter returned read authority');
+        assert.equal(INTEL.eventsPathFor(registry, CANONICAL_EVENT_SUBJECT), CANONICAL_EVENT_PATH);
+        assert.doesNotMatch(eventSourceFunctionSource(), /eventsPath\s*:\s*entry\.eventsPath/,
+            'the normalized row must not copy the raw candidate path as authority');
+    });
+
+    await t.test('subject grammar rejects every non-canonical prefix, suffix and hyphen form', () => {
+        const subjects = [
+            ['wrong-prefix', 'issuer:msft'],
+            ['empty-prefix', ':msft'],
+            ['missing-prefix', 'msft'],
+            ['empty-suffix', 'company:'],
+            ['uppercase-suffix', 'company:MSFT'],
+            ['leading-whitespace', ' company:msft'],
+            ['suffix-whitespace', 'company:msft '],
+            ['embedded-whitespace', 'company:ms ft'],
+            ['tab-control', 'company:msft\t'],
+            ['newline-control', 'company:msft\n'],
+            ['carriage-return-control', 'company:msft\r'],
+            ['nul-control', 'company:msft\u0000'],
+            ['dot-suffix', 'company:msft.a'],
+            ['percent-suffix', 'company:msft%2e'],
+            ['leading-hyphen', 'company:-msft'],
+            ['trailing-hyphen', 'company:msft-'],
+            ['repeated-hyphen', 'company:msft--class-a']
+        ];
+        assertConfigSchemaRefusals(subjects.map(([label, subjectId]) => ({ label, subjectId })));
+    });
+
+    await t.test('path grammar rejects destinations, decorations, controls, dot segments and encoded forms', () => {
+        const paths = [
+            ['scheme', 'https://evil.example/events.json'],
+            ['authority-shaped', 'evil.example/company-msft/events.json'],
+            ['protocol-relative', '//evil.example/events.json'],
+            ['leading-slash', '/data/company-intelligence/company-msft/events.json'],
+            ['backslash-authority', '\\\\127.0.0.1:9\\collect.json'],
+            ['query', CANONICAL_EVENT_PATH + '?raw=1'],
+            ['fragment', CANONICAL_EVENT_PATH + '#latest'],
+            ['leading-whitespace', ' ' + CANONICAL_EVENT_PATH],
+            ['trailing-whitespace', CANONICAL_EVENT_PATH + ' '],
+            ['embedded-whitespace', 'data/company-intelligence/company msft/events.json'],
+            ['tab-control', CANONICAL_EVENT_PATH + '\t'],
+            ['newline-control', CANONICAL_EVENT_PATH + '\n'],
+            ['carriage-return-control', CANONICAL_EVENT_PATH + '\r'],
+            ['nul-control', CANONICAL_EVENT_PATH + '\u0000'],
+            ['parent-dot-segment', 'data/company-intelligence/company-msft/../private.json'],
+            ['current-dot-segment', 'data/company-intelligence/company-msft/./events.json'],
+            ['leading-dot-segment', '../data/company-intelligence/company-msft/events.json'],
+            ['uppercase-path', 'data/company-intelligence/company-MSFT/events.json'],
+            ['literal-percent', CANONICAL_EVENT_PATH + '%'],
+            ['encoded-forward-separator', 'data%2fcompany-intelligence%2fcompany-msft%2fevents.json'],
+            ['double-encoded-forward-separator', 'data%252fcompany-intelligence%252fcompany-msft%252fevents.json'],
+            ['encoded-backslash-separator', 'data%5ccompany-intelligence%5ccompany-msft%5cevents.json'],
+            ['double-encoded-backslash-separator', 'data%255ccompany-intelligence%255ccompany-msft%255cevents.json'],
+            ['encoded-dot-segment', '%2e%2e/data/company-intelligence/company-msft/events.json'],
+            ['double-encoded-dot-segment', '%252e%252e/data/company-intelligence/company-msft/events.json'],
+            ['encoded-dot-inside-canonical', 'data/company-intelligence/company-msft/%2e/events.json'],
+            ['double-encoded-dot-inside-canonical', 'data/company-intelligence/company-msft/%252e/events.json']
+        ];
+        assertConfigSchemaRefusals(paths.map(([label, eventsPath]) => ({ label, eventsPath })));
+    });
+
+    await t.test('subject correspondence and one-row cardinality reject mismatch, arbitrary files and duplicates', () => {
+        assertConfigSchemaRefusals([
+            {
+                label: 'another-subject-canonical-path',
+                subjectId: CANONICAL_EVENT_SUBJECT,
+                eventsPath: 'data/company-intelligence/company-aapl/events.json'
+            },
+            {
+                label: 'arbitrary-same-origin-file',
+                subjectId: CANONICAL_EVENT_SUBJECT,
+                eventsPath: 'data/company-intelligence/private/events.json'
+            },
+            {
+                label: 'duplicate-subject-same-path',
+                declarations: [
+                    eventDeclaration(CANONICAL_EVENT_SUBJECT, CANONICAL_EVENT_PATH),
+                    eventDeclaration(CANONICAL_EVENT_SUBJECT, CANONICAL_EVENT_PATH)
+                ]
+            },
+            {
+                label: 'duplicate-subject-different-path',
+                declarations: [
+                    eventDeclaration(CANONICAL_EVENT_SUBJECT, CANONICAL_EVENT_PATH),
+                    eventDeclaration(CANONICAL_EVENT_SUBJECT, 'data/company-intelligence/company-aapl/events.json')
+                ]
+            }
+        ]);
+    });
+
+    await t.test('readEventSource uses strict contract comparison without URL parsing decoding or sanitizing replacement', () => {
+        const source = eventSourceFunctionSource();
+        const forbidden = [
+            [/\bnew\s+URL\s*\(/, 'new URL'],
+            [/\bURL\s*\.\s*parse\s*\(/, 'URL.parse'],
+            [/\bdecodeURI(?:Component)?\s*\(/, 'URI decoding'],
+            [/\.\s*(?:normalize|resolve|join)\s*\(/, 'path normalization or resolution'],
+            [/\.\s*replace(?:All)?\s*\(/, 'sanitizing replacement']
+        ];
+        forbidden.forEach(([pattern, label]) => {
+            assert.doesNotMatch(source, pattern, `readEventSource must not use ${label}`);
+        });
+        assert.match(source, /entry\.eventsPath\s*!==\s*[A-Za-z_$][\w$]*/,
+            'readEventSource must carry one strict declared-versus-derived equality guard');
+    });
+
+    await t.test('one exact equality-guard mutation admits a named invalid probe without arbitrary runtime failure', () => {
+        const mutant = moduleWithoutEventPathEqualityGuard();
+        const probes = [
+            {
+                label: 'backslash-authority',
+                eventsPath: '\\\\127.0.0.1:9\\collect.json'
+            },
+            {
+                label: 'subject-path-mismatch',
+                eventsPath: 'data/company-intelligence/company-aapl/events.json'
+            },
+            {
+                label: 'arbitrary-same-origin-file',
+                eventsPath: 'data/company-intelligence/private/events.json'
+            }
+        ];
+        const survivors = [];
+        probes.forEach(({ label, eventsPath }) => {
+            try {
+                mutant.readCoverageRegistry(configWithEventDeclarations([
+                    eventDeclaration(CANONICAL_EVENT_SUBJECT, eventsPath)
+                ]));
+                survivors.push(label);
+            } catch (error) {
+                assert.equal(error && error.code, 'C025-CONFIG-SCHEMA',
+                    `mutant probe ${label} raised an unrelated runtime error: ${error && error.message}`);
+            }
+        });
+        assert.ok(survivors.length > 0,
+            'removing the exact equality guard must let at least one named invalid declaration survive');
+        assert.ok(survivors.some((label) => ['backslash-authority', 'subject-path-mismatch', 'arbitrary-same-origin-file'].includes(label)),
+            `the mutant survived only an unnamed outcome: ${survivors.join(', ')}`);
+    });
+});
+
+const INVALID_READ_BOUNDS = [
+    { label: 'absent', apply: (config) => { delete config.readBoundMs; } },
+    { label: 'zero', apply: (config) => { config.readBoundMs = 0; } },
+    { label: 'negative', apply: (config) => { config.readBoundMs = -1; } },
+    { label: 'non-integer', apply: (config) => { config.readBoundMs = 1.5; } },
+    { label: 'string', apply: (config) => { config.readBoundMs = '10000'; } },
+    { label: 'NaN', apply: (config) => { config.readBoundMs = Number.NaN; } },
+    { label: 'positive Infinity', apply: (config) => { config.readBoundMs = Number.POSITIVE_INFINITY; } },
+    { label: 'negative Infinity', apply: (config) => { config.readBoundMs = Number.NEGATIVE_INFINITY; } },
+    { label: 'unsafe integer', apply: (config) => { config.readBoundMs = Number.MAX_SAFE_INTEGER + 1; } }
+];
+
+INVALID_READ_BOUNDS.forEach(({ label, apply }) => {
+    test(`BUG-025 readCoverageRegistry refuses ${label} readBoundMs with C025-CONFIG-SCHEMA`, () => {
+        const invalid = Object.assign({}, CONFIG);
+        apply(invalid);
+        assert.throws(
+            () => INTEL.readCoverageRegistry(invalid),
+            (error) => error.code === 'C025-CONFIG-SCHEMA',
+            `${label} readBoundMs must fail loud`
+        );
+    });
+});
+
+test('BUG-025 the route owns one fetch site inside readRouteDocument and no call site owns a timeout', () => {
+    const helperStart = ROUTE_SOURCE.indexOf('function readRouteDocument(');
+    assert.notEqual(helperStart, -1, 'the route declares the single bounded acquisition helper');
+    const helperEnd = ROUTE_SOURCE.indexOf('\n            function ', helperStart + 1);
+    assert.notEqual(helperEnd, -1, 'the helper has a bounded source region');
+    const helperSource = ROUTE_SOURCE.slice(helperStart, helperEnd);
+
+    const fetchSites = [...ROUTE_SOURCE.matchAll(/\bfetch\s*\(/g)].map((match) => match.index);
+    assert.equal(fetchSites.length, 1, 'exactly one production fetch site remains');
+    assert.ok(fetchSites[0] >= helperStart && fetchSites[0] < helperEnd,
+        'the only fetch site belongs to readRouteDocument');
+    assert.match(helperSource, /registry\.readBoundMs/);
+    assert.match(helperSource, /new\s+AbortController\s*\(/);
+    assert.match(helperSource, /\bsetTimeout\s*\(/);
+    assert.match(helperSource, /\bclearTimeout\s*\(/);
+
+    const callSites = [
+        ['loadOne', 'loadCorpus'],
+        ['loadOptionalJson', 'loadResearchRecord'],
+        ['readConfig', 'paintFromEmbedded']
+    ];
+    callSites.forEach(([name, nextName]) => {
+        const start = ROUTE_SOURCE.indexOf(`function ${name}(`);
+        const end = ROUTE_SOURCE.indexOf(`function ${nextName}(`, start + 1);
+        assert.ok(start >= 0 && end > start, `${name} has a source region`);
+        const source = ROUTE_SOURCE.slice(start, end);
+        assert.match(source, /readRouteDocument\s*\(/, `${name} uses the shared acquisition helper`);
+        assert.doesNotMatch(source, /\bfetch\s*\(/, `${name} owns no direct fetch`);
+        assert.doesNotMatch(source, /\b(?:setTimeout|AbortController)\b/, `${name} owns no timeout mechanism`);
+        assert.doesNotMatch(source, /setTimeout\s*\([^)]*,\s*\d+/, `${name} owns no numeric timeout literal`);
+    });
 });
 
 test('readCoverageRegistry raises C025-REGISTRY-INCOMPLETE when a mandatory dimension is absent', () => {
@@ -2029,7 +2335,7 @@ test('readCoverageRegistry raises C025-REGISTRY-INCOMPLETE when a mandatory dime
         );
     });
     assert.throws(
-        () => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, { contractVersion: 'company-intelligence-config/v2' })),
+        () => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, { contractVersion: 'company-intelligence-config/v1' })),
         (error) => error.code === 'C025-CONFIG-VERSION'
     );
     /* The shipped configuration passes, so the guard is not refusing everything. */
@@ -2037,7 +2343,8 @@ test('readCoverageRegistry raises C025-REGISTRY-INCOMPLETE when a mandatory dime
 });
 
 test('the shipped configuration declares exactly fifteen registry rows and four horizons', () => {
-    assert.equal(CONFIG.contractVersion, 'company-intelligence-config/v1');
+    assert.equal(CONFIG.contractVersion, 'company-intelligence-config/v2');
+    assert.equal(CONFIG.readBoundMs, REQUIRED_READ_BOUND_MS);
     assert.equal(CONFIG.coverageRegistry.length, 15);
     assert.equal(CONFIG.horizons.length, 4);
     assert.equal(CONFIG.decisionTimeSource, 'caller');

@@ -22,9 +22,13 @@ umask 077
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_BINDING="$SCRIPT_DIR/repository-binding.sh"
 GUARD_LIB="$SCRIPT_DIR/guard-lib.sh"
+SESSION_STATE_LIB="$SCRIPT_DIR/session-state-lib.sh"
 [[ -f "$GUARD_LIB" ]] || { echo "context-compactor: guard-lib.sh missing at $GUARD_LIB" >&2; exit 2; }
+[[ -f "$SESSION_STATE_LIB" ]] || { echo "context-compactor: session-state-lib.sh missing at $SESSION_STATE_LIB" >&2; exit 2; }
 # shellcheck source=/dev/null
 source "$GUARD_LIB"
+# shellcheck source=./session-state-lib.sh
+source "$SESSION_STATE_LIB"
 
 usage() {
   cat <<'EOF'
@@ -529,6 +533,41 @@ compact_record="$(
   printf '}'
 )"
 
+context_compactor_session_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3"
+  local raw_pointer="$4" compacted_at="$5" record="$6"
+  : "$operation_context"
+
+  jq \
+    --arg rawPointer "$raw_pointer" \
+    --arg compactedAt "$compacted_at" \
+    --argjson record "$record" \
+    '
+    . as $root
+    | if ($root.envelopesReceived // []) | type == "array" then
+        $root + {
+          envelopesReceived: (
+            ($root.envelopesReceived // [])
+            | map(
+                if (.rawPointer // "") == $rawPointer
+                   and (.compactedAt == null or (.compactedAt // "") == "")
+                then . + { compactedAt: $compactedAt }
+                else .
+                end
+              )
+          ),
+          compactedHistory: (
+            (($root.compactedHistory // [])
+             | map(select((.rawPointer // "") != $rawPointer)))
+            + [$record]
+          )
+        }
+      else
+        $root
+      end
+    ' "$locked_input" > "$candidate"
+}
+
 # --- Gate G083: stamp `compactedAt` AND persist the compact record --------
 # together, in ONE rewrite of the session file.
 #
@@ -548,51 +587,13 @@ if command -v jq >/dev/null 2>&1 && [[ "$BINDING_REQUIRED" == true ]]; then
   _comp_repo_root="$BINDING_REPOSITORY_ROOT"
   if [[ -n "$_comp_repo_root" ]]; then
     _comp_session_file="$COMPACTOR_SESSION_FILE"
-    if [[ -f "$_comp_session_file" ]]; then
-      _comp_now="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-      _comp_tmp="$(mktemp "$(dirname "$_comp_session_file")/.bubbles-session.XXXXXX" 2>/dev/null || true)"
-      if [[ -z "$_comp_tmp" ]]; then
-        echo "context-compactor: cannot create a temp file beside $_comp_session_file; refusing a non-atomic compaction" >&2
-        exit 3
-      fi
-      if jq \
-          --arg rawPointer "$raw_abs" \
-          --arg compactedAt "$_comp_now" \
-          --argjson record "$compact_record" \
-          '
-          . as $root
-          | if ($root.envelopesReceived // []) | type == "array" then
-              $root + {
-                envelopesReceived: (
-                  ($root.envelopesReceived // [])
-                  | map(
-                      if (.rawPointer // "") == $rawPointer
-                         and (.compactedAt == null or (.compactedAt // "") == "")
-                      then . + { compactedAt: $compactedAt }
-                      else .
-                      end
-                    )
-                ),
-                compactedHistory: (
-                  (($root.compactedHistory // [])
-                   | map(select((.rawPointer // "") != $rawPointer)))
-                  + [$record]
-                )
-              }
-            else
-              $root
-            end
-          ' "$_comp_session_file" > "$_comp_tmp" 2>/dev/null; then
-        if ! mv "$_comp_tmp" "$_comp_session_file" 2>/dev/null; then
-          rm -f "$_comp_tmp" 2>/dev/null || true
-          echo "context-compactor: could not replace $_comp_session_file atomically" >&2
-          exit 3
-        fi
-      else
-        rm -f "$_comp_tmp" 2>/dev/null || true
-        echo "context-compactor: could not rewrite $_comp_session_file; compactedAt and compactedHistory must land together" >&2
-        exit 3
-      fi
+    _comp_now="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+    _comp_transaction_rc=0
+    session_state_transaction "$_comp_session_file" no-op context-compactor-commit \
+      context_compactor_session_mutation "$raw_abs" "$_comp_now" "$compact_record" || _comp_transaction_rc=$?
+    if [[ "$_comp_transaction_rc" -ne 0 ]]; then
+      echo "context-compactor: could not commit compactedAt and compactedHistory through the shared session transaction" >&2
+      exit "$_comp_transaction_rc"
     fi
   fi
 fi

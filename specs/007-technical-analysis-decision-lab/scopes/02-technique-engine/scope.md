@@ -87,11 +87,11 @@ Scope 02 implements these exact top-level declarations from `design.md`: `tadSma
 
 ## Change Boundary And Rollback
 
-**Allowed edits:** `technical-analysis-decision-lab.html`, `technical-analysis-decision-universe.json`, `scripts/validate-technical-analysis-decision.mjs`, the Feature 007 marker block in `scripts/selftest.mjs`, `tests/technical-analysis-decision-lab.spec.mjs`, and `tests/fixtures/technical-analysis-decision/**`.
+**Allowed file families:** `technical-analysis-decision-lab.html`, `technical-analysis-decision-universe.json`, `scripts/validate-technical-analysis-decision.mjs`, the Feature 007 marker block in `scripts/selftest.mjs`, `tests/technical-analysis-decision-lab.spec.mjs`, and `tests/fixtures/technical-analysis-decision/**`.
 
 **Marker-bounded page edit:** all Scope 02 declarations live between `/* ---------- Feature 007 Scope 02: technique engine ---------- */` and its matching end marker. The selftest additions live inside the existing Feature 007 group under a `Scope 02` sub-marker.
 
-**Explicitly excluded:** `rldata.js`, `rlvalidation.js`, Strategy Validation, every owner publisher page, registries/navigation, shared shell/chart/ticker/glossary files, Market Brief, package/workflow files, all Feature 005/006 paths, and unrelated tests.
+**Excluded surfaces (must remain untouched):** `rldata.js`, `rlvalidation.js`, Strategy Validation, every owner publisher page, registries/navigation, shared shell/chart/ticker/glossary files, Market Brief, package/workflow files, all Feature 005/006 paths, and unrelated tests.
 
 **Rollback/restore:** remove the Scope 02 page, config, validator, fixture, selftest, and browser-test hunks only; rerun every Scope 01 test row and verify exact Scope 01 contract/config digests and shared canaries.
 
@@ -103,7 +103,7 @@ Write each named unit/validator/browser assertion first and capture the intended
 
 | ID | Type | Category | Scenario | File / Location | Exact behavior / persistent title | Command | Live System | Evidence Anchor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-02-01 | Unit | unit | SCN-007-009, 010, 011, 031 | `scripts/selftest.mjs` | Execute all 17 Scope 02 production symbols across formulas, bounds, unavailable histories, deterministic repeats, proxy lineage, family anti-double-counting, cluster conflict, and claim rejection | `node scripts/selftest.mjs` | No | `report.md#tp-02-01` |
+| TP-02-01 | Unit | unit | SCN-007-009, 010, 011, 031 | `scripts/selftest.mjs` | Canary: runs before any focused Scope 02 assertion is trusted and before any broad suite rerun. Execute all 17 Scope 02 production symbols across formulas, bounds, unavailable histories, deterministic repeats, proxy lineage, family anti-double-counting, cluster conflict, and claim rejection | `node scripts/selftest.mjs` | No | `report.md#tp-02-01` |
 | TP-02-02 | Contract validator | functional | SCN-007-009, 010, 011, 031 | `scripts/validate-technical-analysis-decision.mjs` | Validate technique definitions, parameters, claims, formula versions, family/cluster references, output vocabularies, proxy labels, and config/universe parity | `node scripts/validate-technical-analysis-decision.mjs` | No | `report.md#tp-02-02` |
 | TP-02-03 | Regression E2E | e2e-ui | SCN-007-009 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-009 breakout volume supports one proxy family without actor identity` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-009 breakout volume supports one proxy family without actor identity" --reporter=list` | Yes | `report.md#scenario-scn-007-009` |
 | TP-02-04 | Regression E2E | e2e-ui | SCN-007-010 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-010 correlated indicators count once and raw count is not confidence` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-010 correlated indicators count once and raw count is not confidence" --reporter=list` | Yes | `report.md#scenario-scn-007-010` |
@@ -134,4 +134,18 @@ Write each named unit/validator/browser assertion first and capture the intended
 
 #### Build Quality Gate
 
-- [x] Focused RED/GREEN records, source-qualified versus analytic fixture review, page/config/selftest marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. — Evidence: [report.md#lint-and-quality](report.md#lint-and-quality) and [report.md#adversarial-verification](report.md#adversarial-verification); `git diff --check` clean, reader-legibility 0 leaks/26 pages (after fixing a real "Scope 02" leak), no interception or silent-pass patterns in the 4 new tests, three findings recorded in Uncertainty Declarations rather than deferred silently.
+- [x] Focused RED/GREEN records, source-qualified versus analytic fixture review, page/config/selftest marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. — Evidence: [report.md#lint-and-quality](report.md#lint-and-quality) and [report.md#adversarial-verification](report.md#adversarial-verification); `git diff --check` clean, reader-legibility 0 leaks/26 pages (after fixing a real "Scope 02" leak), no interception or silent-pass patterns in the 4 new tests, three findings recorded in Uncertainty Declarations with a named owner rather than dropped silently.
+
+#### Scenario Fidelity And Planning Guardrails
+
+These items are authored by `bubbles.plan` to state the obligation each Gherkin scenario and each shared-surface guardrail places on this scope. They are unchecked because the planning owner authors obligations, not evidence: the executing owner marks each one and links the resolving `report.md` anchor.
+
+- [ ] SCN-007-009: expansion volume supports a breakout hypothesis — participation supports the breakout family with source, normalization window, and bar classification visible, and no participant identity is inferred.
+- [ ] SCN-007-010: related indicators count once at family level — SMA and EMA variants stay in the trend family, MACD and RSI stay in their declared momentum clusters, and the raw method count never becomes confidence.
+- [ ] SCN-007-011: a sideways range after a decline is not declared accumulation — accumulation stays a candidate hypothesis, distribution and continuation contradictions stay visible, and no long setup is triggered.
+- [ ] SCN-007-031: a new transcript assertion that has no independent grounding stays rejected — it cannot affect a default, TechniqueResult, SetupDefinition, GateResult, or product copy, the ledger names the evidence required for reconsideration, and repeated wording across transcripts is not independent support.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope exist as persistent `Regression:` titles and pass on their exact Test Plan commands.
+- [ ] Broader E2E regression suite passes on the complete cumulative Feature 007 browser file after every focused row in this scope.
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, covering every surface named in the Shared Infrastructure Impact Sweep above.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by reversing only the Scope 02 marker-bounded hunks and rerunning every Scope 01 test row.
+- [ ] Change Boundary is respected and zero excluded file families were changed; the allowed and excluded surfaces named above are the complete boundary for this scope.

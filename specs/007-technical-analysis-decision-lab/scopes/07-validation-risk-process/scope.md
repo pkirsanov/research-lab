@@ -88,11 +88,11 @@ Scope 07 implements `tadBuildPurgedEvaluation`, `tadSimulateSetupVariant`, `tadA
 
 ## Change Boundary And Rollback
 
-**Allowed edits:** Feature 007 page/config/validator, Feature 007 selftest marker, Feature 007 browser file, and Feature 007 validation fixtures.
+**Allowed file families:** Feature 007 page/config/validator, Feature 007 selftest marker, Feature 007 browser file, and Feature 007 validation fixtures.
 
 **Marker-bounded page edit:** Scope 07 declarations/scheduler live between `/* ---------- Feature 007 Scope 07: validation risk and process ---------- */` and its matching end marker. Selftest additions use the matching sub-marker.
 
-**Explicitly excluded:** `rlvalidation.js`, Strategy Validation, owner publisher pages, shared runtime helpers, registries/navigation, notes/docs, Market Brief, package/workflow files, Feature 005/006 paths, and unrelated tests.
+**Excluded surfaces (must remain untouched):** `rlvalidation.js`, Strategy Validation, owner publisher pages, shared runtime helpers, registries/navigation, notes/docs, Market Brief, package/workflow files, Feature 005/006 paths, and unrelated tests.
 
 **Rollback/restore:** remove only Scope 07 validation/config/fixture/test hunks; verify the last pre-Scope-07 complete read/passport/ledger bytes are unchanged after cancellation and rollback; rerun Strategy Validation parity, all prior focused rows, and cumulative suite.
 
@@ -104,7 +104,7 @@ Write formula, fold, multiplicity, cost, passport, arithmetic, cancellation, and
 
 | ID | Type | Category | Scenario | File / Location | Exact behavior / persistent title | Command | Live System | Evidence Anchor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-07-01 | Unit | unit | SCN-007-018, 019, 020, 021 | `scripts/selftest.mjs` | Execute all eight Scope 07 symbols across as-of simulation, folds, trials, multiplicity, full summaries/slices, costs, gross/net equations, arithmetic reconciliation, identity inheritance, compounding, process states, deterministic work, and cancellation | `node scripts/selftest.mjs` | No | `report.md#tp-07-01` |
+| TP-07-01 | Unit | unit | SCN-007-018, 019, 020, 021 | `scripts/selftest.mjs` | Canary: runs before any broad Scope 07 suite rerun, including the Scope 01 RLVALID and Strategy Validation parity groups. Execute all eight Scope 07 symbols across as-of simulation, folds, trials, multiplicity, full summaries/slices, costs, gross/net equations, arithmetic reconciliation, identity inheritance, compounding, process states, deterministic work, and cancellation | `node scripts/selftest.mjs` | No | `report.md#tp-07-01` |
 | TP-07-02 | Contract validator | functional | SCN-007-018, 019, 020, 021 | `scripts/validate-technical-analysis-decision.mjs` | Validate validation/cost policies, setup/population/source/comparison identity, folds/trials/horizon/outcome fields, cost component requirements, fixture provenance, and config/universe parity | `node scripts/validate-technical-analysis-decision.mjs` | No | `report.md#tp-07-02` |
 | TP-07-03 | Regression E2E | e2e-ui | SCN-007-018 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-018 explicit costs separate gross and net expectancy and breakeven` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-018 explicit costs separate gross and net expectancy and breakeven" --reporter=list` | Yes | `report.md#scenario-scn-007-018` |
 | TP-07-04 | Regression E2E | e2e-ui | SCN-007-019 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-019 expectancy audit computes 186.9R and rejects the claimed loss` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-019 expectancy audit computes 186.9R and rejects the claimed loss" --reporter=list` | Yes | `report.md#scenario-scn-007-019` |
@@ -138,3 +138,17 @@ No stress or load row is planned because Feature 007 declares no numeric latency
 #### Build Quality Gate
 
 - [x] Focused RED/GREEN records, exact arithmetic cross-check, validation/cost/config parity, RLVALID and Strategy Validation canaries, cancellation immutability, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. Evidence: report.md#lint-and-quality — legibility 0 leaks/27 pages, RLVALID unedited and no copied primitive, git diff --check clean, artifact lint PASSED
+
+#### Scenario Fidelity And Planning Guardrails
+
+These items are authored by `bubbles.plan` to state the obligation each Gherkin scenario and each shared-surface guardrail places on this scope. They are unchecked because the planning owner authors obligations, not evidence: the executing owner marks each one and links the resolving `report.md` anchor.
+
+- [ ] SCN-007-018: when costs change an otherwise positive gross setup, gross and net expectancy are both shown, breakeven win rate reflects the configured payoff and costs, and gross reward-to-risk is never called an edge.
+- [ ] SCN-007-019: when journal inputs cannot produce the claimed result the audit computes positive gross expectancy under equal-risk assumptions, flags the claimed negative 50-trade total as inconsistent, and names sizing, sequencing, costs, or transcription as required reconciliation inputs.
+- [ ] SCN-007-020: changing a threshold creates a new variant identity — the prior validation stays attached only to the prior definition and the custom result is descriptive-only until it is evaluated.
+- [ ] SCN-007-021: a late entry that violates the precommitted plan is flagged CHASE and blocks the original plan, explains the changed reward-to-risk and invalidation distance, and does not diagnose fear, greed, or the user's emotional state.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope exist as persistent `Regression:` titles and pass on their exact Test Plan commands.
+- [ ] Broader E2E regression suite passes on the complete cumulative Feature 007 browser file after every focused row in this scope.
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, covering the `rlvalidation.js` and Strategy Validation surfaces named in the Shared Infrastructure Impact Sweep above.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by reversing only the Scope 07 marker-bounded hunks and confirming the last pre-Scope-07 read, passport, and ledger bytes are unchanged.
+- [ ] Change Boundary is respected and zero excluded file families were changed; the allowed and excluded surfaces named above are the complete boundary for this scope.

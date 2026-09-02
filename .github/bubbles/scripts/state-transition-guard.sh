@@ -4622,20 +4622,28 @@ else
     c43_empty_stdout_sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     c43_analysis="$(jq -rs --arg empty_sha "$c43_empty_stdout_sha256" '
       # BUG-033 facet 2: unwrap every TRANSPARENT prefix, not just a bare
-      # leading `bash`/`sh`. A shell invoked with `-c`, an `env` prefix, and
-      # leading `VAR=value` assignments do not change WHICH program ran, so
-      # three ordinary spellings of one command must resolve to one family.
+      # leading `bash`/`sh`. A shell invoked with `-c`, an `env` prefix,
+      # leading `VAR=value` assignments, and an option-free `timeout` or
+      # `gtimeout` plus its numeric duration do not change WHICH program ran,
+      # so ordinary spellings of one command must resolve to one family.
       # Before this, `node -e x`, `env P=1 node -e x` and `zsh -c node -e x`
       # resolved to `node`, `env` and `zsh`, and the group was refused as a
       # multi-identity collision — the re-spelling case the rule above promises
       # to tolerate. `bash -c x` was worse still: it stripped `bash` and left
       # `-c`, so the family was a flag. The recursion is what makes composed
-      # prefixes (`env A=1 zsh -c ...`) collapse rather than half-collapse.
+      # prefixes (`env A=1 timeout 300 zsh -c ...`) collapse rather than
+      # half-collapse. Timeout options are deliberately not interpreted: they
+      # can alter exit semantics, so only the transparent DURATION form is
+      # normalized.
       def strip_wrappers:
         if ((.[0] // "") | test("^(bash|sh|zsh|ksh|dash)$"))
           then (if ((.[1] // "") == "-c") then (.[2:] | strip_wrappers) else (.[1:] | strip_wrappers) end)
         elif ((.[0] // "") == "env") then (.[1:] | strip_wrappers)
         elif ((.[0] // "") | test("^[A-Za-z_][A-Za-z0-9_]*=")) then (.[1:] | strip_wrappers)
+        elif ((.[0] // "") | test("^(timeout|gtimeout)$"))
+          and ((.[1] // "") | test("^[0-9]+([.][0-9]+)?[smhd]?$"))
+          and (length > 2)
+          then (.[2:] | strip_wrappers)
         else . end;
       def cmd_parts:
         ( . / " " | map(select(length > 0)) ) | strip_wrappers;

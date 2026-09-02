@@ -100,11 +100,11 @@ The first six rows are the six new nested `rl-ta-owner-read/v1` publishers defin
 
 ## Change Boundary And Rollback
 
-**Allowed shared edits:** one exact nested-publisher block in each of the six publisher pages, plus Scope 05 sub-markers in Feature 007 page/validator/selftest/browser tests/fixtures. Each owner block is bounded by `/* ---------- Feature 007 owner read: <capability> ---------- */` and a matching end marker.
+**Allowed file families (shared, marker-bounded edits):** one exact nested-publisher block in each of the six publisher pages, plus Scope 05 sub-markers in Feature 007 page/validator/selftest/browser tests/fixtures. Each owner block is bounded by `/* ---------- Feature 007 owner read: <capability> ---------- */` and a matching end marker.
 
 **Read-only integration:** Strategy Validation and Feature 006 source remain unchanged in Scope 05. Their contracts are consumed or canaried only.
 
-**Explicitly excluded:** owner formulas, owner UI, owner fixture semantics, `rldata.js`, `rlvalidation.js`, shared shell/chart/ticker/glossary/navigation files, registries, Market Brief, packages/workflows, all Feature 005/006 files, and unrelated tests.
+**Excluded surfaces (must remain untouched):** owner formulas, owner UI, owner fixture semantics, `rldata.js`, `rlvalidation.js`, shared shell/chart/ticker/glossary/navigation files, registries, Market Brief, packages/workflows, all Feature 005/006 files, and unrelated tests.
 
 **Pre-edit discipline:** capture path-scoped status/diff and nearest result-publication context for every owner page. Any overlap with an unowned hunk blocks that owner edit; no broad page rewrite, reformat, or relocation is permitted.
 
@@ -124,7 +124,7 @@ Write every owner schema/cutoff/convention/absence assertion and browser title b
 | TP-05-04 | Regression E2E | e2e-ui | SCN-007-016 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-016 option flip walls and GEX preserve one inherited convention` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-016 option flip walls and GEX preserve one inherited convention" --reporter=list` | Yes | `report.md#scenario-scn-007-016` |
 | TP-05-05 | Regression E2E | e2e-ui | SCN-007-017 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-017 OHLCV leaves footprint depth and large-trade modules unavailable` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-017 OHLCV leaves footprint depth and large-trade modules unavailable" --reporter=list` | Yes | `report.md#scenario-scn-007-017` |
 | TP-05-06 | Regression E2E | e2e-ui | SCN-007-024 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-024 daily-only read stays useful while tactical evidence remains unavailable` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-024 daily-only read stays useful while tactical evidence remains unavailable" --reporter=list` | Yes | `report.md#scenario-scn-007-024` |
-| TP-05-07 | Owner matrix canary | e2e-ui | SCN-007-015, 016, 024 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: Feature 007 owner integrations preserve source cutoffs limitations and existing reads` opens all seven existing owners, verifies six nested payloads and Strategy Validation parity, and proves absent Feature 006 remains unavailable | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 007 owner integrations preserve source cutoffs limitations and existing reads" --reporter=list` | Yes | `report.md#tp-05-07` |
+| TP-05-07 | Owner matrix canary | e2e-ui | SCN-007-015, 016, 024 | `tests/technical-analysis-decision-lab.spec.mjs` | Canary: runs before any broad suite rerun. `Regression: Feature 007 owner integrations preserve source cutoffs limitations and existing reads` opens all seven existing owners, verifies six nested payloads and Strategy Validation parity, and proves absent Feature 006 remains unavailable | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 007 owner integrations preserve source cutoffs limitations and existing reads" --reporter=list` | Yes | `report.md#tp-05-07` |
 | TP-05-08 | Credential boundary canary | e2e-ui | SCN-007-024 | `tests/provider-credentials.spec.mjs` | Existing central credential/settings boundary remains green after all owner publishers and Feature 007 adapters | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-05-08` |
 | TP-05-09 | Broader Regression E2E | e2e-ui | SCN-007-015, 016, 017, 024 | `tests/technical-analysis-decision-lab.spec.mjs` | Execute the complete cumulative Feature 007 browser suite after every owner/adaptor focused title | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-05-09` |
 
@@ -154,3 +154,14 @@ Write every owner schema/cutoff/convention/absence assertion and browser title b
 #### Build Quality Gate
 
 - [x] Per-owner RED/GREEN records, path/hunk ownership, shared canaries, option convention audit, no-private-call/DOM-scrape/interception scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, traceability, framework write guard, and provider boundary are current and clean with every finding accounted for. Evidence: report.md#lint-and-quality — legibility 0 leaks/27 pages, node suite at clean-tree parity (24 fail both), git diff --check clean
+
+#### Scenario Fidelity And Planning Guardrails
+
+These items are authored by `bubbles.plan` to state the obligation each Gherkin scenario and each shared-surface guardrail places on this scope. They are unchecked because the planning owner authors obligations, not evidence: the executing owner marks each one and links the resolving `report.md` anchor.
+
+- [ ] SCN-007-017: bar OHLCV cannot satisfy microstructure requirements — footprint states that tick-level bid/ask traded volume is required, depth states that time-stamped full order-book data is required, and neither module emits a proxy result styled as the real feed.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope exist as persistent `Regression:` titles and pass on their exact Test Plan commands.
+- [ ] Broader E2E regression suite passes on the complete cumulative Feature 007 browser file after every focused row in this scope.
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, covering every owner surface named in the Shared Infrastructure Impact Sweep above.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by removing each nested-publisher marker independently and rerunning that owner's parity canary.
+- [ ] Change Boundary is respected and zero excluded file families were changed; the allowed and excluded surfaces named above are the complete boundary for this scope.

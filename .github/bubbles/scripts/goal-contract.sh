@@ -11,8 +11,9 @@
 # digest are mirrored into a spec's `state.json.execution.goalContractRef`
 # (IMP-038 R5: contract fields must not inflate every prompt).
 #
-# Shape authority: bubbles/schemas/goal-contract.schema.json. The validation
-# below mirrors that schema mechanically so `verify` needs nothing but jq.
+# Shape authority: bubbles/schemas/goal-contract.schema.json. The shared
+# session-state validator mirrors that schema mechanically so every Goal
+# lifecycle and convergence consumer uses one complete versioned authority.
 #
 # Subcommands
 #   freeze         Create revision 1 and freeze it. REFUSES if one already exists.
@@ -35,6 +36,15 @@
 # There is no --force / --skip / --ignore. A second freeze is the silent-revision
 # defect this script exists to prevent; the only way forward is `revise`.
 set -euo pipefail
+
+GOAL_CONTRACT_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
+SESSION_STATE_LIB="$GOAL_CONTRACT_SCRIPT_DIR/session-state-lib.sh"
+if [[ ! -f "$SESSION_STATE_LIB" ]]; then
+  echo "goal-contract: required session-state library not found: $SESSION_STATE_LIB" >&2
+  exit 2
+fi
+# shellcheck source=./session-state-lib.sh
+source "$SESSION_STATE_LIB"
 
 SCHEMA_VERSION="goal-contract/v1"
 SCHEMA_VERSION_V2="goal-contract/v2"
@@ -113,6 +123,12 @@ Usage: goal-contract.sh <subcommand> [options]
           substitution), or when --require-boundary is given and the ref's
           workBoundary is absent or WIDER than the contract's.
 
+  authorize-attempt --session-file <path> --repository-root <path>
+                    --spec-dir <path>
+          Validates the complete current Goal Contract plus the stored local
+          repository authority and emits only the physical spec identity and
+          stable {goalId, revision, sourceRequestDigest} attempt core.
+
   -h, --help   Print this usage.
 EOF
 }
@@ -161,210 +177,81 @@ read_json_file() {
   jq empty "$path" >/dev/null 2>&1 || fail_usage "$label is not valid JSON: $path"
 }
 
-# atomic_session_write <destination-file> <new-full-json>
-# mktemp + mv inside the destination directory, matching state-snapshot.sh.
-# Path-generic despite the name: sync-boundary uses it for a spec state.json.
-atomic_session_write() {
-  local session_file="$1" payload="$2" dir tmp
-  dir="$(cd "$(dirname "$session_file")" && pwd)"
+# atomic_state_file_write <destination-file> <new-full-json>
+# This helper is intentionally limited to spec-local state.json writes. Active
+# bubbles.session.json mutations use session_state_transaction below.
+atomic_state_file_write() {
+  local destination_file="$1" payload="$2" dir tmp
+  dir="$(cd "$(dirname "$destination_file")" && pwd)"
   tmp="$(mktemp "$dir/.goal-contract.update.XXXXXX")"
   printf '%s\n' "$payload" > "$tmp"
-  mv "$tmp" "$session_file"
+  mv "$tmp" "$destination_file"
+}
+
+goal_contract_freeze_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3" contract="$4"
+  : "$operation_context"
+  if jq -e 'has("goalContract") and .goalContract != null' "$locked_input" >/dev/null 2>&1; then
+    _session_state_refuse SESSION_GOAL_ALREADY_FROZEN "a Goal Contract is already frozen; revise it instead of replacing it"
+    return 1
+  fi
+  jq --argjson contract "$contract" '. + {goalContract:$contract}' "$locked_input" > "$candidate"
+}
+
+goal_contract_revise_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3" prior="$4" contract="$5"
+  local current violations
+  : "$operation_context"
+  if [[ "$(jq -r 'has("goalContract") and .goalContract != null' "$locked_input")" != "true" ]]; then
+    _session_state_refuse SESSION_GOAL_MISSING "Goal Contract revision requires an existing contract"
+    return 1
+  fi
+  current="$(jq -c '.goalContract' "$locked_input")" || return 2
+  violations="$(session_state_goal_contract_violations "$current")" || return 2
+  if [[ -n "$violations" ]]; then
+    _session_state_refuse SESSION_GOAL_INVALID "locked Goal Contract failed complete validation" violations "$violations"
+    return 2
+  fi
+  if ! jq -e --argjson prior "$prior" '.goalContract == $prior' "$locked_input" >/dev/null 2>&1; then
+    _session_state_refuse SESSION_GOAL_CHANGED "Goal Contract changed before the approved revision could commit"
+    return 1
+  fi
+  if ! jq -e --argjson current "$current" --argjson next "$contract" '
+      ($next.revision == ($current.revision + 1))
+      and ($next.supersedes == $current.goalId)
+    ' >/dev/null 2>&1 <<< '{}'; then
+    _session_state_refuse SESSION_GOAL_CHAIN_INVALID "replacement Goal Contract is not the exact next revision"
+    return 2
+  fi
+  jq --argjson contract "$contract" '. + {goalContract:$contract}' "$locked_input" > "$candidate"
 }
 
 get_contract() {
-  local session_file="$1"
-  read_json_file "$session_file" "session file"
-  if [[ "$(jq -r 'has("goalContract") and (.goalContract != null)' "$session_file")" != "true" ]]; then
+  local session_file="$1" workspace snapshot contract rc=0
+  [[ -f "$session_file" ]] || fail_usage "session file not found: $session_file"
+  workspace="$(mktemp -d "${TMPDIR:-/tmp}/bubbles-goal-contract-read.XXXXXX")" \
+    || fail_usage "could not create Goal Contract read workspace"
+  snapshot="$workspace/session.json"
+  session_state_read_object "$session_file" refuse "$snapshot" || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    rm -rf "$workspace"
+    fail_invalid "session file must contain a JSON object: $session_file"
+  fi
+  if [[ "$(jq -r 'has("goalContract") and (.goalContract != null)' "$snapshot")" != "true" ]]; then
+    rm -rf "$workspace"
     fail_absent "no Goal Contract at .goalContract in $session_file"
   fi
-  jq -c '.goalContract' "$session_file"
-}
-
-# --- schema-mirroring validation ------------------------------------------
-# Emits one line per violation on stdout; empty output means valid.
-contract_violations() {
-  local contract="$1"
-  # The three enum expansions below are deliberately unquoted: json_array takes
-  # one argument per member, and these constants are fixed literals in this file.
-  # shellcheck disable=SC2086
-  jq -n -r --argjson c "$contract" --arg sv "$SCHEMA_VERSION" --arg sv2 "$SCHEMA_VERSION_V2" \
-    --argjson shapes "$(json_array $EXECUTION_SHAPES)" \
-    --argjson classes "$(json_array $CHANGE_CLASSES)" \
-    --argjson budgetkeys "$(json_array $DELTA_BUDGET_KEYS)" '
-    def nes: type == "string" and length > 0;
-    def nesarr: type == "array" and all(.[]; nes);
-    def show: if . == null then "null" else tostring end;
-
-    [
-      (if ($c | type) != "object" then "contract must be an object" else empty end),
-
-      (if ($c.schemaVersion != $sv) and ($c.schemaVersion != $sv2)
-       then "schemaVersion must be \"\($sv)\" or \"\($sv2)\" (observed: \($c.schemaVersion | show))"
-       else empty end),
-
-      (if ($c.goalId | nes | not) or (($c.goalId // "") | test("^gc:[A-Za-z0-9._-]+:[0-9]+$") | not)
-       then "goalId must match ^gc:<sessionId>:<revision>$ (observed: \($c.goalId | show))"
-       else empty end),
-
-      (if ($c.revision | type) != "number" or ($c.revision != ($c.revision | floor)) or ($c.revision < 1)
-       then "revision must be an integer >= 1 (observed: \($c.revision | show))"
-       else empty end),
-
-      (if (($c.goalId // "") | test("^gc:[A-Za-z0-9._-]+:[0-9]+$"))
-          and (($c.goalId | split(":") | last) != ($c.revision | show))
-       then "goalId revision segment must equal revision (observed goalId: \($c.goalId | show), revision: \($c.revision | show))"
-       else empty end),
-
-      (if (($c.goalId // "") | test("^gc:[A-Za-z0-9._-]+:[0-9]+$"))
-          and (($c.provenance.sessionId // "") | nes)
-          and (($c.goalId | split(":"))[1] != $c.provenance.sessionId)
-       then "goalId session segment must equal provenance.sessionId (observed goalId: \($c.goalId | show), sessionId: \($c.provenance.sessionId | show))"
-       else empty end),
-
-      (if ($c.sourceRequestDigest | nes | not) or (($c.sourceRequestDigest // "") | test("^sha256:[0-9a-f]{64}$") | not)
-       then "sourceRequestDigest must match ^sha256:<64 hex>$ (observed: \($c.sourceRequestDigest | show))"
-       else empty end),
-
-      (if ($c.intent | nes | not) then "intent must be a non-empty string" else empty end),
-      (if ($c.successSignal | nes | not) then "successSignal must be a non-empty string" else empty end),
-      (if ($c | has("failureCondition")) and ($c.failureCondition | nes | not)
-       then "failureCondition must be a non-empty string when present" else empty end),
-
-      (if ($c.hardConstraints | nesarr | not)
-       then "hardConstraints must be an array of non-empty strings" else empty end),
-      (if ($c.nonGoals | nesarr | not)
-       then "nonGoals must be an array of non-empty strings" else empty end),
-
-      (if ($c.targetReferences | type) != "array" or (($c.targetReferences // []) | length) < 1
-       then "targetReferences must be a non-empty array"
-       else ( $c.targetReferences
-              | to_entries[]
-              | select(
-                  (.value | type) != "object"
-                  or ((.value | keys_unsorted | sort) != ["kind","value"])
-                  or ((.value.kind // "") | IN("repository","spec","path","release-phase","ops-packet") | not)
-                  or ((.value.value // null) | nes | not))
-              | "targetReferences[\(.key)] must be {kind:<repository|spec|path|release-phase|ops-packet>, value:<non-empty string>} (observed: \(.value | tojson))" )
-       end),
-
-      (if ($c.workBoundary | type) != "object"
-       then "workBoundary must be an object"
-       else (
-         (if ($c.workBoundary.repositoryRoots | nesarr | not) or (($c.workBoundary.repositoryRoots // []) | length) < 1
-          then "workBoundary.repositoryRoots must be a non-empty array of non-empty strings" else empty end),
-         (if ($c.workBoundary | has("specTargets")) and ($c.workBoundary.specTargets | nesarr | not)
-          then "workBoundary.specTargets must be an array of non-empty strings" else empty end),
-         (if ($c.workBoundary | has("allowedPaths")) and ($c.workBoundary.allowedPaths | nesarr | not)
-          then "workBoundary.allowedPaths must be an array of non-empty strings" else empty end),
-         (if ($c.workBoundary | has("crossRepoPolicy")) and (($c.workBoundary.crossRepoPolicy // "") | IN("forbidden","authorized") | not)
-          then "workBoundary.crossRepoPolicy must be \"forbidden\" or \"authorized\" (observed: \($c.workBoundary.crossRepoPolicy | show))" else empty end),
-         (($c.workBoundary | keys_unsorted[]
-           | select(IN("repositoryRoots","specTargets","allowedPaths","crossRepoPolicy") | not)
-           | "workBoundary has an unknown key: \(.)"))
-       ) end),
-
-      (if $c.schemaVersion == $sv2
-       then (
-         if ($c.semanticBoundary | type) != "object"
-         then "semanticBoundary must be an object in \($sv2)"
-         else (
-           (if ($c.semanticBoundary.executionShape // "") | IN($shapes[]) | not
-            then "semanticBoundary.executionShape must be one of \($shapes | join(", ")) (observed: \($c.semanticBoundary.executionShape | show))"
-            else empty end),
-           (if ($c.semanticBoundary.allowedChangeClasses | type) != "array"
-            then "semanticBoundary.allowedChangeClasses must be an array"
-            else ($c.semanticBoundary.allowedChangeClasses[]
-                  | select(IN($classes[]) | not)
-                  | "semanticBoundary.allowedChangeClasses has an unknown change class: \(. | show)") end),
-           (if ($c.semanticBoundary.approvalRequiredChangeClasses | type) != "array"
-            then "semanticBoundary.approvalRequiredChangeClasses must be an array"
-            else ($c.semanticBoundary.approvalRequiredChangeClasses[]
-                  | select(IN($classes[]) | not)
-                  | "semanticBoundary.approvalRequiredChangeClasses has an unknown change class: \(. | show)") end),
-           ( (($c.semanticBoundary.allowedChangeClasses // []) as $a
-              | ($c.semanticBoundary.approvalRequiredChangeClasses // []) as $r
-              | ($a - ($a - $r))) as $overlap
-             | if ($overlap | type) == "array" and ($overlap | length) > 0
-               then "semanticBoundary.allowedChangeClasses and approvalRequiredChangeClasses must not overlap (both: \($overlap | join(", ")))"
-               else empty end),
-           (if ($c.semanticBoundary.deltaBudget | type) != "object"
-            then "semanticBoundary.deltaBudget must be an object"
-            else (
-              ($c.semanticBoundary.deltaBudget | to_entries[]
-               | select(.key | IN($budgetkeys[]) | not)
-               | "semanticBoundary.deltaBudget has an unknown key: \(.key)"),
-              ($c.semanticBoundary.deltaBudget | to_entries[]
-               | select(((.value | type) != "number") or (.value != (.value | floor)) or (.value < 0))
-               | "semanticBoundary.deltaBudget.\(.key) must be a non-negative integer (observed: \(.value | show))")
-            ) end),
-           (($c.semanticBoundary | keys_unsorted[]
-             | select(IN("executionShape","allowedChangeClasses","approvalRequiredChangeClasses","deltaBudget") | not)
-             | "semanticBoundary has an unknown key: \(.)"))
-         ) end )
-       elif ($c | has("semanticBoundary"))
-       then "semanticBoundary requires schemaVersion \"\($sv2)\" (observed: \($c.schemaVersion | show))"
-       else empty end),
-
-      (if ($c.createdAt // "") | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$") | not
-       then "createdAt must be RFC3339 UTC (YYYY-MM-DDThh:mm:ssZ) (observed: \($c.createdAt | show))"
-       else empty end),
-
-      (if ($c.provenance | type) != "object"
-       then "provenance must be an object"
-       else (
-         (($c.provenance | keys_unsorted | sort) as $k
-          | if $k != ["repositoryAlias","runner","sessionId"]
-            then "provenance must have exactly runner, sessionId, repositoryAlias (observed: \($k | tojson))" else empty end),
-         (if ($c.provenance.runner | nes | not) then "provenance.runner must be a non-empty string" else empty end),
-         (if ($c.provenance.sessionId | nes | not) then "provenance.sessionId must be a non-empty string" else empty end),
-         (if ($c.provenance.repositoryAlias | nes | not) then "provenance.repositoryAlias must be a non-empty string" else empty end)
-       ) end),
-
-      (if ($c.approval | type) != "object"
-       then "approval must be an object"
-       else (
-         (($c.approval | keys_unsorted | sort) as $k
-          | if $k != ["approvalNote","approvedAt","state"]
-            then "approval must have exactly state, approvedAt, approvalNote (observed: \($k | tojson))" else empty end),
-         (if ($c.approval.state // "") | IN("auto-frozen","operator-approved","pending-expansion") | not
-          then "approval.state must be auto-frozen, operator-approved, or pending-expansion (observed: \($c.approval.state | show))" else empty end),
-         (if ($c.approval.approvedAt != null) and ($c.approval.approvedAt | type) != "string"
-          then "approval.approvedAt must be a string or null" else empty end),
-         (if ($c.approval.approvalNote != null) and ($c.approval.approvalNote | type) != "string"
-          then "approval.approvalNote must be a string or null" else empty end)
-       ) end),
-
-      (if ($c | has("supersedes") | not)
-       then "supersedes is required (null for revision 1)"
-       elif ($c.supersedes != null) and (($c.supersedes | type) != "string" or (($c.supersedes // "") | test("^gc:[A-Za-z0-9._-]+:[0-9]+$") | not))
-       then "supersedes must be a goalId or null (observed: \($c.supersedes | show))"
-       elif ($c.revision == 1) and ($c.supersedes != null)
-       then "revision 1 must have supersedes=null (observed: \($c.supersedes | show))"
-       elif (($c.revision // 0) > 1) and ($c.supersedes == null)
-       then "revision \($c.revision | show) must name the prior goalId in supersedes"
-       else empty end),
-
-      ( ["schemaVersion","goalId","revision","sourceRequestDigest","intent","successSignal",
-         "hardConstraints","failureCondition","nonGoals","targetReferences","workBoundary",
-         "semanticBoundary",
-         "createdAt","provenance","approval","supersedes"] as $known
-        | $c | keys_unsorted[] | select(. as $k | $known | index($k) | not)
-        | "contract has an unknown key: \(.)" )
-    ] | .[]
-  '
+  contract="$(jq -c '.goalContract' "$snapshot")"
+  rm -rf "$workspace"
+  printf '%s\n' "$contract"
 }
 
 assert_valid_contract() {
-  local contract="$1" violations
-  # The validator dereferences object fields, so a non-object must be rejected
-  # here rather than thrown from inside jq.
-  if [[ "$(jq -r 'type' <<< "$contract")" != "object" ]]; then
-    echo "goal-contract: stored contract is invalid:" >&2
-    echo "  - contract must be an object" >&2
-    exit 1
+  local contract="$1" violations rc=0
+  violations="$(session_state_goal_contract_violations "$contract")" || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    fail_usage "shared Goal Contract validator could not evaluate the stored contract"
   fi
-  violations="$(contract_violations "$contract")"
   if [[ -n "$violations" ]]; then
     echo "goal-contract: stored contract is invalid:" >&2
     while IFS= read -r line; do
@@ -395,6 +282,7 @@ reset_content_flags() {
   expect_goal_id=""
   expect_revision=""
   expect_digest=""
+  spec_dir=""
   hard_constraints=()
   non_goals=()
   target_kinds=()
@@ -526,6 +414,7 @@ parse_flags() {
       --expect-goal-id) expect_goal_id="${2:-}"; shift 2 ;;
       --expect-revision) expect_revision="${2:-}"; shift 2 ;;
       --expect-digest) expect_digest="${2:-}"; shift 2 ;;
+      --spec-dir) spec_dir="${2:-}"; shift 2 ;;
       -h|--help) usage; exit 0 ;;
       *) fail_usage "unknown option: $1" ;;
     esac
@@ -657,14 +546,6 @@ cmd_freeze() {
   local session_dir
   session_dir="$(dirname "$session_file")"
   mkdir -p "$session_dir"
-  if [[ ! -f "$session_file" ]]; then
-    printf '{}\n' > "$session_file"
-  fi
-  read_json_file "$session_file" "session file"
-
-  if [[ "$(jq -r 'has("goalContract") and (.goalContract != null)' "$session_file")" == "true" ]]; then
-    fail_refuse "a Goal Contract is already frozen at .goalContract in $session_file ($(jq -r '.goalContract.goalId // "unknown"' "$session_file")). Re-freezing would silently replace the operator's outcome — use 'revise --approval-note' instead."
-  fi
 
   local digest targets boundary contract created_at semantic schema
   digest="sha256:$(sha256_file "$source_request_file")"
@@ -721,8 +602,15 @@ cmd_freeze() {
 
   assert_valid_contract "$contract"
 
-  atomic_session_write "$session_file" \
-    "$(jq --argjson gc "$contract" '. + { goalContract: $gc }' "$session_file")"
+  local transaction_rc=0
+  session_state_transaction "$session_file" initialize-object goal-contract-freeze \
+    goal_contract_freeze_mutation "$contract" || transaction_rc=$?
+  case "$transaction_rc" in
+    0) ;;
+    1) fail_refuse "a Goal Contract is already frozen at .goalContract in $session_file. Re-freezing would silently replace the operator's outcome — use 'revise --approval-note' instead." ;;
+    2) fail_invalid "session file or Goal Contract state is invalid: $session_file" ;;
+    *) fail_usage "could not commit Goal Contract through the shared session transaction" ;;
+  esac
 
   jq -n --argjson gc "$contract" '$gc'
 }
@@ -911,8 +799,15 @@ cmd_revise() {
 
   assert_valid_contract "$contract"
 
-  atomic_session_write "$session_file" \
-    "$(jq --argjson gc "$contract" '. + { goalContract: $gc }' "$session_file")"
+  local transaction_rc=0
+  session_state_transaction "$session_file" refuse goal-contract-revise \
+    goal_contract_revise_mutation "$prior" "$contract" || transaction_rc=$?
+  case "$transaction_rc" in
+    0) ;;
+    1) fail_refuse "the stored Goal Contract changed before this approved revision could commit; re-read and revise the current contract" ;;
+    2) fail_invalid "the locked Goal Contract or session object is invalid" ;;
+    *) fail_usage "could not commit Goal Contract revision through the shared session transaction" ;;
+  esac
 
   jq -n --argjson gc "$contract" '$gc'
 }
@@ -977,7 +872,7 @@ cmd_sync_boundary() {
     fi
   fi
 
-  atomic_session_write "$state_file" \
+  atomic_state_file_write "$state_file" \
     "$(jq --argjson wb "$boundary" '. + { workBoundary: $wb }' "$state_file")"
 
   jq -n --argjson wb "$boundary" '$wb'
@@ -1068,6 +963,42 @@ cmd_verify_ref() {
   echo "goal-contract: goalRef verified against $(jq -r '.goalId' <<< "$contract") revision $(jq -r '.revision' <<< "$contract")"
 }
 
+# cmd_authorize_attempt — expose attempt identity only after the complete
+# versioned contract and stored repository mirror agree. Library integrity
+# failures map to goal-contract's public invalid-contract exit class (1).
+cmd_authorize_attempt() {
+  parse_flags "$@"
+  [[ -n "$session_file" ]] || fail_usage "authorize-attempt requires --session-file"
+  [[ "${#repository_roots[@]}" -eq 1 ]] \
+    || fail_usage "authorize-attempt requires exactly one --repository-root"
+  [[ -n "$spec_dir" ]] || fail_usage "authorize-attempt requires --spec-dir"
+
+  local temporary_dir snapshot mirror context attempt rc=0
+  temporary_dir="$(mktemp -d "${TMPDIR:-/tmp}/bubbles-goal-authority.XXXXXX")" \
+    || fail_usage "could not create authorize-attempt workspace"
+  snapshot="$temporary_dir/session.json"
+
+  session_state_read_object "$session_file" refuse "$snapshot" || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    rm -rf "$temporary_dir"
+    fail_invalid "session object cannot authorize an attempt"
+  fi
+  mirror="$(jq -c '.repositoryBindingMirror // null' "$snapshot")"
+  rc=0
+  context="$(session_state_authority_context "${repository_roots[0]}" "$mirror" mirror)" || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    rm -rf "$temporary_dir"
+    fail_invalid "repository authority cannot authorize an attempt"
+  fi
+  rc=0
+  attempt="$(session_state_authorized_attempt "$snapshot" "$context" "$spec_dir")" || rc=$?
+  rm -rf "$temporary_dir"
+  if [[ "$rc" -ne 0 ]]; then
+    fail_invalid "complete Goal Contract authorization failed"
+  fi
+  printf '%s\n' "$attempt"
+}
+
 # --- dispatch --------------------------------------------------------------
 
 main() {
@@ -1094,6 +1025,7 @@ main() {
     sync-boundary) cmd_sync_boundary "$@" ;;
     ref) cmd_ref "$@" ;;
     verify-ref) cmd_verify_ref "$@" ;;
+    authorize-attempt) cmd_authorize_attempt "$@" ;;
     *) fail_usage "unknown subcommand: $subcommand" ;;
   esac
 }

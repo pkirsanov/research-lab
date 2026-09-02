@@ -33,6 +33,12 @@
 #   2  usage or runtime error
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
+SESSION_STATE_LIB="$SCRIPT_DIR/session-state-lib.sh"
+[[ -f "$SESSION_STATE_LIB" ]] || { echo "expansion-approval: required session-state library not found: $SESSION_STATE_LIB" >&2; exit 2; }
+# shellcheck source=./session-state-lib.sh
+source "$SESSION_STATE_LIB"
+
 usage() {
   cat <<'EOF'
 Usage:
@@ -67,9 +73,15 @@ sha256_stdin() {
 canon_digest() { printf 'sha256:%s' "$(jq -S -c '.' <<< "$1" | sha256_stdin)"; }
 
 read_contract() {
-  local session_file="$1" contract
-  [[ -f "$session_file" ]] || fail_usage "session file not found: $session_file"
-  contract="$(jq -c '.goalContract // empty' "$session_file")"
+  local session_file="$1" contract snapshot rc=0
+  snapshot="$(mktemp "${TMPDIR:-/tmp}/expansion-approval-read.XXXXXX")" || fail_usage "could not create immutable session snapshot"
+  session_state_read_object "$session_file" refuse "$snapshot" || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    rm -f "$snapshot"
+    return "$rc"
+  fi
+  contract="$(jq -c '.goalContract // empty' "$snapshot")"
+  rm -f "$snapshot"
   [[ -n "$contract" ]] || fail_refuse "no Goal Contract at .goalContract in $session_file"
   printf '%s' "$contract"
 }
@@ -175,6 +187,42 @@ cmd_preview() {
 }
 
 # --- approve ----------------------------------------------------------------
+expansion_approval_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3"
+  local preview="$4" digest="$5"
+  local contract violations note session_id sb_digest current_rev stamped
+  : "$operation_context"
+
+  contract="$(jq -c '.goalContract // empty' "$locked_input")" || return 2
+  if [[ -z "$contract" ]]; then
+    echo "expansion-approval: REFUSED — no Goal Contract at .goalContract in the locked session object" >&2
+    return 1
+  fi
+  violations="$(session_state_goal_contract_violations "$contract")" || return 2
+  if [[ -n "$violations" ]]; then
+    echo "expansion-approval: REFUSED — the locked Goal Contract failed complete validation: $violations" >&2
+    return 1
+  fi
+
+  note="$(jq -r '.approval.approvalNote // ""' <<< "$contract")" || return 2
+  case "$note" in
+    *"expansion:$digest"*) ;;
+    *)
+      echo "expansion-approval: REFUSED — the Goal Contract approval note does not name expansion:$digest. Record it with: goal-contract.sh revise --approval-note \"... expansion:$digest ...\". A generic continuation or an action approval cannot approve an architecture expansion." >&2
+      return 1
+      ;;
+  esac
+
+  session_id="$(jq -r '.provenance.sessionId' <<< "$contract")" || return 2
+  sb_digest="$(canon_digest "$(jq -c '.semanticBoundary // null' <<< "$contract")")" || return 2
+  current_rev="$(jq -r '.revision' <<< "$contract")" || return 2
+  stamped="$(jq -c --arg sid "$session_id" --arg sbd "$sb_digest" --argjson rev "$current_rev" \
+    '. + { approvedSessionId: $sid, approvedSemanticBoundaryDigest: $sbd, approvedAtRevision: $rev }' <<< "$preview")" || return 2
+  jq --argjson p "$stamped" \
+    '. + { expansionApprovals: ((.expansionApprovals // []) + [$p]) }' "$locked_input" > "$candidate" || return 2
+  echo "expansion-approval: recorded approval for $digest (session $session_id, revision $current_rev)"
+}
+
 cmd_approve() {
   local session_file="" preview_file=""
   while [[ $# -gt 0 ]]; do
@@ -191,8 +239,7 @@ cmd_approve() {
   [[ -f "$preview_file" ]] || fail_usage "preview file not found: $preview_file"
   jq empty "$preview_file" 2>/dev/null || fail_usage "preview file is not valid JSON"
 
-  local contract preview digest note
-  contract="$(read_contract "$session_file")"
+  local preview digest
   preview="$(jq -c '.' "$preview_file")"
   digest="$(jq -r '.expansionDigest // ""' <<< "$preview")"
   [[ -n "$digest" && "$digest" != "null" ]] ||
@@ -205,30 +252,10 @@ cmd_approve() {
   [[ "$recomputed" == "$digest" ]] ||
     fail_refuse "expansionDigest does not cover the preview body — the preview was edited after it was generated"
 
-  note="$(jq -r '.approval.approvalNote // ""' <<< "$contract")"
-  case "$note" in
-    *"expansion:$digest"*) ;;
-    *) fail_refuse "the Goal Contract approval note does not name expansion:$digest. Record it with: goal-contract.sh revise --approval-note \"... expansion:$digest ...\". A generic continuation or an action approval cannot approve an architecture expansion." ;;
-  esac
-
-  local tmp stamped session_id sb_digest current_rev
-  # Bind the RECORD to the session and the semantic boundary, not to a revision.
-  # Recording an approval requires a `revise` to carry the note, and that revise
-  # necessarily bumps the revision — binding to the preview's revision would
-  # invalidate every approval at the instant it was granted. Binding to the
-  # boundary keeps the useful invalidation (a boundary change voids the
-  # approval) without the self-defeating one.
-  session_id="$(jq -r '.provenance.sessionId // ""' <<< "$contract")"
-  sb_digest="$(canon_digest "$(jq -c '.semanticBoundary // null' <<< "$contract")")"
-  current_rev="$(jq -r '.revision // 0' <<< "$contract")"
-  stamped="$(jq -c --arg sid "$session_id" --arg sbd "$sb_digest" --argjson rev "$current_rev" \
-    '. + { approvedSessionId: $sid, approvedSemanticBoundaryDigest: $sbd, approvedAtRevision: $rev }' <<< "$preview")"
-
-  tmp="$(mktemp "$(dirname "$session_file")/.expansion-approval.XXXXXX")"
-  jq --argjson p "$stamped" \
-    '. + { expansionApprovals: ((.expansionApprovals // []) + [$p]) }' "$session_file" > "$tmp"
-  mv "$tmp" "$session_file"
-  echo "expansion-approval: recorded approval for $digest (session $session_id, revision $current_rev)"
+  local transaction_rc=0
+  session_state_transaction "$session_file" refuse expansion-approval-approve \
+    expansion_approval_mutation "$preview" "$digest" || transaction_rc=$?
+  return "$transaction_rc"
 }
 
 # --- verify -----------------------------------------------------------------
@@ -247,10 +274,21 @@ cmd_verify() {
   [[ -n "$delta" ]] || fail_usage "verify requires --planned-delta"
   jq empty <<< "$delta" 2>/dev/null || fail_usage "--planned-delta is not valid JSON"
 
-  local contract expanding
-  contract="$(read_contract "$session_file")"
+  local contract expanding snapshot snapshot_rc=0
+  snapshot="$(mktemp "${TMPDIR:-/tmp}/expansion-approval-verify.XXXXXX")" || fail_usage "could not create immutable session snapshot"
+  session_state_read_object "$session_file" refuse "$snapshot" || snapshot_rc=$?
+  if [[ "$snapshot_rc" -ne 0 ]]; then
+    rm -f "$snapshot"
+    return "$snapshot_rc"
+  fi
+  contract="$(jq -c '.goalContract // empty' "$snapshot")"
+  if [[ -z "$contract" ]]; then
+    rm -f "$snapshot"
+    fail_refuse "no Goal Contract at .goalContract in $session_file"
+  fi
   expanding="$(expanding_classes "$contract" "$delta" | tr '\n' ' ' | sed -E 's/[[:space:]]+$//')"
   if [[ -z "$expanding" ]]; then
+    rm -f "$snapshot"
     echo "expansion-approval: OK (no approval-required change class in this plan)"
     return 0
   fi
@@ -274,7 +312,8 @@ cmd_verify() {
         | select(($want - ($a.expandingChangeClasses // [])) | length == 0)
         | select([ $counts | to_entries[] | select(.value > (($a.plannedCounts[.key]) // 0)) ] | length == 0)
         | $a.expansionDigest ]
-    | first // ""' "$session_file")"
+    | first // ""' "$snapshot")"
+  rm -f "$snapshot"
 
   [[ -n "$covered" ]] ||
     fail_refuse "plan expands into [$expanding] with no recorded approval covering it under the current semantic boundary. Generate a preview, have the operator record its expansionDigest via 'goal-contract.sh revise --approval-note', then run 'expansion-approval.sh approve'."

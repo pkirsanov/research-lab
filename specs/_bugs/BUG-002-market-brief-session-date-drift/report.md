@@ -7818,7 +7818,6 @@ Delivery-delta paths outside `specs/` and `.specify/` (non-planning): `scripts/b
 
 <!-- BUG002 terminal delivery phases 2026-07-27 EOF -->
 
-<!-- bubbles:certifying-window-begin -->
 
 ## Certifying Window — Terminal `done` Certification (2026-07-27T16:25:13Z)
 
@@ -8043,3 +8042,4 @@ post-certification edit.
 **Next owner:** `bubbles.spec-review` - decide whether the 2026-08-07 and
 2026-08-10 edits preserved certified planning truth, then either declare them as
 carried redactions or recertify.
+<!-- bubbles:certifying-window-begin -->

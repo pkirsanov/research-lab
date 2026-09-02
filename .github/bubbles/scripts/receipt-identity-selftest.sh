@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# receipt-identity-selftest.sh — BUG-033 regression surface for Check 43.
+# receipt-identity-selftest.sh — focused identity regressions for Check 43.
 #
 # WHY THIS EXISTS SEPARATELY FROM state-transition-guard-selftest.sh
 # The guard selftest drives the WHOLE guard, which is the right end-to-end
-# proof and the wrong feedback loop: one BUG-033 assertion costs a full
+# proof and the wrong feedback loop: one identity assertion costs a full
 # multi-hundred-case run. Check 43's decision is a single self-contained jq
 # program, so this sibling extracts THAT PROGRAM FROM THE GUARD SOURCE and
 # drives it against receipt fixtures directly.
@@ -175,6 +175,9 @@ fi
 family_of() {
   printf '%s' "$1" | jq -Rr "$DEFS"' command_family' 2>&1
 }
+identity_of() {
+  printf '%s' "$1" | jq -Rr "$DEFS"' cmd_identity' 2>&1
+}
 
 for probe in \
   "node scripts/check-page.mjs alpha" \
@@ -227,6 +230,72 @@ if printf '%s' "$wrapper_adv_out" | grep -qF 'family=cargo' &&
 else
   fail "facet 2 bound: the diagnostic did not name both unwrapped identities"
   printf '  analysis: %s\n' "$wrapper_adv_out"
+fi
+
+# ---------------------------------------------------------------------------
+# Bounded-execution wrappers — `timeout DURATION` and `gtimeout DURATION`.
+#
+# A timeout changes how long a validator may run, not which validator ran.
+# These probes use only the transparent, option-free syntax accepted by this
+# normalizer. Wrapper options are intentionally outside this identity rule.
+# ---------------------------------------------------------------------------
+scenario_direct="bash .github/bubbles/scripts/scenario-test-resolve.sh specs/alpha --repo-root ."
+scenario_timeout="timeout 300 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/alpha --repo-root ."
+scenario_gtimeout="gtimeout 300 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/alpha --repo-root ."
+for probe in "$scenario_direct" "$scenario_timeout" "$scenario_gtimeout"; do
+  observed_family="$(family_of "$probe")"
+  observed_identity="$(identity_of "$probe")"
+  if [[ "$observed_family" == "scenario-test-resolve.sh" && "$observed_identity" == "scenario-test-resolve.sh specs/alpha" ]]; then
+    pass "timeout identity: '$probe' normalizes to the scenario validator and its subject"
+  else
+    fail "timeout identity: '$probe' normalized to family='$observed_family' identity='$observed_identity'"
+  fi
+done
+option_timeout="timeout --preserve-status 300 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/alpha --repo-root ."
+if [[ "$(family_of "$option_timeout")" == "timeout" ]]; then
+  pass "timeout identity bound: option-bearing timeout syntax is not guessed transparent"
+else
+  fail "timeout identity bound: option-bearing timeout syntax was incorrectly unwrapped"
+fi
+
+timeout_same_log="$TMP_DIR/timeout-same-identity.jsonl"
+write_log "$timeout_same_log" \
+  "{\"ts\":\"2026-08-16T09:35:01Z\",\"sessionId\":\"tw-a\",\"spec\":\"specs/alpha\",\"cmd\":\"$scenario_direct\",\"exitCode\":0,\"durationMs\":451,\"stdoutHash\":\"$NONEMPTY\",\"stdoutBytes\":128,\"tags\":[\"validate\"]}" \
+  "{\"ts\":\"2026-08-16T09:35:03Z\",\"sessionId\":\"tw-b\",\"spec\":\"specs/alpha\",\"cmd\":\"$scenario_timeout\",\"exitCode\":0,\"durationMs\":453,\"stdoutHash\":\"$NONEMPTY\",\"stdoutBytes\":128,\"tags\":[\"validate\"]}" \
+  "{\"ts\":\"2026-08-16T09:35:05Z\",\"sessionId\":\"tw-c\",\"spec\":\"specs/alpha\",\"cmd\":\"$scenario_gtimeout\",\"exitCode\":0,\"durationMs\":455,\"stdoutHash\":\"$NONEMPTY\",\"stdoutBytes\":128,\"tags\":[\"validate\"]}"
+timeout_same_out="$(analyze "$timeout_same_log")"
+if [[ "$(clone_count "$timeout_same_out")" == "0" ]]; then
+  pass "timeout identity: direct, timeout, and gtimeout spellings of one validator are not clones"
+else
+  fail "timeout identity: equivalent bounded spellings produced $(clone_count "$timeout_same_out") clone group(s)"
+  printf '  analysis: %s\n' "$timeout_same_out"
+fi
+
+timeout_sibling_log="$TMP_DIR/timeout-sibling-identities.jsonl"
+write_log "$timeout_sibling_log" \
+  "{\"ts\":\"2026-08-16T09:36:01Z\",\"sessionId\":\"ts-a\",\"spec\":\"specs/alpha\",\"cmd\":\"bash .github/bubbles/scripts/scenario-test-resolve.sh specs/alpha --repo-root .\",\"exitCode\":0,\"durationMs\":461,\"stdoutHash\":\"$NONEMPTY\",\"stdoutBytes\":128,\"tags\":[\"validate\"]}" \
+  "{\"ts\":\"2026-08-16T09:36:03Z\",\"sessionId\":\"ts-b\",\"spec\":\"specs/beta\",\"cmd\":\"timeout 300 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/beta --repo-root .\",\"exitCode\":0,\"durationMs\":463,\"stdoutHash\":\"$NONEMPTY\",\"stdoutBytes\":128,\"tags\":[\"validate\"]}" \
+  "{\"ts\":\"2026-08-16T09:36:05Z\",\"sessionId\":\"ts-c\",\"spec\":\"specs/gamma\",\"cmd\":\"gtimeout 300 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/gamma --repo-root .\",\"exitCode\":0,\"durationMs\":465,\"stdoutHash\":\"$NONEMPTY\",\"stdoutBytes\":128,\"tags\":[\"validate\"]}"
+timeout_sibling_out="$(analyze "$timeout_sibling_log")"
+if [[ "$(clone_count "$timeout_sibling_out")" == "0" && "$(sibling_count "$timeout_sibling_out")" == "1" ]]; then
+  pass "timeout identity: distinct subjects form one accepted sibling group rather than disappearing"
+else
+  fail "timeout identity: expected 0 clones and 1 sibling group, observed $(clone_count "$timeout_sibling_out") clones and $(sibling_count "$timeout_sibling_out") siblings"
+  printf '  analysis: %s\n' "$timeout_sibling_out"
+fi
+
+timeout_adv_log="$TMP_DIR/timeout-adversarial-programs.jsonl"
+write_log "$timeout_adv_log" \
+  "{\"ts\":\"2026-08-16T09:37:01Z\",\"sessionId\":\"ta-a\",\"spec\":\"specs/alpha\",\"cmd\":\"timeout 300 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/alpha --repo-root .\",\"exitCode\":0,\"durationMs\":471,\"stdoutHash\":\"$NONEMPTY\",\"stdoutBytes\":128,\"tags\":[\"validate\"]}" \
+  "{\"ts\":\"2026-08-16T09:37:03Z\",\"sessionId\":\"ta-b\",\"spec\":\"specs/beta\",\"cmd\":\"gtimeout 300 bash .github/bubbles/scripts/artifact-lint.sh specs/beta\",\"exitCode\":0,\"durationMs\":473,\"stdoutHash\":\"$NONEMPTY\",\"stdoutBytes\":128,\"tags\":[\"validate\"]}"
+timeout_adv_out="$(analyze "$timeout_adv_log")"
+if [[ "$(clone_count "$timeout_adv_out")" == "1" ]] &&
+  printf '%s' "$timeout_adv_out" | grep -qF 'family=scenario-test-resolve.sh' &&
+  printf '%s' "$timeout_adv_out" | grep -qF 'family=artifact-lint.sh'; then
+  pass "timeout identity bound: different bounded programs sharing stdout remain a clone"
+else
+  fail "timeout identity bound: different bounded programs did not remain a diagnosed clone"
+  printf '  analysis: %s\n' "$timeout_adv_out"
 fi
 
 # ---------------------------------------------------------------------------

@@ -167,13 +167,27 @@ the `eventSource.accessTerms` field of
 the module refuses a source declaration that states no terms at all.
 
 The route issues no request to that host at runtime. Rows are read out of band,
-checked, and committed under `data/company-intelligence/<subjectId>/events.json`
-with the filing-index URL and the as-of date each row was taken from. The route
-fetches only that same-origin committed file, which is why the covered-subject
-path is refused when it names anything other than a relative committed path, and
-why `file://` and the offline posture both keep working. The freshness window is
-declared as `eventSource.freshnessWindowDays`; a row read past it stays in the
-denominator as stale rather than turning into a neutral value.
+checked, and committed with the filing-index URL and the as-of date each row was
+taken from. A covered subject must match exact `company:<suffix>` syntax, and its
+only event document is derived as
+`data/company-intelligence/company-<suffix>/events.json`. The declared path must
+equal that derived path byte-for-byte. It is an auditable repository identity,
+not an arbitrary relative destination. The route rejects mismatched, malformed,
+duplicate, normalized, decoded, absolute, external, or other same-origin paths
+before any event read can start.
+
+An invalid embedded configuration reaches the existing terminal
+`C025-CONFIG-SCHEMA` refusal before any route-owned request. An invalid served
+configuration can arrive after the embedded first paint, but it does not replace
+the embedded registry, continue corpus work, or leave the earlier result and
+company identity presented as settled. The fixed safe atomic alert discloses no
+rejected path and does not move focus. Transport-only failure of the served
+configuration still retains the validated embedded registry, and ordinary
+unavailable evidence still settles through the coverage account.
+
+This construction keeps `file://` and the offline posture working. The freshness
+window remains declared as `eventSource.freshnessWindowDays`; a row read past it
+stays in the denominator as stale rather than turning into a neutral value.
 
 Committed coverage today is `company:msft` only. Every other company reads the
 named absence, not a blank.
@@ -262,7 +276,8 @@ from the same frozen `company-read-version/v1`.
   returns `C025-PUBLISH-LOSSY` and writes nothing. A settled unavailable account
   remains eligible and publishes with `availability="unavailable"` and null clocks.
 - The page declares no `innerHTML` assignment, no `requestAnimationFrame`, no
-  `setTimeout`, no password input and no provider key field.
+  repeating timer, and exactly one `setTimeout` site inside the route-owned
+  bounded document reader. It declares no password input and no provider key field.
 
 ## Data And Privacy
 

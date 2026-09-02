@@ -9,6 +9,15 @@ set -o pipefail
 umask 077
 export LC_ALL=C
 
+REPOSITORY_BINDING_SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
+SESSION_STATE_LIB="$REPOSITORY_BINDING_SCRIPT_DIR/session-state-lib.sh"
+if [[ ! -f "$SESSION_STATE_LIB" ]]; then
+  printf 'repository-binding: required session-state library not found: %s\n' "$SESSION_STATE_LIB" >&2
+  exit 2
+fi
+# shellcheck source=./session-state-lib.sh
+source "$SESSION_STATE_LIB"
+
 usage() {
   cat <<'EOF'
 Usage: repository-binding.sh <subcommand> [options]
@@ -1473,6 +1482,27 @@ discover_specs() {
   done
 }
 
+repository_binding_mirror_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3"
+  local binding="$4" timestamp="$5"
+  : "$operation_context"
+
+  if jq -e \
+    --arg session_id "$(jq -r '.repositoryResolution.sessionId' <<< "$binding")" \
+    --arg repository_root "$(jq -r '.repositoryRoot' <<< "$binding")" \
+    '.repositoryBindingMirror.repositoryResolution.sessionId == $session_id and
+     .repositoryBindingMirror.repositoryRoot != $repository_root' \
+    "$locked_input" >/dev/null 2>&1; then
+    printf 'REPOSITORY MIRROR DRIFT authority=external-control repair=overwrite\n'
+  fi
+
+  jq --argjson binding "$binding" --arg timestamp "$timestamp" \
+    '.repositoryBindingMirror = ($binding + {
+       mirroredControlRevision: $binding.repositoryResolution.controlRevision,
+       mirroredAt: $timestamp
+     })' "$locked_input" > "$candidate"
+}
+
 mirror_session() {
   local goal_node_declaration=""
 
@@ -1502,8 +1532,8 @@ mirror_session() {
   local root
   local session_dir
   local session_file
-  local temp_file
   local timestamp
+  local transaction_rc=0
   root="$(jq -r '.repositoryRoot' <<< "$VALIDATED_PACKET_JSON")"
   session_dir="$root/.specify/memory"
   session_file="$session_dir/bubbles.session.json"
@@ -1517,34 +1547,17 @@ mirror_session() {
     printf 'REPOSITORY MIRROR REFUSED reason=SESSION_MIRROR_SYMLINK repoLocalSideEffects=zero\n'
     return 1
   fi
-  if [[ -f "$session_file" ]] && ! jq -e 'type == "object"' "$session_file" >/dev/null 2>&1; then
-    printf 'REPOSITORY MIRROR REFUSED reason=SESSION_MIRROR_MALFORMED repoLocalSideEffects=zero\n'
-    return 1
-  fi
-  if [[ -f "$session_file" ]] && jq -e \
-    --arg session_id "$PARSED_SESSION_ID" \
-    --arg repository_root "$root" \
-    '.repositoryBindingMirror.repositoryResolution.sessionId == $session_id and
-     .repositoryBindingMirror.repositoryRoot != $repository_root' \
-    "$session_file" >/dev/null 2>&1; then
-    printf 'REPOSITORY MIRROR DRIFT authority=external-control repair=overwrite\n'
-  fi
   timestamp="$(date -u +'%Y-%m-%dT%H:%M:%SZ')"
-  temp_file="$(mktemp "$session_dir/.bubbles-session.XXXXXX")" || return 3
-  if [[ -f "$session_file" ]]; then
-    jq --argjson binding "$VALIDATED_PACKET_JSON" --arg timestamp "$timestamp" \
-      '.repositoryBindingMirror = ($binding + {
-         mirroredControlRevision: $binding.repositoryResolution.controlRevision,
-         mirroredAt: $timestamp
-       })' "$session_file" > "$temp_file" || { rm -f "$temp_file"; return 3; }
-  else
-    jq -n --argjson binding "$VALIDATED_PACKET_JSON" --arg timestamp "$timestamp" \
-      '{repositoryBindingMirror: ($binding + {
-         mirroredControlRevision: $binding.repositoryResolution.controlRevision,
-         mirroredAt: $timestamp
-       })}' > "$temp_file" || { rm -f "$temp_file"; return 3; }
-  fi
-  mv "$temp_file" "$session_file" || { rm -f "$temp_file"; return 3; }
+  session_state_transaction "$session_file" initialize-object repository-binding-mirror \
+    repository_binding_mirror_mutation "$VALIDATED_PACKET_JSON" "$timestamp" || transaction_rc=$?
+  case "$transaction_rc" in
+    0) ;;
+    1|2)
+      printf 'REPOSITORY MIRROR REFUSED reason=SESSION_MIRROR_MALFORMED repoLocalSideEffects=zero\n'
+      return 1
+      ;;
+    *) return 3 ;;
+  esac
   printf 'REPOSITORY MIRROR UPDATED repository=%s revision=%s\n' \
     "$(jq -r '.repositoryAlias' <<< "$VALIDATED_PACKET_JSON")" \
     "$(jq -r '.repositoryResolution.controlRevision' <<< "$VALIDATED_PACKET_JSON")"

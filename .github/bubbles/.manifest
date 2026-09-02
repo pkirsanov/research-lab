@@ -417,6 +417,8 @@ bubbles/scripts/session-liveness-selftest.sh
 bubbles/scripts/session-liveness.sh
 bubbles/scripts/session-review-selftest.sh
 bubbles/scripts/session-review.sh
+bubbles/scripts/session-state-lib-selftest.sh
+bubbles/scripts/session-state-lib.sh
 bubbles/scripts/shellcheck-lint-selftest.sh
 bubbles/scripts/shellcheck-lint.sh
 bubbles/scripts/skill-description-load-selftest.sh

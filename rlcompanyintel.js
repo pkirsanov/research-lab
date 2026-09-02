@@ -83,7 +83,7 @@
     var TOOL_READ_KEYS = ["asOf", "availability", "computedAt", "contractVersion", "deepLink", "freshUntil", "id", "metrics", "read"];
 
     var TOOL_ID = "company-intelligence-lab";
-    var CONFIG_VERSION = "company-intelligence-config/v1";
+    var CONFIG_VERSION = "company-intelligence-config/v2";
     var FIXTURE_PATH_MARKER = "tests/fixtures/";
 
     /* A bare same-origin route file, the only shape an owner deep link may take. The pattern
@@ -286,6 +286,9 @@
             raise("C025-CONFIG-VERSION", "The configuration declares an unexpected contract version.",
                 "declared: " + String(config.contractVersion));
         }
+        if (!Number.isSafeInteger(config.readBoundMs) || config.readBoundMs <= 0) {
+            raise("C025-CONFIG-SCHEMA", "The configuration declares no positive safe-integer read bound.");
+        }
         if (!Array.isArray(config.coverageRegistry) || config.coverageRegistry.length === 0) {
             raise("C025-CONFIG-SCHEMA", "The configuration declares no coverage registry.");
         }
@@ -414,7 +417,8 @@
             horizons: horizons,
             eventSource: eventSource,
             researchRecordSubjects: readResearchRecordSubjects(config.researchRecord),
-            maxBranches: config.maxBranches
+            maxBranches: config.maxBranches,
+            readBoundMs: config.readBoundMs
         });
     }
 
@@ -452,17 +456,27 @@
         if (!Array.isArray(declared.coveredSubjects)) {
             raise("C025-CONFIG-SCHEMA", "The event source declares no covered subject list, even an empty one.");
         }
+        var seenSubjectIds = {};
         var covered = declared.coveredSubjects.map(function (entry, index) {
             if (!isPlainObject(entry) || !isNonEmptyString(entry.subjectId) || !isNonEmptyString(entry.eventsPath)) {
                 raise("C025-CONFIG-SCHEMA", "Covered subject " + index + " names no subject and committed file pair.");
             }
-            /* Same-origin committed paths only. A covered subject that named a remote file
-               would turn a keyless out-of-band read into a request the route issues at runtime. */
-            if (/^[a-z][a-z0-9+.-]*:/i.test(entry.eventsPath) || entry.eventsPath.charAt(0) === "/") {
-                raise("C025-CONFIG-SCHEMA", "Covered subject " + index + " names a path that is not a same-origin committed file.",
-                    "path: " + entry.eventsPath);
+            var subjectMatch = /^company:([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(entry.subjectId);
+            if (subjectMatch === null) {
+                raise("C025-CONFIG-SCHEMA", "Covered subject " + index + " names a non-canonical company subject.");
             }
-            return { subjectId: entry.subjectId, eventsPath: entry.eventsPath };
+            if (Object.prototype.hasOwnProperty.call(seenSubjectIds, entry.subjectId)) {
+                raise("C025-CONFIG-SCHEMA", "Covered subject " + index + " repeats a company subject.",
+                    "subject: " + entry.subjectId);
+            }
+            seenSubjectIds[entry.subjectId] = true;
+            var suffix = subjectMatch[1];
+            var derivedPath = "data/company-intelligence/company-" + suffix + "/events.json";
+            if (entry.eventsPath !== derivedPath) {
+                raise("C025-CONFIG-SCHEMA", "Covered subject " + index + " names a non-canonical event file.",
+                    "subject: " + entry.subjectId);
+            }
+            return { subjectId: "company:" + suffix, eventsPath: derivedPath };
         });
         return {
             sourceId: declared.sourceId,

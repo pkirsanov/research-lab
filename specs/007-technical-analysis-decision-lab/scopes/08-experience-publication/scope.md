@@ -95,13 +95,13 @@ No API client, generated client, server route, redirect, or breadcrumb framework
 
 ## Change Boundary And Rollback
 
-**Allowed new file:** `notes/technical-analysis-decision-lab.md`.
+**Allowed file families (new):** `notes/technical-analysis-decision-lab.md`.
 
-**Allowed edits:** Feature 007 page/config/validator/selftest/browser fixtures; exact additive Feature 007 entries in `tools.json`, `index.html`, and `rlnav.js`.
+**Allowed file families (edits):** Feature 007 page/config/validator/selftest/browser fixtures; exact additive Feature 007 entries in `tools.json`, `index.html`, and `rlnav.js`.
 
 **Marker-bounded page edit:** Scope 08 rendering/publication lives between `/* ---------- Feature 007 Scope 08: experience and publication ---------- */` and its matching end marker. Selftest additions use the matching sub-marker.
 
-**Explicitly excluded:** owner pages/publishers, `rldata.js`, `rlvalidation.js`, Strategy Validation, other shared runtime helpers, Market Brief payload/config/calculations, README indexes not named by design, package/workflow files, Feature 005/006 paths, and unrelated tests.
+**Excluded surfaces (must remain untouched):** owner pages/publishers, `rldata.js`, `rlvalidation.js`, Strategy Validation, other shared runtime helpers, Market Brief payload/config/calculations, README indexes not named by design, package/workflow files, Feature 005/006 paths, and unrelated tests.
 
 **Pre-edit discipline:** capture path-scoped status/diff and insertion context for all three registries and `scripts/selftest.mjs`. Any overlap with an unowned hunk blocks that insertion; no broad rewrite/reorder/reformat is permitted.
 
@@ -124,7 +124,7 @@ Write each unit/validator/page/browser assertion before its renderer, registrati
 | TP-08-07 | Truth-state Regression E2E | e2e-ui | SCN-007-029 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-029 truth recovery preserves last valid identity across source and method failures` asserts loading/current/stale/degraded/unavailable/invalid/recomputing/failed/revised observed-required-action semantics | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-029 truth recovery preserves last valid identity across source and method failures" --reporter=list` | Yes | `report.md#tp-08-07` |
 | TP-08-08 | Registry/publication Regression E2E | e2e-ui | SCN-007-023 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-023 registration navigation and state-faithful owner publication stay in parity` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-023 registration navigation and state-faithful owner publication stay in parity" --reporter=list` | Yes | `report.md#tp-08-08` |
 | TP-08-09 | Safe-text/export Regression E2E | e2e-ui | SCN-007-023 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-023 imported labels stay text and sanitized export omits sensitive state` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-023 imported labels stay text and sanitized export omits sensitive state" --reporter=list` | Yes | `report.md#tp-08-09` |
-| TP-08-10 | Credential boundary canary | e2e-ui | SCN-007-023 | `tests/provider-credentials.spec.mjs` | Existing central settings and credential ownership remains green with the registered Feature 007 route | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-08-10` |
+| TP-08-10 | Credential boundary canary | e2e-ui | SCN-007-023 | `tests/provider-credentials.spec.mjs` | Canary: runs before any broad suite rerun. Existing central settings and credential ownership remains green with the registered Feature 007 route | `npx --no-install playwright test tests/provider-credentials.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-08-10` |
 | TP-08-11 | Broader Regression E2E | e2e-ui | SCN-007-023, 029 | `tests/technical-analysis-decision-lab.spec.mjs` | Execute the complete cumulative Feature 007 browser suite after every focused Scope 08 title | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-08-11` |
 
 No stress or load row is planned because there is no numeric responsiveness SLA. TP-08-06 and TP-08-07 validate interaction availability, synchronous canvas correctness, progress/cancellation state, and atomic result preservation without inventing a timing threshold.
@@ -158,3 +158,14 @@ No stress or load row is planned because there is no numeric responsiveness SLA.
 #### Build Quality Gate
 
 - [x] Focused RED/GREEN records, UI matrix, Consumer/Shared Impact Sweeps, registry/source-order parity, safe-text/export/privacy review, viewport/focus/canvas pixel checks, marker diffs, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, traceability, framework write guard, and repository readiness are current and clean with every finding accounted for. Evidence: report.md#lint-and-quality — legibility 0 leaks/27 pages, node suite exact clean-tree parity, git diff --check clean, artifact lint PASSED
+
+#### Scenario Fidelity And Planning Guardrails
+
+These items are authored by `bubbles.plan` to state the obligation each Gherkin scenario and each shared-surface guardrail places on this scope. They are unchecked because the planning owner authors obligations, not evidence: the executing owner marks each one and links the resolving `report.md` anchor.
+
+- [ ] SCN-007-029: when a parameter combination violates a governed bound the new configuration is rejected with observed, required, and corrective action, the last valid read stays identified as the last valid result instead of being recomputed under a substitute, and correcting the input recomputes the requested identity without a source refetch.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope exist as persistent `Regression:` titles and pass on their exact Test Plan commands.
+- [ ] Broader E2E regression suite passes on the complete cumulative Feature 007 browser file after every focused row in this scope.
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, covering the three registry surfaces and `scripts/selftest.mjs` named in the Shared Infrastructure Impact Sweep above.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by removing the three exact registry entries and the Scope 08 marker-bounded hunks and rerunning the registry, provider, and owner canaries.
+- [ ] Change Boundary is respected and zero excluded file families were changed; the allowed and excluded surfaces named above are the complete boundary for this scope.

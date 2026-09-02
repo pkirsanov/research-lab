@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+  "readme": [
+    "Controlled-break declarations for the eight existing BUG-025 scenarios.",
+    "The unchanged scripts/scenario-receipts.mjs runner applies each exact replacement only",
+    "inside an isolated working-tree copy, verifies the linked test selection, restores the",
+    "source, and emits current-revision red, implementation, green, live, and regression receipts.",
+    "Every find snippet is required to occur exactly once. A non-discriminating break is refused."
+  ],
+  "entries": {
+    "SCN-BUG-025-001": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a never-answering corpus request reaches a bounded unavailable result",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                        controller.abort();",
+          "replace": "                        return;"
+        }
+      ],
+      "control": "the declared-bound callback returns without aborting the underlying same-origin request, so the server never observes request closure and the carrier's abort-observed behavior assertion fails",
+      "claim": "A same-origin corpus response that never answers is aborted at the declared read bound and settles as established with named unavailable coverage",
+      "implementationRefs": [
+        "company-intelligence-lab.html#readRouteDocument",
+        "company-intelligence-lab.html#loadCorpus"
+      ]
+    },
+    "SCN-BUG-025-002": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 an inside-bound response settles normally",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": [
+            "                        window.RLDATA.putBars(symbol, \"1d\", document_.rows, \"committed-bars\");",
+            "                        return \"loaded\";"
+          ],
+          "replace": [
+            "                        window.RLDATA.putBars(symbol, \"1d\", document_.rows, \"committed-bars\");",
+            "                        return \"unavailable\";"
+          ]
+        }
+      ],
+      "control": "a valid bar response released before the bound is classified unavailable after its real body is accepted, so the carrier's loaded corpus and current performance behavior assertions fail",
+      "claim": "A valid response released inside the declared bound settles as loaded and is not classified as a timeout or unavailable response",
+      "implementationRefs": [
+        "company-intelligence-lab.html#loadOne",
+        "company-intelligence-lab.html#loadCorpus"
+      ]
+    },
+    "SCN-BUG-025-003": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a stalled served configuration preserves embedded first paint and settles",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": [
+            "                            if (error && error.transportUnavailable) {",
+            "                                return { document: embeddedConfig(), source: \"embedded\" };",
+            "                            }",
+            "                            throw error;"
+          ],
+          "replace": "                            throw error;"
+        }
+      ],
+      "control": "a bounded served-configuration transport failure is rethrown instead of retaining the validated embedded registry, so the route becomes terminally refused and the carrier's settled corpus reconciliation assertion fails",
+      "claim": "A served configuration response that never answers preserves the validated embedded first paint and continues through bounded corpus reconciliation",
+      "implementationRefs": [
+        "company-intelligence-lab.html#readConfig",
+        "company-intelligence-lab.html#boot",
+        "company-intelligence-lab.html#loadCorpus"
+      ]
+    },
+    "SCN-BUG-025-004": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 synchronous fetch setup failure reaches existing unavailable state with zero timers",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": [
+            "                } catch (error) {",
+            "                    clearReadTimer();",
+            "                    return Promise.reject(routeDocumentFailure(path, error, expired, false));",
+            "                }"
+          ],
+          "replace": [
+            "                } catch (error) {",
+            "                    return Promise.reject(routeDocumentFailure(path, error, expired, false));",
+            "                }"
+          ]
+        }
+      ],
+      "control": "the synchronous fetch-setup rejection leaves its already-created bounded-read timer active, so the caller still reaches its named unavailable state but the carrier's zero-active-timers behavior assertion fails",
+      "claim": "A synchronous request setup failure reaches the existing unavailable caller outcome without issuing the selected request or leaving a bounded-read timer active",
+      "implementationRefs": [
+        "company-intelligence-lab.html#readRouteDocument",
+        "company-intelligence-lab.html#loadOne"
+      ]
+    },
+    "SCN-BUG-025-005": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 late valid completion cannot overwrite a newer settled subject",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                        if (routeConfigurationRefused || intent !== readingIntent) return;",
+          "replace": "                        if (routeConfigurationRefused) return;"
+        }
+      ],
+      "control": "the stale-intent comparison is removed while the route-terminal latch remains, so releasing the older MSFT response repaints or republishes over the settled AAPL reading and the carrier's named no-repaint and publication assertions fail",
+      "claim": "A late valid response for an older subject cannot repaint, republish, or overwrite the newer settled subject and its horizon account",
+      "implementationRefs": [
+        "company-intelligence-lab.html#applySubject",
+        "company-intelligence-lab.html#loadCorpus",
+        "company-intelligence-lab.html#render",
+        "rlcompanyintel.js#publishToolRead",
+        "rldata.js#putToolRead"
+      ]
+    },
+    "SCN-BUG-025-006": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 canonical company event path is requested once and exclusively",
+      "breakFile": "rlcompanyintel.js",
+      "edits": [
+        {
+          "find": "            if (subjectMatch === null) {",
+          "replace": "            if (subjectMatch === null || entry.subjectId === \"company:msft\") {"
+        }
+      ],
+      "control": "the exact canonical-subject predicate inside readEventSource() rejects company:msft before eventsPathFor() lookup, so the real route is refused and the carrier's composed established state, loaded financial-events row, and exact one-request ledger assertions fail without a runtime error",
+      "claim": "The accepted canonical company subject authorizes exactly its subject-derived event document, requested once with no other event or off-origin request",
+      "implementationRefs": [
+        "rlcompanyintel.js#readEventSource",
+        "rlcompanyintel.js#eventsPathFor",
+        "company-intelligence-lab.html#loadCorpus"
+      ]
+    },
+    "SCN-BUG-025-007": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 embedded backslash authority refuses before transport",
+      "breakFile": "rlcompanyintel.js",
+      "edits": [
+        {
+          "find": "            if (entry.eventsPath !== derivedPath) {",
+          "replace": "            if (false) {"
+        }
+      ],
+      "control": "the strict declared-versus-derived event-path equality guard is removed, so the embedded backslash declaration is accepted and the carrier's named route-refusal, schema-code, and zero-route-transport assertions fail without an arbitrary runtime error",
+      "claim": "An embedded backslash authority is refused with the fixed atomic C025-CONFIG-SCHEMA alert before route-owned or off-origin transport begins",
+      "implementationRefs": [
+        "rlcompanyintel.js#readEventSource",
+        "company-intelligence-lab.html#paintFromEmbedded",
+        "company-intelligence-lab.html#renderRefusal"
+      ]
+    },
+    "SCN-BUG-025-008": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 served subject-path mismatch becomes terminal without continuation or focus theft",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                    Array.prototype.forEach.call(document.querySelectorAll(\"[data-surface]\"), function (surface) { surface.hidden = true; });",
+          "replace": ""
+        }
+      ],
+      "control": "route-terminal refusal no longer hides the two settled result surfaces, so the served mismatch still reaches its safe refusal but the carrier fails only the named result-surfaces-hidden behavior discriminator",
+      "claim": "A served canonical-subject and mismatched-path candidate becomes a terminal safe refusal with hidden settled surfaces, retained focus, and no corpus or event continuation",
+      "implementationRefs": [
+        "rlcompanyintel.js#readEventSource",
+        "company-intelligence-lab.html#readConfig",
+        "company-intelligence-lab.html#boot",
+        "company-intelligence-lab.html#renderRefusal"
+      ]
+    }
+  }
+}

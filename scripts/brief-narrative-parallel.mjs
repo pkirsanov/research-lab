@@ -201,14 +201,17 @@ function hasExactFragmentKeys(fragment, keys) {
    2026-08-29 morning window lost both attempts to the same five wildcard groups and published
    nothing. Satisfaction is now decided by the PUBLISHER'S OWN matcher over the same required
    list, so the two cannot drift and a miss is caught where the retry still carries feedback. */
-function missingRequiredFieldsFor(fragment, keys) {
+function requiredLeavesFor(keys) {
     const owned = new Set(keys);
-    const present = walkBriefStrings(fragment);
     return BRIEF_NARRATIVE_FIELDS_REQUIRED
-        .filter((pattern) => {
-            const segments = pattern.split('.');
-            return segments.length > 1 && owned.has(segments[0]);
-        })
+        .map((pattern) => pattern.split('.'))
+        .filter((segments) => segments.length > 1 && owned.has(segments[0]));
+}
+
+function missingRequiredFieldsFor(fragment, keys) {
+    const present = walkBriefStrings(fragment);
+    return requiredLeavesFor(keys)
+        .map((segments) => segments.join('.'))
         .filter((pattern) => !present.some((entry) => matchesFieldPatterns([pattern], entry.segments)));
 }
 

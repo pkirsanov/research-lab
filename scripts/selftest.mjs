@@ -29316,14 +29316,33 @@ try {
      so this pins the contract rather than the wording of one sentence. */
   const coreOwned = new Set(['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology']);
   const coreRequired = laneRequired
-    .filter((pattern) => !pattern.includes('*') && !pattern.includes('[]'))
-    .filter((pattern) => pattern.split('.').length > 1 && coreOwned.has(pattern.split('.')[0]));
+    .map((pattern) => pattern.split('.'))
+    .filter((segments) => segments.length > 1 && coreOwned.has(segments[0]))
+    .map((segments) => segments.join('.'));
   assert(coreRequired.includes('regime.vix.regimeLabel') && coreRequired.includes('regime.vix.falsifier'),
     'the core lane is genuinely required to emit regime.vix.regimeLabel and regime.vix.falsifier, the two leaves it silently omitted 4/4 times');
 
-  assert(/const requiredLeaves = requiredLeavesFor\(lane\.keys\)/.test(laneAcceptSrc)
+  const representativeSelected = [
+    'dataAsOf.*',
+    'regime.levels.*',
+    'backdrop.trendEvidence.**',
+    'nextSession.actions.[].subject',
+  ];
+  assert(representativeSelected.every((pattern) => coreRequired.includes(pattern)),
+    'the core selector retains canonical wildcard, recursive-wildcard, and actual nextSession.actions.[].subject array syntax');
+
+  const selectorDefinition = laneAcceptSrc.match(/function requiredLeavesFor\(keys\) \{([\s\S]*?)\n\}/);
+  assert(selectorDefinition
+    && /const owned = new Set\(keys\);/.test(selectorDefinition[1])
+    && /return BRIEF_NARRATIVE_FIELDS_REQUIRED\s+\.map\(\(pattern\) => pattern\.split\('\.'\)\)\s+\.filter\(\(segments\) => segments\.length > 1 && owned\.has\(segments\[0\]\)\);/.test(selectorDefinition[1]),
+    'requiredLeavesFor is defined once from every canonical required-field pattern and selects only by the lane-owned top-level segment without dropping wildcard or array patterns');
+
+  const missingFieldsDefinition = laneAcceptSrc.match(/function missingRequiredFieldsFor\(fragment, keys\) \{([\s\S]*?)\n\}/);
+  assert(missingFieldsDefinition
+    && /return requiredLeavesFor\(keys\)\s+\.map\(\(segments\) => segments\.join\('\.'\)\)\s+\.filter\(\(pattern\) => !present\.some\(\(entry\) => matchesFieldPatterns\(\[pattern\], entry\.segments\)\)\);/.test(missingFieldsDefinition[1])
+    && /const requiredLeaves = requiredLeavesFor\(lane\.keys\)\.map\(\(segments\) => segments\.join\('\.'\)\);/.test(laneAcceptSrc)
     && /REJECTED unless every one of these nested fields is present/.test(laneAcceptSrc),
-    'the lane prompt states the required nested fields it will be rejected for omitting — enforcing an acceptance contract the lane was never told is what made the failure deterministic');
+    'prompt rendering and missing-field matching share requiredLeavesFor, so author instructions and acceptance cannot select different canonical patterns');
 
   /* Both prompt branches must carry it: the research branch builds its own string, so wiring only
      the main branch would leave the research lanes judged by an unstated contract. */

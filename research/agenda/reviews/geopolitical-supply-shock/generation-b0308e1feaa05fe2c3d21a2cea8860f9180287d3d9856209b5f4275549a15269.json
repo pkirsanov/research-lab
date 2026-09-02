@@ -1,0 +1,98 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-88bd4c8729f7bba36516253606c7737c19fbdffe5ed31d076c180ba1a8b09649",
+  "generationId": "generation-b0308e1feaa05fe2c3d21a2cea8860f9180287d3d9856209b5f4275549a15269",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-09-02T20:31:45.446Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No current-window evidence is available to characterize any actor reaction function. The acquisition returned zero retained sources and the 'official-policy-and-statements' requirement is missing-or-stale with no record, so no observed actor state (United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers, OPEC buffer producers) can be substantiated for this generation.",
+      "gaps": [
+        "No official statements or declared-policy sources satisfying 'official-policy-and-statements' (freshness 24h) were retained.",
+        "The 'actor-state' claim coverage is uncorroborated and marked authorable:false in the evidence bundle.",
+        "No committed prior dossier exists to carry forward a prior actor read."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No current evidence is available to update or interpret the escalation scenario tree. Scenario probabilities are owned by deterministic model outputs and are deliberately not authored here; independently, there is no observed trigger or invalidation evidence in this window that would inform an escalation read.",
+      "gaps": [
+        "No transit-restriction, insured-capacity, or inventory-response observations were retained to inform scenario entry/invalidation.",
+        "No prior dossier is available to establish a predecessor scenario state."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured maritime-flow evidence is available. The 'measured-maritime-flow' requirement (Hormuz, Bab el-Mandeb, Red Sea physical and insured throughput) is missing-or-stale with a null record and its claim is uncorroborated with unsupported freshness, so no physical or insured pass-fraction state can be reported.",
+      "gaps": [
+        "No official or maritime-observation source measuring transit, loadings, delay days, or insured capacity was retained (freshness 24h).",
+        "physicalPassFraction and insuredPassFraction remain unobserved for all declared routes."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No transmission-input evidence is available for any declared channel (oil, refined-products, LNG, fertilizer, aluminum, shipping). The 'energy-and-input-balances' requirement is missing-or-stale with a null record, so inventory, production, export, or policy-response inputs cannot be characterized. Commodity shock ranges are model-owned and are not authored here.",
+      "gaps": [
+        "No official or industry-data source covering inventory/production/export/policy response was retained (freshness 72h).",
+        "inventoryGapByChannel remains unobserved for every channel."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "No committed public daily bars were retained for the declared proxies (BNO, USO, XLE, MPC, PSX, XOM, CVX, COP, DBC, DBA, XLB, XLI). The 'committed-public-bars' requirement is missing-or-stale with a null record. Proxy sensitivity ranges are model-owned and are not authored here; without committed bars there is no observed basis to interpret proxy sensitivity this window.",
+      "gaps": [
+        "No same-origin committed daily bars were retained for any declared public proxy (freshness 48h).",
+        "The 'proxy-bar' claim is uncorroborated and marked authorable:false."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No observation is available to change any declared trigger or invalidation state. Without retained maritime-flow, insurance, or inventory-response evidence, transit-restriction-observed, insured-capacity-tightens, and inventory-response-confirmed triggers and their paired invalidations remain unobserved for this generation.",
+      "gaps": [
+        "No evidence bearing on physicalPassFraction, insuredPassFraction, or policyResponse fields was retained.",
+        "No prior dossier exists to carry a prior trigger/invalidation state forward."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The source ledger is empty. The acquisition retained zero sources (retainedSourceCount 0, independentOriginCount 0) and all four material claims were rejected (rejectedMaterialClaimCount 4), so there are no citable sources to record.",
+      "gaps": [
+        "No sources passed acquisition retention for any of the four source requirements.",
+        "All material claims are uncorroborated with unsupported freshness."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No change assessment can be authored. This side process does not author changeAssessment or direction, and independently there is no predecessor dossier (priorDossier is null) and no committed evidence to compare against, so no change relative to a prior state is determinable.",
+      "gaps": [
+        "priorDossier is null; there is no predecessor state to compare.",
+        "committedEvidence is empty; no baseline exists for a delta."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

@@ -438,6 +438,7 @@ bubbles/scripts/state-linkage-backfill-selftest.sh
 bubbles/scripts/state-linkage-backfill.sh
 bubbles/scripts/state-snapshot-selftest.sh
 bubbles/scripts/state-snapshot.sh
+bubbles/scripts/state-transition-delivery-range-selftest.sh
 bubbles/scripts/state-transition-guard-perf-selftest.sh
 bubbles/scripts/state-transition-guard-selftest.sh
 bubbles/scripts/state-transition-guard.sh

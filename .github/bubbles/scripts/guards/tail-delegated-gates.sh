@@ -134,7 +134,11 @@ delivery_delta_guard="$SCRIPT_DIR/delivery-implementation-delta-guard.sh"
 if fixture_gate_skip "delivery implementation delta (Gate G093)"; then
   :
 elif [[ -x "$delivery_delta_guard" ]]; then
-  if run_guard_in_feature_repo bash "$delivery_delta_guard" "$feature_dir" --quiet > /dev/null 2>&1; then
+  delivery_delta_guard_args=("$feature_dir" --quiet)
+  if [[ -n "$delivery_base_ref" ]]; then
+    delivery_delta_guard_args+=(--base "$delivery_base_ref" --head "$delivery_head_ref")
+  fi
+  if run_guard_in_feature_repo bash "$delivery_delta_guard" "${delivery_delta_guard_args[@]}" > /dev/null 2>&1; then
     pass "Delivery implementation delta is present or mode ceiling exempts it (Gate G093)"
   else
     fail "Delivery implementation delta guard failed — Gate G093. Run 'bash $delivery_delta_guard $feature_dir' for changed-path classification and owner routing"

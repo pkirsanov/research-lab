@@ -1,9 +1,9 @@
 {
   "installedVersion": "7.28.0",
   "installMode": "local-source",
-  "sourceRef": "fix/check43-timeout-identity",
-  "sourceGitSha": "a75a237179be154e1b0d3600d7a6a5211eb25f49",
+  "sourceRef": "fix/g093-certification-window",
+  "sourceGitSha": "a5e811c60602af4c633a284a308b10029d620d18",
   "sourceDirty": false,
   "targetRepoSlug": "research-lab",
-  "installedAt": "2026-09-01T22:05:08Z"
+  "installedAt": "2026-09-02T02:57:20Z"
 }

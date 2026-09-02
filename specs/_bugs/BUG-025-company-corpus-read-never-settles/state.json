@@ -3,7 +3,8 @@
   "featureDir": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
   "featureName": "BUG-025 A Company Corpus Read That Never Answers Never Settles",
   "createdAt": "2026-08-30T00:00:00Z",
-  "lastUpdatedAt": "2026-09-02T00:00:39Z",
+  "lastUpdatedAt": "2026-09-02T01:43:49Z",
+  "certifiedAt": "2026-09-02T01:43:49Z",
   "status": "done",
   "blockedReason": null,
   "workflowMode": "bugfix-fastlane",
@@ -1823,7 +1824,7 @@
       }
     ],
     "lockdownState": "unlocked",
-    "certifiedAt": "2026-09-02T00:00:39Z"
+    "certifiedAt": "2026-09-02T01:43:49Z"
   },
   "transitionRequests": [
     {

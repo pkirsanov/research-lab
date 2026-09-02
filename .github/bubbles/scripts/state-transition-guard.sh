@@ -14,6 +14,7 @@
 #     [--target-status STATUS] \
 #     [--expect-workflow-mode MODE] \
 #     [--expect-contract-digest sha256:HEX] \
+#     [--delivery-base-ref REF --delivery-head-ref REF] \
 #     [--revert-on-fail]
 #
 # Exit codes:
@@ -242,6 +243,10 @@ revert_on_fail="false"
 expect_target_status=""
 expect_workflow_mode=""
 expect_contract_digest=""
+delivery_base_ref=""
+delivery_head_ref=""
+delivery_base_ref_seen="false"
+delivery_head_ref_seen="false"
 while (( $# > 0 )); do
   case "$1" in
     --revert-on-fail)
@@ -284,11 +289,45 @@ while (( $# > 0 )); do
       [[ -n "$expect_contract_digest" ]] || block_contract E009-USAGE "--expect-contract-digest requires a value"
       shift
       ;;
+    --delivery-base-ref)
+      (( $# >= 2 )) || block_contract E009-USAGE "--delivery-base-ref requires a value"
+      [[ "$delivery_base_ref_seen" == "false" ]] || block_contract E009-USAGE "--delivery-base-ref may be supplied only once"
+      [[ -n "$2" ]] || block_contract E009-USAGE "--delivery-base-ref requires a value"
+      delivery_base_ref="$2"
+      delivery_base_ref_seen="true"
+      shift 2
+      ;;
+    --delivery-base-ref=*)
+      [[ "$delivery_base_ref_seen" == "false" ]] || block_contract E009-USAGE "--delivery-base-ref may be supplied only once"
+      delivery_base_ref="${1#*=}"
+      [[ -n "$delivery_base_ref" ]] || block_contract E009-USAGE "--delivery-base-ref requires a value"
+      delivery_base_ref_seen="true"
+      shift
+      ;;
+    --delivery-head-ref)
+      (( $# >= 2 )) || block_contract E009-USAGE "--delivery-head-ref requires a value"
+      [[ "$delivery_head_ref_seen" == "false" ]] || block_contract E009-USAGE "--delivery-head-ref may be supplied only once"
+      [[ -n "$2" ]] || block_contract E009-USAGE "--delivery-head-ref requires a value"
+      delivery_head_ref="$2"
+      delivery_head_ref_seen="true"
+      shift 2
+      ;;
+    --delivery-head-ref=*)
+      [[ "$delivery_head_ref_seen" == "false" ]] || block_contract E009-USAGE "--delivery-head-ref may be supplied only once"
+      delivery_head_ref="${1#*=}"
+      [[ -n "$delivery_head_ref" ]] || block_contract E009-USAGE "--delivery-head-ref requires a value"
+      delivery_head_ref_seen="true"
+      shift
+      ;;
     *)
       block_contract E009-USAGE "unknown or policy-selecting argument: $1"
       ;;
   esac
 done
+
+if [[ "$delivery_base_ref_seen" != "$delivery_head_ref_seen" ]]; then
+  block_contract E009-USAGE "--delivery-base-ref and --delivery-head-ref must be supplied together"
+fi
 
 if [[ ! -d "$feature_dir" ]]; then
   block_contract E009-STATE-MALFORMED "feature directory does not exist"

@@ -2,7 +2,7 @@
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/030-budget-aware-hybrid-brief-generation",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-09-03T03:10:56Z",
+  "generatedAt": "2026-09-03T04:19:52Z",
   "stage": "scope-level-planning",
   "stageNote": "Authored with the first approved implementation slice. Each scenario maps to exact Test Plan rows and one active scope. linkedTests and evidenceRefs stay empty because the new test bodies and execution evidence do not exist. This manifest records obligations, mechanisms, and implementation ownership without claiming execution.",
   "scenarioCount": 3,
@@ -85,11 +85,11 @@
           "testId": "Regression: SCN-030-001 explicit profile resolves once or refuses before HTTP"
         },
         {
-          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "file": "tests/brief-openai-compatible-adapter.integration.mjs",
           "testId": "Regression E2E: SCN-030-002 OMLX returns tiny strict JSON with truthful usage state"
         },
         {
-          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "file": "tests/brief-openai-compatible-adapter.integration.mjs",
           "testId": "Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state"
         }
       ],
@@ -213,11 +213,11 @@
           "testId": "Stress: SCN-030-002 finite byte deadline retry and concurrency limits refuse at cap plus one"
         },
         {
-          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "file": "tests/brief-openai-compatible-adapter.integration.mjs",
           "testId": "Regression E2E: SCN-030-002 OMLX returns tiny strict JSON with truthful usage state"
         },
         {
-          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "file": "tests/brief-openai-compatible-adapter.integration.mjs",
           "testId": "Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state"
         }
       ],
@@ -307,7 +307,7 @@
         },
         {
           "trait": "static-metadata",
-          "requiredProof": "Static owner and consumer assertions prove the protected production files are unchanged, have no shadow import, and retain the current payload validator.",
+          "requiredProof": "Static owner, consumer, and deployment-inventory assertions prove the protected production files are unchanged, have no shadow import, retain the current payload validator, and declare rlbriefroute.js as Node/shadow-only with no public runtime consumer.",
           "satisfiedBy": [
             "TP-01-01",
             "TP-01-08"
@@ -360,6 +360,7 @@
         "scripts/brief-refresh-and-push.sh",
         "scripts/brief-refresh-scheduled.sh",
         "scripts/validate-brief-payload.mjs",
+        "site-exclusions.json",
         "market-brief.payload.json",
         "brief-history.jsonl",
         "briefs/current.json"

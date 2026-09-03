@@ -3,7 +3,7 @@
   "featureDir": "specs/030-budget-aware-hybrid-brief-generation",
   "featureName": "Budget-Aware Hybrid Brief Generation",
   "createdAt": "2026-08-31T03:37:17Z",
-  "lastUpdatedAt": "2026-09-03T04:04:34Z",
+  "lastUpdatedAt": "2026-09-03T04:19:52Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "planningOnly": false,
@@ -29,12 +29,13 @@
       "specs/030-budget-aware-hybrid-brief-generation/**",
       "rlbriefroute.js",
       "market-brief.config.json",
+      "site-exclusions.json",
       "scripts/brief-openai-compatible-adapter.mjs",
       "scripts/brief-route-runtime.mjs",
       "scripts/brief-shadow-generate.mjs",
       "scripts/selftest.mjs",
       "tests/brief-openai-compatible-adapter.functional.mjs",
-      "tests/brief-openai-compatible-adapter.local-canary.mjs"
+      "tests/brief-openai-compatible-adapter.integration.mjs"
     ],
     "crossRepoPolicy": "forbidden"
   },
@@ -47,8 +48,8 @@
     "runStartedAt": "2026-09-03T04:04:34Z",
     "completedPhaseClaims": [],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.plan",
-    "nextRequiredTarget": "specs/030-budget-aware-hybrid-brief-generation/scopes.md#change-boundary",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/030-budget-aware-hybrid-brief-generation/scopes.md#scope-01-openai-compatible-shadow-author-adapter",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,

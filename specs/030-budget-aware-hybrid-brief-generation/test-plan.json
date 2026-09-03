@@ -5,7 +5,7 @@
   "featureDir": "specs/030-budget-aware-hybrid-brief-generation",
   "featureName": "Budget-Aware Hybrid Brief Generation",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-09-03T03:10:56Z",
+  "generatedAt": "2026-09-03T04:19:52Z",
   "planningStatus": "planned-not-executed",
   "totalRows": 8,
   "implementationAuthorization": {
@@ -13,25 +13,27 @@
       "specs/030-budget-aware-hybrid-brief-generation/**",
       "rlbriefroute.js",
       "market-brief.config.json",
+      "site-exclusions.json",
       "scripts/brief-openai-compatible-adapter.mjs",
       "scripts/brief-route-runtime.mjs",
       "scripts/brief-shadow-generate.mjs",
       "scripts/selftest.mjs",
       "tests/brief-openai-compatible-adapter.functional.mjs",
-      "tests/brief-openai-compatible-adapter.local-canary.mjs"
+      "tests/brief-openai-compatible-adapter.integration.mjs"
     ],
     "sourceAndTestEditsAuthorizedNow": true,
     "requiredImplementationPaths": [
       "rlbriefroute.js",
       "market-brief.config.json",
+      "site-exclusions.json",
       "scripts/brief-openai-compatible-adapter.mjs",
       "scripts/brief-route-runtime.mjs",
       "scripts/brief-shadow-generate.mjs",
       "scripts/selftest.mjs",
       "tests/brief-openai-compatible-adapter.functional.mjs",
-      "tests/brief-openai-compatible-adapter.local-canary.mjs"
+      "tests/brief-openai-compatible-adapter.integration.mjs"
     ],
-    "instruction": "User approval on 2026-09-02 authorizes SCOPE-01 only. It authorizes the shadow-only OMLX and Ollama groundwork in the exact allowed paths; it does not authorize deferred route planning, corpus evaluation, scheduler integration, or cutover."
+    "instruction": "User approval on 2026-09-02 authorizes SCOPE-01 only. It authorizes the shadow-only OMLX and Ollama groundwork in the exact allowed paths, including only the rlbriefroute.js declaration in site-exclusions.json; every other exclusion entry and all production scheduler paths remain byte-identical. It does not authorize deferred route planning, corpus evaluation, scheduler integration, or cutover."
   },
   "protectedPaths": [
     "scripts/brief-author.mjs",
@@ -53,7 +55,7 @@
       "scopeId": "01-openai-compatible-shadow-author-adapter",
       "scopeName": "OpenAI-compatible shadow author adapter",
       "scopeKind": "contract-runtime",
-      "status": "not_started",
+      "status": "in_progress",
       "dependsOn": [],
       "foundation": true,
       "tests": [
@@ -78,10 +80,7 @@
           "evidenceState": "current",
           "evidenceRef": "report.md#tp-01-01-full-selftest",
           "captureSha256": "cce1717eb12f49ee7ea6d8f2221432b03fbbc3c2de3679ca9a2b493de3103fe9",
-          "unresolvedFindingIds": [
-            "F030-PLAN-PAGES-EXCLUSION",
-            "F030-PLAN-CANARY-REACHABILITY"
-          ]
+          "unresolvedFindingIds": []
         },
         {
           "id": "TP-01-02",
@@ -129,7 +128,7 @@
           "id": "TP-01-04",
           "type": "e2e-api",
           "category": "integration",
-          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "file": "tests/brief-openai-compatible-adapter.integration.mjs",
           "scenarioId": "SCN-030-002",
           "scenarioIds": [
             "SCN-030-001",
@@ -137,7 +136,7 @@
           ],
           "description": "Call the actual explicitly configured OMLX endpoint, require exact model discovery, and validate a tiny strict-JSON candidate plus truthful token states.",
           "testTitle": "Regression E2E: SCN-030-002 OMLX returns tiny strict JSON with truthful usage state",
-          "command": "BRIEF_SHADOW_PROFILE=omlx-openai-compatible-qwen38 node --test --test-name-pattern \"Regression E2E: SCN-030-002 OMLX\" tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "command": "BRIEF_SHADOW_PROFILE=omlx-openai-compatible-qwen38 node --test --test-name-pattern \"Regression E2E: SCN-030-002 OMLX\" tests/brief-openai-compatible-adapter.integration.mjs",
           "liveSystem": true,
           "runtimeBindings": [
             "BRIEF_OMLX_BASE_URL"
@@ -157,7 +156,7 @@
           "id": "TP-01-05",
           "type": "e2e-api",
           "category": "integration",
-          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "file": "tests/brief-openai-compatible-adapter.integration.mjs",
           "scenarioId": "SCN-030-002",
           "scenarioIds": [
             "SCN-030-001",
@@ -165,7 +164,7 @@
           ],
           "description": "Call the actual explicitly configured Ollama endpoint, require exact model discovery, and validate a tiny strict-JSON candidate plus truthful token states.",
           "testTitle": "Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state",
-          "command": "BRIEF_SHADOW_PROFILE=ollama-openai-compatible node --test --test-name-pattern \"Regression E2E: SCN-030-002 Ollama\" tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "command": "BRIEF_SHADOW_PROFILE=ollama-openai-compatible node --test --test-name-pattern \"Regression E2E: SCN-030-002 Ollama\" tests/brief-openai-compatible-adapter.integration.mjs",
           "liveSystem": true,
           "runtimeBindings": [
             "BRIEF_OLLAMA_BASE_URL",

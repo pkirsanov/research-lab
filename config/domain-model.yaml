@@ -5,6 +5,15 @@ entities:
   ToolRead:
     states: [ fresh, stale, unavailable, not-run, not-applicable, browser-or-agent-read, fresh-headless ]
     terminal: [ fresh, stale, unavailable, not-run, not-applicable, browser-or-agent-read, fresh-headless ]
+  ShockTransmissionDefinition:
+    states: [ active, supported, retired ]
+    terminal: [ retired ]
+  ShockTransmissionSnapshot:
+    states: [ current, stale, unavailable, conflicted, superseded ]
+    terminal: [ stale, unavailable, superseded ]
+  ShockFinding:
+    states: [ current, stale, invalidated, superseded ]
+    terminal: [ invalidated, superseded ]
 
 invariants:
 - id: INV-RL-REGISTRY-COMPLETE-TOOL-READS
@@ -19,3 +28,27 @@ invariants:
   enforcedBy: [ check ]
   provedBy:
   - "tests/distributed-briefs.contract.mjs::SCN-002-002 profile status applicability privacy and eligibility boundaries fail loud"
+- id: INV-RL-SHOCK-NET-AFTER-OFFSETS
+  rule: "A net range is published only after every required offset is accounted for or explicitly unavailable"
+  kind: composition
+  enforcedBy: [ validateAdapterOutput ]
+  provedBy:
+  - "tests/shock-transmission.validation.functional.mjs::Feature 031 exact refusal and canonical traversal matrix"
+- id: INV-RL-SHOCK-QUALIFIERS-LOSSLESS
+  rule: "Every finding projection preserves causal paths, refuters, limitations, triggers, and invalidations"
+  kind: preservation
+  enforcedBy: [ projectEdgeRows ]
+  provedBy:
+  - "tests/shock-transmission.reader.unit.mjs::Regression: SCN-031-007 edge rows retain the complete bounded qualifier contract"
+- id: INV-RL-SHOCK-HYPOTHETICAL-NONPERSISTENT
+  rule: "A local hypothetical cannot enter a dossier, history event, current pointer, or tool read"
+  kind: isolation
+  enforcedBy: [ exact-shape ]
+  provedBy:
+  - "tests/shock-transmission.validation.functional.mjs::Feature 031 exact refusal and canonical traversal matrix"
+- id: INV-RL-SHOCK-ACTOR-AUTHORITY
+  rule: "A policy action remains attached to its declared owner and policy layer"
+  kind: ownership
+  enforcedBy: [ validateSnapshot ]
+  provedBy:
+  - "tests/shock-transmission.contracts.unit.mjs::Regression: SCN-031-001 complete shock admission preserves canonical provenance"

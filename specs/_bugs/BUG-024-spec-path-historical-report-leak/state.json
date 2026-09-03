@@ -1,0 +1,141 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-024-spec-path-historical-report-leak",
+  "featureName": "BUG-024 Spec Path Historical Report Leak",
+  "createdAt": "2026-09-02T01:29:06Z",
+  "lastUpdatedAt": "2026-09-02T01:29:06Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [
+    "specs/031-shock-transmission-foundation",
+    "specs/_bugs/BUG-022-historical-report-declaration-leak"
+  ],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "bug",
+    "currentPhaseStatus": "route_required",
+    "executionModel": "phase-invocation",
+    "parentAgent": "scenario-node:shock-deliver-feature-031",
+    "runStartedAt": "2026-09-02T01:29:06Z",
+    "completedAt": "2026-09-02T01:29:06Z",
+    "substate": "diagnosed-and-filed",
+    "currentScope": "01-separate-active-path-authority-from-history",
+    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredTarget": "specs/_bugs/BUG-024-spec-path-historical-report-leak/design.md",
+    "nextRequiredReason": "Reconcile shared artifact-authority capability ownership with BUG-022 before planning any spec-path collector repair.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-09-02T01:29:06Z",
+        "evidenceRef": "report.md#current-path-diagnostic-from-feature-031",
+        "scopes": []
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-separate-active-path-authority-from-history",
+        "scope": 1,
+        "status": "not_started",
+        "dependsOn": []
+      }
+    ]
+  },
+  "defect": {
+    "severity": "High",
+    "class": "historical-evidence-authority-leak",
+    "surface": "scripts/validate-spec-test-paths.mjs collectSpecTestPathReferences",
+    "sourceFinding": "XRL-PATH-GUARD-HIST-001",
+    "missingPath": "tests/shock-transmission.resource.test.mjs",
+    "referenceSiteCount": 5,
+    "referenceArtifact": "specs/031-shock-transmission-foundation/report.md",
+    "rootCause": "The spec path collector extracts lexical path tokens without classifying active authority versus historical report evidence.",
+    "baselineGrowthPermitted": false,
+    "historicalRewritePermitted": false,
+    "compactPacketAdmission": "rejected because the repair changes observable guard behavior and existing assertion contracts"
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    },
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-separate-active-path-authority-from-history",
+        "status": "not_started"
+      }
+    ]
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "user-request"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-09-02T01:29:06Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "phasesExecuted": [
+        "bug"
+      ],
+      "action": "diagnosed-and-filed",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "XRL-PATH-GUARD-HIST-001"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "note": "Filed a separate full packet after current evidence showed five historical Feature 031 report sites and the existing BUG-022 capability boundary proved it does not own the spec-path collector. No source, test, baseline, historical report, related packet, certification, Feature 031, Horizon Ladder, registry, standalone-Lab, commit, or push change occurred."
+    }
+  ]
+}

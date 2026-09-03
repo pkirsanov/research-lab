@@ -13,8 +13,8 @@ SCN-BUG017-11 and are not active selected-route requirements. SCN-BUG017-06 reta
 wall-time criterion, whose current planning authority is stated under Scope 4 without turning
 historical timing into a human acceptance result.
 Scope 4 remains the completed selected-route closure scope. Scope 2 is reopened for
-SCN-BUG017-06's committed ratio evaluator and same-revision receipt set. Its two current
-unchecked Definition of Done rows are required work assigned to `bubbles.implement`; Scope 2
+SCN-BUG017-06's source-object/hash-identified ratio evaluator and same-revision receipt set. Its two current
+unchecked Definition of Done rows require independent execution by `bubbles.test`; Scope 2
 and BUG-level status remain in progress. Scope 4's Definition of Done remains satisfied by the
 current-session test evidence under `report.md` `Scope 4 Current Test Execution At 2026-08-28`.
 
@@ -37,9 +37,11 @@ syntax. Their provisional GREEN, later RED, rollback, and rejection evidence rem
 
 ### Phase Order
 
-1. **Scope 2 ratio-contract completion.** Commit the shared SCN-BUG017-06 ratio evaluator within
-  its declared change boundary, then bind its RED, GREEN, live, isolated repository-selftest,
-  and broader-regression receipts to one genuine source revision.
+1. **Scope 2 ratio-contract completion.** Identify the shared SCN-BUG017-06 ratio evaluator by
+  its current source object and content hashes within the declared change boundary, then bind
+  its RED, GREEN, live, isolated repository-selftest, and broader-regression receipts to that
+  genuine source identity. The later `reconcile-local-main-and-clean-worktrees` integration
+  action remains the only authority to commit the verified source before final readiness.
 2. **Scope 4 decision preservation.** Retain the Foundation lifecycle candidate's successful
   and failed runs as rejected historical evidence without making either candidate scenario an
   active closure obligation.
@@ -260,23 +262,29 @@ It is decision history, not executable scenario syntax and not a current receipt
 1. Apply the option selected in Scope 1.
 2. Run the set repeatedly and record every exit code.
 3. Sample browser process count either side of each run.
-4. Add `scripts/validate-playwright-cost-ratio.mjs` as the single ratio predicate and live
+4. Preserve `scripts/validate-playwright-cost-ratio.mjs` object
+  `a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e` as the single ratio predicate and live
   dual-project runner. It must enumerate exactly the 22 `lifetime-tax*.spec.mjs` files, reject
   any configured worker count other than one, run both projects without a worker override,
   require both commands to exit zero, and enforce the unchanged FR-017-004 maximum of 3.0.
-5. Add `Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison`
-  to `tests/playwright-runtime.foundation.functional.mjs`. It must exercise the same predicate
-  through the helper's deterministic control mode and assert its exact refusal and cleanup.
-6. Measure the wall-time ratio against the bundled project through the committed helper.
+5. Preserve `tests/playwright-runtime.foundation.functional.mjs` object
+  `beeecf34fdd40c602b2e04ea014e1e5ac5a7feb2`, including
+  `Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison`.
+  The test must exercise the same predicate through the helper's deterministic control mode and
+  assert its exact refusal and cleanup.
+6. Measure the wall-time ratio against the bundled project through the helper at the recorded
+  source-object/hash identity.
 
 ### Implementation Files
 
 - `playwright.config.mjs` owned the historical `workers: 2` exposure bound and owns the current
   one-worker selection recorded under Scope 4, together with the unchanged `system-chrome` project.
-- `scripts/validate-playwright-cost-ratio.mjs` is the planned executable owner for the live pair,
+- `scripts/validate-playwright-cost-ratio.mjs`, current object
+  `a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e`, is the executable owner for the live pair,
   shared ratio predicate, exact SCN-BUG017-06 refusal, and isolated deterministic control input.
-- `tests/playwright-runtime.foundation.functional.mjs` is the existing registered functional
-  family and will own the focused persistent regression for the ratio predicate.
+- `tests/playwright-runtime.foundation.functional.mjs`, current object
+  `beeecf34fdd40c602b2e04ea014e1e5ac5a7feb2`, is the registered functional family and owns
+  the focused persistent regression for the ratio predicate.
 
 ### Consumer Proof Files
 
@@ -301,7 +309,7 @@ It is decision history, not executable scenario syntax and not a current receipt
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | TP-BUG017-02-01 | SCN-BUG017-06 | Like-for-like timing | `e2e-ui` | Planned `scripts/validate-playwright-cost-ratio.mjs`; exact carriers remain `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` in the complete 22-file workload | `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live` | Yes | The helper requires configured workers=1, enumerates exactly 22 files, runs both projects without a worker override, requires both exits to be zero, and evaluates the measured system-Chrome/bundled-Chromium ratio as no more than the unchanged FR-017-004 maximum of 3.0. |
 | TP-BUG017-02-02 | SCN-BUG017-06 | Repository regression | `functional` | `scripts/selftest.mjs` | `node scripts/selftest.mjs` | No | The build-free repository invariant suite reports zero failures without reducing its recorded assertion baseline. |
-| TP-BUG017-02-03 | SCN-BUG017-06 | Regression E2E | `e2e-ui` | `tests/lifetime-tax-combined.spec.mjs` — `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure`; `tests/lifetime-tax-read-bound.spec.mjs` — `Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement` | `npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list && npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement$' --reporter=list` | Yes | Both exact scenario carriers pass through the selected system-Chrome configuration with no hidden lifecycle failure. |
+| TP-BUG017-02-03 | SCN-BUG017-06 | Browser functional regression | `functional` | `tests/lifetime-tax-combined.spec.mjs` — `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure`; `tests/lifetime-tax-read-bound.spec.mjs` — `Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement` | `npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list && npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement$' --reporter=list` | No | Both exact UI carriers pass in the real browser against the local static harness. The read-bound carrier uses `page.route` to delay a dependency, so this row is a synthetic-boundary functional complement; TP-BUG017-02-01 and TP-BUG017-02-04 retain the live `e2e-ui` proof. |
 | TP-BUG017-02-04 | SCN-BUG017-06 | Broader Regression E2E | `e2e-ui` | `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` as concrete carriers in the complete 22-file lifetime-tax workload | `npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | The complete affected system-Chrome workload exits zero under the selected configuration and preserves the FR-017-004 comparison boundary. |
 
 #### SCN-BUG017-06 Deterministic RED Contract
@@ -311,10 +319,13 @@ It is decision history, not executable scenario syntax and not a current receipt
   both commands to exit zero, and evaluates the measured ratio against the unchanged 3.0 bound.
 - A six-worker live timing attempt does not qualify as RED evidence. Its ratio depends on
   ambient scheduling and can remain below 3.0 even when the test is otherwise healthy.
-- The repository contains no committed SCN-BUG017-06 or FR-017-004 ratio evaluator under
-  `scripts/`, `tests/`, or the root JavaScript modules. Implement the smallest durable mechanism:
-  `scripts/validate-playwright-cost-ratio.mjs`, plus one additive regression in the existing
-  `tests/playwright-runtime.foundation.functional.mjs` family.
+- The current source contains the smallest durable mechanism at explicit object identities:
+  `scripts/validate-playwright-cost-ratio.mjs` object
+  `a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e` and the additive regression in
+  `tests/playwright-runtime.foundation.functional.mjs` object
+  `beeecf34fdd40c602b2e04ea014e1e5ac5a7feb2`. These are current source identities, not a
+  commit claim. The later `reconcile-local-main-and-clean-worktrees` action is the only commit
+  authority and must commit the verified source before final readiness.
 - The helper has three explicit modes and no implicit fallback. `--live` executes the real pair and
   calls the shared ratio predicate. `--control at-bound` creates a uniquely named temporary
   comparison record with 3000/1000, calls that predicate, cleans up, and exits zero at 3.000.
@@ -354,30 +365,29 @@ the separate FR-017-004 cost invariant.
 
 The checked SCN-BUG017-06 rows also preserve their prior positive execution record. This planning
 change alters the scenario's negative-control identity, so none is a current scenario-state receipt.
-The required helper and focused regression are assigned to `bubbles.implement`. At the genuine new
-source revision, `bubbles.test` must record the deterministic RED, targeted GREEN, real
+The helper and focused regression exist at the source-object identities recorded above. At that
+genuine source identity, `bubbles.test` must independently record the deterministic RED, targeted GREEN, real
 dual-project live proof, focused regression, isolated TP-BUG017-02-02 repository selftest, and
-broader regression chain against that one revision. Existing same-head receipts remain history
+broader regression chain against that one identity. Existing implementation-phase receipts remain history
 and must not be relabeled as current.
 
-- [ ] The committed SCN-BUG017-06 ratio evaluator applies one predicate to live measurements and
-  both deterministic controls, keeps the maximum at 3.000, emits the exact 3.001 refusal, emits the
-  exact 3.000 acceptance, and removes its isolated temporary comparison directory on every exit.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Searched repository scripts, tests, and root JavaScript modules for an existing SCN-BUG017-06 or FR-017-004 ratio evaluator and inspected the committed RED/GREEN helper.
-  > **What was observed:** The live ratio existed only in prior one-off execution commands. No committed executable accepts deterministic comparison input. The committed probe supplies portable Perl-alarm and restoration patterns but no ratio predicate.
-  > **Why this is uncertain:** The planned helper and focused regression do not exist yet, so planning cannot execute or claim their behavior.
-  > **What would resolve this:** Add only the two implementation files named by the Change Boundary, then run the exact over-bound, at-bound, and persistent-regression commands above.
+- [x] The SCN-BUG017-06 ratio evaluator at the recorded source-object/hash identity applies one
+  predicate to live measurements and both deterministic controls, keeps the maximum at 3.000,
+  emits the exact 3.001 refusal, emits the exact 3.000 acceptance, and removes its isolated
+  temporary comparison directory on every exit. The later
+  `reconcile-local-main-and-clean-worktrees` integration action must commit that verified source
+  identity before final readiness; this node has no commit authority.
+  **Claim Source:** executed. → Evidence: [revision-8 independent receipt chain](report.md#test-phase-revision-8-independent-scn-bug017-06-receipt-chain) records the exact current-source RED, GREEN, persistent regression, live comparison, and broader regression signals; [current receipt admission](report.md#test-owned-receipt-admission-at-2026-09-02t200833z) records canonical derivation through `REGRESSION_GREEN`; and [implementation remediation](report.md#implementation-remediation-for-current-validate-findings-at-2026-09-02) records zero helper-owned temporary roots after exact cleanup.
 - [ ] Fresh SCN-BUG017-06 receipts bind the deterministic RED and targeted GREEN to the same test
   identity and negative control, then bind the real one-worker dual-project live proof, focused
   regression, repository selftest, and broader system-Chrome workload at one source revision.
   > **Uncertainty Declaration**
-  > **What was attempted:** Inspected the current tool-call rows and the Scope 2 structured Test Plan after revising the scenario's negative-control identity.
-  > **What was observed:** Every existing SCN-BUG017-06 receipt predates this planning contract. The former six-worker RED either used an unavailable `gtimeout` path or completed below the 3.0 threshold, so it cannot prove the revised discriminator.
-  > **Why this is uncertain:** No execution owner has run the revised commands against the implementation because that implementation does not exist yet.
-  > **What would resolve this:** After implementation, record a non-zero over-bound receipt, zero at-bound receipt, zero live receipt, and zero regression receipts with the exact bindings declared in `scenario-manifest.json`.
+  > **What was attempted:** Recorded the current-source deterministic RED, canonical targeted GREEN, focused persistent regression, authenticated dual-project live proof, and complete one-worker system-Chrome regression, then ran the canonical resolver and the isolated repository selftest.
+  > **What was observed:** Resolver row 727 derives SCN-BUG017-06 through `REGRESSION_GREEN`. The repository selftest still exits 1 because Feature 031 names `tests/shock-transmission.resource.test.mjs`, the path finding tracked by BUG-024.
+  > **Why this is uncertain:** This DoD row explicitly requires a passing repository selftest receipt, and no such current-source receipt exists.
+  > **What would resolve this:** The Feature 031 and BUG-024 owners correct the named path contract, after which `bubbles.test` reruns `node scripts/selftest.mjs` and records its actual result.
 
-- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-06: TP-BUG017-02-03 exercises the exact `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` carriers, and TP-BUG017-02-04 preserves the complete affected workload. **Claim Source:** executed. → Evidence: the test log records the targeted GREEN receipt at `2026-08-28T15:52:11Z` with exit 0 and stdout SHA-256 `85d469faa9a706d4f3a093d375cf49960eb59077ef27a018b1d2083eae950525`, the one-worker dual-project live receipt at `2026-08-28T16:17:20Z` with exit 0 and stdout SHA-256 `dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63`, and the regression receipt at `2026-08-28T16:32:13Z` with exit 0 and stdout SHA-256 `2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf`; all three bind source revision `4bd96545cd6673155933edf3a22492d6d1972256`. [The FR-017-004 bound](report.md#the-fr-017-004-bound) records the three-to-one decision threshold and its prior like-for-like basis.
+- [x] Scenario-specific regression coverage for SCN-BUG017-06 is preserved: TP-BUG017-02-03 exercises the exact functional browser carriers in `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs`, while TP-BUG017-02-01 and TP-BUG017-02-04 retain the live `e2e-ui` proof over the complete affected workload. **Claim Source:** executed. → Evidence: the test log records the targeted GREEN receipt at `2026-08-28T15:52:11Z` with exit 0 and stdout SHA-256 `85d469faa9a706d4f3a093d375cf49960eb59077ef27a018b1d2083eae950525`, the one-worker dual-project live receipt at `2026-08-28T16:17:20Z` with exit 0 and stdout SHA-256 `dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63`, and the regression receipt at `2026-08-28T16:32:13Z` with exit 0 and stdout SHA-256 `2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf`; all three bind source revision `4bd96545cd6673155933edf3a22492d6d1972256`. [The FR-017-004 bound](report.md#the-fr-017-004-bound) records the three-to-one decision threshold and its prior like-for-like basis.
 - [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax system-Chrome workload at the selected one-worker configuration. **Claim Source:** executed. → Evidence: the current live receipt at `2026-08-28T16:17:20Z` exits 0 with stdout SHA-256 `dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63`, and the current regression receipt at `2026-08-28T16:32:13Z` exits 0 with stdout SHA-256 `2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf`; both bind source revision `4bd96545cd6673155933edf3a22492d6d1972256` and the concrete carriers named by TP-BUG017-02-04.
 - [x] Historical repeated-run record: consecutive system-Chrome E2E workloads at the former chosen worker count exited 0, with raw output for each.
   → Evidence: `report.md` `## Scope 2 Execution — Remedy Applied` records three consecutive 94-test runs, all tests passing, exit 0, and zero force-kills.

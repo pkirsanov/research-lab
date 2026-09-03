@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "featureName": "BUG-017 On macOS The System-Chrome Browser Project Intermittently Fails To Tear Down, Turning An All-Green Run Into A Non-Zero Exit",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-29T00:29:30Z",
+  "lastUpdatedAt": "2026-09-02T19:49:51Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -29,20 +29,20 @@
     "uservalidation": "uservalidation.md"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
     "currentPhaseStatus": "route_required",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": "bubbles.goal",
-    "runStartedAt": "2026-08-28T23:35:36Z",
+    "runStartedAt": "2026-09-02T19:28:46Z",
     "completedAt": null,
-    "substate": "independently_verified",
+    "substate": "needs_reverification",
     "currentScope": "02-apply-the-selected-remedy",
     "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "IMP-R4-BUG017-SCOPED-SOURCE-REVISION-PREPARATION",
-    "nextRequiredReason": "Prepare the scoped final source-revision commit for the already-present scripts/validate-playwright-cost-ratio.mjs helper and additive SCN-BUG017-06 functional regression inside the declared Scope 2 change boundary. The genuine new source revision must replace the same-head SCN-BUG017-06 receipt substitution before bubbles.test records the deterministic RED, targeted GREEN, live, focused-regression, isolated TP-BUG017-02-02 repository-selftest, and broader-regression receipts. Preserve global stale, unknown, and clone receipt debt; the BUG-022 specialist phase chain; both G136 human boundaries; concurrent selftest activity; all historical SCN-BUG017-04/-05/-09/-10 evidence; and every excluded path.",
-    "phaseClaimNote": "Planning corrected only F-SCN06-NEGATIVE-CONTROL-NONDISCRIMINATING and F-SCN06-RED-RUNNER-127. The existing source search found no committed SCN-BUG017-06 or FR-017-004 ratio evaluator, while scripts/red-green-probe.sh confirms the repository-supported bounded mechanism uses Perl alarm rather than a guessed GNU timeout path. The plan therefore routes the smallest executable helper and focused test to bubbles.implement, then requires bubbles.test to refresh SCN-BUG017-06 at one source revision. Prior receipts remain historical. No terminal status, certification field, completed-scope mirror, report evidence, source, config, test, uservalidation, BUG-022 artifact, framework-managed file, G136 boundary, global stale/clone finding, or excluded concurrent path changed.",
+    "nextRequiredTarget": "SCN-BUG017-01-02-03-07-08-11-IMPLEMENT-RECEIPT-ADMISSION",
+    "nextRequiredReason": "Record current-revision implement receipts for SCN-BUG017-01, SCN-BUG017-02, SCN-BUG017-03, SCN-BUG017-07, SCN-BUG017-08, and SCN-BUG017-11 without relabeling test evidence. Test-owned RED, GREEN, applicable live, and regression receipts already exist at rows 730 and 738 through 759. Preserve the external Feature 031 and BUG-024 findings, the human G136 Checklist boundary, and all unrelated dirty paths.",
+    "phaseClaimNote": "Test recorded canonical current-source receipts for every test-owned phase of the six previously PLANNED active scenarios. The resolver now derives each through RED_VERIFIED and reports later states BLOCKED_NOT_RUN only because no current implement receipt exists; SCN-BUG017-06 remains REGRESSION_GREEN. No completed browser workload was replayed: rows 713 and 516 were authenticated, and SCN-BUG017-11 carrier bytes plus runtime config were checked before admitting its preserved process proof. The complete runtime-foundation family passed 16 of 16 with zero skips or todos. Scope 02 now has 10 checked and 1 unchecked DoD row; the remaining row requires a passing repository selftest, whose unchanged script hash still reaches the missing Feature 031 path tracked by BUG-024. Certification still mirrors 9/2 and remains validate-owned. Status, certification, completed phase claims, acceptance, commits, branches, remotes, worktrees, deployment, and command affinity remain unchanged.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -277,12 +277,11 @@
     "certifiedAt": null,
     "completedScopes": [
       "01-characterise-the-stall-well-enough-to-choose",
-      "02-apply-the-selected-remedy",
       "03-disclose-it-where-a-developer-meets-it",
       "04-close-the-foundation-browser-before-worker-teardown"
     ],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "The completion mirror lists the four scope artifacts currently marked Done. Packet status and certification.status remain in_progress, and certifiedCompletedPhases remains empty; this reconciliation does not assert terminal certification or alter execution provenance.",
+    "certificationFieldWriteNote": "The completion mirror lists the three scope artifacts currently marked Done. Scope 2 remains in_progress with 9 checked and 2 unchecked DoD rows. Packet status and certification.status remain in_progress, and certifiedCompletedPhases remains empty; this reconciliation does not assert terminal certification or alter execution provenance.",
     "scopeProgress": [
       {
         "scopeId": "01-characterise-the-stall-well-enough-to-choose",
@@ -292,9 +291,9 @@
       },
       {
         "scopeId": "02-apply-the-selected-remedy",
-        "status": "done",
+        "status": "in_progress",
         "dodChecked": 9,
-        "dodUnchecked": 0
+        "dodUnchecked": 2
       },
       {
         "scopeId": "03-disclose-it-where-a-developer-meets-it",
@@ -312,7 +311,6 @@
   },
   "completedScopes": [
     "01-characterise-the-stall-well-enough-to-choose",
-    "02-apply-the-selected-remedy",
     "03-disclose-it-where-a-developer-meets-it",
     "04-close-the-foundation-browser-before-worker-teardown"
   ],
@@ -470,6 +468,42 @@
       "outcome": "route_required",
       "scope": "04-close-the-foundation-browser-before-worker-teardown",
       "note": "Removed SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 from the current scenario manifest because the installed schema and scenario-state resolver provide no honored historical or ignored entry form. Preserved their exact Gherkin in quoted historical sections, their non-executable Test Plan history, and every unchanged report anchor for provisional GREEN, later RED, rollback, and rejection. Kept SCN-BUG017-01, SCN-BUG017-02, SCN-BUG017-03, SCN-BUG017-06, SCN-BUG017-07, SCN-BUG017-08, and SCN-BUG017-11 active. Canonical obligation, linked-test, test-mechanism, traceability, and artifact checks exited 0. Canonical scenario-state projection exited 1 as expected: all seven active scenarios remain PLANNED and require 33 distinct current phase receipts. Routed that work to bubbles.test without changing report evidence, status, certification, scenario states, source, config, tests, uservalidation, BUG-022, framework files, excluded concurrent paths, or the separate company-intelligence worktree."
+    },
+    {
+      "at": "2026-09-02T17:32:45Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "phasesExecuted": ["implement"],
+      "action": "scope-2-current-source-revision-prepared",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "outcome": "route_required",
+      "scope": "02-apply-the-selected-remedy",
+      "note": "Preserved the already-present plan-approved helper and persistent regression instead of manufacturing churn. Their behavior-bearing worktree objects differ from the index and are fixed at helper object a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e and regression object beeecf34fdd40c602b2e04ea014e1e5ac5a7feb2. Structured RED row 681 and implementation row 682 bind SCN-BUG017-06 to the same test identity, negative control, source revision, and input hashes. Resolver row 683 derives IMPLEMENTED and leaves later states to bubbles.test. Current implementation execution produced the exact deterministic refusal and acceptance, one focused test passing, live ratio 1.157 within 3.000, all 111 broader system-Chrome tests passing, and a 16-of-16 complete functional family. The isolated repository selftest remained red at 3469 passed and two failed because Feature 031 names a missing active test path and certification still mirrors Scope 02 as 9/0 against artifact truth 9/2. Those foreign-owned findings, the planning-owned configured-selector and test-classification findings, both G136 boundaries, historical scenario evidence, and unrelated dirty work remain unchanged. No completed phase claim, DoD checkbox, terminal status, certification field, acceptance record, planning content, commit, or push was created."
+    },
+    {
+      "at": "2026-09-02T18:08:01Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "scope-2-selector-taxonomy-and-source-identity-reconciled",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "outcome": "route_required",
+      "scope": "02-apply-the-selected-remedy",
+      "note": "Corrected only F-SCN06-CONFIGURED-GREP, F-SCN06-LIVE-CLASSIFICATION, and F-SCN06-COMMIT-IDENTITY across scopes.md, test-plan.json, scenario-manifest.json, and plan-owned state routing. Removed the invalid leading anchor from both TP-BUG017-02-03 grep expressions; Playwright list mode resolved each corrected expression to exactly one intended test. Reclassified TP-BUG017-02-03 as functional with liveSystem false because the read-bound carrier uses page.route, while TP-BUG017-02-01 and TP-BUG017-02-04 remain live e2e-ui proof. Replaced premature commit authority with helper object a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e and persistent-test object beeecf34fdd40c602b2e04ea014e1e5ac5a7feb2; reconcile-local-main-and-clean-worktrees remains the only later commit authority. Artifact, traceability and parity, mechanism, linked-test, obligation, vertical-plan, execution-substate, technical-prose, cardinality, object-identity, and diff-hygiene checks passed. The pre-existing validate-owned certification mirror remains 9/0 against artifact truth 9/2 and scope-progress therefore remains red. Both current Scope 02 DoD rows remain unchecked. No source, tests, report evidence, status, certification, acceptance, or unrelated path changed. Routed independent execution to bubbles.test."
+    },
+    {
+      "at": "2026-09-02T19:49:51Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "phasesExecuted": ["validate"],
+      "action": "validate-owned-mirror-and-receipt-reconciliation-routed",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "outcome": "route_required",
+      "scope": "02-apply-the-selected-remedy",
+      "note": "Retained the validate-owned Scope 02 certification mirror at in_progress with 9 checked and 2 unchecked rows and retained only Scopes 01, 03, and 04 in both completed-scope mirrors. Corrected the prior validate narrative after canonical scenario-state resolver row 721 derived SCN-BUG017-06 only through IMPLEMENTED and reported GREEN_TARGETED, GREEN_LIVE, and REGRESSION_GREEN blocked against changed implementation refs. Existing test-owned rows were inventoried without repeating completed browser workloads. Routing now targets bubbles.test for receipt admission at the current identity. External Feature 031 and BUG-024 findings remain on their separate authorized nodes; G136 remains human-owned. No source, test, planning artifact, acceptance item, terminal status, certified phase, commit, branch, remote, worktree, deployment, or command affinity changed."
     }
   ]
 }

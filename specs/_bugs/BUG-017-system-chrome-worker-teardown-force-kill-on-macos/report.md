@@ -3692,4 +3692,729 @@ certification, or human acceptance.
 
 <!-- bubbles:certifying-window-begin -->
 
+## Test Phase Revision-8 Independent SCN-BUG017-06 Receipt Chain {#test-phase-revision-8-independent-scn-bug017-06-receipt-chain}
+
+**Phase:** test
+**Claim Source:** executed
+
+### Authority And Stable Input Epoch
+
+The installed repository-binding validator accepted the derived packet without a preflight.
+It returned exit 0 for decision
+`rb:vscode-a66638659f347684a54d8a6f9606fa12:8:node:shock-deliver-feature-031`.
+The accepted packet named revision 8, goal node `shock-deliver-feature-031`, and the shock
+worktree root.
+
+| Authority input | SHA-256 |
+| --- | --- |
+| Compiled scenario plan | `9ab6547639c0632e67a03acdfc90ae75ac5eb396e7d5120949ca39fd0d093e8d` |
+| Revision-8 session control record | `5f03a065c8e28c9dcca6028379c3833b2e44edc0cf30b3ad93bc108a2b08fede` |
+| Derived actionable packet | `a8e4969d23114cbd703aa0642541375dd12aa60c95516cbe6ef95e4fb98ab251` |
+
+Every receipt below ran at Git HEAD
+`d0c09a3ec90d2bb72920caee9e44f1d5f697c619`. An external epoch guard hashed
+all 42 dirty files after the live pair. It passed before the selftest, before the broader run,
+and after the broader run. No dirty path or content object changed during that interval.
+
+| Stable input | Worktree Git object | Index Git object | SHA-256 in receipt closure |
+| --- | --- | --- | --- |
+| `scripts/validate-playwright-cost-ratio.mjs` | `a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e` | `45d3f6f3cb60d0ea2827cc49f34be71d28332ae2` | `77566866808e5cbfb859e377c9c37e386b75e5248af23259c5cd56c984b73e8b` |
+| `tests/playwright-runtime.foundation.functional.mjs` | `beeecf34fdd40c602b2e04ea014e1e5ac5a7feb2` | `bea34c685c14aa758db2c8cf732efb3658b5220e` | `a2d70962c804cb89a9dc2d3eb7f6f04e3709ca3ddf57163665e06c47dbe63d34` |
+| `playwright.config.mjs` | `e022a133857aa20bd10b759a98b80e2df38ce621` | `e022a133857aa20bd10b759a98b80e2df38ce621` | `ea498a90677daa3d1ac589026e0ea2062feb2f4a4567e8d28bd6389dce1803a3` |
+| `scopes.md` | `e9effe97c0a4827ec1575f2c723efc467cda05df` | `e9effe97c0a4827ec1575f2c723efc467cda05df` | `e98766bc13860f092ecb950ff122e1a9697ce5f6c146dc462e5a8375466e9560` |
+| `test-plan.json` | `2f5f7eb056acaeb02c905cf3355f864cabf555a2` | `2f5f7eb056acaeb02c905cf3355f864cabf555a2` | `24a9e2b72ece24b5217a4e84468b67b58d06fff1b1b9a6cef393e81add9b4531` |
+| `scenario-manifest.json` | `2b9c7253dd2bc984282aecc4d5bfd9223d80096f` | `2b9c7253dd2bc984282aecc4d5bfd9223d80096f` | `604d06cada23ac9130cac7f5fde431c7842a9be1ac3eb2a4278444b5b4f90758` |
+| `scripts/selftest.mjs` | `a4f95376491c5d060a92855ef9875f0d92b1e2f9` | not used for a completion claim | `fc10b87d65549ea48dbdc3042b8526bfb30263e6bd42fb2635c5058b81fae439` |
+
+The two implementation files are not commit-backed at this epoch. Their worktree objects differ
+from their index objects. No commit was created or inferred.
+
+### Receipt Matrix
+
+Every structured row has source revision `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`.
+Every row records the current helper, functional test, config, and Scope 2 planning hashes.
+Every tool-log stderr hash is the empty-stream SHA-256
+`e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855`.
+
+| Receipt | Exit | Full command-output SHA-256 | Tool-log stdout SHA-256 |
+| --- | ---: | --- | --- |
+| Deterministic `over-bound` RED | 1 | `9ba8dc10d4c8fbf3b3f556b03891d7b07498c6110fab5d2c20fc7b8193248a88` | `908b798313cd9526e564ceb40817cf8c6870ec05891794d1dd5de8483dce547b` |
+| Deterministic `at-bound` GREEN | 0 | `126769549145b36cfb711d95a4cc02d7879d38aa7e7dd3e6e1e8a0bed047de01` | `eb72e03ff2e7c016724223c790d0ae79aec5c599c67501f936a5ee76cc090232` |
+| One-worker dual-project live pair | 0 | `c3d43e475cac06e4c9f8a0d36aa9686aace515c1b77a1c8f2ffd8c1f6b3cc1ba` | `8038d4caab37b37a28d45e6b5f0850697324fd9bc0544973a266b0ee0cbef96f` |
+| Planned anchored configured carrier | 1 | `10430d4abdbd108757550247ef54aa526417db51010e4fcac2d0bf16fe54e830` | `ec464b071a54b45ef17ad6c8cd1a86192196ebfe3b994cf7b2878769ec9555be` |
+| Corrected-selector combined carrier diagnostic | 0 | `b06197cb92841afe5f0e9acbdb963526a9b83f50d3958c16c58a1dd4eceac6ab` | `f75b8e94b84155104fa4774b99838f57c4510620728959c0376cd2165ba2af1c` |
+| Corrected-selector read-bound carrier diagnostic | 0 | `c23a5f8e2c724dcfe0f81c30aa3fa40c978fbb9cd2ddfe3b4625bc2c005e27e3` | `4fd03aacb936fdc426870a390201c055b5c5bbd2b83bcea9cd4d07e1152b1fbd` |
+| Post-live focused persistent regression | 0 | `325401c49f2654816bc532c5dac2a5f0d1aaa734a4a14f4f6a3e5ac68fd2f40e` | `82a3cccfbdb870f88a268e22589de9681e4345cf2d6fa61d80f3843a5d44fe6b` |
+| Isolated repository selftest | 1 | `709e761feaa5abc6ba43f412f4dc1dabd33a1a835c4d14fb95e4544c9a22768f` | `154cdc3ad8b309395bb93aea7e8c24368db755aebbbf084149a9a1dfdc3e92f4` |
+| Complete one-worker system-Chrome regression | 0 | `cef2dc4f42f33a7198f2f71b716b78af10b78224307b632956efd459a7bcf222` | `e9b59dcc62b284bd78a21769eadd4efa9e185d06b522b3d0182820a474b7ecf5` |
+
+### Deterministic Controls And Focused Regression
+
+**Phase:** test
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node --test --test-name-pattern='^Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison$' tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3000 bundledChromiumWallMs=1000
+SCN-BUG017-06: wall-time ratio 3.000 meets FR-017-004 maximum 3.000
+SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3001 bundledChromiumWallMs=1000
+SCN-BUG017-06: wall-time ratio 3.001 exceeds FR-017-004 maximum 3.000
+[SCN-BUG017-06] deterministicBoundary=3.000
+[SCN-BUG017-06] deterministicOverBound=3.001
+[SCN-BUG017-06] ownedTempResidue=0
+✔ Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison (70.743541ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 274.343375
+```
+
+The direct over-bound command exited 1 with the exact `3.001` refusal. Its two-line output hash
+is `9ba8dc10d4c8fbf3b3f556b03891d7b07498c6110fab5d2c20fc7b8193248a88`.
+The direct at-bound command exited 0 with the exact `3.000` acceptance. Its two-line output hash
+is `126769549145b36cfb711d95a4cc02d7879d38aa7e7dd3e6e1e8a0bed047de01`.
+Both rows use the same test identity and negative-control text.
+
+### Live Dual-Project Comparison
+
+**Phase:** test
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# SCN-BUG017-06 one-worker dual-project live comparison
+exit: 0
+lines: 239
+sha256: c3d43e475cac06e4c9f8a0d36aa9686aace515c1b77a1c8f2ffd8c1f6b3cc1ba
+--- first 20 ---
+SCN-BUG017-06: live workload files=22 configuredWorkers=1
+SCN-BUG017-06: live project=chromium files=22 start
+Running 111 tests using 1 worker
+--- omitted 199 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  111 passed (1.9m)
+SCN-BUG017-06: live project=system-chrome exit=0 signal=none wallMs=115672.287
+SCN-BUG017-06: observed runtime input systemChromeWallMs=115672.287 bundledChromiumWallMs=96753.623
+SCN-BUG017-06: wall-time ratio 1.196 meets FR-017-004 maximum 3.000
+```
+
+### Configured Carrier Command Defect
+
+**Phase:** test
+**Command:** `npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+Error: No tests found.
+Make sure that arguments are regular expressions matching test files.
+You may need to escape symbols like "$" or "*" and quote the arguments.
+ANCHORED_DISCOVERY_EXIT=1
+Listing tests:
+  [system-chrome] › tests/lifetime-tax-combined.spec.mjs:269:1 › Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure
+Total: 1 test in 1 file
+SUFFIX_DISCOVERY_EXIT=0
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-combined.spec.mjs:269:1 › Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure (1.1s)
+  1 passed (2.5s)
+Running 1 test using 1 worker
+  ✓  1 [system-chrome] › tests/lifetime-tax-read-bound.spec.mjs:164:1 › Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement (4.2s)
+  1 passed (5.3s)
+```
+
+The Test Plan's leading `^` anchors against Playwright's fully qualified title. It selects zero
+tests. Removing only that leading anchor selects each declared title exactly once. The two
+corrected-selector runs are diagnostic evidence. They do not convert the planned command's exit 1
+into a pass.
+
+### Isolated Repository Selftest
+
+**Phase:** test
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1200 node scripts/selftest.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+# SCN-BUG017-06 isolated repository selftest
+exit: 1
+lines: 3982
+sha256: 709e761feaa5abc6ba43f412f4dc1dabd33a1a835c4d14fb95e4544c9a22768f
+✗ FAIL: no active tests/*.mjs path named by a spec artifact is missing outside the frozen baseline (1 new, 10 planned, 70 known-missing, 0 stale of 288 referenced)
+✗ FAIL: no scope progress claim disagrees with its Definition of Done outside the frozen baseline (1 new, 14 frozen, 0 stale of 86 claim(s))
+Feature 031 shock-transmission foundation
+  ✓ Feature 031 resolves one frozen required resource policy from repository configuration
+  ✓ Feature 031 canonical identity is stable across object-key order
+  ✓ Feature 031 exports one frozen CommonJS foundation API for contract and reader validation
+================================================
+Research-Lab self-test: 3469 passed, 2 failed
+================================================
+```
+
+Focused validators named both failures. The path validator reported one new missing path,
+`tests/shock-transmission.resource.test.mjs`, from Feature 031 report references. The scope
+progress validator reported BUG-017 Scope 2 certification at `9/0` while `scopes.md` contains
+`9/2`. The latter field is validate-owned.
+
+### Broader System-Chrome Regression
+
+**Phase:** test
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# SCN-BUG017-06 complete one-worker system-Chrome regression
+exit: 0
+lines: 116
+sha256: cef2dc4f42f33a7198f2f71b716b78af10b78224307b632956efd459a7bcf222
+--- first 20 ---
+Running 111 tests using 1 worker
+  ✓    1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:59:1 › Regression: SCN-024-001 neither origin and both origins each refuse and neither shows a benefit amount (912ms)
+--- omitted 76 line(s); sha256 above covers the full output ---
+--- last 20 ---
+  ✓  109 [system-chrome] › tests/lifetime-tax-use.spec.mjs:235:1 › Regression: SCN-023-012 the under-threshold exception excludes the income and deducts no rental expense (721ms)
+  ✓  110 [system-chrome] › tests/lifetime-tax-use.spec.mjs:269:1 › Regression: SCN-023-013 mixed use allocates by declared days and the personal portion reaches the composition (753ms)
+  ✓  111 [system-chrome] › tests/lifetime-tax-use.spec.mjs:355:1 › Regression: SCN-023-010 the request ledger does not grow after the day-count declarations and every entry is a declared same-origin read (699ms)
+  111 passed (2.0m)
+```
+
+### Test Integrity And Derived Scenario State
+
+| Check | Exit | Result |
+| --- | ---: | --- |
+| Linked-test resolution | 0 | 23 references resolved by literal scan. The repository declares no test-discovery adapter. |
+| Source-lock validator | 0 | Exact Playwright and Playwright Core version 1.61.1. Sixteen adversarial source cases rejected. |
+| Checkout-local Playwright identity | 0 | `Version 1.61.1`. |
+| Skip, only, and todo scan | 1 | Expected grep no-match exit. Zero forbidden markers found. |
+| Mock scan | 0 | Existing `page.route(...)` interception found in `tests/lifetime-tax-read-bound.spec.mjs`. |
+| Regression quality guard, bugfix mode | 0 | 23 files, 23 adversarial signals, zero violations and warnings. Full-output SHA-256 `7c1a8c065798f45a1c7470c54efecb386b5f86987e28ca500ecc450e0873bfa7`. |
+| Scenario-state resolver | 1 | SCN-BUG017-06 reached `RED_VERIFIED` only. GREEN, live, and regression states remain blocked because no `implement` receipt exists. Full-output SHA-256 `e0c63cd1fbc5f5e69f14e9cfe285700e4105fd5f32a8ca410d575b35c4cf6460`. |
+
+The mock scan is a classification finding. The current Test Plan labels the read-bound carrier
+as `e2e-ui`, while the file intercepts requests. This test phase did not reclassify the planning
+row or weaken the test.
+
+### Routed Findings And DoD Disposition
+
+| Finding | Evidence | Required owner |
+| --- | --- | --- |
+| `F-SCN06-COMMIT-IDENTITY` | Both implementation worktree objects differ from their index objects. Current object IDs provide immutable byte identity, but the DoD explicitly says `committed`. | `bubbles.plan` must decide whether object-closure identity satisfies the intent. `bubbles.implement` owns any implementation receipt after that decision. |
+| `F-SCN06-CONFIGURED-GREP` | The exact TP-BUG017-02-03 leading-anchor command exits 1 with zero tests. A suffix-anchored diagnostic selects one test and passes. | `bubbles.plan` owns the command contract. |
+| `F-SCN06-SELFTEST-PATH` | The selftest names missing `tests/shock-transmission.resource.test.mjs` from Feature 031 report references. | The Feature 031 execution owner must reconcile that path within its own boundary. |
+| `F-SCN06-SCOPE-MIRROR` | The focused validator reports validate-owned Scope 2 certification at `9/0` against artifact truth `9/2`. | `bubbles.validate` owns the certification mirror. |
+| `F-SCN06-IMPLEMENT-RECEIPT` | The tool log contains no SCN-BUG017-06 `implement` receipt. The scenario resolver stops at `RED_VERIFIED`. | `bubbles.implement` owns the missing phase receipt. |
+| `F-SCN06-LIVE-CLASSIFICATION` | TP-BUG017-02-03 labels the read-bound carrier `e2e-ui`, but that file uses `page.route(...)`. | `bubbles.plan` owns classification. `bubbles.test` owns any replacement proof the corrected plan requires. |
+
+Neither current Scope 2 checkbox is changed. The first row requires a committed evaluator. The
+second row requires the complete receipt chain, including a passing selftest and valid configured
+command. Scope 2 and BUG-017 therefore remain in progress. This test phase changed no source,
+test body, planning artifact, state field, certification field, or human acceptance field.
+
+<!-- bubbles:implement-shock-close-bug-017-current-source-revision-begin -->
+
+## Implementation Phase Additive Node `shock-close-bug-017` Current Source Revision
+
+**Phase:** implement
+**Claim Source:** executed
+
+### Repository Authority And Change Boundary
+
+The inherited packet for goal node `shock-close-bug-017` passed
+`repository-binding.sh validate-packet` at control revision 1. The disposable scenario was
+reconstructed in memory from the host-supplied base scenario, restamped to the current control
+record, expanded to 33 unique nodes, and given the Company BUG-002 and Shock BUG-017, BUG-023,
+and BUG-024 dependency edges. No scenario bytes were persisted.
+
+The planned source and test behavior already existed exactly at inspection time, so this
+invocation did not churn it. The current substantive revision remains limited to these two
+working-tree objects:
+
+| Owned file | Git object | SHA-256 | Substantive delta from the index |
+| --- | --- | --- | --- |
+| `scripts/validate-playwright-cost-ratio.mjs` | `a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e` | `77566866808e5cbfb859e377c9c37e386b75e5248af23259c5cd56c984b73e8b` | Names every helper temp root with its process ID so concurrent SCN-BUG017-06 runs do not share cleanup authority. |
+| `tests/playwright-runtime.foundation.functional.mjs` | `beeecf34fdd40c602b2e04ea014e1e5ac5a7feb2` | `a2d70962c804cb89a9dc2d3eb7f6f04e3709ca3ddf57163665e06c47dbe63d34` | Runs each control under a fresh external `TMPDIR`, applies a 30000ms child bound, and requires zero residue in that owned directory. |
+
+These are source and persistent-test changes, not metadata-only revision markers. No commit was
+created because this node expressly forbids commits. The packet's two Scope 02 checkboxes remain
+unchecked; this implementation record does not rewrite their planning-owned text.
+
+### Current Implementation Receipts
+
+Every tool-log row below binds the helper SHA-256
+`77566866808e5cbfb859e377c9c37e386b75e5248af23259c5cd56c984b73e8b`, the persistent test SHA-256
+`a2d70962c804cb89a9dc2d3eb7f6f04e3709ca3ddf57163665e06c47dbe63d34`, and the current Scope 02
+planning hashes in its input closure.
+
+| Receipt | Tool-log row | Exit | Complete command-output SHA-256 | Tool-log stdout SHA-256 | Result |
+| --- | ---: | ---: | --- | --- | --- |
+| Deterministic over-bound RED | 669 | 1 | `9ba8dc10d4c8fbf3b3f556b03891d7b07498c6110fab5d2c20fc7b8193248a88` | `c27b30b00c24f2f1742cdad8e718917c86a5924cc91c003394a33d8af0818f38` | Exact `3.001 exceeds FR-017-004 maximum 3.000` refusal. |
+| Deterministic at-bound GREEN | 670 | 0 | `126769549145b36cfb711d95a4cc02d7879d38aa7e7dd3e6e1e8a0bed047de01` | `d862c1b6f8385fda13e0ac048083ee416e38a415394b1cc991b15ef3dc4d788f` | Exact `3.000 meets FR-017-004 maximum 3.000` acceptance. |
+| Persistent focused GREEN | 671 | 0 | `a49068100e85d86c66b410ccacb62c9b3303681a7756381c75506a96623253b1` | `2dfc8dbb4d14e81d95a3858618b265f9ad1c251230c1b94dc16cda99612c7fab` | One named SCN-BUG017-06 test passed; zero failures, skips, todos, or owned temp residue. |
+| Isolated live dual-project comparison | 672 | 0 | `63254f17a7ac8517a1e1363e1236b1bf5799ad8b4852b7b686f768ffd6a1a460` | `3361d7e23fcb53ebe07a96aa8cb3f675de465bc3922317f224de5bda63e3d2b8` | Both 111-test runs exited zero. System Chrome took 111021.096ms, bundled Chromium 95944.029ms, and ratio 1.157 met the 3.000 maximum. |
+| Isolated repository selftest | 673 | 1 | `53e84f625625d9f0aeafdec0531ff38efcd9cf58e7fbb5d83dba27f7ebeaec86` | `0d69b617d1bdf74d731209569d93bfcdfe144953d6a0f4e48795fac6183ab108` | 3469 passed and 2 failed. The failures are the preserved Feature 031 missing-path finding and the validate-owned BUG-017 9/0 versus 9/2 scope mirror. |
+| Complete one-worker system-Chrome regression | 674 | 0 | `3741e3fde265d0acf2616c11f1e9a73681120a161088b5213494c8c3054d7518` | `f4e53d93aceaa2ee7af674954dead8eefe75b14666d1c178e9185e115d2cc005` | All 111 tests passed using one worker; process exit was zero. |
+
+The first live attempt was interrupted externally with SIGINT after nine Chromium tests. It
+exited 130 with complete-output SHA-256
+`699da4a8a5cf2bba299f38c760fe552179dbf7edc94c8e563ba06837d3547a19`. A bounded post-interruption
+scan found no matching helper process, lifetime-tax Playwright process, or owned temporary
+directory. Row 672 is the isolated-process-group retry and supersedes that interrupted attempt.
+
+### Structured Scenario Receipt Admission
+
+The initial current-node runs at rows 669 through 674 carried current input hashes but no
+`scenarioBinding`, so they remain implementation execution evidence without advancing scenario
+state. The structured implementation receipt used the exact test identity and negative-control
+text from the admitted RED contract rather than inventing a new identity.
+
+| Structured receipt | Tool-log row | Exit | Tool-log stdout SHA-256 | Scenario binding result |
+| --- | ---: | ---: | --- | --- |
+| Deterministic RED | 681 | 1 | `97201a85d168fc4ae6ce72ff9cb5ccfd3a78ebc96bc59e993f8824e27d190d09` | Bound `SCN-BUG017-06`, phase `red`, test identity `scripts/validate-playwright-cost-ratio.mjs#SCN-BUG017-06 wall-time ratio predicate`, the declared 3000-to-3001 control, and source revision `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`. |
+| Behavior-bearing implementation revision | 682 | 0 | `d380886e60888b9d1e910f7f88de182776cc682f8e9ee7aedb333a9293157e22` | Bound the same scenario, test identity, control, and revision with both owned paths in `implementationRefs`; complete command-output SHA-256 `a8448f3c52f4df059ecfb6567811cedf7ea87f4def8a5e3a28b290f6b36f0f08`. |
+
+Row 683 then ran the canonical scenario-state resolver over the two changed implementation refs.
+It derived `SCN-BUG017-06 state=IMPLEMENTED` from `[PLANNED RED_VERIFIED IMPLEMENTED]` and left
+`GREEN_TARGETED`, `GREEN_LIVE`, and `REGRESSION_GREEN` blocked for the independent test owner.
+The resolver exited 1 because it also reported preserved Feature 031 missing bindings, BUG-022
+revision drift, and stale green states for every scenario affected by the shared functional test.
+Its complete 35-line output SHA-256 is
+`24e4a3fd4b74d455ab73145edfe51a96c16ee32844f036e6dc22c0ae4eeb35f6`; tool-log stdout SHA-256 is
+`aec4c1c25573a37fac34591f761d172e6f969e067bc942b39a42eb84bad32b3e`.
+
+### Finding Accounting And Handoff
+
+| Finding | Disposition | Evidence or owner |
+| --- | --- | --- |
+| `F-SCN06-IMPLEMENT-RECEIPT` | Addressed | Structured row 682 advances SCN-BUG017-06 to `IMPLEMENTED`; rows 669 through 674 remain the current implementation execution matrix over the same owned hashes. |
+| `F-SCN06-SOURCE-REVISION` | Addressed | Row 682 proves that both Git objects differ from their index objects through behavior-bearing source and persistent-test changes. No empty or metadata-only revision was manufactured. |
+| `F-SCN06-CONFIGURED-GREP` | Unresolved and preserved | The exact TP-BUG017-02-03 leading-anchor command selects no Playwright test. Planning owns the command contract. |
+| `F-SCN06-SELFTEST-PATH` | Unresolved and preserved | Feature 031 still names missing `tests/shock-transmission.resource.test.mjs`. The Feature 031 execution owner owns that path. |
+| `F-SCN06-SCOPE-MIRROR` | Unresolved and preserved | Certification still reports Scope 02 as 9/0 while `scopes.md` contains 9/2. `bubbles.validate` owns that mirror, and this invocation did not edit it. |
+| `F-SCN06-LIVE-CLASSIFICATION` | Unresolved and preserved | TP-BUG017-02-03 classifies a carrier using `page.route(...)` as `e2e-ui`. Planning owns its classification. |
+
+The implementation candidate is routed to `bubbles.test` for independent current-byte
+verification. Rows 669 through 674 are implementation-phase evidence only and are not claimed as
+independent test ownership. BUG-023, BUG-024, Feature 031, Horizon Ladder, registry/navigation,
+framework, acceptance, certification, and every unrelated dirty path remain unchanged.
+
+<!-- bubbles:implement-shock-close-bug-017-current-source-revision-end -->
+
+## Validate-Owned Reconciliation At 2026-09-02 {#validate-owned-reconciliation-at-2026-09-02}
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The executed checks below prove that the validate-owned Scope 2 mirror is
+reconciled and that SCN-BUG017-06 has a receipt-derived `REGRESSION_GREEN` state. They also prove
+that BUG-017 cannot advance: six other active scenarios remain `PLANNED`, Scope 2 has two unchecked
+DoD rows, the repository selftest has one Feature 031/BUG-024-owned failure, G130 has one Feature
+031-owned invariant finding, the current report window has four implementation-owned G040 hits,
+and all ten G136 Checklist items remain unchecked. No terminal or human-acceptance claim is made.
+
+### Repository Authority And Frozen Inputs
+
+The unchanged repository packet was validated against continuation node `shock-close-bug-017` at
+control revision 8. The target revision and both behavior-bearing object identities were then
+resolved from the worktree rather than accepted from the invocation prompt.
+
+```text
+REPOSITORY PACKET SCOPED actionable=true repository=research-lab-shock-transmission-planning-a5c53f
+root=/private/tmp/research-lab-shock-transmission-planning-a5c53f
+decision=rb:vscode-7fbaa0072aa19f2dad3c4e8b6569c268:8:node:shock-close-bug-017
+revision=8 scopeKind=goal-node scopeId=shock-close-bug-017
+goal-fidelity-guard: PASS boundary=pre-certification
+HEAD=d0c09a3ec90d2bb72920caee9e44f1d5f697c619
+scripts/validate-playwright-cost-ratio.mjs object=a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e
+tests/playwright-runtime.foundation.functional.mjs object=beeecf34fdd40c602b2e04ea014e1e5ac5a7feb2
+workflowMode=bugfix-fastlane
+targetStatus=done
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision=sha256:62bfa28005f0ea10214052cc7472ddae527ef64282ad3353caf077aba9f48964
+```
+
+### Scope Progress Mirror
+
+Validate removed Scope 2 from both completed-scope mirrors and changed only its certification
+progress entry from `done`, 9/0 to `in_progress`, 9/2. Scopes 1, 3, and 4 remain completed. Both
+packet status mirrors remain `in_progress`; no certified phase was added.
+
+```text
+$ node scripts/validate-scope-dod-progress.mjs
+[scope-dod-progress] packets=66 claims=86 agree=72 drift=14 unresolved=0 baseline=14 new=0 stale=0
+[scope-dod-progress] OK - no new DoD progress drift
+exit: 0
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos
+Artifact lint PASSED.
+exit: 0
+```
+
+### Scenario-State Reconciliation
+
+The canonical resolver derived the complete current chain for SCN-BUG017-06 from structured
+receipts. It refused certification because every other active BUG-017 scenario still lacks the
+required current receipt states. No declared state was added to `scenario-manifest.json`.
+
+```text
+source revision: d0c09a3ec90d
+SCN-BUG017-01 state=PLANNED derived=[PLANNED]
+SCN-BUG017-02 state=PLANNED derived=[PLANNED]
+SCN-BUG017-03 state=PLANNED derived=[PLANNED]
+SCN-BUG017-06 state=REGRESSION_GREEN derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+SCN-BUG017-07 state=PLANNED derived=[PLANNED]
+SCN-BUG017-08 state=PLANNED derived=[PLANNED]
+SCN-BUG017-11 state=PLANNED derived=[PLANNED]
+UNSATISFIED RED_VERIFIED/IMPLEMENTED/GREEN_TARGETED/REGRESSION_GREEN: SCN-BUG017-01
+UNSATISFIED RED_VERIFIED/IMPLEMENTED/GREEN_TARGETED/REGRESSION_GREEN: SCN-BUG017-02
+UNSATISFIED RED_VERIFIED/IMPLEMENTED/GREEN_TARGETED/REGRESSION_GREEN: SCN-BUG017-03
+UNSATISFIED RED_VERIFIED/IMPLEMENTED/GREEN_TARGETED/REGRESSION_GREEN: SCN-BUG017-07
+UNSATISFIED RED_VERIFIED/IMPLEMENTED/GREEN_TARGETED/REGRESSION_GREEN: SCN-BUG017-08
+UNSATISFIED RED_VERIFIED/IMPLEMENTED/GREEN_TARGETED/REGRESSION_GREEN: SCN-BUG017-11
+certifiable: no
+exit: 1
+```
+
+The latest test-owned TP-BUG017-02-02 row carried the broader workload's `testIdentity` and claim.
+Validate did not rewrite that ledger row. It executed the selftest again with the correct identity
+`scripts/selftest.mjs#Research-Lab self-test`; the structured row has exit 1, stdout SHA-256
+`0dedb7bad1286a69c545b6523b1147608c5459c7a5681c1280d318737130a213`, and evidence-capture
+SHA-256 `9abda3dbdf8f7f94d4f2535d94696ff7ce7f733c30952c52ba68077955ef2b6b`.
+
+```text
+Research-Lab self-test: 3470 passed, 1 failed
+exit: 1
+[spec-test-paths] scanned=843 references=19730 distinctPaths=288 missingPaths=81 plannedMissing=10 baseline=70 new=1 stale=0
+NEW-MISSING tests/shock-transmission.resource.test.mjs (15 reference site(s))
+referenced at specs/031-shock-transmission-foundation/report.md:325
+referenced at specs/031-shock-transmission-foundation/report.md:406
+referenced at specs/031-shock-transmission-foundation/report.md:824
+[spec-test-paths] FAIL - 1 new referenced path(s) do not exist
+exit: 1
+```
+
+That missing-path finding remains `XRL-PATH-GUARD-HIST-001` in
+`specs/_bugs/BUG-024-spec-path-historical-report-leak`, whose persisted next owner is
+`bubbles.design`. Validate made no change to Feature 031 or BUG-024.
+
+### Exact Live Replay Attempt
+
+The prompt-supplied live capture SHA-256
+`7e17393f6bf618e24cf54d6376a8490e9940c6a73d680117d76685c3161e5773` was not found as a
+structured tool-log receipt. Validate therefore attempted the exact bounded row against the frozen
+objects above. An external SIGINT interrupted it after the first Chromium test. The attempt exited
+130 with evidence-capture SHA-256
+`56f30edd79b5ab77daf64c4f37481f94e9e59c1ea24343b53dee2c385d8a0573`; the interrupted tool-log
+write produced no admissible validate-owned live row.
+
+```text
+$ /usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live
+SCN-BUG017-06: live workload files=22 configuredWorkers=1
+SCN-BUG017-06: live project=chromium files=22 start
+Running 111 tests using 1 worker
+1 [chromium] Regression: SCN-024-001 neither origin and both origins each refuse and neither shows a benefit amount
+SCN-BUG017-06: interrupted by SIGINT; terminating owned child processes
+exit: 130
+```
+
+The current invocation therefore does not authenticate the prompt's reported 1.170 ratio and does
+not claim a fresh live replay pass.
+
+A final containment scan found no running `validate-playwright-cost-ratio.mjs --live` process and
+no directory born during this validate invocation. It did find two older directories in the
+helper-owned namespace: process 47748 at 2026-09-02T11:27:35-0700 and process 77716 at
+2026-09-02T11:29:45-0700. Each contains partial bundled-Chromium output. Both predate this
+invocation and were preserved as diagnostic evidence. Their presence keeps the helper's
+all-exit cleanup claim unproven at the current source epoch.
+
+### Narrow Governance Results
+
+```text
+traceability-guard: exit=0 lines=101 sha256=df71d6a9e0819c8a74faf8583215661e2de7430f43da1d9ceb8121521a5fb674
+scenarios checked=7 test rows checked=23 warnings=0 result=PASSED
+domain-invariant-guard: exit=1 findings=1
+unanchored=INV-RL-SHOCK-QUALIFIERS-LOSSLESS
+state-transition-guard: exit=1 lines=423 sha256=04bbd3ae00aaea6523b5792024a35063002c9c11f1ca9af5f29ecfa049d6c0d4
+workflowMode=bugfix-fastlane auditProfile=delivery-completion-v1 targetStatus=done
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision=sha256:62bfa28005f0ea10214052cc7472ddae527ef64282ad3353caf077aba9f48964
+failedGateIds=[G040,G130,G136]
+failedChecks=[Check-4-scenario-states,Check-5-all-done]
+failureCount=11 blockingCode=DELIVERY_COMPLETION_FAILED verdict=FAIL
+```
+
+G040 found four current-window vocabulary hits at report lines 3640, 3672, 3686, and 3973. G130
+found the Feature 031 invariant above. G136 listed all ten unchecked Checklist items and explicitly
+forbade the guard or agent from checking them for the human.
+
+### Reconciliation Finding Ledger
+
+| Finding | Goal impact | Disposition | Current owner |
+| --- | --- | --- | --- |
+| `F-BUG017-SCOPE-MIRROR` | required | Addressed. Certification now mirrors Scope 2 as `in_progress`, 9/2; the focused validator exits 0 with no new or stale drift. | `bubbles.validate` |
+| `F-BUG017-ACTIVE-SCENARIO-RECEIPTS` | required | Unresolved. SCN-BUG017-01/02/03/07/08/11 remain `PLANNED`; declared metadata cannot replace receipts. | `bubbles.test` |
+| `F-BUG017-LIVE-REPLAY` | required | Unresolved. The unlogged prompt capture was not authenticated and validate's exact replay exited 130 on SIGINT. | `bubbles.test` |
+| `F-BUG017-INTERRUPT-RESIDUE` | required | Unresolved. Two pre-existing current-epoch helper temp directories contain partial browser output, so interruption cleanup is not unconditional. | `bubbles.implement` |
+| `F-BUG017-SELFTEST-RECEIPT` | required | Unresolved. Validate corrected the receipt identity, but the selftest still exits 1 and a passing test-owned TP-BUG017-02-02 receipt does not exist. | `bubbles.test` |
+| `F-BUG017-SCOPE2-DOD` | required | Unresolved. Both current Scope 2 DoD rows remain unchecked, so Check 5 blocks terminal status. | `bubbles.test` |
+| `XRL-PATH-GUARD-HIST-001` | blocking-external | Preserved in BUG-024. No baseline growth or historical report rewrite occurred. | `bubbles.design` via `specs/_bugs/BUG-024-spec-path-historical-report-leak` |
+| `INV-RL-SHOCK-QUALIFIERS-LOSSLESS` | blocking-external | Preserved as Feature 031 delivery work; BUG-017 does not implement or justify it. | `bubbles.implement` via `specs/031-shock-transmission-foundation` |
+| `F-BUG017-G040-CURRENT-WINDOW` | required | Unresolved. Four deferral-vocabulary hits occur inside implementation-owned evidence text; validate did not rewrite another phase's report section. | `bubbles.implement` |
+| `G136-BUG017-CURRENT-CHECKLIST` | human-boundary | Unresolved. Ten current Checklist rows remain unchecked and the older shared acceptance act does not cover them. | human operator |
+
+BUG-017 remains `in_progress`. No acceptance checkbox, terminal status, certified phase, source,
+test, Feature 031, BUG-024, excluded path, commit, branch, remote, worktree, deployment, or command
+affinity was changed.
+
+### Resume Correction At 2026-09-02T19:49:51Z
+
+**Phase:** validate
+**Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=5s 180 /opt/homebrew/bin/bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos --source-revision d0c09a3ec90d2bb72920caee9e44f1d5f697c619 --changed-file scripts/validate-playwright-cost-ratio.mjs --changed-file tests/playwright-runtime.foundation.functional.mjs --format text`
+**Exit Code:** 1
+**Claim Source:** interpreted
+**Interpretation:** The current canonical result supersedes this validate section's earlier
+`REGRESSION_GREEN` interpretation. The resolver directly derives only `IMPLEMENTED`; existing
+test-owned execution rows do not currently advance any green state. This is a receipt-admission
+gap owned by `bubbles.test`, not authority to repeat completed browser workloads with unchanged
+identity.
+
+Tool-log row 721 records the command under session
+`vscode-7fbaa0072aa19f2dad3c4e8b6569c268`, agent `bubbles.validate`, node
+`shock-close-bug-017`, stdout SHA-256
+`24e4a3fd4b74d455ab73145edfe51a96c16ee32844f036e6dc22c0ae4eeb35f6`, and the
+current helper, persistent-test, plan, scenario, state, and tool-log input closure.
+
+```text
+scenario-state-resolve: specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos
+  source revision: d0c09a3ec90d
+  SCN-BUG017-01  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-02  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-03  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-06  state=IMPLEMENTED  derived=[PLANNED RED_VERIFIED IMPLEMENTED]
+      BLOCKED_NOT_RUN: GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN
+  SCN-BUG017-07  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-08  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-11  state=PLANNED  derived=[PLANNED]
+  REFUSED SCS-IMPL-REF-CHANGED [SCN-BUG017-06]: implementation ref(s) scripts/validate-playwright-cost-ratio.mjs, tests/playwright-runtime.foundation.functional.mjs changed; this scenario is AFFECTED and its green is stale
+exit: 1
+```
+
+The structured inventory contains zero `SCN-BUG017-06` receipts whose phase is `green-live`.
+It also contains authenticated test-owned row 516 for the exact dual-project `--live` command at
+the current source revision and implementation hashes, plus current test-owned targeted and
+regression rows 709 through 714. The canonical resolver does not admit those rows into the current
+green chain. The prompt-supplied Research snapshot capture is not browser evidence and was not
+used.
+
+The validate-owned certification mirror remains reconciled: Scope 02 is `in_progress`, 9/2, and
+absent from both completed-scope mirrors. Scopes 01, 03, and 04 remain complete. Both top-level
+status mirrors remain `in_progress`, and no certified phase is added.
+
+| Finding | Disposition | Owner |
+| --- | --- | --- |
+| `F-BUG017-SCOPE-MIRROR` | Addressed. Certification mirrors Scope 02 as `in_progress`, 9/2, and excludes it from both completed-scope mirrors. | `bubbles.validate` |
+| `F-BUG017-ACTIVE-SCENARIO-RECEIPTS` | Unresolved. SCN-BUG017-01/02/03/07/08/11 remain `PLANNED`. | `bubbles.test` |
+| `F-BUG017-LIVE-REPLAY` | Unresolved as receipt admission. Authenticated row 516 exists, but the current resolver derives no `GREEN_LIVE` state. | `bubbles.test` |
+| `F-BUG017-INTERRUPT-RESIDUE` | Unresolved. The earlier validate evidence found two pre-existing helper-owned partial-output directories. | `bubbles.implement` |
+| `F-BUG017-SELFTEST-RECEIPT` | Unresolved. The latest current-identity selftest exits 1 on the preserved Feature 031/BUG-024 path finding. | `bubbles.test` |
+| `F-BUG017-SCOPE2-DOD` | Unresolved. Both current Scope 02 DoD rows remain unchecked. | `bubbles.test` |
+| `XRL-PATH-GUARD-HIST-001` | Preserved as blocking-external on its separate authorized node. | `bubbles.design` via `specs/_bugs/BUG-024-spec-path-historical-report-leak` |
+| `INV-RL-SHOCK-QUALIFIERS-LOSSLESS` | Preserved as blocking-external on its separate authorized node. | `bubbles.implement` via `specs/031-shock-transmission-foundation` |
+| `F-BUG017-G040-CURRENT-WINDOW` | Unresolved. Four hits remain in implementation-owned evidence text. | `bubbles.implement` |
+| `G136-BUG017-CURRENT-CHECKLIST` | Unresolved human boundary. All ten Checklist items remain unchecked. | human operator |
+
+BUG-017 remains `in_progress`. The actual next specialist for this node is `bubbles.test`, limited
+to current-identity receipt admission and the still-planned BUG-017 scenarios. Completed workloads
+remain preserved unless their identity changes.
+
+### Test-Owned Receipt Admission At 2026-09-02T20:08:33Z
+
+**Phase:** test
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node scripts/validate-playwright-cost-ratio.mjs --control at-bound`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-017 SCN-BUG017-06 canonical targeted GREEN receipt admission
+$ /usr/bin/perl -e alarm shift @ARGV; exec @ARGV 120 node scripts/validate-playwright-cost-ratio.mjs --control at-bound
+exit: 0
+lines: 2
+sha256: 126769549145b36cfb711d95a4cc02d7879d38aa7e7dd3e6e1e8a0bed047de01
+--- output ---
+SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3000 bundledChromiumWallMs=1000
+SCN-BUG017-06: wall-time ratio 3.000 meets FR-017-004 maximum 3.000
+[tool-log] row=726 phase=green sourceRevision=d0c09a3ec90d2bb72920caee9e44f1d5f697c619 exit=0
+```
+
+Rows 710 and 711 used the non-registry phase token `green-targeted`; the scenario-state registry
+requires receipt phase `green` to derive `GREEN_TARGETED`. Row 721 also supplied the implementation
+paths as `--changed-file`, which correctly invalidated every green state while describing the
+pre-reverification affected set. Row 726 reruns only the deterministic at-bound control with the
+same scenario ID, test identity, negative control, source revision, and current input closure, and
+records the canonical `green` token. The completed browser workloads were not rerun. Row 516 remains
+the authenticated dual-project live execution, and row 713 remains the current corrected 22-file
+system-Chrome regression execution.
+
+**Phase:** test
+**Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=5s 180 /opt/homebrew/bin/bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos --source-revision d0c09a3ec90d2bb72920caee9e44f1d5f697c619 --format text`
+**Exit Code:** 1
+**Claim Source:** interpreted
+**Interpretation:** The resolver directly derives the complete current receipt chain for
+`SCN-BUG017-06`. Its process exit remains nonzero only because malformed Feature 031 receipts are
+still present in the repository-wide append-only log. Those external receipts remain routed and
+were not modified or relabelled by BUG-017.
+
+```text
+scenario-state-resolve: specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos
+  source revision: d0c09a3ec90d
+  SCN-BUG017-01  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-02  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-03  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-06  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-BUG017-07  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-08  state=PLANNED  derived=[PLANNED]
+  SCN-BUG017-11  state=PLANNED  derived=[PLANNED]
+  REFUSED SCS-MISSING-BINDING [SCN-031-001]: receipt for phase 'green' omits required binding field 'testIdentity'
+  REFUSED SCS-NO-NEGATIVE-CONTROL [SCN-031-001]: receipt for phase 'green' omits required binding field 'negativeControl'
+  REFUSED SCS-MISSING-BINDING [SCN-031-002]: receipt for phase 'green' omits required binding field 'testIdentity'
+  REFUSED SCS-NO-NEGATIVE-CONTROL [SCN-031-002]: receipt for phase 'green' omits required binding field 'negativeControl'
+  REFUSED SCS-MISSING-BINDING [SCN-031-003]: receipt for phase 'green' omits required binding field 'testIdentity'
+  REFUSED SCS-NO-NEGATIVE-CONTROL [SCN-031-003]: receipt for phase 'green' omits required binding field 'negativeControl'
+  REFUSED SCS-MISSING-BINDING [SCN-031-004]: receipt for phase 'green' omits required binding field 'testIdentity'
+  REFUSED SCS-NO-NEGATIVE-CONTROL [SCN-031-004]: receipt for phase 'green' omits required binding field 'negativeControl'
+  REFUSED SCS-MISSING-BINDING [SCN-031-007]: receipt for phase 'green' omits required binding field 'testIdentity'
+  REFUSED SCS-NO-NEGATIVE-CONTROL [SCN-031-007]: receipt for phase 'green' omits required binding field 'negativeControl'
+  REFUSED SCS-MISSING-BINDING [SCN-031-007]: receipt for phase 'green' omits required binding field 'testIdentity'
+  REFUSED SCS-NO-NEGATIVE-CONTROL [SCN-031-007]: receipt for phase 'green' omits required binding field 'negativeControl'
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG022-008]: receipt cites source revision fa9be9ddcd33 but the resolved revision is d0c09a3ec90d
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG022-008]: receipt cites source revision fa9be9ddcd33 but the resolved revision is d0c09a3ec90d
+  REFUSED SCS-REVISION-DRIFT [SCN-BUG022-008]: receipt cites source revision fa9be9ddcd33 but the resolved revision is d0c09a3ec90d
+```
+
+Tool-log row 727 records this resolver execution with stdout SHA-256
+`c172db0aafab07e506b0bc2b4b8143a2e99643bef33ebc32baf0aa1c8d81bac5`. The six
+other active BUG-017 scenarios remain honestly `PLANNED`; this narrow route does not manufacture
+their missing receipts.
+
+| Finding | Disposition | Owner |
+| --- | --- | --- |
+| `F-BUG017-SCOPE-MIRROR` | Preserved addressed. Scope 2 remains `in_progress`, 9/2, and absent from both completed-scope mirrors. | `bubbles.validate` |
+| `F-BUG017-ACTIVE-SCENARIO-RECEIPTS` | Unresolved. SCN-BUG017-01/02/03/07/08/11 remain `PLANNED`. | `bubbles.test` |
+| `F-BUG017-LIVE-REPLAY` | Addressed for the routed receipt-admission target. Canonical derivation now admits row 516 as `GREEN_LIVE`; no unchanged browser workload was repeated. | `bubbles.test` |
+| `F-BUG017-INTERRUPT-RESIDUE` | Unresolved. Cleanup of the two pre-existing helper-owned partial-output directories is implementation-owned. | `bubbles.implement` |
+| `F-BUG017-SELFTEST-RECEIPT` | Unresolved. The current selftest receipt remains nonzero on the preserved Feature 031 and BUG-024 path findings. | `bubbles.test` |
+| `F-BUG017-SCOPE2-DOD` | Unresolved. Both current Scope 2 DoD rows remain unchecked. | `bubbles.test` |
+| `XRL-PATH-GUARD-HIST-001` | Preserved as blocking-external on its separate authorized BUG-024 node. | `bubbles.design` |
+| `INV-RL-SHOCK-QUALIFIERS-LOSSLESS` | Preserved as blocking-external on its separate authorized Feature 031 node. | `bubbles.implement` |
+| `F-BUG017-G040-CURRENT-WINDOW` | Unresolved. The four hits remain in implementation-owned evidence text. | `bubbles.implement` |
+| `G136-BUG017-CURRENT-CHECKLIST` | Unresolved human boundary. All ten current Checklist items remain unchecked. | human operator |
+
+BUG-017 remains `in_progress`. No Scope 2 checkbox, acceptance item, state or certification field,
+source file, browser test, external finding artifact, commit, branch, remote, worktree, deployment,
+or command affinity changed in this test-owned receipt-admission route.
+
+## Implementation Remediation For Current Validate Findings At 2026-09-02 {#implementation-remediation-for-current-validate-findings-at-2026-09-02}
+
+**Phase:** implement
+**Claim Source:** executed
+
+### Repository Authority And Work Boundary
+
+The inherited packet validated against continuation node `shock-close-bug-017`, session
+`vscode-7fbaa0072aa19f2dad3c4e8b6569c268`, and control revision 8. The validator returned the
+requested research-lab shock worktree root and decision
+`rb:vscode-7fbaa0072aa19f2dad3c4e8b6569c268:8:node:shock-close-bug-017`.
+
+This remediation changed only one current-window evidence sentence and removed two dead-process
+temporary roots in the helper's exact production namespace. It did not edit the ratio helper,
+the persistent functional test, structured test receipts, scenario metadata, Scope 2 DoD,
+certification, or human acceptance.
+
+### `F-BUG017-INTERRUPT-RESIDUE`
+
+A repository search found exactly two creators for the BUG-017 namespace. The production helper
+includes its process ID; the functional test uses a distinct `-test-` namespace.
+
+```text
+./tests/playwright-runtime.foundation.functional.mjs:668:    const controlTempRoot = mkdtempSync(resolve(tmpdir(), `research-lab-scn-bug017-06-test-${control}-`));
+./scripts/validate-playwright-cost-ratio.mjs:22:const OWNED_TEMP_PREFIX = `research-lab-scn-bug017-06-${process.pid}-`;
+```
+
+The bounded exact-prefix inventory returned only these production-helper roots:
+
+```text
+/var/folders/m_/25mnb8mx4ng1sb7lwd8cl9jw0000gn/T/research-lab-scn-bug017-06-77716-live-ciiTWD
+/var/folders/m_/25mnb8mx4ng1sb7lwd8cl9jw0000gn/T/research-lab-scn-bug017-06-47748-live-KGTGt4
+```
+
+Each root contained one partial bundled-Chromium `error-context.md`. Fresh liveness probes for
+the encoded process IDs both exited 1 with `No such process`. The cleanup named the two files
+literally, used no wildcard or recursive removal, and removed only the six resulting empty
+directories from leaf to root.
+
+```text
+BUG017_DEAD_PID=77716
+BUG017_DEAD_PID=47748
+BUG017_EXACT_OWNED_RESIDUE_REMOVED=2
+exit: 0
+```
+
+The post-cleanup check asserted both literal roots absent and enumerated only the helper's exact
+production prefix at operating-system temp-root depth one.
+
+```text
+BUG017_OWNED_NAMESPACE_COUNT=0
+exit: 0
+```
+
+### `F-BUG017-G040-CURRENT-WINDOW`
+
+The report has one certifying-window marker at source line 3693. The three cited vocabulary lines
+at 3640, 3672, and 3686 precede that marker and stay byte-preserved as prior-window history. An
+exact post-marker reproduction of the installed G040 matcher found one authoritative hit:
+
+```text
+3973:state. The follow-up used the exact test identity and negative-control text from the admitted RED
+count=1
+exit=0
+```
+
+The current sentence now identifies the structured implementation receipt directly. The same
+focused scan then returned:
+
+```text
+count=0
+exit=0
+```
+
+The canonical transition guard was then executed without scenario-binding variables. It stayed
+nonzero, as required by the untouched completion boundaries, but placed G040 in `passedGateIds`.
+The complete 434-line output has SHA-256
+`14df975695ac2237982b6564384e292065eaf5568568ed551e141d447bedace3`.
+
+```text
+state-transition-guard: exit=1 lines=434
+passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G090,G094,G095,G097,G098,G099,G100,G131]
+failedGateIds: [G130,G136]
+failedChecks: [Check-4-scenario-states,Check-5-all-done]
+failureCount: 10
+verdict: FAIL
+```
+
+### Finding Accounting And Routing Boundary
+
+| Finding | Disposition | Evidence |
+| --- | --- | --- |
+| `F-BUG017-INTERRUPT-RESIDUE` | Addressed in the implementation boundary. | The sole production prefix maps the two roots to dead helper PIDs; exact cleanup exited 0; post-cleanup namespace count is zero. |
+| `F-BUG017-G040-CURRENT-WINDOW` | Addressed in the implementation boundary. | Frozen pre-marker history is unchanged; the exact current-window matcher returns zero hits. |
+
+The test-owned receipt chain at rows 726 and 727 is unchanged. SCN-BUG017-06 retains its derived
+`GREEN_TARGETED`, `GREEN_LIVE`, and `REGRESSION_GREEN` states. Six other active scenarios retain
+their `PLANNED` state, the repository selftest retains its external nonzero result, Scope 2 retains
+9 checked and 2 unchecked DoD rows, and all human acceptance items retain their existing state.
+The actual next specialist is `bubbles.test` for the still-open test-owned BUG-017 findings.
+
 

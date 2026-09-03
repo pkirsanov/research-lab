@@ -1,0 +1,222 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-023-options-flow-ready-clock-drift",
+  "generatedAt": "2026-09-02T15:36:57Z",
+  "generatedBy": "bubbles.plan",
+  "stage": "planning",
+  "scenarioCount": 3,
+  "scopeMapping": {
+    "01-clock-stable-options-flow-baseline": [
+      "SCN-BUG023-001",
+      "SCN-BUG023-002",
+      "SCN-BUG023-003"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "SCN-BUG023-001",
+      "scenarioId": "SCN-BUG023-001",
+      "scopeId": "01-clock-stable-options-flow-baseline",
+      "scope": 1,
+      "title": "Live stale evidence remains unavailable",
+      "gherkin": {
+        "given": "committed options evidence older than the production freshness boundary",
+        "when": "the live owner read evaluates at the current decision time",
+        "then": "it returns a named unavailable result and exposes no ready-only metrics"
+      },
+      "behaviorClass": "pure-calculation",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The production builder transforms the recorded owner evidence at the first stale instant.",
+          "satisfiedBy": [
+            "TP-BUG023-01",
+            "TP-BUG023-04",
+            "TP-BUG023-06"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The production builder rejects out-of-window evidence with its age and without ready-only metrics.",
+          "satisfiedBy": [
+            "TP-BUG023-01",
+            "TP-BUG023-04",
+            "TP-BUG023-06"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG023-01",
+        "TP-BUG023-04",
+        "TP-BUG023-05",
+        "TP-BUG023-06"
+      ],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "options-flow first stale instant remains unavailable"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#current-options-owner-diagnostic-from-feature-031",
+        "report.md#tp-bug023-01-persistent-red",
+        "report.md#tp-bug023-01-independent-evidence"
+      ],
+      "implementationRefs": [
+        "scripts/brief-refresh.mjs#buildOptionsFlowToolRead",
+        "scripts/owner-state.mjs#optionsFlowOwnerState"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/brief-refresh.mjs#buildOptionsFlowToolRead"
+        ],
+        "negativeControl": "Change the stale offset from seven days plus one millisecond to exactly seven days. The stale assertion must fail.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG023-002",
+      "scenarioId": "SCN-BUG023-002",
+      "scopeId": "01-clock-stable-options-flow-baseline",
+      "scope": 1,
+      "title": "Positive owner-model proof uses an explicit evidence clock",
+      "gherkin": {
+        "given": "the same committed owner state and an explicit decision time inside the seven-day boundary",
+        "when": "the options-flow read runs",
+        "then": "it reaches ready and publishes the owner model's real considered, flagged, lean, and ranked-contract values"
+      },
+      "behaviorClass": "pure-calculation",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The positive case executes the production owner-state and owner-model functions at an explicit in-window instant.",
+          "satisfiedBy": [
+            "TP-BUG023-02",
+            "TP-BUG023-04",
+            "TP-BUG023-06"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG023-02",
+        "TP-BUG023-04",
+        "TP-BUG023-05",
+        "TP-BUG023-06"
+      ],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "options-flow evidence-clock ready boundaries use owner model"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#current-broad-selftest-evidence-from-feature-031",
+        "report.md#tp-bug023-02-persistent-red",
+        "report.md#tp-bug023-02-independent-evidence"
+      ],
+      "implementationRefs": [
+        "scripts/selftest.mjs",
+        "scripts/brief-refresh.mjs#buildOptionsFlowToolRead",
+        "rlexperience-adapters/options.js#computeAnomalySummary"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/brief-refresh.mjs#buildOptionsFlowToolRead",
+          "rlexperience-adapters/options.js#computeAnomalySummary"
+        ],
+        "negativeControl": "Change the exact-seven-day fixture to seven days plus one millisecond. The boundary-ready assertion must fail.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG023-003",
+      "scenarioId": "SCN-BUG023-003",
+      "scopeId": "01-clock-stable-options-flow-baseline",
+      "scope": 1,
+      "title": "Repository validation is calendar-stable",
+      "gherkin": {
+        "given": "unchanged repository bytes and explicit clocks for the positive and stale cases",
+        "when": "node scripts/selftest.mjs runs on different calendar dates",
+        "then": "the options-flow result is unchanged and unavailable metrics are not dereferenced"
+      },
+      "behaviorClass": "pure-calculation",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The complete repository selftest keeps all explicit-clock options-flow results independent of the execution date.",
+          "satisfiedBy": [
+            "TP-BUG023-03",
+            "TP-BUG023-04",
+            "TP-BUG023-05",
+            "TP-BUG023-06"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG023-03",
+        "TP-BUG023-04",
+        "TP-BUG023-05",
+        "TP-BUG023-06"
+      ],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "options-flow explicit clocks remain calendar-stable"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#current-broad-selftest-evidence-from-feature-031",
+        "report.md#tp-bug023-03-persistent-red",
+        "report.md#tp-bug023-03-independent-evidence"
+      ],
+      "implementationRefs": [
+        "scripts/selftest.mjs",
+        "scripts/brief-refresh.mjs#buildOptionsFlowToolRead",
+        "scripts/owner-state.mjs#optionsFlowOwnerState"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/brief-refresh.mjs#buildOptionsFlowToolRead",
+          "scripts/owner-state.mjs#optionsFlowOwnerState"
+        ],
+        "negativeControl": "Remove the positive explicit asOf value and the ready-state guard. The complete selftest must reproduce clock drift and the secondary dereference.",
+        "negativeControlMechanism": "mutation"
+      }
+    }
+  ]
+}

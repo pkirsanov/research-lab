@@ -1,0 +1,1395 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "spec": "specs/031-shock-transmission-foundation",
+  "featureDir": "specs/031-shock-transmission-foundation",
+  "featureName": "Shock Transmission Foundation",
+  "generatedAt": "2026-09-01T22:14:10Z",
+  "generatedBy": "bubbles.plan",
+  "planningStatus": "planned-not-executed",
+  "planningStageResolution": {
+    "strategy": "existing-host-plus-unique-future-title-sentinel",
+    "sentinelContract": "Each linkedTests entry uses a repository-present test host and one unique __FUTURE_TEST_SCN_031_NNN__ title. The plannedTest object records the dedicated implementation path and exact persistent title. Scope 1 scenarios SCN-031-001, SCN-031-002, SCN-031-003, SCN-031-004, and SCN-031-007 also map through TP-01-08 to the persistent canary at tests/shock-transmission.canary.functional.mjs with exact title Feature 031 foundation canary preserves the registered selftest inventory. SCN-031-022 also maps through TP-01-11 to tests/shock-transmission.e2e.spec.mjs with exact title Regression: SCN-031-022 existing Agenda binds the shock foundation without a new route.",
+    "testPlan": "test-plan.json"
+  },
+  "scenarios": [
+    {
+      "id": "SCN-031-001",
+      "scenarioId": "SCN-031-001",
+      "title": "A complete shock is admitted",
+      "scopeRef": "Scope 1",
+      "scope": "01-canonical-contract-and-exact-refusals",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "a topic adapter submits a shock with source, start, capacity, observed loss, uncertainty, and repair path",
+        "when": "the foundation validates the shock",
+        "then": "one versioned shock is admitted and every numeric member retains source, provenance, and as-of time"
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs#__FUTURE_TEST_SCN_031_001__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.contracts.unit.mjs",
+        "testId": "Regression: SCN-031-001 complete shock admission preserves canonical provenance",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-01-01", "TP-01-06", "TP-01-07", "TP-01-08", "TP-05-01", "TP-05-18"],
+      "dodIds": ["DOD-01-TP-01-01", "DOD-01-TP-01-06", "DOD-01-TP-01-07", "DOD-01-TP-01-08", "DOD-05-TP-05-01", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "static-metadata"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit admission recomputes canonical snapshot and nested numeric provenance instead of returning fixture input unchanged.",
+          "satisfiedBy": ["tests/shock-transmission.contracts.unit.mjs#Regression: SCN-031-001 complete shock admission preserves canonical provenance"]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The declared contract version and content identity are asserted from production canonical bytes.",
+          "satisfiedBy": ["tests/shock-transmission.contracts.unit.mjs#Regression: SCN-031-001 complete shock admission preserves canonical provenance"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "config/domain-model.yaml", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlshock.js"],
+        "negativeControl": "Delete the observed-loss provenance from an otherwise complete shock and require exact refusal rather than admission.",
+        "negativeControlMechanism": "adversarial-input"
+      },
+      "riskTier": "low",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["foundation", "canonical-identity", "persistent-regression"]
+    },
+    {
+      "id": "SCN-031-002",
+      "scenarioId": "SCN-031-002",
+      "title": "A missing member is refused by exact field path",
+      "scopeRef": "Scope 1",
+      "scope": "01-canonical-contract-and-exact-refusals",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "one required nested member is absent",
+        "when": "the foundation validates the record",
+        "then": "the record is refused with the exact field path and no generic replacement reason"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_002__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-002 v2 refusal exposes the exact path and no substitute output",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-01-02", "TP-01-06", "TP-01-08", "TP-05-03", "TP-05-18"],
+      "dodIds": ["DOD-01-TP-01-02", "DOD-01-TP-01-06", "DOD-01-TP-01-08", "DOD-05-TP-05-03", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "degraded-state", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "A complete nested deletion matrix calls production validation and asserts each deterministic JSONPath.",
+          "satisfiedBy": ["tests/shock-transmission.contracts.unit.mjs#Regression: SCN-031-002 every missing nested member returns its exact path"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The negative path names the missing member and produces no plausible replacement output.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-002 v2 refusal exposes the exact path and no substitute output"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current Research Agenda route visibly presents the plain reason and machine path.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-002 v2 refusal exposes the exact path and no substitute output"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "research-agenda-lab.html"],
+        "negativeControl": "Remove one exact nested-path branch and require the focused browser regression to lose its precise path assertion.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["exact-path", "degraded-state", "existing-route"]
+    },
+    {
+      "id": "SCN-031-003",
+      "scenarioId": "SCN-031-003",
+      "title": "An unknown member fails closed",
+      "scopeRef": "Scope 1",
+      "scope": "01-canonical-contract-and-exact-refusals",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "a topic adapter submits an undeclared member",
+        "when": "the foundation validates the record",
+        "then": "the member is refused by exact field path and cannot enter a public finding"
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs#__FUTURE_TEST_SCN_031_003__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.contracts.unit.mjs",
+        "testId": "Regression: SCN-031-003 unknown members fail closed and never project",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-01-03", "TP-01-06", "TP-01-08", "TP-05-03"],
+      "dodIds": ["DOD-01-TP-01-03", "DOD-01-TP-01-06", "DOD-01-TP-01-08", "DOD-05-TP-05-03"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production validation rejects unknown root, nested, array, and dynamic-map members at exact paths.",
+          "satisfiedBy": ["tests/shock-transmission.contracts.unit.mjs#Regression: SCN-031-003 unknown members fail closed and never project"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The refused member never appears in the finding projection or reader output.",
+          "satisfiedBy": ["tests/shock-transmission.contracts.unit.mjs#Regression: SCN-031-003 unknown members fail closed and never project"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlshock.js"],
+        "negativeControl": "Remove the unknown-member branch for one nested edge field and require that mutation to admit data the regression forbids.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["closed-shape", "fail-closed", "persistent-regression"]
+    },
+    {
+      "id": "SCN-031-004",
+      "scenarioId": "SCN-031-004",
+      "title": "Evidence and inference remain distinct",
+      "scopeRef": "Scope 1",
+      "scope": "01-canonical-contract-and-exact-refusals",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "one observed claim and one model inference share a path",
+        "when": "both claims are projected and opened on the existing Research Agenda route",
+        "then": "pure rows and the rendered route retain distinct labels, grades, limitations, and refuters"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_004__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-004 observed and inferred claims remain visibly distinct",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-01-04", "TP-01-06", "TP-01-08", "TP-01-09", "TP-05-18", "TP-05-22"],
+      "dodIds": ["DOD-01-TP-01-04", "DOD-01-TP-01-06", "DOD-01-TP-01-08", "DOD-01-TP-01-09", "DOD-05-TP-05-18", "DOD-05-TP-05-22"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production validation and claim-row projection retain classes and reject missing inferred qualifiers.",
+          "satisfiedBy": ["tests/shock-transmission.reader.unit.mjs#Regression: SCN-031-004 claim rows retain distinct visible evidence semantics"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current Simple and Power route visibly and accessibly presents both labels, grades, limitation, and refuter.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-004 observed and inferred claims remain visibly distinct"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "research-agenda-lab.html"],
+        "negativeControl": "Remove one route label or inferred qualifier and require the focused Playwright assertion to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["claim-class", "evidence-quality", "persistent-regression"]
+    },
+    {
+      "id": "SCN-031-005",
+      "scenarioId": "SCN-031-005",
+      "title": "Gross disruption does not become net loss",
+      "scopeRef": "Scope 2",
+      "scope": "02-net-graph-actor-and-policy-engine",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "a measured gross disruption and at least one potential offset",
+        "when": "the foundation composes net transmission",
+        "then": "accessible capacity, lag, expiry, and uncertainty are applied without copying gross disruption into downstream loss"
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs#__FUTURE_TEST_SCN_031_005__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.composition.unit.mjs",
+        "testId": "Regression: SCN-031-005 net transmission subtracts every effective offset interval",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-02-01", "TP-02-09", "TP-02-10", "TP-05-04", "TP-05-18"],
+      "dodIds": ["DOD-02-TP-02-01", "DOD-02-TP-02-09", "DOD-02-TP-02-10", "DOD-05-TP-05-04", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production interval composition uses each effective offset version and returns a transformed monotonic range.",
+          "satisfiedBy": ["tests/shock-transmission.composition.unit.mjs#Regression: SCN-031-005 net transmission subtracts every effective offset interval"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlshock.js"],
+        "negativeControl": "Bypass one required offset during composition and require the deterministic net range assertion to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["net-after-offsets", "interval-math", "persistent-regression"]
+    },
+    {
+      "id": "SCN-031-006",
+      "scenarioId": "SCN-031-006",
+      "title": "An unavailable offset widens uncertainty",
+      "scopeRef": "Scope 2",
+      "scope": "02-net-graph-actor-and-policy-engine",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "a relevant offset has unavailable capacity",
+        "when": "the foundation composes a path",
+        "then": "the net range widens or remains unavailable and no zero-capacity observation is inserted"
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs#__FUTURE_TEST_SCN_031_006__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.composition.unit.mjs",
+        "testId": "Regression: SCN-031-006 unavailable offsets widen or withhold without zero substitution",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-02-02", "TP-02-09", "TP-02-10", "TP-05-04", "TP-05-18"],
+      "dodIds": ["DOD-02-TP-02-02", "DOD-02-TP-02-09", "DOD-02-TP-02-10", "DOD-05-TP-05-04", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production composition widens through the sourced upper bound and withholds when no bound exists.",
+          "satisfiedBy": ["tests/shock-transmission.composition.unit.mjs#Regression: SCN-031-006 unavailable offsets widen or withhold without zero substitution"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Unavailable remains named and no zero or neutral range appears.",
+          "satisfiedBy": ["tests/shock-transmission.composition.unit.mjs#Regression: SCN-031-006 unavailable offsets widen or withhold without zero substitution"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlshock.js"],
+        "negativeControl": "Replace an unavailable required offset with an implicit zero and require the regression to detect false precision.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["unavailable", "no-zero-default", "persistent-regression"]
+    },
+    {
+      "id": "SCN-031-007",
+      "scenarioId": "SCN-031-007",
+      "title": "A transmission edge carries a bounded range",
+      "scopeRef": "Scope 1",
+      "scope": "01-canonical-contract-and-exact-refusals",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "a supported connection between two states",
+        "when": "the edge is projected and opened on the existing Power route",
+        "then": "pure rows and the rendered route retain sign, unit, ordered range, timing, evidence, limitations, and refuters"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_007__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-007 Power renders the complete bounded edge contract",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-01-05", "TP-01-06", "TP-01-08", "TP-01-10", "TP-05-18", "TP-05-23"],
+      "dodIds": ["DOD-01-TP-01-05", "DOD-01-TP-01-06", "DOD-01-TP-01-08", "DOD-01-TP-01-10", "DOD-05-TP-05-18", "DOD-05-TP-05-23"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production validation and edge-row projection check every Edge field and qualifier.",
+          "satisfiedBy": ["tests/shock-transmission.reader.unit.mjs#Regression: SCN-031-007 edge rows retain the complete bounded qualifier contract"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current Power route visibly and accessibly presents the complete bounded Edge contract.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-007 Power renders the complete bounded edge contract"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "research-agenda-lab.html"],
+        "negativeControl": "Remove one route qualifier or collapse the interval and require the focused Playwright assertion to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["range", "unit", "sign"]
+    },
+    {
+      "id": "SCN-031-008",
+      "scenarioId": "SCN-031-008",
+      "title": "Conflicting edges remain visible",
+      "scopeRef": "Scope 2",
+      "scope": "02-net-graph-actor-and-policy-engine",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "two supported paths imply opposite effects on one outcome",
+        "when": "the finding and view are composed",
+        "then": "both paths and the conflict remain visible and no average hides disagreement"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_008__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-008 gross offsets conflicts and mechanism boundaries remain visible",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-02-03", "TP-02-09", "TP-02-10", "TP-05-04", "TP-05-12", "TP-05-18"],
+      "dodIds": ["DOD-02-TP-02-03", "DOD-02-TP-02-09", "DOD-02-TP-02-10", "DOD-05-TP-05-04", "DOD-05-TP-05-12", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production projection returns both ordered paths and no averaged answer. The owning-scope lifecycle matrix preserves stale, missing, conflicted, unsupported, and invalidated Finding states and rejects a directional substitute for each state.",
+          "satisfiedBy": [
+            "tests/shock-transmission.composition.unit.mjs#Regression: SCN-031-008 opposing supported paths remain visible and unaveraged",
+            "tests/shock-transmission.lifecycle.functional.mjs#Feature 031 composition lifecycle and authority mutation matrix"
+          ]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The existing Research Agenda route shows both paths and the conflict in visible and semantic surfaces.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-008 gross offsets conflicts and mechanism boundaries remain visible"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "research-agenda-lab.html"],
+        "negativeControl": "Replace the two visible paths with their average. Independently replace each non-current Finding state with a directional conclusion. The owning-scope regressions must fail every mutation.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "riskTier": "medium",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["conflict", "existing-route", "persistent-regression"]
+    },
+    {
+      "id": "SCN-031-009",
+      "scenarioId": "SCN-031-009",
+      "title": "Physical and financial mechanisms stay separate",
+      "scopeRef": "Scope 2",
+      "scope": "02-net-graph-actor-and-policy-engine",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "physical and financial mechanisms occur without a connecting edge",
+        "when": "the foundation composes their effects",
+        "then": "they remain separate and physical shortage alone cannot assert a credit-system break"
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs#__FUTURE_TEST_SCN_031_009__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.composition.unit.mjs",
+        "testId": "Regression: SCN-031-009 physical and financial paths require an evidenced joining edge",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-02-04", "TP-02-09", "TP-02-10", "TP-05-04", "TP-05-18"],
+      "dodIds": ["DOD-02-TP-02-04", "DOD-02-TP-02-09", "DOD-02-TP-02-10", "DOD-05-TP-05-04", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production path validation refuses a financial finding whose cited path contains no evidenced joining edge.",
+          "satisfiedBy": ["tests/shock-transmission.composition.unit.mjs#Regression: SCN-031-009 physical and financial paths require an evidenced joining edge"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlshock.js"],
+        "negativeControl": "Allow a financial-break finding to cite a physical path with no joining edge and require the scenario regression to detect admission.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["mechanism-separation", "graph", "persistent-regression"]
+    },
+    {
+      "id": "SCN-031-010",
+      "scenarioId": "SCN-031-010",
+      "title": "Independent policy actors remain independent",
+      "scopeRef": "Scope 2",
+      "scope": "02-net-graph-actor-and-policy-engine",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "five independent U.S. policy actors appear in one review",
+        "when": "the foundation records their actions",
+        "then": "each action retains its owner and Federal Reserve action is not attributed to the administration"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_010__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-010 policy actions retain independent institutional owners",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-02-05", "TP-02-09", "TP-02-10", "TP-05-05", "TP-05-18"],
+      "dodIds": ["DOD-02-TP-02-05", "DOD-02-TP-02-09", "DOD-02-TP-02-10", "DOD-05-TP-05-05", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production authority validation keeps each action attached to one declared actor and layer.",
+          "satisfiedBy": ["tests/shock-transmission.composition.unit.mjs#Regression: SCN-031-010 policy actions retain five independent owners and layers"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible actor rows retain all five owners and state no transferred authority.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-010 policy actions retain independent institutional owners"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "rlshockadapters.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "rlshockadapters.js", "research-agenda-lab.html"],
+        "negativeControl": "Reassign the Federal Reserve action to the executive actor and require unit and visible actor-row failures.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["actor-authority", "federal-reserve", "existing-route"]
+    },
+    {
+      "id": "SCN-031-011",
+      "scenarioId": "SCN-031-011",
+      "title": "An announcement is not implementation",
+      "scopeRef": "Scope 2",
+      "scope": "02-net-graph-actor-and-policy-engine",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "an actor has announcement evidence and no implementation evidence",
+        "when": "the policy action is evaluated",
+        "then": "it remains announced and no effect or restoration state is promoted"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_011__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-011 announced policy never renders as implemented or effective",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-02-06", "TP-02-09", "TP-02-10", "TP-05-06", "TP-05-18"],
+      "dodIds": ["DOD-02-TP-02-06", "DOD-02-TP-02-09", "DOD-02-TP-02-10", "DOD-05-TP-05-06", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production lifecycle validation refuses direct announced-to-effective promotion.",
+          "satisfiedBy": ["tests/shock-transmission.composition.unit.mjs#Regression: SCN-031-011 announcement evidence cannot promote implementation or effect"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The policy row visibly labels the action Announced and shows no implementation, effect, or restoration claim.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-011 announced policy never renders as implemented or effective"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "research-agenda-lab.html"],
+        "negativeControl": "Promote an announced-only action to effective and require the lifecycle and visible-state assertions to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["policy-lifecycle", "announcement", "existing-route"]
+    },
+    {
+      "id": "SCN-031-012",
+      "scenarioId": "SCN-031-012",
+      "title": "Policy layers may conflict",
+      "scopeRef": "Scope 2",
+      "scope": "02-net-graph-actor-and-policy-engine",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "one action improves liquidity and worsens inflation exposure",
+        "when": "the action is evaluated",
+        "then": "both effects remain separate and liquidity does not imply restored solvency or physical supply"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_012__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-012 policy layer effects remain independently visible",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-02-07", "TP-02-09", "TP-02-10", "TP-05-07", "TP-05-18"],
+      "dodIds": ["DOD-02-TP-02-07", "DOD-02-TP-02-09", "DOD-02-TP-02-10", "DOD-05-TP-05-07", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production policy projection returns separate effect rows and unchanged unrelated layers.",
+          "satisfiedBy": ["tests/shock-transmission.composition.unit.mjs#Regression: SCN-031-012 liquidity and inflation effects remain independent by layer"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Power displays liquidity and inflation separately while solvency and supply remain unrestored.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-012 policy layer effects remain independently visible"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "research-agenda-lab.html"],
+        "negativeControl": "Collapse all policy effects into one successful state and require separate-row assertions to fail.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "riskTier": "medium",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["policy-layer", "conflict", "existing-route"]
+    },
+    {
+      "id": "SCN-031-013",
+      "scenarioId": "SCN-031-013",
+      "title": "Restoration requires its named condition",
+      "scopeRef": "Scope 2",
+      "scope": "02-net-graph-actor-and-policy-engine",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "an effective action references an unmet restoration condition",
+        "when": "snapshot validation and view projection run",
+        "then": "the layer remains unrestored and only admitted observation evidence can produce met"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_013__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-013 restoration waits for its named admitted observation",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-02-08", "TP-02-09", "TP-02-10", "TP-05-08", "TP-05-18"],
+      "dodIds": ["DOD-02-TP-02-08", "DOD-02-TP-02-09", "DOD-02-TP-02-10", "DOD-05-TP-05-08", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production lifecycle validation requires an admitted observation before setting one named condition to met.",
+          "satisfiedBy": ["tests/shock-transmission.composition.unit.mjs#Regression: SCN-031-013 restoration requires its named admitted observation"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The visible layer remains unrestored until its named condition is met.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-013 restoration waits for its named admitted observation"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "research-agenda-lab.html"],
+        "negativeControl": "Allow the action itself to set restoration met and require lifecycle and visible state regressions to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["restoration", "named-condition", "existing-route"]
+    },
+    {
+      "id": "SCN-031-014",
+      "scenarioId": "SCN-031-014",
+      "title": "Topic definitions declare arbitrary horizons",
+      "scopeRef": "Scope 3",
+      "scope": "03-dynamic-definitions-and-immutable-publication",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "two topics declare different ordered horizon registries",
+        "when": "their definitions validate and each topic opens in an independent fresh route context",
+        "then": "both horizon registries remain canonical and no non-horizon behavior is exercised"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_014__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-014 independent route contexts drive distinct horizon controls",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-01-07", "TP-03-01", "TP-03-05", "TP-03-07", "TP-03-08", "TP-03-12", "TP-05-09", "TP-05-18"],
+      "dodIds": ["DOD-01-TP-01-07", "DOD-03-TP-03-01", "DOD-03-TP-03-05", "DOD-03-TP-03-07", "DOD-03-TP-03-08", "DOD-03-TP-03-12", "DOD-05-TP-05-09", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["runtime-config", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "runtime-config",
+          "requiredProof": "Two independent fresh route contexts each resolve one horizon registry and preserve its order and duration semantics.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-014 independent route contexts drive distinct horizon controls"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Each fresh route context visibly renders horizon ids, labels, order, durations, and intervals from its loaded definition only.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-014 independent route contexts drive distinct horizon controls"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "rlagenda.js", "research-agenda-lab.html", "rlexperience-adapters/research-agenda.js"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "rlagenda.js", "research-agenda-lab.html", "rlexperience-adapters/research-agenda.js"],
+        "negativeControl": "Coerce one v2 horizon to structural and require the selected-definition horizon assertion to fail.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "riskTier": "medium",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["dynamic-horizons", "runtime-config"]
+    },
+    {
+      "id": "SCN-031-015",
+      "scenarioId": "SCN-031-015",
+      "title": "Scenario probabilities account for the whole curve",
+      "scopeRef": "Scope 3",
+      "scope": "03-dynamic-definitions-and-immutable-publication",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "mutually exclusive states publish probabilities for one horizon",
+        "when": "the curve validates",
+        "then": "every row retains provenance and the total is within the declared tolerance"
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs#__FUTURE_TEST_SCN_031_015__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.definitions.unit.mjs",
+        "testId": "Regression: SCN-031-015 mutually exclusive scenario curves sum within declared tolerance",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-03-02", "TP-03-05", "TP-03-07", "TP-03-08", "TP-05-10", "TP-05-18"],
+      "dodIds": ["DOD-03-TP-03-02", "DOD-03-TP-03-05", "DOD-03-TP-03-07", "DOD-03-TP-03-08", "DOD-05-TP-05-10", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production curve validation checks every finite probability and total against the exact tolerance. It keeps curve-level evidence intact while independently deleting each row-level provenance, evidence, source, as-of, and limitation member, then requires an exact row-path refusal.",
+          "satisfiedBy": ["tests/shock-transmission.definitions.unit.mjs#Regression: SCN-031-015 mutually exclusive scenario curves sum within declared tolerance"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlshock.js"],
+        "negativeControl": "Move the probability total one normalized unit beyond tolerance. Keep curve-level evidence intact and independently remove each scenario row's provenanceClass, evidenceRefs, sourceRefs, asOf, and limitations member. Every mutation must refuse at its exact path.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["scenario-curve", "probability", "tolerance"]
+    },
+    {
+      "id": "SCN-031-016",
+      "scenarioId": "SCN-031-016",
+      "title": "Unsupported probability remains withheld",
+      "scopeRef": "Scope 3",
+      "scope": "03-dynamic-definitions-and-immutable-publication",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "current evidence cannot support a scenario probability update",
+        "when": "the review publishes",
+        "then": "the prior curve remains unchanged or the current curve is unavailable and no neutral distribution appears"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_016__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-016 probability confidence and realized rate never substitute",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-03-03", "TP-03-05", "TP-03-07", "TP-03-08", "TP-05-10", "TP-05-18"],
+      "dodIds": ["DOD-03-TP-03-03", "DOD-03-TP-03-05", "DOD-03-TP-03-07", "DOD-03-TP-03-08", "DOD-05-TP-05-10", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["degraded-state", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Unsupported current probability has no rows and no neutral or inherited substitute.",
+          "satisfiedBy": ["tests/shock-transmission.definitions.unit.mjs#Regression: SCN-031-016 unsupported probabilities remain unavailable without a neutral curve"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The existing route labels unsupported probability unavailable and keeps confidence and realized rate separate.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-016 probability confidence and realized rate never substitute"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "research-agenda-lab.html"],
+        "negativeControl": "Insert an equal neutral curve and display it as current, then require unit and browser regressions to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["withheld-probability", "no-default", "existing-route"]
+    },
+    {
+      "id": "SCN-031-017",
+      "scenarioId": "SCN-031-017",
+      "title": "A revised curve preserves its predecessor",
+      "scopeRef": "Scope 3",
+      "scope": "03-dynamic-definitions-and-immutable-publication",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "a new observation changes one scenario curve",
+        "when": "the revision publishes",
+        "then": "a new version names the predecessor and evidence while both immutable versions remain readable"
+      },
+      "linkedTests": [
+        "tests/brief-refresh-atomicity.test.mjs#__FUTURE_TEST_SCN_031_017__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.migration.integration.mjs",
+        "testId": "Regression: SCN-031-017 curve revision appends a predecessor-linked immutable version",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-03-04", "TP-03-05", "TP-03-06", "TP-03-07", "TP-03-08", "TP-03-10", "TP-03-11", "TP-03-12", "TP-03-13", "TP-04-19", "TP-04-23", "TP-05-18"],
+      "dodIds": ["DOD-03-TP-03-04", "DOD-03-TP-03-05", "DOD-03-TP-03-06", "DOD-03-TP-03-07", "DOD-03-TP-03-08", "DOD-03-TP-03-10", "DOD-03-TP-03-11", "DOD-03-TP-03-12", "DOD-03-TP-03-13", "DOD-04-TP-04-19", "DOD-04-TP-04-23", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["mutable-state"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "An owned ephemeral publication writes and rereads both immutable versions, publishes each production definition digest once, and restores one complete version-matched tuple during rollback.",
+          "satisfiedBy": [
+            "tests/shock-transmission.migration.integration.mjs#Regression: SCN-031-017 curve revision appends a predecessor-linked immutable version",
+            "tests/shock-transmission.migration.integration.mjs#Regression: Feature 031 publishes geopolitical and food v2 definitions exactly once before selection",
+            "tests/shock-transmission.consumers.integration.mjs#Regression: Feature 031 rollback never pairs a v2 pointer with a raw v1 read"
+          ]
+        }
+      ],
+      "implementationRefs": ["rlagenda.js", "scripts/research-agenda-generation.mjs", "scripts/research-agenda-refresh.mjs", "research/agenda/definitions/", "tests/brief-refresh-atomicity.test.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["rlagenda.js", "scripts/research-agenda-generation.mjs", "scripts/research-agenda-refresh.mjs"],
+        "negativeControl": "Overwrite the predecessor or feed its probability into current composition and require immutable-byte and current-isolation assertions to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["immutable-history", "predecessor", "round-trip"]
+    },
+    {
+      "id": "SCN-031-018",
+      "scenarioId": "SCN-031-018",
+      "title": "A geopolitical supply shock uses the neutral contract",
+      "scopeRef": "Scope 4",
+      "scope": "04-three-adapters-and-lossless-consumption",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "a chokepoint disruption affects several physical channels",
+        "when": "the geopolitical adapter uses the foundation",
+        "then": "routes, inventories, rerouting, insurance, demand response, and policy map without country-specific foundation fields"
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs#__FUTURE_TEST_SCN_031_018__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.adapters.unit.mjs",
+        "testId": "Regression: SCN-031-018 geopolitical supply maps only neutral foundation primitives",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-04-01", "TP-04-05", "TP-04-07", "TP-04-09", "TP-04-10", "TP-04-11", "TP-04-12", "TP-04-17", "TP-04-22"],
+      "dodIds": ["DOD-04-TP-04-01", "DOD-04-TP-04-05", "DOD-04-TP-04-07", "DOD-04-TP-04-09", "DOD-04-TP-04-10", "DOD-04-TP-04-11", "DOD-04-TP-04-12", "DOD-04-TP-04-17", "DOD-04-TP-04-22"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production adaptation transforms source-backed owner inputs into only neutral primitives and passes shared validation.",
+          "satisfiedBy": ["tests/shock-transmission.adapters.unit.mjs#Regression: SCN-031-018 geopolitical supply maps only neutral foundation primitives"]
+        }
+      ],
+      "implementationRefs": ["rlshockadapters.js", "rlshock.js", "rlagenda.js", "research/agenda/definitions/geopolitical-supply-shock/"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlshockadapters.js", "rlshock.js", "research/agenda/definitions/geopolitical-supply-shock/"],
+        "negativeControl": "Add a country-specific shortcut field and require shared foundation validation to reject the adapter output.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "riskTier": "medium",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["adapter", "geopolitical", "conformance"]
+    },
+    {
+      "id": "SCN-031-019",
+      "scenarioId": "SCN-031-019",
+      "title": "A food-input shock uses the same neutral contract",
+      "scopeRef": "Scope 4",
+      "scope": "04-three-adapters-and-lossless-consumption",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "fertilizer or feedstock costs change near a planting boundary",
+        "when": "the food-input adapter uses the foundation",
+        "then": "input cost, substitution, acreage, inventory, weather, crop lag, and price effects use the same primitives without route fields"
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs#__FUTURE_TEST_SCN_031_019__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.adapters.unit.mjs",
+        "testId": "Regression: SCN-031-019 food inputs use neutral primitives without route assumptions",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-04-02", "TP-04-05", "TP-04-07", "TP-04-09", "TP-04-10", "TP-04-11", "TP-04-12", "TP-04-17", "TP-04-22"],
+      "dodIds": ["DOD-04-TP-04-02", "DOD-04-TP-04-05", "DOD-04-TP-04-07", "DOD-04-TP-04-09", "DOD-04-TP-04-10", "DOD-04-TP-04-11", "DOD-04-TP-04-12", "DOD-04-TP-04-17", "DOD-04-TP-04-22"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production adaptation transforms food-input states through the same neutral output without a route or chokepoint requirement.",
+          "satisfiedBy": ["tests/shock-transmission.adapters.unit.mjs#Regression: SCN-031-019 food inputs use neutral primitives without route assumptions"]
+        }
+      ],
+      "implementationRefs": ["rlshockadapters.js", "rlshock.js", "research/agenda/definitions/food-inputs-outlook/"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlshockadapters.js", "rlshock.js", "research/agenda/definitions/food-inputs-outlook/"],
+        "negativeControl": "Require a chokepoint field in the food adapter and require conformance to fail that hidden geopolitical dependency.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "riskTier": "medium",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["adapter", "food-input", "conformance"]
+    },
+    {
+      "id": "SCN-031-020",
+      "scenarioId": "SCN-031-020",
+      "title": "A financial shock uses the same neutral contract",
+      "scopeRef": "Scope 4",
+      "scope": "04-three-adapters-and-lossless-consumption",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "technology financing reprices after return disappointment or higher rates",
+        "when": "the financial adapter uses the foundation",
+        "then": "capex, cash flow, credit, funding, forced sales, and restoration map without physical-flow assumptions"
+      },
+      "linkedTests": [
+        "scripts/selftest.mjs#__FUTURE_TEST_SCN_031_020__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.adapters.unit.mjs",
+        "testId": "Regression: SCN-031-020 financial intermediation uses neutral primitives without physical assumptions",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-04-03", "TP-04-05", "TP-04-07", "TP-04-09", "TP-04-10", "TP-04-11", "TP-04-12", "TP-04-17"],
+      "dodIds": ["DOD-04-TP-04-03", "DOD-04-TP-04-05", "DOD-04-TP-04-07", "DOD-04-TP-04-09", "DOD-04-TP-04-10", "DOD-04-TP-04-11", "DOD-04-TP-04-12", "DOD-04-TP-04-17"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production adaptation maps the eleven-step ladder through neutral primitives and retains absent owner reads as unavailable.",
+          "satisfiedBy": ["tests/shock-transmission.adapters.unit.mjs#Regression: SCN-031-020 financial intermediation uses neutral primitives without physical assumptions"]
+        }
+      ],
+      "implementationRefs": ["rlshockadapters.js", "rlshock.js"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlshockadapters.js", "rlshock.js"],
+        "negativeControl": "Require a physical route field or convert one absent owner read to neutral, then require conformance to fail.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "riskTier": "medium",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["adapter", "financial-intermediation", "conformance"]
+    },
+    {
+      "id": "SCN-031-021",
+      "scenarioId": "SCN-031-021",
+      "title": "Downstream projection preserves every causal qualifier",
+      "scopeRef": "Scope 4",
+      "scope": "04-three-adapters-and-lossless-consumption",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "a validated finding carries a causal path, refuters, limitations, triggers, and invalidations",
+        "when": "Agenda Power projects the finding",
+        "then": "every member remains semantically unchanged and an incomplete projection is refused"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_021__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-021 Power exposes every qualifier through the production route",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-04-04", "TP-04-06", "TP-04-07", "TP-04-08", "TP-04-09", "TP-04-13", "TP-04-15", "TP-04-16", "TP-04-17", "TP-04-18", "TP-04-19", "TP-04-20", "TP-04-21", "TP-04-23", "TP-05-12", "TP-05-18"],
+      "dodIds": ["DOD-04-TP-04-04", "DOD-04-TP-04-06", "DOD-04-TP-04-07", "DOD-04-TP-04-08", "DOD-04-TP-04-09", "DOD-04-TP-04-13", "DOD-04-TP-04-15", "DOD-04-TP-04-16", "DOD-04-TP-04-17", "DOD-04-TP-04-18", "DOD-04-TP-04-19", "DOD-04-TP-04-20", "DOD-04-TP-04-21", "DOD-04-TP-04-23", "DOD-05-TP-05-12", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["shared-consumer", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "The sole parent resolver accepts only the exact thirteen-key request, five-key currentRecord, and two-key dependency tuple. It rejects request and current-record over-shape plus missing or extra dependency keys without returning a pair. Agenda Power consumes the exact frozen seam. Company Intelligence and Market Brief keep the compact non-causal read.",
+          "satisfiedBy": [
+            "parity:tests/shock-transmission.adapters.unit.mjs#Regression: SCN-031-021 finding projection preserves every causal qualifier byte for byte",
+            "tests/shock-transmission.consumers.integration.mjs#Regression: SCN-031-021 mixed unsupported and mismatched parent tuples refuse without a pair",
+            "consumer-surface:tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-021 Power exposes every qualifier through the production route",
+            "consumer-surface:tests/company-intelligence.unit.mjs#Regression: Feature 031 keeps the compact Agenda read compatible and non-causal",
+            "consumer-surface:tests/market-brief-scorecard.spec.mjs#Regression: compact agenda read renders exact mode and change assessment while dossier-only fields remain out of the brief"
+          ]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current Power route loads the Feature 031 modules, uses the exact read resolver, and visibly exposes all projected causal qualifiers and safe owner links.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-021 Power exposes every qualifier through the production route"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "rlagenda.js", "scripts/research-agenda-generation.mjs", "scripts/research-agenda-refresh.mjs", "research-agenda-lab.html", "rlexperience-adapters/research-agenda.js", "rlcompanyintel.js", "rlbrief.js", "market-brief.html", "scripts/validate-brief-payload.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "rlagenda.js", "research-agenda-lab.html"],
+        "negativeControl": "Drop a qualifier, add a request or currentRecord key, remove or add a dependency key, bypass or duplicate either production caller, widen a compact read, or pair a v2 pointer with a raw v1 read. The exact focused assertion must fail without a partial pair.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["lossless-seam", "shared-consumer", "agenda-power"]
+    },
+    {
+      "id": "SCN-031-022",
+      "scenarioId": "SCN-031-022",
+      "title": "Adjacent products and unadmitted surfaces stay separate",
+      "scopeRef": "Scope 5",
+      "scope": "05-existing-agenda-experience-and-boundaries",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "Horizon Ladder is a registered six-horizon long and short tool with unearned measured-rate cells and the Shock Transmission Lab admission conditions are not all proven",
+        "when": "Feature 031 is delivered through the existing Research Agenda route",
+        "then": "Horizon Ladder remains unchanged with intentional zero-resolved withholding and no Shock Transmission Lab or Iran-only surface exists"
+      },
+      "linkedTests": [
+        "tests/tool-discovery.spec.mjs#__FUTURE_TEST_SCN_031_022__",
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_022_SCOPE_1_BINDING__"
+      ],
+      "plannedTest": {
+        "file": "tests/tool-discovery.spec.mjs",
+        "testId": "Regression: SCN-031-022 Shock Transmission adds no route registry navigation or Iran-only surface",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-01-11", "TP-05-15", "TP-05-16", "TP-05-17", "TP-05-18"],
+      "dodIds": ["DOD-01-TP-01-11", "DOD-05-TP-05-15", "DOD-05-TP-05-16", "DOD-05-TP-05-17", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["runtime-config", "user-visible-ui", "shared-consumer", "static-metadata"],
+      "obligations": [
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The registered route resolves the required Feature 031 resource policy exactly once before initial topic selection, freezes its admitted value and digest without a fallback, and fails explicitly when policy admission fails.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-022 existing Agenda binds the shock foundation without a new route"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The real registered Agenda route executes the foundation binding and reaches its unchanged legacy terminal view, while browser discovery finds no new Feature 031 route or registration.",
+          "satisfiedBy": [
+            "tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-022 existing Agenda binds the shock foundation without a new route",
+            "tests/tool-discovery.spec.mjs#Regression: SCN-031-022 Shock Transmission adds no route registry navigation or Iran-only surface"
+          ]
+        },
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "The existing registered Research Agenda page is a real shipped consumer: it loads rlshock.js immediately before rlagenda.js, executes the once-only policy binding, and exposes the exact frozen four-member read-only projection. Removing the executable reference or call fails the proof.",
+          "satisfiedBy": [
+            "parity:tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-022 existing Agenda binds the shock foundation without a new route",
+            "consumer-surface:tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-022 existing Agenda binds the shock foundation without a new route"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Protected registry, navigation, Horizon Ladder, Feature 019, and route inventories retain their declared identities and semantics. The Lab-admission truth table rejects every missing evidence set, duplicate consumer, and test-only caller. It turns true only with interactive need, existing-view insufficiency, and two unique production consumers.",
+          "satisfiedBy": ["tests/shock-transmission.boundary.functional.mjs#Feature 031 protects Horizon Ladder history registries owner math and public scope"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "market-brief.config.json", "research-agenda-lab.html", "tools.json", "index.html", "rlnav.js", "site-exclusions.json", "horizon-ladder-lab.html", "horizon-ladder-universe.json", "tests/horizon-ladder-lab.spec.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "market-brief.config.json", "research-agenda-lab.html", "tools.json", "index.html", "rlnav.js", "horizon-ladder-lab.html", "horizon-ladder-universe.json"],
+        "negativeControl": "Remove or reorder the rlshock.js script, remove or duplicate the pre-selection policy call, change one frozen binding member, or reject the configured policy. Also add a Shock Transmission registry row or alter one protected Horizon Ladder withholding cell. Then remove each Lab-admission evidence set, duplicate one consumer, and substitute test callers. The focused binding and boundary regressions must fail every mutation.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["product-boundary", "horizon-ladder", "no-new-route", "production-binding", "runtime-config", "shared-consumer"]
+    },
+    {
+      "id": "SCN-031-023",
+      "scenarioId": "SCN-031-023",
+      "title": "Legacy unavailability does not invent a field path",
+      "scopeRef": "Scope 5",
+      "scope": "05-existing-agenda-experience-and-boundaries",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "a current legacy review is unavailable with a named reason and no published field path",
+        "when": "a reader opens the affected topic on the existing Research Agenda route",
+        "then": "the route preserves the named reason, states that no path was published, and keeps dated history separate"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_023__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-023 legacy unavailable state never fabricates a field path",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-05-02", "TP-05-18", "TP-05-19"],
+      "dodIds": ["DOD-05-TP-05-02", "DOD-05-TP-05-18", "DOD-05-TP-05-19"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["degraded-state", "user-visible-ui", "static-metadata"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The compatibility projector retains the named reason, null path, not-published state, and historical-only refs.",
+          "satisfiedBy": ["tests/shock-transmission.reader.unit.mjs#Regression: SCN-031-023 legacy reader sentence preserves named no-path state"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current route states that no path was published and exposes no invented v2 path or current value.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-023 legacy unavailable state never fabricates a field path"]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Legacy dated-history refs remain historical and do not satisfy the v2 error contract.",
+          "satisfiedBy": ["tests/shock-transmission.reader.unit.mjs#Regression: SCN-031-023 legacy reader sentence preserves named no-path state"]
+        }
+      ],
+      "implementationRefs": ["rlagenda.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlagenda.js", "research-agenda-lab.html"],
+        "negativeControl": "Invent a v2 field path or promote dated history and require the focused unit and browser assertions to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["legacy-compatibility", "no-path", "existing-route"]
+    },
+    {
+      "id": "SCN-031-024",
+      "scenarioId": "SCN-031-024",
+      "title": "A local hypothetical leaves canonical research unchanged",
+      "scopeRef": "Scope 2",
+      "scope": "02-net-graph-actor-and-policy-engine",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "the existing route has a validated published baseline",
+        "when": "the operator changes a definition-owned lever, compares the result, and resets it on the same topic",
+        "then": "the hypothetical stays session-only, every canonical sink stays unchanged, and reset restores the exact loaded identity"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_024__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-024 local hypothetical is nonpersistent and reset restores exact baseline",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-02-10", "TP-02-11", "TP-02-12", "TP-04-20", "TP-05-11", "TP-05-18"],
+      "dodIds": ["DOD-02-TP-02-10", "DOD-02-TP-02-11", "DOD-02-TP-02-12", "DOD-04-TP-04-20", "DOD-05-TP-05-11", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["pure-calculation", "mutable-state", "user-visible-ui"],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The pure view projection labels the hypothetical, forbids persistence, and reproduces the baseline digest after reset.",
+          "satisfiedBy": ["tests/shock-transmission.reader.unit.mjs#Regression: SCN-031-024 hypothetical projection is nonpersistable and reset is exact"]
+        },
+        {
+          "trait": "mutable-state",
+          "requiredProof": "An owned ephemeral repository proves no canonical, storage, URL, network, publication, or history sink changes.",
+          "satisfiedBy": ["tests/shock-transmission.hypothetical.integration.mjs#Regression: SCN-031-024 every canonical sink refuses local hypothetical state"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current route shows User hypothetical, exposes no save action, and resets the same-topic comparison to the exact loaded baseline.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-024 local hypothetical is nonpersistent and reset restores exact baseline"]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "seeded-store",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "rlshockadapters.js", "research-agenda-lab.html"],
+        "negativeControl": "Persist one hypothetical or retain one changed value after reset and require the integration and browser assertions to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["local-hypothetical", "nonpersistent", "exact-reset"]
+    },
+    {
+      "id": "SCN-031-025",
+      "scenarioId": "SCN-031-025",
+      "title": "The existing route remains accessible and responsive",
+      "scopeRef": "Scope 5",
+      "scope": "05-existing-agenda-experience-and-boundaries",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "one current transmission is available in Simple, Power, graph, and semantic-table projections",
+        "when": "a reader uses keyboard or touch at 320 CSS pixels, 200 percent text zoom, or reduced motion",
+        "then": "controls, reflow, 44 CSS pixel targets, assistive text, live announcements, and graph-table meaning remain intact"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_025__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-025 existing Agenda remains accessible across required input and viewport modes",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-05-12", "TP-05-13", "TP-05-18", "TP-05-20"],
+      "dodIds": ["DOD-05-TP-05-12", "DOD-05-TP-05-13", "DOD-05-TP-05-18", "DOD-05-TP-05-20"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["user-visible-ui", "responsive-accessible", "shared-consumer"],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current route exposes every state and quantitative meaning as visible text and accessible names.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-025 existing Agenda remains accessible across required input and viewport modes"]
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "Keyboard, touch, focus, 320 CSS pixels, 200 percent zoom, 44 CSS pixel targets, reduced motion, and live regions pass.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-025 existing Agenda remains accessible across required input and viewport modes"]
+        },
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "Pure row parity and the current route preserve one edge id, path order, and qualifier set.",
+          "satisfiedBy": [
+            "parity:tests/shock-transmission.reader.unit.mjs#Regression: SCN-031-025 graph and semantic rows preserve one ordered qualifier set",
+            "consumer-surface:tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-021 graph table and finding detail preserve one causal meaning"
+          ]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "research-agenda-lab.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "accessibility-tree",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "research-agenda-lab.html"],
+        "negativeControl": "Remove one focus path, text meaning, target size, or graph qualifier and require the focused Playwright assertion to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["existing-route", "responsive", "accessible", "graph-table-parity"]
+    },
+    {
+      "id": "SCN-031-026",
+      "scenarioId": "SCN-031-026",
+      "title": "Topic definitions declare independent lever registries",
+      "scopeRef": "Scope 4",
+      "scope": "04-three-adapters-and-lossless-consumption",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "gherkin": {
+        "given": "two validated definitions declare different ordered lever registries and the reader changed one lever on the selected topic",
+        "when": "the reader switches to the other topic",
+        "then": "prior controls and hypothetical state clear before only the selected registry renders, while no fixed list or unrelated adapter changes"
+      },
+      "linkedTests": [
+        "tests/tool-experience.spec.mjs#__FUTURE_TEST_SCN_031_026__"
+      ],
+      "plannedTest": {
+        "file": "tests/shock-transmission.e2e.spec.mjs",
+        "testId": "Regression: SCN-031-026 topic switching renders only the selected lever registry",
+        "testState": "planned-not-authored",
+        "status": "planned-not-executed"
+      },
+      "testPlanIds": ["TP-03-09", "TP-04-07", "TP-04-09", "TP-04-14", "TP-04-20", "TP-05-18"],
+      "dodIds": ["DOD-03-TP-03-09", "DOD-04-TP-04-07", "DOD-04-TP-04-09", "DOD-04-TP-04-14", "DOD-04-TP-04-20", "DOD-05-TP-05-18"],
+      "evidenceRefs": ["report.md#scenario-contract-evidence"],
+      "behaviorTraits": ["runtime-config", "user-visible-ui", "shared-consumer"],
+      "obligations": [
+        {
+          "trait": "runtime-config",
+          "requiredProof": "resolveDefinitionRegistries(definition) returns distinct frozen horizon and lever registries, and definition selection executes the complete ordered lever registry without a module fallback or horizon merge.",
+          "satisfiedBy": ["tests/shock-transmission.reader.unit.mjs#Regression: SCN-031-026 selected definitions expose independent ordered lever models"]
+        },
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current route clears prior controls and hypothetical state before the next exact read-resolver call and renders only the selected definition's controls.",
+          "satisfiedBy": ["tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-026 topic switching renders only the selected lever registry"]
+        },
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "Adapter parity and the current route prove that selection does not mutate an unrelated adapter or registry.",
+          "satisfiedBy": [
+            "parity:tests/shock-transmission.adapters.functional.mjs#Feature 031 owner authority adapter isolation and topic scaling matrix",
+            "consumer-surface:tests/shock-transmission.e2e.spec.mjs#Regression: SCN-031-026 topic switching renders only the selected lever registry"
+          ]
+        }
+      ],
+      "implementationRefs": ["rlshock.js", "rlshockadapters.js", "rlagenda.js", "research-agenda-lab.html", "rlexperience-adapters/research-agenda.js"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["rlshock.js", "rlshockadapters.js", "rlagenda.js", "research-agenda-lab.html", "rlexperience-adapters/research-agenda.js"],
+        "negativeControl": "Retain one previous-topic lever, bypass resolveDefinitionRegistries(definition), or mutate one unrelated adapter and require unit, functional, and browser assertions to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "riskTier": "high",
+      "lockdown": {"state": "unlocked"},
+      "tags": ["dynamic-levers", "topic-selection", "adapter-isolation"]
+    }
+  ]
+}

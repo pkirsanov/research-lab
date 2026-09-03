@@ -8397,11 +8397,19 @@ try {
   assert(owner.sessionOwnerState(ROOT, { sessions: [] }) === null,
     'the session builder refuses to invent intraday bars when none are supplied \u2014 no same-origin intraday cache exists');
 
+  const flowPage = refresh.loadToolFunctions('options-flow-feed-lab.html', ['parsePagesChain']);
+  const flowOwnerState = owner.optionsFlowOwnerState(ROOT, { parseChain: flowPage.parsePagesChain });
+  if (!flowOwnerState || !Number.isFinite(flowOwnerState.nowMs)) {
+    throw new Error('options-flow owner evidence requires a finite snapshot clock');
+  }
+  const optionsFlowDayMs = 86_400_000;
+  const optionsFlowAt = (offsetMs) => new Date(flowOwnerState.nowMs + offsetMs).toISOString();
+
   // Each read runs the OWNING model and publishes what it returned.
   const reads = {
     'options-structure-lab': refresh.buildOptionsSurfaceToolRead(),
     'gamma-trading-lab': refresh.buildGammaToolRead(),
-    'options-flow-feed-lab': refresh.buildOptionsFlowToolRead(),
+    'options-flow-feed-lab': refresh.buildOptionsFlowToolRead({ asOf: optionsFlowAt(0) }),
     // Called at the real wall clock, so its reader copy is checked below whether the committed
     // universe is inside its refresh window or past it. The value assertions use a pinned instant.
     'ai-capex-strategy-lab': refresh.buildAiCapexToolRead(),
@@ -8480,19 +8488,98 @@ try {
   assert(flowRefusedWithoutParser,
     'the flow owner state refuses to run without the owning page\u2019s own chain parser, so no second projection can appear');
 
+  const bug023RedControl = process.env.BUG023_RED_CONTROL;
+  const bug023RedControls = [
+    'stale-at-seven-days',
+    'boundary-after-seven-days',
+    'wall-clock-unguarded'
+  ];
+  if (bug023RedControl !== undefined && !bug023RedControls.includes(bug023RedControl)) {
+    throw new Error('unknown BUG023_RED_CONTROL: ' + bug023RedControl);
+  }
+
+  const optionsFlowReadyMetricKeys = [
+    'tickers', 'contractsFlagged', 'consideredCount', 'callPremium', 'putPremium',
+    'lean', 'maxScore', 'top'
+  ];
+  const hasReadyFlowMetrics = (toolRead) => toolRead.state === 'ready'
+    && Number.isFinite(toolRead.metrics.tickers) && toolRead.metrics.tickers >= 8
+    && Number.isFinite(toolRead.metrics.consideredCount) && toolRead.metrics.consideredCount > 0
+    && Number.isFinite(toolRead.metrics.contractsFlagged) && toolRead.metrics.contractsFlagged > 0
+    && ['call-heavy (leaning bullish)', 'put-heavy (leaning bearish / hedged)', 'balanced'].includes(toolRead.metrics.lean)
+    && Number.isFinite(toolRead.metrics.maxScore)
+    && Array.isArray(toolRead.metrics.top) && toolRead.metrics.top.length > 0
+    && toolRead.metrics.top.every((row) => Number.isFinite(row.premium) && Number.isFinite(row.score) && row.ticker);
+
+  const firstStaleOffset = bug023RedControl === 'stale-at-seven-days'
+    ? 7 * optionsFlowDayMs
+    : 7 * optionsFlowDayMs + 1;
+  const firstStaleFlow = refresh.buildOptionsFlowToolRead({ asOf: optionsFlowAt(firstStaleOffset) });
+  const staleReadyMetricKeys = optionsFlowReadyMetricKeys
+    .filter((key) => Object.prototype.hasOwnProperty.call(firstStaleFlow.metrics, key));
+  assert(firstStaleFlow.state === 'unavailable'
+    && /days old/.test(firstStaleFlow.read)
+    && /stale tape/.test(firstStaleFlow.read)
+    && staleReadyMetricKeys.length === 0,
+  'options-flow first stale instant remains unavailable'
+    + ' (state=' + firstStaleFlow.state + ', ready-only keys=' + (staleReadyMetricKeys.join(',') || 'none') + ')');
+
+  const boundaryOffset = bug023RedControl === 'boundary-after-seven-days'
+    ? 7 * optionsFlowDayMs + 1
+    : 7 * optionsFlowDayMs;
+  const ageZeroFlow = refresh.buildOptionsFlowToolRead({ asOf: optionsFlowAt(0) });
+  const boundaryFlow = refresh.buildOptionsFlowToolRead({ asOf: optionsFlowAt(boundaryOffset) });
+  assert(hasReadyFlowMetrics(ageZeroFlow) && hasReadyFlowMetrics(boundaryFlow)
+    && ageZeroFlow.metrics.consideredCount === boundaryFlow.metrics.consideredCount
+    && ageZeroFlow.metrics.contractsFlagged === boundaryFlow.metrics.contractsFlagged
+    && ageZeroFlow.metrics.lean === boundaryFlow.metrics.lean
+    && ageZeroFlow.metrics.maxScore === boundaryFlow.metrics.maxScore
+    && JSON.stringify(ageZeroFlow.metrics.top) === JSON.stringify(boundaryFlow.metrics.top),
+  'options-flow evidence-clock ready boundaries use owner model'
+    + ' (age-zero=' + ageZeroFlow.state + ', boundary=' + boundaryFlow.state + ')');
+
+  let calendarStable = false;
+  let calendarFailure = 'none';
+  try {
+    const calendarPositiveFlow = bug023RedControl === 'wall-clock-unguarded'
+      ? refresh.buildOptionsFlowToolRead()
+      : refresh.buildOptionsFlowToolRead({ asOf: optionsFlowAt(0) });
+    const calendarBoundaryFlow = refresh.buildOptionsFlowToolRead({ asOf: optionsFlowAt(7 * optionsFlowDayMs) });
+    const calendarStaleFlow = refresh.buildOptionsFlowToolRead({ asOf: optionsFlowAt(7 * optionsFlowDayMs + 1) });
+    const calendarStaleReadyMetricKeys = optionsFlowReadyMetricKeys
+      .filter((key) => Object.prototype.hasOwnProperty.call(calendarStaleFlow.metrics, key));
+    if (bug023RedControl === 'wall-clock-unguarded') {
+      const calendarTopCount = calendarPositiveFlow.metrics.top.length;
+      calendarStable = calendarPositiveFlow.state === 'ready'
+        && calendarTopCount > 0;
+    } else if (calendarPositiveFlow.state === 'ready') {
+      calendarStable = hasReadyFlowMetrics(calendarPositiveFlow)
+        && hasReadyFlowMetrics(calendarBoundaryFlow)
+        && calendarStaleFlow.state === 'unavailable'
+        && calendarStaleReadyMetricKeys.length === 0;
+    }
+  } catch (error) {
+    calendarFailure = error instanceof Error ? error.message : String(error);
+  }
+  assert(calendarStable,
+    'options-flow explicit clocks remain calendar-stable'
+    + ' (control=' + (bug023RedControl || 'none') + ', failure=' + calendarFailure + ')');
+
   const flow = reads['options-flow-feed-lab'];
-  assert(flow.metrics.tickers >= 8 && flow.metrics.consideredCount > 0 && flow.metrics.contractsFlagged > 0
-    && ['call-heavy (leaning bullish)', 'put-heavy (leaning bearish / hedged)', 'balanced'].includes(flow.metrics.lean),
-    'the flow read carries the owning model\u2019s own call/put lean over real scanned contracts ('
-    + flow.metrics.contractsFlagged + ' flagged of ' + flow.metrics.consideredCount + ' considered)');
-  assert(flow.metrics.top.length > 0 && flow.metrics.top.every((row) => Number.isFinite(row.premium) && Number.isFinite(row.score) && row.ticker),
-    'the flow read publishes ranked contracts from the model, each with a real premium and score');
-  assert(flow.metrics.top[0].score === flow.metrics.maxScore || flow.metrics.top[0].score <= flow.metrics.maxScore,
-    'the headline contract is drawn from the model\u2019s own ranking, not chosen by the brief');
+  if (flow.state === 'ready') {
+    assert(flow.metrics.tickers >= 8 && flow.metrics.consideredCount > 0 && flow.metrics.contractsFlagged > 0
+      && ['call-heavy (leaning bullish)', 'put-heavy (leaning bearish / hedged)', 'balanced'].includes(flow.metrics.lean),
+      'the flow read carries the owning model\u2019s own call/put lean over real scanned contracts ('
+      + flow.metrics.contractsFlagged + ' flagged of ' + flow.metrics.consideredCount + ' considered)');
+    assert(flow.metrics.top.length > 0 && flow.metrics.top.every((row) => Number.isFinite(row.premium) && Number.isFinite(row.score) && row.ticker),
+      'the flow read publishes ranked contracts from the model, each with a real premium and score');
+    assert(flow.metrics.top[0].score === flow.metrics.maxScore || flow.metrics.top[0].score <= flow.metrics.maxScore,
+      'the headline contract is drawn from the model\u2019s own ranking, not chosen by the brief');
+  }
 
   // ADVERSARIAL 1 — no committed chain for any scanned ticker. Every fixture above satisfies the
   // happy path, so without this case the builder could hard-code a lean and still pass.
-  const starvedFlow = refresh.buildOptionsFlowToolRead({ universe: ['NO-SUCH-SYMBOL'] });
+  const starvedFlow = refresh.buildOptionsFlowToolRead({ universe: ['NO-SUCH-SYMBOL'], asOf: optionsFlowAt(0) });
   assert(starvedFlow.state === 'unavailable' && starvedFlow.metrics.state === 'unavailable' && /no tape to read/.test(starvedFlow.read),
     'a flow read with no committed chain degrades to a named unavailable rather than an empty-but-plausible tape');
   assert(!Number.isFinite(starvedFlow.metrics.contractsFlagged) && !Number.isFinite(starvedFlow.metrics.callPremium) && !starvedFlow.metrics.lean,
@@ -8500,7 +8587,7 @@ try {
 
   // ADVERSARIAL 2 — the chains exist but are older than the freshness rule allows. A read that
   // ignored snapshot age would still pass every assertion above; this is the case that catches it.
-  const staleFlow = refresh.buildOptionsFlowToolRead({ asOf: '2027-01-01T00:00:00.000Z' });
+  const staleFlow = refresh.buildOptionsFlowToolRead({ asOf: optionsFlowAt(7 * optionsFlowDayMs + 1) });
   assert(staleFlow.state === 'unavailable' && /days old/.test(staleFlow.read) && /stale tape/.test(staleFlow.read),
     'a tape older than the freshness rule is refused with its age named, never scored as if it were current');
   assert(!Number.isFinite(staleFlow.metrics.contractsFlagged),
@@ -30023,6 +30110,28 @@ try {
 } catch (e) { failures++; console.log('  \u2717 FAIL (security findings guard threw): ' + e.message); }
 /* ---------- security phase F-SEC-01..03 (END) ---------- */
 
+/* ---------- Feature 031 shock-transmission foundation (START) ---------- */
+try {
+  group('Feature 031 shock-transmission foundation');
+  const { createRequire: createShockRequire } = await import('node:module');
+  const shockRequire = createShockRequire(import.meta.url);
+  const shock = shockRequire('../rlshock.js');
+  const shockConfig = JSON.parse(read('market-brief.config.json'));
+  const shockPolicy = shock.resolveResourcePolicy(shockConfig);
+  assert(shockPolicy.ok
+    && shockPolicy.value.contractVersion === 'shock-transmission/resource-policy/v1'
+    && shockPolicy.value.maxHorizonsPerDefinition === 48
+    && shockPolicy.value.maxGraphNodesPerSnapshot === 200
+    && Object.isFrozen(shockPolicy.value),
+  'Feature 031 resolves one frozen required resource policy from repository configuration');
+  assert(shock.digest({ b: 2, a: 1 }) === shock.digest({ a: 1, b: 2 })
+    && /^sha256:[a-f0-9]{64}$/.test(shock.digest({ a: 1, b: 2 })),
+  'Feature 031 canonical identity is stable across object-key order');
+  assert(Object.isFrozen(shock) && typeof shock.validateSnapshot === 'function'
+    && typeof shock.projectClaimRows === 'function' && typeof shock.projectEdgeRows === 'function',
+  'Feature 031 exports one frozen CommonJS foundation API for contract and reader validation');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Feature 031 shock-transmission foundation threw): ' + e.message); }
+/* ---------- Feature 031 shock-transmission foundation (END) ---------- */
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

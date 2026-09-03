@@ -323,6 +323,7 @@
     <a href="notes/research-agenda-lab.md">Method and handoff notes</a>.
   </footer>
 
+  <script src="rlshock.js"></script>
   <script src="rlagenda.js"></script>
   <script src="rlexperience-adapters/research-agenda.js"></script>
   <script src="rldata.js"></script>
@@ -341,8 +342,65 @@
         mode: "simple", agenda: null, current: null, history: [], selectedTopicId: null,
         topic: null, definition: null, review: null, dossier: null, view: null,
         currentDossier: null, predecessorDossier: null, comparison: null, fixture: null,
-        leverState: null, bootFailure: null, fetchCount: 0, renderCount: 0, assetCache: Object.create(null)
+        leverState: null, bootFailure: null, shockFoundationBinding: null,
+        shockFoundationResolutionCount: 0, fetchCount: 0, renderCount: 0, assetCache: Object.create(null)
       };
+
+      function foundationBindingError(code, fieldPath, reason) {
+        return new Error(code + " at " + fieldPath + ": " + reason);
+      }
+
+      function bindShockFoundation(config) {
+        if (state.shockFoundationResolutionCount !== 0 || state.shockFoundationBinding !== null) {
+          throw foundationBindingError("RLSHOCK-CONTRACT", "$.shockFoundationBinding", "Shock foundation policy resolution must occur exactly once during boot.");
+        }
+        if (typeof RLSHOCK !== "object" || RLSHOCK === null || !Object.isFrozen(RLSHOCK)) {
+          throw foundationBindingError("RLSHOCK-CONTRACT", "$.RLSHOCK", "The frozen shock foundation module is required before Agenda boot.");
+        }
+        if (typeof RLSHOCK.resolveResourcePolicy !== "function") {
+          throw foundationBindingError("RLSHOCK-CONTRACT", "$.RLSHOCK.resolveResourcePolicy", "The shock foundation policy resolver is required.");
+        }
+        if (typeof RLSHOCK.digest !== "function") {
+          throw foundationBindingError("RLSHOCK-CONTRACT", "$.RLSHOCK.digest", "The shock foundation canonical digest is required.");
+        }
+        if (!RLSHOCK.CONTRACT_VERSIONS || RLSHOCK.CONTRACT_VERSIONS.snapshot !== "shock-transmission/v1") {
+          throw foundationBindingError("RLSHOCK-VERSION-UNSUPPORTED", "$.RLSHOCK.CONTRACT_VERSIONS.snapshot", "The Agenda binding requires the shock-transmission/v1 snapshot contract.");
+        }
+
+        state.shockFoundationResolutionCount += 1;
+        var policyResult = RLSHOCK.resolveResourcePolicy(config);
+        if (!policyResult || typeof policyResult !== "object" || typeof policyResult.ok !== "boolean") {
+          throw foundationBindingError("RLSHOCK-CONTRACT", "$.resourcePolicy", "The shock foundation policy resolver returned an invalid result.");
+        }
+        if (policyResult.ok !== true) {
+          if (!policyResult.error || typeof policyResult.error.code !== "string" || typeof policyResult.error.fieldPath !== "string" || typeof policyResult.error.reason !== "string") {
+            throw foundationBindingError("RLSHOCK-CONTRACT", "$.resourcePolicy", "The shock foundation policy refusal is malformed.");
+          }
+          throw foundationBindingError(policyResult.error.code, policyResult.error.fieldPath, policyResult.error.reason);
+        }
+        if (!Object.isFrozen(policyResult.value)) {
+          throw foundationBindingError("RLSHOCK-CONTRACT", "$.resourcePolicy", "The admitted resource policy must be frozen.");
+        }
+        if (typeof policyResult.digest !== "string" || policyResult.digest !== RLSHOCK.digest(policyResult.value)) {
+          throw foundationBindingError("RLSHOCK-DIGEST", "$.resourcePolicyDigest", "The admitted resource policy digest does not match its canonical value.");
+        }
+
+        var binding = Object.freeze({
+          contractVersion: "research-agenda/shock-foundation-binding/v1",
+          foundationContractVersion: RLSHOCK.CONTRACT_VERSIONS.snapshot,
+          resourcePolicy: policyResult.value,
+          resourcePolicyDigest: policyResult.digest
+        });
+        var expectedKeys = ["contractVersion", "foundationContractVersion", "resourcePolicy", "resourcePolicyDigest"];
+        if (JSON.stringify(Object.keys(binding)) !== JSON.stringify(expectedKeys)) {
+          throw foundationBindingError("RLSHOCK-CONTRACT", "$.shockFoundationBinding", "The Agenda binding must expose exactly four designed members.");
+        }
+        if (binding.foundationContractVersion !== "shock-transmission/v1") {
+          throw foundationBindingError("RLSHOCK-VERSION-UNSUPPORTED", "$.foundationContractVersion", "The Agenda binding snapshot contract does not match shock-transmission/v1.");
+        }
+        state.shockFoundationBinding = binding;
+        return binding;
+      }
 
       function byId(id) { return document.getElementById(id); }
       function clear(node) { while (node.firstChild) node.removeChild(node.firstChild); }
@@ -995,6 +1053,7 @@
       }
 
       function selectTopic(topicId, writeRoute) {
+        if (!state.shockFoundationBinding) return Promise.reject(foundationBindingError("RLSHOCK-CONTRACT", "$.shockFoundationBinding", "Shock foundation binding must complete before topic selection."));
         var topic = state.agenda.topics.find(function (candidate) { return candidate.topicId === topicId; });
         if (!topic) topic = state.agenda.topics[0];
         state.selectedTopicId = topic.topicId;
@@ -1037,8 +1096,14 @@
           recomputeFromLevers();
         });
         applyMode(state.mode, false);
-        Promise.all([fetchJson("research-agenda.json"), fetchJson("research/agenda/current.json"), fetchText("research/agenda/history.jsonl").then(parseHistory)]).then(function (values) {
+        Promise.all([
+          fetchJson("research-agenda.json"),
+          fetchJson("research/agenda/current.json"),
+          fetchText("research/agenda/history.jsonl").then(parseHistory),
+          fetchJson("market-brief.config.json")
+        ]).then(function (values) {
           state.agenda = values[0]; state.current = values[1]; state.history = values[2];
+          bindShockFoundation(values[3]);
           var selected = state.agenda.topics.some(function (topic) { return topic.topicId === route.topicId; }) ? route.topicId : state.agenda.topics[0].topicId;
           state.selectedTopicId = selected;
           state.topic = state.agenda.topics.find(function (topic) { return topic.topicId === selected; });
@@ -1067,6 +1132,7 @@
              a hang standing in for a diagnosis. The failure is MARKED, never disguised:
              bootStatus names it, modelAvailable is explicitly false, and none of a healthy
              view's fields are present, so no consumer can mistake this for a result. */
+          state.shockFoundationBinding = null;
           state.bootFailure = { status: "failed", reason: reason, message: message };
           state.view = { bootStatus: "failed", modelAvailable: false, bootFailure: state.bootFailure };
         });
@@ -1086,7 +1152,8 @@
         getResolvedDossier: function () { return state.currentDossier ? JSON.parse(JSON.stringify(state.currentDossier)) : null; },
         getHistoricalDossier: function () { return state.dossier ? JSON.parse(JSON.stringify(state.dossier)) : null; },
         getDefinition: function () { return state.definition ? JSON.parse(JSON.stringify(state.definition)) : null; },
-        getComparison: function () { return state.comparison ? JSON.parse(JSON.stringify(state.comparison)) : null; }
+        getComparison: function () { return state.comparison ? JSON.parse(JSON.stringify(state.comparison)) : null; },
+        getShockFoundationBinding: function () { return state.shockFoundationBinding; }
       };
       document.addEventListener("DOMContentLoaded", boot);
     })();

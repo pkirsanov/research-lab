@@ -4,7 +4,7 @@
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "generatedBy": "bubbles.plan",
   "generatedAt": "2026-08-28T23:35:36Z",
-  "planningDelta": "Convergence iteration 4 correction for F-SCN06-NEGATIVE-CONTROL-NONDISCRIMINATING and F-SCN06-RED-RUNNER-127. SCN-BUG017-06 keeps its real one-worker, 22-file, dual-project live proof and unchanged FR-017-004 maximum ratio of 3.0. Its RED contract now requires a small committed ratio CLI plus focused functional regression: the CLI must use one predicate for live measurements and a labelled isolated temporary comparison whose known 3.001 ratio exits 1 with the exact scenario message. An ambient six-worker timing attempt cannot satisfy RED. All prior SCN-BUG017-06 receipts are historical after this planning-input change; bubbles.implement owns the missing executable mechanism, then bubbles.test owns a fresh RED, targeted GREEN, live pair, and broader regression chain. SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 remain non-executable history. This plan changes no report evidence, human acceptance, certification, source, test, or terminal status.",
+  "planningDelta": "Minimal reconciliation for F-SCN06-CONFIGURED-GREP, F-SCN06-LIVE-CLASSIFICATION, and F-SCN06-COMMIT-IDENTITY. SCN-BUG017-06 keeps its real one-worker, 22-file, dual-project live proof and unchanged FR-017-004 maximum ratio of 3.0. The helper exists at object a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e and the persistent-test file exists at object beeecf34fdd40c602b2e04ea014e1e5ac5a7feb2; these source identities are not a commit claim, and reconcile-local-main-and-clean-worktrees remains the only later commit authority. TP-BUG017-02-03 removes only the invalid leading grep anchors and is truthfully classified as a non-live functional browser complement because its read-bound carrier uses page.route. TP-BUG017-02-01 and TP-BUG017-02-04 retain the live e2e-ui proof. Existing implementation-phase receipts remain non-independent; bubbles.test owns the fresh RED, targeted GREEN, live pair, isolated repository selftest, and broader regression chain. Scenario and test cardinality, report evidence, human acceptance, certification, source, tests, and terminal status remain unchanged.",
   "activeScenarioIds": [
     "SCN-BUG017-01",
     "SCN-BUG017-02",
@@ -157,10 +157,10 @@
             "tests/lifetime-tax-read-bound.spec.mjs"
           ],
           "scenarioId": "SCN-BUG017-06",
-          "description": "Like-for-like timing: one committed CLI runs the complete 22-file lifetime-tax workload under system-chrome and bundled chromium at the configured one-worker default, requires both exits to be zero, and evaluates the measured ratio against the unchanged FR-017-004 maximum of 3.0",
+          "description": "Like-for-like timing: helper object a8ab93cbb10af3b5d2a71c8d7a604ce69e30dd6e runs the complete 22-file lifetime-tax workload under system-chrome and bundled chromium at the configured one-worker default, requires both exits to be zero, and evaluates the measured ratio against the unchanged FR-017-004 maximum of 3.0; later integration must commit the independently verified source identity",
           "command": "/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live",
           "liveSystem": true,
-          "testState": "implementation-required",
+          "testState": "authored",
           "status": "requires-refresh",
           "evidenceRef": "report.md#the-fr-017-004-bound",
           "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T16:17:20Z",
@@ -199,17 +199,17 @@
         },
         {
           "id": "TP-BUG017-02-03",
-          "type": "e2e-ui",
-          "category": "e2e-ui",
+          "type": "functional",
+          "category": "functional",
           "file": "tests/lifetime-tax-combined.spec.mjs",
           "files": [
             "tests/lifetime-tax-combined.spec.mjs",
             "tests/lifetime-tax-read-bound.spec.mjs"
           ],
           "scenarioId": "SCN-BUG017-06",
-          "description": "Regression: SCN-BUG017-06 executes both exact linked scenario carriers through the selected system-chrome configuration",
-          "command": "npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list && npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement$' --reporter=list",
-          "liveSystem": true,
+          "description": "Functional browser complement: SCN-BUG017-06 executes both exact linked UI carriers through system-chrome against the local static harness; the read-bound carrier uses page.route to delay a dependency and is not live-system proof",
+          "command": "npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list && npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement$' --reporter=list",
+          "liveSystem": false,
           "testState": "authored",
           "status": "requires-refresh",
           "evidenceRef": "report.md#the-fr-017-004-bound",
@@ -242,7 +242,7 @@
       "receiptRefresh": {
         "required": true,
         "ownerAfterImplementation": "bubbles.test",
-        "reason": "The SCN-BUG017-06 planning input changed. Refresh the deterministic RED, targeted functional GREEN, real one-worker dual-project live proof, and broader system-chrome regression without relabeling prior receipts as current."
+        "reason": "The SCN-BUG017-06 planning input changed and current helper/test objects derive only IMPLEMENTED. Independently refresh the deterministic RED, targeted functional GREEN, real one-worker dual-project live proof, isolated repository selftest, and broader system-chrome regression without relabeling implementation-phase receipts as test-owned proof."
       }
     },
     {

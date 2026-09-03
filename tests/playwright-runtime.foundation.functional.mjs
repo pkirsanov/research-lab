@@ -664,21 +664,22 @@ test('Regression: SCN-BUG017-03 candidate classifications require distinguishing
 
 test('Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison', () => {
   const validator = resolve(ROOT, 'scripts/validate-playwright-cost-ratio.mjs');
-  const tempPrefix = 'research-lab-scn-bug017-06-';
-  const ownedTempEntries = () => readdirSync(tmpdir())
-    .filter((entry) => entry.startsWith(tempPrefix))
-    .sort();
-  const before = ownedTempEntries();
-  const atBound = spawnSync(process.execPath, [validator, '--control', 'at-bound'], {
-    cwd: ROOT,
-    encoding: 'utf8'
-  });
-  const afterAtBound = ownedTempEntries();
-  const overBound = spawnSync(process.execPath, [validator, '--control', 'over-bound'], {
-    cwd: ROOT,
-    encoding: 'utf8'
-  });
-  const afterOverBound = ownedTempEntries();
+  const runControl = (control) => {
+    const controlTempRoot = mkdtempSync(resolve(tmpdir(), `research-lab-scn-bug017-06-test-${control}-`));
+    try {
+      const result = spawnSync(process.execPath, [validator, '--control', control], {
+        cwd: ROOT,
+        encoding: 'utf8',
+        env: { ...process.env, TMPDIR: controlTempRoot },
+        timeout: 30_000
+      });
+      return { result, residue: readdirSync(controlTempRoot).sort() };
+    } finally {
+      rmSync(controlTempRoot, { recursive: true, force: true });
+    }
+  };
+  const { result: atBound, residue: afterAtBound } = runControl('at-bound');
+  const { result: overBound, residue: afterOverBound } = runControl('over-bound');
 
   process.stdout.write(atBound.stdout ?? '');
   process.stderr.write(atBound.stderr ?? '');
@@ -698,7 +699,7 @@ test('Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound 
   );
   assert.match(atBound.stdout, /deterministic comparison input/);
   assert.doesNotMatch(atBound.stdout, /\bobserved\b/i);
-  assert.deepEqual(afterAtBound, before, 'SCN-BUG017-06: at-bound control left owned temp residue');
+  assert.deepEqual(afterAtBound, [], 'SCN-BUG017-06: at-bound control left owned temp residue');
 
   assert.equal(overBound.signal, null);
   assert.equal(overBound.status, 1);
@@ -713,7 +714,7 @@ test('Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound 
   );
   assert.match(overBound.stdout, /deterministic comparison input/);
   assert.doesNotMatch(overBound.stdout, /\bobserved\b/i);
-  assert.deepEqual(afterOverBound, before, 'SCN-BUG017-06: over-bound control left owned temp residue');
+  assert.deepEqual(afterOverBound, [], 'SCN-BUG017-06: over-bound control left owned temp residue');
 
   console.log('[SCN-BUG017-06] deterministicBoundary=3.000');
   console.log('[SCN-BUG017-06] deterministicOverBound=3.001');

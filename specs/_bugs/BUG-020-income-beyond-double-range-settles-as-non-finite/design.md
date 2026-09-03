@@ -1,16 +1,62 @@
-# Design: BUG-020 — Why One Of Three Sibling Formatters Has No Finiteness Guard
+# Design: BUG-020 — Refuse Unrepresentable Figures Before Settlement And Display
 
-## What This Document Does
+## Design Brief
 
-It explains the mechanism behind the observation in `bug.md`, which was recorded
-first. It then records the owner's decision on the refusal-code question, the
-alternative rejected and why, the exact contract change, what the engine and the
-route must do, and the adversarial case each new assertion must fail on.
+### Current State
 
-An earlier revision of this document ended at an open question and chose
-nothing. That revision is superseded by `## The Decision` below, which the owner
-authorised on 2026-08-24. The mechanism sections are unchanged and still
-current.
+The delivered engine refuses an overflowing supported-income sum before it becomes a tax value.
+The route propagates that refusal, withholds `Settled`, and renders no non-finite token.
+
+The formatter also rejects any non-finite value record presented directly at its public seam.
+The adjacent-double browser cases pin both sides of the exact representability boundary.
+
+### Target State
+
+A complete declaration may remain valid while its computed sum exceeds the double range.
+That result must become `RLTAX-FIGURE-UNREPRESENTABLE`, never a clamped or stringified figure.
+
+Every dependent stage must carry the named refusal without rule standing.
+The settlement header must remain `Incomplete` until every required figure is representable.
+
+### Patterns To Follow
+
+- Raise the refusal through `rltaxrules.js::unavailable` and its closed vocabulary.
+- Detect overflow in `rltax.js::computeTaxableIncome`, where the failed domain is known.
+- Propagate through existing unavailable-record channels instead of adding consumer-specific shapes.
+- Keep `rltax.js::formatForDisplay` as the final rendering boundary for non-finite records.
+- Derive header state from origin refusals collected by `buildEnvelope` before testing `viable`.
+- Pin the boundary with adjacent doubles in `tests/lifetime-tax-representable.spec.mjs`.
+
+### Patterns To Avoid
+
+- Do not clamp a result to `Number.MAX_VALUE`. That would publish a false figure.
+- Do not narrow accepted inputs. Individually finite declarations remain valid inputs.
+- Do not rely on a display-only guard. It cannot correct settlement state.
+- Do not stringify a non-finite value when formatting returns no figure.
+- Do not reuse an upstream refusal code whose reason and remediation would be false.
+
+### Resolved Decisions
+
+- Use `RLTAX-FIGURE-UNREPRESENTABLE` for a valid calculation whose result is not finite.
+- Refuse at the arithmetic origin and defend again at the formatter boundary.
+- Preserve the existing `TaxUnavailable/v1` propagation contract and `Incomplete` header state.
+- Use the adjacent values around `Number.MAX_VALUE` as the normative boundary pair.
+- Use a composed two-file mutation to prove the route-wide non-finite-token assertion discriminates.
+
+### Open Questions
+
+None. The active design has no unresolved contract, boundary, or propagation decision.
+
+## Purpose And Scope
+
+This document preserves the pre-repair failure mechanism as historical context.
+It defines the delivered refusal contract, engine behavior, route behavior, and
+the adversarial case each assertion must fail on.
+
+An earlier revision ended at an open question and chose nothing. The owner
+resolved that question on 2026-08-24. `## Current Delivered Design` records the
+active decision. The failure analysis below describes the state that decision
+replaced, not the current implementation.
 
 ### Single-Implementation Justification
 
@@ -19,63 +65,62 @@ The existing owning abstraction is the shared value-record and refusal pipeline.
 `rltax.js::formatForDisplay` owns value-record formatting. `rltaxrules.js::RLTAX_CODES`
 owns the closed refusal vocabulary.
 
-This packet adds one refusal condition to those existing owners. It adds no formatter family,
-numeric provider, rendering strategy, or extension point. The route surfaces are consumers of
-one record contract, not separate implementations. Their shared refusal outcome is invariant,
-so no new variation axis warrants a foundation and overlay split.
+The delivered repair adds one refusal condition to those existing owners.
+It adds no formatter family, numeric provider, rendering strategy, or extension point.
+The route surfaces consume one record contract, rather than separate implementations.
+Their shared refusal outcome needs no foundation and overlay split.
 
-## Mechanism
+## Failure Mechanism Addressed
 
-### Three formatters, two guards
+### Before The Repair, Three Formatters Had Two Guards
 
-The route holds three sibling display helpers in one block. Two of them open with
-a finiteness guard and return `null` when it fails. The third does not:
+The route held three sibling display helpers in one block. Two opened with a
+finiteness guard and returned `null` when it failed. The third did not:
 
-- `percent(rate)` begins `if (!Number.isFinite(rate)) return null;`
-- `dollars(value)` begins `if (!Number.isFinite(value)) return null;`
-- `money(record)` has no equivalent line.
+- `percent(rate)` began `if (!Number.isFinite(rate)) return null;`
+- `dollars(value)` began `if (!Number.isFinite(value)) return null;`
+- `money(record)` had no equivalent line.
 
-`money` is the one that carries a value *record* rather than a bare number, and it
-is the one every stage row uses. It delegates to `ENGINE.formatForDisplay` and
-then calls `toLocaleString` on whatever comes back.
+`money` carried a value *record* rather than a bare number, and every stage row
+used it. It delegated to `ENGINE.formatForDisplay` and called `toLocaleString`
+on whatever came back.
 
-### The delegate guards the wrong operand
+### The Delegate Guarded The Wrong Operand
 
-`formatForDisplay` in `rltax.js` already knows how to refuse. Its first act after
-the unavailable check is to guard the display rounding factor:
+`formatForDisplay` in `rltax.js` already knew how to refuse. Its first act after
+the unavailable check guarded the display rounding factor:
 
-```
+```js
 var factor = displayPolicy.factor;
 if (!Number.isFinite(factor) || factor <= 0) {
   return rules.unavailable("RLTAX-CONFIG-INVALID", "display:displayRounding.factor", ...);
 }
 ```
 
-It then computes `Math.round(valueRecord.value * factor) / factor` with no
-corresponding check on `valueRecord.value`. The refusal idiom is present, correct
-and one line away from the operand that needs it.
+It then computed `Math.round(valueRecord.value * factor) / factor` without a
+corresponding check on `valueRecord.value`. The repair applies the existing
+refusal idiom to that operand.
 
-### What reaches the surface
+### What Reached The Surface
 
 `Infinity * 1` is `Infinity`; `Math.round(Infinity)` is `Infinity`; `Infinity / 1`
 is `Infinity`. `Infinity.toLocaleString("en-US")` is `"∞"`, so the row prints
 `$∞`. Where two overflowed subtotals are subtracted, `Infinity - Infinity` is
-`NaN`, `NaN.toLocaleString("en-US")` is `"NaN"`, and the row prints `$NaN`. That
-is why the observed rows split four to two: the four earlier stages are sums, the
-two later ones are differences.
+`NaN`, `NaN.toLocaleString("en-US")` is `"NaN"`, and the row prints `$NaN`.
+That caused the observed rows to split four to two. The four earlier stages were
+sums, while the two later stages were differences.
 
-The rule standing rides along untouched, because `formatForDisplay` copies
-`valueRecord.ruleStatus` onto the returned object without consulting the value.
-That is how `enacted-current-law` ends up attached to `$NaN`.
+The rule standing rode along untouched because `formatForDisplay` copied
+`valueRecord.ruleStatus` without consulting the value. That attached
+`enacted-current-law` to `$NaN`.
 
-### Why the Simple view is clean
+### Why The Simple View Was Clean
 
-Simple does not render the stage table. It reports the settlement and a small
-number of headline amounts, and the ones it reports were not among the six
-overflowed stages for the declarations driven. This is a property of what Simple
-chooses to show, not a guard, and it should not be relied on.
+Simple did not render the stage table. Its headline amounts were not among the
+six overflowed stages for the measured declarations. That absence was a view
+selection artifact, not a safety boundary.
 
-## Remedy Options
+## Alternatives And Tradeoffs
 
 ### Option A — Guard the value in `formatForDisplay`
 
@@ -110,14 +155,28 @@ and is recorded for completeness.
 It is not clamping to `Number.MAX_VALUE`. A clamped figure is a wrong figure
 presented with enacted standing, which is a worse version of the defect.
 
-## The Decision
+## Current Delivered Design
 
 **Decided 2026-08-24. Authorised by the owner; recorded here by `bubbles.design`.**
 
-Add a fifteenth vocabulary member, `RLTAX-FIGURE-UNREPRESENTABLE`. Raise it at
-the arithmetic origin so the whole settlement cascades through machinery that
-already exists, and raise it again at the display seam so that seam can never be
-the hole a second time.
+The delivered design adds a fifteenth vocabulary member,
+`RLTAX-FIGURE-UNREPRESENTABLE`. The engine raises it at the arithmetic origin so
+the settlement uses existing refusal propagation. The formatter raises it again
+at its public seam so a non-finite record cannot become display text.
+
+### Durability Assessment
+
+The arithmetic-origin guard owns the domain-specific decision. Existing
+unavailable-record channels carry that decision through the federal settlement.
+
+The formatter guard independently protects its public value-record boundary.
+The route derives header state from origin refusals before it tests `viable`.
+
+The adjacent-double pair prevents boundary drift in either direction. The
+composed mutation proves the route-wide non-finite-token assertion can fail.
+
+No design-level gap remains for the specified supported-income overflow path.
+Future arithmetic origins must raise the same refusal before envelope assembly.
 
 ### Why a new member rather than a reused one
 
@@ -168,8 +227,8 @@ when it separated `RLTAX-RESIDENCY-UNSUPPORTED` from
 > result is not a finite double. No figure exists to show, and none is
 > substituted.
 
-| Existing member | Why it is not this | 
-|---|---|
+| Existing member | Why it is not this |
+| --- | --- |
 | `RLTAX-INPUT-INCOMPLETE` | a declaration is absent; here every declaration is present and readable |
 | `RLTAX-INCOME-KIND-UNSUPPORTED` | a single declared amount is unmodelled or not finite; here each one is finite and non-negative |
 | `RLTAX-THRESHOLD-UNAVAILABLE` | a figure the pack should carry is absent; here the pack is complete |
@@ -187,13 +246,12 @@ Concretely: `computeTaxableIncome` when the supported-income sum overflows, and
 never raised for a declared input, never raised for a pack member, and never
 raised for a bound or a policy value.
 
-## The Contract Change
+## Delivered Contract
 
 ### C1 — the vocabulary member
 
-In `rltaxrules.js`, inside the `RLTAX_CODES` freeze, after
-`"RLTAX-PACK-YEAR-MISMATCH": true`, add the member and its comment in the style
-the two Feature 022 members already use:
+`rltaxrules.js` carries this member inside the `RLTAX_CODES` freeze, after
+`"RLTAX-PACK-YEAR-MISMATCH": true`:
 
 ```js
     /* Every input to the figure is present, valid and inside contract, and the calculation is
@@ -203,16 +261,16 @@ the two Feature 022 members already use:
     "RLTAX-FIGURE-UNREPRESENTABLE": true
 ```
 
-Change nothing else in that freeze. The vocabulary becomes fifteen members: the
+The change alters no other member. The vocabulary has fifteen members: the
 twelve Feature 021 members, the two Feature 022 members, and this one.
 
 ### C2 — the pinned assertion
 
-`scripts/selftest.mjs` assertion `TP-01-05` asserts that the live member count
-equals `FEATURE_021_CODES.length + FEATURE_022_CODES.length` and that every live
-member belongs to one of those two named lists. Both clauses become false the
-moment C1 lands, and they become false whatever the implementation does. The
-assertion is superseded, not relaxed. The required replacement:
+`scripts/selftest.mjs` assertion `TP-01-05` previously asserted that the live
+member count equaled `FEATURE_021_CODES.length + FEATURE_022_CODES.length`.
+It also required every live member to belong to those two named lists. Both
+clauses became false when C1 landed. The assertion was superseded, not relaxed.
+The active replacement requires:
 
 1. Add `const BUG_020_CODES = ['RLTAX-FIGURE-UNREPRESENTABLE'];` beside the two
    existing lists.
@@ -235,17 +293,16 @@ Record the supersession as a ledger row in this packet's `spec.md`, in the forma
 Feature 022 uses:
 
 | Id | Superseded clause | Scope | Marker | Replacement |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | `SUP-020-01` | `scripts/selftest.mjs` `TP-01-05` — `liveCodeNames.length === FEATURE_021_CODES.length + FEATURE_022_CODES.length` and the two-list membership clause | 1 | marker required | A count derived from three named lists, the new member asserted present by name, and a third adversarial limb proving a vocabulary missing it fails |
 
-## What The Engine Must Do
+## Engine Behavior
 
 ### E1 — refuse at the arithmetic origin
 
-`computeTaxableIncome` in `rltax.js` already guards each declared income field
-for finiteness, one line before it forms the sum that overflows. Immediately
-after `var gross = income.ordinary + preferentialIncome;`, and before
-`var deduction = selectDeduction(workspace, pack);`, add:
+`computeTaxableIncome` in `rltax.js` guards each declared income field for
+finiteness. After it forms the supported-income sum, it applies this guard before
+selecting a deduction:
 
 ```js
     if (!Number.isFinite(gross)) {
@@ -273,8 +330,8 @@ names the income sum and not the deduction.
 ### E2 — refuse the one stage the cascade does not reach
 
 `CO-1` is assembled from `basis.grossSupportedIncome` directly and does not pass
-through `deductionUnavailable`. Three sites in `computeAnnualFederalTax` read
-that member as a bare number and each needs the same guard:
+through `deductionUnavailable`. Three sites in `computeAnnualFederalTax` guard
+that member before treating it as a number:
 
 ```js
     var grossRecord = rules.isUnavailable(basis.grossSupportedIncome)
@@ -301,8 +358,7 @@ path.
 
 ### E3 — refuse at the display seam
 
-In `formatForDisplay`, immediately after the existing factor guard, add the
-sibling guard the other two formatters already carry:
+`formatForDisplay` applies this sibling guard immediately after its factor guard:
 
 ```js
     if (!Number.isFinite(valueRecord.value)) {
@@ -315,19 +371,16 @@ sibling guard the other two formatters already carry:
 Its domain is `display:value` rather than a stage name because this function does
 not know, and must not know, which leg produced the record it was handed. The
 naming obligation in `FR-020-002` is discharged by E1, which does know. E3 is the
-last line of defence: after E1 and E2 it is unreachable from the acceptance set,
-and it exists so that a future record-producing path cannot reopen the same hole.
+last rendering boundary. After E1 and E2 it is unreachable from this packet's
+acceptance set. It prevents a future non-finite record from becoming visible
+text, but it does not decide settlement state. Every new arithmetic origin must
+raise the refusal before `buildEnvelope` so R1 can withhold `Settled`.
 
 ### E4 — close the second `computeTaxableIncome` consumer
 
-`composeDispositionLegs` calls `computeTaxableIncome` and then reads
-`basis.ordinaryTaxableIncome` and `basis.preferentialTaxableIncome`
-unconditionally. On any `ok: false` basis those members are absent, and
-`stackPreferentialIncome` turns `undefined` into `NaN`. That hole predates this
-defect — it is reachable today whenever the deduction refuses and a disposition
-is declared — but E1 routes new traffic into it, and `AC-020-003` forbids `NaN`
-reaching any surface. Immediately after
-`var basis = computeTaxableIncome(workspace, pack);` in that function, add:
+Without E4, `composeDispositionLegs` would read absent taxable members from an
+unsuccessful basis. `stackPreferentialIncome` would then turn `undefined` into
+`NaN`. E4 checks `basis.ok` immediately after `computeTaxableIncome` returns:
 
 ```js
     if (basis.ok !== true) {
@@ -345,7 +398,7 @@ reaching any surface. Immediately after
 The returned shape is the one that function already returns when the disposition
 settlement itself refuses, so no consumer gains a branch.
 
-## What The Route Must Do
+## Route Behavior
 
 ### R1 — the settlement header
 
@@ -355,7 +408,7 @@ are complete. Do not change what `viable` means: `combinedSettlementLeg` and the
 `!envelope.viable` branch both read it, and widening it would change behaviour
 for refusals that have nothing to do with this defect.
 
-Instead publish a new member on **both** return shapes of `buildEnvelope`:
+Both return shapes of `buildEnvelope` publish this member:
 
 ```js
                     unrepresentableDomains: unavailable
@@ -363,7 +416,7 @@ Instead publish a new member on **both** return shapes of `buildEnvelope`:
                         .map(function (refusal) { return refusal.domain; }),
 ```
 
-and branch on it first in `render`, before the existing `viable` test:
+`render` branches on that member before testing `viable`:
 
 ```js
                 if (state.envelope.unrepresentableDomains.length > 0) {
@@ -393,7 +446,7 @@ text whenever `money` returns `null`. E1 and E2 make the record a refusal, which
 the branch above this line already catches, so this line is not reached from the
 acceptance set — but it is the one remaining path by which a non-finite value can
 still become visible text, and `AC-020-003` is a statement about the whole route.
-Replace the fallback with the absence the other formatters produce:
+The delivered fallback returns the absence used by the other formatters:
 
 ```js
                 if (money(record) !== null) return money(record);
@@ -416,7 +469,7 @@ admits. Both round-trip exactly through `Number(String(x))`, so each survives th
 input element unchanged.
 
 | Side | Value in **both** `ordinary income` and `qualified dividends` | Sum | Behaviour |
-|---|---|---|---|
+| --- | --- | --- | --- |
 | settling | `8.988465674311579e+307` | `1.7976931348623157e+308`, exactly `Number.MAX_VALUE` | settles; every stage finite |
 | refusing | `8.98846567431158e+307` | `Infinity` | refuses; every dependent stage named |
 
@@ -433,7 +486,7 @@ Every assertion below must be shown to fail under its mutation, through
 own wording rather than to the aggregate pass count.
 
 | Assertion | Must fail when |
-|---|---|
+| --------- | -------------- |
 | `TP-01-05` count and membership | `RLTAX-FIGURE-UNREPRESENTABLE` is removed from `RLTAX_CODES`; and, separately, when a sixteenth fabricated member is added |
 | `TB-020-04`, `formatForDisplay` refuses a non-finite value | the E3 guard is deleted; the assertion must not be satisfiable by the E1 refusal arriving pre-formed, so it must call `formatForDisplay` with a record carrying `Infinity` and a `ruleStatus` of `enacted-current-law` directly |
 | `TB-020-01`, every non-finite stage refuses by name | the E1 guard is deleted, restoring `$∞`; and, separately, when only E3 is present and E1 is deleted, which must still fail `TB-020-02` |
@@ -444,6 +497,20 @@ own wording rather than to the aggregate pass count.
 
 The last two rows are the reason the boundary pair must be adjacent. A widened
 guard and a narrowed guard both survive a single-sided assertion.
+
+## Complexity Tracking
+
+| Deviation         | Simpler Alternative | Why Rejected                     |
+| ----------------- | ------------------- | -------------------------------- |
+| Composed mutation | One guard removal   | Another safe layer stays active. |
+
+The composed case mutates `rltax.js` and `lifetime-tax-strategy-lab.html`.
+It matches the route-wide assertion without weakening either guard.
+
+## Design Closure
+
+None — the refusal code, arithmetic origin, formatter boundary, header behavior,
+and adjacent-double boundary are resolved in the active design.
 
 ## Explicitly Not In Scope
 

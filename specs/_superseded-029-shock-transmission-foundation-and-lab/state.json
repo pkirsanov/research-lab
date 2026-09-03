@@ -1,0 +1,133 @@
+{
+  "version": 3,
+  "featureDir": "specs/029-shock-transmission-foundation-and-lab",
+  "featureName": "Shock Transmission Foundation And Lab",
+  "createdAt": "2026-08-31T03:35:17Z",
+  "lastUpdatedAt": "2026-08-31T03:35:17Z",
+  "status": "not_started",
+  "blockedReason": null,
+  "workflowMode": "product-to-planning",
+  "planningOnly": true,
+  "planningOnlyJustification": "Resolved v7 plan action:analyze-design-plan target:product workflow with a specs_hardened ceiling and no implementation.",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "workBoundary": {
+    "repositoryRoots": [
+      "research-lab"
+    ],
+    "specTargets": [
+      "specs/029-shock-transmission-foundation-and-lab"
+    ],
+    "allowedPaths": [
+      "specs/029-shock-transmission-foundation-and-lab/**"
+    ],
+    "crossRepoPolicy": "forbidden"
+  },
+  "execution": {
+    "goalContractRef": null,
+    "activeAgent": "bubbles.analyst",
+    "currentPhase": "analyze",
+    "currentPhaseStatus": "completed",
+    "currentScope": null,
+    "substate": "analyst-requirements-authored",
+    "runStartedAt": "2026-08-31T03:35:17Z",
+    "completedAt": "2026-08-31T03:35:17Z",
+    "completedPhaseClaims": [
+      "analyze"
+    ],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.ux",
+    "nextRequiredTarget": "specs/029-shock-transmission-foundation-and-lab/spec.md",
+    "scopeProgress": [],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "not_started",
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    },
+    "observations": []
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "mode": "product-to-planning",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T03:35:17Z",
+      "completedAt": "2026-08-31T03:35:17Z",
+      "summary": "Authored grounded business requirements for shock-transmission/v1 and excluded a Shock Transmission Lab because its admission threshold is unmet. No implementation or certification was claimed."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Initial planning-only control record. Analyst phase completed. UX, design, and plan ownership remain pending."
+}

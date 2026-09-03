@@ -2,16 +2,199 @@
   "schemaVersion": 1,
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
-  "generatedAt": "2026-08-28T16:53:33Z",
+  "generatedAt": "2026-09-02T02:20:07Z",
   "generatedBy": "bubbles.plan",
   "stage": "post-implementation",
-  "stageNote": "Convergence iteration 4 planning reconciliation. This manifest records planning identity, traits, obligations, implementation references, and the existing 30 linked test references; it declares no scenario execution status. Existing report evidence resolves the scope's 16 checked DoD rows, including the expected pre-fix RED, focused GREEN, reachability, containment, clean-tree selftest, browser consumer, and truthful non-terminal guard result. Distinct current receipts reached REGRESSION_GREEN for all three scenarios at source revision 4bd96545cd6673155933edf3a22492d6d1972256 before this planning update changed their input closure. scenario-state-resolve.sh remains the sole state authority, so a final receipt refresh is required. This manifest makes no specialist-phase, human-acceptance, certification, source, test, or terminal-status claim.",
-  "scenarioCount": 3,
+  "stageNote": "The eight stable scenario IDs remain unchanged. C54 line 2582, C55 line 2619, C59 line 2552, and aggregate C58 line 2652 pass. C58 records 3,467 passed and 0 failed with structured stdout SHA-256 85fe1ff20897aebef02d3078a469cf4fd43759f230c5dc8fcd76108e088706dc. Scope 1 and the validate-owned scope-progress mirror agree at 72 checked and 0 unchecked rows but remain nonterminal. C58 has no scenarioBinding. The current resolver therefore reports all eight scenarios as PLANNED; SCN-BUG022-001 has no bound receipt, and SCN-BUG022-002 through SCN-BUG022-008 have GREEN receipts without RED anchors. Five human acceptance checklist items remain unchecked. Certification, terminal status, historical receipts, foreign code and tests, framework files, and unrelated dirty work remain unchanged.",
+  "scenarioCount": 8,
   "scopeMapping": {
     "01-separate-active-declarations-from-historical-receipts": [
       "SCN-BUG022-001",
       "SCN-BUG022-002",
-      "SCN-BUG022-003"
+      "SCN-BUG022-003",
+      "SCN-BUG022-004",
+      "SCN-BUG022-005",
+      "SCN-BUG022-006",
+      "SCN-BUG022-007",
+      "SCN-BUG022-008"
+    ]
+  },
+  "securityFindingMapping": {
+    "SEC-R4-001": {
+      "scenarioIds": ["SCN-BUG022-007"],
+      "testPlanId": "TP-BUG022-R4-F32",
+      "dodId": "DOD-TP-BUG022-R4-F32"
+    },
+    "SEC-R4-002": {
+      "scenarioIds": ["SCN-BUG022-004"],
+      "testPlanId": "TP-BUG022-R4-F33",
+      "dodId": "DOD-TP-BUG022-R4-F33"
+    },
+    "SEC-R4-003": {
+      "scenarioIds": ["SCN-BUG022-002", "SCN-BUG022-005"],
+      "testPlanId": "TP-BUG022-R4-F34",
+      "dodId": "DOD-TP-BUG022-R4-F34"
+    },
+    "SEC-R4-004": {
+      "scenarioIds": ["SCN-BUG022-006"],
+      "testPlanId": "TP-BUG022-R4-F35",
+      "dodId": "DOD-TP-BUG022-R4-F35"
+    },
+    "SEC-R4-005": {
+      "scenarioIds": ["SCN-BUG022-008"],
+      "testPlanId": "TP-BUG022-R4-F36",
+      "dodId": "DOD-TP-BUG022-R4-F36"
+    }
+  },
+  "finalShapeFindingMapping": {
+    "GAP-R4-BUG022-015-UNKNOWN-NONMARKDOWN-CANDIDATE-DROP": {
+      "scenarioIds": ["SCN-BUG022-002"],
+      "testPlanId": "TP-BUG022-R4-F42",
+      "dodId": "DOD-TP-BUG022-R4-F42",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-016-DIRECT-ARBITRARY-WRAPPER-DROP": {
+      "scenarioIds": ["SCN-BUG022-002"],
+      "testPlanId": "TP-BUG022-R4-F43",
+      "dodId": "DOD-TP-BUG022-R4-F43",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-017-LIST-ARBITRARY-WRAPPER-DROP": {
+      "scenarioIds": ["SCN-BUG022-005"],
+      "testPlanId": "TP-BUG022-R4-F44",
+      "dodId": "DOD-TP-BUG022-R4-F44",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-025-TASK-LIST-CANDIDATE-DROP": {
+      "scenarioIds": ["SCN-BUG022-005"],
+      "testPlanId": "TP-BUG022-R4-F45",
+      "dodId": "DOD-TP-BUG022-R4-F45",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-018-TABLE-BACKTICK-SUBSTITUTION-DROP": {
+      "scenarioIds": ["SCN-BUG022-005"],
+      "testPlanId": "TP-BUG022-R4-F46",
+      "dodId": "DOD-TP-BUG022-R4-F46",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-022-TABLE-QUOTED-PIPE-CANDIDATE-DROP": {
+      "scenarioIds": ["SCN-BUG022-006"],
+      "testPlanId": "TP-BUG022-R4-F47",
+      "dodId": "DOD-TP-BUG022-R4-F47",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-023-COMMAND-LABEL-BACKTICK-SUBSTITUTION-DROP": {
+      "scenarioIds": ["SCN-BUG022-005"],
+      "testPlanId": "TP-BUG022-R4-F48",
+      "dodId": "DOD-TP-BUG022-R4-F48",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-019-UNBOUNDED-PERL-ALARM-GRAMMAR": {
+      "scenarioIds": ["SCN-BUG022-002"],
+      "testPlanId": "TP-BUG022-R4-F49",
+      "dodId": "DOD-TP-BUG022-R4-F49",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-026-ESCAPED-DECLARATION-SYMLINK-SILENT-SKIP": {
+      "scenarioIds": ["SCN-BUG022-004"],
+      "testPlanId": "TP-BUG022-R4-F50",
+      "dodId": "DOD-TP-BUG022-R4-F50",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-020-NAMED-STATIC-NODE-TEST-EXEMPTION": {
+      "scenarioIds": ["SCN-BUG022-008"],
+      "testPlanId": "TP-BUG022-R4-F51",
+      "dodId": "DOD-TP-BUG022-R4-F51",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-021-TEMPLATE-INTERPOLATION-NODE-TEST-EXEMPTION": {
+      "scenarioIds": ["SCN-BUG022-008"],
+      "testPlanId": "TP-BUG022-R4-F52",
+      "dodId": "DOD-TP-BUG022-R4-F52",
+      "status": "authored-passed-current"
+    },
+    "GAP-R4-BUG022-024-REGEX-LITERAL-NODE-TEST-FALSE-REGISTRATION": {
+      "scenarioIds": ["SCN-BUG022-008"],
+      "testPlanId": "TP-BUG022-R4-F53",
+      "dodId": "DOD-TP-BUG022-R4-F53",
+      "status": "authored-passed-current"
+    }
+  },
+  "finalShapeReceiptMapping": {
+    "sourceSha256": "a7b05778fe053a92c1faf35641256f68cc3bf025420b14d7f856d1d727eb6ae1",
+    "carrierSha256": "8b2607f934db221ec408fe44fc2395645495284a5bf8536f6ae9127e7da1bcff",
+    "historicalNonzeroReceiptLines": [2381, 2382, 2384, 2385, 2411, 2414],
+    "rows": {
+      "TP-BUG022-R4-F42": {"status": "current-passed", "receiptLine": 2396, "stdoutHash": "23cc1a2318445c88d5f64c97e45b41755cc17aa5e1a236d8a694e6f0f020b93d"},
+      "TP-BUG022-R4-F43": {"status": "current-passed", "receiptLine": 2397, "stdoutHash": "371e55738c0fb80bf58989fb142c09a75ca7c29757bd36cff195a8c45e3cf660"},
+      "TP-BUG022-R4-F44": {"status": "current-passed", "receiptLine": 2398, "stdoutHash": "62dae9ca9f15038a16809c8939bdebbc99e9d05444e6b4a2f46c041ef72a5b81"},
+      "TP-BUG022-R4-F45": {"status": "current-passed", "receiptLine": 2399, "stdoutHash": "2b86d3068c6d77e1d198d886eaa729a77c2e0bef80bd409ff89d23700034ded3"},
+      "TP-BUG022-R4-F46": {"status": "current-passed", "receiptLine": 2400, "stdoutHash": "b9c13ede44e4150466b71648cac481603a3f33ffdad44cd7882a7b9304ec6329"},
+      "TP-BUG022-R4-F47": {"status": "current-passed", "receiptLine": 2401, "stdoutHash": "96a17fc2b8a2c5e153c9c25129c97371a8276379112590541550f5115f61ebc3"},
+      "TP-BUG022-R4-F48": {"status": "current-passed", "receiptLine": 2402, "stdoutHash": "a475e28e34131e0e071158e6b3ea7952939bf9b4c753b303a21d23782ac96bcc"},
+      "TP-BUG022-R4-F49": {"status": "current-passed", "receiptLine": 2403, "stdoutHash": "08c83cbaca7df874d71f7c1acdb626c7fb4be32ab6ac33b83be25a328a92db87"},
+      "TP-BUG022-R4-F50": {"status": "current-passed", "receiptLine": 2404, "stdoutHash": "19ae33e56263d9a533399a0b56fb0a6edeec6557efb8f4ddc67f46ceecac018c"},
+      "TP-BUG022-R4-F51": {"status": "current-passed", "receiptLine": 2405, "stdoutHash": "e97bdaafa321a0ece8566ceabe632400b7265b56c16425b0c20a7afb9cd94bc8"},
+      "TP-BUG022-R4-F52": {"status": "current-passed", "receiptLine": 2406, "stdoutHash": "cfbbfa4a5a9f30a44de9b155b39b358cb9735bc836de7dcb368f7e59ea86932a"},
+      "TP-BUG022-R4-F53": {"status": "current-passed", "receiptLine": 2407, "stdoutHash": "495e489df59e1993885d0c6c139a98d042de8da37f3cfc165b316e2b0cacabcd"},
+      "TP-BUG022-R4-C54": {"status": "current-passed", "receiptLine": 2582, "stdoutHash": "4fc4c9803c45020ecb8e7520fe1ae26aacc1f6bec5b32daad6d8a79c4f677da6", "sourceSha256": "83f66be555e03b3c4fe3f2d07c923a00fbcd721640cf0ec561404512e67ad166", "testSha256": "c0ae35644030b2c4827126d696cc4d35f0d3a8525059cccb040ea8b8bbdbae23", "integrityReceiptLine": 2590, "supersededNonzeroReceiptLine": 2540, "supersededNonzeroStdoutHash": "5086370d4095c4e03d9be4e8112275d70bc1dc2e4b2092c9827c16543bcf369f"},
+      "TP-BUG022-R4-C55": {"status": "current-passed", "receiptLine": 2619, "stdoutHash": "85774bf43b9868eafdd8baeb59928f782d29a99e816d01a20a65a6a7bbe62844", "captureSha256": "38bb6f7e85851eb679e5b3426b7f06ad45530509d49c4f710e1108f7e5205304", "sourceSha256": "6c763237506bfeb0b99a26a86b7075859a4ae84d5220bbcac7aa84cefd03426f", "testSha256": "5deb02599f1dfae6789df58b3d93379578f1677f39bd0dcb12d5882ecadbe663", "tp1114ReceiptLine": 2618, "focusedReceiptLine": 2621, "carrierReceiptLine": 2617, "integrityReceiptLine": 2622, "supersededNonzeroReceiptLine": 2546, "supersededNonzeroStdoutHash": "10e5b047cec0388b6d9c895389d9c8fa77612395dd2c9182aa9a3f1c8ae7ded3", "priorPassingReceiptLine": 2387, "priorPassingStdoutHash": "336a5f727ff685899340f362f283c47a349a0fa27501dc2eb89882de5a0d5b17", "planningResolutionRef": "specs/012-market-action-center-and-guided-tools/scopes/11-feature-002-authored-brief-integration/scope.md#runner-ownership-and-reachability", "requiredRunnerClass": "direct-node-script"},
+      "TP-BUG022-R4-C56": {"status": "current-passed", "receiptLine": 2391, "stdoutHash": "6e4385fea4f7b7735c61f056dadd8319cd060ce0b918a4b165e74b87db908430"},
+      "TP-BUG022-R4-C57": {"status": "current-passed", "receiptLine": 2392, "stdoutHash": "bca44cb5e7d87f1283e6596da0e03d363a9c4be436212e8d2b9b87525380d88a"},
+      "TP-BUG022-R4-C58": {"status": "current-passed", "receiptLine": 2652, "stdoutHash": "85fe1ff20897aebef02d3078a469cf4fd43759f230c5dc8fcd76108e088706dc", "priorPassingReceiptLine": 2626, "priorPassingStdoutHash": "c9b104bc0d0015f3939106d6a5be76564a102a01af64bacf4425f0482be88afd", "supersededNonzeroReceiptLine": 2547, "observedFailureFindingIds": ["BUG022-STALE-DISTRIBUTED-BRIEFS-CROSSING", "FOREIGN-F012-DISTRIBUTED-BRIEFS-LOAD-ORPHAN", "FOREIGN-SPEC-029-NUMBER-COLLISION", "VALIDATE-BUG022-SCOPE-PROGRESS-DRIFT"], "blockingFindingIds": [], "resolvedPrerequisiteFindingIds": ["BUG022-STALE-DISTRIBUTED-BRIEFS-CROSSING", "FOREIGN-F012-DISTRIBUTED-BRIEFS-LOAD-ORPHAN", "FOREIGN-SPEC-029-NUMBER-COLLISION", "VALIDATE-BUG022-SCOPE-PROGRESS-DRIFT"], "nextOwners": ["bubbles.test"], "rerunRequired": false, "aggregateOnly": true, "scenarioBindingPresent": false, "scenarioReceiptPlanRequired": true},
+      "TP-BUG022-R4-C59": {"status": "current-passed", "receiptLine": 2552, "stdoutHash": "ffda0e393537f0bac6d24a59a6c290c88a4220ce787d1815ac334683f5589379", "inputClosureComplete": true, "observedCurrentResult": "exit=0 new=0 stale=0", "baselineSha256Before": "6728e3a55bb36e4fab643322f71c42e7db0b140abec0a19edcfd9ac93a03397c", "baselineSha256After": "6728e3a55bb36e4fab643322f71c42e7db0b140abec0a19edcfd9ac93a03397c", "priorDiagnosticReceiptLine": 2417},
+      "TP-BUG022-R4-C60": {"status": "current-passed", "receiptLine": 2395, "stdoutHash": "76b1700632b929910daf103dd748a9516177de8bd2ee5e7772d1104312b5f37e"}
+    }
+  },
+  "scenarioReceiptPlan": {
+    "nextRequiredOwner": "bubbles.test",
+    "sourceRevisionAtReconciliation": "fa9be9ddcd330220171c7e374071be6856adc677",
+    "resolverBaselineCommand": "bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-022-historical-report-declaration-leak --format text",
+    "resolverBaselineExit": 1,
+    "resolverBaselineOutputSha256": "41c4a26613aa155d76a64a2a551d37340721eb36bcaba0a1baa5153d86840ba7",
+    "resolverBaselineObservation": "All eight scenarios report PLANNED. SCN-BUG022-001 has no bound receipt. SCN-BUG022-002 through SCN-BUG022-008 have GREEN receipts without RED anchors.",
+    "aggregateReceipt": {
+      "testPlanId": "TP-BUG022-R4-C58",
+      "receiptLine": 2652,
+      "exitCode": 0,
+      "passed": 3467,
+      "failed": 0,
+      "stdoutHash": "85fe1ff20897aebef02d3078a469cf4fd43759f230c5dc8fcd76108e088706dc",
+      "scenarioBindingPresent": false
+    },
+    "phaseOwners": {
+      "red": "bubbles.test",
+      "implement": "bubbles.implement",
+      "green": "bubbles.test",
+      "live": "bubbles.test",
+      "regression": "bubbles.regression"
+    },
+    "requiredBindingFields": [
+      "BUBBLES_SCENARIO_ID",
+      "BUBBLES_SCENARIO_PHASE",
+      "BUBBLES_SCENARIO_TEST",
+      "BUBBLES_SCENARIO_CONTROL",
+      "BUBBLES_SCENARIO_CLAIM",
+      "BUBBLES_SCENARIO_REVISION",
+      "BUBBLES_SCENARIO_IMPL_REFS"
+    ],
+    "executionRules": [
+      "Run RED first in an isolated mutation or fixture and require the selected targeted test to exit nonzero for its named negative control.",
+      "Use the selected Test Plan row's exact test identity and negative-control text unchanged for RED, implement, and targeted GREEN.",
+      "Record the implement receipt only after RED and against the same source revision and implementation references.",
+      "Run targeted GREEN at exit zero, then each applicable LIVE identity at exit zero, then the scenario-specific regression identity at exit zero.",
+      "Hash scripts/validate-test-file-reachability.mjs, tests/playwright-runtime.foundation.functional.mjs, test-plan.json, and scenario-manifest.json in every relevant input closure.",
+      "Do not write a scenario state into a scenario object. scenario-state-resolve.sh derives every state from receipts."
+    ],
+    "rows": [
+      {"scenarioId": "SCN-BUG022-001", "targetedTestPlanId": "TP-BUG022-F08", "liveTestPlanId": null, "regressionTestPlanId": "TP-BUG022-F08", "requiredReceiptSequence": ["red", "implement", "green", "regression"], "currentReceiptGap": "No bound receipt exists."},
+      {"scenarioId": "SCN-BUG022-002", "targetedTestPlanId": "TP-BUG022-R4-F43", "liveTestPlanId": "TP-BUG022-R4-C56", "regressionTestPlanId": "TP-BUG022-R4-F43", "requiredReceiptSequence": ["red", "implement", "green", "live", "regression"], "currentReceiptGap": "Existing GREEN receipts have no RED anchor."},
+      {"scenarioId": "SCN-BUG022-003", "targetedTestPlanId": "TP-BUG022-F10", "liveTestPlanId": "TP-BUG022-C03", "regressionTestPlanId": "TP-BUG022-C03", "requiredReceiptSequence": ["red", "implement", "green", "live", "regression"], "currentReceiptGap": "Existing GREEN receipts have no RED anchor."},
+      {"scenarioId": "SCN-BUG022-004", "targetedTestPlanId": "TP-BUG022-R4-F50", "liveTestPlanId": "TP-BUG022-R4-F50", "regressionTestPlanId": "TP-BUG022-R4-F50", "requiredReceiptSequence": ["red", "implement", "green", "live", "regression"], "currentReceiptGap": "Existing GREEN receipts have no RED anchor."},
+      {"scenarioId": "SCN-BUG022-005", "targetedTestPlanId": "TP-BUG022-R4-F45", "liveTestPlanId": "TP-BUG022-R4-C56", "regressionTestPlanId": "TP-BUG022-R4-F45", "requiredReceiptSequence": ["red", "implement", "green", "live", "regression"], "currentReceiptGap": "Existing GREEN receipts have no RED anchor."},
+      {"scenarioId": "SCN-BUG022-006", "targetedTestPlanId": "TP-BUG022-R4-F47", "liveTestPlanId": "TP-BUG022-R4-C56", "regressionTestPlanId": "TP-BUG022-R4-F47", "requiredReceiptSequence": ["red", "implement", "green", "live", "regression"], "currentReceiptGap": "Existing GREEN receipts have no RED anchor."},
+      {"scenarioId": "SCN-BUG022-007", "targetedTestPlanId": "TP-BUG022-R4-F20", "liveTestPlanId": "TP-BUG022-R4-F20", "regressionTestPlanId": "TP-BUG022-R4-F20", "requiredReceiptSequence": ["red", "implement", "green", "live", "regression"], "currentReceiptGap": "Existing GREEN receipts have no RED anchor."},
+      {"scenarioId": "SCN-BUG022-008", "targetedTestPlanId": "TP-BUG022-R4-F51", "liveTestPlanId": "TP-BUG022-R4-C56", "regressionTestPlanId": "TP-BUG022-R4-F51", "requiredReceiptSequence": ["red", "implement", "green", "live", "regression"], "currentReceiptGap": "Existing GREEN receipts have no RED anchor."}
     ]
   },
   "scenarios": [
@@ -22,9 +205,9 @@
       "scope": 1,
       "title": "Artifact role separates historical receipts from active plans",
       "gherkin": {
-        "given": "identical node --test tests/portfolio-*.mjs text in a report receipt and an active scope Test Plan or structured test plan",
+        "given": "identical node --test tests/portfolio-*.mjs text in a report receipt and an active plan, plus one exact pattern declared by both Node and Playwright",
         "when": "the production collector classifies both candidates",
-        "then": "the report site is historical while the active site remains authoritative with artifact and line provenance"
+        "then": "the report site is historical, the active site keeps provenance, and each runner retains a distinct kind and pattern identity"
       },
       "behaviorClass": "static-metadata",
       "changeType": "bugfix",
@@ -38,23 +221,28 @@
       "obligations": [
         {
           "trait": "pure-calculation",
-          "requiredProof": "Production collector output separates identical command bytes into historical and active authority states.",
+          "requiredProof": "Production collector output separates identical command bytes into historical and active authority states and preserves equal patterns under distinct runner kinds.",
           "satisfiedBy": [
             "TP-BUG022-F01 :: Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs",
-            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative"
+            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative",
+            "TP-BUG022-F08 :: Regression: SCN-BUG022-001 preserves Node and Playwright identities for one exact pattern"
           ]
         },
         {
           "trait": "static-metadata",
-          "requiredProof": "The active declaration retains its repository-relative artifact and positive source line.",
+          "requiredProof": "Every active declaration retains runner kind, pattern, repository-relative artifact, and positive source line.",
           "satisfiedBy": [
-            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative"
+            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative",
+            "TP-BUG022-F08 :: Regression: SCN-BUG022-001 preserves Node and Playwright identities for one exact pattern"
           ]
         }
       ],
       "testRows": [
         "TP-BUG022-F01",
-        "TP-BUG022-F02"
+        "TP-BUG022-F02",
+        "TP-BUG022-F08",
+        "TP-BUG022-C08",
+        "TP-BUG022-C09"
       ],
       "linkedTests": [
         {
@@ -66,13 +254,20 @@
           "file": "tests/playwright-runtime.foundation.functional.mjs",
           "testId": "Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative",
           "testState": "authored"
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-001 preserves Node and Playwright identities for one exact pattern",
+          "testState": "authored"
         }
       ],
       "evidenceRefs": [
-        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
+        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families",
+        "report.md#independent-test-verification-convergence-iteration-4"
       ],
       "implementationRefs": [
         "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+        "scripts/validate-test-file-reachability.mjs#declarationIdentity",
         "tests/playwright-runtime.foundation.functional.mjs"
       ],
       "testMechanism": {
@@ -81,9 +276,10 @@
         "assertionSurface": "returned-value",
         "dependencyPath": "not-applicable",
         "productionOwners": [
-          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
+          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+          "scripts/validate-test-file-reachability.mjs#declarationIdentity"
         ],
-        "negativeControl": "Moving the identical command from report.md into an active scope Test Plan changes authority from historical to active.",
+        "negativeControl": "Declare one exact pattern under both Node and Playwright. A pattern-only key collapses one kind, while the typed identity returns two homogeneous declarations.",
         "negativeControlMechanism": "perturbed-input"
       }
     },
@@ -94,15 +290,15 @@
       "scope": 1,
       "title": "Markdown presentation cannot manufacture authority",
       "gherkin": {
-        "given": "active-looking headings inside historical evidence, fenced headings, and a glob candidate on an unrecognized artifact surface",
+        "given": "active-looking and fenced headings plus command-shaped candidates on unknown Markdown and non-Markdown artifacts, including direct arbitrary wrappers and a Perl alarm wrapper with trailing syntax",
         "when": "the production collector classifies the candidates",
-        "then": "artifact role outranks headings, fenced headings do not alter section role, and the unknown candidate fails closed with provenance"
+        "then": "artifact role outranks headings, every discovered unknown or unsupported form fails closed with provenance, only the closed Perl grammar is accepted, and parsed command text and prose remain inert"
       },
       "behaviorClass": "static-metadata",
       "changeType": "bugfix",
       "requiredTestType": "functional",
       "regressionRequired": true,
-      "riskTier": "medium",
+      "riskTier": "high",
       "behaviorTraits": [
         "pure-calculation",
         "degraded-state",
@@ -111,29 +307,70 @@
       "obligations": [
         {
           "trait": "pure-calculation",
-          "requiredProof": "Production heading and fence classification preserves the enclosing artifact role.",
+          "requiredProof": "Production heading, fence, and command-prefix classification preserves artifact role and distinguishes commands from prose.",
           "satisfiedBy": [
-            "TP-BUG022-F03 :: Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority"
+            "TP-BUG022-F03 :: Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority",
+            "TP-BUG022-F09 :: Regression: SCN-BUG022-002 wrapped unknown commands fail closed while prose remains inert",
+            "TP-BUG022-R4-F28 :: Regression: SCN-BUG022-002 absolute gtimeout wrappers fail closed with provenance",
+            "TP-BUG022-R4-F34 :: Regression: SCN-BUG022-002 ambiguous command forms fail closed without execution",
+            "TP-BUG022-R4-F42 :: Regression: SCN-BUG022-002 unknown non-Markdown candidates fail closed with provenance",
+            "TP-BUG022-R4-F43 :: Regression: SCN-BUG022-002 direct arbitrary wrappers fail closed with provenance",
+            "TP-BUG022-R4-F49 :: Regression: SCN-BUG022-002 Perl alarm grammar rejects trailing statements"
           ]
         },
         {
           "trait": "degraded-state",
-          "requiredProof": "An unknown candidate produces a named blocking classification error instead of disappearing or becoming historical.",
+          "requiredProof": "Every direct or supported wrapped unknown command produces a named blocking classification error instead of disappearing or becoming historical.",
           "satisfiedBy": [
-            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance"
+            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance",
+            "TP-BUG022-F09 :: Regression: SCN-BUG022-002 wrapped unknown commands fail closed while prose remains inert",
+            "TP-BUG022-R4-F28 :: Regression: SCN-BUG022-002 absolute gtimeout wrappers fail closed with provenance",
+            "TP-BUG022-R4-F34 :: Regression: SCN-BUG022-002 ambiguous command forms fail closed without execution",
+            "TP-BUG022-R4-F42 :: Regression: SCN-BUG022-002 unknown non-Markdown candidates fail closed with provenance",
+            "TP-BUG022-R4-F43 :: Regression: SCN-BUG022-002 direct arbitrary wrappers fail closed with provenance",
+            "TP-BUG022-R4-F49 :: Regression: SCN-BUG022-002 Perl alarm grammar rejects trailing statements"
           ]
         },
         {
           "trait": "static-metadata",
           "requiredProof": "Every classification error retains artifact, line, section context, and machine-readable reason.",
           "satisfiedBy": [
-            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance"
+            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance",
+            "TP-BUG022-F09 :: Regression: SCN-BUG022-002 wrapped unknown commands fail closed while prose remains inert",
+            "TP-BUG022-R4-F28 :: Regression: SCN-BUG022-002 absolute gtimeout wrappers fail closed with provenance",
+            "TP-BUG022-R4-F34 :: Regression: SCN-BUG022-002 ambiguous command forms fail closed without execution",
+            "TP-BUG022-R4-F42 :: Regression: SCN-BUG022-002 unknown non-Markdown candidates fail closed with provenance",
+            "TP-BUG022-R4-F43 :: Regression: SCN-BUG022-002 direct arbitrary wrappers fail closed with provenance",
+            "TP-BUG022-R4-F49 :: Regression: SCN-BUG022-002 Perl alarm grammar rejects trailing statements"
           ]
         }
       ],
       "testRows": [
         "TP-BUG022-F03",
-        "TP-BUG022-F04"
+        "TP-BUG022-F04",
+        "TP-BUG022-F09",
+        "TP-BUG022-C08",
+        "TP-BUG022-C09",
+        "TP-BUG022-R4-F28",
+        "TP-BUG022-R4-C29",
+        "TP-BUG022-R4-C30",
+        "TP-BUG022-R4-C31",
+        "TP-BUG022-R4-F34",
+        "TP-BUG022-R4-C37",
+        "TP-BUG022-R4-C38",
+        "TP-BUG022-R4-C39",
+        "TP-BUG022-R4-C40",
+        "TP-BUG022-R4-C41",
+        "TP-BUG022-R4-F42",
+        "TP-BUG022-R4-F43",
+        "TP-BUG022-R4-F49",
+        "TP-BUG022-R4-C54",
+        "TP-BUG022-R4-C55",
+        "TP-BUG022-R4-C56",
+        "TP-BUG022-R4-C57",
+        "TP-BUG022-R4-C58",
+        "TP-BUG022-R4-C59",
+        "TP-BUG022-R4-C60"
       ],
       "linkedTests": [
         {
@@ -145,12 +382,129 @@
           "file": "tests/playwright-runtime.foundation.functional.mjs",
           "testId": "Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance",
           "testState": "authored"
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 wrapped unknown commands fail closed while prose remains inert",
+          "testState": "authored"
+        }
+      ],
+      "linkedTestContracts": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 absolute gtimeout wrappers fail closed with provenance",
+          "testPlanRow": "TP-BUG022-R4-F28",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1719",
+            ".specify/runtime/tool-calls.jsonl:1722",
+            ".specify/runtime/tool-calls.jsonl:1758"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 ambiguous command forms fail closed without execution",
+          "testPlanRow": "TP-BUG022-R4-F34",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1889",
+            ".specify/runtime/tool-calls.jsonl:1954",
+            ".specify/runtime/tool-calls.jsonl:1967"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 security authority matrix closes all five findings together",
+          "testPlanRow": "TP-BUG022-R4-C39",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1957"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 security repair rollback preserves source test ratchets and sentinels",
+          "testPlanRow": "TP-BUG022-R4-C40",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1958",
+            ".specify/runtime/tool-calls.jsonl:1959"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 security repair contains exactly the validator and focused carrier",
+          "testPlanRow": "TP-BUG022-R4-C41",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1960",
+            ".specify/runtime/tool-calls.jsonl:1971"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 unknown non-Markdown candidates fail closed with provenance",
+          "testPlanRow": "TP-BUG022-R4-F42",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2396"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 direct arbitrary wrappers fail closed with provenance",
+          "testPlanRow": "TP-BUG022-R4-F43",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2397"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 Perl alarm grammar rejects trailing statements",
+          "testPlanRow": "TP-BUG022-R4-F49",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2403"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape matrix closes all twelve findings together",
+          "testPlanRow": "TP-BUG022-R4-C56",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2391"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 final-shape repair rollback preserves source test ratchets and history",
+          "testPlanRow": "TP-BUG022-R4-C57",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2392"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape repair contains exactly the validator and focused carrier",
+          "testPlanRow": "TP-BUG022-R4-C60",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2395"]
         }
       ],
       "evidenceRefs": [
-        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
+        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families",
+        "report.md#independent-test-verification-convergence-iteration-4",
+        ".specify/runtime/tool-calls.jsonl:1758",
+        "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+        ".specify/runtime/tool-calls.jsonl:1954",
+        ".specify/runtime/tool-calls.jsonl:1957",
+        ".specify/runtime/tool-calls.jsonl:1958",
+        ".specify/runtime/tool-calls.jsonl:1959",
+        ".specify/runtime/tool-calls.jsonl:1960",
+        ".specify/runtime/tool-calls.jsonl:1961",
+        ".specify/runtime/tool-calls.jsonl:1966",
+        ".specify/runtime/tool-calls.jsonl:1971"
       ],
       "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#commandTokenIndex",
+        "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
         "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
         "tests/playwright-runtime.foundation.functional.mjs"
       ],
@@ -160,10 +514,12 @@
         "assertionSurface": "returned-value",
         "dependencyPath": "not-applicable",
         "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#commandTokenIndex",
+          "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
           "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
         ],
-        "negativeControl": "Placing a matching command in an unrecognized Markdown artifact must change the result to a blocking classification error.",
-        "negativeControlMechanism": "perturbed-input"
+        "negativeControl": "Keep supported direct, timeout, gtimeout, env, and exact Perl-alarm forms valid. Perturb artifact extension, wrapper identity, Perl script tail, separators, substitutions, and backticks one at a time. Each unsupported form must remain visible with provenance, and every execution sentinel must remain absent.",
+        "negativeControlMechanism": "mutation"
       }
     },
     {
@@ -183,10 +539,18 @@
       "regressionRequired": true,
       "riskTier": "medium",
       "behaviorTraits": [
+        "pure-calculation",
         "static-metadata",
         "user-visible-ui"
       ],
       "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The shared production function throws a typed refusal for an active same-pattern crossing and returns pass for the historical-site control over identical command bytes.",
+          "satisfiedBy": [
+            "TP-BUG022-F10 :: Regression: SCN-BUG022-003 shared disjointness verdict refuses an active same-pattern crossing"
+          ]
+        },
         {
           "trait": "static-metadata",
           "requiredProof": "Repository validation derives zero new orphans, zero new crossings, unchanged ratchets, two active Node family declarations, and a byte-identical historical report.",
@@ -209,13 +573,16 @@
         "TP-BUG022-RED-01",
         "TP-BUG022-F05",
         "TP-BUG022-F06",
+        "TP-BUG022-F10",
         "TP-BUG022-C01",
         "TP-BUG022-C02",
         "TP-BUG022-C03",
         "TP-BUG022-C04",
         "TP-BUG022-C05",
         "TP-BUG022-C06",
-        "TP-BUG022-C07"
+        "TP-BUG022-C07",
+        "TP-BUG022-C08",
+        "TP-BUG022-C09"
       ],
       "linkedTests": [
         {
@@ -226,6 +593,11 @@
         {
           "file": "tests/playwright-runtime.foundation.functional.mjs",
           "testId": "Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority",
+          "testState": "authored"
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-003 shared disjointness verdict refuses an active same-pattern crossing",
           "testState": "authored"
         },
         "tests/portfolio-analytics.unit.mjs",
@@ -261,9 +633,11 @@
         "report.md#fresh-change-boundary-containment-at-c652cd092",
         "report.md#bug-017-scope-4-dependency-unblock-receipt",
         "report.md#bug-017-scope-4-finalization-follow-up",
-        "report.md#bug-017-scope-4-fallback-consumer-receipt"
+        "report.md#bug-017-scope-4-fallback-consumer-receipt",
+        "report.md#independent-test-verification-convergence-iteration-4"
       ],
       "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#runnerDisjointnessVerdict",
         "scripts/validate-test-file-reachability.mjs",
         ".specify/memory/agents.md",
         "playwright.config.mjs",
@@ -276,11 +650,987 @@
         "assertionSurface": "visible-ui",
         "dependencyPath": "same-origin-real",
         "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#runnerDisjointnessVerdict",
           "playwright.config.mjs",
           "scripts/validate-test-file-reachability.mjs",
           ".specify/memory/agents.md"
         ],
-        "negativeControl": "An active portfolio-wide Node declaration recreates the eight crossings and fails the focused disjointness assertion. TP-BUG022-C03 remains the unchanged Playwright command and now consumes the selected one-worker config default.",
+        "negativeControl": "Move one identical Node command between an active plan and a historical report. The active site throws a typed same-pattern refusal, while the historical site returns pass without disappearing.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG022-004",
+      "scenarioId": "SCN-BUG022-004",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Root authority refuses invalid and symlink-escaped operands",
+      "gherkin": {
+        "given": "--root has no value or an option-shaped next token, or a fixture exposes its tests root, one test entry, or one active declaration directory through a symlink outside the canonical selected root",
+        "when": "the production CLI parses the invocation",
+        "then": "invalid operands exit 2 before scanning or writing, and every escaped test or declaration symlink refuses with logical-path provenance without external admission or silent exclusion"
+      },
+      "behaviorClass": "cli",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "degraded-state",
+        "runtime-config",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Missing and option-shaped root operands return usage exit 2 with no plausible current-directory default.",
+          "satisfiedBy": [
+            "TP-BUG022-F07 :: Regression: SCN-BUG022-004 missing and option-shaped root values refuse before scan or baseline write",
+            "TP-BUG022-R4-F33 :: Regression: SCN-BUG022-004 symlinked test discovery refuses outside-root admission"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "A production CLI subprocess exercises both update-option orderings and proves zero scan output and byte-stable baseline sentinels.",
+          "satisfiedBy": [
+            "TP-BUG022-F07 :: Regression: SCN-BUG022-004 missing and option-shaped root values refuse before scan or baseline write",
+            "TP-BUG022-R4-F33 :: Regression: SCN-BUG022-004 symlinked test discovery refuses outside-root admission"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Production CLI subprocesses resolve the physical tests root and every discovered test entry under the canonical selected root, and explicitly refuse each escaped symlink with repository-relative provenance.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F33 :: Regression: SCN-BUG022-004 symlinked test discovery refuses outside-root admission",
+            "TP-BUG022-R4-F50 :: Regression: SCN-BUG022-004 escaped declaration symlinks refuse instead of skipping"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-F07",
+        "TP-BUG022-C08",
+        "TP-BUG022-C09",
+        "TP-BUG022-R4-F33",
+        "TP-BUG022-R4-C37",
+        "TP-BUG022-R4-C38",
+        "TP-BUG022-R4-C39",
+        "TP-BUG022-R4-C40",
+        "TP-BUG022-R4-C41",
+        "TP-BUG022-R4-F50",
+        "TP-BUG022-R4-C54",
+        "TP-BUG022-R4-C55",
+        "TP-BUG022-R4-C56",
+        "TP-BUG022-R4-C57",
+        "TP-BUG022-R4-C58",
+        "TP-BUG022-R4-C59",
+        "TP-BUG022-R4-C60"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-004 missing and option-shaped root values refuse before scan or baseline write",
+          "testState": "authored"
+        }
+      ],
+      "linkedTestContracts": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-004 symlinked test discovery refuses outside-root admission",
+          "testPlanRow": "TP-BUG022-R4-F33",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1888",
+            ".specify/runtime/tool-calls.jsonl:1953",
+            ".specify/runtime/tool-calls.jsonl:1967"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 security authority matrix closes all five findings together",
+          "testPlanRow": "TP-BUG022-R4-C39",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1957"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-004 escaped declaration symlinks refuse instead of skipping",
+          "testPlanRow": "TP-BUG022-R4-F50",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2404"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape matrix closes all twelve findings together",
+          "testPlanRow": "TP-BUG022-R4-C56",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2391"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 final-shape repair rollback preserves source test ratchets and history",
+          "testPlanRow": "TP-BUG022-R4-C57",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2392"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape repair contains exactly the validator and focused carrier",
+          "testPlanRow": "TP-BUG022-R4-C60",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2395"]
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-convergence-iteration-4",
+        "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+        ".specify/runtime/tool-calls.jsonl:1953",
+        ".specify/runtime/tool-calls.jsonl:1957",
+        ".specify/runtime/tool-calls.jsonl:1961",
+        ".specify/runtime/tool-calls.jsonl:1966"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#main",
+        "scripts/validate-test-file-reachability.mjs#parseReachabilityArguments",
+        "scripts/validate-test-file-reachability.mjs#listFilesRecursive",
+        "scripts/validate-test-file-reachability.mjs#validateTestFileReachability",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#main",
+          "scripts/validate-test-file-reachability.mjs#parseReachabilityArguments",
+          "scripts/validate-test-file-reachability.mjs#listFilesRecursive",
+          "scripts/validate-test-file-reachability.mjs#validateTestFileReachability"
+        ],
+        "negativeControl": "Keep regular in-root tests and active-plan directories discoverable. Replace the tests root, one test entry, and one plan directory independently with outside-resolving symlinks. Each mutation must refuse with logical provenance before external admission or silent exclusion.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG022-005",
+      "scenarioId": "SCN-BUG022-005",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Presentation forms cannot hide unknown declaration candidates",
+      "gherkin": {
+        "given": "unknown artifacts contain direct, list, task-list, table, and Command-label presentations with arbitrary wrappers, quoted pipes, separators, substitutions, and internal backticks",
+        "when": "the production collector extracts and classifies every command fragment",
+        "then": "every complete candidate reaches provenance-bearing classification across all presentations, while command text, substitutions, and prose remain inert"
+      },
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The production collector independently exposes the second command in a multi-command table row, the unordered-list command, the ordered-list command, and the existing Command-label control.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F11 :: Regression: SCN-BUG022-005 table cells and Command labels on unknown artifacts fail closed",
+            "TP-BUG022-R4-F22 :: Regression: SCN-BUG022-005 table rows and Markdown lists expose every declaration candidate",
+            "TP-BUG022-R4-F26 :: Regression: SCN-BUG022-005 backticked unordered Markdown-list commands fail closed",
+            "TP-BUG022-R4-F27 :: Regression: SCN-BUG022-005 backticked ordered Markdown-list commands fail closed",
+            "TP-BUG022-R4-F34 :: Regression: SCN-BUG022-002 ambiguous command forms fail closed without execution",
+            "TP-BUG022-R4-F44 :: Regression: SCN-BUG022-005 Markdown-list arbitrary wrappers fail closed with provenance",
+            "TP-BUG022-R4-F45 :: Regression: SCN-BUG022-005 task-list commands reach fail-closed classification",
+            "TP-BUG022-R4-F46 :: Regression: SCN-BUG022-005 table backtick substitutions stay visible and inert",
+            "TP-BUG022-R4-F48 :: Regression: SCN-BUG022-005 Command labels preserve backtick-substitution candidates"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Each unknown-artifact candidate becomes a named blocking classification error rather than a discarded candidate.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F11 :: Regression: SCN-BUG022-005 table cells and Command labels on unknown artifacts fail closed",
+            "TP-BUG022-R4-F22 :: Regression: SCN-BUG022-005 table rows and Markdown lists expose every declaration candidate",
+            "TP-BUG022-R4-F26 :: Regression: SCN-BUG022-005 backticked unordered Markdown-list commands fail closed",
+            "TP-BUG022-R4-F27 :: Regression: SCN-BUG022-005 backticked ordered Markdown-list commands fail closed",
+            "TP-BUG022-R4-F34 :: Regression: SCN-BUG022-002 ambiguous command forms fail closed without execution",
+            "TP-BUG022-R4-F44 :: Regression: SCN-BUG022-005 Markdown-list arbitrary wrappers fail closed with provenance",
+            "TP-BUG022-R4-F45 :: Regression: SCN-BUG022-005 task-list commands reach fail-closed classification",
+            "TP-BUG022-R4-F46 :: Regression: SCN-BUG022-005 table backtick substitutions stay visible and inert",
+            "TP-BUG022-R4-F48 :: Regression: SCN-BUG022-005 Command labels preserve backtick-substitution candidates"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Every extracted error retains repository-relative artifact and positive line provenance while prose without a declaration remains inert.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F11 :: Regression: SCN-BUG022-005 table cells and Command labels on unknown artifacts fail closed",
+            "TP-BUG022-R4-F22 :: Regression: SCN-BUG022-005 table rows and Markdown lists expose every declaration candidate",
+            "TP-BUG022-R4-F26 :: Regression: SCN-BUG022-005 backticked unordered Markdown-list commands fail closed",
+            "TP-BUG022-R4-F27 :: Regression: SCN-BUG022-005 backticked ordered Markdown-list commands fail closed",
+            "TP-BUG022-R4-F34 :: Regression: SCN-BUG022-002 ambiguous command forms fail closed without execution",
+            "TP-BUG022-R4-F44 :: Regression: SCN-BUG022-005 Markdown-list arbitrary wrappers fail closed with provenance",
+            "TP-BUG022-R4-F45 :: Regression: SCN-BUG022-005 task-list commands reach fail-closed classification",
+            "TP-BUG022-R4-F46 :: Regression: SCN-BUG022-005 table backtick substitutions stay visible and inert",
+            "TP-BUG022-R4-F48 :: Regression: SCN-BUG022-005 Command labels preserve backtick-substitution candidates"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-R4-F11",
+        "TP-BUG022-R4-C15",
+        "TP-BUG022-R4-C16",
+        "TP-BUG022-R4-C17",
+        "TP-BUG022-R4-C19",
+        "TP-BUG022-R4-C18",
+        "TP-BUG022-R4-F22",
+        "TP-BUG022-R4-C23",
+        "TP-BUG022-R4-C24",
+        "TP-BUG022-R4-C25",
+        "TP-BUG022-R4-F26",
+        "TP-BUG022-R4-F27",
+        "TP-BUG022-R4-C29",
+        "TP-BUG022-R4-C30",
+        "TP-BUG022-R4-C31",
+        "TP-BUG022-R4-F34",
+        "TP-BUG022-R4-C37",
+        "TP-BUG022-R4-C38",
+        "TP-BUG022-R4-C39",
+        "TP-BUG022-R4-C40",
+        "TP-BUG022-R4-C41",
+        "TP-BUG022-R4-F44",
+        "TP-BUG022-R4-F45",
+        "TP-BUG022-R4-F46",
+        "TP-BUG022-R4-F48",
+        "TP-BUG022-R4-C54",
+        "TP-BUG022-R4-C55",
+        "TP-BUG022-R4-C56",
+        "TP-BUG022-R4-C57",
+        "TP-BUG022-R4-C58",
+        "TP-BUG022-R4-C59",
+        "TP-BUG022-R4-C60"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 table cells and Command labels on unknown artifacts fail closed",
+          "testState": "authored"
+        }
+      ],
+      "linkedTestContracts": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 table rows and Markdown lists expose every declaration candidate",
+          "testPlanRow": "TP-BUG022-R4-F22",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1622"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 backticked unordered Markdown-list commands fail closed",
+          "testPlanRow": "TP-BUG022-R4-F26",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1719",
+            ".specify/runtime/tool-calls.jsonl:1720",
+            ".specify/runtime/tool-calls.jsonl:1758"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 backticked ordered Markdown-list commands fail closed",
+          "testPlanRow": "TP-BUG022-R4-F27",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1719",
+            ".specify/runtime/tool-calls.jsonl:1721",
+            ".specify/runtime/tool-calls.jsonl:1758"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 hardening repair rollback preserves source test and protected objects",
+          "testPlanRow": "TP-BUG022-R4-C31",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1709",
+            ".specify/runtime/tool-calls.jsonl:1742",
+            ".specify/runtime/tool-calls.jsonl:1743",
+            ".specify/runtime/tool-calls.jsonl:1744",
+            ".specify/runtime/tool-calls.jsonl:1745",
+            ".specify/runtime/tool-calls.jsonl:1747",
+            ".specify/runtime/tool-calls.jsonl:1758"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 ambiguous command forms fail closed without execution",
+          "testPlanRow": "TP-BUG022-R4-F34",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1889",
+            ".specify/runtime/tool-calls.jsonl:1954",
+            ".specify/runtime/tool-calls.jsonl:1967"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 security authority matrix closes all five findings together",
+          "testPlanRow": "TP-BUG022-R4-C39",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1957"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 Markdown-list arbitrary wrappers fail closed with provenance",
+          "testPlanRow": "TP-BUG022-R4-F44",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2398"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 task-list commands reach fail-closed classification",
+          "testPlanRow": "TP-BUG022-R4-F45",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2399"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 table backtick substitutions stay visible and inert",
+          "testPlanRow": "TP-BUG022-R4-F46",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2400"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 Command labels preserve backtick-substitution candidates",
+          "testPlanRow": "TP-BUG022-R4-F48",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2402"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape matrix closes all twelve findings together",
+          "testPlanRow": "TP-BUG022-R4-C56",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2391"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 final-shape repair rollback preserves source test ratchets and history",
+          "testPlanRow": "TP-BUG022-R4-C57",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2392"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape repair contains exactly the validator and focused carrier",
+          "testPlanRow": "TP-BUG022-R4-C60",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2395"]
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-reopened-scope-1-latest-nine-rows",
+        ".specify/runtime/tool-calls.jsonl:1622",
+        ".specify/runtime/tool-calls.jsonl:1623",
+        ".specify/runtime/tool-calls.jsonl:1627",
+        ".specify/runtime/tool-calls.jsonl:1624",
+        ".specify/runtime/tool-calls.jsonl:1758",
+        "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+        ".specify/runtime/tool-calls.jsonl:1954",
+        ".specify/runtime/tool-calls.jsonl:1957",
+        ".specify/runtime/tool-calls.jsonl:1961",
+        ".specify/runtime/tool-calls.jsonl:1966"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#commandCandidateFragments",
+        "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
+        "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#commandCandidateFragments",
+          "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
+          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
+        ],
+        "negativeControl": "Keep direct, list, task-list, table, and Command-label controls classified. Perturb wrapper identity, task marker, quoted pipe placement, substitution syntax, and internal backticks independently. Every candidate must remain visible with provenance while execution sentinels and prose remain inert.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG022-006",
+      "scenarioId": "SCN-BUG022-006",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Quoted Node options before the glob remain extractable",
+      "gherkin": {
+        "given": "direct node --test commands preserve supported option orderings, a table command contains a quoted pipe before its positional glob, and environment wrappers attempt working-directory changes",
+        "when": "the production command parser extracts the declaration candidate",
+        "then": "supported option forms and quoted pipes retain the exact positional glob with provenance, and every working-directory-changing form fails closed before relative glob compilation"
+      },
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production shell-token parsing distinguishes option names, quoted option values, boolean --test-only, and quoted positional test globs in every supported order.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F12 :: Regression: SCN-BUG022-006 quoted Node options before a test glob remain extractable",
+            "TP-BUG022-R4-F21 :: Regression: SCN-BUG022-006 boolean test-only preserves a quoted positional glob",
+            "TP-BUG022-R4-F35 :: Regression: SCN-BUG022-006 env chdir forms cannot change declaration authority",
+            "TP-BUG022-R4-F47 :: Regression: SCN-BUG022-006 quoted pipes in table commands preserve positional globs"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Every env working-directory option spelling produces a named provenance-bearing classification error before relative test globs are compiled, with no permissive rebase.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F35 :: Regression: SCN-BUG022-006 env chdir forms cannot change declaration authority"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The extracted declaration retains the exact glob plus artifact and line provenance.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F12 :: Regression: SCN-BUG022-006 quoted Node options before a test glob remain extractable",
+            "TP-BUG022-R4-F21 :: Regression: SCN-BUG022-006 boolean test-only preserves a quoted positional glob",
+            "TP-BUG022-R4-F35 :: Regression: SCN-BUG022-006 env chdir forms cannot change declaration authority",
+            "TP-BUG022-R4-F47 :: Regression: SCN-BUG022-006 quoted pipes in table commands preserve positional globs"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-R4-F12",
+        "TP-BUG022-R4-C15",
+        "TP-BUG022-R4-C16",
+        "TP-BUG022-R4-C17",
+        "TP-BUG022-R4-C19",
+        "TP-BUG022-R4-C18",
+        "TP-BUG022-R4-F21",
+        "TP-BUG022-R4-C23",
+        "TP-BUG022-R4-C24",
+        "TP-BUG022-R4-C25",
+        "TP-BUG022-R4-F35",
+        "TP-BUG022-R4-C37",
+        "TP-BUG022-R4-C38",
+        "TP-BUG022-R4-C39",
+        "TP-BUG022-R4-C40",
+        "TP-BUG022-R4-C41",
+        "TP-BUG022-R4-F47",
+        "TP-BUG022-R4-C54",
+        "TP-BUG022-R4-C55",
+        "TP-BUG022-R4-C56",
+        "TP-BUG022-R4-C57",
+        "TP-BUG022-R4-C58",
+        "TP-BUG022-R4-C59",
+        "TP-BUG022-R4-C60"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-006 quoted Node options before a test glob remain extractable",
+          "testState": "authored"
+        }
+      ],
+      "linkedTestContracts": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-006 boolean test-only preserves a quoted positional glob",
+          "testPlanRow": "TP-BUG022-R4-F21",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1621"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-006 env chdir forms cannot change declaration authority",
+          "testPlanRow": "TP-BUG022-R4-F35",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1890",
+            ".specify/runtime/tool-calls.jsonl:1955",
+            ".specify/runtime/tool-calls.jsonl:1967"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 security authority matrix closes all five findings together",
+          "testPlanRow": "TP-BUG022-R4-C39",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1957"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-006 quoted pipes in table commands preserve positional globs",
+          "testPlanRow": "TP-BUG022-R4-F47",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2401"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape matrix closes all twelve findings together",
+          "testPlanRow": "TP-BUG022-R4-C56",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2391"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 final-shape repair rollback preserves source test ratchets and history",
+          "testPlanRow": "TP-BUG022-R4-C57",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2392"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape repair contains exactly the validator and focused carrier",
+          "testPlanRow": "TP-BUG022-R4-C60",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2395"]
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-reopened-scope-1-latest-nine-rows",
+        ".specify/runtime/tool-calls.jsonl:1621",
+        ".specify/runtime/tool-calls.jsonl:1623",
+        ".specify/runtime/tool-calls.jsonl:1627",
+        ".specify/runtime/tool-calls.jsonl:1624",
+        "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+        ".specify/runtime/tool-calls.jsonl:1955",
+        ".specify/runtime/tool-calls.jsonl:1957",
+        ".specify/runtime/tool-calls.jsonl:1961",
+        ".specify/runtime/tool-calls.jsonl:1966"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#splitMarkdownTableCells",
+        "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
+        "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
+          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
+        ],
+        "negativeControl": "Preserve the same declaration under supported option orderings and a quoted table-pipe alternation. Mutate only the env wrapper to each directory-changing form. Quoted pipes stay data, and every directory change refuses before relative glob compilation.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG022-007",
+      "scenarioId": "SCN-BUG022-007",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Baseline updates validate before writing",
+      "gherkin": {
+        "given": "isolated fixture roots contain prior invalid-update cases plus separate baseline-file and scripts-parent symlinks to outside sentinels, and the production CLI receives --update-baseline",
+        "when": "reachability validation runs",
+        "then": "every invalid or symlink-escaped update refuses before changing baseline or outside-sentinel bytes, the crossing uses the shared verdict before the sole write, and the valid regular-path update still shrinks and reruns successfully"
+      },
+      "behaviorClass": "cli",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "mutable-state",
+        "dependency-path",
+        "degraded-state",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Production CLI subprocesses snapshot each isolated baseline, prove new-orphan, vacuity, and active-crossing attempts are byte-stable, then remove one stale entry from a valid baseline and pass a normal rerun.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F13 :: Regression: SCN-BUG022-007 baseline update refuses vacuity and new orphan absorption before write",
+            "TP-BUG022-R4-F20 :: Regression: SCN-BUG022-007 active runner crossing refuses baseline update before write",
+            "TP-BUG022-R4-F32 :: Regression: SCN-BUG022-007 baseline symlink escapes refuse before mutation"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Production CLI subprocesses verify physical ancestry under the canonical selected root before baseline mutation, and both baseline-leaf and scripts-parent symlink escapes leave outside sentinels byte-identical.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F32 :: Regression: SCN-BUG022-007 baseline symlink escapes refuse before mutation"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "New-orphan, empty-root, and active-crossing updates exit nonzero with distinct refusal signals and no baseline mutation.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F13 :: Regression: SCN-BUG022-007 baseline update refuses vacuity and new orphan absorption before write",
+            "TP-BUG022-R4-F20 :: Regression: SCN-BUG022-007 active runner crossing refuses baseline update before write",
+            "TP-BUG022-R4-F32 :: Regression: SCN-BUG022-007 baseline symlink escapes refuse before mutation"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The real --update-baseline entrypoint calls runnerDisjointnessVerdict and performs every candidate, authority, orphan, crossing, and vacuity check before its only write boundary without duplicating the crossing decision, while a valid shrink-only update still writes.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F13 :: Regression: SCN-BUG022-007 baseline update refuses vacuity and new orphan absorption before write",
+            "TP-BUG022-R4-F20 :: Regression: SCN-BUG022-007 active runner crossing refuses baseline update before write",
+            "TP-BUG022-R4-F32 :: Regression: SCN-BUG022-007 baseline symlink escapes refuse before mutation"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-R4-F13",
+        "TP-BUG022-R4-C15",
+        "TP-BUG022-R4-C16",
+        "TP-BUG022-R4-C17",
+        "TP-BUG022-R4-C19",
+        "TP-BUG022-R4-C18",
+        "TP-BUG022-R4-F20",
+        "TP-BUG022-R4-C23",
+        "TP-BUG022-R4-C24",
+        "TP-BUG022-R4-C25",
+        "TP-BUG022-R4-F32",
+        "TP-BUG022-R4-C37",
+        "TP-BUG022-R4-C38",
+        "TP-BUG022-R4-C39",
+        "TP-BUG022-R4-C40",
+        "TP-BUG022-R4-C41",
+        "TP-BUG022-R4-C54",
+        "TP-BUG022-R4-C55",
+        "TP-BUG022-R4-C56",
+        "TP-BUG022-R4-C57",
+        "TP-BUG022-R4-C58",
+        "TP-BUG022-R4-C59",
+        "TP-BUG022-R4-C60"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 baseline update refuses vacuity and new orphan absorption before write",
+          "testState": "authored"
+        }
+      ],
+      "linkedTestContracts": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 active runner crossing refuses baseline update before write",
+          "testPlanRow": "TP-BUG022-R4-F20",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1620",
+            ".specify/runtime/tool-calls.jsonl:1625"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 convergence repair rollback preserves source test and protected objects",
+          "testPlanRow": "TP-BUG022-R4-C25",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1624"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 baseline symlink escapes refuse before mutation",
+          "testPlanRow": "TP-BUG022-R4-F32",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1887",
+            ".specify/runtime/tool-calls.jsonl:1952",
+            ".specify/runtime/tool-calls.jsonl:1967"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 security repair rollback preserves source test ratchets and sentinels",
+          "testPlanRow": "TP-BUG022-R4-C40",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1958",
+            ".specify/runtime/tool-calls.jsonl:1959"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 security repair contains exactly the validator and focused carrier",
+          "testPlanRow": "TP-BUG022-R4-C41",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1960",
+            ".specify/runtime/tool-calls.jsonl:1971"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape matrix closes all twelve findings together",
+          "testPlanRow": "TP-BUG022-R4-C56",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2391"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 final-shape repair rollback preserves source test ratchets and history",
+          "testPlanRow": "TP-BUG022-R4-C57",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2392"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape repair contains exactly the validator and focused carrier",
+          "testPlanRow": "TP-BUG022-R4-C60",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2395"]
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-reopened-scope-1-latest-nine-rows",
+        ".specify/runtime/tool-calls.jsonl:1620",
+        ".specify/runtime/tool-calls.jsonl:1625",
+        ".specify/runtime/tool-calls.jsonl:1623",
+        ".specify/runtime/tool-calls.jsonl:1627",
+        ".specify/runtime/tool-calls.jsonl:1624",
+        "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+        ".specify/runtime/tool-calls.jsonl:1952",
+        ".specify/runtime/tool-calls.jsonl:1957",
+        ".specify/runtime/tool-calls.jsonl:1958",
+        ".specify/runtime/tool-calls.jsonl:1959",
+        ".specify/runtime/tool-calls.jsonl:1960",
+        ".specify/runtime/tool-calls.jsonl:1961",
+        ".specify/runtime/tool-calls.jsonl:1966",
+        ".specify/runtime/tool-calls.jsonl:1971"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#main",
+        "scripts/validate-test-file-reachability.mjs#validateTestFileReachability",
+        "scripts/validate-test-file-reachability.mjs#runnerDisjointnessVerdict",
+        "scripts/validate-test-file-reachability.mjs#writeBaseline",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#main",
+          "scripts/validate-test-file-reachability.mjs#validateTestFileReachability",
+          "scripts/validate-test-file-reachability.mjs#runnerDisjointnessVerdict",
+          "scripts/validate-test-file-reachability.mjs#writeBaseline"
+        ],
+        "negativeControl": "Run a valid shrink-only update on regular in-root paths, then mutate only the baseline leaf and scripts parent into outside-resolving symlinks alongside the prior invalid cases. Every invalid form must refuse before write and preserve exact baseline or outside-sentinel bytes.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG022-008",
+      "scenarioId": "SCN-BUG022-008",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Dynamic Node test registration remains test-bearing",
+      "gherkin": {
+        "given": "committed tests register through a named static import, a comment-separated dynamic import, and a dynamic import inside executable template interpolation, while controls place equivalent text in comments, strings, template text, and regex literals",
+        "when": "production reachability classifies the file",
+        "then": "every real import remains test-bearing without source execution, missing authority blocks as an orphan, matching authority makes it reachable, and every lexical lookalike remains helper-exempt"
+      },
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production test-bearing detection recognizes static and dynamic node:test imports through one classification path.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F14 :: Regression: SCN-BUG022-008 dynamic node:test imports remain test-bearing",
+            "TP-BUG022-R4-F36 :: Regression: SCN-BUG022-008 comment-separated dynamic node:test imports remain test-bearing",
+            "TP-BUG022-R4-F51 :: Regression: SCN-BUG022-008 named static node:test imports remain test-bearing",
+            "TP-BUG022-R4-F52 :: Regression: SCN-BUG022-008 template-interpolated node:test imports remain test-bearing",
+            "TP-BUG022-R4-F53 :: Regression: SCN-BUG022-008 regex literals mentioning node:test remain helper-exempt"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A dynamic-registration file without active authority remains a blocking orphan instead of receiving a helper exemption.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F14 :: Regression: SCN-BUG022-008 dynamic node:test imports remain test-bearing",
+            "TP-BUG022-R4-F36 :: Regression: SCN-BUG022-008 comment-separated dynamic node:test imports remain test-bearing",
+            "TP-BUG022-R4-F51 :: Regression: SCN-BUG022-008 named static node:test imports remain test-bearing",
+            "TP-BUG022-R4-F52 :: Regression: SCN-BUG022-008 template-interpolated node:test imports remain test-bearing"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "A reachable dynamic-registration control passes and a true helper with no registration form remains exempt.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F14 :: Regression: SCN-BUG022-008 dynamic node:test imports remain test-bearing",
+            "TP-BUG022-R4-F36 :: Regression: SCN-BUG022-008 comment-separated dynamic node:test imports remain test-bearing",
+            "TP-BUG022-R4-F51 :: Regression: SCN-BUG022-008 named static node:test imports remain test-bearing",
+            "TP-BUG022-R4-F52 :: Regression: SCN-BUG022-008 template-interpolated node:test imports remain test-bearing",
+            "TP-BUG022-R4-F53 :: Regression: SCN-BUG022-008 regex literals mentioning node:test remain helper-exempt"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-R4-F14",
+        "TP-BUG022-R4-C15",
+        "TP-BUG022-R4-C16",
+        "TP-BUG022-R4-C17",
+        "TP-BUG022-R4-C19",
+        "TP-BUG022-R4-C18",
+        "TP-BUG022-R4-F36",
+        "TP-BUG022-R4-C37",
+        "TP-BUG022-R4-C38",
+        "TP-BUG022-R4-C39",
+        "TP-BUG022-R4-C40",
+        "TP-BUG022-R4-C41",
+        "TP-BUG022-R4-F51",
+        "TP-BUG022-R4-F52",
+        "TP-BUG022-R4-F53",
+        "TP-BUG022-R4-C54",
+        "TP-BUG022-R4-C55",
+        "TP-BUG022-R4-C56",
+        "TP-BUG022-R4-C57",
+        "TP-BUG022-R4-C58",
+        "TP-BUG022-R4-C59",
+        "TP-BUG022-R4-C60"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-008 dynamic node:test imports remain test-bearing",
+          "testState": "authored"
+        }
+      ],
+      "linkedTestContracts": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-008 comment-separated dynamic node:test imports remain test-bearing",
+          "testPlanRow": "TP-BUG022-R4-F36",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1892",
+            ".specify/runtime/tool-calls.jsonl:1956",
+            ".specify/runtime/tool-calls.jsonl:1967"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 security authority matrix closes all five findings together",
+          "testPlanRow": "TP-BUG022-R4-C39",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+            ".specify/runtime/tool-calls.jsonl:1957"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-008 named static node:test imports remain test-bearing",
+          "testPlanRow": "TP-BUG022-R4-F51",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2405"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-008 template-interpolated node:test imports remain test-bearing",
+          "testPlanRow": "TP-BUG022-R4-F52",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2406"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-008 regex literals mentioning node:test remain helper-exempt",
+          "testPlanRow": "TP-BUG022-R4-F53",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2407"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape matrix closes all twelve findings together",
+          "testPlanRow": "TP-BUG022-R4-C56",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2391"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 final-shape repair rollback preserves source test ratchets and history",
+          "testPlanRow": "TP-BUG022-R4-C57",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2392"]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: BUG-022 final-shape repair contains exactly the validator and focused carrier",
+          "testPlanRow": "TP-BUG022-R4-C60",
+          "planStatus": "authored",
+          "evidenceRefs": [".specify/runtime/tool-calls.jsonl:2395"]
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-reopened-scope-1-latest-nine-rows",
+        "report.md#independent-test-owner-verification--f32f36-and-c37c41",
+        ".specify/runtime/tool-calls.jsonl:1956",
+        ".specify/runtime/tool-calls.jsonl:1957",
+        ".specify/runtime/tool-calls.jsonl:1961",
+        ".specify/runtime/tool-calls.jsonl:1966"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#javascriptLexicalTokens",
+        "scripts/validate-test-file-reachability.mjs#containsNodeTestRegistration",
+        "scripts/validate-test-file-reachability.mjs#validateTestFileReachability",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#NODE_TEST_IMPORT",
+          "scripts/validate-test-file-reachability.mjs#validateTestFileReachability"
+        ],
+        "negativeControl": "Hold paths and importers constant while moving the same node:test bytes among named static imports, dynamic imports, executable template interpolation, comments, strings, static template text, and regex bodies. Only executable import syntax may remain test-bearing and orphanable.",
         "negativeControlMechanism": "perturbed-input"
       }
     }

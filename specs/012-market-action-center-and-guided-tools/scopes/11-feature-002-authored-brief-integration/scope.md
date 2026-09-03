@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Not Started (external gate `feature-002` SATISFIED — re-executed verdict status=done/done, matched 4/4; XFC-01 resolved for this gate in commit `85a9ce1d` by the producer publishing `state.milestones` for capabilities it genuinely delivered, with `tool-experience.config.json` byte-unchanged. No implementation work has begun.)
+**Status:** In Progress (external gate `feature-002` SATISFIED — re-executed verdict status=done/done, matched 4/4; XFC-01 resolved for this gate in commit `85a9ce1d` by the producer publishing `state.milestones` for capabilities it genuinely delivered, with `tool-experience.config.json` byte-unchanged. The implementation candidate is under current verification.)
 
 **Scope-Kind:** runtime-behavior
 
@@ -12,9 +12,11 @@ Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and 
 
 Depends On: 10-bounded-web-evidence-acquisition
 
-**External Eligibility Gate:** Feature 002 must be terminally certified for full delivery, and current checks must prove its pointer/manifest/hash graph, all-current-registry owner outcomes, powerless author boundary, history, compatibility, and atomic pointer-last publication. Its current implementation claims with `certification.status=not_started` do not satisfy this gate. If false, this scope remains Not Started and Scope 02's SCN-012-028 dependency state remains the only correct behavior.
+**External Eligibility Gate:** Feature 002 must be terminally certified for full delivery, and current checks must prove its pointer/manifest/hash graph, all-current-registry owner outcomes, powerless author boundary, history, compatibility, and atomic pointer-last publication. The current producer record satisfies the lifecycle prerequisite with `status=done`, `certification.status=done`, and `certifiedAt=2026-07-29T23:45:00Z`; current gate evidence must still prove the remaining predicates at implementation pickup. If any predicate is false, this scope makes no integrated source edit and Scope 02's SCN-012-028 dependency state remains the only correct behavior.
 
 **Primary Outcome:** After the exact gate passes, one frozen owner read plus one qualified frozen WebEvidenceBundle feeds a networkless/shell-less/write-less/model-less/private-less author, validates `ToolBrief/v2`, publishes per-tool and public-watchlist Briefs in the existing Feature 002 atomic generation, and renders concise action/catalyst/no-action states with claim-level citations and closed detail.
+
+**Consumer Surface:** The Market Action Center web page exposes its Brief through `market-brief.html`. Registered ordinary-tool web pages expose their shared Brief through `rlbrief.js`.
 
 ## Requirement Coverage
 
@@ -69,7 +71,7 @@ Scenario: SCN-012-020 A ticker is explicitly listed in public watchlist.json
 ## UI Scenario Matrix
 
 | Scenario | Preconditions | User Steps | Exact Visible Result | Test Type |
-|---|---|---|---|---|
+| --- | --- | --- | --- | --- |
 | SCN-012-005 current owner/bundle | Feature 002 predicate true; compatible cutoff; qualified frozen bundle | Open ordinary Brief and evidence disclosures | Authored object references exact read/bundle hashes; capability ledger shows no web/shell/write/model/key/private authority | e2e-ui/integration |
 | SCN-012-008 concise ordinary Brief | Qualified action or catalyst | Open Brief; inspect first viewport; expand disclosures | Owner read/action, trigger, invalidation, horizon, confidence basis, citations, owner link lead; methodology/full evidence/history closed | e2e-ui |
 | SCN-012-018 Center current window | Qualified public generation and actions/catalysts | Open Center Brief/window | Bounded actions/catalysts precede backdrop; all required fields visible; blocking limitations are not hidden | e2e-ui |
@@ -116,7 +118,7 @@ Scenario: SCN-012-020 A ticker is explicitly listed in public watchlist.json
 ## Shared Infrastructure Impact Sweep
 
 | Protected surface | Downstream contract | Independent canary before broad validation |
-|---|---|---|
+| --- | --- | --- |
 | Feature 002 author | Existing bounded input/output, identity, lifecycle, and no-shell behavior remain | Existing Feature 002 unit/functional/authorship suites plus new zero-network/write capability ledger |
 | Feature 002 publication | One pointer, immutable objects/history, v1/v2 reader, compatibility, dirty-tree isolation | Existing scheduler/history/git-isolation/failure tests plus partial-generation rollback mutation |
 | Current Market Brief | Four windows/action gates and route remain stable | Existing distributed Brief/Market Brief payload/browser tests plus Center hierarchy tests |
@@ -141,19 +143,33 @@ After the external gate passes, create author-boundary, claim mapping, concise h
 ## Test Plan
 
 | ID | Type | Category | Scenario | File / Location | Exact Behavior / Persistent Title | Command | Live System | Evidence Anchor |
-|---|---|---|---|---|---|---|---|---|
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | TP-11-01 | Dependency gate | functional | SCN-012-028 | `scripts/validate-tool-experience.mjs` | Prove Feature 002 terminal certification and current graph/coverage/author/publication predicates before any integration work | `node scripts/validate-tool-experience.mjs --dependency feature-002 --require-accepted` | No | `report.md#tp-11-01` |
 | TP-11-02 | Unit | unit | SCN-012-005, SCN-012-008 | `tests/tool-brief-v2.unit.mjs` | Validate request/Brief schemas, refs/hashes/cutoffs, claim mappings, action/catalyst/no-action/carried states, text/link safety, and v1/v2 compatibility | `node --test tests/tool-brief-v2.unit.mjs` | No | `report.md#tp-11-02` |
 | TP-11-03 | Author-boundary functional | functional | SCN-012-005, SCN-012-006, SCN-012-007 | `tests/tool-brief-v2-author-boundary.functional.mjs` | Invoke author harness and prove frozen inputs only, zero web/shell/write/model/key/private authority, and rejection of unsupported/unmapped/syndicated claims | `node --test tests/tool-brief-v2-author-boundary.functional.mjs` | No | `report.md#tp-11-03` |
 | TP-11-04 | Atomic publication integration | integration | SCN-012-020 | `tests/tool-brief-v2-publication.integration.mjs` | Build isolated full generation, public ticker objects, hashes/refs/history/compatibility, pointer-last promotion, failure preservation, rollback, and private-sentinel absence | `node --test tests/tool-brief-v2-publication.integration.mjs` | No | `report.md#tp-11-04` |
 | TP-11-05 | Regression E2E | e2e-ui | SCN-012-005 | `tests/tool-brief-v2.spec.mjs` | `Regression: SCN-012-005 current Brief uses exact frozen read and bundle with a powerless author` | `npx --no-install playwright test tests/tool-brief-v2.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-012-005 current Brief uses exact frozen read and bundle with a powerless author" --reporter=list` | Yes | `report.md#scenario-scn-012-005` |
 | TP-11-06 | Regression E2E | e2e-ui | SCN-012-008 | `tests/tool-brief-v2.spec.mjs` | `Regression: SCN-012-008 qualified tool Brief leads with cited action and keeps long detail closed` | `npx --no-install playwright test tests/tool-brief-v2.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-012-008 qualified tool Brief leads with cited action and keeps long detail closed" --reporter=list` | Yes | `report.md#scenario-scn-012-008` |
-| TP-11-07 | Regression E2E | e2e-ui | SCN-012-018 | `tests/market-action-center.spec.mjs` | `Regression: SCN-012-018 Center Brief prioritizes bounded actions and catalysts with visible falsifiers` | `npx --no-install playwright test tests/market-action-center.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-012-018 Center Brief prioritizes bounded actions and catalysts with visible falsifiers" --reporter=list` | Yes | `report.md#scenario-scn-012-018` |
-| TP-11-08 | Regression E2E | e2e-ui | SCN-012-020 | `tests/market-action-center.spec.mjs` | `Regression: SCN-012-020 public watchlist ticker receives cited scheduled Brief with zero private fields` | `npx --no-install playwright test tests/market-action-center.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-012-020 public watchlist ticker receives cited scheduled Brief with zero private fields" --reporter=list` | Yes | `report.md#scenario-scn-012-020` |
+| TP-11-07 | Regression E2E | e2e-ui | SCN-012-018 | `tests/tool-brief-v2.spec.mjs` | `Regression: SCN-012-018 Center Brief prioritizes bounded actions and catalysts with visible falsifiers` | `npx --no-install playwright test tests/tool-brief-v2.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-012-018 Center Brief prioritizes bounded actions and catalysts with visible falsifiers" --reporter=list` | Yes | `report.md#scenario-scn-012-018` |
+| TP-11-08 | Regression E2E | e2e-ui | SCN-012-020 | `tests/tool-brief-v2.spec.mjs` | `Regression: SCN-012-020 public watchlist ticker receives cited scheduled Brief with zero private fields` | `npx --no-install playwright test tests/tool-brief-v2.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-012-020 public watchlist ticker receives cited scheduled Brief with zero private fields" --reporter=list` | Yes | `report.md#scenario-scn-012-020` |
 | TP-11-09 | Gate regression E2E | e2e-ui | SCN-012-028 | `tests/tool-experience.spec.mjs` | Re-run exact false-predicate Brief dependency regression after integrated code exists | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-012-028 Feature 002 without published milestones exposes exact Brief gate and no author request" --reporter=list` | Yes | `report.md#tp-11-09` |
-| TP-11-10 | Author/publication stress | stress | SCN-012-005, SCN-012-020 | `tests/tool-brief-v2.stress.mjs` | Execute configured max author concurrency and near-cap public generation while preserving caps, deterministic refs, and pointer-last behavior | `node --test tests/tool-brief-v2.stress.mjs` | No | `report.md#tp-11-10` |
-| TP-11-11 | Feature 002 regression | integration | SCN-012-005, SCN-012-020 | Existing `tests/distributed-briefs*.mjs` suites | Preserve v1/v2 renderer, author, history, scheduler, dirty-tree, and publication contracts | `node --test tests/distributed-briefs*.mjs` | No | `report.md#tp-11-11` |
+| TP-11-10 | Author/publication stress | stress | SCN-012-005, SCN-012-020 | `tests/tool-brief-v2.stress.mjs` | Execute configured max author concurrency and near-cap public generation while preserving caps, deterministic refs, and pointer-last behavior | `node --test tests/tool-brief-v2*.stress.mjs` | No | `report.md#tp-11-10` |
+| TP-11-11 | Feature 002 regression | integration | SCN-012-005, SCN-012-020 | Existing Feature 002 `node:test` suite families | Preserve v1/v2 renderer, author, history, scheduler, dirty-tree, and publication contracts without loading Playwright, support-only, or standalone load files in the Node test runner | `node --test tests/distributed-briefs*.unit.mjs tests/distributed-briefs*.functional.mjs tests/distributed-briefs*.integration.mjs tests/distributed-briefs*.e2e.mjs tests/distributed-briefs*.stress.mjs tests/distributed-briefs*.canary.mjs tests/distributed-briefs*-canary.mjs tests/distributed-briefs*.contract.mjs tests/distributed-briefs*.consumer-trace.mjs` | No | `report.md#tp-11-11` |
 | TP-11-12 | Broad regression | unit | SCN-012-005, SCN-012-008, SCN-012-018, SCN-012-020 | `scripts/selftest.mjs` | Preserve all existing Research Lab invariants and add ToolBrief v2/publication/privacy canaries | `node scripts/selftest.mjs` | No | `report.md#tp-11-12` |
+| TP-11-13 | Scope-family regression | integration | SCN-012-005, SCN-012-008, SCN-012-020 | Existing ToolBrief v2 `node:test` suite families | Execute every non-Playwright ToolBrief v2 suite through its owning runner while leaving browser proof to TP-11-05 through TP-11-08 | `node --test tests/tool-brief-v2*.unit.mjs tests/tool-brief-v2*.functional.mjs tests/tool-brief-v2*.integration.mjs tests/tool-brief-v2*.stress.mjs` | No | `report.md#tp-11-13` |
+| TP-11-14 | Feature 002 load regression | load | SCN-012-005, SCN-012-020 | `tests/distributed-briefs.history.load.mjs` - `Load: 31-day four-window history stays bounded to 124 authoritative references` | Execute every Feature 002 standalone load program through its canonical plain-Node family runner without assigning `node:test` or Playwright ownership | `for test_file in tests/distributed-briefs*.load.mjs; do node "$test_file" \|\| exit 1; done` | Yes | `report.md#tp-11-14` |
+
+### Runner Ownership And Reachability
+
+- TP-11-11 excludes `tests/distributed-briefs.spec.mjs`, support-only modules, and the standalone history load program from the Node test runner.
+- TP-11-13 declares real suffix-specific Node test globs for the ToolBrief v2 family.
+- TP-11-14 adopts the existing Feature 002 Scope 07 TP-07-06 runner contract:
+  `tests/distributed-briefs*.load.mjs` is a direct-Node script family, not a
+  `node:test` or Playwright family. Reachability discovery must preserve that
+  runner class from active plan authority, keep historical receipts
+  non-authoritative, and reject baseline growth as a substitute.
+- TP-11-05 through TP-11-08 retain browser ownership for `tests/tool-brief-v2.spec.mjs` through Playwright.
+- The implementation owner must remove any synthetic source declaration once these active plan commands satisfy reachability.
 
 ### Definition of Done - Tiered Validation
 
@@ -164,7 +180,7 @@ After the external gate passes, create author-boundary, claim mapping, concise h
 - [ ] Public tool/ticker/Center objects publish through the existing one-generation pointer-last transaction with private sentinel exclusion and byte-identical failure preservation.
 - [ ] False/regressed dependency state still renders SCN-012-028 and makes zero author/publication calls; v1 consumers/rollback remain valid.
 
-#### Test Evidence Items - Exact Parity With 12 Test Plan Rows
+#### Test Evidence Items - Exact Parity With 14 Test Plan Rows
 
 - [ ] TP-11-01 gate evidence proves Feature 002 was eligible.
 - [ ] TP-11-02 unit evidence proves ToolAuthorRequest/ToolBrief v2 contracts and v1 compatibility.
@@ -178,6 +194,10 @@ After the external gate passes, create author-boundary, claim mapping, concise h
 - [ ] TP-11-10 stress evidence proves bounded author/publication behavior at configured limits.
 - [ ] TP-11-11 Feature 002 regression evidence proves existing distributed Brief contracts remain green.
 - [ ] TP-11-12 broad selftest evidence proves the existing Research Lab baseline remains green.
+- [ ] TP-11-13 scope-family evidence proves every non-Playwright ToolBrief v2 suite runs under `node:test`, while browser suites remain Playwright-owned.
+- [ ] TP-11-14 load evidence proves every Feature 002 `.load.mjs` program runs
+  through the direct-Node family command and remains reachable without
+  `node:test`, Playwright, or baseline ownership.
 
 #### Build Quality Gate
 

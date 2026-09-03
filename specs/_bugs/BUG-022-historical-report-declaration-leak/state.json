@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
   "featureName": "BUG-022 Historical Report Declaration Leak",
   "createdAt": "2026-08-27T00:00:00Z",
-  "lastUpdatedAt": "2026-08-28T16:53:33Z",
+  "lastUpdatedAt": "2026-09-02T02:04:17Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -26,14 +26,15 @@
     "currentPhase": "plan",
     "currentPhaseStatus": "route_required",
     "executionModel": "direct-authorized-runner",
-    "parentAgent": null,
-    "runStartedAt": "2026-08-28T16:53:33Z",
-    "completedAt": null,
-    "substate": "independently_verified",
+    "parentAgent": "bubbles.goal",
+    "runStartedAt": "2026-09-01T23:17:13Z",
+    "completedAt": "2026-09-01T23:20:13Z",
     "currentScope": "01-separate-active-declarations-from-historical-receipts",
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
-    "nextRequiredReason": "Refresh the distinct receipt chains for SCN-BUG022-001, SCN-BUG022-002, and SCN-BUG022-003 after this planning-owned status, G060 chronology, vertical-exposure, and routing reconciliation changed their input closure. The canonical Outcome Contract is already present and no analyst route remains. Preserve stale/clone adjudication, missing specialist phase claims, human acceptance, and excluded concurrent-work findings for their existing owners.",
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "specs/_bugs/BUG-022-historical-report-declaration-leak/state.json",
+    "nextRequiredReason": "C55 is current-passed and its plan-owned Markdown, scenario, and machine Test Plan mirrors agree at 71 checked and 1 unchecked DoD row. Both 029-era root entries retain their bytes under underscore-prefixed superseded names, so the duplicate-number planning prerequisite is closed without occupying Feature 031 or reserved Feature 032. C58 was not rerun. Validate-owned scope progress remains the only open prerequisite before bubbles.test reruns C58.",
+    "phaseClaimNote": "The tax-close-bug-022 revision-5 packet validated without repository-binding preflight. Planning reconciled final C55 receipts at lines 2618, 2619, and 2624; aligned the Markdown, scenario manifest, and machine Test Plan; and preserved both 029-era paths under collision-safe superseded names with byte-identical shock packet contents. C58 remains unchecked and was not run. Certification, human acceptance, historical report evidence, source, tests, and unrelated dirty work remain unchanged.",
+    "substate": "needs_reverification",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -48,6 +49,122 @@
         "claimedAt": "2026-08-27T15:56:30Z",
         "evidenceRef": "report.md#fresh-test-owned-closure-at-current-validate-revision",
         "scopes": []
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimedAt": "2026-08-29T07:50:05Z",
+        "evidenceRef": "report.md#regression-phase-completion-after-scratch-path-correction",
+        "scopes": []
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimedAt": "2026-08-29T08:02:53Z",
+        "evidenceRef": "report.md#simplify-phase-convergence-iteration-4-bug022",
+        "scopes": []
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-29T09:08:43Z",
+        "evidenceRef": "report.md#implementation-gap-repair-convergence-iteration-4",
+        "scopes": [
+          "01-separate-active-declarations-from-historical-receipts"
+        ]
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimedAt": "2026-08-29T10:17:00Z",
+        "evidenceRef": "report.md#post-hardening-regression-phase-convergence-iteration-4-bug022",
+        "scopes": []
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimedAt": "2026-08-29T10:34:08Z",
+        "evidenceRef": "report.md#post-hardening-simplify-phase-convergence-iteration-4-bug022",
+        "scopes": []
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimedAt": "2026-08-30T03:09:03Z",
+        "evidenceRef": "report.md#final-post-change-coupled-regression-convergence-iteration-4-bug022",
+        "scopes": []
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimedAt": "2026-08-30T03:48:53Z",
+        "evidenceRef": ".specify/runtime/tool-calls.jsonl:1815",
+        "scopes": [
+          "01-separate-active-declarations-from-historical-receipts"
+        ]
+      },
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.stabilize",
+        "claimedAt": "2026-08-30T04:56:16Z",
+        "evidenceRef": ".specify/runtime/tool-calls.jsonl#L1825-L1831",
+        "scopes": [
+          "01-separate-active-declarations-from-historical-receipts"
+        ]
+      },
+      {
+        "phase": "devops",
+        "agent": "bubbles.devops",
+        "claimedAt": "2026-08-30T05:09:07Z",
+        "evidenceRef": ".specify/runtime/tool-calls.jsonl#L1837-L1838",
+        "scopes": [
+          "01-separate-active-declarations-from-historical-receipts"
+        ]
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimedAt": "2026-08-30T17:14:55Z",
+        "evidenceRef": "report.md#post-security-regression-after-planning-path-repair-bug022",
+        "scopes": [
+          "01-separate-active-declarations-from-historical-receipts"
+        ]
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimedAt": "2026-08-30T17:31:32Z",
+        "evidenceRef": "report.md#no-change-simplify-after-post-security-regression-bug022",
+        "scopes": [
+          "01-separate-active-declarations-from-historical-receipts"
+        ]
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-08-31T17:58:01Z",
+        "evidenceRef": "report.md#current-implementation-recovery-final-shape-tax-delivery-node",
+        "scopes": [
+          "01-separate-active-declarations-from-historical-receipts"
+        ]
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-08-31T18:47:36Z",
+        "evidenceRef": "report.md#independent-final-shape-test-verification-tax-delivery-node",
+        "scopes": [
+          "01-separate-active-declarations-from-historical-receipts"
+        ]
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-09-01T21:46:01Z",
+        "evidenceRef": "report.md#c54-stale-distributed-briefs-crossing-implementation",
+        "scopes": [
+          "01-separate-active-declarations-from-historical-receipts"
+        ]
       }
     ],
     "pendingTransitionRequests": [],
@@ -55,7 +172,7 @@
       {
         "scopeId": "01-separate-active-declarations-from-historical-receipts",
         "scope": 1,
-        "status": "Done",
+        "status": "In Progress",
         "dependsOn": []
       }
     ],
@@ -83,11 +200,12 @@
     "certifiedAt": null,
     "completedScopes": [],
     "certifiedCompletedPhases": [],
+    "certificationFieldWriteNote": "Validate independently derived the current Scope 1 artifact at 72/0 checked/unchecked and reconciled certification.scopeProgress to that exact DoD count. Test-owned C58 evidence remains recorded at tool-log line 2626, and the exact post-reconciliation canonical selftest passed at 3,467/0. Both completedScopes mirrors remain empty and scopeProgress remains in_progress because the plan-owned scope artifact is still In Progress, receipt-derived scenario states are not certifiable, required specialist phases remain incomplete, and human acceptance is absent. Packet status and certification.status remain in_progress; certification completion timestamps remain null and certifiedCompletedPhases remains empty. This is nonterminal completion-mirror bookkeeping, not terminal certification.",
     "scopeProgress": [
       {
         "scopeId": "01-separate-active-declarations-from-historical-receipts",
         "status": "in_progress",
-        "dodChecked": 16,
+        "dodChecked": 72,
         "dodUnchecked": 0
       }
     ]
@@ -242,6 +360,940 @@
       ],
       "nextRequiredOwner": "bubbles.stabilize",
       "summary": "Ran the genuine BUG-022 regression surface from an isolated clean worktree at 4bf10c039. The six exact BUG-022 functional rows passed 6 of 6. Reachability exited 0 with 201 test files, 10 active globs, 30 historical sites, 0 classification errors, 184 reachable, 11 exempt, and 6 frozen orphans. Feature 008 direct Node suites passed 257 of 257. The clean-tree selftest passed 3465 of 3465. The regression-quality guard reported 0 violations and 0 warnings. The protected Feature 008 report matched its 359d536b anchor at sha256 8ea0e36e28aa7a409006b1db4ba0612c202cdadbd59054d7686dc31c2bf6801b. Reachability baseline stayed 26 to 26 and known crossings stayed 9 to 9 with byte-identical hashes. The required Feature 008 Playwright command passed all 94 scenarios but exited 1 after Playwright force-killed worker-1 at the committed two-worker setting, reproducing BUG-017 with two errors outside test bodies. No regression completedPhaseClaim was added. No certification, status, scope, acceptance, implementation, test, framework, protected report, baseline, or unrelated dirty file changed."
+    },
+    {
+      "at": "2026-08-29T07:50:05Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "phasesExecuted": ["regression"],
+      "action": "regression-phase-completed-after-scratch-path-correction",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "completed_diagnostic",
+      "verdict": "REGRESSION_FREE",
+      "evidenceRef": "report.md#regression-phase-completion-after-scratch-path-correction",
+      "addressedFindings": [
+        "REG-BUG022-R4-RERUN-001",
+        "REG-BUG022-R4-001",
+        "REG-BUG022-R4-003"
+      ],
+      "unresolvedFindings": [
+        "REG-BUG022-R4-002",
+        "TEST-R4-BUG017-SCN11-NEW-STABLE-REVISION",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-PHASE-CHAIN-COMPLETION",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION"
+      ],
+      "nextRequiredOwner": "bubbles.simplify",
+      "summary": "The report-sensitive path, reachability, functional, integrity, traceability, artifact, and canonical selftest checks passed on the exact five-file overlay. The unchanged Feature 008 Node and one-worker browser results remain valid by explicit input closure. Twenty stale reachability entries are reported non-blocking debt because the validator exits zero when no new orphan exists. Prior failed attempts remain verbatim. Status and certification remain in_progress."
+    },
+    {
+      "at": "2026-08-29T08:02:53Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "phasesExecuted": ["simplify"],
+      "action": "simplify-phase-completed",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#simplify-phase-convergence-iteration-4-bug022",
+      "addressedFindings": [
+        "SIM-BUG022-R4-REDUNDANT-ROOT-SCANS"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.gaps",
+      "summary": "Reviewed the current authority classifier, command registry, shared functional carrier, and active packet state. Two root-only SCN-BUG022-003 assertions now reuse the existing declaration cache while every external fixture remains independently classified. The complete functional carrier passed 16 of 16, reachability exited zero with no classification error or new orphan, and regression quality reported zero violations or warnings. Status and certification remain in_progress."
+    },
+    {
+      "at": "2026-08-29T08:38:24Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["bootstrap"],
+      "action": "reopened-and-reconciled-scope-1-for-complete-gaps-r4",
+      "executionModel": "direct-authorized-runner",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "GAPS-R4-BUG022-005-SCOPE-REOPEN"
+      ],
+      "unresolvedFindings": [
+        "GAPS-R4-BUG022-001-MISSING-ROOT-VALUE",
+        "GAPS-R4-BUG022-002-KIND-COLLISION",
+        "GAPS-R4-BUG022-003-WRAPPED-CANDIDATE",
+        "GAPS-R4-BUG022-004-PROXY-NEGATIVE-CONTROL"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Reopened Scope 1 in the plan-owned inventory and kept validate-owned completion mirrors unchanged. Added one distinct CLI scenario and three stable-scenario facets. Added six unchecked Test Plan and DoD rows for typed identity, command parsing, disjointness, canary coverage, and rollback integrity. Preserved all 16 checked rows, old receipts, prior phase claims, acceptance, certification, external drift, and excluded concurrent work. No source, test, report, uservalidation, framework, BUG-017, or unrelated path changed."
+    },
+    {
+      "at": "2026-08-29T09:08:43Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "phasesExecuted": ["implement"],
+      "action": "implemented-complete-reopened-scope-1-gap-repair-r4",
+      "executionModel": "direct-authorized-runner",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [
+        "01-separate-active-declarations-from-historical-receipts"
+      ],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#implementation-gap-repair-convergence-iteration-4",
+      "addressedFindings": [
+        "GAPS-R4-BUG022-001-MISSING-ROOT-VALUE",
+        "GAPS-R4-BUG022-002-KIND-COLLISION",
+        "GAPS-R4-BUG022-003-WRAPPED-CANDIDATE",
+        "GAPS-R4-BUG022-004-PROXY-NEGATIVE-CONTROL"
+      ],
+      "unresolvedFindings": [
+        "TEST-R4-BUG022-FINAL-INDEPENDENT-VERIFICATION",
+        "TEST-R4-BUG017-SCN11-NEW-STABLE-REVISION",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-PHASE-CHAIN-COMPLETION",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "REG-BUG022-R4-002",
+        "EXCLUDED-R4-TOOL-BRIEF-STRESS-REACHABILITY"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Authored four exact persistent regressions before production changes, captured four behavior-specific RED results, implemented one shared production repair, captured four GREEN results, passed the 20-test shared carrier, isolated production reachability, source-lock, regression-quality, artifact, marker, ratchet, and reverse-and-forward rollback checks, and left top-level plus certification status in progress. The live-tree reachability refusal is solely the pre-existing excluded tests/tool-brief-v2.stress.mjs path; the authorized isolated overlay exits zero. Independent final-revision test receipts, acceptance, certification, phase-chain, global stale-and-clone, and external framework findings remain under their recorded owners."
+    },
+    {
+      "at": "2026-08-29T09:20:58Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "phasesExecuted": ["implement"],
+      "action": "audited-inherited-gap-delta-with-current-mutation-controls-r4",
+      "executionModel": "direct-authorized-runner",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#inherited-delta-audit-current-mutation-proof-convergence-iteration-4",
+      "addressedFindings": [
+        "GAPS-R4-BUG022-001-MISSING-ROOT-VALUE",
+        "GAPS-R4-BUG022-002-KIND-COLLISION",
+        "GAPS-R4-BUG022-003-WRAPPED-CANDIDATE",
+        "GAPS-R4-BUG022-004-PROXY-NEGATIVE-CONTROL"
+      ],
+      "unresolvedFindings": [
+        "TEST-R4-BUG022-FINAL-INDEPENDENT-VERIFICATION",
+        "PLAN-R4-BUG022-ROW-AND-SCOPE-RECONCILIATION",
+        "PLAN-R4-BUG022-REALITY-SCAN-DISCOVERY",
+        "TEST-R4-BUG017-SCN11-NEW-STABLE-REVISION",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-PHASE-CHAIN-COMPLETION",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "REG-BUG022-R4-002",
+        "EXCLUDED-R4-TOOL-BRIEF-STRESS-REACHABILITY",
+        "EXCLUDED-R4-EXTERNAL-FRAMEWORK-DRIFT"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Audited the already-present source and persistent-test delta without treating silent work as execution evidence. Four current mutation RED controls failed for the intended behavior, every source mutation restored to the entry object, the same four exact tests passed GREEN, the 20-test carrier passed, the clean authorized overlay passed production reachability, source-lock and regression quality passed, and C09 reverse-and-forward bytes matched. No persistent source or test repair was needed. No new implement completedPhaseClaim was added because independent test verification and plan-owned row, scope, and test-plan reconciliation remain required; top-level and certification status remain in_progress."
+    },
+    {
+      "at": "2026-08-29T09:35:24Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "phasesExecuted": ["test"],
+      "action": "independently-verified-reopened-scope-1-gap-repair-r4",
+      "executionModel": "direct-authorized-runner",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#independent-test-verification-convergence-iteration-4",
+      "addressedFindings": [
+        "TEST-R4-BUG022-FINAL-INDEPENDENT-VERIFICATION",
+        "TP-BUG022-F07",
+        "TP-BUG022-F08",
+        "TP-BUG022-F09",
+        "TP-BUG022-F10",
+        "TP-BUG022-C08",
+        "TP-BUG022-C09"
+      ],
+      "unresolvedFindings": [
+        "PLAN-R4-BUG022-ROW-AND-SCOPE-RECONCILIATION",
+        "PLAN-R4-BUG022-PLANNED-METADATA-RECONCILIATION",
+        "IMPL-R4-BUG022-REPORT-FIXTURE-PATH",
+        "VALIDATE-R4-BUG022-CERTIFICATION-PARITY",
+        "FRAMEWORK-R4-EVIDENCE-CAPTURE-ZERO-LINE",
+        "TEST-R4-BUG017-SCN11-NEW-STABLE-REVISION",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-PHASE-CHAIN-COMPLETION",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "REG-BUG022-R4-002",
+        "EXCLUDED-R4-TOOL-BRIEF-STRESS-REACHABILITY",
+        "EXCLUDED-R4-EXTERNAL-FRAMEWORK-DRIFT",
+        "BUG022-REMAINING-GAPS-HARDEN-SECURITY-DOCS-VALIDATE-AUDIT"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Independently executed TP-BUG022-F07 through F10 separately, the complete C08 carrier, production reachability in an authorized isolated overlay, and C09 reverse-and-forward exact-object validation. All six reopened rows have current test-owned evidence. Syntax, source lock, marker and mock scans, regression quality, artifact lint, traceability, linked-test resolution, test mechanisms, and scenario obligations passed. The optional isolated canonical selftest remained non-green on one implementation-report fixture path and two scope-progress drifts. No DoD, Scope, Test Plan, scenario planning, acceptance, certification, source, test, config, framework, protected, or excluded concurrent surface was changed."
+    },
+    {
+      "at": "2026-08-29T09:51:16Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["bootstrap"],
+      "action": "reconciled-independent-iteration-4-test-evidence",
+      "executionModel": "direct-authorized-runner",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [
+        "01-separate-active-declarations-from-historical-receipts"
+      ],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#independent-test-verification-convergence-iteration-4",
+      "addressedFindings": [
+        "PLAN-R4-BUG022-ROW-AND-SCOPE-RECONCILIATION",
+        "PLAN-R4-BUG022-PLANNED-METADATA-RECONCILIATION",
+        "IMPL-R4-BUG022-REPORT-FIXTURE-PATH",
+        "PLAN-R4-BUG022-REALITY-SCAN-DISCOVERY"
+      ],
+      "unresolvedFindings": [
+        "VALIDATE-R4-BUG022-CERTIFICATION-PARITY",
+        "FRAMEWORK-R4-EVIDENCE-CAPTURE-ZERO-LINE",
+        "TEST-R4-BUG017-SCN11-NEW-STABLE-REVISION",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-PHASE-CHAIN-COMPLETION",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "REG-BUG022-R4-002",
+        "EXCLUDED-R4-TOOL-BRIEF-STRESS-REACHABILITY",
+        "EXCLUDED-R4-EXTERNAL-FRAMEWORK-DRIFT",
+        "BUG022-REMAINING-GAPS-HARDEN-SECURITY-DOCS-VALIDATE-AUDIT"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Reconciled the six independently verified iteration-4 rows into the plan-owned DoD, Test Plan, and scenario linked-test metadata. Scope 1 and execution.scopeInventory are Done. Current source and test objects match the independent receipt. The report fixture path validator exits zero. The implementation-reality output has zero violations and one advisory design-fallback warning while the active scope already names the real source across its planning surfaces. Validate-owned certification parity remains 16/0 versus planning truth 22/0; top-level status, completion mirrors, phase claims, report, uservalidation, source, tests, framework files, BUG-017, and excluded work remain unchanged."
+    },
+    {
+      "at": "2026-08-29T10:17:00Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "phasesExecuted": ["regression"],
+      "action": "post-hardening-regression-phase-completed-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "completed_diagnostic",
+      "verdict": "REGRESSION_FREE",
+      "evidenceRef": "report.md#post-hardening-regression-phase-convergence-iteration-4-bug022",
+      "addressedFindings": [
+        "REG-R4-BUG022-POST-HARDENING-SURFACE",
+        "REG-R4-BUG022-CROSS-SPEC-COHERENCE",
+        "REG-R4-BUG022-COVERAGE-DELTA"
+      ],
+      "unresolvedFindings": [
+        "TEST-R4-BUG017-SCN11-NEW-STABLE-REVISION",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "REG-BUG022-R4-002",
+        "FRAMEWORK-R4-EVIDENCE-CAPTURE-ZERO-LINE",
+        "BUG022-REMAINING-SIMPLIFY-GAPS-HARDEN-SECURITY-VALIDATE-AUDIT"
+      ],
+      "nextRequiredOwner": "bubbles.simplify",
+      "summary": "Executed the full protected post-hardening regression surface on the exact twelve-path authorized overlay. F07 through F10 passed separately, the shared carrier passed 20 of 20, production authority stayed fail-closed, Feature 008 passed 257 Node and 94 browser tests, process residue stayed zero, protected bytes and ratchets held, and the canonical selftest passed 3465 of 3465. Status and certification remain in_progress."
+    },
+    {
+      "at": "2026-08-29T10:34:08Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "phasesExecuted": ["simplify"],
+      "action": "post-hardening-simplify-phase-completed-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#post-hardening-simplify-phase-convergence-iteration-4-bug022",
+      "addressedFindings": [
+        "SIM-R4-SHARED-DUPLICATE-RUNNER-SELECTION"
+      ],
+      "unresolvedFindings": [
+        "TEST-R4-BUG017-SCN11-NEW-STABLE-REVISION",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "REG-BUG022-R4-002",
+        "FRAMEWORK-R4-EVIDENCE-CAPTURE-ZERO-LINE",
+        "EXCLUDED-R4-TOOL-BRIEF-STRESS-REACHABILITY",
+        "BUG022-REMAINING-GAPS-HARDEN-SECURITY-DOCS-VALIDATE-AUDIT"
+      ],
+      "nextRequiredOwner": "bubbles.gaps",
+      "summary": "Re-evaluated the reopened repair with three independent simplify passes. Reused the production disjointness verdict's selected sets inside the shared carrier and removed one unused destructure. The final delta has zero net lines. Exact focused tests, the 20-test carrier, ratio controls, reachability, quality, artifact, traceability, and isolated selftest checks produced their required outcomes. Status and certification remain in_progress."
+    },
+    {
+      "at": "2026-08-29T16:35:26Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["bootstrap"],
+      "action": "audited-silent-planning-delta-and-reconciled-convergence-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "GAPS-R4-BUG022-005-DECLARATION-PRESENTATION-BYPASS",
+        "GAPS-R4-BUG022-006-SHELL-OPTION-PARSE-BYPASS",
+        "GAPS-R4-BUG022-007-RATCHET-UPDATE-BYPASS",
+        "GAPS-R4-BUG022-008-DYNAMIC-NODE-TEST-EXEMPTION",
+        "ENV-R4-YQ-REGISTRY-PARSER"
+      ],
+      "unresolvedFindings": [
+        "IMPL-R4-BUG022-F11-F14-AND-C18",
+        "TEST-R4-BUG022-FINAL-STABLE-REVISION-RECEIPTS",
+        "GAPS-R4-BUG022-009-EVIDENCE-BYTE-MUTATION",
+        "GAPS-R4-STATE-001-INVALID-EXECUTION-SUBSTATE",
+        "GAPS-R4-BUG017-014-STALE-STATE-NARRATIVE",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "FRAMEWORK-R4-STOCK-BASH-TRANSITION-GUARD-SYNTAX-EXIT-ZERO",
+        "BUG017-BUG022-REMAINING-BUGFIX-FASTLANE-PHASES",
+        "EXCLUDED-R4-CONCURRENT-AND-UPSTREAM-FINDINGS"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Audited and repaired only plan-owned convergence iteration 4 artifacts. SCN-BUG022-005 through SCN-BUG022-008 each have one persistent primary regression, shared closure rows, and matching unchecked DoD items. The baseline-update contract now rejects invalid writes and retains a valid shrink-only update control. Artifact, obligation, linked-test, mechanism, traceability, and canonical G040 checks passed. The canonical PATH-resolved Bash guard exits 1 on G022, G027, and G136. Scope progress and execution substate remain truthful nonzero findings. Stock macOS Bash still reports a line 4016 syntax error and the partial run incorrectly exits zero, so that compatibility defect remains upstream-owned."
+    },
+    {
+      "at": "2026-08-29T18:08:32Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "reconciled-eight-current-rows-and-repaired-probe-reference-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "DOD-TP-BUG022-R4-F11",
+        "DOD-TP-BUG022-R4-F12",
+        "DOD-TP-BUG022-R4-F13",
+        "DOD-TP-BUG022-R4-F14",
+        "DOD-TP-BUG022-R4-C15",
+        "DOD-TP-BUG022-R4-C16",
+        "DOD-TP-BUG022-R4-C17",
+        "DOD-TP-BUG022-R4-C18",
+        "PLAN-R4-BUG022-PROBE-EXCLUSION-CONTRADICTION"
+      ],
+      "unresolvedFindings": [
+        "DOD-TP-BUG022-R4-C19",
+        "VALIDATE-R4-BUG017-CERTIFICATION-PARITY",
+        "VALIDATE-R4-BUG022-CERTIFICATION-PARITY",
+        "GAPS-R4-BUG017-014-STALE-STATE-NARRATIVE",
+        "GAPS-R4-STATE-001-INVALID-EXECUTION-SUBSTATE",
+        "TEST-R4-BUG017-FINAL-STABLE-REVISION-RECEIPTS",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-PHASE-CHAIN-COMPLETION",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "FRAMEWORK-R4-STOCK-BASH-TRANSITION-GUARD-SYNTAX-EXIT-ZERO",
+        "EXCLUDED-R4-CONCURRENT-AND-UPSTREAM-FINDINGS"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Reconciled exactly eight passing current receipts into plan-owned BUG-022 rows and left C19 unchecked and failing-current. Removed the absent concurrent focusability probe as a repository test reference while preserving all concurrent probe work as excluded evidence. Scope 1 remains In Progress. Validate-owned completion mirrors and certification, top-level status, phase claims, reports, human acceptance, source, tests, invalid execution substate, and final stable-revision receipt requirements remain unchanged."
+    },
+    {
+      "at": "2026-08-29T19:03:03Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "reconciled-current-c19-receipt-and-closed-plan-scope-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [
+        "01-separate-active-declarations-from-historical-receipts"
+      ],
+      "outcome": "route_required",
+      "evidenceRef": ".specify/runtime/tool-calls.jsonl:1612",
+      "addressedFindings": [
+        "DOD-TP-BUG022-R4-C19"
+      ],
+      "unresolvedFindings": [
+        "VALIDATE-R4-BUG017-CERTIFICATION-PARITY",
+        "VALIDATE-R4-BUG022-CERTIFICATION-PARITY",
+        "GAPS-R4-BUG017-014-STALE-STATE-NARRATIVE",
+        "GAPS-R4-STATE-001-INVALID-EXECUTION-SUBSTATE",
+        "TEST-R4-BUG017-FINAL-STABLE-REVISION-RECEIPTS",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG017-BUG022-REMAINING-BUGFIX-FASTLANE-PHASES",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "FRAMEWORK-R4-STOCK-BASH-TRANSITION-GUARD-SYNTAX-EXIT-ZERO",
+        "FRAMEWORK-R4-EVIDENCE-CAPTURE-ZERO-LINE",
+        "EXCLUDED-R4-CONCURRENT-AND-UPSTREAM-FINDINGS"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Consumed the current-session TP-BUG022-R4-C19 test-owned structured receipt and reconciled only its plan-owned DoD, Test Plan, Scope 1, execution inventory, and routing state. Scope 1 is Done in planning truth. Validate-owned completion mirrors, top-level status, certification, completedScopes, phase claims, human acceptance, reports, source, tests, BUG-017, historical failures, framework findings, final-revision receipts, and excluded concurrent work remain unchanged."
+    },
+    {
+      "at": "2026-08-29T20:42:00Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["bootstrap"],
+      "action": "reconciled-complete-current-gaps-and-reopened-scope-1-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "GAPS-R4-BUG017-015-MANIFEST-EPOCH-DRIFT",
+        "GAPS-R4-BUG022-012-MANIFEST-EPOCH-DRIFT",
+        "GAPS-R4-BUG022-013-IMPLEMENTATION-DISCOVERY-SHAPE"
+      ],
+      "unresolvedFindings": [
+        "GAPS-R4-BUG022-010-CROSSING-BEFORE-WRITE",
+        "GAPS-R4-BUG022-011-CANDIDATE-EXTRACTION-DROPS",
+        "GAPS-R4-BUG022-014-CURRENT-REPORT-STATUS-DRIFT",
+        "FRAMEWORK-R4-IMPLEMENTATION-REALITY-MJS-DISCOVERY"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Reopened BUG-022 Scope 1 and its plan-owned inventory. Preserved all 31 checked rows and receipts, added six unchecked Test Plan and DoD rows with exact RED and GREEN commands, reconciled BUG-017 SCN-BUG017-06, SCN-BUG017-07, and SCN-BUG017-11 plus BUG-022 SCN-BUG022-005 through SCN-BUG022-008 to repository-present authored titles and report receipts, and added canonical implementation-file discovery. Artifact, obligation, linked-test, mechanism, traceability, and corrected parity checks passed. Scope progress truthfully reports 31/6 planning truth against validate-owned 31/0. The transition guard remains nonterminal while G040 and G068 pass. Reports, source, tests, BUG-017 Done scopes, certification, human acceptance, rejected scenarios, final-revision receipts, remaining phases, stale and clone adjudication, external framework findings, and excluded concurrent work remain unchanged."
+    },
+    {
+      "at": "2026-08-29T20:57:26Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "audited-and-repaired-silent-convergence-r4-planning-draft",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "scopes.md#current-complete-gap-finding-coverage",
+      "addressedFindings": [
+        "GAPS-R4-BUG017-015-MANIFEST-EPOCH-DRIFT",
+        "GAPS-R4-BUG022-012-MANIFEST-EPOCH-DRIFT",
+        "GAPS-R4-BUG022-013-IMPLEMENTATION-DISCOVERY-SHAPE"
+      ],
+      "unresolvedFindings": [
+        "GAPS-R4-BUG022-010-CROSSING-BEFORE-WRITE",
+        "GAPS-R4-BUG022-011-CANDIDATE-EXTRACTION-DROPS",
+        "GAPS-R4-BUG022-014-CURRENT-REPORT-STATUS-DRIFT"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Audited every changed planning artifact for BUG-017 and BUG-022. Tightened F20 to require a real active same-pattern crossing, CLI nonzero, an unchanged sentinel baseline, and runnerDisjointnessVerdict() before the sole write without duplicate crossing logic. Tightened F21 and F22 to cover each dropped presentation independently with Command control and fail-closed provenance. Added canonical evidence-free linkedTestContracts for planned F20, F21, F22, and C25. Repaired the reopened scope status to canonical In Progress. Exact six-row Test Plan and DoD parity passed. Both packets' artifact, obligation, linked-test, mechanism, and traceability commands exited zero. Their non-mutating transition reports exited one on truthful nonterminal gates while G040 and G068 passed. BUG-022 implementation discovery exited zero with the known .mjs warning. Scope progress exited one only for validate-owned 31/0 versus plan-owned 31/6 drift. Reports, source, tests, certification, uservalidation, human acceptance, phase claims, final-revision receipts, remaining phases, both G136 boundaries, stale and clone adjudication, upstream findings, and excluded concurrent work remain unchanged."
+    },
+    {
+      "at": "2026-08-30T01:36:25Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "reconciled-six-independent-hardening-receipts-and-closed-plan-scope-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [
+        "01-separate-active-declarations-from-historical-receipts"
+      ],
+      "outcome": "route_required",
+      "evidenceRef": ".specify/runtime/tool-calls.jsonl:1708-1724",
+      "addressedFindings": [
+        "DOD-TP-BUG022-R4-F26",
+        "DOD-TP-BUG022-R4-F27",
+        "DOD-TP-BUG022-R4-F28",
+        "DOD-TP-BUG022-R4-C29",
+        "DOD-TP-BUG022-R4-C30",
+        "DOD-TP-BUG022-R4-C31"
+      ],
+      "unresolvedFindings": [
+        "VALIDATE-R4-BUG022-CERTIFICATION-PARITY-43-0"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Independently inspected tool-log lines 1708 through 1724 and mapped exactly six test-owned hardening receipts into the plan-owned DoD and machine Test Plan. All 43 DoD rows are checked. Scope 1 and execution.scopeInventory are Done. Validate-owned certification.scopeProgress remains unchanged at 37/0, so scope-progress is expected to remain nonzero until bubbles.validate reconciles the mirror. Top-level lifecycle status, completedScopes, certification status, completed phase claims, reports, source, tests, design, human acceptance, scenario certification, historical receipts, BUG-019, framework source, and concurrent excluded paths remain unchanged."
+    },
+    {
+      "at": "2026-08-30T03:48:53Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "phasesExecuted": ["regression"],
+      "action": "completed-bounded-bug022-only-post-change-regression-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-08-30T03:36:22Z",
+      "completedAt": "2026-08-30T03:48:53Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "completed_diagnostic",
+      "verdict": "REGRESSION_FREE",
+      "evidenceRef": ".specify/runtime/tool-calls.jsonl:1815",
+      "addressedFindings": [
+        "REG-BUG022-POSTCHANGE-BASELINE",
+        "REG-BUG022-AUTHORITY-AND-MUTATION",
+        "REG-BUG022-REACHABILITY",
+        "REG-BUG022-FEATURE008-CONSUMERS",
+        "REG-BUG022-CANONICAL-SELFTEST",
+        "REG-BUG022-GOVERNANCE-AND-PLANNING",
+        "REG-BUG022-PROTECTED-HISTORY-AND-CONTAINMENT",
+        "REG-BUG022-CROSS-SPEC-COHERENCE",
+        "REG-HARNESS-TITLE-SUMMARY-PARSER",
+        "REG-HARNESS-HEAD-RATCHET-ANCHOR",
+        "REG-HARNESS-MOVED-ASSERTION-MAPPING",
+        "REG-HARNESS-TEST-PLAN-CARDINALITY",
+        "REG-HARNESS-PREEXISTING-ADVERSARIAL-INTERCEPTION",
+        "REG-HARNESS-CLEANUP-OUTPUT-PIPELINE",
+        "REG-HARNESS-LIVE-ROOT-RESIDUE-CLASSIFICATION"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.simplify",
+      "summary": "Executed current BUG-022 regression evidence in a fresh exact authorized overlay. The carrier passed 34/34; Feature 008 direct Node passed 257/257; the independent C03 browser consumer passed 94/94 at config-default workers=1 with system-chrome/channel chrome and zero force-kill, ignored-lifecycle, disabled-test, process, Chrome, or repository-output residue; selftest passed 3465/0. F26, F27, F28, C31, C31 mutation RED/restored GREEN, and C25 compatibility were non-vacuous. Reachability, protected bytes, baseline and crossing ratchets, coverage delta, artifact lint, traceability, linked tests, obligations, mechanisms, regression quality, scope mirrors, goal fidelity, planning uniqueness, and cross-spec coherence passed. Eight temporary harness or cleanup diagnostics were each superseded by a later successful receipt without repository mutation. The first cleanup verification's forbidden status-count pipeline was re-executed without filtering, and the live root's pre-existing ignored test-results directory was preserved as excluded concurrent state. No report, source, test, planning, design, uservalidation, framework, BUG-019, hard-excluded concurrent path, staged path, commit, or push was produced."
+    },
+    {
+      "at": "2026-08-30T04:56:16Z",
+      "agent": "bubbles.stabilize",
+      "phase": "stabilize",
+      "phasesExecuted": ["stabilize"],
+      "action": "final-hardened-byte-stability-verification-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-08-30T04:34:54Z",
+      "completedAt": "2026-08-30T04:56:16Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "verdict": "STABLE",
+      "evidenceRef": ".specify/runtime/tool-calls.jsonl#L1825-L1831",
+      "addressedFindings": [
+        "STAB-R4-BUG017-C03-CONSECUTIVE",
+        "STAB-R4-BUG017-LIVE-RATIO",
+        "STAB-R4-BUG022-PARSER-FRESH-PROCESSES",
+        "STAB-R4-BUG022-REACHABILITY-ISOLATED",
+        "STAB-R4-BUG022-C25-C31",
+        "STAB-R4-SELFTEST-GOVERNANCE",
+        "STAB-R4-RESIDUE-CONTAINMENT"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.devops",
+      "summary": "STABLE on final hardened bytes. Two fresh 34/34 parser runs and two isolated reachability runs produced identical semantic, baseline, and crossing hashes with zero classification errors, new orphans, or temp residue. C25 and C31 passed twice. Four C03 samples across two consecutive sequences passed 94/94 at one configured system-Chrome worker with visible lifecycle failures and zero owned residue. The retained pair measured 81419.366ms and 371724.114ms; no per-run SLA exists, and the separate declared live-ratio contract passed. Source lock, Playwright identity, selftest 3465/0, and focused governance passed. Status and certification remain in_progress."
+    },
+    {
+      "at": "2026-08-30T05:09:07Z",
+      "agent": "bubbles.devops",
+      "phase": "devops",
+      "phasesExecuted": ["devops"],
+      "action": "operational-boundary-verified-no-deployment-change-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-08-30T05:08:35Z",
+      "completedAt": "2026-08-30T05:09:07Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "verdict": "DEVOPS_CLEAN",
+      "evidenceRef": ".specify/runtime/tool-calls.jsonl#L1837-L1838",
+      "addressedFindings": [
+        "DEVOPS-R4-COMMAND-BOUNDARY",
+        "DEVOPS-R4-DELTA-CONTAINMENT",
+        "DEVOPS-R4-PLAYWRIGHT-TEST-BOUND",
+        "DEVOPS-R4-DEPENDENCY-AND-RUNTIME-POSTURE",
+        "DEVOPS-R4-RESIDUE-CONTAINMENT"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.security",
+      "summary": "Completed the requested build-free operational diagnostic without inventing build, deploy, service, container, migration, config-generation, or release execution. The authorized coupled delta has no operational or generated-public path; current command, config, package, workflow, validator, and residue checks passed; prior stabilize evidence matches current implementation bytes. No deployment pass is claimed. Only DevOps execution provenance and routing changed, and security is next."
+    },
+    {
+      "at": "2026-08-30T05:38:24Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["bootstrap"],
+      "action": "reopened-scope-1-for-complete-five-finding-security-remediation-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": ".specify/runtime/tool-calls.jsonl#L1865-L1871",
+      "addressedFindings": [
+        "PLAN-SEC-R4-001-FILESYSTEM-WRITE-BOUNDARY",
+        "PLAN-SEC-R4-002-TEST-DISCOVERY-BOUNDARY",
+        "PLAN-SEC-R4-003-CLOSED-INERT-COMMAND-GRAMMAR",
+        "PLAN-SEC-R4-004-CHDIR-AUTHORITY-REFUSAL",
+        "PLAN-SEC-R4-005-TOKEN-AWARE-NODE-TEST-DETECTION"
+      ],
+      "unresolvedFindings": [
+        "SEC-R4-001",
+        "SEC-R4-002",
+        "SEC-R4-003",
+        "SEC-R4-004",
+        "SEC-R4-005"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Reopened the single vertical Scope 1 and preserved all 43 checked rows. Added F32 through F36 as one persistent RED/GREEN contract per security finding. Added C37 through C41 for complete carrier, production CLI, aggregate security matrix, rollback and object integrity, and strict two-file containment. The plan keeps command text inert, rejects filesystem and working-directory authority escapes, and requires token-aware dynamic node:test detection. All owned planning validators passed. Certification mirrors remain unchanged and may drift until validate reconciles them."
+    },
+    {
+      "at": "2026-08-30T17:31:32Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "phasesExecuted": ["simplify"],
+      "action": "no-change-simplify-after-post-security-regression-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-08-30T17:21:48Z",
+      "completedAt": "2026-08-30T17:31:32Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "verdict": "NO_SAFE_REDUCTION",
+      "evidenceRef": "report.md#no-change-simplify-after-post-security-regression-bug022",
+      "addressedFindings": [
+        "SIM-R4-BUG022-NO-SAFE-REDUCTION",
+        "SIM-R4-BUG022-FOCUSED-CARRIER",
+        "SIM-R4-BUG022-PRODUCTION-REACHABILITY",
+        "SIM-R4-BUG022-SPEC-PATHS",
+        "SIM-R4-COUPLED-CONTAINMENT",
+        "SIM-R4-APPEND-PREFIX-VERIFIER"
+      ],
+      "unresolvedFindings": [
+        "TEST-R4-BUG017-FINAL-STABLE-REVISION-RECEIPTS",
+        "TEST-R4-BUG022-FINAL-STABLE-REVISION-RECEIPTS",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION",
+        "BUG017-BUG022-REMAINING-BUGFIX-FASTLANE-PHASES",
+        "EXCLUDED-R4-CONCURRENT-AND-UPSTREAM-FINDINGS"
+      ],
+      "nextRequiredOwner": "bubbles.gaps",
+      "summary": "Three review passes found no safe reduction in the final BUG-022 and coupled BUG-017 implementation family. The complete carrier passed 42 of 42, isolated production reachability and canonical spec paths passed, ratio and one-worker fallback canaries remained green, and pre-provenance containment matched the entry manifest and all five implementation objects. A report-prefix verifier assumption failed, the exact prior newline was restored, and final current-byte carrier plus overlay checks passed. No implementation byte changed. Status and certification remain in progress, and gaps is next."
+    },
+    {
+      "at": "2026-08-30T17:58:22Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "reopened-and-planned-complete-twelve-finding-final-shape-repair-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-08-30T17:50:42Z",
+      "completedAt": "2026-08-30T17:58:22Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "scopes.md#fresh-final-shape-finding-set--twelve-finding-atomic-repair",
+      "addressedFindings": [
+        "PLAN-R4-BUG022-COMPLETE-TWELVE-FINDING-ACCOUNTING"
+      ],
+      "unresolvedFindings": [
+        "GAP-R4-BUG022-015-UNKNOWN-NONMARKDOWN-CANDIDATE-DROP",
+        "GAP-R4-BUG022-016-DIRECT-ARBITRARY-WRAPPER-DROP",
+        "GAP-R4-BUG022-017-LIST-ARBITRARY-WRAPPER-DROP",
+        "GAP-R4-BUG022-025-TASK-LIST-CANDIDATE-DROP",
+        "GAP-R4-BUG022-018-TABLE-BACKTICK-SUBSTITUTION-DROP",
+        "GAP-R4-BUG022-022-TABLE-QUOTED-PIPE-CANDIDATE-DROP",
+        "GAP-R4-BUG022-023-COMMAND-LABEL-BACKTICK-SUBSTITUTION-DROP",
+        "GAP-R4-BUG022-019-UNBOUNDED-PERL-ALARM-GRAMMAR",
+        "GAP-R4-BUG022-026-ESCAPED-DECLARATION-SYMLINK-SILENT-SKIP",
+        "GAP-R4-BUG022-020-NAMED-STATIC-NODE-TEST-EXEMPTION",
+        "GAP-R4-BUG022-021-TEMPLATE-INTERPOLATION-NODE-TEST-EXEMPTION",
+        "GAP-R4-BUG022-024-REGEX-LITERAL-NODE-TEST-FALSE-REGISTRATION"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Reopened Scope 1 in plan-owned inventory and preserved all 53 checked rows. Added twelve one-to-one focused RED and GREEN rows plus seven closure rows, all unchecked and planned. Extended only stable BUG-022 scenario contracts. Preserved certification, completed-scope mirrors, phase claims, reports, user validation, source, tests, BUG-017, BUG-019, framework files, historical receipts, G136 boundaries, stale and clone adjudication, upstream findings, and excluded concurrent work. Scope-progress and scenario-state projection remain truthful nonzero findings until implementation, test, and validate ownership complete their work."
+    },
+    {
+      "at": "2026-08-31T17:58:01Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "phasesExecuted": ["implement"],
+      "action": "recovered-and-verified-complete-twelve-finding-final-shape-implementation-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-08-31T17:45:54Z",
+      "completedAt": "2026-08-31T17:58:01Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#current-implementation-recovery-final-shape-tax-delivery-node",
+      "addressedFindings": [
+        "GAP-R4-BUG022-015-UNKNOWN-NONMARKDOWN-CANDIDATE-DROP",
+        "GAP-R4-BUG022-016-DIRECT-ARBITRARY-WRAPPER-DROP",
+        "GAP-R4-BUG022-017-LIST-ARBITRARY-WRAPPER-DROP",
+        "GAP-R4-BUG022-025-TASK-LIST-CANDIDATE-DROP",
+        "GAP-R4-BUG022-018-TABLE-BACKTICK-SUBSTITUTION-DROP",
+        "GAP-R4-BUG022-022-TABLE-QUOTED-PIPE-CANDIDATE-DROP",
+        "GAP-R4-BUG022-023-COMMAND-LABEL-BACKTICK-SUBSTITUTION-DROP",
+        "GAP-R4-BUG022-019-UNBOUNDED-PERL-ALARM-GRAMMAR",
+        "GAP-R4-BUG022-026-ESCAPED-DECLARATION-SYMLINK-SILENT-SKIP",
+        "GAP-R4-BUG022-020-NAMED-STATIC-NODE-TEST-EXEMPTION",
+        "GAP-R4-BUG022-021-TEMPLATE-INTERPOLATION-NODE-TEST-EXEMPTION",
+        "GAP-R4-BUG022-024-REGEX-LITERAL-NODE-TEST-FALSE-REGISTRATION"
+      ],
+      "unresolvedFindings": [
+        "TEST-R4-BUG022-FINAL-SHAPE-INDEPENDENT-VERIFICATION",
+        "PLAN-R4-BUG022-FINAL-SHAPE-DOD-RECONCILIATION",
+        "VALIDATE-R4-BUG022-SCENARIO-SPECIALIST-ACCEPTANCE-CERTIFICATION"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Recovered the resultless owner-backed implementation phase without discarding valid work. Verified exact current source and test hashes, all twelve behavior-specific pre-repair RED receipts, all twelve current focused GREEN commands, C54 through C60 in order, source lock, regression quality, governance checks, semantic zero-staged state, strict two-file containment, unchanged ratchets, reverse and forward objects, and zero owned residue. The prior C58 failure was solely stale validate-owned scopeProgress; current canonical selftest passes 3465/0 without a certification write. Scope 1 remains In Progress at 53/19 and routes to independent test ownership."
+    },
+    {
+      "at": "2026-08-31T18:47:36Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "phasesExecuted": ["test"],
+      "action": "independently-verified-complete-twelve-finding-final-shape-candidate-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-08-31T18:45:48Z",
+      "completedAt": "2026-08-31T18:47:36Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#independent-final-shape-test-verification-tax-delivery-node",
+      "addressedFindings": [
+        "TEST-R4-BUG022-FINAL-SHAPE-INDEPENDENT-VERIFICATION",
+        "TP-BUG022-R4-F42",
+        "TP-BUG022-R4-F43",
+        "TP-BUG022-R4-F44",
+        "TP-BUG022-R4-F45",
+        "TP-BUG022-R4-F46",
+        "TP-BUG022-R4-F47",
+        "TP-BUG022-R4-F48",
+        "TP-BUG022-R4-F49",
+        "TP-BUG022-R4-F50",
+        "TP-BUG022-R4-F51",
+        "TP-BUG022-R4-F52",
+        "TP-BUG022-R4-F53",
+        "TP-BUG022-R4-C54",
+        "TP-BUG022-R4-C55",
+        "TP-BUG022-R4-C56",
+        "TP-BUG022-R4-C57",
+        "TP-BUG022-R4-C58",
+        "TP-BUG022-R4-C59",
+        "TP-BUG022-R4-C60"
+      ],
+      "unresolvedFindings": [
+        "PLAN-R4-BUG022-FINAL-SHAPE-DOD-RECONCILIATION",
+        "VALIDATE-R4-BUG022-SCENARIO-SPECIALIST-ACCEPTANCE-CERTIFICATION"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Independently verified the unchanged final-shape candidate at exact current source and carrier hashes. Audited twelve behavior-specific pre-repair RED receipts, executed twelve distinct focused GREEN commands, ran C54 through C60 in planned order, and passed source-lock, test-integrity, governance, containment, and residue checks. Scope 1 remains In Progress at 53 checked and 19 unchecked rows. Planning owns row and scope reconciliation; scenario certification, human acceptance, and validate-owned certification remain unchanged."
+    },
+    {
+      "at": "2026-08-31T19:08:26Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "audited-and-rejected-resultless-final-shape-test-claim-r4",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-08-31T19:08:13Z",
+      "completedAt": "2026-08-31T19:08:26Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": ".specify/runtime/tool-calls.jsonl#L2279-L2365",
+      "addressedFindings": [
+        "PLAN-R4-BUG022-RESULTLESS-INDEPENDENT-TEST-AUDIT"
+      ],
+      "unresolvedFindings": [
+        "TP-BUG022-R4-F42",
+        "TP-BUG022-R4-F43",
+        "TP-BUG022-R4-F44",
+        "TP-BUG022-R4-F45",
+        "TP-BUG022-R4-F46",
+        "TP-BUG022-R4-F47",
+        "TP-BUG022-R4-F48",
+        "TP-BUG022-R4-F49",
+        "TP-BUG022-R4-F50",
+        "TP-BUG022-R4-F51",
+        "TP-BUG022-R4-F52",
+        "TP-BUG022-R4-F53",
+        "TP-BUG022-R4-C54",
+        "TP-BUG022-R4-C55",
+        "TP-BUG022-R4-C56",
+        "TP-BUG022-R4-C57",
+        "TP-BUG022-R4-C58",
+        "TP-BUG022-R4-C59",
+        "TP-BUG022-R4-C60",
+        "TEST-R4-BUG022-CANONICAL-FINAL-SHAPE-REEXECUTION",
+        "PLAN-R4-BUG022-FINAL-SHAPE-DOD-RECONCILIATION",
+        "VALIDATE-R4-BUG022-SCENARIO-SPECIALIST-ACCEPTANCE-CERTIFICATION"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Audited each F42-F53 and C54-C60 row against the canonical revision-31 same-session log and current input identities. Zero of 19 rows has a current test-owned structured receipt. The only current candidates are implement-owned, C54 and C58 have current nonzero receipts, and all twelve report-claimed focused structured hashes are absent from the canonical log. No DoD or Test Plan row was checked. Scope 1, execution scope inventory, certification mirrors, scenario state, human acceptance, report, source, tests, and excluded concurrent work remain unchanged."
+    },
+    {
+      "at": "2026-09-01T05:33:43Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "adjudicated-c59-current-closure-against-command-semantics",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-09-01T05:33:43Z",
+      "completedAt": "2026-09-01T05:33:43Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The planning start timestamp was not captured before packet validation.",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#c59-row-2417-semantic-adjudication",
+      "addressedFindings": [
+        "PLAN-R4-BUG022-C59-ROW-2417-CURRENT-INPUT-CLOSURE-AUDIT"
+      ],
+      "unresolvedFindings": [
+        "TP-BUG022-R4-C59-ZERO-STALE-SEMANTIC-PROOF"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Row 2417 matches the pre-reconciliation current implementation and planning input hashes, but exit zero does not prove the C59 zero-stale assertion. The exact command reports new=0 and stale=5 with identical baseline hashes before and after. C59 remains unchecked, Scope 1 remains In Progress at 71/1, and bugfix-fastlane cannot advance to regression. No certification, acceptance, historical receipt, source, test, or unrelated path was changed."
+    },
+    {
+      "at": "2026-09-01T21:30:22Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "reconciled-c59-and-routed-current-c54-c55-c58-blockers",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-09-01T21:23:28Z",
+      "completedAt": "2026-09-01T21:30:22Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "The planning start timestamp was not captured before packet validation.",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "scopes.md#current-plan-receipt-adjudication",
+      "addressedFindings": [
+        "DOD-TP-BUG022-R4-C59",
+        "TP-BUG022-R4-C59-ZERO-STALE-SEMANTIC-PROOF"
+      ],
+      "unresolvedFindings": [
+        "TP-BUG022-R4-C54",
+        "BUG022-STALE-DISTRIBUTED-BRIEFS-CROSSING",
+        "TP-BUG022-R4-C55",
+        "FOREIGN-F012-DISTRIBUTED-BRIEFS-LOAD-ORPHAN",
+        "TP-BUG022-R4-C58",
+        "FOREIGN-SPEC-029-NUMBER-COLLISION",
+        "VALIDATE-BUG022-SCOPE-PROGRESS-DRIFT"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Checked C59 from the final current-artifact zero-new, zero-stale, byte-stable-baseline receipt. Reopened C54, C55, and C58 because their newer current-byte receipts are nonzero. Routed the stale distributed-briefs crossing to bubbles.implement, Feature 002 history reachability and duplicate spec number 029 to bubbles.plan under their owning packets, and certification scope-progress drift to bubbles.validate. Scope 1 remains In Progress at 69 checked and 3 unchecked. Certification, acceptance, report evidence, source, tests, and unrelated paths remain unchanged."
+    },
+    {
+      "at": "2026-09-01T22:16:57Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "phasesExecuted": ["test"],
+      "action": "independently-verified-c54-and-routed-c55",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-09-01T22:10:09Z",
+      "completedAt": "2026-09-01T22:16:57Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#independent-c54-test-verification-scenario-revision-5",
+      "addressedFindings": [
+        "TP-BUG022-R4-C54",
+        "DOD-TP-BUG022-R4-C54",
+        "BUG022-STALE-DISTRIBUTED-BRIEFS-CROSSING"
+      ],
+      "unresolvedFindings": [
+        "PLAN-BUG022-C54-STRUCTURED-EVIDENCE-SYNC",
+        "TP-BUG022-R4-C55",
+        "FOREIGN-F012-DISTRIBUTED-BRIEFS-LOAD-ORPHAN",
+        "TP-BUG022-R4-C58",
+        "FOREIGN-SPEC-029-NUMBER-COLLISION",
+        "VALIDATE-BUG022-SCOPE-PROGRESS-DRIFT"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Validated the scenario node at control revision 5 without preflight, then independently passed exact C54 at 57 of 57 on unchanged implementation bytes. Directly coupled active-versus-historical, browser-owner, source-lock, regression-quality, title-integrity, and identity-preservation checks passed. C54 is checked. Planning-owned C54 status mirrors require reconciliation during C55 pickup. C55 and C58 remain unchanged and routed to their existing owners. Certification, acceptance, historical evidence, and unrelated dirty paths remain unchanged."
+    },
+    {
+      "at": "2026-09-01T23:20:13Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": ["plan"],
+      "action": "reconciled-c55-mirrors-and-c58-plan-prerequisites",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-09-01T23:17:13Z",
+      "completedAt": "2026-09-01T23:20:13Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "scopes.md#c58-plan-prerequisite-reconciliation",
+      "addressedFindings": [
+        "PLAN-BUG022-C55-STRUCTURED-EVIDENCE-SYNC",
+        "FOREIGN-SPEC-029-NUMBER-COLLISION"
+      ],
+      "unresolvedFindings": [
+        "TP-BUG022-R4-C58",
+        "VALIDATE-BUG022-SCOPE-PROGRESS-DRIFT"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Reconciled final revision-5 C55 receipts across scopes.md, scenario-manifest.json, and test-plan.json. The C55 DoD remains checked, and all planning counts now derive 71 checked and 1 unchecked row. Relocated the empty budget-era 029 path and the two-file shock-era 029 packet to underscore-prefixed superseded names; the shock spec and state hashes are byte-identical before and after, tracked Feature 030 remains Budget-Aware Hybrid Brief Generation, Feature 031 remains Shock Transmission, and Feature 032 remains reserved for Lifetime Tax publication. C58 remains unchecked and unexecuted after this reconciliation. Certification, acceptance, historical report evidence, source, tests, and unrelated dirty paths remain unchanged."
+    },
+    {
+      "at": "2026-09-02T02:04:17Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "reconciled-final-completion-count-mirror-and-refused-terminal-certification",
+      "executionModel": "dispatched-scenario-node",
+      "parentAgent": "bubbles.goal",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#final-validate-owned-completion-mirror-reconciliation-scenario-revision-6",
+      "addressedFindings": [
+        "VALIDATE-BUG022-SCOPE-PROGRESS-DRIFT"
+      ],
+      "unresolvedFindings": [
+        "PLAN-BUG022-C58-MIRROR-SYNC",
+        "BUG022-G060-SCENARIO-STATE-RECEIPTS",
+        "BUG022-PHASE-CHAIN-COMPLETION",
+        "BUG022-G136-HUMAN-ACCEPTANCE"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Reconciled only validate-owned DoD counts from 71 checked and 1 unchecked to the current 72 checked and 0 unchecked. The exact canonical selftest passed with 3,467 assertions and zero failures, artifact lint and traceability passed, and the focused scope-progress validator reported zero new drift. Terminal certification remains refused: the plan-owned scope status and C58 machine mirrors are stale, all eight scenarios lack current receipt-derived certifiable states, required security, validate, and audit phase completion is absent, and the five-item human checklist plus Human Acceptance Record remain human-owned and incomplete. Packet and certification status remain in_progress, completedScopes and certifiedCompletedPhases remain empty, and no acceptance or terminal timestamp was written."
     }
   ]
 }

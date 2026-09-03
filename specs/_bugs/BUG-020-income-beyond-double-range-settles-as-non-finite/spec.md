@@ -12,6 +12,29 @@ refusal code, because the code vocabulary is closed and pinned and widening it i
 an owner decision. See `design.md` for the two options and the question they turn
 on.
 
+## Outcome Contract
+
+- **Intent:** Make declarations whose dependent amounts exceed finite IEEE-754 double representation refuse visibly under the closed `RLTAX-FIGURE-UNREPRESENTABLE` code. They must never settle or render `Infinity` or `NaN`.
+- **Success Signal:** All five active `SCN-020` scenarios have current `REGRESSION_GREEN` evidence.
+  - The `9e307` pair refuses at the arithmetic origin, display boundary, and settlement header.
+  - The `8.9e307` pair and `Number.MAX_VALUE` boundary cases remain finite and behaviorally unchanged.
+  - No refused row carries settled or rule-status semantics.
+- **Hard Constraints:** Preserve the existing source-qualified rule packs and explicit unavailability contract.
+  - Never replace a refusal with a fallback, default, clamped value, or otherwise plausible number.
+  - Preserve ordinary finite settlements and the finite side of the representability boundary.
+  - Provide no advice, filing, or action execution.
+  - Do not weaken, skip, or rewrite tests to satisfy this contract.
+  - Preserve historical RED and non-discriminating receipts as history. Never present them as current success.
+  - Do not alter concurrent BUG-017 or BUG-022 work.
+  - Do not alter market or tool-brief work, shock-transmission 029/030 work, company-intelligence work, Features 021-024, publication work, or framework files.
+- **Failure Condition:** The repair fails under any condition below.
+  - An active scenario lacks current evidence.
+  - An overflow renders or settles instead of refusing.
+  - A finite boundary case regresses.
+  - A required gate fails.
+  - Human acceptance remains absent.
+  - Certification or status advances without supporting evidence.
+
 ### Single-Capability Justification
 
 **Classification:** Existing-capability extension with one refusal path.

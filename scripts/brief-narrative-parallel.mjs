@@ -65,13 +65,16 @@ const lanes = [
     {
         id: 'core',
         keys: ['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology'],
-        web: true,
+        /* Feature 012 Scope 11: authors receive only already-frozen inputs. Web access belongs
+           to the separately named acquisition lane and is never granted to a narrative lane. */
+        web: false,
         instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. ${briefFreshnessBadgeInstruction()} Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()}`
     },
     {
         id: 'signals',
         keys: ['attention', 'recommendations', 'events'],
-        web: true,
+        /* Feature 012 Scope 11: signal authors consume frozen evidence and cannot browse. */
+        web: false,
         /* The events KEY NAMES are deliberately NOT written here. They are rendered by the publish
            gate's briefEventContractInstruction() from the very constants that gate refuses on, so
            the instruction and the gate cannot describe two different contracts.

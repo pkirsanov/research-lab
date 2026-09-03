@@ -39,7 +39,7 @@
         "assertionSurface": "visible-ui",
         "dependencyPath": "not-applicable",
         "productionOwners": ["rltax.js", "rltaxrules.js", "lifetime-tax-strategy-lab.html"],
-        "negativeControl": "Removing the display-seam finiteness guard makes the reported-pair refusal assertions fail, as recorded by the packet's P3 mutation probe."
+        "negativeControl": "Remove E1 and restore the R2 fallback together. The linked SCN-020-01 no-Infinity-or-NaN route assertion then fails. The current composed receipt records RED exit 1 and GREEN exit 0."
       }
     },
     {
@@ -82,7 +82,7 @@
       "title": "a declaration inside the representable range is unchanged",
       "requiredTestType": "e2e-ui",
       "scopeRef": "Scope 1",
-      "evidenceRefs": ["report.md#the-reported-pair-asserted-in-its-own-right"],
+      "evidenceRefs": ["report.md#the-reported-pair-asserted-in-its-own-right", "report.md#p11--the-reported-settling-pair-fails-when-the-guard-is-widened"],
       "linkedTests": [
         "tests/lifetime-tax-representable.spec.mjs#Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard"
       ],
@@ -106,7 +106,7 @@
         "assertionSurface": "visible-ui",
         "dependencyPath": "not-applicable",
         "productionOwners": ["rltax.js", "lifetime-tax-strategy-lab.html"],
-        "negativeControl": "The packet's S4 composed mutation restores the non-finite fallback and injects Infinity into a stage, making the unchanged representable-input assertion fail."
+        "negativeControl": "Widen E1 to reject gross above Number.MAX_VALUE / 2. The linked SCN-020-03 reported 8.9e307 representable-input assertion then fails. Probe P11 records RED exit 1 and GREEN exit 0."
       }
     },
     {

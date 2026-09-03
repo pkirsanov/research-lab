@@ -75,6 +75,8 @@ Scenario: a declaration inside the representable range is unchanged
 | TB-020-04 | node | `formatForDisplay` returns a refusal for a non-finite value and the prior result for a finite one |
 | TB-020-E2E-S1 | e2e-ui | Scenario-specific E2E regressions SCN-020-01 through SCN-020-03 execute `tests/lifetime-tax-representable.spec.mjs` tests `Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage`, `Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain`, and `Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard` on the production route. |
 
+Negative-control handoff: SCN-020-01 uses the composed E1-removal and R2-fallback control. SCN-020-03 uses the widened-E1 P11 control. Each control targets its scenario claim.
+
 ### Definition of Done
 
 - [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-020-01 through SCN-020-03. **Claim Source:** executed. → Evidence: [BUG-020 report](report.md), `The Reported Pair, Asserted In Its Own Right`, records all three exact scenario titles in an eight-test file run at `8 passed`, exit 0; the scenario manifest preserves each persistent link.

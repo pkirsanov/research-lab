@@ -3,7 +3,7 @@
   "featureDir": "specs/030-budget-aware-hybrid-brief-generation",
   "featureName": "Budget-Aware Hybrid Brief Generation",
   "createdAt": "2026-08-31T03:37:17Z",
-  "lastUpdatedAt": "2026-09-03T04:19:52Z",
+  "lastUpdatedAt": "2026-09-03T04:22:26Z",
   "status": "not_started",
   "workflowMode": "full-delivery",
   "planningOnly": false,
@@ -118,6 +118,32 @@
       "unresolvedFindings": [],
       "nextRequiredOwner": "bubbles.implement",
       "summary": "Created the single approved foundation scope and all planner-owned handoffs for the OpenAI-compatible OMLX and Ollama shadow adapter. Defined three stable scenarios, eight exact Test Plan rows with one DoD item each, finite transport limits, real-provider canaries, authority containment, and explicit inactive requirement inventory. Artifact lint, scenario obligations, mechanism coherence, traceability, context fit, structured Test Plan parity, and working-tree boundary checks passed. No source, tests, implementation, public artifact, completion status, or certification field was changed or claimed."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "full-delivery",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": null,
+      "startedAt": "2026-09-03T04:19:52Z",
+      "completedAt": "2026-09-03T04:22:26Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F030-PLAN-PAGES-EXCLUSION",
+        "F030-PLAN-CANARY-REACHABILITY"
+      ],
+      "unresolvedFindings": [
+        "F030-IMPLEMENT-SITE-EXCLUSION",
+        "F030-IMPLEMENT-CANARY-RENAME",
+        "F030-IMPLEMENT-OMLX-CAPACITY"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Corrected the Scope 01 plan to use the existing integration test selector and to authorize only the rlbriefroute.js declaration in site-exclusions.json. Artifact lint, obligation, mechanism, context-fit, substate, structured JSON, strict boundary, and diff checks passed. Traceability remains nonzero until implementation renames the test file. TP-01-04 remains failed, Scope 01 remains In Progress, and certification remains unchanged."
     }
   ],
   "activeBugs": [],

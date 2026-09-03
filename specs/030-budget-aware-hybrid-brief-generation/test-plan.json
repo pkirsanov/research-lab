@@ -80,7 +80,10 @@
           "evidenceState": "current",
           "evidenceRef": "report.md#tp-01-01-full-selftest",
           "captureSha256": "cce1717eb12f49ee7ea6d8f2221432b03fbbc3c2de3679ca9a2b493de3103fe9",
-          "unresolvedFindingIds": []
+          "unresolvedFindingIds": [
+            "F030-IMPLEMENT-SITE-EXCLUSION",
+            "F030-IMPLEMENT-CANARY-RENAME"
+          ]
         },
         {
           "id": "TP-01-02",

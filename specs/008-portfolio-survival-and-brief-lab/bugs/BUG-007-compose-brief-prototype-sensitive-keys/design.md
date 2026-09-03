@@ -1049,3 +1049,40 @@ undated report Completion Statement, and plan-owned execution routing metadata.
    collateral edits. Five-path hash equality and an empty scoped diff are both
    required.
 - Open questions: None.
+
+## Provenance Finding Closure - 2026-09-03 {#bug007-design-provenance-closure-20260903}
+
+### Design Disposition
+
+No design delta is required. The analyst and UX adjudications repair provenance
+and active routing only. They change no technical architecture, product
+behavior, rollback contract, security boundary, or test mechanism.
+
+The existing null-prototype allocation, own-property membership, error
+contract, mutation causality, and final-tree-safe rollback design remain
+authoritative. Product source, persistent tests, accepted behavior,
+`TP-B007-012` execution, and certification remain unchanged by this record.
+
+This section supersedes only earlier future-tense lifecycle routing in this
+design. It does not reopen or relabel any original hardening finding.
+
+### Finding Accounting
+
+| Finding | Current disposition | Design effect |
+| --- | --- | --- |
+| `AUDIT-B007-ROUTE018-PROVENANCE-001` | Addressed by the analyst adjudication in `spec.md#bug007-route-018-analyst-adjudication-20260902`. | None. Preserve the technical design. |
+| `AUDIT-B007-UX-OWNERSHIP-001` | Addressed by the UX adjudication in `spec.md#bug007-ux-provenance-adjudication-20260903`. | None. Preserve the technical design. |
+| `VALIDATE-B007-G090-FRAMEWORK-001` | Unresolved under its existing external route. | None. Do not claim the framework defect fixed. |
+| `VALIDATE-B007-CHECK8-AGENT-ID-001` | Unresolved under its existing external route. | None. Do not claim the parser defect fixed. |
+| `VALIDATE-REPO-HANDOFF-CYCLE-001` | Unresolved under its existing external route. | None. Do not claim the graph defect fixed. |
+| `VALIDATE-REPO-COLLECTED-TEST-COUNT-001` | Unresolved in its existing Research Lab packets. | None. Preserve test ownership. |
+| `VALIDATE-REPO-STALE-RECEIPT-001` | Unresolved in the existing BUG-025 packet. | None. Preserve validation ownership. |
+
+Audit attempt `BUG-007-AUDIT-001` remains `REWORK_REQUIRED`. The five
+unresolved findings retain their current owners and packet dispositions.
+
+### Routing
+
+Route next to `bubbles.plan`. Planning must reconcile or confirm its active
+surfaces against this no-design-delta closure without changing product source,
+tests, accepted behavior, audit history, or certification.

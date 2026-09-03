@@ -65,17 +65,26 @@
 
 Packet status: in_progress
 Planning reconciliation: reconciled-current-evidence
-Next required owner: bubbles.harden
-Next required action: exhaustive-hardening-reentry
+Next required owner: bubbles.implement
+Next required action: mandatory-delivery-chain-implementation-boundary-review
 
 TP-B007-012 was executed-passed by bubbles.test. The rollback and restore DoD
 is checked against its dated evidence. Human acceptance is recorded. This
-planner reconciliation claims no test execution, hardening result, transition
-result, scope completion, packet completion, or certification.
+planner reconciliation claims no test execution, implementation action,
+transition result, scope completion, packet completion, or certification. The
+implementation-boundary review does not presume that source changes are
+required.
+
+AUDIT-B007-ROUTE018-PROVENANCE-001 and AUDIT-B007-UX-OWNERSHIP-001 remain
+addressed by their owning analyst and UX records. Audit attempt
+BUG-007-AUDIT-001 remains REWORK_REQUIRED. VALIDATE-B007-G090-FRAMEWORK-001,
+VALIDATE-B007-CHECK8-AGENT-ID-001, VALIDATE-REPO-HANDOFF-CYCLE-001,
+VALIDATE-REPO-COLLECTED-TEST-COUNT-001, and
+VALIDATE-REPO-STALE-RECEIPT-001 remain unresolved under their existing
+external or independent owners.
 
 TP-B007-011 is not-run and unchecked. Build Quality is unchecked. Scope 01 is
 Not Started. Top-level status and certification.status are in_progress.
-HARDEN-B007-G061-HISTORY-001 remains unresolved under bubbles.validate.
 Historical evidence and route records remain unchanged.
 
 ## Test Evidence
@@ -5622,3 +5631,836 @@ The top-level runner must then dispatch `bubbles.ux` for the UX-owned spec
 sections and reconcile the route/finding ledger through its owning phase.
 `bubbles.docs` is not yet eligible. Scope, DoD, top-level status, human
 acceptance, and `certification.*` remain unchanged.
+
+## Implementation Boundary Review After Provenance Closure - 2026-09-03 {#bug007-implement-provenance-boundary-review-20260903}
+
+**Phase:** implement
+**Agent:** `bubbles.implement`
+**Claim Source:** interpreted
+
+The analyst, UX, design, and plan closure records require no product delta.
+The current implementation already uses inheritance-free aggregation maps and
+own-property reads for caller lookups. The persistent functional carrier covers
+all six hostile subject and domain cases. The mutation carrier proves the
+protective assertions remain causal without writing tracked files.
+
+### Binding And Changed-Path Classification
+
+**Claim Source:** executed
+
+The inherited packet validated before repository-local inspection. The packet
+contained seven modified planning and evidence artifacts. Every protected
+source and persistent-test path had an empty staged and unstaged diff. Each
+protected worktree blob matched its `HEAD` blob.
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab root=~/research-lab decision=rb:vscode-7cd676ca5a49627fa13a2a070cfcf200:2 revision=2
+BUG-007 IMPLEMENT BOUNDARY PRE-EDIT
+head=ee8f872daa6bb9e0dc089e0cea1ab02a5c879ad8
+packet_status_begin
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/bug.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/design.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/report.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/scopes.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/spec.md
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/state.json
+ M specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/test-plan.json
+packet_status_end
+protected_status_begin
+protected_status_end
+protected_unstaged_diff_begin
+protected_unstaged_diff_end
+protected_staged_diff_begin
+protected_staged_diff_end
+rlportfolio.worktree=81dd1f73bea5516fbffb76c459cdccae3984c415
+rlportfolio.head=81dd1f73bea5516fbffb76c459cdccae3984c415
+rlportfoliobrief.worktree=909a6af5bec57104282cbef72af70192b159beff
+rlportfoliobrief.head=909a6af5bec57104282cbef72af70192b159beff
+functional.worktree=511f0cf79b705f645cd3ac6c9097c338d8e16a6b
+functional.head=511f0cf79b705f645cd3ac6c9097c338d8e16a6b
+browser.worktree=b1c1d980981897b218f25e1abdd7222b17a1c557
+browser.head=b1c1d980981897b218f25e1abdd7222b17a1c557
+integrity.worktree=683da712352abd3145490842a0e636f7a400d272
+integrity.head=683da712352abd3145490842a0e636f7a400d272
+injector.worktree=20ed786006be23f542ec3c524758eda625567ea9
+injector.head=20ed786006be23f542ec3c524758eda625567ea9
+selftest.worktree=245dc3282c5e69dcea3e73498f1d59894e57fa1b
+selftest.head=245dc3282c5e69dcea3e73498f1d59894e57fa1b
+```
+
+### Committed Delivery Boundary
+
+**Command:**
+
+```bash
+cd ~/research-lab && printf '%s\n' 'BUG-007 COMMITTED DELIVERY BOUNDARY' && timeout 30 git show -s --format='commit=%H subject=%s' aad6fb52e && timeout 30 git diff-tree --no-commit-id --name-only -r aad6fb52e && timeout 30 git show -s --format='commit=%H subject=%s' d49a2955b && timeout 30 git diff-tree --no-commit-id --name-only -r d49a2955b && timeout 30 git show -s --format='commit=%H subject=%s' 82d1db5e5 && timeout 30 git diff-tree --no-commit-id --name-only -r 82d1db5e5 && timeout 30 git show -s --format='commit=%H subject=%s' 3688388d5 && timeout 30 git diff-tree --no-commit-id --name-only -r 3688388d5 && timeout 30 git show -s --format='commit=%H subject=%s' 4c9f2e87b && timeout 30 git diff-tree --no-commit-id --name-only -r 4c9f2e87b && printf '%s\n' 'commit_boundary_exit=0'
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG-007 COMMITTED DELIVERY BOUNDARY
+commit=aad6fb52ebdafe5258ac77c74653c3b93770a4b5 subject=test(008): add BUG-007 prototype-key RED
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/report.md
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/state.json
+tests/portfolio-brief.functional.mjs
+tests/portfolio-survival-brief.spec.mjs
+tests/portfolio-test-integrity.unit.mjs
+commit=d49a2955b543433fc1fd502c1e346e3fd2888e11 subject=fix(008): harden brief caller keys
+rlportfoliobrief.js
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/report.md
+specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/state.json
+commit=82d1db5e5819738aa4f5049ebe7078514408620c subject=test(BUG-007): prove mutation failure causality
+tests/portfolio-defect-injector.cjs
+tests/portfolio-test-integrity.unit.mjs
+commit=3688388d5af8012e6adfad769c68c4c1034eab6d subject=fix(spec008): complete portfolio error contract
+rlportfolio.js
+rlportfoliobrief.js
+tests/portfolio-brief.functional.mjs
+commit=4c9f2e87b9738eece50c2f0f5b987046ee6ce7a8 subject=test(spec008): enforce portfolio error registry census
+scripts/selftest.mjs
+commit_boundary_exit=0
+```
+
+The observed path sets match the five implementation batches in the current
+plan. The provenance repair adds no product behavior, source path, test path,
+or shared-infrastructure obligation to those batches.
+
+### Focused Functional Contract
+
+**Executed:** YES (in current session)
+**Command:** `timeout 360 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-007 implement boundary functional contract' -- timeout 240 node --test tests/portfolio-brief.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-007 implement boundary functional contract
+$ timeout 240 node --test tests/portfolio-brief.functional.mjs
+exit: 0
+lines: 42
+sha256: 76cd8b1ba49a4a7a7010cca2530367ae9f8e1bafa6a3de8ded42040a59ab758b
+--- first 20 ---
+✔ only an eligible completion becomes behavior evidence and no excluded source can create or grow one (276.76172ms)
+✔ route recomposition is invariant to behavior evidence and states that behavior contributes none (39.53966ms)
+✔ behavior clear removes the committed evidence and returns recomposition to the pre-evidence baseline (90.977038ms)
+✔ dismissal and automatic invalidation record a safe outcome and never a behavior event or a negative preference (19.21283ms)
+✔ BUG-007: normal brief order and refusal precedence remain unchanged (6.64881ms)
+✔ BUG-007: prototype-sensitive completion keys are safe own keys (5.839709ms)
+✔ BUG-007: prototype-sensitive completion subjects are safe own keys (3.702006ms)
+✔ BUG-007: prototype-sensitive completion domains are safe own keys (2.287503ms)
+✔ BUG-007: own lookup semantics and RED cleanup preserve shared built-ins (5.134608ms)
+✔ SCN-008-006 TP-05-01: each window is identified from the generic config and no later observation enters an earlier cutoff (2.735904ms)
+✔ SCN-008-007 TP-05-01: the four qualification lanes stay separate and a subject is never duplicated across them (1.807403ms)
+✔ SCN-008-010 TP-05-01: below the behavior floor the inferred lane is empty and the shortfall is named (2.019703ms)
+✔ SCN-008-010 TP-05-01: unrelated completions cannot jointly clear an inferred domain floor (1.263402ms)
+✔ SCN-008-007 TP-05-01: the visible queue is bounded by policy and ordered by materiality (1.075602ms)
+✔ FR-064 a scoped subject with no surviving evidence is explained rather than dropped (1.191702ms)
+✔ FR-064 subjects trimmed by the visible cap are accounted for, not silently discarded (1.848903ms)
+✔ FR-060 and FR-061 each item routes to its owning tool or names the gap (0.983201ms)
+✔ FR-067 the brief identity binds revision window cutoff policy and action set (1.379102ms)
+✔ FR-041 the local action-history cutoff is a fourth clock and is actually enforced (1.465403ms)
+✔ BUG-006: composeBrief validates shared evidence-age policy before Date formatting (4.819507ms)
+--- omitted 2 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✔ FR-050 partial or stale evidence keeps its state and cannot support an action as if fresh (2.846505ms)
+✔ SCN-008-008 TP-06-01: every item explains why it appears with the full FR-045 disclosure (1.290802ms)
+✔ SCN-008-008 TP-06-01: recency decays on the declared half-life and expires past the age limit (1.753602ms)
+✔ SCN-008-009 TP-06-01: settings and passive activity never become inferred interests (1.128902ms)
+✔ SCN-008-034 TP-06-01: no authored action carries an order verb or a size instruction (1.156002ms)
+✔ SCN-008-044 behavior identity civil time distinct floors and global ranking are canonical (21.835033ms)
+✔ Adversarial: behavior identity and temporal guards prevent false relevance (8.572513ms)
+✔ SCN-008-046 complete generic evidence validates all five inputs and resolves DST by New York civil time (5.083208ms)
+✔ SCN-008-046 action candidates enforce generic freshness and one lifecycle reducer (3.786606ms)
+✔ SCN-008-046 every public boundary emits a closed value-safe PortfolioError (1.982903ms)
+✔ Adversarial: reduced brief evidence policy and API cannot satisfy the complete contract (2.144303ms)
+✔ Regression: BUG-004 same-semantic occurrences cannot inflate relevance (100.069452ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 787.692694
+```
+
+The complete carrier passed 34 of 34 tests. It includes the normal-order,
+hostile-key, subject, domain, lookup, cleanup, and parent error-contract checks.
+
+### Mutation Causality And Post-Run Integrity
+
+**Executed:** YES (in current session)
+**Command:** `timeout 360 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-007 implement boundary mutation causality' -- timeout 240 node --test --test-name-pattern='^BUG-007: represented mutants execute one protective assertion through one intended hook$' tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# BUG-007 implement boundary mutation causality
+$ timeout 240 node --test --test-name-pattern=^BUG-007: represented mutants execute one protective assertion through one intended hook$ tests/portfolio-test-integrity.unit.mjs
+exit: 0
+lines: 9
+sha256: b35d4973ec5b19b3243a9728b599c5c1c78b038ebece47816cc92a906e8f57b1
+--- output ---
+✔ BUG-007: represented mutants execute one protective assertion through one intended hook (1520.391335ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1605.378066
+```
+
+**Claim Source:** executed
+
+```text
+BUG-007 POST-MUTATION PROTECTED INTEGRITY
+protected_status_begin
+protected_status_end
+protected_unstaged_diff=clean
+protected_staged_diff=clean
+rlportfoliobrief=909a6af5bec57104282cbef72af70192b159beff
+functional=511f0cf79b705f645cd3ac6c9097c338d8e16a6b
+browser=b1c1d980981897b218f25e1abdd7222b17a1c557
+integrity=683da712352abd3145490842a0e636f7a400d272
+injector=20ed786006be23f542ec3c524758eda625567ea9
+post_mutation_integrity_exit=0
+```
+
+The selector passed one of one. Its persistent test body verifies each shipped
+protection against a represented mutant, one intended hook, one application,
+and one protective assertion. It also verifies that tracked source and tests
+retain their pre-run hashes.
+
+### Seven-Finding Accounting
+
+| Finding | Implement disposition |
+| --- | --- |
+| `AUDIT-B007-ROUTE018-PROVENANCE-001` | Preserve addressed status from the analyst execution record. No implementation delta. |
+| `AUDIT-B007-UX-OWNERSHIP-001` | Preserve addressed status from the UX execution record. No implementation delta. |
+| `VALIDATE-B007-G090-FRAMEWORK-001` | Preserve unresolved external routing. Do not edit downstream framework files. |
+| `VALIDATE-B007-CHECK8-AGENT-ID-001` | Preserve unresolved external routing. Do not edit downstream framework files. |
+| `VALIDATE-REPO-HANDOFF-CYCLE-001` | Preserve unresolved external routing. Do not duplicate the existing proposal. |
+| `VALIDATE-REPO-COLLECTED-TEST-COUNT-001` | Preserve unresolved ownership in the existing repository packets. |
+| `VALIDATE-REPO-STALE-RECEIPT-001` | Preserve unresolved validation ownership in BUG-025. |
+
+### Implementation Disposition
+
+No product source or persistent-test change is required. The current product
+contract and its persistent carriers already satisfy the provenance-neutral
+implementation boundary. This invocation changes only implement-owned evidence
+and execution routing. Audit attempt `BUG-007-AUDIT-001` remains
+`REWORK_REQUIRED`. Scope 01 remains `Not Started`. `TP-B007-011` and Build
+Quality remain unchecked. Top-level and certification status remain
+`in_progress`.
+
+### Post-Edit Strict Packet And Diff Validation
+
+**Executed:** YES (in current session)
+**Command:**
+
+```bash
+cd ~/research-lab && timeout 120 node -e 'const f=require("node:fs"),a=require("node:assert/strict"),d="specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",r=n=>f.readFileSync(`${d}/${n}`,"utf8"),mt=r("scenario-manifest.json"),m=JSON.parse(mt),p=JSON.parse(r("test-plan.json")),s=JSON.parse(r("state.json")),h=s.executionHistory.at(-1),A=["AUDIT-B007-ROUTE018-PROVENANCE-001","AUDIT-B007-UX-OWNERSHIP-001"],U=["VALIDATE-B007-G090-FRAMEWORK-001","VALIDATE-B007-CHECK8-AGENT-ID-001","VALIDATE-REPO-HANDOFF-CYCLE-001","VALIDATE-REPO-COLLECTED-TEST-COUNT-001","VALIDATE-REPO-STALE-RECEIPT-001"],c={scenario_manifest_json:!!m,test_plan_json:!!p,state_json:!!s,execution_owner_key_count:(mt.match(/"executionOwner"\s*:/g)||[]).length===1,manifest_owner:m.planningReconciliation.finalTreeRollbackRestore.executionOwner==="bubbles.test",plan_handoff:p.nextRequiredOwner==="bubbles.implement",state_phase:s.execution.currentPhase==="implement",state_route:s.execution.nextRequiredOwner==="bubbles.test",packet_nonterminal:s.status==="in_progress"&&s.certification.status==="in_progress",scope_nonterminal:s.execution.scopeInventory[0].status==="Not Started",audit_unchanged:s.execution.audit.attempts[0].auditVerdict==="REWORK_REQUIRED",addressed_partition:JSON.stringify(h.addressedFindings)===JSON.stringify(A),unresolved_partition:JSON.stringify(h.unresolvedFindings)===JSON.stringify(U),history_route:h.nextRequiredOwner==="bubbles.test",learning:h.learning.disposition==="not-applicable",report_anchor:(r("report.md").match(/\{#bug007-implement-provenance-boundary-review-20260903\}/g)||[]).length===1};for(const [k,v] of Object.entries(c)){a.equal(v,true,k);console.log(`${k}=PASS`)}' && timeout 30 git diff --check -- specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/report.md specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys/state.json && printf '%s\n' 'owned_diff_check=PASS' && timeout 30 git diff --quiet -- rlportfolio.js rlportfoliobrief.js scripts/selftest.mjs tests/portfolio-brief.functional.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-test-integrity.unit.mjs tests/portfolio-defect-injector.cjs && printf '%s\n' 'protected_unstaged_diff=clean' && timeout 30 git diff --cached --quiet -- rlportfolio.js rlportfoliobrief.js scripts/selftest.mjs tests/portfolio-brief.functional.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-test-integrity.unit.mjs tests/portfolio-defect-injector.cjs && printf '%s\n' 'protected_staged_diff=clean' && printf '%s\n' 'strict_packet_and_diff_exit=0'
+```
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+scenario_manifest_json=PASS
+test_plan_json=PASS
+state_json=PASS
+execution_owner_key_count=PASS
+manifest_owner=PASS
+plan_handoff=PASS
+state_phase=PASS
+state_route=PASS
+packet_nonterminal=PASS
+scope_nonterminal=PASS
+audit_unchanged=PASS
+addressed_partition=PASS
+unresolved_partition=PASS
+history_route=PASS
+learning=PASS
+report_anchor=PASS
+owned_diff_check=PASS
+protected_unstaged_diff=clean
+protected_staged_diff=clean
+strict_packet_and_diff_exit=0
+```
+
+This validation proves the current execution record and routing shape. It does
+not certify the packet, close Scope 01, run `TP-B007-011`, or resolve any of the
+five external or independent findings.
+
+## Independent Test Verification After Provenance Closure - 2026-09-03 {#bug007-independent-test-provenance-closure-20260903}
+
+**Phase:** test
+**Executed:** YES (current session)
+**Claim Source:** executed
+
+This test-owned run independently inspected the current packet, product source,
+persistent carriers, and complete seven-finding ledger. It made no product or
+persistent-test change. The inherited repository packet validated as actionable
+for `research-lab` at decision
+`rb:vscode-7cd676ca5a49627fa13a2a070cfcf200:2`, control revision `2`.
+
+### Strict Packet, Provenance, And Route Resolution
+
+**Commands:** canonical `scenario-test-resolve.sh`; an invocation-local strict
+duplicate-key, non-finite-value, and trailing-content decoder over
+`scenario-manifest.json`, `test-plan.json`, and `state.json`; an exact Markdown
+to structured Test Plan parity discriminator; and a five-route carrier
+discriminator over project-owned proposals and existing Research Lab packets.
+
+**Exit Codes:** `0, 0, 0, 0`
+**Claim Source:** executed
+
+```text
+[scenario-test-resolve] OK - 17 reference(s) resolved via literal-scan; 17 category comparison(s) not applicable (no test-discovery adapter declared)
+scenario-manifest.json_strict_parse=PASS
+test-plan.json_strict_parse=PASS
+state.json_strict_parse=PASS
+scenario_count_4=PASS
+test_plan_row_count_13=PASS
+tp011_planned_not_executed=PASS
+manifest_execution_owner_unique=PASS
+route018_resolved_by_analyst=PASS
+analyst_execution_provenance=PASS
+ux_execution_provenance=PASS
+analyst_spec_anchor_unique=PASS
+ux_spec_anchor_unique=PASS
+design_no_product_delta=PASS
+plan_four_scenarios_thirteen_rows_unchanged=PASS
+audit_attempt_rework_required=PASS
+current_addressed_partition=PASS
+current_unresolved_partition=PASS
+durable_addressed_ledger=PASS
+durable_unresolved_ledger=PASS
+finding_ledgers_disjoint=PASS
+scope_not_started=PASS
+tp011_checkbox_unchecked=PASS
+build_quality_unchecked=PASS
+packet_and_certification_in_progress=PASS
+strict_packet_discriminator=PASS
+markdown_test_plan_rows=13
+json_test_plan_rows=13
+markdown_unique_ids=13
+json_unique_ids=13
+markdown_json_row_order=PASS
+four_scenarios_thirteen_rows=PASS
+g090_state_route=PASS
+g090_proposal_exists=PASS
+check8_state_route=PASS
+check8_proposal_exists=PASS
+collected_count_state_route=PASS
+spec022_packet_exists=PASS
+spec023_packet_exists=PASS
+spec024_packet_exists=PASS
+bug025_packet_exists=PASS
+handoff_cycle_state_route=PASS
+handoff_cycle_external_reference_preserved=PASS
+stale_receipt_state_route=PASS
+all_five_remain_unresolved=PASS
+external_proposals_repaired_claim_absent=PASS
+```
+
+The structured and Markdown plans each contain 13 unique rows in the same
+order. The traceability guard below reports 14 raw table records because its
+current extractor includes this table's `Plan ID` header; that raw diagnostic
+is not used as the Test Plan row-count claim.
+
+### Functional, Mutation, And Browser Carriers
+
+**Commands:**
+
+- `timeout 240 node --test tests/portfolio-brief.functional.mjs`
+- `timeout 240 node --test --test-name-pattern='^BUG-007: represented mutants execute one protective assertion through one intended hook$' tests/portfolio-test-integrity.unit.mjs`
+- `timeout 30 npx --no-install playwright --version`
+- `timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+- `timeout 1800 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+- `timeout 1800 node scripts/selftest.mjs`
+
+**Exit Codes:** `0, 0, 0, 0, 0, 0`
+**Claim Source:** executed
+
+```text
+focused_functional exit=0 lines=42 sha256=e05616851abed7ba3c42ca0a3f052680b018204a12f089e829625558974de1ae
+focused_functional tests=34 pass=34 fail=0 cancelled=0 skipped=0 todo=0
+focused_functional BUG-007 titles=5
+mutation_canary exit=0 lines=9 sha256=115db4247feac4cbd9170906da5f08966e6b216c1dfb23f72a6469fb2e304bef
+mutation_canary tests=1 pass=1 fail=0 cancelled=0 skipped=0 todo=0
+playwright_version=Version 1.61.1
+scenario_browser exit=0 lines=67 sha256=a2a9c3a9c4007b0ef03cf26161ce1f89a7dc9200e2b68976aafcf84c79cd591a
+scenario_browser tests=19 pass=19 fail=0
+scenario_browser BUG-007 visible constructor title=PASS
+feature_browser exit=0 lines=305 sha256=bd3a5c8b4121672d3405b3cca79880b8bd098f503d14b06d24b69b4a9e6abc7b
+feature_browser tests=95 pass=95 fail=0
+canonical_selftest exit=0 lines=3912 sha256=e41b88b0010874e254b0bd480774f3fe772c24c749cdafba8893e03aad0a71ac
+Research-Lab self-test: 3443 passed, 0 failed
+historical TP-B007-000 rerun=NO
+```
+
+The focused suite directly exercises the ordinary fixture, all six hostile
+subject/domain cases, own-versus-inherited lookups, cleanup, and the exact
+seven-field error contract. The selected mutation carrier verifies one intended
+hook, one application marker, one protective assertion, deliberate double-
+application rejection, and direct-text carrier preservation. The browser run
+uses the real page runtime and production preview/confirm controls.
+
+### Packet, Reality, Regression, PII, And Provenance Checks
+
+**Commands:** the six exact `CMD-B007-PACKET-GUARDS` children; canonical
+`scenario-test-resolve.sh`; `implementation-reality-scan.sh --verbose`;
+ordinary and `--bugfix` `regression-quality-guard.sh` over the three BUG-007
+carriers; `node scripts/pii-scan.mjs`; `claim-source-lint.sh`; and
+`execution-substate-guard.sh`.
+
+**Exit Codes:** all `0`
+**Claim Source:** executed
+
+```text
+artifact-lint exit=0 lines=40 sha256=182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567 result=PASSED
+traceability-guard exit=0 lines=68 sha256=79f400a41251ae7a105cc082bdc97c2127f1c66a5ac24fe6edb12923afa8e11a result=PASSED warnings=0
+traceability scenarios=4 reported-test-rows-checked=14 mappedDoD=4
+scenario-test-resolve references=17 unresolved=0
+scenario-obligation-lint exit=0 scenarios=4 sha256=3979d4214fdb7145fa4cad82986c6a605516b95479ac3ed7f6308d0a62022a0b
+test-mechanism-lint exit=0 mechanisms=4 mutationExecution=none-inert sha256=36ffdf83fc233d8197e21b38176847355aac161f635cd8a56fba0c9fa68295f6
+scope-context-fit-lint exit=0 scopes=1 selfContained=1 sha256=7a84f3ca9c4d89bb763bfc95ee9d8247f3eb7fafed040311e53609f2ae6627d9
+capability-foundation-guard exit=0 gate=G094 sha256=2f13ab2f63ec3af1bb62f76bf78f735847b51a97d37679d3d3fa77c14b1cea3c
+implementation-reality exit=0 lines=35 files=6 violations=0 warnings=0 sha256=f7b743e57927fc4c88c8f0acb327c98ab610136797aebc565ac3263109b01c83
+regression-quality ordinary exit=0 files=3 violations=0 warnings=0 sha256=5ebb367b9a9dd91b4bd929fdbe415bb0590a6dcc1368e9249c07284ca3053bc2
+regression-quality bugfix exit=0 files=3 adversarialFiles=3 violations=0 warnings=0 sha256=329a33daee310865dd563242f4d0e8d849d637dd63b679466351dac365d9743e
+pii-scan exit=0 files=10785 messages=2555 findings=0 sha256=8019d6d3636a45a658a3c84c1715a0fe0eff8f0424e3e0d53ab05625644e6720
+claim-source-lint exit=0 result=OK sha256=6210f5e85489b86b19520504105d7179d5a7ea0713dc6e42187cd3d35c5d4653
+execution-substate-guard exit=0 result=OK sha256=b74a7708d4b21b384fecabc51716c01002cef29c028b9795d637037d2a9e7f46
+```
+
+No `testImpact`, `traceContracts`, or `observabilityWorkflow` contract is
+declared for this packet, so no impact adapter or trace/SLO artifact is owed.
+
+### Protected Source And Persistent-Test Bytes
+
+**Command:** scoped staged/unstaged Git diff checks and `sha256sum` before and
+after all selected test execution.
+
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+protected_unstaged_diff=clean
+protected_staged_diff=clean
+ab595e803f91192234a14bfd4927c5fcb0394b3977c9dbfea5d4a6b7a05f20c0  rlportfolio.js
+2c9805a22d683c407ed03c8a99b2d67b688d704ef79f2b9bab46dea6992a8d30  rlportfoliobrief.js
+4bdb4ab62f458c68507a1e91577e2380e0aff58115d622d5c573b367b959eaa3  rlportfolioanalytics.js
+2912e92a182487ffa15fcb6124fef2f788aed7e0b73d4375057e6580451c0922  portfolio-survival-allocation-lab.html
+829fb8512bf5430106318aaeb21e562504b0a8e39b4ca8b48ab9e4e8ca11e60a  scripts/selftest.mjs
+875825213e53b071374454a8acd232c506f351237781ca8665de876439a95124  tests/portfolio-brief.functional.mjs
+ef3189652a7532385c19f839a150336c1295a9ee9f095468afe19468888c832c  tests/portfolio-survival-brief.spec.mjs
+77103344c2881b11b5178be42f7721529059d6affaea948822362128d866d39e  tests/portfolio-test-integrity.unit.mjs
+6b7520dfad7f348ef6ce7424d0a4337189f175d224eb7e4e7f24b616c6c8cab0  tests/portfolio-defect-injector.cjs
+source_test_delta=none
+```
+
+The before and after hashes are identical. This invocation changes only this
+test-owned evidence section and authorized `state.json.execution.*` provenance;
+it preserves earlier owner changes already present in the dirty packet.
+
+### Seven-Finding Disposition And Handoff
+
+| Finding | Independent test disposition |
+| --- | --- |
+| `AUDIT-B007-ROUTE018-PROVENANCE-001` | Addressed by one `bubbles.analyst` execution record and the unique analyst spec anchor; independently verified, not reimplemented. |
+| `AUDIT-B007-UX-OWNERSHIP-001` | Addressed by one `bubbles.ux` execution record and the unique UX spec anchor; independently verified, not reimplemented. |
+| `VALIDATE-B007-G090-FRAMEWORK-001` | Unresolved external route retained; the Research Lab proposal exists and no framework repair is claimed. |
+| `VALIDATE-B007-CHECK8-AGENT-ID-001` | Unresolved external route retained; the Research Lab proposal exists and no parser repair is claimed. |
+| `VALIDATE-REPO-HANDOFF-CYCLE-001` | Unresolved external route retained; the foreign proposal reference is preserved without cross-repository mutation or repair claim. |
+| `VALIDATE-REPO-COLLECTED-TEST-COUNT-001` | Unresolved in the existing Specs 022, 023, 024, and BUG-025 packets; all four local packet carriers exist. |
+| `VALIDATE-REPO-STALE-RECEIPT-001` | Unresolved in the existing BUG-025 packet and retained for `bubbles.validate`. |
+
+Audit attempt `BUG-007-AUDIT-001` remains `REWORK_REQUIRED`. `TP-B007-011`
+and Build Quality remain unchecked. Scope 01 remains `Not Started`; top-level
+and certification status remain `in_progress`. Route next to
+`bubbles.validate` for certification or blocked disposition.
+
+## Certification Attempt And Local-Phase Routing - 2026-09-03 {#bug007-validation-certification-attempt-20260903}
+
+**Phase:** validate
+**Agent:** `bubbles.validate`
+**Executed:** YES (current session)
+**Claim Source:** interpreted
+**Interpretation:** Current product replay and packet checks are green, but the
+registry-bound `done` transition is not. The guard fails `G022`, `G027`, and
+`G090` across completion, all-scopes-done, contract, and file-existence checks.
+The active mode still has locally runnable `stabilize`, `devops`, and `security`
+phases before terminal validation and audit. The correct disposition is
+`route_required` to the first missing local owner, `bubbles.stabilize`, rather
+than an external-only block or a certification promotion.
+
+### Binding And Fresh Transition Contract
+
+The inherited packet validated before repository-local work. Its binding remains
+unchanged: repository `research-lab`, decision
+`rb:vscode-7cd676ca5a49627fa13a2a070cfcf200:2`, control revision `2`, and
+actionable local root `~/research-lab`.
+
+**Command:** `timeout 60 bash .github/bubbles/scripts/transition-contract-resolver.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+schemaVersion=transition-contract/v1
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+statusCeiling=done
+targetStatus=done
+currentStatus=in_progress
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision=sha256:605f9532a870c246eca0b2dbbf966cbb16532f0346d4c97b1a39fa9e662562fd
+phaseOrder=select,bootstrap,implement,test,regression,simplify,gaps,harden,stabilize,devops,security,validate,audit,finalize
+sourceEditLockoutRequired=false
+```
+
+### TP-B007-011 Asserted Transition Result
+
+**Command:** `timeout 720 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-007 TP-B007-011 asserted transition current validation' -- timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --expect-workflow-mode bugfix-fastlane --target-status done --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+# BUG-007 TP-B007-011 asserted transition current validation
+$ timeout 600 bash .github/bubbles/scripts/state-transition-guard.sh specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys --expect-workflow-mode bugfix-fastlane --target-status done --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+exit: 1
+lines: 369
+sha256: b471b55ab11ae0dcaf8764e6eaf6178969fe78bf6df553eec9a430556448dd4a
+BEGIN TRANSITION_GUARD_RESULT_V1
+schemaVersion: transition-guard-result/v1
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:605f9532a870c246eca0b2dbbf966cbb16532f0346d4c97b1a39fa9e662562fd
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+passedGateIds: [G057,G053,G040,G051,G068,G082,G083,G084,G128,G085,G086,G091,G087,G093,G088,G089,G092,G094,G095,G097,G098,G099,G100,G130,G131,G136]
+failedGateIds: [G022,G027,G090]
+failedChecks: [Check-4-completion,Check-5-all-done,Check-8-contract,Check-8-file-existence]
+blockingCode: DELIVERY_COMPLETION_FAILED
+parentExpandedPhases: 0
+failureCount: 17
+exitStatus: 1
+verdict: FAIL
+END TRANSITION_GUARD_RESULT_V1
+```
+
+`TP-B007-011` therefore remains unchecked. Build Quality remains unchecked,
+Scope 01 remains `Not Started`, and both status mirrors remain `in_progress`.
+No validate phase claim, certified scope, certification timestamp, terminal
+status, or audit-attempt rewrite is authorized by this result.
+
+### Current Validation Replay
+
+**Claim Source:** interpreted
+**Interpretation:** Each row below restates a current-session terminal or
+evidence-capture result with its observed exit status, count, and full-output
+hash where the command produced a capture block. The raw `TP-B007-011` result
+above remains the transition authority; green product checks do not convert its
+nonzero verdict into certification.
+
+```text
+pages_build exit=0 lines=1 sha256=e8f3e909076799aee06e386be1092e9e344b90aa5060905c10cec77bbcad90e3 registeredPages=29
+focused_functional exit=0 lines=42 sha256=8cf1e51e836920ba52281e966610855974ba3ade3305cebe9ec4b4a909386aef tests=34 pass=34 fail=0 skipped=0
+mutation_causality exit=0 lines=9 sha256=6c09d6214f0ab317f40b8e87fd54729778a8865b1eb9e8ae53dfe98d66f28c29 tests=1 pass=1 fail=0 skipped=0
+playwright_version=Version 1.61.1
+scenario_browser exit=0 lines=67 sha256=8254e5be5c73fc083916ac0c6895365e3f55f44d4919d7e2f8c79233c1baa4f3 tests=19 pass=19 fail=0
+feature008_browser exit=0 lines=305 sha256=31fb554ef980b2817aad902216ee7a1e537791095f3d313a054357c24fb2f37c tests=95 pass=95 fail=0
+canonical_selftest exit=0 lines=3912 sha256=13cb6a78b9ecbb29a059a29b53482fc3fd13dc2af6e33f100e9e3d3adbea1b14 checks=3443 pass=3443 fail=0
+registered_unit exit=0 lines=676 sha256=d3749eee6a14057cd325aacf9145835e22c9816a6710fe6aaf1ea4a3563ae3fc tests=666 pass=666 fail=0 skipped=0
+registered_integration exit=0 lines=62 sha256=0be77e9172a163e4348901b74d8fcf9e9dc6eb4383544876d7f34dd91a67edd9 tests=37 pass=37 fail=0 skipped=0
+registered_security exit=0 lines=27 sha256=32fbeeb885af2dda4981ade980147339aa4dc2400cd12effac20377c081ee8e1 tests=19 pass=19 fail=0 skipped=0
+registered_load exit=0 lines=33 sha256=99d83bcd2395b983f1eda6a6a57b06c5dd343bcffe49a64ed20223606f0f22b5 tests=2 pass=2 fail=0 skipped=0
+registered_stress exit=0 lines=50 sha256=a6f5617c90cecc280cdad14fe8758d53e128ef2dfe31f4c1cfba105570f20cd4 tests=9 pass=9 fail=0 skipped=0
+goal_fidelity exit=0 lines=1 sha256=3bc6db28381ca97126677622f3eccd914d5ec26e9fae7e71814eeaf2db389a46
+artifact_lint exit=0 lines=40 sha256=182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567
+traceability exit=0 lines=68 sha256=b0e5a0fe842f4edef7a19f446b31e14467b7333f5d559bcacc6a97e9526a2244 scenarios=4 warnings=0
+scenario_obligations exit=0 scenarios=4
+test_mechanisms exit=0 mechanisms=4 mutationExecution=none-inert
+scope_context_fit exit=0 scopes=1 selfContained=1
+capability_foundation exit=0 gate=G094
+regression_quality exit=0 lines=16 sha256=fe1e78079560fe5e5559053783cf48318b219c00b81145c0c9315f0d59c50a9b files=3 violations=0 warnings=0
+regression_quality_bugfix exit=0 files=3 adversarialFiles=3 violations=0 warnings=0
+scenario_links exit=0 lines=1 sha256=fe33cbfb63d9c653f7daac337b52e256046b23dda2a25f280ab1ba2603b9b838 references=17 unresolved=0
+implementation_reality exit=0 lines=35 sha256=f7b743e57927fc4c88c8f0acb327c98ab610136797aebc565ac3263109b01c83 files=6 violations=0 warnings=0
+artifact_freshness exit=0 lines=20 sha256=ecf2dd11419cd07ab57baa17f53655457e4e6a90254bfafd6241b16ae7aa5bab failures=0 warnings=0
+claim_source exit=0 lines=1 sha256=6210f5e85489b86b19520504105d7179d5a7ea0713dc6e42187cd3d35c5d4653
+execution_substate initial=invalid-route_required repaired=needs_reverification rerun_exit=0
+pii_scan exit=0 lines=1 sha256=8019d6d3636a45a658a3c84c1715a0fe0eff8f0424e3e0d53ab05625644e6720 findings=0
+changed_spec_audit exit=0 lines=18 sha256=7f90a9c9580c07f0127ecae0742d6d3446e4230c93252ee3a11b5eb2f7c51891 doneSpecs=0 artifactLintPassed=1
+framework_write_guard exit=0 lines=6 sha256=70088ae5335b50a3b78b2d69ea25ac658de8bdcf95a29c68f40d4f4552f21ce2
+repo_readiness exit=0 lines=31 sha256=d16dc2bfd5aab2d39553799c1f3d81aa2afcbffc20157f02d2e217c111c6e0a1 pass=9 warn=0 fail=0
+slo_guard exit=0 lines=1 sha256=2079b4a7a16b34289e44c11606457351773c1e059a3b4e49440f20f8d1ada585 posture=undeclared no-op=true
+strict_json state=PASS test_plan=PASS scenario_manifest=PASS
+protected_source_test_diff unstaged=clean staged=clean
+historical_red_rerun=NO
+lint_command=NOT_DECLARED
+format_command=NOT_DECLARED
+testImpact=NOT_CONFIGURED
+traceContracts=NOT_CONFIGURED
+```
+
+### Nonzero Diagnostics And Ownership
+
+These results remain nonzero and are not represented as passes:
+
+```text
+asserted_transition exit=1 lines=369 sha256=b471b55ab11ae0dcaf8764e6eaf6178969fe78bf6df553eec9a430556448dd4a failedGates=G022,G027,G090 failureCount=17
+canonical_handoff_cycle exit=1 lines=109 sha256=4d6638101ec7387bfacff5dcdc1db411be399d62e21cf39a67fef44bb0f0d193 result=cycle-detected
+framework_doctor exit=1 lines=187 sha256=4d94299eaa90a552e0ad00288515b05164e49234cdc3d37dfaf2e90e8557e70e pass=20 fail=1 advisory=81
+collected_test_count exit=1 lines=48 sha256=2632f651b08e8fe5c30859e4c9f02fe8e24daa63bbbaa56a066321718c0b147a zeroCollectionBlocks=19
+receipt_freshness exit=1 lines=16 sha256=35ba52500cbead0dda561743715b818f304462a3f688e3a1a6f41914a3926fc7 current=1802 valid=55 stale=1 unknown=1746 staleOwner=BUG-025
+```
+
+The handoff cycle is the existing external framework finding. The doctor and
+detailed count guard preserve the independent repository evidence finding. The
+strict receipt report names only the existing BUG-025 receipt. None is closed or
+reclassified by this validation attempt.
+
+### Seven-Finding Accounting
+
+| Finding | Current validation disposition | Evidence or preserved owner |
+| --- | --- | --- |
+| `AUDIT-B007-ROUTE018-PROVENANCE-001` | Addressed one-to-one; independently preserved. | `spec.md#bug007-route-018-analyst-adjudication-20260902` and the `bubbles.analyst` execution record. |
+| `AUDIT-B007-UX-OWNERSHIP-001` | Addressed one-to-one; independently preserved. | `spec.md#bug007-ux-provenance-adjudication-20260903` and the `bubbles.ux` execution record. |
+| `VALIDATE-B007-G090-FRAMEWORK-001` | Unresolved `blocking-external`; not claimed fixed. | Existing Research Lab proposal; `G090` is present in the current failed-gate set. |
+| `VALIDATE-B007-CHECK8-AGENT-ID-001` | Unresolved `blocking-external`; not claimed fixed. | Existing Research Lab proposal; current failed checks include `Check-8-contract` and `Check-8-file-existence`. |
+| `VALIDATE-REPO-HANDOFF-CYCLE-001` | Unresolved `blocking-external`; not claimed fixed. | Existing GuestHost proposal and canonical Bubbles ownership remain unchanged. |
+| `VALIDATE-REPO-COLLECTED-TEST-COUNT-001` | Unresolved `independent`. | Existing Spec 022, Spec 023, Spec 024, and BUG-025 packets remain the owners. |
+| `VALIDATE-REPO-STALE-RECEIPT-001` | Unresolved `independent`. | Existing BUG-025 packet remains owned by `bubbles.validate`; no stale receipt is relabeled here. |
+
+### Routing Disposition
+
+Outcome is `route_required` to `bubbles.stabilize`, the first missing local
+phase in the resolved `bugfix-fastlane` order after `harden`. The external
+findings remain unresolved in parallel, but they do not justify skipping the
+locally runnable phase chain. Audit attempt `BUG-007-AUDIT-001` remains
+`REWORK_REQUIRED` and byte-for-byte unchanged.
+
+## Stabilize Stability Profile - 2026-09-03 {#bug007-stabilize-profile-20260903}
+
+**Phase:** stabilize
+**Agent:** `bubbles.stabilize`
+**Executed:** YES (current session)
+**Claim Source:** interpreted
+**Interpretation:** The registered build-free Node/browser profile is stable at
+the observed epoch. Two independent functional runs produce the same 34-test
+behavioral outcome. The mutation canary exercises its intentional failure paths
+and cleanup. The real browser suite, registered load suite, and registered
+stress suite terminate inside their bounds. Protected source and test hashes,
+Git state, temporary-directory count, and matching process count are unchanged
+after execution. No product stability defect was observed. Security review is
+not claimed by this phase.
+
+The inherited repository packet validated as actionable for `research-lab` at
+decision `rb:vscode-7cd676ca5a49627fa13a2a070cfcf200:2`, control revision `2`,
+before repository-local reads or execution.
+
+### Repeatability And Determinism
+
+**Commands:**
+
+- `timeout 360 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-007 stabilize repeatability functional run 1' -- timeout 240 node --test tests/portfolio-brief.functional.mjs`
+- `timeout 360 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-007 stabilize repeatability functional run 2' -- timeout 240 node --test tests/portfolio-brief.functional.mjs`
+
+**Exit Codes:** `0, 0`
+**Claim Source:** interpreted
+**Interpretation:** Both independent runs collect the same 34 tests, pass the
+same 34 tests, and report zero failures, cancellations, skips, and TODOs. Both
+include all five BUG-007 titles and the parent error-contract title. The full
+capture hashes differ because Node reports measured per-test durations; no
+byte-for-byte console-output identity is claimed.
+
+```text
+run=1 exit=0 lines=42 sha256=b218c89bf7ed100f977f87cc21282d278910d57bfffc92e8ae881be2f786097f
+run=1 tests=34 pass=34 fail=0 cancelled=0 skipped=0 todo=0
+run=1 BUG-007 normal brief order and refusal precedence remain unchanged=PASS
+run=1 BUG-007 prototype-sensitive completion keys are safe own keys=PASS
+run=1 BUG-007 prototype-sensitive completion subjects are safe own keys=PASS
+run=1 BUG-007 prototype-sensitive completion domains are safe own keys=PASS
+run=1 BUG-007 own lookup semantics and RED cleanup preserve shared built-ins=PASS
+run=2 exit=0 lines=42 sha256=fc3448c6bbe4ff8e00fac26d636d1b57b87a008ff3db413aab706e9c8745c2d6
+run=2 tests=34 pass=34 fail=0 cancelled=0 skipped=0 todo=0
+run=2 BUG-007 normal brief order and refusal precedence remain unchanged=PASS
+run=2 BUG-007 prototype-sensitive completion keys are safe own keys=PASS
+run=2 BUG-007 prototype-sensitive completion subjects are safe own keys=PASS
+run=2 BUG-007 prototype-sensitive completion domains are safe own keys=PASS
+run=2 BUG-007 own lookup semantics and RED cleanup preserve shared built-ins=PASS
+repeatability_behavioral_outcome=PASS
+```
+
+### Failure-Path Cleanup Canary
+
+**Command:** `timeout 360 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-007 stabilize failure-path cleanup canary' -- timeout 240 node --test --test-name-pattern='^BUG-007: represented mutants execute one protective assertion through one intended hook$' tests/portfolio-test-integrity.unit.mjs`
+**Exit Code:** `0`
+**Claim Source:** interpreted
+**Interpretation:** The selected test runs the three represented BUG-007
+mutants, deliberate double-application refusal, direct-text control, and
+uncoordinated zero-anchor refusal. Its assertions require one intended hook,
+one application marker, one selected protective assertion, no infrastructure-
+origin false pass, unchanged tracked bytes, and removal of its temporary
+workspace through the registered `t.after` cleanup.
+
+```text
+# BUG-007 stabilize failure-path cleanup canary
+$ timeout 240 node --test --test-name-pattern=^BUG-007: represented mutants execute one protective assertion through one intended hook$ tests/portfolio-test-integrity.unit.mjs
+exit: 0
+lines: 9
+sha256: 13101832b2a9e542bc977fdd7bb10805e0d221601fb3200c9f2cf979e735a78b
+BUG-007: represented mutants execute one protective assertion through one intended hook=PASS
+tests=1
+pass=1
+fail=0
+cancelled=0
+skipped=0
+todo=0
+failure_path_cleanup_canary=PASS
+```
+
+### Browser, Load, And Stress Bounds
+
+**Commands:**
+
+- `timeout 30 npx --no-install playwright --version`
+- `timeout 1020 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-007 stabilize real-browser cleanup and operability' -- timeout 900 npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+- `timeout 1020 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-007 stabilize registered load profile' -- timeout 900 node --test tests/*.load.mjs`
+- `timeout 1500 bash .github/bubbles/scripts/evidence-capture.sh --label 'BUG-007 stabilize registered stress profile' -- timeout 1400 node --test tests/*.stress.mjs`
+
+**Exit Codes:** `0, 0, 0, 0`
+**Claim Source:** executed
+
+```text
+playwright_version=Version 1.61.1
+browser exit=0 lines=67 sha256=088c0bcb9e062501d5fd21e0b197c10eddfc5690f80281cbea8b7c8dc139eec4
+browser tests=19 pass=19 fail=0
+browser BUG-007 visible constructor and hostile-key title=PASS
+browser duration=30.9s bound=900s
+load exit=0 lines=33 sha256=91d8b46d8f6e176c69471be838b645ad854a385d4f1ea074023f0ed3a1486284
+load tests=2 pass=2 fail=0 cancelled=0 skipped=0 todo=0
+load authoritative_history_references=124 expected=124
+load largest_jsonl_row_bytes=355 budget_bytes=65536
+load largest_month_partition_bytes=43927 budget_bytes=4194304
+load history_index_bytes=33237 budget_bytes=1048576
+load parallel_browser_contexts=8 isolated_keys=8 key_leaks=0
+load duration_ms=6678.831605 bound_ms=900000
+stress exit=0 lines=50 sha256=dff7abe47c47731fec0cfe0fac1a7c732001641eb460428e967e2d4bee2631cd
+stress tests=9 pass=9 fail=0 cancelled=0 skipped=0 todo=0
+stress author_pool_peak_concurrency=4 ceiling=4
+stress all_source_retry_over_budget=REFUSED
+stress run_attempt_over_budget=REFUSED
+stress credential_cycles=250 roundtrips=250
+stress proxy_key_leaks=0 tier2_requests_missing_key=0 key_leaks=0
+stress legacy_storage_offenders=0
+stress duration_ms=7728.560988 bound_ms=1400000
+browser_load_stress_profile=PASS
+```
+
+The load and stress commands are the repository-wide registered categories.
+BUG-007 declares no latency SLO or bug-specific load row, so these executions
+prove the configured bounded profiles remain green; they do not invent a
+`composeBrief()` latency threshold.
+
+### Source Lock, Protected Bytes, And Residue
+
+**Commands:** `timeout 120 node scripts/validate-node-source-lock.mjs`; pre-run
+and post-run `timeout 60 sha256sum` plus scoped staged and unstaged
+`git diff --exit-code` over the nine protected source/test paths; pre-run and
+post-run nullglob census of `/tmp/rl-bug007-integrity-*`; and bounded `pgrep`
+checks for BUG-007, Playwright, provider-test, portfolio-test, and
+remote-debugging Chrome processes.
+**Exit Code:** `0`
+**Claim Source:** executed
+
+```text
+node_source_lock manifest=PASS private=true runtimeDependencies=0 scripts=0 playwright=1.61.1 node=>=20
+node_source_lock npmrc=PASS entries=5 ignoreScripts=true
+node_source_lock lockfile=PASS version=3 externalPackages=3 integrity=sha512
+node_source_lock graph=PASS playwright=1.61.1 playwright-core=1.61.1 fsevents=2.3.2
+node_source_lock adversarial=16 unexpectedAcceptances=0
+ab595e803f91192234a14bfd4927c5fcb0394b3977c9dbfea5d4a6b7a05f20c0  rlportfolio.js
+2c9805a22d683c407ed03c8a99b2d67b688d704ef79f2b9bab46dea6992a8d30  rlportfoliobrief.js
+4bdb4ab62f458c68507a1e91577e2380e0aff58115d622d5c573b367b959eaa3  rlportfolioanalytics.js
+2912e92a182487ffa15fcb6124fef2f788aed7e0b73d4375057e6580451c0922  portfolio-survival-allocation-lab.html
+829fb8512bf5430106318aaeb21e562504b0a8e39b4ca8b48ab9e4e8ca11e60a  scripts/selftest.mjs
+875825213e53b071374454a8acd232c506f351237781ca8665de876439a95124  tests/portfolio-brief.functional.mjs
+ef3189652a7532385c19f839a150336c1295a9ee9f095468afe19468888c832c  tests/portfolio-survival-brief.spec.mjs
+77103344c2881b11b5178be42f7721529059d6affaea948822362128d866d39e  tests/portfolio-test-integrity.unit.mjs
+6b7520dfad7f348ef6ce7424d0a4337189f175d224eb7e4e7f24b616c6c8cab0  tests/portfolio-defect-injector.cjs
+pre_run_protected_unstaged_diff=clean
+pre_run_protected_staged_diff=clean
+post_run_protected_unstaged_diff=clean
+post_run_protected_staged_diff=clean
+pre_run_temp_residue_count=0
+post_run_temp_residue_count=0
+pre_run_matching_process_state=none
+post_run_matching_process_state=none
+playwright_residue_state=none
+protected_hashes_before_equal_after=PASS
+resource_and_residue_cleanup=PASS
+```
+
+### Stability Domain Inventory
+
+| Domain | Current-session result | Grounding |
+| --- | --- | --- |
+| Reliability and determinism | Clean | Two independent 34/34 functional outcomes retain identical collected/pass/fail/skip counts and all five BUG-007 titles. |
+| Failure behavior | Clean | The exact 1/1 mutation canary rejects infrastructure-origin discrimination and restores its temporary workspace. |
+| Browser runtime | Clean | The exact 19/19 `system-chrome` suite includes the hostile-key matrix and visible `constructor` flow; no matching process remains. |
+| Performance and bounds | Clean | Registered load is 2/2 and stress is 9/9 inside explicit command bounds; declared concurrency, byte, history, retry, and cycle ceilings hold. |
+| Resource usage and residue | Clean | Temporary-directory counts remain zero and no matching Node or remote-debugging Chrome process survives. |
+| Build and dependency reproducibility | Clean | The source-lock validator accepts the exact graph and rejects all 16 adversarial drift cases; Playwright is exactly 1.61.1. |
+| Configuration and deployment | No BUG-007 stability finding | The packet changes no runtime config or deployment surface. Research Lab has no service lifecycle for this static browser bug, and no `traceContracts` or test-impact config is declared. |
+
+### Seven-Finding Accounting
+
+| Finding | Stabilize disposition |
+| --- | --- |
+| `AUDIT-B007-ROUTE018-PROVENANCE-001` | Addressed remains addressed. The stabilize profile neither reopens nor reimplements the analyst-owned closure. |
+| `AUDIT-B007-UX-OWNERSHIP-001` | Addressed remains addressed. The stabilize profile neither reopens nor reimplements the UX-owned closure. |
+| `VALIDATE-B007-G090-FRAMEWORK-001` | Unresolved external framework finding remains unresolved. No downstream framework file changed. |
+| `VALIDATE-B007-CHECK8-AGENT-ID-001` | Unresolved external framework finding remains unresolved. No parser repair is claimed. |
+| `VALIDATE-REPO-HANDOFF-CYCLE-001` | Unresolved external framework finding remains unresolved. No cross-repository repair is claimed. |
+| `VALIDATE-REPO-COLLECTED-TEST-COUNT-001` | Unresolved independent repository finding remains unresolved in its existing packets. |
+| `VALIDATE-REPO-STALE-RECEIPT-001` | Unresolved independent repository finding remains unresolved in the existing BUG-025 packet. |
+
+Audit attempt `BUG-007-AUDIT-001` remains `REWORK_REQUIRED`. `TP-B007-011`,
+Build Quality, Scope 01, top-level status, and certification remain unchanged.
+No new stability finding was raised.
+
+### Stability Verdict
+
+🟢 STABLE
+
+All applicable stability checks passed across reliability, failure cleanup,
+browser lifecycle, bounded performance, resource residue, dependency
+reproducibility, and protected-byte integrity. No stability remediation is
+required. Planning and scope artifacts updated: NO. Tests added or updated: 0.
+
+### Stabilize Phase Return
+
+The Stabilize Tier 2 profile is satisfied: the applicable domains were
+reviewed, each conclusion is grounded in current-session execution, no fix was
+required, and no new planning obligation exists. The canonical artifact lint,
+Claim Source lint, and report diff check pass after the evidence append.
+
+Execution routing now records `stabilize` and returns `route_required` to
+`bubbles.devops`, the next phase in the active `bugfix-fastlane` order. Because
+this invocation is owned by the top-level workflow, no duplicate specialist
+`executionHistory` row is appended; the parent runner owns that row. Learning
+disposition is `not-applicable`: the run confirmed the existing cleanup and
+bounded-execution contracts without discovering a new reusable lesson.
+
+The two addressed audit IDs remain addressed and the five unresolved IDs
+remain unresolved under their existing ownership. Audit attempt
+`BUG-007-AUDIT-001` remains `REWORK_REQUIRED`. `TP-B007-011`, Build Quality,
+Scope 01, top-level status, and certification remain unchanged.

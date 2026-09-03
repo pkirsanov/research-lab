@@ -3,12 +3,12 @@
   "specId": "008-BUG-007",
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-09-02T19:17:54Z",
+  "generatedAt": "2026-09-03T00:31:20Z",
   "planningStatus": "reconciled-current-evidence",
-  "nextRequiredOwner": "bubbles.harden",
-  "nextRequiredAction": "exhaustive-hardening-reentry",
+  "nextRequiredOwner": "bubbles.implement",
+  "nextRequiredAction": "mandatory-delivery-chain-implementation-boundary-review",
   "tddMode": "scenario-first",
-  "evidenceBoundary": "Structured planning reconciliation only. Route 014 executed TP-B007-012 through bubbles.test; route 015 reconciled that evidence without converting product tests into planner-authored claims. This current planning repair requests no test rerun. TP-B007-000 retains required historical pre-implementation RED semantics and must not be rerun as GREEN. Product-test executions remain owned by bubbles.test; this file consumes the durable TP-B007-001 through TP-B007-010 and TP-B007-012 evidence. TP-B007-012 includes the test-owned final-tree-safe semantic inverse, expected old-state detection, protected-byte preservation, exact restoration, restored canary, and unchanged-operator proof at report.md#bug007-shared-infrastructure-rollback-restore. TP-B007-009 is supported by planner guard evidence. Human acceptance is recorded and remains human-owned. TP-B007-011, Build Quality, certification, scope status, and terminal status remain open. The reconciled packet next routes to bubbles.harden for exhaustive hardening re-entry.",
+  "evidenceBoundary": "Structured planning reconciliation only. Route 014 executed TP-B007-012 through bubbles.test; route 015 reconciled that evidence without converting product tests into planner-authored claims. This current planning repair requests no test rerun. TP-B007-000 retains required historical pre-implementation RED semantics and must not be rerun as GREEN. Product-test executions remain owned by bubbles.test; this file consumes the durable TP-B007-001 through TP-B007-010 and TP-B007-012 evidence. TP-B007-012 includes the test-owned final-tree-safe semantic inverse, expected old-state detection, protected-byte preservation, exact restoration, restored canary, and unchanged-operator proof at report.md#bug007-shared-infrastructure-rollback-restore. TP-B007-009 is supported by planner guard evidence. Human acceptance is recorded and remains human-owned. The two local provenance findings remain addressed, audit attempt BUG-007-AUDIT-001 remains REWORK_REQUIRED, and the five external or independent findings remain unresolved. TP-B007-011, Build Quality, certification, scope status, and terminal status remain open. The reconciled packet next routes to bubbles.implement for the mandatory delivery-chain implementation-boundary review; no source change is presumed.",
   "implementationBatches": [
     {
       "commit": "aad6fb52ebdafe5258ac77c74653c3b93770a4b5",

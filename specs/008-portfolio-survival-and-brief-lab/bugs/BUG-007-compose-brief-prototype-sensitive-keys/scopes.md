@@ -4,7 +4,7 @@
 **Mode:** `bugfix-fastlane`
 **Packet status:** `in_progress`
 **Planning reconciliation:** `reconciled-current-evidence` (`bubbles.plan`)
-**Next required owner:** `bubbles.harden` (exhaustive re-entry)
+**Next required owner:** `bubbles.implement` (mandatory delivery-chain implementation-boundary review; no source change implied)
 
 [Spec](spec.md) | [Design](design.md) | [Report](report.md) |
 [User validation](uservalidation.md) |
@@ -15,6 +15,30 @@ The source and persistent-test implementation is already committed. This
 planning reconciliation changes no source or test file. The separate dirty
 parent Feature 008 scope and root test-plan transaction remains excluded.
 
+## Plan Confirmation - 2026-09-03 {#bug007-plan-provenance-closure-20260903}
+
+The analyst, UX, and design closure records introduce no product-behavior or
+technical-design delta. The existing four scenarios, thirteen Test Plan rows,
+and their DoD mapping remain authoritative. This planning pass adds no product
+scenario, Test Plan row, or DoD item.
+
+`AUDIT-B007-ROUTE018-PROVENANCE-001` and
+`AUDIT-B007-UX-OWNERSHIP-001` remain addressed by their owning records.
+`VALIDATE-B007-G090-FRAMEWORK-001`,
+`VALIDATE-B007-CHECK8-AGENT-ID-001`,
+`VALIDATE-REPO-HANDOFF-CYCLE-001`,
+`VALIDATE-REPO-COLLECTED-TEST-COUNT-001`, and
+`VALIDATE-REPO-STALE-RECEIPT-001` remain unresolved under their existing
+external or independent ownership. Audit attempt `BUG-007-AUDIT-001` remains
+`REWORK_REQUIRED`.
+
+The packet remains `in_progress`; Scope 01 remains `Not Started`;
+`TP-B007-011` and Build Quality remain unchecked; certification remains
+`in_progress`. The next required owner is `bubbles.implement` for the mandatory
+delivery-chain implementation-boundary review. That review determines whether
+any implementation action is required; this plan confirmation does not imply a
+source or test change.
+
 ## Execution Outline
 
 ### Phase Order
@@ -23,9 +47,10 @@ parent Feature 008 scope and root test-plan transaction remains excluded.
   six-case RED as pre-implementation evidence; preserve the committed source,
   carrier, mutation-causality, registry, and seven-field error work; reconcile
   current test-owned evidence, including the completed `TP-B007-012` final-tree-
-  safe rollback and restoration proof; then route exhaustive re-entry to
-  `bubbles.harden` without claiming planner test execution, certification, or
-  terminal completion.
+  safe rollback and restoration proof; then route the mandatory delivery-chain
+  implementation-boundary review to `bubbles.implement` without implying a
+  source change or claiming planner test execution, certification, or terminal
+  completion.
 
 ### New Types And Signatures
 
@@ -62,8 +87,8 @@ parent Feature 008 scope and root test-plan transaction remains excluded.
   current canary GREEN. Test-owned route 014 executed that sequence and recorded
   the expected nonzero result while the semantic inverse intentionally restored
   the old dual-hook defect. Plan-owned route 015 reconciled that evidence into
-  the packet. The current planning repair requests no test rerun; exhaustive
-  hardening re-entry follows the active-truth repair.
+  the packet. The current planning repair requests no test rerun. The mandatory
+  `bubbles.implement` boundary review follows and does not presume source work.
 
 | Scope | Outcome | Planned source and test paths | Status |
 | --- | --- | --- | --- |
@@ -77,8 +102,9 @@ parent Feature 008 scope and root test-plan transaction remains excluded.
 **Completed execution chain:** `bubbles.test` (RED) -> `bubbles.implement` ->
 `bubbles.test` (GREEN and regression).
 **Planning reconciliation:** `reconciled-current-evidence` (`bubbles.plan`).
-**Next dependency:** `bubbles.harden` (exhaustive re-entry) ->
-remaining quality phases -> `bubbles.validate`.
+**Next dependency:** `bubbles.implement` (mandatory delivery-chain
+implementation-boundary review; source changes are not presumed) -> remaining
+quality phases -> `bubbles.validate`.
 **Reconciled finding:** `HARDEN-B007-001` is planning-resolved as admitted and
 implemented by `82d1db5e5` and covered by current test-owned evidence. It is not
 validate-certified.
@@ -249,9 +275,10 @@ Scenario: SCN-B007-MUTATION-MECHANISM-CAUSALITY
 6. Preserve route 015 as the completed plan-owned reconciliation of route 014
   test evidence. This current planning repair requests no test rerun; it repairs
   active lifecycle and structured-key truth, then routes the reconciled packet
-  to `bubbles.harden` for exhaustive re-entry. Human acceptance remains recorded
-  and human-owned; `TP-B007-011`, Build Quality, Scope 01, packet status, and
-  certification remain open and unchanged.
+  to `bubbles.implement` for the mandatory delivery-chain implementation-boundary
+  review. Human acceptance remains recorded and human-owned; `TP-B007-011`,
+  Build Quality, Scope 01, packet status, and certification remain open and
+  unchanged.
 
 ### Browser Coverage Decision
 
@@ -445,9 +472,9 @@ converting it into a planner execution claim.
   required test.
   > **Uncertainty Declaration**
   > **What was attempted:** Ran the required planning guards and scoped diff check.
-  > **What was observed:** Test-owned rollback/restore closure and the current planning guards are green; hardening and transition certification remain open.
+  > **What was observed:** Test-owned rollback/restore closure is recorded; the mandatory implementation-boundary review and transition certification remain open.
   > **Why this is uncertain:** The grouped gate cannot close before all constituent execution and validation rows close.
-  > **What would resolve this:** Complete hardening and the remaining quality phases, then run validate-owned transition checks.
+  > **What would resolve this:** Complete the implementation-boundary review and remaining quality phases, then run validate-owned transition checks.
 
 Sixteen evidence-backed items are checked. `TP-B007-011` and the Build Quality
 Gate remain unchecked. The plan reconciles test-owned closure without claiming

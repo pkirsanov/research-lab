@@ -142,6 +142,27 @@ adjudication. Foreign-owned planning repairs then route to `bubbles.plan` for
 `bubbles.validate`. This classification does not change its text, evidence,
 historical routes, or certification ownership.
 
+## Audit Finding Classification - 2026-09-02 {#audit-finding-classification-2026-09-02}
+
+Audit attempt `BUG-007-AUDIT-001` remains `REWORK_REQUIRED`. This
+classification resolves no finding and changes no audit or certification
+field. It preserves all seven findings in current execution-state accounting.
+
+| Finding | Goal impact | Owning artifact, repository, and agent | Packet disposition | Current disposition |
+| --- | --- | --- | --- | --- |
+| `AUDIT-B007-ROUTE018-PROVENANCE-001` | `required` | BUG-007 `state.json` route 018 and execution history in Research Lab; `bubbles.analyst` | Remains inside BUG-007. Route 018 stays open because current state contains no analyst execution record. | Unresolved. `bubbles.analyst` is the next local owner. |
+| `AUDIT-B007-UX-OWNERSHIP-001` | `required` | BUG-007 `spec.md` sections `UI Wireframes` and `User Flows` in Research Lab; `bubbles.ux` | Remains inside BUG-007. No new packet is required for a provenance defect in this active packet. | Unresolved. Route to `bubbles.ux` after analyst adjudication. |
+| `VALIDATE-B007-G090-FRAMEWORK-001` | `blocking-external` | Canonical Bubbles G090 convergence/snapshot classifier; `bubbles.implement` | Already adequately filed from Research Lab at `.github/bubbles-project/proposals/20260902-g090-convergence-summary-counted-as-snapshot.md`. | Unresolved pending upstream repair and normal downstream refresh. |
+| `VALIDATE-B007-CHECK8-AGENT-ID-001` | `blocking-external` | Canonical Bubbles `state-transition-guard.sh` Check 8 parser; `bubbles.implement` after bug filing | Newly filed through the permitted Research Lab proposal surface at `.github/bubbles-project/proposals/20260902-check8-agent-identifier-counted-as-test-file.md`. | Unresolved pending upstream repair and normal downstream refresh. |
+| `VALIDATE-REPO-COLLECTED-TEST-COUNT-001` | `independent` | Test-owned report evidence in Research Lab Specs 022, 023, and 024 plus BUG-025; `bubbles.test` | Existing tracked packets are adequate: six findings belong to Spec 022, five to Spec 023, seven to Spec 024, and one to BUG-025. G095 does not require a duplicate BUG-028 packet. | Unresolved in those four existing packets. |
+| `VALIDATE-REPO-HANDOFF-CYCLE-001` | `blocking-external` | Canonical Bubbles handoff graph and `handoff-cycle-check.sh`; `bubbles.implement` after upstream bug ownership | Already adequately filed at `guestHost/.github/bubbles-project/proposals/20260523-handoff-cycle-policy-checker-correction.md`. A second Research Lab proposal would duplicate the same checker and graph-semantics defect. | Unresolved pending upstream repair and normal downstream refresh. |
+| `VALIDATE-REPO-STALE-RECEIPT-001` | `independent` | Research Lab `specs/_bugs/BUG-025-company-corpus-read-never-settles`; `bubbles.validate` | Route to the existing BUG-025 packet. No new packet is required. | Unresolved; no prior BUG-025 clean-receipt narrative is treated as current proof. |
+
+The required local provenance sequence is `bubbles.analyst`, then
+`bubbles.ux`. The external proposals and existing sibling packets remain
+parallel unresolved routes; they do not authorize bypassing the local sequence
+or marking BUG-007 fixed.
+
 ## Related
 
 - Parent feature: `specs/008-portfolio-survival-and-brief-lab`

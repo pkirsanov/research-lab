@@ -136,12 +136,27 @@ explanations.
 The regression includes the exact dangerous strings and a source mutation that
 restores the defect. Normal-only fixtures would not detect this failure class.
 
-### Current And Planned Behavior
+### Current-Truth Adjudication - 2026-09-02 {#bug007-route-018-analyst-adjudication-20260902}
 
-Current execution succeeds for the ordinary fixture and throws for all six
-hostile subject/domain controls after mutating a shared built-in. Planned work
-changes only map representation and own-membership reads. No fix or persistent
-test is claimed by this filing packet.
+Route `BUG-007-ROUTE-018` accepts `TP-B007-012` as `executed-passed` by
+`bubbles.test`. The test-owned route 014 evidence records current GREEN,
+expected old-state detection, protected-byte preservation, exact restoration,
+restored GREEN, and an unchanged operator checkout. This analyst adjudication
+consumes that evidence. It does not claim a new semantic-inverse execution.
+
+The active planner lifecycle is repaired. `scopes.md` and `test-plan.json`
+record completed test execution and plan reconciliation without requesting a
+test rerun. The two hardening findings remain previously addressed by their
+owning phases. This record adds provenance and does not reimplement them.
+
+The current `scenario-manifest.json` rollback object contains one
+`executionOwner`, whose value is `bubbles.test`. It retains
+`status: executed-passed`, the route 014 evidence reference, and
+`reconciliationOwner: bubbles.plan`.
+
+Route 018 is resolved after current strict checks accepted these facts. The
+next local owner is `bubbles.ux` for the existing UX-owned sections. External
+and independent audit findings remain unresolved in execution state.
 
 ## Release Train
 
@@ -161,8 +176,27 @@ This bug introduces no feature flag.
 ## UI Wireframes
 
 This repair changes no product UI. The wireframe below defines the canonical
-operator and agent reading order for the BUG-007 planning packet. It governs
-active lifecycle language only. Dated evidence remains historical truth.
+operator and agent reading order for the BUG-007 closure packet. It governs
+active lifecycle and routing language only. Dated evidence remains historical
+truth.
+
+### UX Ownership Adjudication - 2026-09-03 {#bug007-ux-provenance-adjudication-20260903}
+
+`bubbles.ux` reviewed the existing non-product wireframe and flow against the
+analyst adjudication, the audit finding, the bug classification, and current
+execution state. The prior UX copy was materially stale because it still
+presented the completed planning repair and hardening re-entry as future work.
+
+The current contract records `TP-B007-012` as `executed-passed` by
+`bubbles.test`, route `BUG-007-ROUTE-018` as resolved by `bubbles.analyst`, and
+`AUDIT-B007-ROUTE018-PROVENANCE-001` as addressed. This UX review changes no
+product behavior, source, persistent test, acceptance, audit-attempt history,
+or certification field. It establishes UX ownership provenance and addresses
+only `AUDIT-B007-UX-OWNERSHIP-001`.
+
+Audit attempt `BUG-007-AUDIT-001` remains `REWORK_REQUIRED`. The five external
+or independent findings remain unresolved with their existing owners. The
+current closure handoff routes to `bubbles.design`.
 
 ### Single-Screen Justification
 
@@ -173,130 +207,147 @@ summary. It introduces no product screen or reusable product UI primitive.
 
 | Screen | Actor(s) | Status | Findings Served |
 | --- | --- | --- | --- |
-| Planning Packet Lifecycle Summary | Operator, top-level workflow, specialist agent | Existing planning surface - clarify | `HARDEN-B007-PLAN-LIFECYCLE-002`, `HARDEN-B007-MANIFEST-DUPKEY-003` |
+| Closure Packet Lifecycle Summary | Operator, top-level workflow, specialist agent | Existing planning surface - reconciled | `AUDIT-B007-UX-OWNERSHIP-001` and the preserved seven-finding audit ledger |
 
-### Screen: Planning Packet Lifecycle Summary
+### Screen: Closure Packet Lifecycle Summary
 
 **Actor:** Operator and workflow agent | **Route:** BUG-007 planning artifacts |
-**Status:** Clarify active state language
+**Status:** Reconcile active state and owner routing
 
 ```text
 ┌────────────────────────────────────────────────────────────────────┐
-│ BUG-007 PLANNING PACKET                                            │
+│ BUG-007 CLOSURE PACKET                                             │
 ├────────────────────────────────────────────────────────────────────┤
-│ Test proof             [executed-passed]                           │
-│ Human acceptance       [recorded]                                  │
-│ Planning repair        [required: findings 002 and 003]            │
-│ Current handoff        [bubbles.design]                             │
-│ Post-plan handoff      [bubbles.harden: exhaustive re-entry]       │
+│ TP-B007-012 proof      [executed-passed: bubbles.test]             │
+│ Product behavior       [unchanged by provenance review]            │
+│ Product source/tests   [unchanged by provenance review]            │
+│ Route 018              [resolved: bubbles.analyst]                 │
+│ Route 018 provenance   [addressed]                                 │
+│ UX ownership           [addressed: bubbles.ux]                     │
+│ Current handoff        [bubbles.design]                            │
 ├────────────────────────────────────────────────────────────────────┤
-│ Transition guard       [not-run / unchecked]                       │
+│ Audit attempt          [REWORK_REQUIRED: unchanged]                │
+│ G090 framework         [unresolved external: bubbles.implement]    │
+│ Check 8 agent ID       [unresolved external: bubbles.implement]    │
+│ Handoff cycle          [unresolved external: bubbles.implement]    │
+│ Collected test count   [unresolved existing: bubbles.test]         │
+│ Stale receipt          [unresolved existing: bubbles.validate]     │
+├────────────────────────────────────────────────────────────────────┤
+│ TP-B007-011            [not-run / unchecked]                       │
 │ Build Quality Gate     [unchecked]                                 │
 │ Scope 01               [Not Started]                               │
 │ Packet status          [in_progress]                               │
 │ Certification status   [in_progress]                               │
-│ Historical G061 route  [unresolved: bubbles.validate]              │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
 **Interactions:**
 
 - A reader follows each row independently. One row never implies another row.
-- `bubbles.design` converts this language contract into an artifact repair design.
-- `bubbles.plan` reconciles active planning text and removes the duplicate key.
-- `bubbles.harden` re-enters only after planner reconciliation completes.
-- `bubbles.validate` owns historical G061 normalization and certification.
+- The UX ownership row links to this adjudication and its matching
+  `state.json.executionHistory` record.
+- The current handoff returns to the top-level workflow with
+  `nextRequiredOwner: bubbles.design`.
+- Each unresolved row retains its existing owner and packet disposition.
+- No action in this status surface executes a product test, changes product
+  behavior, or advances certification.
 
 **States:**
 
-- Current state: test proof passed and human acceptance is recorded.
-- Repair state: both adjudicated planning findings remain unresolved.
-- Post-plan state: planning is reconciled and exhaustive hardening re-entry is required.
-- Nonterminal state: transition, Build Quality, scope, packet, and certification remain incomplete.
-- Invalid state: a duplicate JSON key refuses reconciliation. Parser last-write behavior never resolves ambiguity.
+- Current local provenance state: route 018 and both required provenance
+  findings are addressed by their owning agents.
+- Preserved unresolved state: five external or independent findings remain
+  routed and are not claimed fixed by this review.
+- Audit state: `BUG-007-AUDIT-001` remains `REWORK_REQUIRED`; its attempt
+  history is unchanged.
+- Nonterminal state: transition, Build Quality, scope, packet, and
+  certification remain incomplete.
+- Invalid state: any summary that hides an unresolved finding, reopens an
+  addressed finding without evidence, or attributes product execution to this
+  UX review contradicts the ledger.
 
 **Responsive:**
 
-- Narrow readers stack the rows without dropping labels, owners, or evidence references.
+- Narrow readers stack the rows without dropping labels, owners, dispositions,
+  or evidence references.
 - Wide readers keep each state dimension on its own row.
 
 **Accessibility:**
 
 - Every status includes text. Color or punctuation never carries status alone.
-- Owner, action, and evidence remain explicit for screen-reader and plain-text consumers.
-- The reading order is proof, acceptance, planning, next action, then terminal gates.
+- Owner, disposition, and evidence remain explicit for screen-reader and
+  plain-text consumers.
+- The reading order is product proof and non-change, local provenance,
+  unresolved routes, then nonterminal gates.
 
 ### State Language Contract
 
-Active planning surfaces must use these dimensions independently:
+Active UX surfaces must use these dimensions independently:
 
 | Dimension | Exact active value | Meaning |
 | --- | --- | --- |
 | Test execution | `executed-passed` | `bubbles.test` executed `TP-B007-012`; the durable evidence reference remains unchanged. |
-| Human acceptance | `recorded` | The human record exists. It is not an open workflow gate and does not certify the packet. |
-| Planner reconciliation before repair | `reconciliation-required` | Findings 002 and 003 still require plan-owned artifact changes. |
-| Planner reconciliation after repair | `reconciled-current-evidence` | Active planning language matches the executed proof and has unique structured keys. |
-| Post-plan workflow action | `exhaustive-hardening-reentry-required` | `bubbles.harden` must evaluate the reconciled packet. This value does not mean hardening passed. |
+| Provenance-review behavior impact | `none` | This review changes no product behavior, source, or persistent test. |
+| Route 018 | `resolved` | `bubbles.analyst` supplied the current-truth adjudication. |
+| Route 018 provenance finding | `addressed` | `AUDIT-B007-ROUTE018-PROVENANCE-001` remains in the addressed ledger. |
+| UX ownership finding | `addressed` | `AUDIT-B007-UX-OWNERSHIP-001` is closed by this UX adjudication and its execution record. |
+| Audit attempt | `REWORK_REQUIRED` | The historical attempt and its verdict remain unchanged. |
+| Current closure owner | `bubbles.design` | The top-level workflow routes the next closure step to the design owner. |
+| G090 framework finding | `unresolved` | `VALIDATE-B007-G090-FRAMEWORK-001` remains externally routed to `bubbles.implement`. |
+| Check 8 parser finding | `unresolved` | `VALIDATE-B007-CHECK8-AGENT-ID-001` remains externally routed to `bubbles.implement`. |
+| Handoff-cycle finding | `unresolved` | `VALIDATE-REPO-HANDOFF-CYCLE-001` remains externally routed to `bubbles.implement`. |
+| Collected-test-count finding | `unresolved` | `VALIDATE-REPO-COLLECTED-TEST-COUNT-001` remains routed to `bubbles.test` in existing packets. |
+| Stale-receipt finding | `unresolved` | `VALIDATE-REPO-STALE-RECEIPT-001` remains routed to `bubbles.validate` in its existing packet. |
 | Transition guard | `not-run` | `TP-B007-011` remains unchecked. |
 | Build Quality Gate | `unchecked` | The grouped gate remains open. |
 | Scope status | `Not Started` | Scope 01 is not terminal. |
 | Packet status | `in_progress` | Top-level completion is not claimed. |
 | Certification status | `in_progress` | Validate-owned certification is not claimed. |
-| Historical route normalization | `unresolved` | `HARDEN-B007-G061-HISTORY-001` remains owned by `bubbles.validate`. |
 
-Do not use one field to encode proof, reconciliation, routing, and
-certification. In particular, `planningStatus` describes planning only.
-Owner and action require separate labels.
+Do not use one field to encode proof, ownership, routing, and certification.
+Addressing the two local provenance findings does not resolve any external or
+independent finding and does not change the audit verdict.
 
-### Exact Post-Reconciliation Copy Contract
+### Durable Current-State Copy Contract
 
-After `bubbles.plan` repairs the owned artifacts, active narrative must state:
+Active UX narrative must state:
 
 ```text
 Packet status: in_progress
-Planning reconciliation: reconciled-current-evidence
-Next required owner: bubbles.harden
-Next required action: exhaustive-hardening-reentry
+Audit attempt: REWORK_REQUIRED
+Next required owner: bubbles.design
 
 TP-B007-012 was executed-passed by bubbles.test. The rollback and restore DoD
-is checked against its dated evidence. Human acceptance is recorded. This
-planner reconciliation claims no test execution, hardening result, transition
-result, scope completion, packet completion, or certification.
+remains linked to its dated test-owned evidence. This UX review performed no
+product test rerun and changed no product behavior, source, or persistent test.
+
+BUG-007-ROUTE-018 is resolved. AUDIT-B007-ROUTE018-PROVENANCE-001 and
+AUDIT-B007-UX-OWNERSHIP-001 are addressed by their respective execution
+records. The five external or independent findings remain unresolved with
+their existing owners and packet dispositions.
 
 TP-B007-011 is not-run and unchecked. Build Quality is unchecked. Scope 01 is
-Not Started. Top-level status and certification.status are in_progress.
-HARDEN-B007-G061-HISTORY-001 remains unresolved under bubbles.validate.
-Historical evidence and route records remain unchanged.
+Not Started. Top-level status and certification.status are in_progress. Audit
+attempt history, historical evidence, and certification remain unchanged.
 ```
-
-The structured Test Plan must use `planningStatus` value
-`reconciled-current-evidence`. It must carry `nextRequiredOwner` value
-`bubbles.harden` and `nextRequiredAction` value
-`exhaustive-hardening-reentry` separately.
-
-The scenario manifest must retain one `executionOwner: bubbles.test` entry for
-`finalTreeRollbackRestore`. It must retain `status: executed-passed`, the
-durable evidence reference, and `reconciliationOwner: bubbles.plan`. A
-duplicate key makes the structured planning artifact invalid and blocks the
-handoff.
 
 ## User Flows
 
-### User Flow: Planning Truth Repair And Hardening Re-entry
+### User Flow: UX Provenance Closure And Design Routing
 
 ```mermaid
 stateDiagram-v2
-  [*] --> UXContract: Findings 002 and 003 adjudicated
-  UXContract --> DesignHandoff: State and exception language defined
-  DesignHandoff --> PlannerReconciliation: Artifact repair designed
-  PlannerReconciliation --> PlannerReconciliation: Duplicate key or stale active language remains
-  PlannerReconciliation --> HardeningReentry: Active language aligned and keys unique
-  HardeningReentry --> PlannerReconciliation: New plan-owned contradiction found
-  HardeningReentry --> RemainingQuality: Hardening passes
-  RemainingQuality --> Validation: TP-B007-011 and Build Quality become eligible
-  Validation --> Validation: Historical G061 normalization remains unresolved
-  Validation --> [*]: Scope, packet, and certification gates pass
+  [*] --> AnalystAdjudication: Route 018 resolved
+  AnalystAdjudication --> UXReview: UX ownership finding remains local
+  UXReview --> UXReconciliation: Stale lifecycle language found
+  UXReview --> OwnershipRecord: Existing UX already current
+  UXReconciliation --> OwnershipRecord: Current lifecycle restored
+  OwnershipRecord --> DesignHandoff: UX finding addressed
+  OwnershipRecord --> PreservedFindings: Five findings remain unresolved
+  DesignHandoff --> [*]: route_required to bubbles.design
+  PreservedFindings --> [*]: Existing owners and dispositions retained
 ```
 
-The current invocation ends at `DesignHandoff`. It does not advance planner,
-hardening, transition, scope, packet, historical-route, or certification state.
+The current invocation ends at `DesignHandoff` while preserving the unresolved
+finding branch. It does not execute product behavior or advance transition,
+scope, packet, audit-attempt, or certification state.

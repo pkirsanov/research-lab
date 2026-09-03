@@ -3,7 +3,7 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
   "featureName": "BUG-007 Compose Brief Prototype-Sensitive Keys",
   "createdAt": "2026-08-26T16:08:41Z",
-  "lastUpdatedAt": "2026-09-02T21:37:23Z",
+  "lastUpdatedAt": "2026-09-03T01:33:17Z",
   "completedAt": null,
   "certifiedAt": null,
   "status": "in_progress",
@@ -29,19 +29,20 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.test",
-    "currentPhase": "test",
+    "activeAgent": "bubbles.stabilize",
+    "currentPhase": "stabilize",
     "currentPhaseStatus": "route_required",
-    "substate": "independently_verified",
-    "executionModel": "specialist",
+    "executionModel": "direct-authorized-runner",
     "parentAgent": "bubbles.workflow",
-    "runStartedAt": "2026-09-02T21:35:33Z",
-    "completedAt": "2026-09-02T21:37:23Z",
+    "runStartedAt": null,
+    "runStartedAtReason": "No invocation-start clock boundary was captured; the stabilize report section records current-session command evidence.",
+    "completedAt": "2026-09-03T01:44:26Z",
+    "substate": "needs_reverification",
     "currentScope": "01-harden-caller-keyed-brief-aggregation",
-    "nextRequiredOwner": "bubbles.validate",
-    "nextRequiredTarget": "BUG-007 validation-owned certification and HARDEN-B007-G061-HISTORY-001 reconciliation",
-    "nextRequiredReason": "Independent test ownership verified the artifact-only planning repair and unchanged implementation epoch. Strict duplicate-aware parsing and exact lifecycle assertions close HARDEN-B007-PLAN-LIFECYCLE-002 and HARDEN-B007-MANIFEST-DUPKEY-003 one-to-one; focused functional passes 34 of 34, the exact mutation canary passes 1 of 1, the scenario browser passes 19 of 19, canonical selftest passes 3443 of 3443, and packet, reality, regression, PII, and provenance guards pass. HARDEN-B007-G061-HISTORY-001 remains unchanged and validation-owned.",
-    "completedPhaseClaims": ["design", "plan", "implement", "test", "regression", "simplify", "gaps", "harden"],
+    "nextRequiredOwner": "bubbles.devops",
+    "nextRequiredTarget": "BUG-007 devops phase under the active bugfix-fastlane contract",
+    "nextRequiredReason": "The fresh stabilize-owned profile is clean: two focused runs passed 34 of 34 each, the failure-path canary passed 1 of 1, the real-browser suite passed 19 of 19, registered load passed 2 of 2, registered stress passed 9 of 9, no matching process or temporary residue remained, and protected bytes were unchanged. Route to bubbles.devops without changing the two addressed audit findings, the five unresolved external or independent findings, TP-B007-011, Build Quality, Scope 01, either status mirror, certification, or the preserved REWORK_REQUIRED audit attempt.",
+    "completedPhaseClaims": ["design", "plan", "implement", "test", "regression", "simplify", "gaps", "harden", "stabilize"],
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": "bug007-finding-owned-audit-20260902T230240Z",
@@ -338,14 +339,17 @@
     },
     {
       "id": "BUG-007-ROUTE-018",
-      "status": "open",
+      "status": "resolved",
       "fromAgent": "bubbles.bug",
       "nextRequiredOwner": "bubbles.analyst",
       "routedTo": "bubbles.analyst",
       "routedToSpec": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
       "productAction": "none",
       "target": "BUG-007 current planning truth for HARDEN-B007-PLAN-LIFECYCLE-002 and HARDEN-B007-MANIFEST-DUPKEY-003",
-      "reason": "Adjudicate both findings inside the existing BUG-007 packet. Confirm that executed TP-B007-012 evidence is current and that the duplicate executionOwner is a same-packet structured-planning defect. Then route scopes.md, the active report.md lifecycle structure, and scenario-manifest.json repairs to bubbles.plan without changing source, tests, human acceptance, certification, historical routes, or HARDEN-B007-G061-HISTORY-001."
+      "reason": "Adjudicate both findings inside the existing BUG-007 packet. Confirm that executed TP-B007-012 evidence is current and that the duplicate executionOwner is a same-packet structured-planning defect. Then route scopes.md, the active report.md lifecycle structure, and scenario-manifest.json repairs to bubbles.plan without changing source, tests, human acceptance, certification, historical routes, or HARDEN-B007-G061-HISTORY-001.",
+      "resolvedBy": "bubbles.analyst",
+      "resolvedAt": "2026-09-03T00:01:44Z",
+      "resolution": "Analyst-consumed after the test-owned route 014 evidence established TP-B007-012 as executed-passed, the active planner artifacts recorded completed test execution without a rerun request, the canonical scenario resolver accepted all 17 references, and the exact current canary passed one of one. scenario-manifest.json retains one executionOwner with value bubbles.test. HARDEN-B007-PLAN-LIFECYCLE-002 and HARDEN-B007-MANIFEST-DUPKEY-003 were already repaired by their owning phases and are not newly implemented here. The remaining local audit finding routes to bubbles.ux."
     }
   ],
   "reworkQueue": [],
@@ -691,6 +695,241 @@
       "unresolvedFindings": ["HARDEN-B007-G061-HISTORY-001"],
       "nextRequiredOwner": "bubbles.validate",
       "evidenceRef": "report.md#bug007-test-owner-planning-repair-verification-20260902"
+    },
+    {
+      "at": "2026-09-02T23:54:29Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "classified-complete-audit-ledger-and-routed-required-provenance",
+      "note": "Validated the inherited actionable Research Lab packet before local access. Classified all seven BUG-007-AUDIT-001 findings without resolving any: two required BUG-007 provenance findings remain local, three framework defects remain external, and two repository evidence findings remain independent in existing tracked packets. Kept route 018 open because no bubbles.analyst execution record exists; recorded bubbles.analyst then bubbles.ux as the required local sequence. Reused the existing Research Lab G090 proposal and GuestHost handoff-cycle proposal, filed one non-duplicate Research Lab proposal for the Check 8 agent-identifier parser defect, and found all 19 zero-collection receipts inside Specs 022, 023, 024, or BUG-025, so G095 required no BUG-028 packet. Changed only bug.md, project-owned proposal routing, and authorized execution/finding state; certification, audit attempt content, spec.md, design.md, scopes.md, report.md, scenario manifest, test plan, user validation, source, tests, and framework-managed files remain unchanged.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "runStartedAt": null,
+      "runStartedAtReason": "No invocation-start clock boundary was captured; the entry's at field is the measured classification-recording timestamp.",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "AUDIT-B007-ROUTE018-PROVENANCE-001",
+        "AUDIT-B007-UX-OWNERSHIP-001",
+        "VALIDATE-B007-G090-FRAMEWORK-001",
+        "VALIDATE-B007-CHECK8-AGENT-ID-001",
+        "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+        "VALIDATE-REPO-HANDOFF-CYCLE-001",
+        "VALIDATE-REPO-STALE-RECEIPT-001"
+      ],
+      "nextRequiredOwner": "bubbles.analyst",
+      "evidenceRef": "bug.md#audit-finding-classification-2026-09-02"
+    },
+    {
+      "at": "2026-09-03T00:01:44Z",
+      "agent": "bubbles.analyst",
+      "phase": "analyze",
+      "action": "route-018-current-truth-adjudicated-and-routed-to-ux",
+      "note": "Validated the inherited actionable Research Lab packet at control revision 2 before local access. Read route 018, both hardening findings, the repaired planner artifacts, the complete route 014 rollback and restore evidence, the finding-owned audit, and the bug-owner classification. The canonical duplicate-rejecting scenario resolver accepted all 17 references, and the exact current TP-B007-012 canary passed one of one with zero failures or skips. The complete semantic-inverse execution remains attributed only to bubbles.test route 014 and was not rerun here. Added a concise analyst-owned current-truth adjudication to spec.md, resolved route 018, moved only AUDIT-B007-ROUTE018-PROVENANCE-001 into the current addressed ledger, and routed the remaining local provenance work to bubbles.ux. No UX-owned content, planning artifact, report evidence, acceptance, certification, source, test, proposal, or framework-managed file changed.",
+      "phasesExecuted": ["analyze"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "runStartedAt": null,
+      "runStartedAtReason": "No invocation-start clock boundary was captured; the entry's at field is the measured route-resolution timestamp.",
+      "outcome": "route_required",
+      "addressedFindings": ["AUDIT-B007-ROUTE018-PROVENANCE-001"],
+      "unresolvedFindings": [
+        "AUDIT-B007-UX-OWNERSHIP-001",
+        "VALIDATE-B007-G090-FRAMEWORK-001",
+        "VALIDATE-B007-CHECK8-AGENT-ID-001",
+        "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+        "VALIDATE-REPO-HANDOFF-CYCLE-001",
+        "VALIDATE-REPO-STALE-RECEIPT-001"
+      ],
+      "nextRequiredOwner": "bubbles.ux",
+      "evidenceRef": "spec.md#bug007-route-018-analyst-adjudication-20260902"
+    },
+    {
+      "at": "2026-09-03T00:09:08Z",
+      "agent": "bubbles.ux",
+      "phase": "analyze",
+      "action": "reconciled-ux-current-truth-and-routed-to-design",
+      "note": "Validated the inherited actionable Research Lab packet at control revision 2 before local access. Read the existing UI Wireframes and User Flows, analyst route 018 adjudication, finding-owned audit, bug classification, and current execution ledger. Reconciled stale UX text that still presented completed planning and hardening work as future state. The active UX contract now records TP-B007-012 as test-owned executed proof, no product behavior or source change from this provenance review, route 018 and both local provenance findings as addressed, audit attempt BUG-007-AUDIT-001 as unchanged REWORK_REQUIRED, and all five external or independent findings as unresolved with existing owners. Changed only UX-owned spec sections and authorized execution and finding-routing state. Audit attempt history, certification, business requirements, bug, design, scopes, report evidence, structured planning, user acceptance, product source, and persistent tests remain unchanged.",
+      "phasesExecuted": ["analyze"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "runStartedAt": null,
+      "runStartedAtReason": "No invocation-start clock boundary was captured; the entry's at field is the measured UX reconciliation timestamp.",
+      "outcome": "route_required",
+      "addressedFindings": ["AUDIT-B007-UX-OWNERSHIP-001"],
+      "unresolvedFindings": [
+        "VALIDATE-B007-G090-FRAMEWORK-001",
+        "VALIDATE-B007-CHECK8-AGENT-ID-001",
+        "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+        "VALIDATE-REPO-HANDOFF-CYCLE-001",
+        "VALIDATE-REPO-STALE-RECEIPT-001"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "evidenceRef": "spec.md#bug007-ux-provenance-adjudication-20260903"
+    },
+    {
+      "at": "2026-09-03T00:15:03Z",
+      "agent": "bubbles.ux",
+      "phase": "analyze",
+      "action": "corrected-active-ux-routing-token",
+      "note": "Validated the inherited actionable Research Lab packet at control revision 2 before local access. Corrected only the stale active Durable Current-State Copy Contract owner from bubbles.harden to bubbles.design so it agrees with the current screen row, interaction, state-language table, execution routing, and user flow. Preserved AUDIT-B007-ROUTE018-PROVENANCE-001 and AUDIT-B007-UX-OWNERSHIP-001 as addressed without duplicating their closure. Preserved all five external or independent findings as unresolved with their existing owners. Historical evidence, finding state, audit attempt history, certification, product behavior, source, and persistent tests remain unchanged.",
+      "phasesExecuted": ["analyze"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "runStartedAt": null,
+      "runStartedAtReason": "No invocation-start clock boundary was captured; the entry's at field is the measured correction-recording timestamp.",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "VALIDATE-B007-G090-FRAMEWORK-001",
+        "VALIDATE-B007-CHECK8-AGENT-ID-001",
+        "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+        "VALIDATE-REPO-HANDOFF-CYCLE-001",
+        "VALIDATE-REPO-STALE-RECEIPT-001"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "evidenceRef": "spec.md#bug007-ux-provenance-adjudication-20260903"
+    },
+    {
+      "at": "2026-09-03T00:21:33Z",
+      "agent": "bubbles.design",
+      "phase": "design",
+      "action": "no-design-delta-provenance-closure-routed-to-plan",
+      "note": "Validated the inherited actionable Research Lab packet at control revision 2 before local access. Read both provenance adjudications, the current design, the finding-owned audit, the bug classification, and the execution ledger. The adjudications change ownership and routing only, so the existing null-prototype architecture, accepted behavior, security boundary, test mechanism, and final-tree-safe rollback remain authoritative. Appended one dated no-design-delta record to design.md. Preserved both local provenance findings as addressed and all five external or independent findings as unresolved. Focused artifact lint passed after the design edit. This run changed only design.md and authorized execution provenance and routing state. Product source, persistent tests, accepted behavior, TP-B007-012 evidence, audit history, certification, and original hardening findings remain unchanged.",
+      "phasesExecuted": ["bootstrap"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "runStartedAt": null,
+      "runStartedAtReason": "No invocation-start clock boundary was captured; the entry's at field is the measured execution-record timestamp.",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "AUDIT-B007-ROUTE018-PROVENANCE-001",
+        "AUDIT-B007-UX-OWNERSHIP-001"
+      ],
+      "unresolvedFindings": [
+        "VALIDATE-B007-G090-FRAMEWORK-001",
+        "VALIDATE-B007-CHECK8-AGENT-ID-001",
+        "VALIDATE-REPO-HANDOFF-CYCLE-001",
+        "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+        "VALIDATE-REPO-STALE-RECEIPT-001"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "evidenceRef": "design.md#bug007-design-provenance-closure-20260903"
+    },
+    {
+      "at": "2026-09-03T00:35:17Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "confirmed-no-product-obligation-and-routed-implementation-boundary-review",
+      "note": "Validated the inherited actionable Research Lab packet at control revision 2 before local access. Read the current planning artifacts, analyst and UX adjudications, no-design-delta record, audit classification, human acceptance boundary, and execution ledger. Confirmed that the existing four scenarios and thirteen structured Test Plan rows remain accurate and that provenance closure creates no new product behavior, source, persistent-test, scenario, Test Plan, or DoD obligation. Reconciled only active planner lifecycle and routing language in scopes.md, report.md, and test-plan.json; scenario-manifest.json and uservalidation.md remain unchanged. Strict duplicate-aware decoding accepted scenario-manifest.json, test-plan.json, and state.json with one bubbles.test executionOwner and unchanged four-scenario and thirteen-row counts. Artifact lint, traceability, all 17 scenario references, scenario obligations, test mechanisms, scope-context fit, and capability-foundation checks passed. Audit attempt BUG-007-AUDIT-001 remains REWORK_REQUIRED; both local audit findings remain addressed; all five external or independent findings remain unresolved. TP-B007-011 and Build Quality remain unchecked, Scope 01 remains Not Started, and top-level plus certification status remain in_progress.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "runStartedAt": "2026-09-03T00:31:20Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "AUDIT-B007-ROUTE018-PROVENANCE-001",
+        "AUDIT-B007-UX-OWNERSHIP-001"
+      ],
+      "unresolvedFindings": [
+        "VALIDATE-B007-G090-FRAMEWORK-001",
+        "VALIDATE-B007-CHECK8-AGENT-ID-001",
+        "VALIDATE-REPO-HANDOFF-CYCLE-001",
+        "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+        "VALIDATE-REPO-STALE-RECEIPT-001"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "evidenceRef": "scopes.md#bug007-plan-provenance-closure-20260903"
+    },
+    {
+      "at": "2026-09-03T00:44:50Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "action": "reviewed-provenance-closure-boundary-with-no-source-delta-and-routed-to-test",
+      "note": "Validated the inherited actionable Research Lab packet at control revision 2 before local access. Read the analyst and UX adjudications, no-design-delta record, plan confirmation, current source, persistent functional and browser carriers, mutation-causality carrier, shared injector, commit boundary, finding ledger, and command registry. The five admitted commits resolve to the exact planned paths. Every protected source and test worktree blob matches HEAD with empty staged and unstaged diffs. The registered functional carrier passed 34 of 34, and the exact mutation-causality selector passed one of one while retaining protected hashes. No product source or persistent test changed. Appended only implement-owned report evidence and updated authorized execution routing. Preserved AUDIT-B007-ROUTE018-PROVENANCE-001 and AUDIT-B007-UX-OWNERSHIP-001 as addressed. Preserved all five external or independent findings as unresolved. Audit attempt BUG-007-AUDIT-001 remains REWORK_REQUIRED. TP-B007-011 and Build Quality remain unchecked, Scope 01 remains Not Started, and top-level plus certification status remain in_progress.",
+      "phasesExecuted": ["implement"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "runStartedAt": null,
+      "runStartedAtReason": "No invocation-start clock boundary was captured. The entry's at field is the measured execution-record timestamp.",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "AUDIT-B007-ROUTE018-PROVENANCE-001",
+        "AUDIT-B007-UX-OWNERSHIP-001"
+      ],
+      "unresolvedFindings": [
+        "VALIDATE-B007-G090-FRAMEWORK-001",
+        "VALIDATE-B007-CHECK8-AGENT-ID-001",
+        "VALIDATE-REPO-HANDOFF-CYCLE-001",
+        "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+        "VALIDATE-REPO-STALE-RECEIPT-001"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "evidenceRef": "report.md#bug007-implement-provenance-boundary-review-20260903",
+      "learning": { "disposition": "not-applicable" }
+    },
+    {
+      "at": "2026-09-03T01:05:25Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "independently-verified-provenance-closure-and-routed-to-validate",
+      "note": "Validated the inherited actionable Research Lab packet at control revision 2 before local access. Independently inspected the current packet, source, persistent carriers, complete seven-finding ledger, and command registry. Strict duplicate-aware decoding accepted scenario-manifest.json, test-plan.json, and state.json; route and execution provenance closed the two local findings one-to-one; Markdown and structured plans retained four scenarios and thirteen identical Test Plan rows; and audit attempt BUG-007-AUDIT-001 remained REWORK_REQUIRED. Executed focused functional 34 of 34, exact mutation-causality canary one of one, scenario browser 19 of 19, eight-file browser 95 of 95, canonical selftest 3443 of 3443, all six packet guards, 17-link scenario resolution, six-file implementation reality, ordinary and bugfix regression quality, PII, Claim Source, and execution-substate checks. All selected commands exited zero with no skipped tests. Protected product source and persistent-test hashes matched before and after execution with clean staged and unstaged diffs. Appended only test-owned report evidence and authorized execution provenance. Preserved both addressed local findings, all five unresolved external or existing-packet findings, TP-B007-011 and Build Quality unchecked, Scope 01 Not Started, top-level and certification in_progress, human acceptance, source, persistent tests, audit history, commit, stage, and push.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "runStartedAt": "2026-09-03T00:51:58Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "AUDIT-B007-ROUTE018-PROVENANCE-001",
+        "AUDIT-B007-UX-OWNERSHIP-001"
+      ],
+      "unresolvedFindings": [
+        "VALIDATE-B007-G090-FRAMEWORK-001",
+        "VALIDATE-B007-CHECK8-AGENT-ID-001",
+        "VALIDATE-REPO-HANDOFF-CYCLE-001",
+        "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+        "VALIDATE-REPO-STALE-RECEIPT-001"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "evidenceRef": "report.md#bug007-independent-test-provenance-closure-20260903",
+      "learning": { "disposition": "not-applicable" }
+    },
+    {
+      "at": "2026-09-03T01:33:17Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "certification-transition-refused-and-routed-to-stabilize",
+      "note": "Validated the inherited actionable Research Lab packet at control revision 2 before local access. Resolved the fresh bugfix-fastlane delivery contract to target done, audit profile delivery-completion-v1, contract digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f, and target revision sha256:605f9532a870c246eca0b2dbbf966cbb16532f0346d4c97b1a39fa9e662562fd. Independently executed the asserted TP-B007-011 guard; it failed with G022, G027, and G090, 17 failures, and DELIVERY_COMPLETION_FAILED across completion, all-scopes-done, contract, and file-existence checks. Artifact lint, goal fidelity, traceability, implementation reality, freshness, Pages build, focused functional 34 of 34, exact mutation-causality one of one, scenario browser 19 of 19, Feature 008 browser 95 of 95, canonical selftest 3443 of 3443, registered unit 666 of 666, integration 37 of 37, security 19 of 19, load 2 of 2, stress 9 of 9, packet guards, regression quality, scenario resolution, Claim Source, execution substate, PII, changed-spec audit, framework integrity, and repo readiness passed. The canonical handoff graph still reports the external cycle, the detailed collected-test-count guard reports 19 independent foreign zero-collection blocks, and strict receipt freshness reports one independent stale BUG-025 receipt. The two local provenance findings remain addressed one-to-one and all five external or independent findings remain unresolved. Stabilize is the first missing locally runnable phase after harden, so validation routes there without checking TP-B007-011 or Build Quality, promoting Scope 01, changing either in_progress status mirror, adding a validate phase claim, or rewriting audit attempt BUG-007-AUDIT-001.",
+      "phasesExecuted": [],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "runStartedAt": null,
+      "runStartedAtReason": "No invocation-start clock boundary was captured; the entry's at field is the measured validation-record timestamp.",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "AUDIT-B007-ROUTE018-PROVENANCE-001",
+        "AUDIT-B007-UX-OWNERSHIP-001"
+      ],
+      "unresolvedFindings": [
+        "VALIDATE-B007-G090-FRAMEWORK-001",
+        "VALIDATE-B007-CHECK8-AGENT-ID-001",
+        "VALIDATE-REPO-HANDOFF-CYCLE-001",
+        "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+        "VALIDATE-REPO-STALE-RECEIPT-001"
+      ],
+      "nextRequiredOwner": "bubbles.stabilize",
+      "evidenceRef": "report.md#bug007-validation-certification-attempt-20260903",
+      "learning": { "disposition": "not-applicable" }
     }
   ],
   "addressedFindings": [
@@ -833,7 +1072,57 @@
       "owner": "bubbles.validate",
       "status": "addressed",
       "evidenceRef": "report.md#harden-b007-g061-history-reconciliation"
+    },
+    {
+      "id": "AUDIT-B007-ROUTE018-PROVENANCE-001",
+      "summary": "Route 018 is consumed by an analyst execution record that adjudicates the repaired current planning truth without claiming new test or hardening execution.",
+      "owner": "bubbles.analyst",
+      "status": "addressed",
+      "evidenceRef": "spec.md#bug007-route-018-analyst-adjudication-20260902"
+    },
+    {
+      "id": "AUDIT-B007-UX-OWNERSHIP-001",
+      "summary": "The UX-owned wireframe and flow are reconciled to current lifecycle truth and backed by a bubbles.ux execution record that claims no product behavior or source change.",
+      "owner": "bubbles.ux",
+      "status": "addressed",
+      "evidenceRef": "spec.md#bug007-ux-provenance-adjudication-20260903"
     }
   ],
-  "unresolvedFindings": []
+  "unresolvedFindings": [
+    {
+      "id": "VALIDATE-B007-G090-FRAMEWORK-001",
+      "summary": "The external G090 snapshot-classification defect remains filed through the existing Research Lab framework proposal.",
+      "owner": "bubbles.implement",
+      "status": "routed-external",
+      "evidenceRef": "bug.md#audit-finding-classification-2026-09-02"
+    },
+    {
+      "id": "VALIDATE-B007-CHECK8-AGENT-ID-001",
+      "summary": "The external Check 8 parser defect is now filed through the Research Lab downstream proposal surface.",
+      "owner": "bubbles.implement",
+      "status": "routed-external",
+      "evidenceRef": "bug.md#audit-finding-classification-2026-09-02"
+    },
+    {
+      "id": "VALIDATE-REPO-COLLECTED-TEST-COUNT-001",
+      "summary": "Nineteen zero-collection evidence blocks remain in the existing Spec 022, Spec 023, Spec 024, and BUG-025 packets.",
+      "owner": "bubbles.test",
+      "status": "routed-existing-packets",
+      "evidenceRef": "bug.md#audit-finding-classification-2026-09-02"
+    },
+    {
+      "id": "VALIDATE-REPO-HANDOFF-CYCLE-001",
+      "summary": "The external handoff graph cycle remains covered by the existing GuestHost downstream framework proposal.",
+      "owner": "bubbles.implement",
+      "status": "routed-external",
+      "evidenceRef": "bug.md#audit-finding-classification-2026-09-02"
+    },
+    {
+      "id": "VALIDATE-REPO-STALE-RECEIPT-001",
+      "summary": "The stale foreign receipt remains owned by the existing BUG-025 packet and requires current validation-owned reconciliation.",
+      "owner": "bubbles.validate",
+      "status": "routed-existing-packet",
+      "evidenceRef": "bug.md#audit-finding-classification-2026-09-02"
+    }
+  ]
 }

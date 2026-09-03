@@ -23238,7 +23238,7 @@ try {
     && companyRegistrationText25.every((source) => (source.match(/company-intelligence-lab/g) || []).length >= 1)
     && /data-rlbrief-mount[^>]+data-tool-id="company-intelligence-lab"/.test(routeSource25)
     && /data\/company-intelligence\/publication-current\.js/.test(routeSource25),
-  'TP-025-09 successor: Company Intelligence is registered once with one Simple model, two journeys, one allowed adapter, one brief mount, one acknowledged projection, and zero stale exclusions');
+  'Repository parity: company registration exclusions experience bundle and brief identity agree');
 
   /* 2.12 CANARY. This feature touched two shared surfaces by pure append. The concurrent Lifetime
      Tax work owns its own modules, its own route and its own exclusion entries, and this append

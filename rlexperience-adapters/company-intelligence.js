@@ -186,7 +186,7 @@
       supportedDefinitionIds: [definition.definitionId],
       validateDefinition: function (candidate) { return { ok: true, value: candidate }; },
       captureEvidence: function (ownerContext) {
-        var projection = ownerContext && ownerContext.publication;
+        var projection = ownerContext && ownerContext.ownerState && ownerContext.ownerState.publication;
         if (!validProjection(projection)) {
           return { ok: false, error: { reason: "acknowledged company publication projection required" } };
         }
@@ -290,6 +290,7 @@
     contractVersion: "company-intelligence-adapters/v1",
     module: "rlexperience-adapters/company-intelligence.js",
     supportedAdapterIds: ["simple-adapter/company-multi-horizon/v1"],
+    computeCompanyPublicationSummary: summaryFor,
     createCompanyIntelligenceAdapters: createCompanyIntelligenceAdapters,
     registerCompanyIntelligenceAdapters: registerCompanyIntelligenceAdapters
   };

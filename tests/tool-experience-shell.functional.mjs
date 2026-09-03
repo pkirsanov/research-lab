@@ -230,18 +230,20 @@ test('SCN-012-028 and SCN-012-029 all registry pages bootstrap one exact shell w
       const actual = await page.evaluate(() => {
         const shell = document.querySelector('#rlviews[data-rlexperience-shell="ready"]');
         const legacy = Array.from(document.querySelectorAll('#modeSeg, #simpleTab, #powerTab'));
+        const routeOwnerControls = [...legacy, ...document.querySelectorAll('[data-mode-button]')];
         return {
           labels: Array.from(shell.querySelectorAll('[role="tab"]'), (node) => node.textContent.trim()),
           shellCount: document.querySelectorAll('#rlviews').length,
           statusCount: document.querySelectorAll('#rl-data-shell').length,
           panelCount: document.querySelectorAll('[data-rlexperience-panel]').length,
           readyShellCount: document.querySelectorAll('[data-rlexperience-shell="ready"]').length,
-          legacySuppressed: legacy.every((node) => (
+          legacyCount: legacy.length,
+          legacySuppressed: legacy.length > 0 && legacy.every((node) => (
             getComputedStyle(node).display === 'none'
             && node.getAttribute('aria-hidden') === 'true'
             && node.tabIndex === -1
           )),
-          legacyVisible: legacy.some((node) => (
+          routeOwnerControlVisible: routeOwnerControls.some((node) => (
             getComputedStyle(node).display !== 'none'
             && getComputedStyle(node).visibility !== 'hidden'
             && node.getBoundingClientRect().height > 0
@@ -258,8 +260,12 @@ test('SCN-012-028 and SCN-012-029 all registry pages bootstrap one exact shell w
       assert.equal(actual.readyShellCount, 1, `${tool.id} readyShellCount`);
       assert.equal(actual.statusCount, 1, `${tool.id} statusCount`);
       assert.equal(actual.panelCount, 4, `${tool.id} panelCount`);
-      assert.equal(actual.legacySuppressed, !actual.ownsRoute, `${tool.id} legacy suppression must match route ownership`);
-      if (actual.ownsRoute) assert.equal(actual.legacyVisible, true, `${tool.id} route owner must retain a visible native view control`);
+      if (actual.ownsRoute) {
+        assert.equal(actual.routeOwnerControlVisible, true, `${tool.id} route owner must retain a visible native view control`);
+      } else {
+        assert.equal(actual.legacyCount === 0 || actual.legacySuppressed, true, `${tool.id} every present legacy control must be suppressed`);
+        assert.equal(actual.routeOwnerControlVisible, false, `${tool.id} ordinary shell page must expose no page-owned view control`);
+      }
       assert.equal(actual.bodyView, tool.experience.kind === 'market-action-center' ? 'brief' : 'simple', `${tool.id} bodyView`);
       assert.equal(actual.shellState, 'shadow-safe', `${tool.id} shellState`);
       assert.deepEqual(pageErrors, [], `${tool.id} pageErrors`);

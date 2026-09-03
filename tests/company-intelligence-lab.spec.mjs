@@ -604,7 +604,8 @@ test('Regression: SCN-025-022 the outcome record shows the predecessor unmodifie
     const currentId = await record.getAttribute('data-version-id');
     const priorId = await record.getAttribute('data-prior-version-id');
     expect(currentId, 'this run carries its own dated version id').toMatch(/^company:msft:\d{4}-\d{2}-\d{2}$/);
-    expect(priorId, 'the committed predecessor is named').toMatch(/^company:msft:\d{4}-\d{2}-\d{2}$/);
+    expect(priorId, 'the acknowledged generation-bound predecessor is named')
+        .toMatch(/^company:msft:\d{4}-\d{2}-\d{2}:[a-z0-9-]+:[a-f0-9]{16}$/);
     expect(priorId, 'the predecessor is a different version from this run').not.toBe(currentId);
 
     /* The predecessor renders as its own row carrying the fingerprint it shipped with. */
@@ -1012,8 +1013,14 @@ test('Stabilize: a version chain that points at itself terminates instead of loo
         contentFingerprint: 'sha256:' + '0'.repeat(64),
         horizons: []
     });
+    const selfPointer = JSON.parse(readFileSync(join(ROOT, 'data', 'company-intelligence',
+        'company-msft', 'current.json'), 'utf8'));
+    selfPointer.versionId = 'company:msft:2026-08-11';
     const corrupted = await startStaticServer({
-        overrides: { 'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json': selfReferencing }
+        overrides: {
+            'data/company-intelligence/company-msft/current.json': JSON.stringify(selfPointer),
+            'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json': selfReferencing
+        }
     });
     try {
         const versionRequests = [];
@@ -1341,7 +1348,8 @@ test('Regression: SCN-027-018 every subject-carrying owner link opens its owner 
        hard-coded — a row added later is covered without editing this test. */
     expect(carrying.map((row) => row.ownerDeepLink).sort()).toEqual([
         'gamma-trading-lab.html', 'options-flow-feed-lab.html',
-        'options-structure-lab.html', 'volatility-sizing-lab.html'
+        'options-structure-lab.html', 'swing-structure-lab.html',
+        'volatility-sizing-lab.html'
     ]);
 
     const targets = await page.locator('#workspace-coverage-rows a[data-owner-link]')
@@ -1375,7 +1383,12 @@ test('Regression: SCN-027-014 every bare owner row renders its stated reason bes
 
     const registry = JSON.parse(readFileSync(join(ROOT, 'company-intelligence.config.json'), 'utf8')).coverageRegistry;
     const bare = registry.filter((row) => typeof row.ownerBareReason === 'string');
-    expect(bare).toHaveLength(7);
+    expect(bare).toHaveLength(5);
+    expect(bare.map((row) => row.ownerDeepLink).sort()).toEqual([
+        'company-fundamentals-lab.html', 'company-fundamentals-lab.html',
+        'etf-momentum-lab.html', 'research-agenda-lab.html',
+        'trend-dynamics-cycle-lab.html'
+    ]);
 
     const expectedPhrase = (reason) => (reason === 'market-scoped'
         ? 'answers a market-wide question rather than a company one'
@@ -1647,6 +1660,10 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
     page.on('pageerror', (error) => runtimeErrors.push(error.message));
 
     await page.route('**/data/**', async (route, request) => {
+        if (new URL(request.url()).pathname.endsWith('/data/company-intelligence/publication-current.js')) {
+            await route.continue();
+            return;
+        }
         heldCorpusRequests.push(request.url());
         await gate;
         /* A handler that throws or never settles keeps its worker alive past the test. */
@@ -1660,6 +1677,9 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
         coverageUnavailable: document.body.getAttribute('data-coverage-unavailable'),
         coverageLine: document.getElementById('cockpit-coverage-line').textContent,
         coverageClaim: document.getElementById('cockpit-coverage-line').getAttribute('data-coverage-claim'),
+        publicationAuthority: document.body.getAttribute('data-publication-authority'),
+        publicationGeneration: document.getElementById('publication-pair-band').getAttribute('data-generation-id'),
+        localReadiness: document.getElementById('local-composition-band').getAttribute('data-reading-readiness'),
         horizons: Array.from(document.querySelectorAll('#cockpit-horizons [data-horizon]')).map((node) => ({
             horizon: node.getAttribute('data-horizon'),
             direction: node.getAttribute('data-direction'),
@@ -1687,13 +1707,16 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
         ).toBeGreaterThan(0);
         expect(pending.horizons, 'the held paint must be a real composed cockpit, not an empty shell').toHaveLength(4);
 
-        /* FR-018-001 — no definite absence count against an unresolved corpus, in the copy a
-           reader sees and in the attribute a machine reads. */
+        /* FR-018-001 plus Feature 028 authority separation — the local machine-readable account
+           withholds its count while the committed public cockpit remains readable and unchanged. */
         expect(
             pending.coverageLine,
-            `the cockpit asserted a settled absence with its corpus unanswered: "${pending.coverageLine}"`
-        ).not.toMatch(SETTLED_COVERAGE_GRAMMAR);
-        expect(pending.coverageClaim, 'the cockpit sentence must declare its claim unsettled').toBe('not-established');
+            'the acknowledged cockpit must retain its explicit coverage account while local reconciliation waits'
+        ).toMatch(SETTLED_COVERAGE_GRAMMAR);
+        expect(pending.coverageClaim, 'the acknowledged cockpit claim remains established').toBe('settled');
+        expect(pending.publicationAuthority).toBe('acknowledged');
+        expect(pending.publicationGeneration).toMatch(/^company-brief:/);
+        expect(pending.localReadiness, 'the separate local band must declare its unresolved state').toBe('not-established');
         expect(
             pending.coverageUnavailable,
             `data-coverage-unavailable published the number "${pending.coverageUnavailable}" for a corpus that had not answered`
@@ -1711,15 +1734,12 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
             'a reader who never inspects an attribute must still be told the account is incomplete'
         ).toMatch(PENDING_READINESS_WORDING);
 
-        /* FR-018-002 — no horizon card presents a direction it has not read. The summary length
-           check keeps the remedy from degrading into a blank card, which would trade one
-           dishonest paint for an unusable one. */
+        /* The four horizon cards belong to the acknowledged projection. Local reconciliation
+           cannot blank or relabel them as pending. */
         for (const card of pending.horizons) {
-            expect(card.direction, `${card.horizon} presented a direction against an unresolved corpus`)
-                .toBe('not-established');
-            expect(card.quality, `${card.horizon} presented an evidence quality against an unresolved corpus`)
-                .toBe('not-established');
-            expect(card.readiness, `${card.horizon} carries no machine-readable readiness`).toBe('not-established');
+            expect(['constructive', 'pressured', 'flat', 'none'], card.horizon).toContain(card.direction);
+            expect(['broad', 'narrow', 'thin', 'absent'], card.horizon).toContain(card.quality);
+            expect(card.readiness, `${card.horizon} loses acknowledged readiness`).toBe('established');
             expect(card.summary.length, `${card.horizon} must still carry readable copy, not an empty region`)
                 .toBeGreaterThan(20);
         }
@@ -1732,21 +1752,20 @@ test('Regression: BUG-018 scope 2 the composed paint states no absence the corpu
         await expect(page.locator('body')).toHaveAttribute('data-reading-readiness', 'established');
 
         const settled = await readPaint();
-        expect(settled.coverageLine, 'the settled reading must state its account, unchanged from before this fix')
-            .toMatch(/13 of 15 mandatory dimensions have no usable source/);
-        expect(settled.coverageClaim, 'a resolved corpus makes the claim settled').toBe('settled');
+        expect(settled.coverageLine, 'local reconciliation must not replace the acknowledged coverage account')
+            .toBe(pending.coverageLine);
+        expect(settled.coverageClaim, 'the acknowledged claim remains settled').toBe('settled');
         expect(settled.coverageUnavailable, 'the settled count returns to the attribute').toBe('13');
+        expect(settled.localReadiness, 'the local band records that reconciliation completed').toBe('established');
+        expect(settled.publicationGeneration, 'reconciliation cannot move the acknowledged pointer')
+            .toBe(pending.publicationGeneration);
         expect(
             settled.bodyText,
             'the readiness wording must disappear once the corpus answers, or it is not readiness wording'
         ).not.toMatch(PENDING_READINESS_WORDING);
 
-        const directed = settled.horizons.filter((card) => card.direction !== 'none');
-        expect(directed.map((card) => card.horizon).sort(), 'the settled horizon directions are unchanged')
-            .toEqual(['event', 'immediate', 'swing']);
-        for (const card of settled.horizons) {
-            expect(card.readiness, `${card.horizon} must read established once the corpus answers`).toBe('established');
-        }
+        expect(settled.horizons, 'the acknowledged horizons survive reconciliation byte-for-byte in the DOM model')
+            .toEqual(pending.horizons);
 
         expect(runtimeErrors, `runtime errors: ${runtimeErrors.join(' | ')}`).toEqual([]);
     } finally {

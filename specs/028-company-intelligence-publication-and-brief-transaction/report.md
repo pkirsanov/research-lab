@@ -4170,7 +4170,7 @@ The integrity audit capture is `bbd46076d07f15b13bcd7574de57a25fbaa484b6ece3248c
 
 The whole-feature linked-test resolver truthfully retains nine unresolved Scope 04 and Scope 05 targets. Every Scope 03 link and exact title resolves. Those sequential later-scope targets do not support any Scope 03 or whole-feature completion claim.
 
-### Test Finding Accounting
+### Scope 05 Test Finding Accounting
 
 **Phase:** test
 **Claim Source:** interpreted
@@ -4604,3 +4604,102 @@ The framework write guard exits `1` because five installed agent files differ fr
 **Addressed Scope 04 findings:** 4.
 **Unresolved Scope 04 findings:** 0.
 **Certification disposition:** Scope 04 is certified `Done`. Scopes 01 through 03 remain certified, Scope 05 remains `Not Started`, both feature status mirrors remain `in_progress`, and human acceptance remains unchanged. The next required owner is `bubbles.implement` for Scope 05.
+
+## Scope 05 TP-05-08 Test-Phase Route — 2026-09-01 {#scope-05-tp-05-08-test-phase-route-2026-09-01}
+
+**Agent:** `bubbles.test`
+**Mode:** `full-delivery`
+**Scope:** `05-public-registration-and-pages`
+**Repository decision:** `rb:vscode-a66638659f347684a54d8a6f9606fa12:3:node:company-close-feature-028`, control revision `3`
+**Candidate commit:** `f19f9c34780f25935101e604dbc50a83213e9e4f`
+**Phase:** test
+**Claim Source:** interpreted
+**Interpretation:** Feature 028-owned parity and browser checks pass on the current candidate. TP-05-08 remains unsatisfied because the exact matrix stops at two Feature 012 functional failures. Independent execution also exposes seven baseline failures in the direct `.test.mjs` category. All nine failures reproduce without a Feature 028 worktree change or map to a spec outside the declared Feature 028 `specTargets`.
+
+### Binding and Linked-Test Resolution
+
+The exact scenario packet resolved to this isolated worktree. The packet validator accepted the scoped node with `BUBBLES_AGENT_NAME=bubbles.test`. The persisted `full-delivery` mode and all linked scenario tests then resolved at structured receipt row `142`, exit `0`, tool-log stdout SHA-256 `7f90ccde69961f627402873ffc28395268134bb7a7277419c9c985e6926ee5fa`.
+
+### Current Category Results
+
+| TP-05-08 category | Total | Passed | Failed | Skipped | Structured receipt |
+| --- | ---: | ---: | ---: | ---: | --- |
+| Unit | 648 | 648 | 0 | 0 | Row `146`, exit `0`, stdout SHA-256 `c2d7d212563013769dd84c8532aeadacaf7315fee3ff912ae35619696feef26f` |
+| Integration | 45 | 45 | 0 | 0 | Row `147`, exit `0`, stdout SHA-256 `94c2ad70b93065d8ddc3e4b4c27d84667284711da762c6ca385092e7af84e317` |
+| Functional | 229 | 227 | 2 | 0 | Row `143`, exit `1`, stdout SHA-256 `2db2486dd33d54043f20eb1fdcc47aeff0c300938be4719801a201d3f377ebbb` |
+| Direct `.test.mjs` | 149 | 142 | 7 | 0 | Row `144`, exit `1`; TAP count row `153`, exit `1`, stdout SHA-256 `ee969e3970ca993c0caa0da844fc76add83b18e44f006b3894ee849d12f388cd` |
+| Four-file `system-chrome` | 84 | 84 | 0 | 0 | Row `149`, exit `0`, stdout SHA-256 `686455dc23184dff200f06e7eef5f17042ee1488a28f256913e6c5127d71b2fb` |
+
+The checkout-local runner identity is `Version 1.61.1`. Row `148` exited `0`. TP-05-07 also passed at row `152`, exit `0`. Its bounded full-output SHA-256 is `8fc29539eeb9cdb47774614765a2b7fce5ff85299fe6645738245c4419a84b7d`, and the selftest result is 3,470 passed and 0 failed.
+
+### Exact TP-05-08 Unchanged-Tree Matrix
+
+**Phase:** test
+**Command:** `node --test tests/*.unit.mjs && node --test tests/*.integration.mjs && node --test tests/*.functional.mjs && node --test tests/*.test.mjs && npx --no-install playwright test tests/company-intelligence-publication.spec.mjs tests/company-intelligence-lab.spec.mjs tests/tool-discovery.spec.mjs tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** `1`
+**Claim Source:** executed
+**Structured receipt:** row `150`, stdout SHA-256 `79d78c698b9517c1bc55830d9e457f15ca3464257e54cccb07321206c75e2252`
+**Bounded full-output SHA-256:** `7d12d76045dce4eb3ee316a3a712fb23e4c9d7f4b58d748c7e985028ca992ecc`
+
+```text
+unit: tests=648 pass=648 fail=0 cancelled=0 skipped=0 todo=0
+integration: tests=45 pass=45 fail=0 cancelled=0 skipped=0 todo=0
+functional: tests=229 pass=227 fail=2 cancelled=0 skipped=0 todo=0
+functional failure 1: SCN-012-003 isolated rollback restores legacy providers and exact current Scope 03 bytes
+functional failure 2: SCN-012-003 exact TP-03-01 through TP-03-05 commands replay RED then GREEN in isolated rollback baseline
+failure command: git show 767732db04e0cd32bf107b2a95030a6771bd16f2:rlg.js
+failure result: fatal: path 'rlg.js' exists on disk, but not in the pinned commit
+TP0508_EXACT_MATRIX_EXIT=1
+TP0508_STATUS_BEFORE_SHA256=4953e14712fcdda1d8507f59df27a2446a6f130dbcbcbba9a888dc7ab4e7dcf1
+TP0508_STATUS_AFTER_SHA256=4953e14712fcdda1d8507f59df27a2446a6f130dbcbcbba9a888dc7ab4e7dcf1
+TP0508_CANDIDATE_HASHES_BEFORE_SHA256=77d4dbc6a7dfe6da038ecfcf838d1692b5bf31b89ff2b54cf0c3108da306bac2
+TP0508_CANDIDATE_HASHES_AFTER_SHA256=77d4dbc6a7dfe6da038ecfcf838d1692b5bf31b89ff2b54cf0c3108da306bac2
+TP0508_CANDIDATE_TREE_UNCHANGED=true
+```
+
+The `&&` chain correctly stopped after the functional failure. It did not report the direct-test or browser categories as executed. Rows `144`, `153`, and `149` provide their independent current-byte results.
+
+### Cross-Feature Attribution
+
+**Phase:** test
+**Claim Source:** executed
+
+Row `157` exited `0` and recorded the route proof. The current contextual-tooltip test object and its HEAD object are both `d23c5d302d0317ecb17495083d8c191227a18b25`. The pinned commit lookup for `rlg.js` exits `128`. The resolver classifies Feature 012, Feature 017, and Feature 019 as `route-same-repo` because each target is outside Feature 028 `specTargets`. It also classifies the contextual-tooltip test path as `route-same-repo` because it is outside Feature 028 `allowedPaths`.
+
+The detached HEAD attribution control at row `151` reproduced six direct-test failures at commit `f19f9c34780f25935101e604dbc50a83213e9e4f`: 0 passed, 6 failed, 0 skipped. Row `154` separately proved the seventh failure exits `1` on both current bytes and detached HEAD. The current test-category TAP run reports 149 tests, 142 passed, 7 failed, and 0 skipped.
+
+| Finding | Current evidence | Routing disposition |
+| --- | --- | --- |
+| `T028-S05-XF012-001` | Two SCN-012-003 functional tests fail because pinned commit `767732db...` has no `rlg.js`. The test file is byte-identical to HEAD. | Existing packet `specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern`; its current next owner is `bubbles.plan`. |
+| `T028-S05-XF017-001` | The judgement-only attention test receives five additional `RLATTN-OVERLAP` refusals, and the frozen export test observes 21 members instead of 16. Both failures reproduce at detached HEAD. | Feature 017 is `route-same-repo`. A complete bug packet is required from `bubbles.bug` before repair. |
+| `T028-S05-XF019-001` | Five shared atomicity tests fail before their intended assertions. The fixture logs `research agenda transaction failed: artifact-bytes-over-cap`, falls back to `raw-data-only`, and never reaches the expected page or injected-fault branch. All five failures reproduce at detached HEAD. | Feature 019 is `route-same-repo`. A complete bug packet is required from `bubbles.bug` before repair. |
+
+No foreign test, production file, baseline pin, or assertion changed in this test phase.
+
+### Test Integrity and Execution State
+
+**Phase:** test
+**Claim Source:** executed
+
+The test-integrity run found zero artifact-lint failures, zero regression-quality violations, zero scenario-obligation violations, zero test-mechanism violations, zero implementation-reality violations, and zero implementation-reality warnings. It found one invalid execution marker, `implementation_in_progress`. The test phase changed only that execution state and related execution-routing fields. It did not change `certification.*`.
+
+Row `156` then exited `0`. Its output records a valid `needs_reverification` substate, a passing artifact lint, and a clean state diff check. The three `page.route()` matches in the browser canary delay and continue real fetches. They do not supply canned responses. The canonical regression-quality guard accepts the mixed inspection and reports 0 violations and 0 warnings.
+
+### Scope and Certification Boundary
+
+Scope 05 retains 0 checked and 14 unchecked DoD items. TP-05-08 remains unchecked. Scope 05 certification remains `not_started`. Feature status and certification status remain `in_progress`. Certified Scopes 01 through 04 remain unchanged. Human acceptance remains unchanged and unclaimed.
+
+### Test Finding Accounting
+
+| Finding | Disposition | Evidence |
+| --- | --- | --- |
+| `T028-S05-PRETEST-001` — the first pre-test resolution was interrupted | Addressed | Replacement row `142` exited `0`. |
+| `T028-S05-EVIDENCE-001` — an oversized input-closure environment invalidated one unit, integration, and browser logging attempt | Addressed | Bounded replacements at rows `146` through `149` exited `0`. The nonzero terminal attempts remain preserved. |
+| `T028-S05-STATE-001` — `execution.substate` used an invalid value | Addressed | Row `156` exits `0` after the execution-only repair. |
+| `T028-S05-XF012-001` | Unresolved | Routed to the existing Feature 012 BUG-002 packet. |
+| `T028-S05-XF017-001` | Unresolved | Routed to `bubbles.bug` for Feature 017. |
+| `T028-S05-XF019-001` | Unresolved | Routed to `bubbles.bug` for Feature 019. |
+
+**Test-phase outcome:** `route_required`.
+**Immediate next required owner:** `bubbles.plan` for the existing Feature 012 BUG-002 packet, which blocks the exact matrix before later commands run.
+**Additional routed owners:** `bubbles.bug` for the Feature 017 and Feature 019 baseline regressions.

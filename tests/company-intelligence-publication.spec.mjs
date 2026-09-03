@@ -87,6 +87,13 @@ test('Regression: SCN-028-001 Company Intelligence is reachable once from catalo
 });
 
 test('Regression: SCN-028-018 failed refresh keeps the dated acknowledged pair visibly authoritative', async ({ page }) => {
+  const builder = await import('../scripts/build-pages-site.mjs');
+  const projection = builder.parsePublicCompanyProjectionSource(readFileSync(join(ROOT, PROJECTION), 'utf8'));
+  const freshnessWindowDays = readJson('company-intelligence.config.json').freshnessWindowDays['owner-read'];
+  const evidenceCutoffMs = Date.parse(projection.pair.evidenceCutoff);
+  expect(Number.isFinite(evidenceCutoffMs)).toBe(true);
+  expect(Number.isFinite(freshnessWindowDays)).toBe(true);
+  await page.clock.setFixedTime(new Date(evidenceCutoffMs + (freshnessWindowDays + 1) * 86_400_000));
   await openCompany(page);
 
   const pair = page.locator('#publication-pair-band');
@@ -128,9 +135,14 @@ test('Regression: SCN-028-020 file origin paints the committed pair before recon
   expect(errors, `file-origin runtime errors: ${errors.join(' | ')}`).toEqual([]);
   expect(requests.filter((url) => !url.startsWith('file://')), `off-origin requests: ${requests.join(' | ')}`).toEqual([]);
 
-  const projection = await page.evaluate(() => globalThis.RLCOMPANYINTEL_PUBLICATION);
-  expect(Object.isFrozen(projection)).toBe(true);
-  expect(Object.isFrozen(projection.pair)).toBe(true);
+  const projectionState = await page.evaluate(() => ({
+    projection: globalThis.RLCOMPANYINTEL_PUBLICATION,
+    projectionFrozen: Object.isFrozen(globalThis.RLCOMPANYINTEL_PUBLICATION),
+    pairFrozen: Object.isFrozen(globalThis.RLCOMPANYINTEL_PUBLICATION.pair)
+  }));
+  expect(projectionState.projectionFrozen).toBe(true);
+  expect(projectionState.pairFrozen).toBe(true);
+  const projection = projectionState.projection;
   const forbidden = /(credential|password|token|cookie|accountId|holding|position|quantity|costBasis|profit|loss|pnl|proceeds|order|approval|execution|routing|operatorIdentity|privatePath)/i;
   const fieldNames = [];
   const walk = (value) => {
@@ -196,8 +208,15 @@ test('Regression: acknowledged pair attempt state deep links accessibility and r
   await expect(page.locator(`#workspace-outcome-body [data-published-version-row="${version}"]`)).toBeVisible();
 
   await page.goto(`${site.baseUrl}/market-brief.html?generation=${encodeURIComponent(generation)}#brief`, { waitUntil: 'domcontentloaded' });
+  const evidenceLayer = page.locator('#mac-evidence');
+  const evidenceSummary = evidenceLayer.locator('summary[data-mac-summary="tool-reads"]');
+  await expect(evidenceLayer).not.toHaveAttribute('open', '');
+  await expect(evidenceSummary).toContainText('Latest owning-tool reads — evidence layer (Power view)');
+  await evidenceSummary.click();
+  await expect(evidenceLayer).toHaveAttribute('open', '');
   await expect(page.locator('#toolReads [data-company-owner-read]')).toHaveCount(1, { timeout: 30_000 });
   const row = page.locator('#toolReads [data-company-owner-read]');
+  await expect(row).toBeVisible();
   await expect(row).toHaveAttribute('data-generation-id', generation);
   await expect(row).toHaveAttribute('data-version-id', version);
   await expect(row.locator('[data-company-horizon]')).toHaveCount(4);

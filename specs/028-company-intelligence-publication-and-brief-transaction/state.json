@@ -3,7 +3,7 @@
   "featureDir": "specs/028-company-intelligence-publication-and-brief-transaction",
   "featureName": "Company Intelligence Public Delivery and Atomic Brief Refresh",
   "createdAt": "2026-08-28T23:01:02Z",
-  "lastUpdatedAt": "2026-08-31T02:32:44Z",
+  "lastUpdatedAt": "2026-09-01T20:45:04Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "linkedImplementationSpec": null,
@@ -92,21 +92,25 @@
       "tests/company-intelligence-publication.spec.mjs",
       "tests/tool-discovery.spec.mjs",
       "tests/deployed-site-parity.spec.mjs",
-      "rlexperience.js"
+      "rlexperience.js",
+      "rlexperience-adapters/strategy-research.js",
+      "tests/journey-definitions.functional.mjs",
+      "tests/simple-model-adapters.integration.mjs",
+      "tests/simple-production-bridge.integration.mjs"
     ]
   },
   "execution": {
     "goalContractRef": {
-      "goalId": "gc:vscode-1f5b7362918071b6b2de16fb3709dfae:4",
-      "revision": 4,
+      "goalId": "gc:vscode-1f5b7362918071b6b2de16fb3709dfae:6",
+      "revision": 6,
       "sourceRequestDigest": "sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f"
     },
-    "activeAgent": "bubbles.implement",
-    "currentPhase": "implement",
-    "currentPhaseStatus": "in_progress",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
+    "currentPhaseStatus": "route_required",
     "currentScope": "05-public-registration-and-pages",
-    "substate": "implementation_in_progress",
-    "runStartedAt": "2026-08-31T04:22:02Z",
+    "substate": "needs_reverification",
+    "runStartedAt": "2026-09-01T20:23:14Z",
     "completedAt": null,
     "completedPhaseClaims": [
       {
@@ -246,8 +250,8 @@
       }
     ],
     "pendingTransitionRequests": [],
-    "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-05-public-registration-authority-aware-ui-and-pages-delivery",
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern",
     "audit": {
       "schemaVersion": "audit-run/v1",
       "runId": null,

@@ -232,6 +232,11 @@ function registryDeclaresUnavailable(definition) {
   return limitations.some((limitation) => /must return unavailable/i.test(String(limitation)));
 }
 
+function registryDeclaresIdentityProjection(definition) {
+  const limitations = Array.isArray(definition.limitations) ? definition.limitations : [];
+  return limitations.some((limitation) => /reads acknowledged publication bytes only/i.test(String(limitation)));
+}
+
 /* The module's registrar, derived from the module's OWN exports — never a hard-coded name map. */
 function resolveRegistrar(moduleObject) {
   const names = Object.keys(moduleObject).filter((key) => /^register[A-Za-z]*Adapters$/.test(key) && typeof moduleObject[key] === 'function');
@@ -1664,6 +1669,26 @@ function bondSleeveOwnerState() {
   return ownerState;
 }
 
+/* company-intelligence owner state: execute the generated publication script whose exact global
+   the production page binds, then return the same provider envelope as the page. */
+function companyIntelligenceOwnerState() {
+  const globalName = 'RLCOMPANYINTEL_PUBLICATION';
+  const hadPrevious = Object.prototype.hasOwnProperty.call(globalThis, globalName);
+  const previous = globalThis[globalName];
+  try {
+    delete globalThis[globalName];
+    loadModule('data/company-intelligence/publication-current.js');
+    const publication = globalThis[globalName];
+    assert.equal(publication && publication.contractVersion, 'company-publication-projection/v1');
+    assert.equal(publication.pair && publication.pair.authority, 'acknowledged');
+    assert.equal(publication.pair.version.horizons.length, 4, 'the acknowledged owner read carries four peer horizons');
+    return { publication: frozenClone(publication) };
+  } finally {
+    if (hadPrevious) globalThis[globalName] = previous;
+    else delete globalThis[globalName];
+  }
+}
+
 /* Owner-state builders keyed by the REGISTRY adapter id. A wired tool with no entry FAILS LOUD.
    A builder may be async: company-fundamentals-lab's owner facts come out of a same-origin
    publication load, so `driveWiredTool` awaits the builder result (a no-op for the synchronous
@@ -1687,7 +1712,8 @@ const OWNER_STATES = {
   'simple-adapter/walk-forward-validation/v1': walkForwardValidationOwnerState,
   'simple-adapter/strategy-evolution/v1': strategyEvolutionOwnerState,
   'simple-adapter/location-suitability/v1': locationSuitabilityOwnerState,
-  'simple-adapter/company-scenario-bridge/v1': companyScenarioOwnerState
+  'simple-adapter/company-scenario-bridge/v1': companyScenarioOwnerState,
+  'simple-adapter/company-multi-horizon/v1': companyIntelligenceOwnerState
 };
 
 /* ═══════════════════════ owner-parity extractors (the Power-path single source) ═══════════════════════
@@ -1696,6 +1722,15 @@ const OWNER_STATES = {
    the Simple run used, and returns the facts the Simple projection is expected to publish. No
    formula is reimplemented here: a divergence between Simple and Power fails the assertion. */
 const OWNER_PARITY = {
+  'simple-adapter/company-multi-horizon/v1': (moduleObject, ownerState, parameterValues) => {
+    const summary = moduleObject.computeCompanyPublicationSummary(ownerState.publication, parameterValues);
+    return {
+      ownerFunction: 'computeCompanyPublicationSummary',
+      numericValue: null,
+      valueText: summary.version.versionId,
+      summaryContains: [summary.version.versionId, String(summary.generationId)]
+    };
+  },
   'simple-adapter/market-breadth/v1': (moduleObject, ownerState, parameterValues) => {
     const summary = moduleObject.computeBreadthSummary(frozenClone(ownerState), parameterValues);
     return {
@@ -2174,12 +2209,18 @@ test('TP-15-02 registry-derived loop: each wired tool prepares through the REAL 
       assert.doesNotMatch(String(run.panel.renderedText()), /neutral|average|prior result/i, `${entry.toolId}: no invented signal`);
     } else {
       assert.equal(run.projection.state, 'ready', `${entry.toolId}: a wired tool on a real owner state must reach a ready projection`);
-      assert.notEqual(run.projection.numericValue, null, `${entry.toolId}: a ready projection publishes a real numeric`);
-      assert.ok(Number.isFinite(run.projection.numericValue), `${entry.toolId}: the published numeric is finite`);
       const numericNode = run.panel.findByAttribute('data-simple-numeric-value');
-      assert.ok(numericNode, `${entry.toolId}: the ready projection paints a numeric node into the panel`);
-      assert.equal(String(numericNode.textContent), run.projection.readableValueText, `${entry.toolId}: the painted numeric node carries the exact reader-formatted number and unit`);
-      assert.equal(String(numericNode.textContent).includes(run.projection.valueText), false, `${entry.toolId}: the old owner label must not be repeated on the numeric line`);
+      if (registryDeclaresIdentityProjection(entry.definition)) {
+        assert.equal(run.projection.numericValue, null, `${entry.toolId}: an identity-only publication projection invents no numeric`);
+        assert.equal(numericNode, null, `${entry.toolId}: an identity-only publication projection paints no numeric node`);
+        assert.match(run.projection.valueText, /^company:msft:/, `${entry.toolId}: the ready projection publishes the acknowledged version identity`);
+      } else {
+        assert.notEqual(run.projection.numericValue, null, `${entry.toolId}: a ready numeric projection publishes a real numeric`);
+        assert.ok(Number.isFinite(run.projection.numericValue), `${entry.toolId}: the published numeric is finite`);
+        assert.ok(numericNode, `${entry.toolId}: the ready projection paints a numeric node into the panel`);
+        assert.equal(String(numericNode.textContent), run.projection.readableValueText, `${entry.toolId}: the painted numeric node carries the exact reader-formatted number and unit`);
+        assert.equal(String(numericNode.textContent).includes(run.projection.valueText), false, `${entry.toolId}: the old owner label must not be repeated on the numeric line`);
+      }
     }
 
     // BUG-003 invariant preserved on the integration path too.

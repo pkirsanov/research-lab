@@ -1366,8 +1366,14 @@
     var available = [], missing = [];
     (tools || []).forEach(function (tool) {
       if (!tool || tool.id === "market-brief") return;
-      var read = localReads[tool.id] || snapshotReads[tool.id];
-      if (read && read.read) available.push({ tool: tool, value: read, live: !!localReads[tool.id] });
+      /* The Company route publishes a Feature 025 transient browser read into RLDATA. That
+         read has no coupled generation or immutable version authority, so it must never shadow
+         the acknowledged owner read frozen into this brief. Other tools retain live-first
+         behavior; Company Intelligence remains bound to the brief's exact source snapshot. */
+      var localRead = localReads[tool.id];
+      var useLocalRead = tool.id !== "company-intelligence-lab" && !!localRead;
+      var read = useLocalRead ? localRead : snapshotReads[tool.id];
+      if (read && read.read) available.push({ tool: tool, value: read, live: useLocalRead });
       else missing.push(tool);
     });
     var rows = available.map(function (row) {

@@ -1,0 +1,390 @@
+{
+  "version": 1,
+  "specId": "BUG-002",
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern",
+  "featureName": "Feature 012 Scope 03 Legacy Authority And Scoped Rollback Isolation",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-09-01T23:34:03Z",
+  "planningDelta": "F-BUG002-008 only. Replace both concurrency-unsafe whole-worktree rollback comparisons with the closed eleven-path Scope 03 governed inventory and eight-path mutation boundary. Preserve both exact SCN-012-003 titles, every behavioral assertion, the seven-file fixture authority, product bytes, Feature 017, Feature 019, Feature 028, company publication, and human acceptance.",
+  "evidenceBoundary": "Revision-5 evidence proves both exact tests pass serially while still hashing 18,783 files, including 18,772 outside Scope 03. This artifact plans the scoped oracle and its RED then GREEN controls. It does not claim the test repair, a post-repair pass, product change, delivery, certification, or human acceptance.",
+  "implementationDispatchAllowed": false,
+  "nextRequiredOwner": "bubbles.design",
+  "nextRequiredAction": "Record the F-BUG002-008 eleven-path governed inventory, eight-path mutation boundary, and three negative controls in design.md without changing the legacy-authority or behavioral design. After that owned reconciliation, route to bubbles.test for all nine planned rows.",
+  "dodParity": {
+    "scopeId": "SCOPE-02",
+    "testPlanRowCount": 9,
+    "testEvidenceCheckboxCount": 9,
+    "mapping": [
+      {
+        "testPlanId": "TP-BUG002-RED-01",
+        "dodId": "DOD-TP-BUG002-RED-01",
+        "checked": false,
+        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix",
+        "executionStatus": "failing-current"
+      },
+      {
+        "testPlanId": "TP-BUG002-RED-02",
+        "dodId": "DOD-TP-BUG002-RED-02",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "planned-red-not-run"
+      },
+      {
+        "testPlanId": "TP-BUG002-F01",
+        "dodId": "DOD-TP-BUG002-F01",
+        "checked": false,
+        "evidenceRef": "report.md#tp-bug002-f01-independent-rerun",
+        "executionStatus": "passing-pre-repair-reverification-required"
+      },
+      {
+        "testPlanId": "TP-BUG002-F02",
+        "dodId": "DOD-TP-BUG002-F02",
+        "checked": false,
+        "evidenceRef": "report.md#tp-bug002-f02-independent-rerun",
+        "executionStatus": "passing-pre-repair-reverification-required"
+      },
+      {
+        "testPlanId": "TP-BUG002-F03",
+        "dodId": "DOD-TP-BUG002-F03",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run-after-fix"
+      },
+      {
+        "testPlanId": "TP-BUG002-F04",
+        "dodId": "DOD-TP-BUG002-F04",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "planned-not-run"
+      },
+      {
+        "testPlanId": "TP-BUG002-E01",
+        "dodId": "DOD-TP-BUG002-E01",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run-after-fix"
+      },
+      {
+        "testPlanId": "TP-BUG002-Q01",
+        "dodId": "DOD-TP-BUG002-Q01",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run-after-fix"
+      },
+      {
+        "testPlanId": "TP-BUG002-C01",
+        "dodId": "DOD-TP-BUG002-C01",
+        "checked": false,
+        "evidenceRef": null,
+        "executionStatus": "not-run-after-fix"
+      }
+    ]
+  },
+  "scopes": [
+    {
+      "scopeId": "SCOPE-02",
+      "scopeName": "Complete fixture-backed Scope 03 rollback with a scoped isolation oracle",
+      "status": "in_progress",
+      "foundation": false,
+      "capabilityRole": "test-infrastructure-baseline-authority-repair",
+      "dependsOn": [
+        "Feature-012/Scope-03"
+      ],
+      "tests": [
+        {
+          "id": "TP-BUG002-RED-01",
+          "dodId": "DOD-TP-BUG002-RED-01",
+          "type": "red-evidence",
+          "category": "functional",
+          "file": "tests/contextual-tooltip.functional.mjs",
+          "scenarioIds": [
+            "SCN-BUG002-001"
+          ],
+          "description": "Both current SCN-012-003 rollback tests fail before their behavioral assertions because the pinned commit lacks rlg.js.",
+          "command": "node --test tests/contextual-tooltip.functional.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "adversarial": true,
+          "redRequiredBeforeImplementation": true,
+          "testState": "existing-red-control",
+          "status": "failing-current",
+          "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix"
+        },
+        {
+          "id": "TP-BUG002-RED-02",
+          "dodId": "DOD-TP-BUG002-RED-02",
+          "type": "red-evidence",
+          "category": "functional",
+          "file": "tests/contextual-tooltip.functional.mjs",
+          "scenarioIds": [
+            "SCN-BUG002-003"
+          ],
+          "testId": "Regression: F-BUG002-008 scoped rollback oracle catches governed mutation and ignores unrelated concurrent files",
+          "description": "The concurrency regression fails while an unrelated sandbox file still participates in the whole-worktree comparison.",
+          "command": "node --test --test-name-pattern='^Regression: F-BUG002-008 scoped rollback oracle catches governed mutation and ignores unrelated concurrent files$' tests/contextual-tooltip.functional.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "adversarial": true,
+          "redRequiredBeforeImplementation": true,
+          "testState": "planned-red-control",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG002-F01",
+          "dodId": "DOD-TP-BUG002-F01",
+          "type": "scenario-specific-regression",
+          "category": "functional",
+          "file": "tests/contextual-tooltip.functional.mjs",
+          "scenarioIds": [
+            "SCN-BUG002-001",
+            "SCN-BUG002-002",
+            "SCN-BUG002-003"
+          ],
+          "testId": "SCN-012-003 isolated rollback restores legacy providers and exact current Scope 03 bytes",
+          "description": "Fixture-backed rollback restores legacy providers and pages, compares exactly eleven governed paths, and restores exact current Scope 03 bytes with both decorator directions enforced.",
+          "command": "node --test --test-name-pattern='^SCN-012-003 isolated rollback restores legacy providers and exact current Scope 03 bytes$' tests/contextual-tooltip.functional.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "adversarial": true,
+          "testState": "existing-test",
+          "status": "passing-pre-repair-reverification-required",
+          "evidenceRef": "report.md#tp-bug002-f01-independent-rerun"
+        },
+        {
+          "id": "TP-BUG002-F02",
+          "dodId": "DOD-TP-BUG002-F02",
+          "type": "scenario-specific-regression",
+          "category": "functional",
+          "file": "tests/contextual-tooltip.functional.mjs",
+          "scenarioIds": [
+            "SCN-BUG002-001",
+            "SCN-BUG002-002",
+            "SCN-BUG002-003"
+          ],
+          "testId": "SCN-012-003 exact TP-03-01 through TP-03-05 commands replay RED then GREEN in isolated rollback baseline",
+          "description": "The exact Scope 03 command matrix fails for missing contextual behavior on fixture-backed legacy bytes, passes after restoring current bytes, and compares only the eleven governed paths.",
+          "command": "node --test --test-name-pattern='^SCN-012-003 exact TP-03-01 through TP-03-05 commands replay RED then GREEN in isolated rollback baseline$' tests/contextual-tooltip.functional.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "adversarial": true,
+          "testState": "existing-test",
+          "status": "passing-pre-repair-reverification-required",
+          "evidenceRef": "report.md#tp-bug002-f02-independent-rerun"
+        },
+        {
+          "id": "TP-BUG002-F03",
+          "dodId": "DOD-TP-BUG002-F03",
+          "type": "functional-regression",
+          "category": "functional",
+          "file": "tests/contextual-tooltip.functional.mjs",
+          "scenarioIds": [
+            "SCN-BUG002-001",
+            "SCN-BUG002-002",
+            "SCN-BUG002-003"
+          ],
+          "description": "The complete functional file passes every provider, fixture-integrity, rollback, exact-replay, path-boundary, and concurrency assertion with zero skips.",
+          "command": "node --test tests/contextual-tooltip.functional.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "adversarial": true,
+          "testState": "existing-test",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG002-F04",
+          "dodId": "DOD-TP-BUG002-F04",
+          "type": "concurrency-regression",
+          "category": "functional",
+          "file": "tests/contextual-tooltip.functional.mjs",
+          "scenarioIds": [
+            "SCN-BUG002-003"
+          ],
+          "testId": "Regression: F-BUG002-008 scoped rollback oracle catches governed mutation and ignores unrelated concurrent files",
+          "description": "The exact eleven-path inventory catches a governed rlcontext.js mutation, rejects an unauthorized rollback write before mutation, ignores an unrelated sandbox file change, and records only authorized rollback paths.",
+          "command": "node --test --test-name-pattern='^Regression: F-BUG002-008 scoped rollback oracle catches governed mutation and ignores unrelated concurrent files$' tests/contextual-tooltip.functional.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "adversarial": true,
+          "redRequiredBeforeImplementation": true,
+          "testState": "planned-test",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG002-E01",
+          "dodId": "DOD-TP-BUG002-E01",
+          "type": "regression-e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/contextual-tooltip.spec.mjs",
+          "scenarioIds": [
+            "SCN-BUG002-002",
+            "SCN-012-003",
+            "SCN-012-004"
+          ],
+          "testId": "Regression: SCN-012-003 Power chart context is equivalent by pointer keyboard touch and table",
+          "description": "The unchanged current production route retains visible contextual disclosure, provider composition, pointer, keyboard, touch, table, and label-only refusal behavior.",
+          "command": "npx --no-install playwright test tests/contextual-tooltip.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "liveBoundary": "real local production pages served by the repository test server with no request interception",
+          "requestInterceptionAllowed": false,
+          "regression": true,
+          "testState": "existing-test",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG002-Q01",
+          "dodId": "DOD-TP-BUG002-Q01",
+          "type": "regression-quality",
+          "category": "functional",
+          "file": "tests/contextual-tooltip.functional.mjs",
+          "scenarioIds": [
+            "SCN-BUG002-001",
+            "SCN-BUG002-002",
+            "SCN-BUG002-003"
+          ],
+          "description": "The bugfix test retains adversarial assertions and contains no skip, optional assertion, early-return bailout, silent pass, or root-wide concurrency-sensitive oracle.",
+          "command": "bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/contextual-tooltip.functional.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "adversarial": true,
+          "testState": "existing-command",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-BUG002-C01",
+          "dodId": "DOD-TP-BUG002-C01",
+          "type": "broad-build-free-regression",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "scenarioIds": [
+            "SCN-BUG002-001",
+            "SCN-BUG002-002",
+            "SCN-BUG002-003"
+          ],
+          "description": "The complete Research Lab invariant suite preserves source, registry, context, model, company publication, and tool behavior.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "regression": true,
+          "testState": "existing-command",
+          "status": "planned-not-executed"
+        }
+      ]
+    }
+  ],
+  "rollbackIsolationContract": {
+    "findingId": "F-BUG002-008",
+    "governedPaths": [
+      "rlcontext.js",
+      "rlg.js",
+      "rlticker.js",
+      "rlchart.js",
+      "market-heatmap-lab.html",
+      "options-structure-lab.html",
+      "company-fundamentals-lab.html",
+      "scripts/selftest.mjs",
+      "tests/contextual-tooltip.unit.mjs",
+      "tests/contextual-tooltip.functional.mjs",
+      "tests/contextual-tooltip.spec.mjs"
+    ],
+    "rollbackMutationPaths": [
+      "rlcontext.js",
+      "rlg.js",
+      "rlticker.js",
+      "rlchart.js",
+      "market-heatmap-lab.html",
+      "options-structure-lab.html",
+      "company-fundamentals-lab.html",
+      "scripts/selftest.mjs"
+    ],
+    "readOnlyGovernedPaths": [
+      "tests/contextual-tooltip.unit.mjs",
+      "tests/contextual-tooltip.functional.mjs",
+      "tests/contextual-tooltip.spec.mjs"
+    ],
+    "fixtureAuthorityPaths": [
+      "rlg.js",
+      "rlticker.js",
+      "rlchart.js",
+      "market-heatmap-lab.html",
+      "options-structure-lab.html",
+      "company-fundamentals-lab.html",
+      "scripts/selftest.mjs"
+    ],
+    "comparisonRule": "Both exact tests snapshot and compare only governedPaths in canonical order. No worktree discovery result participates in rollback isolation.",
+    "mutationRule": "Every rollback write or delete is recorded and rejected before mutation unless its relative path is in rollbackMutationPaths.",
+    "unrelatedConcurrentControlPath": "concurrency-control/unrelated-report.md",
+    "negativeControls": [
+      {
+        "id": "governed-byte-change",
+        "path": "rlcontext.js",
+        "expected": "The governed comparison fails and names rlcontext.js."
+      },
+      {
+        "id": "unauthorized-rollback-write",
+        "path": "concurrency-control/unrelated-report.md",
+        "expected": "The mutation boundary rejects the path before a file is written."
+      },
+      {
+        "id": "unrelated-concurrent-change",
+        "path": "concurrency-control/unrelated-report.md",
+        "expected": "A direct sandbox-only change leaves every governed hash equal and does not affect either exact test."
+      }
+    ]
+  },
+  "applicability": {
+    "unit": "required through the complete repository selftest",
+    "functional": "required for exact fixture authority, rollback, guard, and replay behavior",
+    "integration": "not applicable because no service or persistence tier changes",
+    "ui-unit": "not applicable because no component framework changes",
+    "e2e-api": "not applicable because no API changes",
+    "e2e-ui": "required to preserve the current shared contextual disclosure on production routes",
+    "stress": "not applicable because no latency or capacity contract changes",
+    "load": "not applicable because no capacity contract changes"
+  },
+  "changeBoundary": {
+    "allowedTests": [
+      "tests/contextual-tooltip.functional.mjs"
+    ],
+    "readOnlyFixtures": [
+      "tests/fixtures/feature-012/contextual-tooltip-pre-scope03/**"
+    ],
+    "readOnlyChecks": [
+      "tests/contextual-tooltip.unit.mjs",
+      "tests/contextual-tooltip.spec.mjs",
+      "scripts/selftest.mjs"
+    ],
+    "excluded": [
+      "tests/tool-experience-shell.functional.mjs",
+      "tests/tool-experience-registry.functional.mjs",
+      "every production HTML and rl*.js file",
+      "tools.json, scripts/**, and source-qualified data",
+      "data/company-intelligence/** and every company:msft publication artifact",
+      "Feature 028, Feature 017, and Feature 019 artifacts",
+      "every uservalidation.md and human-acceptance record",
+      "immutable publication history, version files, and current pointers"
+    ]
+  },
+  "routing": {
+    "sequence": [
+      {
+        "order": 1,
+        "owner": "bubbles.design",
+        "action": "Add only the F-BUG002-008 scoped-oracle contract to design.md: the exact eleven governed paths, exact eight mutation paths, governed-byte failure, pre-write boundary rejection, and unrelated-file tolerance. Preserve every other design decision."
+      },
+      {
+        "order": 2,
+        "owner": "bubbles.test",
+        "action": "Add the F-BUG002-008 control and record RED, replace only the whole-worktree oracle and rollback mutation plumbing in tests/contextual-tooltip.functional.mjs, and run all nine planned rows without changing fixture, product, publication, Feature 017, Feature 019, Feature 028, or acceptance bytes."
+      },
+      {
+        "order": 3,
+        "owner": "bubbles.regression",
+        "action": "Verify the exact SCN-012-003 regressions, the unchanged browser surface, and the declared change boundary."
+      },
+      {
+        "order": 4,
+        "owner": "bubbles.validate",
+        "action": "Evaluate transition readiness only after all required delivery phases and current evidence exist."
+      }
+    ]
+  }
+}

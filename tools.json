@@ -2125,7 +2125,7 @@
         "contractVersion": "simple-wiring/v1",
         "state": "declared-unwired",
         "reason": "The page owns its native Simple and Power projections: render() builds one candidate set from the frozen universe and the shared cache, and every table, badge and chart draws from that single value. Registering the generic provider would create a second Simple truth surface over the same gate evaluation.",
-        "decisionRef": "horizon-ladder-lab.html:render"
+        "decisionRef": "horizon-ladder-lab.html:1072"
       }
     }
   ]

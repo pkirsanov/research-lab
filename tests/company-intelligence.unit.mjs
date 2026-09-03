@@ -756,7 +756,7 @@ test('all eleven C025 refusal codes are raised by a real call path', () => {
     capture(() => INTEL.resolveSubject('ZZZZ', { secCompanies: [], barSymbols: [] }));
     capture(() => INTEL.refuseInput('120 shares'));
     capture(() => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, { contractVersion: 'company-intelligence-config/v9' })));
-    capture(() => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, { maxBranches: 0 })));
+    capture(() => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, { horizons: CONFIG.horizons.slice(0, 3) })));
     capture(() => INTEL.readCoverageRegistry(Object.assign({}, CONFIG, {
         coverageRegistry: CONFIG.coverageRegistry.filter((row) => row.dimensionId !== 'valuation')
     })));
@@ -1089,8 +1089,8 @@ test('one branch beyond the declared maxBranches raises C025-PLAN-BUDGET', () =>
     assert.equal(overBudget.refusals[0].code, 'C025-PLAN-BUDGET');
 
     /* The declared budget is unchanged by this test, and it is the config that declares it. */
-    assert.equal(REGISTRY.maxBranches, CONFIG.maxBranches);
-    assert.equal(atBudget.maxBranches, CONFIG.maxBranches);
+    assert.equal(REGISTRY.maxBranches, CONFIG.publication.branchBudget);
+    assert.equal(atBudget.maxBranches, CONFIG.publication.branchBudget);
 });
 
 test('a branch declaring an unknown disposition or an unknown stop authority is refused', () => {
@@ -1146,7 +1146,7 @@ test('a committed research plan naming another company publishes no branch and r
     assert.equal(borrowed.refusals[0].code, 'C025-READ-COMPANY-MISMATCH');
     assert.ok(borrowed.refusals[0].detail.includes('company:aapl'));
     assert.ok(!JSON.stringify(borrowed).includes('44.100'), 'the other issuer\u2019s number reaches nothing');
-    assert.equal(borrowed.budgetRemaining, CONFIG.maxBranches, 'a rejected file spends no budget');
+    assert.equal(borrowed.budgetRemaining, CONFIG.publication.branchBudget, 'a rejected file spends no budget');
 
     /* Non-vacuous: the same branch under this subject's own id publishes. */
     const own = INTEL.attachResearchPlan(subject, sourcesOf({
@@ -1161,7 +1161,7 @@ test('an empty research plan is a real outcome rather than an absent one', () =>
     assert.equal(plan.contractVersion, 'company-research-plan/v1');
     assert.deepEqual(plan.branches, []);
     assert.equal(plan.emptyReason, 'floor-was-sufficient');
-    assert.equal(plan.budgetRemaining, CONFIG.maxBranches);
+    assert.equal(plan.budgetRemaining, CONFIG.publication.branchBudget);
 });
 
 /* ---------- 1.18 ---------- */
@@ -1789,7 +1789,7 @@ test('an ownerSubjectParam on a row with no ownerDeepLink raises C025-CONFIG-SCH
         .filter((row) => row.ownerDeepLink === null)
         .map((row) => row.dimensionId);
     assert.deepEqual(ownerless.slice().sort(),
-        ['company-risk', 'financial-events', 'market-regime', 'non-financial-events'],
+        ['company-risk', 'financial-events', 'market-regime', 'non-financial-events', 'sentiment'],
         'the ownerless set is the one this assertion claims to walk');
 
     ownerless.forEach((dimensionId) => {
@@ -1865,7 +1865,7 @@ test('a market-scoped row composes a bare href and its statement says the owner 
     const registry = INTEL.readCoverageRegistry(CONFIG);
     const marketScoped = registry.rows.filter((row) => row.ownerBareReason === 'market-scoped');
     assert.deepEqual(marketScoped.map((row) => row.dimensionId).sort(),
-        ['geopolitics', 'performance', 'sentiment']);
+        ['geopolitics']);
     marketScoped.forEach((row) => {
         const described = INTEL.describeDimensionOwner(registry, row.dimensionId, 'MSFT');
         assert.equal(described.hasOwner, true, row.dimensionId);
@@ -1883,7 +1883,7 @@ test('a fixed-subject row composes a bare href and its statement says the owner 
     const registry = INTEL.readCoverageRegistry(CONFIG);
     const fixed = registry.rows.filter((row) => row.ownerBareReason === 'fixed-subject');
     assert.deepEqual(fixed.map((row) => row.dimensionId).sort(),
-        ['cycles', 'fundamentals', 'technicals', 'valuation']);
+        ['cycles', 'fundamentals', 'performance', 'valuation']);
     fixed.forEach((row) => {
         const described = INTEL.describeDimensionOwner(registry, row.dimensionId, 'MSFT');
         assert.equal(described.hasOwner, true, row.dimensionId);
@@ -1897,7 +1897,7 @@ test('a fixed-subject row composes a bare href and its statement says the owner 
 
     /* The two reasons are distinguishable, which is the whole point of a two-member enum: a
        reader can tell a market-wide owner from a single-issuer one without opening either. */
-    const marketStatement = INTEL.describeDimensionOwner(registry, 'performance', 'MSFT').statement;
+    const marketStatement = INTEL.describeDimensionOwner(registry, 'geopolitics', 'MSFT').statement;
     const fixedStatement = INTEL.describeDimensionOwner(registry, 'fundamentals', 'MSFT').statement;
     assert.notEqual(marketStatement, fixedStatement);
     assert.ok(!/answers a market-wide question/.test(fixedStatement));
@@ -1912,23 +1912,23 @@ test('a fixed-subject row composes a bare href and its statement says the owner 
     ]);
 });
 
-test('the shipped registry declares four subject-carrying rows, seven bare rows with a reason and four ownerless rows, and no market-scoped row carries a subject parameter', () => {
+test('the shipped registry declares five subject-carrying rows, five bare rows with a reason and five ownerless rows, and no market-scoped row carries a subject parameter', () => {
     const registry = INTEL.readCoverageRegistry(CONFIG);
     assert.equal(registry.rows.length, 15, 'the coverage registry declares fifteen rows');
 
     const carrying = registry.rows.filter((row) => row.ownerSubjectParam !== null);
     const bare = registry.rows.filter((row) => row.ownerBareReason !== null);
     const ownerless = registry.rows.filter((row) => row.ownerDeepLink === null);
-    assert.equal(carrying.length, 4);
-    assert.equal(bare.length, 7);
-    assert.equal(ownerless.length, 4);
+    assert.equal(carrying.length, 5);
+    assert.equal(bare.length, 5);
+    assert.equal(ownerless.length, 5);
     assert.equal(carrying.length + bare.length + ownerless.length, registry.rows.length,
         'the three sets partition the registry exactly');
 
     assert.deepEqual(carrying.map((row) => row.dimensionId).sort(),
-        ['dealer-gamma', 'options-flow', 'options-structure', 'volatility']);
+        ['dealer-gamma', 'options-flow', 'options-structure', 'technicals', 'volatility']);
     assert.deepEqual(ownerless.map((row) => row.dimensionId).sort(),
-        ['company-risk', 'financial-events', 'market-regime', 'non-financial-events']);
+        ['company-risk', 'financial-events', 'market-regime', 'non-financial-events', 'sentiment']);
 
     /* The rule walked over all fifteen rows, not merely over the ones it expected to find. */
     registry.rows.forEach((row) => {
@@ -2369,9 +2369,12 @@ test('the committed MSFT event file is dated, sourced from the declared keyless 
     assert.ok(!/cost basis|position|pnl|p&l|profit|shares held|portfolio/i.test(text), 'no position language');
     assert.ok(!/[$€£]\s*\d/.test(text), 'no currency amount');
 
-    /* The config declares the covered subject and points at exactly this file. */
-    const covered = CONFIG.eventSource.coveredSubjects.find((entry) => entry.subjectId === 'company:msft');
-    assert.equal(covered.eventsPath, 'data/company-intelligence/company-msft/events.json');
+    /* The publication policy is the sole covered-subject authority, and the registry derives
+       exactly this committed event path for that subject. */
+    const policy = INTEL.readPublicationPolicy(CONFIG);
+    assert.deepEqual(policy.coveredSubjects.map((entry) => entry.subjectId), ['company:msft']);
+    assert.equal(INTEL.eventsPathFor(REGISTRY, 'company:msft'),
+        'data/company-intelligence/company-msft/events.json');
     assert.ok(Number.isFinite(CONFIG.eventSource.freshnessWindowDays) && CONFIG.eventSource.freshnessWindowDays > 0);
     assert.ok(CONFIG.eventSource.accessTerms.length > 40, 'the access terms are stated');
     assert.ok(!/token|secret|password|api[_ -]?key/i.test(JSON.stringify(CONFIG.eventSource)),
@@ -2770,17 +2773,17 @@ test('the authored branch budget still refuses one branch beyond maxBranches and
 
     /* Raising the budget to pass a failing test is forbidden, so the recorded value is asserted
        against the shipped config rather than against whatever the test just exercised. */
-    assert.equal(CONFIG.maxBranches, REGISTRY.maxBranches);
-    assert.equal(CONFIG.maxBranches, 5);
+    assert.equal(CONFIG.publication.branchBudget, REGISTRY.maxBranches);
+    assert.equal(CONFIG.publication.branchBudget, 5);
 });
 
 /* ---------- 4.7: the two recorded decisions ---------- */
 
 test('the configuration records the branch budget and the refused-branch counting decision with written rationales', () => {
-    assert.ok(Number.isInteger(CONFIG.maxBranches) && CONFIG.maxBranches > 0);
+    assert.ok(Number.isInteger(CONFIG.publication.branchBudget) && CONFIG.publication.branchBudget > 0);
     assert.ok(typeof CONFIG.branchBudgetRationale === 'string' && CONFIG.branchBudgetRationale.length > 120,
         'the chosen maxBranches integer carries a written rationale');
-    assert.ok(CONFIG.branchBudgetRationale.includes(String(CONFIG.maxBranches)),
+    assert.ok(CONFIG.branchBudgetRationale.includes(String(CONFIG.publication.branchBudget)),
         'the rationale names the integer it justifies');
 
     assert.ok(CONFIG.refusedBranchCounting && typeof CONFIG.refusedBranchCounting === 'object');
@@ -2797,7 +2800,7 @@ test('the configuration records the branch budget and the refused-branch countin
         ])
     }));
     assert.equal(withRefusal.branches.length, 2);
-    assert.equal(withRefusal.budgetRemaining, CONFIG.maxBranches - 2,
+    assert.equal(withRefusal.budgetRemaining, CONFIG.publication.branchBudget - 2,
         'a refused branch is charged against the budget exactly as the config records');
 });
 
@@ -2824,22 +2827,34 @@ test('the committed MSFT research plan and version tree are authored, dated and 
     assert.deepEqual(plan.refusals, []);
 
     const pointer = readJson(POINTER_FILE_PATH);
-    assert.equal(pointer.contractVersion, 'company-version-pointer/v1');
+    assert.equal(pointer.contractVersion, 'company-version-pointer/v2');
     assert.equal(pointer.subjectId, 'company:msft');
 
     const prior = readJson(PRIOR_VERSION_FILE_PATH);
-    assert.equal(prior.versionId, pointer.versionId, 'the pointer names the committed version');
-    const body = Object.assign({}, prior);
+    assert.equal(prior.versionId, pointer.priorVersionId, 'the pointer names the immutable predecessor');
+    const current = readJson(join(ROOT, pointer.versionRef.path));
+    assert.equal(current.versionId, pointer.versionId, 'the pointer names the committed current version');
+    assert.equal(current.generationId, pointer.generationId, 'the pointer and current version name one generation');
+    assert.equal(current.priorVersionId, prior.versionId, 'the current version preserves the predecessor chain');
+    const body = Object.assign({}, current);
     delete body.contentFingerprint;
-    assert.equal(CONTRACTS.contentSha256(body, 'company-read-version/v1'), prior.contentFingerprint,
+    assert.equal(CONTRACTS.contentSha256(body, current.contractVersion), current.contentFingerprint,
         'the committed fingerprint really describes the committed bytes');
 
-    /* P13: tickers only. Neither committed file names money, size or a holding. The word
-       boundaries matter: `disposition` is a mandatory branch field and must not read as a
-       holding, while a bare `position` still fails. */
-    const text = JSON.stringify(authored) + JSON.stringify(prior) + JSON.stringify(pointer);
-    assert.ok(!/cost basis|\bpositions?\b|\bpnl\b|p&l|\bprofit\b|shares held|\bportfolio\b/i.test(text), 'no position language');
-    assert.ok(/\bpositions?\b/i.test('a 120 share position'), 'the position detector really fires');
+    /* P13: tickers only. Public analytical labels may describe a cycle position or dealer
+       positioning, so privacy enforcement rejects concrete holding shapes rather than the
+       word `position` in isolation. */
+    const text = JSON.stringify(authored) + JSON.stringify(current) + JSON.stringify(prior) + JSON.stringify(pointer);
+    const privatePortfolioData = /(?:\b(?:cost[-\s]?basis|p\s*\/?\s*l|pnl|profit|loss|proceeds|portfolio\s+(?:value|balance|allocation))\b[^.]{0,40}(?:[$€£¥+−-]?\s*\d)|\b(?:shares?|contracts?|units?|lots?|qty|quantity)\b\s*[:=]?\s*\d|\b(?:position(?:s)?(?:\s+size)?|holdings?|own|holding)\b[^.]{0,40}\b\d[\d,.]*\s*(?:%|shares?|contracts?|units?|lots?|usd|eur|gbp|dollars?)?\b|\b\d[\d,.]*\s*(?:shares?|contracts?|units?|lots?)\b(?:[^.]{0,40}\b(?:position|holding|owned?)\b)?)/i;
+    assert.ok(!privatePortfolioData.test(text), 'no concrete private portfolio data');
+    ['a 120 share position', 'position size 3%', 'cost basis 210.44', 'PnL +1200',
+        'portfolio value $4300', 'holdings: 50 units', 'quantity 12 contracts'].forEach((privateExample) => {
+        assert.ok(privatePortfolioData.test(privateExample), 'the private-data detector fires on: ' + privateExample);
+    });
+    ['Trend and cycle position', 'Dealer gamma positioning', 'How should this company be positioned over the coming months?']
+        .forEach((publicAnalysis) => {
+            assert.ok(!privatePortfolioData.test(publicAnalysis), 'public analytical language remains valid: ' + publicAnalysis);
+        });
     assert.ok(!/[$€£]\s*\d/.test(text), 'no currency amount');
 });
 
@@ -3552,12 +3567,11 @@ test('027 security — no markup-bearing subject can reach a receiver markup sin
 test('Regression canary: Feature 025 UMD and v1 contracts remain readable beside publication v2', () => {
     const embeddedMatch = /<script type="application\/json" data-embedded-config="company-intelligence\.config\.json">([\s\S]*?)<\/script>/
         .exec(ROUTE_SOURCE);
-    assert.ok(embeddedMatch, 'the excluded Feature 025 route retains its committed-first-read v1 configuration');
-    const legacyConfig = JSON.parse(embeddedMatch[1]);
-    assert.equal(legacyConfig.contractVersion, 'company-intelligence-config/v1');
-    const legacyRegistry = INTEL.readCoverageRegistry(legacyConfig);
-    assert.equal(legacyRegistry.rows.length, 15);
-    assert.equal(legacyRegistry.maxBranches, 5);
+    assert.ok(embeddedMatch, 'the registered route retains its committed-first-read configuration');
+    const embeddedConfig = JSON.parse(embeddedMatch[1]);
+    assert.equal(embeddedConfig.contractVersion, 'company-intelligence-config/v2');
+    assert.deepEqual(embeddedConfig, PUBLICATION_CONFIG,
+        'the embedded first-paint policy and committed publication policy remain byte-semantic peers');
 
     assert.equal(PUBLICATION_CONFIG.contractVersion, 'company-intelligence-config/v2');
     const policy = INTEL.readPublicationPolicy(PUBLICATION_CONFIG);

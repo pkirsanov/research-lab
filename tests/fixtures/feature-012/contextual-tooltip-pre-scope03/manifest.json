@@ -1,0 +1,59 @@
+{
+  "contractVersion": "feature-012-scope03-legacy-authority/v1",
+  "provenance": {
+    "sourceCommit": "b533b972a473ffca9252362ecc5d73de52423da9",
+    "sourceRole": "immutable pre-Scope-03 parent captured as committed fixture bytes"
+  },
+  "pathCount": 7,
+  "files": [
+    {
+      "path": "rlg.js",
+      "fixturePath": "rlg.js",
+      "byteLength": 24885,
+      "sha256": "08f7efcc4cace971d24443bc4a5adae2cab3c72c38abc54adb96a1e69c46f91f",
+      "semanticRole": "legacy glossary provider"
+    },
+    {
+      "path": "rlticker.js",
+      "fixturePath": "rlticker.js",
+      "byteLength": 10205,
+      "sha256": "7a78677d26d5e25b3aeb16211ca943eb04adbaafe78c4e269da812a119ca7bdc",
+      "semanticRole": "legacy public ticker-link provider"
+    },
+    {
+      "path": "rlchart.js",
+      "fixturePath": "rlchart.js",
+      "byteLength": 7513,
+      "sha256": "c84d2b975ba658c7771b3d80e0f29c9fceb97b9ce8f4d265afec4beef75b394a",
+      "semanticRole": "legacy chart interaction provider"
+    },
+    {
+      "path": "market-heatmap-lab.html",
+      "fixturePath": "market-heatmap-lab.html",
+      "byteLength": 46615,
+      "sha256": "f561942ed123e6a62deb28f74c59248f53dd975fbf1a13442a2f56112f815451",
+      "semanticRole": "legacy heatmap canary page without Scope 03 decorators"
+    },
+    {
+      "path": "options-structure-lab.html",
+      "fixturePath": "options-structure-lab.html",
+      "byteLength": 186794,
+      "sha256": "5331de5983c308bc6c7591a1e2fad94f4c7874d7f42199ea0c8e16c9293c747e",
+      "semanticRole": "legacy options canary page without Scope 03 decorators"
+    },
+    {
+      "path": "company-fundamentals-lab.html",
+      "fixturePath": "company-fundamentals-lab.html",
+      "byteLength": 161499,
+      "sha256": "584ecbff88c93f8f48fa1b132dab1a457ce7003c43edaac1b5c9d78144bf74d3",
+      "semanticRole": "legacy fundamentals canary page without Scope 03 decorators"
+    },
+    {
+      "path": "scripts/selftest.mjs",
+      "fixturePath": "scripts/selftest.mjs",
+      "byteLength": 368411,
+      "sha256": "fe706d9900f0623108604a2e2adb80a0290c70bad90506e5b1db52980a739965",
+      "semanticRole": "legacy repository invariant runner used by exact replay"
+    }
+  ]
+}

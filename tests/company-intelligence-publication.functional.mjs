@@ -530,7 +530,19 @@ test('Mutation: SCN-028-002 a registered company artifact with one stale exclusi
   assert.equal(accepted.requiredPaths.includes('data/company-intelligence/publication-current.json'), true);
   assert.equal(accepted.requiredPaths.includes('data/company-intelligence/publication-current.js'), true);
 
-  const packageDestination = `.scope05-package-contract-${process.pid}`;
+  const externalWorkspace = mkdtempSync(path.join(tmpdir(), '.scope05-package-contract-'));
+  const externalPackageRoot = path.join(externalWorkspace, 'package');
+  const packageDestination = path.relative(PACKAGE_ROOT, externalPackageRoot);
+  const resolvedPackageRoot = path.resolve(PACKAGE_ROOT, packageDestination);
+  const repositoryLocalPackageRoot = path.join(PACKAGE_ROOT, path.basename(externalWorkspace));
+  assert.equal(path.isAbsolute(packageDestination), false,
+    'the production builder destination must remain relative to PACKAGE_ROOT');
+  assert.equal(resolvedPackageRoot, externalPackageRoot,
+    'the production builder destination must resolve to the external package root');
+  assert.equal(packageDestination === '..' || packageDestination.startsWith(`..${path.sep}`), true,
+    'the production builder destination must lie outside PACKAGE_ROOT');
+  assert.equal(existsSync(repositoryLocalPackageRoot), false,
+    'the package test must not create a repository-local .scope05-package-contract-* entry');
   try {
     const packagePlan = builder.buildPagesSite({
       root: PACKAGE_ROOT,
@@ -545,12 +557,18 @@ test('Mutation: SCN-028-002 a registered company artifact with one stale exclusi
       'the production package plan retains every history index selected by pair authority'
     );
     for (const relativePath of accepted.requiredPaths) {
-      assert.equal(existsSync(path.join(PACKAGE_ROOT, packageDestination, relativePath)), true,
+      assert.equal(existsSync(path.join(resolvedPackageRoot, relativePath)), true,
         `the built package retains the authoritative dependency ${relativePath}`);
     }
+    assert.equal(existsSync(repositoryLocalPackageRoot), false,
+      'the completed package build must leave no repository-local .scope05-package-contract-* entry');
   } finally {
-    rmSync(path.join(PACKAGE_ROOT, packageDestination), { recursive: true, force: true });
+    rmSync(externalWorkspace, { recursive: true, force: true });
   }
+  assert.equal(existsSync(externalWorkspace), false,
+    'the external package workspace must be removed after the build contract check');
+  assert.equal(existsSync(repositoryLocalPackageRoot), false,
+    'the package test must leave no repository-local .scope05-package-contract-* entry');
 
   for (const stalePath of [
     'company-intelligence-lab.html',

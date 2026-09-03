@@ -364,6 +364,10 @@
         </section>
 
         <div data-surface="power">
+            <p class="band muted" data-power-authority-note="transient">
+                Supporting workspaces show the transient local composition and never grant publication authority.
+                The outcome record labels the acknowledged publication lineage separately.
+            </p>
             <section class="band" data-workspace="performance" aria-labelledby="workspace-performance-heading">
                 <h2 id="workspace-performance-heading">Performance</h2>
                 <div id="workspace-performance-values"></div>
@@ -482,7 +486,7 @@
             </section>
         </div>
 
-        <section class="band" data-rlbrief-mount data-tool-id="company-intelligence-lab"
+        <section class="band" data-rlbrief-mount data-owns-route data-tool-id="company-intelligence-lab"
             data-simple-target="rlbrief-simple" data-power-target="rlbrief-power"></section>
 
         <footer class="band">
@@ -729,8 +733,8 @@
 }
     </script>
 
-    <script src="data/company-intelligence/publication-current.js"></script>
     <script src="rldata.js"></script>
+    <script src="data/company-intelligence/publication-current.js"></script>
     <script src="rlapp.js"></script>
     <script src="rlcontracts.js"></script>
     <script src="rlmetrics.js"></script>
@@ -922,7 +926,7 @@
                 pairBand.setAttribute("data-generation-id", pair.generationId);
                 pairBand.setAttribute("data-version-id", pair.versionId);
                 setText("publication-pair-state", state === "stale" ? "◐ Stale" : "● Current · fresh");
-                appendPublicationIdentity(identities, "Company version", pair.versionId);
+                appendPublicationIdentity(identities, "Published company version", pair.versionId);
                 appendPublicationIdentity(identities, "Matching brief generation", pair.generationId);
                 appendPublicationIdentity(identities, "Evidence cutoff", pair.evidenceCutoff);
                 appendPublicationIdentity(identities, "Composed", pair.composedAt);
@@ -1015,11 +1019,18 @@
             /* Every displayed number carries its provenance class, its source and its as-of date.
                A value with no number renders the word rather than an empty cell. */
             function valueNode(value) {
-                var wrap = el("div", null, { "data-value-id": value.valueId, "data-provenance-class": value.provenanceClass });
+                var unavailable = value.value === null;
+                var numeric = !unavailable && value.value !== "" && Number.isFinite(Number(value.value));
+                var valueAttributes = { "data-provenance-class": value.provenanceClass };
+                valueAttributes[numeric || unavailable ? "data-value-id" : "data-labelled-value-id"] = value.valueId;
+                valueAttributes["data-value-kind"] = unavailable ? "unavailable" : (numeric ? "numeric" : "categorical");
+                var wrap = el("div", null, valueAttributes);
                 wrap.appendChild(el("span", value.label + ": ", { class: "muted" }));
-                wrap.appendChild(el("span", value.value === null ? "Unavailable" : (value.value + (value.unit ? " " + value.unit : "")), {
-                    "data-value-number": value.value === null ? "unavailable" : value.value
-                }));
+                var renderedValueAttributes = {};
+                renderedValueAttributes[numeric || unavailable ? "data-value-number" : "data-value-text"] =
+                    unavailable ? "unavailable" : value.value;
+                wrap.appendChild(el("span", unavailable ? "Unavailable" : (value.value + (value.unit ? " " + value.unit : "")),
+                    renderedValueAttributes));
                 wrap.appendChild(el("span", " "));
                 wrap.appendChild(el("span", value.provenanceClass, { class: "chip", "data-provenance": value.provenanceClass }));
                 wrap.appendChild(el("span", value.sourceName, { class: "chip", "data-source-name": value.sourceName }));
@@ -1658,58 +1669,10 @@
                 var writePlan = result.writePlan;
                 var host = byId("workspace-outcome-body");
                 clear(host);
-                var publicVersion = publicVersionForCurrentTicker();
-                if (publicVersion && validPublicProjection(PUBLICATION)) {
-                    var pair = PUBLICATION.pair;
-                    host.setAttribute("data-version-id", publicVersion.versionId);
-                    host.setAttribute("data-prior-version-id", publicVersion.priorVersionId === null ? "" : publicVersion.priorVersionId);
-                    host.setAttribute("data-committed-version-count", String(PUBLICATION.versions.length));
-                    var refusedPlan = writePlan.contractVersion === "company-intel-error/v1";
-                    var createdPlan = refusedPlan ? null : writePlan.operations.filter(function (operation) {
-                        return operation.operation === "create";
-                    })[0];
-                    host.setAttribute("data-write-created-path", createdPlan ? createdPlan.path : "");
-                    host.setAttribute("data-write-untouched-paths", refusedPlan ? "" : writePlan.untouchedPaths.join(" "));
-
-                    host.appendChild(el("p", "Acknowledged publication lineage. Only immutable versions selected by the coupled manifest appear here."));
-                    appendPublicationIdentity(host, "Company version", publicVersion.versionId);
-                    appendPublicationIdentity(host, "Publication generation", publicVersion.generationId);
-                    appendPublicationIdentity(host, "Content fingerprint", publicVersion.contentFingerprint);
-                    appendPublicationIdentity(host, "Evidence cutoff", publicVersion.evidenceCutoff);
-                    appendPublicationIdentity(host, "Predecessor", publicVersion.priorVersionId || "First published version");
-                    appendPublicationIdentity(host, "Comparison", publicVersion.conclusionChange === "unchanged"
-                        ? "= Unchanged conclusion" : (publicVersion.conclusionChange === "changed" ? "Δ Changed conclusion" : "First published version"));
-                    host.appendChild(el("a", "Open matching Market Action brief", {
-                        href: "market-brief.html?generation=" + encodeURIComponent(pair.generationId) + "#brief"
-                    }));
-
-                    PUBLICATION.versions.forEach(function (entry, index) {
-                        var entryGeneration = entry.generationId || "Pre-coupled history";
-                        var entryCutoff = entry.evidenceCutoff || entry.composedAt;
-                        var entryComparison = entry.conclusionChange === "unchanged" ? "Unchanged conclusion" :
-                            (entry.conclusionChange === "changed" ? "Changed conclusion" :
-                                (entry.conclusionChange === "first" ? "First published version" : "Historical record"));
-                        var row = el("p", (index === 0 ? "Current · " : "Prior · ") + entry.versionId +
-                            " · " + entryGeneration + " · " + entryCutoff + " · " + entryComparison, {
-                            "data-version-row": entry.versionId,
-                            "data-published-version-row": entry.versionId,
-                            "data-content-fingerprint": entry.contentFingerprint,
-                            "data-version-path": entry.versionId,
-                            "data-generation-id": entry.generationId || ""
-                        });
-                        row.appendChild(document.createTextNode(" "));
-                        row.appendChild(el("a", "Open", {
-                            href: "company-intelligence-lab.html?symbol=MSFT&generation=" +
-                                encodeURIComponent(pair.generationId) + "&version=" + encodeURIComponent(entry.versionId)
-                        }));
-                        host.appendChild(row);
-                    });
-                    host.appendChild(el("p", "Failed and dry-run candidates create no published history row.", { class: "muted" }));
-                    return;
-                }
                 host.setAttribute("data-version-id", version.versionId);
                 host.setAttribute("data-prior-version-id", version.priorVersionId === null ? "" : version.priorVersionId);
                 host.setAttribute("data-committed-version-count", String(history.versions.length));
+                host.setAttribute("data-outcome-authority", "transient-local-composition");
 
                 var refused = writePlan.contractVersion === "company-intel-error/v1";
                 var created = refused ? null : writePlan.operations.filter(function (operation) {
@@ -1754,6 +1717,46 @@
                 history.refusals.forEach(function (refusal) {
                     host.appendChild(el("p", refusal.code + ": " + refusal.message, { class: "refusal" }));
                 });
+
+                var publicVersion = publicVersionForCurrentTicker();
+                if (!publicVersion || !validPublicProjection(PUBLICATION)) return;
+                var pair = PUBLICATION.pair;
+                host.appendChild(el("h3", "Acknowledged publication lineage"));
+                host.appendChild(el("p", "Only immutable versions selected by the coupled manifest appear below. " +
+                    "They do not replace the transient local composition record above.",
+                { class: "muted", "data-publication-lineage-authority": "acknowledged" }));
+                appendPublicationIdentity(host, "Published company version", publicVersion.versionId);
+                appendPublicationIdentity(host, "Publication generation", publicVersion.generationId);
+                appendPublicationIdentity(host, "Published content fingerprint", publicVersion.contentFingerprint);
+                appendPublicationIdentity(host, "Published evidence cutoff", publicVersion.evidenceCutoff);
+                appendPublicationIdentity(host, "Published predecessor", publicVersion.priorVersionId || "First published version");
+                appendPublicationIdentity(host, "Published comparison", publicVersion.conclusionChange === "unchanged"
+                    ? "= Unchanged conclusion" : (publicVersion.conclusionChange === "changed" ? "Δ Changed conclusion" : "First published version"));
+                host.appendChild(el("a", "Open matching Market Action brief", {
+                    href: "market-brief.html?generation=" + encodeURIComponent(pair.generationId) + "#brief"
+                }));
+
+                PUBLICATION.versions.forEach(function (entry, index) {
+                    var entryGeneration = entry.generationId || "Pre-coupled history";
+                    var entryCutoff = entry.evidenceCutoff || entry.composedAt;
+                    var entryComparison = entry.conclusionChange === "unchanged" ? "Unchanged conclusion" :
+                        (entry.conclusionChange === "changed" ? "Changed conclusion" :
+                            (entry.conclusionChange === "first" ? "First published version" : "Historical record"));
+                    var row = el("p", (index === 0 ? "Current · " : "Prior · ") + entry.versionId +
+                        " · " + entryGeneration + " · " + entryCutoff + " · " + entryComparison, {
+                        "data-published-version-row": entry.versionId,
+                        "data-content-fingerprint": entry.contentFingerprint,
+                        "data-version-path": INTEL.versionPathsFor(entry.subjectId || pair.subjectId, entry.versionId).version,
+                        "data-generation-id": entry.generationId || ""
+                    });
+                    row.appendChild(document.createTextNode(" "));
+                    row.appendChild(el("a", "Open", {
+                        href: "company-intelligence-lab.html?symbol=MSFT&generation=" +
+                            encodeURIComponent(pair.generationId) + "&version=" + encodeURIComponent(entry.versionId)
+                    }));
+                    host.appendChild(row);
+                });
+                host.appendChild(el("p", "Failed and dry-run candidates create no published history row.", { class: "muted" }));
             }
 
             function render(result) {
@@ -1769,13 +1772,15 @@
                 var displayBundle = acknowledgedVersion
                     ? { reads: acknowledgedVersion.dimensionReads, refusals: acknowledgedVersion.refusals }
                     : bundle;
+                var localReadiness = version.coverageAccount.readiness;
+                var localEstablished = localReadiness !== "not-established";
                 /* Whether the account this paint is about to render was built against a corpus
                    that had answered. When it was not, the run has established no absence, so the
                    grammar the route reserves for a settled finding is withheld rather than
                    printed with numbers nothing has confirmed (BUG-018 FR-018-001, FR-018-002). */
                 var established = displayVersion.coverageAccount.readiness !== "not-established";
-                setText("subject-identity", displayVersion.subject.displayName + " (" + displayVersion.subject.ticker + ") resolved on " +
-                    displayVersion.subject.identityBasis + (displayVersion.subject.cik ? ", SEC identity " + displayVersion.subject.cik : ", no SEC identity") + ".");
+                setText("subject-identity", version.subject.displayName + " (" + version.subject.ticker + ") resolved on " +
+                    version.subject.identityBasis + (version.subject.cik ? ", SEC identity " + version.subject.cik : ", no SEC identity") + ".");
                 /* The readiness sentence is the user-visible surface FR-018-003 requires: a
                    reader who never opens a devtools inspector still learns that the account is
                    incomplete, and the wording disappears entirely once the corpus resolves. */
@@ -1792,22 +1797,27 @@
                     : displayVersion.contradictions.length + " horizon pairs disagree. Both readings stand.");
                 setText("cockpit-publication", result.published.contractVersion === "company-intel-error/v1"
                     ? "Local composition refused: " + result.published.code + "."
-                    : "Local composition · not published · shared-cache availability " + result.published.availability + ".");
-                renderCoverage(displayVersion);
-                renderDimensionValues("workspace-performance-values", displayBundle, ["performance", "technicals", "options-flow"]);
-                renderDimensionValues("workspace-fundamentals-body", displayBundle, ["fundamentals"]);
-                renderDimensionValues("workspace-geopolitics-body", displayBundle, ["geopolitics", "sentiment"]);
-                renderDimensionValues("workspace-regime-values", displayBundle, ["volatility", "market-regime", "options-structure", "dealer-gamma"]);
-                renderDimensionValues("workspace-cycles-values", displayBundle, ["cycles"]);
-                renderDimensionValues("workspace-valuation-body", displayBundle, ["valuation", "company-risk"]);
-                renderCharts(displayBundle);
-                renderEvents(displayVersion, result.catalysts);
-                renderContradictions(displayVersion);
-                renderPlan(displayVersion);
-                renderSources(displayVersion);
+                    : (localEstablished
+                        ? "company-intelligence-lab local composition · not published · shared-cache availability " +
+                            result.published.availability + "."
+                        : "company-intelligence-lab local composition · not published · waiting for the committed corpus."));
+                byId("local-composition-band").setAttribute("data-reading-readiness",
+                    localEstablished ? "established" : "not-established");
+                renderCoverage(version);
+                renderDimensionValues("workspace-performance-values", bundle, ["performance", "technicals", "options-flow"]);
+                renderDimensionValues("workspace-fundamentals-body", bundle, ["fundamentals"]);
+                renderDimensionValues("workspace-geopolitics-body", bundle, ["geopolitics", "sentiment"]);
+                renderDimensionValues("workspace-regime-values", bundle, ["volatility", "market-regime", "options-structure", "dealer-gamma"]);
+                renderDimensionValues("workspace-cycles-values", bundle, ["cycles"]);
+                renderDimensionValues("workspace-valuation-body", bundle, ["valuation", "company-risk"]);
+                renderCharts(bundle);
+                renderEvents(version, result.catalysts);
+                renderContradictions(version);
+                renderPlan(version);
+                renderSources(version);
                 renderOutcomeRecord(result);
                 enhanceTickers();
-                setBodyState("composed", displayVersion.coverageAccount.totals.unavailable, displayVersion.coverageAccount.readiness);
+                setBodyState("composed", version.coverageAccount.totals.unavailable, localReadiness);
             }
 
             function run() {
@@ -1989,6 +1999,10 @@
 
             function walkVersionChain(subjectId, versionId, collected, tree) {
                 if (!versionId || collected.length >= 20) {
+                    tree.versions = collected;
+                    return "loaded";
+                }
+                if (collected.some(function (record) { return record.versionId === versionId; })) {
                     tree.versions = collected;
                     return "loaded";
                 }

@@ -1655,7 +1655,7 @@
         }
         return { ok: true, value: horizonLadderOutput(input, computeHorizonLadderSummary(ownerState, paramMap(input))) };
       },
-      compareSensitivity: function (baselineInput, currentInput) {
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
         var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
         if (!ownerState) {
           return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
@@ -1695,6 +1695,8 @@
           ok: true,
           value: {
             contractVersion: "simple-sensitivity/v1",
+            sharedRandomness: sharedRandomness,
+            seedChanged: baselineInput.seed !== currentInput.seed,
             effects: effects
           }
         };

@@ -246,9 +246,18 @@ test('SCN-012-015 rldata.js paints the committed same-origin daily snapshot firs
   assert.ok(snapReturn < yahooDelta, 'the snapshot-first branch precedes the remote Yahoo delta (snapshot painted before delta)');
   // A successful same-origin snapshot load is NOT labelled live/yahoo.
   assert.equal(/putBars\(sym, interval, snap, "(live|yahoo)"/.test(ensureBars), false, 'the same-origin snapshot is never labelled live/yahoo');
-  // pagesBars is the same-origin daily-bar reader (data/bars/<SYM>.json), no proxy/CORS.
+  // pagesBars preserves the public rows-only contract by delegating to the same-origin snapshot
+  // owner. The delegated helper owns data/bars/<SYM>.json and must not acquire through a proxy.
   const pagesBars = extractFnSource(RLDATA_RAW, 'pagesBars');
-  assert.match(pagesBars, /data\/bars\//, 'pagesBars reads the committed same-origin daily-bar snapshot');
+  const pagesBarSnapshot = extractFnSource(RLDATA_RAW, 'pagesBarSnapshot');
+  assert.match(pagesBars, /pagesBarSnapshot\(\s*sym\s*\)/, 'pagesBars delegates to the same-origin snapshot owner');
+  assert.equal(/\bfetchT\s*\(|\bfetch\s*\(/.test(pagesBars), false, 'pagesBars does not bypass the delegated snapshot owner');
+  assert.match(pagesBarSnapshot, /fetchT\(\s*["']data\/bars\//, 'pagesBarSnapshot reads the committed same-origin daily-bar snapshot');
+  assert.equal(
+    /\b(?:proxied|providerFetch|proxyBaseUrl)\s*\(|corsproxy|allorigins|codetabs|query[12]\.finance\.yahoo\.com/.test(pagesBarSnapshot),
+    false,
+    'pagesBarSnapshot reads data/bars directly without a proxy or provider path'
+  );
 });
 
 /* ═══════════════════════ rldata.js ownership surface is intact (targeted zero-edit canary) ═══════════════════════ */

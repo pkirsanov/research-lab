@@ -1,0 +1,218 @@
+{
+  "version": 1,
+  "contractVersion": "test-plan/v1",
+  "specId": "030",
+  "featureDir": "specs/030-budget-aware-hybrid-brief-generation",
+  "featureName": "Budget-Aware Hybrid Brief Generation",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-09-03T03:10:56Z",
+  "planningStatus": "planned-not-executed",
+  "totalRows": 8,
+  "implementationAuthorization": {
+    "currentPacketAllows": [
+      "specs/030-budget-aware-hybrid-brief-generation/**"
+    ],
+    "sourceAndTestEditsAuthorizedNow": false,
+    "requiredImplementationPaths": [
+      "rlbriefroute.js",
+      "market-brief.config.json",
+      "scripts/brief-openai-compatible-adapter.mjs",
+      "scripts/brief-route-runtime.mjs",
+      "scripts/brief-shadow-generate.mjs",
+      "scripts/selftest.mjs",
+      "tests/brief-openai-compatible-adapter.functional.mjs",
+      "tests/brief-openai-compatible-adapter.local-canary.mjs"
+    ],
+    "instruction": "Before any source or test edit, validate a new actionable implementation packet whose work boundary contains every required implementation path."
+  },
+  "protectedPaths": [
+    "scripts/brief-author.mjs",
+    "scripts/brief-refresh.mjs",
+    "scripts/brief-narrative-parallel.mjs",
+    "scripts/brief-refresh-and-push.sh",
+    "scripts/brief-refresh-scheduled.sh",
+    "scripts/validate-brief-payload.mjs",
+    "market-brief.payload.json",
+    "brief-history.jsonl",
+    "briefs/current.json",
+    "package.json",
+    "package-lock.json",
+    ".npmrc"
+  ],
+  "scopes": [
+    {
+      "scope": 1,
+      "scopeId": "01-openai-compatible-shadow-author-adapter",
+      "scopeName": "OpenAI-compatible shadow author adapter",
+      "scopeKind": "contract-runtime",
+      "status": "not_started",
+      "dependsOn": [],
+      "foundation": true,
+      "tests": [
+        {
+          "id": "TP-01-01",
+          "type": "unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "scenarioIds": [
+            "SCN-030-001",
+            "SCN-030-002",
+            "SCN-030-003"
+          ],
+          "description": "Validate both shadow profiles, exact identities, finite policy limits, strict candidate and usage shapes, and static authority exclusions through pure production contracts.",
+          "testTitle": "Feature 030 shadow policy, transport-contract, authority, and receipt group validates both profiles and every pure fail-loud boundary",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "pathState": "existing-file-planned-new-group",
+          "dodId": "DOD-01-TP-01-01",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-01-02",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-001",
+          "scenarioIds": [
+            "SCN-030-001"
+          ],
+          "description": "Run the production CLI against an ephemeral real HTTP server and prove missing, unknown, and incomplete profile selection refuses before any request.",
+          "testTitle": "Regression: SCN-030-001 explicit profile resolves once or refuses before HTTP",
+          "command": "node --test --test-name-pattern \"Regression: SCN-030-001\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": true,
+          "pathState": "planned-missing-until-scope-01",
+          "dodId": "DOD-01-TP-01-02",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-01-03",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-002",
+          "scenarioIds": [
+            "SCN-030-002"
+          ],
+          "description": "Prove exact model discovery precedes one bounded non-streaming strict-JSON completion with cancellation, usage normalization, and no provider switch.",
+          "testTitle": "Regression: SCN-030-002 exact model preflight precedes one bounded strict JSON completion",
+          "command": "node --test --test-name-pattern \"Regression: SCN-030-002\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": true,
+          "pathState": "planned-missing-until-scope-01",
+          "dodId": "DOD-01-TP-01-03",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-01-04",
+          "type": "e2e-api",
+          "category": "integration",
+          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "scenarioId": "SCN-030-002",
+          "scenarioIds": [
+            "SCN-030-001",
+            "SCN-030-002"
+          ],
+          "description": "Call the actual explicitly configured OMLX endpoint, require exact model discovery, and validate a tiny strict-JSON candidate plus truthful token states.",
+          "testTitle": "Regression E2E: SCN-030-002 OMLX returns tiny strict JSON with truthful usage state",
+          "command": "BRIEF_SHADOW_PROFILE=omlx-openai-compatible-qwen38 node --test --test-name-pattern \"Regression E2E: SCN-030-002 OMLX\" tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "liveSystem": true,
+          "runtimeBindings": [
+            "BRIEF_OMLX_BASE_URL"
+          ],
+          "pathState": "planned-missing-until-scope-01",
+          "dodId": "DOD-01-TP-01-04",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-01-05",
+          "type": "e2e-api",
+          "category": "integration",
+          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "scenarioId": "SCN-030-002",
+          "scenarioIds": [
+            "SCN-030-001",
+            "SCN-030-002"
+          ],
+          "description": "Call the actual explicitly configured Ollama endpoint, require exact model discovery, and validate a tiny strict-JSON candidate plus truthful token states.",
+          "testTitle": "Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state",
+          "command": "BRIEF_SHADOW_PROFILE=ollama-openai-compatible node --test --test-name-pattern \"Regression E2E: SCN-030-002 Ollama\" tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "liveSystem": true,
+          "runtimeBindings": [
+            "BRIEF_OLLAMA_BASE_URL",
+            "BRIEF_OLLAMA_MODEL"
+          ],
+          "pathState": "planned-missing-until-scope-01",
+          "dodId": "DOD-01-TP-01-05",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-01-06",
+          "type": "stress",
+          "category": "stress",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-002",
+          "scenarioIds": [
+            "SCN-030-002"
+          ],
+          "description": "Exercise model-list and chat bytes, deadlines, zero retries, and one in-flight completion at the exact cap and at cap plus one.",
+          "testTitle": "Stress: SCN-030-002 finite byte deadline retry and concurrency limits refuse at cap plus one",
+          "command": "node --test --test-name-pattern \"Stress: SCN-030-002\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": true,
+          "pathState": "planned-missing-until-scope-01",
+          "dodId": "DOD-01-TP-01-06",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-01-07",
+          "type": "functional",
+          "category": "security",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-003",
+          "scenarioIds": [
+            "SCN-030-003"
+          ],
+          "description": "Snapshot protected files, publication artifacts, scheduler status, Git state, stdout, and stderr around shadow invocation and reject publication flags and secret sentinels.",
+          "testTitle": "Regression: SCN-030-003 shadow invocation preserves authority and excludes secret sentinels",
+          "command": "node --test --test-name-pattern \"Regression: SCN-030-003\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": true,
+          "pathState": "planned-missing-until-scope-01",
+          "dodId": "DOD-01-TP-01-07",
+          "status": "planned-not-executed"
+        },
+        {
+          "id": "TP-01-08",
+          "type": "contract-regression",
+          "category": "integration",
+          "file": "scripts/validate-brief-payload.mjs",
+          "scenarioId": "SCN-030-003",
+          "scenarioIds": [
+            "SCN-030-003"
+          ],
+          "description": "Validate the current committed public payload with the unchanged authority and no shadow-output dependency.",
+          "testTitle": "Current committed public payload remains valid and does not consume shadow output",
+          "command": "node scripts/validate-brief-payload.mjs",
+          "liveSystem": false,
+          "pathState": "existing-file-unchanged",
+          "dodId": "DOD-01-TP-01-08",
+          "status": "planned-not-executed"
+        }
+      ]
+    }
+  ],
+  "requiredAssertionDiscipline": {
+    "productionCodeOnly": true,
+    "noSelfValidatingFixtures": true,
+    "realProviderRows": [
+      "TP-01-04",
+      "TP-01-05"
+    ],
+    "loopbackRowsAreProviderEvidence": false,
+    "adversarialRows": [
+      "TP-01-02",
+      "TP-01-03",
+      "TP-01-06",
+      "TP-01-07"
+    ],
+    "oneDodItemPerRow": true,
+    "evidenceRecorded": false
+  }
+}

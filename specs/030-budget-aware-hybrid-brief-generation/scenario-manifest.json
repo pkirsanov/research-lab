@@ -1,0 +1,307 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/030-budget-aware-hybrid-brief-generation",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-09-03T03:10:56Z",
+  "stage": "scope-level-planning",
+  "stageNote": "Authored with the first approved implementation slice. Each scenario maps to exact Test Plan rows and one active scope. linkedTests and evidenceRefs stay empty because the new test bodies and execution evidence do not exist. This manifest records obligations, mechanisms, and implementation ownership without claiming execution.",
+  "scenarioCount": 3,
+  "scopeMapping": {
+    "01-openai-compatible-shadow-author-adapter": [
+      "SCN-030-001",
+      "SCN-030-002",
+      "SCN-030-003"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "SCN-030-001",
+      "scenarioId": "SCN-030-001",
+      "businessScenarios": [
+        "BS-030-006"
+      ],
+      "requirementRefs": [
+        "FR-030-005",
+        "FR-030-007",
+        "FR-030-008"
+      ],
+      "scopeId": "01-openai-compatible-shadow-author-adapter",
+      "scopeRef": "Scope 01",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Explicit shadow profile resolves once or refuses before transport",
+      "gherkin": {
+        "given": "the committed policy declares the two approved shadow profiles and their required runtime bindings",
+        "when": "an operator selects one profile for a frozen author request",
+        "then": "exactly that profile and model are frozen, while missing or unknown selection and invalid bindings refuse before any HTTP request"
+      },
+      "behaviorClass": "contract-runtime",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertions validate both committed profile records, exact provider and model identity, and deterministic one-profile resolution.",
+          "satisfiedBy": [
+            "TP-01-01"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertions prove missing, unknown, and incomplete profile selection refuses before the loopback server receives any request.",
+          "satisfiedBy": [
+            "TP-01-02"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production shadow CLI executes only the explicitly selected profile and consumes its required runtime endpoint and model bindings.",
+          "satisfiedBy": [
+            "TP-01-02",
+            "TP-01-04",
+            "TP-01-05"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-01-01",
+        "TP-01-02",
+        "TP-01-04",
+        "TP-01-05"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": [],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "rlbriefroute.js",
+          "scripts/brief-route-runtime.mjs",
+          "scripts/brief-shadow-generate.mjs",
+          "market-brief.config.json"
+        ],
+        "negativeControl": "Remove or corrupt the selected profile and require a named refusal with zero observed HTTP requests.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "rlbriefroute.js",
+        "scripts/brief-route-runtime.mjs",
+        "scripts/brief-shadow-generate.mjs",
+        "market-brief.config.json"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-030-002",
+      "scenarioId": "SCN-030-002",
+      "businessScenarios": [
+        "BS-030-002",
+        "BS-030-006"
+      ],
+      "requirementRefs": [
+        "FR-030-005",
+        "FR-030-008",
+        "FR-030-024",
+        "FR-030-026",
+        "NFR-030-004",
+        "NFR-030-005"
+      ],
+      "scopeId": "01-openai-compatible-shadow-author-adapter",
+      "scopeRef": "Scope 01",
+      "scope": 1,
+      "status": "not_started",
+      "title": "One bounded transport qualifies the exact model and returns strict JSON",
+      "gherkin": {
+        "given": "an explicitly selected profile has a valid runtime endpoint and exact configured model",
+        "when": "the shadow runtime performs preflight and authors the frozen request",
+        "then": "it confirms the model through /v1/models before one bounded /v1/chat/completions call and returns strict candidate JSON with a truthful normalized usage state"
+      },
+      "behaviorClass": "transport-runtime",
+      "changeType": "new",
+      "requiredTestType": "stress",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "api-contract",
+        "dependency-path",
+        "sla-sensitive",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "api-contract",
+          "requiredProof": "Actual OMLX and Ollama endpoint checks observe exact model discovery followed by one strict-JSON completion response.",
+          "satisfiedBy": [
+            "TP-01-04",
+            "TP-01-05"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Each provider canary reaches the explicitly configured external endpoint and validates model discovery, candidate JSON, and measured-or-unmeasured usage without fixture substitution.",
+          "satisfiedBy": [
+            "TP-01-04",
+            "TP-01-05"
+          ]
+        },
+        {
+          "trait": "sla-sensitive",
+          "requiredProof": "A stress assertion exercises every declared byte, deadline, retry, and in-flight limit at its exact cap and at cap plus one.",
+          "satisfiedBy": [
+            "TP-01-06"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "Both real provider checks execute the model and endpoint supplied by the selected profile's committed binding names and runtime environment.",
+          "satisfiedBy": [
+            "TP-01-04",
+            "TP-01-05"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-01-01",
+        "TP-01-03",
+        "TP-01-04",
+        "TP-01-05",
+        "TP-01-06"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": [],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "live-provider",
+        "assertionSurface": "http-response",
+        "dependencyPath": "external-live",
+        "productionOwners": [
+          "scripts/brief-openai-compatible-adapter.mjs",
+          "scripts/brief-route-runtime.mjs",
+          "scripts/brief-shadow-generate.mjs"
+        ],
+        "negativeControl": "Remove the exact model from the discovery response or exceed a finite limit and require refusal before completion or bounded cancellation with no alternate provider call.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "scripts/brief-openai-compatible-adapter.mjs",
+        "scripts/brief-route-runtime.mjs",
+        "scripts/brief-shadow-generate.mjs",
+        "market-brief.config.json"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-030-003",
+      "scenarioId": "SCN-030-003",
+      "businessScenarios": [
+        "BS-030-007",
+        "BS-030-008",
+        "BS-030-012"
+      ],
+      "requirementRefs": [
+        "FR-030-015",
+        "FR-030-028",
+        "FR-030-035",
+        "FR-030-036",
+        "FR-030-039",
+        "FR-030-040",
+        "NFR-030-004",
+        "NFR-030-005",
+        "NFR-030-006"
+      ],
+      "scopeId": "01-openai-compatible-shadow-author-adapter",
+      "scopeRef": "Scope 01",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Shadow authorship remains non-authoritative and powerless",
+      "gherkin": {
+        "given": "the current Copilot worker, scheduler, public payload, pointer, history, and Git state are authoritative",
+        "when": "the shadow CLI processes a frozen author request under either approved profile",
+        "then": "it writes nothing, exposes no secret-shaped value, offers no production action, and leaves every authoritative surface byte-identical"
+      },
+      "behaviorClass": "authority-runtime",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "degraded-state",
+        "runtime-config",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Publication-shaped options and unsafe or secret-shaped values produce named refusals with no tracked artifact or Git mutation.",
+          "satisfiedBy": [
+            "TP-01-07"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "A production shadow CLI invocation exercises the selected profile while snapshots prove production state does not change.",
+          "satisfiedBy": [
+            "TP-01-07"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Static owner and consumer assertions prove the protected production files are unchanged, have no shadow import, and retain the current payload validator.",
+          "satisfiedBy": [
+            "TP-01-01",
+            "TP-01-08"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-01-01",
+        "TP-01-07",
+        "TP-01-08"
+      ],
+      "linkedTests": [],
+      "evidenceRefs": [],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "scripts/brief-author.mjs",
+          "scripts/brief-shadow-generate.mjs",
+          "scripts/brief-narrative-parallel.mjs",
+          "scripts/brief-refresh-and-push.sh",
+          "scripts/brief-refresh-scheduled.sh"
+        ],
+        "negativeControl": "Supply a publication-shaped option or secret sentinel and require refusal or containment failure before any authoritative byte or Git state changes.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "scripts/brief-author.mjs",
+        "scripts/brief-shadow-generate.mjs",
+        "scripts/brief-narrative-parallel.mjs",
+        "scripts/brief-refresh-and-push.sh",
+        "scripts/brief-refresh-scheduled.sh",
+        "scripts/validate-brief-payload.mjs",
+        "market-brief.payload.json",
+        "brief-history.jsonl",
+        "briefs/current.json"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    }
+  ]
+}

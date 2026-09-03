@@ -116,25 +116,49 @@ const SECTION_ROLE = Object.freeze({
   NONE: 'none'
 });
 
-/* `--test` followed by a run of tokens that are each a flag or a repo test
-   path. The trailing guard keeps `--testMatch` and `--test-only` from matching,
-   and the one-or-more quantifier is what makes prose inert: the first token
-   after `--test` in a sentence is a word, so nothing is captured. */
-const NODE_TEST_INVOCATION =
-  /--test(?![A-Za-z0-9-])((?:[ \t]+(?:--[A-Za-z0-9][A-Za-z0-9=._/-]*|tests\/[A-Za-z0-9._*/-]*\.mjs))+)/g;
+/* Command candidates are tokenized after their Markdown presentation has been
+   removed. This keeps quoted option values separate from positional test
+   paths instead of asking one regular expression to infer shell arity. */
+const SHELL_ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;
+const TEST_PATH_ARGUMENT = /^tests\/[A-Za-z0-9._*?/-]*\.mjs$/;
+const RAW_TEST_PATH_ARGUMENT = /tests\/[A-Za-z0-9._*?/-]*\.mjs/g;
+const SHELL_CONTROL_TOKEN = new Set(['&&', '||', ';', '|']);
+const NODE_TEST_OPTIONS_WITH_VALUE = new Set([
+  '--test-concurrency',
+  '--test-isolation',
+  '--test-name-pattern',
+  '--test-only-pattern',
+  '--test-reporter',
+  '--test-reporter-destination',
+  '--test-rerun-failures',
+  '--test-shard',
+  '--test-timeout'
+]);
+const ENV_OPTIONS_WITH_VALUE = new Set(['-C', '--chdir', '-S', '--split-string', '-u', '--unset']);
+const TIMEOUT_OPTIONS_WITH_VALUE = new Set(['-k', '--kill-after', '-s', '--signal']);
 
-/* A repo-root-relative test path inside an already-isolated argument run. */
-const TEST_PATH_ARGUMENT = /tests\/[A-Za-z0-9._*/-]*\.mjs/g;
+/* Pre-existing Node/Playwright crossings are one shared shrink-only ratchet.
+   The production CLI and the committed boundary carrier consume these exact
+   values so baseline updates cannot bypass runner ownership validation. */
+export const KNOWN_DISCOVERY_CROSSINGS = Object.freeze([
+  'tests/causal-rotation-adversarial.spec.mjs',
+  'tests/causal-rotation-brief.spec.mjs',
+  'tests/causal-rotation-chaos.spec.mjs',
+  'tests/causal-rotation-consumers.spec.mjs',
+  'tests/causal-rotation-delivery.spec.mjs',
+  'tests/causal-rotation-lab.spec.mjs',
+  'tests/causal-rotation-pages.spec.mjs',
+  'tests/causal-rotation-registry.spec.mjs',
+  'tests/distributed-briefs.spec.mjs'
+]);
 
 /* Playwright's discovery matcher, in either the single-string or array form. */
 const PLAYWRIGHT_TEST_MATCH_ARRAY = /testMatch:\s*\[([^\]]*)\]/;
 const PLAYWRIGHT_TEST_MATCH_STRING = /testMatch:\s*(['"])([^'"]+)\1/;
 const QUOTED_STRING = /(['"])([^'"]+)\1/g;
 
-/* `import ... from 'node:test'`, `import 'node:test'`, and `import('node:test')`
-   all register the runner; any of them disqualifies a file from being treated
-   as a shared helper. */
-const NODE_TEST_IMPORT = /(?:from\s*|import\s*|require\s*\(\s*)(['"])node:test\1/;
+/* Static imports, dynamic imports, and require calls all register node:test. */
+const NODE_TEST_IMPORT = /(?:\bfrom\s*|\bimport\s*(?:\(\s*)?|\brequire\s*\(\s*)(['"])node:test\1/;
 
 /* Byte order, so the committed baseline sorts identically to `LC_ALL=C sort` on
    every platform. Test paths are ASCII by construction. */
@@ -186,6 +210,59 @@ export function globToRegExp(pattern) {
     }
   }
   return new RegExp('^' + source + '$');
+}
+
+export class RunnerDisjointnessRefusal extends Error {
+  constructor(details) {
+    const newSummary = details.newCrossings.length > 0
+      ? details.newCrossings.join(', ')
+      : 'none';
+    const staleSummary = details.staleCrossings.length > 0
+      ? details.staleCrossings.join(', ')
+      : 'none';
+    super(`runner disjointness refused: new crossings=${newSummary}; stale crossings=${staleSummary}`);
+    this.name = 'RunnerDisjointnessRefusal';
+    this.browserSelected = details.browserSelected;
+    this.crossings = details.crossings;
+    this.newCrossings = details.newCrossings;
+    this.nodeSelected = details.nodeSelected;
+    this.staleCrossings = details.staleCrossings;
+  }
+}
+
+export function runnerDisjointnessVerdict(globs, testFiles, knownCrossings = []) {
+  const { browserSelected, crossings, nodeSelected } = runnerSelectionDetails(globs, testFiles);
+  const crossingSet = new Set(crossings);
+  const knownSet = new Set(knownCrossings);
+  const newCrossings = crossings.filter((path) => !knownSet.has(path));
+  const staleCrossings = knownCrossings.filter((path) => !crossingSet.has(path));
+  const details = {
+    browserSelected,
+    crossings,
+    newCrossings,
+    nodeSelected,
+    staleCrossings,
+    status: 'pass'
+  };
+
+  if (newCrossings.length > 0 || staleCrossings.length > 0) {
+    throw new RunnerDisjointnessRefusal(details);
+  }
+  return details;
+}
+
+function runnerSelectionDetails(globs, testFiles) {
+  const selected = (kind) => {
+    const matchers = globs
+      .filter((glob) => glob.kind === kind)
+      .map((glob) => globToRegExp(glob.pattern));
+    return testFiles.filter((path) => matchers.some((matcher) => matcher.test(path)));
+  };
+  const browserSelected = selected('playwright-testMatch');
+  const nodeSelected = selected('node-test-argument');
+  const browserSet = new Set(browserSelected);
+  const crossings = nodeSelected.filter((path) => browserSet.has(path));
+  return { browserSelected, crossings, nodeSelected };
 }
 
 function listFilesRecursive(absDir, ignored) {
@@ -248,23 +325,267 @@ function markdownSectionRoles(lines) {
   return roles;
 }
 
+function commandCandidateFragments(line) {
+  const trimmed = line.trim();
+  if (trimmed === '') return [];
+
+  let fragments;
+  if (trimmed.startsWith('|')) {
+    const cells = trimmed.split('|').slice(1);
+    if (cells[cells.length - 1]?.trim() === '') cells.pop();
+    fragments = cells.map((text) => ({
+      presentation: 'table-cell',
+      text
+    }));
+  } else {
+    const labelled = /^(?:\*\*)?(?:command|executed):(?:\*\*)?[ \t]*(.*)$/i.exec(trimmed);
+    const listed = /^(?:[-+*]|\d+[.)])[ \t]+(.*)$/.exec(trimmed);
+    fragments = [{
+      presentation: labelled ? 'command-label' : listed ? 'markdown-list' : 'direct',
+      text: labelled ? labelled[1] : listed ? listed[1] : trimmed
+    }];
+  }
+
+  return fragments.flatMap(({ presentation, text }) => {
+    const presented = text.trim();
+    const codeSpans = [];
+    let scanFrom = 0;
+    while (scanFrom < presented.length) {
+      const openingIndex = presented.indexOf('`', scanFrom);
+      if (openingIndex < 0) break;
+      let openingEnd = openingIndex;
+      while (presented[openingEnd] === '`') openingEnd++;
+      const delimiter = presented.slice(openingIndex, openingEnd);
+      const closingIndex = presented.indexOf(delimiter, openingEnd);
+      if (closingIndex < 0) break;
+      codeSpans.push(presented.slice(openingEnd, closingIndex).trim());
+      scanFrom = closingIndex + delimiter.length;
+    }
+
+    const codeSpansAreCommands = presentation === 'table-cell'
+      || presentation === 'command-label'
+      || (presentation === 'direct' && presented.startsWith('`'));
+    const commands = codeSpans.length > 0 && codeSpansAreCommands
+      ? codeSpans
+      : [presented];
+    return commands.map((rawCommand) => {
+      let command = rawCommand;
+      command = command.replace(/^\$[ \t]+/, '');
+      return { presentation, text: command };
+    }).filter(({ text: command }) => command !== '');
+  });
+}
+
+export function parseNodeTestCommandCandidates(line) {
+  const candidates = [];
+  for (const fragment of commandCandidateFragments(line)) {
+    const parsed = parseNodeTestTokens(fragment.text);
+    if (!parsed) continue;
+    candidates.push({
+      command: fragment.text,
+      parseError: parsed.issues.length > 0 ? 'malformed-node-test-command' : null,
+      parseIssues: parsed.issues,
+      patterns: parsed.testArguments.filter((path) => path.includes('*') || path.includes('?')),
+      presentation: fragment.presentation,
+      testArguments: parsed.testArguments
+    });
+  }
+  return candidates;
+}
+
+export function parseNodeTestCommandCandidate(line) {
+  return parseNodeTestCommandCandidates(line)[0] ?? null;
+}
+
 function nodePatterns(text) {
-  const patterns = [];
-  NODE_TEST_INVOCATION.lastIndex = 0;
-  let invocation;
-  while ((invocation = NODE_TEST_INVOCATION.exec(text)) !== null) {
-    TEST_PATH_ARGUMENT.lastIndex = 0;
-    let argument;
-    while ((argument = TEST_PATH_ARGUMENT.exec(invocation[1])) !== null) {
-      if (argument[0].includes('*')) patterns.push(argument[0]);
+  return parseNodeTestCommandCandidates(text).flatMap((candidate) => candidate.patterns);
+}
+
+function structuredLineNodePatterns(line) {
+  const direct = nodePatterns(line);
+  if (direct.length > 0) return direct;
+
+  const objectValue = /^\s*"[^"]+"\s*:\s*("(?:\\.|[^"\\])*")/.exec(line);
+  const arrayValue = /^\s*("(?:\\.|[^"\\])*")\s*,?\s*$/.exec(line);
+  const encoded = objectValue?.[1] ?? arrayValue?.[1];
+  if (!encoded) return [];
+  try {
+    const value = JSON.parse(encoded);
+    return typeof value === 'string' ? nodePatterns(value) : [];
+  } catch {
+    return [];
+  }
+}
+
+function tokenizeShellCommand(command) {
+  const tokens = [];
+  let value = '';
+  let quote = null;
+  let quoted = false;
+  let started = false;
+
+  const finish = () => {
+    if (!started) return;
+    tokens.push({ quoted, value });
+    value = '';
+    quoted = false;
+    started = false;
+  };
+
+  for (let index = 0; index < command.length; index++) {
+    const character = command[index];
+    if (quote !== null) {
+      if (character === quote) {
+        quote = null;
+        continue;
+      }
+      if (character === '\\' && quote === '"') {
+        index++;
+        if (index >= command.length) return { error: 'unterminated-shell-escape', tokens };
+        value += command[index];
+        continue;
+      }
+      value += character;
+      continue;
+    }
+    if (character === "'" || character === '"') {
+      quote = character;
+      quoted = true;
+      started = true;
+      continue;
+    }
+    if (character === '\\') {
+      index++;
+      if (index >= command.length) return { error: 'unterminated-shell-escape', tokens };
+      value += command[index];
+      started = true;
+      continue;
+    }
+    if (/\s/.test(character)) {
+      finish();
+      continue;
+    }
+    value += character;
+    started = true;
+  }
+  if (quote !== null) return { error: 'unterminated-shell-quote', tokens };
+  finish();
+  return { error: null, tokens };
+}
+
+function consumeOption(tokens, index, optionsWithValue, issues) {
+  const option = tokens[index].value;
+  if (option.includes('=')) return index + 1;
+  const next = tokens[index + 1];
+  if (optionsWithValue.has(option)) {
+    if (!next || next.value.startsWith('-') || SHELL_CONTROL_TOKEN.has(next.value)) {
+      issues.push(`missing-value:${option}`);
+      return index + 1;
+    }
+    return index + 2;
+  }
+  return index + 1;
+}
+
+function commandTokenIndex(tokens) {
+  let index = 0;
+  if (tokens[index]?.value === 'env' || tokens[index]?.value === '/usr/bin/env') {
+    index++;
+    while (index < tokens.length) {
+      const token = tokens[index].value;
+      if (token === '--') { index++; break; }
+      if (SHELL_ASSIGNMENT.test(token)) { index++; continue; }
+      if (!token.startsWith('-')) break;
+      const issues = [];
+      index = consumeOption(tokens, index, ENV_OPTIONS_WITH_VALUE, issues);
+      if (issues.length > 0) return null;
     }
   }
-  return patterns;
+
+  const wrapper = tokens[index]?.value;
+  if (/^(?:timeout|gtimeout|\/usr\/bin\/(?:g?timeout)|\/opt\/homebrew\/bin\/(?:g?timeout))$/.test(wrapper ?? '')) {
+    index++;
+    while (tokens[index]?.value.startsWith('-')) {
+      const issues = [];
+      index = consumeOption(tokens, index, TIMEOUT_OPTIONS_WITH_VALUE, issues);
+      if (issues.length > 0) return null;
+    }
+    if (!/^[0-9]+(?:\.[0-9]+)?[smhd]?$/.test(tokens[index]?.value ?? '')) return null;
+    index++;
+  } else if (wrapper === '/usr/bin/perl') {
+    const script = tokens[index + 2]?.value ?? '';
+    if (
+      tokens[index + 1]?.value !== '-e'
+      || !/^alarm shift @ARGV; exec @ARGV(?: or die .+)?$/.test(script)
+      || !/^[0-9]+(?:\.[0-9]+)?$/.test(tokens[index + 3]?.value ?? '')
+    ) return null;
+    index += 4;
+  }
+  return index;
+}
+
+function parseNodeTestTokens(command) {
+  const tokenized = tokenizeShellCommand(command);
+  const { tokens } = tokenized;
+  let index = commandTokenIndex(tokens);
+  if (index === null) return null;
+  if (tokens[index]?.value !== 'node' && tokens[index]?.value !== '/usr/bin/node') return null;
+  index++;
+  if (tokens[index]?.value !== '--test') return null;
+  index++;
+
+  if (tokenized.error) {
+    const testArguments = command.match(RAW_TEST_PATH_ARGUMENT) ?? [];
+    return { issues: [tokenized.error], testArguments };
+  }
+
+  const issues = [];
+  const testArguments = [];
+  let positionalOnly = false;
+  let commandSubstitutionDepth = 0;
+  while (index < tokens.length) {
+    const token = tokens[index];
+    const substitutionOpens = token.value.match(/\$\(/g)?.length ?? 0;
+    const substitutionCloses = token.value.match(/\)/g)?.length ?? 0;
+    if (substitutionOpens > 0 || commandSubstitutionDepth > 0) {
+      commandSubstitutionDepth += substitutionOpens;
+      const nestedArgument = token.value.replace(/^\$\([^ ]*/, '').replace(/\)+$/, '');
+      if (TEST_PATH_ARGUMENT.test(nestedArgument)) testArguments.push(nestedArgument);
+      commandSubstitutionDepth -= substitutionCloses;
+      if (commandSubstitutionDepth < 0) {
+        issues.push('unbalanced-command-substitution');
+        commandSubstitutionDepth = 0;
+      }
+      index++;
+      continue;
+    }
+    if (SHELL_CONTROL_TOKEN.has(token.value)) break;
+    if (!positionalOnly && token.value === '--') {
+      positionalOnly = true;
+      index++;
+      continue;
+    }
+    if (!positionalOnly && token.value.startsWith('--')) {
+      index = consumeOption(tokens, index, NODE_TEST_OPTIONS_WITH_VALUE, issues);
+      continue;
+    }
+    if (TEST_PATH_ARGUMENT.test(token.value)) {
+      testArguments.push(token.value);
+    } else {
+      issues.push(`unsupported-argument:${token.value}`);
+    }
+    index++;
+  }
+  if (commandSubstitutionDepth !== 0) issues.push('unterminated-command-substitution');
+  return { issues, testArguments };
 }
 
 function candidateClassification(artifactRoleValue, sectionRole) {
   if (artifactRoleValue === ARTIFACT_ROLE.HISTORICAL_REPORT) {
     return { authority: 'historical', reason: 'historical-report-receipt' };
+  }
+  if (artifactRoleValue === ARTIFACT_ROLE.ACTIVE_PLAN && sectionRole === SECTION_ROLE.EVIDENCE) {
+    return { authority: 'historical', reason: 'historical-scope-evidence' };
   }
   if (
     artifactRoleValue === ARTIFACT_ROLE.COMMAND_REGISTRY
@@ -284,12 +605,6 @@ function candidateClassification(artifactRoleValue, sectionRole) {
   return { authority: 'error', reason: 'unrecognized-authority-section' };
 }
 
-function lineCanContainCandidate(line, artifactRoleValue, sectionRole) {
-  if (artifactRoleValue === ARTIFACT_ROLE.HISTORICAL_REPORT) return true;
-  if (candidateClassification(artifactRoleValue, sectionRole).authority === 'active') return true;
-  return /^\s*(?:\$\s+)?node\s+--test\b/.test(line);
-}
-
 function structuredTestCommands(parsed) {
   if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.scopes)) return null;
   const commands = [];
@@ -307,7 +622,7 @@ function structuredTestCommands(parsed) {
 /* Every verification glob the repository declares, each carrying the artifact
    and line that declares it. */
 export function collectDeclaredTestGlobs(root = ROOT) {
-  const byPattern = new Map();
+  const byIdentity = new Map();
   const historicalSites = [];
   const classificationErrors = [];
   const record = (site) => {
@@ -320,8 +635,9 @@ export function collectDeclaredTestGlobs(root = ROOT) {
       return;
     }
     const { pattern, kind } = site;
-    if (!byPattern.has(pattern)) byPattern.set(pattern, { pattern, kind, sites: [] });
-    byPattern.get(pattern).sites.push(site);
+    const identity = declarationIdentity(kind, pattern);
+    if (!byIdentity.has(identity)) byIdentity.set(identity, { pattern, kind, sites: [] });
+    byIdentity.get(identity).sites.push(site);
   };
 
   const configAbs = resolve(root, PLAYWRIGHT_CONFIG_REL);
@@ -372,7 +688,7 @@ export function collectDeclaredTestGlobs(root = ROOT) {
     if (artifactRoleValue === ARTIFACT_ROLE.STRUCTURED_TEST_PLAN) {
       const rawCandidates = [];
       for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-        for (const pattern of nodePatterns(lines[lineIndex])) {
+        for (const pattern of structuredLineNodePatterns(lines[lineIndex])) {
           rawCandidates.push({ pattern, line: lineIndex + 1 });
         }
       }
@@ -402,19 +718,34 @@ export function collectDeclaredTestGlobs(root = ROOT) {
           ? 1
           : text.slice(0, commandOffset + 1).split(/\r?\n/).length;
         if (commandOffset >= 0) searchFrom = commandOffset + commandNeedle.length;
-        for (const pattern of nodePatterns(command)) {
-          const candidateKey = `${line}\0${pattern}`;
-          recognizedCandidates.set(candidateKey, (recognizedCandidates.get(candidateKey) ?? 0) + 1);
-          record({
-            pattern,
-            kind: 'node-test-argument',
-            artifact,
-            line,
-            artifactRole: artifactRoleValue,
-            sectionRole: SECTION_ROLE.TEST_PLAN,
-            authority: 'active',
-            reason: 'structured-test-plan'
-          });
+        for (const parsedCommand of parseNodeTestCommandCandidates(command)) {
+          for (const pattern of parsedCommand.patterns) {
+            const candidateKey = `${line}\0${pattern}`;
+            recognizedCandidates.set(candidateKey, (recognizedCandidates.get(candidateKey) ?? 0) + 1);
+            if (parsedCommand.parseError) {
+              record({
+                pattern,
+                kind: 'node-test-argument',
+                artifact,
+                line,
+                artifactRole: artifactRoleValue,
+                sectionRole: SECTION_ROLE.TEST_PLAN,
+                authority: 'error',
+                reason: parsedCommand.parseError
+              });
+              continue;
+            }
+            record({
+              pattern,
+              kind: 'node-test-argument',
+              artifact,
+              line,
+              artifactRole: artifactRoleValue,
+              sectionRole: SECTION_ROLE.TEST_PLAN,
+              authority: 'active',
+              reason: 'structured-test-plan'
+            });
+          }
         }
       }
       for (const candidate of rawCandidates) {
@@ -442,23 +773,41 @@ export function collectDeclaredTestGlobs(root = ROOT) {
       : new Array(lines.length).fill(SECTION_ROLE.NONE);
     for (let i = 0; i < lines.length; i++) {
       const sectionRole = sectionRoles[i];
-      if (!lineCanContainCandidate(lines[i], artifactRoleValue, sectionRole)) continue;
-      const classification = candidateClassification(artifactRoleValue, sectionRole);
-      for (const pattern of nodePatterns(lines[i])) {
-        record({
-          pattern,
-          kind: 'node-test-argument',
-          artifact,
-          line: i + 1,
-          artifactRole: artifactRoleValue,
-          sectionRole,
-          ...classification
-        });
+      for (const candidate of parseNodeTestCommandCandidates(lines[i])) {
+        if (candidate.parseError) {
+          for (const pattern of candidate.patterns) {
+            record({
+              pattern,
+              kind: 'node-test-argument',
+              artifact,
+              line: i + 1,
+              artifactRole: artifactRoleValue,
+              sectionRole,
+              authority: 'error',
+              reason: candidate.parseError
+            });
+          }
+          continue;
+        }
+        const classification = candidateClassification(artifactRoleValue, sectionRole);
+        for (const pattern of candidate.patterns) {
+          record({
+            pattern,
+            kind: 'node-test-argument',
+            artifact,
+            line: i + 1,
+            artifactRole: artifactRoleValue,
+            sectionRole,
+            ...classification
+          });
+        }
       }
     }
   }
 
-  const globs = [...byPattern.values()].sort((a, b) => byteOrder(a.pattern, b.pattern));
+  const globs = [...byIdentity.values()].sort((a, b) => (
+    byteOrder(a.pattern, b.pattern) || byteOrder(a.kind, b.kind)
+  ));
   historicalSites.sort((left, right) => (
     byteOrder(left.artifact, right.artifact) || left.line - right.line || byteOrder(left.pattern, right.pattern)
   ));
@@ -466,6 +815,10 @@ export function collectDeclaredTestGlobs(root = ROOT) {
     byteOrder(left.artifact, right.artifact) || left.line - right.line || byteOrder(left.pattern, right.pattern)
   ));
   return { classificationErrors, globs, historicalSites, playwrightMatchers, scannedFiles };
+}
+
+export function declarationIdentity(kind, pattern) {
+  return `${kind}\0${pattern}`;
 }
 
 export function readBaseline(absBaselineFile) {
@@ -520,6 +873,8 @@ export function validateTestFileReachability(root = ROOT, options = {}) {
   } = collectDeclaredTestGlobs(root);
   const compiled = globs.map((glob) => ({ ...glob, matcher: globToRegExp(glob.pattern) }));
   const nodeGlobCount = globs.filter((glob) => glob.kind === 'node-test-argument').length;
+  const runnerOwnership = runnerSelectionDetails(globs, testFiles);
+  const knownCrossings = resolve(root) === ROOT ? KNOWN_DISCOVERY_CROSSINGS : [];
 
   const reachable = [];
   const orphans = [];
@@ -549,14 +904,17 @@ export function validateTestFileReachability(root = ROOT, options = {}) {
     globCount: globs.length,
     globs,
     historicalSites,
+    knownCrossings,
     knownOrphans,
     newOrphans,
     nodeGlobCount,
     orphans: orphans.slice().sort(byteOrder),
     playwrightMatchers,
     reachable,
+    runnerOwnership,
     scannedFiles,
     staleBaseline,
+    testFiles,
     testFileCount: testFiles.length,
     testsDir,
     vacuous: playwrightMatchers === 0 || nodeGlobCount === 0 || testFiles.length === 0 || scannedFiles === 0
@@ -669,33 +1027,75 @@ function suffixSummary(result) {
     .map(([suffix, count]) => `${String(count).padStart(4)} | ${suffix}`);
 }
 
-function main(argv) {
-  let root = ROOT;
+export class ReachabilityUsageError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ReachabilityUsageError';
+  }
+}
+
+export function parseReachabilityArguments(argv, options = {}) {
+  const cwd = options.cwd ?? process.cwd();
+  let root = options.defaultRoot ?? ROOT;
   let update = false;
   let allSites = false;
+  let help = false;
+
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === '--update-baseline') update = true;
-    else if (arg === '--all-sites') allSites = true;
-    else if (arg === '--root') { root = resolve(argv[++i] ?? ''); }
-    else if (arg === '--help' || arg === '-h') { usage(); return 0; }
-    else { console.error(`unknown argument: ${arg}`); usage(console.error); return 2; }
+    if (arg === '--update-baseline') {
+      update = true;
+    } else if (arg === '--all-sites') {
+      allSites = true;
+    } else if (arg === '--root') {
+      const operand = argv[i + 1];
+      if (typeof operand !== 'string' || operand.trim() === '' || operand.startsWith('-')) {
+        throw new ReachabilityUsageError('--root requires a non-option directory operand');
+      }
+      root = resolve(cwd, operand);
+      i++;
+    } else if (arg === '--help' || arg === '-h') {
+      help = true;
+    } else {
+      throw new ReachabilityUsageError(`unknown argument: ${arg}`);
+    }
   }
+
+  return { allSites, help, root, update };
+}
+
+function main(argv) {
+  let parsed;
+  try {
+    parsed = parseReachabilityArguments(argv);
+  } catch (error) {
+    if (!(error instanceof ReachabilityUsageError)) throw error;
+    console.error(error.message);
+    usage(console.error);
+    return 2;
+  }
+  const { allSites, help, root, update } = parsed;
+  if (help) { usage(); return 0; }
 
   const result = validateTestFileReachability(root, { allSites });
   for (const line of formatTestFileReachabilityFindings(result, 0)) console.log(line);
 
   if (result.classificationErrors.length > 0) return 1;
-  if (update) {
-    console.log(`baseline written: ${writeBaseline(root, result)}`);
-    return 0;
-  }
   if (result.vacuous) {
     console.error('vacuous scan: missing active Playwright or Node globs, test files, or scanned artifacts');
     return 1;
   }
   if (!result.baselinePresent) return 1;
-  return result.newOrphans.length > 0 ? 1 : 0;
+  if (result.newOrphans.length > 0) return 1;
+  try {
+    runnerDisjointnessVerdict(result.globs, result.testFiles, result.knownCrossings);
+  } catch (error) {
+    if (!(error instanceof RunnerDisjointnessRefusal)) throw error;
+    console.error(`${error.name}: ${error.message}`);
+    return 1;
+  }
+  if (update) console.log(`baseline written: ${writeBaseline(root, result)}`);
+  return 0;
 }
 
 if (resolve(process.argv[1] ?? '') === SCRIPT_PATH) process.exit(main(process.argv.slice(2)));

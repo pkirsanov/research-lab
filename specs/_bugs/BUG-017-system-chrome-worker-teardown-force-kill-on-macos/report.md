@@ -3692,4 +3692,360 @@ certification, or human acceptance.
 
 <!-- bubbles:certifying-window-begin -->
 
+## Simplify Phase Convergence Iteration 4 — BUG-017 Ratio And Containment Review {#simplify-phase-convergence-iteration-4-bug017}
+
+**Phase:** simplify
+**Claim Source:** interpreted
+**Interpretation:** The review found one dead internal return value in the ratio helper. Removing
+that return changes no validation branch, message, exit code, threshold, child-process lifecycle,
+or temporary-record lifecycle. The complete functional carrier and both deterministic controls
+executed against the resulting tree.
+**Executed At:** 2026-08-29T08:02:53Z
+**Outcome:** `route_required`
+
+### Review And Change
+
+The reuse pass confirmed that `evaluateWallTimeRatio()` remains the single predicate for live and
+deterministic inputs. The quality pass removed the unused object returned by
+`loadValidatedConfiguration()`. The efficiency pass found no safe change in the live child-process,
+signal, or cleanup paths. Those paths remain explicit because they preserve owned-process teardown
+and external temporary-record cleanup.
+
+The combined simplify batch changes two implementation files in one Playwright validation family:
+
+- `scripts/validate-playwright-cost-ratio.mjs` removes one unused return statement.
+- `tests/playwright-runtime.foundation.functional.mjs` reuses its existing root declaration cache
+  for two BUG-022 assertions. Fixture-root calls still execute independently.
+
+`playwright.config.mjs`, `.specify/memory/agents.md`, the 3.0 maximum, the one-worker fallback,
+`system-chrome`, `channel: chrome`, the 300000ms stop budget, exact failure messages, rejected
+lifecycle history, and external-fixture provenance remain unchanged. This phase adds no scenario
+receipt. SCN-BUG017-11 remains owned by `bubbles.test` at the final stable revision.
+
+### Deterministic Ratio Controls
+
+**Command:** `node scripts/validate-playwright-cost-ratio.mjs --control at-bound`; then
+`node scripts/validate-playwright-cost-ratio.mjs --control over-bound` inside a wrapper that accepts
+only exit sequence `0,1` and zero owned temporary residue
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+BUG017_SIMPLIFY_RATIO_CONTROLS_BEGIN
+SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3000 bundledChromiumWallMs=1000
+SCN-BUG017-06: wall-time ratio 3.000 meets FR-017-004 maximum 3.000
+AT_BOUND_EXIT=0
+SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3001 bundledChromiumWallMs=1000
+SCN-BUG017-06: wall-time ratio 3.001 exceeds FR-017-004 maximum 3.000
+OVER_BOUND_EXIT=1
+OWNED_TEMP_RESIDUE=0
+EXPECTED_AT_BOUND_EXIT=0
+EXPECTED_OVER_BOUND_EXIT=1
+EXPECTED_OWNED_TEMP_RESIDUE=0
+BUG017_SIMPLIFY_RATIO_CONTROLS_PASS
+BUG017_SIMPLIFY_RATIO_CONTROLS_END
+```
+
+### Final Functional Carrier
+
+**Command:** `node --test tests/playwright-runtime.foundation.functional.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+# simplify final runtime-foundation functional carrier
+$ node --test tests/playwright-runtime.foundation.functional.mjs
+exit: 0
+lines: 59
+sha256: c470fc6a9d76ff96c67e0af860b6a3486164603ac689d15b5186778029d8d370
+--- first 20 ---
+[playwright-runtime] package=node_modules/playwright
+[playwright-runtime] cli=node_modules/playwright/cli.js
+[playwright-runtime] version=1.61.1
+[playwright-runtime] browserChannel=chrome
+[playwright-runtime] apiIdentity=PASS
+[playwright-runtime] outside=sibling-repo exit=1 borrowed=false
+[playwright-runtime] outside=global-prefix exit=1 borrowed=false
+[playwright-runtime] outside=npm-cache-hash exit=1 borrowed=false
+[playwright-runtime] browserExecutableFallback=ABSENT
+[playwright-runtime] externalPackageFallback=ABSENT
+[playwright-runtime] committedBrowserConfigs=playwright.config.mjs
+[playwright-runtime] testMatch=**/*.spec.mjs
+[playwright-runtime] discoveredSpecs=79
+[playwright-runtime] sharedImporters=79
+[playwright-runtime] absoluteOverrides=0
+[playwright-runtime] matcher=**/*.spec.mjs
+[playwright-runtime] browserSelected=79
+[playwright-runtime] nodeGlobSelected=115
+[playwright-runtime] directNodeSuites=10
+[playwright-runtime] frozenCrossings=9
+--- omitted 19 line(s); sha256 above covers the full output ---
+--- last 20 ---
+✔ committed discovery boundary keeps browser specs and direct Node suites disjoint (2.942458ms)
+✔ Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs (1.14175ms)
+✔ Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative (1.0905ms)
+✔ Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority (1.5925ms)
+✔ Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance (34.740917ms)
+✔ Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth (1.877959ms)
+✔ Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority (0.456791ms)
+✔ Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence (0.656292ms)
+✔ Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison (69.656375ms)
+✔ Regression: SCN-BUG017-07 disclosure names its platform project symptom and intermittence (0.339417ms)
+✔ Regression: SCN-BUG017-08 disclosure cannot replace the system-chrome worker pin (0.094875ms)
+✔ Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity (0.391542ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 16
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 935.721917
+```
+
+### Packet And Containment Checks
+
+| Check | Exit | Current signal |
+| --- | ---: | --- |
+| `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos` | 0 | Artifact lint passed; 40 lines; SHA-256 `182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567` |
+| `node scripts/validate-scope-dod-progress.mjs` | 0 | 63 packets, 86 claims, 72 agreements, 14 frozen drifts, zero new or stale drift |
+| Targeted `git diff --check` | 0 | The six simplify implementation and artifact paths contain no whitespace error |
+| Unedited-surface comparison | 0 | `playwright.config.mjs`, `scripts/validate-test-file-reachability.mjs`, and `.specify/memory/agents.md` have no live-tree delta |
+| Protected Feature 008 report comparison | 0 | The historical report has no live-tree delta |
+
+The phase changes no packet status, certification field, scope status, acceptance value, scenario
+state, historical evidence identity, browser command, or test assertion. Status and certification
+remain `in_progress`. The next workflow phase owner is `bubbles.gaps`.
+
+## Post-Hardening Regression Phase — Convergence Iteration 4 {#post-hardening-regression-phase-convergence-iteration-4-bug017}
+
+**Phase:** regression
+**Claim Source:** executed
+**Executed At:** 2026-08-29T10:17:00Z
+**Outcome:** `completed_diagnostic`
+**Verdict:** `REGRESSION_FREE`
+
+This regression epoch used detached HEAD `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`.
+It overlaid exactly twelve authorized current paths from BUG-017 and BUG-022.
+The overlay excluded every market-brief, tool-brief, probe, BUG-019, and company-intelligence path.
+
+The current ratio helper has Git object `1fac6a8b7a783fd2c416c9449658296045a12611`.
+That object differs from its prior live-proof object because simplify removed one unused return.
+The phase therefore executed a new real dual-project comparison instead of reusing the prior proof.
+
+### Current Ratio Controls And Live Comparison
+
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node scripts/validate-playwright-cost-ratio.mjs --control at-bound`, followed by the identical `over-bound` form
+**Exit Code:** 0 for the enclosing contract
+**Claim Source:** executed
+
+```text
+BUG017_RATIO_CONTROLS_BEGIN
+OWNED_TEMP_BEFORE=0
+SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3000 bundledChromiumWallMs=1000
+SCN-BUG017-06: wall-time ratio 3.000 meets FR-017-004 maximum 3.000
+AT_BOUND_EXIT=0
+SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3001 bundledChromiumWallMs=1000
+SCN-BUG017-06: wall-time ratio 3.001 exceeds FR-017-004 maximum 3.000
+OVER_BOUND_EXIT=1
+OWNED_TEMP_AFTER=0
+OWNED_TEMP_DELTA=0
+RATIO_CONTROL_WRAPPER_EXIT=0
+BUG017_RATIO_CONTROLS_END
+```
+
+**Command:** `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live`
+**Exit Code:** 0
+**Claim Source:** executed
+**Complete-capture SHA-256:** `da7eb5041845885a1c1500478485cc4ae3906b3258d37c76ae7b511196ad9ccc`
+
+```text
+# BUG-017 regression R4 current-source live dual-project ratio
+exit: 0
+lines: 239
+sha256: da7eb5041845885a1c1500478485cc4ae3906b3258d37c76ae7b511196ad9ccc
+SCN-BUG017-06: live workload files=22 configuredWorkers=1
+SCN-BUG017-06: live project=chromium files=22 start
+111 passed (1.6m)
+SCN-BUG017-06: live project=chromium exit=0 signal=none wallMs=96307.648
+SCN-BUG017-06: live project=system-chrome files=22 start
+111 passed (1.8m)
+SCN-BUG017-06: live project=system-chrome exit=0 signal=none wallMs=107152.022
+SCN-BUG017-06: observed runtime input systemChromeWallMs=107152.022 bundledChromiumWallMs=96307.648
+SCN-BUG017-06: wall-time ratio 1.113 meets FR-017-004 maximum 3.000
+BUG017_LIVE_OWNED_TEMP_RESIDUE=0
+BUG017_LIVE_CLEANUP=PASS
+```
+
+### Current One-Worker Feature 008 Consumer
+
+**Command:** `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`, executed by an external process-ownership probe
+**Exit Code:** 0
+**Claim Source:** executed
+**Complete-capture SHA-256:** `9c931f0f328b1424e88ed75715e78f4fdbe6d5e93871e0b2e0feff018883db90`
+
+```text
+# BUG-017 BUG-022 regression R4 exact 94-test one-worker C03 with process proof
+exit: 0
+lines: 313
+sha256: 9c931f0f328b1424e88ed75715e78f4fdbe6d5e93871e0b2e0feff018883db90
+BUG017_BUG022_R4_C03_PROCESS_PROOF_BEGIN
+EXACT_COMMAND=npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+PROCESS_BEFORE rootCwd=0 remoteDebugChrome=0
+Running 94 tests using 1 worker
+94 passed (1.5m)
+PLAYWRIGHT_EXIT=0 WALL_SECONDS=89
+RUN_SIGNALS resolvedOne=1 passed94=1 forceKillMarkers=0 ignoredLifecycleMarkers=0
+PROCESS_AFTER rootCwd=0 remoteDebugChrome=0 rootDelta=0 remoteDebugDelta=0
+OUTPUT_CLEANUP before=1 after=0
+RUN_RECEIPT accepted=1 tests=94 passed=94 failed=0 skipped=0 todo=0 ownedProcessDelta=0 remoteDebugDelta=0
+PROBE_EXIT=0
+BUG017_BUG022_R4_C03_PROCESS_PROOF_END
+```
+
+### Baseline, Cross-Spec, And Coverage Comparison
+
+**Claim Source:** interpreted
+**Interpretation:** Prior values come from preserved report receipts. Current values come from this
+phase's isolated executions. The Feature 008 direct and browser consumers cover the shared spec
+impact. The structural comparator covers the changed functional carrier.
+
+| Check | Prior current baseline | Post-hardening result | Delta |
+| --- | --- | --- | --- |
+| Ratio boundary | 3.000 accepted and 3.001 refused | Same exits and messages | Stable |
+| Real ratio | Prior source object had a passing live receipt | 1.113, both projects exit 0 | Current source re-proved |
+| Shared functional carrier | 20 passed, 0 failed | 20 passed, 0 failed | Stable |
+| Feature 008 direct Node | 257 passed, 0 failed | 257 passed, 0 failed | Stable |
+| Feature 008 C03 | 94 passed, one worker, exit 0 | 94 passed, one worker, exit 0 | Stable |
+| Canonical selftest | 3465 passed, 0 failed | 3465 passed, 0 failed | Stable |
+| Functional declarations | 16 at HEAD | 20 in the authorized overlay | +4 |
+| Functional assertion calls | 128 at HEAD | 156 in the authorized overlay | +28 |
+
+The current Feature 008 design keeps the eight browser carriers on real pages and the shared
+system-Chrome command. The BUG-022 design retains the same Playwright ownership boundary.
+No route, model, data, or UI-flow contradiction was found across those contracts.
+
+### Protected Checks And Integrity
+
+| Check | Exit | Current result |
+| --- | ---: | --- |
+| Complete shared functional carrier | 0 | 20 passed, 0 failed, 0 skipped, 0 todo; SHA-256 `9c01aefadf91c91dd0ae337ca8bd7c4f94e8e4a892f1acec0e9eb01ae1e47813` |
+| Feature 008 direct Node consumers | 0 | 257 passed; SHA-256 `a2a38a5feff9ee550985933a065f855e0540ce2d0d756fae5ff82fa4e73f66be` |
+| Production reachability | 0 | 0 classification errors and 0 new orphans; SHA-256 `95811b00ec5c110cf85af7c8965ff9b4f7efc1565e6cb89d06df7df643a0e1bb` |
+| Protected governance and traceability matrix | 0 | All 16 child checks exited 0; SHA-256 `823b0e6be34d9a87b6a5af1d7fce2b1ecff0f9a7372050e67d9f6906c148a174` |
+| Canonical selftest | 0 | 3465 passed, 0 failed before report append; SHA-256 `acf3b2d3560395faa122155969f670a6b66ec8ffa42f4550b2de3612931972c2` |
+| Post-report report-sensitive matrix | 0 | All eight children exited 0; SHA-256 `d41b05cba85669b87f0f9751fc3930ce2c3846830cb82effc36c164b25da452d` |
+| Post-report canonical selftest | 0 | 3465 passed, 0 failed; SHA-256 `76130c3052891a948e6aea0fc3ab70663417589e11ad94b07dcc6438b9e3d1f4` |
+| Protected integrity comparator | 0 | 12 authorized paths, 0 excluded paths, 0 protected failures |
+| Coverage and weakening comparator | 0 | 4 added tests, 28 added assertion lines, 0 deleted tests, 0 deleted assertion lines |
+| Explicit marker and interception scan | 0 | Both no-match children exited 1 as required |
+
+The protected Feature 008 report remains at SHA-256
+`8ea0e36e28aa7a409006b1db4ba0612c202cdadbd59054d7686dc31c2bf6801b`.
+The reachability baseline remains 26 entries at SHA-256
+`dbab8720445e1fdc267e381f49b1bee76f49c7e345c18ef669bccf85a820fd73`.
+The crossing ratchet remains nine entries at SHA-256
+`b5ead0c8589c7a1cf699f00d2a08790d24e784a495e5f0a8f2d25f1aef79f470`.
+The command registry remains at SHA-256
+`2ad6e60ee916ff8ec4d7d68bb1ef4a62996c296095a62332e3f23d3ba9a9bd49`.
+
+The BUG-017 report removed zero prior lines. The rejected-candidate anchors and both explicit
+revert identities remain present. The Foundation source remains at HEAD bytes and contains no
+`foundationBrowserBoundary` or `foundationBrowser.close()` marker.
+
+### Preserved Boundaries
+
+This phase generated no scenario-state receipt. It did not edit source, config, tests, planning,
+certification, user validation, or installed framework files.
+
+The human G136 boundary remains unchanged. Final stable-revision receipts remain reserved for the
+single final checkpoint. Later simplify, gaps, harden, security, validate, and audit phases remain
+independently owned. Global stale-and-clone adjudication and external framework drift remain
+append-only external work. Twenty stale reachability entries remain visible and non-blocking.
+
+```text
+🟢 REGRESSION_FREE
+Protected functional baseline: 20/20 -> 20/20
+Feature 008 direct Node: 257/257 -> 257/257
+Feature 008 browser C03: 94/94 -> 94/94
+Canonical selftest: 3465/3465 -> 3465/3465
+Cross-spec conflicts: 0
+Design contradictions: 0
+Coverage: 16 -> 20 tests; 128 -> 156 assertion calls
+New reachability orphans: 0
+Protected integrity failures: 0
+```
+
+## Post-Hardening Simplify Phase — Convergence Iteration 4 {#post-hardening-simplify-phase-convergence-iteration-4-bug017}
+
+**Phase:** simplify
+**Claim Source:** interpreted
+**Interpretation:** One shared-carrier test recomputed both runner selections before calling the
+production disjointness verdict. The change now consumes the verdict's selected sets directly.
+Every existing non-vacuity, parity, crossing, provenance, and per-file assertion remains.
+**Executed At:** 2026-08-29T10:34:08Z
+**Outcome:** `route_required`
+
+### Superseding Review
+
+This section supersedes the earlier simplify assessment for the reopened BUG-022 repair only.
+The earlier section and its execution occurrence remain unchanged.
+
+| Pass | Current result |
+| --- | --- |
+| Reuse | The test now uses `runnerDisjointnessVerdict()` as the single runner-selection implementation. |
+| Quality | The test no longer destructures the unused `crossings` value. No test or assertion call was removed. |
+| Efficiency | The test no longer compiles and matches both runner glob sets a second time through `discovery()`. |
+
+The exact blob delta contains 11 added and 11 removed lines. The net line change is zero.
+The test object changed from `520a6a71b398a221c3f55c884b8591b680a05da1` to
+`d7bcf636103992a90b08d0b46f76c1838a55c42a`.
+
+The ratio helper needs no further reduction. Its control record, child ownership, signal handling,
+and temporary-root cleanup encode tested behavior. The helper remains object
+`1fac6a8b7a783fd2c416c9449658296045a12611`.
+
+The one-worker configuration and command registry also need no reduction. Their detailed text
+preserves the measured limit and the developer-facing disclosure. Their objects remain
+`e022a133857aa20bd10b759a98b80e2df38ce621` and
+`08592d2bfaa8f6787806f05f508df9f3e0920a75`.
+
+### Deterministic Ratio Controls
+
+**Command:** bounded `--control at-bound` and `--control over-bound` invocations with owned-temp comparison
+**Exit Code:** 0 for the enclosing contract
+**Claim Source:** executed
+
+```text
+SIMPLIFY_RATIO_CONTROLS_BEGIN
+OWNED_TEMP_BEFORE=0
+SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3000 bundledChromiumWallMs=1000
+SCN-BUG017-06: wall-time ratio 3.000 meets FR-017-004 maximum 3.000
+AT_BOUND_EXIT=0
+SCN-BUG017-06: deterministic comparison input systemChromeWallMs=3001 bundledChromiumWallMs=1000
+SCN-BUG017-06: wall-time ratio 3.001 exceeds FR-017-004 maximum 3.000
+OVER_BOUND_EXIT=1
+OWNED_TEMP_AFTER=0
+SIMPLIFY_RATIO_CONTROLS_END
+```
+
+### Current Verification
+
+| Check | Exit | Current signal |
+| --- | ---: | --- |
+| Exact affected disjointness title | 0 | One test passed. Browser selection was 79, Node selection was 115, and new crossings were zero. |
+| TP-BUG022-F07 through F10, each in a separate invocation | 0 each | Root refusal, typed identity, wrapper distinction, and typed disjointness behavior passed. |
+| Complete shared functional carrier | 0 | 20 passed with zero failures, skips, or todos. Complete-capture SHA-256 `9467954b474292f17eeb08d9aaabb624edf08c3a0fb7cb673952db26e38ff01f`. |
+| Production reachability | 0 | Zero classification errors and zero new orphans. Complete-capture SHA-256 `95811b00ec5c110cf85af7c8965ff9b4f7efc1565e6cb89d06df7df643a0e1bb`. |
+| Regression quality | 0 | Zero violations and zero warnings. The adversarial signal remained present. |
+| Both packet artifact lints | 0 | Complete-capture SHA-256 `bec5645058bb65a0e938b181590c8cb811536c54163997855fa2dc6580f7c446`. |
+| Both packet traceability guards | 0 | Complete-capture SHA-256 `04f6291fb023b50a227dc8d6b42c436c9823c66c6e82828658ed75569e8a9f2b`. |
+| Canonical selftest before this report append | 0 | 3465 passed and zero failed. Complete-capture SHA-256 `0053ec80f5822af6eef982275ca74ab813b4d24ed8e1a799610be7cc7c976bcc`. |
+| Reviewed JavaScript syntax | 0 | All four reviewed JavaScript files passed `node --check`. |
+| Exact simplify blob diff | 0 | The 11-line replacement has no whitespace error and a zero net line change. |
+
+No production source, configuration, command registry, baseline, crossing ratchet, or protected
+Feature 008 report changed in this phase. No final receipt chain was executed. Status and
+certification remain `in_progress`. The next required owner is `bubbles.gaps`.
+
 

@@ -2,16 +2,21 @@
   "schemaVersion": 1,
   "contractVersion": "scenario-manifest/v1",
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
-  "generatedAt": "2026-08-28T16:53:33Z",
+  "generatedAt": "2026-08-29T21:42:47Z",
   "generatedBy": "bubbles.plan",
   "stage": "post-implementation",
-  "stageNote": "Convergence iteration 4 planning reconciliation. This manifest records planning identity, traits, obligations, implementation references, and the existing 30 linked test references; it declares no scenario execution status. Existing report evidence resolves the scope's 16 checked DoD rows, including the expected pre-fix RED, focused GREEN, reachability, containment, clean-tree selftest, browser consumer, and truthful non-terminal guard result. Distinct current receipts reached REGRESSION_GREEN for all three scenarios at source revision 4bd96545cd6673155933edf3a22492d6d1972256 before this planning update changed their input closure. scenario-state-resolve.sh remains the sole state authority, so a final receipt refresh is required. This manifest makes no specialist-phase, human-acceptance, certification, source, test, or terminal-status claim.",
-  "scenarioCount": 3,
+  "stageNote": "Convergence iteration 4 consumes fresh independent test receipts for F20, F21, F22, C23, C24, and C25 at the current source and test epoch. SCN-BUG022-005, SCN-BUG022-006, and SCN-BUG022-007 now link to the exact repository-present authored test titles and structured tool-log receipts. Scope 1 planning truth is Done. This reconciliation creates no phase or scenario certification and leaves top-level status, certification.status, validate-owned completion mirrors, human acceptance, reports, source, tests, framework files, BUG-017, and excluded concurrent work unchanged.",
+  "scenarioCount": 8,
   "scopeMapping": {
     "01-separate-active-declarations-from-historical-receipts": [
       "SCN-BUG022-001",
       "SCN-BUG022-002",
-      "SCN-BUG022-003"
+      "SCN-BUG022-003",
+      "SCN-BUG022-004",
+      "SCN-BUG022-005",
+      "SCN-BUG022-006",
+      "SCN-BUG022-007",
+      "SCN-BUG022-008"
     ]
   },
   "scenarios": [
@@ -22,9 +27,9 @@
       "scope": 1,
       "title": "Artifact role separates historical receipts from active plans",
       "gherkin": {
-        "given": "identical node --test tests/portfolio-*.mjs text in a report receipt and an active scope Test Plan or structured test plan",
+        "given": "identical node --test tests/portfolio-*.mjs text in a report receipt and an active plan, plus one exact pattern declared by both Node and Playwright",
         "when": "the production collector classifies both candidates",
-        "then": "the report site is historical while the active site remains authoritative with artifact and line provenance"
+        "then": "the report site is historical, the active site keeps provenance, and each runner retains a distinct kind and pattern identity"
       },
       "behaviorClass": "static-metadata",
       "changeType": "bugfix",
@@ -38,23 +43,28 @@
       "obligations": [
         {
           "trait": "pure-calculation",
-          "requiredProof": "Production collector output separates identical command bytes into historical and active authority states.",
+          "requiredProof": "Production collector output separates identical command bytes into historical and active authority states and preserves equal patterns under distinct runner kinds.",
           "satisfiedBy": [
             "TP-BUG022-F01 :: Regression: SCN-BUG022-001 historical report receipts do not declare Node test globs",
-            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative"
+            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative",
+            "TP-BUG022-F08 :: Regression: SCN-BUG022-001 preserves Node and Playwright identities for one exact pattern"
           ]
         },
         {
           "trait": "static-metadata",
-          "requiredProof": "The active declaration retains its repository-relative artifact and positive source line.",
+          "requiredProof": "Every active declaration retains runner kind, pattern, repository-relative artifact, and positive source line.",
           "satisfiedBy": [
-            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative"
+            "TP-BUG022-F02 :: Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative",
+            "TP-BUG022-F08 :: Regression: SCN-BUG022-001 preserves Node and Playwright identities for one exact pattern"
           ]
         }
       ],
       "testRows": [
         "TP-BUG022-F01",
-        "TP-BUG022-F02"
+        "TP-BUG022-F02",
+        "TP-BUG022-F08",
+        "TP-BUG022-C08",
+        "TP-BUG022-C09"
       ],
       "linkedTests": [
         {
@@ -66,13 +76,20 @@
           "file": "tests/playwright-runtime.foundation.functional.mjs",
           "testId": "Regression: SCN-BUG022-001 active scope Test Plan and structured test-plan commands remain authoritative",
           "testState": "authored"
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-001 preserves Node and Playwright identities for one exact pattern",
+          "testState": "authored"
         }
       ],
       "evidenceRefs": [
-        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
+        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families",
+        "report.md#independent-test-verification-convergence-iteration-4"
       ],
       "implementationRefs": [
         "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+        "scripts/validate-test-file-reachability.mjs#declarationIdentity",
         "tests/playwright-runtime.foundation.functional.mjs"
       ],
       "testMechanism": {
@@ -81,9 +98,10 @@
         "assertionSurface": "returned-value",
         "dependencyPath": "not-applicable",
         "productionOwners": [
-          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
+          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+          "scripts/validate-test-file-reachability.mjs#declarationIdentity"
         ],
-        "negativeControl": "Moving the identical command from report.md into an active scope Test Plan changes authority from historical to active.",
+        "negativeControl": "Declare one exact pattern under both Node and Playwright. A pattern-only key collapses one kind, while the typed identity returns two homogeneous declarations.",
         "negativeControlMechanism": "perturbed-input"
       }
     },
@@ -94,9 +112,9 @@
       "scope": 1,
       "title": "Markdown presentation cannot manufacture authority",
       "gherkin": {
-        "given": "active-looking headings inside historical evidence, fenced headings, and a glob candidate on an unrecognized artifact surface",
+        "given": "active-looking and fenced headings, wrapped command-shaped candidates on unknown artifacts, and prose containing the same wrapper tokens",
         "when": "the production collector classifies the candidates",
-        "then": "artifact role outranks headings, fenced headings do not alter section role, and the unknown candidate fails closed with provenance"
+        "then": "artifact role outranks headings, env, timeout, and repository alarm wrappers fail closed with provenance, and prose remains inert"
       },
       "behaviorClass": "static-metadata",
       "changeType": "bugfix",
@@ -111,29 +129,35 @@
       "obligations": [
         {
           "trait": "pure-calculation",
-          "requiredProof": "Production heading and fence classification preserves the enclosing artifact role.",
+          "requiredProof": "Production heading, fence, and command-prefix classification preserves artifact role and distinguishes commands from prose.",
           "satisfiedBy": [
-            "TP-BUG022-F03 :: Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority"
+            "TP-BUG022-F03 :: Regression: SCN-BUG022-002 fenced and misheaded evidence cannot gain or escape artifact authority",
+            "TP-BUG022-F09 :: Regression: SCN-BUG022-002 wrapped unknown commands fail closed while prose remains inert"
           ]
         },
         {
           "trait": "degraded-state",
-          "requiredProof": "An unknown candidate produces a named blocking classification error instead of disappearing or becoming historical.",
+          "requiredProof": "Every direct or supported wrapped unknown command produces a named blocking classification error instead of disappearing or becoming historical.",
           "satisfiedBy": [
-            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance"
+            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance",
+            "TP-BUG022-F09 :: Regression: SCN-BUG022-002 wrapped unknown commands fail closed while prose remains inert"
           ]
         },
         {
           "trait": "static-metadata",
           "requiredProof": "Every classification error retains artifact, line, section context, and machine-readable reason.",
           "satisfiedBy": [
-            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance"
+            "TP-BUG022-F04 :: Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance",
+            "TP-BUG022-F09 :: Regression: SCN-BUG022-002 wrapped unknown commands fail closed while prose remains inert"
           ]
         }
       ],
       "testRows": [
         "TP-BUG022-F03",
-        "TP-BUG022-F04"
+        "TP-BUG022-F04",
+        "TP-BUG022-F09",
+        "TP-BUG022-C08",
+        "TP-BUG022-C09"
       ],
       "linkedTests": [
         {
@@ -145,12 +169,19 @@
           "file": "tests/playwright-runtime.foundation.functional.mjs",
           "testId": "Regression: SCN-BUG022-002 unknown artifact roles fail closed with candidate provenance",
           "testState": "authored"
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-002 wrapped unknown commands fail closed while prose remains inert",
+          "testState": "authored"
         }
       ],
       "evidenceRefs": [
-        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families"
+        "../BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md#current-functional-and-direct-node-families",
+        "report.md#independent-test-verification-convergence-iteration-4"
       ],
       "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
         "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
         "tests/playwright-runtime.foundation.functional.mjs"
       ],
@@ -160,9 +191,10 @@
         "assertionSurface": "returned-value",
         "dependencyPath": "not-applicable",
         "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
           "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
         ],
-        "negativeControl": "Placing a matching command in an unrecognized Markdown artifact must change the result to a blocking classification error.",
+        "negativeControl": "Place the same wrapper bytes at line start and after a prose prefix. Only the anchored command becomes a classification error.",
         "negativeControlMechanism": "perturbed-input"
       }
     },
@@ -183,10 +215,18 @@
       "regressionRequired": true,
       "riskTier": "medium",
       "behaviorTraits": [
+        "pure-calculation",
         "static-metadata",
         "user-visible-ui"
       ],
       "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The shared production function throws a typed refusal for an active same-pattern crossing and returns pass for the historical-site control over identical command bytes.",
+          "satisfiedBy": [
+            "TP-BUG022-F10 :: Regression: SCN-BUG022-003 shared disjointness verdict refuses an active same-pattern crossing"
+          ]
+        },
         {
           "trait": "static-metadata",
           "requiredProof": "Repository validation derives zero new orphans, zero new crossings, unchanged ratchets, two active Node family declarations, and a byte-identical historical report.",
@@ -209,13 +249,16 @@
         "TP-BUG022-RED-01",
         "TP-BUG022-F05",
         "TP-BUG022-F06",
+        "TP-BUG022-F10",
         "TP-BUG022-C01",
         "TP-BUG022-C02",
         "TP-BUG022-C03",
         "TP-BUG022-C04",
         "TP-BUG022-C05",
         "TP-BUG022-C06",
-        "TP-BUG022-C07"
+        "TP-BUG022-C07",
+        "TP-BUG022-C08",
+        "TP-BUG022-C09"
       ],
       "linkedTests": [
         {
@@ -226,6 +269,11 @@
         {
           "file": "tests/playwright-runtime.foundation.functional.mjs",
           "testId": "Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority",
+          "testState": "authored"
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-003 shared disjointness verdict refuses an active same-pattern crossing",
           "testState": "authored"
         },
         "tests/portfolio-analytics.unit.mjs",
@@ -261,9 +309,11 @@
         "report.md#fresh-change-boundary-containment-at-c652cd092",
         "report.md#bug-017-scope-4-dependency-unblock-receipt",
         "report.md#bug-017-scope-4-finalization-follow-up",
-        "report.md#bug-017-scope-4-fallback-consumer-receipt"
+        "report.md#bug-017-scope-4-fallback-consumer-receipt",
+        "report.md#independent-test-verification-convergence-iteration-4"
       ],
       "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#runnerDisjointnessVerdict",
         "scripts/validate-test-file-reachability.mjs",
         ".specify/memory/agents.md",
         "playwright.config.mjs",
@@ -276,11 +326,473 @@
         "assertionSurface": "visible-ui",
         "dependencyPath": "same-origin-real",
         "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#runnerDisjointnessVerdict",
           "playwright.config.mjs",
           "scripts/validate-test-file-reachability.mjs",
           ".specify/memory/agents.md"
         ],
-        "negativeControl": "An active portfolio-wide Node declaration recreates the eight crossings and fails the focused disjointness assertion. TP-BUG022-C03 remains the unchanged Playwright command and now consumes the selected one-worker config default.",
+        "negativeControl": "Move one identical Node command between an active plan and a historical report. The active site throws a typed same-pattern refusal, while the historical site returns pass without disappearing.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG022-004",
+      "scenarioId": "SCN-BUG022-004",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Invalid root operands refuse before scanning or baseline mutation",
+      "gherkin": {
+        "given": "--root has no value or an option-shaped next token, with --update-baseline before or after it",
+        "when": "the production CLI parses the invocation",
+        "then": "it exits 2 with usage before scanning the current directory or creating or changing a baseline"
+      },
+      "behaviorClass": "cli",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "degraded-state",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Missing and option-shaped root operands return usage exit 2 with no plausible current-directory default.",
+          "satisfiedBy": [
+            "TP-BUG022-F07 :: Regression: SCN-BUG022-004 missing and option-shaped root values refuse before scan or baseline write"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "A production CLI subprocess exercises both update-option orderings and proves zero scan output and byte-stable baseline sentinels.",
+          "satisfiedBy": [
+            "TP-BUG022-F07 :: Regression: SCN-BUG022-004 missing and option-shaped root values refuse before scan or baseline write"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-F07",
+        "TP-BUG022-C08",
+        "TP-BUG022-C09"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-004 missing and option-shaped root values refuse before scan or baseline write",
+          "testState": "authored"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-convergence-iteration-4"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#main",
+        "scripts/validate-test-file-reachability.mjs#parseReachabilityArguments",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#main",
+          "scripts/validate-test-file-reachability.mjs#parseReachabilityArguments"
+        ],
+        "negativeControl": "Permute --update-baseline around each invalid root and compare current-directory and fixture baseline sentinels before and after the production subprocess.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG022-005",
+      "scenarioId": "SCN-BUG022-005",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Presentation forms cannot hide unknown declaration candidates",
+      "gherkin": {
+        "given": "unknown artifacts contain two Node declaration candidates in one Markdown table row, unordered and ordered Markdown-list commands, the existing Command-label control, and prose with the same tokens",
+        "when": "the production collector extracts and classifies every command fragment",
+        "then": "every executable candidate fails closed with artifact and line provenance; the second table-row command, unordered-list command, and ordered-list command are each asserted independently; the Command-label control remains classified; and prose remains inert"
+      },
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The production collector independently exposes the second command in a multi-command table row, the unordered-list command, the ordered-list command, and the existing Command-label control.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F11 :: Regression: SCN-BUG022-005 table cells and Command labels on unknown artifacts fail closed",
+            "TP-BUG022-R4-F22 :: Regression: SCN-BUG022-005 table rows and Markdown lists expose every declaration candidate"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Each unknown-artifact candidate becomes a named blocking classification error rather than a discarded candidate.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F11 :: Regression: SCN-BUG022-005 table cells and Command labels on unknown artifacts fail closed",
+            "TP-BUG022-R4-F22 :: Regression: SCN-BUG022-005 table rows and Markdown lists expose every declaration candidate"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Every extracted error retains repository-relative artifact and positive line provenance while prose without a declaration remains inert.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F11 :: Regression: SCN-BUG022-005 table cells and Command labels on unknown artifacts fail closed",
+            "TP-BUG022-R4-F22 :: Regression: SCN-BUG022-005 table rows and Markdown lists expose every declaration candidate"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-R4-F11",
+        "TP-BUG022-R4-C15",
+        "TP-BUG022-R4-C16",
+        "TP-BUG022-R4-C17",
+        "TP-BUG022-R4-C19",
+        "TP-BUG022-R4-C18",
+        "TP-BUG022-R4-F22",
+        "TP-BUG022-R4-C23",
+        "TP-BUG022-R4-C24",
+        "TP-BUG022-R4-C25"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 table cells and Command labels on unknown artifacts fail closed",
+          "testState": "authored"
+        }
+      ],
+      "linkedTestContracts": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-005 table rows and Markdown lists expose every declaration candidate",
+          "testPlanRow": "TP-BUG022-R4-F22",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1622"
+          ]
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-reopened-scope-1-latest-nine-rows",
+        ".specify/runtime/tool-calls.jsonl:1622",
+        ".specify/runtime/tool-calls.jsonl:1623",
+        ".specify/runtime/tool-calls.jsonl:1627",
+        ".specify/runtime/tool-calls.jsonl:1624"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#commandCandidateFragments",
+        "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
+        "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#commandCandidateFragments",
+          "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
+          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
+        ],
+        "negativeControl": "Hold the unknown artifact role constant while adding a second table-row command and distinct unordered and ordered Markdown-list commands. Assert each presentation separately. Every command must become a provenance-bearing classification error, the existing Command-label form must stay classified, and prose must remain inert.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG022-006",
+      "scenarioId": "SCN-BUG022-006",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Quoted Node options before the glob remain extractable",
+      "gherkin": {
+        "given": "direct node --test commands place the same test glob before and after a quoted --test-name-pattern value, and a boolean --test-only flag precedes a quoted positional glob",
+        "when": "the production command parser extracts the declaration candidate",
+        "then": "every option form retains the exact positional glob with provenance and neither an option value nor a boolean option consumes it"
+      },
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production shell-token parsing distinguishes option names, quoted option values, boolean --test-only, and quoted positional test globs in every supported order.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F12 :: Regression: SCN-BUG022-006 quoted Node options before a test glob remain extractable",
+            "TP-BUG022-R4-F21 :: Regression: SCN-BUG022-006 boolean test-only preserves a quoted positional glob"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The extracted declaration retains the exact glob plus artifact and line provenance.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F12 :: Regression: SCN-BUG022-006 quoted Node options before a test glob remain extractable",
+            "TP-BUG022-R4-F21 :: Regression: SCN-BUG022-006 boolean test-only preserves a quoted positional glob"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-R4-F12",
+        "TP-BUG022-R4-C15",
+        "TP-BUG022-R4-C16",
+        "TP-BUG022-R4-C17",
+        "TP-BUG022-R4-C19",
+        "TP-BUG022-R4-C18",
+        "TP-BUG022-R4-F21",
+        "TP-BUG022-R4-C23",
+        "TP-BUG022-R4-C24",
+        "TP-BUG022-R4-C25"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-006 quoted Node options before a test glob remain extractable",
+          "testState": "authored"
+        }
+      ],
+      "linkedTestContracts": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-006 boolean test-only preserves a quoted positional glob",
+          "testPlanRow": "TP-BUG022-R4-F21",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1621"
+          ]
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-reopened-scope-1-latest-nine-rows",
+        ".specify/runtime/tool-calls.jsonl:1621",
+        ".specify/runtime/tool-calls.jsonl:1623",
+        ".specify/runtime/tool-calls.jsonl:1627",
+        ".specify/runtime/tool-calls.jsonl:1624"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
+        "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#parseNodeTestCommandCandidate",
+          "scripts/validate-test-file-reachability.mjs#collectDeclaredTestGlobs"
+        ],
+        "negativeControl": "Move the same quoted --test-name-pattern before and after the glob, then replace it with boolean --test-only before a quoted positional glob. Every form must retain the same declaration identity and provenance.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG022-007",
+      "scenarioId": "SCN-BUG022-007",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Baseline updates validate before writing",
+      "gherkin": {
+        "given": "isolated fixture roots contain a new orphan, no test authority, a real active same-pattern Node and Playwright crossing, or one validly resolved stale baseline entry, and the production CLI receives --update-baseline",
+        "when": "reachability validation runs",
+        "then": "every invalid update refuses before changing baseline bytes, the crossing calls the shared typed runner-disjointness verdict before the sole write without duplicate crossing logic, and the valid update removes only the stale entry and passes a normal rerun"
+      },
+      "behaviorClass": "cli",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "mutable-state",
+        "degraded-state",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Production CLI subprocesses snapshot each isolated baseline, prove new-orphan, vacuity, and active-crossing attempts are byte-stable, then remove one stale entry from a valid baseline and pass a normal rerun.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F13 :: Regression: SCN-BUG022-007 baseline update refuses vacuity and new orphan absorption before write",
+            "TP-BUG022-R4-F20 :: Regression: SCN-BUG022-007 active runner crossing refuses baseline update before write"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "New-orphan, empty-root, and active-crossing updates exit nonzero with distinct refusal signals and no baseline mutation.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F13 :: Regression: SCN-BUG022-007 baseline update refuses vacuity and new orphan absorption before write",
+            "TP-BUG022-R4-F20 :: Regression: SCN-BUG022-007 active runner crossing refuses baseline update before write"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The real --update-baseline entrypoint calls runnerDisjointnessVerdict and performs every candidate, authority, orphan, crossing, and vacuity check before its only write boundary without duplicating the crossing decision, while a valid shrink-only update still writes.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F13 :: Regression: SCN-BUG022-007 baseline update refuses vacuity and new orphan absorption before write",
+            "TP-BUG022-R4-F20 :: Regression: SCN-BUG022-007 active runner crossing refuses baseline update before write"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-R4-F13",
+        "TP-BUG022-R4-C15",
+        "TP-BUG022-R4-C16",
+        "TP-BUG022-R4-C17",
+        "TP-BUG022-R4-C19",
+        "TP-BUG022-R4-C18",
+        "TP-BUG022-R4-F20",
+        "TP-BUG022-R4-C23",
+        "TP-BUG022-R4-C24",
+        "TP-BUG022-R4-C25"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 baseline update refuses vacuity and new orphan absorption before write",
+          "testState": "authored"
+        }
+      ],
+      "linkedTestContracts": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 active runner crossing refuses baseline update before write",
+          "testPlanRow": "TP-BUG022-R4-F20",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1620",
+            ".specify/runtime/tool-calls.jsonl:1625"
+          ]
+        },
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-007 convergence repair rollback preserves source test and protected objects",
+          "testPlanRow": "TP-BUG022-R4-C25",
+          "planStatus": "authored",
+          "evidenceRefs": [
+            ".specify/runtime/tool-calls.jsonl:1624"
+          ]
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-reopened-scope-1-latest-nine-rows",
+        ".specify/runtime/tool-calls.jsonl:1620",
+        ".specify/runtime/tool-calls.jsonl:1625",
+        ".specify/runtime/tool-calls.jsonl:1623",
+        ".specify/runtime/tool-calls.jsonl:1627",
+        ".specify/runtime/tool-calls.jsonl:1624"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#main",
+        "scripts/validate-test-file-reachability.mjs#validateTestFileReachability",
+        "scripts/validate-test-file-reachability.mjs#runnerDisjointnessVerdict",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#main",
+          "scripts/validate-test-file-reachability.mjs#validateTestFileReachability",
+          "scripts/validate-test-file-reachability.mjs#runnerDisjointnessVerdict"
+        ],
+        "negativeControl": "Run --update-baseline against a valid shrink-only root, then perturb only the fixture into new-orphan, empty-root, and real active same-pattern Node/Playwright crossing cases. The valid update must shrink and pass a normal rerun; every invalid case must preserve its exact baseline hash, and the crossing must surface RunnerDisjointnessRefusal from runnerDisjointnessVerdict before the sole write.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG022-008",
+      "scenarioId": "SCN-BUG022-008",
+      "scopeId": "01-separate-active-declarations-from-historical-receipts",
+      "scope": 1,
+      "title": "Dynamic Node test registration remains test-bearing",
+      "gherkin": {
+        "given": "a committed test file registers tests through dynamic import of node:test",
+        "when": "production reachability classifies the file",
+        "then": "the file remains test-bearing, missing authority blocks as an orphan, matching authority makes it reachable, and a file without either registration form remains helper-exempt"
+      },
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production test-bearing detection recognizes static and dynamic node:test imports through one classification path.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F14 :: Regression: SCN-BUG022-008 dynamic node:test imports remain test-bearing"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A dynamic-registration file without active authority remains a blocking orphan instead of receiving a helper exemption.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F14 :: Regression: SCN-BUG022-008 dynamic node:test imports remain test-bearing"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "A reachable dynamic-registration control passes and a true helper with no registration form remains exempt.",
+          "satisfiedBy": [
+            "TP-BUG022-R4-F14 :: Regression: SCN-BUG022-008 dynamic node:test imports remain test-bearing"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG022-R4-F14",
+        "TP-BUG022-R4-C15",
+        "TP-BUG022-R4-C16",
+        "TP-BUG022-R4-C17",
+        "TP-BUG022-R4-C19",
+        "TP-BUG022-R4-C18"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "testId": "Regression: SCN-BUG022-008 dynamic node:test imports remain test-bearing",
+          "testState": "authored"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#independent-test-verification-reopened-scope-1-latest-nine-rows"
+      ],
+      "implementationRefs": [
+        "scripts/validate-test-file-reachability.mjs#NODE_TEST_IMPORT",
+        "scripts/validate-test-file-reachability.mjs#validateTestFileReachability",
+        "tests/playwright-runtime.foundation.functional.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-test-file-reachability.mjs#NODE_TEST_IMPORT",
+          "scripts/validate-test-file-reachability.mjs#validateTestFileReachability"
+        ],
+        "negativeControl": "Hold the file path constant while replacing dynamic node:test registration with a true helper body. Only the registration form must remain test-bearing and orphanable.",
         "negativeControlMechanism": "perturbed-input"
       }
     }

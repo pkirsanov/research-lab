@@ -12,40 +12,65 @@ evidence is preserved; their two-worker obligations are replaced for current clo
 SCN-BUG017-11 and are not active selected-route requirements. SCN-BUG017-06 retains the
 wall-time criterion, whose current planning authority is stated under Scope 4 without turning
 historical timing into a human acceptance result.
-Scope 4 remains the completed selected-route closure scope. Scope 2 is reopened for
-SCN-BUG017-06's committed ratio evaluator and same-revision receipt set. Its two current
-unchecked Definition of Done rows are required work assigned to `bubbles.implement`; Scope 2
-and BUG-level status remain in progress. Scope 4's Definition of Done remains satisfied by the
-current-session test evidence under `report.md` `Scope 4 Current Test Execution At 2026-08-28`.
+Scope 2 was reopened for
+SCN-BUG017-06's committed ratio evaluator and same-revision receipt set. That reconciliation is
+complete at source revision `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`. Structured tool-log
+lines 1598 through 1602 carry the RED, implementation, targeted GREEN, live, and protected
+regression receipts. The canonical resolver derives SCN-BUG017-06 as `REGRESSION_GREEN`.
+Scope 2 remains done. Convergence iteration 4 reopened Scope 1 only to remove historical
+SCN-BUG017-01 and SCN-BUG017-02 from active receipt authority. It reopened Scope 4 for a
+persistent SCN-BUG017-11 selection-precondition contract and stable-revision receipt refresh.
+Prior checked rows and report receipts remain historical evidence. Independent iteration 4
+execution closes the five previously added plan rows. Scope 4 is reopened only for the unchecked
+TP-BUG017-04-08 change-boundary containment row. The fresh independent receipt at structured
+tool-log line 1641 and its final current-byte lock at line 1643 close that last planning row.
+Final certification and scope-progress mirrors remain validate-owned.
 
 ## Current Scenario Manifest Boundary
 
-The current machine-readable scenario set is exactly SCN-BUG017-01, SCN-BUG017-02,
-SCN-BUG017-03, SCN-BUG017-06, SCN-BUG017-07, SCN-BUG017-08, and SCN-BUG017-11.
-The first six remain active because the selected fix still depends on evidence-bounded
-characterisation, the FR-017-004 cost threshold, and disclosure that cannot replace the
-containment. SCN-BUG017-11 is the current runtime-closure route.
+The current machine-readable scenario set must be exactly SCN-BUG017-03, SCN-BUG017-06,
+SCN-BUG017-07, SCN-BUG017-08, and SCN-BUG017-11. SCN-BUG017-01 and SCN-BUG017-02 describe
+past measurement. They remain historical characterization and must not claim current persistent
+coverage through browser page assertions. SCN-BUG017-11 remains the current runtime-closure
+route.
 
-SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 are absent from
-`scenario-manifest.json`. The installed schema defines no ignored or superseded archive, and
+SCN-BUG017-01, SCN-BUG017-02, SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and
+SCN-BUG017-10 are absent from `scenario-manifest.json`. The installed schema defines no ignored or superseded archive, and
 the installed state resolver treats every scenario array entry as a current receipt obligation.
 Their exact historical Gherkin appears below as Markdown quotations, outside active scenario
 syntax. Their provisional GREEN, later RED, rollback, and rejection evidence remains in
 `report.md` and in the historical Test Plan records below.
 
-## Execution Outline — Reopened Work
+## Convergence Iteration 4 Planning Finding Coverage
+
+| Finding | Scope and scenario | Test Plan and DoD contract | Planning disposition |
+| --- | --- | --- | --- |
+| GAPS-R4-BUG017-012-PROXY-CHARACTERIZATION-COVERAGE | Scope 1, active SCN-BUG017-03 | TP-BUG017-R4-S1-01 through TP-BUG017-R4-S1-03 and matching DoD rows | SCN-BUG017-01 and SCN-BUG017-02 become quoted historical measurements with no active page-test proxy mappings. |
+| GAPS-R4-BUG017-013-SCN11-SELECTION-PRECONDITION | Scope 4, SCN-BUG017-11 | TP-BUG017-04-06, TP-BUG017-04-07, and matching DoD rows | The persistent test resolves candidate rejection, both reverts, both pre-candidate blobs, and workers=1 before the final consumer receipt. |
+| BUG017-G040-COMPLETION-LANGUAGE | Scope 1 planning boundary | TP-BUG017-R4-S1-03 and DOD-TP-BUG017-R4-S1-03 | Active prose no longer contains the two stale phrases that the G040 expression interpreted as a separate-PR admission. Report continuation prose remains unchanged before the canonical certifying-window marker. |
+| GAPS-R4-BUG017-016-CHANGE-BOUNDARY-DOD-MISSING | Scope 4, governance-only containment | TP-BUG017-04-08 and DOD-TP-BUG017-04-08 | Check 8D receives its canonical containment item and an independently executed path-inventory receipt without adding a product-behavior scenario. |
+
+## G040 Current And Historical Boundary
+
+The report's single `<!-- bubbles:certifying-window-begin -->` marker separates immutable
+prior-window evidence from current report authority. Do not edit the report text before that
+marker. Current scope prose must satisfy Check 18 without using a lockdown exception for stale
+planning language.
+
+## Execution Outline — Convergence Iteration 4
 
 ### Phase Order
 
-1. **Scope 2 ratio-contract completion.** Commit the shared SCN-BUG017-06 ratio evaluator within
-  its declared change boundary, then bind its RED, GREEN, live, isolated repository-selftest,
-  and broader-regression receipts to one genuine source revision.
-2. **Scope 4 decision preservation.** Retain the Foundation lifecycle candidate's successful
+1. **Scope 1 characterization authority repair.** Keep SCN-BUG017-01 and SCN-BUG017-02 as
+  historical measurements, remove their active proxy mappings, and retain SCN-BUG017-03.
+2. **Scope 2 ratio-contract preservation.** Retain the committed shared SCN-BUG017-06 ratio
+  evaluator and the five canonical phase receipts bound to source revision `d0c09a3ec90d`.
+3. **Scope 4 decision preservation.** Retain the Foundation lifecycle candidate's successful
   and failed runs as rejected historical evidence without making either candidate scenario an
   active closure obligation.
-3. **Scope 4 fallback closure.** Keep the hash-verified rollback and one-worker repository
-  default, then close only through SCN-BUG017-11's canonical functional and exact BUG-022 C03
-  references.
+4. **Scope 4 fallback closure.** Add an immutable-object precondition regression for the
+  rejected candidate, both explicit reverts, restored blobs, and the one-worker final config.
+  Refresh SCN-BUG017-11 only through its canonical functional and exact BUG-022 C03 references.
 
 ### New Types And Signatures
 
@@ -67,10 +92,11 @@ syntax. Their provisional GREEN, later RED, rollback, and rejection evidence rem
   evidence intact in explicit historical sections.
 2. SCN-BUG017-11 must resolve only to canonical, repository-present tests for the selected
   one-worker fallback and the unchanged exact BUG-022 C03 workload.
-3. Scenario obligations, Markdown-to-JSON Test Plan parity, traceability, linked-test
-  resolution, and scope-progress integrity must pass before handoff.
-4. TP-BUG017-02-02 must receive its own isolated repository-selftest receipt; concurrent selftest
-  activity and receipts owned by another packet cannot satisfy it.
+3. Scenario obligations, Markdown-to-JSON Test Plan parity, traceability, and linked-test
+  resolution must pass before handoff. Scope-progress is expected to remain nonzero until
+  `bubbles.validate` reconciles its certification-owned mirrors.
+4. TP-BUG017-02-02 remains supported by its separately checked repository-selftest record. It is
+  not relabeled as one of the current scenario-state phases.
 5. Current test-owned execution closes the active references under the selected one-worker
   configuration; acceptance, validation, and certification gates remain independently owned.
 
@@ -78,10 +104,10 @@ syntax. Their provisional GREEN, later RED, rollback, and rejection evidence rem
 
 | Scope | Outcome | Surfaces | Primary validation | Status |
 | --- | --- | --- | --- | --- |
-| 1 | Characterise the original stall | Diagnostics | Worker sweep and candidate discrimination | Done; SCN-BUG017-01 through SCN-BUG017-03 remain active invariants |
-| 2 | Apply the original exposure remedy and close the active cost invariant | Ratio helper and focused regression | Deterministic ratio controls, live comparison, isolated repository selftest, and complete lifetime-tax workload | In Progress; two SCN-BUG017-06 DoD rows remain unchecked |
+| 1 | Characterise the original stall | Diagnostics and scenario authority | Candidate discrimination plus historical characterization boundary | Done; iteration 4 rows have independent current receipts |
+| 2 | Apply the original exposure remedy and close the active cost invariant | Ratio helper and focused regression | Deterministic ratio controls, live comparison, isolated repository selftest, and complete lifetime-tax workload | Done; SCN-BUG017-06 resolves `REGRESSION_GREEN` at `d0c09a3ec90d` |
 | 3 | Disclose the remaining override risk | Config and command registry | Disclosure and workload regressions | Done; SCN-BUG017-07 and SCN-BUG017-08 remain active invariants |
-| 4 | Resolve the current two-worker recurrence | Rejected Foundation lifecycle candidate; selected one-worker config fallback | Historical candidate record plus SCN-BUG017-11 canonical fallback verification | Done |
+| 4 | Resolve the current two-worker recurrence | Rejected Foundation lifecycle candidate; selected one-worker config fallback | Immutable selection-precondition proof, SCN-BUG017-11 canonical fallback verification, and change-boundary containment | Done; TP-BUG017-04-08 has a qualified receipt and final byte lock |
 
 ## Sequencing Note
 
@@ -90,9 +116,10 @@ behaviour change. Scope 2 applies whatever Scope 1 selects. Scope 3 is a disclos
 that is only correct if Scope 1 concludes the cause is unremovable here. Those three scopes are
 preserved as the original execution sequence. Scope 4 follows them additively and keeps the
 selected runtime-closure route complete after the current-revision two-worker recurrence.
-Scope 2 remains in progress until SCN-BUG017-06 has its committed evaluator and one-revision
-receipt chain. The diagnostic, cost, and disclosure constraints listed in the current manifest
-remain active invariants.
+Scope 2 is done because SCN-BUG017-06 has its committed evaluator and one-revision receipt
+chain. The diagnostic, cost, and disclosure constraints listed in the current manifest remain
+active invariants. SCN-BUG017-11 now has current independent row receipts and does not reopen
+Scope 2. Final stable-revision scenario-state receipts remain separately refresh-required.
 
 ## Scope 1: Characterise The Stall Well Enough To Choose
 
@@ -115,20 +142,6 @@ would be choosing on a guess.
 
 ```gherkin
 Feature: The stall is characterised before a remedy is chosen
-# SCN-BUG017-01
-  Scenario: A frequency is established
-    Given repeated identical runs under the system-chrome project at six workers
-    When the runs complete
-    Then the proportion exhibiting a force-killed worker is recorded
-    And the record states the number of runs it is based on
-
-# SCN-BUG017-02
-  Scenario: A concurrency threshold is probed
-    Given runs at increasing worker counts
-    When each completes
-    Then the lowest worker count at which the stall was observed is recorded
-    And a count at which it was not observed is recorded as not-observed rather than as safe
-
 # SCN-BUG017-03
   Scenario: The cheap candidates are discriminated
     Given the profile-contention and version-pair candidates
@@ -136,6 +149,33 @@ Feature: The stall is characterised before a remedy is chosen
     Then each is recorded as supported, contradicted, or untested
     And no candidate is recorded as the cause without evidence that distinguishes it
 ```
+
+### Historical Characterization Scenarios — Not Active
+
+The quoted scenarios preserve the original measurement contract. They do not require current
+scenario receipts and do not map to page tests.
+
+> ```gherkin
+> # SCN-BUG017-01
+>   Scenario: A frequency is established
+>     Given repeated identical runs under the system-chrome project at six workers
+>     When the runs complete
+>     Then the proportion exhibiting a force-killed worker is recorded
+>     And the record states the number of runs it is based on
+>
+> # SCN-BUG017-02
+>   Scenario: A concurrency threshold is probed
+>     Given runs at increasing worker counts
+>     When each completes
+>     Then the lowest worker count at which the stall was observed is recorded
+>     And a count at which it was not observed is recorded as not-observed rather than as safe
+> ```
+
+### Active Scenario Obligation Matrix
+
+| Scenario | Behavior traits | Obligations | Implementation refs |
+| --- | --- | --- | --- |
+| SCN-BUG017-03 | pure-calculation, static-metadata | Production-function assertion over the candidate table, causal-label rejection, missing-rationale rejection, and stable artifact provenance | `tests/playwright-runtime.foundation.functional.mjs`, `specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md` |
 
 ### Implementation Plan
 
@@ -154,7 +194,7 @@ Feature: The stall is characterised before a remedy is chosen
 - `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` are concrete members of the measured lifetime-tax E2E workload.
 - Playwright's runner and the operator-installed Chrome are causal evidence only; neither is a repository implementation path.
 
-### Test Plan
+### Historical Characterization Test Record
 
 | Type | Coverage |
 |---|---|
@@ -164,6 +204,18 @@ Feature: The stall is characterised before a remedy is chosen
 | Functional regression | `tests/playwright-runtime.foundation.functional.mjs` test `Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence`, run with `node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs`. It parses the candidate table in this packet's `report.md`; requires candidates 3 and 4, an allowed supported/contradicted/untested verdict, and candidate-specific distinguishing evidence; and rejects a causal verdict. This complements rather than replaces the unchanged process-level workload. |
 | E2E | Scenario-specific process-level E2E characterization for SCN-BUG017-01 through SCN-BUG017-03 runs the 22-file lifetime-tax system-Chrome suite; concrete workload tests include `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and `tests/lifetime-tax-read-bound.spec.mjs` test `Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document`. |
 | Regression E2E | `e2e-ui` characterization for SCN-BUG017-01 through SCN-BUG017-03 executes the complete 22-file lifetime-tax system-Chrome workload across the declared worker-count sweep and preserves each named browser regression. |
+
+The repeated execution, concurrency sweep, process sampling, and page-carrier mappings above
+remain the record of the original measurement. They do not satisfy a current receipt for
+SCN-BUG017-01 or SCN-BUG017-02.
+
+### Test Plan
+
+| ID | Scenario | Test Type | Category | File or exact title | Command | Live system | Required result |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| TP-BUG017-R4-S1-01 | SCN-BUG017-03 | Adversarial regression | functional | `tests/playwright-runtime.foundation.functional.mjs` — `Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence` | `node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs` | No | The current candidate table rejects causal labels and unsupported untested rationales through the production parser. |
+| TP-BUG017-R4-S1-02 | SCN-BUG017-03 | Shared-carrier canary | functional | `tests/playwright-runtime.foundation.functional.mjs` | `node --test tests/playwright-runtime.foundation.functional.mjs` | No | The complete shared carrier passes after SCN-BUG017-01 and SCN-BUG017-02 lose active receipt authority. |
+| TP-BUG017-R4-S1-03 | SCN-BUG017-03, SCN-BUG017-11 | G040 current-language check | governance | BUG-017 packet | `bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos` | No | Check 18 reports zero current deferral-language hits. Any unrelated nonzero transition findings remain findings and are not recorded as passes. |
 
 #### SCN-BUG017-03 Discriminating RED Mutations
 
@@ -188,7 +240,7 @@ hash-verifies the tracked target before running the unchanged GREEN command.
   Expected RED: the Node test exits non-zero with
   `SCN-BUG017-03: candidate 4 lacks the single-build untested rationale`.
 
-### Definition of Done
+### Historical Scope 1 Completion Record
 
 - [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-01 through SCN-BUG017-03. **Claim Source:** executed. → Evidence: [BUG-017 report](report.md), specifically `Frequency at the filed configuration`, `Worker sweep`, and `Candidate mechanisms`, records every browser assertion passing while characterising the process-level outcome; the scenario manifest preserves the exact linked tests.
 - [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax system-Chrome workload at the selected two-worker configuration. **Claim Source:** executed. → Evidence: [BUG-017 report](report.md), `Scope 2 Execution — Remedy Applied`, records three consecutive complete 94-test workloads at two workers, all exit 0 with zero force-kills.
@@ -208,9 +260,32 @@ hash-verifies the tracked target before running the unchanged GREEN command.
 - [x] Raw output evidence is recorded inline for each item above.
   → Evidence: [Six-worker frequency output](report.md#frequency-at-the-filed-configuration--six-workers-eight-runs-six-stalls).
 
+### Definition of Done
+
+- [x] DOD-TP-BUG017-R4-S1-01: "The cheap candidates are discriminated" when SCN-BUG017-03
+  passes TP-BUG017-R4-S1-01 at the final source revision without using SCN-BUG017-01 or
+  SCN-BUG017-02 as active proxies.
+  **Claim Source:** executed. → Evidence: independent `bubbles.test` receipt
+  `DOD-TP-BUG017-R4-S1-01`, exact title 1/1, exit 0, capture SHA-256
+  `5cb8b8e41fef626ed1330d3cc84f5559e070d4dd506d2f3a0a36005ac4386697`.
+- [x] DOD-TP-BUG017-R4-S1-02: TP-BUG017-R4-S1-02 passes at the same source revision and
+  confirms the complete shared functional carrier remains green.
+  **Claim Source:** executed. → Evidence: independent `bubbles.test` receipt
+  `DOD-TP-BUG017-R4-S1-02`, complete shared carrier 26/26, exit 0, capture SHA-256
+  `b627ba67d8b2e1b971c149a4d8c40592005affeb4512727408657ad7c7aee73b`.
+- [x] DOD-TP-BUG017-R4-S1-03: TP-BUG017-R4-S1-03 reaches Check 18 and reports zero current
+  deferral-language hits. Historical report bytes before the certifying-window marker remain
+  unchanged. The active scenario manifest and structured Test Plan omit SCN-BUG017-01 and
+  SCN-BUG017-02. Their Gherkin, measurements, and receipts remain unchanged in historical
+  sections.
+  **Claim Source:** interpreted. **Interpretation:** Independent `bubbles.test` execution proved
+  only this row's Check 18 and G040 obligation. The transition guard remained non-passing on
+  unrelated G027 and G136 findings, so this row does not claim an overall guard pass. → Evidence:
+  capture SHA-256 `c30f4a18caaff86c1a117a4073b3cba7cca4b37aefc647a430d0da7dea8f12c1`.
+
 ## Scope 2: Apply The Selected Remedy
 
-**Status:** In Progress
+**Status:** Done
 **Depends on:** Scope 1
 
 ### Consumer Surface
@@ -299,7 +374,7 @@ It is decision history, not executable scenario syntax and not a current receipt
 
 | ID | Scenario | Test Type | Category | File / exact title | Command | Live system | Required result |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-BUG017-02-01 | SCN-BUG017-06 | Like-for-like timing | `e2e-ui` | Planned `scripts/validate-playwright-cost-ratio.mjs`; exact carriers remain `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` in the complete 22-file workload | `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live` | Yes | The helper requires configured workers=1, enumerates exactly 22 files, runs both projects without a worker override, requires both exits to be zero, and evaluates the measured system-Chrome/bundled-Chromium ratio as no more than the unchanged FR-017-004 maximum of 3.0. |
+| TP-BUG017-02-01 | SCN-BUG017-06 | Like-for-like timing | `e2e-ui` | `scripts/validate-playwright-cost-ratio.mjs`; exact carriers remain `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` in the complete 22-file workload | `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live` | Yes | The helper requires configured workers=1, enumerates exactly 22 files, runs both projects without a worker override, requires both exits to be zero, and evaluates the measured system-Chrome/bundled-Chromium ratio as no more than the unchanged FR-017-004 maximum of 3.0. |
 | TP-BUG017-02-02 | SCN-BUG017-06 | Repository regression | `functional` | `scripts/selftest.mjs` | `node scripts/selftest.mjs` | No | The build-free repository invariant suite reports zero failures without reducing its recorded assertion baseline. |
 | TP-BUG017-02-03 | SCN-BUG017-06 | Regression E2E | `e2e-ui` | `tests/lifetime-tax-combined.spec.mjs` — `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure`; `tests/lifetime-tax-read-bound.spec.mjs` — `Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement` | `npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list && npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement$' --reporter=list` | Yes | Both exact scenario carriers pass through the selected system-Chrome configuration with no hidden lifecycle failure. |
 | TP-BUG017-02-04 | SCN-BUG017-06 | Broader Regression E2E | `e2e-ui` | `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` as concrete carriers in the complete 22-file lifetime-tax workload | `npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | The complete affected system-Chrome workload exits zero under the selected configuration and preserves the FR-017-004 comparison boundary. |
@@ -311,9 +386,8 @@ It is decision history, not executable scenario syntax and not a current receipt
   both commands to exit zero, and evaluates the measured ratio against the unchanged 3.0 bound.
 - A six-worker live timing attempt does not qualify as RED evidence. Its ratio depends on
   ambient scheduling and can remain below 3.0 even when the test is otherwise healthy.
-- The repository contains no committed SCN-BUG017-06 or FR-017-004 ratio evaluator under
-  `scripts/`, `tests/`, or the root JavaScript modules. Implement the smallest durable mechanism:
-  `scripts/validate-playwright-cost-ratio.mjs`, plus one additive regression in the existing
+- The repository contains the committed `scripts/validate-playwright-cost-ratio.mjs` evaluator
+  and one additive persistent regression in the existing
   `tests/playwright-runtime.foundation.functional.mjs` family.
 - The helper has three explicit modes and no implicit fallback. `--live` executes the real pair and
   calls the shared ratio predicate. `--control at-bound` creates a uniquely named temporary
@@ -322,12 +396,12 @@ It is decision history, not executable scenario syntax and not a current receipt
   `bundledChromiumWallMs` at 1000 and the maximum at 3.000, calls the same predicate, removes
   the temporary directory in `finally`, and exits 1 with
   `SCN-BUG017-06: wall-time ratio 3.001 exceeds FR-017-004 maximum 3.000`.
-- The exact RED command after implementation is
+- The current RED receipt executes
   `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node scripts/validate-playwright-cost-ratio.mjs --control over-bound`.
-  The targeted GREEN command is
+  The current targeted GREEN receipt executes
   `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node scripts/validate-playwright-cost-ratio.mjs --control at-bound`.
-  Both receipts must bind the same test identity and the same negative-control text. The persistent
-  regression command is `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node --test --test-name-pattern='^Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison$' tests/playwright-runtime.foundation.functional.mjs`.
+  Both receipts bind the same test identity and negative-control text. The persistent regression
+  command is `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 node --test --test-name-pattern='^Regression: SCN-BUG017-06 cost ratio evaluator rejects a known over-bound comparison$' tests/playwright-runtime.foundation.functional.mjs`.
 - The control output must label its 3001/1000 values as deterministic comparison input, never as
   observed elapsed runtime. It must not alter the production 3.0 criterion, substitute a static
   text-presence assertion for ratio evaluation, or depend on machine load.
@@ -352,33 +426,27 @@ The checked rows below preserve the original Scope 2 execution record. They are 
 receipt requirements for SCN-BUG017-04 or SCN-BUG017-05. SCN-BUG017-06 remains active only for
 the separate FR-017-004 cost invariant.
 
-The checked SCN-BUG017-06 rows also preserve their prior positive execution record. This planning
-change alters the scenario's negative-control identity, so none is a current scenario-state receipt.
-The required helper and focused regression are assigned to `bubbles.implement`. At the genuine new
-source revision, `bubbles.test` must record the deterministic RED, targeted GREEN, real
-dual-project live proof, focused regression, isolated TP-BUG017-02-02 repository selftest, and
-broader regression chain against that one revision. Existing same-head receipts remain history
-and must not be relabeled as current.
+The current SCN-BUG017-06 receipts supersede only the former statement that no current receipt
+existed. Historical two-worker evidence and rejected candidate receipts remain unchanged. The
+current chain is tool-log lines 1598 through 1602. Every row carries source revision
+`d0c09a3ec90d2bb72920caee9e44f1d5f697c619`, the same negative control, and the declared
+implementation references. TP-BUG017-02-02 remains covered by its separate checked item below.
+No new repository-selftest receipt is claimed by the five-phase scenario-state chain.
 
-- [ ] The committed SCN-BUG017-06 ratio evaluator applies one predicate to live measurements and
+- [x] The committed SCN-BUG017-06 ratio evaluator applies one predicate to live measurements and
   both deterministic controls, keeps the maximum at 3.000, emits the exact 3.001 refusal, emits the
   exact 3.000 acceptance, and removes its isolated temporary comparison directory on every exit.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Searched repository scripts, tests, and root JavaScript modules for an existing SCN-BUG017-06 or FR-017-004 ratio evaluator and inspected the committed RED/GREEN helper.
-  > **What was observed:** The live ratio existed only in prior one-off execution commands. No committed executable accepts deterministic comparison input. The committed probe supplies portable Perl-alarm and restoration patterns but no ratio predicate.
-  > **Why this is uncertain:** The planned helper and focused regression do not exist yet, so planning cannot execute or claim their behavior.
-  > **What would resolve this:** Add only the two implementation files named by the Change Boundary, then run the exact over-bound, at-bound, and persistent-regression commands above.
-- [ ] Fresh SCN-BUG017-06 receipts bind the deterministic RED and targeted GREEN to the same test
-  identity and negative control, then bind the real one-worker dual-project live proof, focused
-  regression, repository selftest, and broader system-Chrome workload at one source revision.
-  > **Uncertainty Declaration**
-  > **What was attempted:** Inspected the current tool-call rows and the Scope 2 structured Test Plan after revising the scenario's negative-control identity.
-  > **What was observed:** Every existing SCN-BUG017-06 receipt predates this planning contract. The former six-worker RED either used an unavailable `gtimeout` path or completed below the 3.0 threshold, so it cannot prove the revised discriminator.
-  > **Why this is uncertain:** No execution owner has run the revised commands against the implementation because that implementation does not exist yet.
-  > **What would resolve this:** After implementation, record a non-zero over-bound receipt, zero at-bound receipt, zero live receipt, and zero regression receipts with the exact bindings declared in `scenario-manifest.json`.
+  **Claim Source:** executed. → Evidence: [structured current-revision receipts](../../../.specify/runtime/tool-calls.jsonl#L1598-L1600) record the deterministic RED, implementation contract, and at-bound GREEN. The canonical resolver derives SCN-BUG017-06 through `RED_VERIFIED`, `IMPLEMENTED`, and `GREEN_TARGETED` at `d0c09a3ec90d`.
+- [x] Fresh SCN-BUG017-06 receipts bind the deterministic RED and targeted GREEN to the same test
+  identity and negative control, then bind the real one-worker dual-project live proof and the
+  independent protected regression at one source revision. **Claim Source:** executed. → Evidence:
+  [tool-log lines 1598 through 1602](../../../.specify/runtime/tool-calls.jsonl#L1598-L1602) carry
+  phase sequence `red, implement, green, live, regression`, exit sequence `1, 0, 0, 0, 0`, and
+  source revision `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`. The canonical resolver derives
+  SCN-BUG017-06 as `REGRESSION_GREEN`.
 
-- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-06: TP-BUG017-02-03 exercises the exact `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` carriers, and TP-BUG017-02-04 preserves the complete affected workload. **Claim Source:** executed. → Evidence: the test log records the targeted GREEN receipt at `2026-08-28T15:52:11Z` with exit 0 and stdout SHA-256 `85d469faa9a706d4f3a093d375cf49960eb59077ef27a018b1d2083eae950525`, the one-worker dual-project live receipt at `2026-08-28T16:17:20Z` with exit 0 and stdout SHA-256 `dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63`, and the regression receipt at `2026-08-28T16:32:13Z` with exit 0 and stdout SHA-256 `2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf`; all three bind source revision `4bd96545cd6673155933edf3a22492d6d1972256`. [The FR-017-004 bound](report.md#the-fr-017-004-bound) records the three-to-one decision threshold and its prior like-for-like basis.
-- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax system-Chrome workload at the selected one-worker configuration. **Claim Source:** executed. → Evidence: the current live receipt at `2026-08-28T16:17:20Z` exits 0 with stdout SHA-256 `dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63`, and the current regression receipt at `2026-08-28T16:32:13Z` exits 0 with stdout SHA-256 `2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf`; both bind source revision `4bd96545cd6673155933edf3a22492d6d1972256` and the concrete carriers named by TP-BUG017-02-04.
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG017-06: TP-BUG017-02-03 exercises the exact `tests/lifetime-tax-combined.spec.mjs` and `tests/lifetime-tax-read-bound.spec.mjs` carriers, and TP-BUG017-02-04 preserves the complete affected workload. **Claim Source:** executed. → Evidence: [tool-log line 1600](../../../.specify/runtime/tool-calls.jsonl#L1600) records targeted GREEN with exit 0 and stdout SHA-256 `126769549145b36cfb711d95a4cc02d7879d38aa7e7dd3e6e1e8a0bed047de01`; [line 1601](../../../.specify/runtime/tool-calls.jsonl#L1601) records live comparison with exit 0 and stdout SHA-256 `f1db723539f4822d5597180b19d355ebcea5134fe705764c1aa19a78ba6a0cdf`; [line 1602](../../../.specify/runtime/tool-calls.jsonl#L1602) records the protected regression with exit 0 and stdout SHA-256 `79b41072df61e36acb680c71610f3eddf7b15ef2e12ebce045c5076c81728ee4`. All three bind source revision `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`. [The FR-017-004 bound](report.md#the-fr-017-004-bound) records the three-to-one decision threshold.
+- [x] Broader E2E regression suite passes for the complete 22-file lifetime-tax system-Chrome workload at the selected one-worker configuration. **Claim Source:** executed. → Evidence: [the live receipt](../../../.specify/runtime/tool-calls.jsonl#L1601) and [the independent protected regression receipt](../../../.specify/runtime/tool-calls.jsonl#L1602) both exit 0 at source revision `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`. The canonical resolver derives SCN-BUG017-06 as `REGRESSION_GREEN`.
 - [x] Historical repeated-run record: consecutive system-Chrome E2E workloads at the former chosen worker count exited 0, with raw output for each.
   → Evidence: `report.md` `## Scope 2 Execution — Remedy Applied` records three consecutive 94-test runs, all tests passing, exit 0, and zero force-kills.
 - [x] No run reports `worker-N process did not exit within`.
@@ -386,7 +454,7 @@ and must not be relabeled as current.
 - [x] Historical process-release record: the browser process count returned to its pre-run level after each recorded run.
   → Evidence: [Scope 2 remedy runs](report.md#scope-2-execution--remedy-applied).
 - [x] The cost is proportionate: the wall-time ratio meets the bound recorded under FR-017-004.
-  → Evidence: the current one-worker dual-project receipt at `2026-08-28T16:17:20Z` exits 0 with stdout SHA-256 `dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63`; [the FR-017-004 bound](report.md#the-fr-017-004-bound) records the three-to-one decision threshold and its historical like-for-like basis.
+  → Evidence: [tool-log line 1601](../../../.specify/runtime/tool-calls.jsonl#L1601) exits 0 with stdout SHA-256 `f1db723539f4822d5597180b19d355ebcea5134fe705764c1aa19a78ba6a0cdf` at source revision `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`; [the FR-017-004 bound](report.md#the-fr-017-004-bound) records the three-to-one decision threshold.
 - [x] `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline.
   → Evidence: [Scope 2 unchanged suite](report.md#the-suite-is-unchanged).
 - [x] No test was modified to accommodate the remedy, and the broader lifetime-tax E2E regression suite passes under the repository-owned `playwright.config.mjs` worker setting.
@@ -517,8 +585,11 @@ The selected fallback pins one worker. The current-session shared execution for
 TP-BUG017-04-04 and TP-BUG017-04-04B resolved one worker, retained system-Chrome and Chrome,
 passed 94 of 94 tests, exited zero, emitted no force-kill or ignored-lifecycle marker, reported
 zero skips and todos, and left zero owned residue. TP-BUG017-04-05 passed one of one with exit
-zero and zero skips or todos. Scope 4 is done. The packet, acceptance, and certification remain
-in progress for their owning gates.
+zero and zero skips or todos. Those receipts remain checked historical execution records.
+Independent iteration 4 execution now closes TP-BUG017-04-06 and TP-BUG017-04-07. Planning
+does not change acceptance, certification, or BUG status. The qualified TP-BUG017-04-08
+receipt and its final current-byte lock independently verify the declared Change Boundary, so
+the plan-owned Scope 4 status is Done.
 
 ### FR-017-004 Planning Threshold
 
@@ -570,6 +641,12 @@ Feature: The selected fallback closes the current system-Chrome recurrence
     And closure requires 94 passing tests, exit zero, and no ignored force-kill error
 ```
 
+### Scenario Obligation Matrix
+
+| Scenario | Behavior traits | Obligations | Implementation refs |
+| --- | --- | --- | --- |
+| SCN-BUG017-11 | dependency-path, runtime-config, static-metadata | Immutable candidate-rejection anchor, both explicit revert objects and their reverted candidate identities, pre-candidate blob restoration for both candidate files, one-worker final config execution, active consumer parity, visible lifecycle failure behavior, and stable-revision receipt refresh | `playwright.config.mjs`, `tests/playwright-runtime.foundation.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, `specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md`, `tests/portfolio-survival-*.spec.mjs` |
+
 ### Rejected Candidate Scenarios — Historical, Not Active Closure
 
 The quotation below preserves the candidate-planning Gherkin text verbatim after each Markdown
@@ -616,8 +693,9 @@ Finalization Validation - Candidate Rejected` and `Scope 4 Fallback Selection An
   fallback-containment test title. Use no synthetic portfolio test title.
 5. Preserve the current test-owned execution of the exact config-default BUG-022 C03 command and
   the exact focused SCN-BUG017-11 functional command without rerunning replaced candidates.
-6. Mark Scope 4 done after all three active Test Plan rows resolve from current evidence. Keep
-  BUG-level status and certification in progress until their independent owners clear later gates.
+6. Mark Scope 4 done only after TP-BUG017-04-06, TP-BUG017-04-07, and TP-BUG017-04-08 have
+  independent current receipts. Preserve BUG-level status and certification for their
+  independent owners.
 
 ### Implementation Files
 
@@ -640,10 +718,12 @@ Finalization Validation - Candidate Rejected` and `Scope 4 Fallback Selection An
 
 **Allowed next-owner activity:**
 
-- `bubbles.test` may generate distinct current receipts only for SCN-BUG017-01,
-  SCN-BUG017-02, SCN-BUG017-03, SCN-BUG017-06, SCN-BUG017-07, SCN-BUG017-08, and
-  SCN-BUG017-11. It must not rerun or relabel SCN-BUG017-04, SCN-BUG017-05,
-  SCN-BUG017-09, or SCN-BUG017-10 as current success.
+- `bubbles.validate` reconciles the now-done Scope 1 and Scope 4 certification-owned mirrors.
+  Planning does not edit certification fields or infer a BUG-level terminal status.
+- Any stable-revision receipt refresh may target only active SCN-BUG017-03, SCN-BUG017-06,
+  SCN-BUG017-07, SCN-BUG017-08, and SCN-BUG017-11. It must not create current receipts for
+  historical SCN-BUG017-01, SCN-BUG017-02, SCN-BUG017-04, SCN-BUG017-05,
+  SCN-BUG017-09, or SCN-BUG017-10.
 
 **Excluded surfaces:**
 
@@ -673,9 +753,34 @@ Finalization Validation - Candidate Rejected` and `Scope 4 Fallback Selection An
 | TP-BUG017-04-04 | Regression E2E | SCN-BUG017-11 | The eight real `tests/portfolio-survival-*.spec.mjs` files named in `scenario-manifest.json` | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | The config-default run resolves one worker; 94/94 tests pass; exit is zero; no force-kill or ignored-lifecycle marker appears; workload-owned process counts return to baseline. |
 | TP-BUG017-04-04B | Broader Regression E2E | SCN-BUG017-11 | The complete eight-file portfolio-survival browser suite | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | The complete selected consumer suite stays green under the same one-worker system-Chrome route. This row uses the same command as TP-BUG017-04-04 because the scenario-specific behavior is the runner-level outcome of the full suite. |
 | TP-BUG017-04-05 | Adversarial functional regression | SCN-BUG017-11 | `tests/playwright-runtime.foundation.functional.mjs` — `Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity` | `node --test --test-name-pattern='^Regression: SCN-BUG017-11 fallback preserves lifecycle failure visibility and browser parity$' tests/playwright-runtime.foundation.functional.mjs` | The config resolves one worker and retains `system-chrome`; the 300000ms budget and force-kill disclosure remain; the rejected Foundation lifecycle seam remains absent. |
+| TP-BUG017-04-06 | Selection-precondition regression | SCN-BUG017-11 | `tests/playwright-runtime.foundation.functional.mjs` — `Regression: SCN-BUG017-11 fallback selection requires rejected candidate and hash-verified rollback` | `node --test --test-name-pattern='^Regression: SCN-BUG017-11 fallback selection requires rejected candidate and hash-verified rollback$' tests/playwright-runtime.foundation.functional.mjs` | The test resolves explicit report anchor `scope-4-finalization-validation-candidate-rejected`. It verifies reverts `047292eb2d2d7444dff1e45b52738950609cad4b` and `af119275ad624893d5c55ac07d046d646c0928a4` reverse candidates `5620a4e7865742eca3651565bffcac86153a4419` and `b3322965e6209b125391c3f147b45ce1ae8241b4`. It verifies the final revert tree carries Foundation blob `bc66800eb67d51f2bfdd3beae19bbe0bee697d2e` and runtime-functional blob `0d319b8b1662dbb45dd4a5b61b189b6909ded77d`. It also verifies workers=1, `system-chrome`, channel `chrome`, the unchanged 300000ms budget, visible force-kill semantics, and the absence of the rejected Foundation seam. It executes no rejected-candidate acceptance workload and uses no fixed working-tree hash. |
+| TP-BUG017-04-07 | Stable-revision Regression E2E | SCN-BUG017-11 | The eight real `tests/portfolio-survival-*.spec.mjs` files | `npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | The final source revision resolves one worker, passes 94/94, exits zero, exposes lifecycle failure markers, and leaves no workload-owned residue. |
+| TP-BUG017-04-08 | Change-boundary verification | — (governance-only) | BUG-017 planning packet plus the complete repository change inventory | `/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 /bin/zsh -f -c 'git diff --check && git status --porcelain=v1 --untracked-files=all && git diff --no-ext-diff --name-status -- .'` | Compare the complete inventory with a path-and-hash baseline captured before verification. New deltas are limited to this packet's `scopes.md`, `test-plan.json`, and the plan-owned `execution.scopeInventory` and current-routing fields in `state.json`. Zero report, uservalidation, scenario-manifest, source, config, test, framework-managed, BUG-022, market/tool-brief/probe, detached-scratch, company-intelligence-worktree, certification/status-mirror, completed-phase, final-revision-receipt, remaining-phase, G136, stale/clone, upstream, or unrelated concurrent family changes are attributable to this correction. |
 
 The project config declares no `testImpact` or `traceContracts` map. No impact-plan or trace/SLO
 row applies to this scope.
+
+#### TP-BUG017-04-08 Deterministic Inventory Procedure
+
+Before verification, record the complete `git status --porcelain=v1 --untracked-files=all`
+inventory. Record `git hash-object --no-filters` for each tracked dirty path and a SHA-256 of the
+target text for each dirty symlink. After verification, repeat the same inventory and hashes.
+Classify every changed JSON pointer in `state.json`. The only new path deltas may be this packet's
+`scopes.md`, `test-plan.json`, and `state.json`; the only new state pointers may be
+`execution.scopeInventory` and current routing. Every pre-existing concurrent path must retain
+its recorded status and hash. Any new or changed excluded-family path fails TP-BUG017-04-08.
+
+#### TP-BUG017-04-06 Non-Vacuity And Stability Contract
+
+- Resolve the two commit objects and both baseline blobs through Git object storage. Do not
+  compare the focused test file to a fixed working-tree hash because this test adds new bytes.
+- Verify each revert's declared candidate identity and changed paths. Resolve both baseline blobs
+  from the tree at `af119275ad624893d5c55ac07d046d646c0928a4`.
+- Resolve the explicit report heading anchor and parse the final config contract directly.
+- Use a self-restoring RED probe that perturbs one expected immutable identity in the new test.
+  Capture the entry hash dynamically, restore it, and verify restoration before GREEN.
+- Do not invoke Playwright or rerun SCN-BUG017-09 or SCN-BUG017-10. TP-BUG017-04-07 owns the
+  selected-route browser receipt after this functional regression is green.
 
 ### Rejected Candidate Test Record — Historical, Not Active Test Plan
 
@@ -691,6 +796,46 @@ row applies to this scope.
 - [x] Broader E2E regression suite passes: TP-BUG017-04-04B executes the same complete eight-file, 94-test portfolio-survival system-Chrome suite under the selected one-worker default. **Claim Source:** executed. → Evidence: [Scope 4 current test execution](report.md#tp-bug017-04-04-and-tp-bug017-04-04b) states that TP-BUG017-04-04 and TP-BUG017-04-04B share the identical complete command, records all 94 tests passing with exit 0 and zero skips or todos, and binds the shared run to capture SHA-256 `ed9bd75c5142d0e6d895601a4331a760c4ceab32d5ef792b7c4ff9417061b13e`.
 - [x] TP-BUG017-04-05 passes the exact existing SCN-BUG017-11 fallback-containment test and proves one worker, system-Chrome parity, the unchanged 300000ms stop budget, visible force-kill disclosure, and absence of the rejected lifecycle candidate. **Claim Source:** executed. → Evidence: [Scope 4 current test execution](report.md#tp-bug017-04-05) records one of one passing with exit 0, zero skips and todos, `workers=1`, `project=system-chrome`, `channel=chrome`, `defaultWorkerStopBudgetMs=300000`, `forceKillDisclosure=present`, and `lifecycleCandidateRolledBack=true`; capture SHA-256 `f5218b8a1a3991e53cbff0be3037a58e8f24a8342388f7a432d68c93050e0489` covers the complete 15-line output.
 
+- [x] DOD-TP-BUG017-04-06: TP-BUG017-04-06 passes at the final source revision. The test
+  records candidate rejection, resolves both explicit reverts and their reverted candidates,
+  verifies Foundation blob
+  `bc66800eb67d51f2bfdd3beae19bbe0bee697d2e` and runtime-functional blob
+  `0d319b8b1662dbb45dd4a5b61b189b6909ded77d`, and confirms workers=1,
+  `system-chrome`, channel `chrome`, the 300000ms budget, visible force-kill semantics, and
+  absence of the rejected seam without running candidate acceptance.
+  **Claim Source:** executed. → Evidence: independent `bubbles.test` receipt
+  `DOD-TP-BUG017-04-06`, exact selection-precondition title PASS, deterministic immutable-baseline
+  mutation RED exit 1 and GREEN exit 0, exact test-file restoration, and no candidate acceptance
+  run. Main capture SHA-256 `2753290d73bcb16d1f715e9ad57e3bbae2a2ca0fb475a03ad35913b981a78edc`;
+  mutation capture SHA-256 `30a09e2ba63d0608678415b995eec92e83fca692c538d0955c5d71357a17ce1d`.
+- [x] DOD-TP-BUG017-04-07: TP-BUG017-04-07 produces a fresh final-revision receipt for
+  SCN-BUG017-11 without rerunning or relabeling the rejected candidate as successful.
+  **Claim Source:** executed. → Evidence: independent `bubbles.test` receipt
+  `DOD-TP-BUG017-04-07`, exact config-default system-Chrome consumer with workers=1, 94/94,
+  exit 0, zero lifecycle, skip, todo, fixme, or only markers, zero workload-owned process or
+  residue, and clean cleanup; capture SHA-256
+  `9fafbf56baecc0dd16fcbe738f9eac5f535d01b3d44a1b0d0e3b2150c7264097`.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  (DOD-TP-BUG017-04-08): TP-BUG017-04-08 must prove that only this packet's `scopes.md`,
+  `test-plan.json`, and plan-owned `execution.scopeInventory` and current-routing fields in
+  `state.json` receive new deltas. It must prove zero changes attributable to this correction in
+  report, uservalidation, scenario-manifest, source, config, test, framework-managed, BUG-022,
+  market/tool-brief/probe, detached-scratch, company-intelligence-worktree,
+  certification/status-mirror, completed-phase, final-revision-receipt, remaining-phase, G136,
+  stale/clone, upstream, or unrelated concurrent families.
+  **Claim Source:** executed. → Evidence: structured tool-log line 1641 records the corrected
+  independent TP-BUG017-04-08 command at exit 0 with qualified-output SHA-256
+  `8a1f3aadf9253ac2129e5132b42b7b0f53afc281499ec0e4d976df8c9fbc5a27`; line 1643 records
+  the final current-byte lock at exit 0 with SHA-256
+  `0ec1bf4cb4814d6bc6962037d72f94a91edd82d481a7a1be988578574a982e66`. The receipt records
+  HEAD `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`, `git diff --check` exit 0, zero staged paths,
+  28 dirty paths classified as 13 authorized or coupled and 15 excluded concurrent paths,
+  zero unexpected paths, identical entry and final dirty-manifest SHA-256
+  `306ca6a1f41244d6d07e803759c07bacf7e71dc305c8636f428cc951e25203f1`, stable hashes for
+  every excluded path and registered worktree, and zero owned process, temporary, or output
+  residue. Lines 1640 and 1642 remain non-pass harness history and are not cited as passing
+  evidence.
+
 The rejected TP-BUG017-04-01 statement is no longer an active checkbox. Its failed current
 acceptance runs must never be converted into a pass. The historical candidate record above and
 the unchanged report anchors retain the complete decision evidence.
@@ -702,6 +847,11 @@ satisfies TP-BUG017-04-04 and TP-BUG017-04-04B without reducing or repeating the
 capture SHA-256 is `ed9bd75c5142d0e6d895601a4331a760c4ceab32d5ef792b7c4ff9417061b13e`.
 The focused one-test run satisfies TP-BUG017-04-05. Its capture SHA-256 is
 `f5218b8a1a3991e53cbff0be3037a58e8f24a8342388f7a432d68c93050e0489`.
+TP-BUG017-04-06 now has an independent exact-title receipt plus deterministic immutable-baseline
+mutation RED/GREEN proof and exact restoration. TP-BUG017-04-07 now has an independent complete
+94-test receipt under the one-worker config default. Their capture SHA-256 values are recorded in
+the matching DoD rows above. TP-BUG017-04-08 has a qualified independent receipt at structured
+tool-log line 1641 and a final current-byte lock at line 1643, so its matching row is checked.
 SCN-BUG017-09 and SCN-BUG017-10 remain replaced historical failures and were not rerun or
 relabeled. No source, configuration, test, report evidence, acceptance, certification, or
 BUG-level status is changed by this planning reconciliation.
@@ -740,3 +890,17 @@ closure claim.
     session. One acceptance act covered both packets, so the record declares `acceptanceAct`,
     the packets it covers, and a basis specific to this one. The Checklist remains unticked and
     no status moved; this row asserts the record exists and is filled, nothing further.
+
+  ## Preserved Owner Routing
+
+  | Finding or required phase | Required owner | Routing constraint |
+  | --- | --- | --- |
+  | GAPS-R4-BUG022-009-EVIDENCE-BYTE-MUTATION | bubbles.test | Preserve the original F10 display bytes and hash semantics. Do not edit historical evidence in planning. |
+  | GAPS-R4-STATE-001-INVALID-EXECUTION-SUBSTATE | bubbles.simplify | Repair only the invalid execution substate. Planning leaves it unchanged. |
+  | GAPS-R4-BUG017-014-STALE-STATE-NARRATIVE | bubbles.validate | Reconcile validate-owned state narrative without changing certification in planning. |
+  | Stable-revision receipts for every changed active scenario | bubbles.test | Execute the exact planned titles and commands on one final source revision. |
+  | Strict stale and clone adjudication | bubbles.validate or the derived framework owner | Preserve the existing classification until the owner executes its check. |
+  | G136 for BUG-017 and BUG-022 | human | Only the human acceptance act can close these gates. |
+  | harden, stabilize, security, docs, validate, and audit | Each named specialist | Execute every persisted `bugfix-fastlane` phase after the repair reaches stable test evidence. |
+  | Framework evidence-capture zero-line and managed-agent drift | upstream bubbles | Route only. Do not patch installed framework files in research-lab. |
+  | Tool-brief, Market Brief, detached BUG-022 scratch, and company-intelligence work | concurrent owner | Keep every excluded path and worktree outside this repair. |

@@ -3,11 +3,9 @@
   "specId": "BUG-017",
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "generatedBy": "bubbles.plan",
-  "generatedAt": "2026-08-28T23:35:36Z",
-  "planningDelta": "Convergence iteration 4 correction for F-SCN06-NEGATIVE-CONTROL-NONDISCRIMINATING and F-SCN06-RED-RUNNER-127. SCN-BUG017-06 keeps its real one-worker, 22-file, dual-project live proof and unchanged FR-017-004 maximum ratio of 3.0. Its RED contract now requires a small committed ratio CLI plus focused functional regression: the CLI must use one predicate for live measurements and a labelled isolated temporary comparison whose known 3.001 ratio exits 1 with the exact scenario message. An ambient six-worker timing attempt cannot satisfy RED. All prior SCN-BUG017-06 receipts are historical after this planning-input change; bubbles.implement owns the missing executable mechanism, then bubbles.test owns a fresh RED, targeted GREEN, live pair, and broader regression chain. SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 remain non-executable history. This plan changes no report evidence, human acceptance, certification, source, test, or terminal status.",
+  "generatedAt": "2026-08-29T22:52:16Z",
+  "planningDelta": "Convergence iteration 4 preserves SCN-BUG017-06 and its five canonical receipts unchanged. SCN-BUG017-01 and SCN-BUG017-02 join SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 as non-executable historical measurements. Independent bubbles.test receipts remain unchanged for TP-BUG017-R4-S1-01 through TP-BUG017-R4-S1-03 and TP-BUG017-04-06 through TP-BUG017-04-07. The qualified TP-BUG017-04-08 receipt at structured tool-log line 1641 and final current-byte lock at line 1643 close DOD-TP-BUG017-04-08. The governance-only row remains scenario-mapping not-applicable and is now authored, passed, and current. Scope 4 is Done in the plan-owned inventory. Final-revision BUG-017 and BUG-022 scenario receipts, remaining bugfix-fastlane phases, both G136 boundaries, stale and clone adjudication, upstream framework findings, excluded concurrent work, and validate-owned scope and certification mirrors remain unresolved. This plan changes no report evidence, human acceptance, certification, source, test, completed phase claim, or terminal lifecycle status.",
   "activeScenarioIds": [
-    "SCN-BUG017-01",
-    "SCN-BUG017-02",
     "SCN-BUG017-03",
     "SCN-BUG017-06",
     "SCN-BUG017-07",
@@ -17,8 +15,46 @@
   "historicalScenarioRecord": {
     "nonExecutable": true,
     "excludedFromCurrentReceiptGeneration": true,
-    "note": "This section preserves rejected decision history only. The canonical current-certification authority is scenario-manifest.json, where none of these four scenarios appears.",
+    "note": "This section preserves historical measurement and rejected decision history only. The canonical current-certification authority is scenario-manifest.json, where none of these six scenarios appears.",
     "scenarios": [
+      {
+        "scenarioId": "SCN-BUG017-01",
+        "title": "A frequency is established",
+        "replacedBy": null,
+        "gherkin": [
+          "Given repeated identical runs under the system-chrome project at six workers",
+          "When the runs complete",
+          "Then the proportion exhibiting a force-killed worker is recorded",
+          "And the record states the number of runs it is based on"
+        ],
+        "formerLinkedTests": [
+          "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-013 the combined total is the sum of two independent settlements",
+          "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document"
+        ],
+        "evidenceRefs": [
+          "report.md#frequency-at-the-filed-configuration--six-workers-eight-runs-six-stalls"
+        ],
+        "rejectionRationale": "This scenario records a past frequency sample. Its page-test carriers do not assert process-level frequency and cannot serve as current persistent coverage."
+      },
+      {
+        "scenarioId": "SCN-BUG017-02",
+        "title": "A concurrency threshold is probed",
+        "replacedBy": null,
+        "gherkin": [
+          "Given runs at increasing worker counts",
+          "When each completes",
+          "Then the lowest worker count at which the stall was observed is recorded",
+          "And a count at which it was not observed is recorded as not-observed rather than as safe"
+        ],
+        "formerLinkedTests": [
+          "tests/lifetime-tax-combined.spec.mjs#Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction",
+          "tests/lifetime-tax-read-bound.spec.mjs#Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement"
+        ],
+        "evidenceRefs": [
+          "report.md#worker-sweep--the-stall-was-observed-at-four-not-observed-at-two"
+        ],
+        "rejectionRationale": "This scenario records a past worker-count sweep. Its page-test carriers do not assert process-level threshold behavior and cannot serve as current persistent coverage."
+      },
       {
         "scenarioId": "SCN-BUG017-04",
         "title": "Repeated runs exit zero",
@@ -138,8 +174,66 @@
               "expectedFailure": "SCN-BUG017-03: candidate 4 lacks the single-build untested rationale"
             }
           ]
+        },
+        {
+          "id": "TP-BUG017-R4-S1-01",
+          "dodId": "DOD-TP-BUG017-R4-S1-01",
+          "type": "adversarial-regression",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG017-03",
+          "testId": "Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence",
+          "description": "Refresh the exact SCN-BUG017-03 discrimination test without using historical SCN-BUG017-01 or SCN-BUG017-02 page carriers as active proof.",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-03 candidate classifications require distinguishing evidence$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceSource": "independent-bubbles.test-receipt",
+          "evidenceSha256": "5cb8b8e41fef626ed1330d3cc84f5559e070d4dd506d2f3a0a36005ac4386697"
+        },
+        {
+          "id": "TP-BUG017-R4-S1-02",
+          "dodId": "DOD-TP-BUG017-R4-S1-02",
+          "type": "shared-carrier-canary",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG017-03",
+          "description": "Run the complete shared functional carrier after historical characterization loses active receipt authority.",
+          "command": "node --test tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "existing-command",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceSource": "independent-bubbles.test-receipt",
+          "evidenceSha256": "b627ba67d8b2e1b971c149a4d8c40592005affeb4512727408657ad7c7aee73b"
+        },
+        {
+          "id": "TP-BUG017-R4-S1-03",
+          "dodId": "DOD-TP-BUG017-R4-S1-03",
+          "type": "governance",
+          "category": "governance",
+          "file": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
+          "scenarioId": "SCN-BUG017-03",
+          "scenarioIds": [
+            "SCN-BUG017-03",
+            "SCN-BUG017-11"
+          ],
+          "description": "The canonical transition guard reaches Check 18 and reports zero current deferral-language hits while preserving prior-window report bytes.",
+          "command": "bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
+          "liveSystem": false,
+          "testState": "existing-command",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceSource": "independent-bubbles.test-receipt",
+          "evidenceSha256": "c30f4a18caaff86c1a117a4073b3cba7cca4b37aefc647a430d0da7dea8f12c1",
+          "expectedCurrentState": "Check 18 is clean. The overall guard remains non-passing on unrelated G027 and G136 findings until their owners resolve them."
         }
-      ]
+      ],
+      "receiptRefresh": {
+        "required": true,
+        "reason": "The five plan rows have current independent test receipts. Final stable-revision scenario-state receipts remain refresh-required after the planning and report epoch changed."
+      }
     },
     {
       "scopeId": "2",
@@ -160,13 +254,12 @@
           "description": "Like-for-like timing: one committed CLI runs the complete 22-file lifetime-tax workload under system-chrome and bundled chromium at the configured one-worker default, requires both exits to be zero, and evaluates the measured ratio against the unchanged FR-017-004 maximum of 3.0",
           "command": "/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live",
           "liveSystem": true,
-          "testState": "implementation-required",
-          "status": "requires-refresh",
-          "evidenceRef": "report.md#the-fr-017-004-bound",
-          "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T16:17:20Z",
-          "receiptStdoutSha256": "dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63",
-          "receiptCurrent": false,
-          "receiptInvalidation": "The scenario's negative-control contract changed in convergence iteration 4. This receipt remains historical evidence for the positive live pair but cannot satisfy the new scenario receipt chain.",
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": ".specify/runtime/tool-calls.jsonl#L1601",
+          "receiptRef": ".specify/runtime/tool-calls.jsonl#L1601",
+          "receiptStdoutSha256": "f1db723539f4822d5597180b19d355ebcea5134fe705764c1aa19a78ba6a0cdf",
+          "receiptCurrent": true,
           "deterministicNegativeControl": {
             "mechanism": "perturbed-input",
             "helper": "scripts/validate-playwright-cost-ratio.mjs",
@@ -192,10 +285,8 @@
           "command": "node scripts/selftest.mjs",
           "liveSystem": false,
           "testState": "existing-command",
-          "status": "requires-refresh",
-          "evidenceRef": "report.md#the-suite-is-unchanged",
-          "receiptCurrent": false,
-          "receiptInvalidation": "The SCN-BUG017-06 negative-control identity changed in convergence iteration 4. The prior selftest result remains historical and must be rerun after the evaluator lands."
+          "status": "passed",
+          "evidenceRef": "report.md#the-suite-is-unchanged"
         },
         {
           "id": "TP-BUG017-02-03",
@@ -211,12 +302,11 @@
           "command": "npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list && npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement$' --reporter=list",
           "liveSystem": true,
           "testState": "authored",
-          "status": "requires-refresh",
-          "evidenceRef": "report.md#the-fr-017-004-bound",
-          "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T15:52:11Z",
-          "receiptStdoutSha256": "85d469faa9a706d4f3a093d375cf49960eb59077ef27a018b1d2083eae950525",
-          "receiptCurrent": false,
-          "receiptInvalidation": "The SCN-BUG017-06 negative-control identity changed in convergence iteration 4. This targeted receipt remains historical and must not advance the revised scenario state."
+          "status": "passed",
+          "evidenceRef": ".specify/runtime/tool-calls.jsonl#L1602",
+          "receiptRef": ".specify/runtime/tool-calls.jsonl#L1602",
+          "receiptStdoutSha256": "79b41072df61e36acb680c71610f3eddf7b15ef2e12ebce045c5076c81728ee4",
+          "receiptCurrent": true
         },
         {
           "id": "TP-BUG017-02-04",
@@ -232,17 +322,19 @@
           "command": "npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
           "testState": "authored",
-          "status": "requires-refresh",
-          "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T16:32:13Z",
-          "receiptStdoutSha256": "2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf",
-          "receiptCurrent": false,
-          "receiptInvalidation": "The SCN-BUG017-06 negative-control identity changed in convergence iteration 4. This broader receipt remains historical and must be regenerated at the revised scenario revision."
+          "status": "passed",
+          "receiptRef": ".specify/runtime/tool-calls.jsonl#L1602",
+          "receiptStdoutSha256": "79b41072df61e36acb680c71610f3eddf7b15ef2e12ebce045c5076c81728ee4",
+          "receiptCurrent": true
         }
       ],
       "receiptRefresh": {
-        "required": true,
-        "ownerAfterImplementation": "bubbles.test",
-        "reason": "The SCN-BUG017-06 planning input changed. Refresh the deterministic RED, targeted functional GREEN, real one-worker dual-project live proof, and broader system-chrome regression without relabeling prior receipts as current."
+        "required": false,
+        "resolvedAtSourceRevision": "d0c09a3ec90d2bb72920caee9e44f1d5f697c619",
+        "resolverState": "REGRESSION_GREEN",
+        "evidenceRefs": [
+          ".specify/runtime/tool-calls.jsonl#L1598-L1602"
+        ]
       }
     },
     {
@@ -357,8 +449,105 @@
           "testState": "authored",
           "status": "passed",
           "evidenceRef": "report.md#scope-4-current-test-execution-at-2026-08-28"
+        },
+        {
+          "id": "TP-BUG017-04-06",
+          "dodId": "DOD-TP-BUG017-04-06",
+          "type": "selection-precondition-regression",
+          "category": "functional",
+          "file": "tests/playwright-runtime.foundation.functional.mjs",
+          "scenarioId": "SCN-BUG017-11",
+          "testId": "Regression: SCN-BUG017-11 fallback selection requires rejected candidate and hash-verified rollback",
+          "description": "Resolve the explicit candidate-rejection report anchor, prove both revert commits reverse the named candidate commits, resolve both baseline blobs from the final revert tree, and verify workers=1, system-chrome, channel chrome, the unchanged 300000ms budget, visible force-kill semantics, and absence of the rejected seam without running candidate acceptance or relying on a fixed working-tree hash.",
+          "command": "node --test --test-name-pattern='^Regression: SCN-BUG017-11 fallback selection requires rejected candidate and hash-verified rollback$' tests/playwright-runtime.foundation.functional.mjs",
+          "liveSystem": false,
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceSource": "independent-bubbles.test-receipt",
+          "evidenceSha256": "2753290d73bcb16d1f715e9ad57e3bbae2a2ca0fb475a03ad35913b981a78edc",
+          "mutationEvidenceSha256": "30a09e2ba63d0608678415b995eec92e83fca692c538d0955c5d71357a17ce1d",
+          "immutableAnchors": {
+            "rejectionReportAnchor": "report.md#scope-4-finalization-validation-candidate-rejected",
+            "testRevert": "047292eb2d2d7444dff1e45b52738950609cad4b",
+            "testCandidate": "5620a4e7865742eca3651565bffcac86153a4419",
+            "implementationRevert": "af119275ad624893d5c55ac07d046d646c0928a4",
+            "implementationCandidate": "b3322965e6209b125391c3f147b45ce1ae8241b4",
+            "foundationBaselineBlob": "bc66800eb67d51f2bfdd3beae19bbe0bee697d2e",
+            "runtimeFunctionalBaselineBlob": "0d319b8b1662dbb45dd4a5b61b189b6909ded77d",
+            "baselineTree": "af119275ad624893d5c55ac07d046d646c0928a4"
+          },
+          "selectionContract": {
+            "workers": 1,
+            "project": "system-chrome",
+            "channel": "chrome",
+            "workerStopBudgetMs": 300000,
+            "forceKillVisible": true,
+            "rejectedSeamAbsent": true,
+            "candidateAcceptanceExecuted": false,
+            "fixedWorkingTreeHashAllowed": false
+          },
+          "tddOrder": "author-test-run-self-restoring-red-then-green",
+          "expectedRed": "Exit 1 after a dynamically restored probe perturbs one expected immutable identity.",
+          "expectedGreen": "Exit 0 after every immutable anchor, revert relation, baseline blob, and selected-config invariant resolves without a rejected-candidate workload."
+        },
+        {
+          "id": "TP-BUG017-04-07",
+          "dodId": "DOD-TP-BUG017-04-07",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/portfolio-survival-foundation.spec.mjs",
+          "files": [
+            "tests/portfolio-survival-foundation.spec.mjs",
+            "tests/portfolio-survival-brief.spec.mjs",
+            "tests/portfolio-survival-allocation.spec.mjs",
+            "tests/portfolio-survival-risk.spec.mjs",
+            "tests/portfolio-survival-diversification.spec.mjs",
+            "tests/portfolio-survival-paths.spec.mjs",
+            "tests/portfolio-survival-accessibility.spec.mjs",
+            "tests/portfolio-survival-mobile.spec.mjs"
+          ],
+          "scenarioId": "SCN-BUG017-11",
+          "description": "Refresh the exact complete BUG-022 C03 consumer receipt on the final source revision without rerunning the rejected candidate.",
+          "command": "npx --no-install playwright test tests/portfolio-survival-*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true,
+          "testState": "existing-command",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceSource": "independent-bubbles.test-receipt",
+          "evidenceSha256": "9fafbf56baecc0dd16fcbe738f9eac5f535d01b3d44a1b0d0e3b2150c7264097"
+        },
+        {
+          "id": "TP-BUG017-04-08",
+          "dodId": "DOD-TP-BUG017-04-08",
+          "type": "governance",
+          "category": "governance",
+          "file": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/scopes.md",
+          "files": [
+            "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/scopes.md",
+            "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/test-plan.json",
+            "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/state.json"
+          ],
+          "description": "Verify the complete repository path-and-hash inventory against a pre-verification baseline. Only scopes.md, test-plan.json, and the plan-owned execution.scopeInventory and current-routing fields in state.json may receive new deltas; every named excluded or concurrent family must retain its baseline status and identity.",
+          "command": "/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 120 /bin/zsh -f -c 'git diff --check && git status --porcelain=v1 --untracked-files=all && git diff --no-ext-diff --name-status -- .'",
+          "liveSystem": false,
+          "testState": "authored",
+          "status": "passed",
+          "governanceOnly": true,
+          "scenarioMapping": "not-applicable",
+          "evidenceState": "current",
+          "evidenceSource": "independent-bubbles.test-tool-log-receipts",
+          "evidenceToolLogLine": 1641,
+          "evidenceSha256": "8a1f3aadf9253ac2129e5132b42b7b0f53afc281499ec0e4d976df8c9fbc5a27",
+          "finalByteLockToolLogLine": 1643,
+          "finalByteLockSha256": "0ec1bf4cb4814d6bc6962037d72f94a91edd82d481a7a1be988578574a982e66",
+          "requiredResult": "No new report, uservalidation, scenario-manifest, source, config, test, framework-managed, BUG-022, market/tool-brief/probe, detached-scratch, company-intelligence-worktree, certification/status-mirror, completed-phase, final-revision-receipt, remaining-phase, G136, stale/clone, upstream, or unrelated concurrent family delta is attributable to this correction."
         }
-      ]
+      ],
+      "receiptRefresh": {
+        "required": true,
+        "reason": "TP-BUG017-04-06, TP-BUG017-04-07, and TP-BUG017-04-08 retain current independent receipts. Final stable-revision BUG-017 and BUG-022 scenario-state receipts remain refresh-required after the planning epoch changed."
+      }
     }
   ]
 }

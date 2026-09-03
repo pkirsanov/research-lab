@@ -108,6 +108,20 @@
     redAlertPublication: "dependency-pending:feature-002",
     privatePortfolioOverlay: "dependency-pending:feature-008"
   });
+  /* Feature 012 Scope 11 — the ONE gate value that may replace a pending one, and only when the
+     caller supplies a dependency observation saying Feature 002 is accepted. The gate is opened by
+     the CALLER's observation of the real dependency state, never by this module deciding it is
+     satisfied; with no observation every byte of the pending path above is unchanged. */
+  var GATE_SATISFIED = Object.freeze({ authoredBriefV2: "satisfied:feature-002" });
+  var AUTHORED_BRIEF_CONTRACT = "tool-brief/v2";
+  /* SCN-012-018 — what leads, and what stays closed. Actions and imminent catalysts come first;
+     everything long-form is a closed disclosure. A blocking limitation is NOT a disclosure: it is
+     visible copy, because hiding it is the failure mode this order exists to prevent. */
+  var CENTER_LEAD_SECTIONS = Object.freeze(["actions", "imminentCatalysts", "visibleLimitations"]);
+  var CENTER_CLOSED_SECTIONS = Object.freeze(["backdrop", "methodology", "ownerDetail", "experiments"]);
+  /* every leading row must carry all six falsifiable fields — an action without an invalidation is
+     not a shorter action, it is an unfalsifiable one. */
+  var CENTER_ROW_FIELDS = Object.freeze(["horizon", "trigger", "invalidation", "freshness", "citations", "ownerLink"]);
   var REFUSAL_CODES = Object.freeze([
     "RLMKT-INPUT", "RLMKT-MATRIX", "RLMKT-CELL", "RLMKT-SCOPE", "RLMKT-PRIVACY",
     "RLMKT-PROJECTION", "RLMKT-VIEW", "RLMKT-GATE", "RLMKT-NOACTION", "RLMKT-VERSION",
@@ -584,17 +598,63 @@
 
   /* ═══════════ MarketActionCenterProjection/v1 — four-view composer ═══════════ */
 
-  function composeBriefView(rawBrief) {
+  function composeBriefView(rawBrief, dependency) {
     if (!isPlainObject(rawBrief)) reject("RLMKT-PROJECTION", "$.brief", "brief input is required");
     var actions = Array.isArray(rawBrief.actions) ? rawBrief.actions : [];
     var imminentCatalysts = Array.isArray(rawBrief.imminentCatalysts) ? rawBrief.imminentCatalysts : [];
     var visibleLimitations = Array.isArray(rawBrief.visibleLimitations) ? rawBrief.visibleLimitations : [];
     var coverageComplete = rawBrief.coverageComplete === true;
 
-    /* SCN-012-019: authored ToolBrief/v2 is gated; the composer refuses a claim of an
-       authored/frozen-bundle Brief before Feature 002. */
-    if (rawBrief.authored === true || rawBrief.frozenBundle === true) {
+    /* Feature 012 Scope 11 — the authored ToolBrief/v2 lane opens ONLY on an explicit
+       accepted-dependency observation supplied by the caller. */
+    var authoredAllowed = isPlainObject(dependency) && dependency.feature002 === "accepted";
+    var authored = null;
+
+    /* SCN-012-019/028: before Feature 002 is observed accepted, the composer still refuses a
+       claim of an authored/frozen-bundle Brief. This path is byte-unchanged. */
+    if (!authoredAllowed && (rawBrief.authored === true || rawBrief.frozenBundle === true)) {
       reject("RLMKT-GATE", "$.brief.authored", "an authored/frozen-bundle Brief (ToolBrief/v2) is a Feature 002 dependency-pending gate, not a current capability");
+    }
+
+    if (authoredAllowed && isPlainObject(rawBrief.authoredBrief)) {
+      var source = rawBrief.authoredBrief;
+      if (source.contractVersion !== AUTHORED_BRIEF_CONTRACT) {
+        reject("RLMKT-VERSION", "$.brief.authoredBrief.contractVersion", "an authored Brief must be tool-brief/v2");
+      }
+      /* the exact frozen inputs the author was given. A Center row that cannot name them is not
+         an authored row — it is an unattributed one. */
+      var frozenFields = ["ownerReadRef", "ownerReadSha256", "evidenceBundleRef", "evidenceBundleSha256"];
+      for (var f = 0; f < frozenFields.length; f += 1) {
+        if (!isNonEmptyString(source[frozenFields[f]])) {
+          reject("RLMKT-GATE", "$.brief.authoredBrief." + frozenFields[f], "an authored Brief must name the exact frozen owner read and evidence bundle it was authored from");
+        }
+      }
+      authored = {
+        contractVersion: AUTHORED_BRIEF_CONTRACT,
+        briefId: isNonEmptyString(source.briefId) ? source.briefId : null,
+        state: isNonEmptyString(source.state) ? source.state : null,
+        ownerReadRef: source.ownerReadRef,
+        ownerReadSha256: source.ownerReadSha256,
+        evidenceBundleRef: source.evidenceBundleRef,
+        evidenceBundleSha256: source.evidenceBundleSha256,
+        /* the author held none of these, and the projection says so rather than staying silent. */
+        authorCapabilities: { web: false, shell: false, repositoryWrite: false, modelRecompute: false, providerKey: false, privatePortfolio: false }
+      };
+    }
+
+    /* every leading row carries all six falsifiable fields. */
+    function assertRow(row, path) {
+      if (!isPlainObject(row)) reject("RLMKT-PROJECTION", path, "each leading Brief row must be an object");
+      for (var i = 0; i < CENTER_ROW_FIELDS.length; i += 1) {
+        var field = CENTER_ROW_FIELDS[i];
+        var value = row[field];
+        var present = field === "citations" ? (Array.isArray(value) && value.length > 0) : isNonEmptyString(value);
+        if (!present) reject("RLMKT-PROJECTION", path + "." + field, "an action or catalyst that leads the Center must carry horizon, trigger, invalidation, freshness, citations, and an owner link");
+      }
+    }
+    if (authored) {
+      for (var a = 0; a < actions.length; a += 1) assertRow(actions[a], "$.brief.actions[" + a + "]");
+      for (var c = 0; c < imminentCatalysts.length; c += 1) assertRow(imminentCatalysts[c], "$.brief.imminentCatalysts[" + c + "]");
     }
 
     /* native long-context disclosures default CLOSED. trigger/invalidation and any
@@ -616,7 +676,7 @@
       };
     }
 
-    return {
+    var view = {
       viewId: "brief",
       window: isNonEmptyString(rawBrief.window) ? rawBrief.window : null,
       cutoffAt: isNonEmptyString(rawBrief.cutoffAt) ? rawBrief.cutoffAt : null,
@@ -629,8 +689,16 @@
       disclosures: disclosures,
       /* the current legacy payload may be shown only under its actual legacy provenance. */
       legacyProvenance: isNonEmptyString(rawBrief.legacyProvenance) ? rawBrief.legacyProvenance : "legacy-market-brief-payload",
-      authorState: GATE.authoredBriefV2
+      authorState: authored ? GATE_SATISFIED.authoredBriefV2 : GATE.authoredBriefV2
     };
+    /* Additive: the ordering contract and the authored object appear ONLY on the authored lane, so a
+       pending-gate projection keeps its exact prior shape and fingerprint. */
+    if (authored) {
+      view.authored = authored;
+      view.leadSections = CENTER_LEAD_SECTIONS.slice();
+      view.closedSections = CENTER_CLOSED_SECTIONS.slice();
+    }
+    return view;
   }
 
   function composePortfolioView(rawPortfolio) {
@@ -689,8 +757,13 @@
       var activeView = isNonEmptyString(rawInput.activeView) ? rawInput.activeView : "brief";
       if (CENTER_VIEW_IDS.indexOf(activeView) === -1) reject("RLMKT-VIEW", "$.activeView", "the active view must be exactly one of brief|portfolio|red-alert|journey");
 
+      /* Feature 012 Scope 11 — the caller's OBSERVATION of the Feature 002 dependency state. Absent
+         or anything other than "accepted", every gate below stays exactly as it was. */
+      var dependency = isPlainObject(rawInput.dependency) ? rawInput.dependency : null;
+      var authoredAllowed = dependency !== null && dependency.feature002 === "accepted";
+
       var views = {
-        brief: composeBriefView(rawInput.brief),
+        brief: composeBriefView(rawInput.brief, dependency),
         portfolio: composePortfolioView(rawInput.portfolio),
         "red-alert": composeRedAlertView(rawInput.redAlert),
         journey: composeJourneyView(rawInput.journey)
@@ -705,7 +778,7 @@
         viewState: { activeView: activeView },
         views: views,
         gates: {
-          authoredBriefV2: GATE.authoredBriefV2,
+          authoredBriefV2: (authoredAllowed && views.brief.authored) ? GATE_SATISFIED.authoredBriefV2 : GATE.authoredBriefV2,
           redAlertPublication: GATE.redAlertPublication,
           privatePortfolioOverlay: GATE.privatePortfolioOverlay
         },
@@ -738,9 +811,29 @@
         reject("RLMKT-VIEW", "$.viewState.activeView", "exactly one active view from the closed four-view set is required");
       }
 
-      /* the exact dependency-pending gates must be present and unchanged. */
-      if (!isPlainObject(projection.gates) || projection.gates.authoredBriefV2 !== GATE.authoredBriefV2 || projection.gates.redAlertPublication !== GATE.redAlertPublication || projection.gates.privatePortfolioOverlay !== GATE.privatePortfolioOverlay) {
+      /* the exact dependency-pending gates must be present and unchanged. The authored-Brief gate is
+         the ONE that may read `satisfied:feature-002`, and only alongside an authored Brief that names
+         its frozen inputs — a satisfied gate with no authored object is a claim, not a capability. */
+      var authoredGate = isPlainObject(projection.gates) ? projection.gates.authoredBriefV2 : null;
+      var authoredGateValid = authoredGate === GATE.authoredBriefV2 || authoredGate === GATE_SATISFIED.authoredBriefV2;
+      if (!isPlainObject(projection.gates) || !authoredGateValid || projection.gates.redAlertPublication !== GATE.redAlertPublication || projection.gates.privatePortfolioOverlay !== GATE.privatePortfolioOverlay) {
         reject("RLMKT-GATE", "$.gates", "authored Brief v2, live Red Alert publication, and the private portfolio overlay must remain exact dependency-pending gates");
+      }
+      var briefView = projection.views.brief;
+      var authoredPresent = isPlainObject(briefView) && isPlainObject(briefView.authored);
+      if ((authoredGate === GATE_SATISFIED.authoredBriefV2) !== authoredPresent) {
+        reject("RLMKT-GATE", "$.gates.authoredBriefV2", "a satisfied authored-Brief gate requires an authored ToolBrief/v2 in the Brief view, and an authored Brief requires the satisfied gate");
+      }
+      if (authoredPresent) {
+        if (briefView.authorState !== GATE_SATISFIED.authoredBriefV2) reject("RLMKT-GATE", "$.views.brief.authorState", "an authored Brief view must report the satisfied author state");
+        var granted = Object.keys(briefView.authored.authorCapabilities || {}).filter(function (key) { return briefView.authored.authorCapabilities[key] !== false; });
+        if (granted.length > 0) reject("RLMKT-GATE", "$.views.brief.authored.authorCapabilities", "the authored Brief must record a powerless author; no capability may be granted");
+        if (JSON.stringify(briefView.leadSections) !== JSON.stringify(CENTER_LEAD_SECTIONS.slice())) {
+          reject("RLMKT-VIEW", "$.views.brief.leadSections", "actions, imminent catalysts, and blocking limitations must lead the Center Brief");
+        }
+        if (JSON.stringify(briefView.closedSections) !== JSON.stringify(CENTER_CLOSED_SECTIONS.slice())) {
+          reject("RLMKT-VIEW", "$.views.brief.closedSections", "backdrop, methodology, owner detail, and experiments must remain closed by default");
+        }
       }
 
       /* no-action Brief may never fabricate an action/catalyst/confidence. */
@@ -757,7 +850,8 @@
         projectionId: projection.projectionId,
         activeView: projection.viewState.activeView,
         viewCount: projection.viewOrder.length,
-        gatesPending: 3,
+        gatesPending: authoredGate === GATE_SATISFIED.authoredBriefV2 ? 2 : 3,
+        authoredBriefSatisfied: authoredGate === GATE_SATISFIED.authoredBriefV2,
         projectionFingerprint: projection.projectionFingerprint
       };
     });
@@ -1511,6 +1605,11 @@
     REFUSAL_CODES: REFUSAL_CODES,
     PRIVATE_FIELD_ROOTS: PRIVATE_FIELD_ROOTS,
     NO_ACTION_STATEMENT: NO_ACTION_STATEMENT,
+    GATE_SATISFIED: GATE_SATISFIED,
+    AUTHORED_BRIEF_CONTRACT: AUTHORED_BRIEF_CONTRACT,
+    CENTER_LEAD_SECTIONS: CENTER_LEAD_SECTIONS,
+    CENTER_CLOSED_SECTIONS: CENTER_CLOSED_SECTIONS,
+    CENTER_ROW_FIELDS: CENTER_ROW_FIELDS,
     canonicalize: canonicalize,
     fingerprint: fingerprint,
     composePublicMatrix: composePublicMatrix,

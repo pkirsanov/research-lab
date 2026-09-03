@@ -18,11 +18,17 @@ import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+/* Feature 012 Scope 11 — the publisher re-validates every ToolBrief/v2 object before it is made
+   immutable, through the SAME validator the author boundary uses. A second copy of those rules
+   here is exactly the drift a single source of truth exists to prevent. */
+import { validateToolBriefV2 } from './brief-author.mjs';
+import { validateAuthorProjection } from './web-evidence-acquire.mjs';
 
 import { ROW_CONTRACT_V2 } from './recommendation-body.mjs';
 
 const require = createRequire(import.meta.url);
 const RLCONTRACTS = require('../rlcontracts.js');
+const RLMARKETACTIONCENTER = require('../rlmarketaction.js');
 
 function sha256Hex(buf) {
   return createHash('sha256').update(buf).digest('hex');
@@ -73,6 +79,154 @@ function contentObject(kind, body) {
 function jsonlBytes(rows) {
   if (rows.length === 0) return Buffer.alloc(0);
   return Buffer.from(rows.map((row) => stableStringify(row)).join('\n') + '\n', 'utf8');
+}
+
+/* ═══════════ Feature 012 Scope 11 — the optional v2 inventory ═══════════
+
+   ToolBrief/v2 objects, the frozen WebEvidence author projections they were
+   authored from, the public-ticker Briefs, and the Market Action projection all
+   publish inside the EXISTING one-generation, pointer-last transaction. There is
+   no second publication path and no second pointer: `briefs/current.json` stays
+   the single mutable selector, and it still goes to disk LAST.
+
+   Every object is re-validated here before it is made immutable. The publisher
+   does not have the dispatched author request, so it runs the structural form of
+   the ToolBrief/v2 validator — the shape, safety, state and disclosure rules —
+   which is the same single source of truth the author boundary uses. A public
+   ticker outside the committed public list, or a private portfolio field
+   anywhere, refuses the WHOLE generation before a single byte is staged. */
+
+export const V2_INVENTORY_CONTRACT = 'brief-run-v2-inventory/v1';
+const V2_PRIVATE_ROOTS = ['holding', 'quantity', 'sharecount', 'costbasis', 'avgcost', 'avgprice',
+  'lotsize', 'pnl', 'pandl', 'profitloss', 'mandate', 'exposure', 'position', 'allocationsize',
+  'privateticker', 'accountid', 'account'];
+
+function v2PrivateField(value, field) {
+  if (value === null || typeof value !== 'object') return null;
+  if (Array.isArray(value)) {
+    for (let i = 0; i < value.length; i += 1) {
+      const found = v2PrivateField(value[i], `${field}.${i}`);
+      if (found) return found;
+    }
+    return null;
+  }
+  for (const key of Object.keys(value)) {
+    const lowered = key.toLowerCase();
+    if (V2_PRIVATE_ROOTS.some((root) => lowered.includes(root))) return `${field}.${key}`;
+    const found = v2PrivateField(value[key], `${field}.${key}`);
+    if (found) return found;
+  }
+  return null;
+}
+
+function buildV2Inventory(v2, placeFile) {
+  if (!v2) return { ok: true, value: null };
+  if (typeof v2 !== 'object' || v2.contractVersion !== V2_INVENTORY_CONTRACT) {
+    return publishSetFailure('v2-inventory-contract-invalid', 'run.v2 must be a brief-run-v2-inventory/v1 block');
+  }
+  const publicTickers = Array.isArray(v2.publicTickers) ? v2.publicTickers : [];
+  if (typeof v2.cutoffAt !== 'string' || !v2.cutoffAt || publicTickers.some((ticker) => typeof ticker !== 'string' || !ticker) || new Set(publicTickers).size !== publicTickers.length) {
+    return publishSetFailure('v2-inventory-contract-invalid', 'run.v2 requires one cutoff and a unique public ticker list');
+  }
+  const smuggled = v2PrivateField(v2, 'run.v2');
+  if (smuggled) return publishSetFailure('v2-private-field-present', smuggled);
+
+  const webEvidenceRefs = [];
+  const webEvidenceIdentity = new Set();
+  const toolBriefRefs = [];
+  const publicTickerBriefRefs = [];
+  const historyRows = [];
+
+  for (const projection of (Array.isArray(v2.webEvidence) ? v2.webEvidence : [])) {
+    const projectionVerdict = validateAuthorProjection(projection);
+    if (!projectionVerdict.ok || projection.cutoffAt !== v2.cutoffAt) {
+      return publishSetFailure('v2-web-evidence-invalid', 'each web evidence entry must be a frozen author projection');
+    }
+    const identity = `${projection.toolId}\u0000${projection.bundleRef}\u0000${projection.bundleSha256}`;
+    if (webEvidenceIdentity.has(identity)) return publishSetFailure('v2-web-evidence-invalid', 'duplicate frozen evidence identity');
+    webEvidenceIdentity.add(identity);
+    const object = contentObject('web-evidence', projection);
+    const objectPath = `briefs/objects/web-evidence/${object.fingerprint.slice(7)}.json`;
+    placeFile(objectPath, object.bytes);
+    webEvidenceRefs.push({ path: objectPath, sha256: object.fingerprint, bundleRef: projection.bundleRef, bundleSha256: projection.bundleSha256 });
+  }
+
+  const stageBrief = (entry, scope, label) => {
+    if (!entry || typeof entry !== 'object' || !entry.body) {
+      return publishSetFailure('v2-brief-entry-invalid', `${label} must carry a body`);
+    }
+    const verdict = validateToolBriefV2(entry.body, {});
+    if (!verdict.ok) return { ok: false, error: verdict.error };
+    const evidenceIdentity = `${entry.body.toolId}\u0000${entry.body.evidenceBundleRef}\u0000${entry.body.evidenceBundleSha256}`;
+    if (!webEvidenceIdentity.has(evidenceIdentity) || entry.body.cutoffAt !== v2.cutoffAt) {
+      return publishSetFailure('v2-brief-evidence-mismatch', `${label} must reference one frozen evidence identity in this generation`);
+    }
+    if (verdict.value.scope !== scope) {
+      return publishSetFailure('v2-brief-scope-mismatch', `${label} must declare scope ${scope}`);
+    }
+    if (scope === 'public-ticker' && publicTickers.indexOf(verdict.value.ticker) === -1) {
+      return publishSetFailure('v2-public-ticker-not-listed', `${label} names a ticker outside the committed public watchlist`);
+    }
+    const object = contentObject('tool-brief-v2', entry.body);
+    const objectPath = `briefs/objects/tool-briefs-v2/${scope}/${object.fingerprint.slice(7)}.json`;
+    placeFile(objectPath, object.bytes);
+    return { ok: true, value: { object, objectPath, verdict: verdict.value } };
+  };
+
+  for (const entry of (Array.isArray(v2.toolBriefs) ? v2.toolBriefs : [])) {
+    const staged = stageBrief(entry, 'tool', 'run.v2.toolBriefs');
+    if (!staged.ok) return staged;
+    toolBriefRefs.push({
+      path: staged.value.objectPath, sha256: staged.value.object.fingerprint,
+      toolId: staged.value.verdict.toolId, scope: 'tool', state: staged.value.verdict.state
+    });
+    historyRows.push({
+      contractVersion: 'brief-tool-brief-v2-history-row/v1', scope: 'tool',
+      toolId: staged.value.verdict.toolId, briefRef: staged.value.object.fingerprint, state: staged.value.verdict.state
+    });
+  }
+
+  for (const entry of (Array.isArray(v2.publicTickerBriefs) ? v2.publicTickerBriefs : [])) {
+    const staged = stageBrief(entry, 'public-ticker', 'run.v2.publicTickerBriefs');
+    if (!staged.ok) return staged;
+    publicTickerBriefRefs.push({
+      path: staged.value.objectPath, sha256: staged.value.object.fingerprint,
+      ticker: staged.value.verdict.ticker, scope: 'public-ticker', state: staged.value.verdict.state
+    });
+    historyRows.push({
+      contractVersion: 'brief-tool-brief-v2-history-row/v1', scope: 'public-ticker',
+      ticker: staged.value.verdict.ticker, briefRef: staged.value.object.fingerprint, state: staged.value.verdict.state
+    });
+  }
+
+  const projectionSource = v2.marketActionProjection;
+  const projectionVerdict = RLMARKETACTIONCENTER.validateCenterProjection(projectionSource);
+  if (!projectionVerdict.ok || projectionSource.cutoffAt !== v2.cutoffAt) {
+    return publishSetFailure('v2-market-action-projection-invalid', 'run.v2.marketActionProjection is required');
+  }
+  const projectionObject = contentObject('market-action-projection', projectionSource);
+  const projectionPath = `briefs/objects/market-action/${projectionObject.fingerprint.slice(7)}.json`;
+  placeFile(projectionPath, projectionObject.bytes);
+  const marketActionProjectionRef = { path: projectionPath, sha256: projectionObject.fingerprint, projectionId: projectionSource.projectionId || null };
+
+  const manifest = {
+    contractVersion: V2_INVENTORY_CONTRACT,
+    cutoffAt: typeof v2.cutoffAt === 'string' ? v2.cutoffAt : null,
+    webEvidenceRefs, toolBriefRefs, publicTickerBriefRefs, marketActionProjectionRef,
+    publicTickers: publicTickers.slice().sort(),
+    inventoryFingerprint: null
+  };
+  manifest.inventoryFingerprint = `sha256:${sha256Hex(Buffer.from(stableStringify({ ...manifest, inventoryFingerprint: null }), 'utf8'))}`;
+
+  const pointer = {
+    contractVersion: 'brief-current-pointer-v2/v1',
+    manifestV2Fingerprint: manifest.inventoryFingerprint,
+    toolBriefs: Object.fromEntries(toolBriefRefs.map((ref) => [ref.toolId, { path: ref.path, sha256: ref.sha256, state: ref.state }])),
+    publicTickerBriefs: Object.fromEntries(publicTickerBriefRefs.map((ref) => [ref.ticker, { path: ref.path, sha256: ref.sha256, state: ref.state }])),
+    marketActionProjectionRef
+  };
+
+  return { ok: true, value: { manifest, pointer, historyRows } };
 }
 
 /** Rebuild the compact content-addressed indexes from authoritative partition rows only (no prose). */
@@ -159,9 +313,21 @@ export function buildPublishSet(run) {
   const finalPath = `briefs/objects/final-briefs/${finalObj.fingerprint.slice(7)}.json`;
   placeFile(finalPath, finalObj.bytes);
 
+  // 1b. Feature 012 Scope 11 — the OPTIONAL v2 inventory. Staged inside this SAME generation so
+  // there is one transaction and one pointer, never a second publication path. Absent `run.v2`
+  // this is a no-op and every v1 byte above and below is unchanged.
+  const v2Built = buildV2Inventory(run.v2, placeFile);
+  if (!v2Built.ok) return v2Built;
+  const v2Inventory = v2Built.value;
+
   // 2. Monthly append-only partitions (prior bytes are the immutable prefix; this run adds rows).
   const addedRows = {};
   for (const partitionPath of Object.keys(toolRows)) addedRows[partitionPath] = toolRows[partitionPath];
+  if (v2Inventory) {
+    addedRows[`briefs/history/tool-briefs-v2/${month}.jsonl`] = v2Inventory.historyRows.map((row) => ({
+      ...row, runId: run.runId, canonicalMonth: month
+    }));
+  }
   addedRows[`briefs/history/final/${month}.jsonl`] = [{
     contractVersion: 'brief-final-history-row/v1', runId: run.runId, finalRef: finalObj.fingerprint,
     coverage: run.final.coverage || {}, canonicalMonth: month
@@ -250,6 +416,7 @@ export function buildPublishSet(run) {
     tools: toolRefs,
     inventory: Object.keys(files).sort().map((path) => ({ path, sha256: files[path].sha256, byteLength: files[path].bytes.length }))
   };
+  if (v2Inventory) manifestBody.v2 = v2Inventory.manifest;
   const manifestPath = `briefs/runs/${month}/${run.runId}/manifest.json`;
   placeFile(manifestPath, Buffer.from(stableStringify(manifestBody), 'utf8'));
 
@@ -263,6 +430,7 @@ export function buildPublishSet(run) {
     orderedSourceToolIds: registry.orderedSourceToolIds.slice(),
     tools: currentMap
   };
+  if (v2Inventory) currentPointer.v2 = v2Inventory.pointer;
   placeFile('briefs/current.json', Buffer.from(stableStringify(currentPointer), 'utf8'));
   const historyCurrentPointer = {
     contractVersion: 'brief-history-current-pointer/v1', generation, runId: run.runId,
@@ -374,6 +542,55 @@ export function validatePublishSet(staging, options) {
     const ref = current.tools[toolId];
     if (!ref || !staging.files[ref.readPath] || staging.files[ref.readPath].sha256 !== ref.readSha256) return publishSetFailure('pointer-incoherent', `read ref mismatch ${toolId}`);
     if (ref.briefPath && (!staging.files[ref.briefPath] || staging.files[ref.briefPath].sha256 !== ref.briefSha256)) return publishSetFailure('pointer-incoherent', `brief ref mismatch ${toolId}`);
+  }
+
+  // (f) Additive ToolBrief/v2 pointer coherence. The v1 path above is unchanged when v2 is absent.
+  const manifestV2 = staging.manifest.body.v2;
+  const pointerV2 = current.v2;
+  if (Boolean(manifestV2) !== Boolean(pointerV2)) return publishSetFailure('v2-pointer-incoherent', 'v2 manifest and pointer must appear together');
+  if (manifestV2) {
+    const expectedFingerprint = `sha256:${sha256Hex(Buffer.from(stableStringify({ ...manifestV2, inventoryFingerprint: null }), 'utf8'))}`;
+    if (manifestV2.inventoryFingerprint !== expectedFingerprint || pointerV2.manifestV2Fingerprint !== expectedFingerprint) {
+      return publishSetFailure('v2-pointer-incoherent', 'v2 inventory fingerprint mismatch');
+    }
+    const checkRef = (ref, label) => {
+      const file = ref && staging.files[ref.path];
+      if (!file || file.sha256 !== ref.sha256) return publishSetFailure('v2-pointer-incoherent', `${label} ref mismatch`);
+      return { ok: true };
+    };
+    for (const ref of manifestV2.webEvidenceRefs || []) {
+      const checked = checkRef(ref, 'web evidence');
+      if (!checked.ok) return checked;
+    }
+    const expectedToolKeys = (manifestV2.toolBriefRefs || []).map((ref) => ref.toolId).sort();
+    if (JSON.stringify(Object.keys(pointerV2.toolBriefs || {}).sort()) !== JSON.stringify(expectedToolKeys)) {
+      return publishSetFailure('v2-pointer-incoherent', 'tool Brief pointer key mismatch');
+    }
+    for (const ref of manifestV2.toolBriefRefs || []) {
+      const checked = checkRef(ref, 'tool Brief');
+      if (!checked.ok) return checked;
+      const selected = pointerV2.toolBriefs[ref.toolId];
+      if (!selected || selected.path !== ref.path || selected.sha256 !== ref.sha256 || selected.state !== ref.state) {
+        return publishSetFailure('v2-pointer-incoherent', `tool Brief pointer ref mismatch ${ref.toolId}`);
+      }
+    }
+    const expectedTickerKeys = (manifestV2.publicTickerBriefRefs || []).map((ref) => ref.ticker).sort();
+    if (JSON.stringify(Object.keys(pointerV2.publicTickerBriefs || {}).sort()) !== JSON.stringify(expectedTickerKeys)) {
+      return publishSetFailure('v2-pointer-incoherent', 'public ticker Brief pointer key mismatch');
+    }
+    for (const ref of manifestV2.publicTickerBriefRefs || []) {
+      const checked = checkRef(ref, 'public ticker Brief');
+      if (!checked.ok) return checked;
+      const selected = pointerV2.publicTickerBriefs[ref.ticker];
+      if (!selected || selected.path !== ref.path || selected.sha256 !== ref.sha256 || selected.state !== ref.state) {
+        return publishSetFailure('v2-pointer-incoherent', `public ticker Brief pointer ref mismatch ${ref.ticker}`);
+      }
+    }
+    const projectionChecked = checkRef(manifestV2.marketActionProjectionRef, 'Market Action projection');
+    if (!projectionChecked.ok) return projectionChecked;
+    if (!pointerV2.marketActionProjectionRef || pointerV2.marketActionProjectionRef.path !== manifestV2.marketActionProjectionRef.path || pointerV2.marketActionProjectionRef.sha256 !== manifestV2.marketActionProjectionRef.sha256) {
+      return publishSetFailure('v2-pointer-incoherent', 'Market Action projection pointer mismatch');
+    }
   }
 
   return { ok: true, validated: { files: Object.keys(staging.files).length, partitions: Object.keys(historyPartitions).length, recommendationEvents: recEventIds.size, indexFingerprint: staging.indexes.indexFingerprint } };

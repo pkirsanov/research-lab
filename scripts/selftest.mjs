@@ -8398,10 +8398,13 @@ try {
     'the session builder refuses to invent intraday bars when none are supplied \u2014 no same-origin intraday cache exists');
 
   // Each read runs the OWNING model and publishes what it returned.
+  const optionsIndex = JSON.parse(read('data/options/index.json'));
+  assert(typeof optionsIndex.updated === 'string' && Number.isFinite(Date.parse(optionsIndex.updated)),
+    'the committed option index publishes the observation instant used to verify its owning flow model');
   const reads = {
     'options-structure-lab': refresh.buildOptionsSurfaceToolRead(),
     'gamma-trading-lab': refresh.buildGammaToolRead(),
-    'options-flow-feed-lab': refresh.buildOptionsFlowToolRead(),
+    'options-flow-feed-lab': refresh.buildOptionsFlowToolRead({ asOf: optionsIndex.updated }),
     // Called at the real wall clock, so its reader copy is checked below whether the committed
     // universe is inside its refresh window or past it. The value assertions use a pinned instant.
     'ai-capex-strategy-lab': refresh.buildAiCapexToolRead(),
@@ -8492,6 +8495,10 @@ try {
 
   // ADVERSARIAL 1 — no committed chain for any scanned ticker. Every fixture above satisfies the
   // happy path, so without this case the builder could hard-code a lean and still pass.
+  const liveFlow = refresh.buildOptionsFlowToolRead();
+  assert(liveFlow.state === 'ready' || (liveFlow.state === 'unavailable' && /stale tape/.test(liveFlow.read)),
+    'the wall-clock flow read is either genuinely ready or names the stale-tape refusal; aging committed evidence never remains current by assertion');
+
   const starvedFlow = refresh.buildOptionsFlowToolRead({ universe: ['NO-SUCH-SYMBOL'] });
   assert(starvedFlow.state === 'unavailable' && starvedFlow.metrics.state === 'unavailable' && /no tape to read/.test(starvedFlow.read),
     'a flow read with no committed chain degrades to a named unavailable rather than an empty-but-plausible tape');
@@ -17718,23 +17725,23 @@ try {
         && pack.deductionCaps['state-and-local-tax'].cappedComponentIds) || []).length > 0,
       entry: {
         id: 'state-and-local-tax', label: 'State and local income tax',
-        reason: 'This pack covers the federal jurisdiction only.',
-        code: 'RLTAX-JURISDICTION-UNSUPPORTED', movesMarginalRate: true,
-        successorFeature: 'A state rule pack resolved by declared residency, with its own settlement and its own combined total.'
+          reason: 'This pack covers the federal jurisdiction only.',
+          code: 'RLTAX-JURISDICTION-UNSUPPORTED', movesMarginalRate: true,
+          successorFeature: 'A state rule pack resolved by declared residency, with its own settlement and its own combined total.'
       }
-    },
-    {
-      after: 'collectibles-gain',
-      carriedInstead: (pack) => !!(pack.dispositionPolicy
-        && pack.dispositionPolicy.recaptureCategory
-        && pack.dispositionPolicy.recaptureCategory.categoryId === 'unrecaptured-section-1250-gain'
-        && Number.isFinite(pack.dispositionPolicy.recaptureCategory.maximumRate)),
-      entry: {
-        id: 'unrecaptured-section-1250-gain', label: 'Unrecaptured section 1250 gain',
-        reason: "Topic no. 409 states that the portion of any unrecaptured section 1250 gain from selling section 1250 real property is taxed at a maximum 25-percent rate, which sits above this pack's top carried preferential rate. No band for it is carried, and no code path folds it into a carried band.",
-        code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true,
-        successorFeature: 'A later preferential-category feature carrying the unrecaptured section 1250 gain 25-percent maximum rate.'
-      }
+      },
+      {
+        after: 'collectibles-gain',
+        carriedInstead: (pack) => !!(pack.dispositionPolicy
+          && pack.dispositionPolicy.recaptureCategory
+          && pack.dispositionPolicy.recaptureCategory.categoryId === 'unrecaptured-section-1250-gain'
+          && Number.isFinite(pack.dispositionPolicy.recaptureCategory.maximumRate)),
+        entry: {
+          id: 'unrecaptured-section-1250-gain', label: 'Unrecaptured section 1250 gain',
+          reason: "Topic no. 409 states that the portion of any unrecaptured section 1250 gain from selling section 1250 real property is taxed at a maximum 25-percent rate, which sits above this pack's top carried preferential rate. No band for it is carried, and no code path folds it into a carried band.",
+          code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true,
+          successorFeature: 'A later preferential-category feature carrying the unrecaptured section 1250 gain 25-percent maximum rate.'
+        }
     }
   ];
   const FEATURE_023_ADDED_UNSUPPORTED = [
@@ -25113,12 +25120,12 @@ try {
   const classified4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"\s*\n?\s*data-mac-default="(visible|collapsed)"|data-mac-block="([a-z-]+)" data-mac-default="(visible|collapsed)"/g)];
   const blockAttrs4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"/g)].map((m) => m[1]);
   const defaultAttrs4 = [...pageSrc4.matchAll(/data-mac-default="(visible|collapsed)"/g)].map((m) => m[1]);
-  assert(blockAttrs4.length === 17 && defaultAttrs4.length === 17
-    && new Set(blockAttrs4).size === 17
-    && defaultAttrs4.filter((state) => state === 'visible').length === 6
+  assert(blockAttrs4.length === 18 && defaultAttrs4.length === 18
+    && new Set(blockAttrs4).size === 18
+    && defaultAttrs4.filter((state) => state === 'visible').length === 7
     && defaultAttrs4.filter((state) => state === 'collapsed').length === 11
     && classified4.length > 0,
-  'market-brief.html classifies exactly 17 uniquely-named top-level blocks, six default-visible and eleven collapsed, so an unclassified block cannot reach the default view unnoticed');
+  'market-brief.html classifies exactly 18 uniquely-named top-level blocks, seven default-visible and eleven collapsed, so an unclassified block cannot reach the default view unnoticed');
 
   /* FR-026-028 — build-free and no browser ES modules, asserted at the source so a future
      script tag cannot reintroduce a build step without failing here first. */

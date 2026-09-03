@@ -27,11 +27,11 @@
     "certifiedAt": null,
     "requiresRevalidation": false,
     "execution": {
-        "activeAgent": "bubbles.test",
-        "currentPhase": "test",
-        "currentPhaseStatus": "completed",
-        "currentScope": null,
-        "substate": "independently_verified",
+        "activeAgent": "bubbles.implement",
+        "currentPhase": "implement",
+        "currentPhaseStatus": "in_progress",
+        "currentScope": "11-feature-002-authored-brief-integration",
+        "substate": "needs_reverification",
         "runStartedAt": "2026-07-24T03:30:00Z",
         "completedAt": null,
         "completedPhaseClaims": [
@@ -285,7 +285,7 @@
                 "scope": 11,
                 "scopeId": "11-feature-002-authored-brief-integration",
                 "name": "Feature 002-Gated Authored Brief Integration",
-                "status": "not_started",
+                "status": "in_progress",
                 "blockedReason": "External gate feature-002 now evaluates TRUE. XFC-01 is RESOLVED for this gate (commit 85a9ce1d): specs/002-distributed-tool-briefs-and-history now publishes state.milestones = [current-graph, owner-coverage, powerless-author, atomic-publication] — the exact resolution this text prescribed (the producer publishing markers it genuinely delivered), NOT a weakening; tool-experience.config.json is byte-unchanged. Each marker was verified against delivered production code, a certified Done scope, and a test surface BEFORE publication, with evidence recorded inline in that state.json under milestonesProvenance: current-graph = validateCurrentGraph() exported at scripts/validate-distributed-briefs.mjs:39 and consumed by scripts/brief-distributed-publish.mjs:530 (certified scope 05-registry-wide-normalized-reads); owner-coverage = certified scope 05 all-source ToolModelRead coverage with cardinality enforced at rlbrief.js:449; powerless-author = scripts/brief-author.mjs:5-9 declaring the sole external author boundary with no repository-write, shell, source-fetch or browser-state authority (certified scope 06-bounded-authorship-and-recommendation-lifecycle); atomic-publication = scripts/brief-publication.mjs:416 with the selftest group at scripts/selftest.mjs:3751 (certified scope 09-evidence-first-atomic-publication). Re-executed verdict: status=done/done, matched 4/4, satisfied=TRUE. This scope is therefore NO LONGER EXTERNALLY BLOCKED — it is unimplemented. Recommended transition: blocked -> not_started (this scope's own scope.md rule states it remains Not Started while the gate is false; the gate is now true and no implementation work has begun). The status value is deliberately left unchanged here for the Feature 012 owner to flip, because scheduling this scope's implementation is their decision, not this correction's. TRANSITION APPLIED 2026-07-30 on owner approval: status is now not_started. This field is retained as the historical record of why the scope WAS blocked and how that cleared; it is no longer an active blocker, and implementation of this scope has not begun. The previously recorded eligibility refusal remains accurate for the period it described: no integrated source edit, no author request, no publication call, no Feature 002 artifact touched.",
                 "dependsOn": [
                     10

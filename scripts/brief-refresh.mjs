@@ -21,7 +21,12 @@ import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
-import { buildToolAuthorRequest, buildFinalAuthorRequest, invokeAuthor, validateAuthorEnvelope, AUTHOR_ERRORS } from './brief-author.mjs';
+import {
+  buildToolAuthorRequest, buildFinalAuthorRequest, invokeAuthor, validateAuthorEnvelope, AUTHOR_ERRORS,
+  buildToolAuthorRequestV2, compactToolBriefV2Input, freezeToolBriefV2OwnerRead,
+  TOOL_BRIEF_V2_ERRORS, validateToolBriefV2
+} from './brief-author.mjs';
+import { freezeBundleForAuthor } from './web-evidence-acquire.mjs';
 import {
   buildPublishSet, validatePublishSet, validateRunIdentity, promotePublishSet,
   stagePublishSet, commitPublication, pushPublication, classifyRemoteOverlap,
@@ -37,6 +42,8 @@ const read = (f) => readFileSync(join(ROOT, f), 'utf8');
 const featureRequire = createRequire(import.meta.url);
 const RLCONTRACTS = featureRequire(join(ROOT, 'rlcontracts.js'));
 const RLMETRICS = featureRequire(join(ROOT, 'rlmetrics.js'));
+const RLEXPERIENCE = createRequire(import.meta.url)(resolve(ROOT, 'rlexperience.js'));
+const RLMARKETACTIONCENTER = createRequire(import.meta.url)(resolve(ROOT, 'rlmarketaction.js'));
 /* rlcockpit.js owns the ONE cross-asset leg resolver. Tier A requires it so the memory row and
    the published block agree about which leg is dark by construction, not by two implementations
    that happen to match today. */
@@ -608,6 +615,189 @@ export async function runToolAuthorPool(config) {
 }
 
 /* ─────────────────────────────────────────────────────────────────────────────
+   Feature 012 Scope 11 — evidence-first ToolBrief/v2 generation.
+
+   This is the production seam between the existing Feature 002 scheduler and
+   the additive v2 inventory. It accepts only scheduler-frozen owner reads plus
+   full WebEvidenceBundle/v1 objects, freezes the author projection itself,
+   dispatches through the powerless author boundary under committed caps, and
+   composes the Market Action projection with the real browser-neutral engine.
+   The caller cannot assert the dependency is ready: readiness is re-derived
+   from the committed Tool Experience gate document on every invocation.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+function toolBriefV2Failure(code, reason, field) {
+  return { ok: false, error: { contractVersion: 'tool-brief-v2-generation-error/v1', code, reason, field: field || null } };
+}
+
+export function resolveFeature002ToolBriefGate() {
+  try {
+    const toolExperienceConfig = JSON.parse(read('tool-experience.config.json'));
+    const toolExperienceGates = JSON.parse(read('tool-experience.gates.json'));
+    if (!toolExperienceGates || !toolExperienceGates.states) {
+      return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.DEPENDENCY, 'feature-002-gate-document-missing', 'tool-experience.gates.json');
+    }
+    const projected = RLEXPERIENCE.projectDependencyGate(toolExperienceConfig, 'FEATURE002', toolExperienceGates.states);
+    if (!projected || !projected.ok || !projected.value || projected.value.state !== 'available') {
+      return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.DEPENDENCY, 'feature-002-not-accepted', 'dependency.feature002');
+    }
+    return { ok: true, value: { feature002: 'accepted', state: projected.value.state } };
+  } catch (error) {
+    return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.DEPENDENCY, 'feature-002-gate-unreadable', 'dependency.feature002');
+  }
+}
+
+function committedToolBriefV2Policy() {
+  const policy = cfg['tool-brief-v2/v1'];
+  const bounds = policy && policy.bounds;
+  const requiredBounds = ['maxAuthorConcurrency', 'maxStdoutBytes', 'perAuthorTimeoutMs', 'maxToolBriefsPerGeneration', 'maxPublicTickerBriefsPerGeneration'];
+  if (!policy || policy.contractVersion !== 'tool-brief-v2/v1' || policy.publicTickerSource !== 'watchlist.json' || !bounds) return null;
+  if (requiredBounds.some((key) => !Number.isInteger(bounds[key]) || bounds[key] <= 0)) return null;
+  return policy;
+}
+
+export async function buildToolBriefV2Generation(config) {
+  if (!config || typeof config !== 'object') return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'generation-config-required', 'config');
+  const dependency = resolveFeature002ToolBriefGate();
+  if (!dependency.ok) return dependency;
+
+  const policy = committedToolBriefV2Policy();
+  if (!policy) return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'committed-policy-invalid', 'market-brief.config.json');
+  if (!config.reads || typeof config.reads !== 'object') return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.FROZEN, 'scheduler-reads-required', 'config.reads');
+  if (typeof config.runId !== 'string' || !config.runId || typeof config.cutoffAt !== 'string' || !config.cutoffAt) {
+    return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'run-identity-required', 'config.runId');
+  }
+  if (!config.identity || typeof config.identity !== 'object') return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'author-identity-required', 'config.identity');
+  if (typeof config.authorFn !== 'function') return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.AUTHORITY, 'author-boundary-required', 'config.authorFn');
+  if (!Array.isArray(config.toolEntries) || !Array.isArray(config.publicTickerEntries)) {
+    return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'entry-inventory-required', 'config.toolEntries');
+  }
+  if (config.toolEntries.length === 0) return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'tool-entry-required', 'config.toolEntries');
+  if (config.toolEntries.length > policy.bounds.maxToolBriefsPerGeneration) {
+    return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.AUTHORITY, 'tool-brief-cap-exceeded', 'config.toolEntries');
+  }
+  if (config.publicTickerEntries.length > policy.bounds.maxPublicTickerBriefsPerGeneration) {
+    return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.AUTHORITY, 'public-ticker-cap-exceeded', 'config.publicTickerEntries');
+  }
+
+  const publicTickers = (Array.isArray(wl.items) ? wl.items : [])
+    .map((item) => item && item.ticker)
+    .filter((ticker) => typeof ticker === 'string' && ticker.length > 0);
+  const tasks = [];
+  const taskKeys = new Set();
+  const appendTask = (entry, scope) => {
+    if (!entry || typeof entry !== 'object' || typeof entry.toolId !== 'string' || !entry.toolId || !entry.bundle) {
+      return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'entry-invalid', scope === 'tool' ? 'config.toolEntries' : 'config.publicTickerEntries');
+    }
+    if (!Object.prototype.hasOwnProperty.call(config.reads, entry.toolId)) {
+      return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.FROZEN, 'scheduler-owner-read-missing', `config.reads.${entry.toolId}`);
+    }
+    const ticker = scope === 'public-ticker' ? entry.ticker : null;
+    if (scope === 'public-ticker' && (typeof ticker !== 'string' || publicTickers.indexOf(ticker) === -1)) {
+      return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.PRIVACY, 'ticker-not-public', 'entry.ticker');
+    }
+    const taskKey = `${scope}:${entry.toolId}:${ticker || ''}`;
+    if (taskKeys.has(taskKey)) return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'duplicate-entry', 'config.entries');
+    taskKeys.add(taskKey);
+
+    const ownerRead = freezeToolBriefV2OwnerRead(config.reads[entry.toolId], `read:${entry.toolId}:${config.runId}`);
+    if (!ownerRead.ok) return ownerRead;
+    const frozenEvidence = freezeBundleForAuthor(entry.bundle, cfg['web-evidence-acquisition/v1'].lanes['tool-brief']);
+    if (!frozenEvidence.ok) return frozenEvidence;
+    const compacted = compactToolBriefV2Input({
+      toolId: entry.toolId,
+      runId: config.runId,
+      cutoffAt: config.cutoffAt,
+      ownerRead: ownerRead.value,
+      evidenceProjection: frozenEvidence.value,
+      scope,
+      ticker,
+      publicTickers,
+      maxOutputTokens: entry.maxOutputTokens
+    });
+    if (!compacted.ok) return compacted;
+    const built = buildToolAuthorRequestV2(compacted.value, config.identity);
+    if (!built.ok) return built;
+    tasks.push({ key: taskKey, toolId: entry.toolId, scope, ticker, request: built.request, evidence: frozenEvidence.value });
+    return { ok: true };
+  };
+
+  for (const entry of config.toolEntries) {
+    const appended = appendTask(entry, 'tool');
+    if (!appended.ok) return appended;
+  }
+  for (const entry of config.publicTickerEntries) {
+    const appended = appendTask(entry, 'public-ticker');
+    if (!appended.ok) return appended;
+  }
+
+  const seenResponses = new Set();
+  const results = new Array(tasks.length);
+  let cursor = 0;
+  let active = 0;
+  let peakConcurrency = 0;
+  let refusal = null;
+  async function worker() {
+    while (!refusal && cursor < tasks.length) {
+      const index = cursor;
+      cursor += 1;
+      const task = tasks[index];
+      active += 1;
+      peakConcurrency = Math.max(peakConcurrency, active);
+      let invoked;
+      try {
+        invoked = await config.authorFn(task.request, { toolId: task.toolId, scope: task.scope, ticker: task.ticker });
+      } catch (error) {
+        invoked = { ok: false, error: { code: AUTHOR_ERRORS.PROCESS, reason: 'v2-author-threw' } };
+      }
+      active -= 1;
+      if (!invoked || !invoked.ok) {
+        refusal = toolBriefV2Failure((invoked && invoked.error && invoked.error.code) || AUTHOR_ERRORS.PROCESS, (invoked && invoked.error && invoked.error.reason) || 'v2-author-failed', 'author');
+        return;
+      }
+      const envelope = validateAuthorEnvelope(invoked.envelope, task.request, { seen: seenResponses, maxStdoutBytes: policy.bounds.maxStdoutBytes });
+      if (!envelope.ok) { refusal = envelope; return; }
+      const brief = validateToolBriefV2(envelope.brief, { request: task.request });
+      if (!brief.ok) { refusal = brief; return; }
+      results[index] = { ...task, body: envelope.brief, verdict: brief.value };
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(policy.bounds.maxAuthorConcurrency, tasks.length) }, () => worker()));
+  if (refusal) return refusal;
+
+  const centerBrief = results.find((result) => result.scope === 'tool' && result.toolId === config.centerToolId);
+  if (!centerBrief) return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'center-tool-brief-missing', 'config.centerToolId');
+  if (!config.marketActionInput || typeof config.marketActionInput !== 'object' || !config.marketActionInput.brief) {
+    return toolBriefV2Failure(TOOL_BRIEF_V2_ERRORS.IDENTITY, 'market-action-input-required', 'config.marketActionInput');
+  }
+  const composed = RLMARKETACTIONCENTER.composeCenterProjection({
+    ...config.marketActionInput,
+    cutoffAt: config.cutoffAt,
+    dependency: { feature002: 'accepted' },
+    brief: { ...config.marketActionInput.brief, authoredBrief: centerBrief.body }
+  });
+  if (!composed.ok) return toolBriefV2Failure(composed.error.code, composed.error.reason, composed.error.fieldPath);
+  const centerValidation = RLMARKETACTIONCENTER.validateCenterProjection(composed.value);
+  if (!centerValidation.ok) return toolBriefV2Failure(centerValidation.error.code, centerValidation.error.reason, centerValidation.error.fieldPath);
+
+  const evidenceByFingerprint = new Map();
+  for (const result of results) evidenceByFingerprint.set(result.evidence.projectionFingerprint, result.evidence);
+  return {
+    ok: true,
+    value: {
+      contractVersion: 'brief-run-v2-inventory/v1',
+      cutoffAt: config.cutoffAt,
+      webEvidence: Array.from(evidenceByFingerprint.values()),
+      toolBriefs: results.filter((result) => result.scope === 'tool').map((result) => ({ toolId: result.toolId, body: result.body })),
+      publicTickerBriefs: results.filter((result) => result.scope === 'public-ticker').map((result) => ({ ticker: result.ticker, body: result.body })),
+      marketActionProjection: composed.value,
+      publicTickers
+    },
+    telemetry: { authorCalls: tasks.length, peakConcurrency, maxAuthorConcurrency: policy.bounds.maxAuthorConcurrency }
+  };
+}
+
+/* ─────────────────────────────────────────────────────────────────────────────
    Feature 002 Scope 08 — Window-Aware Final Aggregation barrier.
 
    runFinalAuthor is the ONE-after-barrier final orchestration hook declared by the design module map.
@@ -847,6 +1037,19 @@ export async function runBriefRefresh(deps) {
     if (!finalRes.ok) return refuse(finalRes.refusal.code, finalRes.refusal.reason, 'final-authored');
     advance('final-authored'); emit('final-authored', {});
 
+    let toolBriefV2 = null;
+    if (deps.toolBriefV2) {
+      const generatedV2 = await buildToolBriefV2Generation({
+        ...deps.toolBriefV2,
+        reads,
+        runId: deps.runContext.runId,
+        cutoffAt
+      });
+      if (!generatedV2.ok) return refuse(generatedV2.error.code, generatedV2.error.reason, 'publish-set-built');
+      toolBriefV2 = generatedV2.value;
+      emit('tool-brief-v2-authored', generatedV2.telemetry);
+    }
+
     const coverageEntries = Array.isArray(finalRes.final.coverage) ? finalRes.final.coverage.length : 0;
     const run = {
       runId: deps.runContext.runId,
@@ -864,6 +1067,7 @@ export async function runBriefRefresh(deps) {
       recommendationEvents: deps.recommendationEvents || [],
       prior: deps.prior || null
     };
+    if (toolBriefV2) run.v2 = toolBriefV2;
 
     const built = buildPublishSet(run);
     if (!built.ok) return refuse('B002-PUBLISH-SET', built.error.reason, 'publish-set-built');

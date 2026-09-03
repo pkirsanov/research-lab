@@ -1556,6 +1556,10 @@
   function renderCenterNoAction(host, briefView) {
     if (!host) return;
     if (!briefView || typeof briefView !== "object") { host.hidden = true; host.innerHTML = ""; return; }
+    /* Feature 012 Scope 11 — once the Feature 002 gate is observed satisfied and the composer
+       produced an authored ToolBrief/v2, the authored hierarchy replaces the not-available notice.
+       Without one, every byte below is the prior pending-gate render. */
+    if (briefView.authored && typeof briefView.authored === "object") { renderCenterAuthoredBrief(host, briefView); return; }
     var provenance = esc(briefView.legacyProvenance || "legacy-market-brief-payload");
     var authorState = esc(briefView.authorState || "dependency-pending:feature-002");
     var parts = ['<div class="sub" data-mac-provenance="' + provenance + '" data-mac-author-state="' + authorState + '">' +
@@ -1567,6 +1571,160 @@
         '<div class="ay">Coverage is complete for this window and no admitted item clears the immediate-action bar. No trade, catalyst, or confidence claim is manufactured.</div>' +
         '</div>');
     }
+    host.innerHTML = parts.join("");
+    host.hidden = false;
+  }
+
+  /* ── Feature 012 Scope 11 — the authored Brief hierarchy (SCN-012-008, SCN-012-018) ──
+     What leads the first viewport is what the reader can act on and falsify: the action, its
+     trigger, its invalidation, its horizon, its freshness, its citations and the owner link that
+     owns the math. Long context is a native <details> that ships CLOSED — not hidden, not
+     collapsed by script after paint, but closed in the markup so a reader who never expands it
+     has still seen everything that was actionable.
+
+     A blocking limitation is NOT a disclosure. It renders in the lead, because a Brief that
+     tucks its own blocking limitation behind a toggle is the exact failure this order prevents.
+
+     Every authored string leaves through the SAME `esc` helper the rest of this module uses; no
+     new sink is introduced. DOM helper with the standard no-DOM guard. */
+  function centerRowFields(row) {
+    var citations = Array.isArray(row.citations) ? row.citations : [];
+    return '<dl class="sub" data-mac-row-fields>' +
+      '<dt>Horizon</dt><dd data-mac-field="horizon">' + esc(row.horizon || "") + '</dd>' +
+      '<dt>Trigger</dt><dd data-mac-field="trigger">' + esc(row.trigger || "") + '</dd>' +
+      '<dt>Invalidation</dt><dd data-mac-field="invalidation">' + esc(row.invalidation || "") + '</dd>' +
+      '<dt>Freshness</dt><dd data-mac-field="freshness">' + esc(row.freshness || "") + '</dd>' +
+      '<dt>Citations</dt><dd data-mac-field="citations">' + citations.map(function (id) {
+        return '<span data-mac-citation="' + esc(id) + '">' + esc(id) + '</span>';
+      }).join(" ") + '</dd>' +
+      '</dl>' +
+      '<div class="al">' + link(row.ownerLink || "#", "owner read \u25b8") + '</div>';
+  }
+
+  function renderCenterAuthoredBrief(host, briefView) {
+    if (!host) return;
+    var authored = briefView.authored || {};
+    var actions = Array.isArray(briefView.actions) ? briefView.actions : [];
+    var catalysts = Array.isArray(briefView.imminentCatalysts) ? briefView.imminentCatalysts : [];
+    var limitations = Array.isArray(briefView.visibleLimitations) ? briefView.visibleLimitations : [];
+
+    var parts = ['<div class="sub"' +
+      ' data-mac-author-state="' + esc(briefView.authorState || "satisfied:feature-002") + '"' +
+      ' data-mac-authored-brief="' + esc(authored.contractVersion || "tool-brief/v2") + '"' +
+      ' data-mac-brief-state="' + esc(authored.state || "") + '"' +
+      ' data-mac-frozen-read="' + esc(authored.ownerReadSha256 || "") + '"' +
+      ' data-mac-frozen-bundle="' + esc(authored.evidenceBundleSha256 || "") + '"' +
+      ' data-mac-author-capabilities="none">' +
+      'Authored from one frozen owner read and one frozen qualified evidence bundle. The author held no web, shell, repository-write, model-recompute, provider-key, or private-portfolio authority.</div>'];
+
+    parts.push('<section data-mac-lead="actions"><h3>Needed now</h3>' + (actions.length
+      ? actions.map(function (action, index) {
+        return '<div class="acard" data-mac-action data-mac-action-index="' + index + '">' +
+          '<b>' + esc(action.verb ? (action.verb + " \u00b7 " + (action.subject || "")) : (action.subject || action.text || "")) + '</b>' +
+          centerRowFields(action) + '</div>';
+      }).join("")
+      : '<p class="sub" data-mac-lead-empty="actions">No action clears the bar in this window.</p>') + '</section>');
+
+    parts.push('<section data-mac-lead="imminentCatalysts"><h3>Imminent catalysts</h3>' + (catalysts.length
+      ? catalysts.map(function (catalyst, index) {
+        return '<div class="acard" data-mac-catalyst data-mac-catalyst-index="' + index + '">' +
+          '<b>' + esc(catalyst.subject || "") + '</b>' +
+          (catalyst.whenAt ? '<div class="sub" data-mac-field="whenAt">' + esc(catalyst.whenAt) + '</div>' : "") +
+          centerRowFields(catalyst) + '</div>';
+      }).join("")
+      : '<p class="sub" data-mac-lead-empty="imminentCatalysts">No catalyst lands inside this window.</p>') + '</section>');
+
+    /* a blocking limitation is visible copy, never a disclosure. */
+    if (limitations.length) {
+      parts.push('<section data-mac-lead="visibleLimitations"><h3>Limitations</h3><ul>' +
+        limitations.map(function (limitation) {
+          var text = typeof limitation === "string" ? limitation : (limitation && limitation.text) || "";
+          var blocking = limitation && limitation.blocking === true;
+          return '<li data-mac-limitation data-mac-limitation-blocking="' + (blocking ? "true" : "false") + '">' + esc(text) + '</li>';
+        }).join("") + '</ul></section>');
+    }
+
+    var closedLabels = { backdrop: "Backdrop", methodology: "Methodology", ownerDetail: "Owner detail", experiments: "Experiments" };
+    (Array.isArray(briefView.closedSections) ? briefView.closedSections : []).forEach(function (sectionId) {
+      var body = briefView[sectionId];
+      parts.push('<details data-mac-closed-section="' + esc(sectionId) + '"><summary>' + esc(closedLabels[sectionId] || sectionId) + '</summary>' +
+        '<div class="sub">' + esc(typeof body === "string" ? body : "Not supplied for this window.") + '</div></details>');
+    });
+
+    host.innerHTML = parts.join("");
+    host.hidden = false;
+  }
+
+  /* ── Feature 012 Scope 11 — the ordinary per-tool ToolBrief/v2 render (SCN-012-008) ──
+     Same rule as the Center, one tool wide: the action, its falsifiers, its confidence BASIS
+     (never a manufactured number), its claim-level citations and the owner link lead; methodology,
+     full evidence, long context and history are native <details> that ship CLOSED.
+
+     The brief handed here MUST already have passed scripts/brief-author.mjs validateToolBriefV2 —
+     this renderer draws, it does not adjudicate, and it will not invent a field the validator
+     would have refused. DOM helper with the standard no-DOM guard. */
+  function renderToolBriefV2(host, brief) {
+    if (!host) return;
+    if (!brief || typeof brief !== "object" || brief.contractVersion !== "tool-brief/v2") {
+      host.hidden = true; host.innerHTML = ""; return;
+    }
+    var concise = brief.concise && typeof brief.concise === "object" ? brief.concise : {};
+    var action = concise.action && typeof concise.action === "object" ? concise.action : null;
+    var catalysts = Array.isArray(concise.catalysts) ? concise.catalysts : [];
+    var mappings = Array.isArray(brief.claimMappings) ? brief.claimMappings : [];
+
+    function citationList(row) {
+      var ids = Array.isArray(row.citations) ? row.citations : [];
+      return '<span data-mac-field="citations">' + ids.map(function (id) {
+        return '<span data-mac-citation="' + esc(id) + '">' + esc(id) + '</span>';
+      }).join(" ") + '</span>';
+    }
+
+    var parts = ['<div class="sub" data-rlbrief-v2 data-rlbrief-v2-state="' + esc(brief.state) + '"' +
+      ' data-rlbrief-v2-scope="' + esc(brief.scope) + '"' +
+      ' data-rlbrief-frozen-read="' + esc(brief.ownerReadSha256 || "") + '"' +
+      ' data-rlbrief-frozen-bundle="' + esc(brief.evidenceBundleSha256 || "") + '">' +
+      'Authored from one frozen owner read and one frozen qualified evidence bundle.</div>'];
+
+    if (action) {
+      parts.push('<div class="acard" data-rlbrief-v2-action>' +
+        '<b>' + esc(action.verb + " \u00b7 " + action.subject) + '</b>' +
+        '<dl class="sub">' +
+        '<dt>Trigger</dt><dd data-mac-field="trigger">' + esc(action.trigger) + '</dd>' +
+        '<dt>Invalidation</dt><dd data-mac-field="invalidation">' + esc(action.invalidation) + '</dd>' +
+        '<dt>Horizon</dt><dd data-mac-field="horizon">' + esc(action.horizon) + '</dd>' +
+        '<dt>Confidence basis</dt><dd data-mac-field="confidenceBasis">' + esc(action.confidenceBasis) + '</dd>' +
+        '<dt>Citations</dt><dd>' + citationList(action) + '</dd>' +
+        '</dl>' +
+        '<div class="al">' + link(action.ownerLink, "owner read \u25b8") + '</div></div>');
+    } else if (brief.noAction && typeof brief.noAction === "object") {
+      parts.push('<div class="acard" data-rlbrief-v2-noaction data-mac-noaction-fabricated="false"><b>' +
+        esc(brief.noAction.statement) + '</b></div>');
+    }
+
+    catalysts.forEach(function (catalyst, index) {
+      parts.push('<div class="acard" data-rlbrief-v2-catalyst data-rlbrief-v2-catalyst-index="' + index + '">' +
+        '<b>' + esc(catalyst.subject) + '</b>' +
+        '<dl class="sub">' +
+        '<dt>When</dt><dd data-mac-field="whenAt">' + esc(catalyst.whenAt || "") + '</dd>' +
+        '<dt>Trigger</dt><dd data-mac-field="trigger">' + esc(catalyst.trigger) + '</dd>' +
+        '<dt>Invalidation</dt><dd data-mac-field="invalidation">' + esc(catalyst.invalidation) + '</dd>' +
+        '<dt>Horizon</dt><dd data-mac-field="horizon">' + esc(catalyst.horizon) + '</dd>' +
+        '<dt>Citations</dt><dd>' + citationList(catalyst) + '</dd>' +
+        '</dl>' +
+        '<div class="al">' + link(catalyst.ownerLink, "owner read \u25b8") + '</div></div>');
+    });
+
+    var detailLabels = { methodology: "Methodology", evidence: "Full evidence", context: "Long context", history: "History" };
+    (Array.isArray(brief.detail) ? brief.detail : []).forEach(function (entry) {
+      var body = entry.kind === "evidence"
+        ? mappings.map(function (m) { return m.sentence + " [" + m.claimId + "]"; }).join(" ")
+        : (typeof entry.text === "string" ? entry.text : "Not supplied for this window.");
+      parts.push('<details data-rlbrief-v2-detail="' + esc(entry.id) + '"><summary>' +
+        esc(detailLabels[entry.kind] || entry.id) + '</summary><div class="sub">' +
+        esc(body || "Not supplied for this window.") + '</div></details>');
+    });
+
     host.innerHTML = parts.join("");
     host.hidden = false;
   }
@@ -1742,6 +1900,8 @@
   root.RLBRIEF.renderWatchlist = renderWatchlist;
   root.RLBRIEF.renderGroups = renderGroups;
   root.RLBRIEF.renderCenterNoAction = renderCenterNoAction;
+  root.RLBRIEF.renderCenterAuthoredBrief = renderCenterAuthoredBrief;
+  root.RLBRIEF.renderToolBriefV2 = renderToolBriefV2;
   root.RLBRIEF.renderDarkLegs = renderDarkLegs;
   root.RLBRIEF.renderCrossAsset = renderCrossAsset;
   root.RLBRIEF.renderChangedList = renderChangedList;

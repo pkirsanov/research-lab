@@ -22,7 +22,8 @@
  *   - The GLOB set is the union of (a) the Playwright discovery matcher parsed
  *     out of `playwright.config.mjs`, which is what the blocking CI browser job
  *     actually selects with, and (b) every glob-shaped `tests/....mjs` token
- *     that sits in ARGUMENT POSITION of a `--test` invocation anywhere in the
+ *     that sits in ARGUMENT POSITION of a `--test` invocation, plus (c) every
+ *     glob in the closed plain-Node family-loop grammar, anywhere in the
  *     committed tree.
  * A frozen copy of either list is the exact defect this guard exists to detect,
  * so it must not be reintroduced to implement it.
@@ -82,8 +83,21 @@
  *           never will be; accept a new orphan by editing the baseline in a
  *           reviewed commit)
  */
-import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join, relative, resolve } from 'node:path';
+import { randomUUID } from 'node:crypto';
+import {
+  closeSync,
+  existsSync,
+  fsyncSync,
+  lstatSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  renameSync,
+  rmSync,
+  writeFileSync
+} from 'node:fs';
+import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   markdownFenceMask,
@@ -91,7 +105,7 @@ import {
 } from './validate-scope-dod-progress.mjs';
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
-const ROOT = resolve(dirname(SCRIPT_PATH), '..');
+const ROOT = realpathSync(resolve(dirname(SCRIPT_PATH), '..'));
 const TESTS_DIR = 'tests';
 const BASELINE_REL = 'scripts/validate-test-file-reachability.baseline';
 const SELF_REL = 'scripts/validate-test-file-reachability.mjs';
@@ -116,29 +130,370 @@ const SECTION_ROLE = Object.freeze({
   NONE: 'none'
 });
 
-/* `--test` followed by a run of tokens that are each a flag or a repo test
-   path. The trailing guard keeps `--testMatch` and `--test-only` from matching,
-   and the one-or-more quantifier is what makes prose inert: the first token
-   after `--test` in a sentence is a word, so nothing is captured. */
-const NODE_TEST_INVOCATION =
-  /--test(?![A-Za-z0-9-])((?:[ \t]+(?:--[A-Za-z0-9][A-Za-z0-9=._/-]*|tests\/[A-Za-z0-9._*/-]*\.mjs))+)/g;
+/* Command candidates are tokenized after their Markdown presentation has been
+   removed. This keeps quoted option values separate from positional test
+   paths instead of asking one regular expression to infer shell arity. */
+const SHELL_ASSIGNMENT = /^[A-Za-z_][A-Za-z0-9_]*=/;
+const TEST_PATH_ARGUMENT = /^tests\/[A-Za-z0-9._*?/-]*\.mjs$/;
+const RAW_TEST_PATH_ARGUMENT = /tests\/[A-Za-z0-9._*?/-]*\.mjs/g;
+const DIRECT_NODE_SCRIPT_FAMILY = /^for[ \t]+([A-Za-z_][A-Za-z0-9_]*)[ \t]+in[ \t]+(tests\/[A-Za-z0-9._*?/-]*\.mjs);[ \t]*do[ \t]+(?:node|\/usr\/bin\/node)[ \t]+(["'])(\$(?:\{[A-Za-z_][A-Za-z0-9_]*\}|[A-Za-z_][A-Za-z0-9_]*))\3[ \t]*\|\|[ \t]*exit[ \t]+1;[ \t]*done$/;
+const SHELL_CONTROL_TOKEN = new Set(['&&', '||', ';', '|']);
+const NODE_TEST_OPTIONS_WITH_VALUE = new Set([
+  '--test-concurrency',
+  '--test-isolation',
+  '--test-name-pattern',
+  '--test-only-pattern',
+  '--test-reporter',
+  '--test-reporter-destination',
+  '--test-rerun-failures',
+  '--test-shard',
+  '--test-timeout'
+]);
+const ENV_OPTIONS_WITH_VALUE = new Set(['-u', '--unset']);
+const ENV_BOOLEAN_OPTIONS = new Set(['-i', '--ignore-environment']);
+const TIMEOUT_OPTIONS_WITH_VALUE = new Set(['-k', '--kill-after', '-s', '--signal']);
+const TIMEOUT_BOOLEAN_OPTIONS = new Set(['--foreground', '--preserve-status', '--verbose']);
+const PERL_ALARM_SCRIPT = /^alarm shift @ARGV; exec @ARGV(?: or die "exec failed: \$!\\n")?$/;
 
-/* A repo-root-relative test path inside an already-isolated argument run. */
-const TEST_PATH_ARGUMENT = /tests\/[A-Za-z0-9._*/-]*\.mjs/g;
+/* Pre-existing Node/Playwright crossings are one shared shrink-only ratchet.
+   The production CLI and the committed boundary carrier consume these exact
+   values so baseline updates cannot bypass runner ownership validation. */
+export const KNOWN_DISCOVERY_CROSSINGS = Object.freeze([
+  'tests/causal-rotation-adversarial.spec.mjs',
+  'tests/causal-rotation-brief.spec.mjs',
+  'tests/causal-rotation-chaos.spec.mjs',
+  'tests/causal-rotation-consumers.spec.mjs',
+  'tests/causal-rotation-delivery.spec.mjs',
+  'tests/causal-rotation-lab.spec.mjs',
+  'tests/causal-rotation-pages.spec.mjs',
+  'tests/causal-rotation-registry.spec.mjs'
+]);
 
 /* Playwright's discovery matcher, in either the single-string or array form. */
 const PLAYWRIGHT_TEST_MATCH_ARRAY = /testMatch:\s*\[([^\]]*)\]/;
 const PLAYWRIGHT_TEST_MATCH_STRING = /testMatch:\s*(['"])([^'"]+)\1/;
 const QUOTED_STRING = /(['"])([^'"]+)\1/g;
 
-/* `import ... from 'node:test'`, `import 'node:test'`, and `import('node:test')`
-   all register the runner; any of them disqualifies a file from being treated
-   as a shared helper. */
-const NODE_TEST_IMPORT = /(?:from\s*|import\s*|require\s*\(\s*)(['"])node:test\1/;
-
 /* Byte order, so the committed baseline sorts identically to `LC_ALL=C sort` on
    every platform. Test paths are ASCII by construction. */
 const byteOrder = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+
+const SECURITY_BOUNDARY = Symbol('reachability-security-boundary');
+
+export class ReachabilitySecurityError extends Error {
+  constructor(code, path, reason) {
+    super(`SECURITY REFUSAL code=${code} path=${path} reason=${reason}`);
+    this.name = 'ReachabilitySecurityError';
+    this.code = code;
+    this.path = path;
+    this.reason = reason;
+  }
+}
+
+function isContainedPath(root, candidate) {
+  const rel = relative(root, candidate);
+  return rel === '' || (!rel.startsWith(`..${sep}`) && rel !== '..' && !isAbsolute(rel));
+}
+
+function assertLexicalContainment(root, candidate, code, path, reason) {
+  if (!isContainedPath(root, candidate)) throw new ReachabilitySecurityError(code, path, reason);
+}
+
+function fileIdentity(stat) {
+  return {
+    ctimeMs: stat.ctimeMs,
+    dev: stat.dev,
+    ino: stat.ino,
+    mode: stat.mode,
+    mtimeMs: stat.mtimeMs,
+    size: stat.size
+  };
+}
+
+function directoryIdentity(stat) {
+  return { dev: stat.dev, ino: stat.ino, mode: stat.mode };
+}
+
+function sameIdentity(left, right) {
+  return Object.keys(left).every((key) => left[key] === right[key]);
+}
+
+function canonicalRepositoryRoot(root) {
+  const selected = resolve(root);
+  let canonical;
+  try {
+    canonical = realpathSync(selected);
+  } catch {
+    throw new ReachabilitySecurityError('RCH-FS-000', '.', 'selected-root-unresolvable');
+  }
+  const stat = lstatSync(canonical);
+  if (!stat.isDirectory()) {
+    throw new ReachabilitySecurityError('RCH-FS-000', '.', 'selected-root-not-directory');
+  }
+  return { canonical, identity: directoryIdentity(stat) };
+}
+
+function physicalReadPath(root, candidate, display) {
+  assertLexicalContainment(root, candidate, 'RCH-FS-005', display, 'read-candidate-escapes-root');
+  let physical;
+  try {
+    physical = realpathSync(candidate);
+  } catch {
+    throw new ReachabilitySecurityError('RCH-FS-005', display, 'read-candidate-unresolvable');
+  }
+  if (!isContainedPath(root, physical)) {
+    throw new ReachabilitySecurityError('RCH-FS-005', display, 'read-candidate-escapes-root');
+  }
+  return physical;
+}
+
+function baselineBoundary(root, baselineFile) {
+  assertLexicalContainment(
+    root,
+    baselineFile,
+    'RCH-FS-005',
+    displayPath(root, baselineFile),
+    'baseline-path-escapes-root'
+  );
+  const relativeBaseline = displayPath(root, baselineFile);
+  const parentRelative = dirname(relativeBaseline).split('\\').join('/');
+  const parentParts = parentRelative === '.' ? [] : parentRelative.split('/');
+  const parents = [];
+  let current = root;
+
+  for (const part of parentParts) {
+    current = join(current, part);
+    if (!existsSync(current)) {
+      parents.push({ exists: false, path: current, relativePath: displayPath(root, current) });
+      continue;
+    }
+    const stat = lstatSync(current);
+    const relativePath = displayPath(root, current);
+    if (stat.isSymbolicLink()) {
+      throw new ReachabilitySecurityError('RCH-FS-002', relativePath, 'symlinked-baseline-parent');
+    }
+    if (!stat.isDirectory()) {
+      throw new ReachabilitySecurityError('RCH-FS-002', relativePath, 'baseline-parent-not-directory');
+    }
+    const physical = realpathSync(current);
+    if (!isContainedPath(root, physical)) {
+      throw new ReachabilitySecurityError('RCH-FS-002', relativePath, 'baseline-parent-escapes-root');
+    }
+    parents.push({
+      exists: true,
+      identity: directoryIdentity(stat),
+      path: current,
+      relativePath
+    });
+  }
+
+  let target = { exists: false, path: baselineFile, relativePath: relativeBaseline };
+  if (existsSync(baselineFile)) {
+    const stat = lstatSync(baselineFile);
+    if (stat.isSymbolicLink()) {
+      throw new ReachabilitySecurityError('RCH-FS-001', relativeBaseline, 'symlinked-baseline-target');
+    }
+    if (!stat.isFile()) {
+      throw new ReachabilitySecurityError('RCH-FS-001', relativeBaseline, 'baseline-target-not-file');
+    }
+    const physical = realpathSync(baselineFile);
+    if (!isContainedPath(root, physical)) {
+      throw new ReachabilitySecurityError('RCH-FS-001', relativeBaseline, 'baseline-target-escapes-root');
+    }
+    target = {
+      exists: true,
+      identity: fileIdentity(stat),
+      path: baselineFile,
+      relativePath: relativeBaseline
+    };
+  }
+  return { parents, target };
+}
+
+function assertBaselineBoundaryUnchanged(rootState, expected) {
+  const rootStat = lstatSync(rootState.canonical);
+  if (!sameIdentity(rootState.identity, directoryIdentity(rootStat))) {
+    throw new ReachabilitySecurityError('RCH-FS-006', '.', 'selected-root-identity-changed');
+  }
+  const current = baselineBoundary(rootState.canonical, expected.target.path);
+  if (current.parents.length !== expected.parents.length) {
+    throw new ReachabilitySecurityError('RCH-FS-006', expected.target.relativePath, 'baseline-parent-identity-changed');
+  }
+  for (let index = 0; index < expected.parents.length; index++) {
+    const before = expected.parents[index];
+    const after = current.parents[index];
+    if (
+      before.exists !== after.exists
+      || before.relativePath !== after.relativePath
+      || (before.exists && !sameIdentity(before.identity, after.identity))
+    ) {
+      throw new ReachabilitySecurityError('RCH-FS-006', before.relativePath, 'baseline-parent-identity-changed');
+    }
+  }
+  if (
+    current.target.exists !== expected.target.exists
+    || (expected.target.exists && !sameIdentity(expected.target.identity, current.target.identity))
+  ) {
+    throw new ReachabilitySecurityError('RCH-FS-006', expected.target.relativePath, 'baseline-target-identity-changed');
+  }
+}
+
+const REGEX_PREFIX_PUNCTUATORS = new Set([
+  '(', '[', '{', '=', ':', ',', ';', '!', '?', '&', '|', '+', '-', '*', '%', '^', '~', '<', '>'
+]);
+const REGEX_PREFIX_KEYWORDS = new Set([
+  'await', 'case', 'delete', 'do', 'else', 'in', 'instanceof', 'new', 'of', 'return', 'throw',
+  'typeof', 'void', 'yield'
+]);
+
+function canStartJavaScriptRegex(tokens) {
+  const previous = tokens.at(-1);
+  if (!previous) return true;
+  if (previous.type === 'punctuator') return REGEX_PREFIX_PUNCTUATORS.has(previous.value);
+  return previous.type === 'identifier' && REGEX_PREFIX_KEYWORDS.has(previous.value);
+}
+
+function javascriptLexicalTokens(source) {
+  const scan = (start, stopAtClosingBrace) => {
+    const tokens = [];
+    let braceDepth = 0;
+    let index = start;
+
+    while (index < source.length) {
+      const character = source[index];
+      const next = source[index + 1];
+      if (/\s/.test(character)) {
+        index++;
+        continue;
+      }
+      if (stopAtClosingBrace && character === '}' && braceDepth === 0) {
+        return { index: index + 1, tokens };
+      }
+      if (character === '/' && next === '/') {
+        index += 2;
+        while (index < source.length && source[index] !== '\n') index++;
+        continue;
+      }
+      if (character === '/' && next === '*') {
+        index += 2;
+        while (index < source.length && !(source[index] === '*' && source[index + 1] === '/')) index++;
+        index = Math.min(source.length, index + 2);
+        continue;
+      }
+      if (character === "'" || character === '"') {
+        const quote = character;
+        let value = '';
+        index++;
+        while (index < source.length) {
+          const current = source[index++];
+          if (current === '\\') {
+            if (index < source.length) value += source[index++];
+            continue;
+          }
+          if (current === quote) break;
+          value += current;
+        }
+        tokens.push({ type: 'string', value });
+        continue;
+      }
+      if (character === '`') {
+        index++;
+        while (index < source.length) {
+          const current = source[index];
+          if (current === '\\') {
+            index = Math.min(source.length, index + 2);
+            continue;
+          }
+          if (current === '`') {
+            index++;
+            break;
+          }
+          if (current === '$' && source[index + 1] === '{') {
+            const interpolation = scan(index + 2, true);
+            tokens.push(...interpolation.tokens);
+            index = interpolation.index;
+            continue;
+          }
+          index++;
+        }
+        continue;
+      }
+      if (character === '/' && canStartJavaScriptRegex(tokens)) {
+        let inCharacterClass = false;
+        index++;
+        while (index < source.length) {
+          const current = source[index++];
+          if (current === '\\') {
+            index = Math.min(source.length, index + 1);
+            continue;
+          }
+          if (current === '[') {
+            inCharacterClass = true;
+            continue;
+          }
+          if (current === ']') {
+            inCharacterClass = false;
+            continue;
+          }
+          if (current === '/' && !inCharacterClass) break;
+          if (current === '\n' || current === '\r') break;
+        }
+        while (index < source.length && /[A-Za-z]/.test(source[index])) index++;
+        tokens.push({ type: 'regex', value: '' });
+        continue;
+      }
+      if (/[A-Za-z_$]/.test(character)) {
+        const identifierStart = index++;
+        while (index < source.length && /[A-Za-z0-9_$]/.test(source[index])) index++;
+        tokens.push({ type: 'identifier', value: source.slice(identifierStart, index) });
+        continue;
+      }
+      if (stopAtClosingBrace && character === '{') braceDepth++;
+      if (stopAtClosingBrace && character === '}') braceDepth--;
+      tokens.push({ type: 'punctuator', value: character });
+      index++;
+    }
+    return { index, tokens };
+  };
+
+  return scan(0, false).tokens;
+}
+
+function containsNodeTestRegistration(source) {
+  const tokens = javascriptLexicalTokens(source);
+  for (let index = 0; index < tokens.length; index++) {
+    const token = tokens[index];
+    if (token.type !== 'identifier') continue;
+    if (token.value === 'require') {
+      if (
+        tokens[index + 1]?.value === '('
+        && tokens[index + 2]?.type === 'string'
+        && tokens[index + 2]?.value === 'node:test'
+        && tokens[index + 3]?.value === ')'
+      ) return true;
+      continue;
+    }
+    if (token.value !== 'import') continue;
+    if (
+      tokens[index + 1]?.value === '('
+      && tokens[index + 2]?.type === 'string'
+      && tokens[index + 2]?.value === 'node:test'
+      && tokens[index + 3]?.value === ')'
+    ) return true;
+    if (tokens[index + 1]?.type === 'string' && tokens[index + 1]?.value === 'node:test') return true;
+    for (let cursor = index + 1; cursor < tokens.length; cursor++) {
+      if (tokens[cursor]?.value === ';') break;
+      if (
+        tokens[cursor]?.type === 'identifier'
+        && tokens[cursor]?.value === 'from'
+        && tokens[cursor + 1]?.type === 'string'
+        && tokens[cursor + 1]?.value === 'node:test'
+      ) return true;
+      if (tokens[cursor]?.type === 'identifier' && tokens[cursor]?.value === 'import') break;
+    }
+  }
+  return false;
+}
 
 function displayPath(root, abs) {
   const rel = relative(root, abs).split('\\').join('/');
@@ -156,7 +511,8 @@ export function ignoredDirectoryMatchers(root = ROOT) {
   const matchers = [/^\.git$/];
   const gitignore = resolve(root, '.gitignore');
   if (!existsSync(gitignore)) return matchers;
-  for (const raw of readFileSync(gitignore, 'utf8').split(/\r?\n/)) {
+  const gitignorePhysical = physicalReadPath(root, gitignore, '.gitignore');
+  for (const raw of readFileSync(gitignorePhysical, 'utf8').split(/\r?\n/)) {
     const line = raw.trim();
     if (line === '' || line.startsWith('#') || line.startsWith('!')) continue;
     const name = line.replace(/^\//, '').replace(/\/$/, '');
@@ -188,16 +544,83 @@ export function globToRegExp(pattern) {
   return new RegExp('^' + source + '$');
 }
 
-function listFilesRecursive(absDir, ignored) {
+export class RunnerDisjointnessRefusal extends Error {
+  constructor(details) {
+    const newSummary = details.newCrossings.length > 0
+      ? details.newCrossings.join(', ')
+      : 'none';
+    const staleSummary = details.staleCrossings.length > 0
+      ? details.staleCrossings.join(', ')
+      : 'none';
+    super(`runner disjointness refused: new crossings=${newSummary}; stale crossings=${staleSummary}`);
+    this.name = 'RunnerDisjointnessRefusal';
+    this.browserSelected = details.browserSelected;
+    this.crossings = details.crossings;
+    this.newCrossings = details.newCrossings;
+    this.nodeSelected = details.nodeSelected;
+    this.staleCrossings = details.staleCrossings;
+  }
+}
+
+export function runnerDisjointnessVerdict(globs, testFiles, knownCrossings = []) {
+  const { browserSelected, crossings, nodeSelected } = runnerSelectionDetails(globs, testFiles);
+  const crossingSet = new Set(crossings);
+  const knownSet = new Set(knownCrossings);
+  const newCrossings = crossings.filter((path) => !knownSet.has(path));
+  const staleCrossings = knownCrossings.filter((path) => !crossingSet.has(path));
+  const details = {
+    browserSelected,
+    crossings,
+    newCrossings,
+    nodeSelected,
+    staleCrossings,
+    status: 'pass'
+  };
+
+  if (newCrossings.length > 0 || staleCrossings.length > 0) {
+    throw new RunnerDisjointnessRefusal(details);
+  }
+  return details;
+}
+
+function runnerSelectionDetails(globs, testFiles) {
+  const selected = (kind) => {
+    const matchers = globs
+      .filter((glob) => glob.kind === kind)
+      .map((glob) => globToRegExp(glob.pattern));
+    return testFiles.filter((path) => matchers.some((matcher) => matcher.test(path)));
+  };
+  const browserSelected = selected('playwright-testMatch');
+  const nodeSelected = selected('node-test-argument');
+  const browserSet = new Set(browserSelected);
+  const crossings = nodeSelected.filter((path) => browserSet.has(path));
+  return { browserSelected, crossings, nodeSelected };
+}
+
+function listFilesRecursive(root, absDir, ignored, visited = new Set()) {
   const found = [];
+  const display = displayPath(root, absDir);
+  const physicalDir = physicalReadPath(root, absDir, display);
+  if (visited.has(physicalDir)) return found;
+  if (!lstatSync(physicalDir).isDirectory()) {
+    throw new ReachabilitySecurityError('RCH-FS-005', display, 'read-candidate-not-directory');
+  }
+  visited.add(physicalDir);
   let entries;
-  try { entries = readdirSync(absDir, { withFileTypes: true }); } catch { return found; }
+  try {
+    entries = readdirSync(absDir, { withFileTypes: true });
+  } catch {
+    throw new ReachabilitySecurityError('RCH-FS-005', display, 'read-candidate-unresolvable');
+  }
   for (const entry of entries) {
     const abs = join(absDir, entry.name);
-    if (entry.isDirectory()) {
-      if (ignored.some((matcher) => matcher.test(entry.name))) continue;
-      found.push(...listFilesRecursive(abs, ignored));
-    } else if (entry.isFile()) {
+    if (ignored.some((matcher) => matcher.test(entry.name))) continue;
+    const entryDisplay = displayPath(root, abs);
+    const physical = physicalReadPath(root, abs, entryDisplay);
+    const stat = lstatSync(physical);
+    if (stat.isDirectory()) {
+      found.push(...listFilesRecursive(root, abs, ignored, visited));
+    } else if (stat.isFile()) {
       found.push(abs);
     }
   }
@@ -248,23 +671,483 @@ function markdownSectionRoles(lines) {
   return roles;
 }
 
-function nodePatterns(text) {
-  const patterns = [];
-  NODE_TEST_INVOCATION.lastIndex = 0;
-  let invocation;
-  while ((invocation = NODE_TEST_INVOCATION.exec(text)) !== null) {
-    TEST_PATH_ARGUMENT.lastIndex = 0;
-    let argument;
-    while ((argument = TEST_PATH_ARGUMENT.exec(invocation[1])) !== null) {
-      if (argument[0].includes('*')) patterns.push(argument[0]);
+function splitMarkdownTableCells(line) {
+  const cells = [];
+  let backtickDelimiter = null;
+  let escaped = false;
+  let quote = null;
+  let value = '';
+
+  for (let index = 0; index < line.length; index++) {
+    const character = line[index];
+    if (escaped) {
+      value += character;
+      escaped = false;
+      continue;
+    }
+    if (character === '\\') {
+      value += character;
+      escaped = true;
+      continue;
+    }
+    if (quote !== null) {
+      value += character;
+      if (character === quote) quote = null;
+      continue;
+    }
+    if (backtickDelimiter !== null) {
+      if (character === '`') {
+        let end = index + 1;
+        while (line[end] === '`') end++;
+        const delimiter = line.slice(index, end);
+        value += delimiter;
+        if (delimiter === backtickDelimiter) backtickDelimiter = null;
+        index = end - 1;
+      } else {
+        value += character;
+      }
+      continue;
+    }
+    if (character === "'" || character === '"') {
+      quote = character;
+      value += character;
+      continue;
+    }
+    if (character === '`') {
+      let end = index + 1;
+      while (line[end] === '`') end++;
+      backtickDelimiter = line.slice(index, end);
+      value += backtickDelimiter;
+      index = end - 1;
+      continue;
+    }
+    if (character === '|') {
+      cells.push(value);
+      value = '';
+      continue;
+    }
+    value += character;
+  }
+  cells.push(value);
+  if (cells[0]?.trim() === '') cells.shift();
+  if (cells[cells.length - 1]?.trim() === '') cells.pop();
+  return cells;
+}
+
+function completeCodeSpan(text) {
+  const opening = /^(`+)/.exec(text);
+  if (!opening) return null;
+  const delimiter = opening[1];
+  if (text.length <= delimiter.length * 2 || !text.endsWith(delimiter)) return null;
+  const body = text.slice(delimiter.length, -delimiter.length);
+  if (body.includes(delimiter)) return null;
+  return body.trim();
+}
+
+function tableCommandCodeSpan(text) {
+  const opening = /^(`+)/.exec(text);
+  if (!opening) return null;
+  const delimiter = opening[1];
+  const closingIndex = text.indexOf(delimiter, delimiter.length);
+  if (closingIndex < 0) return null;
+  const suffix = text.slice(closingIndex + delimiter.length).trim();
+  if (!/^\([^`()]*\)$/.test(suffix)) return null;
+  const body = text.slice(delimiter.length, closingIndex).trim();
+  return body.includes('--test') ? body : null;
+}
+
+function commandCandidateFragments(line) {
+  const trimmed = line.trim();
+  if (trimmed === '') return [];
+
+  let fragments;
+  if (trimmed.startsWith('|')) {
+    fragments = splitMarkdownTableCells(trimmed).map((text) => ({
+      presentation: 'table-cell',
+      text
+    }));
+  } else {
+    const labelled = /^(?:\*\*)?(?:command|executed):(?:\*\*)?[ \t]*(.*)$/i.exec(trimmed);
+    const listed = /^(?:[-+*]|\d+[.)])[ \t]+(.*)$/.exec(trimmed);
+    fragments = [{
+      presentation: labelled ? 'command-label' : listed ? 'markdown-list' : 'direct',
+      text: labelled ? labelled[1] : listed ? listed[1] : trimmed
+    }];
+  }
+
+  return fragments.flatMap(({ presentation, text }) => {
+    let presented = text.trim();
+    if (presentation === 'markdown-list') {
+      presented = presented.replace(/^\[(?: |x|X)\][ \t]+/, '');
+    }
+    const unwrapped = completeCodeSpan(presented)
+      ?? (presentation === 'table-cell' ? tableCommandCodeSpan(presented) : null);
+    return [unwrapped ?? presented].map((rawCommand) => {
+      let command = rawCommand;
+      command = command.replace(/^\$[ \t]+/, '');
+      return { presentation, text: command };
+    }).filter(({ text: command }) => command !== '');
+  });
+}
+
+export function parseNodeTestCommandCandidates(line) {
+  const candidates = [];
+  for (const fragment of commandCandidateFragments(line)) {
+    const parsed = parseNodeTestTokens(fragment.text, fragment.presentation);
+    if (!parsed) continue;
+    candidates.push({
+      command: fragment.text,
+      parseError: parsed.issues.length > 0 ? 'malformed-node-test-command' : null,
+      parseIssues: parsed.issues,
+      patterns: parsed.testArguments.filter((path) => path.includes('*') || path.includes('?')),
+      presentation: fragment.presentation,
+      testArguments: parsed.testArguments
+    });
+  }
+  return candidates;
+}
+
+export function parseNodeTestCommandCandidate(line) {
+  return parseNodeTestCommandCandidates(line)[0] ?? null;
+}
+
+function parseDirectNodeScriptFamily(command) {
+  const normalizedCommand = command.replaceAll('\\|', '|');
+  const match = DIRECT_NODE_SCRIPT_FAMILY.exec(normalizedCommand);
+  if (!match) return null;
+  const variable = match[1];
+  const pattern = match[2];
+  const variableReference = match[4];
+  const referencedVariable = variableReference.startsWith('${')
+    ? variableReference.slice(2, -1)
+    : variableReference.slice(1);
+  if (referencedVariable !== variable) return null;
+  return { pattern };
+}
+
+export function parseDirectNodeScriptCommandCandidates(line) {
+  const candidates = [];
+  for (const fragment of commandCandidateFragments(line)) {
+    const parsed = parseDirectNodeScriptFamily(fragment.text);
+    if (!parsed) continue;
+    candidates.push({
+      command: fragment.text,
+      parseError: null,
+      parseIssues: [],
+      patterns: parsed.pattern.includes('*') || parsed.pattern.includes('?') ? [parsed.pattern] : [],
+      presentation: fragment.presentation,
+      testArguments: [parsed.pattern]
+    });
+  }
+  return candidates;
+}
+
+function declaredTestCommandCandidates(line) {
+  return [
+    ...parseNodeTestCommandCandidates(line).map((candidate) => ({
+      ...candidate,
+      kind: 'node-test-argument'
+    })),
+    ...parseDirectNodeScriptCommandCandidates(line).map((candidate) => ({
+      ...candidate,
+      kind: 'direct-node-script'
+    }))
+  ];
+}
+
+function declaredPatterns(text) {
+  return declaredTestCommandCandidates(text).flatMap((candidate) => (
+    candidate.patterns.map((pattern) => ({ kind: candidate.kind, pattern }))
+  ));
+}
+
+function structuredLineDeclaredPatterns(line) {
+  const direct = declaredPatterns(line);
+  if (direct.length > 0) return direct;
+
+  const objectValue = /^\s*"[^"]+"\s*:\s*("(?:\\.|[^"\\])*")/.exec(line);
+  const arrayValue = /^\s*("(?:\\.|[^"\\])*")\s*,?\s*$/.exec(line);
+  const encoded = objectValue?.[1] ?? arrayValue?.[1];
+  if (!encoded) return [];
+  try {
+    const value = JSON.parse(encoded);
+    return typeof value === 'string' ? declaredPatterns(value) : [];
+  } catch {
+    return [];
+  }
+}
+
+function tokenizeShellCommand(command) {
+  const tokens = [];
+  let value = '';
+  let quote = null;
+  let quoted = false;
+  let started = false;
+
+  const finish = () => {
+    if (!started) return;
+    tokens.push({ quoted, value });
+    value = '';
+    quoted = false;
+    started = false;
+  };
+
+  for (let index = 0; index < command.length; index++) {
+    const character = command[index];
+    if (quote !== null) {
+      if (character === quote) {
+        quote = null;
+        continue;
+      }
+      if (character === '\\' && quote === '"') {
+        index++;
+        if (index >= command.length) return { error: 'unterminated-shell-escape', tokens };
+        value += command[index];
+        continue;
+      }
+      value += character;
+      continue;
+    }
+    if (character === "'" || character === '"') {
+      quote = character;
+      quoted = true;
+      started = true;
+      continue;
+    }
+    if (character === '\\') {
+      index++;
+      if (index >= command.length) return { error: 'unterminated-shell-escape', tokens };
+      value += command[index];
+      started = true;
+      continue;
+    }
+    if (/\s/.test(character)) {
+      finish();
+      continue;
+    }
+    value += character;
+    started = true;
+  }
+  if (quote !== null) return { error: 'unterminated-shell-quote', tokens };
+  finish();
+  return { error: null, tokens };
+}
+
+function shellAmbiguityIssues(command) {
+  let quote = null;
+  let escaped = false;
+  for (let index = 0; index < command.length; index++) {
+    const character = command[index];
+    const next = command[index + 1];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (character === '\\' && quote !== "'") {
+      escaped = true;
+      continue;
+    }
+    if (quote !== null) {
+      if (quote !== "'" && character === '$' && next === '(') {
+        return ['shell-substitution:command'];
+      }
+      if (quote !== "'" && character === '`') return ['shell-substitution:backtick'];
+      if (character === quote) quote = null;
+      continue;
+    }
+    if (character === "'" || character === '"') {
+      quote = character;
+      continue;
+    }
+    if (character === '$' && next === '(') return ['shell-substitution:command'];
+    if (character === '`') return ['shell-substitution:backtick'];
+    if (character === ';') return ['shell-control:semicolon'];
+    if (character === '&' || character === '|') {
+      const operator = character + (next === character ? next : '');
+      const before = command[index - 1] ?? ' ';
+      const after = command[index + operator.length] ?? ' ';
+      if (!/\s/.test(before) || !/\s/.test(after)) {
+        return [`shell-control:${character === '&' ? 'ampersand' : 'pipe'}`];
+      }
+      index += operator.length - 1;
+      continue;
+    }
+    if (character === '<') return ['shell-control:input-redirection'];
+    if (character === '>') return ['shell-control:output-redirection'];
+  }
+  return [];
+}
+
+function consumeOption(tokens, index, optionsWithValue, issues) {
+  const option = tokens[index].value;
+  if (option.includes('=')) return index + 1;
+  const next = tokens[index + 1];
+  if (optionsWithValue.has(option)) {
+    if (!next || next.value.startsWith('-') || SHELL_CONTROL_TOKEN.has(next.value)) {
+      issues.push(`missing-value:${option}`);
+      return index + 1;
+    }
+    return index + 2;
+  }
+  return index + 1;
+}
+
+function commandTokenIndex(tokens, issues) {
+  let index = 0;
+  if (tokens[index]?.value === 'env' || tokens[index]?.value === '/usr/bin/env') {
+    index++;
+    while (index < tokens.length) {
+      const token = tokens[index].value;
+      if (token === '--') { index++; break; }
+      if (SHELL_ASSIGNMENT.test(token)) { index++; continue; }
+      if (!token.startsWith('-')) break;
+      if (token === '-C' || token === '--chdir') {
+        issues.push(`working-directory-option:${token}`);
+        index = consumeOption(tokens, index, new Set([token]), issues);
+        continue;
+      }
+      if (token.startsWith('-C') || token.startsWith('--chdir=')) {
+        issues.push(`working-directory-option:${token}`);
+        index++;
+        continue;
+      }
+      if (ENV_BOOLEAN_OPTIONS.has(token)) {
+        index++;
+        continue;
+      }
+      if (
+        ENV_OPTIONS_WITH_VALUE.has(token)
+        || [...ENV_OPTIONS_WITH_VALUE].some((option) => token.startsWith(`${option}=`))
+      ) {
+        index = consumeOption(tokens, index, ENV_OPTIONS_WITH_VALUE, issues);
+        continue;
+      }
+      issues.push(`unsupported-env-option:${token}`);
+      index++;
     }
   }
-  return patterns;
+
+  const wrapper = tokens[index]?.value;
+  if (/^(?:timeout|gtimeout|\/usr\/bin\/(?:g?timeout)|\/opt\/(?:homebrew|local)\/bin\/(?:g?timeout))$/.test(wrapper ?? '')) {
+    index++;
+    while (tokens[index]?.value.startsWith('-')) {
+      const option = tokens[index].value;
+      if (TIMEOUT_BOOLEAN_OPTIONS.has(option)) {
+        index++;
+        continue;
+      }
+      if (
+        TIMEOUT_OPTIONS_WITH_VALUE.has(option)
+        || [...TIMEOUT_OPTIONS_WITH_VALUE].some((name) => option.startsWith(`${name}=`))
+      ) {
+        index = consumeOption(tokens, index, TIMEOUT_OPTIONS_WITH_VALUE, issues);
+        continue;
+      }
+      issues.push(`unsupported-timeout-option:${option}`);
+      index++;
+    }
+    if (!/^[0-9]+(?:\.[0-9]+)?[smhd]?$/.test(tokens[index]?.value ?? '')) {
+      issues.push('invalid-timeout-duration');
+      return index;
+    }
+    index++;
+  } else if (wrapper === '/usr/bin/perl') {
+    const script = tokens[index + 2]?.value ?? '';
+    if (
+      tokens[index + 1]?.value !== '-e'
+      || !PERL_ALARM_SCRIPT.test(script)
+      || !/^[0-9]+(?:\.[0-9]+)?$/.test(tokens[index + 3]?.value ?? '')
+    ) {
+      issues.push('unsupported-perl-wrapper');
+      return index;
+    }
+    index += 4;
+  }
+  return index;
+}
+
+function parseNodeTestTokens(command, presentation = 'direct') {
+  const tokenized = tokenizeShellCommand(command);
+  const { tokens } = tokenized;
+  const rawTestArguments = command.match(RAW_TEST_PATH_ARGUMENT) ?? [];
+  const prefixIssues = [];
+  let index = commandTokenIndex(tokens, prefixIssues);
+  if (prefixIssues.length > 0 && command.includes('--test') && rawTestArguments.length > 0) {
+    return { issues: [...new Set(prefixIssues)], testArguments: rawTestArguments };
+  }
+  const executable = tokens[index]?.value;
+  if (executable !== 'node' && executable !== '/usr/bin/node') {
+    const nodeTokenIndex = tokens.findIndex((token) => token.value === 'node' || token.value === '/usr/bin/node');
+    const explicitOneTokenWrapper = nodeTokenIndex === 1;
+    const explicitUnsupported = explicitOneTokenWrapper
+      || executable?.startsWith('/')
+      || /^(?:bash|command|exec|sh|sudo|xargs|zsh)$/.test(executable ?? '');
+    if (!explicitUnsupported || !command.includes('--test') || rawTestArguments.length === 0) return null;
+    const issue = executable?.startsWith('/')
+      ? `unsupported-executable:${executable}`
+      : `unsupported-wrapper:${executable ?? 'missing'}`;
+    return { issues: [issue], testArguments: rawTestArguments };
+  }
+  index++;
+  if (tokens[index]?.value !== '--test') return null;
+  index++;
+
+  if (tokenized.error) {
+    return { issues: [tokenized.error], testArguments: rawTestArguments };
+  }
+
+  const ambiguityIssues = shellAmbiguityIssues(command);
+  if (ambiguityIssues.length > 0) return { issues: ambiguityIssues, testArguments: rawTestArguments };
+
+  const issues = [];
+  const testArguments = [];
+  let positionalOnly = false;
+  let commandSubstitutionDepth = 0;
+  while (index < tokens.length) {
+    const token = tokens[index];
+    const substitutionOpens = token.value.match(/\$\(/g)?.length ?? 0;
+    const substitutionCloses = token.value.match(/\)/g)?.length ?? 0;
+    if (substitutionOpens > 0 || commandSubstitutionDepth > 0) {
+      commandSubstitutionDepth += substitutionOpens;
+      const nestedArgument = token.value.replace(/^\$\([^ ]*/, '').replace(/\)+$/, '');
+      if (TEST_PATH_ARGUMENT.test(nestedArgument)) testArguments.push(nestedArgument);
+      commandSubstitutionDepth -= substitutionCloses;
+      if (commandSubstitutionDepth < 0) {
+        issues.push('unbalanced-command-substitution');
+        commandSubstitutionDepth = 0;
+      }
+      index++;
+      continue;
+    }
+    if (SHELL_CONTROL_TOKEN.has(token.value)) {
+      break;
+    }
+    if (!positionalOnly && token.value === '--') {
+      positionalOnly = true;
+      index++;
+      continue;
+    }
+    if (!positionalOnly && token.value.startsWith('--')) {
+      index = consumeOption(tokens, index, NODE_TEST_OPTIONS_WITH_VALUE, issues);
+      continue;
+    }
+    if (TEST_PATH_ARGUMENT.test(token.value)) {
+      testArguments.push(token.value);
+    } else {
+      issues.push(`unsupported-argument:${token.value}`);
+    }
+    index++;
+  }
+  if (commandSubstitutionDepth !== 0) issues.push('unterminated-command-substitution');
+  return { issues, testArguments };
 }
 
 function candidateClassification(artifactRoleValue, sectionRole) {
   if (artifactRoleValue === ARTIFACT_ROLE.HISTORICAL_REPORT) {
     return { authority: 'historical', reason: 'historical-report-receipt' };
+  }
+  if (artifactRoleValue === ARTIFACT_ROLE.ACTIVE_PLAN && sectionRole === SECTION_ROLE.EVIDENCE) {
+    return { authority: 'historical', reason: 'historical-scope-evidence' };
   }
   if (
     artifactRoleValue === ARTIFACT_ROLE.COMMAND_REGISTRY
@@ -284,12 +1167,6 @@ function candidateClassification(artifactRoleValue, sectionRole) {
   return { authority: 'error', reason: 'unrecognized-authority-section' };
 }
 
-function lineCanContainCandidate(line, artifactRoleValue, sectionRole) {
-  if (artifactRoleValue === ARTIFACT_ROLE.HISTORICAL_REPORT) return true;
-  if (candidateClassification(artifactRoleValue, sectionRole).authority === 'active') return true;
-  return /^\s*(?:\$\s+)?node\s+--test\b/.test(line);
-}
-
 function structuredTestCommands(parsed) {
   if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.scopes)) return null;
   const commands = [];
@@ -299,6 +1176,16 @@ function structuredTestCommands(parsed) {
       if (testEntry && typeof testEntry === 'object' && typeof testEntry.command === 'string') {
         commands.push(testEntry.command);
       }
+      if (
+        testEntry
+        && typeof testEntry === 'object'
+        && testEntry.requiredRunnerClass === 'direct-node-script'
+        && typeof testEntry.declaredRunnerCommand === 'string'
+        && parseDirectNodeScriptCommandCandidates(testEntry.declaredRunnerCommand)
+          .some((candidate) => candidate.patterns.length > 0)
+      ) {
+        commands.push(testEntry.declaredRunnerCommand);
+      }
     }
   }
   return commands;
@@ -306,8 +1193,9 @@ function structuredTestCommands(parsed) {
 
 /* Every verification glob the repository declares, each carrying the artifact
    and line that declares it. */
-export function collectDeclaredTestGlobs(root = ROOT) {
-  const byPattern = new Map();
+export function collectDeclaredTestGlobs(root = ROOT, options = {}) {
+  root = options.rootIsCanonical === true ? root : canonicalRepositoryRoot(root).canonical;
+  const byIdentity = new Map();
   const historicalSites = [];
   const classificationErrors = [];
   const record = (site) => {
@@ -320,14 +1208,15 @@ export function collectDeclaredTestGlobs(root = ROOT) {
       return;
     }
     const { pattern, kind } = site;
-    if (!byPattern.has(pattern)) byPattern.set(pattern, { pattern, kind, sites: [] });
-    byPattern.get(pattern).sites.push(site);
+    const identity = declarationIdentity(kind, pattern);
+    if (!byIdentity.has(identity)) byIdentity.set(identity, { pattern, kind, sites: [] });
+    byIdentity.get(identity).sites.push(site);
   };
 
   const configAbs = resolve(root, PLAYWRIGHT_CONFIG_REL);
   let playwrightMatchers = 0;
   if (existsSync(configAbs)) {
-    const source = readFileSync(configAbs, 'utf8');
+    const source = readFileSync(physicalReadPath(root, configAbs, PLAYWRIGHT_CONFIG_REL), 'utf8');
     const line = source.slice(0, source.search(/testMatch:/) + 1).split(/\r?\n/).length;
     const arrayForm = PLAYWRIGHT_TEST_MATCH_ARRAY.exec(source);
     const patterns = [];
@@ -358,22 +1247,29 @@ export function collectDeclaredTestGlobs(root = ROOT) {
   const selfAbs = resolve(root, SELF_REL);
   const baselineAbs = resolve(root, BASELINE_REL);
   let scannedFiles = 0;
-  for (const abs of listFilesRecursive(root, ignored).sort()) {
+  for (const abs of listFilesRecursive(root, root, ignored).sort()) {
     if (abs === selfAbs || abs === baselineAbs) continue;
     let text;
-    try { text = readFileSync(abs, 'utf8'); } catch { continue; }
+    try { text = readFileSync(physicalReadPath(root, abs, displayPath(root, abs)), 'utf8'); } catch (error) {
+      if (error instanceof ReachabilitySecurityError) throw error;
+      continue;
+    }
     if (text.includes('\0')) continue;
     scannedFiles++;
-    if (!text.includes('--test')) continue;
+    if (!text.includes('--test') && !text.includes(' do node ')) continue;
     const artifact = displayPath(root, abs);
     const lines = text.split(/\r?\n/);
 
     const artifactRoleValue = artifactRole(artifact);
+    if (
+      artifactRoleValue === ARTIFACT_ROLE.UNKNOWN
+      && /\.(?:[cm]?js|jsx|[cm]?ts|tsx)$/.test(artifact)
+    ) continue;
     if (artifactRoleValue === ARTIFACT_ROLE.STRUCTURED_TEST_PLAN) {
       const rawCandidates = [];
       for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-        for (const pattern of nodePatterns(lines[lineIndex])) {
-          rawCandidates.push({ pattern, line: lineIndex + 1 });
+        for (const candidate of structuredLineDeclaredPatterns(lines[lineIndex])) {
+          rawCandidates.push({ ...candidate, line: lineIndex + 1 });
         }
       }
       let commands = null;
@@ -402,23 +1298,39 @@ export function collectDeclaredTestGlobs(root = ROOT) {
           ? 1
           : text.slice(0, commandOffset + 1).split(/\r?\n/).length;
         if (commandOffset >= 0) searchFrom = commandOffset + commandNeedle.length;
-        for (const pattern of nodePatterns(command)) {
-          const candidateKey = `${line}\0${pattern}`;
-          recognizedCandidates.set(candidateKey, (recognizedCandidates.get(candidateKey) ?? 0) + 1);
-          record({
-            pattern,
-            kind: 'node-test-argument',
-            artifact,
-            line,
-            artifactRole: artifactRoleValue,
-            sectionRole: SECTION_ROLE.TEST_PLAN,
-            authority: 'active',
-            reason: 'structured-test-plan'
-          });
+        for (const parsedCommand of declaredTestCommandCandidates(command)) {
+          for (const pattern of parsedCommand.patterns) {
+            const candidateKey = `${line}\0${parsedCommand.kind}\0${pattern}`;
+            recognizedCandidates.set(candidateKey, (recognizedCandidates.get(candidateKey) ?? 0) + 1);
+            if (parsedCommand.parseError) {
+              record({
+                pattern,
+                kind: parsedCommand.kind,
+                artifact,
+                line,
+                artifactRole: artifactRoleValue,
+                sectionRole: SECTION_ROLE.TEST_PLAN,
+                authority: 'error',
+                reason: parsedCommand.parseError,
+                parseIssues: parsedCommand.parseIssues
+              });
+              continue;
+            }
+            record({
+              pattern,
+              kind: parsedCommand.kind,
+              artifact,
+              line,
+              artifactRole: artifactRoleValue,
+              sectionRole: SECTION_ROLE.TEST_PLAN,
+              authority: 'active',
+              reason: 'structured-test-plan'
+            });
+          }
         }
       }
       for (const candidate of rawCandidates) {
-        const candidateKey = `${candidate.line}\0${candidate.pattern}`;
+        const candidateKey = `${candidate.line}\0${candidate.kind}\0${candidate.pattern}`;
         const recognizedCount = recognizedCandidates.get(candidateKey) ?? 0;
         if (recognizedCount > 0) {
           recognizedCandidates.set(candidateKey, recognizedCount - 1);
@@ -426,7 +1338,6 @@ export function collectDeclaredTestGlobs(root = ROOT) {
         }
         record({
           ...candidate,
-          kind: 'node-test-argument',
           artifact,
           artifactRole: artifactRoleValue,
           sectionRole: SECTION_ROLE.NONE,
@@ -442,23 +1353,42 @@ export function collectDeclaredTestGlobs(root = ROOT) {
       : new Array(lines.length).fill(SECTION_ROLE.NONE);
     for (let i = 0; i < lines.length; i++) {
       const sectionRole = sectionRoles[i];
-      if (!lineCanContainCandidate(lines[i], artifactRoleValue, sectionRole)) continue;
-      const classification = candidateClassification(artifactRoleValue, sectionRole);
-      for (const pattern of nodePatterns(lines[i])) {
-        record({
-          pattern,
-          kind: 'node-test-argument',
-          artifact,
-          line: i + 1,
-          artifactRole: artifactRoleValue,
-          sectionRole,
-          ...classification
-        });
+      for (const candidate of declaredTestCommandCandidates(lines[i])) {
+        const classification = candidateClassification(artifactRoleValue, sectionRole);
+        if (candidate.parseError && classification.authority !== 'historical') {
+          for (const pattern of candidate.patterns) {
+            record({
+              pattern,
+              kind: candidate.kind,
+              artifact,
+              line: i + 1,
+              artifactRole: artifactRoleValue,
+              sectionRole,
+              authority: 'error',
+              reason: candidate.parseError,
+              parseIssues: candidate.parseIssues
+            });
+          }
+          continue;
+        }
+        for (const pattern of candidate.patterns) {
+          record({
+            pattern,
+            kind: candidate.kind,
+            artifact,
+            line: i + 1,
+            artifactRole: artifactRoleValue,
+            sectionRole,
+            ...classification
+          });
+        }
       }
     }
   }
 
-  const globs = [...byPattern.values()].sort((a, b) => byteOrder(a.pattern, b.pattern));
+  const globs = [...byIdentity.values()].sort((a, b) => (
+    byteOrder(a.pattern, b.pattern) || byteOrder(a.kind, b.kind)
+  ));
   historicalSites.sort((left, right) => (
     byteOrder(left.artifact, right.artifact) || left.line - right.line || byteOrder(left.pattern, right.pattern)
   ));
@@ -466,6 +1396,10 @@ export function collectDeclaredTestGlobs(root = ROOT) {
     byteOrder(left.artifact, right.artifact) || left.line - right.line || byteOrder(left.pattern, right.pattern)
   ));
   return { classificationErrors, globs, historicalSites, playwrightMatchers, scannedFiles };
+}
+
+export function declarationIdentity(kind, pattern) {
+  return `${kind}\0${pattern}`;
 }
 
 export function readBaseline(absBaselineFile) {
@@ -479,30 +1413,70 @@ export function readBaseline(absBaselineFile) {
   return entries;
 }
 
+function confinedTestEntries(root, testsDir) {
+  const absTests = resolve(root, testsDir);
+  const testsDisplay = displayPath(root, absTests);
+  assertLexicalContainment(root, absTests, 'RCH-FS-003', testsDisplay, 'tests-root-escapes-root');
+  if (!existsSync(absTests)) return { absTests, entries: [], testsDisplay };
+
+  const testsStat = lstatSync(absTests);
+  if (testsStat.isSymbolicLink()) {
+    throw new ReachabilitySecurityError('RCH-FS-003', testsDisplay, 'symlinked-tests-root');
+  }
+  if (!testsStat.isDirectory()) {
+    throw new ReachabilitySecurityError('RCH-FS-003', testsDisplay, 'tests-root-not-directory');
+  }
+  const physicalTests = realpathSync(absTests);
+  if (!isContainedPath(root, physicalTests)) {
+    throw new ReachabilitySecurityError('RCH-FS-003', testsDisplay, 'tests-root-escapes-root');
+  }
+
+  const entries = [];
+  for (const entry of readdirSync(absTests, { withFileTypes: true })) {
+    if (!entry.name.endsWith('.mjs')) continue;
+    const logical = join(absTests, entry.name);
+    const relativePath = `${testsDisplay}/${entry.name}`.replaceAll('\\', '/');
+    let physical;
+    try {
+      physical = realpathSync(logical);
+    } catch {
+      throw new ReachabilitySecurityError('RCH-FS-004', relativePath, 'test-entry-unresolvable');
+    }
+    if (!isContainedPath(root, physical) || !isContainedPath(physicalTests, physical)) {
+      throw new ReachabilitySecurityError('RCH-FS-004', relativePath, 'test-entry-escapes-root');
+    }
+    if (!lstatSync(physical).isFile()) {
+      throw new ReachabilitySecurityError('RCH-FS-004', relativePath, 'test-entry-not-file');
+    }
+    entries.push({ path: relativePath, physical });
+  }
+  entries.sort((left, right) => byteOrder(left.path, right.path));
+  return { absTests, entries, testsDisplay };
+}
+
 export function validateTestFileReachability(root = ROOT, options = {}) {
+  const rootState = canonicalRepositoryRoot(root);
+  root = rootState.canonical;
   const testsDir = options.testsDir ?? TESTS_DIR;
   const baselineFile = options.baselineFile
     ? resolve(options.baselineFile)
     : resolve(root, BASELINE_REL);
-  const absTests = resolve(root, testsDir);
-
-  const testFiles = (existsSync(absTests) ? readdirSync(absTests) : [])
-    .filter((name) => name.endsWith('.mjs'))
-    .sort()
-    .map((name) => `${testsDir}/${name}`);
+  const baselineState = baselineBoundary(root, baselineFile);
+  const { entries: testEntries, testsDisplay } = confinedTestEntries(root, testsDir);
+  const testFiles = testEntries.map((entry) => entry.path);
 
   const sources = new Map();
-  for (const path of testFiles) {
-    try { sources.set(path, readFileSync(resolve(root, path), 'utf8')); } catch { sources.set(path, ''); }
+  for (const entry of testEntries) {
+    try { sources.set(entry.path, readFileSync(entry.physical, 'utf8')); } catch { sources.set(entry.path, ''); }
   }
 
   /* Rule `shared-helper-module`, both clauses evidenced from file contents. */
   const exempt = [];
   const exemptPaths = new Set();
   for (const path of testFiles) {
-    if (NODE_TEST_IMPORT.test(sources.get(path))) continue;
+    if (containsNodeTestRegistration(sources.get(path))) continue;
     const specifier = new RegExp(
-      `(?:from\\s*|import\\s*\\(\\s*)(['"])\\.{1,2}/(?:${escapeRegExp(testsDir)}/)?${escapeRegExp(path.slice(testsDir.length + 1))}\\1`
+      `(?:from\\s*|import\\s*\\(\\s*)(['"])\\.{1,2}/(?:${escapeRegExp(testsDisplay)}/)?${escapeRegExp(path.slice(testsDisplay.length + 1))}\\1`
     );
     const importers = testFiles.filter((other) => other !== path && specifier.test(sources.get(other)));
     if (importers.length > 0) {
@@ -517,9 +1491,11 @@ export function validateTestFileReachability(root = ROOT, options = {}) {
     historicalSites,
     playwrightMatchers,
     scannedFiles
-  } = collectDeclaredTestGlobs(root);
+  } = collectDeclaredTestGlobs(root, { rootIsCanonical: true });
   const compiled = globs.map((glob) => ({ ...glob, matcher: globToRegExp(glob.pattern) }));
   const nodeGlobCount = globs.filter((glob) => glob.kind === 'node-test-argument').length;
+  const runnerOwnership = runnerSelectionDetails(globs, testFiles);
+  const knownCrossings = resolve(root) === ROOT ? KNOWN_DISCOVERY_CROSSINGS : [];
 
   const reachable = [];
   const orphans = [];
@@ -549,17 +1525,21 @@ export function validateTestFileReachability(root = ROOT, options = {}) {
     globCount: globs.length,
     globs,
     historicalSites,
+    knownCrossings,
     knownOrphans,
     newOrphans,
     nodeGlobCount,
     orphans: orphans.slice().sort(byteOrder),
     playwrightMatchers,
     reachable,
+    runnerOwnership,
     scannedFiles,
     staleBaseline,
+    testFiles,
     testFileCount: testFiles.length,
-    testsDir,
-    vacuous: playwrightMatchers === 0 || nodeGlobCount === 0 || testFiles.length === 0 || scannedFiles === 0
+    testsDir: testsDisplay,
+    vacuous: playwrightMatchers === 0 || nodeGlobCount === 0 || testFiles.length === 0 || scannedFiles === 0,
+    [SECURITY_BOUNDARY]: { baselineState, rootState }
   };
 }
 
@@ -589,7 +1569,8 @@ export function formatTestFileReachabilityFindings(result, indent = 0) {
   }
   for (const site of result.classificationErrors) {
     lines.push(`${pad}CLASSIFICATION ERROR ${site.pattern} [${site.kind}] ${site.artifact}:${site.line} `
-      + `artifactRole=${site.artifactRole} sectionRole=${site.sectionRole} reason=${site.reason}`);
+      + `artifactRole=${site.artifactRole} sectionRole=${site.sectionRole} reason=${site.reason}`
+      + `${site.parseIssues ? ` issues=${site.parseIssues.join(',')}` : ''}`);
   }
   for (const entry of result.exempt) {
     lines.push(`${pad}exempt ${entry.path} — ${result.exemptRule}: registers no node:test test, `
@@ -616,7 +1597,12 @@ function usage(stream = console.log) {
 }
 
 function writeBaseline(root, result) {
-  const absBaseline = resolve(root, BASELINE_REL);
+  const boundary = result[SECURITY_BOUNDARY];
+  if (!boundary) {
+    throw new ReachabilitySecurityError('RCH-FS-006', BASELINE_REL, 'missing-validation-boundary');
+  }
+  root = boundary.rootState.canonical;
+  const absBaseline = boundary.baselineState.target.path;
   const header = [
     '# validate-test-file-reachability baseline — Research Lab',
     '#',
@@ -652,7 +1638,25 @@ function writeBaseline(root, result) {
     '# ---- frozen files (LC_ALL=C sorted) --------------------------------------',
     ''
   ];
-  writeFileSync(absBaseline, header.concat(result.orphans, '').join('\n'), 'utf8');
+  const content = header.concat(result.orphans, '').join('\n');
+  assertBaselineBoundaryUnchanged(boundary.rootState, boundary.baselineState);
+  const tempPath = join(dirname(absBaseline), `.${BASELINE_REL.split('/').at(-1)}.${process.pid}.${randomUUID()}.tmp`);
+  const mode = boundary.baselineState.target.exists
+    ? boundary.baselineState.target.identity.mode & 0o777
+    : 0o644;
+  let descriptor = null;
+  try {
+    descriptor = openSync(tempPath, 'wx', mode);
+    writeFileSync(descriptor, content, 'utf8');
+    fsyncSync(descriptor);
+    closeSync(descriptor);
+    descriptor = null;
+    assertBaselineBoundaryUnchanged(boundary.rootState, boundary.baselineState);
+    renameSync(tempPath, absBaseline);
+  } finally {
+    if (descriptor !== null) closeSync(descriptor);
+    rmSync(tempPath, { force: true });
+  }
   return displayPath(root, absBaseline);
 }
 
@@ -669,33 +1673,90 @@ function suffixSummary(result) {
     .map(([suffix, count]) => `${String(count).padStart(4)} | ${suffix}`);
 }
 
-function main(argv) {
-  let root = ROOT;
+export class ReachabilityUsageError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'ReachabilityUsageError';
+  }
+}
+
+export function parseReachabilityArguments(argv, options = {}) {
+  const cwd = options.cwd ?? process.cwd();
+  let root = options.defaultRoot ?? ROOT;
   let update = false;
   let allSites = false;
+  let help = false;
+
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
-    if (arg === '--update-baseline') update = true;
-    else if (arg === '--all-sites') allSites = true;
-    else if (arg === '--root') { root = resolve(argv[++i] ?? ''); }
-    else if (arg === '--help' || arg === '-h') { usage(); return 0; }
-    else { console.error(`unknown argument: ${arg}`); usage(console.error); return 2; }
+    if (arg === '--update-baseline') {
+      update = true;
+    } else if (arg === '--all-sites') {
+      allSites = true;
+    } else if (arg === '--root') {
+      const operand = argv[i + 1];
+      if (typeof operand !== 'string' || operand.trim() === '' || operand.startsWith('-')) {
+        throw new ReachabilityUsageError('--root requires a non-option directory operand');
+      }
+      root = resolve(cwd, operand);
+      i++;
+    } else if (arg === '--help' || arg === '-h') {
+      help = true;
+    } else {
+      throw new ReachabilityUsageError(`unknown argument: ${arg}`);
+    }
   }
 
-  const result = validateTestFileReachability(root, { allSites });
+  return { allSites, help, root, update };
+}
+
+function main(argv) {
+  let parsed;
+  try {
+    parsed = parseReachabilityArguments(argv);
+  } catch (error) {
+    if (!(error instanceof ReachabilityUsageError)) throw error;
+    console.error(error.message);
+    usage(console.error);
+    return 2;
+  }
+  const { allSites, help, root, update } = parsed;
+  if (help) { usage(); return 0; }
+
+  let result;
+  try {
+    result = validateTestFileReachability(root, { allSites });
+  } catch (error) {
+    if (!(error instanceof ReachabilitySecurityError)) throw error;
+    console.error(error.message);
+    return 1;
+  }
   for (const line of formatTestFileReachabilityFindings(result, 0)) console.log(line);
 
   if (result.classificationErrors.length > 0) return 1;
-  if (update) {
-    console.log(`baseline written: ${writeBaseline(root, result)}`);
-    return 0;
-  }
   if (result.vacuous) {
     console.error('vacuous scan: missing active Playwright or Node globs, test files, or scanned artifacts');
     return 1;
   }
   if (!result.baselinePresent) return 1;
-  return result.newOrphans.length > 0 ? 1 : 0;
+  if (result.newOrphans.length > 0) return 1;
+  try {
+    runnerDisjointnessVerdict(result.globs, result.testFiles, result.knownCrossings);
+  } catch (error) {
+    if (!(error instanceof RunnerDisjointnessRefusal)) throw error;
+    console.error(`${error.name}: ${error.message}`);
+    return 1;
+  }
+  if (update) {
+    try {
+      console.log(`baseline written: ${writeBaseline(root, result)}`);
+    } catch (error) {
+      if (!(error instanceof ReachabilitySecurityError)) throw error;
+      console.error(error.message);
+      return 1;
+    }
+  }
+  return 0;
 }
 
 if (resolve(process.argv[1] ?? '') === SCRIPT_PATH) process.exit(main(process.argv.slice(2)));

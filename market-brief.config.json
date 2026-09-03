@@ -788,6 +788,54 @@
             }
         }
     },
+    "tool-brief-v2/v1": {
+        "contractVersion": "tool-brief-v2/v1",
+        "policyId": "tool-brief-v2/v1",
+        "requestContract": "tool-author-request/v2",
+        "responseContract": "tool-author-response/v2",
+        "briefContract": "tool-brief/v2",
+        "evidenceProjectionContract": "web-evidence-author-projection/v1",
+        "scopes": [
+            "tool",
+            "public-ticker"
+        ],
+        "states": [
+            "action",
+            "catalyst",
+            "no-action",
+            "carried",
+            "unavailable"
+        ],
+        "authorCapabilities": {
+            "web": false,
+            "shell": false,
+            "repositoryWrite": false,
+            "modelRecompute": false,
+            "providerKey": false,
+            "privatePortfolio": false
+        },
+        "minIndependentOriginGroups": 2,
+        "requireOwnerEvidenceForMarketState": true,
+        "closedDetailSections": [
+            "methodology",
+            "evidence",
+            "context",
+            "history"
+        ],
+        "leadSections": [
+            "actions",
+            "imminentCatalysts",
+            "visibleLimitations"
+        ],
+        "bounds": {
+            "maxAuthorConcurrency": 4,
+            "maxStdoutBytes": 98304,
+            "perAuthorTimeoutMs": 180000,
+            "maxToolBriefsPerGeneration": 40,
+            "maxPublicTickerBriefsPerGeneration": 40
+        },
+        "publicTickerSource": "watchlist.json"
+    },
     "freshness-policy/v1": {
         "contractVersion": "freshness-policy/v1",
         "policyId": "freshness-policy/v1",

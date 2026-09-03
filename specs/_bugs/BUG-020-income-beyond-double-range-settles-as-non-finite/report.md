@@ -1435,3 +1435,994 @@ failures before this audit and 36 after the Code Diff Evidence repair above.
 
 The open increments total 36. The packet remains `in_progress`.
 
+## Current Implementation Reconciliation — 2026-08-31 UTC
+
+<a name="current-implementation-reconciliation-2026-08-31"></a>
+
+**Phase:** implement
+**Claim Source:** executed
+**Source revision:** `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`
+
+The active `design.md`, both scopes, the scenario manifest, the embedded Test
+Plans, this report, the execution state, and every allowed implementation and
+test surface were read in this invocation. This packet has no standalone
+`test-plan.json`; its current Test Plans remain the two tables in `scopes.md`.
+The current product and test files were clean at entry. The only BUG-020 delta
+at entry was the design-owner reconciliation in `design.md`.
+
+### Current source mechanism
+
+The current-session mechanism inventory is retained in
+`.specify/runtime/tool-calls.jsonl` at `2026-08-31T03:10:34Z`, exit `0`,
+stdout hash
+`3fb222e4ce84a0e058e39530438003e50b367e0231fa6256add5646736ba4efd`.
+Its complete observed output was:
+
+```text
+BUG020_MECHANISM_INVENTORY_BEGIN
+MECHANISM label=C1-vocabulary expected=1 actual=1 file=rltaxrules.js
+MECHANISM label=E1-arithmetic-origin expected=1 actual=1 file=rltax.js
+MECHANISM label=E2-co1-assembly expected=3 actual=3 file=rltax.js
+MECHANISM label=E3-display-seam expected=1 actual=1 file=rltax.js
+MECHANISM label=E4-disposition-refusal expected=1 actual=1 file=rltax.js
+MECHANISM label=R1-envelope-and-render-sites expected=4 actual=4 file=lifetime-tax-strategy-lab.html
+MECHANISM label=R1-header-precedence expected=1 actual=1 file=lifetime-tax-strategy-lab.html
+MECHANISM label=R2-raw-stringification-guard expected=1 actual=1 file=lifetime-tax-strategy-lab.html
+MECHANISM label=composed-parser-binding expected=1 actual=1 file=scripts/red-green-probe.sh
+MECHANISM label=composed-all-target-arm expected=1 actual=1 file=scripts/red-green-probe.sh
+MECHANISM label=composed-per-replacement-screen expected=1 actual=1 file=scripts/red-green-probe.sh
+MECHANISM label=composed-mutation-array-loops expected=2 actual=2 file=scripts/red-green-probe.sh
+MECHANISM label=composed-selftest-group expected=1 actual=1 file=scripts/selftest.mjs
+MECHANISM label=TP-01-05-member expected=1 actual=1 file=scripts/selftest.mjs
+MECHANISM label=TB-020-04-direct-seam expected=1 actual=1 file=scripts/selftest.mjs
+MECHANISM label=SCN-020-01-no-token expected=1 actual=1 file=tests/lifetime-tax-representable.spec.mjs
+MECHANISM label=SCN-020-04-inside-boundary expected=1 actual=1 file=tests/lifetime-tax-representable.spec.mjs
+MECHANISM label=SCN-020-05-outside-boundary expected=1 actual=1 file=tests/lifetime-tax-representable.spec.mjs
+PROBE_RESTORE file=rltax.js sha256=7e44bb4c8106fdc0b4f0b181d931b1327f213420bb7d049d96cb78b3682d73d8 gitObject=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc status=clean
+PROBE_RESTORE file=lifetime-tax-strategy-lab.html sha256=b628fce363737dcdaffa474dc1be33f693a3be6729e9f852b9abd0cf9fc0b0fc gitObject=193f75318bb85fc0ca68e1b992ad290ce371a265 status=clean
+MECHANISM_FAILURES=0
+BUG020_MECHANISM_INVENTORY_RESULT=PASS
+BUG020_MECHANISM_INVENTORY_END
+```
+
+This inventory re-derived the current mechanism rather than accepting an older
+report description. It found C1, E1 through E4, R1 and R2 at the expected
+current-source sites. It also found the composed harness contracts and the
+persistent scenario assertions. The post-probe hashes and Git objects matched
+the pre-probe identities for both transiently mutated files.
+
+### Current composed adversarial proof
+
+**Phase:** implement
+**Command:** `scripts/red-green-probe.sh --file lifetime-tax-strategy-lab.html --find 'if (!Number.isFinite(record.value)) return "no figure";' --replace 'if (false) return "no figure";' --file rltax.js --find 'if (!Number.isFinite(gross)) {' --replace 'if (false) {' --label 'BUG-020 current design-named composed Infinity path' --bound 900 --summary-match 'no rendered text on the route is an infinity symbol or NaN' -- npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN' --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+=== RED/GREEN PROBE EVIDENCE ===
+label:            BUG-020 current design-named composed Infinity path
+files:            lifetime-tax-strategy-lab.html rltax.js
+mutations:        2 composed, applied together
+  mutation 1:     [lifetime-tax-strategy-lab.html]  if (!Number.isFinite(record.value)) return "no figure";  ->  if (false) return "no figure";   (1 occurrence(s))
+  mutation 2:     [rltax.js]  if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
+command:          npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-020-01\ no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN --reporter=list
+red-exit:         1
+red-summary:          [system-chrome] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+green-exit:       0
+green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN (414ms)
+summary-compared:     [system-chrome] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN  vs    ✓  1 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN (<elapsed>)   (elapsed time normalised out)
+revert-verified:  yes, all 2 targets (lifetime-tax-strategy-lab.html committed=193f75318bb85fc0ca68e1b992ad290ce371a265 restored=193f75318bb85fc0ca68e1b992ad290ce371a265, rltax.js committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+=== END RED/GREEN PROBE EVIDENCE ===
+```
+
+Structured evidence is retained at `2026-08-31T03:09:25Z`, exit `0`, stdout
+hash `52b878fdb3fdc16c3bfa0fabc0d79745d00bc7bfba37b7839a514fa57b4ef943`,
+with scenario binding `SCN-020-01` and the current input closure.
+
+### Verifier corrections preserved
+
+The first combined design-and-routing inspection emitted a `jq` compile error
+inside an outer wrapper that exited `0`. It is not used as evidence. The direct
+`jq` rerun at `2026-08-31T03:09:03Z` exited `0` and exposed the stale
+`bubbles.design` routing.
+
+The first exact mechanism inventory exited `2`. Its verifier expected one
+mutation-array loop where the harness legitimately has two and searched for a
+double-quoted declaration where the JavaScript uses single quotes. No product
+or test file changed. The corrected inventory above changed only those two
+verifier expectations and exited `0`.
+
+### Implementation decision and command boundary
+
+No implementation gap was reproduced, so this phase changed no product source,
+test source, harness, or design artifact. It appended this current evidence and
+reconciled only implementation-owned execution routing in `state.json`.
+
+`node scripts/selftest.mjs`, the complete lifetime-tax browser family, and the
+complete browser suite were not executed in this implement phase. No current
+pass claim is made for those commands. Independent test-phase execution is the
+recorded routing target.
+
+### Focused handoff checks
+
+**Phase:** implement
+**Claim Source:** executed
+
+The post-edit artifact lint ran separately and exited `0`. The capture reports
+`lines=40` and
+`sha256=dcf94897451f9012057b886034d49b5902f54c2f6e90ccbb2a7514f4b2401d05`.
+It ended with `Artifact lint PASSED.` It also emitted one recommendation:
+`state.json v3 missing recommended field: transitionRequests`. That field is
+not an implementation-owned `execution.*` field and was not invented here.
+
+The all-scope traceability guard ran separately and exited `0`. The capture
+reports `lines=68` and
+`sha256=7fb5d6a4de26d520761d699fbeed528e858ed3df303fa1010eae6cf6ad8d25db`.
+Its observed summary was:
+
+```text
+--- Traceability Summary ---
+ℹ️  Scenarios checked: 5
+ℹ️  Test rows checked: 10
+ℹ️  Scenario-to-row mappings: 5
+ℹ️  Concrete test file references: 5
+ℹ️  Report evidence references: 5
+ℹ️  DoD fidelity scenarios: 5 (mapped: 5, unmapped: 0)
+ℹ️  Edge confidence (IMP-015 Scope B): declared=10 inferred=0 ambiguous=0
+
+RESULT: PASSED (0 warnings)
+```
+
+The verbose implementation-reality scan exited `0`, scanned three production
+files, reported zero violations, and emitted one warning. The capture reports
+`lines=38` and
+`sha256=4aa4d182b0eb6dae4b405d5f8886aa07f43fe2621a5b8b9ac46d1ef582a63f75`.
+The warning says its scope parser yielded zero files and therefore used the
+design fallback. The scan still resolved and inspected three production files.
+The current `scopes.md` was read directly in this phase and contains explicit
+Implementation Surfaces sections. No source gap follows from this extraction
+warning.
+
+The first strict boundary wrapper timed out inside lock-refreshing `git status`
+and produced only its opening sentinel. It is retained as failed evidence and
+not treated as a verdict. A different read-only check with
+`GIT_OPTIONAL_LOCKS=0` then exited `0` and produced:
+
+```text
+BUG020_NO_OPTIONAL_LOCK_BOUNDARY_BEGIN
+ M specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite/design.md
+ M specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite/report.md
+ M specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite/state.json
+BUG020_STATUS_EXIT=0
+BUG020_STAGED_EXIT=0
+BUG020_DIFF_CHECK_EXIT=0
+BUG020_NO_OPTIONAL_LOCK_BOUNDARY_END
+```
+
+The final state and source invariant check exited `0` with this observed output:
+
+```text
+BUG020_FINAL_STATE_SOURCE_INVARIANTS_BEGIN
+STATE_JSON_EXIT=0
+CERTIFICATION_UNCHANGED=true
+TOP_STATUS=in_progress
+CERTIFICATION_STATUS=in_progress
+EXECUTION_PHASE=implement
+EXECUTION_PHASE_STATUS=complete
+EXECUTION_SUBSTATE=needs_reverification
+NEXT_REQUIRED_OWNER=bubbles.test
+DOD_CHECKED=18
+DOD_UNCHECKED=0
+REPORT_EXPLICIT_ANCHOR_COUNT=1
+ALLOWED_IMPLEMENTATION_DIFF_EXIT=0
+STATE_ROUTING_PREDICATE_EXIT=0
+STATE_SOURCE_INVARIANT_FAILURES=0
+BUG020_FINAL_STATE_SOURCE_INVARIANTS_RESULT=PASS
+BUG020_FINAL_STATE_SOURCE_INVARIANTS_END
+```
+
+No file was staged or committed. The design-owner delta was preserved. The
+implementation-owned changes in this invocation are this appended evidence and
+the execution routing and phase claim in `state.json`.
+
+## Independent Test Phase — 2026-08-31 UTC
+
+<a name="independent-test-phase-2026-08-31"></a>
+
+**Phase:** test
+**Claim Source:** executed
+**Source revision:** `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`
+
+This phase re-read the current packet and the production and test paths it names.
+The packet has no standalone `test-plan.json`.
+Its current Test Plans remain the two tables in `scopes.md`.
+
+### Entry boundary and isolation
+
+The entry check distinguished the three existing BUG-020 artifact changes from
+all concurrent work. It found no staged path.
+
+```text
+BUG020_STRICT_ENTRY_BOUNDARY_BEGIN
+ROOT=<research-lab-root>
+HEAD=d0c09a3ec90d2bb72920caee9e44f1d5f697c619
+DIRTY_PATH_COUNT=32
+BUG020_AUTHORIZED_EXISTING_DIRTY_COUNT=3
+EXPLICITLY_EXCLUDED_CONCURRENT_COUNT=26
+OTHER_PROTECTED_CONCURRENT_COUNT=3
+STAGED_PATH_COUNT=0
+ENTRY_BOUNDARY_FAILURES=0
+BUG020_STRICT_ENTRY_BOUNDARY_RESULT=PASS
+BUG020_STRICT_ENTRY_BOUNDARY_END
+```
+
+The structured receipt is dated `2026-08-31T03:36:13Z`.
+It exited `0` with stdout hash
+`998499ec9ce3c36db47119674394373e7d804df1db14d87cd5190855788ed945`.
+
+Tests ran in a disposable clone at the same source revision.
+Only the current BUG-020 `design.md`, `report.md`, and `state.json` changes were
+copied into that clone.
+Each copied file matched its source SHA-256.
+The clone used source-locked Playwright `1.61.1` and system Chrome.
+
+### Focused persistent browser coverage
+
+**Command:** `npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+Running 8 tests using 1 worker
+✓ Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name
+✓ Regression: SCN-020-02 the settlement header does not describe an unrepresentable result as settled
+✓ Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
+✓ Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout
+✓ Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double
+✓ Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage
+✓ Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain
+✓ Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard
+8 passed (4.7s)
+FOCUSED_CAPTURE_SHA256=8ca1abb57509cc0ece1fa9bb5068df86e116a8a02f2de6aa2b3fd239d65c266d
+FOCUSED_TOOL_LOG_STDOUT_SHA256=9ecb93e8124bf1b39a57503ec6532d7499df26a82bc7dc8484c78f12c3c43ce6
+```
+
+The target file contains zero skip, todo, only, or request-interception matches.
+The bugfix regression-quality guard scanned it and reported zero violations and
+zero warnings.
+
+### Composed TB-020-03 control and restoration
+
+**Command:** `scripts/red-green-probe.sh --file lifetime-tax-strategy-lab.html --find 'if (!Number.isFinite(record.value)) return "no figure";' --replace 'if (false) return "no figure";' --file rltax.js --find 'if (!Number.isFinite(gross)) {' --replace 'if (false) {' --label 'BUG-020 independent design-named composed Infinity path' --bound 900 --summary-match 'no rendered text on the route is an infinity symbol or NaN' -- npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN' --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+TB02003_CONTROL_BEGIN
+BEFORE path=lifetime-tax-strategy-lab.html sha256=b628fce363737dcdaffa474dc1be33f693a3be6729e9f852b9abd0cf9fc0b0fc gitObject=193f75318bb85fc0ca68e1b992ad290ce371a265
+BEFORE path=rltax.js sha256=7e44bb4c8106fdc0b4f0b181d931b1327f213420bb7d049d96cb78b3682d73d8 gitObject=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc
+red-exit:         1
+green-exit:       0
+revert-verified:  yes, all 2 targets
+discriminating:   yes (exit 1 != 0)
+COMPOSED_PROBE_EXIT=0
+AFTER path=lifetime-tax-strategy-lab.html sha256=b628fce363737dcdaffa474dc1be33f693a3be6729e9f852b9abd0cf9fc0b0fc gitObject=193f75318bb85fc0ca68e1b992ad290ce371a265 byteExact=true
+AFTER path=rltax.js sha256=7e44bb4c8106fdc0b4f0b181d931b1327f213420bb7d049d96cb78b3682d73d8 gitObject=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc byteExact=true
+MUTATION_TARGET_RESIDUE_COUNT=0
+TB02003_CONTROL_FAILURES=0
+TB02003_CONTROL_RESULT=PASS
+TB02003_CONTROL_END
+```
+
+The complete capture has SHA-256
+`300eb1fbf94680ce2c9a17d698bb997a82f8327aabf2740495d6fb6e21401838`.
+
+### Complete lifetime-tax browser family
+
+**Command:** `npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+COMPLETE_FAMILY_FILE_COUNT=22
+PLAYWRIGHT_PROJECT=system-chrome
+PLAYWRIGHT_CONFIG=playwright.config.mjs
+CONFIGURED_WORKERS=1
+Running 111 tests using 1 worker
+BUG020_PERSISTENT_TITLES_EXECUTED=8
+BUG020_PERSISTENT_TITLES_PASSED=8
+COMPLETE_FAMILY_PASSED=111
+COMPLETE_FAMILY_FAILED=0
+COMPLETE_FAMILY_SKIPPED=0
+COMPLETE_FAMILY_EXIT=0
+COMPLETE_FAMILY_CAPTURE_SHA256=ddf15b17b2acdb23721483252c109c16161e3731ce109e88e6921ccedadf3215
+COMPLETE_FAMILY_TOOL_LOG_STDOUT_SHA256=6eac9b4f8d1c6afb32a64d7a8f12a0cd6d1858f60df81c26a64350cebfce1c55
+```
+
+### Nonzero checks retained as findings
+
+The complete current selftest ran in the authorized overlay.
+It exited `1` with `3464 passed, 1 failed`.
+The sole failure names a committed BUG-017 scope-progress mismatch.
+The focused validator confirmed the same mismatch.
+
+```text
+SELFTEST_EXIT=1
+SELFTEST_PASSED=3464
+SELFTEST_FAILED=1
+SELFTEST_CAPTURE_SHA256=5cfa32f48cee8dba49bd3dc24d25e0ecdef0e8580ff6bc37d6c274d84ead2e14
+SCOPE_PROGRESS_EXIT=1
+SCOPE_PROGRESS_PACKETS=63
+SCOPE_PROGRESS_CLAIMS=86
+SCOPE_PROGRESS_NEW_DRIFT=1
+SCOPE_PROGRESS_TARGET=BUG-017#02::certification
+SCOPE_PROGRESS_CLAIMED_DOD=9/0
+SCOPE_PROGRESS_ARTIFACT_DOD=9/2
+BUG020_SCOPE_PROGRESS_DRIFT=0
+NONZERO_COMMANDS_USED_AS_PASS_EVIDENCE=0
+```
+
+The family-wide live-test audit found no skip marker.
+It found two `page.route(...)` interception sites in
+`tests/lifetime-tax-read-bound.spec.mjs`.
+That file belongs to BUG-021 and lies outside this packet's work boundary.
+The audit exited `1` and is not pass evidence.
+
+Two BUG-020 manifest controls also failed their discrimination checks.
+Removing only the E3 display-seam guard left the SCN-020-01 reported-pair test
+green in both channels.
+The probe exited `7` and restored `rltax.js` exactly.
+Applying the S4 composed mutation left the SCN-020-03 representable-input test
+green in both channels.
+That probe also exited `7` and restored both files exactly.
+
+```text
+SCN-020-01_DECLARED_CONTROL_PROBE_EXIT=7
+SCN-020-01_RED_EXIT=0
+SCN-020-01_GREEN_EXIT=0
+SCN-020-01_REVERT_VERIFIED=yes
+SCN-020-01_CAPTURE_SHA256=b6b082cf5f79db297bc0daceb88eca1c01f4d6ab143a4d4efcc7021d67d957d3
+SCN-020-03_DECLARED_CONTROL_PROBE_EXIT=7
+SCN-020-03_RED_EXIT=0
+SCN-020-03_GREEN_EXIT=0
+SCN-020-03_REVERT_VERIFIED=yes-all-2-targets
+SCN-020-03_CAPTURE_SHA256=202174c2cad4c3b528c640c55394678c98230f1c51780f2586d0c20860d2342a
+CURRENT_RED_RECEIPT_ELIGIBLE_SCN-020-01=false
+CURRENT_RED_RECEIPT_ELIGIBLE_SCN-020-03=false
+```
+
+These results cannot support RED receipts for SCN-020-01 or SCN-020-03.
+Writing such receipts would convert two green mutation runs into false failures.
+
+### Packet checks completed before the artifact freeze
+
+The following current checks exited `0`:
+
+```text
+SPEC_TEST_PATHS_EXIT=0 new=0 stale=0
+ARTIFACT_LINT_EXIT=0
+TRACEABILITY_EXIT=0 scenarios=5 testRows=10 mapped=5 warnings=0
+LINKED_TEST_RESOLUTION_EXIT=0 references=8
+SCENARIO_OBLIGATION_EXIT=0 scenarios=5
+TEST_MECHANISM_LINT_EXIT=0 mechanisms=5
+REGRESSION_QUALITY_EXIT=0 violations=0 warnings=0
+TARGET_SKIP_MARKERS=0
+TARGET_LIVE_MOCK_MATCHES=0
+STAGED_PATHS=0
+TEST_PHASE_PACKET_CHECKS_RECORDED=9
+```
+
+Artifact lint also reported one non-blocking recommendation.
+The current `state.json` omits the recommended top-level `transitionRequests`
+field.
+This test phase did not edit state, scope, scenario, planning, certification,
+or human-acceptance fields.
+
+## Validate Certification Re-Derivation — 2026-08-31 UTC
+
+<a name="validate-certification-rederivation-2026-08-31"></a>
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The current scenario outcomes and browser behavior are green,
+but the exact done transition is not certifiable. The asserted transition guard
+failed with 13 blockers. G070 also failed before certification, the repository
+selftest failed, and the human acceptance record remains empty. No terminal or
+certified-phase field is advanced by this validation.
+
+### Binding And Transition Contract
+
+The goal-node packet validated before every repository-local operation:
+
+```text
+REPOSITORY PACKET SCOPED actionable=true repository=research-lab root=<research-lab-root> decision=rb:vscode-004aa4f6bc5dacec42ad4d9f2afe0015:25:node:close-bug-020 revision=25 scopeKind=goal-node scopeId=close-bug-020
+```
+
+The installed transition resolver exited `0` and returned:
+
+```text
+workflowMode=bugfix-fastlane
+auditProfile=delivery-completion-v1
+statusCeiling=done
+targetStatus=done
+currentStatus=in_progress
+contractDigest=sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+pre-report-evidence-targetRevision=sha256:685f222dae3b18d9c6e425a25c9b2077222820f36560047c8f592f4e1064038e
+phaseOrder=select,bootstrap,implement,test,regression,simplify,gaps,harden,stabilize,devops,security,validate,audit,finalize
+```
+
+Both mode forms resolved to the same `done` ceiling and phase order. The
+persisted form used `bugfix-fastlane --grandfather`. The semantic form used
+`fix action:fastlane target:bug`.
+
+### Current Mechanical Check Matrix
+
+| Check | Exit | Captured full-output SHA-256 | Current result |
+| --- | ---: | --- | --- |
+| Artifact lint | 0 | `dcf94897451f9012057b886034d49b5902f54c2f6e90ccbb2a7514f4b2401d05` | Pass; one recommendation says top-level `transitionRequests` is absent |
+| Traceability, all scopes | 0 | `30614c48745f3c11eabd792fe687d564ecd61ab8f4472092836c79b3eaa0d601` | 5 scenarios, 10 Test Plan rows, 5 mappings, 0 warnings |
+| Linked-test resolution | 0 | `13944314bdad890eb9fcb00c3b5c158d924974438c8d6ad0e7c3ab3963e71d03` | 8 references resolved |
+| Scenario obligations | 0 | `65e1b9b55671e52df5fed6a395b47468d622b2bb17d21810f7249b8748d81a93` | 5 coherent matrices |
+| Test mechanisms | 0 | `370b60628b444d257236d9a3e0e601fcf14a74e2f94a1923e0a5475c66555cb3` | 5 coherent mechanisms; mutation adapter inert |
+| Scope DoD progress | 1 | `8cf4b8cd076558ed1aa4ea8023cf588d7177e145289f5aba3a05e51882294f1f` | One new repository drift, owned by BUG-022; none for BUG-020 or BUG-017 |
+| Scenario-state certifiability | 0 | `a15f21be2a429552dc177b5de2348ced0729651961ba2b65616ba21159dc280d` | All five SCN-020 scenarios derive `REGRESSION_GREEN`; certifiable for that required state |
+| Goal fidelity, pre-certification | 1 | `1cd618e1b0f495d850bac2603a607e8666c75b0693044a41c14e0583ea775c84` | Two G070 findings |
+| Strict evidence-receipt freshness after this section's first append | 1 | `c29c00e4ea914702467670fa67afdd1d1701bac78473946328f96a7bce14ff61` | 524 stale current receipts; 945 unknown |
+| Asserted done transition guard after this section's first append | 1 | `b65f94e46def5b77eb8131a68788394d8f750b384ba5e443641973377fa4bf5a` | `DELIVERY_COMPLETION_FAILED`; failed gates G022 and G136; 13 failures |
+| Implementation reality | 0 | `4aa4d182b0eb6dae4b405d5f8886aa07f43fe2621a5b8b9ac46d1ef582a63f75` | 0 violations; 1 parser fallback warning |
+| Artifact freshness | 0 | `f98a44d133188664774f863be5e6c2ef94fe3d9ed06e90db7662152345567ef2` | 0 failures, 0 warnings |
+| Focused production-route browser replay | 0 | `5bc244e797026074bbd94dbbb3011adbf6669c310daf5a9fbabf9934419e529c` | 8 passed with system Chrome and one worker |
+| Complete lifetime-tax browser family | 0 | `f0e5843890a86c8f40c87b2f22875d6b6b053ca3f4b8254577b2e4f76d56269e` | 111 passed with system Chrome and one worker |
+| Repository selftest | 1 | `7a2b2649feb5e7f4685493eff308f4db6ff4271a60225ea7e5b328e0349e978f` | 3461 passed, 4 failed |
+| Phase relevance | 0 | `ec102c1313830c3b96b2930578ec85de805637a572aab2c2ec01bbbf78b3000a` | Exact run/skip decisions recorded below |
+| BUG-017 active-process adjudication | 0 | `71bccb2073fa4583cbe450560f442af35af6e3bba9c9edbd926952d88b03c12c` | 0 independent active BUG-017 processes |
+
+The first complete-family invocation quoted the shell glob and therefore gave
+Playwright a literal pattern. It exited `1` with `No tests found`; capture
+SHA-256 `10430d4abdbd108757550247ef54aa526417db51010e4fcac2d0bf16fe54e830`.
+The corrected invocation allowed the shell to expand all 22 files and produced
+the 111-pass result above. The malformed invocation is not pass evidence.
+
+### Scenario-State Resolver
+
+**Phase:** validate
+**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite --require REGRESSION_GREEN --certifiable --format text`
+**Exit Code:** 0
+**Claim Source:** executed
+
+```text
+scenario-state-resolve: specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite
+  source revision: d0c09a3ec90d
+  SCN-020-01  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-020-02  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-020-03  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-020-04  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  SCN-020-05  state=REGRESSION_GREEN  derived=[PLANNED RED_VERIFIED IMPLEMENTED GREEN_TARGETED GREEN_LIVE REGRESSION_GREEN]
+  (all 419 refusals are SCS-REVISION-DRIFT: superseded receipts, excluded from derivation, not blocking)
+  certifiable: yes
+```
+
+The 419 revision-drift rows do not block this resolver. They are distinct from
+the strict freshness and clone checks that do block the transition guard.
+
+### Outcome Contract Failure — G070
+
+**Phase:** validate
+**Command:** `bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+GOAL-FIDELITY[G070] specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite/spec.md has no non-empty '## Outcome Contract' section. G070 requires Intent, Success Signal, Hard Constraints, and Failure Condition BEFORE bootstrap completes; without it there is no statement of what this feature was for.
+GOAL-FIDELITY[G070] specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite/spec.md Outcome Contract declares no 'Hard Constraints'. Certification cannot claim constraints were preserved when none were stated.
+goal-fidelity-guard: FAIL boundary=pre-certification findings=2
+```
+
+This is analyst-owned spec work. Validate did not edit `spec.md`.
+
+### Asserted Transition Failure
+
+**Phase:** validate
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision-at-guard-epoch: sha256:a098300be775dbaab98facd5a2ddb13122998c6c4449431464518c757954fab8
+failedGateIds: [G022,G136]
+blockingCode: DELIVERY_COMPLETION_FAILED
+failureCount: 13
+exitStatus: 1
+verdict: FAIL
+```
+
+The 13 guard failures account as follows:
+
+1. Check 6B emitted eight G022 phase-provenance failures, one each for
+  `regression`, `test`, `audit`, `validate`, `security`, `stabilize`,
+  `implement`, and `simplify`.
+2. Check 6B emitted one aggregate G022 failure for the eight unbacked claims.
+3. Check 7A emitted one execution-history overlap failure between the historical
+  implement and test entries.
+4. Check 43 emitted one stale-receipt failure.
+5. Check 43 emitted one receipt-clone failure.
+6. Check 43, the Human Acceptance Terminal Gate, emitted one G136 failure.
+
+The guard's closed machine result names G022 and G136 in `failedGateIds`.
+Receipt staleness and clone detection are emitted under the exact script label
+`Check 43: Evidence Receipt Staleness (IMP-027 SCOPE-3)`. The execution-history
+overlap is emitted under `Check 7A`. These check failures contribute to the 13
+even though the machine result does not assign them separate failed gate IDs.
+
+### Strict Receipt Debt
+
+**Phase:** validate
+**Command:** `bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+total=2224
+current=1506
+superseded=718
+withClosure=561
+valid=37
+stale=524
+unknown=945
+strictExit=1
+```
+
+The asserted guard independently ran this strict checker and emitted both
+`Evidence receipt(s) are STALE` and `Evidence receipt CLONE` as blockers under
+Check 43. The debt therefore blocks this transition in current framework
+behavior. No append-only log entry was rewritten or deleted.
+
+The validate-owned report append itself invalidated 23 current receipts whose
+declared input closure includes `report.md`, including the latest SCN-020-01 and
+SCN-020-03 live and regression receipts. That moved the strict result from 501
+to 524 stale receipts. It does not change the scenario resolver's source-revision
+derivation, but it makes the strict transition check remain non-zero. The final
+target revision is intentionally resolved after the last report edit rather
+than embedded here, because embedding it would change the revision again.
+
+### Repository-Wide Dependency Re-Derivation
+
+The canonical scope-progress validator now identifies BUG-022, not BUG-017, as
+the sole new drift outside the frozen baseline:
+
+```text
+[scope-dod-progress] packets=65 claims=86 agree=71 drift=15 unresolved=0 baseline=14 new=1 stale=0
+NEW-DRIFT specs/_bugs/BUG-022-historical-report-declaration-leak#01::certification — claims 53/0 checked/unchecked, artifact has 53/19
+[scope-dod-progress] FAIL — 1 scope progress claim(s) do not match their artifact
+```
+
+A second complete drift inventory used the validator's supported empty-baseline
+seam. It listed all 15 current drifts. BUG-017 was absent. An ancestry-aware
+process scan also returned `ACTIVE_BUG017_PROCESS_COUNT=0`. The conditional
+BUG-017 certification repair therefore did not trigger: there is no current
+BUG-017 completion-mirror disagreement to reconcile.
+
+The current repository selftest confirms the dependency moved away from
+BUG-017. It exited `1` at `3461 passed, 4 failed`. Its four current failures are:
+
+```text
+tests/*.mjs reachability: 1 new orphan
+market-brief.html top-level block classification
+spec-number collision: 029-budget-aware-hybrid-brief-generation and 029-shock-transmission-foundation-and-lab
+scope-progress drift: 1 new, 14 frozen, 0 stale
+```
+
+All four are outside the BUG-020 certification write boundary. They remain
+non-pass results and were not converted into BUG-020 evidence.
+
+### G136 Human Acceptance Assessment
+
+The current `uservalidation.md` has nine behavior-specific Checklist rows.
+Every row remains `[ ]`. `Accepted by`, `Date`, `What was checked`, and
+`Anything the checker did not accept` are blank. The asserted guard printed all
+nine rows and `PD12-NO-RECORD` before failing G136.
+
+General operator authorization to close and publish does not state that any of
+those nine behaviors were exercised or accepted. Validate therefore records no
+human acceptance and makes no status, `certifiedAt`, or certified-phase write.
+
+### Current Phase Relevance And Owner Order
+
+The installed relevance resolver measured 2,156 changed lines across the six
+BUG-020 delivery surfaces. Its decisions were:
+
+| Phase | Verdict | Owner |
+| --- | --- | --- |
+| implement | run, `neverSkip` | `bubbles.implement` |
+| test | run, `neverSkip` | `bubbles.test` |
+| regression | run | `bubbles.regression` |
+| simplify | run | `bubbles.simplify` |
+| gaps | run, no skip rule | `bubbles.gaps` |
+| harden | run, no skip rule | `bubbles.harden` |
+| stabilize | skip, no SLA or performance target | `bubbles.stabilize` |
+| devops | skip, no CI, deploy, monitoring, or infrastructure change | `bubbles.devops` |
+| security | skip, no authentication, input-handling, crypto, or trust-boundary change | `bubbles.security` |
+| validate | run, `neverSkip` | `bubbles.validate` |
+| audit | run, `neverSkip` | `bubbles.audit` |
+| finalize | run, `neverSkip` | active workflow runner |
+
+Before that delivery sequence can produce a terminal claim, `bubbles.analyst`
+owns the two G070 Outcome Contract findings. The resulting actual owner order is
+therefore analyst, implement, test, regression, simplify, gaps, harden,
+validate, audit, then the active workflow runner for finalize. The three
+registry-derived skips remain explicit decisions, not fabricated phase passes.
+
+### Certification-Owned Mutation Decision
+
+BUG-020's top-level and certification statuses already agree at `in_progress`.
+Both completed-scope mirrors already name the same two string scope IDs.
+Certification scope progress already matches the current artifacts at `10/0`
+and `8/0` checked/unchecked. The canonical scope-progress validator reports no
+BUG-020 drift.
+
+No certification-owned state repair is supported. This validation appends only
+this evidence section. It does not alter either status, `certifiedAt`,
+`completedScopes`, `certifiedCompletedPhases`, human acceptance, source, tests,
+planning, or the append-only receipt log.
+
+### Ownership Routing Summary
+
+| Finding | Current owner | Disposition |
+| --- | --- | --- |
+| VAL-020-G070-OUTCOME | `bubbles.analyst` | Route the two Outcome Contract findings; validate cannot edit `spec.md` |
+| VAL-020-G022-PROVENANCE | phase owners in the installed order | Re-run relevant phase ownership and produce current provenance; validate cannot forge execution history |
+| VAL-020-CHECK7A-OVERLAP | active workflow runner | Reconcile historical execution bookkeeping through owning phase records; validate does not rewrite execution history |
+| VAL-020-CHECK43-STALE | affected evidence owners | Refresh append-only receipts against current inputs; no receipt may be deleted or rewritten |
+| VAL-020-CHECK43-CLONE | affected evidence owners and validate | Produce distinct execution provenance or retain the clone refusal |
+| VAL-020-G136-ACCEPTANCE | human | Nine behavior rows and the Human Acceptance Record remain unaccepted |
+| VAL-020-SELFTEST-EXTERNAL | owners of BUG-022, market/tool-brief, and the two 029 packets | Four repository selftest failures are outside this goal-node write boundary |
+| VAL-020-REALITY-WARN | `bubbles.plan` | Non-blocking parser fallback warning; the scan still inspected three production files and found zero violations |
+
+## ROUTE-REQUIRED
+
+Owner: `bubbles.analyst`
+
+Reason: G070 is the first in-boundary owner repair. The done transition also
+remains blocked by G022, Check 7A, Check 43 stale and clone debt, G136, and the
+current repository selftest failures.
+
+## Validate Goal-Node Reconciliation — 2026-08-31 05:23 UTC
+
+<a name="validate-goal-node-reconciliation-2026-08-31-0523"></a>
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** Goal fidelity and all five active scenario states are now
+green, but the exact terminal guard remains nonzero. This section supersedes
+the earlier G070 route. It does not supersede historical evidence receipts.
+
+### Current Authority And Contract
+
+The exact `close-bug-020` scoped packet validated against session-control
+revision 26 and the static compiled scenario declaration before repository
+access. The transition resolver then returned `bugfix-fastlane`,
+`delivery-completion-v1`, ceiling and target `done`, contract digest
+`sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`,
+and pre-reconciliation target revision
+`sha256:14eaf0e44b821452a7064a680bd4b87669afa7b3a7c44ad626dffec03cf5759f`.
+The pre-certification goal-fidelity guard exited `0`.
+
+The scenario-state resolver also exited `0`. It derived `REGRESSION_GREEN` for
+`SCN-020-01`, `SCN-020-02`, `SCN-020-03`, `SCN-020-04`, and `SCN-020-05`.
+Artifact lint exited `0`. It retained one non-blocking recommendation that the
+top-level `transitionRequests` field is absent.
+
+### Exact Asserted Guard Evidence
+
+**Phase:** validate
+**Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=20s 1740 /opt/homebrew/bin/bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-020-income-beyond-double-range-settles-as-non-finite --target-status done --expect-workflow-mode bugfix-fastlane --expect-contract-digest sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+workflowMode: bugfix-fastlane
+auditProfile: delivery-completion-v1
+targetStatus: done
+contractDigest: sha256:aa91472c047d3d985d38c1d308feb1e6081955b2aa553816deb5987d9cdc449f
+targetRevision: sha256:14eaf0e44b821452a7064a680bd4b87669afa7b3a7c44ad626dffec03cf5759f
+failedGateIds: [G022,G136]
+blockingCode: DELIVERY_COMPLETION_FAILED
+parentExpandedPhases: 0
+failureCount: 13
+exitStatus: 1
+verdict: FAIL
+capturedLines: 363
+capturedOutputSha256: 442a2d1db6c175f68a8548cfc4ddd3f36bc0423a9f11a3fceaf48feca676af65
+```
+
+The 13 increments are closed and one-to-one:
+
+| # | Finding | Current disposition |
+| ---: | --- | --- |
+| 1 | `VAL-020-G022-IMPLEMENT` | `implement` has a completion claim without owner-backed `phasesExecuted` provenance; run; owner `bubbles.implement` |
+| 2 | `VAL-020-G022-TEST` | `test` has a completion claim without owner-backed `phasesExecuted` provenance; run; owner `bubbles.test` |
+| 3 | `VAL-020-G022-REGRESSION` | `regression` has a completion claim without owner-backed `phasesExecuted` provenance; run; owner `bubbles.regression` |
+| 4 | `VAL-020-G022-SIMPLIFY` | `simplify` has a completion claim without owner-backed `phasesExecuted` provenance; run; owner `bubbles.simplify` |
+| 5 | `VAL-020-G022-STABILIZE-STALE-SKIP` | `stabilize` has an unbacked completion claim, while current relevance is skip; the workflow runner must record only the skip and must not treat it as completed execution |
+| 6 | `VAL-020-G022-SECURITY-STALE-SKIP` | `security` has an unbacked completion claim, while current relevance is skip; the workflow runner must record only the skip and must not treat it as completed execution |
+| 7 | `VAL-020-G022-VALIDATE` | `validate` has a completion claim without owner-backed `phasesExecuted` provenance; current validation is nonzero and creates no replacement claim; owner `bubbles.validate` |
+| 8 | `VAL-020-G022-AUDIT` | `audit` has a completion claim without owner-backed `phasesExecuted` provenance; run after validation; owner `bubbles.audit` |
+| 9 | `VAL-020-G022-AGGREGATE` | Check 6B adds one aggregate failure for the eight claim-provenance failures |
+| 10 | `VAL-020-CHECK7A-OVERLAP` | Historical implement and test execution-history records overlap; active workflow runner ownership |
+| 11 | `VAL-020-CHECK43-STALE` | State-transition-guard Check 43 itself blocks on 524 stale current receipts in the repository-wide log |
+| 12 | `VAL-020-CHECK43-CLONE` | State-transition-guard Check 43 itself blocks on a cloned receipt whose printed target is BUG-017 |
+| 13 | `VAL-020-G136-HUMAN` | Nine Checklist rows remain unchecked and the Human Acceptance Record is empty; human-only |
+
+Check 43 is the exact enforcement surface for the two receipt increments. It is
+not registered as a separate `Gxxx` identifier in the installed gate registry,
+so the machine result correctly lists only `G022` and `G136`. The receipt data
+is repository-global and partly external to this goal node. It is nevertheless
+an in-node transition blocker because this exact BUG-020 guard invocation
+counted both increments.
+
+### Current Phase Relevance
+
+The canonical resolver used the six current BUG-020 delivery surfaces and the
+measured 2,156-line delta from the parent of `7577d5ad3` through current HEAD.
+
+| Phase | Verdict | Owner |
+| --- | --- | --- |
+| select | run, `neverSkip` | `bubbles.iterate` |
+| bootstrap | run, `neverSkip` | active workflow runner |
+| implement | run, `neverSkip` | `bubbles.implement` |
+| test | run, `neverSkip` | `bubbles.test` |
+| regression | run | `bubbles.regression` |
+| simplify | run | `bubbles.simplify` |
+| gaps | run, no skip rule | `bubbles.gaps` |
+| harden | run, no skip rule | `bubbles.harden` |
+| stabilize | skip, no SLA or performance target | `bubbles.stabilize` |
+| devops | skip, no CI, deploy, monitoring, or infrastructure surface | `bubbles.devops` |
+| security | skip, no authentication, input-handling, crypto, or trust-boundary surface | `bubbles.security` |
+| validate | run, `neverSkip` | `bubbles.validate` |
+| audit | run, `neverSkip` | `bubbles.audit` |
+| finalize | run, `neverSkip` | active workflow runner |
+
+The first required automation owner is `bubbles.implement`. The later required
+run order is `test`, `regression`, `simplify`, `gaps`, `harden`, `validate`,
+`audit`, and `finalize`. The three skips remain skip records only.
+
+### External Repository Failures
+
+**Phase:** validate
+**Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=30s 1740 node scripts/selftest.mjs`
+**Exit Code:** 1
+**Claim Source:** executed
+
+```text
+Research-Lab self-test: 3461 passed, 4 failed
+capturedLines: 3968
+capturedOutputSha256: f141a458ed58773f55f877702f4f132f3d31fd72d117802c56de6103a3be85f2
+failure 1: tests/tool-brief-v2.stress.mjs is a new unreachable test
+failure 2: market-brief.html top-level block classification is not exact
+failure 3: spec number 029 collides between budget-aware-hybrid-brief-generation and shock-transmission-foundation-and-lab
+failure 4: BUG-022 scope progress claims 53/0 while its artifact has 53/19
+BUG-020 targeted scenario states: REGRESSION_GREEN 5 of 5
+BUG-020 artifact lint: exit 0
+BUG-020 transition guard: exit 1
+```
+
+These four failures are external to `close-bug-020`. They are not in the
+transition guard's `failedGateIds`, and they must not be described as G022 or
+G136. They independently prevent a clean bugfix-fastlane validation through the
+mode constraint `requireNoPreexistingFailingTests: true` and the canonical core
+selftest requirement.
+
+### Validate-Owned Routing Decision
+
+The two status mirrors remain `in_progress`. Both completed-scope mirrors remain
+the same two string scope IDs. Certification scope progress remains `10/0` and
+`8/0`. This phase changes no certification field and creates no validate phase
+claim. It updates only validate-owned phase reconciliation and routing metadata
+so the first automation owner is `bubbles.implement`; every later owner, every
+legitimate skip, the two Check 43 blockers, the Check 7A blocker, all four
+external selftest failures, and G136 remain visible.
+
+## Current Implementation Provenance — 2026-08-31 05:30 UTC
+
+<a name="current-implementation-provenance-2026-08-31-0530"></a>
+
+**Phase:** implement
+**Claim Source:** executed
+**Execution interval:** `2026-08-31T05:30:12Z` through `2026-08-31T05:41:18Z`
+**Source revision:** `d0c09a3ec90d2bb72920caee9e44f1d5f697c619`
+**Evidence ref:** `report.md#current-implementation-provenance-2026-08-31-0530`
+
+### Authority And Mode Ceiling
+
+The exact `close-bug-020` goal-node packet validated against control revision
+26 and the static compiled scenario declaration. The validation exited `0`.
+
+The persisted `bugfix-fastlane` mode resolved through its grandfathered form.
+The resolver exited `0` and returned `statusCeiling: done`. Implementation was
+therefore permitted before either owned artifact changed.
+
+### Current Artifact And Mechanism Review
+
+This phase read the current spec, design, scopes, and scenario manifest. It also
+read every named implementation and test seam. Those seams are `rltax.js`,
+`rltaxrules.js`, `lifetime-tax-strategy-lab.html`,
+`scripts/red-green-probe.sh`, `scripts/selftest.mjs`, and
+`tests/lifetime-tax-representable.spec.mjs`.
+
+The current-byte mechanism inventory ran at `2026-08-31T05:31:10Z`. It exited
+`0`. Its capture SHA-256 is
+`f1717d896e4d7a9636a181ddde72f77ac30acdf3623d4543fcabf1cac25d2319`.
+Its structured receipt stdout SHA-256 is
+`67c47c2dbe987aed23c49695e682a7548c6fd6e4d0b6bd4e72a0d2e8374c266e`.
+
+```text
+BUG020_MECHANISM_INVENTORY_BEGIN
+MECHANISM label=C1-closed-member expected=1 actual=1
+MECHANISM label=E1-arithmetic-origin expected=1 actual=1
+MECHANISM label=E2-result-assembly expected=3 actual=3
+MECHANISM label=E3-display-seam expected=1 actual=1
+MECHANISM label=E4-secondary-consumer expected=1 actual=1
+MECHANISM label=R1-envelope-publication expected=2 actual=2
+MECHANISM label=R1-header-precedence expected=1 actual=1
+MECHANISM label=R2-stringification-guard expected=1 actual=1
+MECHANISM label=TP-01-05-closed-code-test expected=1 actual=1
+MECHANISM label=TB-020-04-direct-formatter-test expected=1 actual=1
+MECHANISM label=persistent-browser-tests expected=8 actual=8
+MECHANISM label=composed-file-binding expected=1 actual=1
+MECHANISM label=per-replacement-screen expected=1 actual=1
+MECHANISM label=all-target-arm-before-mutation expected=1 actual=1
+MECHANISM_CHECK_COUNT=14
+MECHANISM_FAILURES=0
+BUG020_MECHANISM_INVENTORY_RESULT=PASS
+BUG020_MECHANISM_INVENTORY_END
+```
+
+### Four-Layer Dynamic Contract
+
+The corrected dynamic contract probe executed the current modules directly.
+It covered arithmetic origin, result assembly, display formatting, finite-side
+preservation, and closed refusal-code membership. It exited `0` at
+`2026-08-31T05:31:49Z`.
+
+Its capture SHA-256 is
+`83e980ac2aad757b4fd903b0a697cc20c2e3a0f169578dcdf07d424edbb9bf62`.
+Its structured receipt stdout SHA-256 is
+`f70eacc48b0096a05a0cbdcffc2edd3541987172cc732fb5b9bd1c03f389e6cf`.
+The structured receipt retains the exact `node --input-type=commonjs -e` argv.
+
+```text
+BUG020_DYNAMIC_CONTRACT_BEGIN
+ARITHMETIC_ORIGIN ok=false code=RLTAX-FIGURE-UNREPRESENTABLE domain=income:grossSupportedIncome
+RESULT_ASSEMBLY dependentStages=7 unavailable=7
+RESULT_ASSEMBLY ruleStandingOnRefusal=0
+RESULT_ASSEMBLY modifiedAdjustedGross=null
+DISPLAY_REFUSALS values=Infinity,-Infinity,NaN count=3 code=RLTAX-FIGURE-UNREPRESENTABLE domain=display:value
+DISPLAY_REFUSAL_NUMERIC_MEMBERS=0
+FINITE_BOUNDARY_SUM_IS_MAX=true
+FINITE_RESULT stage=CO-1 finite=true ruleStatus=enacted-current-law
+FINITE_DISPLAY raw=1240.06 displayed=1240 ruleStatus=enacted-current-law
+CLOSED_CODE_COUNT=15
+CLOSED_CODE_MEMBER=true
+UNKNOWN_CODE_REFUSED=true
+BUG020_DYNAMIC_CONTRACT_RESULT=PASS
+BUG020_DYNAMIC_CONTRACT_END
+```
+
+The first inline probe had a missing closing parenthesis in its probe body. It
+exited `1` with a JavaScript syntax error. Its capture SHA-256 is
+`497e7218959843a78de12e4b26355f08736053d49dd01b86f1f3502593a7cef1`.
+No product or test file changed. The corrected probe above is the only dynamic
+contract result used as pass evidence.
+
+### Focused Production-Route Proof
+
+**Command:** `npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+**Claim Source:** executed
+
+The command ran at `2026-08-31T05:32:05Z`. Its capture SHA-256 is
+`8653b5b092fcaf84c47cd679162d5d332e62c3ede100de379b57f3007bfbf04a`.
+Its structured receipt stdout SHA-256 is
+`aad1ac568865b38412e28beafe90a7cb9c43d85e080c6aff5dc100af0d2d86cd`.
+
+```text
+
+Running 8 tests using 1 worker
+
+  ✓  1 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:41:1 › Regression: SCN-020-01 every stage whose amount overflows the double range is refused by name (694ms)
+  ✓  2 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:78:1 › Regression: SCN-020-02 the settlement header does not describe an unrepresentable result as settled (252ms)
+  ✓  3 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN (370ms)
+  ✓  4 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:111:1 › Regression: SCN-020-04 the settling side of the boundary settles with finite figures throughout (402ms)
+  ✓  5 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:137:1 › Regression: SCN-020-05 the refusing side of the boundary refuses on the next representable double (327ms)
+  ✓  6 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:181:1 › Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage (367ms)
+  ✓  7 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:205:1 › Regression: SCN-020-02 the settlement header at the reported 9e307 pair names the unrepresentable domain (263ms)
+  ✓  8 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:213:1 › Regression: SCN-020-03 the reported settling pair at 8.9e307 is unchanged by the guard (395ms)
+
+8 passed (4.6s)
+```
+
+### Current Manifest Negative Controls
+
+Each control ran through `scripts/red-green-probe.sh`. Each transient mutation
+produced RED exit `1`. The unchanged replay produced GREEN exit `0`. Every
+target returned to its committed Git object before the probe exited `0`.
+
+| Scenario | Current discriminating control | Probe exit | Capture SHA-256 | Receipt stdout SHA-256 |
+| --- | --- | ---: | --- | --- |
+| `SCN-020-01` | Remove E1 and restore R2 together. Run the no-Infinity-or-NaN route assertion. | 0 | `800f92a3dce1dc764e257f21d4c88072ac239b80c72d94998a75a51def9f32f0` | `6f519aa8ba78e9b55d0623d95faded21714f452b053c12943f6d83f73e4b62c2` |
+| `SCN-020-02` | Disable the R1 header-precedence branch while E1 remains. Run the non-settled-header assertion. | 0 | `f83f50ec67b15815a6cbeaa6fa38db18a6b6d5ce35c60f46f55fdd6f6f7a0dcf` | `1774a95b4927c551ec1f1a36990d640fe24b13441130c00dec48fce7b9a23a8a` |
+| `SCN-020-03` | Widen E1 above `Number.MAX_VALUE / 2`. Run the reported finite-side assertion. | 0 | `ce7645de7c4f4da9b0ab1776662b6488122ea6093ad0fe7ecfad2271ec93a590` | `f64e473e5bda0d0f860a0989340921a7d0e4660c5d41cdfff64ab3f3a6172fba` |
+| `SCN-020-04` | Widen E1 above `Number.MAX_VALUE / 2`. Run the immediate inside-boundary assertion. | 0 | `14d8ba106242c0194b4c45a4022a3b69ffd2332d05de50657dd1f69305594bcb` | `82c3b1515e2f0696408bf5661339e2f6597a3b316db2b39dbb9832cdde0e156e` |
+| `SCN-020-05` | Remove E1. Run the immediate outside-boundary assertion. | 0 | `a4a782bc353c1673367d9790cefe2a137153ec96d287d3909294bed5613b8d32` | `cf3b75f4e6ec99b0cec1ce088d2e8e3d540c0a7028b35e3c0616d3b5234816d3` |
+
+The scenario-bound receipts are dated from `2026-08-31T05:32:27Z` through
+`2026-08-31T05:33:39Z`. They bind phase `implement` to the current scenario,
+test title, control, claim, implementation references, and input closure.
+
+### No Product Or Test Churn
+
+The final object comparison exited `0` at `2026-08-31T05:40:58Z`. Its capture
+SHA-256 is
+`ec437fe6fac0eced256771d39f09b5544133dcc7222c4710b41f046fb53f3fd5`.
+Its structured receipt stdout SHA-256 is
+`c29670df1cca51441900ede9436789c507719c8710a4d1c61a7ce3972db00ac1`.
+
+```text
+BUG020_NO_CHURN_BEGIN
+HEAD=d0c09a3ec90d2bb72920caee9e44f1d5f697c619
+NO_CHURN sameAsHead=true object=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc path=rltax.js
+NO_CHURN sameAsHead=true object=1b7858372f2c9898d06035f212f2deec8bb09a4c path=rltaxrules.js
+NO_CHURN sameAsHead=true object=193f75318bb85fc0ca68e1b992ad290ce371a265 path=lifetime-tax-strategy-lab.html
+NO_CHURN sameAsHead=true object=62c3376d250f9a374e1efcadce2f7de44af65f36 path=scripts/red-green-probe.sh
+NO_CHURN sameAsHead=true object=b9da5b45662f3e6dd3a587ea0f42cf96dcef941e path=scripts/selftest.mjs
+NO_CHURN sameAsHead=true object=2a6fc0165394bff54cf3e988dae48e33fa8d7c93 path=tests/lifetime-tax-representable.spec.mjs
+WORKTREE_DIFF_EXIT=0
+STAGED_DIFF_EXIT=0
+NO_CHURN_FAILURES=0
+BUG020_NO_CHURN_RESULT=PASS
+BUG020_NO_CHURN_END
+```
+
+An earlier restoration wrapper encountered a structured-logger temporary-file
+hash error. Its direct retry then timed out after printing all six matching
+objects. Neither result is pass evidence. The concise comparison above is the
+completed verdict.
+
+No current implementation defect was demonstrated. This phase therefore
+changed no product source, test source, mutation harness, planning artifact, or
+scenario declaration. It appends this evidence and updates implementation-owned
+execution provenance only.
+
+### Finding Closure And Preserved Routing
+
+| Finding | Disposition at this phase boundary |
+| --- | --- |
+| `VAL-020-G022-IMPLEMENT` | Addressed by this current owner run and `phasesExecuted: ["implement"]` provenance. |
+| `VAL-020-G022-TEST` | Unresolved. The current required owner is `bubbles.test`. |
+| `VAL-020-G022-REGRESSION` | Unresolved. Owner remains `bubbles.regression`. |
+| `VAL-020-G022-SIMPLIFY` | Unresolved. Owner remains `bubbles.simplify`. |
+| `VAL-020-G022-STABILIZE-STALE-SKIP` | Unresolved. The workflow runner must record the current skip without a completion claim. |
+| `VAL-020-G022-SECURITY-STALE-SKIP` | Unresolved. The workflow runner must record the current skip without a completion claim. |
+| `VAL-020-G022-VALIDATE` | Unresolved. Owner remains `bubbles.validate`. |
+| `VAL-020-G022-AUDIT` | Unresolved. Owner remains `bubbles.audit`. |
+| `VAL-020-G022-AGGREGATE` | Unresolved until the remaining phase provenance is reconciled. |
+| `VAL-020-CHECK7A-OVERLAP` | Unresolved. The active workflow runner owns the historical implement and test overlap. |
+| `VAL-020-CHECK43-STALE` | Unresolved. The repository-wide strict receipt set remains owner-routed. |
+| `VAL-020-CHECK43-CLONE` | Unresolved. The cloned BUG-017 receipt remains owner-routed. |
+| `VAL-020-G136-HUMAN` | Unresolved and human-only. All nine Checklist rows remain unchecked. |
+
+The current run-required sequence after implementation is `test`, `regression`,
+`simplify`, `gaps`, `harden`, `validate`, `audit`, and `finalize`. The current
+registry skips remain `stabilize`, `devops`, and `security`.
+
+The four external selftest findings remain unchanged from the current validate
+receipt. They are the tool-brief unreachable test, the market-brief block
+classification, the `029` spec-number collision, and BUG-022 scope-progress
+drift. This phase did not rerun the repository selftest and makes no current
+pass claim for it.
+

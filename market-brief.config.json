@@ -836,6 +836,99 @@
         },
         "publicTickerSource": "watchlist.json"
     },
+    "brief-generation-shadow/v1": {
+        "contractVersion": "brief-generation-shadow/v1",
+        "policyId": "brief-generation-shadow/v1",
+        "transport": {
+            "contractVersion": "openai-compatible-chat/v1",
+            "limits": {
+                "modelListTimeoutMs": 5000,
+                "modelListMaxResponseBytes": 262144,
+                "chatTimeoutMs": 120000,
+                "chatMaxRequestBytes": 98304,
+                "chatMaxResponseBytes": 98304,
+                "retryCount": 0,
+                "maxInFlightChats": 1
+            }
+        },
+        "capabilities": {
+            "local-openai-compatible-author": {
+                "contractVersion": "model-route-capability/v1",
+                "capabilityId": "local-openai-compatible-author",
+                "routeClass": "local",
+                "supportedStageKinds": [
+                    "source-brief-author",
+                    "source-brief-critique",
+                    "agenda-situation-author",
+                    "final-synthesis"
+                ],
+                "supportedInputClasses": [
+                    "public",
+                    "source-qualified",
+                    "restricted-local"
+                ],
+                "supportedOutputContracts": [
+                    "tool-author-response/v1",
+                    "tool-author-response/v2",
+                    "final-author-response/v1"
+                ],
+                "maxContextBytes": 98304,
+                "maxOutputBytes": 98304,
+                "measurableDimensions": [
+                    "modelRequests",
+                    "inputTokens",
+                    "outputTokens",
+                    "wallTimeMs",
+                    "retries",
+                    "concurrency"
+                ],
+                "cancellationMode": "cooperative",
+                "usageReceiptVersion": "local-model-usage-receipt/v1"
+            }
+        },
+        "adapters": {
+            "omlx-openai-compatible-qwen38": {
+                "adapterId": "omlx-openai-compatible-qwen38",
+                "profileId": "omlx-openai-compatible-qwen38",
+                "providerId": "omlx",
+                "routeClass": "local",
+                "transportContract": "openai-compatible-chat/v1",
+                "capabilityId": "local-openai-compatible-author",
+                "baseUrlEnv": "BRIEF_OMLX_BASE_URL",
+                "modelBinding": {
+                    "kind": "committed",
+                    "modelId": "Qwen3.8-27B-3bit-MLX"
+                },
+                "usageMapping": {
+                    "promptTokens": "usage.prompt_tokens",
+                    "completionTokens": "usage.completion_tokens",
+                    "totalTokens": "usage.total_tokens"
+                }
+            },
+            "ollama-openai-compatible": {
+                "adapterId": "ollama-openai-compatible",
+                "profileId": "ollama-openai-compatible",
+                "providerId": "ollama",
+                "routeClass": "local",
+                "transportContract": "openai-compatible-chat/v1",
+                "capabilityId": "local-openai-compatible-author",
+                "baseUrlEnv": "BRIEF_OLLAMA_BASE_URL",
+                "modelBinding": {
+                    "kind": "environment",
+                    "modelEnv": "BRIEF_OLLAMA_MODEL"
+                },
+                "usageMapping": {
+                    "promptTokens": "usage.prompt_tokens",
+                    "completionTokens": "usage.completion_tokens",
+                    "totalTokens": "usage.total_tokens"
+                }
+            }
+        },
+        "shadowProfiles": [
+            "omlx-openai-compatible-qwen38",
+            "ollama-openai-compatible"
+        ]
+    },
     "freshness-policy/v1": {
         "contractVersion": "freshness-policy/v1",
         "policyId": "freshness-policy/v1",

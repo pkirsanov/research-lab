@@ -30030,6 +30030,99 @@ try {
 } catch (e) { failures++; console.log('  \u2717 FAIL (security findings guard threw): ' + e.message); }
 /* ---------- security phase F-SEC-01..03 (END) ---------- */
 
+/* ---------- Feature 030 Scope 01: OpenAI-compatible shadow route ---------- */
+try {
+  group('Feature 030 Scope 01 - shadow policy transport contract authority and receipts');
+  const { createRequire: createShadowRequire } = await import('node:module');
+  const shadowRequire = createShadowRequire(import.meta.url);
+  const RLBRIEFROUTE = shadowRequire('../rlbriefroute.js');
+  const shadowPolicy = JSON.parse(read('market-brief.config.json'))['brief-generation-shadow/v1'];
+  const profileIds = ['omlx-openai-compatible-qwen38', 'ollama-openai-compatible'];
+  const endpoint = ['http:', '', '127.0.0.1:1'].join('/');
+  const environment = {
+    BRIEF_SHADOW_PROFILE: profileIds[0],
+    BRIEF_OMLX_BASE_URL: endpoint,
+    BRIEF_OLLAMA_BASE_URL: endpoint,
+    BRIEF_OLLAMA_MODEL: 'ollama-selftest-model'
+  };
+
+  const policyVerdict = RLBRIEFROUTE.validateShadowPolicy(shadowPolicy);
+  assert(policyVerdict.ok
+    && JSON.stringify(shadowPolicy.shadowProfiles) === JSON.stringify(profileIds)
+    && Object.keys(shadowPolicy.adapters).sort().join(',') === profileIds.slice().sort().join(','),
+  'Feature 030 policy declares exactly the two approved shadow profiles and no alias or production adapter');
+
+  const omlx = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, environment);
+  const ollama = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, Object.assign({}, environment, {
+    BRIEF_SHADOW_PROFILE: profileIds[1]
+  }));
+  assert(omlx.ok && ollama.ok
+    && omlx.value.profileId === profileIds[0]
+    && omlx.value.providerId === 'omlx'
+    && omlx.value.modelId === 'Qwen3.8-27B-3bit-MLX'
+    && ollama.value.profileId === profileIds[1]
+    && ollama.value.providerId === 'ollama'
+    && ollama.value.modelId === 'ollama-selftest-model'
+    && omlx.value.transportContract === ollama.value.transportContract,
+  'Feature 030 resolves each exact profile to its declared provider and model while both share one transport contract');
+
+  const missingProfile = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, {});
+  const unknownProfile = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, { BRIEF_SHADOW_PROFILE: 'ollama' });
+  const incompleteProfile = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, {
+    BRIEF_SHADOW_PROFILE: profileIds[1], BRIEF_OLLAMA_BASE_URL: endpoint
+  });
+  assert(!missingProfile.ok && missingProfile.error.code === 'B030-SHADOW-PROFILE'
+    && !unknownProfile.ok && unknownProfile.error.code === 'B030-SHADOW-PROFILE'
+    && !incompleteProfile.ok && incompleteProfile.error.code === 'B030-ADAPTER-CONFIG',
+  'Feature 030 refuses missing unknown and incomplete profile selection with closed codes instead of defaults');
+
+  const requiredLimits = {
+    modelListTimeoutMs: 5000,
+    modelListMaxResponseBytes: 262144,
+    chatTimeoutMs: 120000,
+    chatMaxRequestBytes: 98304,
+    chatMaxResponseBytes: 98304,
+    retryCount: 0,
+    maxInFlightChats: 1
+  };
+  const limitsExact = JSON.stringify(shadowPolicy.transport.limits) === JSON.stringify(requiredLimits);
+  const missingLimitRefusals = Object.keys(requiredLimits).map((member) => {
+    const wounded = JSON.parse(JSON.stringify(shadowPolicy));
+    delete wounded.transport.limits[member];
+    return RLBRIEFROUTE.validateShadowPolicy(wounded);
+  });
+  assert(limitsExact && missingLimitRefusals.every((verdict) => !verdict.ok && verdict.error.code === 'B030-POLICY'),
+  'Feature 030 commits every exact finite limit and refuses policy missing any one instead of supplying a code fallback');
+
+  const capability = RLBRIEFROUTE.validateRouteCapability(shadowPolicy.capabilities['local-openai-compatible-author']);
+  const badCapability = JSON.parse(JSON.stringify(shadowPolicy.capabilities['local-openai-compatible-author']));
+  badCapability.routeClass = 'frontier';
+  assert(capability.ok && !RLBRIEFROUTE.validateRouteCapability(badCapability).ok,
+  'Feature 030 validates the one provider-neutral local capability and refuses a route-class substitution');
+
+  const measured = RLBRIEFROUTE.normalizeLocalUsage({ prompt_tokens: 4, completion_tokens: 6, total_tokens: 10 });
+  const missing = RLBRIEFROUTE.normalizeLocalUsage(undefined);
+  const inconsistent = RLBRIEFROUTE.normalizeLocalUsage({ prompt_tokens: 4, completion_tokens: 6, total_tokens: 11 });
+  assert(measured.ok && measured.value.inputTokens.value === 4 && measured.value.outputTokens.value === 6
+    && measured.value.totalTokens.value === 10
+    && missing.ok && ['inputTokens', 'outputTokens', 'totalTokens'].every((member) =>
+      missing.value[member].state === 'unmeasured' && !Object.prototype.hasOwnProperty.call(missing.value[member], 'value'))
+    && missing.value.providerCredits.state === 'not-applicable'
+    && missing.value.monetaryCost.state === 'not-applicable'
+    && !inconsistent.ok && inconsistent.error.code === 'B030-USAGE-INVALID',
+  'Feature 030 normalizes present token integers, preserves absent usage as unmeasured without zero, and rejects inconsistent totals');
+
+  const policyText = JSON.stringify(shadowPolicy);
+  const unsafeEndpoint = RLBRIEFROUTE.validateEndpoint('https://user@example.invalid/path');
+  const queryEndpoint = RLBRIEFROUTE.validateEndpoint('https://example.invalid/path?model=x');
+  assert(policyText.indexOf('http://') < 0 && policyText.indexOf('https://') < 0
+    && !/authorization|cookie|password|passphrase|api[-_]?key|access[-_]?token/i.test(policyText)
+    && !unsafeEndpoint.ok && unsafeEndpoint.error.code === 'B030-ADAPTER-CONFIG'
+    && !queryEndpoint.ok && queryEndpoint.error.code === 'B030-ADAPTER-CONFIG',
+  'Feature 030 commits binding names rather than endpoint or credential values and rejects credential or query-bearing URLs');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Feature 030 Scope 01 shadow group threw): ' + e.message); }
+/* ---------- Feature 030 Scope 01: OpenAI-compatible shadow route (END) ---------- */
+
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

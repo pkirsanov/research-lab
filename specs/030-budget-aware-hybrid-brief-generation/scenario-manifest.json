@@ -28,7 +28,7 @@
       "scopeId": "01-openai-compatible-shadow-author-adapter",
       "scopeRef": "Scope 01",
       "scope": 1,
-      "status": "not_started",
+      "status": "in_progress",
       "title": "Explicit shadow profile resolves once or refuses before transport",
       "gherkin": {
         "given": "the committed policy declares the two approved shadow profiles and their required runtime bindings",
@@ -75,8 +75,30 @@
         "TP-01-04",
         "TP-01-05"
       ],
-      "linkedTests": [],
-      "evidenceRefs": [],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "Feature 030 Scope 01 - shadow policy transport contract authority and receipts"
+        },
+        {
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "testId": "Regression: SCN-030-001 explicit profile resolves once or refuses before HTTP"
+        },
+        {
+          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "testId": "Regression E2E: SCN-030-002 OMLX returns tiny strict JSON with truthful usage state"
+        },
+        {
+          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "testId": "Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#tp-01-01-full-selftest",
+        "report.md#tp-01-02-scn-030-001-functional",
+        "report.md#tp-01-04-real-omlx-canary",
+        "report.md#tp-01-05-real-ollama-canary"
+      ],
       "riskTier": "medium",
       "testMechanism": {
         "entrypoint": "production-cli",
@@ -120,7 +142,7 @@
       "scopeId": "01-openai-compatible-shadow-author-adapter",
       "scopeRef": "Scope 01",
       "scope": 1,
-      "status": "not_started",
+      "status": "in_progress",
       "title": "One bounded transport qualifies the exact model and returns strict JSON",
       "gherkin": {
         "given": "an explicitly selected profile has a valid runtime endpoint and exact configured model",
@@ -177,8 +199,35 @@
         "TP-01-05",
         "TP-01-06"
       ],
-      "linkedTests": [],
-      "evidenceRefs": [],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "Feature 030 Scope 01 - shadow policy transport contract authority and receipts"
+        },
+        {
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "testId": "Regression: SCN-030-002 exact model preflight precedes one bounded strict JSON completion"
+        },
+        {
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "testId": "Stress: SCN-030-002 finite byte deadline retry and concurrency limits refuse at cap plus one"
+        },
+        {
+          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "testId": "Regression E2E: SCN-030-002 OMLX returns tiny strict JSON with truthful usage state"
+        },
+        {
+          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "testId": "Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#tp-01-01-full-selftest",
+        "report.md#tp-01-03-scn-030-002-functional",
+        "report.md#tp-01-04-real-omlx-canary",
+        "report.md#tp-01-05-real-ollama-canary",
+        "report.md#tp-01-06-scn-030-002-stress"
+      ],
       "riskTier": "medium",
       "testMechanism": {
         "entrypoint": "production-cli",
@@ -225,7 +274,7 @@
       "scopeId": "01-openai-compatible-shadow-author-adapter",
       "scopeRef": "Scope 01",
       "scope": 1,
-      "status": "not_started",
+      "status": "in_progress",
       "title": "Shadow authorship remains non-authoritative and powerless",
       "gherkin": {
         "given": "the current Copilot worker, scheduler, public payload, pointer, history, and Git state are authoritative",
@@ -270,8 +319,24 @@
         "TP-01-07",
         "TP-01-08"
       ],
-      "linkedTests": [],
-      "evidenceRefs": [],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "Feature 030 Scope 01 - shadow policy transport contract authority and receipts"
+        },
+        {
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "testId": "Regression: SCN-030-003 shadow invocation preserves authority and excludes secret sentinels"
+        },
+        {
+          "file": "scripts/validate-brief-payload.mjs"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#tp-01-01-full-selftest",
+        "report.md#tp-01-07-scn-030-003-authority-containment",
+        "report.md#tp-01-08-existing-payload-contract"
+      ],
       "riskTier": "medium",
       "testMechanism": {
         "entrypoint": "production-cli",

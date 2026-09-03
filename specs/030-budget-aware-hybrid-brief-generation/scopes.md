@@ -70,12 +70,12 @@ approved profiles use the same transport and validators.
 
 | # | Scope | Kind | Foundation | Surfaces | Test rows | DoD summary | Status |
 | --- | --- | --- | --- | --- | ---: | --- | --- |
-| 01 | OpenAI-compatible shadow author adapter | contract/runtime | true | UMD contracts, Node adapter/runtime/CLI, config, tests | 8 | Explicit selection, bounded real transport, authority containment, unchanged public contracts | Not Started |
+| 01 | OpenAI-compatible shadow author adapter | contract/runtime | true | UMD contracts, Node adapter/runtime/CLI, config, tests | 8 | Explicit selection, bounded real transport, authority containment, unchanged public contracts | In Progress |
 
 ## Scope 01: OpenAI-compatible shadow author adapter
 
 **Scope ID:** `01-openai-compatible-shadow-author-adapter`
-**Status:** Not Started
+**Status:** In Progress
 **Priority:** P0
 **Kind:** contract/runtime
 **Foundation:** true
@@ -156,6 +156,11 @@ Copilot CLI generation or publication authority.
     call the actual runtime endpoint and require a tiny strict-JSON candidate
     plus a valid measured-or-unmeasured usage state. They make no model-quality,
     promotion, cost-reduction, or implementation-completion claim.
+15. **S01-R15 Explicit non-public inventory.** List `rlbriefroute.js` in
+  `site-exclusions.json` with the substantive reason that it is a
+  Node/shadow-only module with no public runtime consumer. Modify no other
+  exclusion entry. Remove this single entry only under an approved plan
+  revision that ships a production consumer for the module.
 
 ### Gherkin Scenarios
 
@@ -184,28 +189,32 @@ Scenario: Shadow authorship remains non-authoritative and powerless
 1. Add pure UMD validators in `rlbriefroute.js` for shadow policy, profile,
    capability, endpoint-binding metadata, finite limit fields, and normalized
    receipt states. Expose only deterministic validation and normalization.
-2. Add shadow-only policy data to `market-brief.config.json`. Declare the two
+2. Add only `rlbriefroute.js` to `site-exclusions.json`. State that it is a
+  Node/shadow-only module with no public runtime consumer and that the entry
+  is removed only when an approved production consumer ships. Preserve every
+  other exclusion entry byte-for-byte.
+3. Add shadow-only policy data to `market-brief.config.json`. Declare the two
    profile IDs, adapter IDs, environment variable names, OMLX model ID,
    capability records, usage mappings, and exact finite limits. Existing config
    members and existing readers retain their current meaning.
-3. Add `scripts/brief-openai-compatible-adapter.mjs`. Use `node:http`,
+4. Add `scripts/brief-openai-compatible-adapter.mjs`. Use `node:http`,
    `node:https`, `node:url`, `AbortController`, and bounded stream handling for
    model preflight and chat. Reject over-limit data while reading it, cancel the
    request, and retain no native response body after normalization.
-4. Add `scripts/brief-route-runtime.mjs`. Resolve exactly one profile from the
+5. Add `scripts/brief-route-runtime.mjs`. Resolve exactly one profile from the
    committed policy and allowlisted runtime bindings, freeze its capability,
    invoke the shared adapter through the existing author process contract, and
    validate the matching response and usage receipt.
-5. Add `scripts/brief-shadow-generate.mjs`. Accept only the profile option plus
+6. Add `scripts/brief-shadow-generate.mjs`. Accept only the profile option plus
    stdin JSON, invoke the route runtime, and emit one non-authoritative result.
    Keep stdout machine-readable and send sanitized refusal details to stderr.
-6. Extend `scripts/selftest.mjs` with pure contract tests extracted from
+7. Extend `scripts/selftest.mjs` with pure contract tests extracted from
    `rlbriefroute.js`. Cover both profile records, unknown values, limit edges,
    receipt states, and exact provider/model identity.
-7. Add `tests/brief-openai-compatible-adapter.functional.mjs`. Run the real
+8. Add `tests/brief-openai-compatible-adapter.functional.mjs`. Run the real
    adapter/runtime/CLI against an ephemeral loopback HTTP server for positive,
    negative, boundary, stress, security, and authority-preservation cases.
-8. Add `tests/brief-openai-compatible-adapter.local-canary.mjs`. Run the
+9. Add `tests/brief-openai-compatible-adapter.integration.mjs`. Run the
    production shadow CLI against exactly one explicitly selected real endpoint
    per test title. Require complete runtime configuration and fail loud when a
    requested provider is unavailable.
@@ -219,9 +228,11 @@ Scenario: Shadow authorship remains non-authoritative and powerless
 - Create `scripts/brief-route-runtime.mjs`.
 - Create `scripts/brief-shadow-generate.mjs`.
 - Modify only the shadow-policy portion added to `market-brief.config.json`.
+- Modify only the `rlbriefroute.js` declaration in `site-exclusions.json`;
+  preserve every other exclusion entry byte-for-byte.
 - Modify `scripts/selftest.mjs` only to register Feature 030 pure checks.
 - Create `tests/brief-openai-compatible-adapter.functional.mjs`.
-- Create `tests/brief-openai-compatible-adapter.local-canary.mjs`.
+- Create `tests/brief-openai-compatible-adapter.integration.mjs`.
 
 #### Excluded Implementation Paths And Surfaces
 
@@ -253,6 +264,9 @@ Collateral cleanup requires an approved plan revision before any edit.
   check and consumes no Feature 030 shadow output.
 - Static consumer tracing must find no import, spawn, or shell reference to the
   new adapter/runtime/CLI from existing production files.
+- `rlbriefroute.js` remains deliberately absent from the public runtime graph
+  and is declared in `site-exclusions.json` as a Node/shadow-only module with
+  no public runtime consumer. No other exclusion entry may change.
 
 ### Shared Infrastructure Impact Sweep
 
@@ -263,9 +277,10 @@ Collateral cleanup requires an approved plan revision before any edit.
 - Existing caller order, public payload shape, scheduler occurrence state,
   source acquisition, and publication state must remain unchanged.
 - Rollback removes the four new source modules, two new test modules, the
-  Feature 030 selftest registration, and the additive shadow-policy members.
-  Because production has no consumer, rollback does not move a pointer, replay
-  authoring, or alter history.
+  Feature 030 selftest registration, the additive shadow-policy members, and
+  only the `rlbriefroute.js` exclusion entry. Because production has no
+  consumer, rollback does not move a pointer, replay authoring, or alter
+  history.
 - The independent real-endpoint canaries validate each external dependency
   path. The functional suite validates the protected process contract without
   modifying the shared boundary itself.
@@ -277,8 +292,8 @@ Collateral cleanup requires an approved plan revision before any edit.
 | TP-01-01 | DOD-01-TP-01-01 | SCN-030-001, SCN-030-002, SCN-030-003 | unit | unit | `scripts/selftest.mjs` | Feature 030 shadow policy, transport-contract, authority, and receipt group validates both profiles and every pure fail-loud boundary | `node scripts/selftest.mjs` | No |
 | TP-01-02 | DOD-01-TP-01-02 | SCN-030-001 | functional | functional | `tests/brief-openai-compatible-adapter.functional.mjs` | `Regression: SCN-030-001 explicit profile resolves once or refuses before HTTP` | `node --test --test-name-pattern "Regression: SCN-030-001" tests/brief-openai-compatible-adapter.functional.mjs` | Yes; production CLI with an ephemeral real HTTP server |
 | TP-01-03 | DOD-01-TP-01-03 | SCN-030-002 | functional | functional | `tests/brief-openai-compatible-adapter.functional.mjs` | `Regression: SCN-030-002 exact model preflight precedes one bounded strict JSON completion` | `node --test --test-name-pattern "Regression: SCN-030-002" tests/brief-openai-compatible-adapter.functional.mjs` | Yes; production CLI with an ephemeral real HTTP server |
-| TP-01-04 | DOD-01-TP-01-04 | SCN-030-001, SCN-030-002 | e2e-api | integration | `tests/brief-openai-compatible-adapter.local-canary.mjs` | `Regression E2E: SCN-030-002 OMLX returns tiny strict JSON with truthful usage state` | `BRIEF_SHADOW_PROFILE=omlx-openai-compatible-qwen38 node --test --test-name-pattern "Regression E2E: SCN-030-002 OMLX" tests/brief-openai-compatible-adapter.local-canary.mjs` | Yes; actual OMLX endpoint from `BRIEF_OMLX_BASE_URL` |
-| TP-01-05 | DOD-01-TP-01-05 | SCN-030-001, SCN-030-002 | e2e-api | integration | `tests/brief-openai-compatible-adapter.local-canary.mjs` | `Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state` | `BRIEF_SHADOW_PROFILE=ollama-openai-compatible node --test --test-name-pattern "Regression E2E: SCN-030-002 Ollama" tests/brief-openai-compatible-adapter.local-canary.mjs` | Yes; actual Ollama endpoint from `BRIEF_OLLAMA_BASE_URL` and model from `BRIEF_OLLAMA_MODEL` |
+| TP-01-04 | DOD-01-TP-01-04 | SCN-030-001, SCN-030-002 | e2e-api | integration | `tests/brief-openai-compatible-adapter.integration.mjs` | `Regression E2E: SCN-030-002 OMLX returns tiny strict JSON with truthful usage state` | `BRIEF_SHADOW_PROFILE=omlx-openai-compatible-qwen38 node --test --test-name-pattern "Regression E2E: SCN-030-002 OMLX" tests/brief-openai-compatible-adapter.integration.mjs` | Yes; actual OMLX endpoint from `BRIEF_OMLX_BASE_URL` |
+| TP-01-05 | DOD-01-TP-01-05 | SCN-030-001, SCN-030-002 | e2e-api | integration | `tests/brief-openai-compatible-adapter.integration.mjs` | `Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state` | `BRIEF_SHADOW_PROFILE=ollama-openai-compatible node --test --test-name-pattern "Regression E2E: SCN-030-002 Ollama" tests/brief-openai-compatible-adapter.integration.mjs` | Yes; actual Ollama endpoint from `BRIEF_OLLAMA_BASE_URL` and model from `BRIEF_OLLAMA_MODEL` |
 | TP-01-06 | DOD-01-TP-01-06 | SCN-030-002 | stress | stress | `tests/brief-openai-compatible-adapter.functional.mjs` | `Stress: SCN-030-002 finite byte deadline retry and concurrency limits refuse at cap plus one` | `node --test --test-name-pattern "Stress: SCN-030-002" tests/brief-openai-compatible-adapter.functional.mjs` | Yes; production adapter and ephemeral real HTTP server |
 | TP-01-07 | DOD-01-TP-01-07 | SCN-030-003 | functional | security | `tests/brief-openai-compatible-adapter.functional.mjs` | `Regression: SCN-030-003 shadow invocation preserves authority and excludes secret sentinels` | `node --test --test-name-pattern "Regression: SCN-030-003" tests/brief-openai-compatible-adapter.functional.mjs` | Yes; production CLI and real process/filesystem state |
 | TP-01-08 | DOD-01-TP-01-08 | SCN-030-003 | contract-regression | integration | `scripts/validate-brief-payload.mjs` | Current committed public payload remains valid and does not consume shadow output | `node scripts/validate-brief-payload.mjs` | No |
@@ -339,26 +354,177 @@ TP-01-02/03/06/07, TP-01-04/05, TP-01-08, then the complete
   verified before broad regression checks.
 - [ ] The Change Boundary is respected and every excluded path remains
   byte-identical.
+- [ ] `site-exclusions.json` contains only the authorized `rlbriefroute.js`
+  change for Scope 01, records its Node/shadow-only status and absent public
+  runtime consumer, and leaves every other exclusion entry byte-identical.
 
 #### Test Plan Parity
 
 - [ ] DOD-01-TP-01-01: TP-01-01 passes: pure shadow policy, profile, capability, finite-limit,
   and receipt contract checks cover SCN-030-001.
-- [ ] DOD-01-TP-01-02: TP-01-02 passes for SCN-030-001: explicit profile and runtime-binding failures refuse
+- [x] DOD-01-TP-01-02: TP-01-02 passes for SCN-030-001: explicit profile and runtime-binding failures refuse
   before HTTP and cover SCN-030-001.
-- [ ] DOD-01-TP-01-03: TP-01-03 passes for SCN-030-002: exact model preflight, strict JSON completion, byte
+  - **Phase:** implement
+  - **Executed:** YES (current session)
+  - **Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=5s 150 /opt/homebrew/bin/node --test --test-name-pattern "Regression: SCN-030-001" tests/brief-openai-compatible-adapter.functional.mjs`
+  - **Exit Code:** 0
+  - **Claim Source:** executed
+  - **Evidence Ref:** [report.md](report.md#tp-01-02-scn-030-001-functional)
+  - **Output:**
+
+    ```text
+    # Feature 030 TP-01-02 final-source GREEN
+    $ /opt/local/bin/gtimeout --signal=TERM --kill-after=5s 150 /opt/homebrew/bin/node --test --test-name-pattern Regression: SCN-030-001 tests/brief-openai-compatible-adapter.functional.mjs
+    exit: 0
+    lines: 9
+    sha256: 0cb11743bfb21d6120f30e81ab3c819ab667ee8f92e52158fb0854abb327b8a2
+    --- output ---
+    ✔ Regression: SCN-030-001 explicit profile resolves once or refuses before HTTP (180.565417ms)
+    ℹ tests 1
+    ℹ suites 0
+    ℹ pass 1
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 236.027375
+    ```
+- [x] DOD-01-TP-01-03: TP-01-03 passes for SCN-030-002: exact model preflight, strict JSON completion, byte
   limits, deadline, cancellation, usage normalization, and no provider switch
   cover SCN-030-002 on the functional boundary.
+  - **Phase:** implement
+  - **Executed:** YES (current session)
+  - **Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=5s 150 /opt/homebrew/bin/node --test --test-name-pattern "Regression: SCN-030-002" tests/brief-openai-compatible-adapter.functional.mjs`
+  - **Exit Code:** 0
+  - **Claim Source:** executed
+  - **Evidence Ref:** [report.md](report.md#tp-01-03-scn-030-002-functional)
+  - **Output:**
+
+    ```text
+    # Feature 030 TP-01-03 final-source GREEN
+    $ /opt/local/bin/gtimeout --signal=TERM --kill-after=5s 150 /opt/homebrew/bin/node --test --test-name-pattern Regression: SCN-030-002 tests/brief-openai-compatible-adapter.functional.mjs
+    exit: 0
+    lines: 9
+    sha256: bc26ced53200891a3902a7f903427864a61061f4e22152b850dbfc2b45432ddf
+    --- output ---
+    ✔ Regression: SCN-030-002 exact model preflight precedes one bounded strict JSON completion (437.74475ms)
+    ℹ tests 1
+    ℹ suites 0
+    ℹ pass 1
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 494.296
+    ```
 - [ ] DOD-01-TP-01-04: TP-01-04 passes against the actual explicitly configured OMLX endpoint
   and records a tiny strict-JSON result plus measured-or-unmeasured usage state.
-- [ ] DOD-01-TP-01-05: TP-01-05 passes against the actual explicitly configured Ollama endpoint
+- [x] DOD-01-TP-01-05: TP-01-05 passes against the actual explicitly configured Ollama endpoint
   and records a tiny strict-JSON result plus measured-or-unmeasured usage state.
-- [ ] DOD-01-TP-01-06: TP-01-06 passes: request, response, deadline, retry, and concurrency
+  - **Phase:** implement
+  - **Executed:** YES (current session)
+  - **Command:** `/usr/bin/env BRIEF_SHADOW_PROFILE=ollama-openai-compatible /opt/local/bin/gtimeout --signal=TERM --kill-after=5s 180 /opt/homebrew/bin/node --test --test-name-pattern "Regression E2E: SCN-030-002 Ollama" tests/brief-openai-compatible-adapter.local-canary.mjs`
+  - **Exit Code:** 0
+  - **Claim Source:** executed
+  - **Evidence Ref:** [report.md](report.md#tp-01-05-real-ollama-canary)
+  - **Output:**
+
+    ```text
+    # Feature 030 TP-01-05 final Ollama canary
+    $ /usr/bin/env BRIEF_SHADOW_PROFILE=ollama-openai-compatible /opt/local/bin/gtimeout --signal=TERM --kill-after=5s 180 /opt/homebrew/bin/node --test --test-name-pattern Regression E2E: SCN-030-002 Ollama tests/brief-openai-compatible-adapter.local-canary.mjs
+    exit: 0
+    lines: 9
+    sha256: d96ab5df48c3bfa270d9c9d5707f6dfa45fae387a0591ef427a69a84eaeb2dee
+    --- output ---
+    ✔ Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state (1110.073083ms)
+    ℹ tests 1
+    ℹ suites 0
+    ℹ pass 1
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 1149.518459
+    ```
+- [x] DOD-01-TP-01-06: TP-01-06 passes: request, response, deadline, retry, and concurrency
   limits refuse at one unit above each finite cap.
-- [ ] DOD-01-TP-01-07: TP-01-07 passes for SCN-030-003: authority state remains byte-identical and secret
+  - **Phase:** implement
+  - **Executed:** YES (current session)
+  - **Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=5s 180 /opt/homebrew/bin/node --test --test-name-pattern "Stress: SCN-030-002" tests/brief-openai-compatible-adapter.functional.mjs`
+  - **Exit Code:** 0
+  - **Claim Source:** executed
+  - **Evidence Ref:** [report.md](report.md#tp-01-06-scn-030-002-stress)
+  - **Output:**
+
+    ```text
+    # Feature 030 TP-01-06 final-source GREEN
+    $ /opt/local/bin/gtimeout --signal=TERM --kill-after=5s 180 /opt/homebrew/bin/node --test --test-name-pattern Stress: SCN-030-002 tests/brief-openai-compatible-adapter.functional.mjs
+    exit: 0
+    lines: 9
+    sha256: cf09440aa7f2fe72dd6cbdfe1eab08c456c32c7a21c69fd3a09abef54f696c20
+    --- output ---
+    ✔ Stress: SCN-030-002 finite byte deadline retry and concurrency limits refuse at cap plus one (5021.511708ms)
+    ℹ tests 1
+    ℹ suites 0
+    ℹ pass 1
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 5075.089875
+    ```
+- [x] DOD-01-TP-01-07: TP-01-07 passes for SCN-030-003: authority state remains byte-identical and secret
   sentinels are absent from transport, output, errors, logs, and receipts.
-- [ ] DOD-01-TP-01-08: TP-01-08 passes: the current committed public payload remains valid under
+  - **Phase:** implement
+  - **Executed:** YES (current session)
+  - **Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=5s 150 /opt/homebrew/bin/node --test --test-name-pattern "Regression: SCN-030-003" tests/brief-openai-compatible-adapter.functional.mjs`
+  - **Exit Code:** 0
+  - **Claim Source:** executed
+  - **Evidence Ref:** [report.md](report.md#tp-01-07-scn-030-003-authority-containment)
+  - **Output:**
+
+    ```text
+    # Feature 030 TP-01-07 final-source GREEN
+    $ /opt/local/bin/gtimeout --signal=TERM --kill-after=5s 150 /opt/homebrew/bin/node --test --test-name-pattern Regression: SCN-030-003 tests/brief-openai-compatible-adapter.functional.mjs
+    exit: 0
+    lines: 9
+    sha256: b92e168a7bfe63acacfe331065301b49c3cb6ca0527a69250efa51ff5dbb093f
+    --- output ---
+    ✔ Regression: SCN-030-003 shadow invocation preserves authority and excludes secret sentinels (350.019208ms)
+    ℹ tests 1
+    ℹ suites 0
+    ℹ pass 1
+    ℹ fail 0
+    ℹ cancelled 0
+    ℹ skipped 0
+    ℹ todo 0
+    ℹ duration_ms 405.91275
+    ```
+- [x] DOD-01-TP-01-08: TP-01-08 passes: the current committed public payload remains valid under
   the existing validator and has no shadow-output dependency.
+  - **Phase:** implement
+  - **Executed:** YES (current session)
+  - **Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=5s 150 /opt/homebrew/bin/node scripts/validate-brief-payload.mjs`
+  - **Exit Code:** 0
+  - **Claim Source:** executed
+  - **Evidence Ref:** [report.md](report.md#tp-01-08-existing-payload-contract)
+  - **Output:**
+
+    ```text
+    # Feature 030 TP-01-08 unchanged public payload validator
+    $ /opt/local/bin/gtimeout --signal=TERM --kill-after=5s 150 /opt/homebrew/bin/node scripts/validate-brief-payload.mjs
+    exit: 0
+    lines: 7
+    sha256: d7fedfd61fc5b8dd602c92410282de4c6438442aacff9cbf5c9e07b0a795fc98
+    --- output ---
+    [brief-contract] company owner-read names its producing adapter and states that no recommendation is produced: PASS
+    [brief-contract] every evidence timestamp is at or before the declared window cutoff: PASS
+    [brief-contract] SCN-019-020 payload toolRead and page read agree and expose no destination routing fields: PASS
+    [brief-contract] Every declared topic and section is accounted and every mandatory review belongs to the current generation: PASS
+    [brief-contract] causal brief items require eligible stage owner freshness independent reason and falsifiers: PASS
+    [brief-contract] Market Brief causal coverage and elevation satisfy low-noise independence policy: PASS (coverageRows=1 elevated=false planEligible=false)
+    [brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+    ```
 
 #### Regression And Quality
 

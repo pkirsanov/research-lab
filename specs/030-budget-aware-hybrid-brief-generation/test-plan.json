@@ -10,9 +10,17 @@
   "totalRows": 8,
   "implementationAuthorization": {
     "currentPacketAllows": [
-      "specs/030-budget-aware-hybrid-brief-generation/**"
+      "specs/030-budget-aware-hybrid-brief-generation/**",
+      "rlbriefroute.js",
+      "market-brief.config.json",
+      "scripts/brief-openai-compatible-adapter.mjs",
+      "scripts/brief-route-runtime.mjs",
+      "scripts/brief-shadow-generate.mjs",
+      "scripts/selftest.mjs",
+      "tests/brief-openai-compatible-adapter.functional.mjs",
+      "tests/brief-openai-compatible-adapter.local-canary.mjs"
     ],
-    "sourceAndTestEditsAuthorizedNow": false,
+    "sourceAndTestEditsAuthorizedNow": true,
     "requiredImplementationPaths": [
       "rlbriefroute.js",
       "market-brief.config.json",
@@ -23,7 +31,7 @@
       "tests/brief-openai-compatible-adapter.functional.mjs",
       "tests/brief-openai-compatible-adapter.local-canary.mjs"
     ],
-    "instruction": "Before any source or test edit, validate a new actionable implementation packet whose work boundary contains every required implementation path."
+    "instruction": "User approval on 2026-09-02 authorizes SCOPE-01 only. It authorizes the shadow-only OMLX and Ollama groundwork in the exact allowed paths; it does not authorize deferred route planning, corpus evaluation, scheduler integration, or cutover."
   },
   "protectedPaths": [
     "scripts/brief-author.mjs",
@@ -63,9 +71,17 @@
           "testTitle": "Feature 030 shadow policy, transport-contract, authority, and receipt group validates both profiles and every pure fail-loud boundary",
           "command": "node scripts/selftest.mjs",
           "liveSystem": false,
-          "pathState": "existing-file-planned-new-group",
+          "pathState": "authored",
           "dodId": "DOD-01-TP-01-01",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "failed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#tp-01-01-full-selftest",
+          "captureSha256": "cce1717eb12f49ee7ea6d8f2221432b03fbbc3c2de3679ca9a2b493de3103fe9",
+          "unresolvedFindingIds": [
+            "F030-PLAN-PAGES-EXCLUSION",
+            "F030-PLAN-CANARY-REACHABILITY"
+          ]
         },
         {
           "id": "TP-01-02",
@@ -80,9 +96,13 @@
           "testTitle": "Regression: SCN-030-001 explicit profile resolves once or refuses before HTTP",
           "command": "node --test --test-name-pattern \"Regression: SCN-030-001\" tests/brief-openai-compatible-adapter.functional.mjs",
           "liveSystem": true,
-          "pathState": "planned-missing-until-scope-01",
+          "pathState": "authored",
           "dodId": "DOD-01-TP-01-02",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#tp-01-02-scn-030-001-functional",
+          "captureSha256": "0cb11743bfb21d6120f30e81ab3c819ab667ee8f92e52158fb0854abb327b8a2"
         },
         {
           "id": "TP-01-03",
@@ -97,9 +117,13 @@
           "testTitle": "Regression: SCN-030-002 exact model preflight precedes one bounded strict JSON completion",
           "command": "node --test --test-name-pattern \"Regression: SCN-030-002\" tests/brief-openai-compatible-adapter.functional.mjs",
           "liveSystem": true,
-          "pathState": "planned-missing-until-scope-01",
+          "pathState": "authored",
           "dodId": "DOD-01-TP-01-03",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#tp-01-03-scn-030-002-functional",
+          "captureSha256": "bc26ced53200891a3902a7f903427864a61061f4e22152b850dbfc2b45432ddf"
         },
         {
           "id": "TP-01-04",
@@ -118,9 +142,16 @@
           "runtimeBindings": [
             "BRIEF_OMLX_BASE_URL"
           ],
-          "pathState": "planned-missing-until-scope-01",
+          "pathState": "authored",
           "dodId": "DOD-01-TP-01-04",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "failed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#tp-01-04-real-omlx-canary",
+          "captureSha256": "0c75530a2e384c194bd1b936603abb44522e99b55b85abaf0dc4d1eb5c9a284b",
+          "unresolvedFindingIds": [
+            "F030-IMPLEMENT-OMLX-CAPACITY"
+          ]
         },
         {
           "id": "TP-01-05",
@@ -140,9 +171,13 @@
             "BRIEF_OLLAMA_BASE_URL",
             "BRIEF_OLLAMA_MODEL"
           ],
-          "pathState": "planned-missing-until-scope-01",
+          "pathState": "authored",
           "dodId": "DOD-01-TP-01-05",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#tp-01-05-real-ollama-canary",
+          "captureSha256": "d96ab5df48c3bfa270d9c9d5707f6dfa45fae387a0591ef427a69a84eaeb2dee"
         },
         {
           "id": "TP-01-06",
@@ -157,9 +192,13 @@
           "testTitle": "Stress: SCN-030-002 finite byte deadline retry and concurrency limits refuse at cap plus one",
           "command": "node --test --test-name-pattern \"Stress: SCN-030-002\" tests/brief-openai-compatible-adapter.functional.mjs",
           "liveSystem": true,
-          "pathState": "planned-missing-until-scope-01",
+          "pathState": "authored",
           "dodId": "DOD-01-TP-01-06",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#tp-01-06-scn-030-002-stress",
+          "captureSha256": "cf09440aa7f2fe72dd6cbdfe1eab08c456c32c7a21c69fd3a09abef54f696c20"
         },
         {
           "id": "TP-01-07",
@@ -174,9 +213,13 @@
           "testTitle": "Regression: SCN-030-003 shadow invocation preserves authority and excludes secret sentinels",
           "command": "node --test --test-name-pattern \"Regression: SCN-030-003\" tests/brief-openai-compatible-adapter.functional.mjs",
           "liveSystem": true,
-          "pathState": "planned-missing-until-scope-01",
+          "pathState": "authored",
           "dodId": "DOD-01-TP-01-07",
-          "status": "planned-not-executed"
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#tp-01-07-scn-030-003-authority-containment",
+          "captureSha256": "b92e168a7bfe63acacfe331065301b49c3cb6ca0527a69250efa51ff5dbb093f"
         },
         {
           "id": "TP-01-08",
@@ -193,7 +236,11 @@
           "liveSystem": false,
           "pathState": "existing-file-unchanged",
           "dodId": "DOD-01-TP-01-08",
-          "status": "planned-not-executed"
+          "testState": "existing-unchanged",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#tp-01-08-existing-payload-contract",
+          "captureSha256": "d7fedfd61fc5b8dd602c92410282de4c6438442aacff9cbf5c9e07b0a795fc98"
         }
       ]
     }

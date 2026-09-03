@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
   "featureName": "BUG-022 Historical Report Declaration Leak",
   "createdAt": "2026-08-27T00:00:00Z",
-  "lastUpdatedAt": "2026-08-28T16:53:33Z",
+  "lastUpdatedAt": "2026-08-29T08:02:53Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -22,18 +22,18 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
-    "currentPhaseStatus": "route_required",
+    "activeAgent": "bubbles.simplify",
+    "currentPhase": "simplify",
+    "currentPhaseStatus": "completed",
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
     "runStartedAt": "2026-08-28T16:53:33Z",
     "completedAt": null,
     "substate": "independently_verified",
     "currentScope": "01-separate-active-declarations-from-historical-receipts",
-    "nextRequiredOwner": "bubbles.test",
-    "nextRequiredTarget": "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
-    "nextRequiredReason": "Refresh the distinct receipt chains for SCN-BUG022-001, SCN-BUG022-002, and SCN-BUG022-003 after this planning-owned status, G060 chronology, vertical-exposure, and routing reconciliation changed their input closure. The canonical Outcome Contract is already present and no analyst route remains. Preserve stale/clone adjudication, missing specialist phase claims, human acceptance, and excluded concurrent-work findings for their existing owners.",
+    "nextRequiredOwner": "bubbles.gaps",
+    "nextRequiredTarget": "gaps",
+    "nextRequiredReason": "Simplify completed on the two-file Playwright validation family. Continue with gaps while preserving final-revision scenario receipts, both G136 boundaries, global stale-and-clone adjudication, external framework-install drift, historical authority, and excluded concurrent paths.",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -47,6 +47,20 @@
         "agent": "bubbles.test",
         "claimedAt": "2026-08-27T15:56:30Z",
         "evidenceRef": "report.md#fresh-test-owned-closure-at-current-validate-revision",
+        "scopes": []
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.regression",
+        "claimedAt": "2026-08-29T07:50:05Z",
+        "evidenceRef": "report.md#regression-phase-completion-after-scratch-path-correction",
+        "scopes": []
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimedAt": "2026-08-29T08:02:53Z",
+        "evidenceRef": "report.md#simplify-phase-convergence-iteration-4-bug022",
         "scopes": []
       }
     ],
@@ -81,18 +95,22 @@
     "lockdownState": "unlocked",
     "completedAt": null,
     "certifiedAt": null,
-    "completedScopes": [],
+    "completedScopes": [
+      "01-separate-active-declarations-from-historical-receipts"
+    ],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
       {
         "scopeId": "01-separate-active-declarations-from-historical-receipts",
-        "status": "in_progress",
+        "status": "done",
         "dodChecked": 16,
         "dodUnchecked": 0
       }
     ]
   },
-  "completedScopes": [],
+  "completedScopes": [
+    "01-separate-active-declarations-from-historical-receipts"
+  ],
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
     "grill": {
@@ -242,6 +260,55 @@
       ],
       "nextRequiredOwner": "bubbles.stabilize",
       "summary": "Ran the genuine BUG-022 regression surface from an isolated clean worktree at 4bf10c039. The six exact BUG-022 functional rows passed 6 of 6. Reachability exited 0 with 201 test files, 10 active globs, 30 historical sites, 0 classification errors, 184 reachable, 11 exempt, and 6 frozen orphans. Feature 008 direct Node suites passed 257 of 257. The clean-tree selftest passed 3465 of 3465. The regression-quality guard reported 0 violations and 0 warnings. The protected Feature 008 report matched its 359d536b anchor at sha256 8ea0e36e28aa7a409006b1db4ba0612c202cdadbd59054d7686dc31c2bf6801b. Reachability baseline stayed 26 to 26 and known crossings stayed 9 to 9 with byte-identical hashes. The required Feature 008 Playwright command passed all 94 scenarios but exited 1 after Playwright force-killed worker-1 at the committed two-worker setting, reproducing BUG-017 with two errors outside test bodies. No regression completedPhaseClaim was added. No certification, status, scope, acceptance, implementation, test, framework, protected report, baseline, or unrelated dirty file changed."
+    },
+    {
+      "at": "2026-08-29T07:50:05Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "phasesExecuted": ["regression"],
+      "action": "regression-phase-completed-after-scratch-path-correction",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "completed_diagnostic",
+      "verdict": "REGRESSION_FREE",
+      "evidenceRef": "report.md#regression-phase-completion-after-scratch-path-correction",
+      "addressedFindings": [
+        "REG-BUG022-R4-RERUN-001",
+        "REG-BUG022-R4-001",
+        "REG-BUG022-R4-003"
+      ],
+      "unresolvedFindings": [
+        "REG-BUG022-R4-002",
+        "TEST-R4-BUG017-SCN11-NEW-STABLE-REVISION",
+        "REG-R4-BUG022-CURRENT-RECEIPT-REFRESH",
+        "F-ACCEPTANCE-017-G136",
+        "BUG022-G136-HUMAN-ACCEPTANCE",
+        "BUG022-PHASE-CHAIN-COMPLETION",
+        "BUG022-GLOBAL-STALE-CLONE-ADJUDICATION"
+      ],
+      "nextRequiredOwner": "bubbles.simplify",
+      "summary": "The report-sensitive path, reachability, functional, integrity, traceability, artifact, and canonical selftest checks passed on the exact five-file overlay. The unchanged Feature 008 Node and one-worker browser results remain valid by explicit input closure. Twenty stale reachability entries are reported non-blocking debt because the validator exits zero when no new orphan exists. Prior failed attempts remain verbatim. Status and certification remain in_progress."
+    },
+    {
+      "at": "2026-08-29T08:02:53Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "phasesExecuted": ["simplify"],
+      "action": "simplify-phase-completed",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#simplify-phase-convergence-iteration-4-bug022",
+      "addressedFindings": [
+        "SIM-BUG022-R4-REDUNDANT-ROOT-SCANS"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.gaps",
+      "summary": "Reviewed the current authority classifier, command registry, shared functional carrier, and active packet state. Two root-only SCN-BUG022-003 assertions now reuse the existing declaration cache while every external fixture remains independently classified. The complete functional carrier passed 16 of 16, reachability exited zero with no classification error or new orphan, and regression quality reported zero violations or warnings. Status and certification remain in_progress."
     }
   ]
 }

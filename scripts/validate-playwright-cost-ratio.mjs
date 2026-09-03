@@ -228,8 +228,6 @@ async function loadValidatedConfiguration() {
   ) {
     throw new ContractError('bundled chromium must not declare or inherit a channel override');
   }
-
-  return { bundledChromium, config, systemChrome };
 }
 
 function runPlaywrightProject(project, files, outputDirectory) {

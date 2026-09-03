@@ -4,7 +4,7 @@
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "generatedBy": "bubbles.plan",
   "generatedAt": "2026-08-28T23:35:36Z",
-  "planningDelta": "Convergence iteration 4 correction for F-SCN06-NEGATIVE-CONTROL-NONDISCRIMINATING and F-SCN06-RED-RUNNER-127. SCN-BUG017-06 keeps its real one-worker, 22-file, dual-project live proof and unchanged FR-017-004 maximum ratio of 3.0. Its RED contract now requires a small committed ratio CLI plus focused functional regression: the CLI must use one predicate for live measurements and a labelled isolated temporary comparison whose known 3.001 ratio exits 1 with the exact scenario message. An ambient six-worker timing attempt cannot satisfy RED. All prior SCN-BUG017-06 receipts are historical after this planning-input change; bubbles.implement owns the missing executable mechanism, then bubbles.test owns a fresh RED, targeted GREEN, live pair, and broader regression chain. SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 remain non-executable history. This plan changes no report evidence, human acceptance, certification, source, test, or terminal status.",
+  "planningDelta": "Convergence iteration 4 closes Scope 2 from the canonical SCN-BUG017-06 receipt chain at source revision d0c09a3ec90d2bb72920caee9e44f1d5f697c619. Tool-log lines 1598 through 1602 record deterministic RED, implementation, targeted GREEN, the real one-worker dual-project live comparison, and a separate protected regression. The canonical resolver derives REGRESSION_GREEN. SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 remain non-executable history. SCN-BUG017-11 remains PLANNED for a new stable revision. This plan changes no report evidence, human acceptance, certification, source, test, or terminal status.",
   "activeScenarioIds": [
     "SCN-BUG017-01",
     "SCN-BUG017-02",
@@ -160,13 +160,12 @@
           "description": "Like-for-like timing: one committed CLI runs the complete 22-file lifetime-tax workload under system-chrome and bundled chromium at the configured one-worker default, requires both exits to be zero, and evaluates the measured ratio against the unchanged FR-017-004 maximum of 3.0",
           "command": "/usr/bin/perl -e 'alarm shift @ARGV; exec @ARGV' 1400 node scripts/validate-playwright-cost-ratio.mjs --live",
           "liveSystem": true,
-          "testState": "implementation-required",
-          "status": "requires-refresh",
-          "evidenceRef": "report.md#the-fr-017-004-bound",
-          "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T16:17:20Z",
-          "receiptStdoutSha256": "dc7cffc2e175a78d1753309f2f4449a0b787ef5d98c01b208d432f81b9da2e63",
-          "receiptCurrent": false,
-          "receiptInvalidation": "The scenario's negative-control contract changed in convergence iteration 4. This receipt remains historical evidence for the positive live pair but cannot satisfy the new scenario receipt chain.",
+          "testState": "authored",
+          "status": "passed",
+          "evidenceRef": ".specify/runtime/tool-calls.jsonl#L1601",
+          "receiptRef": ".specify/runtime/tool-calls.jsonl#L1601",
+          "receiptStdoutSha256": "f1db723539f4822d5597180b19d355ebcea5134fe705764c1aa19a78ba6a0cdf",
+          "receiptCurrent": true,
           "deterministicNegativeControl": {
             "mechanism": "perturbed-input",
             "helper": "scripts/validate-playwright-cost-ratio.mjs",
@@ -192,10 +191,8 @@
           "command": "node scripts/selftest.mjs",
           "liveSystem": false,
           "testState": "existing-command",
-          "status": "requires-refresh",
-          "evidenceRef": "report.md#the-suite-is-unchanged",
-          "receiptCurrent": false,
-          "receiptInvalidation": "The SCN-BUG017-06 negative-control identity changed in convergence iteration 4. The prior selftest result remains historical and must be rerun after the evaluator lands."
+          "status": "passed",
+          "evidenceRef": "report.md#the-suite-is-unchanged"
         },
         {
           "id": "TP-BUG017-02-03",
@@ -211,12 +208,11 @@
           "command": "npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure$' --reporter=list && npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep='^Regression: SCN-021-02 a declared pack delayed below the bound settles with every figure identical to the undelayed settlement$' --reporter=list",
           "liveSystem": true,
           "testState": "authored",
-          "status": "requires-refresh",
-          "evidenceRef": "report.md#the-fr-017-004-bound",
-          "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T15:52:11Z",
-          "receiptStdoutSha256": "85d469faa9a706d4f3a093d375cf49960eb59077ef27a018b1d2083eae950525",
-          "receiptCurrent": false,
-          "receiptInvalidation": "The SCN-BUG017-06 negative-control identity changed in convergence iteration 4. This targeted receipt remains historical and must not advance the revised scenario state."
+          "status": "passed",
+          "evidenceRef": ".specify/runtime/tool-calls.jsonl#L1602",
+          "receiptRef": ".specify/runtime/tool-calls.jsonl#L1602",
+          "receiptStdoutSha256": "79b41072df61e36acb680c71610f3eddf7b15ef2e12ebce045c5076c81728ee4",
+          "receiptCurrent": true
         },
         {
           "id": "TP-BUG017-02-04",
@@ -232,17 +228,19 @@
           "command": "npx --no-install playwright test tests/lifetime-tax*.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
           "liveSystem": true,
           "testState": "authored",
-          "status": "requires-refresh",
-          "receiptRef": ".specify/runtime/tool-calls.jsonl@2026-08-28T16:32:13Z",
-          "receiptStdoutSha256": "2739ee2eff3f8b73ab84b82a81d247c0a957d2308fc6d5c7acec9af558f36aaf",
-          "receiptCurrent": false,
-          "receiptInvalidation": "The SCN-BUG017-06 negative-control identity changed in convergence iteration 4. This broader receipt remains historical and must be regenerated at the revised scenario revision."
+          "status": "passed",
+          "receiptRef": ".specify/runtime/tool-calls.jsonl#L1602",
+          "receiptStdoutSha256": "79b41072df61e36acb680c71610f3eddf7b15ef2e12ebce045c5076c81728ee4",
+          "receiptCurrent": true
         }
       ],
       "receiptRefresh": {
-        "required": true,
-        "ownerAfterImplementation": "bubbles.test",
-        "reason": "The SCN-BUG017-06 planning input changed. Refresh the deterministic RED, targeted functional GREEN, real one-worker dual-project live proof, and broader system-chrome regression without relabeling prior receipts as current."
+        "required": false,
+        "resolvedAtSourceRevision": "d0c09a3ec90d2bb72920caee9e44f1d5f697c619",
+        "resolverState": "REGRESSION_GREEN",
+        "evidenceRefs": [
+          ".specify/runtime/tool-calls.jsonl#L1598-L1602"
+        ]
       }
     },
     {

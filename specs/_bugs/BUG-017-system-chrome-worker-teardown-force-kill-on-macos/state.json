@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
   "featureName": "BUG-017 On macOS The System-Chrome Browser Project Intermittently Fails To Tear Down, Turning An All-Green Run Into A Non-Zero Exit",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-29T00:29:30Z",
+  "lastUpdatedAt": "2026-08-29T08:02:53Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -29,20 +29,20 @@
     "uservalidation": "uservalidation.md"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
-    "currentPhaseStatus": "route_required",
+    "activeAgent": "bubbles.simplify",
+    "currentPhase": "simplify",
+    "currentPhaseStatus": "completed",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": "bubbles.goal",
     "runStartedAt": "2026-08-28T23:35:36Z",
     "completedAt": null,
     "substate": "independently_verified",
-    "currentScope": "02-apply-the-selected-remedy",
-    "nextRequiredOwner": "bubbles.implement",
-    "nextRequiredTarget": "IMP-R4-BUG017-SCOPED-SOURCE-REVISION-PREPARATION",
-    "nextRequiredReason": "Prepare the scoped final source-revision commit for the already-present scripts/validate-playwright-cost-ratio.mjs helper and additive SCN-BUG017-06 functional regression inside the declared Scope 2 change boundary. The genuine new source revision must replace the same-head SCN-BUG017-06 receipt substitution before bubbles.test records the deterministic RED, targeted GREEN, live, focused-regression, isolated TP-BUG017-02-02 repository-selftest, and broader-regression receipts. Preserve global stale, unknown, and clone receipt debt; the BUG-022 specialist phase chain; both G136 human boundaries; concurrent selftest activity; all historical SCN-BUG017-04/-05/-09/-10 evidence; and every excluded path.",
-    "phaseClaimNote": "Planning corrected only F-SCN06-NEGATIVE-CONTROL-NONDISCRIMINATING and F-SCN06-RED-RUNNER-127. The existing source search found no committed SCN-BUG017-06 or FR-017-004 ratio evaluator, while scripts/red-green-probe.sh confirms the repository-supported bounded mechanism uses Perl alarm rather than a guessed GNU timeout path. The plan therefore routes the smallest executable helper and focused test to bubbles.implement, then requires bubbles.test to refresh SCN-BUG017-06 at one source revision. Prior receipts remain historical. No terminal status, certification field, completed-scope mirror, report evidence, source, config, test, uservalidation, BUG-022 artifact, framework-managed file, G136 boundary, global stale/clone finding, or excluded concurrent path changed.",
+    "currentScope": null,
+    "nextRequiredOwner": "bubbles.gaps",
+    "nextRequiredTarget": "gaps",
+    "nextRequiredReason": "Simplify completed on the two-file Playwright validation family. Continue with gaps while preserving the 3.0 ratio bound, one-worker fallback, fail-visible lifecycle behavior, historical evidence identities, both G136 boundaries, and excluded concurrent paths. SCN-BUG017-11 remains test-owned at the final stable revision.",
+    "phaseClaimNote": "Simplify removed one unused ratio-helper return and reused the existing root declaration cache in two BUG-022 assertions. Deterministic ratio controls preserved exit sequence 0 and 1 with zero temporary residue. Two final functional-carrier runs passed 16 of 16 with zero failures, skips, or todos. No status, certification, scenario state, acceptance, config, command-registry, historical evidence, or framework-managed field changed.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -108,6 +108,13 @@
         "claimedAt": "2026-08-27T04:03:54Z",
         "evidenceRef": "report.md#test-evidence",
         "scopes": []
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimedAt": "2026-08-29T08:02:53Z",
+        "evidenceRef": "report.md#simplify-phase-convergence-iteration-4-bug017",
+        "scopes": []
       }
     ],
     "pendingTransitionRequests": [],
@@ -122,7 +129,7 @@
       {
         "scopeId": "02-apply-the-selected-remedy",
         "scope": 2,
-        "status": "In Progress",
+        "status": "Done",
         "dependsOn": [
           "01-characterise-the-stall-well-enough-to-choose"
         ],
@@ -293,7 +300,7 @@
       {
         "scopeId": "02-apply-the-selected-remedy",
         "status": "done",
-        "dodChecked": 9,
+        "dodChecked": 11,
         "dodUnchecked": 0
       },
       {
@@ -470,6 +477,26 @@
       "outcome": "route_required",
       "scope": "04-close-the-foundation-browser-before-worker-teardown",
       "note": "Removed SCN-BUG017-04, SCN-BUG017-05, SCN-BUG017-09, and SCN-BUG017-10 from the current scenario manifest because the installed schema and scenario-state resolver provide no honored historical or ignored entry form. Preserved their exact Gherkin in quoted historical sections, their non-executable Test Plan history, and every unchanged report anchor for provisional GREEN, later RED, rollback, and rejection. Kept SCN-BUG017-01, SCN-BUG017-02, SCN-BUG017-03, SCN-BUG017-06, SCN-BUG017-07, SCN-BUG017-08, and SCN-BUG017-11 active. Canonical obligation, linked-test, test-mechanism, traceability, and artifact checks exited 0. Canonical scenario-state projection exited 1 as expected: all seven active scenarios remain PLANNED and require 33 distinct current phase receipts. Routed that work to bubbles.test without changing report evidence, status, certification, scenario states, source, config, tests, uservalidation, BUG-022, framework files, excluded concurrent paths, or the separate company-intelligence worktree."
+    },
+    {
+      "at": "2026-08-29T08:02:53Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "phasesExecuted": ["simplify"],
+      "action": "simplify-phase-completed",
+      "executionModel": "direct-authorized-runner",
+      "parentAgent": "bubbles.goal",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#simplify-phase-convergence-iteration-4-bug017",
+      "addressedFindings": [
+        "SIM-BUG017-R4-UNUSED-CONFIG-RETURN"
+      ],
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.gaps",
+      "summary": "Reviewed the current BUG-017 config, ratio helper, shared functional carrier, command authority, and active packet state. Removed one unused internal return. Exact 3.000 acceptance and 3.001 refusal remained unchanged with zero owned temporary residue. The complete functional carrier passed 16 of 16 and retained SCN-BUG017-06, SCN-BUG017-11, one-worker parity, and visible lifecycle failure contracts. Status and certification remain in_progress."
     }
   ]
 }

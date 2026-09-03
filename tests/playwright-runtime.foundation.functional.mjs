@@ -474,7 +474,7 @@ test('Regression: SCN-BUG022-002 unknown artifact roles fail closed with candida
 });
 
 test('Regression: SCN-BUG022-003 historical receipt classification removes exactly eight portfolio crossings without baseline growth', () => {
-  const result = collectDeclaredTestGlobs(ROOT);
+  const result = declaredGlobs();
   const testFiles = repoTestFiles();
   const browserMatchers = result.globs
     .filter((entry) => entry.kind === 'playwright-testMatch')
@@ -548,7 +548,7 @@ test('Regression: SCN-BUG022-003 historical receipt classification removes exact
 });
 
 test('Regression: SCN-BUG022-003 active functional and test Node families remain reachable without report authority', () => {
-  const result = collectDeclaredTestGlobs(ROOT);
+  const result = declaredGlobs();
   const testFiles = repoTestFiles();
 
   for (const pattern of ['tests/*.functional.mjs', 'tests/*.test.mjs']) {

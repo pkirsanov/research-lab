@@ -1,0 +1,636 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/028-company-intelligence-publication-and-brief-transaction",
+  "generatedAt": "2026-08-28T23:56:58Z",
+  "generatedBy": "bubbles.plan",
+  "scenarios": [
+    {
+      "id": "SCN-028-001",
+      "scenarioId": "SCN-028-001",
+      "scopeRef": "Scope 05",
+      "title": "Registration and navigation agree on the live company tool",
+      "requiredTestType": "e2e-ui",
+      "requiredTestTypes": ["e2e-ui", "functional"],
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-001 Company Intelligence is reachable once from catalogue navigation and notes",
+        "scripts/selftest.mjs#Repository parity: company registration exclusions experience bundle and brief identity agree"
+      ],
+      "evidenceRefs": ["report.md#tp-05-01", "report.md#tp-05-07"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["public-registration", "navigation", "notes", "regression"],
+      "behaviorTraits": ["user-visible-ui", "shared-consumer", "runtime-config", "responsive-accessible"],
+      "obligations": [
+        {"trait": "user-visible-ui", "requiredProof": "Visible and accessibility-tree assertions on the current production route.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-001 Company Intelligence is reachable once from catalogue navigation and notes"]},
+        {"trait": "shared-consumer", "requiredProof": "Producer-consumer parity plus the current catalogue and navigation surfaces.", "satisfiedBy": ["parity:scripts/selftest.mjs", "consumer-surface:tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-001 Company Intelligence is reachable once from catalogue navigation and notes"]},
+        {"trait": "runtime-config", "requiredProof": "Runtime discovery executes the registered route, order, notes, and data values.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-001 Company Intelligence is reachable once from catalogue navigation and notes"]},
+        {"trait": "responsive-accessible", "requiredProof": "Keyboard, current-page, narrow-viewport, and accessible-name behavior on the production route.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: acknowledged pair attempt state deep links accessibility and responsive behavior preserve existing route semantics"]}
+      ],
+      "implementationRefs": ["tools.json", "index.html", "rlnav.js", "company-intelligence-lab.html", "notes/README.md", "notes/company-intelligence-lab.md"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "seeded-store",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["tools.json", "index.html", "rlnav.js", "company-intelligence-lab.html"],
+        "negativeControl": "Remove one registry mirror or notes target and require the discovery and parity assertion to fail."
+      }
+    },
+    {
+      "id": "SCN-028-002",
+      "scenarioId": "SCN-028-002",
+      "scopeRef": "Scope 05",
+      "title": "Registration cannot coexist with an exclusion",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional", "e2e-ui"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.functional.mjs#Mutation: SCN-028-002 a registered company artifact with one stale exclusion is refused"],
+      "evidenceRefs": ["report.md#tp-05-02"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["packaging", "exclusion", "negative", "regression"],
+      "behaviorTraits": ["static-metadata", "degraded-state", "runtime-config"],
+      "obligations": [
+        {"trait": "static-metadata", "requiredProof": "Artifact assertions compare registration and exclusion declarations.", "satisfiedBy": ["tests/company-intelligence-publication.functional.mjs#Mutation: SCN-028-002 a registered company artifact with one stale exclusion is refused"]},
+        {"trait": "degraded-state", "requiredProof": "Each stale exclusion produces a named packaging refusal with no accepted partial package.", "satisfiedBy": ["tests/company-intelligence-publication.functional.mjs#Mutation: SCN-028-002 a registered company artifact with one stale exclusion is refused"]},
+        {"trait": "runtime-config", "requiredProof": "The production package evaluator executes each exclusion and dependency declaration.", "satisfiedBy": ["tests/company-intelligence-publication.functional.mjs#Mutation: SCN-028-002 a registered company artifact with one stale exclusion is refused"]}
+      ],
+      "implementationRefs": ["site-exclusions.json", "tools.json", "scripts/build-pages-site.mjs", "scripts/selftest.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": ["site-exclusions.json", "scripts/build-pages-site.mjs", "scripts/selftest.mjs"],
+        "negativeControl": "Reinsert each retired exclusion and remove one required package dependency, then require the named packaging refusal."
+      }
+    },
+    {
+      "id": "SCN-028-003",
+      "scenarioId": "SCN-028-003",
+      "scopeRef": "Scope 04",
+      "title": "A scheduled brief and company read publish together",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional", "integration"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief"],
+      "evidenceRefs": ["report.md#tp-04-01"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["scheduled", "atomic-publication", "bare-remote", "regression"],
+      "behaviorTraits": ["mutable-state", "shared-consumer", "dependency-path", "runtime-config"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "Write, remote read, and persistence round trip for the company version, pointer, brief, and selector.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief"]},
+        {"trait": "shared-consumer", "requiredProof": "Company owner-read parity and final brief consumer identity.", "satisfiedBy": ["parity:tests/company-intelligence-publication.integration.mjs#SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome", "consumer-surface:tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief"]},
+        {"trait": "dependency-path", "requiredProof": "The shared launcher, worker, Git commit, bare remote, and acknowledgment boundary execute.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief"]},
+        {"trait": "runtime-config", "requiredProof": "The scheduled trigger executes the configured window and covered-subject policy.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief"]}
+      ],
+      "implementationRefs": ["scripts/brief-refresh-scheduled.sh", "scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs", "scripts/brief-publication.mjs", "company-intelligence.config.json", "data/company-intelligence/"],
+      "invariantRefs": ["INV-RL-COMPANY-SUBJECTS-EXPLICIT", "INV-RL-COMPANY-BRIEF-SAME-GENERATION", "INV-RL-COMPANY-OWNER-READ-REAL"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "external-live",
+        "productionOwners": ["scripts/brief-refresh-scheduled.sh", "scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Fail the brief candidate or company candidate and require the remote branch to retain the prior acknowledged pair."
+      }
+    },
+    {
+      "id": "SCN-028-004",
+      "scenarioId": "SCN-028-004",
+      "scopeRef": "Scope 04",
+      "title": "On-demand publication cannot use a weaker path",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract"],
+      "evidenceRefs": ["report.md#tp-04-02"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["on-demand", "trigger-parity", "bare-remote", "regression"],
+      "behaviorTraits": ["mutable-state", "shared-consumer", "dependency-path", "runtime-config"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "Both trigger paths write and read one coherent acknowledged pair through real Git.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract"]},
+        {"trait": "shared-consumer", "requiredProof": "Both adapters preserve one worker contract and one final consumer result.", "satisfiedBy": ["parity:tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract", "consumer-surface:tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract"]},
+        {"trait": "dependency-path", "requiredProof": "The on-demand prompt reaches the shared launcher, worker, remote, and acknowledgment boundary.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract"]},
+        {"trait": "runtime-config", "requiredProof": "The requested window and on-demand UUID execute through the configured shared path.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-004 on-demand and scheduled triggers execute the same phase and acknowledgment contract"]}
+      ],
+      "implementationRefs": [".github/prompts/market-brief-update.prompt.md", "scripts/brief-refresh-scheduled.sh", "scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs"],
+      "invariantRefs": ["INV-RL-COMPANY-SUBJECTS-EXPLICIT", "INV-RL-COMPANY-BRIEF-SAME-GENERATION", "INV-RL-COMPANY-OWNER-READ-REAL"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "external-live",
+        "productionOwners": [".github/prompts/market-brief-update.prompt.md", "scripts/brief-refresh-scheduled.sh", "scripts/brief-refresh-and-push.sh"],
+        "negativeControl": "Restore the old manual prompt or bypass one shared phase and require trigger-parity assertions to fail."
+      }
+    },
+    {
+      "id": "SCN-028-005",
+      "scenarioId": "SCN-028-005",
+      "scopeRef": "Scope 01",
+      "title": "Registry membership produces evidence rather than coverage text",
+      "requiredTestType": "integration",
+      "requiredTestTypes": ["integration", "functional"],
+      "regressionRequired": true,
+      "linkedTests": [
+        "tests/company-intelligence-publication.integration.mjs#SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome",
+        "tests/company-intelligence-publication.e2e.mjs#Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority"
+      ],
+      "evidenceRefs": ["report.md#tp-01-01", "report.md#tp-01-07"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["owner-read", "bundle-barrier", "regression"],
+      "behaviorTraits": ["pure-calculation", "mutable-state", "shared-consumer"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Production assertions validate exact owner-read and source-outcome cardinality.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome"]},
+        {"trait": "mutable-state", "requiredProof": "The generated source bundle is read back from a real temporary filesystem.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome"]},
+        {"trait": "shared-consumer", "requiredProof": "Owner-read producer parity and final bundle consumer assertion.", "satisfiedBy": ["parity:tests/company-intelligence-publication.integration.mjs#SCN-028-005 complete source bundle contains one real company owner read and no company coverage outcome", "consumer-surface:tests/company-intelligence-publication.e2e.mjs#Regression E2E: Scope 01 prepare bind-plan and inject-owner-read execute the production CLI without publication authority"]}
+      ],
+      "implementationRefs": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs", "scripts/brief-distributed-publish.mjs", "market-brief.snapshot.json"],
+      "invariantRefs": ["INV-RL-COMPANY-OWNER-READ-REAL", "INV-RL-COMPANY-BRIEF-SAME-GENERATION"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs", "scripts/brief-distributed-publish.mjs"],
+        "negativeControl": "Remove the owner read or replace it with coverage-only text and require the complete bundle barrier to refuse."
+      }
+    },
+    {
+      "id": "SCN-028-006",
+      "scenarioId": "SCN-028-006",
+      "scopeRef": "Scope 01",
+      "title": "Scheduled composition preserves Feature 025 semantics",
+      "requiredTestType": "unit",
+      "requiredTestTypes": ["unit", "functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.unit.mjs#SCN-028-006 headless composition preserves fifteen states and four isolated horizons"],
+      "evidenceRefs": ["report.md#tp-01-02"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["composition", "horizon-isolation", "regression"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Production-unit assertions validate transformed coverage and separately filtered horizon outputs.", "satisfiedBy": ["tests/company-intelligence-publication.unit.mjs#SCN-028-006 headless composition preserves fifteen states and four isolated horizons"]}
+      ],
+      "implementationRefs": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs", "company-intelligence.config.json"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Remove one dimension, duplicate one horizon, or add a combined direction and require validation to fail."
+      }
+    },
+    {
+      "id": "SCN-028-007",
+      "scenarioId": "SCN-028-007",
+      "scopeRef": "Scope 01",
+      "title": "Missing evidence never becomes a fresh company claim",
+      "requiredTestType": "unit",
+      "requiredTestTypes": ["unit", "e2e-ui"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.unit.mjs#Mutation: SCN-028-007 missing and stale owner reads remain named and cannot become fresh claims"],
+      "evidenceRefs": ["report.md#tp-01-03"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["missing", "stale", "honest-state", "regression"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Production-unit assertions validate transformed missing and stale dimension states.", "satisfiedBy": ["tests/company-intelligence-publication.unit.mjs#Mutation: SCN-028-007 missing and stale owner reads remain named and cannot become fresh claims"]},
+        {"trait": "degraded-state", "requiredProof": "Named missing and stale outcomes retain reasons and horizon limitations without neutral substitution.", "satisfiedBy": ["tests/company-intelligence-publication.unit.mjs#Mutation: SCN-028-007 missing and stale owner reads remain named and cannot become fresh claims"]}
+      ],
+      "implementationRefs": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs", "company-intelligence.config.json"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Delete an owner read and age another past its policy, then require explicit states and no fresh or neutral value."
+      }
+    },
+    {
+      "id": "SCN-028-008",
+      "scenarioId": "SCN-028-008",
+      "scopeRef": "Scope 01",
+      "title": "A late source read is refused",
+      "requiredTestType": "unit",
+      "requiredTestTypes": ["unit"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.unit.mjs#Mutation: SCN-028-008 evidence after the frozen cutoff is rejected from every horizon"],
+      "evidenceRefs": ["report.md#tp-01-04"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["cutoff", "late-evidence", "negative", "regression"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Production-unit assertions compare source clocks to the frozen cutoff.", "satisfiedBy": ["tests/company-intelligence-publication.unit.mjs#Mutation: SCN-028-008 evidence after the frozen cutoff is rejected from every horizon"]},
+        {"trait": "degraded-state", "requiredProof": "The refusal names source and cutoff while every horizon excludes the late input.", "satisfiedBy": ["tests/company-intelligence-publication.unit.mjs#Mutation: SCN-028-008 evidence after the frozen cutoff is rejected from every horizon"]}
+      ],
+      "implementationRefs": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Move one accepted source clock one millisecond beyond the frozen cutoff and require source-specific refusal."
+      }
+    },
+    {
+      "id": "SCN-028-009",
+      "scenarioId": "SCN-028-009",
+      "scopeRef": "Scope 01",
+      "title": "A valid authored plan survives publication",
+      "requiredTestType": "unit",
+      "requiredTestTypes": ["unit", "functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.unit.mjs#SCN-028-009 signed bounded plan is enriched from the frozen source catalogue"],
+      "evidenceRefs": ["report.md#tp-01-05"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["research-plan", "authorship", "budget", "regression"],
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Production-unit assertions validate identity, source enrichment, branch schema, and remaining budget.", "satisfiedBy": ["tests/company-intelligence-publication.unit.mjs#SCN-028-009 signed bounded plan is enriched from the frozen source catalogue"]}
+      ],
+      "implementationRefs": ["scripts/brief-author.mjs", "scripts/company-intelligence-publication.mjs", "rlcompanyintel.js"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["scripts/brief-author.mjs", "scripts/company-intelligence-publication.mjs", "rlcompanyintel.js"],
+        "negativeControl": "Alter one response fingerprint or consulted source ID and require deterministic enrichment to refuse."
+      }
+    },
+    {
+      "id": "SCN-028-010",
+      "scenarioId": "SCN-028-010",
+      "scopeRef": "Scope 01",
+      "title": "Plan validation fails closed",
+      "requiredTestType": "unit",
+      "requiredTestTypes": ["unit", "functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.unit.mjs#Mutation: SCN-028-010 malformed unsigned cross-subject late and over-budget plans fail closed"],
+      "evidenceRefs": ["report.md#tp-01-06"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["plan-refusal", "subject-isolation", "budget", "regression"],
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Production-unit assertions exercise each independent plan predicate and closed code.", "satisfiedBy": ["tests/company-intelligence-publication.unit.mjs#Mutation: SCN-028-010 malformed unsigned cross-subject late and over-budget plans fail closed"]},
+        {"trait": "degraded-state", "requiredProof": "Each invalid class refuses the candidate and brief without relabelling prior work.", "satisfiedBy": ["tests/company-intelligence-publication.unit.mjs#Mutation: SCN-028-010 malformed unsigned cross-subject late and over-budget plans fail closed"]}
+      ],
+      "implementationRefs": ["scripts/brief-author.mjs", "scripts/company-intelligence-publication.mjs", "rlcompanyintel.js"],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": ["scripts/brief-author.mjs", "scripts/company-intelligence-publication.mjs", "rlcompanyintel.js"],
+        "negativeControl": "Remove authorship, change subject, add post-cutoff evidence, omit the budget, and submit six attempts as separate mutations."
+      }
+    },
+    {
+      "id": "SCN-028-011",
+      "scenarioId": "SCN-028-011",
+      "scopeRef": "Scope 02",
+      "title": "Four daily windows do not collide",
+      "requiredTestType": "integration",
+      "requiredTestTypes": ["integration", "functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-011 same-day publication windows create distinct files in one predecessor chain"],
+      "evidenceRefs": ["report.md#tp-02-01"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["same-day", "version-identity", "immutable-history", "regression"],
+      "behaviorTraits": ["mutable-state", "dependency-path"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "Four versions are written and read back with distinct IDs and ordered predecessors.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-011 same-day publication windows create distinct files in one predecessor chain"]},
+        {"trait": "dependency-path", "requiredProof": "Real filesystem path derivation and collision checks execute for all four windows.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-011 same-day publication windows create distinct files in one predecessor chain"]}
+      ],
+      "implementationRefs": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs", "data/company-intelligence/"],
+      "invariantRefs": ["INV-RL-COMPANY-VERSIONS-IMMUTABLE"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Force two windows toward one date-only path and require collision or overwrite detection to fail the run."
+      }
+    },
+    {
+      "id": "SCN-028-012",
+      "scenarioId": "SCN-028-012",
+      "scopeRef": "Scope 04",
+      "title": "Retrying one logical generation does not fork history",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-012 identical retry resumes one remote generation and refuses divergent content"],
+      "evidenceRefs": ["report.md#tp-04-03"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["retry", "resume", "collision", "bare-remote", "regression"],
+      "behaviorTraits": ["mutable-state", "dependency-path", "degraded-state"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "The retry reads and reuses one journaled identity and one exact commit through a real remote.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-012 identical retry resumes one remote generation and refuses divergent content"]},
+        {"trait": "dependency-path", "requiredProof": "Journal, local commit, push, fetch, and remote ancestry execute on the retry path.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-012 identical retry resumes one remote generation and refuses divergent content"]},
+        {"trait": "degraded-state", "requiredProof": "Changed content at the same generation identity produces a named collision and no duplicate history.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-012 identical retry resumes one remote generation and refuses divergent content"]}
+      ],
+      "implementationRefs": ["scripts/brief-refresh-scheduled.sh", "scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs", "scripts/brief-publication.mjs"],
+      "invariantRefs": ["INV-RL-COMPANY-VERSIONS-IMMUTABLE", "INV-RL-COMPANY-BRIEF-SAME-GENERATION"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "external-live",
+        "productionOwners": ["scripts/brief-refresh-scheduled.sh", "scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Change one frozen input under the same generation key and require collision refusal with no second remote generation."
+      }
+    },
+    {
+      "id": "SCN-028-013",
+      "scenarioId": "SCN-028-013",
+      "scopeRef": "Scope 02",
+      "title": "Pointer drift breaks the candidate chain",
+      "requiredTestType": "integration",
+      "requiredTestTypes": ["integration"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.integration.mjs#Mutation: SCN-028-013 pointer drift after freeze refuses the candidate and brief"],
+      "evidenceRefs": ["report.md#tp-02-02"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["predecessor-drift", "pointer", "negative", "regression"],
+      "behaviorTraits": ["mutable-state", "degraded-state"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "A real pointer file is changed after freeze and read again before promotion.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Mutation: SCN-028-013 pointer drift after freeze refuses the candidate and brief"]},
+        {"trait": "degraded-state", "requiredProof": "The predecessor-drift refusal preserves baseline pointer and brief bytes.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Mutation: SCN-028-013 pointer drift after freeze refuses the candidate and brief"]}
+      ],
+      "implementationRefs": ["scripts/company-intelligence-publication.mjs", "scripts/brief-publication.mjs", "data/company-intelligence/"],
+      "invariantRefs": ["INV-RL-COMPANY-VERSIONS-IMMUTABLE", "INV-RL-COMPANY-BRIEF-SAME-GENERATION"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/company-intelligence-publication.mjs", "scripts/brief-publication.mjs"],
+        "negativeControl": "Advance the baseline pointer between freeze and promotion and require predecessor-drift refusal."
+      }
+    },
+    {
+      "id": "SCN-028-014",
+      "scenarioId": "SCN-028-014",
+      "scopeRef": "Scope 02",
+      "title": "Current changes only after all candidates validate",
+      "requiredTestType": "integration",
+      "requiredTestTypes": ["integration", "functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.integration.mjs#Mutation: SCN-028-014 recorder proves the coupled selector is the final write"],
+      "evidenceRefs": ["report.md#tp-02-03"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["pointer-order", "coherence", "regression"],
+      "behaviorTraits": ["mutable-state", "shared-consumer"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "A write recorder and disk reread prove immutable bytes, subject pointers, brief pointers, and selector order.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Mutation: SCN-028-014 recorder proves the coupled selector is the final write"]},
+        {"trait": "shared-consumer", "requiredProof": "Company and brief producer identities match through the coupled selector.", "satisfiedBy": ["parity:tests/company-intelligence-publication.integration.mjs#Mutation: SCN-028-014 recorder proves the coupled selector is the final write", "consumer-surface:tests/company-intelligence-publication.e2e.mjs#Regression E2E: Scope 02 production CLI promotes one coherent generation and rejects illegal phase transitions"]}
+      ],
+      "implementationRefs": ["scripts/company-intelligence-publication.mjs", "scripts/brief-publication.mjs", "data/company-intelligence/", "briefs/"],
+      "invariantRefs": ["INV-RL-COMPANY-BRIEF-SAME-GENERATION", "INV-RL-COMPANY-VERSIONS-IMMUTABLE"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/company-intelligence-publication.mjs", "scripts/brief-publication.mjs"],
+        "negativeControl": "Record every write and move the coupled selector earlier, then require the exact-order assertion to fail."
+      }
+    },
+    {
+      "id": "SCN-028-015",
+      "scenarioId": "SCN-028-015",
+      "scopeRef": "Scope 03",
+      "title": "A valid company candidate cannot escape a failed brief",
+      "requiredTestType": "integration",
+      "requiredTestTypes": ["integration", "functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-015 brief validation failure removes company candidates and restores both baselines"],
+      "evidenceRefs": ["report.md#tp-03-01"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["rollback", "brief-failure", "atomicity", "regression"],
+      "behaviorTraits": ["mutable-state", "degraded-state", "shared-consumer"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "Real candidate and publication files are compared to both captured baselines after abort.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-015 brief validation failure removes company candidates and restores both baselines"]},
+        {"trait": "degraded-state", "requiredProof": "Brief validation failure names its boundary and leaves no company candidate authority.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-015 brief validation failure removes company candidates and restores both baselines"]},
+        {"trait": "shared-consumer", "requiredProof": "Company producer and brief consumer restore one prior pair.", "satisfiedBy": ["parity:tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-015 brief validation failure removes company candidates and restores both baselines", "consumer-surface:tests/brief-refresh-atomicity.test.mjs#Regression canary: existing brief atomicity restores every prior owned path under coupled fault injection"]}
+      ],
+      "implementationRefs": ["scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs", "scripts/brief-publication.mjs"],
+      "invariantRefs": ["INV-RL-COMPANY-BRIEF-SAME-GENERATION", "INV-RL-COMPANY-VERSIONS-IMMUTABLE"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Inject final brief validation failure after company validation and require every baseline hash to match."
+      }
+    },
+    {
+      "id": "SCN-028-016",
+      "scenarioId": "SCN-028-016",
+      "scopeRef": "Scope 03",
+      "title": "A valid brief candidate cannot escape a failed company publication",
+      "requiredTestType": "integration",
+      "requiredTestTypes": ["integration", "functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-016 company validation failure with a valid brief restores both baselines"],
+      "evidenceRefs": ["report.md#tp-03-02"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["rollback", "company-failure", "atomicity", "regression"],
+      "behaviorTraits": ["mutable-state", "degraded-state", "shared-consumer"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "Real brief and company files are compared to both captured baselines after abort.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-016 company validation failure with a valid brief restores both baselines"]},
+        {"trait": "degraded-state", "requiredProof": "Company or pointer failure names its boundary and grants no brief authority.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-016 company validation failure with a valid brief restores both baselines"]},
+        {"trait": "shared-consumer", "requiredProof": "Brief producer and company consumer restore one prior pair.", "satisfiedBy": ["parity:tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-016 company validation failure with a valid brief restores both baselines", "consumer-surface:tests/brief-refresh-atomicity.test.mjs#Regression canary: existing brief atomicity restores every prior owned path under coupled fault injection"]}
+      ],
+      "implementationRefs": ["scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs", "scripts/brief-publication.mjs"],
+      "invariantRefs": ["INV-RL-COMPANY-BRIEF-SAME-GENERATION", "INV-RL-COMPANY-VERSIONS-IMMUTABLE"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Inject company version or pointer validation failure after brief validation and require every baseline hash to match."
+      }
+    },
+    {
+      "id": "SCN-028-017",
+      "scenarioId": "SCN-028-017",
+      "scopeRef": "Scope 03",
+      "title": "Covered companies publish as one set",
+      "requiredTestType": "integration",
+      "requiredTestTypes": ["integration"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.integration.mjs#Mutation: SCN-028-017 one failing subject aborts a synthetic two-subject covered set"],
+      "evidenceRefs": ["report.md#tp-03-03"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["covered-set", "atomicity", "negative", "regression"],
+      "behaviorTraits": ["mutable-state", "degraded-state"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "An isolated two-subject repository proves zero pointer and brief writes after one subject fails.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Mutation: SCN-028-017 one failing subject aborts a synthetic two-subject covered set"]},
+        {"trait": "degraded-state", "requiredProof": "The refusal names the failed test subject and preserves every baseline.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Mutation: SCN-028-017 one failing subject aborts a synthetic two-subject covered set"]}
+      ],
+      "implementationRefs": ["company-intelligence.config.json", "scripts/company-intelligence-publication.mjs", "scripts/brief-refresh-and-push.sh"],
+      "invariantRefs": ["INV-RL-COMPANY-SUBJECTS-EXPLICIT", "INV-RL-COMPANY-BRIEF-SAME-GENERATION"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["company-intelligence.config.json", "scripts/company-intelligence-publication.mjs", "scripts/brief-refresh-and-push.sh"],
+        "negativeControl": "Add a second subject only inside the isolated test policy, fail that subject, and require zero advancement."
+      }
+    },
+    {
+      "id": "SCN-028-018",
+      "scenarioId": "SCN-028-018",
+      "scopeRef": "Scope 05",
+      "title": "A failed refresh leaves an honestly dated prior read",
+      "requiredTestType": "e2e-ui",
+      "requiredTestTypes": ["e2e-ui"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-018 failed refresh keeps the dated acknowledged pair visibly authoritative"],
+      "evidenceRefs": ["report.md#tp-05-03"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["stale", "failed-attempt", "authority", "regression"],
+      "behaviorTraits": ["user-visible-ui", "degraded-state", "shared-consumer", "responsive-accessible"],
+      "obligations": [
+        {"trait": "user-visible-ui", "requiredProof": "Visible assertions distinguish the failed attempt from the dated authoritative pair.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-018 failed refresh keeps the dated acknowledged pair visibly authoritative"]},
+        {"trait": "degraded-state", "requiredProof": "The page names failure and age without assigning a current or fresh label to the prior version.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-018 failed refresh keeps the dated acknowledged pair visibly authoritative"]},
+        {"trait": "shared-consumer", "requiredProof": "Attempt and pair projections preserve the same prior authority across Company and Market Action.", "satisfiedBy": ["parity:scripts/selftest.mjs", "consumer-surface:tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-018 failed refresh keeps the dated acknowledged pair visibly authoritative"]},
+        {"trait": "responsive-accessible", "requiredProof": "State words, reasons, clocks, and focus order remain available at required viewports and zoom.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: acknowledged pair attempt state deep links accessibility and responsive behavior preserve existing route semantics"]}
+      ],
+      "implementationRefs": ["data/company-intelligence/publication-current.js", "company-intelligence-lab.html", "rlbrief.js", "market-brief.html"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": ["data/company-intelligence/publication-current.js", "company-intelligence-lab.html", "rlbrief.js"],
+        "negativeControl": "Relabel the prior version as fresh or merge the failure into pair state and require visible authority assertions to fail."
+      }
+    },
+    {
+      "id": "SCN-028-019",
+      "scenarioId": "SCN-028-019",
+      "scopeRef": "Scope 04",
+      "title": "The source set cannot change or become cyclic during a generation",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.functional.mjs#Mutation: SCN-028-019 registry order fingerprint participant and dependency cycle drift each abort publication"],
+      "evidenceRefs": ["report.md#tp-04-04"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["registry-drift", "source-cycle", "negative", "regression"],
+      "behaviorTraits": ["degraded-state", "shared-consumer", "runtime-config"],
+      "obligations": [
+        {"trait": "degraded-state", "requiredProof": "Each drift and cycle mutation produces its named refusal and zero authority change.", "satisfiedBy": ["tests/company-intelligence-publication.functional.mjs#Mutation: SCN-028-019 registry order fingerprint participant and dependency cycle drift each abort publication"]},
+        {"trait": "shared-consumer", "requiredProof": "Frozen source producer order and final bundle consumer order remain identical.", "satisfiedBy": ["parity:tests/company-intelligence-publication.functional.mjs#Mutation: SCN-028-019 registry order fingerprint participant and dependency cycle drift each abort publication", "consumer-surface:tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-003 scheduled publication commits one MSFT version and its consuming brief"]},
+        {"trait": "runtime-config", "requiredProof": "The production freeze and final validation execute registry identity, owner, order, count, and cycle rules.", "satisfiedBy": ["tests/company-intelligence-publication.functional.mjs#Mutation: SCN-028-019 registry order fingerprint participant and dependency cycle drift each abort publication"]}
+      ],
+      "implementationRefs": ["tools.json", "rlcontracts.js", "scripts/company-intelligence-publication.mjs", "scripts/brief-distributed-publish.mjs"],
+      "invariantRefs": ["INV-RL-COMPANY-OWNER-READ-REAL", "INV-RL-COMPANY-BRIEF-SAME-GENERATION"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": ["tools.json", "rlcontracts.js", "scripts/company-intelligence-publication.mjs", "scripts/brief-distributed-publish.mjs"],
+        "negativeControl": "Reorder, add, remove, fingerprint-mutate, self-reference, and final-brief-reference the frozen source set in separate controls."
+      }
+    },
+    {
+      "id": "SCN-028-020",
+      "scenarioId": "SCN-028-020",
+      "scopeRef": "Scope 05",
+      "title": "Public delivery needs no private state or infrastructure",
+      "requiredTestType": "e2e-ui",
+      "requiredTestTypes": ["e2e-ui", "functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-020 file origin paints the committed pair before reconciliation and exposes no private state"],
+      "evidenceRefs": ["report.md#tp-05-04"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["file-mode", "first-paint", "privacy", "regression"],
+      "behaviorTraits": ["user-visible-ui", "degraded-state", "dependency-path", "responsive-accessible"],
+      "obligations": [
+        {"trait": "user-visible-ui", "requiredProof": "Visible committed pair and four-horizon assertions execute on the production route under file origin.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-020 file origin paints the committed pair before reconciliation and exposes no private state"]},
+        {"trait": "degraded-state", "requiredProof": "Live reconciliation is named unavailable while committed content remains visible and honest.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-020 file origin paints the committed pair before reconciliation and exposes no private state"]},
+        {"trait": "dependency-path", "requiredProof": "A real browser file origin proves committed cache consumption with every live request held.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: SCN-028-020 file origin paints the committed pair before reconciliation and exposes no private state", "cache-case:fresh-no-fetch", "cache-case:missing-honestly-unavailable"]},
+        {"trait": "responsive-accessible", "requiredProof": "Committed content, state words, links, and provenance remain operable at narrow width and zoom.", "satisfiedBy": ["tests/company-intelligence-publication.spec.mjs#Regression: acknowledged pair attempt state deep links accessibility and responsive behavior preserve existing route semantics"]}
+      ],
+      "implementationRefs": ["company-intelligence-lab.html", "data/company-intelligence/publication-current.js", "rlnav.js", "site-exclusions.json", "scripts/build-pages-site.mjs"],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "cache-only",
+        "productionOwners": ["company-intelligence-lab.html", "data/company-intelligence/publication-current.js", "rlnav.js"],
+        "negativeControl": "Hold every fetch open, remove the committed projection, or inject a private field and require first-paint or privacy assertions to fail."
+      }
+    },
+    {
+      "id": "SCN-028-021",
+      "scenarioId": "SCN-028-021",
+      "scopeRef": "Scope 02",
+      "title": "Unchanged is an explicit new version",
+      "requiredTestType": "integration",
+      "requiredTestTypes": ["integration"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-021 unchanged horizon directions still append a distinct immutable version"],
+      "evidenceRefs": ["report.md#tp-02-04"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["unchanged", "append-only", "lineage", "regression"],
+      "behaviorTraits": ["mutable-state", "pure-calculation"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "The new version and predecessor are written and read back while predecessor bytes remain unchanged.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-021 unchanged horizon directions still append a distinct immutable version"]},
+        {"trait": "pure-calculation", "requiredProof": "Production comparison classifies equal four-horizon directions as unchanged without suppressing the version.", "satisfiedBy": ["tests/company-intelligence-publication.integration.mjs#Regression: SCN-028-021 unchanged horizon directions still append a distinct immutable version"]}
+      ],
+      "implementationRefs": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs", "data/company-intelligence/"],
+      "invariantRefs": ["INV-RL-COMPANY-VERSIONS-IMMUTABLE"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": ["rlcompanyintel.js", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Suppress the unchanged version or mutate predecessor bytes and require lineage assertions to fail."
+      }
+    },
+    {
+      "id": "SCN-028-022",
+      "scenarioId": "SCN-028-022",
+      "scopeRef": "Scope 03",
+      "title": "Dry-run inspection is non-authoritative",
+      "requiredTestType": "functional",
+      "requiredTestTypes": ["functional"],
+      "regressionRequired": true,
+      "linkedTests": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical"],
+      "evidenceRefs": ["report.md#tp-03-04"],
+      "lockdown": {"state": "unlocked"},
+      "tags": ["dry-run", "byte-identity", "bare-remote", "regression"],
+      "behaviorTraits": ["mutable-state", "degraded-state", "dependency-path"],
+      "obligations": [
+        {"trait": "mutable-state", "requiredProof": "Before-and-after hashes cover worktree, index, pointers, artifacts, journal cleanup, and remote refs.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical"]},
+        {"trait": "degraded-state", "requiredProof": "The dry-run outcome is explicitly non-authoritative and creates no public history row.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical"]},
+        {"trait": "dependency-path", "requiredProof": "The production CLI reaches coherence against real Git and a bare remote without publishing.", "satisfiedBy": ["tests/company-intelligence-publication.e2e.mjs#Regression E2E: SCN-028-022 dry run reaches coherence and leaves repository index pointers artifacts and remote byte-identical"]}
+      ],
+      "implementationRefs": ["scripts/brief-refresh-scheduled.sh", "scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs", "scripts/brief-publication.mjs"],
+      "invariantRefs": ["INV-RL-COMPANY-BRIEF-SAME-GENERATION", "INV-RL-COMPANY-VERSIONS-IMMUTABLE"],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "external-live",
+        "productionOwners": ["scripts/brief-refresh-scheduled.sh", "scripts/brief-refresh-and-push.sh", "scripts/company-intelligence-publication.mjs"],
+        "negativeControl": "Permit any index, pointer, artifact, public receipt, commit, or remote ref mutation and require byte-identity assertions to fail."
+      }
+    }
+  ]
+}

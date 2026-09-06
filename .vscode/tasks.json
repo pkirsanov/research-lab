@@ -1,0 +1,24 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Feature 028 Scope 05 focused browser diagnosis",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"--no-install",
+				"playwright",
+				"test",
+				"tests/company-intelligence-publication.spec.mjs",
+				"--config=playwright.config.mjs",
+				"--project=system-chrome",
+				"--grep",
+				"Regression: acknowledged pair attempt state deep links accessibility and responsive behavior preserve existing route semantics",
+				"--reporter=list"
+			],
+			"isBackground": false,
+			"problemMatcher": [],
+			"group": "test"
+		}
+	]
+}

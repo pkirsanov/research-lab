@@ -2819,6 +2819,125 @@
     },
     {
       "contractVersion": "simple-model-definition/v1",
+      "definitionId": "simple-model/company-multi-horizon/v1",
+      "toolId": "company-intelligence-lab",
+      "modelId": "company-multi-horizon",
+      "modelVersion": "v1",
+      "researchQuestion": "Inspect one acknowledged company publication across four peer horizons without recomputing owner math",
+      "resultSchemaId": "simple-model-output/generic-scenario/v1",
+      "adapterId": "simple-adapter/company-multi-horizon/v1",
+      "adapterModule": "rlexperience-adapters/company-intelligence.js",
+      "inputRequirements": [
+        {
+          "requirementId": "owner-evidence",
+          "sourceClass": "owner-evidence",
+          "required": true,
+          "stalePolicy": "label"
+        }
+      ],
+      "parameterDefinitions": [
+        {
+          "parameterId": "version-view",
+          "label": "Version view",
+          "kind": "enum",
+          "unit": "version",
+          "domain": {
+            "options": [
+              {
+                "value": "current",
+                "label": "Current acknowledged version"
+              },
+              {
+                "value": "predecessor",
+                "label": "Acknowledged predecessor"
+              }
+            ]
+          },
+          "defaultValue": "current",
+          "defaultSource": "registry",
+          "interpretation": "Selects the current acknowledged version or its immutable predecessor without changing publication authority.",
+          "affectsOutputPaths": [
+            "summary.version"
+          ],
+          "disabledWhen": [],
+          "identityBearing": true
+        },
+        {
+          "parameterId": "horizon-order",
+          "label": "Horizon order",
+          "kind": "enum",
+          "unit": "order",
+          "domain": {
+            "options": [
+              {
+                "value": "time-order",
+                "label": "Time order"
+              },
+              {
+                "value": "evidence-gaps-first",
+                "label": "Evidence gaps first"
+              }
+            ]
+          },
+          "defaultValue": "time-order",
+          "defaultSource": "registry",
+          "interpretation": "Reorders all four peer horizon cards while preserving every horizon and its source-qualified state.",
+          "affectsOutputPaths": [
+            "summary.horizons"
+          ],
+          "disabledWhen": [],
+          "identityBearing": true
+        }
+      ],
+      "scenarioDefinitions": [
+        {
+          "scenarioId": "baseline",
+          "label": "Acknowledged publication",
+          "parameterOverrides": {}
+        }
+      ],
+      "seedPolicy": {
+        "required": false,
+        "defaultSeed": null,
+        "defaultSource": null,
+        "randomnessClass": "none",
+        "commonRandomNumbersForSensitivity": false
+      },
+      "sensitivityPolicy": {
+        "method": "one-at-a-time",
+        "requireOutputEffect": true,
+        "flatRegionPolicy": "explicit-proof"
+      },
+      "calibrationPolicy": {
+        "class": "owner-evidence-relative",
+        "requiredFields": [
+          "state",
+          "reason"
+        ]
+      },
+      "provenancePolicy": {
+        "allowedClasses": [
+          "observed-fact",
+          "model-estimate",
+          "unavailable"
+        ],
+        "requireEvidenceCutoff": true
+      },
+      "performancePolicy": {
+        "maxComputeMs": 250,
+        "deterministic": true
+      },
+      "limitations": [
+        "This projection reads acknowledged publication bytes only, preserves all four horizons, and grants no recommendation or execution authority."
+      ],
+      "deepLinkTargets": {
+        "power": "company-intelligence-lab.html#power/outcome-record",
+        "journey": "company-intelligence-lab.html#journey"
+      },
+      "definitionFingerprint": null
+    },
+    {
+      "contractVersion": "simple-model-definition/v1",
       "definitionId": "simple-model/etf-ranking/v1",
       "toolId": "etf-momentum-lab",
       "modelId": "etf-ranking",

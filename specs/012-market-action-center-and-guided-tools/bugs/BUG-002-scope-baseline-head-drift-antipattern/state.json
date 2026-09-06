@@ -3,10 +3,10 @@
   "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern",
   "featureName": "BUG-002 Feature 012 Test-Infra Moving-HEAD Baseline-Authority Drift",
   "createdAt": "2026-07-24T17:19:28Z",
-  "lastUpdatedAt": "2026-07-24T17:19:28Z",
+  "lastUpdatedAt": "2026-09-02T06:53:58Z",
   "completedAt": null,
   "certifiedAt": null,
-  "status": "not_started",
+  "status": "in_progress",
   "workflowMode": "bugfix-fastlane",
   "linkedImplementationSpec": "specs/012-market-action-center-and-guided-tools",
   "requiresRevalidation": false,
@@ -14,25 +14,124 @@
   "completedScopes": [],
   "completedPhases": [],
   "execution": {
-    "activeAgent": "bubbles.bug",
-    "currentPhase": "bug-discovery",
-    "currentPhaseStatus": "route_required",
-    "substate": "discovery_root_cause_routed",
-    "currentScope": null,
-    "runStartedAt": "2026-07-24T17:19:28Z",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
+    "currentPhaseStatus": "completed",
+    "currentScope": "SCOPE-02",
+    "runStartedAt": "2026-09-02T02:16:43Z",
     "completedAt": null,
-    "executionModel": "dispatched-single-phase",
-    "parentAgent": "bubbles.goal",
-    "nextRequiredOwner": "bubbles.plan",
-    "nextRequiredTarget": "Adopt or amend the routed remediation design under a PARENT Feature 012 run (bubbles.plan / bubbles.design own scopes.md / design.md structure per G042). The systemic defect: multiple Feature 012 functional tests reconstruct a legacy/pre-scope baseline via `baselineBytes(path) = git show HEAD:<path>`, using the MOVING HEAD; once Feature 012 bytes land on HEAD the baseline silently becomes modern and the compatibility/rollback assertions rot. Verified on HEAD f1b5f633: (1) tests/tool-experience-shell.functional.mjs SCN-012-031 is ALREADY FIXED (pinned 767732db + MODERN_SHELL_MARKER + LEGACY_BASELINE_SHA256 guards) and GREEN 3/3 — the REFERENCE shape, preserve byte-for-byte; (2) tests/contextual-tooltip.functional.mjs SCN-012-003 is RED 8/9 (not ok 8, doesNotMatch at verifyLegacyCanaryPages:265) — DESIGN-INTENT-GATED: market-heatmap-lab.html decorator refs went 0@767732db -> 2@HEAD (rlexperience.js/rlcontext.js added at c81d808d), so the negative assertion encodes a pre-decorator expectation Feature 012 may have intentionally changed; the OWNER must confirm intended decorator behavior BEFORE the assertion is changed (guessing green could mask a real regression); (3) tests/tool-experience-registry.functional.mjs SCN-012-033 is RED 4/7 (experience is the only tools.json addition + rolled-back registry must be semantically equal to HEAD) — pure baseline-repin (both sites source baseline from HEAD:tools.json); (4) tests/brief-refresh-atomicity.support.mjs is CLEARED (env-gated BUG002_WRAPPER_SOURCE current-wrapper read, not a frozen legacy baseline). Remediation: replace every moving-HEAD baseline with a stable HEAD-independent authority (committed sha256-provenanced fixture PREFERRED for durability, or immutable pinned pre-feature commit) with fail-loud sha256 + semantic-marker guards; weaken/skip/delete NO assertion; change NO product code. Scope 2 (SCN-012-003) is BLOCKED on operator design-intent confirmation. This packet is discovery/routing only; do not modify certification.",
-    "completedPhaseClaims": [],
-    "pendingTransitionRequests": ["TR-BUG002-ROUTE-TO-PLAN"],
+    "executionModel": "scoped-scenario-node",
+    "parentAgent": "bubbles.workflow",
+    "nextRequiredOwner": "bubbles.validate",
+    "nextRequiredTarget": "Validate the independently verified Scope 02 nine-row test matrix and revision-7 Build Quality reconciliation without inferring human acceptance or altering certification beyond validate-owned conclusions.",
+    "substate": "independently_verified",
+    "currentEvidenceRef": "report.md#scope-02-revision-7-build-quality-reconciliation",
+    "planningHandoff": {
+      "routedFinding": "F-BUG002-008",
+      "scopeId": "SCOPE-02",
+      "status": "design_reconciliation_required",
+      "targetTest": "tests/contextual-tooltip.functional.mjs",
+      "fixtureRoot": "tests/fixtures/feature-012/contextual-tooltip-pre-scope03",
+      "authoritySource": "b533b972a473ffca9252362ecc5d73de52423da9",
+      "requiredFirstAction": "bubbles.design records the exact eleven-path governed inventory, eight-path mutation boundary, and three negative controls without changing the legacy-authority or behavioral design.",
+      "requiredSecondAction": "bubbles.test adds the F-BUG002-008 control, records RED, replaces only the two root inventory oracles and rollback mutation plumbing, and runs all nine planned rows.",
+      "forbiddenChanges": [
+        "product HTML or rl*.js bytes",
+        "company:msft or immutable publication artifacts",
+        "Feature 017, Feature 019, or Feature 028 artifacts",
+        "human acceptance"
+      ],
+      "planningArtifacts": [
+        "scopes.md",
+        "scenario-manifest.json",
+        "test-plan.json"
+      ]
+    },
+    "testHandoff": {
+      "validatedPacketRevision": 7,
+      "scenarioNode": "company-close-feature-028",
+      "scopeId": "SCOPE-02",
+      "outcome": "route_required",
+      "governedEpoch": "sha256:24bbfc710e87a6718967f795eb15b9540165299232807dca93e2241cff0c7d33",
+      "governedPathCount": 11,
+      "satisfiedRows": [
+        "TP-BUG002-RED-01",
+        "TP-BUG002-RED-02",
+        "TP-BUG002-F01",
+        "TP-BUG002-F02",
+        "TP-BUG002-F03",
+        "TP-BUG002-F04",
+        "TP-BUG002-E01",
+        "TP-BUG002-Q01",
+        "TP-BUG002-C01"
+      ],
+      "receiptStdoutHashes": {
+        "TP-BUG002-RED-01": "79d78c698b9517c1bc55830d9e457f15ca3464257e54cccb07321206c75e2252",
+        "TP-BUG002-RED-02": "d6defdc0d57d01c7f6fa38cdffa329ea046806e1529735cb7eeeed642208d182",
+        "TP-BUG002-F01": "6ba4a4d39d23d9e4bfd8f3d51d31408b65845acbe944ebd08d796a1104ac9dd8",
+        "TP-BUG002-F02": "2d1e5cf1ee134a43493e123cb118627de60c006e415dc2df65d6557eabc63511",
+        "TP-BUG002-F03": "c2e9ee85473a5abf094a842811c73b7fedba389a407c0f23627975b5b0241bd1",
+        "TP-BUG002-F04": "78f4e89f958d157aa33cbe480e8e74965f8a835f0c063b519d2f596fb054a00b",
+        "TP-BUG002-E01": "bf31cf4dcfa0764b42b9f7764f923fb9e4514914b15de1a4b21593d34f57b16e",
+        "TP-BUG002-Q01": "043377dd2a8b46e631bba0f8606d62fc31269464451422d9f9e07f470d4744db",
+        "TP-BUG002-C01": "fd43f3c945e8782160da2eeb2ec0c010614ee94e977f881ea461436861f89dbd",
+        "epochEnd": "f6d9adc3dd463add66bb38bce34b68b97e61c5db6360462899b69a65f86ab03c",
+        "buildQuality": "a85b91bd17c19ef71e41d46b3918423453bddfadabe2cc25bf401e9160a4d982"
+      },
+      "receiptStderrHash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "inputClosureCount": 11,
+      "inputClosuresByteIdentical": true,
+      "epochStable": true,
+      "buildQualityReceiptRow": 214,
+      "buildQualityInputClosureCount": 9,
+      "buildQualityInputClosureByteIdentical": true,
+      "buildQualityIdentityVerifiedAt": "2026-09-02T06:30:22Z",
+      "dodCounts": {
+        "checked": 18,
+        "unchecked": 0,
+        "total": 18
+      },
+      "unresolvedFindings": [],
+      "nextRequiredOwner": "bubbles.validate",
+      "certificationClaimed": false,
+      "humanAcceptanceModified": false,
+      "completionClaimed": false
+    },
+    "designHandoff": {
+      "validatedPacketRevision": 6,
+      "scenarioNode": "company-close-feature-028",
+      "findingId": "F-BUG002-008",
+      "scopeId": "SCOPE-02",
+      "outcome": "route_required",
+      "adoptedContractRef": "design.md#f-bug002-008-scoped-rollback-isolation-contract",
+      "governedPathCount": 11,
+      "rollbackMutationPathCount": 8,
+      "exactRedTitle": "Regression: F-BUG002-008 scoped rollback oracle catches governed mutation and ignores unrelated concurrent files",
+      "nextRequiredOwner": "bubbles.test",
+      "completionClaimed": false
+    },
+    "completedPhaseClaims": [
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimedAt": "2026-09-02T06:30:22Z",
+        "evidenceRef": "report.md#scope-02-revision-7-build-quality-reconciliation",
+        "scopes": [
+          "SCOPE-02"
+        ],
+        "summary": "All nine planned test obligations and the Build Quality gate are independently verified on byte-identical receipt inputs; certification and human acceptance remain validate-owned and unchanged."
+      }
+    ],
+    "pendingTransitionRequests": [
+      "TR-BUG002-F008-ROUTE-TO-TEST"
+    ],
     "scopeInventory": [
       {
         "scope": 1,
         "scopeId": "SCOPE-01",
         "name": "Repin the registry rollback baseline off moving HEAD (pure baseline-repin)",
         "status": "not_started",
+        "activeInCurrentRoute": false,
         "dependsOn": [],
         "foundation": false,
         "capabilityRole": "test-infra-baseline-repin",
@@ -42,12 +141,15 @@
       {
         "scope": 2,
         "scopeId": "SCOPE-02",
-        "name": "Reconcile + repin the Scope 03 decorator legacy-canary (DESIGN-INTENT-GATED)",
-        "status": "not_started",
-        "dependsOn": ["SCOPE-01"],
+        "name": "Complete fixture-backed Scope 03 rollback with a scoped isolation oracle",
+        "status": "in_progress",
+        "activeInCurrentRoute": true,
+        "dependsOn": [
+          "Feature-012/Scope-03"
+        ],
         "foundation": false,
-        "capabilityRole": "test-infra-baseline-repin-owner-gated",
-        "class": "design-intent-gated",
+        "capabilityRole": "test-infra-fixture-authority-repair",
+        "class": "test-infrastructure-repair",
         "evidenceFile": "report.md"
       }
     ],
@@ -56,50 +158,33 @@
       "runId": null,
       "currentAttemptId": null,
       "attempts": []
+    },
+    "goalContractRef": {
+      "goalId": "gc:vscode-1f5b7362918071b6b2de16fb3709dfae:7",
+      "revision": 7,
+      "sourceRequestDigest": "sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f"
     }
   },
   "certification": {
-    "status": "not_started",
+    "status": "in_progress",
     "completedAt": null,
     "certifiedAt": null,
     "completedScopes": [],
     "certifiedCompletedPhases": [],
     "scopeProgress": [
       {
-        "scope": 1,
-        "scopeId": "SCOPE-01",
-        "name": "Repin the registry rollback baseline off moving HEAD (pure baseline-repin)",
-        "status": "not_started",
-        "dependsOn": [],
-        "scopeDir": null,
-        "evidenceFile": "report.md",
-        "certifiedAt": null
-      },
-      {
         "scope": 2,
         "scopeId": "SCOPE-02",
-        "name": "Reconcile + repin the Scope 03 decorator legacy-canary (DESIGN-INTENT-GATED)",
-        "status": "not_started",
-        "dependsOn": ["SCOPE-01"],
+        "name": "Complete fixture-backed Scope 03 rollback with a scoped isolation oracle",
+        "status": "in_progress",
+        "dependsOn": [
+          "Feature-012/Scope-03"
+        ],
         "scopeDir": null,
         "evidenceFile": "report.md",
         "certifiedAt": null
       }
     ],
-    "assurance": {
-      "level": "none",
-      "missingForFull": [
-        "design owner adoption (parent Feature 012)",
-        "plan owner adoption (parent Feature 012)",
-        "operator design-intent confirmation for SCN-012-003 decorators",
-        "persistent pre-fix adversarial RED under owned run",
-        "implementation",
-        "post-fix verification",
-        "bugfix-fastlane specialist phases",
-        "independent audit",
-        "validate-owned transition"
-      ]
-    },
     "lockdownState": {
       "active": false,
       "lockedScenarioIds": []
@@ -107,12 +192,30 @@
   },
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
-    "grill": { "mode": "off", "source": "repo-default" },
-    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
-    "autoCommit": { "mode": "off", "source": "repo-default" },
-    "lockdown": { "mode": "off", "source": "repo-default" },
-    "regression": { "mode": "protected-scenarios", "source": "repo-default" },
-    "validation": { "mode": "certification-required", "source": "repo-default" }
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
   },
   "findingsLedger": [
     {
@@ -150,6 +253,15 @@
       "state": "CLEARED",
       "disposition": "no-action",
       "detail": "git show HEAD:scripts/brief-refresh-and-push.sh is behind env gate BUG002_WRAPPER_SOURCE === 'HEAD'; default path copies the working-tree wrapper. Seeds a fixture repo with the CURRENT wrapper for a brief-refresh atomicity test; not a frozen legacy-baseline authority. Not the drift anti-pattern; no change required."
+    },
+    {
+      "findingId": "F-BUG002-008",
+      "site": "tests/contextual-tooltip.functional.mjs",
+      "scenario": "SCN-012-003",
+      "class": "whole-worktree-concurrency-unsafety",
+      "state": "DESIGN_ADOPTED_TEST_OPEN",
+      "disposition": "route-test-implementation",
+      "detail": "The design now adopts the exact eleven governed paths, derived eight-path rollback mutation subset, path-named governed-byte failure, pre-write boundary rejection, unrelated-file tolerance, actual write-set check, and exact RED-02 title. bubbles.test must add and execute RED-02 before changing only tests/contextual-tooltip.functional.mjs, then run all nine planned rows. No RED, implementation, post-fix pass, delivery, certification, or human acceptance is claimed."
     }
   ],
   "transitionRequests": [
@@ -160,18 +272,80 @@
       "routedTo": "bubbles.plan",
       "requestedAt": "2026-07-24T17:19:28Z",
       "reason": "Adopt or amend the routed durable remediation (stable HEAD-independent baseline authorities + fail-loud sha256/marker guards; fixture-preferred) under a PARENT Feature 012 run, and reconcile the plan-owned scope/DoD structure (G042). Preserve the SCN-012-031 reference fix; weaken no assertion; change no product code. SCOPE-02 (SCN-012-003) is BLOCKED on an operator design-intent confirmation of whether market-heatmap-lab.html is intended to carry rlexperience.js/rlcontext.js now.",
-      "scenarioIds": ["SCN-012-003", "SCN-012-033"],
-      "findingIds": ["F-BUG002-002", "F-BUG002-003"],
-      "evidenceRefs": ["bug.md#blast-radius-verified-read-only-on-head-f1b5f633", "design.md#remediation-design-routed-not-implemented-here", "report.md#findings-ledger-one-per-affected-test-site"],
+      "scenarioIds": [
+        "SCN-012-003",
+        "SCN-012-033"
+      ],
+      "resolvedScenarioIds": [
+        "SCN-012-003"
+      ],
+      "remainingScenarioIds": [
+        "SCN-012-033"
+      ],
+      "findingIds": [
+        "F-BUG002-002",
+        "F-BUG002-003"
+      ],
+      "evidenceRefs": [
+        "bug.md#blast-radius-verified-read-only-on-head-f1b5f633",
+        "design.md#remediation-design-routed-not-implemented-here",
+        "report.md#findings-ledger-one-per-affected-test-site"
+      ],
       "resolvedAt": null,
       "resolvedBy": null,
       "resolutionSummary": null,
       "ownerGate": {
-        "gated": true,
+        "gated": false,
         "gatedScenario": "SCN-012-003",
         "question": "Is market-heatmap-lab.html intended to carry rlexperience.js / rlcontext.js decorator refs now (0 at 767732db, 2 at HEAD, added at c81d808d)?",
-        "owner": "parent Feature 012 maintainer (operator)"
+        "owner": "parent Feature 012 Scope 03 planning authority",
+        "resolvedAt": "2026-09-01T21:03:31Z",
+        "resolvedBy": "bubbles.plan",
+        "resolution": "The owning Scope 03 contract requires the modern canary pages to carry shared decorator wiring. The legacy rehearsal stays decorator-free. Both existing assertion directions remain unchanged."
       }
+    },
+    {
+      "id": "TR-BUG002-F008-ROUTE-TO-DESIGN",
+      "status": "resolved",
+      "requestedBy": "bubbles.plan",
+      "routedTo": "bubbles.design",
+      "requestedAt": "2026-09-01T23:36:25Z",
+      "reason": "Adopt only the F-BUG002-008 scoped rollback-isolation design. Record the exact eleven governed paths, exact eight mutation paths, path-named governed mutation failure, pre-write rejection outside the mutation boundary, unrelated sandbox-file tolerance, and actual write-set proof. Preserve every legacy-authority and behavioral design assertion.",
+      "scenarioIds": [
+        "SCN-BUG002-003"
+      ],
+      "findingIds": [
+        "F-BUG002-008"
+      ],
+      "evidenceRefs": [
+        "scopes.md#closed-governed-path-inventory",
+        "scopes.md#mutation-and-concurrency-controls",
+        "scenario-manifest.json",
+        "test-plan.json"
+      ],
+      "resolvedAt": "2026-09-02T01:52:55Z",
+      "resolvedBy": "bubbles.design",
+      "resolutionSummary": "design.md now defines the exact F-BUG002-008 scoped rollback-isolation contract and preserves the existing legacy and restored-current assertions."
+    },
+    {
+      "id": "TR-BUG002-F008-ROUTE-TO-TEST",
+      "status": "open",
+      "requestedBy": "bubbles.design",
+      "routedTo": "bubbles.test",
+      "requestedAt": "2026-09-02T01:52:55Z",
+      "reason": "Add the exact planned RED-02 regression, record its real RED result, implement only the scoped oracle and rollback mutation plumbing in tests/contextual-tooltip.functional.mjs, then execute all nine planned rows.",
+      "scenarioIds": [
+        "SCN-BUG002-003"
+      ],
+      "findingIds": [
+        "F-BUG002-008"
+      ],
+      "evidenceRefs": [
+        "design.md#f-bug002-008-scoped-rollback-isolation-contract",
+        "scopes.md#closed-governed-path-inventory",
+        "scopes.md#test-plan",
+        "test-plan.json"
+      ]
     }
   ],
   "reworkQueue": [],
@@ -185,7 +359,9 @@
       "completedAt": "2026-07-24T17:19:28Z",
       "statusBefore": "not_started",
       "statusAfter": "not_started",
-      "phasesExecuted": ["bug-discovery"],
+      "phasesExecuted": [
+        "bug-discovery"
+      ],
       "scopesCompleted": [],
       "outcome": "completed_owned",
       "addressedFindings": [
@@ -204,6 +380,193 @@
       ],
       "nextRequiredOwner": "bubbles.plan",
       "summary": "Created the first-class Feature 012 child bug packet BUG-002 for the systemic moving-HEAD baseline-authority drift. Reproduced the class read-only on HEAD f1b5f633: confirmed the git show HEAD: / baselineBytes blast radius across four files; verified market-heatmap-lab.html decorator refs 0@767732db -> 2@HEAD (added c81d808d); ran node --test to classify SCN-012-003 RED 8/9 (design-intent-gated), SCN-012-033 RED 4/7 (baseline-repin), SCN-012-031 GREEN 3/3 (already-fixed reference), and cleared brief-refresh-atomicity as env-gated/unrelated. Designed the durable fixture-preferred remediation with fail-loud sha256/marker guards, flagged SCN-012-003 as OWNER-GATED on decorator design intent, and routed to bubbles.plan/bubbles.design under a parent Feature 012 run. Touched ONLY the new bug folder; no test/product/parent-state files; no git mutation."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "scoped-scenario-node",
+      "parentAgent": "bubbles.workflow",
+      "startedAt": "2026-09-01T21:03:31Z",
+      "completedAt": "2026-09-01T21:03:31Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "planning"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "T028-S05-XF012-001-PLANNING",
+        "F-BUG002-002-OWNER-INTENT",
+        "F-BUG002-002-AUTHORITY-DESIGN"
+      ],
+      "unresolvedFindings": [
+        "T028-S05-XF012-001-IMPLEMENTATION"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Reconciled only the first routed TP-05-08 blocker. The owning Scope 03 contract resolves the decorator intent: legacy fixture pages omit decorators and restored current pages retain them. Planned a committed seven-file manifest-backed fixture because the stale pin contains none of the required paths in current history. Added structured scenario and test handoffs. No product, publication, Feature 017, Feature 019, Feature 028, certification, or human-acceptance change was authorized or made."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "scoped-scenario-node",
+      "parentAgent": "bubbles.workflow",
+      "startedAt": "2026-09-01T23:15:07Z",
+      "completedAt": "2026-09-01T23:22:09Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "TP-BUG002-F01-INDEPENDENT-GREEN",
+        "TP-BUG002-F02-INDEPENDENT-GREEN",
+        "BUG002-ARTIFACT-TRACEABILITY-CLEAN",
+        "BUG002-PRESERVATION-BOUNDARY-CLEAN",
+        "BUG002-REGRESSION-QUALITY-CLEAN"
+      ],
+      "unresolvedFindings": [
+        "F-BUG002-008"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Validated the company-close-feature-028 revision-5 packet without preflight. Independently reran exact F01 and full-title F02 on byte-identical 31-file input closures at source revision f19f9c34780f25935101e604dbc50a83213e9e4f; both passed with zero skips. Artifact, scenario-obligation, linked-test, test-mechanism, traceability, reference, prose, execution-substate, regression-quality, skip-marker, and live-test mock checks passed. Feature 017, Feature 019, Feature 028, product, company publication, human-acceptance, and test-source aggregate identities remained byte-identical. Executable proof showed both tests still hash the whole worktree: 18,783 current files, 18,772 outside the 11 Scope 03 paths, with no scoped oracle. Scope 02 remains in progress and needs reverification after bubbles.plan authorizes the focused F-BUG002-008 repair. No completion or certification is claimed."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "scoped-scenario-node",
+      "parentAgent": "bubbles.workflow",
+      "startedAt": "2026-09-01T23:34:03Z",
+      "completedAt": "2026-09-01T23:36:25Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "planning"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F-BUG002-008-PLANNING-CONTRACT"
+      ],
+      "unresolvedFindings": [
+        "F-BUG002-008-DESIGN-ADOPTION",
+        "F-BUG002-008-TEST-IMPLEMENTATION"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "summary": "Validated the company-close-feature-028 revision-5 packet without preflight. Reconciled only F-BUG002-008 in plan-owned artifacts. Defined the exact eleven governed paths, derived eight-path rollback mutation subset, governed-byte failure, pre-write boundary rejection, unrelated-file tolerance, actual write-set proof, dedicated RED then GREEN regression, nine-row Test Plan, and matching DoD. Preserved both exact SCN-012-003 titles and all behavioral assertions. design.md remained unchanged under exclusive bubbles.design ownership. No test implementation, product, fixture, publication, Feature 017, Feature 019, Feature 028, acceptance, status, or certification change is claimed."
+    },
+    {
+      "agent": "bubbles.design",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "scoped-scenario-node",
+      "parentAgent": "bubbles.workflow",
+      "startedAt": "2026-09-02T01:52:55Z",
+      "completedAt": "2026-09-02T01:52:55Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F-BUG002-008-DESIGN-ADOPTION"
+      ],
+      "unresolvedFindings": [
+        "F-BUG002-008-TEST-IMPLEMENTATION"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Validated the company-close-feature-028 revision-6 packet without preflight. Reconciled only the design-owned F-BUG002-008 prerequisite. design.md now defines the exact eleven governed paths, derived eight-path mutation boundary, required helpers, governed-byte failure, pre-write rejection, unrelated-file tolerance, actual write-set proof, and exact RED-02 title. No source, test, fixture, plan, report, DoD, product, publication, acceptance, lifecycle status, or certification claim changed."
     }
-  ]
+  ],
+  "workBoundary": {
+    "repositoryRoots": [
+      "research-lab"
+    ],
+    "crossRepoPolicy": "forbidden",
+    "specTargets": [
+      "specs/028-company-intelligence-publication-and-brief-transaction",
+      "specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern"
+    ],
+    "allowedPaths": [
+      "specs/028-company-intelligence-publication-and-brief-transaction/**",
+      "company-intelligence-lab.html",
+      "rlcompanyintel.js",
+      "rldata.js",
+      "rlcontracts.js",
+      "rlnav.js",
+      "rlbrief.js",
+      "market-brief.html",
+      "company-intelligence.config.json",
+      "site-exclusions.json",
+      "tools.json",
+      "simple-models.json",
+      "journeys.json",
+      "tool-experience.config.json",
+      "index.html",
+      "README.md",
+      "notes/README.md",
+      "notes/company-intelligence-lab.md",
+      "config/domain-model.yaml",
+      "rlexperience-adapters/company-intelligence.js",
+      "scripts/company-intelligence-publication.mjs",
+      "scripts/brief-author.mjs",
+      "scripts/brief-refresh.mjs",
+      "scripts/brief-distributed-publish.mjs",
+      "scripts/brief-publication.mjs",
+      "scripts/brief-refresh-and-push.sh",
+      "scripts/brief-refresh-scheduled.sh",
+      "scripts/com.researchlab.brief-refresh.plist",
+      "scripts/validate-distributed-briefs.mjs",
+      "scripts/validate-brief-payload.mjs",
+      "scripts/build-pages-site.mjs",
+      "scripts/validate-tool-experience.mjs",
+      "scripts/selftest.mjs",
+      ".github/prompts/market-brief-update.prompt.md",
+      "data/company-intelligence/**",
+      "briefs/**",
+      "research/agenda/**",
+      "brief-history.jsonl",
+      "brief-history.recent.jsonl",
+      "market-brief.snapshot.json",
+      "market-brief.payload.json",
+      "market-brief.page.json",
+      "market-brief.config.json",
+      "market-brief.config.page.json",
+      "market-brief.snapshot.page.json",
+      "market-brief.tools.page.json",
+      "market-brief.experimental.json",
+      "market-brief.owner-reads.json",
+      "market-brief.scorecard.json",
+      "market-brief.attention-scorecard.json",
+      "causal-rotation.snapshot.json",
+      "tests/company-intelligence.unit.mjs",
+      "tests/company-intelligence-lab.spec.mjs",
+      "tests/brief-refresh-atomicity.support.mjs",
+      "tests/brief-refresh-atomicity.test.mjs",
+      "tests/distributed-briefs.distributed-publish.unit.mjs",
+      "tests/distributed-briefs.scheduler.unit.mjs",
+      "tests/distributed-briefs.scheduler.integration.mjs",
+      "tests/distributed-briefs.scheduler-failures.integration.mjs",
+      "tests/distributed-briefs.scheduler.e2e.mjs",
+      "tests/company-intelligence-publication.unit.mjs",
+      "tests/company-intelligence-publication.integration.mjs",
+      "tests/company-intelligence-publication.functional.mjs",
+      "tests/company-intelligence-publication.e2e.mjs",
+      "tests/company-intelligence-publication.spec.mjs",
+      "tests/tool-discovery.spec.mjs",
+      "tests/deployed-site-parity.spec.mjs",
+      "rlexperience.js",
+      "rlexperience-adapters/strategy-research.js",
+      "tests/journey-definitions.functional.mjs",
+      "tests/simple-model-adapters.integration.mjs",
+      "tests/simple-model-source-ownership.functional.mjs",
+      "tests/simple-production-bridge.integration.mjs",
+      "tests/contextual-tooltip.functional.mjs",
+      "specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern/**",
+      "tests/fixtures/feature-012/contextual-tooltip-pre-scope03/**"
+    ]
+  }
 }

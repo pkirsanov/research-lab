@@ -30,6 +30,9 @@
     <array>
       <string>/bin/bash</string>
       <string>/ABSOLUTE/PATH/TO/research-lab/scripts/brief-refresh-scheduled.sh</string>
+      <string>--trigger</string>
+      <string>scheduled</string>
+      <string>--due-only</string>
     </array>
 
     <key>StartCalendarInterval</key>
@@ -49,8 +52,6 @@
     <dict>
       <key>PATH</key>
       <string>/opt/homebrew/bin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin</string>
-      <key>BRIEF_SCHEDULE_DUE_ONLY</key>
-      <string>1</string>
       <key>BRIEF_PUBLICATION_LEAD_MINUTES</key>
       <string>30</string>
     </dict>

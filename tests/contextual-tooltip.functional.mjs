@@ -1,18 +1,19 @@
 import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import {
   cpSync,
   existsSync,
   mkdtempSync,
+  mkdirSync,
   readFileSync,
-  readdirSync,
   rmSync,
+  statSync,
   symlinkSync,
   writeFileSync
 } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join, relative, resolve } from 'node:path';
+import { basename, dirname, join, normalize, relative, resolve } from 'node:path';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import vm from 'node:vm';
@@ -37,16 +38,23 @@ const LEGACY_AUTHORITY_PATHS = Object.freeze([
   ...CANARY_PAGES,
   'scripts/selftest.mjs'
 ]);
-const SCOPE03_PRODUCTION_PATHS = Object.freeze([
+const LEGACY_FIXTURE_ROOT = resolve(
+  ROOT,
+  'tests/fixtures/feature-012/contextual-tooltip-pre-scope03'
+);
+const LEGACY_FIXTURE_CONTRACT = 'feature-012-scope03-legacy-authority/v1';
+const LEGACY_FIXTURE_SOURCE_COMMIT = 'b533b972a473ffca9252362ecc5d73de52423da9';
+const LEGACY_REPLAY_HYDRATION_MARKER = 'data-heatmap-hydration="ready"';
+const SCOPE03_GOVERNED_PATHS = Object.freeze([
   'rlcontext.js',
-  ...LEGACY_AUTHORITY_PATHS
-]);
-const SCOPE03_CURRENT_PATHS = Object.freeze([
-  ...SCOPE03_PRODUCTION_PATHS,
+  ...LEGACY_AUTHORITY_PATHS,
   'tests/contextual-tooltip.unit.mjs',
   'tests/contextual-tooltip.functional.mjs',
   'tests/contextual-tooltip.spec.mjs'
 ]);
+const SCOPE03_ROLLBACK_MUTATION_PATHS = Object.freeze(
+  SCOPE03_GOVERNED_PATHS.slice(0, LEGACY_AUTHORITY_PATHS.length + 1)
+);
 const RED_INFRASTRUCTURE_PATTERNS = Object.freeze([
   /SyntaxError/,
   /No tests found/,
@@ -66,16 +74,50 @@ function sha256(bytes) {
   return createHash('sha256').update(bytes).digest('hex');
 }
 
-function listRegularFiles(root, relativeDirectory = '') {
-  const absoluteDirectory = join(root, relativeDirectory);
-  return readdirSync(absoluteDirectory, { withFileTypes: true })
-    .sort((left, right) => left.name.localeCompare(right.name))
-    .flatMap((entry) => {
-      if (relativeDirectory === '' && REPLAY_EXCLUDED_TOP_LEVEL.has(entry.name)) return [];
-      const relativePath = join(relativeDirectory, entry.name);
-      if (entry.isDirectory()) return listRegularFiles(root, relativePath);
-      return entry.isFile() ? [relativePath] : [];
-    });
+function governedSnapshot(root) {
+  assert.equal(
+    new Set(SCOPE03_GOVERNED_PATHS).size,
+    SCOPE03_GOVERNED_PATHS.length,
+    'Scope 03 governed paths must be unique'
+  );
+  const result = new Map();
+  for (const relativePath of SCOPE03_GOVERNED_PATHS) {
+    const absolutePath = join(root, relativePath);
+    assert.equal(existsSync(absolutePath), true, `Scope 03 governed path missing: ${relativePath}`);
+    assert.equal(statSync(absolutePath).isFile(), true, `Scope 03 governed path is not a file: ${relativePath}`);
+    const bytes = readFileSync(absolutePath);
+    result.set(relativePath, { bytes, hash: sha256(bytes) });
+  }
+  return result;
+}
+
+function assertGovernedInventoryEqual(actual, expected, label) {
+  const actualPaths = [...actual.keys()];
+  const expectedPaths = [...expected.keys()];
+  assert.equal(actualPaths.length, SCOPE03_GOVERNED_PATHS.length, `${label}: governed path count changed`);
+  assert.equal(expectedPaths.length, SCOPE03_GOVERNED_PATHS.length, `${label}: expected governed path count changed`);
+  for (let index = 0; index < SCOPE03_GOVERNED_PATHS.length; index += 1) {
+    const relativePath = SCOPE03_GOVERNED_PATHS[index];
+    assert.equal(actualPaths[index], relativePath, `${label}: actual governed inventory differs at ${relativePath}`);
+    assert.equal(expectedPaths[index], relativePath, `${label}: expected governed inventory differs at ${relativePath}`);
+    assert.equal(actual.get(relativePath).hash, expected.get(relativePath).hash, `${label}: governed path changed: ${relativePath}`);
+    assert.equal(actual.get(relativePath).bytes.equals(expected.get(relativePath).bytes), true, `${label}: governed bytes changed: ${relativePath}`);
+  }
+}
+
+function recordScope03Mutation(relativePath, operation) {
+  const canonicalPath = normalize(relativePath).split('\\').join('/');
+  assert.equal(canonicalPath, relativePath, `Scope 03 rollback mutation path is not canonical: ${relativePath}`);
+  assert.equal(
+    SCOPE03_ROLLBACK_MUTATION_PATHS.includes(relativePath),
+    true,
+    `Scope 03 rollback mutation path is not authorized: ${relativePath}`
+  );
+  assert.equal(operation?.kind === 'write' || operation?.kind === 'delete', true, `Scope 03 rollback mutation operation is invalid: ${relativePath}`);
+  assert.equal(Array.isArray(operation?.ledger), true, `Scope 03 rollback mutation ledger is required: ${relativePath}`);
+  assert.equal(typeof operation?.apply, 'function', true, `Scope 03 rollback mutation callback is required: ${relativePath}`);
+  operation.ledger.push({ relativePath, operation: operation.kind });
+  operation.apply();
 }
 
 function snapshot(root, relativePaths) {
@@ -85,17 +127,31 @@ function snapshot(root, relativePaths) {
   }));
 }
 
-function hashInventory(root, relativePaths) {
-  return new Map(relativePaths.map((relativePath) => [
-    relativePath,
-    sha256(readFileSync(join(root, relativePath)))
-  ]));
+function restoreSnapshot(root, sourceSnapshot, mutationLedger) {
+  for (const [relativePath, entry] of sourceSnapshot) {
+    recordScope03Mutation(relativePath, {
+      kind: 'write',
+      ledger: mutationLedger,
+      apply() { writeFileSync(join(root, relativePath), entry.bytes); }
+    });
+  }
 }
 
-function restoreSnapshot(root, sourceSnapshot) {
-  for (const [relativePath, entry] of sourceSnapshot) {
-    writeFileSync(join(root, relativePath), entry.bytes);
+function assertScope03MutationSet(mutationLedger, requiredPaths, label) {
+  const actualPaths = new Set();
+  for (const entry of mutationLedger) {
+    assert.equal(
+      SCOPE03_ROLLBACK_MUTATION_PATHS.includes(entry.relativePath),
+      true,
+      `${label}: unauthorized rollback mutation recorded: ${entry.relativePath}`
+    );
+    actualPaths.add(entry.relativePath);
   }
+  assert.deepEqual(
+    SCOPE03_ROLLBACK_MUTATION_PATHS.filter((relativePath) => actualPaths.has(relativePath)),
+    requiredPaths,
+    `${label}: actual rollback write set differs from the required subset`
+  );
 }
 
 function copyRepositoryForReplay(targetRoot) {
@@ -111,51 +167,157 @@ function copyRepositoryForReplay(targetRoot) {
   if (existsSync(nodeModules)) symlinkSync(nodeModules, join(targetRoot, 'node_modules'), 'dir');
 }
 
-// BUG-002 (scope-baseline HEAD-drift antipattern): this file previously read `git show HEAD:`
-// and called the result the "legacy" pre-Scope-03 baseline. That was true only while HEAD was
-// still pre-Scope-03; once Scope 03 landed in c81d808d the "legacy" bytes became the MODERN
-// bytes, so `applyLegacyBaseline()` wrote decorator-carrying pages into the sandbox and the
-// legacy canary then failed on its own input. The pin below is the immutable parent of
-// c81d808d — the same anchor tests/tool-experience-registry.functional.mjs and
-// tests/tool-experience-shell.functional.mjs use (note scripts/selftest.mjs hashes identically
-// in both). The two guards fail LOUD if the pin is ever repointed at post-Scope-03 content.
-const LEGACY_BASELINE_COMMIT = '767732db04e0cd32bf107b2a95030a6771bd16f2';
+// BUG-002 (scope-baseline HEAD-drift antipattern): the pre-Scope-03 authority is a committed,
+// manifest-closed fixture. The source commit is provenance only; runtime verification reads no
+// Git ref. Manifest shape, exact bytes, and semantic marker checks fail loud on fixture drift.
 const DECORATOR_MARKER = /src="rlcontext\.js|src="rlexperience\.js/;
-const LEGACY_BASELINE_SHA256 = Object.freeze({
-  'rlg.js': '08f7efcc4cace971d24443bc4a5adae2cab3c72c38abc54adb96a1e69c46f91f',
-  'rlticker.js': '7a78677d26d5e25b3aeb16211ca943eb04adbaafe78c4e269da812a119ca7bdc',
-  'rlchart.js': 'c84d2b975ba658c7771b3d80e0f29c9fceb97b9ce8f4d265afec4beef75b394a',
-  'market-heatmap-lab.html': 'f561942ed123e6a62deb28f74c59248f53dd975fbf1a13442a2f56112f815451',
-  'options-structure-lab.html': '5331de5983c308bc6c7591a1e2fad94f4c7874d7f42199ea0c8e16c9293c747e',
-  'company-fundamentals-lab.html': '584ecbff88c93f8f48fa1b132dab1a457ce7003c43edaac1b5c9d78144bf74d3',
-  'scripts/selftest.mjs': 'fe706d9900f0623108604a2e2adb80a0290c70bad90506e5b1db52980a739965'
-});
 
-function baselineBytes(relativePath) {
-  const bytes = execFileSync('git', ['show', `${LEGACY_BASELINE_COMMIT}:${relativePath}`], {
-    cwd: ROOT
-  });
-  assert.equal(
-    DECORATOR_MARKER.test(bytes.toString('utf8')),
-    false,
-    `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} must not contain Scope 03 decorator wiring`
+function loadLegacyFixtureManifest(fixtureRoot = LEGACY_FIXTURE_ROOT) {
+  const manifestPath = join(fixtureRoot, 'manifest.json');
+  assert.equal(existsSync(manifestPath), true, `legacy fixture manifest missing: ${manifestPath}`);
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  assert.deepEqual(
+    Object.keys(manifest).sort(),
+    ['contractVersion', 'files', 'pathCount', 'provenance'],
+    'legacy fixture manifest has an unknown or missing top-level field'
   );
-  const expectedSha256 = LEGACY_BASELINE_SHA256[relativePath];
-  if (expectedSha256) {
+  assert.equal(manifest.contractVersion, LEGACY_FIXTURE_CONTRACT);
+  assert.deepEqual(
+    Object.keys(manifest.provenance || {}).sort(),
+    ['sourceCommit', 'sourceRole'],
+    'legacy fixture provenance has an unknown or missing field'
+  );
+  assert.equal(manifest.provenance.sourceCommit, LEGACY_FIXTURE_SOURCE_COMMIT);
+  assert.match(manifest.provenance.sourceRole, /pre-Scope-03/);
+  assert.equal(manifest.pathCount, LEGACY_AUTHORITY_PATHS.length);
+  assert.equal(manifest.files.length, LEGACY_AUTHORITY_PATHS.length);
+  assert.deepEqual(
+    manifest.files.map((entry) => entry.path),
+    LEGACY_AUTHORITY_PATHS,
+    'legacy fixture manifest must list the closed authority paths in canonical order'
+  );
+  for (const entry of manifest.files) {
+    assert.deepEqual(
+      Object.keys(entry).sort(),
+      ['byteLength', 'fixturePath', 'path', 'semanticRole', 'sha256'],
+      `legacy fixture manifest entry ${entry.path || '<unknown>'} has an unknown or missing field`
+    );
+    assert.equal(entry.fixturePath, entry.path, `legacy fixture ${entry.path} must use its closed relative path`);
+    assert.equal(Number.isInteger(entry.byteLength) && entry.byteLength > 0, true, `legacy fixture ${entry.path} byteLength must be a positive integer`);
+    assert.match(entry.sha256, /^[0-9a-f]{64}$/, `legacy fixture ${entry.path} sha256 must be lowercase hex`);
+    assert.equal(typeof entry.semanticRole === 'string' && entry.semanticRole.length > 0, true, `legacy fixture ${entry.path} semanticRole is required`);
+  }
+  return manifest;
+}
+
+function baselineBytes(relativePath, fixtureRoot = LEGACY_FIXTURE_ROOT) {
+  assert.equal(
+    LEGACY_AUTHORITY_PATHS.includes(relativePath),
+    true,
+    `legacy fixture path not authorized: ${relativePath}`
+  );
+  const manifest = loadLegacyFixtureManifest(fixtureRoot);
+  const entry = manifest.files.find((candidate) => candidate.path === relativePath);
+  assert.notEqual(entry, undefined, `legacy fixture manifest entry missing: ${relativePath}`);
+  const fixturePath = resolve(fixtureRoot, entry.fixturePath);
+  assert.equal(
+    relative(resolve(fixtureRoot), fixturePath),
+    entry.fixturePath,
+    `legacy fixture ${relativePath} must resolve inside the fixture root`
+  );
+  assert.equal(existsSync(fixturePath), true, `legacy fixture file missing: ${relativePath}`);
+  const bytes = readFileSync(fixturePath);
+  assert.equal(bytes.length, entry.byteLength, `legacy fixture ${relativePath} byte length drifted`);
+  assert.equal(sha256(bytes), entry.sha256, `legacy fixture ${relativePath} sha256 drifted`);
+  if (CANARY_PAGES.includes(relativePath)) {
     assert.equal(
-      sha256(bytes),
-      expectedSha256,
-      `legacy baseline ${relativePath} @ ${LEGACY_BASELINE_COMMIT} sha256 drifted from the pinned pre-Scope-03 bytes`
+      DECORATOR_MARKER.test(bytes.toString('utf8')),
+      false,
+      `legacy fixture ${relativePath} must not contain Scope 03 decorator wiring`
     );
   }
   return bytes;
 }
 
-function applyLegacyBaseline(sandboxRoot) {
+function verifyLegacyFixtureFailureControls(temporaryRoot) {
+  const fixtureRoot = join(temporaryRoot, 'fixture-controls');
+  cpSync(LEGACY_FIXTURE_ROOT, fixtureRoot, { recursive: true });
+
+  assert.throws(
+    () => baselineBytes('not-authorized.js', fixtureRoot),
+    /legacy fixture path not authorized: not-authorized\.js/
+  );
+
+  const missingPath = 'rlg.js';
+  rmSync(join(fixtureRoot, missingPath));
+  assert.throws(
+    () => baselineBytes(missingPath, fixtureRoot),
+    /legacy fixture file missing: rlg\.js/
+  );
+  cpSync(join(LEGACY_FIXTURE_ROOT, missingPath), join(fixtureRoot, missingPath));
+
+  const changedPath = 'rlticker.js';
+  const changedBytes = readFileSync(join(fixtureRoot, changedPath));
+  changedBytes[0] ^= 1;
+  writeFileSync(join(fixtureRoot, changedPath), changedBytes);
+  assert.throws(
+    () => baselineBytes(changedPath, fixtureRoot),
+    /legacy fixture rlticker\.js sha256 drifted/
+  );
+  cpSync(join(LEGACY_FIXTURE_ROOT, changedPath), join(fixtureRoot, changedPath));
+
+  const contaminatedPath = 'market-heatmap-lab.html';
+  const contaminatedBytes = Buffer.concat([
+    readFileSync(join(fixtureRoot, contaminatedPath)),
+    Buffer.from('\n<script src="rlcontext.js"></script>\n')
+  ]);
+  writeFileSync(join(fixtureRoot, contaminatedPath), contaminatedBytes);
+  const manifestPath = join(fixtureRoot, 'manifest.json');
+  const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
+  const contaminatedEntry = manifest.files.find((entry) => entry.path === contaminatedPath);
+  contaminatedEntry.byteLength = contaminatedBytes.length;
+  contaminatedEntry.sha256 = sha256(contaminatedBytes);
+  writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
+  assert.throws(
+    () => baselineBytes(contaminatedPath, fixtureRoot),
+    /legacy fixture market-heatmap-lab\.html must not contain Scope 03 decorator wiring/
+  );
+
+  return { unknownPath: true, missingFile: true, sha256: true, decoratorMarker: true };
+}
+
+function applyLegacyBaseline(sandboxRoot, mutationLedger) {
   for (const relativePath of LEGACY_AUTHORITY_PATHS) {
-    writeFileSync(join(sandboxRoot, relativePath), baselineBytes(relativePath));
+    recordScope03Mutation(relativePath, {
+      kind: 'write',
+      ledger: mutationLedger,
+      apply() { writeFileSync(join(sandboxRoot, relativePath), baselineBytes(relativePath)); }
+    });
   }
-  rmSync(join(sandboxRoot, 'rlcontext.js'), { force: true });
+  recordScope03Mutation('rlcontext.js', {
+    kind: 'delete',
+    ledger: mutationLedger,
+    apply() { rmSync(join(sandboxRoot, 'rlcontext.js'), { force: true }); }
+  });
+}
+
+function prepareLegacyReplayDependencies(sandboxRoot, mutationLedger) {
+  const relativePath = 'market-heatmap-lab.html';
+  const pagePath = join(sandboxRoot, relativePath);
+  const source = readFileSync(pagePath, 'utf8');
+  const legacyBody = '<body data-tkr-noauto>';
+  assert.equal(source.includes(legacyBody), true, `${relativePath} legacy body marker is required`);
+  assert.doesNotMatch(source, /data-heatmap-hydration=/, `${relativePath} legacy fixture unexpectedly owns the later hydration contract`);
+  const prepared = source.replace(
+    legacyBody,
+    `<body data-tkr-noauto ${LEGACY_REPLAY_HYDRATION_MARKER}>`
+  );
+  assert.doesNotMatch(prepared, DECORATOR_MARKER, `${relativePath} replay prerequisite must not add Scope 03 decorator wiring`);
+  recordScope03Mutation(relativePath, {
+    kind: 'write',
+    ledger: mutationLedger,
+    apply() { writeFileSync(pagePath, prepared); }
+  });
 }
 
 function makeMinimalDocument() {
@@ -553,28 +715,103 @@ test('TP-03-02 provider ownership canaries preserve glossary ticker and chart ca
 });
 
 if (process.env[PROCESS_PROOF_CHILD] !== '1') {
+  test('Regression: F-BUG002-008 scoped rollback oracle catches governed mutation and ignores unrelated concurrent files', () => {
+    const temporaryRoot = mkdtempSync(join(tmpdir(), 'research-lab-scope03-oracle-'));
+    const sandboxRoot = join(temporaryRoot, 'worktree');
+    const unrelatedPath = 'concurrency-control/unrelated-report.md';
+    const expectedGovernedPaths = [
+      'rlcontext.js',
+      'rlg.js',
+      'rlticker.js',
+      'rlchart.js',
+      'market-heatmap-lab.html',
+      'options-structure-lab.html',
+      'company-fundamentals-lab.html',
+      'scripts/selftest.mjs',
+      'tests/contextual-tooltip.unit.mjs',
+      'tests/contextual-tooltip.functional.mjs',
+      'tests/contextual-tooltip.spec.mjs'
+    ];
+    const mutationLedger = [];
+    let governedMutationDetected = false;
+    let unauthorizedMutationRejected = false;
+
+    try {
+      assert.deepEqual(SCOPE03_GOVERNED_PATHS, expectedGovernedPaths);
+      assert.deepEqual(SCOPE03_ROLLBACK_MUTATION_PATHS, expectedGovernedPaths.slice(0, 8));
+      for (const relativePath of SCOPE03_GOVERNED_PATHS) {
+        mkdirSync(dirname(join(sandboxRoot, relativePath)), { recursive: true });
+        cpSync(join(ROOT, relativePath), join(sandboxRoot, relativePath));
+      }
+      const before = governedSnapshot(sandboxRoot);
+      const changedContext = Buffer.from(before.get('rlcontext.js').bytes);
+      changedContext[0] ^= 1;
+      writeFileSync(join(sandboxRoot, 'rlcontext.js'), changedContext);
+      assert.throws(
+        () => assertGovernedInventoryEqual(governedSnapshot(sandboxRoot), before, 'governed mutation control'),
+        /governed mutation control: governed path changed: rlcontext\.js/
+      );
+      governedMutationDetected = true;
+      writeFileSync(join(sandboxRoot, 'rlcontext.js'), before.get('rlcontext.js').bytes);
+      assertGovernedInventoryEqual(governedSnapshot(sandboxRoot), before, 'governed mutation restoration');
+
+      let unauthorizedOperationRan = false;
+      assert.throws(
+        () => recordScope03Mutation(unrelatedPath, {
+          kind: 'write',
+          ledger: mutationLedger,
+          apply() {
+            unauthorizedOperationRan = true;
+            writeFileSync(join(sandboxRoot, unrelatedPath), 'unauthorized rollback write\n');
+          }
+        }),
+        /Scope 03 rollback mutation path is not authorized: concurrency-control\/unrelated-report\.md/
+      );
+      unauthorizedMutationRejected = true;
+      assert.equal(unauthorizedOperationRan, false, 'unauthorized rollback operation must be rejected before mutation');
+      assert.equal(existsSync(join(sandboxRoot, unrelatedPath)), false, 'unauthorized rollback path must remain absent');
+
+      mkdirSync(dirname(join(sandboxRoot, unrelatedPath)), { recursive: true });
+      writeFileSync(join(sandboxRoot, unrelatedPath), 'concurrent report changed during rollback\n');
+      assertGovernedInventoryEqual(governedSnapshot(sandboxRoot), before, 'unrelated concurrency control');
+
+      applyLegacyBaseline(sandboxRoot, mutationLedger);
+      prepareLegacyReplayDependencies(sandboxRoot, mutationLedger);
+      restoreSnapshot(sandboxRoot, snapshot(ROOT, SCOPE03_ROLLBACK_MUTATION_PATHS), mutationLedger);
+      assertScope03MutationSet(mutationLedger, SCOPE03_ROLLBACK_MUTATION_PATHS, 'oracle control rehearsal');
+      assertGovernedInventoryEqual(governedSnapshot(sandboxRoot), before, 'oracle control restored sandbox');
+    } finally {
+      rmSync(temporaryRoot, { recursive: true, force: true });
+      assert.equal(existsSync(temporaryRoot), false, 'oracle control temporary root must always be removed');
+    }
+
+    console.log(`[scope03-oracle] governedFiles=${SCOPE03_GOVERNED_PATHS.length}`);
+    console.log(`[scope03-oracle] rollbackMutationFiles=${SCOPE03_ROLLBACK_MUTATION_PATHS.length}`);
+    console.log(`[scope03-oracle] governedMutationDetected=${governedMutationDetected}`);
+    console.log(`[scope03-oracle] unauthorizedMutationRejected=${unauthorizedMutationRejected}`);
+    console.log('[scope03-oracle] unrelatedConcurrentControlIgnored=true');
+  });
+
   test('SCN-012-003 isolated rollback restores legacy providers and exact current Scope 03 bytes', {
     timeout: 120000
   }, () => {
-    const worktreePaths = listRegularFiles(ROOT);
-    const currentSet = new Set(SCOPE03_CURRENT_PATHS);
-    const protectedPaths = worktreePaths.filter((relativePath) => !currentSet.has(relativePath));
-    const realWorktreeBefore = hashInventory(ROOT, worktreePaths);
-    const currentSnapshot = snapshot(ROOT, SCOPE03_CURRENT_PATHS);
-    const currentHashes = hashInventory(ROOT, SCOPE03_CURRENT_PATHS);
-    const protectedHashes = hashInventory(ROOT, protectedPaths);
+    const realWorktreeBefore = governedSnapshot(ROOT);
+    const currentSnapshot = snapshot(ROOT, SCOPE03_ROLLBACK_MUTATION_PATHS);
+    const mutationLedger = [];
     const temporaryRoot = mkdtempSync(join(tmpdir(), 'research-lab-scope03-rollback-'));
     const sandboxRoot = join(temporaryRoot, 'worktree');
     let proof;
+    let fixtureControls;
 
     try {
+      fixtureControls = verifyLegacyFixtureFailureControls(temporaryRoot);
       copyRepositoryForReplay(sandboxRoot);
-      applyLegacyBaseline(sandboxRoot);
+      applyLegacyBaseline(sandboxRoot, mutationLedger);
       for (const relativePath of LEGACY_AUTHORITY_PATHS) {
         assert.equal(
           sha256(readFileSync(join(sandboxRoot, relativePath))),
           sha256(baselineBytes(relativePath)),
-            `${relativePath} must equal the pinned pre-Scope-03 baseline authority`
+            `${relativePath} must equal the manifest-backed pre-Scope-03 baseline authority`
         );
       }
       assert.equal(existsSync(join(sandboxRoot, 'rlcontext.js')), false, 'pre-Scope-03 sandbox must not retain rlcontext.js');
@@ -585,9 +822,8 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
       assert.equal(legacy.legacyTickerLink, true);
       assert.equal(legacy.legacyChartAttach, true);
       assert.equal(legacyCanaryPages, 3);
-      assert.deepEqual(hashInventory(sandboxRoot, protectedPaths), protectedHashes);
 
-      restoreSnapshot(sandboxRoot, currentSnapshot);        // Companion current-state proof (BUG-002 design Principle 2). The legacy expectation
+      restoreSnapshot(sandboxRoot, currentSnapshot, mutationLedger);        // Companion current-state proof (BUG-002 design Principle 2). The legacy expectation
         // above only carries meaning if the MODERN pages genuinely DO carry the Scope 03
         // decorator wiring. Without this direction, pinning the baseline could mask a
         // regression that stripped the decorators from production entirely.
@@ -600,9 +836,9 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
         }      const restoredValues = loadCurrentOwnerValues(sandboxRoot);
       const restoredFingerprints = ownerValueFingerprints(restoredValues);
       assert.deepEqual(restoredFingerprints, legacyFingerprints, 'owner-value fingerprints must survive rollback and exact restore');
-      assert.deepEqual(hashInventory(sandboxRoot, SCOPE03_CURRENT_PATHS), currentHashes);
-      assert.deepEqual(hashInventory(sandboxRoot, protectedPaths), protectedHashes);
-      assert.deepEqual(hashInventory(ROOT, worktreePaths), realWorktreeBefore);
+      assertScope03MutationSet(mutationLedger, SCOPE03_ROLLBACK_MUTATION_PATHS, 'isolated rollback rehearsal');
+      assertGovernedInventoryEqual(governedSnapshot(sandboxRoot), realWorktreeBefore, 'isolated rollback restored sandbox');
+      assertGovernedInventoryEqual(governedSnapshot(ROOT), realWorktreeBefore, 'isolated rollback real worktree');
       proof = {
         legacyCanaryPages,
         legacyChartAttach: legacy.legacyChartAttach,
@@ -615,11 +851,13 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
       assert.equal(existsSync(temporaryRoot), false, 'rollback rehearsal temporary root must always be removed');
     }
 
-    console.log(`[scope03-rollback] baselineAuthority=git:767732db authorityFiles=${LEGACY_AUTHORITY_PATHS.length} currentFiles=${SCOPE03_CURRENT_PATHS.length} protectedFiles=${protectedPaths.length}`);
+    const manifest = loadLegacyFixtureManifest();
+  console.log(`[scope03-rollback] baselineAuthority=fixture:${relative(ROOT, LEGACY_FIXTURE_ROOT)} contract=${manifest.contractVersion} sourceCommit=${manifest.provenance.sourceCommit} authorityFiles=${LEGACY_AUTHORITY_PATHS.length} governedFiles=${SCOPE03_GOVERNED_PATHS.length} rollbackMutationFiles=${SCOPE03_ROLLBACK_MUTATION_PATHS.length}`);
+    console.log(`[scope03-rollback] fixtureControls=${JSON.stringify(fixtureControls)}`);
     console.log(`[scope03-rollback] legacyRLG=${proof.legacyRLG} legacyTickerLink=${proof.legacyTickerLink} legacyChartAttach=${proof.legacyChartAttach}`);
     console.log(`[scope03-rollback] legacyCanaryPages=${proof.legacyCanaryPages}/3`);
     console.log(`[scope03-rollback] ownerValueFingerprints=${JSON.stringify(proof.ownerValueFingerprints)} unchanged=true`);
-    console.log('[scope03-rollback] currentHashesEqual=true protectedHashesEqual=true realWorktreeHashesEqual=true');
+    console.log('[scope03-rollback] governedHashesEqual=true actualRollbackWriteSetEqual=true');
     console.log('[scope03-rollback] tempRootRemoved=true');
   });
 
@@ -683,13 +921,9 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
         greenCount: '1/1'
       }
     ];
-    const worktreePaths = listRegularFiles(ROOT);
-    const productionSet = new Set(SCOPE03_PRODUCTION_PATHS);
-    const protectedPaths = worktreePaths.filter((relativePath) => !productionSet.has(relativePath));
-    const realWorktreeBefore = hashInventory(ROOT, worktreePaths);
-    const currentProduction = snapshot(ROOT, SCOPE03_PRODUCTION_PATHS);
-    const productionHashes = hashInventory(ROOT, SCOPE03_PRODUCTION_PATHS);
-    const protectedHashes = hashInventory(ROOT, protectedPaths);
+    const realWorktreeBefore = governedSnapshot(ROOT);
+    const currentProduction = snapshot(ROOT, SCOPE03_ROLLBACK_MUTATION_PATHS);
+    const mutationLedger = [];
     const temporaryRoot = mkdtempSync(join(tmpdir(), 'research-lab-scope03-exact-replay-'));
     const sandboxRoot = join(temporaryRoot, 'worktree');
     let redResults;
@@ -697,29 +931,35 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
 
     try {
       copyRepositoryForReplay(sandboxRoot);
-      applyLegacyBaseline(sandboxRoot);
+      applyLegacyBaseline(sandboxRoot, mutationLedger);
+      // The true pre-Scope-03 page predates the later hydration sentinel awaited by the
+      // unchanged current-route browser test. Add only that inert readiness prerequisite
+      // in the disposable sandbox so the exact command reaches its contextual assertion.
+      prepareLegacyReplayDependencies(sandboxRoot, mutationLedger);
       redResults = commands.map((entry) => {
         const result = runExactCommand(entry.command, entry.args, sandboxRoot);
         assertIntendedRed(entry, result);
         return { entry, result };
       });
 
-      restoreSnapshot(sandboxRoot, currentProduction);
+      restoreSnapshot(sandboxRoot, currentProduction, mutationLedger);
       greenResults = commands.map((entry) => {
         const result = runExactCommand(entry.command, entry.args, sandboxRoot);
         assertExpectedGreen(entry, result);
         return { entry, result };
       });
 
-      assert.deepEqual(hashInventory(sandboxRoot, SCOPE03_PRODUCTION_PATHS), productionHashes);
-      assert.deepEqual(hashInventory(sandboxRoot, protectedPaths), protectedHashes);
-      assert.deepEqual(hashInventory(ROOT, worktreePaths), realWorktreeBefore);
+      assertScope03MutationSet(mutationLedger, SCOPE03_ROLLBACK_MUTATION_PATHS, 'exact replay rehearsal');
+      assertGovernedInventoryEqual(governedSnapshot(sandboxRoot), realWorktreeBefore, 'exact replay restored sandbox');
+      assertGovernedInventoryEqual(governedSnapshot(ROOT), realWorktreeBefore, 'exact replay real worktree');
     } finally {
       rmSync(temporaryRoot, { recursive: true, force: true });
       assert.equal(existsSync(temporaryRoot), false, 'exact replay temporary root must always be removed');
     }
 
-    console.log(`[scope03-exact-replay] sandbox=${basename(temporaryRoot)} baselineAuthority=git:767732db authorityFiles=${LEGACY_AUTHORITY_PATHS.length}`);
+    const manifest = loadLegacyFixtureManifest();
+    console.log(`[scope03-exact-replay] sandbox=${basename(temporaryRoot)} baselineAuthority=fixture:${relative(ROOT, LEGACY_FIXTURE_ROOT)} contract=${manifest.contractVersion} sourceCommit=${manifest.provenance.sourceCommit} authorityFiles=${LEGACY_AUTHORITY_PATHS.length}`);
+    console.log(`[scope03-exact-replay] redPrerequisite=${LEGACY_REPLAY_HYDRATION_MARKER} sandboxOnly=true decoratorsAdded=false`);
     for (const { entry, result } of redResults) {
       console.log(`[scope03-exact-replay] RED-stage ${entry.id} exit=${result.status} discriminator=missing-contextual-foundation`);
     }
@@ -727,7 +967,8 @@ if (process.env[PROCESS_PROOF_CHILD] !== '1') {
     for (const { entry, result } of greenResults) {
       console.log(`[scope03-exact-replay] GREEN-stage ${entry.id} exit=${result.status} expectedCount=${entry.greenCount}`);
     }
-    console.log('[scope03-exact-replay] protectedHashesEqual=true realWorktreeHashesEqual=true');
+    console.log(`[scope03-exact-replay] governedFiles=${SCOPE03_GOVERNED_PATHS.length} rollbackMutationFiles=${SCOPE03_ROLLBACK_MUTATION_PATHS.length}`);
+    console.log('[scope03-exact-replay] governedHashesEqual=true actualRollbackWriteSetEqual=true');
     console.log('[scope03-exact-replay] tempRootRemoved=true');
   });
 }

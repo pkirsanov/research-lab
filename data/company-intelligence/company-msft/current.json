@@ -1,8 +1,1 @@
-{
-  "contractVersion": "company-version-pointer/v1",
-  "subjectId": "company:msft",
-  "versionId": "company:msft:2026-08-11",
-  "priorVersionId": null,
-  "contentFingerprint": "sha256:3cc5675c639f6c21808ccedebb59bdf08b4d129853da3e0de8222c99579a182b",
-  "note": "Names the version that is current for this company. A later run advances this pointer to its own dated version and records the pointed-to version as its predecessor. The pointer is the only file a run replaces; every version file under versions/ is written once and never reopened."
-}
+{"contentFingerprint":"sha256:025f6a3611f153c4fb58c8aa7daab33373aeaa22b0330aa726acdbb9c91003d6","contractVersion":"company-version-pointer/v2","generationId":"company-brief:2026-08-31:morning:db39f48c9689ced3","priorVersionId":"company:msft:2026-08-11","publicationManifestRef":{"path":"data/company-intelligence/manifests/5019558bfe507399923883a9578e1544ea09f4edba624c6290625c1a6a1bf949.json","sha256":"sha256:263366d82dc2800776bcf308f55452f5b38b7036ee80faf42040ea84c3ba1626"},"subjectId":"company:msft","versionId":"company:msft:2026-08-31:morning:db39f48c9689ced3","versionRef":{"path":"data/company-intelligence/company-msft/versions/company-msft-2026-08-31-morning-db39f48c9689ced3.json","sha256":"sha256:488ba11e858a7a9552d6e57848a6726ed643e2e79ddce45cd17dfddc0b347743"}}

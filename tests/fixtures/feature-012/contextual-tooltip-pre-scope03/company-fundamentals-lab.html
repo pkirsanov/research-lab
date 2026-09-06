@@ -1,0 +1,2601 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="referrer" content="no-referrer">
+    <link rel="icon" href="data:,">
+    <title>Company Fundamentals Lab</title>
+    <meta name="description"
+        content="Company Fundamentals Lab — one evidence graph for issuer identity, coverage, and missing dependencies, giving an inspectable, browser-side read of a company's fundamentals and what data is still needed.">
+    <style>
+        :root {
+            --ink: #15231f;
+            --muted: #5d6d67;
+            --paper: #f4f7f3;
+            --surface: #ffffff;
+            --line: #c5d1ca;
+            --forest: #1d5c49;
+            --teal: #087e82;
+            --amber: #a45f00;
+            --red: #a4322c;
+            --focus: #005fcc;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            min-width: 0;
+            background:
+                linear-gradient(180deg, rgba(46, 111, 83, .12), transparent 280px),
+                repeating-linear-gradient(90deg, transparent 0, transparent 95px, rgba(29, 92, 73, .035) 96px),
+                var(--paper);
+            color: var(--ink);
+            font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif;
+            letter-spacing: 0;
+        }
+
+        button,
+        a {
+            font: inherit;
+            letter-spacing: 0;
+        }
+
+        button:focus-visible,
+        a:focus-visible,
+        [tabindex="-1"]:focus-visible {
+            outline: 3px solid var(--focus);
+            outline-offset: 3px;
+        }
+
+        .skip-link {
+            position: fixed;
+            z-index: 20;
+            top: 8px;
+            left: 8px;
+            transform: translateY(-160%);
+            padding: 8px 12px;
+            background: var(--ink);
+            color: #fff;
+        }
+
+        .skip-link:focus {
+            transform: translateY(0);
+        }
+
+        .shell {
+            width: min(1180px, calc(100% - 32px));
+            margin: 0 auto;
+        }
+
+        .product-head {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 34px 0 22px;
+            border-bottom: 2px solid var(--ink);
+        }
+
+        .eyebrow,
+        .section-label {
+            margin: 0 0 6px;
+            color: var(--forest);
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        h1,
+        h2,
+        h3 {
+            font-family: Iowan Old Style, Georgia, serif;
+            font-weight: 650;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(34px, 5vw, 58px);
+            line-height: 1;
+        }
+
+        h2 {
+            margin: 0;
+            font-size: 26px;
+        }
+
+        h3 {
+            margin: 0;
+            font-size: 19px;
+        }
+
+        .subtitle {
+            max-width: 720px;
+            margin: 10px 0 0;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .publication-seal {
+            min-width: 190px;
+            padding: 10px 0 10px 18px;
+            border-left: 3px solid var(--teal);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .publication-seal strong {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--ink);
+            font-size: 15px;
+        }
+
+        .status-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 28px;
+            padding: 13px 0;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        .status-strip strong {
+            color: var(--ink);
+        }
+
+        main {
+            padding-bottom: 64px;
+        }
+
+        .band {
+            padding: 28px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .band-head {
+            display: flex;
+            align-items: end;
+            justify-content: space-between;
+            gap: 24px;
+            margin-bottom: 18px;
+        }
+
+        .band-note {
+            max-width: 620px;
+            margin: 0;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .identity-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 1px;
+            border: 1px solid var(--line);
+            background: var(--line);
+        }
+
+        .datum {
+            min-width: 0;
+            padding: 15px;
+            background: var(--surface);
+        }
+
+        .datum dt {
+            margin-bottom: 5px;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .datum dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+            font-weight: 700;
+        }
+
+        .coverage-row {
+            display: grid;
+            grid-template-columns: minmax(150px, .7fr) minmax(100px, .5fr) minmax(0, 2fr);
+            gap: 18px;
+            align-items: center;
+            padding: 14px 0;
+            border-top: 1px solid var(--line);
+        }
+
+        .state {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            min-height: 28px;
+            padding: 3px 9px;
+            border: 1px solid currentColor;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .state.partial {
+            color: var(--amber);
+        }
+
+        .state.available {
+            color: var(--forest);
+        }
+
+        .state.unavailable {
+            color: var(--red);
+        }
+
+        .decision-band {
+            display: grid;
+            grid-template-columns: minmax(0, 1.6fr) minmax(220px, .6fr);
+            gap: 24px;
+            align-items: center;
+            padding: 20px;
+            border: 1px solid #d4b07a;
+            background: rgba(245, 185, 66, .08);
+        }
+
+        .decision-band p {
+            margin: 7px 0 0;
+            line-height: 1.5;
+        }
+
+        .trace-button,
+        .close-button {
+            min-height: 42px;
+            padding: 9px 14px;
+            border: 1px solid var(--forest);
+            border-radius: 4px;
+            background: var(--forest);
+            color: #fff;
+            cursor: pointer;
+            font-weight: 750;
+        }
+
+        .close-button {
+            background: var(--ink);
+            border-color: var(--ink);
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+            border: 1px solid var(--line);
+            background: var(--surface);
+        }
+
+        caption {
+            padding: 11px 14px;
+            border-bottom: 1px solid var(--line);
+            color: var(--muted);
+            font-size: 13px;
+            text-align: left;
+        }
+
+        [data-integrity-demo] {
+            margin-top: 16px;
+        }
+
+        table {
+            width: 100%;
+            min-width: 760px;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            background: #e9efeb;
+            color: #33453f;
+            font-size: 11px;
+            text-transform: uppercase;
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0;
+        }
+
+        code {
+            color: #244d40;
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        }
+
+        .sources-band {
+            margin-top: 28px;
+            padding: 26px;
+            border: 2px solid var(--teal);
+            background: #f7ffff;
+        }
+
+        .sources-band[hidden] {
+            display: none;
+        }
+
+        .sources-head {
+            display: flex;
+            align-items: start;
+            justify-content: space-between;
+            gap: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .trace-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0 28px;
+        }
+
+        .trace-record {
+            padding: 18px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .trace-record h3 {
+            margin-bottom: 7px;
+        }
+
+        .trace-record p {
+            margin: 4px 0;
+            color: var(--muted);
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        .trace-record strong {
+            color: var(--ink);
+        }
+
+        .fatal {
+            margin: 28px 0;
+            padding: 18px;
+            border-left: 4px solid var(--red);
+            background: rgba(240, 85, 107, .1);
+            color: var(--red);
+        }
+
+        @media (max-width: 800px) {
+
+            .product-head,
+            .band-head,
+            .sources-head {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .publication-seal {
+                width: 100%;
+                padding-left: 12px;
+            }
+
+            .identity-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .decision-band,
+            .trace-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .coverage-row {
+                grid-template-columns: 1fr;
+                gap: 7px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .shell {
+                width: min(100% - 20px, 1180px);
+            }
+
+            .identity-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .sources-band {
+                padding: 18px 14px;
+            }
+        }
+    </style>
+    <style>
+        .mode-seg {
+            display: flex;
+            gap: 8px;
+            margin: 14px auto 0;
+        }
+
+        .mode-seg button {
+            border: 1px solid #2b3a4a;
+            background: #131c26;
+            color: #cdd9e5;
+            border-radius: 8px;
+            padding: 8px 14px;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .mode-seg button[aria-pressed="true"] {
+            background: #1d67d6;
+            border-color: #1d67d6;
+            color: #fff;
+        }
+
+        .detailed-tabs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin: 10px auto 0;
+        }
+
+        .detailed-tabs button {
+            border: 1px solid #24313f;
+            background: #101821;
+            color: #b8c6d4;
+            border-radius: 999px;
+            padding: 6px 14px;
+            cursor: pointer;
+            font: inherit;
+        }
+
+        .detailed-tabs button[aria-selected="true"] {
+            background: #1f2c3a;
+            border-color: #3a5a78;
+            color: #fff;
+        }
+
+        .simple-cockpit {
+            margin-top: 14px;
+        }
+
+        .cockpit-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .cockpit-cell {
+            border: 1px solid #22303e;
+            border-radius: 10px;
+            padding: 12px 14px;
+            background: #0f1720;
+        }
+
+        .cockpit-cell strong {
+            display: block;
+            margin-top: 4px;
+            font-size: 15px;
+        }
+
+        .peers-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .peers-table th,
+        .peers-table td {
+            text-align: left;
+            padding: 6px 8px;
+            border-top: 1px solid #1d2a36;
+        }
+
+        .export-output {
+            white-space: pre-wrap;
+            word-break: break-word;
+            background: #0d141c;
+            border: 1px solid #22303e;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 8px;
+            max-height: 320px;
+            overflow: auto;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            margin: -1px;
+            padding: 0;
+            overflow: hidden;
+            clip: rect(0 0 0 0);
+            clip-path: inset(50%);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        .comparability-block {
+            border: 1px solid #22303e;
+            border-radius: 10px;
+            padding: 12px 14px;
+            background: #0f1720;
+            margin-top: 12px;
+            min-width: 0;
+        }
+
+        .comparability-block h3 {
+            margin: 0 0 8px;
+            font-size: 15px;
+        }
+
+        .comparability-bases,
+        .comparability-ops {
+            margin: 8px 0 0;
+            padding-left: 18px;
+        }
+
+        table[data-accessible-chart-table] {
+            width: 100%;
+            min-width: 0;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        table[data-accessible-chart-table] th,
+        table[data-accessible-chart-table] td {
+            text-align: left;
+            padding: 6px 8px;
+            border-top: 1px solid #1d2a36;
+            word-break: break-word;
+        }
+
+        .chart-visual {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-top: 10px;
+        }
+
+        .chart-visual .bar {
+            height: 14px;
+            background: #1d67d6;
+            border-radius: 3px;
+            min-width: 2px;
+            max-width: 100%;
+        }
+
+        [data-comparability-state] {
+            font-weight: 750;
+        }
+
+        body[data-view-mode="simple"] [data-detailed-panel],
+        body[data-view-mode="simple"] [data-detailed-tabs] {
+            display: none;
+        }
+
+        body[data-view-mode="detailed"] [data-simple-cockpit] {
+            display: none;
+        }
+
+        body[data-view-mode="detailed"][data-active-tab="statements"] [data-detailed-panel]:not([data-detailed-panel~="statements"]),
+        body[data-view-mode="detailed"][data-active-tab="resilience"] [data-detailed-panel]:not([data-detailed-panel~="resilience"]),
+        body[data-view-mode="detailed"][data-active-tab="scenarios"] [data-detailed-panel]:not([data-detailed-panel~="scenarios"]),
+        body[data-view-mode="detailed"][data-active-tab="brief"] [data-detailed-panel]:not([data-detailed-panel~="brief"]),
+        body[data-view-mode="detailed"][data-active-tab="sources"] [data-detailed-panel]:not([data-detailed-panel~="sources"]),
+        body[data-view-mode="detailed"][data-active-tab="peers"] [data-detailed-panel]:not([data-detailed-panel~="peers"]),
+        body[data-view-mode="detailed"][data-active-tab="comparability"] [data-detailed-panel]:not([data-detailed-panel~="comparability"]) {
+            display: none;
+        }
+    </style>
+    <meta name="rlbrief-enabled" content="1" />
+</head>
+
+<body data-publication-status="loading" data-view-mode="detailed" data-active-tab="statements">
+    <a class="skip-link" href="#main">Skip to company evidence</a>
+
+    <header class="shell product-head">
+        <div>
+            <p class="eyebrow">Source-qualified research</p>
+            <h1>Company Fundamentals Lab</h1>
+            <p class="subtitle">A worked example built from real committed SEC filings — <strong>Microsoft (MSFT)</strong>
+                as the primary issuer, with Chipotle and JPMorgan for cross-company comparability. One evidence graph for
+                issuer identity, coverage, missing dependencies, and inspectable claim lineage.</p>
+        </div>
+        <div class="publication-seal">
+            <strong data-publication-seal>Validating publication</strong>
+            <span data-source-extract-completeness>Checking source scope</span>
+        </div>
+    </header>
+
+    <div class="shell status-strip" id="publication-status" role="status" aria-live="polite">
+        <span><strong>Publication</strong> <span data-publication-id>Loading</span></span>
+        <span><strong>Generation</strong> <span data-generation>Loading</span></span>
+        <span><strong>Evidence cutoff</strong> <span data-evidence-cutoff>Loading</span></span>
+    </div>
+
+    <nav class="shell mode-seg" data-mode-seg aria-label="Simple cockpit or Detailed workspaces">
+        <button type="button" data-mode-button="simple" aria-pressed="false">Simple cockpit</button>
+        <button type="button" data-mode-button="detailed" aria-pressed="true">Detailed workspaces</button>
+    </nav>
+
+    <section class="shell simple-cockpit" data-simple-cockpit aria-label="Simple decision cockpit">
+        <div class="cockpit-grid">
+            <div class="cockpit-cell">
+                <p class="section-label">Fundamental direction</p>
+                <strong data-simple-direction>Loading</strong>
+            </div>
+            <div class="cockpit-cell">
+                <p class="section-label">Statement cutoff</p>
+                <strong data-simple-cutoff>Loading</strong>
+            </div>
+            <div class="cockpit-cell">
+                <p class="section-label">Accepted lens</p>
+                <strong data-simple-lens>Loading</strong>
+            </div>
+            <div class="cockpit-cell">
+                <p class="section-label">Top prioritized driver</p>
+                <strong data-simple-top-driver>Loading</strong>
+            </div>
+        </div>
+        <p class="band-note" data-simple-note>One accepted publication feeds this cockpit and every Detailed workspace.
+            Switching Simple to Detailed or across the six tabs never refetches or reinterprets a value.</p>
+    </section>
+
+    <nav class="shell detailed-tabs" data-detailed-tabs role="tablist" aria-label="Detailed workspaces">
+        <button type="button" role="tab" data-detailed-tab="statements" aria-selected="true"
+            tabindex="0">Statements</button>
+        <button type="button" role="tab" data-detailed-tab="resilience" aria-selected="false"
+            tabindex="-1">Resilience</button>
+        <button type="button" role="tab" data-detailed-tab="scenarios" aria-selected="false"
+            tabindex="-1">Scenarios</button>
+        <button type="button" role="tab" data-detailed-tab="brief" aria-selected="false" tabindex="-1">Brief</button>
+        <button type="button" role="tab" data-detailed-tab="sources" aria-selected="false" tabindex="-1">Source
+            trace</button>
+        <button type="button" role="tab" data-detailed-tab="peers" aria-selected="false" tabindex="-1">Peers</button>
+        <button type="button" role="tab" data-detailed-tab="comparability" aria-selected="false"
+            tabindex="-1">Comparability</button>
+    </nav>
+    <div class="shell visually-hidden" data-a11y-live aria-live="polite" role="status">Statements workspace selected.
+    </div>
+
+    <main class="shell" id="main">
+        <section class="band" aria-labelledby="identity-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Accepted identity</p>
+                    <h2 id="identity-heading">Issuer and filing boundary</h2>
+                </div>
+                <p class="band-note">Identity is accepted from one SEC CIK and common-stock listing. The foundation does
+                    not infer an archetype, direction, or financial value.</p>
+            </div>
+            <dl class="identity-grid">
+                <div class="datum">
+                    <dt>Issuer</dt>
+                    <dd data-company-name>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Ticker / exchange</dt>
+                    <dd><span data-company-ticker>Loading</span> / <span data-company-exchange>Loading</span></dd>
+                </div>
+                <div class="datum">
+                    <dt>SEC CIK</dt>
+                    <dd data-company-cik>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Accounting basis</dt>
+                    <dd data-accounting-basis>Loading</dd>
+                </div>
+            </dl>
+        </section>
+
+        <section class="band" aria-labelledby="coverage-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Evidence coverage</p>
+                    <h2 id="coverage-heading">Available and missing evidence stay separate</h2>
+                </div>
+                <p class="band-note">Freshness belongs to each evidence class and observation. This publication has SEC
+                    identity and filing metadata, but no captured company-facts response.</p>
+            </div>
+            <div id="coverage-list"></div>
+        </section>
+
+        <section class="band" aria-labelledby="claim-heading">
+            <div class="decision-band">
+                <div>
+                    <p class="section-label">Simple claim</p>
+                    <h2 id="claim-heading">Fundamental direction: <span class="state unavailable">Unavailable</span>
+                    </h2>
+                    <p data-direction-reason>A source-qualified revenue observation is required before direction can be
+                        evaluated.</p>
+                </div>
+                <button class="trace-button" type="button" data-trace-control="claim-direction">Trace unavailable
+                    direction</button>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="statements" aria-labelledby="dependency-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Dependency result</p>
+                    <h2 id="dependency-heading">Only reachable outputs are withheld</h2>
+                </div>
+                <p class="band-note">Missing inputs never become zero, carried values, estimates, or passing states.
+                    Independently supported identity remains usable.</p>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Node</th>
+                            <th>Class</th>
+                            <th>State</th>
+                            <th>Published value</th>
+                            <th>Missing fact IDs</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dependency-rows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="statements" aria-labelledby="periods-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Reporting periods</p>
+                    <h2 id="periods-heading">Each period keeps its exact meaning</h2>
+                </div>
+                <p class="band-note">Microsoft's annual, quarterly, year-to-date, and instant filings are classified from
+                    real SEC filing metadata. A year-to-date or instant span is never shown as a standalone quarter.</p>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Kind</th>
+                            <th>Classification</th>
+                            <th>Standalone quarter</th>
+                            <th>Period end</th>
+                            <th>SEC accession</th>
+                        </tr>
+                    </thead>
+                    <tbody id="period-rows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="statements" aria-labelledby="integrity-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Statement integrity</p>
+                    <h2 id="integrity-heading">Balance-sheet identity gates dependent conclusions</h2>
+                </div>
+                <p class="band-note">When assets fall outside the summed XBRL rounding interval for liabilities and
+                    equity, dependent resilience, model, and brief outputs are blocked while the source facts stay
+                    inspectable.</p>
+            </div>
+            <div class="decision-band" data-integrity-band>
+                <div>
+                    <h3>Balance-sheet integrity: <span class="state unavailable" data-integrity-state>Not
+                            evaluable</span></h3>
+                    <p data-integrity-note>Loading</p>
+                    <p data-integrity-source-facts>Loading</p>
+                </div>
+            </div>
+            <div class="table-wrap" data-integrity-demo>
+                <table>
+                    <caption>Contract demonstration — the production integrity and reconciliation guards run over
+                        constructed contract fixtures. These are not MSFT-reported values.</caption>
+                    <thead>
+                        <tr>
+                            <th>Guard</th>
+                            <th>Verdict</th>
+                            <th>Detail</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr data-demo="integrity-imbalance">
+                            <td>SCN-010-005 balance-sheet imbalance</td>
+                            <td data-demo-verdict>Loading</td>
+                            <td data-demo-detail>Loading</td>
+                        </tr>
+                        <tr data-demo="restatement">
+                            <td>SCN-010-006 amended filing</td>
+                            <td data-demo-verdict>Loading</td>
+                            <td data-demo-detail>Loading</td>
+                        </tr>
+                        <tr data-demo="conflict">
+                            <td>SCN-010-025 genuine conflict</td>
+                            <td data-demo-verdict>Loading</td>
+                            <td data-demo-detail>Loading</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="brief" aria-labelledby="drivers-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Company-specific drivers</p>
+                    <h2 id="drivers-heading">Archetype lens prioritizes drivers over shared statements</h2>
+                </div>
+                <p class="band-note">The accepted archetype reorders company-specific drivers by priority. It never
+                    changes a
+                    shared fact ID, value, period, unit, or source. <span data-shared-fact-stability>Shared facts remain
+                        byte-equivalent to their dossier records under every archetype.</span></p>
+            </div>
+            <p class="lens-line"><span class="section-label">Accepted lens</span> <span
+                    data-archetype-lens>Loading</span></p>
+            <p class="lens-line"><span class="section-label">Fundamental direction</span> <span
+                    data-brief-direction>Loading</span></p>
+            <ol id="kpi-priority-list" class="kpi-list"></ol>
+        </section>
+
+        <section class="band" data-detailed-panel="brief" aria-labelledby="clocks-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Evidence clocks</p>
+                    <h2 id="clocks-heading">Statement, model, brief, and market cutoffs stay separate</h2>
+                </div>
+                <p class="band-note">Each clock is independent. The MSFT specialist model cutoff is never conflated with
+                    these fundamentals clocks, and an optional evidence class that is unavailable never blocks the
+                    accepted
+                    dossier.</p>
+            </div>
+            <dl class="identity-grid">
+                <div class="datum">
+                    <dt>Statement cutoff</dt>
+                    <dd data-clock-statement>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Model cutoff</dt>
+                    <dd data-clock-model>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Brief cutoff</dt>
+                    <dd data-clock-brief>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Market cutoff</dt>
+                    <dd data-clock-market>Loading</dd>
+                </div>
+            </dl>
+            <p class="band-note" data-optional-market-reason>Loading</p>
+        </section>
+
+        <section class="band" data-detailed-panel="brief" aria-labelledby="adaptive-brief-heading"
+            data-adaptive-brief-workspace>
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Adaptive company brief</p>
+                    <h2 id="adaptive-brief-heading">Material change leads; weak evidence stays bounded</h2>
+                </div>
+                <p class="band-note">The committed owner brief is source-bounded. These deterministic contract
+                    scenarios run through the production ranking and brief helpers; their evidence inputs are not
+                    presented as current MSFT-reported values.</p>
+            </div>
+            <div class="trace-grid">
+                <section class="trace-record" data-brief-scenario="material">
+                    <h3>Material filing change</h3>
+                    <p><strong>Status:</strong> <span data-brief-status>Loading</span></p>
+                    <p><strong>Lead class:</strong> <span data-brief-lead-class>Loading</span></p>
+                    <p><strong>Source:</strong> <span data-brief-lead-source>Loading</span></p>
+                    <p><strong>Period:</strong> <span data-brief-lead-period>Loading</span></p>
+                    <p><strong>Mechanism:</strong> <span data-brief-lead-mechanism>Loading</span></p>
+                    <p><strong>Affected claim:</strong> <span data-brief-lead-claim>Loading</span></p>
+                    <p><strong>Proposal:</strong> <span data-brief-proposal>Loading</span></p>
+                    <p><strong>Material changes:</strong> <span data-brief-material-count>Loading</span></p>
+                </section>
+                <section class="trace-record" data-brief-scenario="management">
+                    <h3>Management claim boundary</h3>
+                    <p><strong>Class:</strong> <span data-management-class>Loading</span></p>
+                    <p><strong>Source:</strong> <span data-management-source>Loading</span></p>
+                    <p><strong>Window:</strong> <span data-management-window>Loading</span></p>
+                    <p><strong>Watch:</strong> <span data-management-watch>Loading</span></p>
+                    <p><strong>Reported facts created:</strong> <span data-management-reported-count>Loading</span></p>
+                </section>
+                <section class="trace-record" data-brief-scenario="rumor">
+                    <h3>Unverified news boundary</h3>
+                    <p><strong>Class:</strong> <span data-rumor-class>Loading</span></p>
+                    <p><strong>Evidence needed:</strong> <span data-rumor-limitation>Loading</span></p>
+                    <p><strong>Facts fingerprint:</strong> <span data-rumor-facts-before>Loading</span> / <span
+                            data-rumor-facts-after>Loading</span></p>
+                    <p><strong>Assumptions fingerprint:</strong> <span data-rumor-assumptions-before>Loading</span> /
+                        <span data-rumor-assumptions-after>Loading</span>
+                    </p>
+                    <p><strong>Scenario revision:</strong> <span data-rumor-revision-before>Loading</span> / <span
+                            data-rumor-revision-after>Loading</span></p>
+                    <p><strong>Proposals:</strong> <span data-rumor-proposal-count>Loading</span></p>
+                </section>
+                <section class="trace-record" data-brief-scenario="divergence">
+                    <h3>Sentiment divergence</h3>
+                    <p><strong>Classes:</strong> <span data-divergence-classes>Loading</span></p>
+                    <p><strong>Reported window:</strong> <span data-divergence-reported-window>Loading</span></p>
+                    <p><strong>Sentiment window:</strong> <span data-divergence-sentiment-window>Loading</span></p>
+                    <p><strong>Fundamental direction:</strong> <span data-divergence-direction>Loading</span></p>
+                    <p><strong>Confidence:</strong> <span data-divergence-confidence>Loading</span></p>
+                    <p><strong>Statement / market clocks:</strong> <span data-divergence-statement-clock>Loading</span>
+                        / <span data-divergence-market-clock>Loading</span></p>
+                </section>
+                <section class="trace-record" data-brief-scenario="macro">
+                    <h3>Macro mechanism gate</h3>
+                    <p><strong>Linked eligibility:</strong> <span data-macro-linked-eligibility>Loading</span></p>
+                    <p><strong>Mechanism:</strong> <span data-macro-linked-mechanism>Loading</span></p>
+                    <p><strong>Driver:</strong> <span data-macro-linked-driver>Loading</span></p>
+                    <p><strong>Unlinked eligibility:</strong> <span data-macro-unlinked-eligibility>Loading</span></p>
+                    <p><strong>Unlinked score:</strong> <span data-macro-unlinked-score>Loading</span></p>
+                </section>
+                <section class="trace-record" data-brief-scenario="ranking">
+                    <h3>Materiality over volume</h3>
+                    <p><strong>First:</strong> <span data-ranking-first>Loading</span></p>
+                    <p><strong>Materiality / sensitivity:</strong> <span
+                            data-ranking-materiality-component>Loading</span> / <span
+                            data-ranking-sensitivity-component>Loading</span></p>
+                    <p><strong>Generic news scores:</strong> <span data-ranking-news-scores>Loading</span></p>
+                    <p><strong>Headline volume:</strong> <span data-ranking-headline-volume>Loading</span></p>
+                </section>
+                <section class="trace-record" data-brief-scenario="stale">
+                    <h3>Stale evidence</h3>
+                    <p><strong>Status:</strong> <span data-stale-status>Loading</span></p>
+                    <p><strong>Original cutoff:</strong> <span data-stale-cutoff>Loading</span></p>
+                    <p><strong>Required update:</strong> <span data-stale-required-update>Loading</span></p>
+                    <p><strong>Material / proposals:</strong> <span data-stale-material-count>Loading</span> / <span
+                            data-stale-proposal-count>Loading</span></p>
+                    <p><strong>Prior dated claim:</strong> <span data-stale-prior-claim>Loading</span></p>
+                </section>
+                <section class="trace-record" data-brief-scenario="feature002">
+                    <h3>Feature 002 owner boundary</h3>
+                    <p><strong>Adapter:</strong> <span data-owner-adapter>Loading</span></p>
+                    <p><strong>Source:</strong> <span data-owner-source>Loading</span></p>
+                    <p><strong>Statement / model / brief / market:</strong> <span
+                            data-owner-statement-clock>Loading</span> / <span data-owner-model-clock>Loading</span> /
+                        <span data-owner-brief-clock>Loading</span> / <span data-owner-market-clock>Loading</span>
+                    </p>
+                    <p><strong>Limitations:</strong> <span data-owner-limitations>Loading</span></p>
+                    <p><strong>Boundary:</strong> <span data-owner-boundary>No fact recomputation, no archetype change,
+                            no proposal application, and no recommendation fabrication.</span></p>
+                </section>
+                <section class="trace-record" data-brief-scenario="unchanged">
+                    <h3>Unchanged and deduplicated history</h3>
+                    <p><strong>Status:</strong> <span data-unchanged-status>Loading</span></p>
+                    <p><strong>Reviewed evidence:</strong> <span data-unchanged-reviewed-count>Loading</span></p>
+                    <p><strong>Rationale:</strong> <span data-unchanged-rationale>Loading</span></p>
+                    <p><strong>Material / proposals:</strong> <span data-unchanged-material-count>Loading</span> / <span
+                            data-unchanged-proposal-count>Loading</span></p>
+                    <p><strong>History first / replay:</strong> <span data-history-first-count>Loading</span> / <span
+                            data-history-replay-count>Loading</span> (replay appended: <span
+                            data-history-replay-appended>Loading</span>)</p>
+                </section>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="resilience" aria-labelledby="resilience-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Resilience diagnostics</p>
+                    <h2 id="resilience-heading">Raw evidence renders beside any contextual adjustment</h2>
+                </div>
+                <p class="band-note">The production derived-metric, diagnostic, and capital-allocation guards run over
+                    constructed contract fixtures. These are not MSFT-reported values. No universal score is produced,
+                    and
+                    an omitted concept stays absent rather than becoming a zero or a pass.</p>
+            </div>
+            <div class="trace-grid" data-resilience-demo>
+                <section class="trace-record" data-diagnostic="interest-coverage">
+                    <h3>Interest coverage (constructed fixture)</h3>
+                    <div data-diagnostic-raw>
+                        <p><strong>Raw value:</strong> <span data-raw-value>Loading</span></p>
+                        <p><strong>Formula:</strong> <span data-raw-formula>Loading</span></p>
+                        <p><strong>Threshold:</strong> <span data-raw-threshold>Loading</span></p>
+                        <p><strong>Input refs:</strong> <span data-raw-input-refs>Loading</span></p>
+                        <p><strong>Period:</strong> <span data-raw-period>Loading</span></p>
+                    </div>
+                    <div data-diagnostic-contextual>
+                        <p><strong>Contextual amount:</strong> <span data-contextual-amount>Loading</span></p>
+                        <p><strong>Rationale:</strong> <span data-contextual-rationale>Loading</span></p>
+                        <p><strong>Sensitivity:</strong> <span data-contextual-sensitivity>Loading</span></p>
+                        <p><strong>Applicability:</strong> <span data-contextual-applicability>Loading</span></p>
+                    </div>
+                </section>
+                <section class="trace-record" data-diagnostic="preferred-stock">
+                    <h3>Preferred stock (constructed fixture)</h3>
+                    <p><strong>Presence:</strong> <span data-preferred-presence>Loading</span></p>
+                    <p><strong>Value:</strong> <span data-preferred-value>Loading</span></p>
+                </section>
+                <section class="trace-record" data-diagnostic="capital-allocation">
+                    <h3>Capital allocation (constructed fixture)</h3>
+                    <p><strong>Net share change:</strong> <span data-capalloc-net-share-change>Loading</span></p>
+                    <p><strong>Gross repurchase outlay:</strong> <span data-capalloc-gross-repurchase>Loading</span></p>
+                    <p><strong>Treasury balance:</strong> <span data-capalloc-treasury>Loading</span></p>
+                    <p><strong>Interpretation:</strong> <span data-capalloc-interpretation>Loading</span></p>
+                </section>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="resilience" aria-labelledby="overlay-heading"
+            data-resilience-overlays>
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Source-qualified archetype overlays</p>
+                    <h2 id="overlay-heading">Chipotle and JPMorgan read the same foundation through their own archetype
+                        lens</h2>
+                </div>
+                <p class="band-note">The production <code>selectResilienceView</code> resolves each resilience check
+                    against the accepted archetype's diagnostic-policy applicability before any number is produced.
+                    Chipotle (restaurant unit economics) keeps raw reported leverage beside lease and repurchase
+                    context; JPMorgan (financial institution) marks the ordinary industrial liabilities/equity and
+                    net-debt/EBITDA heuristics inapplicable and keeps bank capital facts available with no industrial
+                    weakness rank. Every figure is read from the real source-qualified SEC 10-K FY2025 publication
+                    materialized from the retained SEC Company Facts (XBRL) response bytes; concepts the issuer does not
+                    tag (Chipotle treasury-stock balance, JPMorgan CET1 and liquidity coverage) stay explicitly
+                    unavailable rather than substituted.</p>
+            </div>
+            <div class="trace-grid">
+                <section class="trace-record" data-resilience-company="sec-cik-0001058090"
+                    data-resilience-archetype="archetype-restaurant-unit-economics" data-overlay-status="loading">
+                    <h3>Chipotle Mexican Grill — restaurant unit economics</h3>
+                    <p><strong>Overlay publication status:</strong> <span data-overlay-load-status>Loading</span></p>
+                    <p><strong>Accepted archetype:</strong> <span data-overlay-archetype>Loading</span></p>
+                    <p><strong>Publication:</strong> <span data-overlay-publication-id>Loading</span></p>
+                    <p><strong>Source cutoff (SEC 10-K acceptance):</strong> <span
+                            data-overlay-source-cutoff>Loading</span></p>
+                    <p><strong>Manifest:</strong> <span data-overlay-manifest-sha>Loading</span></p>
+                    <p><strong>Load error:</strong> <span data-overlay-error>None</span></p>
+                    <div data-overlay-check="liabilities-to-equity">
+                        <p><strong>Liabilities/equity applicability:</strong> <span
+                                data-overlay-applicability>Loading</span></p>
+                        <p><strong>Raw value (reported, unadjusted):</strong> <span
+                                data-overlay-raw-value>Loading</span></p>
+                        <p><strong>Raw input refs:</strong> <span data-overlay-raw-refs>Loading</span></p>
+                        <p><strong>Cash / funded-debt raw state:</strong> <span
+                                data-overlay-cash-debt-state>Loading</span></p>
+                        <p><strong>Cash / funded-debt context:</strong> <span
+                                data-overlay-cash-debt-context>Loading</span></p>
+                        <p><strong>Lease / repurchase context refs:</strong> <span
+                                data-overlay-context-refs>Loading</span></p>
+                        <p><strong>Context carries a pass/fail value:</strong> <span
+                                data-overlay-context-has-value>Loading</span></p>
+                        <p><strong>Weakness rank:</strong> <span data-overlay-weakness-rank>Loading</span></p>
+                    </div>
+                    <p><strong>Archetype facts available:</strong> <span data-overlay-facts>Loading</span></p>
+                    <p><strong>Explicitly unavailable concepts:</strong> <span data-overlay-unavailable>Loading</span>
+                    </p>
+                    <p><strong>Industrial weakness rank produced:</strong> <span
+                            data-overlay-industrial-rank>Loading</span></p>
+                </section>
+                <section class="trace-record" data-resilience-company="sec-cik-0000019617"
+                    data-resilience-archetype="archetype-financial-institution" data-overlay-status="loading">
+                    <h3>JPMorgan Chase — financial institution</h3>
+                    <p><strong>Overlay publication status:</strong> <span data-overlay-load-status>Loading</span></p>
+                    <p><strong>Accepted archetype:</strong> <span data-overlay-archetype>Loading</span></p>
+                    <p><strong>Publication:</strong> <span data-overlay-publication-id>Loading</span></p>
+                    <p><strong>Source cutoff (SEC 10-K acceptance):</strong> <span
+                            data-overlay-source-cutoff>Loading</span></p>
+                    <p><strong>Manifest:</strong> <span data-overlay-manifest-sha>Loading</span></p>
+                    <p><strong>Load error:</strong> <span data-overlay-error>None</span></p>
+                    <div data-overlay-check="liabilities-to-equity">
+                        <p><strong>Ordinary liabilities/equity applicability:</strong> <span
+                                data-overlay-applicability>Loading</span> (<span data-overlay-policy>Loading</span>)</p>
+                    </div>
+                    <div data-overlay-check="net-debt-to-ebitda">
+                        <p><strong>Net-debt/EBITDA applicability:</strong> <span
+                                data-overlay-nde-applicability>Loading</span> (<span
+                                data-overlay-nde-policy>Loading</span>)</p>
+                    </div>
+                    <p><strong>Bank facts available:</strong> <span data-overlay-facts>Loading</span></p>
+                    <p><strong>Regulatory ratios not tagged in US-GAAP XBRL:</strong> <span
+                            data-overlay-unavailable>Loading</span></p>
+                    <p><strong>Industrial weakness rank produced:</strong> <span
+                            data-overlay-industrial-rank>Loading</span></p>
+                </section>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="brief" aria-labelledby="unclassified-heading" data-unclassified-demo>
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Unclassified lens</p>
+                    <h2 id="unclassified-heading">Without an accepted archetype, shared facts stay and no lens is
+                        inherited
+                    </h2>
+                </div>
+                <p class="band-note">The same publication projected with no accepted archetype keeps shared statements
+                    and
+                    the source trace while withholding KPI and diagnostic priorities.</p>
+            </div>
+            <p><strong>Shared identity:</strong> <span data-unclassified-shared>Loading</span></p>
+            <p><strong>Lens:</strong> <span data-unclassified-lens>Loading</span></p>
+            <p><strong>KPI priorities:</strong> <span data-unclassified-kpi-state>Loading</span> — <span
+                    data-unclassified-kpi-requirement>Loading</span></p>
+            <p><strong>Archetype diagnostics:</strong> <span data-unclassified-diagnostics-state>Loading</span></p>
+        </section>
+
+        <section class="band" data-detailed-panel="scenarios" aria-labelledby="model-heading" data-model-workspace>
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Linked model &amp; accepted state</p>
+                    <h2 id="model-heading">One user-owned accepted scenario drives a dependency-reachable linked model
+                    </h2>
+                </div>
+                <p class="band-note">The ordinary-company model recomputes only dependency-reachable outputs from one
+                    draft tuple, keeps unreachable history unchanged, reports the dependency path of any invalid node,
+                    and never rebases the accepted scenario without an explicit user confirmation.</p>
+            </div>
+
+            <p><strong>Accepted scenario:</strong> <span data-scenario-name>Loading</span> — revision
+                <span data-scenario-revision>Loading</span> (<span data-scenario-owner>Loading</span>)
+            </p>
+
+            <h3>Accepted baseline outputs</h3>
+            <ul id="model-baseline-list"></ul>
+
+            <div class="demo-grid">
+                <div class="trace-record" data-model-draft="valuation">
+                    <h3>Draft: one valuation driver edit</h3>
+                    <p>Editing <span data-valuation-changed>Loading</span> recomputes only the dependency-reachable
+                        valuation nodes; every unreachable statement, cash, balance, KPI, and per-share output keeps its
+                        immutable baseline value.</p>
+                    <p><strong>Reachable node kinds:</strong> <span data-valuation-reachable-kinds>Loading</span></p>
+                    <ul id="model-valuation-list"></ul>
+                    <p><strong>Carried history sample:</strong> node-revenue = <span
+                            data-valuation-carried-revenue>Loading</span>
+                        (<span data-valuation-carried-revenue-state>Loading</span>)</p>
+                </div>
+
+                <div class="trace-record" data-model-draft="invalid">
+                    <h3>Draft: an invalid driver blocks with a dependency path</h3>
+                    <p>Setting diluted shares to zero blocks the reachable per-share and valuation nodes with an
+                        explicit
+                        dependency path; the source facts and unreachable history stay intact.</p>
+                    <p><strong>node-eps state:</strong> <span data-blocked-eps-state>Loading</span> —
+                        value <span data-blocked-eps-value>Loading</span></p>
+                    <p><strong>Dependency path:</strong> <span data-blocked-eps-path>Loading</span></p>
+                    <p><strong>node-eps reason:</strong> <span data-blocked-eps-reason>Loading</span></p>
+                    <p><strong>Unreachable equity value (carried):</strong> <span
+                            data-blocked-equity-value>Loading</span></p>
+                </div>
+
+                <div class="trace-record" data-forecast>
+                    <h3>Actual vs. estimate separation</h3>
+                    <p>A later reported actual and its prior estimate keep separate classes, sources, and clocks; the
+                        forecast error is derived only when the definition, unit, currency, and period are compatible.
+                    </p>
+                    <p><strong>Estimate:</strong> class <span data-forecast-estimate-class>Loading</span>, source
+                        <span data-forecast-estimate-source>Loading</span>, accepted
+                        <span data-forecast-estimate-clock>Loading</span>
+                    </p>
+                    <p><strong>Actual:</strong> class <span data-forecast-actual-class>Loading</span>, source
+                        <span data-forecast-actual-source>Loading</span>, accepted
+                        <span data-forecast-actual-clock>Loading</span>
+                    </p>
+                    <p><strong>Comparable:</strong> <span data-forecast-comparable>Loading</span> — forecast error
+                        <span data-forecast-error>Loading</span>
+                    </p>
+                    <p><strong>Incompatible period:</strong> <span data-forecast-incomparable>Loading</span></p>
+                </div>
+
+                <div class="trace-record" data-refresh>
+                    <h3>Evidence refresh preserves accepted assumptions</h3>
+                    <p>A newer hash-valid publication never rebases the accepted revision; affected drivers receive
+                        separate pending proposals requiring a user decision.</p>
+                    <p><strong>Active revision after refresh:</strong> <span data-refresh-active-revision>Loading</span>
+                    </p>
+                    <p><strong>Rebased:</strong> <span data-refresh-rebased>Loading</span></p>
+                    <ul id="model-proposal-list"></ul>
+                </div>
+
+                <div class="trace-record" data-proposal-decision>
+                    <h3>Proposal arrival is inert until confirmation</h3>
+                    <p>The proposal alone does not change the active revision. Accepting or editing-and-confirming
+                        creates exactly one new immutable revision; rejecting records a decision with no revision
+                        change.</p>
+                    <p><strong>Active revision before any decision:</strong> <span
+                            data-decision-active-before>Loading</span></p>
+                    <p><strong>Accept creates revision:</strong> <span data-decision-accept-revision>Loading</span>
+                        (parent <span data-decision-accept-parent>Loading</span>)</p>
+                    <p><strong>Edit-and-confirm applies:</strong> <span data-decision-edit-value>Loading</span></p>
+                    <p><strong>Reject revisions created:</strong> <span data-decision-reject-count>Loading</span></p>
+                    <p><strong>Active revision after all decisions:</strong> <span
+                            data-decision-active-after>Loading</span></p>
+                </div>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="sources" data-sources-workspace
+            aria-labelledby="sources-workspace-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Source trace workspace</p>
+                    <h2 id="sources-workspace-heading">Every material claim resolves its exact evidence chain</h2>
+                </div>
+                <p class="band-note">The direction claim resolves to its exact observation requirement, source
+                    artifact, period and window, mapping and formula, consumers, rights, restatements, conflicts, and
+                    unavailable links from the one accepted state. Use the trace control on the Simple claim to open the
+                    full focused chain; focus returns to the claim on close.</p>
+            </div>
+            <dl class="identity-grid">
+                <div class="datum">
+                    <dt>Focused claim</dt>
+                    <dd data-sources-focus>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Required source</dt>
+                    <dd data-sources-required>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Transformations</dt>
+                    <dd data-sources-transformations>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Consumers</dt>
+                    <dd data-sources-consumers>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Rights limitations</dt>
+                    <dd data-sources-rights>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Restatements / conflicts</dt>
+                    <dd data-sources-restatements>Loading</dd>
+                </div>
+                <div class="datum">
+                    <dt>Unavailable links</dt>
+                    <dd data-sources-unavailable>Loading</dd>
+                </div>
+            </dl>
+            <div>
+                <button class="trace-button" type="button" data-export-control>Build accepted-state export &amp; owner
+                    read</button>
+                <p class="band-note" data-export-summary>The accepted state exports and publishes a committed
+                    FundamentalsToolRead/v1 as a pure projection with all clocks and classes and no private data.</p>
+                <pre class="export-output" data-export-output hidden></pre>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="peers" data-peers-panel aria-labelledby="peers-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Peers</p>
+                    <h2 id="peers-heading">Only comparable observations enter the peer statistic</h2>
+                </div>
+                <p class="band-note">The production selectPeersView admits only comparable observations into the named
+                    statistic and the sample size. Qualified and excluded rows, outliers, and declared members with no
+                    observation stay visible with their exact reasons, and a missing member is never inserted as a zero.
+                    The peer comparison observations are constructed and are not MSFT-reported values.</p>
+            </div>
+            <p><strong>Peer set:</strong> <span data-peers-set-id>Loading</span> — <span
+                    data-peers-purpose>Loading</span></p>
+            <p><strong>Statistic:</strong> <span data-peers-concept>Loading</span> (<span
+                    data-peers-operation>Loading</span>) =
+                <strong data-peers-stat-value>Loading</strong>, sample size <strong
+                    data-peers-sample-size>Loading</strong>
+            </p>
+            <p><strong>Comparable members:</strong> <span data-peers-members>Loading</span></p>
+            <p><strong>Missing (no observation, never zero):</strong> <span data-peers-missing>Loading</span></p>
+            <p><strong>Outliers:</strong> <span data-peers-outliers>Loading</span></p>
+            <div class="table-wrap">
+                <table class="peers-table">
+                    <thead>
+                        <tr>
+                            <th>Company</th>
+                            <th>Eligibility</th>
+                            <th>Value</th>
+                            <th>Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody id="peers-rows"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="band" data-detailed-panel="comparability" aria-labelledby="comparability-heading">
+            <div class="band-head">
+                <div>
+                    <p class="section-label">Cross-entity comparability</p>
+                    <h2 id="comparability-heading">Mixed currency or fiscal periods stay visible but block a forced
+                        comparison</h2>
+                </div>
+                <p class="band-note">The production <code>evaluateComparability</code> guard reads the real
+                    source-qualified publications. Microsoft reports on a 06-30 fiscal year while Chipotle and JPMorgan
+                    report on 12-31, so a cross-entity growth, aggregate statistic, or rank over incompatible bases is
+                    withheld as unavailable with the exact machine-readable reason while every raw value and basis stays
+                    visible. An aligned same-currency same-fiscal comparison genuinely computes.</p>
+            </div>
+
+            <div class="comparability-block" data-comparability="cross-fiscal">
+                <h3>Microsoft (06-30) vs Chipotle (12-31) — stockholders equity</h3>
+                <p><strong>Comparable:</strong> <span data-comparability-comparable>Loading</span> —
+                    reason <span data-comparability-reason>Loading</span></p>
+                <ul class="comparability-bases">
+                    <li data-comparability-basis="sec-cik-0000789019"><strong>Microsoft</strong> —
+                        currency <span data-basis-currency>Loading</span>,
+                        fiscal year end <span data-basis-fiscal>Loading</span>,
+                        value <span data-basis-value>Loading</span></li>
+                    <li data-comparability-basis="sec-cik-0001058090"><strong>Chipotle</strong> —
+                        currency <span data-basis-currency>Loading</span>,
+                        fiscal year end <span data-basis-fiscal>Loading</span>,
+                        value <span data-basis-value>Loading</span></li>
+                </ul>
+                <ul class="comparability-ops">
+                    <li data-comparability-operation="growth">Growth rate: <span data-comparability-state>Loading</span>
+                        (<span data-comparability-op-reason>Loading</span>)</li>
+                    <li data-comparability-operation="statistic">Aggregate statistic: <span
+                            data-comparability-state>Loading</span>
+                        (<span data-comparability-op-reason>Loading</span>)</li>
+                    <li data-comparability-operation="rank">Rank: <span data-comparability-state>Loading</span>
+                        (<span data-comparability-op-reason>Loading</span>)</li>
+                </ul>
+            </div>
+
+            <div class="comparability-block">
+                <h3>Reported stockholders equity by issuer</h3>
+                <div class="table-wrap">
+                    <table data-accessible-chart-table>
+                        <caption>Reported stockholders equity by issuer (chart-equivalent accessible table)</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Issuer</th>
+                                <th scope="col">Stockholders equity</th>
+                                <th scope="col">State</th>
+                            </tr>
+                        </thead>
+                        <tbody data-accessible-chart-body></tbody>
+                    </table>
+                </div>
+                <div class="chart-visual" data-chart-visual aria-hidden="true"></div>
+            </div>
+
+            <div class="comparability-block" data-comparability="aligned">
+                <h3>Chipotle (12-31) vs JPMorgan (12-31) — stockholders equity</h3>
+                <p><strong>Comparable:</strong> <span data-comparability-comparable>Loading</span></p>
+                <ul class="comparability-ops">
+                    <li data-comparability-operation="statistic">Aggregate statistic (mean):
+                        <span data-comparability-state>Loading</span> =
+                        <strong data-comparability-op-value>Loading</strong>
+                    </li>
+                    <li data-comparability-operation="rank">Rank: <span data-comparability-state>Loading</span> —
+                        highest <span data-comparability-rank-first>Loading</span></li>
+                </ul>
+            </div>
+        </section>
+
+        <section class="sources-band" id="sources" aria-labelledby="sources-heading" hidden>
+            <div class="sources-head">
+                <div>
+                    <p class="section-label">Sources</p>
+                    <h2 id="sources-heading" tabindex="-1">Exact claim evidence chain</h2>
+                </div>
+                <button class="close-button" type="button" data-close-trace>Return to claim</button>
+            </div>
+            <div class="trace-grid" id="trace-grid"></div>
+        </section>
+
+        <p class="fatal" id="fatal-error" role="alert" hidden>Company publication validation failed.</p>
+    </main>
+
+    <script src="rldata.js"></script>
+    <script src="rlapp.js"></script>
+    <script src="rlcompany.js"></script>
+    <script src="rlg.js"></script>
+    <script src="rlchart.js"></script>
+    <script src="rlticker.js"></script>
+    <script src="rlnav.js"></script>
+    <script>
+        (function () {
+            "use strict";
+
+            var lastTraceTrigger = null;
+            var sources = document.getElementById("sources");
+            var sourcesHeading = document.getElementById("sources-heading");
+            var traceGrid = document.getElementById("trace-grid");
+
+            function setText(selector, value) {
+                var node = document.querySelector(selector);
+                if (node) node.textContent = value;
+            }
+
+            function titleCase(value) {
+                return String(value).split("-").map(function (part) { return part.charAt(0).toUpperCase() + part.slice(1); }).join(" ");
+            }
+
+            function appendText(parent, text, strong) {
+                var row = document.createElement("p");
+                if (strong) {
+                    var label = document.createElement("strong");
+                    label.textContent = strong + ": ";
+                    row.appendChild(label);
+                }
+                row.appendChild(document.createTextNode(text));
+                parent.appendChild(row);
+            }
+
+            function traceRecord(title, dataAttribute) {
+                var record = document.createElement("section");
+                record.className = "trace-record";
+                record.setAttribute(dataAttribute, "");
+                var heading = document.createElement("h3");
+                heading.textContent = title;
+                record.appendChild(heading);
+                traceGrid.appendChild(record);
+                return record;
+            }
+
+            function renderCoverage(coverage) {
+                var list = document.getElementById("coverage-list");
+                list.replaceChildren();
+                coverage.forEach(function (item) {
+                    var row = document.createElement("div");
+                    row.className = "coverage-row";
+                    row.setAttribute("data-evidence-class", item.evidenceClass);
+                    var label = document.createElement("strong");
+                    label.textContent = titleCase(item.evidenceClass);
+                    var state = document.createElement("span");
+                    state.className = "state " + item.state;
+                    state.setAttribute("data-coverage-state", "");
+                    state.textContent = titleCase(item.state);
+                    var explanation = document.createElement("span");
+                    explanation.textContent = item.explanation;
+                    row.append(label, state, explanation);
+                    list.appendChild(row);
+                });
+            }
+
+            function renderDependencies(results) {
+                var body = document.getElementById("dependency-rows");
+                body.replaceChildren();
+                results.forEach(function (result) {
+                    var row = document.createElement("tr");
+                    row.setAttribute("data-node-id", result.id);
+                    var id = document.createElement("td");
+                    var code = document.createElement("code");
+                    code.textContent = result.id;
+                    id.appendChild(code);
+                    var kind = document.createElement("td");
+                    kind.textContent = titleCase(result.kind);
+                    var state = document.createElement("td");
+                    var stateLabel = document.createElement("span");
+                    stateLabel.className = "state " + result.state;
+                    stateLabel.setAttribute("data-node-state", "");
+                    stateLabel.textContent = titleCase(result.state);
+                    state.appendChild(stateLabel);
+                    var value = document.createElement("td");
+                    value.setAttribute("data-node-value", "");
+                    value.textContent = result.value === null ? "No value published" : String(result.value);
+                    var missing = document.createElement("td");
+                    missing.setAttribute("data-missing-facts", "");
+                    missing.textContent = result.missingFactIds.length ? result.missingFactIds.join(", ") : "None";
+                    row.append(id, kind, state, value, missing);
+                    body.appendChild(row);
+                });
+            }
+
+            function renderPeriods(accepted) {
+                var body = document.getElementById("period-rows");
+                body.replaceChildren();
+                accepted.periods.forEach(function (period) {
+                    var classification = RLCOMPANY.classifyReportingPeriod(period);
+                    var row = document.createElement("tr");
+                    row.setAttribute("data-period-id", classification.periodId);
+                    var idCell = document.createElement("td");
+                    var code = document.createElement("code");
+                    code.textContent = classification.periodId;
+                    idCell.appendChild(code);
+                    function cell(attribute, text) {
+                        var td = document.createElement("td");
+                        td.setAttribute(attribute, "");
+                        td.textContent = text;
+                        return td;
+                    }
+                    row.append(
+                        idCell,
+                        cell("data-period-kind", titleCase(period.kind)),
+                        cell("data-period-classification", classification.classification),
+                        cell("data-period-standalone-quarter", classification.standaloneQuarter ? "Yes" : "No"),
+                        cell("data-period-end", period.end),
+                        cell("data-period-accession", period.accession)
+                    );
+                    body.appendChild(row);
+                });
+            }
+
+            function renderStatementIntegrity(accepted) {
+                var balanceSheetConcepts = ["us-gaap:Assets", "us-gaap:Liabilities", "us-gaap:StockholdersEquity"];
+                var balanceSheetObservations = accepted.observations.filter(function (observation) {
+                    return balanceSheetConcepts.indexOf(observation.sourceConcept) !== -1 && observation.value !== null;
+                });
+                var stateNode = document.querySelector("[data-integrity-state]");
+                stateNode.textContent = "Not evaluable";
+                stateNode.className = "state unavailable";
+                setText("[data-integrity-note]", balanceSheetObservations.length >= 3
+                    ? "Captured balance-sheet observations are evaluated by the production guard."
+                    : "No source-qualified balance-sheet observation is captured in this scope, so the MSFT balance-sheet identity cannot be evaluated.");
+                setText("[data-integrity-source-facts]", "Source facts remain inspectable; no value is invented or carried.");
+
+                function demoObservation(observationId, value, state) {
+                    return {
+                        contractVersion: "fact-observation/v1",
+                        observationId: observationId,
+                        companyId: accepted.companyId,
+                        evidenceClass: "reported",
+                        sourceRef: accepted.dossier.sourceRefs[1],
+                        periodRef: accepted.dossier.periodRefs[0],
+                        sourceConcept: "us-gaap:Assets",
+                        value: value,
+                        valueType: "decimal",
+                        unit: "USD",
+                        currency: "USD",
+                        decimals: "-6",
+                        signConvention: "positive-natural",
+                        state: state,
+                        clocks: {
+                            reportingPeriodEnd: accepted.periods[0].end,
+                            sourcePublishedAt: accepted.dossier.evidenceCutoff,
+                            acceptedAt: accepted.dossier.evidenceCutoff,
+                            retrievedAt: accepted.sources[0].clocks.retrievedAt,
+                            observedAt: null
+                        },
+                        definition: "Constructed contract demonstration observation; not an MSFT-reported value.",
+                        qualifiers: ["Constructed Scope 1 reconciliation demonstration fixture."]
+                    };
+                }
+                function reconcileRequest(observations, amendments) {
+                    return {
+                        factId: "fact-total-assets",
+                        normalizedConcept: "total-assets",
+                        mappingId: "mapping-total-assets",
+                        mappingVersion: "us-gaap-assets/v1",
+                        transformation: { sign: 1, scalePower10: 0, aggregation: "none" },
+                        observations: observations,
+                        amendments: amendments
+                    };
+                }
+                function fillDemo(key, verdict, detail) {
+                    var row = document.querySelector('[data-demo="' + key + '"]');
+                    row.querySelector("[data-demo-verdict]").textContent = verdict;
+                    row.querySelector("[data-demo-detail]").textContent = detail;
+                }
+
+                var imbalance = RLCOMPANY.evaluateStatementIntegrity({
+                    companyId: accepted.companyId,
+                    periodId: accepted.periods[0].periodId,
+                    assets: { observationId: "obs-assets", value: "600000000000", decimals: "-6" },
+                    liabilities: { observationId: "obs-liabilities", value: "200000000000", decimals: "-6" },
+                    equity: { observationId: "obs-equity", value: "250000000000", decimals: "-6" }
+                });
+                fillDemo(
+                    "integrity-imbalance",
+                    imbalance.error ? imbalance.error.code + " (dependent conclusions blocked)" : "Balanced",
+                    "Difference " + imbalance.difference + " exceeds the summed XBRL rounding interval " + imbalance.allowedInterval + "; source facts remain inspectable."
+                );
+
+                var restated = RLCOMPANY.reconcileFactObservations(reconcileRequest(
+                    [demoObservation("obs-assets-original", "500000000000", "restated"), demoObservation("obs-assets-amended", "512000000000", "current")],
+                    [{ originalObservationId: "obs-assets-original", amendingObservationId: "obs-assets-amended" }]
+                ));
+                fillDemo(
+                    "restatement",
+                    titleCase(restated.normalizedFact.resolutionState),
+                    "Current observation " + restated.normalizedFact.currentObservationId + "; lineage keeps " + restated.normalizedFact.observationIds.join(", ") + "."
+                );
+
+                var conflict = RLCOMPANY.reconcileFactObservations(reconcileRequest(
+                    [demoObservation("obs-assets-a", "500000000000", "current"), demoObservation("obs-assets-b", "540000000000", "current")],
+                    []
+                ));
+                fillDemo(
+                    "conflict",
+                    titleCase(conflict.normalizedFact.resolutionState) + (conflict.averaged ? "" : " (no average)"),
+                    "Both observations stay visible: " + conflict.conflictingObservationIds.join(", ") + "."
+                );
+            }
+
+            function renderTrace(accepted) {
+                var trace = RLCOMPANY.selectSourcesView(accepted, "claim-direction");
+                traceGrid.replaceChildren();
+
+                var observation = traceRecord("Observation", "data-trace-observation");
+                if (trace.observations.length) {
+                    appendText(observation, trace.observations[0].observationId, "ID");
+                    appendText(observation, trace.observations[0].sourceConcept, "Concept");
+                    appendText(observation, titleCase(trace.observations[0].state), "State");
+                } else {
+                    appendText(observation, "No source-qualified revenue observation published");
+                }
+
+                var source = traceRecord("Source artifact", "data-trace-source");
+                var traceSource = trace.observations.length ? trace.observations[0].source : trace.sourceRequirements[0];
+                appendText(source, traceSource.sourceId, "ID");
+                appendText(source, traceSource.url, "URL");
+                appendText(source, traceSource.contentSha256 || "No response bytes retained", "Content hash");
+
+                var period = traceRecord("Period and clocks", "data-trace-period");
+                var periodRecord = trace.observations.length ? trace.observations[0].period : trace.unavailableLinks[0].period;
+                appendText(period, periodRecord ? "FY" + periodRecord.fiscalYear + " Q" + periodRecord.fiscalQuarter : "Unavailable", "Reporting period");
+                appendText(period, periodRecord ? periodRecord.end : "Unavailable", "Period end");
+                appendText(period, traceSource.clocks.acceptedAt || "Unavailable", "SEC acceptance");
+                appendText(period, traceSource.clocks.retrievedAt || "Unavailable", "Retrieved");
+
+                var mapping = traceRecord("Mapping", "data-trace-mapping");
+                var mappingRecord = trace.transformations.find(function (item) { return item.kind === "mapping"; });
+                appendText(mapping, mappingRecord.id, "ID");
+                appendText(mapping, mappingRecord.sourceConcept + " -> " + mappingRecord.normalizedConcept, "Concept path");
+                appendText(mapping, mappingRecord.interpretation, "Interpretation");
+
+                var formula = traceRecord("Formula or interpretation", "data-trace-formula");
+                var formulaRecord = trace.transformations.find(function (item) { return item.kind === "formula"; });
+                appendText(formula, formulaRecord.id, "ID");
+                appendText(formula, formulaRecord.interpretation, "Rule");
+
+                var consumers = traceRecord("Consumers", "data-trace-consumers");
+                trace.consumers.forEach(function (consumer) { appendText(consumers, consumer.consumerId + " - " + consumer.role); });
+
+                var rights = traceRecord("Rights and limitations", "data-trace-rights");
+                appendText(rights, trace.rights[0].rights, "Rights");
+                trace.rights[0].limitations.forEach(function (limitation) { appendText(rights, limitation); });
+
+                var restatements = traceRecord("Restatements", "data-trace-restatements");
+                trace.restatements.forEach(function (record) { appendText(restatements, record.state + " - " + record.explanation); });
+
+                var conflicts = traceRecord("Conflicts", "data-trace-conflicts");
+                trace.conflicts.forEach(function (record) { appendText(conflicts, record.state + " - " + record.explanation); });
+
+                var unavailable = traceRecord("Unavailable links", "data-trace-unavailable");
+                trace.unavailableLinks.forEach(function (record) { appendText(unavailable, record.concept + " / " + record.periodId + " - " + record.reason); });
+            }
+
+            function openTrace(event, accepted) {
+                lastTraceTrigger = event.currentTarget;
+                renderTrace(accepted);
+                sources.hidden = false;
+                sourcesHeading.focus();
+            }
+
+            function closeTrace() {
+                sources.hidden = true;
+                if (lastTraceTrigger) lastTraceTrigger.focus();
+            }
+
+            function renderAccepted(accepted, config, overlayLoads) {
+                var archetypeView = null;
+                if (config && config.contractVersion === "company-fundamentals-config/v1") {
+                    try { archetypeView = RLCOMPANY.resolveArchetypeView(config, accepted.companyId); } catch (_error) { archetypeView = null; }
+                }
+                var simple = RLCOMPANY.selectSimpleView(accepted, archetypeView);
+                var submissionsSource = accepted.sources.find(function (source) { return source.sourceKind === "sec-submissions"; });
+                var exactSourceBytes = submissionsSource && submissionsSource.limitations.some(function (limitation) { return limitation.indexOf("Exact raw SEC response bytes retained") === 0; });
+                setText("[data-publication-seal]", "Hash-valid foundation");
+                setText("[data-source-extract-completeness]", exactSourceBytes ? "Exact SEC response bytes" : "Partial extract");
+                setText("[data-publication-id]", accepted.publicationId);
+                setText("[data-generation]", String(accepted.generation));
+                setText("[data-evidence-cutoff]", accepted.dossier.evidenceCutoff);
+                setText("[data-company-name]", accepted.identity.issuerName);
+                setText("[data-company-ticker]", accepted.identity.ticker);
+                setText("[data-company-exchange]", accepted.identity.exchange);
+                setText("[data-company-cik]", accepted.identity.cik);
+                setText("[data-accounting-basis]", accepted.identity.accountingBasis + " / " + accepted.identity.reportingCurrency);
+                setText("[data-direction-reason]", simple.summary.direction.reason);
+                renderCoverage(simple.evidenceCoverage);
+                renderDependencies(simple.dependencyResults);
+                renderPeriods(accepted);
+                renderStatementIntegrity(accepted);
+                renderKpiPriorities(simple);
+                renderClocks(simple, config);
+                renderResilienceDemos(accepted);
+                renderResilienceOverlays(config, overlayLoads);
+                renderComparability(accepted, overlayLoads);
+                renderUnclassifiedDemo(accepted);
+                renderModelWorkspace(accepted);
+                renderSimpleCockpit(simple);
+                renderAdaptiveBriefWorkspace(accepted, config);
+                renderPeersWorkspace(config);
+                renderSourcesWorkspace(accepted);
+                wireExport(accepted);
+                publishToolRead(accepted, simple);
+                wireModeAndTabs();
+                document.querySelector("[data-trace-control]").addEventListener("click", function (event) { openTrace(event, accepted); });
+                document.querySelector("[data-close-trace]").addEventListener("click", closeTrace);
+                document.addEventListener("keydown", function (event) { if (event.key === "Escape" && !sources.hidden) closeTrace(); });
+                document.body.setAttribute("data-publication-status", "accepted");
+                document.getElementById("publication-status").setAttribute("aria-label", "Company publication accepted");
+                if (window.RLAPP && RLAPP.report) RLAPP.report("company-fundamentals:foundation", "ready", { sourceId: accepted.publicationId });
+            }
+
+            function renderKpiPriorities(simple) {
+                setText("[data-archetype-lens]", simple.archetype.status === "accepted" ? simple.archetype.label : "Unclassified — no lens inherited");
+                var list = document.getElementById("kpi-priority-list");
+                list.replaceChildren();
+                simple.kpiPriorities.forEach(function (kpi) {
+                    var item = document.createElement("li");
+                    item.setAttribute("data-kpi-priority", "");
+                    item.setAttribute("data-kpi-concept", kpi.normalizedConcept);
+                    item.setAttribute("data-kpi-rank", String(kpi.rank));
+                    var label = document.createElement("strong");
+                    label.textContent = kpi.label + " ";
+                    var state = document.createElement("span");
+                    state.className = "state " + (kpi.state === "available" ? "available" : "unavailable");
+                    state.setAttribute("data-kpi-state", "");
+                    state.textContent = kpi.state === "available" ? "Available" : "Unavailable";
+                    var requirement = document.createElement("span");
+                    requirement.textContent = kpi.evidenceRequirement ? " — " + kpi.evidenceRequirement : "";
+                    item.append(label, state, requirement);
+                    list.appendChild(item);
+                });
+            }
+
+            function resolveOptionalMarketEnrichment(config) {
+                // The accepted dossier is preserved regardless of any optional enrichment outcome, and no credential is requested.
+                try {
+                    var hasMarketSource = config && Array.isArray(config.sources) && config.sources.some(function (source) { return source.sourceKind === "market"; });
+                    if (hasMarketSource) return { state: "available", cutoff: null, reason: "The optional market evidence source is configured." };
+                    return { state: "unavailable", cutoff: null, reason: "The optional market enrichment is unavailable: no source-qualified market evidence source is configured, so only that evidence class reports unavailable while the accepted dossier is preserved." };
+                } catch (_error) {
+                    return { state: "unavailable", cutoff: null, reason: "The optional market enrichment failed and only that evidence class reports unavailable while the accepted dossier is preserved." };
+                }
+            }
+
+            function renderClocks(simple, config) {
+                function clockText(value) { return value === null || value === undefined ? "Not established" : String(value); }
+                setText("[data-clock-statement]", clockText(simple.clocks.statementCutoff));
+                setText("[data-clock-model]", clockText(simple.clocks.modelCutoff));
+                setText("[data-clock-brief]", clockText(simple.clocks.briefCutoff));
+                var market = resolveOptionalMarketEnrichment(config);
+                setText("[data-clock-market]", market.state === "available" ? clockText(market.cutoff) : "Unavailable");
+                setText("[data-optional-market-reason]", market.reason);
+            }
+
+            function renderResilienceDemos(accepted) {
+                var coverage = RLCOMPANY.evaluateDiagnostic({
+                    checkId: "check-interest-coverage",
+                    policyId: "policy-interest-coverage",
+                    policyVersion: "interest-coverage/v1",
+                    concept: "interest-coverage",
+                    periodId: "period-msft-fy2026-q3",
+                    raw: {
+                        formula: "operating-income / interest-expense",
+                        threshold: "3.0",
+                        operation: "ratio",
+                        inputs: [
+                            { inputId: "operating-income", ref: "obs-operating-income", concept: "operating-income", unit: "USD", periodId: "period-msft-fy2026-q3", value: "30000000000", state: "available" },
+                            { inputId: "interest-expense", ref: "obs-interest-expense", concept: "interest-expense", unit: "USD", periodId: "period-msft-fy2026-q3", value: "500000000", state: "available" }
+                        ]
+                    },
+                    contextualAdjustment: { adjustmentId: "adj-lease-interest", amount: "250000000", rationale: "Add back capitalized lease interest disclosed in the notes.", sourceRefs: ["obs-lease-note"], sensitivity: "A 10% change in lease interest moves coverage by 0.2x.", applicability: "Applies only while operating leases remain material." },
+                    interpretationMode: null
+                });
+                var coverageNode = document.querySelector('[data-diagnostic="interest-coverage"]');
+                coverageNode.querySelector("[data-raw-value]").textContent = coverage.raw.value;
+                coverageNode.querySelector("[data-raw-formula]").textContent = coverage.raw.formula;
+                coverageNode.querySelector("[data-raw-threshold]").textContent = coverage.raw.threshold;
+                coverageNode.querySelector("[data-raw-input-refs]").textContent = coverage.raw.inputRefs.join(", ");
+                coverageNode.querySelector("[data-raw-period]").textContent = coverage.raw.period;
+                coverageNode.querySelector("[data-contextual-amount]").textContent = coverage.contextual.amount;
+                coverageNode.querySelector("[data-contextual-rationale]").textContent = coverage.contextual.rationale;
+                coverageNode.querySelector("[data-contextual-sensitivity]").textContent = coverage.contextual.sensitivity;
+                coverageNode.querySelector("[data-contextual-applicability]").textContent = coverage.contextual.applicability;
+
+                var preferred = RLCOMPANY.evaluateDiagnostic({
+                    checkId: "check-preferred-stock",
+                    policyId: "policy-preferred-stock",
+                    policyVersion: "preferred-stock/v1",
+                    concept: "preferred-stock",
+                    periodId: "period-msft-fy2026-q3-instant",
+                    raw: { formula: "preferred-stock-present-or-explicit-zero", threshold: null, operation: "presence-check", inputs: [] },
+                    contextualAdjustment: null,
+                    interpretationMode: null
+                });
+                var preferredNode = document.querySelector('[data-diagnostic="preferred-stock"]');
+                preferredNode.querySelector("[data-preferred-presence]").textContent = preferred.presence;
+                preferredNode.querySelector("[data-preferred-value]").textContent = preferred.raw.value === null ? "No value published" : String(preferred.raw.value);
+
+                var buyback = RLCOMPANY.evaluateDiagnostic({
+                    checkId: "check-capital-allocation",
+                    policyId: "policy-capital-allocation",
+                    policyVersion: "capital-allocation/v1",
+                    concept: "capital-allocation-buyback",
+                    periodId: "period-msft-fy2026-q3",
+                    raw: {
+                        formula: "net-share-change = shares-issued - shares-repurchased; dilution = share-based-comp / diluted-shares",
+                        threshold: null,
+                        operation: "none",
+                        inputs: [
+                            { inputId: "gross-repurchases", ref: "obs-repurchase-outlay", concept: "repurchase-outlay", unit: "USD", periodId: "period-msft-fy2026-q3", value: "10000000000", state: "available", flowKind: "period-flow" },
+                            { inputId: "treasury-stock", ref: "obs-treasury-stock", concept: "treasury-stock", unit: "USD", periodId: "period-msft-fy2026-q3-instant", value: "85000000000", state: "available", flowKind: "balance" },
+                            { inputId: "shares-issued", ref: "obs-shares-issued", concept: "shares-issued", unit: "shares", periodId: "period-msft-fy2026-q3", value: "30000000", state: "available", flowKind: "period-flow" },
+                            { inputId: "shares-repurchased", ref: "obs-shares-repurchased", concept: "shares-repurchased", unit: "shares", periodId: "period-msft-fy2026-q3", value: "20000000", state: "available", flowKind: "period-flow" },
+                            { inputId: "share-based-comp", ref: "obs-sbc", concept: "share-based-comp", unit: "USD", periodId: "period-msft-fy2026-q3", value: "2500000000", state: "available", flowKind: "period-flow" },
+                            { inputId: "diluted-shares", ref: "obs-diluted-shares", concept: "diluted-shares", unit: "shares", periodId: "period-msft-fy2026-q3", value: "7500000000", state: "available", flowKind: "balance" }
+                        ]
+                    },
+                    contextualAdjustment: null,
+                    interpretationMode: "capital-allocation"
+                });
+                var buybackNode = document.querySelector('[data-diagnostic="capital-allocation"]');
+                buybackNode.querySelector("[data-capalloc-net-share-change]").textContent = buyback.capitalAllocation.netShareChange;
+                buybackNode.querySelector("[data-capalloc-gross-repurchase]").textContent = buyback.capitalAllocation.grossRepurchaseOutlay.value + " (" + buyback.capitalAllocation.grossRepurchaseOutlay.flowKind + ")";
+                buybackNode.querySelector("[data-capalloc-treasury]").textContent = buyback.capitalAllocation.treasuryStockBalance.value + " (" + buyback.capitalAllocation.treasuryStockBalance.flowKind + ")";
+                buybackNode.querySelector("[data-capalloc-interpretation]").textContent = buyback.interpretation;
+            }
+
+            // SCN-010-002 / SCN-010-003 (Scope 7): project independently loaded retained publications through the
+            // production resilience selector. Every value, observation ref, unit, and period comes from accepted state.
+            function renderResilienceOverlays(config, overlayLoads) {
+                var cmgNode = document.querySelector('[data-resilience-company="sec-cik-0001058090"]');
+                var jpmNode = document.querySelector('[data-resilience-company="sec-cik-0000019617"]');
+                function prepareAccepted(accepted) {
+                    var byId = Object.create(null);
+                    accepted.observations.forEach(function (observation) { byId[observation.observationId] = observation; });
+                    return { accepted: accepted, obs: byId, sourceCutoff: accepted.dossier.evidenceCutoff };
+                }
+                function observation(loaded, observationId) {
+                    if (loaded.obs[observationId]) return loaded.obs[observationId];
+                    var error = new Error("accepted publication is missing observation " + observationId);
+                    error.code = "C010-PUBLICATION-REF";
+                    throw error;
+                }
+                function diagnosticInput(value, inputId, concept) {
+                    if (value.state !== "current" || value.value === null) {
+                        var error = new Error("observation " + value.observationId + " is " + value.state);
+                        error.code = "C010-UNAVAILABLE";
+                        throw error;
+                    }
+                    return { inputId: inputId, ref: value.observationId, concept: concept, unit: value.unit, periodId: value.periodRef.objectId, value: value.value, state: "reconciled" };
+                }
+                function factLine(fact) { return fact.label + " = " + fact.value + " " + fact.unit + " [" + fact.state + "; " + fact.sourceRefs.join(", ") + "]"; }
+                function setOverlayText(node, selector, value) {
+                    var field = node.querySelector(selector);
+                    if (field) field.textContent = value;
+                }
+                function renderOverlayFailure(node, error) {
+                    var reason = (error && error.code ? error.code + ": " : "") + (error && error.message ? error.message : "overlay publication unavailable");
+                    node.setAttribute("data-overlay-status", "unavailable");
+                    setOverlayText(node, "[data-overlay-load-status]", "Unavailable");
+                    setOverlayText(node, "[data-overlay-publication-id]", "Unavailable");
+                    setOverlayText(node, "[data-overlay-source-cutoff]", "Unavailable");
+                    setOverlayText(node, "[data-overlay-manifest-sha]", "Unavailable");
+                    setOverlayText(node, "[data-overlay-error]", reason);
+                    node.querySelectorAll("[data-overlay-archetype], [data-overlay-applicability], [data-overlay-raw-value], [data-overlay-raw-refs], [data-overlay-cash-debt-state], [data-overlay-cash-debt-context], [data-overlay-context-refs], [data-overlay-context-has-value], [data-overlay-weakness-rank], [data-overlay-policy], [data-overlay-nde-applicability], [data-overlay-nde-policy], [data-overlay-facts], [data-overlay-unavailable], [data-overlay-industrial-rank]").forEach(function (field) { field.textContent = "Unavailable — " + reason; });
+                }
+                function renderOverlayProvenance(node, loaded) {
+                    node.setAttribute("data-overlay-status", "accepted");
+                    setOverlayText(node, "[data-overlay-load-status]", "Accepted retained SEC publication");
+                    setOverlayText(node, "[data-overlay-publication-id]", loaded.accepted.publicationId);
+                    setOverlayText(node, "[data-overlay-source-cutoff]", loaded.sourceCutoff);
+                    setOverlayText(node, "[data-overlay-manifest-sha]", loaded.accepted.manifestSha256);
+                    setOverlayText(node, "[data-overlay-error]", "None");
+                }
+                if (!config || config.contractVersion !== "company-fundamentals-config/v1") {
+                    var configError = overlayLoads && overlayLoads.configError ? overlayLoads.configError : new Error("company-fundamentals.config.json unavailable");
+                    renderOverlayFailure(cmgNode, configError);
+                    renderOverlayFailure(jpmNode, configError);
+                    return;
+                }
+
+                function renderCmg(loaded) {
+                    var obs = loaded.obs;
+                    var cash = observation(loaded, "obs-cmg-cash-and-equivalents");
+                    var fundedDebt = observation(loaded, "obs-cmg-funded-debt");
+                    var liabilities = observation(loaded, "obs-cmg-total-liabilities");
+                    var equity = observation(loaded, "obs-cmg-stockholders-equity");
+                    var lease = observation(loaded, "obs-cmg-operating-lease-liability");
+                    var repurchase = observation(loaded, "obs-cmg-common-stock-repurchase");
+                    var treasury = observation(loaded, "obs-cmg-treasury-stock");
+                    var cmgArchetype = RLCOMPANY.resolveArchetypeView(config, "sec-cik-0001058090");
+                    var cmgView = RLCOMPANY.selectResilienceView({
+                        archetypeView: cmgArchetype,
+                        subjectCompanyId: "sec-cik-0001058090",
+                        checks: [
+                            {
+                                checkId: "check-cmg-cash-to-debt", policyId: "policy-cmg-cash-to-debt", policyVersion: "cash-to-funded-debt/v1", concept: "cash-to-funded-debt", periodId: fundedDebt.periodRef.objectId,
+                                raw: {
+                                    formula: "cash-and-equivalents / funded-debt", threshold: null, operation: "ratio", inputs: [
+                                        diagnosticInput(cash, "input-cmg-cash", "cash-and-equivalents"),
+                                        diagnosticInput(fundedDebt, "input-cmg-funded-debt", "funded-debt")
+                                    ]
+                                },
+                                contextualAdjustment: null
+                            },
+                            {
+                                checkId: "check-cmg-liabilities-equity", policyId: "policy-cmg-lease-adjusted-leverage", policyVersion: "lease-adjusted-leverage/v1", concept: "liabilities-to-equity", periodId: liabilities.periodRef.objectId,
+                                raw: {
+                                    formula: "total-liabilities / stockholders-equity", threshold: null, operation: "ratio", inputs: [
+                                        diagnosticInput(liabilities, "input-cmg-liabilities", "total-liabilities"),
+                                        diagnosticInput(equity, "input-cmg-equity", "stockholders-equity")
+                                    ]
+                                },
+                                contextualAdjustment: { adjustmentId: "adjustment-cmg-lease", amount: lease.value, rationale: "Operating-lease obligations dwarf reported funded debt; repurchased shares are retired rather than held in treasury.", sourceRefs: [lease.observationId, repurchase.observationId], sensitivity: "lease-and-repurchase-context", applicability: "restaurant-unit-economics" }
+                            }
+                        ],
+                        archetypeFacts: [
+                            { factId: "fact-cmg-lease", concept: "operating-lease-liability", label: "Operating lease liability (retained SEC publication)", value: lease.value, unit: lease.unit, state: "reconciled", sourceRefs: [lease.observationId] },
+                            { factId: "fact-cmg-repurchase", concept: "common-stock-repurchase", label: "Common-stock repurchase (retained SEC publication)", value: repurchase.value, unit: repurchase.unit, state: "reconciled", sourceRefs: [repurchase.observationId] }
+                        ]
+                    });
+                    var cmgLeverage = cmgView.checks.find(function (entry) { return entry.checkId === "check-cmg-liabilities-equity"; });
+                    var cmgCash = cmgView.checks.find(function (entry) { return entry.checkId === "check-cmg-cash-to-debt"; });
+                    renderOverlayProvenance(cmgNode, loaded);
+                    cmgNode.querySelector("[data-overlay-archetype]").textContent = cmgView.archetypeId;
+                    cmgNode.querySelector("[data-overlay-applicability]").textContent = cmgLeverage.applicability;
+                    cmgNode.querySelector("[data-overlay-raw-value]").textContent = cmgLeverage.diagnostic.raw.value;
+                    cmgNode.querySelector("[data-overlay-raw-refs]").textContent = cmgLeverage.diagnostic.raw.inputRefs.join(", ");
+                    cmgNode.querySelector("[data-overlay-cash-debt-state]").textContent = cmgCash.diagnostic.raw.state;
+                    cmgNode.querySelector("[data-overlay-cash-debt-context]").textContent = fundedDebt.observationId + " = " + fundedDebt.value + " " + fundedDebt.unit + " (debt-free; the cash-to-funded-debt ratio has a zero denominator and is blocked, not reported as strength)";
+                    cmgNode.querySelector("[data-overlay-context-refs]").textContent = cmgLeverage.diagnostic.contextual.sourceRefs.join(", ");
+                    cmgNode.querySelector("[data-overlay-context-has-value]").textContent = Object.prototype.hasOwnProperty.call(cmgLeverage.diagnostic.contextual, "value") ? "yes" : "no";
+                    cmgNode.querySelector("[data-overlay-weakness-rank]").textContent = cmgLeverage.weaknessRank === null ? "None" : String(cmgLeverage.weaknessRank);
+                    cmgNode.querySelector("[data-overlay-facts]").textContent = cmgView.archetypeFacts.map(factLine).join("; ");
+                    cmgNode.querySelector("[data-overlay-unavailable]").textContent = "Treasury stock unavailable [" + treasury.observationId + "]: " + treasury.definition + " Repurchase flow " + repurchase.observationId + " remains available; repurchased shares are retired rather than presented as a treasury-stock balance.";
+                    cmgNode.querySelector("[data-overlay-industrial-rank]").textContent = cmgView.industrialRankProduced ? "yes" : "no";
+                }
+
+                function renderJpm(loaded) {
+                    var obs = loaded.obs;
+                    var deposits = observation(loaded, "obs-jpm-total-deposits");
+                    var preferred = observation(loaded, "obs-jpm-preferred-capital");
+                    var cet1 = observation(loaded, "obs-jpm-cet1-ratio");
+                    var liquidity = observation(loaded, "obs-jpm-liquidity-coverage-ratio");
+                    var jpmArchetype = RLCOMPANY.resolveArchetypeView(config, "sec-cik-0000019617");
+                    var jpmView = RLCOMPANY.selectResilienceView({
+                        archetypeView: jpmArchetype,
+                        subjectCompanyId: "sec-cik-0000019617",
+                        checks: [
+                            { checkId: "check-jpm-liabilities-equity", policyId: "policy-jpm-ordinary-liabilities-equity", policyVersion: "financial-institution-inapplicable/v1", concept: "liabilities-to-equity", periodId: deposits.periodRef.objectId, raw: { formula: "total-liabilities / stockholders-equity", threshold: null, operation: "ratio", inputs: [] } },
+                            { checkId: "check-jpm-net-debt-ebitda", policyId: "policy-jpm-net-debt-ebitda", policyVersion: "financial-institution-inapplicable/v1", concept: "net-debt-to-ebitda", periodId: deposits.periodRef.objectId, raw: { formula: "net-debt / ebitda", threshold: null, operation: "ratio", inputs: [] } }
+                        ],
+                        archetypeFacts: [
+                            { factId: "fact-jpm-deposits", concept: "total-deposits", label: "Total deposits (retained SEC publication)", value: deposits.value, unit: deposits.unit, state: "reconciled", sourceRefs: [deposits.observationId] },
+                            { factId: "fact-jpm-preferred", concept: "preferred-capital", label: "Preferred capital (retained SEC publication)", value: preferred.value, unit: preferred.unit, state: "reconciled", sourceRefs: [preferred.observationId] }
+                        ]
+                    });
+                    var jpmLeverage = jpmView.checks.find(function (entry) { return entry.concept === "liabilities-to-equity"; });
+                    var jpmNetDebt = jpmView.checks.find(function (entry) { return entry.concept === "net-debt-to-ebitda"; });
+                    renderOverlayProvenance(jpmNode, loaded);
+                    jpmNode.querySelector("[data-overlay-archetype]").textContent = jpmView.archetypeId;
+                    jpmNode.querySelector("[data-overlay-applicability]").textContent = jpmLeverage.applicability;
+                    jpmNode.querySelector("[data-overlay-policy]").textContent = jpmLeverage.policyId;
+                    jpmNode.querySelector("[data-overlay-nde-applicability]").textContent = jpmNetDebt.applicability;
+                    jpmNode.querySelector("[data-overlay-nde-policy]").textContent = jpmNetDebt.policyId;
+                    jpmNode.querySelector("[data-overlay-facts]").textContent = jpmView.archetypeFacts.map(factLine).join("; ");
+                    jpmNode.querySelector("[data-overlay-unavailable]").textContent = "CET1 ratio unavailable [" + cet1.observationId + "]: " + cet1.definition + " Liquidity coverage ratio unavailable [" + liquidity.observationId + "]: " + liquidity.definition;
+                    jpmNode.querySelector("[data-overlay-industrial-rank]").textContent = jpmView.industrialRankProduced ? "yes" : "no";
+                }
+
+                if (overlayLoads && overlayLoads.cmg && !overlayLoads.cmg.error) {
+                    try { renderCmg(prepareAccepted(overlayLoads.cmg.accepted)); } catch (cmgError) { renderOverlayFailure(cmgNode, cmgError); }
+                } else renderOverlayFailure(cmgNode, overlayLoads && overlayLoads.cmg ? overlayLoads.cmg.error : new Error("CMG publication unavailable"));
+                if (overlayLoads && overlayLoads.jpm && !overlayLoads.jpm.error) {
+                    try { renderJpm(prepareAccepted(overlayLoads.jpm.accepted)); } catch (jpmError) { renderOverlayFailure(jpmNode, jpmError); }
+                } else renderOverlayFailure(jpmNode, overlayLoads && overlayLoads.jpm ? overlayLoads.jpm.error : new Error("JPM publication unavailable"));
+            }
+
+            function renderUnclassifiedDemo(accepted) {
+                var unclassified = RLCOMPANY.selectSimpleView(accepted);
+                var section = document.querySelector("[data-unclassified-demo]");
+                section.querySelector("[data-unclassified-shared]").textContent = unclassified.dependencyResults.find(function (result) { return result.id === "identity-summary"; }).value;
+                section.querySelector("[data-unclassified-lens]").textContent = "Unclassified — no lens inherited";
+                section.querySelector("[data-unclassified-kpi-state]").textContent = unclassified.kpiAvailability.state === "unavailable" ? "Unavailable" : "Available";
+                section.querySelector("[data-unclassified-kpi-requirement]").textContent = unclassified.kpiAvailability.evidenceRequirement || "";
+                section.querySelector("[data-unclassified-diagnostics-state]").textContent = unclassified.diagnosticsAvailability.state === "unavailable" ? "Unavailable" : "Available";
+            }
+
+            function renderModelWorkspace(accepted) {
+                var section = document.querySelector("[data-model-workspace]");
+                if (!accepted.modelPack) {
+                    section.setAttribute("data-model-workspace", "unavailable");
+                    return;
+                }
+                var modelPack = accepted.modelPack;
+                var modelDefinition = modelPack.modelDefinition;
+                var acceptedScenario = modelPack.acceptedScenario;
+                var assumptions = {};
+                acceptedScenario.assumptions.forEach(function (entry) { assumptions[entry.driverId] = entry.value; });
+                var baselineMap = {};
+                modelPack.baselineOutputs.forEach(function (entry) { baselineMap[entry.nodeId] = entry.value; });
+                var baseline = { assumptions: assumptions, outputs: baselineMap };
+                var conceptOf = function (nodeId) {
+                    var node = modelDefinition.nodes.find(function (candidate) { return candidate.nodeId === nodeId; });
+                    return node ? node : { concept: nodeId, kind: "node" };
+                };
+
+                setText("[data-scenario-name]", acceptedScenario.name);
+                setText("[data-scenario-revision]", String(acceptedScenario.revision));
+                setText("[data-scenario-owner]", acceptedScenario.owner);
+
+                var baselineList = document.getElementById("model-baseline-list");
+                baselineList.replaceChildren();
+                modelPack.baselineOutputs.forEach(function (output) {
+                    var node = conceptOf(output.nodeId);
+                    var item = document.createElement("li");
+                    item.setAttribute("data-model-node", output.nodeId);
+                    item.setAttribute("data-model-node-kind", node.kind);
+                    var label = document.createElement("strong");
+                    label.textContent = node.concept + " ";
+                    var value = document.createElement("span");
+                    value.setAttribute("data-model-node-value", "");
+                    value.textContent = output.value;
+                    item.append(label, value);
+                    baselineList.appendChild(item);
+                });
+
+                // SCN-010-014: a valuation driver edit recomputes only reachable valuation nodes; history is carried unchanged.
+                var multipleDriver = modelDefinition.drivers.find(function (driver) { return driver.concept === "fcf-multiple"; });
+                var valuationDraft = { changedDriverId: multipleDriver.driverId, assumptions: Object.assign({}, assumptions) };
+                valuationDraft.assumptions[multipleDriver.driverId] = "30";
+                var valuationEval = RLCOMPANY.evaluateModel({ modelDefinition: modelDefinition, baseline: baseline, draft: valuationDraft });
+                setText("[data-valuation-changed]", multipleDriver.driverId);
+                var reachableKinds = [];
+                valuationEval.reachableNodeIds.forEach(function (id) {
+                    var kind = conceptOf(id).kind;
+                    if (reachableKinds.indexOf(kind) === -1) reachableKinds.push(kind);
+                });
+                setText("[data-valuation-reachable-kinds]", reachableKinds.join(", "));
+                var valuationList = document.getElementById("model-valuation-list");
+                valuationList.replaceChildren();
+                valuationEval.outputs.filter(function (output) { return output.recomputed; }).forEach(function (output) {
+                    var item = document.createElement("li");
+                    item.setAttribute("data-valuation-node", output.nodeId);
+                    var label = document.createElement("strong");
+                    label.textContent = output.concept + " ";
+                    var value = document.createElement("span");
+                    value.setAttribute("data-valuation-node-value", "");
+                    value.textContent = output.value;
+                    item.append(label, value);
+                    valuationList.appendChild(item);
+                });
+                var carriedRevenue = valuationEval.outputs.find(function (output) { return output.nodeId === "node-revenue"; });
+                setText("[data-valuation-carried-revenue]", carriedRevenue.value);
+                setText("[data-valuation-carried-revenue-state]", carriedRevenue.recomputed ? "recomputed" : "carried");
+
+                // SCN-010-014: an invalid (zero) driver blocks reachable nodes with an explicit dependency path.
+                var sharesDriver = modelDefinition.drivers.find(function (driver) { return driver.concept === "diluted-shares"; });
+                var invalidDraft = { changedDriverId: sharesDriver.driverId, assumptions: Object.assign({}, assumptions) };
+                invalidDraft.assumptions[sharesDriver.driverId] = "0";
+                var invalidEval = RLCOMPANY.evaluateModel({ modelDefinition: modelDefinition, baseline: baseline, draft: invalidDraft });
+                var eps = invalidEval.outputs.find(function (output) { return output.nodeId === "node-eps"; });
+                setText("[data-blocked-eps-state]", eps.state);
+                setText("[data-blocked-eps-value]", eps.value === null ? "No value published" : eps.value);
+                setText("[data-blocked-eps-path]", eps.dependencyPath.join(" \u2192 "));
+                setText("[data-blocked-eps-reason]", eps.reason || "");
+                var equity = invalidEval.outputs.find(function (output) { return output.nodeId === "node-equity-value"; });
+                setText("[data-blocked-equity-value]", equity.value);
+
+                // SCN-010-016: actual and estimate keep separate classes, sources, and clocks with comparable-only forecast error.
+                var estimate = { observationId: "obs-estimate-revenue", evidenceClass: "estimate", definition: "total-revenue", unit: "USD", currency: "USD", periodId: "period-msft-fy2026-q4", value: "75000", sourceRef: "source-estimate-set", clocks: { reportingPeriodEnd: "2026-06-30", sourcePublishedAt: "2026-05-01T00:00:00Z", acceptedAt: "2026-05-01T00:00:00Z", retrievedAt: "2026-05-01T00:00:00Z", observedAt: null } };
+                var actual = { observationId: "obs-actual-revenue", evidenceClass: "reported", definition: "total-revenue", unit: "USD", currency: "USD", periodId: "period-msft-fy2026-q4", value: "78000", sourceRef: "sec-companyfacts-msft", clocks: { reportingPeriodEnd: "2026-06-30", sourcePublishedAt: "2026-07-30T00:00:00Z", acceptedAt: "2026-07-30T00:00:00Z", retrievedAt: "2026-07-30T00:00:00Z", observedAt: null } };
+                var forecast = RLCOMPANY.deriveForecastError({ estimate: estimate, actual: actual });
+                setText("[data-forecast-estimate-class]", forecast.estimate.evidenceClass);
+                setText("[data-forecast-estimate-source]", forecast.estimate.sourceRef);
+                setText("[data-forecast-estimate-clock]", forecast.estimate.clocks.acceptedAt);
+                setText("[data-forecast-actual-class]", forecast.actual.evidenceClass);
+                setText("[data-forecast-actual-source]", forecast.actual.sourceRef);
+                setText("[data-forecast-actual-clock]", forecast.actual.clocks.acceptedAt);
+                setText("[data-forecast-comparable]", forecast.comparable ? "Comparable" : "Not comparable");
+                setText("[data-forecast-error]", forecast.forecastError ? forecast.forecastError.value : "Not derived");
+                var incomparable = RLCOMPANY.deriveForecastError({ estimate: estimate, actual: Object.assign({}, actual, { currency: "EUR" }) });
+                setText("[data-forecast-incomparable]", incomparable.comparable ? "Comparable" : incomparable.reason);
+
+                // SCN-010-013: evidence refresh preserves accepted assumptions and raises separate pending proposals.
+                var selection = RLCOMPANY.reduceCompanySelection({
+                    activeRevision: acceptedScenario,
+                    modelDefinition: modelDefinition,
+                    acceptedPublication: { publicationId: accepted.publicationId, generation: accepted.generation, manifestSha256: accepted.manifestSha256, evidenceChanges: [{ concept: "operating-margin", direction: "increase", priorValue: "0.4", currentValue: "0.42", sourceRef: "sec-companyfacts-msft" }] }
+                });
+                setText("[data-refresh-active-revision]", String(selection.activeRevision.revision));
+                setText("[data-refresh-rebased]", selection.rebased ? "Rebased" : "No rebasing");
+                var proposalList = document.getElementById("model-proposal-list");
+                proposalList.replaceChildren();
+                selection.proposals.forEach(function (proposal) {
+                    var item = document.createElement("li");
+                    item.setAttribute("data-proposal", proposal.affectedDriverId);
+                    var state = document.createElement("span");
+                    state.setAttribute("data-proposal-state", "");
+                    state.textContent = proposal.decisionState;
+                    item.append(document.createTextNode(proposal.concept + " \u2192 "), state);
+                    proposalList.appendChild(item);
+                });
+
+                // SCN-010-023: proposal arrival is inert; confirmation creates exactly one revision; rejection records no change.
+                var proposal = selection.proposals[0];
+                var acceptDecision = RLCOMPANY.reduceProposalDecision({ activeRevision: acceptedScenario, proposal: proposal, modelDefinition: modelDefinition, decision: { kind: "accept", confirmedAt: acceptedScenario.createdAt } });
+                var editDecision = RLCOMPANY.reduceProposalDecision({ activeRevision: acceptedScenario, proposal: proposal, modelDefinition: modelDefinition, decision: { kind: "edit-confirm", editedValue: "0.45", confirmedAt: acceptedScenario.createdAt } });
+                var rejectDecision = RLCOMPANY.reduceProposalDecision({ activeRevision: acceptedScenario, proposal: proposal, modelDefinition: modelDefinition, decision: { kind: "reject", confirmedAt: acceptedScenario.createdAt } });
+                setText("[data-decision-active-before]", String(acceptedScenario.revision));
+                setText("[data-decision-accept-revision]", String(acceptDecision.newRevision.revision));
+                setText("[data-decision-accept-parent]", acceptDecision.newRevision.parentRevisionId);
+                setText("[data-decision-edit-value]", editDecision.newRevision.assumptions.find(function (entry) { return entry.driverId === proposal.affectedDriverId; }).value);
+                setText("[data-decision-reject-count]", String(rejectDecision.revisionsCreated));
+                setText("[data-decision-active-after]", String(acceptedScenario.revision));
+            }
+
+            function renderSimpleCockpit(simple) {
+                var directionDep = simple.dependencyResults.find(function (result) { return result.id === "metric-direction"; });
+                setText("[data-simple-direction]", directionDep && directionDep.state === "available" ? String(directionDep.value) : "Unavailable");
+                setText("[data-simple-cutoff]", simple.clocks.statementCutoff === null || simple.clocks.statementCutoff === undefined ? "Not established" : String(simple.clocks.statementCutoff));
+                setText("[data-simple-lens]", simple.archetype.status === "accepted" ? simple.archetype.label : "Unclassified — no lens inherited");
+                var topDriver = simple.kpiPriorities && simple.kpiPriorities.length ? simple.kpiPriorities[0] : null;
+                setText("[data-simple-top-driver]", topDriver ? topDriver.label + " (" + (topDriver.state === "available" ? "Available" : "Unavailable") + ")" : "No prioritized driver");
+                // The Detailed brief workspace echoes the same shared direction classification from the one accepted state.
+                setText("[data-brief-direction]", directionDep && directionDep.state === "available" ? String(directionDep.value) : "Unavailable");
+            }
+
+            function renderAdaptiveBriefWorkspace(accepted, config) {
+                var policy = {
+                    policyVersion: "company-brief-ranking/v1",
+                    weights: { sourceQuality: 5, companyMateriality: 5, modelSensitivity: 4, novelty: 3, eventProximity: 2, unresolvedRisk: 3 },
+                    dispositionMultipliers: { material: 1, conflict: 1, confirmation: 0.25, immaterial: 0, duplicate: 0, "not-evaluable": 0 }
+                };
+                var clocks = { statementCutoff: "2026-03-31", modelCutoff: "2026-04-01T00:00:00Z", briefCutoff: "2026-05-01T00:00:00Z", marketCutoff: "2026-05-02T13:30:00Z", retrievalCutoff: "2026-05-02T13:35:00Z" };
+                var acceptedState = {
+                    contractVersion: "company-brief-accepted-state/v1",
+                    companyId: accepted.companyId,
+                    archetype: { assignmentId: "assignment-msft-software-platform", primaryArchetypeId: "archetype-software-platform", status: "accepted" },
+                    facts: [{ factId: "fact-operating-margin", evidenceClass: "reported", value: "0.4", periodId: "period-msft-fy2026-q3", sourceRef: "sec-companyfacts-msft" }],
+                    assumptions: [{ assumptionId: "assumption-operating-margin", driverId: "driver-operating-margin", value: "0.4" }],
+                    scenarioRevisionId: "scenario-msft-base-r4",
+                    fundamentalDirection: { direction: "deteriorating", evidenceClass: "reported", sourceRef: "sec-companyfacts-msft", window: "period-msft-fy2026-q3" }
+                };
+                var coverage = [
+                    { evidenceClass: "reported", state: "current", cutoff: "2026-03-31", requiredUpdate: null },
+                    { evidenceClass: "normalized", state: "current", cutoff: "2026-03-31", requiredUpdate: null },
+                    { evidenceClass: "management-claim", state: "current", cutoff: "2026-04-25T00:00:00Z", requiredUpdate: null },
+                    { evidenceClass: "market-observation", state: "current", cutoff: "2026-05-02T13:30:00Z", requiredUpdate: null },
+                    { evidenceClass: "news", state: "current", cutoff: "2026-05-02T13:00:00Z", requiredUpdate: null },
+                    { evidenceClass: "sentiment", state: "current", cutoff: "2026-05-02T12:00:00Z", requiredUpdate: null }
+                ];
+                var priorBrief = { briefId: "brief-msft-prior", status: "material-update", thesisClaims: [{ claimId: "claim-margin-direction", text: "Margins are deteriorating.", status: "supported" }], contentFingerprint: "sha256:prior-brief-content" };
+                function change(overrides) {
+                    return Object.assign({
+                        contractVersion: "evidence-change/v1",
+                        changeId: "change-operating-margin",
+                        evidenceClass: "reported",
+                        disposition: "material",
+                        sourceRef: "sec-companyfacts-msft",
+                        periodOrWindow: "period-msft-fy2026-q3",
+                        observed: "Operating margin changed from 0.40 to 0.42.",
+                        companyMechanism: "The margin change flows through the accepted operating-margin driver.",
+                        affectedClaimIds: ["claim-margin-direction"],
+                        affectedDriverIds: ["driver-operating-margin"],
+                        scoreInputs: { sourceQuality: 5, companyMateriality: 5, modelSensitivity: 5, novelty: 5, eventProximity: 4, unresolvedRisk: 2 },
+                        numericSupport: { assumptionId: "assumption-operating-margin", direction: "increase", range: { low: "0.41", high: "0.43" }, rationale: "The sourced reported margin changed.", confidence: "medium", invalidation: "A later amendment reverses the reported change." },
+                        evidenceNeeded: [],
+                        duplicateOf: null
+                    }, overrides || {});
+                }
+                function request(changes, overrides) {
+                    return Object.assign({ contractVersion: "adaptive-company-brief-request/v1", companyId: accepted.companyId, archetypeId: "archetype-software-platform", priorBrief: priorBrief, acceptedState: acceptedState, clocks: clocks, coverage: coverage, changes: changes, rankingPolicy: policy }, overrides || {});
+                }
+
+                var genericNews = [1, 2, 3, 4].map(function (index) {
+                    return change({ changeId: "change-generic-news-" + index, evidenceClass: "news", disposition: index === 1 ? "immaterial" : "duplicate", sourceRef: "source-generic-news-" + index, periodOrWindow: "2026-05-01/2026-05-02", observed: "Generic software-sector headline repeats broad commentary.", companyMechanism: null, affectedClaimIds: [], affectedDriverIds: [], scoreInputs: { sourceQuality: 1, companyMateriality: 1, modelSensitivity: 0, novelty: index === 1 ? 1 : 0, eventProximity: 3, unresolvedRisk: 1 }, numericSupport: null, duplicateOf: index === 1 ? null : "change-generic-news-1" });
+                });
+                var materialInputs = genericNews.concat([change()]);
+                var ranking = RLCOMPANY.rankEvidenceChanges({ policy: policy, changes: materialInputs });
+                var materialBrief = RLCOMPANY.buildAdaptiveCompanyBrief(request(materialInputs));
+                var lead = materialBrief.materialChanges[0];
+                setText("[data-brief-status]", materialBrief.status);
+                setText("[data-brief-lead-class]", lead.evidenceClass);
+                setText("[data-brief-lead-source]", lead.sourceRef);
+                setText("[data-brief-lead-period]", lead.periodOrWindow);
+                setText("[data-brief-lead-mechanism]", lead.companyMechanism);
+                setText("[data-brief-lead-claim]", lead.affectedClaimIds[0]);
+                setText("[data-brief-proposal]", materialBrief.modelImpactProposals[0].affectedAssumptionId);
+                setText("[data-brief-material-count]", String(materialBrief.materialChanges.length));
+
+                var managementChange = change({ changeId: "change-management-ai-demand", evidenceClass: "management-claim", disposition: "confirmation", sourceRef: "source-msft-earnings-transcript", periodOrWindow: "2026-04-25T20:00:00Z/2026-04-25T22:00:00Z", observed: "Management says AI demand remains above available capacity.", companyMechanism: "Capacity constraints may affect cloud growth and capital expenditure.", affectedClaimIds: ["claim-cloud-demand"], affectedDriverIds: ["driver-cloud-growth"], scoreInputs: { sourceQuality: 3, companyMateriality: 4, modelSensitivity: 3, novelty: 2, eventProximity: 5, unresolvedRisk: 3 }, numericSupport: null, evidenceNeeded: ["A later filing or issuer release reporting delivered capacity and revenue."] });
+                var managementBrief = RLCOMPANY.buildAdaptiveCompanyBrief(request([managementChange]));
+                setText("[data-management-class]", managementBrief.reviewedEvidence[0].evidenceClass);
+                setText("[data-management-source]", managementBrief.reviewedEvidence[0].sourceRef);
+                setText("[data-management-window]", managementBrief.reviewedEvidence[0].periodOrWindow);
+                setText("[data-management-watch]", managementBrief.watchConditions[0].sourceRef);
+                setText("[data-management-reported-count]", String(managementBrief.reportedFacts.length));
+
+                var rumorChange = change({ changeId: "change-unverified-acquisition-rumor", evidenceClass: "news", disposition: "not-evaluable", sourceRef: "source-unverified-news", periodOrWindow: "2026-05-02T12:00:00Z/2026-05-02T13:00:00Z", observed: "An unattributed item claims a possible acquisition.", companyMechanism: null, affectedClaimIds: [], affectedDriverIds: [], scoreInputs: { sourceQuality: 0, companyMateriality: 2, modelSensitivity: 0, novelty: 3, eventProximity: 5, unresolvedRisk: 4 }, numericSupport: null, evidenceNeeded: ["An authoritative issuer filing or release confirming transaction terms."] });
+                var factsBefore = "sha256:" + RLCOMPANY.sha256Hex(JSON.stringify(acceptedState.facts));
+                var assumptionsBefore = "sha256:" + RLCOMPANY.sha256Hex(JSON.stringify(acceptedState.assumptions));
+                var rumorBrief = RLCOMPANY.buildAdaptiveCompanyBrief(request([rumorChange]));
+                setText("[data-rumor-class]", rumorBrief.reviewedEvidence[0].evidenceClass);
+                setText("[data-rumor-limitation]", rumorBrief.reviewedEvidence[0].evidenceNeeded[0]);
+                setText("[data-rumor-facts-before]", factsBefore);
+                setText("[data-rumor-facts-after]", "sha256:" + RLCOMPANY.sha256Hex(JSON.stringify(acceptedState.facts)));
+                setText("[data-rumor-assumptions-before]", assumptionsBefore);
+                setText("[data-rumor-assumptions-after]", "sha256:" + RLCOMPANY.sha256Hex(JSON.stringify(acceptedState.assumptions)));
+                setText("[data-rumor-revision-before]", acceptedState.scenarioRevisionId);
+                setText("[data-rumor-revision-after]", rumorBrief.acceptedScenarioRevisionId);
+                setText("[data-rumor-proposal-count]", String(rumorBrief.modelImpactProposals.length));
+
+                var reportedChange = change({ changeId: "change-reported-margin-deterioration", observed: "Reported operating margin deteriorated.", numericSupport: null });
+                var sentimentChange = change({ changeId: "change-positive-sentiment", evidenceClass: "sentiment", disposition: "conflict", sourceRef: "source-sentiment-window", periodOrWindow: "2026-05-01T00:00:00Z/2026-05-02T12:00:00Z", observed: "Positive sentiment increased.", companyMechanism: null, affectedClaimIds: ["claim-margin-direction"], affectedDriverIds: [], scoreInputs: { sourceQuality: 1, companyMateriality: 2, modelSensitivity: 0, novelty: 3, eventProximity: 4, unresolvedRisk: 4 }, numericSupport: null });
+                var divergenceView = RLCOMPANY.selectBriefView(RLCOMPANY.buildAdaptiveCompanyBrief(request([sentimentChange, reportedChange])));
+                setText("[data-divergence-classes]", divergenceView.evidenceClasses.join(", "));
+                setText("[data-divergence-reported-window]", divergenceView.evidence.find(function (item) { return item.evidenceClass === "reported"; }).periodOrWindow);
+                setText("[data-divergence-sentiment-window]", divergenceView.evidence.find(function (item) { return item.evidenceClass === "sentiment"; }).periodOrWindow);
+                setText("[data-divergence-direction]", divergenceView.fundamentalDirection.direction);
+                setText("[data-divergence-confidence]", divergenceView.confidenceBand);
+                setText("[data-divergence-statement-clock]", divergenceView.clocks.statementCutoff);
+                setText("[data-divergence-market-clock]", divergenceView.clocks.marketCutoff);
+
+                var linkedMacro = change({ changeId: "change-linked-rates", evidenceClass: "market-observation", disposition: "material", sourceRef: "source-yield-curve", periodOrWindow: "2026-05-02T13:30:00Z", observed: "Long rates increased.", companyMechanism: "The accepted valuation driver explicitly references the discount-rate exposure.", affectedClaimIds: ["claim-valuation-risk"], affectedDriverIds: ["driver-fcf-multiple"], scoreInputs: { sourceQuality: 4, companyMateriality: 3, modelSensitivity: 4, novelty: 3, eventProximity: 5, unresolvedRisk: 3 }, numericSupport: null });
+                var unlinkedMacro = change(Object.assign({}, linkedMacro, { changeId: "change-unlinked-rates", companyMechanism: null, affectedClaimIds: [], affectedDriverIds: [] }));
+                var macroRanking = RLCOMPANY.rankEvidenceChanges({ policy: policy, changes: [unlinkedMacro, linkedMacro] }).ranked;
+                var linkedRank = macroRanking.find(function (item) { return item.changeId === linkedMacro.changeId; });
+                var unlinkedRank = macroRanking.find(function (item) { return item.changeId === unlinkedMacro.changeId; });
+                setText("[data-macro-linked-eligibility]", linkedRank.eligibility);
+                setText("[data-macro-linked-mechanism]", linkedRank.companyMechanism);
+                setText("[data-macro-linked-driver]", linkedRank.affectedDriverIds[0]);
+                setText("[data-macro-unlinked-eligibility]", unlinkedRank.eligibility);
+                setText("[data-macro-unlinked-score]", String(unlinkedRank.score));
+
+                var firstRank = ranking.ranked[0];
+                setText("[data-ranking-first]", firstRank.changeId);
+                setText("[data-ranking-materiality-component]", String(firstRank.components.companyMateriality));
+                setText("[data-ranking-sensitivity-component]", String(firstRank.components.modelSensitivity));
+                setText("[data-ranking-news-scores]", ranking.ranked.filter(function (item) { return item.evidenceClass === "news"; }).map(function (item) { return item.score; }).join(", "));
+                setText("[data-ranking-headline-volume]", "Not a scoring component");
+
+                var staleCoverage = [{ evidenceClass: "reported", state: "current", cutoff: "2026-03-31", requiredUpdate: null }, { evidenceClass: "normalized", state: "stale", cutoff: "2025-06-30", requiredUpdate: "A current issuer KPI disclosure." }];
+                var staleChange = change({ changeId: "change-stale-cloud-kpi", evidenceClass: "normalized", periodOrWindow: "period-msft-fy2025-q4", observed: "The last valid cloud KPI remains dated to FY2025 Q4." });
+                var staleBrief = RLCOMPANY.buildAdaptiveCompanyBrief(request([staleChange], { coverage: staleCoverage }));
+                var staleRow = staleBrief.coverage.find(function (item) { return item.evidenceClass === "normalized"; });
+                setText("[data-stale-status]", staleBrief.status);
+                setText("[data-stale-cutoff]", staleRow.cutoff);
+                setText("[data-stale-required-update]", staleRow.requiredUpdate);
+                setText("[data-stale-material-count]", String(staleBrief.materialChanges.length));
+                setText("[data-stale-proposal-count]", String(staleBrief.modelImpactProposals.length));
+                setText("[data-stale-prior-claim]", staleBrief.thesisClaims[0].text);
+
+                var ownerRead = accepted.ownerRead || {};
+                function ownerClock(value) { return value === null || value === undefined ? "Unavailable" : String(value); }
+                setText("[data-owner-adapter]", config && config.feature002 ? config.feature002.adapterId : "Unavailable");
+                setText("[data-owner-source]", "Committed ownerReadRef");
+                setText("[data-owner-statement-clock]", ownerClock(ownerRead.statementCutoff));
+                setText("[data-owner-model-clock]", ownerClock(ownerRead.modelCutoff));
+                setText("[data-owner-brief-clock]", ownerClock(ownerRead.briefCutoff));
+                setText("[data-owner-market-clock]", ownerClock(ownerRead.marketCutoff));
+                setText("[data-owner-limitations]", (ownerRead.limitations || []).join(" | "));
+
+                var immaterial = change({ changeId: "change-immaterial-caption", evidenceClass: "management-claim", disposition: "immaterial", sourceRef: "source-msft-presentation", periodOrWindow: "2026-05-01T00:00:00Z", observed: "A presentation caption changed without altering a claim or model driver.", companyMechanism: null, affectedClaimIds: [], affectedDriverIds: [], scoreInputs: { sourceQuality: 3, companyMateriality: 0, modelSensitivity: 0, novelty: 1, eventProximity: 2, unresolvedRisk: 0 }, numericSupport: null });
+                var duplicate = change(Object.assign({}, immaterial, { changeId: "change-immaterial-caption-duplicate", disposition: "duplicate", duplicateOf: immaterial.changeId }));
+                var unchangedBrief = RLCOMPANY.buildAdaptiveCompanyBrief(request([duplicate, immaterial]));
+                var firstHistory = RLCOMPANY.appendAdaptiveBriefHistory({ history: [], brief: unchangedBrief });
+                var replayHistory = RLCOMPANY.appendAdaptiveBriefHistory({ history: firstHistory.history, brief: unchangedBrief });
+                setText("[data-unchanged-status]", unchangedBrief.status);
+                setText("[data-unchanged-reviewed-count]", String(unchangedBrief.reviewedEvidence.length));
+                setText("[data-unchanged-rationale]", unchangedBrief.noChangeRationale);
+                setText("[data-unchanged-material-count]", String(unchangedBrief.materialChanges.length));
+                setText("[data-unchanged-proposal-count]", String(unchangedBrief.modelImpactProposals.length));
+                setText("[data-history-first-count]", String(firstHistory.history.length));
+                setText("[data-history-replay-count]", String(replayHistory.history.length));
+                setText("[data-history-replay-appended]", replayHistory.appended ? "Yes" : "No");
+            }
+
+            function constructedPeerSetRequest(config) {
+                var configuredPeerSet = null;
+                if (config && Array.isArray(config.peers)) {
+                    configuredPeerSet = config.peers.filter(function (set) { return set.subjectCompanyId === "sec-cik-0000789019"; })[0] || null;
+                }
+                return {
+                    peerSet: {
+                        peerSetId: configuredPeerSet ? configuredPeerSet.peerSetId : "peers-msft-software-platform",
+                        subjectCompanyId: "sec-cik-0000789019",
+                        purpose: configuredPeerSet ? configuredPeerSet.purpose : "Software-platform peer context for Microsoft.",
+                        companyIds: ["sec-cik-0000789019", "peer-software-alpha", "peer-software-beta", "peer-software-gamma", "peer-software-delta", "peer-software-epsilon"]
+                    },
+                    statistic: { concept: "gross-margin", unit: "ratio", operation: "median" },
+                    observations: [
+                        { companyId: "peer-software-alpha", value: "0.68", eligibility: "comparable", reason: "Same archetype and reporting basis; constructed demonstration value, not an MSFT-reported figure." },
+                        { companyId: "peer-software-beta", value: "0.72", eligibility: "comparable", reason: "Same archetype and reporting basis; constructed demonstration value." },
+                        { companyId: "peer-software-gamma", value: "0.64", eligibility: "comparable", reason: "Same archetype and reporting basis; constructed demonstration value." },
+                        { companyId: "peer-software-delta", value: "0.30", eligibility: "qualified", reason: "Different segment mix; kept visible but excluded from the level statistic." },
+                        { companyId: "peer-software-epsilon", value: "0.95", eligibility: "excluded", reason: "Non-comparable revenue-recognition basis.", outlier: true }
+                    ]
+                };
+            }
+
+            function renderPeersWorkspace(config) {
+                var view = RLCOMPANY.selectPeersView(constructedPeerSetRequest(config));
+                setText("[data-peers-set-id]", view.peerSetId);
+                setText("[data-peers-purpose]", view.purpose || "");
+                setText("[data-peers-concept]", view.statistic.concept);
+                setText("[data-peers-operation]", view.statistic.operation);
+                setText("[data-peers-stat-value]", view.statistic.value === null ? "No comparable observation" : String(view.statistic.value));
+                setText("[data-peers-sample-size]", String(view.statistic.sampleSize));
+                setText("[data-peers-members]", view.statistic.memberCompanyIds.length ? view.statistic.memberCompanyIds.join(", ") : "None");
+                setText("[data-peers-missing]", view.missing.length ? view.missing.map(function (id) { return id + " (no observation)"; }).join(", ") : "None");
+                setText("[data-peers-outliers]", view.outliers.length ? view.outliers.map(function (row) { return row.companyId; }).join(", ") : "None");
+                var body = document.getElementById("peers-rows");
+                if (!body) return;
+                body.replaceChildren();
+                view.comparable.concat(view.qualified, view.excluded).forEach(function (row) {
+                    var tr = document.createElement("tr");
+                    tr.setAttribute("data-peer-row", row.eligibility);
+                    function cell(text) { var td = document.createElement("td"); td.textContent = text; return td; }
+                    tr.append(cell(row.companyId), cell(titleCase(row.eligibility)), cell(row.value === null ? "No observation" : String(row.value)), cell(row.reason));
+                    body.appendChild(tr);
+                });
+            }
+
+            function renderSourcesWorkspace(accepted) {
+                var trace;
+                try { trace = RLCOMPANY.selectSourcesView(accepted, "claim-direction"); } catch (_error) { return; }
+                setText("[data-sources-focus]", trace.focusRef);
+                setText("[data-sources-required]", trace.sourceRequirements.length ? trace.sourceRequirements.map(function (source) { return source.sourceId; }).join(", ") : (trace.observations.length ? trace.observations[0].source.sourceId : "None"));
+                setText("[data-sources-transformations]", trace.transformations.map(function (item) { return item.id + " (" + item.kind + ")"; }).join(", "));
+                setText("[data-sources-consumers]", trace.consumers.map(function (consumer) { return consumer.consumerId; }).join(", "));
+                setText("[data-sources-rights]", trace.rights.length ? trace.rights[0].limitations.length + " limitation(s): " + trace.rights[0].limitations.join(" | ") : "None");
+                setText("[data-sources-restatements]", (trace.restatements.length || 0) + " restatement(s) / " + (trace.conflicts.length || 0) + " conflict(s)");
+                setText("[data-sources-unavailable]", trace.unavailableLinks.length ? trace.unavailableLinks.map(function (link) { return link.concept + " / " + link.periodId; }).join(", ") : "None");
+            }
+
+            function wireExport(accepted) {
+                var control = document.querySelector("[data-export-control]");
+                var output = document.querySelector("[data-export-output]");
+                if (!control || !output) return;
+                control.addEventListener("click", function () {
+                    var bundle = RLCOMPANY.buildAcceptedExport(accepted);
+                    output.hidden = false;
+                    output.textContent = JSON.stringify(bundle, null, 2);
+                    setText("[data-export-summary]", "Export built for " + bundle.publicationId + " generation " + bundle.generation + "; contains private data: " + bundle.containsPrivateData + ".");
+                });
+            }
+
+            function publishToolRead(accepted) {
+                if (!(window.RLDATA && typeof RLDATA.putToolRead === "function")) return;
+                try {
+                    var modelPackRef = accepted.modelPack ? {
+                        contractVersion: "company-object-ref/v1",
+                        path: "data/company-fundamentals/objects/" + RLCOMPANY.companyObjectSha256(accepted.modelPack).slice(7) + ".json",
+                        sha256: RLCOMPANY.companyObjectSha256(accepted.modelPack),
+                        objectId: accepted.modelPack.modelPackId
+                    } : null;
+                    var ownerRead = RLCOMPANY.buildFundamentalsToolRead({ accepted: accepted, readId: "owner-read-msft-foundation-g1", modelPackRef: modelPackRef });
+                    RLDATA.putToolRead("company-fundamentals-lab", {
+                        contractVersion: "rl-tool-read/v1",
+                        id: "company-fundamentals-lab",
+                        availability: ownerRead.status === "available" ? "current" : "unavailable",
+                        computedAt: new Date().toISOString(),
+                        asOf: null,
+                        freshUntil: null,
+                        read: "Microsoft fundamentals: direction " + ownerRead.direction + "; statement cutoff " + (ownerRead.statementCutoff || "not established") + ". " + (ownerRead.limitations[0] || ""),
+                        metrics: { companyId: ownerRead.companyId, publicationId: ownerRead.publicationId, statementCutoff: ownerRead.statementCutoff, direction: ownerRead.direction, missingFactIds: ownerRead.missingFactIds.join(",") },
+                        deepLink: "company-fundamentals-lab.html"
+                    });
+                } catch (_error) { /* the compat read is best-effort and never blocks the accepted dossier */ }
+            }
+
+            function comparabilityStateLabel(state) {
+                return state === "available" ? "Available" : "Unavailable";
+            }
+
+            function observationsById(accepted) {
+                var byId = Object.create(null);
+                accepted.observations.forEach(function (observation) { byId[observation.observationId] = observation; });
+                return byId;
+            }
+
+            function renderComparabilityMismatchBlock(block, view) {
+                if (!block) return;
+                block.querySelector("[data-comparability-comparable]").textContent = view.comparable ? "Yes" : "No";
+                block.querySelector("[data-comparability-reason]").textContent = view.reasonCodes.length ? view.reasonCodes.join(", ") : "None";
+                view.bases.forEach(function (basis) {
+                    var node = block.querySelector('[data-comparability-basis="' + basis.companyId + '"]');
+                    if (!node) return;
+                    node.querySelector("[data-basis-currency]").textContent = basis.currency;
+                    node.querySelector("[data-basis-fiscal]").textContent = basis.fiscalYearEnd;
+                    node.querySelector("[data-basis-value]").textContent = basis.value === null ? "Unavailable" : basis.value;
+                });
+                ["growth", "statistic", "rank"].forEach(function (operation) {
+                    var opNode = block.querySelector('[data-comparability-operation="' + operation + '"]');
+                    if (!opNode || !view.operations[operation]) return;
+                    opNode.querySelector("[data-comparability-state]").textContent = comparabilityStateLabel(view.operations[operation].state);
+                    var reasonNode = opNode.querySelector("[data-comparability-op-reason]");
+                    if (reasonNode) reasonNode.textContent = view.operations[operation].reasonCodes.length ? view.operations[operation].reasonCodes.join(", ") : "None";
+                });
+            }
+
+            function renderComparabilityAlignedBlock(block, view) {
+                if (!block) return;
+                block.querySelector("[data-comparability-comparable]").textContent = view.comparable ? "Yes" : "No";
+                var statNode = block.querySelector('[data-comparability-operation="statistic"]');
+                if (statNode && view.operations.statistic) {
+                    statNode.querySelector("[data-comparability-state]").textContent = comparabilityStateLabel(view.operations.statistic.state);
+                    statNode.querySelector("[data-comparability-op-value]").textContent = view.operations.statistic.value === null ? "Unavailable" : view.operations.statistic.value;
+                }
+                var rankNode = block.querySelector('[data-comparability-operation="rank"]');
+                if (rankNode && view.operations.rank) {
+                    rankNode.querySelector("[data-comparability-state]").textContent = comparabilityStateLabel(view.operations.rank.state);
+                    var first = view.operations.rank.value && view.operations.rank.value.length ? view.operations.rank.value[0].companyId : "Unavailable";
+                    rankNode.querySelector("[data-comparability-rank-first]").textContent = first;
+                }
+            }
+
+            function renderAccessibleEquityChart(panel, table, series) {
+                var body = panel.querySelector("[data-accessible-chart-body]");
+                if (body) {
+                    body.replaceChildren();
+                    table.rows.forEach(function (row, index) {
+                        var tr = document.createElement("tr");
+                        tr.setAttribute("data-accessible-row", series[index].companyId);
+                        var labelCell = document.createElement("td");
+                        labelCell.textContent = row.label;
+                        var valueCell = document.createElement("td");
+                        valueCell.textContent = row.valueText;
+                        var stateCell = document.createElement("td");
+                        stateCell.setAttribute("data-accessible-state", "");
+                        stateCell.textContent = comparabilityStateLabel(row.state);
+                        tr.append(labelCell, valueCell, stateCell);
+                        body.appendChild(tr);
+                    });
+                }
+                var visual = panel.querySelector("[data-chart-visual]");
+                if (visual) {
+                    visual.replaceChildren();
+                    var maxValue = table.rows.reduce(function (max, row) {
+                        var numeric = row.value === null ? 0 : RLCOMPANY.parseFiniteDecimal(row.value).value;
+                        return numeric > max ? numeric : max;
+                    }, 0);
+                    table.rows.forEach(function (row) {
+                        var bar = document.createElement("div");
+                        bar.className = "bar";
+                        var numeric = row.value === null ? 0 : RLCOMPANY.parseFiniteDecimal(row.value).value;
+                        bar.style.width = maxValue > 0 ? Math.max(2, (numeric / maxValue) * 100) + "%" : "2px";
+                        visual.appendChild(bar);
+                    });
+                }
+            }
+
+            // SCN-010-007: the cross-entity comparability boundary, rendered from the boot-loaded real MSFT/CMG/JPM
+            // publications with no refetch. A mixed-fiscal pair keeps every raw basis visible while withholding growth,
+            // statistic, and rank with the exact machine-readable reason; an aligned pair genuinely computes.
+            function renderComparability(accepted, overlayLoads) {
+                var panel = document.querySelector('[data-detailed-panel="comparability"]');
+                if (!panel) return;
+                var cmg = overlayLoads && overlayLoads.cmg && !overlayLoads.cmg.error ? overlayLoads.cmg.accepted : null;
+                var jpm = overlayLoads && overlayLoads.jpm && !overlayLoads.jpm.error ? overlayLoads.jpm.accepted : null;
+                var cmgObs = cmg ? observationsById(cmg) : null;
+                var jpmObs = jpm ? observationsById(jpm) : null;
+                var cmgEquity = cmgObs && cmgObs["obs-cmg-stockholders-equity"] ? cmgObs["obs-cmg-stockholders-equity"].value : null;
+                var jpmEquity = jpmObs && jpmObs["obs-jpm-stockholders-equity"] ? jpmObs["obs-jpm-stockholders-equity"].value : null;
+
+                if (cmg) {
+                    var crossView = RLCOMPANY.evaluateComparability({
+                        concept: "stockholders-equity",
+                        operations: ["growth", "statistic", "rank"],
+                        statistic: { operation: "mean" },
+                        reconciliation: null,
+                        bases: [
+                            { basisId: "basis-msft-equity", companyId: accepted.companyId, concept: "stockholders-equity", unit: "USD", currency: accepted.identity.reportingCurrency, fiscalYearEnd: accepted.identity.fiscalYearEnd, periodId: accepted.periods[0].periodId, periodEnd: accepted.periods[0].end, value: null },
+                            { basisId: "basis-cmg-equity", companyId: cmg.companyId, concept: "stockholders-equity", unit: "USD", currency: cmg.identity.reportingCurrency, fiscalYearEnd: cmg.identity.fiscalYearEnd, periodId: "period-cmg-fy2025-annual", periodEnd: "2025-12-31", value: cmgEquity }
+                        ]
+                    });
+                    renderComparabilityMismatchBlock(panel.querySelector('[data-comparability="cross-fiscal"]'), crossView);
+                }
+
+                var equitySeries = [
+                    { companyId: cmg ? cmg.companyId : "sec-cik-0001058090", label: "Chipotle", value: cmgEquity },
+                    { companyId: jpm ? jpm.companyId : "sec-cik-0000019617", label: "JPMorgan", value: jpmEquity },
+                    { companyId: accepted.companyId, label: "Microsoft", value: null, note: "Not reported in the retained SEC Submissions publication" }
+                ];
+                var chartTable = RLCOMPANY.buildAccessibleChartTable({ caption: "Reported stockholders equity by issuer (chart-equivalent accessible table)", categoryLabel: "Issuer", valueLabel: "Stockholders equity", unit: "USD", series: equitySeries });
+                renderAccessibleEquityChart(panel, chartTable, equitySeries);
+
+                if (cmg && jpm && cmgEquity !== null && jpmEquity !== null) {
+                    var alignedView = RLCOMPANY.evaluateComparability({
+                        concept: "stockholders-equity",
+                        operations: ["statistic", "rank"],
+                        statistic: { operation: "mean" },
+                        reconciliation: null,
+                        bases: [
+                            { basisId: "basis-cmg-equity", companyId: cmg.companyId, concept: "stockholders-equity", unit: "USD", currency: "USD", fiscalYearEnd: cmg.identity.fiscalYearEnd, periodId: "period-cmg-fy2025-annual", periodEnd: "2025-12-31", value: cmgEquity },
+                            { basisId: "basis-jpm-equity", companyId: jpm.companyId, concept: "stockholders-equity", unit: "USD", currency: "USD", fiscalYearEnd: jpm.identity.fiscalYearEnd, periodId: "period-jpm-fy2025-annual", periodEnd: "2025-12-31", value: jpmEquity }
+                        ]
+                    });
+                    renderComparabilityAlignedBlock(panel.querySelector('[data-comparability="aligned"]'), alignedView);
+                }
+            }
+
+            function wireModeAndTabs() {
+                var body = document.body;
+                var live = document.querySelector("[data-a11y-live]");
+                var tabButtons = Array.prototype.slice.call(document.querySelectorAll("[data-detailed-tab]"));
+                function announce(message) { if (live) live.textContent = message; }
+                function tabLabel(name) {
+                    var button = document.querySelector('[data-detailed-tab="' + name + '"]');
+                    return button ? button.textContent.trim() : name;
+                }
+                function activateTab(name, focusTab) {
+                    body.setAttribute("data-active-tab", name);
+                    tabButtons.forEach(function (button) {
+                        var selected = button.getAttribute("data-detailed-tab") === name;
+                        button.setAttribute("aria-selected", selected ? "true" : "false");
+                        button.setAttribute("tabindex", selected ? "0" : "-1");
+                        if (selected && focusTab) button.focus();
+                    });
+                    announce(tabLabel(name) + " workspace selected.");
+                }
+                // The roving tab index and the polite live summary start from the current selection.
+                activateTab(body.getAttribute("data-active-tab") || "statements", false);
+
+                document.querySelectorAll("[data-mode-button]").forEach(function (button) {
+                    button.addEventListener("click", function () {
+                        var mode = button.getAttribute("data-mode-button");
+                        body.setAttribute("data-view-mode", mode);
+                        document.querySelectorAll("[data-mode-button]").forEach(function (other) {
+                            other.setAttribute("aria-pressed", other.getAttribute("data-mode-button") === mode ? "true" : "false");
+                        });
+                        announce((mode === "simple" ? "Simple cockpit" : "Detailed workspaces") + " selected.");
+                    });
+                });
+
+                tabButtons.forEach(function (tab, index) {
+                    tab.addEventListener("click", function () { activateTab(tab.getAttribute("data-detailed-tab"), false); });
+                    tab.addEventListener("keydown", function (event) {
+                        var target = null;
+                        if (event.key === "ArrowRight" || event.key === "ArrowDown") target = tabButtons[(index + 1) % tabButtons.length];
+                        else if (event.key === "ArrowLeft" || event.key === "ArrowUp") target = tabButtons[(index - 1 + tabButtons.length) % tabButtons.length];
+                        else if (event.key === "Home") target = tabButtons[0];
+                        else if (event.key === "End") target = tabButtons[tabButtons.length - 1];
+                        if (!target) return;
+                        event.preventDefault();
+                        activateTab(target.getAttribute("data-detailed-tab"), true);
+                    });
+                });
+            }
+
+            function renderFailure(error) {
+                document.body.setAttribute("data-publication-status", "rejected");
+                document.getElementById("fatal-error").hidden = false;
+                setText("[data-publication-seal]", "Publication rejected");
+                setText("[data-source-extract-completeness]", error.code || "C010-PUBLICATION-SCHEMA");
+                if (window.RLAPP && RLAPP.report) RLAPP.report("company-fundamentals:foundation", "error", { code: error.code || "C010-PUBLICATION-SCHEMA" });
+            }
+
+            function loadOptionalOverlay(companyId) {
+                return RLCOMPANY.loadCompanyPublication({
+                    baseUrl: window.location.href,
+                    path: "data/company-fundamentals/companies/" + companyId + "/current.json",
+                    companyId: companyId,
+                    fetchImpl: window.fetch.bind(window)
+                }).then(function (accepted) {
+                    return { accepted: accepted, error: null };
+                }, function (error) {
+                    return { accepted: null, error: error };
+                });
+            }
+
+            RLCOMPANY.loadCompanyPublication({
+                baseUrl: window.location.href,
+                path: "data/company-fundamentals/companies/sec-cik-0000789019/current.json",
+                companyId: "sec-cik-0000789019",
+                fetchImpl: window.fetch.bind(window)
+            }).then(function (accepted) {
+                var configLoad = RLCOMPANY.loadSameOriginJson({
+                    baseUrl: window.location.href,
+                    path: "company-fundamentals.config.json",
+                    companyId: "sec-cik-0000789019",
+                    fetchImpl: window.fetch.bind(window)
+                }).then(function (config) {
+                    return { config: config, error: null };
+                }, function (error) {
+                    return { config: null, error: error };
+                });
+                return Promise.all([configLoad, loadOptionalOverlay("sec-cik-0001058090"), loadOptionalOverlay("sec-cik-0000019617")]).then(function (loads) {
+                    renderAccepted(accepted, loads[0].config, { configError: loads[0].error, cmg: loads[1], jpm: loads[2] });
+                });
+            }, renderFailure);
+        })();
+    </script>
+    <section data-rlbrief-mount data-tool-id="company-fundamentals-lab" data-simple-target="rlbrief-simple"
+        data-power-target="rlbrief-power"></section>
+</body>
+
+</html>

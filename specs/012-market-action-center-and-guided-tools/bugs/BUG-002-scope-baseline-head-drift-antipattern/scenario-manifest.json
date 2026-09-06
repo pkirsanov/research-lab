@@ -1,0 +1,308 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern",
+  "generatedAt": "2026-09-01T23:34:03Z",
+  "generatedBy": "bubbles.plan",
+  "stage": "scope-level-planning",
+  "stageNote": "Routed planning for F-BUG002-008 only. The test owner may replace only the two whole-worktree rollback oracles and their mutation plumbing with the closed eleven-path governed inventory and eight-path mutation boundary. Existing SCN-012-003 titles, behavior assertions, fixture authority, product bytes, Feature 017, Feature 019, Feature 028, company publication, and human acceptance remain unchanged. No implementation, post-repair pass, delivery, or certification is claimed.",
+  "nextRequiredOwner": "bubbles.design",
+  "designPrerequisite": "Record the F-BUG002-008 eleven-path governed inventory, eight-path mutation boundary, and governed-change, unauthorized-write, and unrelated-file controls in design.md before test implementation.",
+  "scenarioCount": 3,
+  "scopeMapping": {
+    "SCOPE-02": [
+      "SCN-BUG002-001",
+      "SCN-BUG002-002",
+      "SCN-BUG002-003"
+    ]
+  },
+  "scenarios": [
+    {
+      "scenarioId": "SCN-BUG002-001",
+      "parentScenarioIds": [
+        "SCN-012-003"
+      ],
+      "scopeId": "SCOPE-02",
+      "scope": 2,
+      "status": "planned",
+      "title": "Reconciled Git history cannot invalidate the legacy rehearsal",
+      "gherkin": {
+        "given": "a committed fixture contains the seven exact pre-Scope-03 authority files and a manifest records each SHA-256 and semantic role",
+        "when": "both SCN-012-003 rollback tests reconstruct their legacy sandbox",
+        "then": "each baseline file comes only from the committed fixture, no Git ref is read at runtime, and both tests reach their existing behavioral assertions"
+      },
+      "behaviorClass": "test-infrastructure-authority",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The fixture resolver returns the exact manifest-backed bytes for every closed authority path without reading Git history.",
+          "satisfiedBy": [
+            "TP-BUG002-F01",
+            "TP-BUG002-F02",
+            "TP-BUG002-F03"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "An unknown, missing, changed, or modern-contaminated fixture path produces a named fail-loud assertion instead of a fallback.",
+          "satisfiedBy": [
+            "TP-BUG002-F01",
+            "TP-BUG002-F02",
+            "TP-BUG002-Q01"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The committed manifest has one exact entry for each of the seven allowed paths with byte length, SHA-256, role, and source provenance.",
+          "satisfiedBy": [
+            "TP-BUG002-F03",
+            "TP-BUG002-C01"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG002-RED-01",
+        "TP-BUG002-F01",
+        "TP-BUG002-F02",
+        "TP-BUG002-F03",
+        "TP-BUG002-Q01",
+        "TP-BUG002-C01"
+      ],
+      "linkedTests": [
+        {
+          "testPlanId": "TP-BUG002-F01",
+          "testPath": "tests/contextual-tooltip.functional.mjs",
+          "testTitle": "SCN-012-003 isolated rollback restores legacy providers and exact current Scope 03 bytes",
+          "category": "functional"
+        },
+        {
+          "testPlanId": "TP-BUG002-F02",
+          "testPath": "tests/contextual-tooltip.functional.mjs",
+          "testTitle": "SCN-012-003 exact TP-03-01 through TP-03-05 commands replay RED then GREEN in isolated rollback baseline",
+          "category": "functional"
+        }
+      ],
+      "evidenceRefs": [
+        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix"
+      ],
+      "implementationRefs": [
+        "tests/contextual-tooltip.functional.mjs#baselineBytes",
+        "tests/fixtures/feature-012/contextual-tooltip-pre-scope03/"
+      ],
+      "testMechanism": {
+        "entrypoint": "internal-helper",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "tests/contextual-tooltip.functional.mjs#baselineBytes",
+          "tests/fixtures/feature-012/contextual-tooltip-pre-scope03/"
+        ],
+        "negativeControl": "Changing one fixture byte, removing one manifest path, or adding a modern decorator marker in an isolated copy must produce the corresponding path-specific guard failure.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "scenarioId": "SCN-BUG002-002",
+      "parentScenarioIds": [
+        "SCN-012-003"
+      ],
+      "scopeId": "SCOPE-02",
+      "scope": 2,
+      "status": "planned",
+      "title": "Baseline drift fails without weakening current behavior",
+      "gherkin": {
+        "given": "legacy fixture pages contain no Scope 03 decorator marker and current canary pages contain the shared decorator wiring",
+        "when": "the rollback rehearsal restores current Scope 03 bytes and the production route is exercised",
+        "then": "the legacy negative assertion, restored-current positive assertion, provider parity, and visible contextual disclosure all remain active"
+      },
+      "behaviorClass": "ui-regression-preservation",
+      "changeType": "bugfix",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "shared-consumer",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current production route still exposes the contextual disclosure by pointer, keyboard, touch, and adjacent table.",
+          "satisfiedBy": [
+            "TP-BUG002-E01"
+          ]
+        },
+        {
+          "trait": "shared-consumer",
+          "requiredProof": "Provider and page parity remains equal across rollback and exact restore, and the current externally visible surface still consumes the shared context engine.",
+          "satisfiedBy": [
+            "parity:TP-BUG002-F03",
+            "consumer-surface:TP-BUG002-E01"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A fixture that contains modern decorators or does not match its manifest fails before any legacy assertion can pass vacuously.",
+          "satisfiedBy": [
+            "TP-BUG002-F01",
+            "TP-BUG002-F02",
+            "TP-BUG002-Q01"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG002-F01",
+        "TP-BUG002-F02",
+        "TP-BUG002-F03",
+        "TP-BUG002-E01",
+        "TP-BUG002-Q01",
+        "TP-BUG002-C01"
+      ],
+      "linkedTests": [
+        {
+          "testPlanId": "TP-BUG002-E01",
+          "testPath": "tests/contextual-tooltip.spec.mjs",
+          "testTitle": "Regression: SCN-012-003 Power chart context is equivalent by pointer keyboard touch and table",
+          "category": "e2e-ui"
+        }
+      ],
+      "evidenceRefs": [],
+      "implementationRefs": [
+        "tests/contextual-tooltip.functional.mjs",
+        "tests/contextual-tooltip.spec.mjs",
+        "rlcontext.js",
+        "market-heatmap-lab.html",
+        "options-structure-lab.html",
+        "company-fundamentals-lab.html"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "rlcontext.js",
+          "market-heatmap-lab.html",
+          "options-structure-lab.html",
+          "company-fundamentals-lab.html"
+        ],
+        "negativeControl": "Removing the shared decorator wiring from one current canary page must fail the restored-current functional assertion and the production-route disclosure assertion.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "scenarioId": "SCN-BUG002-003",
+      "parentScenarioIds": [
+        "SCN-012-003"
+      ],
+      "scopeId": "SCOPE-02",
+      "scope": 2,
+      "status": "planned",
+      "title": "Rollback isolation ignores unrelated concurrent files",
+      "gherkin": {
+        "given": "the rollback oracle governs exactly eleven Scope 03 paths and rollback writes and deletes are limited to the eight production paths",
+        "when": "a governed path changes, an unauthorized rollback write is attempted, and an unrelated sandbox file changes",
+        "then": "the governed mutation is named and rejected, the unauthorized write fails before mutation, and the unrelated file does not affect the governed comparison"
+      },
+      "behaviorClass": "test-infrastructure-isolation",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Both exact rollback tests compare hashes for only the eleven governed paths, and the comparison names the first changed governed path.",
+          "satisfiedBy": [
+            "TP-BUG002-F01",
+            "TP-BUG002-F02",
+            "TP-BUG002-F04"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "A changed governed byte and an unauthorized rollback path fail loud, while a changed unrelated sandbox file leaves the governed comparison equal.",
+          "satisfiedBy": [
+            "TP-BUG002-RED-02",
+            "TP-BUG002-F04",
+            "TP-BUG002-Q01"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The governed inventory is the canonical eleven-path list and the mutation inventory is its canonical eight-path production subset with no discovery expansion.",
+          "satisfiedBy": [
+            "TP-BUG002-F03",
+            "TP-BUG002-F04",
+            "TP-BUG002-C01"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG002-RED-02",
+        "TP-BUG002-F01",
+        "TP-BUG002-F02",
+        "TP-BUG002-F03",
+        "TP-BUG002-F04",
+        "TP-BUG002-Q01",
+        "TP-BUG002-C01"
+      ],
+      "linkedTests": [
+        {
+          "testPlanId": "TP-BUG002-F01",
+          "testPath": "tests/contextual-tooltip.functional.mjs",
+          "testTitle": "SCN-012-003 isolated rollback restores legacy providers and exact current Scope 03 bytes",
+          "category": "functional"
+        },
+        {
+          "testPlanId": "TP-BUG002-F02",
+          "testPath": "tests/contextual-tooltip.functional.mjs",
+          "testTitle": "SCN-012-003 exact TP-03-01 through TP-03-05 commands replay RED then GREEN in isolated rollback baseline",
+          "category": "functional"
+        },
+        {
+          "testPlanId": "TP-BUG002-F04",
+          "testPath": "tests/contextual-tooltip.functional.mjs",
+          "testTitle": "Regression: F-BUG002-008 scoped rollback oracle catches governed mutation and ignores unrelated concurrent files",
+          "category": "functional",
+          "planned": true
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#f-bug002-008-whole-worktree-concurrency-finding"
+      ],
+      "implementationRefs": [
+        "tests/contextual-tooltip.functional.mjs#SCOPE03_GOVERNED_PATHS",
+        "tests/contextual-tooltip.functional.mjs#SCOPE03_ROLLBACK_MUTATION_PATHS",
+        "tests/contextual-tooltip.functional.mjs#assertGovernedInventoryEqual",
+        "tests/contextual-tooltip.functional.mjs#recordScope03Mutation"
+      ],
+      "testMechanism": {
+        "entrypoint": "internal-helper",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "tests/contextual-tooltip.functional.mjs"
+        ],
+        "negativeControl": "Flip one byte in sandbox rlcontext.js and require a named failure; attempt a rollback write to concurrency-control/unrelated-report.md and require pre-write rejection; then change that unrelated file directly and require the eleven governed hashes to remain equal.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    }
+  ]
+}

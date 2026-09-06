@@ -544,6 +544,12 @@
         "maxNormalizedObservationBytes": 262144,
         "rawBodyRetention": "hash-only"
     },
+    "shock-transmission/resource-policy/v1": {
+        "contractVersion": "shock-transmission/resource-policy/v1",
+        "policyId": "shock-transmission/resource-policy/v1",
+        "maxHorizonsPerDefinition": 48,
+        "maxGraphNodesPerSnapshot": 200
+    },
     "output-budget/v1": {
         "contractVersion": "output-budget/v1",
         "policyId": "output-budget/v1",

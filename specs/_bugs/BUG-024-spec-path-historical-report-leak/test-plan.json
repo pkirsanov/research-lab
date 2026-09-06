@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "featureDir": "specs/_bugs/BUG-024-spec-path-historical-report-leak",
+  "generatedAt": "2026-09-02T01:29:06Z",
+  "generatedBy": "bubbles.bug",
+  "stage": "bug-discovery",
+  "scopes": [
+    {
+      "scopeId": "01-separate-active-path-authority-from-history",
+      "scope": 1,
+      "status": "not_started",
+      "tests": [
+        {
+          "id": "TP-BUG024-01",
+          "scenarioIds": [
+            "SCN-BUG024-001"
+          ],
+          "type": "Functional regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "A historical report path remains visible but creates no actionable missing path.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned-not-executed",
+          "testState": "planned-not-authored",
+          "requiredResult": "The report site is historical with provenance and absent from newMissing."
+        },
+        {
+          "id": "TP-BUG024-02",
+          "scenarioIds": [
+            "SCN-BUG024-002"
+          ],
+          "type": "Adversarial functional",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "description": "The identical path in an active Test Plan remains a blocking new missing path.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "status": "planned-not-executed",
+          "testState": "planned-not-authored",
+          "requiredResult": "The active control fails with artifact and line provenance."
+        },
+        {
+          "id": "TP-BUG024-03",
+          "scenarioIds": [
+            "SCN-BUG024-003"
+          ],
+          "type": "Regression E2E",
+          "category": "repository",
+          "file": "scripts/validate-spec-test-paths.mjs",
+          "description": "The complete path guard and repository selftest preserve history and the baseline ratchet.",
+          "command": "node scripts/validate-spec-test-paths.mjs --all-sites; then record node scripts/selftest.mjs as a separate command",
+          "liveSystem": false,
+          "status": "planned-not-executed",
+          "testState": "planned-not-authored",
+          "requiredResult": "Both commands exit zero after independent blockers close and the baseline does not grow."
+        },
+        {
+          "id": "TP-BUG024-04",
+          "scenarioIds": [
+            "SCN-BUG024-003"
+          ],
+          "type": "Evidence integrity",
+          "category": "governance",
+          "file": "specs/031-shock-transmission-foundation/report.md",
+          "description": "Feature 031 historical evidence and all excluded paths remain unchanged.",
+          "command": "bubbles.plan must select the exact repository-native byte and containment checks",
+          "liveSystem": false,
+          "status": "planned-not-executed",
+          "testState": "planned-not-authored",
+          "requiredResult": "Zero protected-byte changes and zero baseline growth."
+        }
+      ]
+    }
+  ]
+}

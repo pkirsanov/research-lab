@@ -1,0 +1,384 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-023-options-flow-ready-clock-drift",
+  "featureName": "BUG-023 Options Flow Ready Clock Drift",
+  "createdAt": "2026-09-02T01:29:07Z",
+  "lastUpdatedAt": "2026-09-02T16:48:38Z",
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
+    "currentPhaseStatus": "route_required",
+    "executionModel": "phase-invocation",
+    "parentAgent": "scenario-node:shock-close-bug-023",
+    "runStartedAt": "2026-09-02T16:35:00Z",
+    "completedAt": null,
+    "substate": "needs_reverification",
+    "currentScope": "01-clock-stable-options-flow-baseline",
+    "nextRequiredOwner": "bubbles.implement",
+    "nextRequiredTarget": "specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos",
+    "nextRequiredReason": "BUG-023 now derives GREEN_TARGETED for all three scenarios, but TP-BUG023-04 and TP-BUG023-05 remain nonzero on the current BUG-017 and BUG-024 external failures. BUG-017 currently routes to bubbles.implement; BUG-024 remains with bubbles.design, and Feature 031 TP-01-08 remains with its test owner. After those external rows close, bubbles.test must rerun the exact repository rows before regression routing.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-09-02T01:29:07Z",
+        "evidenceRef": "report.md#current-broad-selftest-evidence-from-feature-031",
+        "scopes": []
+      },
+      {
+        "phase": "design",
+        "agent": "bubbles.design",
+        "claimedAt": "2026-09-02T02:17:27Z",
+        "evidenceRef": "design.md#clock-contract",
+        "scopes": []
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-09-02T03:27:49Z",
+        "evidenceRef": "report.md#implementation-clock-repair-and-green-replays",
+        "scopes": [
+          "01-clock-stable-options-flow-baseline"
+        ]
+      },
+      {
+        "phase": "implement",
+        "agent": "bubbles.implement",
+        "claimedAt": "2026-09-02T16:10:57Z",
+        "evidenceRef": "report.md#implementation-attribution-on-reconciled-plan",
+        "scopes": [
+          "01-clock-stable-options-flow-baseline"
+        ]
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-clock-stable-options-flow-baseline",
+        "scope": 1,
+        "status": "in_progress",
+        "dependsOn": []
+      }
+    ]
+  },
+  "defect": {
+    "severity": "High",
+    "class": "test-contract-clock-drift",
+    "surface": "scripts/selftest.mjs Tier-A owning-model reads group",
+    "sourceFinding": "F031-BROAD-OPTIONS-FLOW-001",
+    "broadSelftestPasses": 3419,
+    "broadSelftestFailures": 5,
+    "ownedFailureCount": 3,
+    "ownerReadState": "unavailable",
+    "ownerMetricKeys": [
+      "reason",
+      "state"
+    ],
+    "rootCause": "The selftest evaluates a freshness-sensitive production read at the wall clock but asserts it as a timeless ready fixture, then dereferences ready-only metrics after the valid unavailable result.",
+    "productionStaleRefusalIsCorrect": true,
+    "compactPacketAdmission": "rejected because the repair changes an existing assertion contract"
+  },
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    },
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-clock-stable-options-flow-baseline",
+        "status": "not_started"
+      }
+    ]
+  },
+  "completedScopes": [],
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "user-request"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [
+    {
+      "transitionRequestId": "TR-BUG023-PLAN-001",
+      "status": "resolved",
+      "routedTo": "bubbles.implement",
+      "routedToSpec": "specs/_bugs/BUG-023-options-flow-ready-clock-drift",
+      "productAction": "none",
+      "routingClass": "same-spec-execution",
+      "crossRepoFollowUp": false,
+      "reason": "The scenario-state authority requires a receipt-bound IMPLEMENTED state before new GREEN and regression receipts can advance. The source repair is already present and must not be rewritten.",
+      "evidenceRefs": [
+        "scopes.md#implementation-handoff",
+        "report.md#current-owned-behavior-replay",
+        "report.md#implementation-attribution-on-reconciled-plan"
+      ],
+      "resolvedAt": "2026-09-02T16:10:57Z",
+      "resolvedBy": "bubbles.implement",
+      "outcome": "route_required",
+      "resolutionSummary": "Tool-log rows 606 through 608 bind the unchanged scripts/selftest.mjs repair to the reconciled spec, scope, test-plan, and scenario-manifest identities. All three focused production replays exited zero. Scenario-state row 609 confirms the bindings are complete and that derived IMPLEMENTED awaits the test-owned RED predecessor receipts."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-09-02T01:29:07Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "phasesExecuted": [
+        "bug"
+      ],
+      "action": "diagnosed-and-filed",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "F031-BROAD-OPTIONS-FLOW-001"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "note": "Filed the full packet after current broad-selftest evidence showed three options-flow failures and bounded inventory search found no existing owner. The production stale refusal is preserved. No implementation, test execution, certification, Feature 031 edit, Horizon Ladder edit, registry edit, standalone-Lab creation, commit, or push occurred."
+    },
+    {
+      "at": "2026-09-02T02:23:10Z",
+      "runStartedAt": "2026-09-02T02:17:27Z",
+      "statusBefore": "in_progress",
+      "agent": "bubbles.design",
+      "phase": "design",
+      "phasesExecuted": [
+        "bootstrap",
+        "design"
+      ],
+      "action": "reconciled-clock-stable-fix-design",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "F031-BROAD-OPTIONS-FLOW-001",
+        "BUG023-TRACE-SCN003-NO-ROW",
+        "BUG023-G068-SCN001-DOD-FIDELITY",
+        "BUG023-G068-SCN002-DOD-FIDELITY",
+        "BUG023-G068-SCN003-DOD-FIDELITY",
+        "BUG023-G068-DOD-FIDELITY-AGGREGATE"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Selected ownerState.nowMs as the evidence clock, froze age zero, exact seven-day, and seven-days-plus-one-millisecond cases, and routed all five traceability failures to planning ownership.",
+      "note": "Final artifact lint exited 0 with output hash 182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567. Design consistency exited 0 with zero failures. Final traceability exited 1 with output hash ee9dfdc41875974a80608b95fe44e4031fb21d16fc1dddd3b36f629573085366. It reported one missing scenario-to-row mapping, three missing scenario-to-DoD mappings, and one aggregate G068 failure. No product source, test source, planning artifact, evidence artifact, Definition of Done checkbox, certification field, Feature 031 path, Horizon Ladder path, registry path, navigation path, commit, push, fetch, merge, cleanup, worktree operation, or deployment changed."
+    },
+    {
+      "at": "2026-09-02T03:27:49Z",
+      "runStartedAt": "2026-09-02T03:22:48Z",
+      "statusBefore": "in_progress",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "action": "implemented-clock-stable-options-flow-selftest",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F031-BROAD-OPTIONS-FLOW-001"
+      ],
+      "unresolvedFindings": [
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Pinned normal options-flow reads to ownerState.nowMs, preserved the strict seven-day production boundary, guarded ready-only metrics, and recorded three implementation GREEN exits on one input epoch.",
+      "note": "Canonical selftest row 467 reported 3469 passes and only the two external failures. Focused implementation rows 468 through 470 exited 0. Artifact lint, regression quality, and traceability exited 0. No production owner source, Feature 031 source, Horizon Ladder path, registry, navigation, route, data, framework, certification, or human-acceptance field changed."
+    },
+    {
+      "at": "2026-09-02T04:17:43Z",
+      "runStartedAt": "2026-09-02T03:43:17Z",
+      "statusBefore": "in_progress",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "phasesExecuted": [
+        "test"
+      ],
+      "action": "independently-verified-clock-stable-options-flow",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F031-BROAD-OPTIONS-FLOW-001"
+      ],
+      "unresolvedFindings": [
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "nextRequiredOwner": "bubbles.validate",
+      "summary": "Independently replayed three persistent RED controls and three focused production GREEN rows on one stable input epoch, then separated BUG-023 owned success from the two external canonical-selftest failures.",
+      "note": "Rows 477 through 479 exited 1 with each intended mutation signal. Rows 480 through 482 and corrected GREEN value row 487 exited 0. Canonical row 483 exited 1 with 3469 passed and only two external failures; output witness row 485 proved zero options-flow failures. Protected-path row 484 proved Feature 031, production options, Horizon Ladder, registry, navigation, and framework paths unchanged. Final guard rows 489 through 494 and 496 exited 0. Certification and human acceptance remain unchanged."
+    },
+    {
+      "at": "2026-09-02T15:21:22Z",
+      "runStartedAt": "2026-09-02T15:20:48Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "agent": "bubbles.analyst",
+      "phase": "analyze",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "action": "reconciled-outcome-and-capability-contracts",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG023-G070-OUTCOME-CONTRACT",
+        "BUG023-G094-CAPABILITY-MODEL"
+      ],
+      "unresolvedFindings": [
+        "BUG023-GF-6-SUCCESS-SIGNAL-EVIDENCE",
+        "BUG023-G089-DEPENDENCY",
+        "BUG023-G022-PHASE-CHAIN",
+        "BUG023-G027-SCOPE-CERTIFICATION",
+        "BUG023-CHECK-4-SCENARIO-STATES",
+        "BUG023-CHECK-9-EVIDENCE",
+        "BUG023-G136-HUMAN-ACCEPTANCE",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001",
+        "F031-TP-01-08-STALE-INVENTORY"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "summary": "Added the missing Outcome Contract, preserved the strict production stale-refusal boundary, recorded the focused single-capability exemption, and reconciled the external BUG-017, BUG-024, and Feature 031 finding boundary.",
+      "note": "Focused cli.sh lint exited 0 with output SHA-256 182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567. Tool-log row 546 shows that the original missing Outcome Contract and Hard Constraints findings are gone, while GF-6 remains because report.md does not reference Success Signal. Tool-log row 547 records G094 exit 0 with the non-empty spec and design justifications. F031-BROAD-OPTIONS-FLOW-001 remains preserved as already addressed by the existing current-byte replay. No design, scope, report, acceptance, source, test, certification, Feature 031, Horizon Ladder, registry, navigation, framework, commit, push, fetch, merge, cleanup, deployment, or action-node surface changed."
+    },
+    {
+      "at": "2026-09-02T15:54:48Z",
+      "runStartedAt": "2026-09-02T15:53:19Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "phasesExecuted": [
+        "bootstrap",
+        "plan"
+      ],
+      "action": "reconciled-plan-owned-closure-after-missing-envelope",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG023-GF-6-SUCCESS-SIGNAL-EVIDENCE",
+        "BUG023-G089-DEPENDENCY",
+        "BUG023-CHECK-4-SCENARIO-STATES",
+        "BUG023-G067-SHARED-INFRASTRUCTURE-PLAN",
+        "BUG023-G069-CHANGE-BOUNDARY-PLAN",
+        "BUG023-E2E-REGRESSION-PLAN",
+        "BUG023-CANONICAL-ROUTING"
+      ],
+      "unresolvedFindings": [
+        "BUG023-G022-PHASE-CHAIN",
+        "BUG023-G027-SCOPE-CERTIFICATION",
+        "BUG023-CHECK-9-EVIDENCE",
+        "BUG023-G136-HUMAN-ACCEPTANCE",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001",
+        "F031-TP-01-08-STALE-INVENTORY"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Verified the prior plan bytes and receipts, clarified the Feature 031 dependency direction, and preserved in-progress execution routing.",
+      "note": "Prior planner rows 559 through 574 cover the expected plan-owned findings. Retry row 575 confirms scope context fit after the dependency wording repair. Delivery evidence, certification, acceptance, source, tests, Feature 031, BUG-017, BUG-024, Horizon Ladder, registries, navigation, and framework files remain unchanged."
+    },
+    {
+      "at": "2026-09-02T16:10:57Z",
+      "runStartedAt": "2026-09-02T16:10:57Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "action": "recorded-current-plan-implementation-attribution",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F031-BROAD-OPTIONS-FLOW-001"
+      ],
+      "unresolvedFindings": [
+        "BUG023-G022-PHASE-CHAIN",
+        "BUG023-G027-SCOPE-CERTIFICATION",
+        "BUG023-CHECK-9-EVIDENCE",
+        "BUG023-G136-HUMAN-ACCEPTANCE",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001",
+        "F031-TP-01-08-STALE-INVENTORY"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Bound the unchanged options-flow clock repair to the reconciled plan with three schema-v3 current-session implementation receipts and preserved the strict production stale refusal.",
+      "note": "Tool-log rows 606 through 608 exited zero on scripts/selftest.mjs SHA-256 fc10b87d65549ea48dbdc3042b8526bfb30263e6bd42fb2635c5058b81fae439. Scenario-state row 609 leaves IMPLEMENTED blocked until test-owned RED receipts exist. Artifact, traceability, reality, and corrected regression-quality rows 610, 611, 612, and 615 exited zero. Rows 613 and 614 are excluded setup and usage failures. No source, planning content, certification, acceptance, Feature 031, BUG-017, BUG-024, Horizon Ladder, registry, navigation, framework, commit, push, fetch, merge, cleanup, deployment, publication, or action-node mutation occurred."
+    },
+    {
+      "at": "2026-09-02T16:48:38Z",
+      "runStartedAt": "2026-09-02T16:35:00Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "phasesExecuted": [
+        "test"
+      ],
+      "action": "independently-replayed-current-scenario-chain",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F031-BROAD-OPTIONS-FLOW-001"
+      ],
+      "unresolvedFindings": [
+        "BUG023-TP-04-NONZERO",
+        "BUG023-TP-05-NONZERO",
+        "BUG023-REGRESSION-GREEN-UNSATISFIED",
+        "BUG023-G022-PHASE-CHAIN",
+        "BUG023-G027-SCOPE-CERTIFICATION",
+        "BUG023-CHECK-9-EVIDENCE",
+        "BUG023-G136-HUMAN-ACCEPTANCE",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001",
+        "F031-TP-01-08-STALE-INVENTORY",
+        "FEATURE031-SCENARIO-RECEIPT-BINDINGS",
+        "BUG022-SCENARIO-RECEIPT-REVISION-DRIFT"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Recorded fresh scenario-bound RED and targeted GREEN receipts for all three BUG-023 scenarios, verified the direct canary and unchanged hashes, and retained the nonzero TP-04 and TP-05 repository rows without relabeling them as passes.",
+      "note": "Rows 629 through 631 are the required nonzero RED receipts; rows 633 through 635 are the matching zero-exit GREEN receipts. Row 648 derives GREEN_TARGETED for all three scenarios. Rows 640 through 643 keep TP-BUG023-04 and TP-BUG023-05 nonzero at 3469 passed and 2 failed. Rows 644 through 646 identify BUG-024, BUG-017, and Feature 031 TP-01-08 as external owners. Row 649 leaves REGRESSION_GREEN unsatisfied, and row 650 preserves the canonical Feature 031 binding and BUG-022 revision refusals. Source, planning content, certification, acceptance, external packets, Horizon Ladder, registry, navigation, framework, commit, push, fetch, merge, cleanup, deployment, publication, and action-node surfaces were not changed."
+    }
+  ]
+}

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_bugs/BUG-024-spec-path-historical-report-leak",
+  "generatedAt": "2026-09-02T01:29:06Z",
+  "generatedBy": "bubbles.bug",
+  "stage": "bug-discovery",
+  "scenarioCount": 3,
+  "scopeMapping": {
+    "01-separate-active-path-authority-from-history": [
+      "SCN-BUG024-001",
+      "SCN-BUG024-002",
+      "SCN-BUG024-003"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "SCN-BUG024-001",
+      "scenarioId": "SCN-BUG024-001",
+      "scopeId": "01-separate-active-path-authority-from-history",
+      "scope": 1,
+      "title": "Historical report paths do not declare current tests",
+      "gherkin": {
+        "given": "a report receipt containing a retired tests path",
+        "when": "path authority is classified",
+        "then": "the site remains historical and creates no actionable missing path"
+      },
+      "behaviorClass": "pure-calculation",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The production collector preserves the report site's provenance but excludes it from actionable missing paths.",
+          "satisfiedBy": [
+            "TP-BUG024-01"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG024-01"
+      ],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "spec path historical report authority fixture",
+          "testState": "planned-not-authored"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#current-path-diagnostic-from-feature-031"
+      ],
+      "implementationRefs": [
+        "scripts/validate-spec-test-paths.mjs#collectSpecTestPathReferences"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-spec-test-paths.mjs#collectSpecTestPathReferences"
+        ],
+        "negativeControl": "Move the identical path token from report.md to an active Test Plan; it must become actionable.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG024-002",
+      "scenarioId": "SCN-BUG024-002",
+      "scopeId": "01-separate-active-path-authority-from-history",
+      "scope": 1,
+      "title": "Active planning paths remain fail-closed",
+      "gherkin": {
+        "given": "an active Test Plan containing the identical missing path",
+        "when": "path authority is classified",
+        "then": "the site remains active and validation fails with provenance"
+      },
+      "behaviorClass": "pure-calculation",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The active control remains in newMissing with artifact and line provenance.",
+          "satisfiedBy": [
+            "TP-BUG024-02"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG024-02"
+      ],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "spec path active authority control",
+          "testState": "planned-not-authored"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#root-cause-evidence"
+      ],
+      "implementationRefs": [
+        "scripts/validate-spec-test-paths.mjs#validateSpecTestPaths"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-spec-test-paths.mjs#validateSpecTestPaths"
+        ],
+        "negativeControl": "Classify every candidate as historical; the active control must catch and reject that implementation.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG024-003",
+      "scenarioId": "SCN-BUG024-003",
+      "scopeId": "01-separate-active-path-authority-from-history",
+      "scope": 1,
+      "title": "Repository closure preserves history and the ratchet",
+      "gherkin": {
+        "given": "paired authority controls and the current Feature 031 report",
+        "when": "repository validation runs",
+        "then": "history does not fail, active missing paths do fail, and protected bytes remain unchanged"
+      },
+      "behaviorClass": "static-metadata",
+      "changeType": "bugfix",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "The focused guard and complete selftest close without baseline growth or protected evidence changes.",
+          "satisfiedBy": [
+            "TP-BUG024-03",
+            "TP-BUG024-04"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-BUG024-03",
+        "TP-BUG024-04"
+      ],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "complete Research-Lab selftest",
+          "testState": "authored"
+        }
+      ],
+      "evidenceRefs": [
+        "report.md#current-path-diagnostic-from-feature-031"
+      ],
+      "implementationRefs": [
+        "scripts/validate-spec-test-paths.mjs",
+        "scripts/selftest.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "committed-evidence",
+        "assertionSurface": "process-exit",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/validate-spec-test-paths.mjs",
+          "scripts/selftest.mjs"
+        ],
+        "negativeControl": "Restore report sites to actionable authority; the focused guard and complete selftest must fail on the retired Feature 031 path.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    }
+  ]
+}

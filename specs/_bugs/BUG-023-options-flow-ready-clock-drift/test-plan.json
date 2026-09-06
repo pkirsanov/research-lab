@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "featureDir": "specs/_bugs/BUG-023-options-flow-ready-clock-drift",
+  "generatedAt": "2026-09-02T15:36:57Z",
+  "generatedBy": "bubbles.plan",
+  "stage": "planning",
+  "scopes": [
+    {
+      "scopeId": "01-clock-stable-options-flow-baseline",
+      "scope": 1,
+      "status": "in_progress",
+      "tests": [
+        {
+          "id": "TP-BUG023-01",
+          "scenarioIds": [
+            "SCN-BUG023-001"
+          ],
+          "type": "Functional regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "assertionTitle": "options-flow first stale instant remains unavailable",
+          "description": "The production builder evaluates ownerState.nowMs plus seven days plus one millisecond.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "requiredResult": "The result is unavailable, names stale age, and omits every ready-only metric key.",
+          "negativeControlMechanism": "mutation",
+          "negativeControl": "Change the stale offset from seven days plus one millisecond to exactly seven days.",
+          "redCommand": "node scripts/selftest.mjs",
+          "redRequiredSignal": "The stale-state assertion fails because exactly seven days remains ready."
+        },
+        {
+          "id": "TP-BUG023-02",
+          "scenarioIds": [
+            "SCN-BUG023-002"
+          ],
+          "type": "Functional regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "assertionTitle": "options-flow evidence-clock ready boundaries use owner model",
+          "description": "The production builder evaluates ownerState.nowMs at age zero and exactly seven days.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "requiredResult": "Both reads are ready with owner-produced considered, flagged, lean, score, and ranking values.",
+          "negativeControlMechanism": "mutation",
+          "negativeControl": "Change the exact-seven-day fixture to seven days plus one millisecond.",
+          "redCommand": "node scripts/selftest.mjs",
+          "redRequiredSignal": "The boundary-ready assertion fails while production keeps the strict greater-than predicate."
+        },
+        {
+          "id": "TP-BUG023-03",
+          "scenarioIds": [
+            "SCN-BUG023-003"
+          ],
+          "type": "Repository regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "assertionTitle": "options-flow explicit clocks remain calendar-stable",
+          "description": "The complete repository selftest uses all three ownerState.nowMs-derived fixture instants.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "requiredResult": "The options-flow outcomes do not depend on wall time and a state mismatch cannot dereference unavailable metrics.",
+          "negativeControlMechanism": "mutation",
+          "negativeControl": "Remove the positive explicit asOf value and the ready-state guard from the selftest assertion group.",
+          "redCommand": "node scripts/selftest.mjs",
+          "redRequiredSignal": "The options-flow group reproduces clock drift and the secondary unavailable-metric dereference."
+        },
+        {
+          "id": "TP-BUG023-04",
+          "scenarioIds": [
+            "SCN-BUG023-001",
+            "SCN-BUG023-002",
+            "SCN-BUG023-003"
+          ],
+          "type": "Regression E2E",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "assertionTitle": "all three named options-flow assertions",
+          "description": "One repository process reaches the real parser, owner state, production builder, and owner model for all three scenario outcomes.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "requiredResult": "All three named options-flow scenario assertions pass in one repository process.",
+          "negativeControlMechanism": "mutation",
+          "negativeControl": "Run each existing BUG023_RED_CONTROL value against its named scenario assertion.",
+          "redCommand": "node scripts/selftest.mjs",
+          "redRequiredSignal": "Each control produces its one intended options-flow scenario failure."
+        },
+        {
+          "id": "TP-BUG023-05",
+          "scenarioIds": [
+            "SCN-BUG023-001",
+            "SCN-BUG023-002",
+            "SCN-BUG023-003"
+          ],
+          "type": "Broader E2E regression",
+          "category": "functional",
+          "file": "scripts/selftest.mjs",
+          "assertionTitle": "Research-Lab self-test summary",
+          "description": "The complete repository command verifies BUG-023 together with every registered repository assertion.",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "requiredResult": "The command exits zero after the separately owned BUG-017, BUG-024, and Feature 031 findings close, with no options-flow regression.",
+          "negativeControlMechanism": "mutation",
+          "negativeControl": "Remove the positive explicit options-flow clock.",
+          "redCommand": "node scripts/selftest.mjs",
+          "redRequiredSignal": "The broader command reports the options-flow failure group."
+        },
+        {
+          "id": "TP-BUG023-06",
+          "scenarioIds": [
+            "SCN-BUG023-001",
+            "SCN-BUG023-002",
+            "SCN-BUG023-003"
+          ],
+          "type": "Fixture Canary",
+          "category": "functional",
+          "file": "scripts/brief-refresh.mjs",
+          "assertionTitle": "direct options-flow owner clock canary",
+          "description": "The direct production owner path proves the three clock boundaries without executing the modified selftest assertion group.",
+          "command": "node --input-type=module -e 'import * as refresh from \"./scripts/brief-refresh.mjs\"; import * as owner from \"./scripts/owner-state.mjs\"; const page = refresh.loadToolFunctions(\"options-flow-feed-lab.html\", [\"parsePagesChain\"]); const ownerState = owner.optionsFlowOwnerState(process.cwd(), { parseChain: page.parsePagesChain }); if (!ownerState || !Number.isFinite(ownerState.nowMs)) throw new Error(\"finite ownerState.nowMs required\"); const dayMs = 86_400_000; const at = (offsetMs) => new Date(ownerState.nowMs + offsetMs).toISOString(); const ageZero = refresh.buildOptionsFlowToolRead({ asOf: at(0) }); const boundary = refresh.buildOptionsFlowToolRead({ asOf: at(7 * dayMs) }); const stale = refresh.buildOptionsFlowToolRead({ asOf: at(7 * dayMs + 1) }); const staleReadyKeys = [\"tickers\", \"contractsFlagged\", \"consideredCount\", \"callPremium\", \"putPremium\", \"lean\", \"maxScore\", \"top\"].filter((key) => Object.prototype.hasOwnProperty.call(stale.metrics, key)); const passed = ageZero.state === \"ready\" && boundary.state === \"ready\" && stale.state === \"unavailable\" && staleReadyKeys.length === 0; console.log(\"BUG023_SHARED_HARNESS_CANARY=\" + (passed ? \"PASS\" : \"FAIL\")); if (!passed) process.exit(1);'",
+          "commandRef": "scopes.md#independent-canary-command",
+          "liveSystem": false,
+          "requiredResult": "The canary prints BUG023_SHARED_HARNESS_CANARY=PASS before the broad suite runs.",
+          "negativeControlMechanism": "mutation",
+          "negativeControl": "Change the stale canary offset from seven days plus one millisecond to exactly seven days.",
+          "redCommand": "node --input-type=module -e 'import * as refresh from \"./scripts/brief-refresh.mjs\"; import * as owner from \"./scripts/owner-state.mjs\"; const page = refresh.loadToolFunctions(\"options-flow-feed-lab.html\", [\"parsePagesChain\"]); const ownerState = owner.optionsFlowOwnerState(process.cwd(), { parseChain: page.parsePagesChain }); if (!ownerState || !Number.isFinite(ownerState.nowMs)) throw new Error(\"finite ownerState.nowMs required\"); const dayMs = 86_400_000; const at = (offsetMs) => new Date(ownerState.nowMs + offsetMs).toISOString(); const ageZero = refresh.buildOptionsFlowToolRead({ asOf: at(0) }); const boundary = refresh.buildOptionsFlowToolRead({ asOf: at(7 * dayMs) }); const stale = refresh.buildOptionsFlowToolRead({ asOf: at(7 * dayMs) }); const staleReadyKeys = [\"tickers\", \"contractsFlagged\", \"consideredCount\", \"callPremium\", \"putPremium\", \"lean\", \"maxScore\", \"top\"].filter((key) => Object.prototype.hasOwnProperty.call(stale.metrics, key)); const passed = ageZero.state === \"ready\" && boundary.state === \"ready\" && stale.state === \"unavailable\" && staleReadyKeys.length === 0; console.log(\"BUG023_SHARED_HARNESS_CANARY=\" + (passed ? \"PASS\" : \"FAIL\")); if (!passed) process.exit(1);'",
+          "redRequiredSignal": "The canary exits nonzero because the inclusive boundary remains ready."
+        }
+      ]
+    }
+  ]
+}

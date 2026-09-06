@@ -1,0 +1,770 @@
+{
+  "version": 3,
+  "featureDir": "specs/031-shock-transmission-foundation",
+  "featureName": "Shock Transmission Foundation",
+  "createdAt": "2026-08-31T03:57:26Z",
+  "lastUpdatedAt": "2026-09-01T23:03:48Z",
+  "status": "in_progress",
+  "workflowMode": "full-delivery",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "modeTransition": {
+    "at": "2026-09-01T16:00:30Z",
+    "authority": "operator-directed",
+    "authorizedBy": "user-session under the exactly validated scoped scenario node shock-deliver-feature-031. The validated packet used session vscode-fe25d1cd1d438b7392b275feaef1c14e, decision rb:vscode-fe25d1cd1d438b7392b275feaef1c14e:12:node:shock-deliver-feature-031, control revision 12, and control-path digest sha256:1c361db09f54c82c796dfffdae84272735967f0d4ed4dcc7182d99de64c26247. bubbles.validate applied this lifecycle transition under that authority.",
+    "from": {
+      "workflowMode": "product-to-planning",
+      "statusCeiling": "specs_hardened",
+      "terminalAliases": [
+        "specs_hardened"
+      ],
+      "status": "specs_hardened",
+      "planningOnly": false
+    },
+    "to": {
+      "workflowMode": "full-delivery",
+      "statusCeiling": "done",
+      "terminalAliases": [],
+      "status": "in_progress",
+      "planningOnly": false
+    },
+    "statusBefore": "specs_hardened",
+    "statusAfter": "in_progress",
+    "whatChanged": "The lifecycle changed from product-to-planning at specs_hardened to full-delivery at in_progress. Both status mirrors were demoted together. The current execution route now names bubbles.implement, phase implement, status in_progress, and scope 01-canonical-contract-and-exact-refusals. The delivery work boundary now includes only the product, test, fixture, definition, and documentation paths declared by the certified design and scopes. The planning audit, execution history, planning phase claims, scope registry, DoD, acceptance, findings, policy snapshot, and certification completion arrays were preserved.",
+    "reason": "Feature 031 is self-delivered. Its five scopes implement the shock-transmission foundation and its existing Research Agenda consumption in this same packet. The persisted planning mode made specs_hardened terminal while all five delivery scopes and all delivery obligations remained untouched. The repository terminal classifier confirms specs_hardened is terminal for product-to-planning but open for full-delivery, in_progress is open for full-delivery, and only done is terminal for full-delivery. Demotion to in_progress is therefore the truthful transition into executable delivery.",
+    "conventionBasis": "The transition follows the repository-established lifecycle records in specs/013-market-regime-stack-and-strategy-playbook/state.json and specs/015-recommendation-outcome-ledger-and-track-record/state.json. Both preserve completed planning evidence while moving a self-delivered packet from a planning ceiling to an open done-ceiling delivery mode. This record uses the same operator authority, from and to contract, gate-effect, honest-disclosure, and bounded-run structure.",
+    "gateEffect": "The grandfathered mode resolver reports product-to-planning with statusCeiling specs_hardened, planning-maturity-v1, terminalAliases [specs_hardened], and planning-only Gate G073. It reports full-delivery with statusCeiling done, delivery-completion-v1, no terminal alias, implementation phases, and no G073 source lockout. Delivery-completion gates now apply and are expected to remain nonzero until real implementation, tests, specialist phases, evidence, and certification exist. No gate is waived, bypassed, or relabeled by this transition.",
+    "honestDisclosure": "NO IMPLEMENTATION OR DELIVERY PROGRESS IS CLAIMED. All five execution.scopeProgress entries remain not_started. All 117 delivery DoD items and all 19 human acceptance items remain unchecked. certification.completedScopes, certification.certifiedCompletedPhases, and certification.scopeProgress remain empty. AUD-031-003 and the complete planning audit history remain unchanged as evidence that the planning packet reached its former ceiling; they do not certify delivery under full-delivery. LEGACY-031-001, XRL-PATH-GUARD-HIST-001, and XRL-BUG017-DOD-001 remain route-only findings with their existing owners and constraints.",
+    "boundedRun": "Only specs/031-shock-transmission-foundation/state.json is modified. The write changes lifecycle routing and the planning-derived allowedPaths declaration only. It does not edit spec.md, design.md, scopes.md, report.md, uservalidation.md, scenario-manifest.json, test-plan.json, source, tests, fixtures, configuration, definitions, documentation, registry, navigation, Horizon Ladder, or any standalone Shock Lab surface. All 20 pre-existing executionHistory entries and all three audit attempts remain byte-for-byte unchanged. No file is staged, committed, pushed, checked out, stashed, or restored. requiresRevalidation remains false because no completed delivery certification exists; the open in_progress status already requires fresh delivery validation before done."
+  },
+  "deliveryTopology": "in-place",
+  "deliveryTopologyJustification": "Delivery uses this feature directory after the product-to-planning workflow completes its planning-only maturity checks.",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "workBoundary": {
+    "repositoryRoots": [
+      "research-lab"
+    ],
+    "specTargets": [
+      "specs/031-shock-transmission-foundation"
+    ],
+    "allowedPaths": [
+      "specs/031-shock-transmission-foundation/**",
+      "rlshock.js",
+      "rlshockadapters.js",
+      "rlagenda.js",
+      "market-brief.config.json",
+      "config/domain-model.yaml",
+      "scripts/selftest.mjs",
+      "scripts/research-agenda-generation.mjs",
+      "scripts/research-agenda-refresh.mjs",
+      "research-agenda.json",
+      "research/agenda/definitions/geopolitical-supply-shock/**",
+      "research/agenda/definitions/food-inputs-outlook/**",
+      "research/agenda/conformance/financial-intermediation.definition.json",
+      "research-agenda-lab.html",
+      "rlexperience-adapters/research-agenda.js",
+      "tests/shock-transmission.contracts.unit.mjs",
+      "tests/shock-transmission.validation.functional.mjs",
+      "tests/shock-transmission.resource.functional.mjs",
+      "tests/shock-transmission.reader.unit.mjs",
+      "tests/fixtures/shock-transmission/**",
+      "tests/shock-transmission.composition.unit.mjs",
+      "tests/shock-transmission.lifecycle.functional.mjs",
+      "tests/shock-transmission.hypothetical.integration.mjs",
+      "tests/shock-transmission.migration.integration.mjs",
+      "tests/shock-transmission.definitions.unit.mjs",
+      "tests/shock-transmission.definitions.functional.mjs",
+      "tests/brief-refresh-atomicity.test.mjs",
+      "tests/shock-transmission.adapters.unit.mjs",
+      "tests/shock-transmission.adapters.functional.mjs",
+      "tests/shock-transmission.consumers.integration.mjs",
+      "tests/shock-transmission.e2e.spec.mjs",
+      "tests/company-intelligence.unit.mjs",
+      "tests/shock-transmission.boundary.functional.mjs",
+      "tests/tool-discovery.spec.mjs",
+      "docs/DomainModel.md"
+    ],
+    "crossRepoPolicy": "forbidden"
+  },
+  "execution": {
+    "goalContractRef": null,
+    "activeAgent": "bubbles.implement",
+    "currentPhase": "implement",
+    "currentPhaseStatus": "route_required",
+    "substate": "implemented",
+    "currentScope": "01-canonical-contract-and-exact-refusals",
+    "runStartedAt": "2026-09-01T22:46:30Z",
+    "completedAt": "2026-09-01T23:03:48Z",
+    "completedPhaseClaims": [
+      {
+        "phase": "analyze",
+        "agent": "bubbles.analyst",
+        "scopes": [],
+        "claimedAt": "2026-08-31T04:03:26Z",
+        "evidenceRef": "specs/031-shock-transmission-foundation/spec.md#evidence-sources"
+      },
+      {
+        "phase": "bootstrap",
+        "agent": "bubbles.design",
+        "scopes": [],
+        "claimedAt": "2026-08-31T05:21:51Z",
+        "evidenceRef": "specs/031-shock-transmission-foundation/design.md#design-decision-record"
+      }
+    ],
+    "scopeProgress": [
+      {
+        "scopeId": "01-canonical-contract-and-exact-refusals",
+        "scopeName": "Canonical Contract And Exact Refusal Foundation",
+        "status": "in_progress",
+        "dependsOn": []
+      },
+      {
+        "scopeId": "02-net-graph-actor-and-policy-engine",
+        "scopeName": "Net Graph Actor And Policy State Engine",
+        "status": "not_started",
+        "dependsOn": [
+          "01-canonical-contract-and-exact-refusals"
+        ]
+      },
+      {
+        "scopeId": "03-dynamic-definitions-and-immutable-publication",
+        "scopeName": "Dynamic Definitions And Immutable V1 V2 Publication",
+        "status": "not_started",
+        "dependsOn": [
+          "01-canonical-contract-and-exact-refusals",
+          "02-net-graph-actor-and-policy-engine"
+        ]
+      },
+      {
+        "scopeId": "04-three-adapters-and-lossless-consumption",
+        "scopeName": "Three Adapters And Lossless Production Consumption",
+        "status": "not_started",
+        "dependsOn": [
+          "01-canonical-contract-and-exact-refusals",
+          "02-net-graph-actor-and-policy-engine",
+          "03-dynamic-definitions-and-immutable-publication"
+        ]
+      },
+      {
+        "scopeId": "05-existing-agenda-experience-and-boundaries",
+        "scopeName": "Existing Research Agenda Experience And Boundary Closure",
+        "status": "not_started",
+        "dependsOn": [
+          "01-canonical-contract-and-exact-refusals",
+          "02-net-graph-actor-and-policy-engine",
+          "03-dynamic-definitions-and-immutable-publication",
+          "04-three-adapters-and-lossless-consumption"
+        ]
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "F031-S01-PLAN-COMMAND-001",
+    "currentEvidenceRef": "report.md#scope-01-current-finding-accounting",
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": "RUN-031-AUDIT-20260901T210021Z",
+      "currentAttemptId": "AUD-031-004",
+      "attempts": [
+        {
+          "attemptId": "AUD-031-001",
+          "resultState": "SUPERSEDED",
+          "openedAt": "2026-09-01T07:34:38Z",
+          "closedAt": "2026-09-01T07:46:47Z",
+          "targetRevision": "sha256:7cf4cf68640fab5362de25d33f77d2c7d4356841c020b60410a5c18fe383ea88",
+          "contractDigest": "sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190",
+          "auditProfile": "planning-maturity-v1",
+          "targetStatus": "specs_hardened",
+          "workflowMode": "product-to-planning",
+          "auditVerdict": "INTERRUPTED",
+          "outcome": "blocked",
+          "evidenceRef": "none",
+          "evidenceRefs": [],
+          "addressedFindings": [],
+          "unresolvedFindings": [],
+          "nextRequiredOwner": "bubbles.audit",
+          "supersedesAttemptId": null,
+          "resumeFromPhase": 3
+        },
+        {
+          "attemptId": "AUD-031-002",
+          "resultState": "SUPERSEDED",
+          "openedAt": "2026-09-01T07:46:47Z",
+          "closedAt": "2026-09-01T07:52:54Z",
+          "targetRevision": "sha256:a1533b5a9231bbdafa987808065716fb786c455b9ebf3851fcdd48b9bf970ebe",
+          "contractDigest": "sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190",
+          "auditProfile": "planning-maturity-v1",
+          "targetStatus": "specs_hardened",
+          "workflowMode": "product-to-planning",
+          "auditVerdict": "PLANNING_REWORK_REQUIRED",
+          "outcome": "route_required",
+          "evidenceRef": "report.md",
+          "evidenceRefs": [
+            "report.md"
+          ],
+          "addressedFindings": [
+            "H031-R6-H5-001",
+            "H031-R6-H5-002",
+            "H031-R6-H5-003",
+            "H031-R6-H5-004"
+          ],
+          "unresolvedFindings": [
+            "AUD-031-SCOPE-KIND-CANONICALITY-001",
+            "AUD-031-PLANNING-SWEEP-COVERAGE-001",
+            "AUD-031-EVIDENCE-RECEIPT-STALENESS-001"
+          ],
+          "nextRequiredOwner": "bubbles.plan",
+          "supersedesAttemptId": "AUD-031-001",
+          "resumeFromPhase": null
+        },
+        {
+          "attemptId": "AUD-031-003",
+          "resultState": "SUPERSEDED",
+          "openedAt": "2026-09-01T08:26:08Z",
+          "closedAt": "2026-09-01T08:59:15Z",
+          "targetRevision": "sha256:7fd8abc8b2c6b3a48e36851db3fc6a79046bc6dc053dca3625a24b50f8fe5d95",
+          "contractDigest": "sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190",
+          "auditProfile": "planning-maturity-v1",
+          "targetStatus": "specs_hardened",
+          "workflowMode": "product-to-planning",
+          "auditVerdict": "PLANNING_AUDIT_CLEAN",
+          "outcome": "completed_diagnostic",
+          "evidenceRef": "report.md#audit-attempt-aud-031-003-current-byte-planning-maturity-2026-09-01",
+          "evidenceRefs": [
+            "report.md#audit-attempt-aud-031-003-current-byte-planning-maturity-2026-09-01"
+          ],
+          "addressedFindings": [
+            "H031-R6-H5-001",
+            "H031-R6-H5-002",
+            "H031-R6-H5-003",
+            "H031-R6-H5-004",
+            "AUD-031-SCOPE-KIND-CANONICALITY-001",
+            "AUD-031-PLANNING-SWEEP-COVERAGE-001",
+            "AUD-031-EVIDENCE-RECEIPT-STALENESS-001"
+          ],
+          "unresolvedFindings": [],
+          "routeOnlyFindings": [
+            "LEGACY-031-001",
+            "XRL-PATH-GUARD-HIST-001",
+            "XRL-BUG017-DOD-001"
+          ],
+          "nextRequiredOwner": "bubbles.validate",
+          "supersedesAttemptId": "AUD-031-002",
+          "resumeFromPhase": null
+        },
+        {
+          "attemptId": "AUD-031-004",
+          "resultState": "ACTIVE",
+          "openedAt": "2026-09-01T21:00:21Z",
+          "closedAt": "2026-09-01T21:05:00Z",
+          "targetRevision": "sha256:728d014f8284a9c81cdd03cba3eab284363ccf71e1b600a521d36f1187672ac3",
+          "contractDigest": "sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93",
+          "auditProfile": "delivery-completion-v1",
+          "targetStatus": "done",
+          "workflowMode": "full-delivery",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "evidenceRef": "report.md#audit-attempt-aud-031-004-current-full-delivery-contract-2026-09-01",
+          "evidenceRefs": [
+            "report.md#audit-attempt-aud-031-004-current-full-delivery-contract-2026-09-01",
+            "audit-result-aud-031-004.txt"
+          ],
+          "addressedFindings": [
+            "H031-R6-H5-001",
+            "H031-R6-H5-002",
+            "H031-R6-H5-003",
+            "H031-R6-H5-004",
+            "AUD-031-SCOPE-KIND-CANONICALITY-001",
+            "AUD-031-PLANNING-SWEEP-COVERAGE-001",
+            "AUD-031-EVIDENCE-RECEIPT-STALENESS-001",
+            "VAL-031-MODE-CONTRACT-DRIFT",
+            "TRACE-031-001",
+            "TRACE-031-002",
+            "TRACE-031-003",
+            "TRACE-031-004",
+            "TRACE-031-007"
+          ],
+          "unresolvedFindings": [
+            "F031-S01-CONSUMER-001",
+            "F031-S01-COMPLETION-001",
+            "F031-BROAD-OPTIONS-FLOW-001",
+            "LEGACY-031-001",
+            "XRL-PATH-GUARD-HIST-001",
+            "XRL-BUG017-DOD-001",
+            "F031-HUMAN-ACCEPTANCE-001"
+          ],
+          "nextRequiredOwner": "bubbles.implement",
+          "supersedesAttemptId": "AUD-031-003",
+          "resumeFromPhase": null
+        }
+      ]
+    }
+  },
+  "certification": {
+    "status": "in_progress",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T03:57:26Z",
+      "completedAt": "2026-08-31T04:03:26Z",
+      "outcome": "route_required",
+      "summary": "Authored the collision-free Feature 031 analyst specification with 7 actors, 9 use cases, 22 business scenarios, 37 functional requirements, 10 non-functional requirements, three unrelated conformance examples, source and claim boundaries, product-principle alignment, competitor research, and six ranked proposals. Current repository reads corrected the August 22 tool count and current-pointer shape, confirmed Horizon Ladder as a separate live registry surface with intentionally withheld 0/20 measured-rate cells, found no formal Horizon Ladder spec reference, confirmed shock-transmission/v1 remains planned, and found the exported Feature 020 seam lossy and test-only. Claim-source lint, relative-reference lint, technical-prose lint, JSON parsing, and requested structure counts passed. Artifact lint remains nonzero only for design.md, scopes.md, report.md, and uservalidation.md, which this analyst does not own. The capability foundation guard confirms the Domain Capability Model and remains nonzero only because design.md is absent. No implementation or product test ran. Status and certification remain not_started."
+    },
+    {
+      "agent": "bubbles.ux",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T04:19:36Z",
+      "completedAt": "2026-08-31T04:23:49Z",
+      "outcome": "route_required",
+      "summary": "Added UX-owned UI Wireframes and User Flows inline in spec.md for the existing Research Agenda Simple and Power projections. Defined 15 shared primitives, two modified projection wireframes, five major flows, eleven UX finding dispositions, all 22 scenario mappings, a closed availability and quantitative meaning contract, policy lifecycle states, first interactive paint, local hypothetical compare and reset, responsive behavior, and accessibility requirements. The design creates no route, registry row, navigation item, standalone Lab, or Iran-only surface. It preserves Horizon Ladder as a separate six-horizon long and short surface, treats 0/20 as intentional withholding, makes no formal certification claim, and keeps current geopolitical unavailability separate from dated history. UX-owned reference, prose, freshness, JSON, sidecar, structure, and diff checks passed. Universal artifact lint remains nonzero only because design.md, scopes.md, report.md, and uservalidation.md are absent. The capability foundation guard remains nonzero only because design.md is absent. Those artifacts belong to bubbles.design and bubbles.plan, so no UX completed-phase claim was added. Status and certification remain not_started."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T04:44:43Z",
+      "completedAt": "2026-08-31T04:47:13Z",
+      "outcome": "route_required",
+      "summary": "Reconciled the operator-authorized feature identity from 030 to 031 in the isolated planning worktree. Moved the complete two-file feature folder, updated feature-local requirement, scenario, finding, proposal, path, work-boundary, execution, and evidence identities, and preserved the substantive analyst and UX contracts. Horizon Ladder remains separate and live, its 0/20 withholding remains intentional, no retroactive certification is claimed, and the Shock Transmission Lab remains excluded. Status and certification remain not_started. The next required owner is bubbles.design because technical design and the capability foundation remain absent."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T05:02:04Z",
+      "completedAt": "2026-08-31T05:21:51Z",
+      "outcome": "route_required",
+      "summary": "Authored the contract-grade Feature 031 technical design with a capability-first shock-transmission/v1 foundation, three unrelated adapters, exact versioned contracts, canonical identities, DAG and interval semantics, dynamic horizons and levers, lifecycle rules, lossless finding projection, Feature 019 migration, existing-route Simple and Power components, all 22 technical scenarios, full requirement traceability, and complete inherited finding accounting. Technical prose, relative-reference, domain-model consistency, requirement-mechanism, and design-structure checks exited zero. Capability-foundation and universal artifact lint remain nonzero only because scopes.md, report.md, and uservalidation.md are absent. Those artifacts belong to bubbles.plan. No product source, test, registry, existing spec, certification field, commit, or push was changed or executed."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T05:31:35Z",
+      "completedAt": "2026-08-31T05:35:54Z",
+      "outcome": "route_required",
+      "summary": "Created the five-scope Feature 031 plan, empty execution-report structure, unchecked human acceptance template, 22-row scenario contract, and 55-row structured test handoff. Scope 1 is the capability foundation. Every overlay depends on it and all scopes execute sequentially. The plan covers all 22 scenarios, 37 functional requirements, 10 non-functional requirements, analyst and UX findings, design risks, resource ceilings, three unrelated adapters, v1 and v2 migration, immutable history, lossless consumption, existing-route UI, Horizon Ladder protection, and the routed legacy geopolitical shape defect. No source, test, registry, managed documentation, existing spec, certification field, commit, or push changed. Status and certification remain not_started. The next planning-only owner is bubbles.harden."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T06:10:39Z",
+      "completedAt": "2026-08-31T06:16:14Z",
+      "outcome": "route_required",
+      "summary": "Resolved the analyst-owned portions of H031-H5-001, H031-H5-002, H031-H5-003, H031-H5-004, and H031-H5-006. Added separate stable scenarios for legacy no-path compatibility, local hypothetical non-persistence and exact reset, accessible responsive use, and definition-owned levers. Strengthened SCN-031-004 and SCN-031-007 with direct reader-visible outcomes. Reviewed H031-REQ-001 and retained all 37 functional and 10 non-functional requirements because their business semantics remain testable. Reference, claim-source, technical-prose, artifact-template, requirement-mechanism, capability-foundation, and freshness checks exited zero. No product code, tests, UX-owned content, design, scopes, report, acceptance, structured plan, certification, status, commit, or push changed. UX must now reconcile its scenario mappings before design and planning regenerate their contracts."
+    },
+    {
+      "agent": "bubbles.ux",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T06:21:02Z",
+      "completedAt": "2026-08-31T06:25:14Z",
+      "outcome": "route_required",
+      "summary": "Reconciled UX-owned wireframes and flows for all 26 stable scenarios. Added direct behavior for SCN-031-004, SCN-031-007, and SCN-031-023 through SCN-031-026; explicit non-visual accounting; UI-unit versus Playwright applicability; accessible responsive behavior; separate horizon and lever registries; exact legacy no-path and User hypothetical semantics. UX structure, accessibility, scenario coverage, artifact, reference, claim-source, prose, freshness, capability, and JSON checks exited zero. Design, scopes, scenario-manifest, and structured test planning remain at 22 scenarios. Route to bubbles.design before plan regeneration. Status and certification remain not_started."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T06:44:36Z",
+      "completedAt": "2026-08-31T06:45:42Z",
+      "outcome": "route_required",
+      "summary": "Reconciled the technical design from 22 to all 26 stable scenarios. Added distinct legacy no-path and v2 exact-path contracts, absolute session-local hypothetical isolation and exact reset, separate horizon and lever registries, pure reader projection helpers, real Playwright route-proof boundaries, complete accessibility and graph-table parity, explicit five-budget ownership, twelve requirement mechanisms, full hardening finding accounting, and an exact five-scope plan handoff. No product source, product test, foreign-owned Feature 031 artifact, certification field, top-level status, commit, or push changed. The next required owner is bubbles.plan to regenerate scopes.md, scenario-manifest.json, test-plan.json, report structure mappings, and user acceptance mappings around all 26 scenarios and every hardening finding."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T06:46:00Z",
+      "completedAt": "2026-08-31T07:19:10Z",
+      "outcome": "route_required",
+      "summary": "Regenerated the complete plan-owned Feature 031 packet for all 26 stable scenarios and 47 requirements. Added repository-native UI-unit rows, separate live Playwright proofs, exact legacy, hypothetical, accessibility, horizon, lever, seam, budget, and requirement mappings, and synchronized Markdown, structured Test Plan, scenario manifest, report headings, acceptance mappings, and DoD ids. Preserved five sequential scopes with Scope 1 as the foundation. No product source, product test, foreign-owned artifact, certification field, top-level status, commit, or push changed. LEGACY-031-001 remains separately routed and blocks geopolitical v2 selection. The next owner is bubbles.harden for a fresh H4-H9 review."
+    },
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T16:52:20Z",
+      "completedAt": "2026-08-31T16:54:43Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "H031-R2-H5-001",
+        "H031-R2-H5-002"
+      ],
+      "unresolvedFindings": [
+        "H031-R2-H6-001",
+        "H031-R2-H9-001",
+        "H031-R2-H9-002"
+      ],
+      "summary": "Reconciled the two analyst-owned Round-2 H5 findings. SCN-031-022 now uses delivery through the existing Research Agenda route as its durable business action while preserving Horizon Ladder and the no-new-Lab boundary. SCN-031-024 now owns same-topic session-only hypothetical comparison and exact reset only. SCN-031-026 exclusively owns topic-switch clearing and selected definition-owned lever registries. No design, plan, report, acceptance, implementation, product test, top-level status, or certification field changed. H031-R2-H6-001, H031-R2-H9-001, and H031-R2-H9-002 remain open for bubbles.plan after bubbles.design reconciles the technical scenario contracts."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T17:24:00Z",
+      "completedAt": "2026-08-31T17:28:20Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "H031-R2-H5-001",
+        "H031-R2-H5-002"
+      ],
+      "unresolvedFindings": [
+        "H031-R2-H6-001",
+        "H031-R2-H9-001",
+        "H031-R2-H9-002"
+      ],
+      "summary": "Reconciled the design-owned Round-2 H5 findings. SCN-031-022 now uses delivery through the existing Research Agenda route while preserving every no-new-surface boundary. SCN-031-024 owns same-topic session-local comparison and exact reset only. Its sole integration family is tests/shock-transmission.hypothetical.integration.mjs. SCN-031-026 exclusively owns topic switching, pre-render clearing, selected-definition lever controls, and adapter non-interference. Prior hardening findings and LEGACY-031-001 remain preserved. H031-R2-H6-001, H031-R2-H9-001, and H031-R2-H9-002 remain open for bubbles.plan. No implementation, product test, top-level status, harden completion claim, or certification field changed."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T17:36:04Z",
+      "completedAt": "2026-08-31T17:49:13Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "H031-R2-H6-001",
+        "H031-R2-H9-001",
+        "H031-R2-H9-002"
+      ],
+      "unresolvedFindings": [
+        "LEGACY-031-001"
+      ],
+      "summary": "Reconciled the plan-owned Round-2 findings. The Scope 1 resource boundary now uses the repository-native functional filename family. TP-03-06 names and executes one migration integration file. The Test Plan retains 68 rows derived from distinct proof obligations after removing duplicate SCN-031-024 sink ownership from TP-02-09. SCN-031-022 uses existing-route delivery. SCN-031-024 remains same-topic only. SCN-031-026 exclusively owns topic switching, pre-render clearing, selected lever controls, and adapter non-interference. All five scopes, 26 scenario identities, 47 requirement mappings, unchecked DoD items, and unchecked acceptance items remain intact. LEGACY-031-001 remains separately routed and continues to block geopolitical v2 selection. No implementation, product test, top-level status, harden completion claim, or certification field changed. The next owner is bubbles.harden for an independent H4-H9 review."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T20:30:39Z",
+      "completedAt": "2026-08-31T22:02:52Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "H031-R3-H4-001",
+        "H031-R3-H5-001",
+        "H031-R3-H6-001",
+        "H031-R3-PLAN-001",
+        "H031-R3-PLAN-002",
+        "H031-R3-ORDER-001",
+        "H031-R3-STATE-001"
+      ],
+      "unresolvedFindings": [
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "summary": "Verified and reconciled the complete seven-finding Round-3 planning set. Scope 4 owns focused live Playwright proof for the Agenda Power seam and topic-switch flow. TP-05-09 is horizon-only in independent fresh route contexts. All 68 structured rows use planned-not-authored and planned-not-executed classifiers. The five exact execution scopes remain not_started. The plan uses the design resource-policy signatures and permits only the exact Feature 031 policy block. Every requirement primary proof occurs no later than its owning scope. The current synchronization audit and 27-check installed planning-maturity suite exited zero. LEGACY-031-001, XRL-PATH-GUARD-HIST-001, and XRL-BUG017-DOD-001 remain route-only. No product source, product test, DoD item, human acceptance item, top-level status, or certification field changed. The next owner is bubbles.harden."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T22:27:28Z",
+      "completedAt": "2026-08-31T22:33:18Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "H031-R4-DESIGN-001"
+      ],
+      "unresolvedFindings": [
+        "H031-R4-PLAN-001",
+        "H031-R4-SCOPE-001",
+        "H031-R4-META-001",
+        "H031-R4-ACCOUNT-001",
+        "H031-R4-ROUTE-001",
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "summary": "Defined RLAGENDA.resolveAgendaConsumerState(request, dependencies) as the only shared parent resolver. The design now fixes its request tuple, dependency tuple, explicit v1 and v2 dispatch, frozen return pair, refusal contract, publisher and browser calls, resource-policy flow, compact-reader compatibility, scenario traceability, and change boundary. H031-R4-DESIGN-001 is addressed. The five Round-4 plan findings and three route-only findings remain unresolved. No plan-owned mapping artifact, source, product test, DoD item, human acceptance item, top-level status, policy snapshot, or certification field changed. The next owner is bubbles.plan."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T22:39:33Z",
+      "completedAt": "2026-08-31T22:44:01Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "H031-R4-PLAN-001",
+        "H031-R4-SCOPE-001",
+        "H031-R4-META-001",
+        "H031-R4-ACCOUNT-001",
+        "H031-R4-ROUTE-001"
+      ],
+      "unresolvedFindings": [
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "summary": "Reconciled the complete five-finding Round 4 plan-owned set after the design owner defined RLAGENDA.resolveAgendaConsumerState(request, dependencies). The plan now names the exact parent resolver and four projection or registry exports, makes Scope 4 independently executable for both focused live proofs, classifies only unchanged TP-05-17 as authored while retaining planned-not-executed status, adds one canonical H031-UX-ROUTE ledger row, and names bubbles.test for the unchanged historical-path classification obligation. The exact synchronization and focused classifier assertions exited zero. H031-R4-DESIGN-001 remains preserved as addressed. LEGACY-031-001, XRL-PATH-GUARD-HIST-001, and XRL-BUG017-DOD-001 remain route-only. No product source, product test, DoD item, human acceptance item, top-level status, policy snapshot, or certification field changed. The next owner is bubbles.harden."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T23:20:27Z",
+      "completedAt": "2026-08-31T23:25:31Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "H031-R5-DESIGN-001",
+        "H031-R5-H6-001"
+      ],
+      "unresolvedFindings": [
+        "H031-R5-H5-001",
+        "H031-R5-H5-002",
+        "H031-R5-H4-001",
+        "H031-R5-H8-001",
+        "H031-R5-ROLLBACK-001",
+        "H031-R5-H6-002",
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "summary": "Closed both design-owned Round 5 blockers. The exact parent resolver request now has thirteen keys with one canonical generationCutoff. Its five-key current-resolution context loads the current pointer's generation artifact and compact read. Publish and read use fixed first-mismatch equality orders, and validateObservationSet receives only the validated request cutoff. The design preserves available, unavailable, stale, predecessor, hypothetical, and later-evidence behavior. Section 24.6 now references the command registry without an executable wildcard declaration. The direct cutoff assertion, focused path classifier, and fifteen current design checks exited zero. Six plan-owned Round 5 findings and three route-only findings remain open. No product source, product test, plan-owned mapping, DoD, acceptance, top-level status, policy snapshot, or certification field changed. The next owner is bubbles.plan."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-08-31T23:53:33Z",
+      "completedAt": "2026-08-31T23:57:24Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "H031-R5-H5-001",
+        "H031-R5-H5-002",
+        "H031-R5-H4-001",
+        "H031-R5-H8-001",
+        "H031-R5-ROLLBACK-001",
+        "H031-R5-H6-002"
+      ],
+      "unresolvedFindings": [
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "summary": "Reconciled the complete six-finding Round 5 plan-owned set after the design owner closed H031-R5-DESIGN-001 and H031-R5-H6-001. The plan now splits all valid resolver branches and refusal classes, proves exact once-only publisher and browser dataflow, reuses the authored Market Brief compact-consumer regression, gives Scope 3 sole production-definition publication ownership, requires Scope 4 read-only definition consumption, and makes rollback restore a complete v1 tuple before the raw reader returns. The structured handoff contains 78 distinct rows across five scopes, 26 reciprocal scenario mappings, 108 unchecked delivery DoD items, and 19 unchecked acceptance items. The current semantic synchronization audit, focused path classifier, and pre-report 33-check planning suite exited zero. All earlier findings remain preserved. LEGACY-031-001, XRL-PATH-GUARD-HIST-001, and XRL-BUG017-DOD-001 remain route-only. No product source, product test, top-level status, policy snapshot, or certification field changed. The next owner is bubbles.harden."
+    },
+    {
+      "agent": "bubbles.harden",
+      "phasesExecuted": [
+        "harden"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-09-01T00:00:00Z",
+      "completedAt": "2026-09-01T00:21:49Z",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "H031-R6-H5-001",
+        "H031-R6-H5-002",
+        "H031-R6-H5-003",
+        "H031-R6-H5-004",
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "summary": "Fresh Round 6 planning hardening ran the installed 33-check planning suite, an independent H4-H9 semantic audit, focused current path classifiers, source-lock and runner identity checks, and current source and consumer reads. Thirty semantic checks passed. Four plan-owned defects remain: exact request and dependency over-shape controls, row-level probability provenance deletion, complete non-current Finding-state proof in Scope 2, and two-production-consumer Lab-admission truth controls. The packet retains five sequential scopes, 26 scenarios, 78 reciprocal test and DoD ids, 47 legally ordered requirement proofs, zero active Feature 031 path-classifier errors, two valid authored rows, and all Round 5 caller, consumer, definition ownership, rollback, Horizon Ladder, and no-new-Lab repairs. LEGACY-031-001 blocks only geopolitical v2 current selection. XRL-PATH-GUARD-HIST-001 and XRL-BUG017-DOD-001 remain external route-only findings. No product source or behavior test ran. All DoD and acceptance items remain unchecked. Top-level status, policy snapshot, and certification remain not_started. The next owner is bubbles.plan."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-09-01T04:24:49Z",
+      "completedAt": "2026-09-01T04:30:22Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "H031-R6-H5-001",
+        "H031-R6-H5-002",
+        "H031-R6-H5-003",
+        "H031-R6-H5-004"
+      ],
+      "unresolvedFindings": [
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "summary": "Closed the complete four-finding Round 6 plan-owned set. TP-04-15 now proves exact request, current-record, and dependency shapes. TP-03-02 proves independent scenario-row provenance deletion while curve evidence remains present. TP-02-09 proves five non-current Finding states and directional-substitute rejection. TP-05-16 proves every Lab-admission false control, its true boundary, unique production-consumer counting, and test-caller exclusion. Markdown, structured planning, scenario obligations, report anchors, and human mappings are synchronized across five sequential scopes and 26 scenarios. Current artifact, traceability, obligation, mechanism, capability, linkage, freshness, domain, reference, provenance, and focused semantic checks exited zero. The vertical-plan guard exited zero with an advisory lexical classification of the required foundation-first sequence. The report-only prose scan retained historical findings outside this Round 6 change. No product source, product test, status, policy snapshot, or certification field changed. LEGACY-031-001, XRL-PATH-GUARD-HIST-001, and XRL-BUG017-DOD-001 remain route-only. The next owner is bubbles.harden for an independent current-byte recheck."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-09-01T07:57:13Z",
+      "completedAt": "2026-09-01T08:05:57Z",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "AUD-031-SCOPE-KIND-CANONICALITY-001",
+        "AUD-031-PLANNING-SWEEP-COVERAGE-001",
+        "AUD-031-EVIDENCE-RECEIPT-STALENESS-001"
+      ],
+      "unresolvedFindings": [
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001"
+      ],
+      "summary": "Reconciled all three plan-owned AUD-031-002 findings. The five scope-kind values now use exact canonical tokens without punctuation. The plan records grounded G026 and G043 non-applicability, reuses TP-01-08 and TP-05-01 as independent shared-surface canaries, adds exact canary, rollback, change-boundary, scenario-specific E2E, and broad E2E DoD obligations, and adds distinct TP-03-13 live compatibility proof. The active plan now contains 79 reciprocal Test Plan rows across 26 scenarios. Historical receipts and AUD-031-002 remain append-only. The audit owner must append identity-matching current-byte receipts, require a strict zero-stale projection, and create a new revision-bound attempt. H031-R6-H5-001 through H031-R6-H5-004 remain closed. LEGACY-031-001, XRL-PATH-GUARD-HIST-001, and XRL-BUG017-DOD-001 remain route-only. No source, product test, DoD checkbox, acceptance item, scope status, top-level status, policy snapshot, certification field, stage, commit, or push changed. The next owner is bubbles.audit."
+    },
+    {
+      "agent": "bubbles.design",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T21:54:01Z",
+      "completedAt": "2026-09-01T21:59:00Z",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "F031-S01-CONSUMER-001",
+        "F031-S01-COMPLETION-001",
+        "F031-BROAD-OPTIONS-FLOW-001",
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001",
+        "F031-HUMAN-ACCEPTANCE-001"
+      ],
+      "summary": "Reconciled the design-owned portion of F031-S01-CONSUMER-001. The design now requires a permanent Scope 1 production binding on the existing registered Research Agenda route. The route loads rlshock.js before rlagenda.js, resolves the required Feature 031 resource policy once before initial topic selection, freezes one exact topic-neutral binding, and exposes a read-only proof projection. The binding creates no synthetic snapshot, adapter, finding, route, registry row, standalone Lab, or Horizon Ladder change. Full v2 resolver and finding consumption remain in Scope 4. The delivery finding remains open because bubbles.plan must reclassify Scope 1 as runtime-behavior and add the route boundary, live proof, structured mappings, and unchecked E2E DoD items before bubbles.implement may edit runtime code. F031-BROAD-OPTIONS-FLOW-001 and every route-only or human finding remain unchanged. No spec, plan, report, acceptance, source, test, certification, commit, fetch, merge, push, clean, or deploy action occurred."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-01T22:14:10Z",
+      "completedAt": "2026-09-01T22:19:40Z",
+      "outcome": "route_required",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "F031-S01-CONSUMER-001",
+        "F031-S01-COMPLETION-001",
+        "F031-BROAD-OPTIONS-FLOW-001",
+        "LEGACY-031-001",
+        "XRL-PATH-GUARD-HIST-001",
+        "XRL-BUG017-DOD-001",
+        "F031-HUMAN-ACCEPTANCE-001"
+      ],
+      "summary": "Reconciled the plan-owned portion of F031-S01-CONSUMER-001. Scope 1 is runtime-behavior and permits only the exact Research Agenda binding regions plus its focused test. TP-01-11 plans the real registered-route proof for script order, once-only policy admission, frozen binding parity, explicit refusal, and unchanged legacy terminal rendering. The Test Plan now has 80 unique rows. Scope 1 has 11 test rows and 20 DoD items, with 15 historical items checked and 5 delivery items unchecked. Scenario, report, consumer-trace, rollback, and structured mappings agree. Runtime implementation remains open for bubbles.implement. Scope 2 did not begin. Topic neutrality, the existing route, Horizon Ladder, route-only findings, and human acceptance remain unchanged."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
+  },
+  "notes": "Planning maturity remains evidenced by the preserved AUD-031-003 PLANNING_AUDIT_CLEAN record. Feature 031 remains an open full-delivery packet at Scope 01. The consumer binding is now specified in design, and bubbles.plan is the next owner for exact Scope 1 mapping before runtime work resumes. No new Feature 031 source, behavior test, delivery DoD, human acceptance, completed scope, or delivery certification is claimed. F031-BROAD-OPTIONS-FLOW-001 remains outside this design boundary. LEGACY-031-001, XRL-PATH-GUARD-HIST-001, and XRL-BUG017-DOD-001 remain route-only with bubbles.bug, bubbles.test, and bubbles.validate."
+}

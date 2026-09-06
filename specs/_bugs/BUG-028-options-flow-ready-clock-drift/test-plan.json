@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "featureDir": "specs/_bugs/BUG-023-options-flow-ready-clock-drift",
+  "featureDir": "specs/_bugs/BUG-028-options-flow-ready-clock-drift",
   "generatedAt": "2026-09-02T15:36:57Z",
   "generatedBy": "bubbles.plan",
   "stage": "planning",

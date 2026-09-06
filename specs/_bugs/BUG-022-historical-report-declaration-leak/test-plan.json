@@ -2218,7 +2218,7 @@
           "collisionDisposition": {
             "budgetResidue": "specs/_superseded-029-budget-aware-hybrid-brief-generation",
             "shockPacket": "specs/_superseded-029-shock-transmission-foundation-and-lab",
-            "shockSuccessor": "specs/031-shock-transmission-foundation",
+            "shockSuccessor": "specs/033-shock-transmission-foundation",
             "reservedLifetimeTaxPacket": "specs/032-lifetime-tax-publication-and-public-surface",
             "contentPreserved": true
           },

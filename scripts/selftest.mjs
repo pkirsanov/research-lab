@@ -7122,9 +7122,6 @@ try {
   const scope6Payload = JSON.parse(read('market-brief.payload.json'));
   const scope6CoverageIds = scope6Payload.toolCoverage.map((entry) => entry.id);
   const scope6Coverage = scope6Payload.toolCoverage.filter((entry) => entry.id === 'company-fundamentals-lab');
-  const scope6CompanyCoverage = scope6Payload.toolCoverage.filter((entry) => entry.id === 'company-intelligence-lab');
-  const scope6CoverageOrder = scope6RegistryIds.filter((id) => id !== 'company-intelligence-lab')
-    .concat('company-intelligence-lab');
   // market-brief.payload.json is a per-window automation output (cron auto-refresh + Tier-B narrative, 4x/day). The
   // owner-read coverage status legitimately varies per window between the deterministic Tier-A view ('fresh-headless',
   // brief-refresh.mjs buildToolCoverage) and the Tier-B narrative "read-was-consumed" view ('analyzed', authored per
@@ -7139,17 +7136,7 @@ try {
   // the disclosure is PRESENT in any honest phrasing and still fails if it disappears — or if the
   // sense inverts, because 'no recommendation' must sit adjacent to the produced/fabricated verb.
   const scope6NoRecommendationDisclosure = /no recommendation[^.]*\b(?:fabricat\w*|produced|generated|issued)\b/i;
-  assert(JSON.stringify(scope6CoverageIds) === JSON.stringify(scope6CoverageOrder)
-    && new Set(scope6CoverageIds).size === scope6RegistryIds.length
-    && scope6Coverage.length === 1 && scope6Coverage[0].deepLink === scope6Tool.file
-    && scope6OwnerReadStatuses.includes(scope6Coverage[0].status)
-    && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1')
-    && scope6NoRecommendationDisclosure.test(scope6Coverage[0].reason)
-    && scope6CompanyCoverage.length === 1
-    && scope6CompanyCoverage[0].deepLink === 'company-intelligence-lab.html'
-    && scope6CompanyCoverage[0].status === 'fresh-headless'
-    && /four isolated horizon reads in version company:msft:/.test(scope6CompanyCoverage[0].reason),
-  'Feature 010 Scope 6 keeps exact registry-wide toolCoverage membership and successor execution order with one hash-verified fundamentals owner read, one final-phase Company Intelligence owner read, and no recommendation disclosure');
+  assert(JSON.stringify(scope6CoverageIds) === JSON.stringify(scope6RegistryIds) && scope6Coverage.length === 1 && scope6Coverage[0].deepLink === scope6Tool.file && scope6OwnerReadStatuses.includes(scope6Coverage[0].status) && scope6Coverage[0].reason.includes('company-fundamentals-owner-v1') && scope6NoRecommendationDisclosure.test(scope6Coverage[0].reason), 'Feature 010 Scope 6 keeps exact registry-wide toolCoverage parity with one hash-verified company owner-read entry that discloses no recommendation is produced');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 010 Scope 6 group threw): ' + e.message); }
 /* FEATURE-010-COMPANY-FUNDAMENTALS-SCOPE6-END */
 
@@ -23422,311 +23409,6 @@ try {
 
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 024 Scope 05 route group threw): ' + e.message); }
 
-/* ---------- Feature 025 Scope 01 and 02: company multi-horizon composition ---------- */
-try {
-  group('Feature 025 company multi-horizon intelligence');
-  const companyRequire = (await import('node:module')).createRequire(import.meta.url);
-  const INTEL25 = companyRequire('../rlcompanyintel.js');
-  const CONTRACTS25 = companyRequire('../rlcontracts.js');
-  const config25 = JSON.parse(read('company-intelligence.config.json'));
-  const moduleSource25 = read('rlcompanyintel.js');
-  const routeSource25 = read('company-intelligence-lab.html');
-  const browserSource25 = read('tests/company-intelligence-lab.spec.mjs');
-  const decisionTime25 = '2026-08-18T00:00:00.000Z';
-  const registry25 = INTEL25.readCoverageRegistry(config25);
-
-  const browserHeaderEnd25 = browserSource25.indexOf('\nimport ');
-  const browserHeader25 = browserHeaderEnd25 > 0 ? browserSource25.slice(0, browserHeaderEnd25) : '';
-  const accurateBrowserProvenance25 = (text) => (
-    /Ordinary cases use the real ephemeral static server and unmodified responses\./.test(text)
-    && /Explicitly annotated fault-injection cases either pass through `page\.route\(\)` unchanged or make a real[\s\S]{0,20}Node HTTP server withhold one repository file until an explicit release\./.test(text)
-    && /High-risk mutation controls may[\s\S]{0,20}serve one bounded in-memory route or module mutation; no case intercepts or fulfills a business-data response\./.test(text)
-    && !/no request interception/i.test(text)
-  );
-  const staleBlanketProvenance25 = 'The route is exercised as a production user meets it: its own ephemeral static server, no request interception, no stubbed module.';
-  const stalePassThroughOnlyProvenance25 = 'Ordinary cases use the real ephemeral static server and unmodified responses. Explicitly annotated pass-through fault-injection cases use page.route only. No case fulfills business data.';
-  assert(accurateBrowserProvenance25(browserHeader25)
-    && !accurateBrowserProvenance25(staleBlanketProvenance25)
-    && !accurateBrowserProvenance25(stalePassThroughOnlyProvenance25),
-  'BUG-018 test provenance distinguishes ordinary unmodified traffic from annotated pass-through, real-server fault injection, and bounded route-or-module mutation controls');
-
-  const corpusRequestGate25 = extractFn(browserSource25, 'installCorpusRequestGate');
-  const bug018WindowTests25 = browserSource25.slice(browserSource25.indexOf("test('Regression: BUG-018 scope 1"));
-  const usesExplicitCorpusGate25 = (testSource) => {
-    const synchronizationSource = testSource.replace(/\btest\.setTimeout\s*\(\s*[\d_]+\s*\)\s*;?/g, '');
-    return /await corpusGate\.entered/.test(testSource)
-      && /corpusGate\.release\(\)/.test(testSource)
-      && !/setTimeout\s*\(|waitForTimeout\s*\(/.test(synchronizationSource)
-      && !/heldCorpusRequests?|heldCorpusRequestCount|requestCount/.test(testSource)
-      && /page\.route\('\*\*\/data\/\*\*'/.test(corpusRequestGate25)
-      && /entered\.resolve\(\);[\s\S]*await release\.promise;/.test(corpusRequestGate25)
-      && /route\.continue\(\)/.test(corpusRequestGate25)
-      && !/route\.(?:fulfill|abort)\(/.test(corpusRequestGate25);
-  };
-  assert(usesExplicitCorpusGate25(bug018WindowTests25)
-    && !usesExplicitCorpusGate25(bug018WindowTests25 + '\nsetTimeout(function () {}, 2500);')
-    && !usesExplicitCorpusGate25(bug018WindowTests25 + '\nlet heldCorpusRequestCount = 0;'),
-  'BUG-018 request windows use explicit entry and release gates without elapsed-time, counters, or response substitution');
-
-  /* TP-025-01: the coverage floor is complete and closed. */
-  assert(registry25.rows.length === 15
-    && JSON.stringify(registry25.rows.map((row) => row.dimensionId).sort())
-      === JSON.stringify(INTEL25.MANDATORY_DIMENSION_IDS.slice().sort())
-    && config25.contractVersion === 'company-intelligence-config/v2'
-    && config25.readBoundMs === 10000
-    && registry25.readBoundMs === config25.readBoundMs
-    && registry25.horizons.length === 4,
-  'TP-025-01: the committed coverage registry declares the v2 read bound, exactly the fifteen mandatory dimensions and four horizons');
-
-  /* BUG-025 functional event security. The unit carrier owns the exhaustive invalid-input
-     matrix. This block instead locks the cross-file authority contract shared by the committed
-     config, its embedded route mirror, the validator, and the route's sole request primitive. */
-  const normalizedEvent25 = registry25.eventSource.coveredSubjects[0];
-  const canonicalEventMatch25 = /^company:([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(normalizedEvent25.subjectId);
-  const derivedEventPath25 = canonicalEventMatch25 === null ? null
-    : 'data/company-intelligence/company-' + canonicalEventMatch25[1] + '/events.json';
-  assert(registry25.eventSource.coveredSubjects.length === 1
-    && derivedEventPath25 === normalizedEvent25.eventsPath
-    && INTEL25.eventsPathFor(registry25, normalizedEvent25.subjectId) === derivedEventPath25,
-  'TP-025-SEC-01: the accepted committed company subject derives the exact event document returned to the route');
-
-  const duplicateEventConfig25 = JSON.parse(JSON.stringify(config25));
-  duplicateEventConfig25.eventSource.coveredSubjects.push(
-    JSON.parse(JSON.stringify(duplicateEventConfig25.eventSource.coveredSubjects[0]))
-  );
-  let duplicateEventCode25 = null;
-  try { INTEL25.readCoverageRegistry(duplicateEventConfig25); }
-  catch (error) { duplicateEventCode25 = error && error.code; }
-  assert(duplicateEventCode25 === 'C025-CONFIG-SCHEMA',
-  'TP-025-SEC-02: a duplicate committed event subject is refused before it can become route authority');
-
-  const embeddedConfigMatch25 = /<script type="application\/json" data-embedded-config="company-intelligence\.config\.json">([\s\S]*?)<\/script>/.exec(routeSource25);
-  let embeddedConfig25 = null;
-  try { embeddedConfig25 = embeddedConfigMatch25 === null ? null : JSON.parse(embeddedConfigMatch25[1]); }
-  catch (error) { embeddedConfig25 = null; }
-  const driftedEmbeddedConfig25 = embeddedConfig25 === null ? null : JSON.parse(JSON.stringify(embeddedConfig25));
-  if (driftedEmbeddedConfig25 !== null) driftedEmbeddedConfig25.eventSource.coveredSubjects[0].eventsPath += '?drift=1';
-  assert(embeddedConfig25 !== null
-    && JSON.stringify(embeddedConfig25) === JSON.stringify(config25)
-    && JSON.stringify(driftedEmbeddedConfig25) !== JSON.stringify(config25),
-  'TP-025-SEC-03: the embedded config object equals the committed object and a one-field event-path drift defeats parity');
-
-  const eventReaderSource25 = extractFn(moduleSource25, 'readEventSource');
-  const eventPathSource25 = extractFn(moduleSource25, 'eventsPathFor');
-  const routeReaderSource25 = extractFn(routeSource25, 'readRouteDocument');
-  const forbiddenEventMechanism25 = /\bnew\s+URL\s*\(|\bURL\s*\.\s*parse\s*\(|\bdecodeURI(?:Component)?\s*\(|\.\s*(?:normalize|resolve|join|replace|replaceAll)\s*\(/;
-  const routeFetchSites25 = routeSource25.match(/\bfetch\s*\(/g) || [];
-  const helperFetchSites25 = routeReaderSource25.match(/\bfetch\s*\(/g) || [];
-  assert(!forbiddenEventMechanism25.test(eventReaderSource25)
-    && !/\bfetch\s*\(/.test(moduleSource25)
-    && !/\bfetch\s*\(/.test(eventPathSource25)
-    && routeFetchSites25.length === 1
-    && helperFetchSites25.length === 1,
-  'TP-025-SEC-04: event authority uses no URL parsing, decoding or normalization and the route retains exactly one fetch site inside readRouteDocument');
-
-  const equalityGuard25 = 'if (entry.eventsPath !== derivedPath) {';
-  const equalityGuardCount25 = moduleSource25.split(equalityGuard25).length - 1;
-  let activeMismatchCode25 = null;
-  let equalityMutantAccepted25 = false;
-  const mismatchConfig25 = JSON.parse(JSON.stringify(config25));
-  mismatchConfig25.eventSource.coveredSubjects[0].eventsPath = 'data/company-intelligence/company-aapl/events.json';
-  try { INTEL25.readCoverageRegistry(mismatchConfig25); }
-  catch (error) { activeMismatchCode25 = error && error.code; }
-  if (equalityGuardCount25 === 1) {
-    const mutantSource25 = moduleSource25.replace(equalityGuard25, 'if (false) {');
-    const mutantSandbox25 = { module: { exports: {} }, globalThis: {} };
-    try {
-      Function('module', 'globalThis', mutantSource25)(mutantSandbox25.module, mutantSandbox25.globalThis);
-      mutantSandbox25.module.exports.readCoverageRegistry(mismatchConfig25);
-      equalityMutantAccepted25 = true;
-    } catch (error) { equalityMutantAccepted25 = false; }
-  }
-  assert(activeMismatchCode25 === 'C025-CONFIG-SCHEMA'
-    && equalityGuardCount25 === 1
-    && equalityMutantAccepted25,
-  'TP-025-SEC-05: removing the one subject-to-path equality guard admits the named mismatch, proving the functional contract check can fail');
-
-  /* A registry missing a mandatory dimension is refused rather than composed from. */
-  let incompleteCode25 = null;
-  try {
-    INTEL25.readCoverageRegistry(Object.assign({}, config25, {
-      coverageRegistry: config25.coverageRegistry.filter((row) => row.dimensionId !== 'volatility'),
-      horizons: config25.horizons.map((horizon) => Object.assign({}, horizon, {
-        primaryDimensionIds: horizon.primaryDimensionIds.filter((id) => id !== 'volatility')
-      }))
-    }));
-  } catch (error) { incompleteCode25 = error.code; }
-  assert(incompleteCode25 === 'C025-REGISTRY-INCOMPLETE',
-    'TP-025-02: removing a mandatory dimension from the registry raises C025-REGISTRY-INCOMPLETE instead of composing a shorter floor');
-
-  /* A stub data module, so this group stays pure and needs no browser and no cache. */
-  const bars25 = (sessions, start, step, endDate) => {
-    const endEpoch = Date.parse(endDate + 'T20:00:00.000Z');
-    return Array.from({ length: sessions }, (unused, index) => ({
-      t: endEpoch - (sessions - 1 - index) * 86400000,
-      c: start + step * index
-    }));
-  };
-  const written25 = {};
-  const data25 = {
-    bars: (symbol) => (symbol === 'MSFT' ? bars25(300, 100, 0.9, '2026-08-17')
-      : (symbol === 'SPY' ? bars25(300, 400, 0.2, '2026-08-17') : null)),
-    options: () => null,
-    macro: () => null,
-    toolRead: (id) => (Object.prototype.hasOwnProperty.call(written25, id) ? written25[id] : null),
-    putToolRead: (id, object) => { written25[id] = JSON.parse(JSON.stringify(object)); return written25[id]; }
-  };
-  const subject25 = INTEL25.resolveSubject('MSFT', {
-    secCompanies: [{ ticker: 'MSFT', cik: '0000789019', displayName: 'Microsoft Corporation' }],
-    barSymbols: ['MSFT'], decisionTime: decisionTime25
-  });
-  const sources25 = {
-    registry: registry25, benchmarkSymbol: 'SPY', publishedRegimeContext: { available: false },
-    maxBranches: registry25.maxBranches, decisionTime: decisionTime25
-  };
-  const composeRun25 = () => {
-    const bundle = INTEL25.runAdapters(subject25, sources25, decisionTime25, data25);
-    const partition = INTEL25.partitionByHorizon(bundle);
-    const horizons = [
-      INTEL25.composeImmediate(partition.tactical, registry25, decisionTime25),
-      INTEL25.composeEvent(partition.event, registry25, decisionTime25),
-      INTEL25.composeSwing(partition.swing, registry25, decisionTime25),
-      INTEL25.composeStructural(partition.structural, registry25, decisionTime25)
-    ];
-    return {
-      bundle, partition, horizons,
-      version: INTEL25.buildReadVersion({
-        subject: subject25, horizons,
-        coverageAccount: INTEL25.buildCoverageAccount(bundle, registry25),
-        evidenceFamilies: INTEL25.groupEvidenceFamilies(bundle),
-        contradictions: INTEL25.extractContradictions(horizons),
-        researchPlan: INTEL25.attachResearchPlan(subject25, sources25),
-        events: INTEL25.selectRenderableEvents([]),
-        refusals: bundle.refusals
-      }, decisionTime25)
-    };
-  };
-  const first25 = composeRun25();
-  const account25 = first25.version.coverageAccount;
-
-  assert(account25.rows.length === registry25.rows.length
-    && INTEL25.EVIDENCE_STATES.reduce((total, state) => total + account25.totals[state], 0) === registry25.rows.length
-    && account25.rows.every((row) => INTEL25.EVIDENCE_STATES.indexOf(row.state) >= 0)
-    && account25.rows.every((row) => (row.state === 'current') === (row.reasonCode === null))
-    && account25.rows.filter((row) => row.state === 'unavailable')
-      .every((row) => INTEL25.REASON_CODES.indexOf(row.reasonCode) >= 0),
-  'TP-025-03: every run accounts for all fifteen dimensions, the totals sum to the registry length, and every non-current row names a closed reason code');
-
-  /* TP-025-04: horizon isolation. A shorter-horizon read is ABSENT from a longer horizon's set. */
-  const tacticalOnly25 = first25.partition.tactical.filter((read) => read.maxHorizon === 'tactical');
-  const widened25 = INTEL25.partitionByHorizon({
-    reads: first25.bundle.reads.concat(tacticalOnly25.map((read) => Object.assign(JSON.parse(JSON.stringify(read)), {
-      state: 'current', reasonCode: null, directionalSignal: 'pressured'
-    })))
-  });
-  const structuralAgain25 = INTEL25.composeStructural(widened25.structural, registry25, decisionTime25);
-  const structuralFirst25 = first25.horizons.filter((horizon) => horizon.horizonId === 'structural')[0];
-  assert(tacticalOnly25.length > 0
-    && !widened25.structural.some((read) => read.maxHorizon === 'tactical')
-    && JSON.stringify(structuralAgain25) === JSON.stringify(structuralFirst25)
-    && widened25.tactical.some((read) => read.directionalSignal === 'pressured'),
-  'TP-025-04: adding a tactical read that would flip the direction leaves the structural horizon byte-identical, and the same read does reach the immediate horizon');
-
-  /* TP-025-05: determinism over one frozen bundle and one explicit decisionTime. */
-  const second25 = composeRun25();
-  assert(CONTRACTS25.canonicalize(first25.version, 'company-read-version/v1')
-    === CONTRACTS25.canonicalize(second25.version, 'company-read-version/v1')
-    && first25.version.contentFingerprint === second25.version.contentFingerprint
-    && /^sha256:[a-f0-9]{64}$/.test(first25.version.contentFingerprint)
-    && !/new Date\(\)|Date\.now\(\)|Math\.random/.test(moduleSource25),
-  'TP-025-05: two runs over one frozen bundle and one decisionTime produce identical canonical output and one identical fingerprint, and the module reads no clock or random source');
-
-  /* TP-025-06: publication is verified by read-back, and a lossy store is refused. */
-  const published25 = INTEL25.publishToolRead(first25.version, data25);
-  const lossy25 = INTEL25.publishToolRead(first25.version, Object.assign({}, data25, {
-    putToolRead: (id, object) => { const stored = JSON.parse(JSON.stringify(object)); delete stored.freshUntil; written25[id] = stored; return stored; }
-  }));
-  assert(published25.contractVersion === 'rl-tool-read/v1'
-    && JSON.stringify(Object.keys(published25).sort()) === JSON.stringify(INTEL25.TOOL_READ_KEYS.slice().sort())
-    && INTEL25.TOOL_READ_KEYS.length === 9
-    && ['current', 'stale', 'unavailable'].indexOf(published25.availability) >= 0
-    && (published25.availability !== 'unavailable' || (published25.asOf === null && published25.freshUntil === null))
-    && lossy25.code === 'C025-PUBLISH-LOSSY',
-  'TP-025-06: the published owner read carries exactly the nine rl-tool-read/v1 keys and a store that drops one raises C025-PUBLISH-LOSSY instead of reporting success');
-
-  /* TP-025-07: tickers only, forever. */
-  assert(INTEL25.refuseInput('120 shares').code === 'C025-INPUT-REFUSED'
-    && INTEL25.refuseInput('cost basis 210.44').code === 'C025-INPUT-REFUSED'
-    && INTEL25.refuseInput('MSFT') === null
-    && INTEL25.resolveSubject('$4,300', {}).code === 'C025-INPUT-REFUSED'
-    && !/localStorage|sessionStorage|document|providerFetch/.test(moduleSource25)
-    && !/[^.\w]isFinite\s*\(/.test(moduleSource25)
-    && moduleSource25.indexOf('Number.isFinite(') > 0,
-  'TP-025-07: a position, size or cost-basis entry is refused, and the module declares no storage key, no DOM access, no credential read and no bare isFinite');
-
-  /* TP-025-08: every exported function has a production consumer in the registered route or
-     the coupled publication owner. Feature 028 deliberately moved seven headless contracts to
-     the publisher instead of duplicating them in browser code. */
-  const exported25 = Object.keys(INTEL25).filter((name) => typeof INTEL25[name] === 'function');
-  const publisherSource25 = read('scripts/company-intelligence-publication.mjs');
-  const routeCalled25 = exported25.filter((name) => routeSource25.indexOf('INTEL.' + name + '(') >= 0);
-  const publicationOnly25 = exported25.filter((name) => routeSource25.indexOf('INTEL.' + name + '(') < 0
-    && publisherSource25.indexOf('INTEL.' + name + '(') >= 0);
-  const uncalled25 = exported25.filter((name) => routeSource25.indexOf('INTEL.' + name + '(') < 0
-    && publisherSource25.indexOf('INTEL.' + name + '(') < 0);
-  const expectedPublicationOnly25 = [
-    'buildCompanyToolModelRead', 'buildReadVersionV2', 'normalizeOwnerDimensionRead',
-    'readPublicationPolicy', 'validateCompanyToolModelRead', 'validateReadVersionV2',
-    'validateResearchPlanV2'
-  ];
-  assert(exported25.length === 31 && routeCalled25.length === 24
-    && JSON.stringify(publicationOnly25.slice().sort()) === JSON.stringify(expectedPublicationOnly25)
-    && uncalled25.length === 0
-    && routeSource25.indexOf('INTEL.definitelyNotCalled(') < 0,
-  'TP-025-08 successor: all 31 exported functions have a production consumer: 24 in the registered route and exactly seven v2 owner-read functions in the coupled publisher (' + (uncalled25.join(', ') || 'none uncalled') + ')');
-
-  /* 2.10 FEATURE 028 SUCCESSOR REGISTRATION. Public activation is one coherent package. */
-  const companySitePages = await import('./build-pages-site.mjs');
-  const companyPlan25 = companySitePages.planPagesSite(ROOT);
-  const exclusions25 = JSON.parse(read('site-exclusions.json'));
-  const companyPaths25 = ['company-intelligence-lab.html', 'rlcompanyintel.js', 'company-intelligence.config.json'];
-  const companyRootPages25 = readdirSync(ROOT).filter((name) => name.endsWith('.html')).sort();
-  const companyRegistry25 = JSON.parse(read('tools.json')).tools.filter((tool) => tool.id === 'company-intelligence-lab');
-  const companySimple25 = JSON.parse(read('simple-models.json')).definitions
-    .filter((definition) => definition.definitionId === 'simple-model/company-multi-horizon/v1');
-  const companyJourneys25 = JSON.parse(read('journeys.json')).definitions
-    .filter((definition) => /^journey\/company-intelligence-lab\/(?:publication-trace|evidence-gap)\/v1$/.test(definition.definitionId));
-  const companyAdapterAllowlist25 = JSON.parse(read('tool-experience.config.json')).adapterPolicy.moduleAllowlist
-    .filter((modulePath) => modulePath === 'rlexperience-adapters/company-intelligence.js');
-  const companyRegistrationText25 = ['tools.json', 'index.html', 'rlnav.js']
-    .map((file) => read(file));
-  assert(companyPaths25.every((path) => companyPlan25.excludedPaths.indexOf(path) < 0)
-    && companyPlan25.companyPublication.active === true
-    && companyPlan25.companyPublication.requiredPaths.indexOf('data/company-intelligence/publication-current.js') >= 0
-    && companyPlan25.registeredPages.indexOf('company-intelligence-lab.html') >= 0
-    && companyRootPages25.indexOf('company-intelligence-lab.html') >= 0
-    && companyRegistry25.length === 1
-    && companySimple25.length === 1
-    && companyJourneys25.length === 2
-    && companyAdapterAllowlist25.length === 1
-    && companyRegistrationText25.every((source) => (source.match(/company-intelligence-lab/g) || []).length >= 1)
-    && /data-rlbrief-mount[^>]+data-tool-id="company-intelligence-lab"/.test(routeSource25)
-    && /data\/company-intelligence\/publication-current\.js/.test(routeSource25),
-  'Repository parity: company registration exclusions experience bundle and brief identity agree');
-
-  /* 2.12 CANARY. This feature touched two shared surfaces by pure append. The concurrent Lifetime
-     Tax work owns its own modules, its own route and its own exclusion entries, and this append
-     left every one of them in place. */
-  const taxExclusionPaths25 = ['rltaxrules.js', 'rltaxworkspace.js', 'rltax.js', 'rltaxstrategy.js',
-    'rltaxstate.js', 'rltaxcombined.js', 'lifetime-tax-strategy-lab.html', 'lifetime-tax-strategy.config.json'];
-  assert(taxExclusionPaths25.every((path) => companyPlan25.excludedPaths.indexOf(path) >= 0)
-    && exclusions25.files.length >= taxExclusionPaths25.length + 1
-    && exclusions25.files.every((entry) => typeof entry.reason === 'string' && entry.reason.length >= 40)
-    && new Set(exclusions25.files.map((entry) => entry.path)).size === exclusions25.files.length
-    && companyRootPages25.filter((name) => name.indexOf('lifetime-tax') === 0).length === 1,
-  'Regression: SCN-025-CANARY every pre-existing selftest assertion stays green after the spec 025 exclusion-parity append, and all eight Lifetime Tax exclusion entries survive it unchanged');
-
-} catch (e) { failures++; console.log('  ✗ FAIL (Feature 025 company multi-horizon group threw): ' + e.message); }
 
 /* ---------- Feature 026 Scope 1: rlcockpit.js — output budget (BEGIN) ---------- */
 try {
@@ -27591,9 +27273,9 @@ try {
     ((row.ownerSubjectParam !== null ? 1 : 0) + (row.ownerBareReason !== null ? 1 : 0))
       !== (row.ownerDeepLink === null ? 0 : 1)
   )).map((row) => row.dimensionId);
-  assert(f027cRegistry.rows.length === 15 && f027cCarrying.length === 5
-    && f027cBare.length === 5 && f027cOwnerless.length === 5 && f027cMisdeclared.length === 0,
-    'Feature 027 Scope 3 successor: the shipped registry holds fifteen rows partitioned into five subject-carrying, five bare-with-a-reason and five ownerless, and every linked row declares exactly one of the two fields ('
+  assert(f027cRegistry.rows.length === 15 && f027cCarrying.length === 4
+    && f027cBare.length === 7 && f027cOwnerless.length === 4 && f027cMisdeclared.length === 0,
+    'Feature 027 Scope 3: the shipped registry holds fifteen rows partitioned into four subject-carrying, seven bare-with-a-reason and four ownerless, and every linked row declares exactly one of the two fields ('
     + f027cRegistry.rows.length + ' rows, ' + f027cCarrying.length + '/' + f027cBare.length + '/'
     + f027cOwnerless.length + ', misdeclared: ' + (f027cMisdeclared.join(', ') || 'none') + ')');
 
@@ -27630,22 +27312,21 @@ try {
     + f027cAdmitted.length + '/2 admitted, ' + f027cRejected.length + '/5 refused)');
 
   /* 3.d — the two statements are distinguishable, and the published contract is unchanged. */
-  const f027cMarket = f027cIntel.describeDimensionOwner(f027cRegistry, 'geopolitics', 'MSFT');
-  const f027cFixed = f027cIntel.describeDimensionOwner(f027cRegistry, 'performance', 'MSFT');
-  const f027cCarried = f027cIntel.describeDimensionOwner(f027cRegistry, 'technicals', 'MSFT');
+  const f027cMarket = f027cIntel.describeDimensionOwner(f027cRegistry, 'performance', 'MSFT');
+  const f027cFixed = f027cIntel.describeDimensionOwner(f027cRegistry, 'fundamentals', 'MSFT');
+  const f027cCarried = f027cIntel.describeDimensionOwner(f027cRegistry, 'volatility', 'MSFT');
   const f027cKeys = Object.keys(f027cMarket).sort().join(',');
   assert(f027cMarket.statement !== f027cFixed.statement
-    && f027cMarket.statement === 'Geopolitical and policy backdrop is owned by research-agenda-lab, which answers a market-wide question rather than a company one, so the link carries no company.'
-    && f027cFixed.statement === 'Own and relative price performance is owned by etf-momentum-lab, which does not model an individual company you can choose, so the link opens on that tool\'s own subject.'
-    && f027cCarried.statement === 'Technical structure is owned by swing-structure-lab, which opens on this company.'
+    && /answers a market-wide question/.test(f027cMarket.statement)
+    && /does not model an individual company you can choose/.test(f027cFixed.statement)
     && f027cMarket.carriesSubject === false && f027cFixed.carriesSubject === false
-    && f027cMarket.ownerDeepLink === 'research-agenda-lab.html'
-    && f027cFixed.ownerDeepLink === 'etf-momentum-lab.html'
+    && f027cMarket.ownerDeepLink === 'market-brief.html'
+    && f027cFixed.ownerDeepLink === 'company-fundamentals-lab.html'
     && f027cCarried.carriesSubject === true
-    && f027cCarried.ownerDeepLink === 'swing-structure-lab.html?ticker=MSFT'
+    && f027cCarried.ownerDeepLink === 'volatility-sizing-lab.html?ticker=MSFT'
     && f027cMarket.contractVersion === 'company-dimension-owner/v1'
     && f027cKeys === 'carriesSubject,contractVersion,dimensionId,hasOwner,ownerDeepLink,ownerToolId,statement',
-    'Feature 027 Scope 3 successor: geopolitics, performance, and technicals compose their exact market-scoped, fixed-subject, and company-carrying descriptions, and describeDimensionOwner keeps company-dimension-owner/v1 and its seven keys ('
+    'Feature 027 Scope 3: a market-scoped and a fixed-subject row each compose a bare href with its own reason-specific statement, a declared row composes the company, and describeDimensionOwner keeps company-dimension-owner/v1 and its seven keys ('
     + f027cKeys + ')');
 
   /* 3.e — every declared parameter has a committed reader, which is the FR-027-027 rule that

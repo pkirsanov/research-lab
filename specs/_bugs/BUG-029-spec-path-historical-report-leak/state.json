@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "featureDir": "specs/_bugs/BUG-024-spec-path-historical-report-leak",
+  "featureDir": "specs/_bugs/BUG-029-spec-path-historical-report-leak",
   "featureName": "BUG-024 Spec Path Historical Report Leak",
   "createdAt": "2026-09-02T01:29:06Z",
   "lastUpdatedAt": "2026-09-02T01:29:06Z",
@@ -13,7 +13,7 @@
   "linkedImplementationSpec": null,
   "linkedPlanningPacket": null,
   "specDependsOn": [
-    "specs/031-shock-transmission-foundation",
+    "specs/033-shock-transmission-foundation",
     "specs/_bugs/BUG-022-historical-report-declaration-leak"
   ],
   "requiresRevalidation": false,
@@ -39,7 +39,7 @@
     "substate": "diagnosed-and-filed",
     "currentScope": "01-separate-active-path-authority-from-history",
     "nextRequiredOwner": "bubbles.design",
-    "nextRequiredTarget": "specs/_bugs/BUG-024-spec-path-historical-report-leak/design.md",
+    "nextRequiredTarget": "specs/_bugs/BUG-029-spec-path-historical-report-leak/design.md",
     "nextRequiredReason": "Reconcile shared artifact-authority capability ownership with BUG-022 before planning any spec-path collector repair.",
     "completedPhaseClaims": [
       {
@@ -65,9 +65,9 @@
     "class": "historical-evidence-authority-leak",
     "surface": "scripts/validate-spec-test-paths.mjs collectSpecTestPathReferences",
     "sourceFinding": "XRL-PATH-GUARD-HIST-001",
-    "missingPath": "tests/shock-transmission.resource.test.mjs",
+    "missingPath": "tests/shock-transmission.resource.functional.mjs",
     "referenceSiteCount": 5,
-    "referenceArtifact": "specs/031-shock-transmission-foundation/report.md",
+    "referenceArtifact": "specs/033-shock-transmission-foundation/report.md",
     "rootCause": "The spec path collector extracts lexical path tokens without classifying active authority versus historical report evidence.",
     "baselineGrowthPermitted": false,
     "historicalRewritePermitted": false,

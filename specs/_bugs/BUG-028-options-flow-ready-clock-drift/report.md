@@ -63,7 +63,7 @@ controls-disabled command, then exited `0` only after all four witnesses matched
 **Claim Source:** interpreted
 
 **Interpretation:** This bug phase read the current executed receipt and its raw
-evidence from `specs/031-shock-transmission-foundation/report.md`. It did not rerun
+evidence from `specs/033-shock-transmission-foundation/report.md`. It did not rerun
 the command. Three of the five failures are one options-flow group. The other two
 belong to BUG-022 and BUG-017.
 
@@ -704,7 +704,7 @@ installed framework paths to their unchanged baselines. The command exited `0`.
 
 **Phase:** validate
 
-**Command:** `git status --short -- scripts/selftest.mjs specs/_bugs/BUG-023-options-flow-ready-clock-drift; git diff --name-status -- scripts/selftest.mjs specs/_bugs/BUG-023-options-flow-ready-clock-drift; git diff --name-status -- specs/031-shock-transmission-foundation rlshock.js horizon-ladder-lab.html horizon-ladder-universe.json notes/horizon-ladder-lab.md tests/horizon-ladder-lab.spec.mjs tools.json index.html rlnav.js`
+**Command:** `git status --short -- scripts/selftest.mjs specs/_bugs/BUG-028-options-flow-ready-clock-drift; git diff --name-status -- scripts/selftest.mjs specs/_bugs/BUG-028-options-flow-ready-clock-drift; git diff --name-status -- specs/033-shock-transmission-foundation rlshock.js horizon-ladder-lab.html horizon-ladder-universe.json notes/horizon-ladder-lab.md tests/horizon-ladder-lab.spec.mjs tools.json index.html rlnav.js`
 
 **Exit Code:** `0`
 
@@ -713,7 +713,7 @@ installed framework paths to their unchanged baselines. The command exited `0`.
 ```text
 BUG023_GIT_DELTA_BEGIN
  M scripts/selftest.mjs
-?? specs/_bugs/BUG-023-options-flow-ready-clock-drift/
+?? specs/_bugs/BUG-028-options-flow-ready-clock-drift/
 BUG023_GIT_NAME_STATUS_BEGIN
 M       scripts/selftest.mjs
 BUG023_PROTECTED_NAME_STATUS_BEGIN
@@ -858,7 +858,7 @@ FOCUSED_REPLAY_VERDICT=PASS
 | Evidence | Exit | Full output SHA-256 | Observed result |
 | --- | ---: | --- | --- |
 | Tool-log row `527`, `node scripts/selftest.mjs` | 1 | `67b23b8db86c44ccafa9d0cf3e7a6efe4224c0fd5cf8bbbb2e06d6afc3776556` | `3469 passed, 2 failed`; zero options-flow failure lines. |
-| Tool-log row `530`, spec-path validator | 1 | `c4611ad3f4b5a91aad3e3781f8050d2e28521fa3e3fcb9ace73f6813217e576b` | The one new path is `tests/shock-transmission.resource.test.mjs`; the existing owner is BUG-024. |
+| Tool-log row `530`, spec-path validator | 1 | `c4611ad3f4b5a91aad3e3781f8050d2e28521fa3e3fcb9ace73f6813217e576b` | The one new path is `tests/shock-transmission.resource.functional.mjs`; the existing owner is BUG-024. |
 | Tool-log row `531`, scope/DoD validator | 1 | `af0c0630449de65a3a9835e03914a8419c7033dc4fcf7c4d0351bac7a3d304b0` | The one new drift is BUG-017 Scope 02 certification claiming `9/0` while its artifact has `9/2`. |
 | Tool-log row `532`, Feature 031 TP-01-08 | 1 | `2d6c9519384a75ea510511191e22fda268fd5b7357ec0ea82904a4326a2c01d4` | The canary expected digest `98605f...` while current legitimate inventory digest is `8c9500...`. |
 
@@ -909,7 +909,7 @@ Single-Capability Justification.
 | `BUG023-CHECK-4-SCENARIO-STATES` | Required planning reconciliation | Scenario and test-plan execution-state metadata still describes planned tests. |
 | `BUG023-CHECK-9-EVIDENCE` | Required evidence reconciliation | The transition guard did not accept the full evidence set for terminal delivery. |
 | `BUG023-G136-HUMAN-ACCEPTANCE` | Human-owned | The Checklist remains unchecked. No agent inference or checkbox mutation occurred. |
-| `XRL-PATH-GUARD-HIST-001` | Blocking external | Existing packet `specs/_bugs/BUG-024-spec-path-historical-report-leak` routes to `bubbles.design`. |
+| `XRL-PATH-GUARD-HIST-001` | Blocking external | Existing packet `specs/_bugs/BUG-029-spec-path-historical-report-leak` routes to `bubbles.design`. |
 | `XRL-BUG017-DOD-001` | Blocking external | Existing BUG-017 Scope 02 routes to `bubbles.implement`. |
 | `F031-TP-01-08-STALE-INVENTORY` | Independent external | Feature 031 test ownership must reconcile its digest expectation with the accepted BUG-023 selftest delta. |
 
@@ -936,7 +936,7 @@ not rewrite `scripts/selftest.mjs`. Its SHA-256 remains
 
 ### Current Code Diff Evidence
 
-**Command:** `git status --short -- scripts/selftest.mjs specs/_bugs/BUG-023-options-flow-ready-clock-drift; git diff -- scripts/selftest.mjs; git diff --name-status -- <excluded paths>`
+**Command:** `git status --short -- scripts/selftest.mjs specs/_bugs/BUG-028-options-flow-ready-clock-drift; git diff -- scripts/selftest.mjs; git diff --name-status -- <excluded paths>`
 
 **Exit Code:** `0`
 
@@ -948,7 +948,7 @@ only the options-flow hunks. It did not modify or absorb the Feature 031 hunk.
 
 ```text
  M scripts/selftest.mjs
-?? specs/_bugs/BUG-023-options-flow-ready-clock-drift/
+?? specs/_bugs/BUG-028-options-flow-ready-clock-drift/
 BUG023_SELFTEST_DIFF_EXIT=0
 BUG023_PROTECTED_DIFF_EXIT=0
 ```
@@ -966,8 +966,8 @@ Final scoped status at tool-log row `621` reported four dirty entries:
 ```text
  M scripts/selftest.mjs
 ?? rlshock.js
-?? specs/031-shock-transmission-foundation/
-?? specs/_bugs/BUG-023-options-flow-ready-clock-drift/
+?? specs/033-shock-transmission-foundation/
+?? specs/_bugs/BUG-028-options-flow-ready-clock-drift/
 ```
 
 The untracked `rlshock.js` and Feature 031 directory are pre-existing unrelated
@@ -1030,7 +1030,7 @@ TP-BUG023-03: PLUS_ONE_MS_STATE=unavailable READS_MAP_CLOCK_PINNED=true READY_ME
 
 ### Scenario-State Handoff Check
 
-**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-023-options-flow-ready-clock-drift --changed-file scripts/selftest.mjs --require IMPLEMENTED --certifiable --format text`
+**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/_bugs/BUG-028-options-flow-ready-clock-drift --changed-file scripts/selftest.mjs --require IMPLEMENTED --certifiable --format text`
 
 **Exit Code:** `1` at tool-log row `609`
 
@@ -1235,7 +1235,7 @@ pass, but required rows `TP-BUG023-04` and `TP-BUG023-05` are nonzero.
 
 | Finding | Current receipt | Observed result | Current owner |
 | --- | --- | --- | --- |
-| `XRL-PATH-GUARD-HIST-001` | Row `644`, exit `1`, tool-log SHA-256 `87f020d017cada5b8972c4106be197fad9497ac63ba42cb669649651f458d4c7`, full-output SHA-256 `213a97e089214604b1685db792792a969fd2ecceeca78d5d94d89c6527becd0c` | One new historical reference to absent `tests/shock-transmission.resource.test.mjs` | BUG-024, `bubbles.design` |
+| `XRL-PATH-GUARD-HIST-001` | Row `644`, exit `1`, tool-log SHA-256 `87f020d017cada5b8972c4106be197fad9497ac63ba42cb669649651f458d4c7`, full-output SHA-256 `213a97e089214604b1685db792792a969fd2ecceeca78d5d94d89c6527becd0c` | One new historical reference to absent `tests/shock-transmission.resource.functional.mjs` | BUG-024, `bubbles.design` |
 | `XRL-BUG017-DOD-001` | Row `645`, exit `1`, tool-log SHA-256 `a6995c94939c776f6ca14ccf028512e62de3a367f2d5132c1fb1ea79ac4b2928`, full-output SHA-256 `af0c0630449de65a3a9835e03914a8419c7033dc4fcf7c4d0351bac7a3d304b0` | BUG-017 Scope 02 certification says `9/0`; its artifact says `9/2` | BUG-017, `bubbles.implement` |
 | `F031-TP-01-08-STALE-INVENTORY` | Row `646`, exit `1`, tool-log SHA-256 `4f4ae35bc9de6b9ac634a81269cf7ab047976a757c746ddd078fbbbb3f82ff89`, full-output SHA-256 `7ef48077814e67d6dce9ebdd4f9a1da05560ca8233c70aacf46ba40ffebdd8f0` | Expected digest `98605f...`; current inventory digest `8c9500...` | Feature 031 test ownership |
 | Feature 031 scenario-receipt bindings | Row `650`, exit `1` | Existing `SCN-031-*` GREEN receipts omit test identity and negative control | Feature 031 workflow |

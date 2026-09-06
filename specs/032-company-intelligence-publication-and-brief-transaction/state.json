@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "featureDir": "specs/028-company-intelligence-publication-and-brief-transaction",
+  "featureDir": "specs/032-company-intelligence-publication-and-brief-transaction",
   "featureName": "Company Intelligence Public Delivery and Atomic Brief Refresh",
   "createdAt": "2026-08-28T23:01:02Z",
   "lastUpdatedAt": "2026-09-01T20:45:04Z",
@@ -22,10 +22,10 @@
     ],
     "crossRepoPolicy": "forbidden",
     "specTargets": [
-      "specs/028-company-intelligence-publication-and-brief-transaction"
+      "specs/032-company-intelligence-publication-and-brief-transaction"
     ],
     "allowedPaths": [
-      "specs/028-company-intelligence-publication-and-brief-transaction/**",
+      "specs/032-company-intelligence-publication-and-brief-transaction/**",
       "company-intelligence-lab.html",
       "rlcompanyintel.js",
       "rldata.js",
@@ -118,14 +118,14 @@
         "agent": "bubbles.ux",
         "scopes": [],
         "claimedAt": "2026-08-28T23:05:14Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/spec.md#ui-wireframes"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/spec.md#ui-wireframes"
       },
       {
         "phase": "bootstrap",
         "agent": "bubbles.design",
         "scopes": [],
         "claimedAt": "2026-08-28T23:37:31Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/design.md#design-brief"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/design.md#design-brief"
       },
       {
         "phase": "bootstrap",
@@ -138,7 +138,7 @@
           "05-public-registration-and-pages"
         ],
         "claimedAt": "2026-08-29T00:01:02Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#execution-outline"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/scopes.md#execution-outline"
       },
       {
         "phase": "implement",
@@ -147,7 +147,7 @@
           "01-company-publication-foundation"
         ],
         "claimedAt": "2026-08-29T01:32:55Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-implement-owned-quality-evidence"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-implement-owned-quality-evidence"
       },
       {
         "phase": "test",
@@ -156,7 +156,7 @@
           "01-company-publication-foundation"
         ],
         "claimedAt": "2026-08-29T17:14:25Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-test-owned-receipt-and-provenance-closure-2026-08-29"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-test-owned-receipt-and-provenance-closure-2026-08-29"
       },
       {
         "phase": "validate",
@@ -165,7 +165,7 @@
           "01-company-publication-foundation"
         ],
         "claimedAt": "2026-08-29T17:47:11Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-validate-owned-certification-2026-08-29"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-validate-owned-certification-2026-08-29"
       },
       {
         "phase": "implement",
@@ -174,7 +174,7 @@
           "02-coupled-manifest-and-promotion"
         ],
         "claimedAt": "2026-08-29T19:15:17Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-final-implement-owned-build-quality"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-02-final-implement-owned-build-quality"
       },
       {
         "phase": "test",
@@ -183,7 +183,7 @@
           "02-coupled-manifest-and-promotion"
         ],
         "claimedAt": "2026-08-29T19:31:25Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-test-owned-independent-verification-2026-08-29"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-02-test-owned-independent-verification-2026-08-29"
       },
       {
         "phase": "validate",
@@ -192,7 +192,7 @@
           "02-coupled-manifest-and-promotion"
         ],
         "claimedAt": "2026-08-29T20:26:27Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-validate-owned-certification-after-remediation-2026-08-29"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-02-validate-owned-certification-after-remediation-2026-08-29"
       },
       {
         "phase": "implement",
@@ -201,7 +201,7 @@
           "03-transaction-restoration"
         ],
         "claimedAt": "2026-08-29T21:31:42Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-implement-owned-transaction-restoration-2026-08-29"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-03-implement-owned-transaction-restoration-2026-08-29"
       },
       {
         "phase": "test",
@@ -210,7 +210,7 @@
           "03-transaction-restoration"
         ],
         "claimedAt": "2026-08-30T00:52:00Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-current-r6-test-phase-closure-2026-08-30"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-03-current-r6-test-phase-closure-2026-08-30"
       },
       {
         "phase": "validate",
@@ -219,7 +219,7 @@
           "03-transaction-restoration"
         ],
         "claimedAt": "2026-08-30T06:39:31Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-validate-owned-certification-after-anchor-repair-2026-08-30"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-03-validate-owned-certification-after-anchor-repair-2026-08-30"
       },
       {
         "phase": "implement",
@@ -228,7 +228,7 @@
           "04-shared-trigger-integration"
         ],
         "claimedAt": "2026-08-30T17:51:12Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-build-quality-and-governance"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-build-quality-and-governance"
       },
       {
         "phase": "test",
@@ -237,7 +237,7 @@
           "04-shared-trigger-integration"
         ],
         "claimedAt": "2026-08-31T02:32:44Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-test-owned-independent-final-byte-closure-2026-08-31"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-04-test-owned-independent-final-byte-closure-2026-08-31"
       },
       {
         "phase": "validate",
@@ -246,7 +246,7 @@
           "04-shared-trigger-integration"
         ],
         "claimedAt": "2026-08-31T03:46:54Z",
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-validate-owned-certification-2026-08-31"
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-04-validate-owned-certification-2026-08-31"
       }
     ],
     "pendingTransitionRequests": [],
@@ -427,12 +427,12 @@
         "tests/company-intelligence-publication.e2e.mjs"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-redgreen-provenance",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-contract-and-boundary-evidence",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-implement-owned-quality-evidence",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-independent-verification-summary",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-independent-build-quality",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#implement-result-provenance-finding"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-redgreen-provenance",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-contract-and-boundary-evidence",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-implement-owned-quality-evidence",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-independent-verification-summary",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-independent-build-quality",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#implement-result-provenance-finding"
       ],
       "summary": "Recorded the missing implementation provenance for Scope 01 after rechecking 13 of 13 checked DoD items, focused evidence for 99 of 99 required tests and 8 of 8 canaries with zero skips, a discriminating red/green probe, a strict boundary pass, and no Scope 01-owned selftest failure. Certification and top-level status remain unchanged."
     },
@@ -451,9 +451,9 @@
         "state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/spec.md#ui-wireframes",
-        "specs/028-company-intelligence-publication-and-brief-transaction/spec.md#scenario-to-surface-matrix",
-        "specs/028-company-intelligence-publication-and-brief-transaction/spec.md#user-flows"
+        "specs/032-company-intelligence-publication-and-brief-transaction/spec.md#ui-wireframes",
+        "specs/032-company-intelligence-publication-and-brief-transaction/spec.md#scenario-to-surface-matrix",
+        "specs/032-company-intelligence-publication-and-brief-transaction/spec.md#user-flows"
       ],
       "summary": "Re-read the current Feature 028 artifacts, live discovery and route surfaces, publication entry points, predecessor UX, and binding product principles. The existing UX contract covers public registration, pair authority, stale and failure states, local-file behavior, scheduled and on-demand parity, lineage, accessibility, and responsive behavior, so no UX content change was required. This entry records current bubbles.ux analyze provenance for VAL-028-PHASE-ANALYZE only; delivery and certification remain in progress."
     },
@@ -471,11 +471,11 @@
       "artifactChanges": [
         "tests/company-intelligence-publication.e2e.mjs",
         "tests/distributed-briefs.distributed-publish.unit.mjs",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md",
-        "specs/028-company-intelligence-publication-and-brief-transaction/state.json"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md",
+        "specs/032-company-intelligence-publication-and-brief-transaction/state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-test-owned-receipt-and-provenance-closure-2026-08-29",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-test-owned-receipt-and-provenance-closure-2026-08-29",
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Executed current discriminating RED controls, exact Scope 01 Test Plan rows, strengthened production-CLI live checks, per-scenario regression receipts, source-lock and receipt validators, and removed the shared canary's Node localStorage warning through test-only import ordering. Test-owned findings are closed; certification remains unchanged."
@@ -497,7 +497,7 @@
         "state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-01-validate-owned-certification-2026-08-29",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-01-validate-owned-certification-2026-08-29",
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Independently replayed Scope 01 product, receipt, provenance, traceability, and governance checks. Certified only Scope 01. Feature status remains in_progress, Scopes 02 through 05 remain not_started, and human acceptance remains unchecked."
@@ -519,13 +519,13 @@
         "tests/company-intelligence-publication.e2e.mjs",
         "tests/company-intelligence-publication.integration.mjs",
         "tests/distributed-briefs.distributed-publish.unit.mjs",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md",
-        "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md",
-        "specs/028-company-intelligence-publication-and-brief-transaction/state.json"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md",
+        "specs/032-company-intelligence-publication-and-brief-transaction/scopes.md",
+        "specs/032-company-intelligence-publication-and-brief-transaction/state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-implement-owned-reverification-2026-08-29",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-final-implement-owned-build-quality"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-02-implement-owned-reverification-2026-08-29",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-02-final-implement-owned-build-quality"
       ],
       "summary": "Reconciled the existing Scope 02 candidate without redesign. Executed current syntax, TP-02-01 through TP-02-06, shared-canary, regression-quality, source-lock, implementation-reality, artifact, goal-fidelity, strict-boundary, domain, scenario-mechanism, and Test Plan checks. Recorded only the implement-owned Scope 02 claim; certification remains Scope 01 only."
     },
@@ -541,11 +541,11 @@
       "statusAfter": "in_progress",
       "scope": "02-coupled-manifest-and-promotion",
       "artifactChanges": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md",
-        "specs/028-company-intelligence-publication-and-brief-transaction/state.json"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md",
+        "specs/032-company-intelligence-publication-and-brief-transaction/state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-test-owned-independent-verification-2026-08-29",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-02-test-owned-independent-verification-2026-08-29",
         ".specify/runtime/scope02-test-tool-calls.jsonl"
       ],
       "summary": "Independently executed TP-02-01 through TP-02-06, a discriminating self-reverting production mutation, test-integrity checks, scoped traceability, source lock, isolation, boundary, mechanism, and evidence guards. Scope 02 test verification completed with zero test failures or skips. Certification remains Scope 01 only."
@@ -566,8 +566,8 @@
         "state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-02-coupled-manifest-immutable-promotion-and-pointer-last-success-path",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#validation-scope-02-refusal"
+        "specs/032-company-intelligence-publication-and-brief-transaction/scopes.md#scope-02-coupled-manifest-immutable-promotion-and-pointer-last-success-path",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#validation-scope-02-refusal"
       ],
       "summary": "Repaired the complete Scope 02 plan-owned validation finding set. Preserved the 11 existing checked DoD items, added two test-owned regression requirements unchecked, retained In Progress status, and made no implementation or certification claim."
     },
@@ -588,7 +588,7 @@
         "state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-02-validate-owned-certification-after-remediation-2026-08-29",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-02-validate-owned-certification-after-remediation-2026-08-29",
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Independently replayed Scope 02 tests and certification gates on unchanged implementation and test bytes. Closed every prior Scope 02 finding, certified only Scope 02, preserved both feature status mirrors as in_progress, left human acceptance unchanged, and selected Scope 03 for sequential implementation."
@@ -607,13 +607,13 @@
       "artifactChanges": [
         "scripts/company-intelligence-publication.mjs",
         "tests/company-intelligence-publication.e2e.mjs",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md",
-        "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md",
-        "specs/028-company-intelligence-publication-and-brief-transaction/state.json"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md",
+        "specs/032-company-intelligence-publication-and-brief-transaction/scopes.md",
+        "specs/032-company-intelligence-publication-and-brief-transaction/state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-implement-owned-transaction-restoration-2026-08-29",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-final-implement-quality-gates"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-03-implement-owned-transaction-restoration-2026-08-29",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-03-final-implement-quality-gates"
       ],
       "summary": "Closed the implement-owned Scope 03 phase after reconciling the current report, all 13 checked DoD items, six Test Plan rows, finding closure, and strict change-boundary evidence. Recorded only execution provenance and routed Scope 03 to bubbles.test; certification, top-level status, and human acceptance remain unchanged."
     },
@@ -633,8 +633,8 @@
         "state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md#scope-03-whole-transaction-restoration-and-non-authoritative-outcomes",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-test-owned-independent-verification-2026-08-29"
+        "specs/032-company-intelligence-publication-and-brief-transaction/scopes.md#scope-03-whole-transaction-restoration-and-non-authoritative-outcomes",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-03-test-owned-independent-verification-2026-08-29"
       ],
       "summary": "Repaired only the Scope 03 plan-to-gate correspondence finding. Preserved six Test Plan rows, prior evidence, In Progress status, human acceptance, and all certification fields."
     },
@@ -654,7 +654,7 @@
         "state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-current-r6-test-phase-closure-2026-08-30",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-03-current-r6-test-phase-closure-2026-08-30",
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Independently executed all six Scope 03 Test Plan rows, four discriminating negative controls, the complete selected closure, and required integrity, source-lock, isolation, scenario, receipt, goal, and boundary checks. All four Scope 03 scenarios derive REGRESSION_GREEN. Certification, later scopes, overall status, and human acceptance remain unchanged."
@@ -676,7 +676,7 @@
         "state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-03-validate-owned-certification-after-anchor-repair-2026-08-30"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-03-validate-owned-certification-after-anchor-repair-2026-08-30"
       ],
       "summary": "Revalidated the sole Scope 03 evidence-anchor repair, strict exact-HEAD receipts, scenario states, traceability, implementation reality, artifact freshness, and certification guards. Certified only Scope 03, preserved both feature status mirrors as in_progress, left human acceptance unchanged, and selected Scope 04 as the next eligible implementation target without starting it."
     },
@@ -703,15 +703,15 @@
         "tests/company-intelligence-publication.functional.mjs",
         "tests/distributed-briefs.scheduler.e2e.mjs",
         "tests/distributed-briefs.scheduler.integration.mjs",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md",
-        "specs/028-company-intelligence-publication-and-brief-transaction/scopes.md",
-        "specs/028-company-intelligence-publication-and-brief-transaction/state.json"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md",
+        "specs/032-company-intelligence-publication-and-brief-transaction/scopes.md",
+        "specs/032-company-intelligence-publication-and-brief-transaction/state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-scenario-receipts",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-regression-and-impact",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-boundary-and-preservation",
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-build-quality-and-governance",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-scenario-receipts",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-regression-and-impact",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-boundary-and-preservation",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-04-r9-build-quality-and-governance",
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Closed the implement-owned Scope 04 phase after refreshing all stale governance receipts, verifying all 15 checked DoD evidence anchors, and rederiving SCN-028-003, SCN-028-004, SCN-028-012, and SCN-028-019 as IMPLEMENTED. Routed Scope 04 to bubbles.test while preserving certification, Scope 05, overall status, and human acceptance."
@@ -732,7 +732,7 @@
         "state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-test-owned-independent-final-byte-closure-2026-08-31",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-04-test-owned-independent-final-byte-closure-2026-08-31",
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Independently re-executed all six Scope 04 Test Plan rows and current-final-byte RED, GREEN, LIVE, and REGRESSION receipts for all four scenarios. Strict receipt freshness reached zero stale and zero unknown identities, all four scenarios derive REGRESSION_GREEN, and certification, Scope 05, overall status, and human acceptance remain unchanged."
@@ -754,7 +754,7 @@
         "state.json"
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#scope-04-validate-owned-certification-2026-08-31",
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#scope-04-validate-owned-certification-2026-08-31",
         ".specify/runtime/tool-calls.jsonl"
       ],
       "summary": "Reused the two current six-row validate Test Plan epochs without rerunning them, rechecked strict receipt and scenario finality outside the receipt logger, resolved the prior static aggregate, and classified every remaining traceability failure as Scope 05-only. Certified only Scope 04, preserved both feature status mirrors as in_progress, left human acceptance unchanged, and routed Scope 05 to bubbles.implement."

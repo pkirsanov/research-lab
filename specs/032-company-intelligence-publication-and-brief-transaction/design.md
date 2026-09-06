@@ -1639,7 +1639,7 @@ The recommended replacement for `workBoundary.allowedPaths` is exact below.
 
 ```yaml
 allowedPaths:
-  - specs/028-company-intelligence-publication-and-brief-transaction/**
+  - specs/032-company-intelligence-publication-and-brief-transaction/**
   - company-intelligence-lab.html
   - rlcompanyintel.js
   - rlnav.js

@@ -35,9 +35,9 @@ though no active plan or test command names that path.
 
 1. Run `node scripts/validate-spec-test-paths.mjs --all-sites`.
 2. Observe one new missing path:
-   `tests/shock-transmission.resource.test.mjs`.
+   `tests/shock-transmission.resource.functional.mjs`.
 3. Observe five reference sites, all inside
-   `specs/031-shock-transmission-foundation/report.md`.
+   `specs/033-shock-transmission-foundation/report.md`.
 4. Inspect `collectSpecTestPathReferences()` and observe that it recursively
    extracts path tokens from every readable spec artifact without assigning an
    active, historical, or error authority role.
@@ -97,7 +97,7 @@ Potential repair surfaces for design review:
 
 Protected surfaces:
 
-- `specs/031-shock-transmission-foundation/**`
+- `specs/033-shock-transmission-foundation/**`
 - `scripts/validate-spec-test-paths.baseline`
 - `specs/_bugs/BUG-022-historical-report-declaration-leak/**`
 - all Feature 031 source, tests, and fixtures
@@ -107,11 +107,11 @@ Protected surfaces:
 
 ## Related
 
-- Blocking feature: `specs/031-shock-transmission-foundation/`
+- Blocking feature: `specs/033-shock-transmission-foundation/`
 - Failing collector: `scripts/validate-spec-test-paths.mjs#collectSpecTestPathReferences`
 - Related precedent: `specs/_bugs/BUG-022-historical-report-declaration-leak/`
 - Current real test: `tests/shock-transmission.resource.functional.mjs`
-- Historical retired token: `tests/shock-transmission.resource.test.mjs`
+- Historical retired token: `tests/shock-transmission.resource.functional.mjs`
 
 ## Required Route
 

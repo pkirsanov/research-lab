@@ -171,9 +171,9 @@ The Shock worktree's five tracked modifications are:
 
 - `specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/report.md`
 - `specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos/state.json`
-- `specs/_bugs/BUG-024-spec-path-historical-report-leak/design.md`
-- `specs/_bugs/BUG-024-spec-path-historical-report-leak/spec.md`
-- `specs/_bugs/BUG-024-spec-path-historical-report-leak/state.json`
+- `specs/_bugs/BUG-029-spec-path-historical-report-leak/design.md`
+- `specs/_bugs/BUG-029-spec-path-historical-report-leak/spec.md`
+- `specs/_bugs/BUG-029-spec-path-historical-report-leak/state.json`
 
 ## Source And Claim Boundaries
 

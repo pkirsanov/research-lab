@@ -756,9 +756,9 @@ Feature 031 creates no user-facing surface. The rows below describe planned inte
 
 | Capability | Surface class | Surface id | Status | Plan |
 | --- | --- | --- | --- | --- |
-| Topic-neutral shock composition | internal | `shock-transmission/v1` | planned | `specs/031-shock-transmission-foundation` |
-| Topic adapter conformance | internal | `shock-transmission/topic-adapter/v1` | planned | `specs/031-shock-transmission-foundation` |
-| Lossless finding handoff | internal | `research-finding-reference-seam/v1` additive projection | planned | `specs/031-shock-transmission-foundation` |
+| Topic-neutral shock composition | internal | `shock-transmission/v1` | planned | `specs/033-shock-transmission-foundation` |
+| Topic adapter conformance | internal | `shock-transmission/topic-adapter/v1` | planned | `specs/033-shock-transmission-foundation` |
+| Lossless finding handoff | internal | `research-finding-reference-seam/v1` additive projection | planned | `specs/033-shock-transmission-foundation` |
 
 There is no HTTP route, UI route, CLI command, registry entry, Shock Transmission Lab row, or
 Iran-only surface in this contract.

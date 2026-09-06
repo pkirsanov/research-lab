@@ -308,7 +308,7 @@ The following product paths remain unchanged:
 - `scripts/owner-state.mjs`
 - `rlexperience-adapters/options.js`
 - `data/options/**`
-- `specs/031-shock-transmission-foundation/**`
+- `specs/033-shock-transmission-foundation/**`
 - `rlshock.js` and all Feature 031 tests or fixtures
 - every Horizon Ladder source, data, note, and test
 - `tools.json`, `index.html`, and `rlnav.js`

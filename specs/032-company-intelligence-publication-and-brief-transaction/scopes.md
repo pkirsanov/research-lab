@@ -73,7 +73,7 @@ Links: [spec.md](spec.md) · [design.md](design.md) · [report.md](report.md) ·
 
 ## Pre-Implementation Authority Gate
 
-Goal Contract revision 3 authorizes changes only under `specs/028-company-intelligence-publication-and-brief-transaction/**` and the approved product paths recorded in the current work boundary. This bootstrap preserves that boundary unchanged.
+Goal Contract revision 3 authorizes changes only under `specs/032-company-intelligence-publication-and-brief-transaction/**` and the approved product paths recorded in the current work boundary. This bootstrap preserves that boundary unchanged.
 
 Before product mutation, the top-level runner must issue an approved Goal Contract revision. Its actionable packet must preserve the repository, spec target, and forbidden cross-repository policy.
 

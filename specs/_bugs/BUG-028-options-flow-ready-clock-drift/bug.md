@@ -104,7 +104,7 @@ Potential repair surfaces for design review:
 
 Protected surfaces:
 
-- `specs/031-shock-transmission-foundation/**`
+- `specs/033-shock-transmission-foundation/**`
 - `rlshock.js` and every Feature 031 test or fixture
 - `horizon-ladder-lab.html`, `horizon-ladder-universe.json`, its note, and its tests
 - `tools.json`, `index.html`, and `rlnav.js`
@@ -114,7 +114,7 @@ Protected surfaces:
 
 ## Related
 
-- Blocking feature: `specs/031-shock-transmission-foundation/`
+- Blocking feature: `specs/033-shock-transmission-foundation/`
 - Production read: `scripts/brief-refresh.mjs#buildOptionsFlowToolRead`
 - Owner-state input: `scripts/owner-state.mjs#optionsFlowOwnerState`
 - Owner model: `rlexperience-adapters/options.js#computeAnomalySummary`

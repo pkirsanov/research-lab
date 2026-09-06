@@ -16,7 +16,7 @@ failureCount: 42
 exitStatus: 1
 verdict: FAIL
 END TRANSITION_GUARD_RESULT_V1
-target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/031-shock-transmission-foundation
+target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/033-shock-transmission-foundation
 mode: full-delivery
 audit class: delivery-completion
 ceiling: done
@@ -25,7 +25,7 @@ BEGIN AUDIT_RESULT_V1
 schemaVersion: audit-result/v1
 runId: RUN-031-AUDIT-20260901T210021Z
 attemptId: AUD-031-004
-target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/031-shock-transmission-foundation
+target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/033-shock-transmission-foundation
 targetRevision: sha256:728d014f8284a9c81cdd03cba3eab284363ccf71e1b600a521d36f1187672ac3
 workflowMode: full-delivery
 modeClass: none

@@ -322,7 +322,7 @@ The four planning-host paths exist. All 26 future-title sentinels are unique and
 | --- | --- | --- | --- |
 | H031-R2-H5-001 | blocking | SCN-031-022 says `When Feature 031 is planned` in `spec.md` and `scopes.md`. The manifest changes the action to delivery through the Research Agenda route. Its planned E2E title tests delivered route absence, not the declared planning action. | `bubbles.analyst` must choose one stable business action. `bubbles.design` and `bubbles.plan` must then align technical and test mappings. |
 | H031-R2-H5-002 | blocking | SCN-031-024 omits topic switching in `spec.md` and `scopes.md`. The manifest adds topic switching, but its six mapped rows do not name that assertion. TP-05-21 covers topic clearing under SCN-031-026 and is not mapped to SCN-031-024. | `bubbles.analyst` must decide whether topic switching belongs to SCN-031-024. `bubbles.design` and `bubbles.plan` must align the selected ownership. |
-| H031-R2-H6-001 | blocking | Scope 1 allows `tests/shock-transmission.resource.test.mjs`. TP-01-07 and structured planning use `tests/shock-transmission.resource.functional.mjs`. | `bubbles.plan` must choose one repository-native filename and synchronize the source boundary, Test Plan, and DoD. |
+| H031-R2-H6-001 | blocking | Scope 1 allows `tests/shock-transmission.resource.functional.mjs`. TP-01-07 and structured planning use `tests/shock-transmission.resource.functional.mjs`. | `bubbles.plan` must choose one repository-native filename and synchronize the source boundary, Test Plan, and DoD. |
 | H031-R2-H9-001 | blocking | TP-03-06 names `tests/shock-transmission.migration.integration.mjs` in Markdown and JSON. Its JSON command executes `tests/brief-refresh-atomicity.test.mjs`. | `bubbles.plan` must make the JSON command, file, path state, Markdown row, and intended test owner identical. |
 | H031-R2-H9-002 | blocking | Current Markdown, JSON, and DoD contain 68 rows. The hardening handoff specifies 67. The duplicate audit found no duplicate tuple. | `bubbles.plan` must confirm the intended cardinality and regenerate the packet without silently dropping a distinct proof obligation. |
 
@@ -403,12 +403,12 @@ SCN-031-022     Horizon Ladder is registered and the Shock Transmission Lab admi
 407-When the operator changes a definition-owned lever, compares the result, and resets the comparison
 SCN-031-024     the existing route has a validated published baseline   the operator changes a definition-owned lever, compares the result, changes topics, and resets
 TP-05-11        Regression: SCN-031-024 local hypothetical is nonpersistent and reset restores exact baseline
-specs/031-shock-transmission-foundation/scopes.md:252:- Planned new `tests/shock-transmission.resource.test.mjs`.
-specs/031-shock-transmission-foundation/scopes.md:302:| TP-01-07 | SCN-031-001, SCN-031-014 | functional | functional | `tests/shock-transmission.resource.functional.mjs`
+specs/033-shock-transmission-foundation/scopes.md:252:- Planned new `tests/shock-transmission.resource.functional.mjs`.
+specs/033-shock-transmission-foundation/scopes.md:302:| TP-01-07 | SCN-031-001, SCN-031-014 | functional | functional | `tests/shock-transmission.resource.functional.mjs`
 634:| TP-03-06 | SCN-031-017 | integration | integration | `tests/shock-transmission.migration.integration.mjs`
 {"id":"TP-03-06","type":"integration","category":"integration","file":"tests/shock-transmission.migration.integration.mjs","command":"node --test --test-name-pattern='^Regression: Feature 031 v2 publication preserves pointer-last rollback and immutable history$' tests/brief-refresh-atomicity.test.mjs"}
-specs/031-shock-transmission-foundation/report.md:99:| H031-H9-002 | Markdown, JSON, manifest, and DoD ids share one generated 68-row mapping |
-specs/031-shock-transmission-foundation/scopes.md:1109:| H031-H9-002 | Addressed | The Markdown, structured plan, manifest, and DoD use one exact id mapping for all 68 test rows. |
+specs/033-shock-transmission-foundation/report.md:99:| H031-H9-002 | Markdown, JSON, manifest, and DoD ids share one generated 68-row mapping |
+specs/033-shock-transmission-foundation/scopes.md:1109:| H031-H9-002 | Addressed | The Markdown, structured plan, manifest, and DoD use one exact id mapping for all 68 test rows. |
 CURRENT_JSON_TEST_ROWS=68
 68
 68
@@ -821,7 +821,7 @@ The structured receipt has output hash `a77b3be7e7e7a463a8c48bc9b5544da56e0d3684
 ```text
 TP0517_ROWS=1 TEST_STATE=authored STATUS=planned-not-executed SCOPE_STATUS=not_started
 FEATURE031_PLANNED_MISSING_PATHS=16 HORIZON_LADDER_MISSING=false
-GLOBAL_VALIDATOR_OK=false NEW_MISSING=1 PRESERVED_ROUTE_PATH=tests/shock-transmission.resource.test.mjs HISTORICAL_REPORT_SITES=2
+GLOBAL_VALIDATOR_OK=false NEW_MISSING=1 PRESERVED_ROUTE_PATH=tests/shock-transmission.resource.functional.mjs HISTORICAL_REPORT_SITES=2
 CLASSIFIER_FOCUSED_FAILURES=0
 CLASSIFIER_FOCUSED_RESULT=PASS
 ```
@@ -1002,11 +1002,11 @@ HISTORICAL_SITE_COUNT=34
 HISTORICAL_CLASSIFICATION_ERROR_COUNT=0
 TOTAL_CLASSIFICATION_ERROR_COUNT=5
 FEATURE031_CLASSIFICATION_ERROR_COUNT=5
-FEATURE031_CLASSIFICATION_ERROR artifact=specs/031-shock-transmission-foundation/design.md line=2348 pattern=tests/*.test.mjs role=unknown section=none reason=unknown-artifact-role
-FEATURE031_CLASSIFICATION_ERROR artifact=specs/031-shock-transmission-foundation/scopes.md line=1069 pattern=tests/*.unit.mjs role=active-plan section=none reason=unrecognized-authority-section
-FEATURE031_CLASSIFICATION_ERROR artifact=specs/031-shock-transmission-foundation/scopes.md line=1070 pattern=tests/*.functional.mjs role=active-plan section=none reason=unrecognized-authority-section
-FEATURE031_CLASSIFICATION_ERROR artifact=specs/031-shock-transmission-foundation/scopes.md line=1071 pattern=tests/*.integration.mjs role=active-plan section=none reason=unrecognized-authority-section
-FEATURE031_CLASSIFICATION_ERROR artifact=specs/031-shock-transmission-foundation/scopes.md line=1072 pattern=tests/*.test.mjs role=active-plan section=none reason=unrecognized-authority-section
+FEATURE031_CLASSIFICATION_ERROR artifact=specs/033-shock-transmission-foundation/design.md line=2348 pattern=tests/*.test.mjs role=unknown section=none reason=unknown-artifact-role
+FEATURE031_CLASSIFICATION_ERROR artifact=specs/033-shock-transmission-foundation/scopes.md line=1069 pattern=tests/*.unit.mjs role=active-plan section=none reason=unrecognized-authority-section
+FEATURE031_CLASSIFICATION_ERROR artifact=specs/033-shock-transmission-foundation/scopes.md line=1070 pattern=tests/*.functional.mjs role=active-plan section=none reason=unrecognized-authority-section
+FEATURE031_CLASSIFICATION_ERROR artifact=specs/033-shock-transmission-foundation/scopes.md line=1071 pattern=tests/*.integration.mjs role=active-plan section=none reason=unrecognized-authority-section
+FEATURE031_CLASSIFICATION_ERROR artifact=specs/033-shock-transmission-foundation/scopes.md line=1072 pattern=tests/*.test.mjs role=active-plan section=none reason=unrecognized-authority-section
 NEW_ORPHAN_COUNT=0
 VACUOUS=false
 HISTORICAL_SEPARATION_RESULT=PASS
@@ -1168,10 +1168,10 @@ TOTAL_CLASSIFICATION_ERROR_COUNT=4
 FEATURE031_CLASSIFICATION_ERROR_COUNT=4
 FEATURE031_DESIGN_CLASSIFICATION_ERROR_COUNT=0
 FEATURE031_PLAN_CLASSIFICATION_ERROR_COUNT=4
-FEATURE031_CLASSIFICATION_ERROR artifact=specs/031-shock-transmission-foundation/scopes.md line=1069 pattern=tests/*.unit.mjs role=active-plan section=none reason=unrecognized-authority-section
-FEATURE031_CLASSIFICATION_ERROR artifact=specs/031-shock-transmission-foundation/scopes.md line=1070 pattern=tests/*.functional.mjs role=active-plan section=none reason=unrecognized-authority-section
-FEATURE031_CLASSIFICATION_ERROR artifact=specs/031-shock-transmission-foundation/scopes.md line=1071 pattern=tests/*.integration.mjs role=active-plan section=none reason=unrecognized-authority-section
-FEATURE031_CLASSIFICATION_ERROR artifact=specs/031-shock-transmission-foundation/scopes.md line=1072 pattern=tests/*.test.mjs role=active-plan section=none reason=unrecognized-authority-section
+FEATURE031_CLASSIFICATION_ERROR artifact=specs/033-shock-transmission-foundation/scopes.md line=1069 pattern=tests/*.unit.mjs role=active-plan section=none reason=unrecognized-authority-section
+FEATURE031_CLASSIFICATION_ERROR artifact=specs/033-shock-transmission-foundation/scopes.md line=1070 pattern=tests/*.functional.mjs role=active-plan section=none reason=unrecognized-authority-section
+FEATURE031_CLASSIFICATION_ERROR artifact=specs/033-shock-transmission-foundation/scopes.md line=1071 pattern=tests/*.integration.mjs role=active-plan section=none reason=unrecognized-authority-section
+FEATURE031_CLASSIFICATION_ERROR artifact=specs/033-shock-transmission-foundation/scopes.md line=1072 pattern=tests/*.test.mjs role=active-plan section=none reason=unrecognized-authority-section
 NEW_ORPHAN_COUNT=0
 VACUOUS=false
 DESIGN_WILDCARD_REPAIR_RESULT=PASS
@@ -1251,16 +1251,16 @@ HEAD=d0c09a3ec90d2bb72920caee9e44f1d5f697c619
 BRANCH=bubbles/shock-transmission-planning-a5c53f
 CHECK_PASS id=BOUNDARY_SET detail=expected=9 observed=9 unexpected=0
 CHECK_PASS id=NO_STAGED_PATHS detail=count=0
-FOREIGN_ARTIFACT preserved=true sha256=c5209af910d05eb31af940837757d484d00fd0cd1887c88159e886757c6dd3bd path=specs/031-shock-transmission-foundation/spec.md
-FOREIGN_ARTIFACT preserved=true sha256=aff72b5c6f7fccb62bf903eb635d0760f01ee83057cfe1c6516eef3df6ac460c path=specs/031-shock-transmission-foundation/scopes.md
-FOREIGN_ARTIFACT preserved=true sha256=9d6b85aed2f975cc80ce10901b45950a8650176325b98a6e22ac9a8228330c47 path=specs/031-shock-transmission-foundation/scenario-manifest.json
-FOREIGN_ARTIFACT preserved=true sha256=738593c06a2e9bcb6b42134b351b70576bf96e14e41be4716a49a86e621b5da2 path=specs/031-shock-transmission-foundation/test-plan.json
-FOREIGN_ARTIFACT preserved=true sha256=5cf607157294751bba93f0839f31be75df8b98bb2b42edc3d7058e29185d419d path=specs/031-shock-transmission-foundation/uservalidation.md
+FOREIGN_ARTIFACT preserved=true sha256=c5209af910d05eb31af940837757d484d00fd0cd1887c88159e886757c6dd3bd path=specs/033-shock-transmission-foundation/spec.md
+FOREIGN_ARTIFACT preserved=true sha256=aff72b5c6f7fccb62bf903eb635d0760f01ee83057cfe1c6516eef3df6ac460c path=specs/033-shock-transmission-foundation/scopes.md
+FOREIGN_ARTIFACT preserved=true sha256=9d6b85aed2f975cc80ce10901b45950a8650176325b98a6e22ac9a8228330c47 path=specs/033-shock-transmission-foundation/scenario-manifest.json
+FOREIGN_ARTIFACT preserved=true sha256=738593c06a2e9bcb6b42134b351b70576bf96e14e41be4716a49a86e621b5da2 path=specs/033-shock-transmission-foundation/test-plan.json
+FOREIGN_ARTIFACT preserved=true sha256=5cf607157294751bba93f0839f31be75df8b98bb2b42edc3d7058e29185d419d path=specs/033-shock-transmission-foundation/uservalidation.md
 CHECK_PASS id=FOREIGN_BYTES detail=count=5 failures=0
 CHECK_PASS id=STATUS_CERTIFICATION detail=status=not_started certification=not_started
 CHECK_PASS id=POLICY_PRESERVED detail=keys=grill,tdd,autoCommit,lockdown,regression,validation
 CHECK_PASS id=SCOPE_PROGRESS detail=count=5
-CHECK_PASS id=ROUTING detail=owner=bubbles.plan target=specs/031-shock-transmission-foundation
+CHECK_PASS id=ROUTING detail=owner=bubbles.plan target=specs/033-shock-transmission-foundation
 CHECK_PASS id=HISTORY_ACCOUNTING detail=addressed=2 unresolved=9
 CHECK_PASS id=DESIGN_WILDCARD_ABSENT detail=wildcard=false
 CHECK_PASS id=REPORT_ANCHOR detail=count=1
@@ -1532,7 +1532,7 @@ FEATURE031_CLASSIFICATION_ERROR_COUNT=0
 FEATURE031_PLANNED_MISSING_PATH_COUNT=16
 FEATURE031_ACTIVE_MISSING_PATH_COUNT=0
 FEATURE031_HISTORICAL_REPORT_MISSING_PATH_COUNT=1
-FEATURE031_HISTORICAL_REPORT_MISSING path=tests/shock-transmission.resource.test.mjs sites=3
+FEATURE031_HISTORICAL_REPORT_MISSING path=tests/shock-transmission.resource.functional.mjs sites=3
 PATH_STATE authored=TP-04-21,TP-05-17 plannedNotAuthored=76 plannedNotExecuted=78
 AUTHORED_PROBLEM_COUNT=0
 COMMAND_PROBLEM_COUNT=0
@@ -1967,12 +1967,12 @@ PLANNING_MATURITY_FAILED_LABELS=none
 **Claim Source:** executed
 
 ```text
-ARTIFACT_COMMAND=.github/bubbles/scripts/artifact-lint.sh specs/031-shock-transmission-foundation
+ARTIFACT_COMMAND=.github/bubbles/scripts/artifact-lint.sh specs/033-shock-transmission-foundation
 ARTIFACT_EXIT=0
 ARTIFACT_LINES=40
 ARTIFACT_SHA256=99b9dd7e37ab7820b9f0bc294ddd0e8e68af2901e3633888cf5587f0a14cad60
 ARTIFACT_RESULT=Artifact lint PASSED.
-TRACE_COMMAND=.github/bubbles/scripts/traceability-guard.sh specs/031-shock-transmission-foundation
+TRACE_COMMAND=.github/bubbles/scripts/traceability-guard.sh specs/033-shock-transmission-foundation
 TRACE_EXIT=0
 TRACE_LINES=221
 TRACE_SHA256=c7c9a229d6fabe26708c1196bdfd4df5f3c47dd86aebef793b8dfe28ea857087
@@ -1985,7 +1985,7 @@ TRACE_RESULT=PASSED warnings=0
 #### Transition Guard Refusal
 
 **Phase:** validate
-**Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=10s 840 /opt/homebrew/bin/bash .github/bubbles/scripts/state-transition-guard.sh specs/031-shock-transmission-foundation --target-status specs_hardened --expect-workflow-mode product-to-planning --expect-contract-digest sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190`
+**Command:** `/opt/local/bin/gtimeout --signal=TERM --kill-after=10s 840 /opt/homebrew/bin/bash .github/bubbles/scripts/state-transition-guard.sh specs/033-shock-transmission-foundation --target-status specs_hardened --expect-workflow-mode product-to-planning --expect-contract-digest sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190`
 **Exit Code:** 1
 **Claim Source:** executed
 
@@ -2132,7 +2132,7 @@ The goal-node packet validated against the declared scenario plan and authoritat
 
 ```text
 # Feature 031 AUD-031-001 exact planning transition guard
-$ /opt/homebrew/bin/bash .github/bubbles/scripts/state-transition-guard.sh specs/031-shock-transmission-foundation --target-status specs_hardened --expect-workflow-mode product-to-planning --expect-contract-digest sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
+$ /opt/homebrew/bin/bash .github/bubbles/scripts/state-transition-guard.sh specs/033-shock-transmission-foundation --target-status specs_hardened --expect-workflow-mode product-to-planning --expect-contract-digest sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190
 exit: 1
 lines: 401
 sha256: 466b7f71e953f51c57d3a2983ba6b5a5062ca631c560e4dddb0c77175f0d3cfe
@@ -2157,7 +2157,7 @@ END TRANSITION_GUARD_RESULT_V1
 #### Artifact Lint
 
 **Phase:** audit
-**Command:** `/opt/homebrew/bin/bash .github/bubbles/scripts/artifact-lint.sh specs/031-shock-transmission-foundation`
+**Command:** `/opt/homebrew/bin/bash .github/bubbles/scripts/artifact-lint.sh specs/033-shock-transmission-foundation`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -2212,7 +2212,7 @@ Artifact lint PASSED.
 #### Traceability
 
 **Phase:** audit
-**Command:** `/opt/homebrew/bin/bash .github/bubbles/scripts/traceability-guard.sh specs/031-shock-transmission-foundation --all-scopes`
+**Command:** `/opt/homebrew/bin/bash .github/bubbles/scripts/traceability-guard.sh specs/033-shock-transmission-foundation --all-scopes`
 **Exit Code:** 0
 **Claim Source:** executed
 
@@ -2375,7 +2375,7 @@ BEGIN AUDIT_RESULT_V1
 schemaVersion: audit-result/v1
 runId: RUN-031-AUDIT-20260901T073438Z
 attemptId: AUD-031-002
-target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/031-shock-transmission-foundation
+target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/033-shock-transmission-foundation
 targetRevision: sha256:a1533b5a9231bbdafa987808065716fb786c455b9ebf3851fcdd48b9bf970ebe
 workflowMode: product-to-planning
 modeClass: none
@@ -2890,7 +2890,7 @@ net.high   = max(0, gross.high - offsetLow)
 #### Initial Exact Transition Guard
 
 **Phase:** audit
-**Command:** `/opt/homebrew/bin/bash .github/bubbles/scripts/state-transition-guard.sh specs/031-shock-transmission-foundation --target-status specs_hardened --expect-workflow-mode product-to-planning --expect-contract-digest sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190`
+**Command:** `/opt/homebrew/bin/bash .github/bubbles/scripts/state-transition-guard.sh specs/033-shock-transmission-foundation --target-status specs_hardened --expect-workflow-mode product-to-planning --expect-contract-digest sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190`
 **Exit Code:** 1
 **Claim Source:** executed
 
@@ -2926,7 +2926,7 @@ The full unfiltered output localized the only failure to Check 43. It reported 6
 
 ```text
 # Feature 031 AUD-031-003 artifact lint current bytes prewrite
-$ /opt/homebrew/bin/bash .github/bubbles/scripts/artifact-lint.sh specs/031-shock-transmission-foundation
+$ /opt/homebrew/bin/bash .github/bubbles/scripts/artifact-lint.sh specs/033-shock-transmission-foundation
 exit: 0
 lines: 40
 sha256: 99b9dd7e37ab7820b9f0bc294ddd0e8e68af2901e3633888cf5587f0a14cad60
@@ -2979,7 +2979,7 @@ FEATURE031_AUD003_RESULT=PASS
 #### Planning, Traceability, Test-Compliance, And Command Receipts
 
 **Phase:** audit
-**Commands:** `/opt/homebrew/bin/bash /private/tmp/feature031-planning-maturity-suite.sh`; `/opt/homebrew/bin/bash .github/bubbles/scripts/traceability-guard.sh specs/031-shock-transmission-foundation --all-scopes`; authored-test marker scans; `/opt/homebrew/bin/bash .github/bubbles/scripts/regression-quality-guard.sh tests/market-brief-scorecard.spec.mjs tests/horizon-ladder-lab.spec.mjs`; `/opt/homebrew/bin/bash /private/tmp/feature031-aud003-command-authority-ad8ddf42.sh`
+**Commands:** `/opt/homebrew/bin/bash /private/tmp/feature031-planning-maturity-suite.sh`; `/opt/homebrew/bin/bash .github/bubbles/scripts/traceability-guard.sh specs/033-shock-transmission-foundation --all-scopes`; authored-test marker scans; `/opt/homebrew/bin/bash .github/bubbles/scripts/regression-quality-guard.sh tests/market-brief-scorecard.spec.mjs tests/horizon-ladder-lab.spec.mjs`; `/opt/homebrew/bin/bash /private/tmp/feature031-aud003-command-authority-ad8ddf42.sh`
 **Exit Codes:** `0,0,0,0,0`
 **Claim Source:** executed
 
@@ -3036,14 +3036,14 @@ PLANNING_MATURITY_FAILED_LABELS=none
 
 ```text
 # Feature 031 AUD-031-003 traceability current bytes prewrite
-$ /opt/homebrew/bin/bash .github/bubbles/scripts/traceability-guard.sh specs/031-shock-transmission-foundation --all-scopes
+$ /opt/homebrew/bin/bash .github/bubbles/scripts/traceability-guard.sh specs/033-shock-transmission-foundation --all-scopes
 exit: 0
 lines: 221
 sha256: ad2862b4ffb5a5cc31d204cf1559b7e518b201e849e94de65e494a3cf0fa7c8b
 --- first 20 ---
 ============================================================
   BUBBLES TRACEABILITY GUARD
-  Feature: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/031-shock-transmission-foundation
+  Feature: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/033-shock-transmission-foundation
   Timestamp: 2026-09-01T08:24:55Z
 ============================================================
 
@@ -3229,7 +3229,7 @@ The canonical `AUDIT_RESULT_V1` block below is appended only after the report na
 
 ### Final Audit Result
 
-target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/031-shock-transmission-foundation
+target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/033-shock-transmission-foundation
 mode: product-to-planning
 audit class: planning-maturity
 ceiling: specs_hardened
@@ -3241,7 +3241,7 @@ BEGIN AUDIT_RESULT_V1
 schemaVersion: audit-result/v1
 runId: RUN-031-AUDIT-20260901T073438Z
 attemptId: AUD-031-003
-target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/031-shock-transmission-foundation
+target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/033-shock-transmission-foundation
 targetRevision: sha256:7fd8abc8b2c6b3a48e36851db3fc6a79046bc6dc053dca3625a24b50f8fe5d95
 workflowMode: product-to-planning
 modeClass: none
@@ -3494,7 +3494,7 @@ Research-Lab self-test: 3418 passed, 6 failed
 
 The shared-module failure is in the active Feature 031 delivery path. `rlshock.js` exists but no shipped consumer references it yet. That condition blocks Scope 1 completion and belongs to `bubbles.implement`.
 
-The path guard failure resolves to the historical `tests/shock-transmission.resource.test.mjs` references in this report. That remains `XRL-PATH-GUARD-HIST-001` with `bubbles.test`.
+The path guard failure resolves to the historical `tests/shock-transmission.resource.functional.mjs` references in this report. That remains `XRL-PATH-GUARD-HIST-001` with `bubbles.test`.
 
 The scope-progress guard identifies `specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos#02::certification`. Its state claims `9/0`, while its scope artifact has `9/2`. That remains `XRL-BUG017-DOD-001` with `bubbles.validate`.
 
@@ -3577,7 +3577,7 @@ BEGIN AUDIT_RESULT_V1
 schemaVersion: audit-result/v1
 runId: RUN-031-AUDIT-20260901T210021Z
 attemptId: AUD-031-004
-target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/031-shock-transmission-foundation
+target: /private/tmp/research-lab-shock-transmission-planning-a5c53f/specs/033-shock-transmission-foundation
 targetRevision: sha256:728d014f8284a9c81cdd03cba3eab284363ccf71e1b600a521d36f1187672ac3
 workflowMode: full-delivery
 modeClass: none
@@ -3898,9 +3898,9 @@ The prior `rlshock.js` shared-module shipping failure is absent. The broad comma
 
 ```text
 XRL-PATH-GUARD-HIST-001: 1 new missing path
-missing=tests/shock-transmission.resource.test.mjs
+missing=tests/shock-transmission.resource.functional.mjs
 referenceSites=5
-allReferenceSites=specs/031-shock-transmission-foundation/report.md
+allReferenceSites=specs/033-shock-transmission-foundation/report.md
 XRL-BUG017-DOD-001: 1 new scope-progress drift
 packet=specs/_bugs/BUG-017-system-chrome-worker-teardown-force-kill-on-macos
 claim=9 checked and 0 unchecked

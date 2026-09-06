@@ -32,9 +32,9 @@ five sites, all in historical report evidence.
 
 ```text
 XRL-PATH-GUARD-HIST-001: 1 new missing path
-missing=tests/shock-transmission.resource.test.mjs
+missing=tests/shock-transmission.resource.functional.mjs
 referenceSites=5
-allReferenceSites=specs/031-shock-transmission-foundation/report.md
+allReferenceSites=specs/033-shock-transmission-foundation/report.md
 testPathValidatorRepairPath=route-same-repo
 Feature031RepairPath=excluded
 baselineGrowth=forbidden

@@ -1,7 +1,7 @@
 {
   "version": 1,
   "specId": "028",
-  "spec": "specs/028-company-intelligence-publication-and-brief-transaction",
+  "spec": "specs/032-company-intelligence-publication-and-brief-transaction",
   "generatedBy": "bubbles.plan",
   "generatedAt": "2026-08-28T23:56:58Z",
   "scopeLayout": "single-file",

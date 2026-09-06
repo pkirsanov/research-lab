@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "contractVersion": "scenario-manifest/v1",
-  "featureDir": "specs/_bugs/BUG-024-spec-path-historical-report-leak",
+  "featureDir": "specs/_bugs/BUG-029-spec-path-historical-report-leak",
   "generatedAt": "2026-09-02T01:29:06Z",
   "generatedBy": "bubbles.bug",
   "stage": "bug-discovery",

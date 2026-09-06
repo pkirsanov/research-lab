@@ -33,11 +33,11 @@ Candidate implementation paths:
 
 Packet paths:
 
-- `specs/_bugs/BUG-024-spec-path-historical-report-leak/**`
+- `specs/_bugs/BUG-029-spec-path-historical-report-leak/**`
 
 Excluded paths:
 
-- `specs/031-shock-transmission-foundation/**`
+- `specs/033-shock-transmission-foundation/**`
 - `scripts/validate-spec-test-paths.baseline`
 - `specs/_bugs/BUG-022-historical-report-declaration-leak/**`
 - all Feature 031 and Horizon Ladder implementation or test paths

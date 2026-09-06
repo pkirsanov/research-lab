@@ -1121,14 +1121,14 @@ M       config/domain-model.yaml
 M       rlcompanyintel.js
 M       scripts/brief-author.mjs
 A       scripts/company-intelligence-publication.mjs
-A       specs/028-company-intelligence-publication-and-brief-transaction/design.md
-A       specs/028-company-intelligence-publication-and-brief-transaction/report.md
-A       specs/028-company-intelligence-publication-and-brief-transaction/scenario-manifest.json
-A       specs/028-company-intelligence-publication-and-brief-transaction/scopes.md
-A       specs/028-company-intelligence-publication-and-brief-transaction/spec.md
-A       specs/028-company-intelligence-publication-and-brief-transaction/state.json
-A       specs/028-company-intelligence-publication-and-brief-transaction/test-plan.json
-A       specs/028-company-intelligence-publication-and-brief-transaction/uservalidation.md
+A       specs/032-company-intelligence-publication-and-brief-transaction/design.md
+A       specs/032-company-intelligence-publication-and-brief-transaction/report.md
+A       specs/032-company-intelligence-publication-and-brief-transaction/scenario-manifest.json
+A       specs/032-company-intelligence-publication-and-brief-transaction/scopes.md
+A       specs/032-company-intelligence-publication-and-brief-transaction/spec.md
+A       specs/032-company-intelligence-publication-and-brief-transaction/state.json
+A       specs/032-company-intelligence-publication-and-brief-transaction/test-plan.json
+A       specs/032-company-intelligence-publication-and-brief-transaction/uservalidation.md
 A       tests/company-intelligence-publication.e2e.mjs
 A       tests/company-intelligence-publication.integration.mjs
 A       tests/company-intelligence-publication.unit.mjs
@@ -1137,9 +1137,9 @@ CHECKPOINT_COMMIT_DELTA_END
 CURRENT_WORKTREE_DELTA_BEGIN
 --- omitted 16 line(s); sha256 above covers the full output ---
 --- last 20 ---
-CHANGED_PATH_CLASS=FEATURE028_ARTIFACT PATH=specs/028-company-intelligence-publication-and-brief-transaction/state.json
-CHANGED_PATH_CLASS=FEATURE028_ARTIFACT PATH=specs/028-company-intelligence-publication-and-brief-transaction/test-plan.json
-CHANGED_PATH_CLASS=FEATURE028_ARTIFACT PATH=specs/028-company-intelligence-publication-and-brief-transaction/uservalidation.md
+CHANGED_PATH_CLASS=FEATURE028_ARTIFACT PATH=specs/032-company-intelligence-publication-and-brief-transaction/state.json
+CHANGED_PATH_CLASS=FEATURE028_ARTIFACT PATH=specs/032-company-intelligence-publication-and-brief-transaction/test-plan.json
+CHANGED_PATH_CLASS=FEATURE028_ARTIFACT PATH=specs/032-company-intelligence-publication-and-brief-transaction/uservalidation.md
 CHANGED_PATH_CLASS=SCOPE01_IMPLEMENTATION_OR_TEST PATH=tests/company-intelligence-publication.e2e.mjs
 CHANGED_PATH_CLASS=SCOPE01_IMPLEMENTATION_OR_TEST PATH=tests/company-intelligence-publication.integration.mjs
 CHANGED_PATH_CLASS=SCOPE01_IMPLEMENTATION_OR_TEST PATH=tests/company-intelligence-publication.unit.mjs
@@ -1212,12 +1212,12 @@ true
 GOAL_ID=gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3
 GOAL_REVISION=3
 BOUNDARY_REPOSITORY_ROOTS=["research-lab"]
-BOUNDARY_SPEC_TARGETS=["specs/028-company-intelligence-publication-and-brief-transaction"]
+BOUNDARY_SPEC_TARGETS=["specs/032-company-intelligence-publication-and-brief-transaction"]
 BOUNDARY_CROSS_REPO_POLICY=forbidden
 BOUNDARY_ALLOWED_PATH_COUNT=67
-CANDIDATE_PATH=specs/028-company-intelligence-publication-and-brief-transaction/report.md
+CANDIDATE_PATH=specs/032-company-intelligence-publication-and-brief-transaction/report.md
 disposition=in-boundary
-CANDIDATE_PATH=specs/028-company-intelligence-publication-and-brief-transaction/scopes.md
+CANDIDATE_PATH=specs/032-company-intelligence-publication-and-brief-transaction/scopes.md
 disposition=in-boundary
 CANDIDATE_PATH=tests/company-intelligence-publication.unit.mjs
 disposition=in-boundary
@@ -1408,13 +1408,13 @@ Editor diagnostics report three pre-existing `MD024/no-duplicate-heading` findin
 
 **Phase:** test  
 **Claim Source:** executed  
-**Commands:** `bash .github/bubbles/scripts/artifact-lint.sh specs/028-company-intelligence-publication-and-brief-transaction`; `bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/028-company-intelligence-publication-and-brief-transaction`; `bash .github/bubbles/scripts/test-mechanism-lint.sh specs/028-company-intelligence-publication-and-brief-transaction --repo-root .`; `bash .github/bubbles/scripts/domain-invariant-guard.sh specs/028-company-intelligence-publication-and-brief-transaction`; `bash .github/bubbles/scripts/domain-model-consistency.sh specs/028-company-intelligence-publication-and-brief-transaction`  
+**Commands:** `bash .github/bubbles/scripts/artifact-lint.sh specs/032-company-intelligence-publication-and-brief-transaction`; `bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/032-company-intelligence-publication-and-brief-transaction`; `bash .github/bubbles/scripts/test-mechanism-lint.sh specs/032-company-intelligence-publication-and-brief-transaction --repo-root .`; `bash .github/bubbles/scripts/domain-invariant-guard.sh specs/032-company-intelligence-publication-and-brief-transaction`; `bash .github/bubbles/scripts/domain-model-consistency.sh specs/032-company-intelligence-publication-and-brief-transaction`  
 **Exit Code:** 0 for every command  
 **Related executed category evidence:** [current-session broader regression](#scope-01-current-session-broader-regression) and [current-session source-lock canary](#scope-01-current-session-source-lock-canary).
 
 ```text
 # Feature 028 Scope 01 current artifact quality after planning repair
-$ bash .github/bubbles/scripts/artifact-lint.sh specs/028-company-intelligence-publication-and-brief-transaction
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/032-company-intelligence-publication-and-brief-transaction
 exit: 0
 lines: 40
 sha256: 6fa07b59f80a34023a08a8bdf519737216e354b5c39c62ba12d9a556cba683b3
@@ -1539,7 +1539,7 @@ Scopes 02-05 remain required before the full `Success Signal` is achieved. Scope
 ### Binding and Goal Contract Revision 3 Evidence
 
 **Phase:** validate  
-**Command:** `.github/bubbles/scripts/goal-contract.sh verify --session-file .specify/memory/bubbles.session.json --expect-goal-id gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3 --expect-revision 3 --expect-digest sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f`, then `bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/028-company-intelligence-publication-and-brief-transaction`  
+**Command:** `.github/bubbles/scripts/goal-contract.sh verify --session-file .specify/memory/bubbles.session.json --expect-goal-id gc:vscode-1f5b7362918071b6b2de16fb3709dfae:3 --expect-revision 3 --expect-digest sha256:8219ab9c195774da240e9f9fd6a280a9a7f7fa5ada7ec0bbf1901764f42e8e6f`, then `bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/032-company-intelligence-publication-and-brief-transaction`  
 **Exit Code:** 0  
 **Claim Source:** executed  
 **Capture:** `2484686de9a73c9c09f35d43ca227cb356eec93ca444ca53f740b07f99350ccc`
@@ -1624,14 +1624,14 @@ The exact inherited packet was validated before repository reads. It resolved re
  M tests/company-intelligence.unit.mjs
 ?? .bubbles-worktree
 ?? scripts/company-intelligence-publication.mjs
-?? specs/028-company-intelligence-publication-and-brief-transaction/design.md
-?? specs/028-company-intelligence-publication-and-brief-transaction/report.md
-?? specs/028-company-intelligence-publication-and-brief-transaction/scenario-manifest.json
-?? specs/028-company-intelligence-publication-and-brief-transaction/scopes.md
-?? specs/028-company-intelligence-publication-and-brief-transaction/spec.md
-?? specs/028-company-intelligence-publication-and-brief-transaction/state.json
-?? specs/028-company-intelligence-publication-and-brief-transaction/test-plan.json
-?? specs/028-company-intelligence-publication-and-brief-transaction/uservalidation.md
+?? specs/032-company-intelligence-publication-and-brief-transaction/design.md
+?? specs/032-company-intelligence-publication-and-brief-transaction/report.md
+?? specs/032-company-intelligence-publication-and-brief-transaction/scenario-manifest.json
+?? specs/032-company-intelligence-publication-and-brief-transaction/scopes.md
+?? specs/032-company-intelligence-publication-and-brief-transaction/spec.md
+?? specs/032-company-intelligence-publication-and-brief-transaction/state.json
+?? specs/032-company-intelligence-publication-and-brief-transaction/test-plan.json
+?? specs/032-company-intelligence-publication-and-brief-transaction/uservalidation.md
 ?? tests/company-intelligence-publication.e2e.mjs
 ?? tests/company-intelligence-publication.integration.mjs
 ?? tests/company-intelligence-publication.unit.mjs
@@ -1900,14 +1900,14 @@ SCOPE01_ALLOWED=scripts/brief-author.mjs
 SCOPE01_ALLOWED=tests/company-intelligence.unit.mjs
 PREEXISTING_WORKTREE_CONTROL=.bubbles-worktree
 SCOPE01_ALLOWED=scripts/company-intelligence-publication.mjs
-FEATURE028_ARTIFACT=specs/028-company-intelligence-publication-and-brief-transaction/design.md
-FEATURE028_ARTIFACT=specs/028-company-intelligence-publication-and-brief-transaction/report.md
-FEATURE028_ARTIFACT=specs/028-company-intelligence-publication-and-brief-transaction/scenario-manifest.json
-FEATURE028_ARTIFACT=specs/028-company-intelligence-publication-and-brief-transaction/scopes.md
-FEATURE028_ARTIFACT=specs/028-company-intelligence-publication-and-brief-transaction/spec.md
-FEATURE028_ARTIFACT=specs/028-company-intelligence-publication-and-brief-transaction/state.json
-FEATURE028_ARTIFACT=specs/028-company-intelligence-publication-and-brief-transaction/test-plan.json
-FEATURE028_ARTIFACT=specs/028-company-intelligence-publication-and-brief-transaction/uservalidation.md
+FEATURE028_ARTIFACT=specs/032-company-intelligence-publication-and-brief-transaction/design.md
+FEATURE028_ARTIFACT=specs/032-company-intelligence-publication-and-brief-transaction/report.md
+FEATURE028_ARTIFACT=specs/032-company-intelligence-publication-and-brief-transaction/scenario-manifest.json
+FEATURE028_ARTIFACT=specs/032-company-intelligence-publication-and-brief-transaction/scopes.md
+FEATURE028_ARTIFACT=specs/032-company-intelligence-publication-and-brief-transaction/spec.md
+FEATURE028_ARTIFACT=specs/032-company-intelligence-publication-and-brief-transaction/state.json
+FEATURE028_ARTIFACT=specs/032-company-intelligence-publication-and-brief-transaction/test-plan.json
+FEATURE028_ARTIFACT=specs/032-company-intelligence-publication-and-brief-transaction/uservalidation.md
 SCOPE01_ALLOWED=tests/company-intelligence-publication.e2e.mjs
 SCOPE01_ALLOWED=tests/company-intelligence-publication.integration.mjs
 SCOPE01_ALLOWED=tests/company-intelligence-publication.unit.mjs
@@ -1939,14 +1939,14 @@ G060_CANONICAL_DETECTOR_END
 
 ```text
 # Feature 028 post-remediation artifact lint
-$ bash .github/bubbles/scripts/artifact-lint.sh specs/028-company-intelligence-publication-and-brief-transaction
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/032-company-intelligence-publication-and-brief-transaction
 exit: 0
 lines: 40
 sha256: 6fa07b59f80a34023a08a8bdf519737216e354b5c39c62ba12d9a556cba683b3
 Artifact lint PASSED.
 
 # Feature 028 post-remediation pre-certification goal fidelity
-$ bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/028-company-intelligence-publication-and-brief-transaction
+$ bash .github/bubbles/scripts/goal-fidelity-guard.sh --boundary pre-certification --session-file .specify/memory/bubbles.session.json --spec-dir specs/032-company-intelligence-publication-and-brief-transaction
 exit: 0
 lines: 1
 sha256: 3bc6db28381ca97126677622f3eccd914d5ec26e9fae7e71814eeaf2db389a46
@@ -1955,7 +1955,7 @@ goal-fidelity-guard: PASS boundary=pre-certification
 
 ```text
 # Feature 028 post-remediation all-scope traceability
-$ bash .github/bubbles/scripts/traceability-guard.sh specs/028-company-intelligence-publication-and-brief-transaction --all-scopes
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/032-company-intelligence-publication-and-brief-transaction --all-scopes
 exit: 1
 lines: 190
 sha256: 175ef4a7a037b146dad38794135573e813468e4289a537de06f8e587e0dbaf6c
@@ -1972,7 +1972,7 @@ RESULT: FAILED (10 failures, 0 warnings)
 
 ```text
 # Feature 028 transition replay diagnostic for remaining gate attribution
-$ bash .github/bubbles/scripts/state-transition-guard.sh specs/028-company-intelligence-publication-and-brief-transaction --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/032-company-intelligence-publication-and-brief-transaction --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
 exit: 1
 lines: 569
 sha256: c30aa8f9393023929e98b022ba0fbbfeb6e0e73bd7dd28b072011f4734976a82
@@ -2001,7 +2001,7 @@ verdict: FAIL
 
 ```text
 # Feature 028 final replay after Git-backed delta evidence repair
-$ bash .github/bubbles/scripts/state-transition-guard.sh specs/028-company-intelligence-publication-and-brief-transaction --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/032-company-intelligence-publication-and-brief-transaction --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93
 exit: 1
 lines: 572
 sha256: d88852737dccd4445d91a3184484f8bae5b5cc8f072cc34040e764ea8fce1cbe
@@ -2016,7 +2016,7 @@ verdict: FAIL
 
 ```text
 # Feature 028 direct G097 requirement mechanism attribution
-$ bash .github/bubbles/scripts/requirement-mechanism-guard.sh specs/028-company-intelligence-publication-and-brief-transaction
+$ bash .github/bubbles/scripts/requirement-mechanism-guard.sh specs/032-company-intelligence-publication-and-brief-transaction
 exit: 0
 lines: 1
 sha256: 948bbdc4ca8e240e77c7cc4b07b0ec2c6aa104b3f843efe05cc05a38597c7595
@@ -2133,7 +2133,7 @@ The Scope 01 anti-mock, interception, skip, exclusive-run, todo, and regression-
 ### Receipt-Derived Scenario-State Failure
 
 **Phase:** validate
-**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/028-company-intelligence-publication-and-brief-transaction --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable`
+**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/032-company-intelligence-publication-and-brief-transaction --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable`
 **Exit Code:** 1
 **Claim Source:** executed
 
@@ -2142,7 +2142,7 @@ The Scope 01 anti-mock, interception, skip, exclusive-run, todo, and regression-
 exit: 1
 lines: 133
 sha256: 0dc31dfb36172de0ea3885e311d4cd6f2c9108fd0c6dad8bd77366fe91916693
-scenario-state-resolve: specs/028-company-intelligence-publication-and-brief-transaction
+scenario-state-resolve: specs/032-company-intelligence-publication-and-brief-transaction
   source revision: 5f5caf16ac91
   SCN-028-005  state=PLANNED  derived=[PLANNED]
   SCN-028-006  state=PLANNED  derived=[PLANNED]
@@ -2159,7 +2159,7 @@ The repository has no `.specify/runtime/tool-calls.jsonl`. Fresh passing test ou
 ### Registry-Asserted Transition Result
 
 **Phase:** validate
-**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/028-company-intelligence-publication-and-brief-transaction --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93`
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/032-company-intelligence-publication-and-brief-transaction --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93`
 **Exit Code:** 1
 **Claim Source:** executed
 
@@ -2295,14 +2295,14 @@ The strengthened TP-01-07 process test still has one exact Test Plan title. It n
 ### Receipt-Derived State Resolver Result
 
 **Phase:** test
-**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/028-company-intelligence-publication-and-brief-transaction --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable`
+**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/032-company-intelligence-publication-and-brief-transaction --require RED_VERIFIED --require IMPLEMENTED --require GREEN_TARGETED --require GREEN_LIVE --require REGRESSION_GREEN --require OBSERVED --certifiable`
 **Exit Code:** 1
 **Claim Source:** interpreted
 **Interpretation:** Every Scope 01 scenario reaches `REGRESSION_GREEN`, including trait-applicable `GREEN_LIVE`; the whole-feature command remains nonzero only because Scopes 02 through 05 correctly remain `PLANNED`. It does not certify Scope 01 or the feature.
 **Capture:** `0f3c12ed463050c3ebf85344b082a02ca4517288969d7f37927a28ce8d6bb6d5`, lines 1-14 of 105:
 
 ```text
-scenario-state-resolve: specs/028-company-intelligence-publication-and-brief-transaction
+scenario-state-resolve: specs/032-company-intelligence-publication-and-brief-transaction
   source revision: 5f5caf16ac91
   SCN-028-001  state=PLANNED  derived=[PLANNED]
   SCN-028-002  state=PLANNED  derived=[PLANNED]
@@ -2803,9 +2803,9 @@ SCOPE02_STRICT_BOUNDARY_BEGIN
 GIT_DIFF_CHECK_EXIT=0
 BOUNDARY_PATH code= M class=scope02-allowed path=scripts/brief-publication.mjs
 BOUNDARY_PATH code= M class=scope02-allowed path=scripts/company-intelligence-publication.mjs
-BOUNDARY_PATH code= M class=scope02-allowed path=specs/028-company-intelligence-publication-and-brief-transaction/report.md
-BOUNDARY_PATH code= M class=scope02-allowed path=specs/028-company-intelligence-publication-and-brief-transaction/scopes.md
-BOUNDARY_PATH code= M class=scope02-allowed path=specs/028-company-intelligence-publication-and-brief-transaction/state.json
+BOUNDARY_PATH code= M class=scope02-allowed path=specs/032-company-intelligence-publication-and-brief-transaction/report.md
+BOUNDARY_PATH code= M class=scope02-allowed path=specs/032-company-intelligence-publication-and-brief-transaction/scopes.md
+BOUNDARY_PATH code= M class=scope02-allowed path=specs/032-company-intelligence-publication-and-brief-transaction/state.json
 BOUNDARY_PATH code= M class=scope02-allowed path=tests/company-intelligence-publication.e2e.mjs
 BOUNDARY_PATH code= M class=scope02-allowed path=tests/company-intelligence-publication.integration.mjs
 BOUNDARY_PATH code= M class=scope02-allowed path=tests/distributed-briefs.distributed-publish.unit.mjs
@@ -3298,7 +3298,7 @@ Capture SHA-256: `c38422e440d08c7155a9a20f31535f82128dc1aa02a3169dba025928de045d
 ### Post-Repair Transition Diagnostic
 
 **Phase:** test
-**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/028-company-intelligence-publication-and-brief-transaction --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93`
+**Command:** `bash .github/bubbles/scripts/state-transition-guard.sh specs/032-company-intelligence-publication-and-brief-transaction --target-status done --expect-workflow-mode full-delivery --expect-contract-digest sha256:e330ef85136370a1fa7e9edb5813cb5879a6554afcff98ba373ac48442c7ca93`
 **Exit Code:** 1
 **Claim Source:** interpreted
 **Interpretation:** The terminal guard remains nonzero as required for an incomplete five-scope feature. It now accepts both Scope 02 regression DoD requirements and all current canonical receipts. Its remaining failed gates are later-scope, full-delivery-phase, and terminal human-acceptance obligations.
@@ -3935,11 +3935,11 @@ The final strict freshness check reports 20 append-only rows, 13 current identit
 
 **Phase:** implement
 **Claim Source:** executed
-**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/028-company-intelligence-publication-and-brief-transaction --log .specify/runtime/tool-calls.jsonl --source-revision 3e4938e2eb464cb2ac2b740055513cf462df407c --format text`
+**Command:** `bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/032-company-intelligence-publication-and-brief-transaction --log .specify/runtime/tool-calls.jsonl --source-revision 3e4938e2eb464cb2ac2b740055513cf462df407c --format text`
 **Exit Code:** 0
 
 ```text
-scenario-state-resolve: specs/028-company-intelligence-publication-and-brief-transaction
+scenario-state-resolve: specs/032-company-intelligence-publication-and-brief-transaction
   source revision: 3e4938e2eb46
   SCN-028-015  state=IMPLEMENTED  derived=[PLANNED RED_VERIFIED IMPLEMENTED]
   SCN-028-016  state=IMPLEMENTED  derived=[PLANNED RED_VERIFIED IMPLEMENTED]
@@ -4051,11 +4051,11 @@ The current receipt carries no `scenarioBinding`. It therefore carries no stale 
 
 **Phase:** implement
 **Claim Source:** executed
-**Command:** `/opt/homebrew/bin/bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/028-company-intelligence-publication-and-brief-transaction --log .specify/runtime/tool-calls.jsonl --source-revision 6c6a27e1fd42e7c89484dfeb63e76f1d40a56c3e --format text`
+**Command:** `/opt/homebrew/bin/bash .github/bubbles/scripts/scenario-state-resolve.sh --spec-dir specs/032-company-intelligence-publication-and-brief-transaction --log .specify/runtime/tool-calls.jsonl --source-revision 6c6a27e1fd42e7c89484dfeb63e76f1d40a56c3e --format text`
 **Exit Code:** `0`
 
 ```text
-scenario-state-resolve: specs/028-company-intelligence-publication-and-brief-transaction
+scenario-state-resolve: specs/032-company-intelligence-publication-and-brief-transaction
   source revision: 6c6a27e1fd42
   SCN-028-001  state=PLANNED  derived=[PLANNED]
   SCN-028-002  state=PLANNED  derived=[PLANNED]

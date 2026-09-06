@@ -57,7 +57,6 @@
     { label: "AI Capex Strategy", full: "AI Capex Strategy Lab", icon: "⚡", file: "ai-capex-strategy-lab.html", group: "Fundamentals" },
     { label: "MSFT July Print", full: "MSFT July-Print Margin & EPS Model", icon: "📊", file: "msft-july-print-model.html", group: "Fundamentals" },
     { label: "Company Fundamentals", full: "Company Fundamentals & Adaptive Brief Lab", icon: "🏢", file: "company-fundamentals-lab.html", group: "Fundamentals" },
-    { label: "Company Intelligence", full: "Company Multi-Horizon Intelligence Lab", icon: "🧩", file: "company-intelligence-lab.html", group: "Fundamentals" },
     { label: "ETF Momentum", full: "ETF Momentum Research Lab", icon: "📈", file: "etf-momentum-lab.html", group: "Rotation & Macro" },
     { label: "Strategy Self-Improve", full: "Strategy Self-Improvement & Walk-Forward Lab", icon: "🔬", file: "strategy-self-improvement-lab.html", group: "Strategy & Validation" },
     { label: "Strategy Validate", full: "Strategy Validation & Real-Data Walk-Forward Lab", icon: "🧪", file: "strategy-validation-lab.html", group: "Strategy & Validation" },

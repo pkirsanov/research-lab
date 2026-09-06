@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "featureDir": "specs/_bugs/BUG-023-options-flow-ready-clock-drift",
+  "featureDir": "specs/_bugs/BUG-028-options-flow-ready-clock-drift",
   "featureName": "BUG-023 Options Flow Ready Clock Drift",
   "createdAt": "2026-09-02T01:29:07Z",
   "lastUpdatedAt": "2026-09-02T16:48:38Z",
@@ -149,7 +149,7 @@
       "transitionRequestId": "TR-BUG023-PLAN-001",
       "status": "resolved",
       "routedTo": "bubbles.implement",
-      "routedToSpec": "specs/_bugs/BUG-023-options-flow-ready-clock-drift",
+      "routedToSpec": "specs/_bugs/BUG-028-options-flow-ready-clock-drift",
       "productAction": "none",
       "routingClass": "same-spec-execution",
       "crossRepoFollowUp": false,

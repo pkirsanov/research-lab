@@ -487,11 +487,11 @@
     ],
     "crossRepoPolicy": "forbidden",
     "specTargets": [
-      "specs/028-company-intelligence-publication-and-brief-transaction",
+      "specs/032-company-intelligence-publication-and-brief-transaction",
       "specs/012-market-action-center-and-guided-tools/bugs/BUG-002-scope-baseline-head-drift-antipattern"
     ],
     "allowedPaths": [
-      "specs/028-company-intelligence-publication-and-brief-transaction/**",
+      "specs/032-company-intelligence-publication-and-brief-transaction/**",
       "company-intelligence-lab.html",
       "rlcompanyintel.js",
       "rldata.js",

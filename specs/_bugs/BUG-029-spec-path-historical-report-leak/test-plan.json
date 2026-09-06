@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "featureDir": "specs/_bugs/BUG-024-spec-path-historical-report-leak",
+  "featureDir": "specs/_bugs/BUG-029-spec-path-historical-report-leak",
   "generatedAt": "2026-09-02T01:29:06Z",
   "generatedBy": "bubbles.bug",
   "stage": "bug-discovery",
@@ -62,7 +62,7 @@
           ],
           "type": "Evidence integrity",
           "category": "governance",
-          "file": "specs/031-shock-transmission-foundation/report.md",
+          "file": "specs/033-shock-transmission-foundation/report.md",
           "description": "Feature 031 historical evidence and all excluded paths remain unchanged.",
           "command": "bubbles.plan must select the exact repository-native byte and containment checks",
           "liveSystem": false,

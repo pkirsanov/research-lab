@@ -87,11 +87,11 @@ the options-flow owner model and stale refusal truthfully on any execution date.
 **Allowed file families:**
 
 - The smallest options-flow owning-read block in `scripts/selftest.mjs`.
-- `specs/_bugs/BUG-023-options-flow-ready-clock-drift/**`.
+- `specs/_bugs/BUG-028-options-flow-ready-clock-drift/**`.
 
 **Excluded surfaces:**
 
-- `specs/031-shock-transmission-foundation/**`.
+- `specs/033-shock-transmission-foundation/**`.
 - All Feature 031 source, tests, and fixtures.
 - Every Horizon Ladder source, data, note, and test.
 - `tools.json`, `index.html`, and `rlnav.js`.

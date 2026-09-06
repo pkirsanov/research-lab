@@ -1,6 +1,6 @@
 {
   "version": 3,
-  "featureDir": "specs/031-shock-transmission-foundation",
+  "featureDir": "specs/033-shock-transmission-foundation",
   "featureName": "Shock Transmission Foundation",
   "createdAt": "2026-08-31T03:57:26Z",
   "lastUpdatedAt": "2026-09-01T23:03:48Z",
@@ -35,7 +35,7 @@
     "conventionBasis": "The transition follows the repository-established lifecycle records in specs/013-market-regime-stack-and-strategy-playbook/state.json and specs/015-recommendation-outcome-ledger-and-track-record/state.json. Both preserve completed planning evidence while moving a self-delivered packet from a planning ceiling to an open done-ceiling delivery mode. This record uses the same operator authority, from and to contract, gate-effect, honest-disclosure, and bounded-run structure.",
     "gateEffect": "The grandfathered mode resolver reports product-to-planning with statusCeiling specs_hardened, planning-maturity-v1, terminalAliases [specs_hardened], and planning-only Gate G073. It reports full-delivery with statusCeiling done, delivery-completion-v1, no terminal alias, implementation phases, and no G073 source lockout. Delivery-completion gates now apply and are expected to remain nonzero until real implementation, tests, specialist phases, evidence, and certification exist. No gate is waived, bypassed, or relabeled by this transition.",
     "honestDisclosure": "NO IMPLEMENTATION OR DELIVERY PROGRESS IS CLAIMED. All five execution.scopeProgress entries remain not_started. All 117 delivery DoD items and all 19 human acceptance items remain unchecked. certification.completedScopes, certification.certifiedCompletedPhases, and certification.scopeProgress remain empty. AUD-031-003 and the complete planning audit history remain unchanged as evidence that the planning packet reached its former ceiling; they do not certify delivery under full-delivery. LEGACY-031-001, XRL-PATH-GUARD-HIST-001, and XRL-BUG017-DOD-001 remain route-only findings with their existing owners and constraints.",
-    "boundedRun": "Only specs/031-shock-transmission-foundation/state.json is modified. The write changes lifecycle routing and the planning-derived allowedPaths declaration only. It does not edit spec.md, design.md, scopes.md, report.md, uservalidation.md, scenario-manifest.json, test-plan.json, source, tests, fixtures, configuration, definitions, documentation, registry, navigation, Horizon Ladder, or any standalone Shock Lab surface. All 20 pre-existing executionHistory entries and all three audit attempts remain byte-for-byte unchanged. No file is staged, committed, pushed, checked out, stashed, or restored. requiresRevalidation remains false because no completed delivery certification exists; the open in_progress status already requires fresh delivery validation before done."
+    "boundedRun": "Only specs/033-shock-transmission-foundation/state.json is modified. The write changes lifecycle routing and the planning-derived allowedPaths declaration only. It does not edit spec.md, design.md, scopes.md, report.md, uservalidation.md, scenario-manifest.json, test-plan.json, source, tests, fixtures, configuration, definitions, documentation, registry, navigation, Horizon Ladder, or any standalone Shock Lab surface. All 20 pre-existing executionHistory entries and all three audit attempts remain byte-for-byte unchanged. No file is staged, committed, pushed, checked out, stashed, or restored. requiresRevalidation remains false because no completed delivery certification exists; the open in_progress status already requires fresh delivery validation before done."
   },
   "deliveryTopology": "in-place",
   "deliveryTopologyJustification": "Delivery uses this feature directory after the product-to-planning workflow completes its planning-only maturity checks.",
@@ -50,10 +50,10 @@
       "research-lab"
     ],
     "specTargets": [
-      "specs/031-shock-transmission-foundation"
+      "specs/033-shock-transmission-foundation"
     ],
     "allowedPaths": [
-      "specs/031-shock-transmission-foundation/**",
+      "specs/033-shock-transmission-foundation/**",
       "rlshock.js",
       "rlshockadapters.js",
       "rlagenda.js",
@@ -106,14 +106,14 @@
         "agent": "bubbles.analyst",
         "scopes": [],
         "claimedAt": "2026-08-31T04:03:26Z",
-        "evidenceRef": "specs/031-shock-transmission-foundation/spec.md#evidence-sources"
+        "evidenceRef": "specs/033-shock-transmission-foundation/spec.md#evidence-sources"
       },
       {
         "phase": "bootstrap",
         "agent": "bubbles.design",
         "scopes": [],
         "claimedAt": "2026-08-31T05:21:51Z",
-        "evidenceRef": "specs/031-shock-transmission-foundation/design.md#design-decision-record"
+        "evidenceRef": "specs/033-shock-transmission-foundation/design.md#design-decision-record"
       }
     ],
     "scopeProgress": [

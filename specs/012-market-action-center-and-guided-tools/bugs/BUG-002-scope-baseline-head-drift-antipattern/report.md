@@ -621,7 +621,7 @@ GOVERNED_EPOCH_STABLE=true
 
 **Phase:** test
 **Claim Source:** executed
-**Evidence source:** [Feature 028 exact TP-05-08 unchanged-tree matrix](../../../028-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix)
+**Evidence source:** [Feature 028 exact TP-05-08 unchanged-tree matrix](../../../032-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix)
 **Command:** `node --test tests/*.unit.mjs && node --test tests/*.integration.mjs && node --test tests/*.functional.mjs && node --test tests/*.test.mjs && npx --no-install playwright test tests/company-intelligence-publication.spec.mjs tests/company-intelligence-lab.spec.mjs tests/tool-discovery.spec.mjs tests/deployed-site-parity.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
 **Exit Code:** `1`
 **Receipt:** parent Feature 028 tool-log row `150` at `2026-09-01T20:35:51Z`

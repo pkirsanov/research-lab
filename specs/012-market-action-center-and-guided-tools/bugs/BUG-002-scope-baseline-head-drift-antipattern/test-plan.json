@@ -19,7 +19,7 @@
         "testPlanId": "TP-BUG002-RED-01",
         "dodId": "DOD-TP-BUG002-RED-01",
         "checked": false,
-        "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix",
+        "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix",
         "executionStatus": "failing-current"
       },
       {
@@ -108,7 +108,7 @@
           "redRequiredBeforeImplementation": true,
           "testState": "existing-red-control",
           "status": "failing-current",
-          "evidenceRef": "specs/028-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix"
+          "evidenceRef": "specs/032-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix"
         },
         {
           "id": "TP-BUG002-RED-02",

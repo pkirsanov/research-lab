@@ -91,7 +91,7 @@
         }
       ],
       "evidenceRefs": [
-        "specs/028-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix"
+        "specs/032-company-intelligence-publication-and-brief-transaction/report.md#exact-tp-05-08-unchanged-tree-matrix"
       ],
       "implementationRefs": [
         "tests/contextual-tooltip.functional.mjs#baselineBytes",

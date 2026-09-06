@@ -150,8 +150,3 @@ tests/shared-cycle-exchange.spec.mjs
 tests/shared-cycle-exchange.stress.mjs
 tests/shared-cycle-exchange.support.mjs
 tests/shared-cycle-exchange.unit.mjs
-tests/tool-brief-v2-author-boundary.functional.mjs
-tests/tool-brief-v2-publication.integration.mjs
-tests/tool-brief-v2.spec.mjs
-tests/tool-brief-v2.stress.mjs
-tests/tool-brief-v2.unit.mjs

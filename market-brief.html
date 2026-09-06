@@ -1103,6 +1103,12 @@
         <section id="mac-center" data-mac-center data-mac-block="headline" data-mac-default="visible"
             aria-live="polite"></section>
 
+        <!-- Feature 012 Scope 11 — the ordinary per-tool ToolBrief/v2 mount. Empty and hidden until a
+             validated brief is rendered into it, so a page with no authored brief shows nothing here
+             rather than an empty promise. -->
+        <section id="mac-tool-brief" data-mac-tool-brief data-mac-block="tool-brief" data-mac-default="visible"
+            aria-live="polite" hidden></section>
+
         <div data-mac-block="decision-surface" data-mac-default="visible">
             <h2 class="sec"
                 title="Items that are asking for a decision inside a named window, ranked by how close their effect is to arriving — not by how bad they would be. Each one publishes what would escalate it, what would prove it wrong, and when it stops counting.">
@@ -1918,7 +1924,7 @@
         (function macCenterController() {
             "use strict";
             if (typeof document === "undefined") return;
-            var JOURNEY_IDS = null, JOURNEY_TITLES = null, WATCHLIST = null, OWNER_PRECEDENCE = null, OWNER_READS = null, lastMatrix = null, lastProjection = null, enhanced = false;
+            var JOURNEY_IDS = null, JOURNEY_TITLES = null, WATCHLIST = null, OWNER_PRECEDENCE = null, OWNER_READS = null, lastMatrix = null, lastProjection = null, enhanced = false, DEPENDENCY = null;
 
             function esc(s) { return (s == null ? "" : String(s)).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
             function panel(mode) { return document.querySelector('[data-rlexperience-panel="' + mode + '"]'); }
@@ -1960,7 +1966,14 @@
             }
             function composeProjection(briefInput) {
                 if (!window.RLMARKETACTIONCENTER || !(Array.isArray(JOURNEY_IDS) && JOURNEY_IDS.length === 4)) return null;
-                return RLMARKETACTIONCENTER.composeCenterProjection({ projectionId: "market-action-center/live", generationRef: "legacy-market-brief-payload", cutoffAt: cutoff(), activeView: "brief", brief: briefInput || { coverageComplete: false, actions: [], legacyProvenance: "legacy-market-brief-payload" }, portfolio: { publicMatrixRef: "market-action-public-matrix/live" }, redAlert: { alertRefs: [], cutoffAt: cutoff() }, journey: { definitionRefs: JOURNEY_IDS.slice() } });
+                var input = { projectionId: "market-action-center/live", generationRef: "legacy-market-brief-payload", cutoffAt: cutoff(), activeView: "brief", brief: briefInput || { coverageComplete: false, actions: [], legacyProvenance: "legacy-market-brief-payload" }, portfolio: { publicMatrixRef: "market-action-public-matrix/live" }, redAlert: { alertRefs: [], cutoffAt: cutoff() }, journey: { definitionRefs: JOURNEY_IDS.slice() } };
+                /* Feature 012 Scope 11 — the OBSERVED Feature 002 dependency state, derived by the same
+                   production predicate the shell uses (rlexperience projectDependencyGate over the
+                   published tool-experience.gates.json). The page never asserts the gate is satisfied;
+                   it reports what the predicate returned. When the observation is absent or pending,
+                   the composer keeps every prior dependency-pending byte. */
+                if (DEPENDENCY) input.dependency = DEPENDENCY;
+                return RLMARKETACTIONCENTER.composeCenterProjection(input);
             }
             function prependInto(mode, html, marker) {
                 var host = panel(mode); if (!host) return null;
@@ -2080,6 +2093,7 @@
             }
             function renderBrief(briefInput) {
                 var proj = composeProjection(briefInput);
+                lastProjection = proj;
                 var host = document.getElementById("mac-center");
                 if (proj && proj.ok && window.RLBRIEF && typeof RLBRIEF.renderCenterNoAction === "function") RLBRIEF.renderCenterNoAction(host, proj.value.views.brief);
                 return proj;
@@ -2096,17 +2110,27 @@
                 renderBrief(null);
                 openEvidenceIfPower();
                 window.__rlmac = {
-                    version: "market-action-center/scope-09",
+                    version: "market-action-center/scope-11",
                     composePublicMatrix: function (i) { return RLMARKETACTIONCENTER.composePublicMatrix(i); },
                     composeCenterProjection: function (i) { return RLMARKETACTIONCENTER.composeCenterProjection(i); },
                     renderBrief: renderBrief,
+                    /* Feature 012 Scope 11 — the per-tool ToolBrief/v2 render seam, mirroring renderBrief.
+                       It draws through the REAL production renderer; the brief handed in must already
+                       have passed validateToolBriefV2 upstream. */
+                    renderToolBriefV2: function (brief, hostId) {
+                        var host = document.getElementById(hostId || "mac-tool-brief");
+                        if (!host || !window.RLBRIEF || typeof RLBRIEF.renderToolBriefV2 !== "function") return false;
+                        RLBRIEF.renderToolBriefV2(host, brief);
+                        return true;
+                    },
+                    getDependency: function () { return DEPENDENCY; },
                     getMatrix: function () { return lastMatrix; },
                     getProjection: function () { return lastProjection && lastProjection.ok ? lastProjection.value : null; },
                     journeyIds: (JOURNEY_IDS || []).slice()
                 };
             }
             function boot() {
-                Promise.all([readJson("watchlist.json"), readJson("tools.json"), readJson("market-brief.owner-reads.json"), readJson("journeys.json")]).then(function (r) {
+                Promise.all([readJson("watchlist.json"), readJson("tools.json"), readJson("market-brief.owner-reads.json"), readJson("journeys.json"), readJson("tool-experience.config.json"), readJson("tool-experience.gates.json")]).then(function (r) {
                     WATCHLIST = r[0] || { items: [] };
                     var reg = r[1] && Array.isArray(r[1].tools) ? r[1].tools : [];
                     OWNER_PRECEDENCE = ownerPrecedenceFrom(reg);
@@ -2123,6 +2147,17 @@
                         return map;
                     })(r[3]);
                     for (var i = 0; i < reg.length; i++) { if (reg[i] && reg[i].id === "market-brief" && reg[i].experience && Array.isArray(reg[i].experience.journeyDefinitionIds)) { JOURNEY_IDS = reg[i].experience.journeyDefinitionIds.slice(); break; } }
+                    /* Ask the production predicate what the Feature 002 gate actually says. A missing
+                       config, a missing gates document, or a throwing predicate all leave DEPENDENCY
+                       null — which is the pending path, never an assumed pass. */
+                    DEPENDENCY = (function (config, gatesDoc) {
+                        try {
+                            if (!config || !gatesDoc || !gatesDoc.states) return null;
+                            if (!window.RLEXPERIENCE || typeof RLEXPERIENCE.projectDependencyGate !== "function") return null;
+                            var panelState = RLEXPERIENCE.projectDependencyGate(config, "FEATURE002", gatesDoc.states);
+                            return { feature002: panelState && panelState.ok && panelState.value && panelState.value.state === "available" ? "accepted" : "pending" };
+                        } catch (error) { return null; }
+                    })(r[4], r[5]);
                     var tries = 0;
                     (function pump() { enhance(); if (!enhanced && tries++ < 120) setTimeout(pump, 50); })();
                 });

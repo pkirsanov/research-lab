@@ -1,0 +1,289 @@
+{
+  "version": 3,
+  "featureDir": "specs/_ops/OPS-integrate-research-lab-main",
+  "featureName": "Integrate Research Lab Main",
+  "createdAt": "2026-09-03T12:17:26Z",
+  "lastUpdatedAt": "2026-09-03T13:38:12Z",
+  "status": "not_started",
+  "workflowMode": "devops-to-doc",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "workBoundary": {
+    "repositoryRoots": [
+      "research-lab"
+    ],
+    "specTargets": [
+      "specs/_ops/OPS-integrate-research-lab-main"
+    ],
+    "allowedPaths": [
+      "specs/_ops/OPS-integrate-research-lab-main/**",
+      "tests/ops-integrate-research-lab-main.functional.mjs",
+      "tests/ops-integrate-research-lab-main.integration.mjs"
+    ],
+    "crossRepoPolicy": "forbidden"
+  },
+  "execution": {
+    "goalContractRef": null,
+    "activeAgent": "bubbles.devops",
+    "currentPhase": "devops",
+    "currentPhaseStatus": "route_required",
+    "currentScope": "01-freeze-and-classify-live-state",
+    "runStartedAt": "2026-09-03T12:54:46Z",
+    "completedAt": "2026-09-03T13:38:12Z",
+    "completedPhaseClaims": [
+      {
+        "phase": "analyze",
+        "agent": "bubbles.analyst",
+        "scopes": [],
+        "claimedAt": "2026-09-03T12:17:26Z",
+        "evidenceRef": "spec.md#evidence-sources"
+      },
+      {
+        "phase": "bootstrap",
+        "agent": "bubbles.plan",
+        "scopes": [],
+        "claimedAt": "2026-09-03T13:08:09Z",
+        "evidenceRef": "scopes.md#execution-outline"
+      },
+      {
+        "phase": "devops",
+        "agent": "bubbles.devops",
+        "scopes": [
+          "01-freeze-and-classify-live-state"
+        ],
+        "claimedAt": "2026-09-03T13:32:19Z",
+        "evidenceRef": "report.md#scope-1-inventory-freeze-and-classification"
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.test",
+    "nextRequiredTarget": "specs/_ops/OPS-integrate-research-lab-main/test-plan.json",
+    "nextRequiredReason": "Scope 1 operational records remain current and nonterminal. Both exact planned Scope 1 test paths are declared in workBoundary.allowedPaths. bubbles.test must author and run TP-01-01 through TP-01-03 and update their evidence links; no scope completion, certification, or acceptance is inferred.",
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "not_started",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "workflowMode": "product-to-planning",
+      "executionModel": "direct-inherited-packet",
+      "parentAgent": null,
+      "startedAt": "2026-09-03T12:17:26Z",
+      "completedAt": "2026-09-03T12:17:26Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "OPS-FINDING-001",
+        "OPS-FINDING-002",
+        "OPS-FINDING-003",
+        "OPS-FINDING-004",
+        "OPS-FINDING-005",
+        "OPS-FINDING-006",
+        "OPS-FINDING-007",
+        "OPS-FINDING-008"
+      ],
+      "unresolvedFindings": [
+        "OPS-UX-HANDOFF-001"
+      ],
+      "nextRequiredOwner": "bubbles.ux",
+      "summary": "Created the analyst-owned OPS specification from current Git topology, repository policy, existing delivery state, and explicit operator authorization. Defined thirty-five requirements, fifteen stable scenarios, action boundaries, ref classifications, dirty-work preservation, conflict accounting, validation, ancestry, no-push, separate-cleanup, and delivery-resumption behavior. No Git integration or foreign-owned artifact change was performed."
+    },
+    {
+      "agent": "bubbles.ux",
+      "workflowMode": "product-to-planning",
+      "executionModel": "direct-inherited-packet",
+      "parentAgent": null,
+      "startedAt": "2026-09-03T12:25:18Z",
+      "completedAt": "2026-09-03T12:25:18Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "scopesCompleted": [],
+      "outcome": "blocked",
+      "addressedFindings": [],
+      "unresolvedFindings": [
+        "OPS-UX-BLOCKER-001"
+      ],
+      "nextRequiredOwner": "bubbles.ux",
+      "summary": "Validated the inherited repository packet and revalidated the volatile Git baseline. The UX phase could not author its required output because the operator prohibited edits to spec.md while repository ownership requires all UX content there and forbids sidecar UX files. No UX phase completion claim, certification change, Git mutation, push, or cleanup action was recorded."
+    },
+    {
+      "agent": "bubbles.ux",
+      "workflowMode": "product-to-planning",
+      "executionModel": "direct-inherited-packet",
+      "parentAgent": null,
+      "startedAt": "2026-09-03T12:29:31Z",
+      "completedAt": "2026-09-03T12:34:29Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "OPS-UX-HANDOFF-001",
+        "OPS-UX-BLOCKER-001"
+      ],
+      "unresolvedFindings": [
+        "OPS-UX-ARTIFACT-LINT-001",
+        "OPS-UX-ARTIFACT-LINT-002",
+        "OPS-UX-ARTIFACT-LINT-003",
+        "OPS-UX-ARTIFACT-LINT-004"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "evidenceRefs": [
+        "spec.md#ui-wireframes",
+        "spec.md#user-flows"
+      ],
+      "summary": "Added the UX-owned operational text interface to spec.md. Six screens define inventory freeze and invalidation, closed ref classifications, dirty-byte ownership review, conflict review, refusal and remediation records, exact candidate-SHA approval, local-main advancement, no-push and no-cleanup boundaries, and delivery continuation. Four flows map every SCN-OPS-001 through SCN-OPS-015 scenario. The focused UX1 and UX8 gate passed. Canonical artifact lint now reports only missing downstream-owned design.md, scopes.md, report.md, and uservalidation.md, so no UX completedPhaseClaim, status transition, or certification mutation was recorded."
+    },
+    {
+      "agent": "bubbles.design",
+      "workflowMode": "product-to-planning",
+      "executionModel": "direct-inherited-packet",
+      "parentAgent": null,
+      "startedAt": "2026-09-03T12:39:00Z",
+      "completedAt": "2026-09-03T12:48:00Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "OPS-DESIGN-INVENTORY-001",
+        "OPS-DESIGN-INTEGRATION-002",
+        "OPS-DESIGN-VALIDATION-003"
+      ],
+      "unresolvedFindings": [
+        "OPS-PLAN-SCOPES-001",
+        "OPS-PLAN-REPORT-002",
+        "OPS-PLAN-USERVALIDATION-003"
+      ],
+      "nextRequiredOwner": "bubbles.plan",
+      "evidenceRefs": [
+        "design.md#frozen-live-inclusion-and-exclusion-matrix",
+        "design.md#isolated-candidate-construction",
+        "design.md#candidate-validation-contract",
+        "design.md#delivery-continuation-handoff"
+      ],
+      "summary": "Created the contract-grade OPS integration design from the current analyst and UX specification, current command registry, binding product principles, OPS recipe, and revalidated Git topology. The design freezes all 68 refs, five worktree registrations, and the live stash in one machine-readable matrix. It defines owner-separated dirty-byte preservation, exact family-tip proof, isolated merge-commit construction, conflict accounting, producer-owned generated artifacts, exact candidate validation, compare-and-swap local-main advancement, bounded rollback, and delivery continuation without status or acceptance inference. Focused readiness, reference, freshness, capability, mechanism, prose, boundary, JSON, and editor checks passed. Canonical artifact lint remains nonzero only for three planner-owned missing artifacts. No fetch, checkout, merge, rebase, reset, stash mutation, clean, commit, push, branch deletion, or worktree removal ran."
+    },
+    {
+      "agent": "bubbles.plan",
+      "workflowMode": "product-to-planning",
+      "executionModel": "direct-inherited-packet",
+      "parentAgent": null,
+      "startedAt": "2026-09-03T12:54:46Z",
+      "completedAt": "2026-09-03T13:08:09Z",
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "phasesExecuted": [
+        "bootstrap"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "OPS-PLAN-SCOPES-001",
+        "OPS-PLAN-REPORT-002",
+        "OPS-PLAN-USERVALIDATION-003",
+        "OPS-PLAN-SCENARIO-MANIFEST-004",
+        "OPS-PLAN-TEST-PLAN-005",
+        "OPS-PLAN-STATE-SUBSTATE-006"
+      ],
+      "unresolvedFindings": [
+        "OPS-DEVOPS-OBJECTIVE-001",
+        "OPS-DEVOPS-RUNBOOK-002",
+        "OPS-DEVOPS-EXECUTION-003",
+        "OPS-TEST-AUTHORING-004",
+        "OPS-VALIDATE-STATUS-005"
+      ],
+      "nextRequiredOwner": "bubbles.devops",
+      "evidenceRefs": [
+        "scopes.md#execution-outline",
+        "scenario-manifest.json",
+        "test-plan.json",
+        "report.md",
+        "uservalidation.md"
+      ],
+      "summary": "Created five sequential planner-owned scopes that cover all thirty-five OPS requirements and fifteen stable scenarios. Added the initial report shape, unchecked automation and human validation lists, a canonical scenario obligation matrix, and an eighteen-row structured Test Plan. Preserved the no-push and no-cleanup boundary. Removed the invalid design_ready execution substate. Certification, scope completion, and human acceptance remain unchanged. The registered operational continuation is bubbles.devops through devops-to-doc."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "spec": "spec.md",
+    "objective": "objective.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "runbook": "runbook.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json",
+    "lockdownApprovals": "lockdown-approvals.json",
+    "invalidationLedger": "invalidation-ledger.json",
+    "transitionRequests": "transition-requests.json",
+    "reworkQueue": "rework-queue.json"
+  },
+  "notes": "Scope 1 froze and classified current Git state in objective.md, runbook.md, and integration-ledger.jsonl. The live ledger check passed. Scope 1 remains in progress because its planned tests are absent. Their two exact test paths are declared in workBoundary.allowedPaths without broadening the boundary. Certification and human acceptance remain unchanged. Push and cleanup remain unauthorized."
+}

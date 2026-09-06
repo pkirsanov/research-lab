@@ -8553,10 +8553,13 @@ try {
     'the session builder refuses to invent intraday bars when none are supplied \u2014 no same-origin intraday cache exists');
 
   // Each read runs the OWNING model and publishes what it returned.
+  const optionsIndex = JSON.parse(read('data/options/index.json'));
+  assert(typeof optionsIndex.updated === 'string' && Number.isFinite(Date.parse(optionsIndex.updated)),
+    'the committed option index publishes the observation instant used to verify its owning flow model');
   const reads = {
     'options-structure-lab': refresh.buildOptionsSurfaceToolRead(),
     'gamma-trading-lab': refresh.buildGammaToolRead(),
-    'options-flow-feed-lab': refresh.buildOptionsFlowToolRead(),
+    'options-flow-feed-lab': refresh.buildOptionsFlowToolRead({ asOf: optionsIndex.updated }),
     // Called at the real wall clock, so its reader copy is checked below whether the committed
     // universe is inside its refresh window or past it. The value assertions use a pinned instant.
     'ai-capex-strategy-lab': refresh.buildAiCapexToolRead(),
@@ -8647,6 +8650,10 @@ try {
 
   // ADVERSARIAL 1 — no committed chain for any scanned ticker. Every fixture above satisfies the
   // happy path, so without this case the builder could hard-code a lean and still pass.
+  const liveFlow = refresh.buildOptionsFlowToolRead();
+  assert(liveFlow.state === 'ready' || (liveFlow.state === 'unavailable' && /stale tape/.test(liveFlow.read)),
+    'the wall-clock flow read is either genuinely ready or names the stale-tape refusal; aging committed evidence never remains current by assertion');
+
   const starvedFlow = refresh.buildOptionsFlowToolRead({ universe: ['NO-SUCH-SYMBOL'] });
   assert(starvedFlow.state === 'unavailable' && starvedFlow.metrics.state === 'unavailable' && /no tape to read/.test(starvedFlow.read),
     'a flow read with no committed chain degrades to a named unavailable rather than an empty-but-plausible tape');
@@ -18034,23 +18041,23 @@ try {
         && pack.deductionCaps['state-and-local-tax'].cappedComponentIds) || []).length > 0,
       entry: {
         id: 'state-and-local-tax', label: 'State and local income tax',
-        reason: 'This pack covers the federal jurisdiction only.',
-        code: 'RLTAX-JURISDICTION-UNSUPPORTED', movesMarginalRate: true,
-        successorFeature: 'A state rule pack resolved by declared residency, with its own settlement and its own combined total.'
+          reason: 'This pack covers the federal jurisdiction only.',
+          code: 'RLTAX-JURISDICTION-UNSUPPORTED', movesMarginalRate: true,
+          successorFeature: 'A state rule pack resolved by declared residency, with its own settlement and its own combined total.'
       }
-    },
-    {
-      after: 'collectibles-gain',
-      carriedInstead: (pack) => !!(pack.dispositionPolicy
-        && pack.dispositionPolicy.recaptureCategory
-        && pack.dispositionPolicy.recaptureCategory.categoryId === 'unrecaptured-section-1250-gain'
-        && Number.isFinite(pack.dispositionPolicy.recaptureCategory.maximumRate)),
-      entry: {
-        id: 'unrecaptured-section-1250-gain', label: 'Unrecaptured section 1250 gain',
-        reason: "Topic no. 409 states that the portion of any unrecaptured section 1250 gain from selling section 1250 real property is taxed at a maximum 25-percent rate, which sits above this pack's top carried preferential rate. No band for it is carried, and no code path folds it into a carried band.",
-        code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true,
-        successorFeature: 'A later preferential-category feature carrying the unrecaptured section 1250 gain 25-percent maximum rate.'
-      }
+      },
+      {
+        after: 'collectibles-gain',
+        carriedInstead: (pack) => !!(pack.dispositionPolicy
+          && pack.dispositionPolicy.recaptureCategory
+          && pack.dispositionPolicy.recaptureCategory.categoryId === 'unrecaptured-section-1250-gain'
+          && Number.isFinite(pack.dispositionPolicy.recaptureCategory.maximumRate)),
+        entry: {
+          id: 'unrecaptured-section-1250-gain', label: 'Unrecaptured section 1250 gain',
+          reason: "Topic no. 409 states that the portion of any unrecaptured section 1250 gain from selling section 1250 real property is taxed at a maximum 25-percent rate, which sits above this pack's top carried preferential rate. No band for it is carried, and no code path folds it into a carried band.",
+          code: 'RLTAX-FEATURE-UNSUPPORTED', movesMarginalRate: true,
+          successorFeature: 'A later preferential-category feature carrying the unrecaptured section 1250 gain 25-percent maximum rate.'
+        }
     }
   ];
   const FEATURE_023_ADDED_UNSUPPORTED = [
@@ -25533,12 +25540,12 @@ try {
   const classified4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"\s*\n?\s*data-mac-default="(visible|collapsed)"|data-mac-block="([a-z-]+)" data-mac-default="(visible|collapsed)"/g)];
   const blockAttrs4 = [...pageSrc4.matchAll(/data-mac-block="([a-z-]+)"/g)].map((m) => m[1]);
   const defaultAttrs4 = [...pageSrc4.matchAll(/data-mac-default="(visible|collapsed)"/g)].map((m) => m[1]);
-  assert(blockAttrs4.length === 17 && defaultAttrs4.length === 17
-    && new Set(blockAttrs4).size === 17
-    && defaultAttrs4.filter((state) => state === 'visible').length === 6
+  assert(blockAttrs4.length === 18 && defaultAttrs4.length === 18
+    && new Set(blockAttrs4).size === 18
+    && defaultAttrs4.filter((state) => state === 'visible').length === 7
     && defaultAttrs4.filter((state) => state === 'collapsed').length === 11
     && classified4.length > 0,
-  'market-brief.html classifies exactly 17 uniquely-named top-level blocks, six default-visible and eleven collapsed, so an unclassified block cannot reach the default view unnoticed');
+  'market-brief.html classifies exactly 18 uniquely-named top-level blocks, seven default-visible and eleven collapsed, so an unclassified block cannot reach the default view unnoticed');
 
   /* FR-026-028 — build-free and no browser ES modules, asserted at the source so a future
      script tag cannot reintroduce a build step without failing here first. */
@@ -30548,6 +30555,209 @@ try {
     budgetDecls.length + ' \u2192 ' + strippedCount + ' after stripping one)');
 } catch (e) { failures++; console.log('  \u2717 FAIL (BUG-011 budget regression guard threw): ' + e.message); }
 /* ---------- BUG-011 — causal consumer tests declare their own budget (END) ---------- */
+
+/* ---------- Feature 030 Scope 01: OpenAI-compatible shadow route ---------- */
+try {
+  group('Feature 030 Scope 01 - shadow policy transport contract authority and receipts');
+  const { createRequire: createShadowRequire } = await import('node:module');
+  const shadowRequire = createShadowRequire(import.meta.url);
+  const RLBRIEFROUTE = shadowRequire('../rlbriefroute.js');
+  const shadowPolicy = JSON.parse(read('market-brief.config.json'))['brief-generation-shadow/v1'];
+  const profileIds = ['omlx-openai-compatible-qwen38', 'ollama-openai-compatible'];
+  const endpoint = ['http:', '', '127.0.0.1:1'].join('/');
+  const environment = {
+    BRIEF_SHADOW_PROFILE: profileIds[0],
+    BRIEF_OMLX_BASE_URL: endpoint,
+    BRIEF_OLLAMA_BASE_URL: endpoint,
+    BRIEF_OLLAMA_MODEL: 'ollama-selftest-model'
+  };
+
+  const policyVerdict = RLBRIEFROUTE.validateShadowPolicy(shadowPolicy);
+  assert(policyVerdict.ok
+    && JSON.stringify(shadowPolicy.shadowProfiles) === JSON.stringify(profileIds)
+    && Object.keys(shadowPolicy.adapters).sort().join(',') === profileIds.slice().sort().join(','),
+  'Feature 030 policy declares exactly the two approved shadow profiles and no alias or production adapter');
+
+  const omlx = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, environment);
+  const ollama = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, Object.assign({}, environment, {
+    BRIEF_SHADOW_PROFILE: profileIds[1]
+  }));
+  assert(omlx.ok && ollama.ok
+    && omlx.value.profileId === profileIds[0]
+    && omlx.value.providerId === 'omlx'
+    && omlx.value.modelId === 'Qwen3.8-27B-3bit-MLX'
+    && ollama.value.profileId === profileIds[1]
+    && ollama.value.providerId === 'ollama'
+    && ollama.value.modelId === 'ollama-selftest-model'
+    && omlx.value.transportContract === ollama.value.transportContract,
+  'Feature 030 resolves each exact profile to its declared provider and model while both share one transport contract');
+
+  const { buildOpenAICompatibleChatRequest } = await import('./brief-openai-compatible-adapter.mjs');
+  const {
+    buildFinalAuthorRequest,
+    buildToolAuthorRequest,
+    buildToolAuthorRequestV2,
+    verifyAuthorRequestFingerprint
+  } = await import('./brief-author.mjs');
+  const fingerprintIdentity = {
+    providerId: 'shadow-route',
+    modelId: 'selected-by-shadow-profile',
+    promptPolicyVersion: 'shadow-canary/v1',
+    schemaVersion: 'tool-brief/v1',
+    validatorVersion: 'brief-author/v1'
+  };
+  const canonicalAuthorRequests = [
+    buildToolAuthorRequest({
+      contractVersion: 'compact-author-input/v1',
+      compactedRead: { state: 'available', observationRef: 'selftest-tool-v1' },
+      includedFactIds: ['fact-selftest-v1'],
+      omittedFacts: [],
+      maxOutputTokens: 64
+    }, fingerprintIdentity),
+    buildToolAuthorRequestV2({
+      contractVersion: 'compact-tool-brief-v2-input/v1',
+      data: { contractVersion: 'tool-author-data/v2', observationRef: 'selftest-tool-v2' },
+      maxOutputTokens: 64
+    }, fingerprintIdentity),
+    buildFinalAuthorRequest({
+      contractVersion: 'compact-final-author-input/v1',
+      finalInput: { contractVersion: 'final-author-input/v1', state: 'available' },
+      participantIds: ['participant-selftest'],
+      orderedSourceToolIds: ['tool-selftest'],
+      includedFactIds: ['fact-selftest-final'],
+      omittedFacts: [],
+      maxOutputTokens: 64
+    }, fingerprintIdentity)
+  ];
+  const canonicalBytesBeforeVerification = canonicalAuthorRequests.map((built) => built.ok ? JSON.stringify(built.request) : null);
+  const fingerprintVerdicts = canonicalAuthorRequests.map((built) => built.ok ? verifyAuthorRequestFingerprint(built.request) : built);
+  const canonicalBytesAfterVerification = canonicalAuthorRequests.map((built) => built.ok ? JSON.stringify(built.request) : null);
+  assert(canonicalAuthorRequests.every((built) => built.ok)
+    && fingerprintVerdicts.every((verdict, index) => verdict.ok && verdict.request === canonicalAuthorRequests[index].request)
+    && JSON.stringify(canonicalBytesAfterVerification) === JSON.stringify(canonicalBytesBeforeVerification)
+    && canonicalAuthorRequests.every((built) => /^sha256:[0-9a-f]{64}$/.test(built.request.requestFingerprint)),
+  'Feature 030 verifies canonical tool v1 tool v2 and final requests without changing builder request bytes or fingerprints');
+  const schemaContracts = [
+    ['tool-author-request/v1', 'tool-author-response/v1', 'brief'],
+    ['tool-author-request/v2', 'tool-author-response/v2', 'brief'],
+    ['final-author-request/v1', 'final-author-response/v1', 'final']
+  ];
+  const schemaProfiles = [omlx.value, ollama.value];
+  const schemaMatrixIsExact = schemaProfiles.every((profile, profileIndex) => schemaContracts.every((contract, contractIndex) => {
+    const requestFingerprint = 'sha256:' + String(profileIndex + contractIndex + 1).repeat(64);
+    const request = {
+      contractVersion: contract[0],
+      instructions: 'Return one bounded candidate object.',
+      data: { contractVersion: 'feature-030-selftest-data/v1' },
+      maxOutputTokens: 64,
+      requestFingerprint
+    };
+    const built = buildOpenAICompatibleChatRequest(profile, request);
+    if (!built.ok) return false;
+    const schema = built.value.response_format.json_schema.schema;
+    return built.value.model === profile.modelId
+      && built.value.reasoning_effort === 'none'
+      && built.value.response_format.type === 'json_schema'
+      && built.value.response_format.json_schema.strict === true
+      && schema.type === 'object'
+      && schema.additionalProperties === false
+      && JSON.stringify(schema.required) === JSON.stringify(['contractVersion', 'requestFingerprint', contract[2]])
+      && JSON.stringify(Object.keys(schema.properties).sort()) === JSON.stringify(['contractVersion', 'requestFingerprint', contract[2]].sort())
+      && schema.properties.contractVersion.const === contract[1]
+      && schema.properties.requestFingerprint.const === requestFingerprint
+      && schema.properties[contract[2]].type === 'object';
+  }));
+  assert(schemaMatrixIsExact,
+  'Feature 030 builds the dynamic strict three-key response schema and standard no-reasoning request for every request contract through both profiles');
+
+  const missingProfile = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, {});
+  const unknownProfile = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, { BRIEF_SHADOW_PROFILE: 'ollama' });
+  const incompleteProfile = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, {
+    BRIEF_SHADOW_PROFILE: profileIds[1], BRIEF_OLLAMA_BASE_URL: endpoint
+  });
+  assert(!missingProfile.ok && missingProfile.error.code === 'B030-SHADOW-PROFILE'
+    && !unknownProfile.ok && unknownProfile.error.code === 'B030-SHADOW-PROFILE'
+    && !incompleteProfile.ok && incompleteProfile.error.code === 'B030-ADAPTER-CONFIG',
+  'Feature 030 refuses missing unknown and incomplete profile selection with closed codes instead of defaults');
+
+  const requiredLimits = {
+    modelListTimeoutMs: 5000,
+    modelListMaxResponseBytes: 262144,
+    chatTimeoutMs: 120000,
+    chatMaxRequestBytes: 98304,
+    chatMaxResponseBytes: 98304,
+    retryCount: 0,
+    maxInFlightChats: 1
+  };
+  const limitsExact = JSON.stringify(shadowPolicy.transport.limits) === JSON.stringify(requiredLimits);
+  const missingLimitRefusals = Object.keys(requiredLimits).map((member) => {
+    const wounded = JSON.parse(JSON.stringify(shadowPolicy));
+    delete wounded.transport.limits[member];
+    return RLBRIEFROUTE.validateShadowPolicy(wounded);
+  });
+  assert(limitsExact && missingLimitRefusals.every((verdict) => !verdict.ok && verdict.error.code === 'B030-POLICY'),
+  'Feature 030 commits every exact finite limit and refuses policy missing any one instead of supplying a code fallback');
+
+  const capability = RLBRIEFROUTE.validateRouteCapability(shadowPolicy.capabilities['local-openai-compatible-author']);
+  const badCapability = JSON.parse(JSON.stringify(shadowPolicy.capabilities['local-openai-compatible-author']));
+  badCapability.routeClass = 'frontier';
+  assert(capability.ok && !RLBRIEFROUTE.validateRouteCapability(badCapability).ok,
+  'Feature 030 validates the one provider-neutral local capability and refuses a route-class substitution');
+
+  const measured = RLBRIEFROUTE.normalizeLocalUsage({ prompt_tokens: 4, completion_tokens: 6, total_tokens: 10 });
+  const missing = RLBRIEFROUTE.normalizeLocalUsage(undefined);
+  const nullUsage = RLBRIEFROUTE.normalizeLocalUsage({ prompt_tokens: null, completion_tokens: null, total_tokens: null });
+  const inconsistent = RLBRIEFROUTE.normalizeLocalUsage({ prompt_tokens: 4, completion_tokens: 6, total_tokens: 11 });
+  const maximumUsage = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: Number.MAX_SAFE_INTEGER,
+    completion_tokens: 0,
+    total_tokens: Number.MAX_SAFE_INTEGER
+  });
+  const unsafePrompt = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: Number.MAX_SAFE_INTEGER + 1,
+    completion_tokens: 1,
+    total_tokens: Number.MAX_SAFE_INTEGER + 1
+  });
+  const unsafeCompletion = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: 0,
+    completion_tokens: Number.MAX_SAFE_INTEGER + 1,
+    total_tokens: Number.MAX_SAFE_INTEGER + 1
+  });
+  const unsafeTotal = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: 1,
+    completion_tokens: 1,
+    total_tokens: Number.MAX_SAFE_INTEGER + 1
+  });
+  const overflowingSum = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: Number.MAX_SAFE_INTEGER,
+    completion_tokens: 1
+  });
+  const unsafeReceipt = RLBRIEFROUTE.validateUsageReceipt(Object.assign({}, maximumUsage.value, {
+    totalTokens: { state: 'measured', value: Number.MAX_SAFE_INTEGER + 1, source: 'provider-response' }
+  }));
+  assert(measured.ok && measured.value.inputTokens.value === 4 && measured.value.outputTokens.value === 6
+    && measured.value.totalTokens.value === 10
+    && missing.ok && ['inputTokens', 'outputTokens', 'totalTokens'].every((member) =>
+      missing.value[member].state === 'unmeasured' && !Object.prototype.hasOwnProperty.call(missing.value[member], 'value'))
+    && nullUsage.ok && ['inputTokens', 'outputTokens', 'totalTokens'].every((member) =>
+      nullUsage.value[member].state === 'unmeasured' && !Object.prototype.hasOwnProperty.call(nullUsage.value[member], 'value'))
+    && maximumUsage.ok && maximumUsage.value.totalTokens.value === Number.MAX_SAFE_INTEGER
+    && missing.value.providerCredits.state === 'not-applicable'
+    && missing.value.monetaryCost.state === 'not-applicable'
+    && [unsafePrompt, unsafeCompletion, unsafeTotal, overflowingSum, unsafeReceipt, inconsistent].every((verdict) =>
+      !verdict.ok && verdict.error.code === 'B030-USAGE-INVALID'),
+  'Feature 030 admits only safe token integers, refuses overflow and inconsistent totals, and preserves missing or null usage without zero');
+
+  const policyText = JSON.stringify(shadowPolicy);
+  const unsafeEndpoint = RLBRIEFROUTE.validateEndpoint('https://user@example.invalid/path');
+  const queryEndpoint = RLBRIEFROUTE.validateEndpoint('https://example.invalid/path?model=x');
+  assert(policyText.indexOf('http://') < 0 && policyText.indexOf('https://') < 0
+    && !/authorization|cookie|password|passphrase|api[-_]?key|access[-_]?token/i.test(policyText)
+    && !unsafeEndpoint.ok && unsafeEndpoint.error.code === 'B030-ADAPTER-CONFIG'
+    && !queryEndpoint.ok && queryEndpoint.error.code === 'B030-ADAPTER-CONFIG',
+  'Feature 030 commits binding names rather than endpoint or credential values and rejects credential or query-bearing URLs');
+} catch (e) { failures++; console.log('  \u2717 FAIL (Feature 030 Scope 01 shadow group threw): ' + e.message); }
+/* ---------- Feature 030 Scope 01: OpenAI-compatible shadow route (END) ---------- */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

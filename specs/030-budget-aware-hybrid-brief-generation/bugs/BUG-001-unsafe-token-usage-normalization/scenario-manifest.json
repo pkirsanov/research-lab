@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "scenario-manifest/v1",
+  "spec": "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-001-unsafe-token-usage-normalization",
+  "featureDir": "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-001-unsafe-token-usage-normalization",
+  "generatedBy": "bubbles.bug",
+  "generatedAt": "2026-09-03T12:39:34Z",
+  "scenarios": [
+    {
+      "id": "SCN-030-002",
+      "scenarioId": "SCN-030-002",
+      "scopeId": "01-enforce-safe-token-usage-arithmetic",
+      "scopeRef": "Scope 1",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Unsafe token counts and overflow refuse before normalized usage",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "linkedTests": [
+        "tests/brief-openai-compatible-adapter.functional.mjs#Security regression: SCN-030-002 unsafe token counts and overflow refuse before normalized usage",
+        "scripts/selftest.mjs#Feature 030 Scope 01 - shadow policy transport contract authority and receipts"
+      ],
+      "evidenceRefs": [
+        "report.md#inherited-red-context",
+        "report.md#red-and-green-plan",
+        "report.md#independent-test-verification-2026-09-03"
+      ],
+      "implementationRefs": [
+        "rlbriefroute.js"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "rlbriefroute.js"
+        ],
+        "negativeControl": "Supply the rounded-equality unsafe tuple and an overflowing safe-boundary pair, then require B030-USAGE-INVALID before a receipt is returned.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "lockdown": {
+        "state": "unlocked"
+      }
+    }
+  ]
+}

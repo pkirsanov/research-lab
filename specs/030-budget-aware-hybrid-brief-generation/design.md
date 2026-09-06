@@ -79,6 +79,8 @@ may use frontier capacity.
 - Do not retry an accepted principal stage during an outer run retry.
 - Do not compare local quality with a named frontier model without measured
   evidence from the frozen evaluation corpus.
+- Do not point `BRIEF_COPILOT_BIN` at an HTTP adapter. The live launcher adds
+  Copilot-specific flags and remains unchanged during shadow groundwork.
 - Do not create another run ledger, history index, current pointer, or payload
   validator.
 
@@ -88,6 +90,14 @@ may use frontier capacity.
 - Materiality is a pure closed classifier over frozen structured inputs.
 - Route selection is provider-neutral and freezes before dispatch.
 - Provider and model identities live in adapter configuration and receipts.
+- On 2026-09-02, the product owner approved the initial adapter inventory in
+  section 5.2.
+- The current Copilot CLI remains production-authoritative until an atomic
+  cutover passes section 16.
+- OMLX and Ollama use one OpenAI-compatible shadow transport and separate
+  adapter configuration.
+- One required shadow profile selector chooses a candidate before dispatch. It
+  cannot alter the live Copilot path.
 - Frontier capacity is one request for the whole run, not one per stage.
 - Every budget dimension has an explicit policy state and receipt state.
 - The live cutover replaces the global-model lane path atomically.
@@ -96,7 +106,8 @@ may use frontier capacity.
 
 ### Open Owner Decisions
 
-- Approve the initial adapter inventory and its non-secret configuration.
+- Approve any routed low-cost hosted or frontier adapters beyond the initial
+  inventory.
 - Approve the frozen shadow corpus and comparative quality rubric.
 - Approve which policy profiles may select local versus low-cost hosted routes.
 - Approve the provider-specific credit scale and monetary currency for each
@@ -306,11 +317,17 @@ It contains these required groups:
 | `budgetProfiles` | Complete dimension vectors for the run and each consuming stage class |
 | `retryProfiles` | Retryable failure classes, attempt ceilings, and no-reroute rule |
 | `adapterRefs` | Named adapter-config objects with exact fingerprints |
+| `shadowProfiles` | Closed selector-to-adapter map for non-authoritative generation and required runtime bindings |
 | `shadowPolicy` | Corpus manifest, rubric version, sample floor, and promotion checks |
 | `retentionPolicy` | Artifact caps and Feature 002 history references |
 
 Every policy member is required. Code provides no behavioral fallback. A policy
 change creates a new policy fingerprint and cannot alter an active run.
+
+Shadow execution resolves exactly one `BRIEF_SHADOW_PROFILE` value before
+capability preflight. The value must name a declared shadow profile. Missing or
+unknown values produce `B030-SHADOW-PROFILE`. No default or fallback exists.
+The live Copilot path never reads this selector.
 
 ### 4.3 `model-route-capability/v1`
 
@@ -332,6 +349,17 @@ This contract describes capability, not a named provider.
 
 Provider names, model names, URLs, credentials, machines, and hosts are absent.
 The selected adapter configuration supplies those facts after planning.
+
+#### Adapter Runtime Bindings
+
+A committed adapter config stores runtime variable names, never resolved
+endpoint values or credentials. It may store a non-secret provider ID and
+model ID.
+
+Each selected binding is required. A missing endpoint or model binding produces
+`B030-ADAPTER-CONFIG` before network dispatch. An adapter may declare a
+committed model ID instead of a model variable. The two forms are mutually
+exclusive.
 
 ### 4.4 `stage-intent/v1`
 
@@ -413,18 +441,45 @@ Its usage receipt still records wall time, source calls, cache operations,
 retained bytes, retries, and peak concurrency. Model requests and token use are
 `not-applicable`, not zero-valued measurements.
 
-### 5.2 Local Model Route
+### 5.2 Initial Adapter Inventory And Local Shadow Route
 
-The local route is optional. One operator-configured adapter may use an
-OpenAI-compatible endpoint and an approximately 27B-class reasoning model.
-Neither detail is a product dependency or quality claim.
+The product owner approved this initial inventory on 2026-09-02.
 
-The repository commits only an adapter ID, protocol mode, capability statement,
-and usage mapping. It commits no host, machine name, endpoint URL, credential,
-or model installation path. Runtime configuration supplies the endpoint.
+| Adapter ID | Initial authority and eligibility | Transport | Non-secret configuration |
+| --- | --- | --- | --- |
+| `copilot-cli-current` | Production-authoritative legacy adapter. It remains unchanged and is not Feature 030 selectable. | Existing Copilot CLI launcher | No Feature 030 binding |
+| `omlx-openai-compatible-qwen38` | Preferred shadow-only `local` route | Shared `openai-compatible-chat/v1` adapter | `providerId: omlx`, committed `modelId: Qwen3.8-27B-3bit-MLX`, required `baseUrlEnv: BRIEF_OMLX_BASE_URL` |
+| `ollama-openai-compatible` | Alternate shadow-only `local` route | Shared `openai-compatible-chat/v1` adapter | `providerId: ollama`, required `baseUrlEnv: BRIEF_OLLAMA_BASE_URL`, required `modelEnv: BRIEF_OLLAMA_MODEL` |
 
-If policy selects the local route and its frozen preflight is unavailable, the
-stage refuses. It does not switch to hosted execution.
+The two shadow profile IDs equal their adapter IDs. `copilot-cli-current` is not
+a shadow profile. It remains inside `brief-narrative-parallel.mjs` during this
+slice and ignores `BRIEF_SHADOW_PROFILE`.
+
+OMLX and Ollama share one transport implementation. They differ only through
+adapter config, capability declaration, and normalized usage mapping. The
+initial routed inventory contains no low-cost hosted or frontier adapter.
+
+The shared transport validates the configured base URL without printing it. It
+accepts an absolute HTTP or HTTPS value without credentials, query parameters,
+or fragments. It performs a bounded `/v1/models` preflight and requires an
+exact model match.
+
+The transport sends one bounded, non-streaming request to
+`/v1/chat/completions`. The request uses required byte, time, and cancellation
+limits. It accepts only the declared response shape and candidate content.
+
+Each adapter declares its usage mapping. The shared mapper reads
+`usage.prompt_tokens` and `usage.completion_tokens` into normalized integer
+dimensions. It verifies `usage.total_tokens` when that field is present.
+Provider credits and monetary cost are `not-applicable` for both local adapters.
+
+The repository commits no endpoint URL, host, machine, account, credential, or
+model installation path. Runtime configuration supplies each required endpoint
+binding. A selected binding or model failure refuses without provider fallback.
+
+The `local` route class means operator-controlled model execution. It may run
+on the current workstation or an operator-managed model host. Transport
+compatibility does not establish model quality.
 
 ### 5.3 Low-Cost Hosted Route
 
@@ -546,6 +601,10 @@ The planner accepts only these frozen inputs:
 - prior accepted outcome refs.
 - frontier permit state.
 - run cutoff, source revision, and policy fingerprint.
+
+For shadow execution, profile resolution produces one adapter config and
+capability snapshot before these planner inputs freeze. It never changes
+production routing.
 
 Source text, model prose, provider suggestions, and raw response bodies are not
 planner inputs.
@@ -939,12 +998,52 @@ retain no duplicate narratives.
 | File | Responsibility |
 | --- | --- |
 | `rlbriefroute.js` | Pure UMD policy validation, materiality, route selection, budget reduction, identities, and receipt validation |
-| `scripts/brief-route-runtime.mjs` | Node adapter registry, capability preflight, dispatch, cancellation, and normalized usage mapping |
+| `scripts/brief-openai-compatible-adapter.mjs` | Shared bounded `/v1/models` preflight and `/v1/chat/completions` transport for OMLX and Ollama profiles |
+| `scripts/brief-route-runtime.mjs` | Node adapter registry, profile resolution, capability preflight, child-process dispatch, cancellation, and normalized usage mapping |
+| `scripts/brief-shadow-generate.mjs` | Provider-neutral shadow CLI with frozen JSON input and candidate-plus-receipt JSON output |
 | `scripts/brief-shadow-evaluate.mjs` | Frozen-corpus baseline and candidate comparison with no publication authority |
 
 `rlbriefroute.js` uses the repository's UMD pattern. Node and any static audit
 consumer receive the same frozen API. It imports no network, filesystem, model,
 or publication authority.
+
+### 13.2.1 First Implementation Slice: Shadow Adapter Groundwork
+
+The first implementation slice ends at one non-authoritative shadow receipt.
+It may touch only these planned paths:
+
+| Path | First-slice responsibility |
+| --- | --- |
+| `rlbriefroute.js` | Validate adapter configs, shadow profiles, capabilities, and normalized receipts |
+| `scripts/brief-openai-compatible-adapter.mjs` | Implement the one shared bounded OpenAI-compatible transport |
+| `scripts/brief-route-runtime.mjs` | Resolve one profile, freeze capability, invoke the shared adapter, and normalize its receipt |
+| `scripts/brief-shadow-generate.mjs` | Accept one frozen request and emit one non-authoritative candidate and receipt |
+| [market-brief.config.json](../../market-brief.config.json) | Declare the two approved shadow profiles, adapter refs, capabilities, and usage mappings |
+| `scripts/selftest.mjs` | Validate pure profile, config, capability, and receipt contracts |
+| `tests/brief-openai-compatible-adapter.functional.mjs` | Exercise bounds, preflight, dispatch, cancellation, malformed responses, and no fallback |
+| `tests/brief-openai-compatible-adapter.local-canary.mjs` | Qualify each explicitly configured real local endpoint when the environment permits |
+
+The runtime consumes `brief-author.mjs` unchanged. It spawns the shared adapter
+through the existing bounded JSON child-process contract with `shell: false`.
+It never points `BRIEF_COPILOT_BIN` at the HTTP adapter.
+
+The shadow CLI requires `BRIEF_SHADOW_PROFILE` before dispatch. It accepts one
+frozen JSON request on stdin. It emits one candidate plus one normalized usage
+receipt on stdout. It writes no product artifact.
+
+The slice does not edit `brief-refresh.mjs`, `brief-narrative-parallel.mjs`,
+`brief-refresh-and-push.sh`, or `brief-refresh-scheduled.sh`. It performs no live
+scheduler cutover or public pointer mutation. Its runtime and harness cannot
+append production history, invoke Git, publish, or select a provider fallback.
+
+The local canary runs only when the operator supplies one complete approved
+profile. A requested canary fails on an unavailable endpoint, absent model, or
+invalid response. It never converts missing configuration into passing endpoint
+evidence.
+
+Endpoint qualification proves transport compatibility only. Model-quality and
+promotion claims still require the complete frozen corpus and approved rubric
+in sections 15 and 16.
 
 ### 13.3 Legacy Path Closure
 
@@ -1061,6 +1160,7 @@ Promotion requires all checks below on one exact candidate revision.
 | Gate | Required result |
 | --- | --- |
 | Historical corpus | At least 30 frozen representative runs with complete identities |
+| Shadow rubric | Product auditor and owner approve one versioned blinded rubric before evaluation claims or cutover |
 | Critical honesty | Zero provenance loss, invented evidence, hidden conflict, hidden miss, or missing-state substitution |
 | Source completeness | Every required Feature 002 source outcome preserved exactly once |
 | Existing validators | Current payload and distributed graph validators pass unchanged authority checks |
@@ -1088,6 +1188,8 @@ content.
 | Code | Condition | Safe operator action |
 | --- | --- | --- |
 | `B030-POLICY` | Missing, unknown, or inconsistent generation policy | Correct and review the committed policy |
+| `B030-SHADOW-PROFILE` | Required shadow selector is missing, unknown, or names a non-shadow adapter | Select one owner-approved shadow profile |
+| `B030-ADAPTER-CONFIG` | Selected endpoint or model binding is missing or invalid | Supply the required runtime binding and rerun preflight |
 | `B030-STAGE-GRAPH` | Unknown, duplicated, cyclic, or out-of-order stage | Restore the declared graph and rerun planning checks |
 | `B030-ROUTE-NONE` | No eligible route exists | Add or enable one reviewed capability in a new policy version |
 | `B030-ROUTE-AMBIGUOUS` | More than one route has the same selection ordinal | Make policy priority unique |
@@ -1195,7 +1297,8 @@ static-browser contract requires it.
 | Unit | policy parsing, materiality, route eligibility, identities, budget arithmetic | exact closed outputs and boundary values |
 | Deterministic fixture | frozen historical runs and adapter capability snapshots | identical plan and identities for equal inputs |
 | Integration | `runBriefRefresh` with injected acquisition and route adapters | reuse before routing, complete barrier, settlement, pointer preservation |
-| Process boundary | `brief-author.mjs` child process and optional local adapter | timeout, cancellation, stdout cap, receipt mapping, no shell |
+| Process boundary | `brief-author.mjs` and the shared OpenAI-compatible child process | timeout, cancellation, stdout cap, receipt mapping, no shell |
+| Live adapter qualification | each explicitly configured real OMLX or Ollama endpoint | model discovery, bounded completion, usage mapping, and sanitized refusal |
 | Failure injection | every stage and publication boundary | no partial publish and exact resume |
 | Shadow parity | at least 30 frozen representative runs | quality findings and measured cost without public mutation |
 | Security | hostile source, model, config, and receipt shapes | no control influence and no sensitive output |
@@ -1276,8 +1379,23 @@ node scripts/validate-brief-payload.mjs
 ```
 
 New test modules run with Node's built-in test runner. The plan owner will name
-their exact files before implementation. The feature adds no build command,
-package-install command, or alternate project CLI.
+later test files before their implementation. The first-slice test paths are
+fixed in section 13.2.1. The feature adds no build command, package-install
+command, or alternate project CLI.
+
+### 21.6 First-Slice Adapter Qualification
+
+The functional suite validates both profile declarations through one shared
+transport implementation. It proves unknown selectors and missing runtime
+bindings refuse before any HTTP request.
+
+The suite bounds `/v1/models` and `/v1/chat/completions` requests, responses,
+timeouts, and cancellation. It validates candidate extraction and normalized
+token receipts. A missing capped usage field produces `B030-USAGE-INVALID`.
+
+The live canary uses real endpoints only when the operator supplies a complete
+approved profile. Once requested, an unreachable endpoint or absent model is a
+test failure. A successful canary makes no quality or promotion claim.
 
 ## 22. Production Cutover Proof
 
@@ -1384,11 +1502,15 @@ Rollback uses prior validated routed artifacts, not a hidden global-model path.
 ## 26. Files To Touch After Approval
 
 This inventory is planning guidance. It is not an implementation claim.
+Section 13.2.1 is the authoritative first-slice boundary. Every other path below
+belongs to a later reviewed slice.
 
 | Path | Planned action |
 | --- | --- |
 | `rlbriefroute.js` | Create the pure UMD foundation |
+| `scripts/brief-openai-compatible-adapter.mjs` | Create the shared OMLX and Ollama shadow transport |
 | `scripts/brief-route-runtime.mjs` | Create adapter runtime and usage normalization |
+| `scripts/brief-shadow-generate.mjs` | Create the provider-neutral shadow CLI |
 | `scripts/brief-shadow-evaluate.mjs` | Create frozen-corpus evaluator |
 | [brief-refresh.mjs](../../scripts/brief-refresh.mjs) | Wire reuse, materiality, planning, admission, execution, settlement, and publication |
 | [brief-author.mjs](../../scripts/brief-author.mjs) | Bind stage plans and normalized usage to the existing process boundary |
@@ -1407,11 +1529,11 @@ deployment, or sibling feature change.
 ## 27. Remaining Open Decisions
 
 These decisions are real and bounded. None changes the architecture.
+The owner-approved initial adapter record now lives in sections 5.2 and 13.2.1.
 
 | Decision | Owner | Required record before implementation |
 | --- | --- | --- |
-| Initial local adapter protocol and model metadata | Product owner | reviewed non-secret adapter config |
-| Initial hosted and frontier adapter inventory | Product owner | capability and usage-mapping qualification |
+| Additional hosted and frontier adapter inventory | Product owner | capability and usage-mapping qualification |
 | Provider credit minor-unit scale | Product owner | adapter-specific integer scale |
 | Monetary currency per hosted adapter | Product owner | ISO currency and integer minor unit |
 | Local versus low-cost route priority by stage | Route policy owner | unique route ordinal table |

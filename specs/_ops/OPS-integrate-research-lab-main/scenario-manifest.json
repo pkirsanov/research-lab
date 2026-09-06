@@ -1,0 +1,701 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/_ops/OPS-integrate-research-lab-main",
+  "spec": "OPS-integrate-research-lab-main",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-09-03T12:54:46Z",
+  "stage": "not_started",
+  "scenarioCount": 15,
+  "scopeMapping": {
+    "01-freeze-and-classify-live-state": [
+      "SCN-OPS-001",
+      "SCN-OPS-002",
+      "SCN-OPS-009"
+    ],
+    "02-prove-selection-and-preserve-dirty-bytes": [
+      "SCN-OPS-003",
+      "SCN-OPS-004",
+      "SCN-OPS-005",
+      "SCN-OPS-006"
+    ],
+    "03-construct-candidate-and-resolve-conflicts": [
+      "SCN-OPS-007",
+      "SCN-OPS-008"
+    ],
+    "04-regenerate-and-validate-exact-candidate": [
+      "SCN-OPS-010",
+      "SCN-OPS-014"
+    ],
+    "05-compare-and-swap-main-and-resume-delivery": [
+      "SCN-OPS-011",
+      "SCN-OPS-012",
+      "SCN-OPS-013",
+      "SCN-OPS-015"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "SCN-OPS-001",
+      "scenarioId": "SCN-OPS-001",
+      "businessScenarios": ["BS-OPS-001"],
+      "requirementRefs": ["OPS-FR-001", "OPS-FR-002", "OPS-FR-006", "OPS-FR-007"],
+      "scopeId": "01-freeze-and-classify-live-state",
+      "scopeRef": "Scope 1",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Fetch discovery never selects merge inputs",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": ["static-metadata", "degraded-state"],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Production-unit or artifact assertion over the declared value.",
+          "satisfiedBy": ["TP-01-01"]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": ["TP-01-01"]
+        }
+      ],
+      "testRows": ["TP-01-01"],
+      "linkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-001 fetch discovery never selects merge inputs"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-001 fetch discovery never selects merge inputs"],
+      "evidenceRefs": ["report.md#dod-01-tp-01-01"],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Add an unclassified fetched preservation ref to the selected-input fixture and require selection refusal.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-002",
+      "scenarioId": "SCN-OPS-002",
+      "businessScenarios": ["BS-OPS-002"],
+      "requirementRefs": ["OPS-FR-003", "OPS-FR-004", "OPS-FR-005"],
+      "scopeId": "01-freeze-and-classify-live-state",
+      "scopeRef": "Scope 1",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Inventory cardinality and classifications are exact",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Production-unit or artifact assertion over the declared value.",
+          "satisfiedBy": ["TP-01-02"]
+        }
+      ],
+      "testRows": ["TP-01-02"],
+      "linkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-002 inventory cardinality and classifications are exact"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-002 inventory cardinality and classifications are exact"],
+      "evidenceRefs": ["report.md#dod-01-tp-01-02"],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/design.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Duplicate one ref name and omit one worktree alias, then require both cardinality checks to fail.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/design.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-003",
+      "scenarioId": "SCN-OPS-003",
+      "businessScenarios": ["BS-OPS-003"],
+      "requirementRefs": ["OPS-FR-006", "OPS-FR-007", "OPS-FR-009"],
+      "scopeId": "02-prove-selection-and-preserve-dirty-bytes",
+      "scopeRef": "Scope 2",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Represented mirrors remain retained and merge once",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Production-unit or artifact assertion over the declared value.",
+          "satisfiedBy": ["TP-02-01"]
+        }
+      ],
+      "testRows": ["TP-02-01"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-003 represented mirrors remain retained and merge once"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-003 represented mirrors remain retained and merge once"],
+      "evidenceRefs": ["report.md#dod-02-tp-02-01"],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Select two aliases from one object group and require duplicate-input detection.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-004",
+      "scenarioId": "SCN-OPS-004",
+      "businessScenarios": ["BS-OPS-004"],
+      "requirementRefs": ["OPS-FR-006", "OPS-FR-009", "OPS-FR-014"],
+      "scopeId": "02-prove-selection-and-preserve-dirty-bytes",
+      "scopeRef": "Scope 2",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Unique content refuses represented classification",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": ["degraded-state"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": ["TP-02-02"]
+        }
+      ],
+      "testRows": ["TP-02-02"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-004 unique content refuses represented classification"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-004 unique content refuses represented classification"],
+      "evidenceRefs": ["report.md#dod-02-tp-02-02"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Mutate an isolated preservation tree with one unique blob and require UNIQUE-CONTENT-UNRESOLVED.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-005",
+      "scenarioId": "SCN-OPS-005",
+      "businessScenarios": ["BS-OPS-005"],
+      "requirementRefs": ["OPS-FR-010", "OPS-FR-011", "OPS-FR-012", "OPS-FR-013", "OPS-FR-015"],
+      "scopeId": "02-prove-selection-and-preserve-dirty-bytes",
+      "scopeRef": "Scope 2",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Explicit path commits preserve approved blobs only",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["mutable-state"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": ["TP-02-03"]
+        }
+      ],
+      "testRows": ["TP-02-03"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-005 explicit path commit preserves approved blobs only"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.integration.mjs#Regression: SCN-OPS-005 explicit path commit preserves approved blobs only"],
+      "evidenceRefs": ["report.md#dod-02-tp-02-03"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Add .bubbles-worktree to the isolated staged set and require the commit boundary to refuse it.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-006",
+      "scenarioId": "SCN-OPS-006",
+      "businessScenarios": ["BS-OPS-006"],
+      "requirementRefs": ["OPS-FR-008", "OPS-FR-009", "OPS-FR-019"],
+      "scopeId": "02-prove-selection-and-preserve-dirty-bytes",
+      "scopeRef": "Scope 2",
+      "scope": 2,
+      "status": "not_started",
+      "title": "Family selector chooses one proved latest tip",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Production-unit or artifact assertion over the declared value.",
+          "satisfiedBy": ["TP-02-04"]
+        }
+      ],
+      "testRows": ["TP-02-04"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-006 family selector chooses one proved latest tip"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-006 family selector chooses one proved latest tip"],
+      "evidenceRefs": ["report.md#dod-02-tp-02-04"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Mutate one predecessor so it is not represented by the named descendant and require family selection refusal.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-007",
+      "scenarioId": "SCN-OPS-007",
+      "businessScenarios": ["BS-OPS-007"],
+      "requirementRefs": ["OPS-FR-016", "OPS-FR-017", "OPS-FR-018", "OPS-FR-019"],
+      "scopeId": "03-construct-candidate-and-resolve-conflicts",
+      "scopeRef": "Scope 3",
+      "scope": 3,
+      "status": "not_started",
+      "title": "Merge commits stay inside the isolated candidate",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["mutable-state"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": ["TP-03-01"]
+        }
+      ],
+      "testRows": ["TP-03-01"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-007 merge commits stay inside the isolated candidate"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.integration.mjs#Regression: SCN-OPS-007 merge commits stay inside the isolated candidate"],
+      "evidenceRefs": ["report.md#dod-03-tp-03-01"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Mutate a source ref during an isolated merge attempt and require source-identity validation to refuse the next step.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-008",
+      "scenarioId": "SCN-OPS-008",
+      "businessScenarios": ["BS-OPS-008"],
+      "requirementRefs": ["OPS-FR-020", "OPS-FR-021", "OPS-FR-022"],
+      "scopeId": "03-construct-candidate-and-resolve-conflicts",
+      "scopeRef": "Scope 3",
+      "scope": 3,
+      "status": "not_started",
+      "title": "Conflict inventory equals current resolution inventory",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["mutable-state"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": ["TP-03-02"]
+        }
+      ],
+      "testRows": ["TP-03-02"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-008 conflict inventory equals current resolution inventory"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.integration.mjs#Regression: SCN-OPS-008 conflict inventory equals current resolution inventory"],
+      "evidenceRefs": ["report.md#dod-03-tp-03-02"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Remove one result blob or validating check from an isolated conflict record and require candidate refusal.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-009",
+      "scenarioId": "SCN-OPS-009",
+      "businessScenarios": ["BS-OPS-009"],
+      "requirementRefs": ["OPS-FR-022"],
+      "scopeId": "01-freeze-and-classify-live-state",
+      "scopeRef": "Scope 1",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Changed Git state invalidates the frozen inventory",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["degraded-state"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": ["TP-01-03"]
+        }
+      ],
+      "testRows": ["TP-01-03"],
+      "linkedTests": ["tests/ops-integrate-research-lab-main.integration.mjs#Regression: SCN-OPS-009 changed Git state invalidates the frozen inventory"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.integration.mjs#Regression: SCN-OPS-009 changed Git state invalidates the frozen inventory"],
+      "evidenceRefs": ["report.md#dod-01-tp-01-03"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Mutate one isolated ref after freeze and require INVENTORY-DRIFT before any later mutation.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-010",
+      "scenarioId": "SCN-OPS-010",
+      "businessScenarios": ["BS-OPS-010"],
+      "requirementRefs": ["OPS-FR-023", "OPS-FR-024", "OPS-FR-025", "OPS-FR-026", "OPS-FR-027"],
+      "scopeId": "04-regenerate-and-validate-exact-candidate",
+      "scopeRef": "Scope 4",
+      "scope": 4,
+      "status": "not_started",
+      "title": "Failed or stale receipt keeps local main unchanged",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["degraded-state"],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": ["TP-04-01", "TP-04-02", "TP-04-03", "TP-04-04"]
+        }
+      ],
+      "testRows": ["TP-04-01", "TP-04-02", "TP-04-03", "TP-04-04"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-010 failed or stale receipt keeps local main unchanged"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.integration.mjs#Regression: SCN-OPS-010 failed or stale receipt keeps local main unchanged"],
+      "evidenceRefs": [
+        "report.md#dod-04-tp-04-01",
+        "report.md#dod-04-tp-04-02",
+        "report.md#dod-04-tp-04-03",
+        "report.md#dod-04-tp-04-04"
+      ],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "scripts/build-pages-site.mjs",
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Mutate one candidate receipt SHA or force one isolated validation failure and require local main to remain unchanged.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "scripts/build-pages-site.mjs",
+        "scripts/selftest.mjs",
+        "playwright.config.mjs",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-011",
+      "scenarioId": "SCN-OPS-011",
+      "businessScenarios": ["BS-OPS-011"],
+      "requirementRefs": ["OPS-FR-027", "OPS-FR-028"],
+      "scopeId": "05-compare-and-swap-main-and-resume-delivery",
+      "scopeRef": "Scope 5",
+      "scope": 5,
+      "status": "not_started",
+      "title": "Compare-and-swap advances only to the approved SHA",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["mutable-state"],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": ["TP-05-01"]
+        }
+      ],
+      "testRows": ["TP-05-01"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-011 compare-and-swap advances only to the approved SHA"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.integration.mjs#Regression: SCN-OPS-011 compare-and-swap advances only to the approved SHA"],
+      "evidenceRefs": ["report.md#dod-05-tp-05-01"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Change the expected old ref in an isolated repository and require compare-and-swap refusal with no ref movement.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-012",
+      "scenarioId": "SCN-OPS-012",
+      "businessScenarios": ["BS-OPS-012"],
+      "requirementRefs": ["OPS-FR-029", "OPS-FR-035"],
+      "scopeId": "05-compare-and-swap-main-and-resume-delivery",
+      "scopeRef": "Scope 5",
+      "scope": 5,
+      "status": "not_started",
+      "title": "Integration ledger contains no publication action",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Production-unit or artifact assertion over the declared value.",
+          "satisfiedBy": ["TP-05-02"]
+        }
+      ],
+      "testRows": ["TP-05-02"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-012 integration ledger contains no publication action"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-012 integration ledger contains no publication action"],
+      "evidenceRefs": ["report.md#dod-05-tp-05-02"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Insert a push event into the fixture ledger and require the publication-boundary assertion to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-013",
+      "scenarioId": "SCN-OPS-013",
+      "businessScenarios": ["BS-OPS-013"],
+      "requirementRefs": ["OPS-FR-030", "OPS-FR-031"],
+      "scopeId": "05-compare-and-swap-main-and-resume-delivery",
+      "scopeRef": "Scope 5",
+      "scope": 5,
+      "status": "not_started",
+      "title": "Retained residue inventory remains unchanged",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Production-unit or artifact assertion over the declared value.",
+          "satisfiedBy": ["TP-05-03"]
+        }
+      ],
+      "testRows": ["TP-05-03"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-013 retained residue inventory remains unchanged"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-013 retained residue inventory remains unchanged"],
+      "evidenceRefs": ["report.md#dod-05-tp-05-03"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Remove one stash or worktree registration from the fixture inventory and require residue parity to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-014",
+      "scenarioId": "SCN-OPS-014",
+      "businessScenarios": ["BS-OPS-014"],
+      "requirementRefs": ["OPS-FR-015", "OPS-FR-033", "OPS-FR-034"],
+      "scopeId": "04-regenerate-and-validate-exact-candidate",
+      "scopeRef": "Scope 4",
+      "scope": 4,
+      "status": "not_started",
+      "title": "Integration preserves lifecycle and acceptance bytes",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Production-unit or artifact assertion over the declared value.",
+          "satisfiedBy": ["TP-04-05"]
+        }
+      ],
+      "testRows": ["TP-04-05"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-014 integration preserves lifecycle and acceptance bytes"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-014 integration preserves lifecycle and acceptance bytes"],
+      "evidenceRefs": ["report.md#dod-04-tp-04-05"],
+      "riskTier": "high",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/030-budget-aware-hybrid-brief-generation/state.json",
+          "specs/_bugs/BUG-022-historical-report-declaration-leak/state.json",
+          "specs/025-company-multi-horizon-intelligence-lab/state.json",
+          "specs/031-shock-transmission-macro-policy-lab/state.json"
+        ],
+        "negativeControl": "Mutate one fixture certification or human acceptance field and require packet-truth parity to fail.",
+        "negativeControlMechanism": "mutation"
+      },
+      "implementationRefs": [
+        "specs/030-budget-aware-hybrid-brief-generation/state.json",
+        "specs/_bugs/BUG-022-historical-report-declaration-leak/state.json",
+        "specs/025-company-multi-horizon-intelligence-lab/state.json",
+        "specs/031-shock-transmission-macro-policy-lab/state.json"
+      ],
+      "lockdown": {"state": "unlocked"}
+    },
+    {
+      "id": "SCN-OPS-015",
+      "scenarioId": "SCN-OPS-015",
+      "businessScenarios": ["BS-OPS-015"],
+      "requirementRefs": ["OPS-FR-032", "OPS-FR-033", "OPS-FR-034", "OPS-FR-035"],
+      "scopeId": "05-compare-and-swap-main-and-resume-delivery",
+      "scopeRef": "Scope 5",
+      "scope": 5,
+      "status": "not_started",
+      "title": "Handoff uses packet-owned owner and lifecycle state",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": ["static-metadata"],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Production-unit or artifact assertion over the declared value.",
+          "satisfiedBy": ["TP-05-04"]
+        }
+      ],
+      "testRows": ["TP-05-04"],
+      "linkedTests": ["__FUTURE_TEST__#Regression: SCN-OPS-015 handoff uses packet-owned owner and lifecycle state"],
+      "plannedLinkedTests": ["tests/ops-integrate-research-lab-main.functional.mjs#Regression: SCN-OPS-015 handoff uses packet-owned owner and lifecycle state"],
+      "evidenceRefs": ["report.md#dod-05-tp-05-04"],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+          "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+        ],
+        "negativeControl": "Change one fixture owner or next obligation and require the handoff to report the changed packet-owned value.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "specs/_ops/OPS-integrate-research-lab-main/runbook.md",
+        "specs/_ops/OPS-integrate-research-lab-main/integration-ledger.jsonl"
+      ],
+      "lockdown": {"state": "unlocked"}
+    }
+  ]
+}

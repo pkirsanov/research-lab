@@ -1,0 +1,342 @@
+{
+  "version": 1,
+  "contractVersion": "test-plan/v1",
+  "specId": "030",
+  "featureDir": "specs/030-budget-aware-hybrid-brief-generation",
+  "featureName": "Budget-Aware Hybrid Brief Generation",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-09-03T12:28:55Z",
+  "planningStatus": "security-rework-bug-packets-required",
+  "totalRows": 10,
+  "implementationAuthorization": {
+    "currentPacketAllows": [
+      "specs/030-budget-aware-hybrid-brief-generation/**",
+      "rlbriefroute.js",
+      "market-brief.config.json",
+      "site-exclusions.json",
+      "scripts/brief-author.mjs",
+      "scripts/brief-openai-compatible-adapter.mjs",
+      "scripts/brief-route-runtime.mjs",
+      "scripts/brief-shadow-generate.mjs",
+      "scripts/selftest.mjs",
+      "tests/brief-openai-compatible-adapter.functional.mjs",
+      "tests/brief-openai-compatible-adapter.local-canary.mjs"
+    ],
+    "sourceAndTestEditsAuthorizedNow": true,
+    "requiredImplementationPaths": [
+      "rlbriefroute.js",
+      "market-brief.config.json",
+      "site-exclusions.json",
+      "scripts/brief-author.mjs",
+      "scripts/brief-openai-compatible-adapter.mjs",
+      "scripts/brief-route-runtime.mjs",
+      "scripts/brief-shadow-generate.mjs",
+      "scripts/selftest.mjs",
+      "tests/brief-openai-compatible-adapter.functional.mjs",
+      "tests/brief-openai-compatible-adapter.local-canary.mjs"
+    ],
+    "instruction": "Scope 01 security rework authorizes the existing shadow-only OMLX and Ollama paths plus scripts/brief-author.mjs only for an additive verifyAuthorRequestFingerprint(request) export that reuses the existing private canonicalizer and for its pre-dispatch use in invokeAuthor. Existing request builders, contracts, canonical projection, and emitted request/output bytes remain invariant. Every other exclusion entry, public artifact, and production scheduler path remains byte-identical. Bug packets must exist before implementation."
+  },
+  "protectedPaths": [
+    "scripts/brief-refresh.mjs",
+    "scripts/brief-narrative-parallel.mjs",
+    "scripts/brief-refresh-and-push.sh",
+    "scripts/brief-refresh-scheduled.sh",
+    "scripts/validate-brief-payload.mjs",
+    "market-brief.payload.json",
+    "brief-history.jsonl",
+    "briefs/current.json",
+    "package.json",
+    "package-lock.json",
+    ".npmrc"
+  ],
+  "scopes": [
+    {
+      "scope": 1,
+      "scopeId": "01-openai-compatible-shadow-author-adapter",
+      "scopeName": "OpenAI-compatible shadow author adapter",
+      "scopeKind": "contract-runtime",
+      "status": "in_progress",
+      "dependsOn": [],
+      "foundation": true,
+      "tests": [
+        {
+          "id": "TP-01-01",
+          "type": "unit",
+          "category": "unit",
+          "file": "scripts/selftest.mjs",
+          "scenarioIds": [
+            "SCN-030-001",
+            "SCN-030-002",
+            "SCN-030-003"
+          ],
+          "description": "Validate both shadow profiles, exact identities, the dynamic strict response schema, finite policy limits, safe-integer usage shapes, canonical request fingerprints, and static authority exclusions through pure production contracts.",
+          "testTitle": "Feature 030 shadow policy, dynamic strict response schema, transport-contract, authority, safe-integer receipt, canonical fingerprint, and every pure fail-loud boundary",
+          "command": "node scripts/selftest.mjs",
+          "liveSystem": false,
+          "pathState": "authored",
+          "dodId": "DOD-01-TP-01-01",
+          "testState": "authored",
+          "status": "planned-reverification",
+          "evidenceState": "historical-invalidated",
+          "evidenceRef": "report.md#dod-01-tp-01-01-current-implementation-reconciliation",
+          "captureSha256": "1bb8ac0b45fee90ab78df6cdec78bd79e801bb16075fe2dfd028129b1dc5f7aa",
+          "invalidatedBy": [
+            "F030-SEC-01",
+            "F030-SEC-02"
+          ]
+        },
+        {
+          "id": "TP-01-02",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-001",
+          "scenarioIds": [
+            "SCN-030-001"
+          ],
+          "description": "Run the production CLI against an ephemeral real HTTP server and prove missing, unknown, and incomplete profile selection refuses before any request.",
+          "testTitle": "Regression: SCN-030-001 explicit profile resolves once or refuses before HTTP",
+          "command": "node --test --test-name-pattern \"Regression: SCN-030-001\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": true,
+          "pathState": "authored",
+          "dodId": "DOD-01-TP-01-02",
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#dod-01-tp-01-02-current-implementation-reconciliation",
+          "captureSha256": "76b6e3c64215dc99787d70948cc38ae4fdf6b8569a16eb5f925ad6c9ab5181ac"
+        },
+        {
+          "id": "TP-01-03",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-002",
+          "scenarioIds": [
+            "SCN-030-002"
+          ],
+          "description": "Prove canonical request verification and exact model discovery precede one bounded non-streaming completion whose dynamic strict schema fixes contractVersion and requestFingerprint and requires the exact three-key envelope: brief for tool-author v1/v2 or final for final-author v1, with an object value; require a stop finish reason, downstream strict validation, cancellation, safe-integer usage normalization, and no provider switch.",
+          "testTitle": "Regression: SCN-030-002 exact model preflight precedes one bounded dynamic-schema completion",
+          "command": "node --test --test-name-pattern \"Regression: SCN-030-002\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": true,
+          "pathState": "authored",
+          "dodId": "DOD-01-TP-01-03",
+          "testState": "authored",
+          "status": "planned-reverification",
+          "evidenceState": "historical-invalidated",
+          "evidenceRef": "report.md#dod-01-tp-01-03-current-implementation-reconciliation",
+          "captureSha256": "189ac33ed9d44cf628528fb11afc9e82e8099848b5ed2446faab0f3669b6781f",
+          "invalidatedBy": [
+            "F030-SEC-01",
+            "F030-SEC-02"
+          ]
+        },
+        {
+          "id": "TP-01-04",
+          "type": "e2e-api",
+          "category": "integration",
+          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "scenarioId": "SCN-030-002",
+          "scenarioIds": [
+            "SCN-030-001",
+            "SCN-030-002"
+          ],
+          "description": "As the final post-fix canary, call the actual explicitly configured OMLX endpoint with a canonically built and verified request, require exact model discovery, and validate the schema-fixed identity fields, exact three-key envelope, object content value, stop finish reason, downstream strict-validation result, and truthful safe-integer token states.",
+          "testTitle": "Regression E2E: SCN-030-002 OMLX returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state",
+          "command": "/usr/bin/env BRIEF_SHADOW_PROFILE=omlx-openai-compatible-qwen38 BRIEF_OMLX_BASE_URL=\"${BRIEF_OMLX_BASE_URL:?required for OMLX canary}\" node --test --test-name-pattern \"Regression E2E: SCN-030-002 OMLX\" tests/*.local-canary.mjs",
+          "liveSystem": true,
+          "runtimeBindings": [
+            "BRIEF_OMLX_BASE_URL"
+          ],
+          "pathState": "authored",
+          "dodId": "DOD-01-TP-01-04",
+          "testState": "authored",
+          "status": "planned-reverification",
+          "evidenceState": "historical-invalidated",
+          "evidenceRef": "report.md#dod-01-tp-01-04-current-implementation-reconciliation",
+          "captureSha256": "fd246d5793c77c423c11076d7c8e63e8da587be4d738d62bbaab5cddc4211f18",
+          "invalidatedBy": [
+            "F030-SEC-01",
+            "F030-SEC-02"
+          ],
+          "executionOrder": "final-post-fix"
+        },
+        {
+          "id": "TP-01-05",
+          "type": "e2e-api",
+          "category": "integration",
+          "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+          "scenarioId": "SCN-030-002",
+          "scenarioIds": [
+            "SCN-030-001",
+            "SCN-030-002"
+          ],
+          "description": "As the final post-fix canary, call the actual explicitly configured Ollama endpoint with a canonically built and verified request, require exact model discovery, and validate the schema-fixed identity fields, exact three-key envelope, object content value, stop finish reason, downstream strict-validation result, and truthful safe-integer token states.",
+          "testTitle": "Regression E2E: SCN-030-002 Ollama returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state",
+          "command": "/usr/bin/env BRIEF_SHADOW_PROFILE=ollama-openai-compatible BRIEF_OLLAMA_BASE_URL=\"${BRIEF_OLLAMA_BASE_URL:?required for Ollama canary}\" BRIEF_OLLAMA_MODEL=\"${BRIEF_OLLAMA_MODEL:?required for Ollama canary}\" node --test --test-name-pattern \"Regression E2E: SCN-030-002 Ollama\" tests/*.local-canary.mjs",
+          "liveSystem": true,
+          "runtimeBindings": [
+            "BRIEF_OLLAMA_BASE_URL",
+            "BRIEF_OLLAMA_MODEL"
+          ],
+          "pathState": "authored",
+          "dodId": "DOD-01-TP-01-05",
+          "testState": "authored",
+          "status": "planned-reverification",
+          "evidenceState": "historical-invalidated",
+          "evidenceRef": "report.md#tp-01-05-current-correction",
+          "captureSha256": "b159234c8a2d02266ac823017c6a681f139803f2b68ab7b0a687ed30124ee66b",
+          "invalidatedBy": [
+            "F030-SEC-01",
+            "F030-SEC-02"
+          ],
+          "executionOrder": "final-post-fix"
+        },
+        {
+          "id": "TP-01-06",
+          "type": "stress",
+          "category": "stress",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-002",
+          "scenarioIds": [
+            "SCN-030-002"
+          ],
+          "description": "Exercise model-list and chat bytes, deadlines, zero retries, and one in-flight completion at the exact cap and at cap plus one.",
+          "testTitle": "Stress: SCN-030-002 finite byte deadline retry and concurrency limits refuse at cap plus one",
+          "command": "node --test --test-name-pattern \"Stress: SCN-030-002\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": true,
+          "pathState": "authored",
+          "dodId": "DOD-01-TP-01-06",
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#dod-01-tp-01-06-current-implementation-reconciliation",
+          "captureSha256": "107e0e422851d7a8dc67c16e3dc57b849c68fd771a274726b9207a98fd2576b5"
+        },
+        {
+          "id": "TP-01-07",
+          "type": "functional",
+          "category": "security",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-003",
+          "scenarioIds": [
+            "SCN-030-003"
+          ],
+          "description": "Snapshot protected files, publication artifacts, scheduler status, Git state, stdout, and stderr around shadow invocation and reject publication flags and secret sentinels.",
+          "testTitle": "Regression: SCN-030-003 shadow invocation preserves authority and excludes secret sentinels",
+          "command": "node --test --test-name-pattern \"Regression: SCN-030-003\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": true,
+          "pathState": "authored",
+          "dodId": "DOD-01-TP-01-07",
+          "testState": "authored",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#dod-01-tp-01-07-current-implementation-reconciliation",
+          "captureSha256": "9a7395b3083975d702bd1fe386eadcddc7e9cc6fc5be503732f9d9586dc8ab31"
+        },
+        {
+          "id": "TP-01-08",
+          "type": "contract-regression",
+          "category": "integration",
+          "file": "scripts/validate-brief-payload.mjs",
+          "scenarioId": "SCN-030-003",
+          "scenarioIds": [
+            "SCN-030-003"
+          ],
+          "description": "Validate the current committed public payload with the unchanged authority and no shadow-output dependency.",
+          "testTitle": "Current committed public payload remains valid and does not consume shadow output",
+          "command": "node scripts/validate-brief-payload.mjs",
+          "liveSystem": false,
+          "pathState": "existing-file-unchanged",
+          "dodId": "DOD-01-TP-01-08",
+          "testState": "existing-unchanged",
+          "status": "passed",
+          "evidenceState": "current",
+          "evidenceRef": "report.md#dod-01-tp-01-08-current-implementation-reconciliation",
+          "captureSha256": "d7fedfd61fc5b8dd602c92410282de4c6438442aacff9cbf5c9e07b0a795fc98"
+        },
+        {
+          "id": "TP-01-09",
+          "type": "functional",
+          "category": "security",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-002",
+          "scenarioIds": [
+            "SCN-030-002"
+          ],
+          "description": "Capture same-command RED and GREEN proof that each present token count is a non-negative safe integer, prompt plus completion cannot overflow, a present provider total is independently safe, and missing or null values remain unmeasured without a synthesized zero or total.",
+          "testTitle": "Security regression: SCN-030-002 unsafe token counts and overflow refuse before normalized usage",
+          "command": "node --test --test-name-pattern \"Security regression: SCN-030-002 unsafe token counts and overflow refuse before normalized usage\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": false,
+          "pathState": "existing-file-test-not-authored",
+          "dodId": "DOD-01-TP-01-09",
+          "testState": "planned-not-authored",
+          "status": "not-run",
+          "evidenceState": "not-run",
+          "findingIds": [
+            "F030-SEC-01"
+          ],
+          "redGreenRequired": true
+        },
+        {
+          "id": "TP-01-10",
+          "type": "functional",
+          "category": "security",
+          "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+          "scenarioId": "SCN-030-003",
+          "scenarioIds": [
+            "SCN-030-003"
+          ],
+          "description": "Capture same-command RED and GREEN proof that retaining a request digest while mutating each canonical field refuses in invokeAuthor, the route runtime, and the OpenAI-compatible adapter before callback, child spawn, route dispatch, model preflight, or HTTP work.",
+          "testTitle": "Security regression: SCN-030-003 retained request fingerprint mutation refuses before process transport or HTTP dispatch",
+          "command": "node --test --test-name-pattern \"Security regression: SCN-030-003 retained request fingerprint mutation refuses before process transport or HTTP dispatch\" tests/brief-openai-compatible-adapter.functional.mjs",
+          "liveSystem": true,
+          "pathState": "existing-file-test-not-authored",
+          "dodId": "DOD-01-TP-01-10",
+          "testState": "planned-not-authored",
+          "status": "not-run",
+          "evidenceState": "not-run",
+          "findingIds": [
+            "F030-SEC-02"
+          ],
+          "mutationFields": [
+            "contractVersion",
+            "data",
+            "provider",
+            "model",
+            "promptPolicy",
+            "schema",
+            "validator",
+            "maxOutputTokens"
+          ],
+          "dispatchBoundaries": [
+            "invokeAuthor",
+            "brief-route-runtime",
+            "brief-openai-compatible-adapter"
+          ],
+          "redGreenRequired": true
+        }
+      ]
+    }
+  ],
+  "requiredAssertionDiscipline": {
+    "productionCodeOnly": true,
+    "noSelfValidatingFixtures": true,
+    "realProviderRows": [
+      "TP-01-04",
+      "TP-01-05"
+    ],
+    "loopbackRowsAreProviderEvidence": false,
+    "adversarialRows": [
+      "TP-01-02",
+      "TP-01-03",
+      "TP-01-06",
+      "TP-01-07",
+      "TP-01-09",
+      "TP-01-10"
+    ],
+    "oneDodItemPerRow": true,
+    "evidenceRecorded": false
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "version": 1,
+  "contractVersion": "test-plan/v1",
+  "specId": "BUG-001",
+  "featureDir": "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-001-unsafe-token-usage-normalization",
+  "featureName": "Unsafe Token Usage Normalization",
+  "generatedBy": "bubbles.bug",
+  "generatedAt": "2026-09-03T12:39:34Z",
+  "planningStatus": "route-required",
+  "totalRows": 4,
+  "implementationAuthorization": {
+    "sourceAndTestEditsAuthorizedNow": true,
+    "currentPacketAllows": [
+      "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-001-unsafe-token-usage-normalization/**",
+      "rlbriefroute.js",
+      "scripts/selftest.mjs",
+      "tests/brief-openai-compatible-adapter.functional.mjs"
+    ],
+    "instruction": "Implement only safe-integer usage validation and TP-01-09. Keep routing, providers, production consumers, parent artifacts, and BUG-002 bytes unchanged."
+  },
+  "scope": {
+    "scope": 1,
+    "scopeId": "01-enforce-safe-token-usage-arithmetic",
+    "scopeName": "Enforce Safe Token Usage Arithmetic",
+    "status": "not_started",
+    "dependsOn": [],
+    "tests": [
+      {
+        "id": "TP-01-09",
+        "parentTestId": "TP-01-09",
+        "dodId": "DOD-B001-TP-01-09",
+        "type": "functional",
+        "category": "security",
+        "file": "tests/brief-openai-compatible-adapter.functional.mjs",
+        "scenarioIds": [
+          "SCN-030-002"
+        ],
+        "testTitle": "Security regression: SCN-030-002 unsafe token counts and overflow refuse before normalized usage",
+        "command": "node --test --test-name-pattern \"Security regression: SCN-030-002 unsafe token counts and overflow refuse before normalized usage\" tests/brief-openai-compatible-adapter.functional.mjs",
+        "liveSystem": false,
+        "pathState": "existing-file-test-not-authored",
+        "testState": "planned-not-authored",
+        "status": "not-run",
+        "evidenceState": "not-run",
+        "redGreenRequired": true,
+        "findingIds": [
+          "F030-SEC-01"
+        ]
+      },
+      {
+        "id": "TP-B001-02",
+        "parentTestId": "TP-01-01",
+        "dodId": "DOD-B001-TP-B001-02",
+        "type": "unit",
+        "category": "unit",
+        "file": "scripts/selftest.mjs",
+        "scenarioIds": [
+          "SCN-030-002"
+        ],
+        "testTitle": "Feature 030 safe-integer usage boundaries remain registered in the canonical selftest",
+        "command": "node scripts/selftest.mjs",
+        "liveSystem": false,
+        "pathState": "existing-file-assertions-not-authored",
+        "testState": "planned-not-authored",
+        "status": "not-run",
+        "evidenceState": "not-run"
+      },
+      {
+        "id": "TP-B001-03",
+        "parentTestId": "TP-01-04",
+        "dodId": "DOD-B001-TP-B001-03",
+        "type": "e2e-api",
+        "category": "integration",
+        "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+        "scenarioIds": [
+          "SCN-030-002"
+        ],
+        "testTitle": "Regression E2E: SCN-030-002 OMLX returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state",
+        "command": "/usr/bin/env BRIEF_SHADOW_PROFILE=omlx-openai-compatible-qwen38 BRIEF_OMLX_BASE_URL=\"${BRIEF_OMLX_BASE_URL:?required for OMLX canary}\" node --test --test-name-pattern \"Regression E2E: SCN-030-002 OMLX\" tests/*.local-canary.mjs",
+        "liveSystem": true,
+        "pathState": "existing-file-unchanged",
+        "testState": "existing-reverification-required",
+        "status": "not-run",
+        "evidenceState": "not-run"
+      },
+      {
+        "id": "TP-B001-04",
+        "parentTestId": "TP-01-05",
+        "dodId": "DOD-B001-TP-B001-04",
+        "type": "e2e-api",
+        "category": "integration",
+        "file": "tests/brief-openai-compatible-adapter.local-canary.mjs",
+        "scenarioIds": [
+          "SCN-030-002"
+        ],
+        "testTitle": "Regression E2E: SCN-030-002 Ollama returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state",
+        "command": "/usr/bin/env BRIEF_SHADOW_PROFILE=ollama-openai-compatible BRIEF_OLLAMA_BASE_URL=\"${BRIEF_OLLAMA_BASE_URL:?required for Ollama canary}\" BRIEF_OLLAMA_MODEL=\"${BRIEF_OLLAMA_MODEL:?required for Ollama canary}\" node --test --test-name-pattern \"Regression E2E: SCN-030-002 Ollama\" tests/*.local-canary.mjs",
+        "liveSystem": true,
+        "pathState": "existing-file-unchanged",
+        "testState": "existing-reverification-required",
+        "status": "not-run",
+        "evidenceState": "not-run"
+      }
+    ]
+  },
+  "applicability": {
+    "unit": "Required for pure safe-integer boundaries in the canonical selftest.",
+    "functional": "Required for the exact provider-free TP-01-09 RED and GREEN carrier.",
+    "integration": "Required through the unchanged final OMLX and Ollama canaries.",
+    "ui-unit": "Not applicable because no UI changes.",
+    "e2e-api": "Required through the actual configured provider canaries.",
+    "e2e-ui": "Not applicable because no user interface changes.",
+    "stress": "Covered by unchanged parent TP-01-06 after the focused repair.",
+    "load": "Not applicable because no throughput contract changes."
+  }
+}

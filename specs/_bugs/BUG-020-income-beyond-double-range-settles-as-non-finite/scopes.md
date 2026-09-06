@@ -67,6 +67,8 @@ Scenario: a declaration inside the representable range is unchanged
 | TB-020-04 | node | `formatForDisplay` returns a refusal for a non-finite value and the prior result for a finite one |
 | Regression E2E | `tests/lifetime-tax-representable.spec.mjs` plus `scripts/selftest.mjs` TB-020-04..06; probes R1-R3 prove each guard load-bearing. |
 
+Negative-control handoff: SCN-020-01 uses the composed E1-removal and R2-fallback control. SCN-020-03 uses the widened-E1 P11 control. Each control targets its scenario claim.
+
 ### Definition of Done
 
 - [x] The owner's refusal-code decision is recorded in `design.md` under the open question, with the date and the reasoning. → Evidence: `design.md` `## The Decision`, "Decided 2026-08-24. Authorised by the owner", with the reasoning in `### Why a new member rather than a reused one` and the rejected alternative in `### The alternative rejected`.

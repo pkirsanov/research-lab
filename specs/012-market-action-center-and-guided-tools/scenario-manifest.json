@@ -110,8 +110,13 @@
       "requiredTestType": "e2e-ui",
       "regressionRequired": true,
       "linkedTests": [
+        "tests/tool-brief-v2.unit.mjs",
         "tests/tool-brief-v2-author-boundary.functional.mjs",
-        "tests/tool-brief-v2.spec.mjs :: Regression: SCN-012-005 current Brief uses exact frozen read and bundle with a powerless author"
+        "tests/tool-brief-v2.stress.mjs",
+        {
+          "file": "tests/tool-brief-v2.spec.mjs",
+          "testId": "Regression: SCN-012-005 current Brief uses exact frozen read and bundle with a powerless author"
+        }
       ],
       "expectedAssertions": [
         "author input references exactly one validated read and one frozen qualified bundle",
@@ -179,7 +184,11 @@
       "requiredTestType": "e2e-ui",
       "regressionRequired": true,
       "linkedTests": [
-        "tests/tool-brief-v2.spec.mjs :: Regression: SCN-012-008 qualified tool Brief leads with cited action and keeps long detail closed"
+        "tests/tool-brief-v2.unit.mjs",
+        {
+          "file": "tests/tool-brief-v2.spec.mjs",
+          "testId": "Regression: SCN-012-008 qualified tool Brief leads with cited action and keeps long detail closed"
+        }
       ],
       "expectedAssertions": [
         "owner read action or catalyst trigger invalidation horizon citations and owner link lead",
@@ -405,7 +414,10 @@
       "requiredTestType": "e2e-ui",
       "regressionRequired": true,
       "linkedTests": [
-        "tests/market-action-center.spec.mjs :: Regression: SCN-012-018 Center Brief prioritizes bounded actions and catalysts with visible falsifiers"
+        {
+          "file": "tests/tool-brief-v2.spec.mjs",
+          "testId": "Regression: SCN-012-018 Center Brief prioritizes bounded actions and catalysts with visible falsifiers"
+        }
       ],
       "expectedAssertions": [
         "bounded actions and imminent catalysts precede long context",
@@ -450,7 +462,11 @@
       "regressionRequired": true,
       "linkedTests": [
         "tests/tool-brief-v2-publication.integration.mjs",
-        "tests/market-action-center.spec.mjs :: Regression: SCN-012-020 public watchlist ticker receives cited scheduled Brief with zero private fields"
+        "tests/tool-brief-v2.stress.mjs",
+        {
+          "file": "tests/tool-brief-v2.spec.mjs",
+          "testId": "Regression: SCN-012-020 public watchlist ticker receives cited scheduled Brief with zero private fields"
+        }
       ],
       "expectedAssertions": [
         "only committed public watchlist ticker scope enters scheduled authoring",

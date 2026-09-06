@@ -969,3 +969,87 @@ export function validateClaim(claim) {
   }
   return ok({ authorable: claim.authorable === true });
 }
+
+/* ═══════════ Feature 012 Scope 11 — the frozen author projection ═══════════
+
+   The ONE shape the ToolBrief/v2 author is allowed to see of a WebEvidenceBundle.
+   It is deliberately narrower than the bundle:
+
+   - the bundle is REVALIDATED here (identity, budgets, and a re-derived
+     fingerprint), so a tampered or hand-written bundle can never be frozen;
+   - only claims the acquisition stage already marked `authorable` survive, and
+     every dropped claim is recorded by id with a closed reason token, so the
+     author sees the omission rather than a silently shorter list;
+   - raw excerpt TEXT is withheld entirely. The author receives the normalized
+     claim plus citation metadata, so remote prose can never reach the model even
+     as data; and
+   - the result is deep-frozen and carries its own projection fingerprint, which
+     the author boundary re-derives before it will build a request.
+
+   This module keeps its zero-authority posture: no fetch, no write, no author
+   invocation, no import beyond node:crypto. */
+
+export const AUTHOR_PROJECTION_CONTRACT = 'web-evidence-author-projection/v1';
+
+export function freezeBundleForAuthor(bundle, policy) {
+  const revalidated = validateBundle(bundle, policy);
+  if (!revalidated.ok) return revalidated;
+
+  const claims = [];
+  const omittedClaims = [];
+  for (const claim of bundle.claims) {
+    if (claim.authorable !== true) {
+      omittedClaims.push({ claimId: claim.claimId, reason: 'not-authorable' });
+      continue;
+    }
+    claims.push({
+      claimId: claim.claimId,
+      normalizedClaim: claim.normalizedClaim,
+      materiality: claim.materiality,
+      claimKind: claim.claimKind,
+      corroborationState: claim.corroborationState,
+      conflictState: claim.conflictState,
+      freshnessState: claim.freshnessState,
+      independentOriginGroups: (claim.independentOriginGroups || []).slice().sort(),
+      ownerEvidenceRefs: (claim.ownerEvidenceRefs || []).slice().sort()
+    });
+  }
+
+  const sources = bundle.sources.map((source) => ({
+    sourceId: source.sourceId,
+    canonicalUrl: source.canonicalUrl,
+    title: source.title,
+    publisher: source.publisher,
+    sourceClass: source.sourceClass,
+    publishedAt: source.publishedAt,
+    independentOriginGroup: source.independentOriginGroup,
+    contentSha256: source.contentSha256,
+    freshnessState: source.freshnessState
+  }));
+
+  const body = {
+    contractVersion: AUTHOR_PROJECTION_CONTRACT,
+    bundleRef: bundle.bundleId,
+    bundleSha256: bundle.bundleFingerprint,
+    toolId: bundle.toolId,
+    runId: bundle.runId,
+    policyId: bundle.policyId,
+    cutoffAt: bundle.cutoffAt,
+    frozenAt: bundle.frozenAt,
+    claims,
+    omittedClaims,
+    sources
+  };
+  return ok(deepFreeze({ ...body, projectionFingerprint: fingerprint(body) }));
+}
+
+/* Re-derive an author projection's declared fingerprint. The author boundary calls
+   this shape check through its own hashing; this export exists so a consumer that
+   already has the acquisition module can verify without re-implementing the rule. */
+export function validateAuthorProjection(projection) {
+  if (!isPlainObject(projection)) return fail('E012-WEB-POLICY', 'bundle-not-object');
+  if (projection.contractVersion !== AUTHOR_PROJECTION_CONTRACT) return fail('E012-VERSION', 'bundle-version-unsupported');
+  const { projectionFingerprint, ...body } = projection;
+  if (projectionFingerprint !== fingerprint(body)) return fail('E012-WEB-POLICY', 'bundle-fingerprint-mismatch');
+  return ok({ claimCount: projection.claims.length, omittedCount: projection.omittedClaims.length });
+}

@@ -1,0 +1,281 @@
+{
+  "version": 3,
+  "featureDir": "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-001-unsafe-token-usage-normalization",
+  "featureName": "BUG-001 Unsafe Token Usage Normalization",
+  "createdAt": "2026-09-03T12:39:34Z",
+  "lastUpdatedAt": "2026-09-03T13:42:30Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/030-budget-aware-hybrid-brief-generation",
+  "linkedPlanningPacket": "specs/030-budget-aware-hybrid-brief-generation/test-plan.json#TP-01-09",
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "workBoundary": {
+    "repositoryRoots": [
+      "research-lab"
+    ],
+    "specTargets": [
+      "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-001-unsafe-token-usage-normalization"
+    ],
+    "allowedPaths": [
+      "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-001-unsafe-token-usage-normalization/**",
+      "rlbriefroute.js",
+      "scripts/selftest.mjs",
+      "tests/brief-openai-compatible-adapter.functional.mjs"
+    ],
+    "crossRepoPolicy": "forbidden"
+  },
+  "execution": {
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
+    "currentPhaseStatus": "route_required",
+    "executionModel": "phase-invocation",
+    "parentAgent": null,
+    "substate": "independently_verified",
+    "currentScope": "01-enforce-safe-token-usage-arithmetic",
+    "runStartedAt": "2026-09-03T12:39:34Z",
+    "completedAt": "2026-09-03T13:42:30Z",
+    "nextRequiredOwner": "bubbles.security",
+    "nextRequiredTarget": "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-001-unsafe-token-usage-normalization",
+    "nextRequiredReason": "Review the independently verified F030-SEC-01 repair. Exact TP-01-09, the complete Feature 030 functional carrier, the author-boundary matrix, and both live provider canaries pass on current bytes. The broad selftest remains non-green only because the unrelated OPS integration packet references three absent tests.",
+    "completedPhaseClaims": [
+      "implement",
+      "test"
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scope": 1,
+        "scopeId": "01-enforce-safe-token-usage-arithmetic",
+        "name": "Enforce Safe Token Usage Arithmetic",
+        "status": "in_progress",
+        "dependsOn": [],
+        "evidenceFile": "report.md"
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-enforce-safe-token-usage-arithmetic",
+        "name": "Enforce Safe Token Usage Arithmetic",
+        "status": "not_started",
+        "dependsOn": [],
+        "scopeDir": null,
+        "evidenceFile": "report.md",
+        "certifiedAt": null
+      }
+    ],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "user-request"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "findingsLedger": [
+    {
+      "findingId": "F030-SEC-01",
+      "sourceAgent": "bubbles.security",
+      "severity": "medium",
+      "class": "A08-software-and-data-integrity-failure",
+      "state": "INDEPENDENTLY_VERIFIED",
+      "disposition": "route_required",
+      "nextRequiredOwner": "bubbles.security",
+      "detail": "Independent test execution confirmed safe-integer admission, overflow-before-addition refusal, missing/null preservation, broad functional compatibility, and both live providers on current exact bytes. Security review remains required."
+    }
+  ],
+  "transitionRequests": [
+    {
+      "id": "TR-B001-IMPLEMENT",
+      "status": "open",
+      "requestedBy": "bubbles.bug",
+      "routedTo": "bubbles.implement",
+      "requestedAt": "2026-09-03T12:39:34Z",
+      "reason": "Implement only the BUG-001 safe-integer normalization boundary after exact TP-01-09 RED evidence.",
+      "scenarioIds": [
+        "SCN-030-002"
+      ],
+      "findingIds": [
+        "F030-SEC-01"
+      ],
+      "evidenceRefs": [
+        "bug.md#root-cause",
+        "design.md#solution-approach",
+        "scopes.md#test-plan"
+      ]
+    }
+  ],
+  "reworkQueue": [
+    {
+      "id": "RW-B001-SEC-01",
+      "findingId": "F030-SEC-01",
+      "status": "test_complete",
+      "resolved": false,
+      "requiredOwner": "bubbles.security",
+      "requiredTarget": "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-001-unsafe-token-usage-normalization",
+      "requiredAction": "Review the independently verified repair and determine the security disposition.",
+      "evidenceRefs": [
+        "scopes.md#scope-1-enforce-safe-token-usage-arithmetic",
+        "test-plan.json#TP-01-09",
+        "report.md#independent-test-verification-2026-09-03"
+      ]
+    },
+    {
+      "agent": "bubbles.implement",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "phase-invocation",
+      "parentAgent": null,
+      "startedAt": null,
+      "completedAt": "2026-09-03T13:13:32Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Invocation start was not captured before repository binding and TDD execution.",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "implement"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F030-SEC-01"
+      ],
+      "unresolvedFindings": [
+        "F030-OPS-TEST-PATHS-EXTERNAL"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Implemented the safe-integer usage repair after exact TP-01-09 RED and recorded GREEN plus functional, stress, regression-quality, and live-provider evidence. The bug remains nonterminal pending independent verification; the complete selftest is red only on three unrelated operations-packet test references."
+    }
+  ],
+  "executionHistory": [
+    {
+      "agent": "bubbles.bug",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "phase-invocation",
+      "parentAgent": null,
+      "startedAt": "2026-09-03T12:39:34Z",
+      "completedAt": "2026-09-03T12:45:31Z",
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "bug",
+        "packet"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "B001-PACKET-CREATED",
+        "B001-ARTIFACT-LINT-PASS",
+        "B001-SCENARIO-SCHEMA-PASS",
+        "B001-TRACEABILITY-PASS"
+      ],
+      "unresolvedFindings": [
+        "F030-SEC-01"
+      ],
+      "nextRequiredOwner": "bubbles.implement",
+      "summary": "Created and structurally validated the complete feature-bound BUG-001 packet. The packet isolates unsafe token normalization to rlbriefroute.js and the exact TP-01-09 carrier. No source, test, parent planner, BUG-022, framework, public, scheduler, completion, or certification artifact changed or was claimed."
+    },
+    {
+      "agent": "bubbles.test",
+      "workflowMode": "bugfix-fastlane",
+      "executionModel": "phase-invocation",
+      "parentAgent": null,
+      "startedAt": null,
+      "completedAt": "2026-09-03T13:42:30Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Invocation start was not captured before repository binding and the independent verification sequence.",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "phasesExecuted": [
+        "test"
+      ],
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "addressedFindings": [
+        "F030-SEC-01"
+      ],
+      "unresolvedFindings": [
+        "F030-B001-COV9-PLANNER-OBLIGATION",
+        "F030-OPS-TEST-PATHS-EXTERNAL"
+      ],
+      "nextRequiredOwner": "bubbles.security",
+      "summary": "Independently verified F030-SEC-01 on current exact bytes. TP-01-09, the complete six-test Feature 030 functional carrier, the 11-test author-boundary matrix, regression-quality checks, and both real-provider canaries passed with zero skips. The repository-wide selftest exited 1 only for three absent tests referenced by the unrelated OPS integration packet. BUG-001 remains in progress and uncertified."
+    }
+  ],
+  "addressedFindings": [
+    "F030-SEC-01"
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "F030-SEC-01",
+      "summary": "Independent verification passed; security must determine the finding disposition before later validation and audit phases.",
+      "owner": "bubbles.security",
+      "status": "route_required",
+      "evidenceRef": "report.md#independent-test-verification-2026-09-03"
+    }
+  ],
+  "activeBugs": [
+    "F030-SEC-01"
+  ],
+  "resolvedBugs": [],
+  "failures": [
+    "F030-SEC-01"
+  ],
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json",
+    "state": "state.json"
+  },
+  "notes": "BUG-001 remains in progress with execution.substate independently_verified. Exact TP-01-09, broader functional, author-boundary, and live-provider evidence are current. Security, validation, audit, and certification remain unclaimed. The planner-owned scenario obligation matrix still lacks its pure-calculation obligation entry."
+}

@@ -107,6 +107,14 @@ Protected surfaces:
 - market-brief, tool-brief-v2, open-work, and all concurrent dirty paths
 - `.github/bubbles/**` and all other installed framework files
 
+## Framework Routing
+
+- Finding: `BUG022-APPEND-ONLY-SUBSTITUTION-DEADLOCK`
+- Proposal: `.github/bubbles-project/proposals/20260902-scenario-receipt-append-only-supersession.md`
+- Required owner: `upstream-bubbles`
+- Outcome: `route_required`
+- Boundary: Preserve all receipt history. Do not patch installed framework files downstream.
+
 ## Related
 
 - Feature contract: `specs/008-portfolio-survival-and-brief-lab/`

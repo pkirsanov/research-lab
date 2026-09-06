@@ -49,6 +49,10 @@
     {
       "path": "company-intelligence.config.json",
       "reason": "Mandatory coverage registry and composition policy for the in-progress unregistered Company Multi-Horizon Intelligence Lab route. Shipping it would place a policy document in the public site whose only consumer is not itself shipped."
+    },
+    {
+      "path": "rlbriefroute.js",
+      "reason": "Feature 030 Node/shadow-only route contract with no public runtime consumer. It must leave exclusions only when a future approved production consumer ships."
     }
   ]
 }

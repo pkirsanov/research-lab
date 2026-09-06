@@ -203,10 +203,11 @@ This flow prevents a broad ignore from making the scanner silently green.
 
 ## Migration And Compatibility
 
-The migration adds these current commands under the command registry:
+The migration assigns current authority in `.specify/memory/agents.md`, the
+canonical project command registry, to both Node families:
 
-- `node --test tests/*.functional.mjs`
-- `node --test tests/*.test.mjs`
+- Functional Node files that use the `.functional.mjs` suffix.
+- Direct Node files that use the `.test.mjs` suffix.
 
 The registry additions replace accidental reachability supplied by reports.
 The portfolio-wide glob receives no active declaration because it selects

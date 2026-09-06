@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "scenario-manifest/v1",
+  "spec": "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-002-author-request-fingerprint-pre-dispatch-verification",
+  "featureDir": "specs/030-budget-aware-hybrid-brief-generation/bugs/BUG-002-author-request-fingerprint-pre-dispatch-verification",
+  "generatedBy": "bubbles.bug",
+  "generatedAt": "2026-09-03T12:39:34Z",
+  "scenarios": [
+    {
+      "id": "SCN-030-003",
+      "scenarioId": "SCN-030-003",
+      "scopeId": "01-verify-canonical-fingerprints-before-dispatch",
+      "scopeRef": "Scope 1",
+      "scope": 1,
+      "status": "not_started",
+      "title": "Retained fingerprint mutations refuse before every dispatch boundary",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "dependency-path"
+      ],
+      "linkedTests": [
+        "tests/brief-openai-compatible-adapter.functional.mjs#Security regression: SCN-030-003 retained request fingerprint mutation refuses before process transport or HTTP dispatch",
+        "scripts/selftest.mjs#Feature 030 Scope 01 - shadow policy transport contract authority and receipts",
+        "tests/brief-openai-compatible-adapter.local-canary.mjs#Regression E2E: SCN-030-002 OMLX",
+        "tests/brief-openai-compatible-adapter.local-canary.mjs#Regression E2E: SCN-030-002 Ollama"
+      ],
+      "evidenceRefs": [
+        "report.md#inherited-red-context",
+        "report.md#red-and-green-plan",
+        "report.md#independent-test-verification-2026-09-03"
+      ],
+      "implementationRefs": [
+        "scripts/brief-author.mjs",
+        "scripts/brief-route-runtime.mjs",
+        "scripts/brief-openai-compatible-adapter.mjs"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "scripts/brief-author.mjs",
+          "scripts/brief-route-runtime.mjs",
+          "scripts/brief-openai-compatible-adapter.mjs"
+        ],
+        "negativeControl": "Retain the builder-generated digest while mutating each canonical field, then require a refusal with zero callback, spawn, model, and HTTP counters.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "lockdown": {
+        "state": "unlocked"
+      }
+    }
+  ]
+}

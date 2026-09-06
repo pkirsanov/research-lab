@@ -1,0 +1,377 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/030-budget-aware-hybrid-brief-generation",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-09-03T12:28:55Z",
+  "stage": "security-rework-planned",
+  "stageNote": "Scope 01 remains in_progress after F030-SEC-01 and F030-SEC-02 invalidated only the affected usage, request-integrity, aggregate, and real-provider evidence. TP-01-09 and TP-01-10 are planned-not-authored and require same-command RED/GREEN proof after bubbles.bug creates one feature-bound packet per defect. The real OMLX and Ollama canaries run last with canonically built requests. Certification remains unchanged. F030-SEC-OBS-01 is a nonblocking framework-owned observation because executable product tests cover the .mjs modules; no framework-managed file is changed here.",
+  "scenarioCount": 3,
+  "scopeMapping": {
+    "01-openai-compatible-shadow-author-adapter": [
+      "SCN-030-001",
+      "SCN-030-002",
+      "SCN-030-003"
+    ]
+  },
+  "scenarios": [
+    {
+      "id": "SCN-030-001",
+      "scenarioId": "SCN-030-001",
+      "businessScenarios": [
+        "BS-030-006"
+      ],
+      "requirementRefs": [
+        "FR-030-005",
+        "FR-030-007",
+        "FR-030-008"
+      ],
+      "scopeId": "01-openai-compatible-shadow-author-adapter",
+      "scopeRef": "Scope 01",
+      "scope": 1,
+      "status": "in_progress",
+      "title": "Explicit shadow profile resolves once or refuses before transport",
+      "gherkin": {
+        "given": "the committed policy declares the two approved shadow profiles and their required runtime bindings",
+        "when": "an operator selects one profile for a frozen author request",
+        "then": "exactly that profile and model are frozen, while missing or unknown selection and invalid bindings refuse before any HTTP request"
+      },
+      "behaviorClass": "contract-runtime",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertions validate both committed profile records, exact provider and model identity, and deterministic one-profile resolution.",
+          "satisfiedBy": [
+            "TP-01-01"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertions prove missing, unknown, and incomplete profile selection refuses before the loopback server receives any request.",
+          "satisfiedBy": [
+            "TP-01-02"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production shadow CLI executes only the explicitly selected profile and consumes its required runtime endpoint and model bindings.",
+          "satisfiedBy": [
+            "TP-01-02",
+            "TP-01-04",
+            "TP-01-05"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-01-01",
+        "TP-01-02",
+        "TP-01-04",
+        "TP-01-05"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs#Feature 030 Scope 01 - shadow policy transport contract authority and receipts",
+        "tests/brief-openai-compatible-adapter.functional.mjs#Regression: SCN-030-001 explicit profile resolves once or refuses before HTTP",
+        "tests/brief-openai-compatible-adapter.local-canary.mjs#Regression E2E: SCN-030-002 OMLX returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state",
+        "tests/brief-openai-compatible-adapter.local-canary.mjs#Regression E2E: SCN-030-002 Ollama returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state"
+      ],
+      "evidenceRefs": [
+        "report.md#tp-01-01-current-test-phase",
+        "report.md#tp-01-02-03-06-07-current-functional",
+        "report.md#tp-01-04-current-omlx",
+        "report.md#tp-01-05-current-ollama",
+        "report.md#independent-test-verification-2026-09-03"
+      ],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "ephemeral-real",
+        "productionOwners": [
+          "rlbriefroute.js",
+          "scripts/brief-route-runtime.mjs",
+          "scripts/brief-shadow-generate.mjs",
+          "market-brief.config.json"
+        ],
+        "negativeControl": "Remove or corrupt the selected profile and require a named refusal with zero observed HTTP requests.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "rlbriefroute.js",
+        "scripts/brief-route-runtime.mjs",
+        "scripts/brief-shadow-generate.mjs",
+        "market-brief.config.json"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-030-002",
+      "scenarioId": "SCN-030-002",
+      "businessScenarios": [
+        "BS-030-002",
+        "BS-030-006"
+      ],
+      "requirementRefs": [
+        "FR-030-005",
+        "FR-030-008",
+        "FR-030-024",
+        "FR-030-026",
+        "FR-030-027",
+        "NFR-030-004",
+        "NFR-030-005"
+      ],
+      "scopeId": "01-openai-compatible-shadow-author-adapter",
+      "scopeRef": "Scope 01",
+      "scope": 1,
+      "status": "in_progress",
+      "title": "One bounded transport qualifies the exact model and returns a schema-constrained JSON object",
+      "gherkin": {
+        "given": "an explicitly selected profile has a valid runtime endpoint and exact configured model",
+        "when": "the shadow runtime performs preflight and authors the frozen request",
+        "then": "it confirms the model through /v1/models before one bounded /v1/chat/completions call and returns the exact contractVersion and requestFingerprint with the request-specific brief or final object value, a stop finish reason, downstream strict validation, and a truthful normalized usage state whose measured token values and computed sum are non-negative safe integers without synthesized missing values"
+      },
+      "behaviorClass": "transport-runtime",
+      "changeType": "new",
+      "requiredTestType": "stress",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "api-contract",
+        "dependency-path",
+        "sla-sensitive",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Provider-free production-normalizer assertions reject unsafe prompt, completion, and total token values; reject addition overflow before computing a sum; and preserve missing or null values as unmeasured without synthesizing zero or a total.",
+          "satisfiedBy": [
+            "TP-01-09"
+          ]
+        },
+        {
+          "trait": "api-contract",
+          "requiredProof": "Actual OMLX and Ollama endpoint checks observe exact model discovery followed by one schema-fixed three-key response envelope with an object payload, stop finish reason, and downstream strict validation.",
+          "satisfiedBy": [
+            "TP-01-04",
+            "TP-01-05"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Each provider canary reaches the explicitly configured external endpoint and validates model discovery, candidate JSON, and measured-or-unmeasured usage without fixture substitution.",
+          "satisfiedBy": [
+            "TP-01-04",
+            "TP-01-05"
+          ]
+        },
+        {
+          "trait": "sla-sensitive",
+          "requiredProof": "A stress assertion exercises every declared byte, deadline, retry, and in-flight limit at its exact cap and at cap plus one.",
+          "satisfiedBy": [
+            "TP-01-06"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "Both real provider checks execute the model and endpoint supplied by the selected profile's committed binding names and runtime environment.",
+          "satisfiedBy": [
+            "TP-01-04",
+            "TP-01-05"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-01-01",
+        "TP-01-03",
+        "TP-01-04",
+        "TP-01-05",
+        "TP-01-06",
+        "TP-01-09"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs#Feature 030 Scope 01 - shadow policy transport contract authority and receipts",
+        "tests/brief-openai-compatible-adapter.functional.mjs#Regression: SCN-030-002 exact model preflight precedes one bounded dynamic-schema completion",
+        "tests/brief-openai-compatible-adapter.functional.mjs#Stress: SCN-030-002 finite byte deadline retry and concurrency limits refuse at cap plus one",
+        "tests/brief-openai-compatible-adapter.functional.mjs#Security regression: SCN-030-002 unsafe token counts and overflow refuse before normalized usage",
+        "tests/brief-openai-compatible-adapter.local-canary.mjs#Regression E2E: SCN-030-002 OMLX returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state",
+        "tests/brief-openai-compatible-adapter.local-canary.mjs#Regression E2E: SCN-030-002 Ollama returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state"
+      ],
+      "evidenceRefs": [
+        "report.md#tp-01-01-current-test-phase",
+        "report.md#tp-01-02-03-06-07-current-functional",
+        "report.md#tp-01-04-current-omlx",
+        "report.md#tp-01-05-current-ollama",
+        "report.md#independent-test-verification-2026-09-03"
+      ],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "live-provider",
+        "assertionSurface": "http-response",
+        "dependencyPath": "external-live",
+        "productionOwners": [
+          "scripts/brief-openai-compatible-adapter.mjs",
+          "scripts/brief-route-runtime.mjs",
+          "scripts/brief-shadow-generate.mjs"
+        ],
+        "negativeControl": "Supply an unsafe token integer, an overflowing prompt-plus-completion pair, or an unsafe provider total and require refusal before normalized usage; also remove the exact model from discovery or exceed a finite transport limit and require bounded refusal with no alternate provider call.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "rlbriefroute.js",
+        "scripts/brief-openai-compatible-adapter.mjs",
+        "scripts/brief-route-runtime.mjs",
+        "scripts/brief-shadow-generate.mjs",
+        "market-brief.config.json"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    },
+    {
+      "id": "SCN-030-003",
+      "scenarioId": "SCN-030-003",
+      "businessScenarios": [
+        "BS-030-007",
+        "BS-030-008",
+        "BS-030-012"
+      ],
+      "requirementRefs": [
+        "FR-030-015",
+        "FR-030-016",
+        "FR-030-028",
+        "FR-030-035",
+        "FR-030-036",
+        "FR-030-039",
+        "FR-030-040",
+        "NFR-030-004",
+        "NFR-030-005",
+        "NFR-030-006",
+        "NFR-030-008"
+      ],
+      "scopeId": "01-openai-compatible-shadow-author-adapter",
+      "scopeRef": "Scope 01",
+      "scope": 1,
+      "status": "in_progress",
+      "title": "Shadow authorship remains non-authoritative and powerless",
+      "gherkin": {
+        "given": "the current Copilot worker, scheduler, public payload, pointer, history, and Git state are authoritative",
+        "when": "the shadow CLI processes a frozen author request under either approved profile",
+        "then": "the canonical request fingerprint is verified before any process, transport, or HTTP dispatch, and the invocation writes nothing, exposes no secret-shaped value, offers no production action, and leaves every authoritative surface byte-identical"
+      },
+      "behaviorClass": "authority-runtime",
+      "changeType": "new",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "dependency-path",
+        "runtime-config",
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "The exported verifier reuses the canonical author-request projection and rejects each retained-digest mutation across contractVersion, data, provider, model, promptPolicy, schema, validator, and maxOutputTokens.",
+          "satisfiedBy": [
+            "TP-01-10"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Publication-shaped options and unsafe or secret-shaped values produce named refusals with no tracked artifact or Git mutation.",
+          "satisfiedBy": [
+            "TP-01-07"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Dispatch counters prove every retained-digest mutation refuses before an invokeAuthor callback or child spawn, before route dispatch, and before adapter model preflight or HTTP work.",
+          "satisfiedBy": [
+            "TP-01-10"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "A production shadow CLI invocation exercises the selected profile while snapshots prove production state does not change.",
+          "satisfiedBy": [
+            "TP-01-07"
+          ]
+        },
+        {
+          "trait": "static-metadata",
+          "requiredProof": "Static owner, consumer, and deployment-inventory assertions prove the protected production files are unchanged, have no shadow import, retain the current payload validator, and declare rlbriefroute.js as Node/shadow-only with no public runtime consumer.",
+          "satisfiedBy": [
+            "TP-01-01",
+            "TP-01-08"
+          ]
+        }
+      ],
+      "testRows": [
+        "TP-01-01",
+        "TP-01-07",
+        "TP-01-08",
+        "TP-01-10"
+      ],
+      "linkedTests": [
+        "scripts/selftest.mjs#Feature 030 Scope 01 - shadow policy transport contract authority and receipts",
+        "tests/brief-openai-compatible-adapter.functional.mjs#Regression: SCN-030-003 shadow invocation preserves authority and excludes secret sentinels",
+        "tests/brief-openai-compatible-adapter.functional.mjs#Security regression: SCN-030-003 retained request fingerprint mutation refuses before process transport or HTTP dispatch",
+        "scripts/validate-brief-payload.mjs"
+      ],
+      "evidenceRefs": [
+        "report.md#tp-01-01-current-test-phase",
+        "report.md#tp-01-02-03-06-07-current-functional",
+        "report.md#tp-01-08-current-payload",
+        "report.md#independent-test-verification-2026-09-03"
+      ],
+      "riskTier": "medium",
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "scripts/brief-author.mjs",
+          "scripts/brief-route-runtime.mjs",
+          "scripts/brief-openai-compatible-adapter.mjs",
+          "scripts/brief-shadow-generate.mjs",
+          "scripts/brief-narrative-parallel.mjs",
+          "scripts/brief-refresh-and-push.sh",
+          "scripts/brief-refresh-scheduled.sh"
+        ],
+        "negativeControl": "Retain the original digest while mutating each canonical request field and require refusal before every process, transport, and HTTP dispatch counter; also supply a publication-shaped option or secret sentinel and require refusal before any authoritative byte or Git state changes.",
+        "negativeControlMechanism": "perturbed-input"
+      },
+      "implementationRefs": [
+        "scripts/brief-author.mjs",
+        "scripts/brief-route-runtime.mjs",
+        "scripts/brief-openai-compatible-adapter.mjs",
+        "scripts/brief-shadow-generate.mjs",
+        "scripts/brief-narrative-parallel.mjs",
+        "scripts/brief-refresh-and-push.sh",
+        "scripts/brief-refresh-scheduled.sh",
+        "scripts/validate-brief-payload.mjs",
+        "site-exclusions.json",
+        "market-brief.payload.json",
+        "brief-history.jsonl",
+        "briefs/current.json"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      }
+    }
+  ]
+}

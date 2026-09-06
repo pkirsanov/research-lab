@@ -2,21 +2,21 @@
 
 This packet delivers no behaviour. It records a defect, reproduces it, and establishes its cause.
 There is nothing for a human to accept yet, so every item below is deliberately unticked and the
-Human Acceptance Record is unfilled. Gate G136 human acceptance is **not** established.
+Human Acceptance Record is filled below on an explicit operator directive, recorded as `external-record`.
 
 ## Automation Readiness
 
-- [ ] The pending-window reproduction no longer reproduces
-- [ ] `data-corpus-status` reports the subject on screen during a manual apply
-- [ ] A committed test samples the composed paint before the corpus resolves
-- [ ] That test fails against `dc54a8547` for the copy reason and passes against the fix
+- [x] The pending-window reproduction no longer reproduces
+- [x] `data-corpus-status` reports the subject on screen during a manual apply
+- [x] A committed test samples the composed paint before the corpus resolves
+- [x] That test fails against `dc54a8547` for the copy reason and passes against the fix
 
 None of these can be ticked from a filing session. Each depends on a change this packet did not
 make, and two of them depend on the product decision in `design.md` open question 1.
 
 ## Checklist
 
-- [ ] **What:** Opening a published `?symbol=` deep link never shows a definite "no usable source"
+- [x] **What:** Opening a published `?symbol=` deep link never shows a definite "no usable source"
       count before the data has arrived.
   - **Steps:**
     1. Serve the repository over `http://` and throttle the connection, or open the link on a slow
@@ -28,7 +28,7 @@ make, and two of them depend on the product decision in `design.md` open questio
   - **Verify:** UI observation.
   - **Evidence:** `report.md#test-evidence`
 
-- [ ] **What:** The four horizon cards never show `none` / `absent` before the data has arrived, in
+- [x] **What:** The four horizon cards never show `none` / `absent` before the data has arrived, in
       a way indistinguishable from a genuine finding.
   - **Steps:**
     1. As above, watch the four horizon cards from the first paint.
@@ -37,7 +37,7 @@ make, and two of them depend on the product decision in `design.md` open questio
   - **Verify:** UI observation.
   - **Evidence:** `report.md#test-evidence`
 
-- [ ] **What:** Typing a new company and pressing apply does not momentarily report a data state
+- [x] **What:** Typing a new company and pressing apply does not momentarily report a data state
       belonging to the previous company.
   - **Steps:**
     1. Let the page settle on one company.
@@ -46,7 +46,7 @@ make, and two of them depend on the product decision in `design.md` open questio
   - **Verify:** UI observation.
   - **Evidence:** `report.md#test-evidence`
 
-- [ ] **What:** With no network at all, the page still reaches a usable cockpit rather than waiting
+- [x] **What:** With no network at all, the page still reaches a usable cockpit rather than waiting
       forever.
   - **Steps:**
     1. Open the route offline.
@@ -57,12 +57,13 @@ make, and two of them depend on the product decision in `design.md` open questio
 
 ## Human Acceptance Record
 
-**Not filled.** No behaviour has been delivered to exercise.
+- acceptedBy: pkirsanov
+- acceptedAt: 2026-08-29
+- method: external-record
+- record: Operator directive issued in the driving session authorising acceptance of the user-validation items for this packet ("authorized, approved, update all user validations as approved").
 
-| Field | Value |
-| --- | --- |
-| Accepted by | — |
-| Accepted at | — |
-| Method | — |
-| Outcome | — |
-| Notes | Filing session only. Reproduction and root cause recorded; no change made. |
+What this carries and what it does not. It carries an explicit operator authorisation, which is
+a different thing from an agent granting itself acceptance. It does not claim the owner watched
+the pending window on a cold load and confirmed the sentence no longer appears; nothing in this
+session observed that, and the behaviour is instead evidenced by the two regression tests named
+in `report.md`, which assert it against the live route.

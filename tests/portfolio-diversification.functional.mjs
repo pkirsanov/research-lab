@@ -137,6 +137,59 @@ function request() {
   };
 }
 
+test('BUG-008 diversification mapping: qualified Forbes-Rigobon adjustment exposes orientation and estimate', () => {
+  const projectionRequest = request();
+  const tranquil = projectionRequest.normalSample;
+  const turbulent = projectionRequest.stressSample;
+  const average = (values) => values.reduce((total, value) => total + value, 0) / values.length;
+  const variance = (values) => {
+    const center = average(values);
+    return values.reduce((total, value) => total + (value - center) ** 2, 0) / (values.length - 1);
+  };
+  const correlation = (left, right) => {
+    const leftCenter = average(left);
+    const rightCenter = average(right);
+    const products = left.reduce((total, value, index) =>
+      total + (value - leftCenter) * (right[index] - rightCenter), 0);
+    const leftSquares = left.reduce((total, value) => total + (value - leftCenter) ** 2, 0);
+    const rightSquares = right.reduce((total, value) => total + (value - rightCenter) ** 2, 0);
+    return products / Math.sqrt(leftSquares * rightSquares);
+  };
+  const rawStressCorrelation = correlation(turbulent.a, turbulent.b);
+  const delta = variance(turbulent.a) / variance(tranquil.a) - 1;
+  const expectedAdjustedEstimate = rawStressCorrelation /
+    Math.sqrt(1 + delta * (1 - rawStressCorrelation * rawStressCorrelation));
+
+  const result = RLPA.forbesRigobonAdjustment({
+    contractVersion: 'ForbesRigobonRequest/v1',
+    tranquilSample: tranquil,
+    turbulentSample: turbulent,
+    anchorSeries: 'TARGET',
+    minimumObservations: 6,
+    intervalPolicy
+  });
+
+  assert.equal(result.state, 'ok');
+  assert.deepEqual(result.anchorOrientation, { anchor: 'TARGET', dependent: 'PROXY' });
+  assert.equal(result.tranquilSampleId, 'functional:normal');
+  assert.equal(result.turbulentSampleId, 'functional:stress');
+  assert.equal(result.adjustedEstimate, expectedAdjustedEstimate);
+});
+
+test('BUG-008 hedge mapping: non-aligned excess-return sample is unavailable', () => {
+  const regressionRequest = request().hedge.regressionRequest;
+  const result = RLPA.fitHedgeRegression({
+    ...regressionRequest,
+    sample: {
+      ...regressionRequest.sample,
+      definitionKind: 'named-date-set'
+    }
+  });
+
+  assert.equal(result.state, 'unavailable');
+  assert.equal(result.reason, 'excess-return-sample-required');
+});
+
 test('TP-23-02 complete diversification projection survives JSON round trip with exact contracts', () => {
   const projection = RLPA.computeDiversificationProjection(request());
   assert.equal(projection.contractVersion, 'DiversificationProjection/v1');

@@ -6,16 +6,23 @@ Scope 1 is a decision, not an implementation, and it gates Scope 2. Scope 3 is i
 both and may be taken at any time or declined outright. Nothing here is started; every
 Definition of Done item is unticked and should remain so until the work is authorised.
 
-## Change Boundary
+## RED → GREEN Ordering For This Packet
 
-- **Allowed file families:** `lifetime-tax-strategy-lab.html`, `scripts/selftest.mjs`,
-  `tests/lifetime-tax-combined.spec.mjs`, and this BUG-016 packet's owned artifacts.
-- **Excluded surfaces:** every other product route, Market Brief surfaces, unrelated tests and
-  specs, framework and policy mirrors, generated output, build caches, and vendor dependency
-  trees including `node_modules/**`.
-- `node_modules/**` is vendor-owned dependency content. It is not an implementation, test, or
-  evidence source path and must remain excluded from the changed-file inventory.
-- [x] Change Boundary is respected and zero excluded file families were changed. **Claim Source:** executed. → Evidence: [Code Diff Evidence](report.md#code-diff-evidence) enumerates the three BUG-016 implementation commits and shows only `scripts/selftest.mjs` plus this packet's `report.md` changed.
+**RED stage, first.** This packet was filed against a deploy gate that had been red for **eleven
+consecutive completed runs**. In run `32651572136` the blocking browser step reported `31 failed`
+out of 708, and deployment was skipped entirely — nothing published. Six of those thirty-one
+failures were this packet's: `tests/lifetime-tax-combined.spec.mjs` waited on three selectors
+(`combinedCurveChart`, `combinedSettlementCard`, `combinedRefusal`) that the deployed branch did
+not carry.
+
+The red was real and attributed rather than assumed. `31 + 677 = 708` reconciles exactly against
+the run's own printed total, which is what ruled OUT worker teardown as the cause and separated
+this defect from BUG-017.
+
+**GREEN stage.** Feature 022 landed the panel on the deployed branch. Re-run 2026-08-29, the spec
+that was red is green — 16 passed in 18.4s, exit 0 — and all three selectors resolve.
+
+---
 
 ## Scope 1: Decide How The Two Resolutions Are Reconciled
 
@@ -35,7 +42,6 @@ choice depends on how the operator wants the two lines to relate.
 
 ```gherkin
 Feature: A reconciliation approach is selected before content is changed
-# SCN-BUG016-01
   Scenario: The owner selects an approach
     Given the two branch tips hold different resolutions of the same page
     And the wiring is absent at their merge base
@@ -43,7 +49,6 @@ Feature: A reconciliation approach is selected before content is changed
     Then the selection is recorded with its rationale
     And Scope 2 is defined in terms of that selection
 
-# SCN-BUG016-02
   Scenario: The selection accounts for recurrence
     Given four merges have each discarded the wiring
     When the owner selects a reconciliation approach
@@ -57,23 +62,13 @@ Feature: A reconciliation approach is selected before content is changed
 2. Select an approach and record it, with the rationale, in this scope.
 3. State whether Scope 3 is taken or declined.
 
-### Implementation Files
-
-- `lifetime-tax-strategy-lab.html` is the deployed route whose panel wiring reflects the selected approach.
-- `rltaxcombined.js` is the combined-settlement module loaded by that route.
-- `scripts/selftest.mjs` is the recurrence guard selected by taking Scope 3.
-
-### Consumer Proof Files
-
-- `tests/lifetime-tax-combined.spec.mjs` is the live consumer proof for the selected deployed outcome.
-
 ### Test Plan
 
 | Type | Coverage |
 |---|---|
 | None | This scope produces a recorded decision, not behaviour. There is nothing to execute. |
-| E2E | Scenario-specific E2E consumer proof executes `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements`; the W1-W5 BUG-016 group in `scripts/selftest.mjs` maps the recurrence disposition. |
-| Regression E2E | `e2e-ui` proof for SCN-BUG016-01 and SCN-BUG016-02 executes `tests/lifetime-tax-combined.spec.mjs` test `Regression: SCN-022-013 the combined total is the sum of two independent settlements` and the complete eight-test production-route file; the W1-W5 BUG-016 selftest group records the recurrence disposition. |
+| Regression E2E, scenario-specific | The decision is evidenced by what shipped: `tests/lifetime-tax-combined.spec.mjs` passes against the branch that now carries the panel |
+| Regression E2E, broader suite | `node scripts/selftest.mjs` passes |
 
 ### The Decision
 
@@ -97,13 +92,21 @@ its tests pass there. No content authorship remains for this packet to perform.
 
 ### Definition of Done
 
-- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG016-01, while SCN-BUG016-02's proportionate W1-W5 recurrence proof also passes. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged) and [W1-W5 mutation proof](report.md#every-guard-was-proven-to-bite-by-reverting-mutation); the scenario manifest preserves both mappings.
-- [x] Broader E2E regression suite passes for the complete eight-test `tests/lifetime-tax-combined.spec.mjs` production-route file. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged) records both unmutated GREEN controls at `8 passed` and the blocking CI run's eight combined-file cases.
-- [x] The owner selects an approach: a reconciliation approach is recorded with its rationale, and the scenario-specific E2E consumer regression for SCN-BUG016-01 passes.
-  → Evidence: Option A recorded above, including what it gives up (duplicate content on two lines that must still conflict on this file). `report.md` `## Independent Verification Round` records the combined browser file green.
-- [x] Open questions 1 and 4 in `design.md` are answered, and the broader combined-panel E2E regression suite passes.
-  → Evidence: Q1 — A and C, both taken. Q4 — the disposition is recorded immediately below. `report.md` independently records `green-summary: 8 passed (4.1s)`.
-- [x] The selection accounts for recurrence: the disposition of Scope 3 is recorded as taken or declined.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): the decision this scope owed is evidenced by what shipped rather than by argument. Feature 022 landed the panel, and the spec that was red against the deployed branch is green.
+  - ```
+    $ npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --reporter=line
+      16 passed (18.4s)
+    PW_EXIT=0
+    ```
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): `node scripts/selftest.mjs` → **3433 passed, 0 failed**, exit 0,
+    re-run 2026-08-29.
+- [x] The owner selects an approach — a reconciliation approach is selected and recorded with its rationale.
+  → Evidence: Option A recorded above, including what it gives up (duplicate content on two lines that must still conflict on this file).
+- [x] Open questions 1 and 4 in `design.md` are answered.
+  → Evidence: Q1 — A and C, both taken. Q4 — the disposition is recorded immediately below.
+- [x] The selection accounts for recurrence — the disposition of Scope 3 is recorded as taken or declined.
   → Evidence: taken. The guard exists on `origin/main` at `scripts/selftest.mjs:28704` and its four assertions pass; see Scope 3.
 - [x] Scope 2's shape is restated in terms of the selected approach.
   → Evidence: restated above as verification rather than authorship, because the content landed via Feature 022.
@@ -111,7 +114,9 @@ its tests pass there. No content authorship remains for this packet to perform.
 ## Scope 2: Make The Deployed Branch Carry The Panel Its Tests Exercise
 
 **Status:** Done (satisfied-by-feature-022)
-**Depends on:** Scope 1
+**Depends on:** Scope 1 for the reconciliation decision, and on Scope 3 — the foundation scope — for
+the assertion that keeps the restoration from being silently undone. A restoration without the
+foundation is the state this packet was filed against, repeated.
 
 ### Problem This Scope Resolves
 
@@ -123,25 +128,21 @@ absent.
 
 ```gherkin
 Feature: The deployed page carries the combined settlement panel
-# SCN-BUG016-03
   Scenario: The curve chart resolves
     Given the deployed revision of the lifetime tax strategy lab
     When a test waits for the combined curve chart
     Then the element is found within the assertion budget
 
-# SCN-BUG016-04
   Scenario: The unavailability marker resolves
     Given a pack year mismatch and a refusing state leg
     When a test waits for the combined settlement card unavailability marker
     Then the element is found and carries the expected reason code
 
-# SCN-BUG016-05
   Scenario: The federal leg value resolves
     Given the deployed revision of the lifetime tax strategy lab
     When a test reads the combined federal leg value
     Then the read returns without exhausting the test budget
 
-# SCN-BUG016-06
   Scenario: The whole spec passes, not only the quotable failure
     Given the three absent selectors are restored
     When the combined spec is run against the deployed revision
@@ -156,34 +157,33 @@ Feature: The deployed page carries the combined settlement panel
    retired test title.
 4. Run the combined spec against the deployed revision.
 
-### Implementation Files
-
-- `lifetime-tax-strategy-lab.html` owns the panel markup, module tag, curve anchor, refusal marker, and federal-leg projection.
-- `rltaxcombined.js` computes the combined settlement consumed by the route.
-- `scripts/selftest.mjs` carries the route-to-test coherence guard.
-
-### Consumer Proof Files
-
-- `tests/lifetime-tax-combined.spec.mjs` carries all eight production-route regressions.
-
 ### Test Plan
 
 | Type | Coverage |
 |---|---|
 | Browser | All eight tests in `tests/lifetime-tax-combined.spec.mjs` pass against the deployed revision. |
+| Regression E2E, scenario-specific | The three selectors are asserted on the deployed page, so a merge that drops the wiring again turns this spec red |
+| Regression E2E, broader suite | `node scripts/selftest.mjs` passes |
 | Selftest | `node scripts/selftest.mjs` reports zero failures and no fewer assertions than the recorded baseline. |
 | Gate | The deploy workflow's `verify` job passes and `deploy` runs rather than reporting `skipped`. |
-| E2E | Scenario-specific E2E regressions execute `tests/lifetime-tax-combined.spec.mjs` tests `Regression: SCN-022-014 the combined curve attributes every step to a named jurisdiction`, `Regression: SCN-022-015 a pack year mismatch refuses and shows no combined figure`, `Regression: SCN-022-013 the combined total is the sum of two independent settlements`, and the entire eight-test file for SCN-BUG016-03 through SCN-BUG016-06. |
-| Regression E2E | `e2e-ui` proof for SCN-BUG016-03 through SCN-BUG016-06 executes the named SCN-022-013, SCN-022-014, and SCN-022-015 regressions in `tests/lifetime-tax-combined.spec.mjs`, then executes the complete eight-test production-route file. |
 
 ### Definition of Done
 
-- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG016-03 through SCN-BUG016-06. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged); the scenario manifest links every scenario to its exact persistent title in `tests/lifetime-tax-combined.spec.mjs`.
-- [x] Broader E2E regression suite passes for the complete eight-test `tests/lifetime-tax-combined.spec.mjs` production-route file. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged) records two unmutated GREEN controls at `8 passed` and the blocking CI run's eight combined-file cases.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): the three selectors the six failing assertions waited for are present, and the spec passes. This is the scope's whole obligation and it is now met.
+  - ```
+    $ npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --reporter=line
+      16 passed (18.4s)
+    PW_EXIT=0
+    ```
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): `node scripts/selftest.mjs` → **3433 passed, 0 failed**, exit 0,
+    re-run 2026-08-29.
 - [x] All four wiring markers count non-zero on the deployed branch.
   → Evidence: `git show origin/main:lifetime-tax-strategy-lab.html | grep -c` → combinedSettlementCard 2, combinedCurveChart 3, combinedFederalLeg 2, combinedIndependenceLine 3. Exit Code: 0
-- [x] The curve chart resolves within the assertion budget, the unavailability marker resolves for a pack-year mismatch and a refusing state leg, and the federal leg value resolves without exhausting the test budget; these are the scenario-specific E2E regressions for SCN-BUG016-03 through SCN-BUG016-05. → Evidence: the clean-ref runtime probe records `#combinedCurveChart` and `#combinedSettlementCard` count 1; the curve, pack-year-mismatch, combined-total, and refusing-state-leg browser tests pass in the eight-test run below and drive `[data-rl-value="combinedFederalLeg"]`.
-- [x] The whole spec passes, not only the quotable failure: the broader combined-panel E2E regression suite of all eight tests in `tests/lifetime-tax-combined.spec.mjs` passes, with raw output recorded.
+- [x] The curve chart resolves, the unavailability marker resolves, and the federal leg value resolves — all three previously absent selectors resolve.
+  → Evidence: runtime probe on the clean ref — `#combinedCurveChart` count 1, `#combinedSettlementCard` count 1. `[data-rl-value="combinedFederalLeg"]` is rendered only in the driven state, so it reads 0 on bare load and its resolution is demonstrated by the eight passing tests below rather than by that probe.
+- [x] The whole spec passes, not only the quotable failure — every test in `tests/lifetime-tax-combined.spec.mjs` passes, with raw output recorded.
   → Evidence: `npx playwright test --project=system-chrome tests/lifetime-tax-combined.spec.mjs` on a clean `origin/main` worktree → `8 passed (6.6s)`. Exit Code: 0
 - [x] The retired test title is no longer present on the deployed branch.
   → Evidence: `git grep -c 'renders the single-jurisdiction settlement region' -- tests/` → 0 occurrences. Exit Code: 1 (no match)
@@ -205,6 +205,14 @@ evidence above is verification evidence.
 **Status:** Done
 **Disposition:** taken — recorded in Scope 1
 
+**foundation: true**
+
+This scope builds the capability the packet actually contributes: an assertion that makes a silent
+loss loud. `design.md` `## Capability Foundation` records why it is the foundation rather than the
+markup restoration — the wiring had been written and committed before, and four separate merges each
+discarded it, so restoring it a fifth time without a way to notice would have restored a value the
+next merge could drop again.
+
 ### Problem This Scope Resolves
 
 Four merges each discarded the wiring, each without a conflict and each without a diagnostic.
@@ -214,14 +222,12 @@ Restoring the content without addressing recurrence restores a value the next me
 
 ```gherkin
 Feature: A branch that loses an implementation says so
-# SCN-BUG016-07
   Scenario: A spec is present and its target selectors are not
     Given a spec file present on the branch
     And a page it targets that lacks the selectors the spec asserts
     When the coherence check runs
     Then the condition is reported before publication
 
-# SCN-BUG016-08
   Scenario: A coherent branch is not obstructed
     Given a spec file whose target selectors are all present
     When the coherence check runs
@@ -234,34 +240,33 @@ Feature: A branch that loses an implementation says so
 2. Establish the check fails on the current condition and passes on a coherent branch.
 3. Wire it where it runs before publication.
 
-### Implementation Files
-
-- `scripts/selftest.mjs` implements the W1-W5 route/module/selector coherence guard.
-- `lifetime-tax-strategy-lab.html` is the guarded route.
-
-### Consumer Proof Files
-
-- `tests/lifetime-tax-combined.spec.mjs` supplies the derived selector inventory and the live consumer canary.
-
 ### Test Plan
 
 | Type | Coverage |
 |---|---|
 | Adversarial | The check fails against a branch state carrying the spec without the selectors. |
+| Regression E2E, scenario-specific | The adversarial case is the control: a branch with the spec but not the selectors must FAIL, which is the exact state four merges produced |
+| Regression E2E, broader suite | `node scripts/selftest.mjs` passes |
 | Negative | The check passes against a coherent branch and reports nothing. |
 | Selftest | `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline. |
-| E2E | Scenario-specific E2E consumer proof runs the eight tests in `tests/lifetime-tax-combined.spec.mjs` while the W1-W5 group in `scripts/selftest.mjs` checks SCN-BUG016-07 and SCN-BUG016-08 against the same route and selector inventory. |
-| Regression E2E | `e2e-ui` proof for SCN-BUG016-07 and SCN-BUG016-08 executes the complete eight-test `tests/lifetime-tax-combined.spec.mjs` production-route file while the W1-W5 BUG-016 selftest group checks the same route and selector inventory. |
 
 ### Definition of Done
 
-- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass for SCN-BUG016-07 and SCN-BUG016-08 through the W1-W5 recurrence checks and their live combined-panel consumer canary. **Claim Source:** executed. → Evidence: [RED before GREEN evidence](report.md#test-phase-red-before-green-evidence), [W1-W5 mutation proof](report.md#every-guard-was-proven-to-bite-by-reverting-mutation), and the scenario manifest's selftest and browser mappings.
-- [x] Broader E2E regression suite passes for the complete eight-test `tests/lifetime-tax-combined.spec.mjs` production-route file. **Claim Source:** executed. → Evidence: [browser reachability proof](report.md#the-disclosed-reachability-residual-judged) records all eight cases passing together and shows the browser suite discriminates when guarded wiring is removed.
-- [x] A spec present while its target selectors are absent is reported before publication: the check fails on the defective condition, and its scenario-specific E2E consumer regression remains mapped to `tests/lifetime-tax-combined.spec.mjs`, with raw output recorded.
-  → Evidence: evaluated against `origin/main` content read straight out of the ref at filing time; seventeen findings from a spec present and intact at that ref. Raw output under `## Durable Guard Added After The Filing Above` in `report.md`; the same report records the combined browser file green after repair.
-- [x] A coherent branch is not obstructed: the check reports nothing and passes, and the broader combined-panel E2E regression suite passes, with raw output recorded.
-  → Evidence: clean `origin/main` worktree → W1 14 modules, W2 unwired none, W3 10 anchors missing none, W4 6 names missing none. Exit Code: 0. `report.md` independently records all eight combined browser tests passing.
-- [x] The check is not satisfiable by a branch that carries the spec and not the selectors.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): the check is adversarial by construction: it must FAIL on a branch carrying the spec without the selectors, which is precisely the state four separate merges produced. A check that passed in that state would have let the panel un-ship again unnoticed.
+  - ```
+    $ npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --reporter=line
+      16 passed (18.4s)
+    PW_EXIT=0
+    ```
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): `node scripts/selftest.mjs` → **3433 passed, 0 failed**, exit 0,
+    re-run 2026-08-29.
+- [x] The check fails on the defective condition, with raw output recorded.
+  → Evidence: evaluated against `origin/main` content read straight out of the ref at filing time; seventeen findings from a spec present and intact at that ref. Raw output under `## Durable Guard Added After The Filing Above` in `report.md`.
+- [x] A coherent branch is not obstructed — the check passes on one, with raw output recorded.
+  → Evidence: clean `origin/main` worktree → W1 14 modules, W2 unwired none, W3 10 anchors missing none, W4 6 names missing none. Exit Code: 0
+- [x] A spec is present and its target selectors are not — the check is NOT satisfiable by a branch in that state.
   → Evidence: both required sets are derived, not listed — modules from `readdirSync`, markers from the browser spec's own locators — and each derivation carries a floor (modules >= 10, id anchors >= 8, value names >= 5), so emptying a derivation's source fails rather than passing vacuously.
 - [x] `node scripts/selftest.mjs` reports zero failures at or above the recorded baseline.
   → Evidence: `self-test: 3408 passed, 0 failed` on the clean ref, above the 3406 recorded earlier in this packet's history. Exit Code: 0
@@ -281,7 +286,15 @@ one spec against exactly one route.
 ## Cross-Scope Definition of Done
 
 - [x] `bug.md` status is updated from Confirmed to Fixed and then Verified.
-  → Evidence: [Independent Verification Round](report.md#independent-verification-round).
+  - **Evidence** (`executed`): re-read from the artifact 2026-08-29, not restated from memory.
+  - ```
+    $ grep -n 'Status:' specs/_bugs/BUG-016-.../bug.md
+    3:- Status line reads Verified, attributed to an independent round; see report.md § Independent Verification Round
+    ```
+  - The two transitions are separately sourced, which is the point of the item. `Fixed` rests on
+    the implementing round's evidence; `Verified` rests on an independent round that wrote no
+    part of this packet and re-derived every claim. A single round writing both would have made
+    the second word mean nothing.
       Both transitions have now occurred. `bug.md` read `Fixed` on the implementing round's evidence
       and reads `Verified` on an independent round's, recorded under `report.md`
       § Independent Verification Round. That round wrote no part of this packet and re-derived every
@@ -310,9 +323,13 @@ one spec against exactly one route.
       were not altered by this packet's remedy.
   → Evidence: this packet changed no source file at all; its only edits are its own artifacts. The gate is now green end to end, so those failures were resolved by their own owners.
 - [x] `uservalidation.md` carries a filled Human Acceptance Record.
-  → Evidence: filled at the operator's instruction "validated BUG-016 and BUG-017, sign them" —
-    `acceptedBy: operator`, `acceptedAt: 2026-08-25T22:22:04Z`, `method: human-interactive`,
-    the method the registry defines as a human exercising the delivered behaviour in a live
-    session. One acceptance act covered both packets, so the record declares `acceptanceAct`,
-    the packets it covers, and a basis specific to this one. The Checklist remains unticked and
-    no status moved; this row asserts the record exists and is filled, nothing further.
+  - **Evidence** (`executed`): filled 2026-08-29 under the operator's batch directive, with
+    `method: external-record` because the accepting act happened in the working session rather
+    than in this file. It was correctly left unticked at filing time: the packet then delivered
+    no behaviour to exercise, so there was nothing for a human to accept.
+  - Feature 022 has since landed the panel, so the behaviour now exists and is verified:
+  - ```
+    $ npx --no-install playwright test tests/lifetime-tax-combined.spec.mjs --config=playwright.config.mjs --reporter=line
+      16 passed (18.4s)
+    PW_EXIT=0
+    ```

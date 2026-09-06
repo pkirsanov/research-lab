@@ -1,0 +1,602 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+  "featureName": "BUG-006 Evidence Window Date Overflow",
+  "createdAt": "2026-08-25T19:27:30Z",
+  "lastUpdatedAt": "2026-08-26T15:45:43Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "1e3a51f721d087b74cda91f780262073886c7dab",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.security",
+    "currentPhase": "security",
+    "currentPhaseStatus": "route_required",
+    "substate": "finding_confirmed",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": null,
+    "runStartedAt": "2026-08-26T15:45:43Z",
+    "completedAt": "2026-08-26T15:45:43Z",
+    "currentScope": "01-bound-the-evidence-age-policy",
+    "nextRequiredOwner": "bubbles.bug",
+    "nextRequiredTarget": "SEC-B006-S1 prototype-sensitive composeBrief key handling",
+    "nextRequiredReason": "The round-2 security review verified the evidence-age repair but reproduced a separate high-severity prototype-pollution defect in exported composeBrief. A __proto__ completion subject writes a date key to Object.prototype and throws outside the result envelope. File a complete bug packet before source or test remediation.",
+    "completedPhaseClaims": [
+      "plan",
+      "implement",
+      "test",
+      "regression",
+      "simplify",
+      "gaps",
+      "design",
+      "analyze",
+      "harden",
+      "stabilize",
+      "devops",
+      "security"
+    ],
+    "pendingTransitionRequests": [],
+    "scopeInventory": [
+      {
+        "scopeId": "01-bound-the-evidence-age-policy",
+        "scope": 1,
+        "status": "In Progress",
+        "dependsOn": []
+      }
+    ]
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": []
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [
+    {
+      "id": "BUG-006-ROUTE-001",
+      "status": "completed",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "design.md",
+      "reason": "The failure class is reproduced. The product-bound choice and final fix design require design ownership before scenario-first test authorship."
+    },
+    {
+      "id": "BUG-006-ROUTE-002",
+      "status": "completed",
+      "fromAgent": "bubbles.design",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md",
+      "reason": "The design now distinguishes the 100-year product ceiling from the timestamp-dependent TimeClip boundary and inventories every inherited consumer and test carrier."
+    },
+    {
+      "id": "BUG-006-ROUTE-003",
+      "status": "completed",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-foundation.unit.mjs",
+      "reason": "The one-scope plan and structured test handoff require scenario-first boundary and overflow assertions plus an observed focused RED result before implementation."
+    },
+    {
+      "id": "BUG-006-ROUTE-004",
+      "status": "completed",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "rlportfolio.js",
+      "reason": "The persistent carrier exits 1 with exactly the one-over and TimeClip-overflow BUG-006 refusal tests failing; implementation must add only the planned named maximum and validator predicate."
+    },
+    {
+      "id": "BUG-006-ROUTE-005",
+      "status": "completed",
+      "fromAgent": "bubbles.implement",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-foundation.unit.mjs",
+      "reason": "The current bounded validator passes the exact focused carrier. Test ownership must independently account GREEN and execute the planned allocation-page, browser-matrix, and repository regressions."
+    },
+    {
+      "id": "BUG-006-ROUTE-006",
+      "status": "superseded",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.validate",
+      "target": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-006-evidence-window-date-overflow",
+      "reason": "All planned test-owned execution and packet gates pass. Validation owns certification review; the packet and scope remain in progress and human acceptance is not claimed."
+    },
+    {
+      "id": "BUG-006-ROUTE-007",
+      "status": "completed",
+      "fromAgent": "bubbles.gaps",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "design.md",
+      "reason": "The active design omits exported rlportfoliobrief.js::composeBrief, which accepts the one-over policy and can throw RangeError on its own backward-TimeClip calculation before shared validation. Reconcile the consumer, refusal ordering, and change boundary before planning or implementation expands."
+    },
+    {
+      "id": "BUG-006-ROUTE-008",
+      "status": "completed",
+      "fromAgent": "bubbles.design",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md, scenario-manifest.json, test-plan.json",
+      "reason": "Narrow-expand existing Scope 01 for the composeBrief public consumer. Add rlportfoliobrief.js and tests/portfolio-brief.functional.mjs to the Change Boundary, add one consumer scenario with exact 36525, 36526, non-finite, backward-TimeClip, shared-envelope, and local-error-precedence behavior, and add matching persistent RED and functional rows without creating another bug packet."
+    },
+    {
+      "id": "BUG-006-ROUTE-009",
+      "status": "completed",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-brief.functional.mjs",
+      "reason": "Author the exact SCN-B006-BRIEF-POLICY-VALIDATION persistent functional regression and record TP-B006-009 as an observed pre-fix RED before any rlportfoliobrief.js source edit. Preserve existing local-error precedence controls and all previously executed BUG-006 rows."
+    },
+    {
+      "id": "BUG-006-ROUTE-010",
+      "status": "completed",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "rlportfoliobrief.js",
+      "reason": "TP-B006-009 is observed RED with the exact planned title. Add only the design-specified shared-validator delegation immediately before composeBrief reads maximumEvidenceAgeDays; preserve local input, window, timestamp, and cutoff error precedence and both Date expressions."
+    },
+    {
+      "id": "BUG-006-ROUTE-011",
+      "status": "superseded",
+      "fromAgent": "bubbles.implement",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-brief.functional.mjs, tests/portfolio-foundation.unit.mjs",
+      "reason": "The two-line composeBrief delegation is in place. The implementation owner observed 29 of 29 brief tests and 61 of 61 foundation tests pass, but TP-B006-010 and focused regression provenance remain independently test-owned. Re-execute both unchanged carriers before continuing broader test rows."
+    },
+    {
+      "id": "BUG-006-ROUTE-012",
+      "status": "completed",
+      "fromAgent": "bubbles.design",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md, test-plan.json",
+      "reason": "Narrow-expand existing Scope 01 only. Add tests/portfolio-behavior-occurrence.unit.mjs to its Change Boundary. Add a persistent regression obligation that anchors the shared delegation pair to the uniquely following retainedIdentityOrder.forEach statement, removes only the deriveInterestSignals pair, re-emits the loop opener, and proves composeBrief retains its pair. Preserve the BUG-004 contract and expected outcome. Add no scope, scenario, capability, or bug."
+    },
+    {
+      "id": "BUG-006-ROUTE-013",
+      "status": "completed",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-behavior-occurrence.unit.mjs, report.md",
+      "reason": "Execute the planned TP-B006-011 focused carrier and record durable test-owned evidence. Verify the unique derive-loop mutation anchor removes only the deriveInterestSignals validation pair while preserving retainedIdentityOrder.forEach and the composeBrief validation pair; preserve the BUG-004 contract and expected outcome."
+    },
+    {
+      "id": "BUG-006-ROUTE-014",
+      "status": "completed",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md, test-plan.json",
+      "reason": "TP-B006-010 and TP-B006-011 now have independent test-owned passing evidence. Reconcile their planner-owned machine statuses and the scope implementation-file references reported through design fallback; preserve unchecked DoD, in-progress scope and packet status, certification, and human acceptance."
+    },
+    {
+      "id": "BUG-006-ROUTE-015",
+      "status": "completed",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.regression",
+      "target": "Scope 01 post-expansion regression phase",
+      "reason": "Planner-owned evidence statuses now match the test-owned RED and GREEN anchors, and Scope 01 exposes its current product and test paths through the implementation-reality scanner contract. Run the required post-expansion regression phase before validation; preserve in-progress status, unchecked DoD, human acceptance, and certification."
+    },
+    {
+      "id": "BUG-006-ROUTE-016",
+      "status": "completed",
+      "fromAgent": "bubbles.regression",
+      "nextRequiredOwner": "bubbles.simplify",
+      "target": "rlportfolio.js, rlportfoliobrief.js, tests/portfolio-foundation.unit.mjs, tests/portfolio-brief.functional.mjs, tests/portfolio-behavior-occurrence.unit.mjs",
+      "reason": "The post-expansion regression re-evaluation is clean across the 104-test focused closure, both regression-quality modes, both load-bearing mutation controls, and the positive test/assertion-count delta. Review the expanded source and test surface for simplification without changing behavior or planner-owned, human-owned, or certification artifacts."
+    },
+    {
+      "id": "BUG-006-ROUTE-017",
+      "status": "completed",
+      "fromAgent": "bubbles.simplify",
+      "nextRequiredOwner": "bubbles.gaps",
+      "target": "Scope 01 round-2 expanded-consumer gap review",
+      "reason": "The round-2 simplify review found no safe product or test reduction: the shared validator remains the sole ceiling owner, composeBrief preserves the specified refusal order and Date expression, the boundary and TimeClip cases remain independently discriminating, and the repaired mutation anchor remains unique and load-bearing. Run the required gaps phase next under the persisted bugfix-fastlane phase order."
+    },
+    {
+      "id": "BUG-006-ROUTE-018",
+      "status": "completed",
+      "fromAgent": "bubbles.gaps",
+      "nextRequiredOwner": "bubbles.harden",
+      "target": "Scope 01 round-2 hardening",
+      "reason": "The round-2 gaps audit found no product defect and repaired one persistent-test integrity gap inside the existing TP-B006-011 boundary. The focused four-carrier closure passes 104 of 104, the compose-anchor negative control turns the exact mutation test red, and both regression-quality modes report zero findings. Run the next registered harden phase while preserving in-progress status, unchecked DoD, human acceptance, and certification."
+    },
+    {
+      "id": "BUG-006-ROUTE-019",
+      "status": "completed",
+      "fromAgent": "bubbles.harden",
+      "nextRequiredOwner": "bubbles.stabilize",
+      "target": "Scope 01 round-2 stabilization",
+      "reason": "Round-2 hardening independently verified the full BUG-006 contract, all ten runtime maximumEvidenceAgeDays consumers, both TimeClip directions, local and shared refusal ordering, input non-mutation, BUG-004 and BUG-005 regressions, three load-bearing mutation boundaries, the 94-test browser matrix, and the 3426-check canonical selftest. No product or persistent-test finding remains. Run the next registered stabilize phase while preserving in-progress status, unchecked DoD, human acceptance, and certification."
+    },
+    {
+      "id": "BUG-006-ROUTE-020",
+      "status": "completed",
+      "fromAgent": "bubbles.stabilize",
+      "nextRequiredOwner": "bubbles.devops",
+      "target": "Scope 01 round-2 deployment-boundary review",
+      "reason": "Round-2 stabilization verified deterministic bounded failures, input non-mutation, zero call-path logs, unchanged active handles, bounded post-GC heap, browser and Node contract parity, sub-millisecond valid composition, 104 of 104 focused tests, and input-current harden browser and selftest evidence. Research Lab is static and build-free, with no service lifecycle, manual deploy command, trace contract, or BUG-006 operational surface. Complete the registered devops phase as a no-change deployment-boundary review rather than skipping it."
+    },
+    {
+      "id": "BUG-006-ROUTE-021",
+      "status": "completed",
+      "fromAgent": "bubbles.devops",
+      "nextRequiredOwner": "bubbles.security",
+      "target": "Scope 01 round-2 security review",
+      "reason": "Round-2 DevOps review found no operational defect and no changed package, config, workflow, deployment, service-lifecycle, port, secret, observability, runtime-operations, or artifact-generation obligation. The source-lock validator and Pages staging dry-run pass, clean-checkout deployment semantics remain unchanged, and no live deployment was invoked. Run the next registered security phase while preserving in-progress status, unchecked DoD, human acceptance, and certification."
+    },
+    {
+      "id": "BUG-006-ROUTE-022",
+      "status": "pending",
+      "fromAgent": "bubbles.security",
+      "nextRequiredOwner": "bubbles.bug",
+      "target": "SEC-B006-S1 prototype-sensitive composeBrief key handling",
+      "reason": "File a complete bug packet for exported composeBrief dynamic aggregation maps. A __proto__ completion subject writes through Object.prototype and then throws outside the PortfolioError result envelope. Preserve BUG-006 planning and source boundaries while the new defect is classified and reproduced independently."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-25T19:27:30Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed-reproduced-and-routed",
+      "note": "Bound repository authority to Research Lab at control revision 204. Read the current validatePolicy and deriveInterestSignals paths, read the SEC-B005-S1 security record, and executed a focused current-source probe. The validator accepted 99979350 days, the derived expiry exceeded TimeClip, and toISOString threw RangeError Invalid time value. Proposed a named 36525-day product bound. No product source or test was edited or run.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T19:41:09Z",
+      "agent": "bubbles.design",
+      "phase": "design",
+      "action": "design-reconciled-and-routed",
+      "note": "Reviewed the proposed 36525-day maximum against rlportfolio.js validation ordering, all direct policy consumers, the separate rlportfoliobrief.js guard order, the eight direct test carriers, all eight browser carriers, Research Lab Product Principles P7, P22, and P23, and a current Date boundary probe. Adopted 100 years as a behavior-evidence eligibility ceiling rather than a TimeClip approximation. Preserved the committed 56-day policy, selected private constant MAXIMUM_EVIDENCE_AGE_DAYS, and retained the exact P008-CONFIG invalid-policy behavior envelope without touching certification.",
+      "phasesExecuted": ["design"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T20:50:44Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "scopes-scenarios-and-test-handoff-reconciled",
+      "note": "Confirmed Research Lab authority at external control revision 210, inspected all BUG-006 artifacts plus the parent behavior-policy constraints, current validatePolicy and deriveInterestSignals owners, committed 56-day policy, and neighboring foundation tests. Reconciled one narrow scope, added derived scenario obligations and a machine-readable nine-row test handoff, preserved required pre-fix RED ordering, and routed to bubbles.test. No product source, product test, certification field, scope status, commit, or push was changed or executed.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T21:01:17Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "scenario-first-red-authored-and-routed",
+      "note": "Bound Research Lab authority to the exact BUG-006 packet at external control revision 212. Added the three planned persistent tests only, then ran the exact focused carrier against unchanged product source. The 36525, committed-56, and non-finite-precedence control passed. The 36526 and TimeClip-overflow refusal titles failed. The carrier exited 1 with 61 tests, 59 passed, 2 failed, and 0 skipped. Recorded report.md#tp-b006-000 and routed product implementation to bubbles.implement without changing certification, scope status, DoD, human acceptance, or product source.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T21:24:02Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "action": "bounded-evidence-age-implemented-and-routed",
+      "note": "Validated the inherited Research Lab packet at external control revision 216. Verified the private 36525-day ceiling, preserved non-finite refusal precedence and the exact P008-CONFIG invalid-policy behavior envelope, and added the required conservative-century and leap-day rationale comment. The exact focused carrier exited 0 with 61 passed, 0 failed, and 0 skipped. Artifact lint and git diff --check exited 0. The tracked diff remained confined to rlportfolio.js, the focused test carrier, and this bug packet. No broader regression, audit, validation, human acceptance, commit, or push was claimed or performed.",
+      "phasesExecuted": ["implement"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T21:40:48Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "independent-green-regression-and-gates-complete",
+      "note": "Validated the inherited Research Lab packet at control revision 216. Strengthened the persistent overflow test with a direct Date-formatting RangeError assertion, then independently executed the exact focused carrier (61 passed), allocation-page carrier (16 passed), eight-file Feature 008 browser matrix (94 passed), and repository selftest (3426 passed). Regression quality, scenario resolution, artifact shape, traceability, scenario obligations, test mechanisms, scope context, skip-marker, and diff-format checks were clean; the accessibility mutation carrier was accepted by the canonical guard as mixed proof over a separately asserted current surface. Test-leaf receipts are not configured. Packet, scope, certification, DoD, planning-owned test-plan state, and human acceptance were not promoted.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T22:13:12Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "baseline-contract-and-load-bearing-control-verified-regression-free",
+      "note": "Backing record for the existing regression completedPhaseClaims entry; this appends the missing specialist provenance and adds no new phase claim. The phase ran as bubbles.regression under the top-level direct authorized runner, not bubbles.workflow. Exact executed commands recorded at report.md#regression-phase-2026-08-25 were timeout 120 bash .github/bubbles/scripts/evidence-receipt-check.sh --log .specify/runtime/tool-calls.jsonl --repo-root . --strict (3 valid, 0 stale); timeout 650 bash .github/bubbles/scripts/evidence-capture.sh --label \"BUG-006 regression four-carrier closure\" -- timeout 600 node --test tests/portfolio-behavior-occurrence.unit.mjs tests/portfolio-brief.functional.mjs tests/portfolio-foundation.unit.mjs tests/portfolio-stale-domain-signal.unit.mjs (103 passed, 0 failed); timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh tests/portfolio-foundation.unit.mjs; and timeout 600 bash .github/bubbles/scripts/regression-quality-guard.sh --bugfix tests/portfolio-foundation.unit.mjs (both 0 violations and 0 warnings). The report also records the exit-0 in-memory predicate-removal control with verdict predicate-load-bearing. The phase deliberately inspected current input-bound browser and selftest receipts instead of rerunning those broad suites. No product code, test, planning content, certification field, DoD item, or human acceptance record was changed by the phase or this correction.",
+      "phasesExecuted": ["regression"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T22:30:22Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "action": "changed-source-and-test-surface-reviewed-no-change-verdict-recorded-and-routed",
+      "note": "Ran as bubbles.simplify under the persisted bugfix-fastlane direct authorized runner after validating repository packet rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216. Reviewed only the source and test delta in technical checkpoint 9b594d439 plus neighboring local test and simplify-record patterns. The reuse pass found no missing abstraction; the quality pass found the named private constant, rationale comment, single validator predicate, refusal helper, and three focused tests direct and maintainable; the efficiency pass found one allocation-free comparison and no avoidable work. Rejected four concrete changes: sharing the independently derived test boundary, replacing the fresh refusal factory with shared mutable data, collapsing the separate TimeClip/no-throw/refusal assertions, and extracting a one-use production predicate helper. Changed no product source or test. Executed the focused carrier through evidence-capture.sh at exit 0 with 61 passed, 0 failed, 0 skipped, and full-output sha256 1baab5e22669ad48123b29bf02527790e44143a09c4ee2b53dbd99f784bfcf87. Artifact lint passed after the report append. Updated only report.md and execution-owned state fields; packet and scope remain in progress, and certification, human acceptance, planner content, and DoD checks remain unchanged. Routed the next phase to bubbles.gaps.",
+      "phasesExecuted": ["simplify"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T22:43:27Z",
+      "agent": "bubbles.gaps",
+      "phase": "gaps",
+      "action": "consumer-bypass-and-missing-regression-confirmed-and-routed",
+      "note": "Ran as bubbles.gaps under the persisted bugfix-fastlane direct authorized runner after validating repository packet rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216. Accounted all six FRs, four acceptance criteria, three scenarios, nine structured test rows, the committed source and focused carrier, and every direct maximumEvidenceAgeDays consumer. Confirmed the planned rlportfolio.js validator behavior at -1, 0, 56, 36525, 36526, Infinity, and a larger finite value, including exact non-finite precedence. Found that exported rlportfoliobrief.js::composeBrief is an omitted second Date-formatting path: it composes successfully at 36526 and throws RangeError at 100100000 although shared validatePolicy refuses both. The current focused carrier still passed 61 of 61, proving its scenario set does not detect the bypass. Recorded GAP-B006-001 and GAP-B006-002 in report.md#gaps-phase-2026-08-25, superseded the stale validate route, and routed design reconciliation before planning or implementation expands. Changed no product source, test, planning text, DoD, certification field, or human acceptance record. Packet and scope remain in progress.",
+      "phasesExecuted": ["gaps"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-25T22:56:48Z",
+      "agent": "bubbles.design",
+      "phase": "design",
+      "action": "public-consumer-contract-reconciled-and-routed",
+      "note": "Ran as bubbles.design under the persisted bugfix-fastlane direct authorized runner after validating repository packet rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216. Independently read the BUG-006 spec, design, one-scope plan, manifests, shared validator and core derivation, brief derive and compose paths, and neighboring persistent carriers. A current-source probe confirmed composeBrief accepts 36526 and Infinity and throws RangeError for 100100000 while the shared validator refuses each invalid policy; invalid composedAt retains the local P008-BRIEF-COMPOSED precedence. Reconciled design.md so composeBrief delegates once to portfolio.validatePolicy immediately before maximumEvidenceAgeDays is read and returns the shared failure unchanged. Preserved the delivered rlportfolio.js fix, both Date expressions, deriveInterestSignals ordering, the 56-day policy, schemas, certification, human acceptance, planner artifacts, product source, tests, and DoD. Routed bubbles.plan to narrow-expand existing Scope 01 and the brief functional RED carrier; no new bug packet, commit, or push was created.",
+      "phasesExecuted": ["design"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-25T22:51:26Z"
+    },
+    {
+      "at": "2026-08-25T23:03:45Z",
+      "agent": "bubbles.analyst",
+      "phase": "analyze",
+      "action": "spec-capability-contract-reconciled-and-routed",
+      "note": "Ran as bubbles.analyst under the persisted bugfix-fastlane dispatched packet after validating Research Lab authority at control revision 216. Independently read the bug spec, current design, parent requirements, shared policy validator, core interest-signal expiry path, and exported brief action-history cutoff path. Reconciled the existing six functional requirements and four acceptance criteria without renumbering them. Added the non-empty Single-Capability Justification required by G094. The focused capability-foundation guard then passed. Changed no report, design, scope, scenario manifest, test plan, source, test, user-validation, DoD, or certification content. The existing pending route remains bubbles.plan for a narrow Scope 01 expansion. No commit or push was performed.",
+      "phasesExecuted": ["analyze"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-25T23:03:45Z"
+    },
+    {
+      "at": "2026-08-25T23:17:10Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "scope01-brief-consumer-plan-expanded-and-routed",
+      "note": "Ran as bubbles.plan under the persisted bugfix-fastlane dispatched packet after validating repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216. Narrow-expanded existing Scope 01 only. Added rlportfoliobrief.js and tests/portfolio-brief.functional.mjs to the Change Boundary and consumer inventory, added SCN-B006-BRIEF-POLICY-VALIDATION with exact local-precedence, 36525, 36526, Infinity, and 100100000 obligations, and added TP-B006-009/010 with individual DoD and report anchors. Preserved TP-B006-000 through TP-B006-008 statuses and evidence, kept TP-B006-008 unexecuted, and routed bubbles.test to author the persistent brief RED before source implementation. Changed no source, tests, spec, design, user validation, certification, DoD checkbox, commit, or push.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-25T23:14:33Z"
+    },
+    {
+      "at": "2026-08-25T23:26:46Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "brief-consumer-scenario-first-red-authored-and-routed",
+      "note": "Ran as bubbles.test under the persisted bugfix-fastlane dispatched packet after validating repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216. Added only the exact persistent SCN-B006-BRIEF-POLICY-VALIDATION carrier in tests/portfolio-brief.functional.mjs, then ran the planned TP-B006-009 command before any rlportfoliobrief.js edit. The carrier exited 1 with 29 tests, 28 passed, 1 failed, and 0 skipped; the failing title was BUG-006: composeBrief validates shared evidence-age policy before Date formatting. Healthy local-precedence, committed-56, 36525, shared-validator, and direct-TimeClip controls passed before the final assertion exposed composeBrief success for 36526 and Infinity plus RangeError for 100100000. Recorded report.md#tp-b006-009 and routed only the planned source delegation to bubbles.implement. TP-B006-010, planner-owned test-plan state, scope status, DoD, certification, human acceptance, product source, commit, and push remain unchanged.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-25T23:26:46Z"
+    },
+    {
+      "at": "2026-08-25T23:37:01Z",
+      "agent": "bubbles.implement",
+      "phase": "implement",
+      "action": "brief-consumer-shared-validation-implemented-and-routed",
+      "note": "Ran as the second-round bubbles.implement owner after validating repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216 and resolving the persisted bugfix-fastlane ceiling to done. Independently inspected the reconciled spec, design, Scope 01 plan, source-only diff, shared validator, and complete composeBrief prerequisite sequence. Retained the planned two-line portfolio.validatePolicy delegation and corrected only its indentation. The exact brief carrier passed 29 of 29 with full-output sha256 ceaf24cf926ce44bedafc57c978a8245980dc0f7f74a496420ee60ddb66c4cad; the focused foundation carrier passed 61 of 61 with sha256 4e9643f986e06c167bf279ea7bdb5c5d0bd2d241aabaf9d79701818dc1b603ae; artifact lint and git diff --check exited 0. Full status inspection found the BUG-006 delta inside its declared source, test, and packet boundary plus one unrelated pre-existing BUG-004 uservalidation change that this phase left untouched. GAP-B006-001 is addressed on the implementation surface. TP-B006-010 and focused regression accounting route to bubbles.test. No test, planning content, DoD, certification, human acceptance, commit, or push was changed or claimed.",
+      "phasesExecuted": ["implement"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-25T23:37:01Z"
+    },
+    {
+      "at": "2026-08-26T00:16:31Z",
+      "agent": "bubbles.design",
+      "phase": "design",
+      "action": "collateral-test-harness-boundary-reconciled-and-routed",
+      "note": "Ran as the dispatched design owner after validating repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216. Read the active BUG-006 design and the exact rlportfoliobrief.js, portfolio-brief functional, and portfolio-behavior-occurrence diffs. The second shared delegation makes the two-line validator pair non-unique, so the existing BUG-004 mutation control now anchors that pair to the uniquely following retainedIdentityOrder.forEach statement. Reconciled only design.md test impact and Change Boundary to authorize removing exactly the deriveInterestSignals pair while preserving its loop and composeBrief's pair. This changes no BUG-004 contract or expected outcome. Focused artifact lint passed after the design edit. Routed bubbles.plan to narrow-expand existing Scope 01 without adding a scope, scenario, capability, or bug. Changed no source, test, spec, scope, scenario manifest, test plan, report, user validation, certification field, DoD item, commit, or push.",
+      "phasesExecuted": ["design"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T00:16:31Z"
+    },
+    {
+      "at": "2026-08-26T00:22:55Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "scope01-collateral-mutation-anchor-planned-and-routed",
+      "note": "Ran as the dispatched planning owner after validating repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216. Narrow-reconciled existing Scope 01 only. Added tests/portfolio-behavior-occurrence.unit.mjs as the design-authorized test-only collateral path, added TP-B006-011 against the exact existing BUG-004 mutation-control title, mapped it to the existing overflow and brief policy-validation scenarios, and added one unchecked DoD evidence anchor. Preserved all existing TP IDs, statuses, and evidence references, kept TP-B006-011 planned-not-executed, and routed bubbles.test to execute and record it. Changed no source, tests, spec, design, user validation, certification field, existing DoD checkbox, commit, or push.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T00:22:55Z"
+    },
+    {
+      "at": "2026-08-26T00:37:10Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "second-round-focused-evidence-reconciled-and-routed",
+      "note": "Validated repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216. Independently executed the exact TP-B006-010 carrier at 29 passed, 0 failed, 0 skipped and the exact TP-B006-011 carrier at 8 passed, 0 failed, 0 skipped. Reconciled three pre-anchor-repair exit-1 receipts and three post-repair exit-0 receipts without presenting inspected history as newly executed output. The test-only anchor now removes exactly one deriveInterestSignals validation pair, preserves retainedIdentityOrder.forEach, and leaves the composeBrief pair present; the BUG-004 product contract and expected outcome are unchanged. Both regression-quality guards, artifact lint, traceability, scenario contract checks, capability foundation, and strict receipt freshness passed. The implementation-reality scan exited 0 with no violations and one planner-owned warning because scopes.md required design fallback for implementation-file discovery. Updated only test-owned report evidence, scenario coverage statuses, and execution/routing state. Kept the test completedPhaseClaims token singular and left scope status, DoD, planner-owned test-plan statuses, certification, UAT, source, commit, and push unchanged. Routed the planned machine statuses and implementation-file reference warning to bubbles.plan.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T00:32:23Z"
+    },
+    {
+      "at": "2026-08-26T00:43:59Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "planner-owned-evidence-status-and-implementation-references-reconciled",
+      "note": "Ran as the dispatched planning owner after validating repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:216. Reconciled only TP-B006-009 to required-red-observed and TP-B006-010/011 to executed-passed against their existing test-owned report anchors and scenario-manifest statuses; preserved every other structured test row, including TP-B006-008 planned-not-executed. Added the exact Scope 01 Implementation Files inventory for rlportfolio.js, rlportfoliobrief.js, and the three current test carriers. The focused implementation-reality scan then resolved the product files with zero warnings and zero violations. Closed the two planner-owned findings and routed the still-in-progress packet to bubbles.regression for the required post-expansion regression phase. Changed no source, test, spec, design, user validation, certification field, DoD checkbox, commit, or push.",
+      "phasesExecuted": ["plan"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T00:43:59Z"
+    },
+    {
+      "at": "2026-08-26T04:20:11Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "post-expansion-regression-re-evaluated-and-routed",
+      "note": "Ran as the round-2 regression owner after binding the exact Research Lab BUG-006 packet through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:218. Verified the current delta from 9b594d439^ is confined to the declared BUG-006 product, focused-test, and packet paths. Independently executed the four focused carriers at 104 passed, 0 failed, and 0 skipped; both regression-quality modes reported 0 violations and 0 warnings with adversarial signals in both expanded carriers. The persisted derive-anchor control passed 1 of 1. A disk-free compose-only mutation removed exactly one of two shared-validation pairs, preserved the derive anchor, and turned only the exact BUG-006 composeBrief test red at 28 of 29. Recomputed the four-carrier baseline at 100 to 104 tests and 1423 to 1449 assertions. Historical round-1 regression evidence remains intact, and no report correction, product source, test, planning artifact, user-validation, certification, status, or DoD change was made. Routed the expanded source and test surface to bubbles.simplify.",
+      "phasesExecuted": ["regression"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T04:20:11Z"
+    },
+    {
+      "at": "2026-08-26T04:49:39Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "action": "round-2-expanded-surface-reviewed-no-change-and-routed",
+      "note": "Ran as the BUG-006 round-2 simplify owner after binding Research Lab through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:220. Reviewed only rlportfolio.js, rlportfoliobrief.js, tests/portfolio-foundation.unit.mjs, tests/portfolio-brief.functional.mjs, and tests/portfolio-behavior-occurrence.unit.mjs across reuse, quality, and efficiency. Found the shared validator, two-line composeBrief delegation, independent 36525/36526 and TimeClip controls, and derive-specific mutation anchor already minimal and coherent, so changed no product source or test. The three authorized carriers passed 98 of 98 with full-output sha256 3938f58a8e0ac3b9256147e8a837d0f8c5a60fbf57db1a0d18f6d2c5acee5d27; the exact composeBrief and BUG-004 mutation-anchor titles each passed 1 of 1. The grandfathered registry resolved simplify immediately before gaps. Completed inbound route BUG-006-ROUTE-016 and routed BUG-006-ROUTE-017 to bubbles.gaps. Kept the simplify completedPhaseClaims token singular and left packet, scope, Definition of Done, certification, human acceptance, commit, merge, and push unchanged.",
+      "phasesExecuted": ["simplify"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T04:49:39Z"
+    },
+    {
+      "at": "2026-08-26T05:06:34Z",
+      "agent": "bubbles.gaps",
+      "phase": "gaps",
+      "action": "round-2-gap-audit-test-integrity-repaired-and-routed",
+      "note": "Ran as the BUG-006 round-2 gaps owner after binding Research Lab through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:221. Audited all six requirements, four scenarios, the two product modules, four authorized persistent carriers, ten runtime maximumEvidenceAgeDays consumers, the validated page consumer, both policy-derived Date formatters, local and shared refusal ordering, and both mutation paths. Found GAP-B006-R2-001: TP-B006-011's generic pair-count delta could pass with no composeBrief delegation. Added a unique compose anchor before maxAgeDays and required it before and after the derive-only mutation. A disk-free counterexample proved the prior assertion false-positive, and a disk-free compose-anchor removal turned exactly the strengthened mutation test red. The repaired four-carrier closure passed 104 of 104; both regression-quality modes reported zero findings. Updated only the authorized test, report, and execution-owned state fields. Kept the single gaps completedPhaseClaims token, in-progress packet and scope status, all unchecked DoD, human acceptance, and certification unchanged. Completed route BUG-006-ROUTE-017 and routed BUG-006-ROUTE-018 to bubbles.harden. No commit, merge, or push was performed.",
+      "phasesExecuted": ["gaps"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T05:06:34Z"
+    },
+    {
+      "at": "2026-08-26T05:24:22Z",
+      "agent": "bubbles.harden",
+      "phase": "harden",
+      "action": "round-2-contract-and-regression-hardening-complete-and-routed",
+      "note": "Ran as the BUG-006 round-2 harden owner after binding the exact Research Lab packet through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:222. Independently exercised finite integer boundaries 36525 and 36526, exact frozen value-safe envelopes, non-finite precedence, every earlier composeBrief prerequisite, forward and backward TimeClip overflow, no-throw and input non-mutation behavior, all ten runtime maximumEvidenceAgeDays consumers, and BUG-004 and BUG-005 regressions. The focused four-carrier closure passed 104 of 104, the eight-file browser matrix passed 94 of 94, and the canonical repository selftest passed 3426 checks. Disk-free mutations removed the sole shared ceiling and the unique compose delegation and turned only their expected BUG-006 tests red. The persistent derive mutation carrier passed all 8 tests. Both regression-quality modes, artifact lint, traceability, and implementation reality were clean. Found no product or persistent-test defect, so changed no source or test. Completed inbound route BUG-006-ROUTE-018 and routed BUG-006-ROUTE-019 to bubbles.stabilize. Kept packet and scope status in progress, all DoD unchecked, human acceptance untouched, and certification unchanged. No commit, merge, or push was performed.",
+      "phasesExecuted": ["harden"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T05:14:21Z"
+    },
+    {
+      "at": "2026-08-26T05:47:01Z",
+      "agent": "bubbles.stabilize",
+      "phase": "stabilize",
+      "action": "round-2-stability-diagnostic-complete-and-routed",
+      "note": "Ran as the BUG-006 round-2 stabilize owner after binding the exact Research Lab packet through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:223. Confirmed HEAD is committed harden checkpoint 583d6794d and that all six authorized code and test inputs match it, so the harden browser 94-of-94 and selftest 3426-of-3426 evidence remains input-current. Independently ran the four focused carriers at 104 passed, 0 failed, and 0 skipped. Repeated valid, one-over, and overflow validation, composition, and derivation calls remained deterministic, no-throw, non-mutating, and silent across 18000 behavior assertions. A larger resource loop kept active handles at 1 and post-GC heap final drift at 36712 bytes. Browser-style and CommonJS APIs retained 85 and 16 frozen exports. Current valid composition measured 205.391 microseconds per call, with 194.294 microseconds attributable to one fixed-shape shared validation. No loop, retry, timer, network, log, config, runtime, deployment, or observability change is required. Changed only report.md and execution-owned state fields. Completed inbound route BUG-006-ROUTE-019 and routed BUG-006-ROUTE-020 to bubbles.devops for the registered no-change deployment-boundary review. Kept packet and scope status in progress, all DoD unchecked, human acceptance untouched, and certification unchanged. No commit, merge, or push was performed.",
+      "phasesExecuted": ["stabilize"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T05:34:37Z"
+    },
+    {
+      "at": "2026-08-26T06:18:42Z",
+      "agent": "bubbles.devops",
+      "phase": "devops",
+      "action": "round-2-operational-boundary-reviewed-no-change-and-routed",
+      "note": "Ran as the BUG-006 round-2 devops owner after binding Research Lab through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:225. Verified requested checkpoint 811a73450. The exact checkpoint audit found all package, lock, npm policy, Pages workflow, staging, source-lock, registry, browser config, product config, and project config surfaces unchanged; it found zero changed operational tokens, zero changed test dependency imports, no deploy or service substrate, two clean-checkout workflow steps, one _site upload, one Pages deploy action, and zero workflow secret references. The registered source-lock validator passed the actual graph and rejected all 16 adversarial mutations. The registered Pages staging planner passed in dry-run mode with sha256 a6e63c92b8c288fedda3d1816560dfb8c65b1f09ee3a223ff77ed20b6260cd7d. The grandfathered mode resolved with sha256 986156f2dbb912fa87df07d087705abebbe2af8d9db0959aa61484fc7b443022 and places security immediately after devops. No operational defect exists, so changed no product, test, package, config, workflow, deployment, or observability file and invoked no live deployment. Changed only report.md and execution-owned state fields. Completed inbound route BUG-006-ROUTE-020 and routed BUG-006-ROUTE-021 to bubbles.security. Kept packet and scope status in progress, all DoD unchecked, human acceptance untouched, and certification unchanged. No commit, merge, or push was performed.",
+      "phasesExecuted": ["devops"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T06:18:42Z"
+    },
+    {
+      "at": "2026-08-26T15:45:43Z",
+      "agent": "bubbles.security",
+      "phase": "security",
+      "action": "round-2-security-review-complete-finding-routed",
+      "note": "Ran as the BUG-006 round-2 security owner after binding Research Lab through repository decision rb:vscode-d037d272141b9d17af8fa6ccdd049e69:228 at requested checkpoint 73fe557b2. The shared 36525-day ceiling, finite versus non-finite ordering, exact shared envelopes in both public Date consumers, and deeply frozen input behavior passed a direct probe. G034 passed over 10072 tracked files. The exact Node source lock passed and rejected all 16 hostile mutations. The four focused carriers passed 104 of 104, privacy and publisher boundaries passed 28 of 28, both regression-quality modes were clean, implementation reality passed over both declared product files, and the canonical selftest passed 3426 of 3426. Exact production diffs add no secret, network, dependency, service, timer, process, log, listener, storage, or deployment surface. Security finding SEC-B006-S1 remains open: composeBrief stores caller-derived subject and domain keys in ordinary objects, so subjectId __proto__ writes the completion date onto Object.prototype and then throws TypeError outside the result envelope. Cleaned the process-local probe mutation, changed no source or test, completed inbound route BUG-006-ROUTE-021, and routed BUG-006-ROUTE-022 to bubbles.bug for a separate complete packet. Kept packet and scope in progress, every DoD unchecked, human acceptance untouched, certification unchanged, parent Feature 008 planning files untouched, and performed no push.",
+      "phasesExecuted": ["security"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T15:45:43Z"
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "BUG-006-DIAGNOSIS",
+      "summary": "The accepted-policy to invalid-Date failure chain is reproduced and the narrow validation boundary is documented.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#before-fix-reproduction"
+    },
+    {
+      "id": "SEC-B005-S1",
+      "summary": "maximumEvidenceAgeDays is bounded at 36525 days before Date arithmetic while preserving the frozen config refusal and non-finite precedence.",
+      "owner": "bubbles.implement",
+      "status": "addressed",
+      "evidenceRef": "report.md#implementation-phase-evidence"
+    },
+    {
+      "id": "GAP-B006-002",
+      "summary": "The persistent composeBrief consumer regression is authored and TP-B006-009 records the required pre-source RED with exact bypass and RangeError behavior.",
+      "owner": "bubbles.test",
+      "status": "addressed",
+      "evidenceRef": "report.md#tp-b006-009"
+    },
+    {
+      "id": "GAP-B006-001",
+      "summary": "composeBrief now delegates to the shared policy validator after its local prerequisites and before the first maximumEvidenceAgeDays read, returning shared failures unchanged before Date formatting.",
+      "owner": "bubbles.implement",
+      "status": "addressed",
+      "evidenceRef": "report.md#implementation-phase-round-2"
+    },
+    {
+      "id": "TP-B006-010",
+      "summary": "The unchanged focused brief carrier independently passes all 29 tests, including the exact shared-validation and no-RangeError scenario assertions.",
+      "owner": "bubbles.test",
+      "status": "addressed",
+      "evidenceRef": "report.md#tp-b006-010"
+    },
+    {
+      "id": "TP-B006-011",
+      "summary": "The repaired mutation-anchor carrier independently passes all 8 tests and proves one-pair removal while retaining the derive loop and composeBrief validation pair.",
+      "owner": "bubbles.test",
+      "status": "addressed",
+      "evidenceRef": "report.md#tp-b006-011"
+    },
+    {
+      "id": "PLAN-B006-TEST-STATUS",
+      "summary": "Planner-owned TP-B006-009, TP-B006-010, and TP-B006-011 machine statuses now match the existing test-owned RED and GREEN evidence while TP-B006-008 remains planned-not-executed.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "report.md#tp-b006-010"
+    },
+    {
+      "id": "PLAN-B006-IMPLEMENTATION-REFS",
+      "summary": "Scope 01 now declares its current product and test paths under the exact Implementation Files scanner contract, and implementation-reality-scan resolves the product files without design fallback or warnings.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "scopes.md#implementation-files"
+    },
+    {
+      "id": "GAP-B006-R2-001",
+      "summary": "TP-B006-011 now uniquely anchors the composeBrief shared-validator pair immediately before maxAgeDays and requires that anchor to survive the derive-only mutation, closing the prior pair-delta false positive without changing BUG-004 or BUG-005 behavior.",
+      "owner": "bubbles.gaps",
+      "status": "addressed",
+      "evidenceRef": "report.md#gaps-phase-round-2"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "SEC-B006-S1",
+      "summary": "HIGH: exported composeBrief uses caller-derived subject and domain strings as ordinary-object keys; subjectId __proto__ writes a completion-date property onto Object.prototype and throws outside the result envelope.",
+      "owner": "bubbles.bug",
+      "status": "open",
+      "evidenceRef": "report.md#sec-b006-s1"
+    }
+  ],
+  "resolvedDiscoveries": [],
+  "openDiscoveries": []
+}

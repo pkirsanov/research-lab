@@ -1,9 +1,9 @@
 {
   "installedVersion": "7.28.0",
-  "installMode": "remote-ref",
-  "sourceRef": "main",
-  "sourceGitSha": "1cf38f9493b8b035fc8a01f21ec07d02e3cc1531",
+  "installMode": "local-source",
+  "sourceRef": "fix/g093-certification-window",
+  "sourceGitSha": "a5e811c60602af4c633a284a308b10029d620d18",
   "sourceDirty": false,
   "targetRepoSlug": "research-lab",
-  "installedAt": "2026-08-26T18:23:19Z"
+  "installedAt": "2026-09-02T02:57:20Z"
 }

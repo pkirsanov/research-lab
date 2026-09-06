@@ -3,9 +3,9 @@
   "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-001-tier-a-publisher-stamps-run-time-into-asof",
   "featureName": "BUG-001 The Tier-A Publisher Stamps Run Time Into asOf, So A Late Run Publishes A Brief Its Own Consumer Must Refuse",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-23T21:15:37Z",
-  "certifiedAt": null,
-  "status": "in_progress",
+  "lastUpdatedAt": "2026-08-28T21:53:24Z",
+  "certifiedAt": "2026-08-28T21:53:24Z",
+  "status": "done",
   "blockedReason": null,
   "priorBlockedReason": null,
   "blockedReasonResolved": null,
@@ -43,14 +43,119 @@
     "currentScope": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
     "nextRequiredOwner": "research-lab-owner",
     "nextRequiredTarget": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-001-tier-a-publisher-stamps-run-time-into-asof/report.md#delivery-state",
-    "nextRequiredReason": "The fix is implemented and its verification was executed and observed. Two things keep this packet non-terminal. First, the delivery is present in the working tree at 648e0992b and is uncommitted; the artifact turn was instructed not to commit or push. Second, no validate/certification phase ran, so certification.status stays in_progress and certifiedAt stays null. Separately, design.md Q1 (whether a persistently late publication should surface its lateness as an operational signal) is recorded for the owner and is not blocking.",
+    "nextRequiredReason": "Run the validate phase. Audit ran and returned REWORK_REQUIRED with five findings; F1, F2, F4 and F5 have since been corrected -- the simplify stub named the wrong file (brief-narrative-parallel.mjs carries newYorkCivilCutoff 0 times before AND after; the hunk is in validate-brief-payload.mjs:975), four stale claims were withdrawn, the fail-loud claim was narrowed because main().catch exits 0 without --strict, and the security scope was widened to include portfolio-survival-allocation-lab.html. The earlier text here asserted the delivery was 'present in the working tree at 648e0992b and is uncommitted'. Both halves were false and are withdrawn: the fix is committed in 899c7a40e and present at HEAD (git show HEAD:scripts/brief-refresh.mjs | grep -c windowCutoffAt -> 3), and 648e0992b was merely the docs commit at HEAD when the sentence was written, now an ancestor of HEAD.",
     "completedPhaseClaims": [
       "bug",
-      "design",
       "implement",
-      "regression"
+      "test",
+      "regression",
+      "audit",
+      "validate"
     ],
-    "phaseClaimNote": "Only phases actually executed are listed. bug: the defect was reproduced against the live published artifacts and its provenance established by two surgical reverts. design: the decision not to weaken the consumer boundary, and the shared-helper approach. implement: the seven-surface fix and the two data corrections. regression: the adversarial row at tests/portfolio-survival-brief.spec.mjs:902 plus the four verification gates. NOT claimed: validate, docs, audit, security, simplify — none were dispatched."
+    "phaseClaimNote": "Two claims were WITHDRAWN as framework-integrity violations, not because the work was absent. 'design' is not a registered phase in .github/bubbles/workflows.yaml (registered phases were enumerated; design resolves owner=None), so claiming it asserts a phase this workflow does not have. The design work itself is real and lives in design.md, produced during the 'bug' phase, which is exactly what executionHistory records (agent bubbles.bug). 'regression' IS registered but its owner is bubbles.regression, while executionHistory attributes it to bubbles.bug -- an owner-contract violation. The claim is withdrawn rather than relabelled; a real bubbles.regression run is what would restore it. 'test' is ADDED with genuine provenance: bubbles.test executed the phase in this session and committed 86c4a360f at 2026-08-28T16:46:33Z, closing Gate G060 by reconstructing the red stage inside an isolated git-archive export (15 failed / 4 passed with the fix reverted, restored to 19 passed). Timestamps here are real commit times, not placeholders; the pre-existing history entries all carry 2026-08-23T00:00:00Z, which is a placeholder midnight and is left untouched as inherited record rather than back-filled with invented precision.",
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": "audit-2026-08-28T20-41-01Z",
+      "attempts": [
+        {
+          "attemptId": "audit-2026-08-28T19-20-01Z",
+          "at": "2026-08-28T19:20:01Z",
+          "agent": "bubbles.audit",
+          "targetRevision": "d650e8cc3",
+          "auditClass": "delivery-completion",
+          "workflowMode": "bugfix-fastlane",
+          "targetStatus": "done",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "resultState": "SUPERSEDED",
+          "certifiedStatus": null,
+          "nextRequiredOwner": "bubbles.implement",
+          "note": "Audited on a clean git-archive export of HEAD d650e8cc3, because the working tree carries ~85 foreign uncommitted files including rlportfoliobrief.js -- auditing the tree would have read a surface this packet did not deliver. THE DELIVERY PASSES: all nine requirements verified against the code and the published artifacts rather than the report's prose, plus one value traced end to end (morning window, declared 11:00 ET; published asOf 2026-08-27T15:00:00.000Z equals what the shared helper independently resolves from the run instant; generatedAt 14:57:36.125Z is distinct; payload inherits rather than recomputes). FR-B001-003 is structurally satisfied, not merely satisfied today: windowCutoffAt is a thin wrapper over the same newYorkCivilCutoff that validateGenericWindow calls at rlportfoliobrief.js:219, so drift is impossible. Re-executed here, all exit 0: selftest 3429/0, validate-brief-payload PASS, publisher-boundary 5/5, brief.functional 34/34; artifact-lint 0; DoD 19/19. FIVE FINDINGS, all in the justification and bookkeeping surface, none in the delivered code. F1 MEDIUM: the simplify phaseStub is a live Gate G022 satisfier -- the guard admits a stub IFF reason is non-empty, explicitly 'preventing empty-stub fabrication', so non-emptiness is machine-checkable and truth is not -- and two of its three claims are false: brief-narrative-parallel.mjs never contained newYorkCivilCutoff (0 occurrences at 899c7a40e^, and it does not import rlportfoliobrief) and has no windowCutoffAt call site (0 at HEAD). The description fits validate-brief-payload.mjs:975, which was already calling the SHARED helper, so it was never 'a second implementation'; what was removed was the local trading-date derivation feeding it. The stub's conclusion is independently true, so the remedy is to correct the reason, not to run a simplify phase. F2 MEDIUM: the packet's earlier staleness correction was applied at report.md:30 and annotated at :450 but missed FOUR other copies -- report.md:817 'No commit exists for the delivery', state.json knownLimitation.statement, execution.nextRequiredReason, and two adjacent stale figures at report.md:812 (3314-assertion selftest; actual 3429) and :816 ('not re-run'; the regression phase did re-run them). git merge-base --is-ancestor 899c7a40e HEAD is true. F3 LOW: adversarialRegression.line is 902, correct at 899c7a40e but now 1039; line 902 at HEAD is an unrelated privacy assertion, and state.json's own executionHistory cites 1039. F4 LOW: the stabilize stub calls the new throws fail-loud, but main().catch at brief-refresh.mjs:2672 exits 0 without --strict, and the new throw at :2638 sits between the brief-history.jsonl append at :2632 and the snapshot write at :2640, creating a partial-write window that did not previously exist. F5 LOW: the security stub's stated scope covers 'the four changed non-artifact source files' and omits portfolio-survival-allocation-lab.html (50 +, 13 -), the one surface where refusal text reaches the DOM; verified independently that no raw-HTML sink is introduced (textContent/setText/setAttribute; the single innerHTML is a clear-to-empty), so the conclusion holds by this check rather than by the stub's method. The :1039 reasoning was judged and HOLDS: a row proving 'a late publication is refused' cannot use a correctly-published artifact or the refusal path never executes, so the two halves of the contract need two guards, and the fifteen rows that went red under revert are the publisher-side evidence. The packet states this honestly at report.md:377-380. Phase NOT recorded as verified; no executionHistory entry appended and 'audit' not added to completedPhaseClaims.",
+          "failedGateIds": [],
+          "unresolvedFindings": [
+            "AUDIT-F1",
+            "AUDIT-F2",
+            "AUDIT-F3",
+            "AUDIT-F4",
+            "AUDIT-F5"
+          ],
+          "addressedFindings": [],
+          "evidenceRefs": [
+            "report.md#audit-evidence"
+          ]
+        },
+        {
+          "attemptId": "audit-2026-08-28T19-40-12Z",
+          "at": "2026-08-28T19:40:12Z",
+          "agent": "bubbles.audit",
+          "targetRevision": "20b3f9602",
+          "auditClass": "delivery-completion",
+          "workflowMode": "bugfix-fastlane",
+          "targetStatus": "done",
+          "auditVerdict": "REWORK_REQUIRED",
+          "outcome": "route_required",
+          "resultState": "SUPERSEDED",
+          "certifiedStatus": null,
+          "nextRequiredOwner": "bubbles.implement",
+          "failedGateIds": [],
+          "unresolvedFindings": [
+            "AUDIT-F2",
+            "AUDIT-F3"
+          ],
+          "addressedFindings": [
+            "AUDIT-F1",
+            "AUDIT-F4",
+            "AUDIT-F5"
+          ],
+          "evidenceRefs": [
+            "report.md#audit-evidence-round-2"
+          ],
+          "note": "RE-AUDIT of commit 20b3f9602 on a clean git-archive export of HEAD, because rlportfoliobrief.js is itself one of the ~85 foreign uncommitted files in the working tree, so auditing the tree would read a surface this packet did not deliver. Every remediation was RE-DERIVED rather than taken on trust. F1 ADDRESSED and it was the load-bearing one: the corrected reason is now TRUE, not merely different. brief-narrative-parallel.mjs carries newYorkCivilCutoff 0 times at 899c7a40e^ AND 0 times at HEAD, windowCutoffAt 0 times, and never references rlportfoliobrief -- so the original reason was false and the finding was right. The real hunk is at validate-brief-payload.mjs:975 exactly as quoted, and the '-' side already read RLPORTFOLIOBRIEF.newYorkCivilCutoff, which independently confirms the NARROWING: that consumer was already calling the shared module and was never a second implementation. 'function windowCutoffAt' matches exactly once, at rlportfoliobrief.js:171, and :178-179 shows it deriving the civil date internally, so the stub's conclusion holds. One wording nuance recorded rather than glossed: the tradingDate STATEMENT at :974 still exists at HEAD and now feeds only the two error messages; the restrictive clause 'the derivation that fed the lower-level primitive' is accurate, but a reader could take it as deletion. F4 ADDRESSED: brief-refresh.mjs:2672 reads process.exit(process.argv.includes('--strict') ? 1 : 0) verbatim, and the ordering is exactly append brief-history.jsonl :2632 -> new throw :2638 -> snapshot write :2640, with the throw confirmed as a '+' line of this delivery, so the partial-write window is genuinely new. F5 ADDRESSED: the allocation lab is 63 changed lines (50 +, 13 -); the only raw-HTML sink in the added lines is select.innerHTML = '' (a clear-to-empty), refusal text goes through textContent, the setAttribute writes a data-* attribute, and no apikey/token/secret/password/credential/fetch(/localStorage/proxy is introduced anywhere in the delivery's added source. F2 NOT ADDRESSED -- this is what blocks. The remediation fixed report.md and execution.nextRequiredReason but left the SAME false claim live and unannotated in two top-level fields: terminalTransitionBlockers[0] still asserts 'The delivery is present in the working tree at 648e0992b and is uncommitted ... no commit exists for the fix', and knownLimitation.statement still lists 'a commit for the delivery' under 'What is NOT established'. Both are false at HEAD: git merge-base --is-ancestor 899c7a40e HEAD is true and git show HEAD:scripts/brief-refresh.mjs | grep -c windowCutoffAt returns 3. This is not a missed edge: the prior audit's own finding table at report.md:925 names 'state.json knownLimitation.statement' BY PATH and marks it 'stale, no annotation', and it is still stale with no annotation. It matters because terminalTransitionBlockers exists to tell the NEXT owner what blocks the terminal transition, and the next owner is bubbles.validate, which would read that it must obtain a commit that already exists; knownLimitation.recordedIn also mirrors the claim into report.md 'Completion Statement' and 'Delivery State' and design.md. F3 REMAINS OPEN and was judged NOT to block on its own: adversarialRegression.line is 902 while HEAD line 902 is an unrelated privacy assertion and the real regression is at :1039, which the packet's own executionHistory cites four times -- a stale bookkeeping pointer, not a defect in delivered code or in a Gate-satisfying justification, and the LOW class the framework allows to be carried as a surfaced observation. Had F2 been closed I would have recorded the phase and left F3 for validate to attach. CONFIRMED the intended quotation judgement for the other F2 classes rather than assuming it: the surviving 'not re-run' strings live in defect.measurementNote, verification.claimSource, executionHistory[4].note and the prior audit note, all turn-scoped provenance that was true of the turn it describes and should NOT be rewritten; the surviving 3314 figures are covered by the explicit historical annotation at report.md:812. NEW OBSERVATION, non-blocking and out of blast radius: portfolio-survival-allocation-lab.html:7906 defines its own newYorkCivilCutoff and calls it at :7974 while also loading rlportfoliobrief.js at :1248, so it is a genuine duplicate of the lower-level primitive -- but the count is 1 before and 1 after and the delivery diff touches neither symbol, so it is pre-existing and route-only, not this packet's to repair. Phase NOT recorded: no executionHistory entry appended and 'audit' NOT added to completedPhaseClaims."
+        },
+        {
+          "attemptId": "audit-2026-08-28T20-41-01Z",
+          "at": "2026-08-28T20:41:01Z",
+          "agent": "bubbles.audit",
+          "targetRevision": "5112a5317",
+          "auditClass": "delivery-completion",
+          "workflowMode": "bugfix-fastlane",
+          "targetStatus": "done",
+          "auditVerdict": "SHIP_WITH_NOTES",
+          "outcome": "completed_diagnostic",
+          "resultState": "ACTIVE",
+          "certifiedStatus": null,
+          "nextRequiredOwner": "bubbles.validate",
+          "failedGateIds": [],
+          "unresolvedFindings": [
+            "AUDIT-F3",
+            "AUDIT-N1",
+            "AUDIT-N2"
+          ],
+          "addressedFindings": [
+            "AUDIT-F1",
+            "AUDIT-F2",
+            "AUDIT-F4",
+            "AUDIT-F5"
+          ],
+          "evidenceRefs": [
+            "report.md#audit-evidence-round-3"
+          ],
+          "note": "ROUND 3, audited on a clean git-archive export of HEAD 5112a5317 with .git symlinked, because the working tree carries ~85 foreign uncommitted files INCLUDING rlportfoliobrief.js -- the very module under audit -- so every code read was taken from HEAD via git show rather than from the tree. Nothing was taken on trust from the round-2 summary; all four prior findings were RE-DERIVED. F1 CLOSED: brief-narrative-parallel.mjs carries newYorkCivilCutoff 0 times at 899c7a40e^ AND 0 at HEAD, windowCutoffAt 0, rlportfoliobrief references 0, so the original stub reason was false and the correction is true. The file WAS touched by the delivery (9 lines), and I read that hunk rather than inferring from the count: it replaces the fallback chain snapshot.asOf || snapshot.generatedAt || new Date().toISOString() with a hard throw, which is FR-B001-009 work and not a cutoff-rule duplicate, so the corrected reason survives the one fact that could have overturned it. The validate-brief-payload.mjs:975 hunk is verbatim as quoted and its '-' side already read RLPORTFOLIOBRIEF.newYorkCivilCutoff, independently confirming the narrowing. F2 CLOSED, and this was the round-2 blocker so it was checked exhaustively rather than spot-checked: a recursive walk of EVERY leaf in state.json (nested objects and arrays, not just top level) returned 12 leaves matching stale markers, and all 12 are legitimate -- filedAtCommit and defect.observedAtCommit are filing-time metadata; terminalTransitionBlockers[0], knownLimitation.statement and execution.nextRequiredReason are quoted-and-WITHDRAWN with the correction adjacent; four are true statements about the ~85 foreign dirty files; two are historical audit records quoting the finding in order to report it; one is turn-scoped provenance. Zero LIVE stale claims survive. All packet .md files were swept too: report.md:446 is annotated at :450-456, the :817 region is remediated at :819-825, and uservalidation.md and scenario-manifest.json return 0 hits. bug.md:3 was examined rather than waved through and is TRUE as filing-time metadata, since git merge-base --is-ancestor 648e0992b 899c7a40e confirms the delivery genuinely was uncommitted when filed. Ground truth re-established: 899c7a40e IS an ancestor of HEAD and windowCutoffAt appears 3 times in HEAD:scripts/brief-refresh.mjs. F4 CLOSED: HEAD:2672 reads process.exit(process.argv.includes('--strict') ? 1 : 0) verbatim with a fatal/soft-fail log, the ordering is exactly append :2632 -> throw :2638 -> snapshot write :2640, the throw is confirmed a '+' line of this delivery so the partial-write window is genuinely new, and the delivery touches process.exit 0 times so the soft-exit convention is correctly characterised as pre-existing. F5 CLOSED: the allocation lab is exactly 50 +, 13 -; a grep of the whole delivery's ADDED source for apikey|api_key|token|secret|password|credential|fetch(|https?://|proxy|localStorage|sessionStorage returns 0; the only raw-HTML sink in added lines is select.innerHTML = '' (clear-to-empty, and itself a move of pre-existing code); setText was resolved to its definition and is byId(id).textContent = value, a genuine textContent sink; options are built via createElement + textContent; setAttribute writes a data-* attribute. Two things the stub did not claim were checked anyway: refusal.code cannot null-deref because state.genericWindowError is assigned a guaranteed-shaped fallback at :8124 before use at :8135, and the four windowCutoffAt input guards were verified BY EXECUTION rather than by reading, all four malformed inputs returning null. SPEC COMPLIANCE: all nine FR-B001-001..009 verified against HEAD, with FR-B001-001 proven by executing the real shared rule against the real market-brief.config.json -- an 11:37 ET run instant of the declared 11:00 ET morning window returns 2026-08-24T15:00:00.000Z = 11:00 ET, so the value is genuinely TRANSFORMED and not a passthrough. FR-B001-004 is structurally safe: rlportfoliobrief.js is 16 insertions and 0 DELETIONS, so the consumer boundary cannot have been weakened, and generic-evidence-cutoff-conflict is intact at :233. FR-B001-003 holds with no ET-time literals introduced. FR-B001-005 ordering confirmed at HEAD: the selector renders at :8101, composition runs at :8103. FR-B001-008 word-diff confirms the 'sets both to the run time' sentence is gone. CODE QUALITY: 0 TODO/FIXME/HACK/@ts-ignore in added lines, 0 skip markers in the test additions, artifact-lint exit 0, selftest re-run independently at 3429 passed / 0 failed, pii-scan 0 findings. The DoD item reading '3 passed / 14 failed' was investigated rather than assumed fabricated and is a legitimate BEFORE/AFTER pair (3/14 with the bug, 17/0 after). DoD progression across commits is incremental (17 -> 18/1 -> 19/0, the added item closed by execution in its own commit), not batch-checked. PHASE STUBS ALL JUDGED HONEST, none a disguised skip: security was actually performed and I reproduced its entire scan to the same result; stabilize DISCLOSES with exact line numbers a new partial-write window this delivery introduced, which is the opposite of concealment, and its scoping claim of no infrastructure/deployment/concurrency/resource change verifies against the diff; simplify's grounds are true. THREE NON-BLOCKING OBSERVATIONS carried for validate to attach. AUDIT-F3 remains open exactly as round 2 pre-committed: adversarialRegression.line is 902 but the test is at :1039 of tests/portfolio-survival-brief.spec.mjs and :902 is an unrelated privacy assertion -- a stale bookkeeping pointer that misleads no one into a wrong action because the name field resolves uniquely, and NOT repaired here because remediation is not audit's role. AUDIT-N1 NEW: portfolio-survival-allocation-lab.html:7906 defines its own newYorkCivilCutoff and calls it at :7974 while loading rlportfoliobrief.js at :1248, a genuine duplicate of the lower-level primitive -- verified pre-existing (1 before, 1 after, 0 touches by the delivery), so route-only. AUDIT-N2 NEW: consequently the simplify stub's closing clause 'there remains nothing for a simplify pass to collapse' is broader than its verified grounds, which establish only that windowCutoffAt is unique; the claim should be read as scoped to windowCutoffAt. This is a precision note, not a blocker, because it leads validate to the correct action either way -- the distinction from F2, which WOULD have instructed validate to obtain a commit that already exists. Phase RECORDED: this attempt is ACTIVE, the round-2 attempt is SUPERSEDED, and every prior finding id is carried exactly once across addressedFindings and unresolvedFindings. status and certification.status were NOT touched; certification remains bubbles.validate's to make."
+        }
+      ]
+    },
+    "phaseStubs": {
+      "simplify": {
+        "reason": "CORRECTED after audit finding F1, which proved the previous reason named the wrong file. The conclusion stands but the grounds were false, and since a stub's reason is the ONLY control on a phaseStub -- the guard machine-checks that it is non-empty, never that it is true -- a false reason is exactly the fabrication the mechanism is meant to prevent. The earlier text claimed scripts/brief-narrative-parallel.mjs had computed the cutoff via newYorkCivilCutoff. Measured: that file contains newYorkCivilCutoff 0 times at 899c7a40e^ AND 0 times at HEAD, calls windowCutoffAt 0 times, and never imports rlportfoliobrief. The description belonged to scripts/validate-brief-payload.mjs, whose real hunk is '- RLPORTFOLIOBRIEF.newYorkCivilCutoff(tradingDate, window.etTime)' -> '+ RLPORTFOLIOBRIEF.windowCutoffAt(config.windows, snapshot.window, anchor)' at line 975. The correction also narrows the claim: that consumer was ALREADY calling the shared module, so it was never a second implementation of the rule. What the fix removed is the LOCAL trading-date derivation that fed the lower-level primitive; the date is now derived inside the helper. Independently true either way: 'function windowCutoffAt' matches exactly once, at rlportfoliobrief.js:171. So there remains nothing for a simplify pass to collapse."
+      },
+      "stabilize": {
+        "reason": "CORRECTED after audit finding F4. The conclusion stands -- no infrastructure, deployment, concurrency or resource change -- but two grounds were overstated and are restated accurately. (1) 'Fail-loud' was wrong as written. scripts/brief-refresh.mjs:2672 reads process.exit(process.argv.includes('--strict') ? 1 : 0), so WITHOUT --strict the process exits 0 and logs 'soft-fail'. The throw is loud in the log and silent at the process boundary; a scheduler not passing --strict sees success. That is the existing repo-wide convention rather than something this fix introduced, and it is recorded here rather than presented as loud failure. (2) The new throw at :2638 sits BETWEEN the brief-history.jsonl append at :2632 and the market-brief.snapshot.json write at :2640, so an unresolvable window now leaves a history row with no matching snapshot -- a partial-write window that did not exist when the code fell back to the run clock. Both are observations about ordering and exit convention, not defects this delivery must repair, and neither is work a stabilize pass would perform on this packet. The trade itself remains correct: the consumer refuses a payload dated past its declared window, so substituting the run clock would publish an uncomposable brief instead of failing."
+      },
+      "security": {
+        "reason": "CORRECTED after audit finding F5, which showed the original scope was too narrow. The grep covered four changed source files and omitted portfolio-survival-allocation-lab.html (50 +, 13 -), the one changed file where refusal text meets the DOM -- precisely the surface a security pass should look at. Re-checked with that file included: the changed source carries no apikey, api_key, token, secret, password, credential, fetch(, http, proxy or localStorage usage, and the HTML change writes refusal text through textContent rather than a raw-HTML sink, so no injection surface is created. The only security-adjacent movement remains hardening: windowCutoffAt validates its inputs (!Array.isArray(windows), typeof windowId !== 'string', !isIso(instant), typeof declared.etTime !== 'string') and returns null on malformed data rather than computing. Conclusion unchanged; the method that reached it is now complete."
+      }
+    }
   },
   "defect": {
     "severity": "High",
@@ -104,17 +209,61 @@
     "conclusion": "A latent defect exposed by that day's publication timing, not introduced by recent scope delivery. It had been publishing correct-looking artifacts for as long as runs happened to land close enough to their window boundary."
   },
   "fixSurfaces": [
-    { "path": "scripts/brief-refresh.mjs", "change": "asOf bound to the analyzed window's evidence cutoff; generatedAt unchanged; throws when a window has no resolvable cutoff", "numstat": "9 +, 2 -" },
-    { "path": "rlportfoliobrief.js", "change": "ADDITIVE ONLY: shared windowCutoffAt() helper (line 171) and its export (line 1040)", "numstat": "16 +, 0 -" },
-    { "path": "portfolio-survival-allocation-lab.html", "change": "schedule rendered before composition; refusal named via data-generic-window-error; publication clock reads snapshotRef.generatedAt", "numstat": "50 +, 13 -" },
-    { "path": "scripts/brief-narrative-parallel.mjs", "change": "payload inherits the published cutoff; wall-clock fallback chain replaced with a loud throw", "numstat": "8 +, 1 -" },
-    { "path": "scripts/validate-brief-payload.mjs", "change": "derives the cutoff through the shared helper", "numstat": "2 +, 2 -" },
-    { "path": "notes/market-brief.md", "change": "the sentence documenting the defect as intended behaviour replaced with the implemented rule", "numstat": "1 +, 1 -" },
-    { "path": "market-brief.snapshot.json", "change": "asOf corrected to the window cutoff; generatedAt untouched", "numstat": "1 +, 1 -" },
-    { "path": "market-brief.payload.json", "change": "asOf corrected under the same rule", "numstat": "1 +, 1 -" },
-    { "path": "market-brief.page.json", "change": "derived page artifact regenerated", "numstat": "single-line artifact" },
-    { "path": "market-brief.snapshot.page.json", "change": "derived page artifact regenerated", "numstat": "single-line artifact" },
-    { "path": "tests/portfolio-survival-brief.spec.mjs", "change": "adversarial regression row at line 902", "numstat": "84 +, 0 -" }
+    {
+      "path": "scripts/brief-refresh.mjs",
+      "change": "asOf bound to the analyzed window's evidence cutoff; generatedAt unchanged; throws when a window has no resolvable cutoff",
+      "numstat": "9 +, 2 -"
+    },
+    {
+      "path": "rlportfoliobrief.js",
+      "change": "ADDITIVE ONLY: shared windowCutoffAt() helper (line 171) and its export (line 1040)",
+      "numstat": "16 +, 0 -"
+    },
+    {
+      "path": "portfolio-survival-allocation-lab.html",
+      "change": "schedule rendered before composition; refusal named via data-generic-window-error; publication clock reads snapshotRef.generatedAt",
+      "numstat": "50 +, 13 -"
+    },
+    {
+      "path": "scripts/brief-narrative-parallel.mjs",
+      "change": "payload inherits the published cutoff; wall-clock fallback chain replaced with a loud throw",
+      "numstat": "8 +, 1 -"
+    },
+    {
+      "path": "scripts/validate-brief-payload.mjs",
+      "change": "derives the cutoff through the shared helper",
+      "numstat": "2 +, 2 -"
+    },
+    {
+      "path": "notes/market-brief.md",
+      "change": "the sentence documenting the defect as intended behaviour replaced with the implemented rule",
+      "numstat": "1 +, 1 -"
+    },
+    {
+      "path": "market-brief.snapshot.json",
+      "change": "asOf corrected to the window cutoff; generatedAt untouched",
+      "numstat": "1 +, 1 -"
+    },
+    {
+      "path": "market-brief.payload.json",
+      "change": "asOf corrected under the same rule",
+      "numstat": "1 +, 1 -"
+    },
+    {
+      "path": "market-brief.page.json",
+      "change": "derived page artifact regenerated",
+      "numstat": "single-line artifact"
+    },
+    {
+      "path": "market-brief.snapshot.page.json",
+      "change": "derived page artifact regenerated",
+      "numstat": "single-line artifact"
+    },
+    {
+      "path": "tests/portfolio-survival-brief.spec.mjs",
+      "change": "adversarial regression row at line 902",
+      "numstat": "84 +, 0 -"
+    }
   ],
   "notThisPacket": {
     "note": "Modified in the same working tree but belonging to Scope 28 (spec-driven adversarial test replacement). Named so this bug's footprint is not later misread from the diff.",
@@ -129,16 +278,36 @@
       "specs/008-portfolio-survival-and-brief-lab/scopes/_index.md",
       "specs/008-portfolio-survival-and-brief-lab/test-plan.json"
     ],
-    "clarification": "tests/portfolio-publisher-boundary.functional.mjs appears in report.md § Test Evidence because it was run as a verification gate, not because this packet authored it."
+    "clarification": "tests/portfolio-publisher-boundary.functional.mjs appears in report.md \u00a7 Test Evidence because it was run as a verification gate, not because this packet authored it."
   },
   "verification": {
-    "claimSource": "executed (fix turn) — run and observed during the fix earlier in this session; NOT re-run while these artifacts were written",
+    "claimSource": "executed (fix turn) \u2014 run and observed during the fix earlier in this session; NOT re-run while these artifacts were written",
     "results": [
-      { "command": "tests/portfolio-survival-brief.spec.mjs", "before": "3 passed / 14 failed", "after": "17 passed / 0 failed" },
-      { "command": "node --test tests/portfolio-publisher-boundary.functional.mjs", "before": null, "after": "exit 0, fail 0" },
-      { "command": "node scripts/validate-brief-payload.mjs", "before": null, "after": "exit 0, PASS" },
-      { "command": "node scripts/selftest.mjs", "before": null, "after": "exit 0, 3314 passed, 0 failed" },
-      { "command": "git diff --check", "before": null, "after": "exit 0" }
+      {
+        "command": "tests/portfolio-survival-brief.spec.mjs",
+        "before": "3 passed / 14 failed",
+        "after": "17 passed / 0 failed"
+      },
+      {
+        "command": "node --test tests/portfolio-publisher-boundary.functional.mjs",
+        "before": null,
+        "after": "exit 0, fail 0"
+      },
+      {
+        "command": "node scripts/validate-brief-payload.mjs",
+        "before": null,
+        "after": "exit 0, PASS"
+      },
+      {
+        "command": "node scripts/selftest.mjs",
+        "before": null,
+        "after": "exit 0, 3314 passed, 0 failed"
+      },
+      {
+        "command": "git diff --check",
+        "before": null,
+        "after": "exit 0"
+      }
     ]
   },
   "adversarialRegression": {
@@ -153,11 +322,12 @@
     "provesNotARelaxation": "One row pins both halves of the contract: the boundary still REFUSES the late publication (state=unavailable, named generic-evidence-cutoff-conflict, zero lane items composed) WHILE the schedule stays fully populated (4 of 4 declared windows). Neither half can be traded for the other."
   },
   "terminalTransitionBlockers": [
-    "The delivery is present in the working tree at 648e0992b and is uncommitted. The artifact turn was instructed not to commit or push, so no commit exists for the fix and none is claimed.",
-    "No validate or certification phase was dispatched. certification.status is in_progress and certifiedAt is null; certification is not claimed on the strength of the fix-turn test results alone."
+    "WITHDRAWN 2026-08-28. This slot previously read 'The delivery is present in the working tree at 648e0992b and is uncommitted ... no commit exists for the fix'. Both halves are false at HEAD: git merge-base --is-ancestor 899c7a40e HEAD is true, and git show HEAD:scripts/brief-refresh.mjs | grep -c windowCutoffAt returns 3. 648e0992b was merely the docs commit at HEAD when the sentence was written and is now an ancestor of HEAD. It is withdrawn rather than deleted because this field tells the NEXT owner what blocks the terminal transition, and the next owner is bubbles.validate -- leaving it would have instructed validate to obtain a commit that already exists. Caught by re-audit finding F2 after a first remediation pass fixed report.md and execution.nextRequiredReason but missed this field and knownLimitation.statement.",
+    "No validate or certification phase was dispatched. certification.status is in_progress and certifiedAt is null; certification is not claimed on the strength of the fix-turn test results alone.",
+    "The audit phase has run twice and returned REWORK_REQUIRED both times, so it is NOT recorded in completedPhaseClaims. F1, F4 and F5 were re-derived as ADDRESSED by the second audit. F3 remains open and was judged non-blocking on its own: adversarialRegression.line still reads 902, while HEAD line 902 is an unrelated privacy assertion and the real regression row is at 1039, which executionHistory already cites. It is a stale bookkeeping pointer, not a defect in delivered code."
   ],
   "knownLimitation": {
-    "statement": "What is established: asOf is the analyzed window's evidence cutoff, generatedAt is the run instant, publisher and consumer share one cutoff rule, the consumer boundary is byte-identical (16 insertions and 0 deletions), a refused evidence window leaves the schedule populated and names its contract code and reason on screen, and an adversarial regression row pins both halves of that contract. What is NOT established: certification, a commit for the delivery, and whether a persistently late publication should surface its lateness as an operational signal.",
+    "statement": "What is established: asOf is the analyzed window's evidence cutoff, generatedAt is the run instant, publisher and consumer share one cutoff rule, the consumer boundary is byte-identical (16 insertions and 0 deletions), a refused evidence window leaves the schedule populated and names its contract code and reason on screen, and an adversarial regression row pins both halves of that contract. What is NOT established: certification, and whether a persistently late publication should surface its lateness as an operational signal. A previous version of this sentence also listed 'a commit for the delivery' as not established. That was withdrawn on 2026-08-28: the fix is committed in 899c7a40e and present at HEAD.",
     "recordedIn": [
       "report.md 'Completion Statement'",
       "report.md 'Delivery State'",
@@ -169,32 +339,58 @@
     "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible"
   ],
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "lockdownState": "unlocked",
-    "completedAt": null,
-    "certifiedAt": null,
+    "completedAt": "2026-08-28T21:52:56Z",
+    "certifiedAt": "2026-08-28T21:53:24Z",
+    "certifiedBy": "bubbles.validate",
     "completedScopes": [
       "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible"
     ],
-    "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status mirrors the top-level status and is deliberately in_progress: no validate phase ran in this turn, so no certification is claimed. completedScopes mirrors SCOPE status, which is Done with 17 of 17 Definition of Done items checked and evidenced; scope completion and packet certification are separate claims and only the first is made here.",
+    "certifiedCompletedPhases": [
+      "bug",
+      "implement",
+      "test",
+      "regression",
+      "audit",
+      "validate"
+    ],
+    "certificationFieldWriteNote": "Certified by bubbles.validate on 2026-08-28. completedAt (21:52:56Z) and certifiedAt (21:53:24Z) are distinct real clock readings, not a placeholder pair; the inherited 2026-08-23T00:00:00Z stamps elsewhere in this file are placeholder midnights and are deliberately left as inherited record rather than back-filled with invented precision. This note REPLACES an earlier one stating that certification was deliberately withheld, which was true when written and is false now. What validate verified, each by execution rather than by reading the record: selftest 3429 passed / 0 failed and pii-scan 0 findings on an isolated git-archive export of HEAD 7c89497277 with .git symlinked; the live scenario suite REPLAYED at 19 passed including this bug's own row at tests/portfolio-survival-brief.spec.mjs:1039; and the publisher half replayed against the real published artifacts, where the payload's generatedAt of 2026-08-27T15:30:59.849Z sits 30m59s past its own declared 15:00:00.000Z cutoff while asOf correctly reads the cutoff -- the currently published brief IS the late run this bug was filed for, and it publishes honestly. Measured at the TARGET status, because artifact-lint skips its mode-specific report gates below the promotion set: the packet was copied to a scratch directory with BOTH status and certification.status flipped to done and linted there, going 4 issues -> 0. certifiedCompletedPhases mirrors completedPhaseClaims; validate confirmed each named phase carries real evidence in report.md, and G027 phase-scope coherence holds because the single scope 01 is Done at 19/0. THREE audit observations were dispositioned rather than absorbed: F3 closed, N2 REOPENED after measurement showed the claimed narrowing was never applied to execution.phaseStubs.simplify.reason (the stub text is left untouched because it is not a certification field; the scoped reading is recorded in report.md instead), and N1 filed as residue res-alloc-lab-duplicate-civil-cutoff in .specify/memory/open-work.md.",
     "scopeProgress": [
       {
         "scopeId": "01-bind-asof-to-the-analyzed-window-and-make-a-refusal-legible",
         "status": "Done",
-        "dodChecked": 17,
+        "dodChecked": 19,
         "dodUnchecked": 0
       }
     ]
   },
   "policySnapshot": {
     "workflowMode": "bugfix-fastlane",
-    "grill": { "mode": "off", "source": "repo-default" },
-    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
-    "autoCommit": { "mode": "off", "source": "repo-default" },
-    "lockdown": { "mode": "off", "source": "repo-default" },
-    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
-    "validation": { "mode": "certification-required", "source": "repo-default" }
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "workflow-forced"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
   },
   "modeTransitions": [],
   "transitionRequests": [],
@@ -205,8 +401,10 @@
       "agent": "bubbles.bug",
       "phase": "bug",
       "action": "filed",
-      "note": "Filed against a live reproduction: the Portfolio Brief tab could not compose and #briefWindow rendered zero options, with tests/portfolio-survival-brief.spec.mjs at 3 passed / 14 failed. Provenance was established rather than assumed — rlnav.js was reverted to 744ac6a54^ and portfolio-survival-allocation-lab.html to 0972ddd75^, the failure survived both, and both files were restored clean.",
-      "phasesExecuted": ["bug"],
+      "note": "Filed against a live reproduction: the Portfolio Brief tab could not compose and #briefWindow rendered zero options, with tests/portfolio-survival-brief.spec.mjs at 3 passed / 14 failed. Provenance was established rather than assumed \u2014 rlnav.js was reverted to 744ac6a54^ and portfolio-survival-allocation-lab.html to 0972ddd75^, the failure survived both, and both files were restored clean.",
+      "phasesExecuted": [
+        "bug"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -215,7 +413,9 @@
       "phase": "design",
       "action": "decided",
       "note": "Decided NOT to weaken the consumer boundary at rlportfoliobrief.js. Relaxing the comparison was the cheapest fix and would have destroyed Feature 008's decision-time evidence guarantee. The publisher was identified as the wrong side on three pieces of already-committed evidence: the runbook definition, the runbook's own admission of the violation, and scripts/brief-publication.mjs:275 which already bound asOf to the evidence cutoff.",
-      "phasesExecuted": ["design"],
+      "phasesExecuted": [
+        "design"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -224,7 +424,9 @@
       "phase": "implement",
       "action": "delivered",
       "note": "Seven surfaces plus two corrected data artifacts and their derived page files. The shared windowCutoffAt() helper was placed in rlportfoliobrief.js so the publisher imports the consumer's own definition of the boundary it will later be judged against, rather than a second implementation that merely agrees today. The presentation-side conflation at portfolio-survival-allocation-lab.html:8110 was found because the publisher fix made the two clocks differ and exposed it.",
-      "phasesExecuted": ["implement"],
+      "phasesExecuted": [
+        "implement"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -233,7 +435,9 @@
       "phase": "regression",
       "action": "verified",
       "note": "tests/portfolio-survival-brief.spec.mjs moved from 3 passed / 14 failed to 17 passed / 0 failed. The adversarial row at line 902 serves a fixture 37 minutes past its declared cutoff and asserts that lateness about its own fixture before asserting anything about the page, so it cannot pass vacuously. node scripts/selftest.mjs reported 3314 passed / 0 failed; the payload validator and the publisher-boundary functional suite both passed; git diff --check exited 0.",
-      "phasesExecuted": ["regression"],
+      "phasesExecuted": [
+        "regression"
+      ],
       "provenanceMode": "specialist"
     },
     {
@@ -242,7 +446,53 @@
       "phase": "bug",
       "action": "artifacts-recorded",
       "note": "Recorded bug.md, spec.md, design.md, scopes.md, report.md and this state file. The turn was scoped to documentation: no source, test, script, config or data file was modified, no long test suite was run, and nothing was committed. Every structural claim in the artifacts was re-derived from the committed working tree in this turn and tagged 'executed (artifact turn)'; the five test results were tagged 'executed (fix turn)' because they were observed earlier in the session and not re-run here.",
-      "phasesExecuted": ["bug"],
+      "phasesExecuted": [
+        "bug"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-28T16:46:33Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "verified",
+      "note": "Closed Gate G060 by making the packet's real red->green ordering legible and then reproducible. Root cause was a marker-form mismatch, not missing evidence: scopes.md read 'RED (before the fix)' and 'RED (' is not an accepted form, so the first recognised red marker fell through to a line carrying BOTH red and green ('3 passed / 14 failed'), and first-red < first-green could never hold. Relabelled to 'RED stage' / 'GREEN stage'; no number changed and no run was invented. Then reconstructed the red inside an isolated git-archive export: baseline 19 passed exit 0; fix reverted at its single asserted site -> 15 failed / 4 passed exit 1; export restored -> 19 passed exit 0. Recorded explicitly as a reconstruction performed now, never as the original historical red run. Four rows survived the revert, including this bug's own row at :1039, because it overrides both artifacts with its own late fixture before asserting -- so a publisher-side defect is invisible to it by construction. That limitation is recorded rather than glossed.",
+      "phasesExecuted": [
+        "test"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-28T19:00:14Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "verified",
+      "note": "Blast radius taken from the real diff (899c7a40e: 19 files, 1688 +, 23 -) rather than from the packet's prose, then every consumer of the changed surfaces was run on a FRESH git-archive export of HEAD 4bf23b545 -- the working tree carries ~85 foreign uncommitted files, so a run there would not measure this delivery. Node suites, all exit 0: selftest 3429 passed / 0 failed; validate-brief-payload PASS; portfolio-publisher-boundary.functional 5/5; portfolio-brief.functional 34/34. Browser suites -- the six specs that actually consume the brief payload, found by grep rather than assumed -- all exit 0: portfolio-survival-brief 19, market-brief-cockpit 22, attention-browser 17, portfolio-survival-foundation 17, market-brief-freshness 5, causal-rotation-brief 4, market-action-center 4. No regression and no coverage decrease. TWO THINGS CHECKED THAT COULD HAVE BEEN MISSED. (1) _site/ holds a published copy of rlportfoliobrief.js; a stale copy would mean the deployed page lacked the fix. It is IN-SYNC (both carry windowCutoffAt twice) and is gitignored with 0 tracked files, so it is a local build artifact, not a shipping risk. (2) The known weakness at portfolio-survival-brief.spec.mjs:1039 was verified, not rediscovered: that row overrides both artifacts with its own late fixture, so it survives the fix being reverted and cannot see a publisher-side defect. The earlier red reconstruction showed 15 OTHER rows failing when the fix is reverted, so the publisher half IS guarded -- by those rows, not by :1039. The coverage is adequate; the misleading part is only that :1039's NAME implies it guards a defect it structurally cannot. That is recorded rather than treated as sufficient.",
+      "phasesExecuted": [
+        "regression"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-28T20:41:01Z",
+      "agent": "bubbles.audit",
+      "phase": "audit",
+      "action": "verified",
+      "note": "Round-3 audit on a clean git-archive export of HEAD 5112a5317 (.git symlinked, so the two false selftest failures do not appear); every code read came from HEAD via git show because the working tree carries ~85 foreign uncommitted files including rlportfoliobrief.js itself. All four prior findings were re-derived rather than accepted from the round-2 summary. F1 closed: brief-narrative-parallel.mjs carries newYorkCivilCutoff 0 times before and after, and its actual 9-line hunk is a fallback-chain removal (FR-B001-009), not a cutoff duplicate; the validate-brief-payload.mjs:975 hunk is verbatim and its '-' side already called the shared module. F2 closed exhaustively: a recursive walk of every leaf of state.json plus a sweep of all packet .md files found 12 stale-marker hits and zero LIVE stale claims -- all are filing-time metadata, quoted-and-withdrawn corrections, true statements about the foreign dirty files, or historical audit records; bug.md:3 is true because 648e0992b precedes 899c7a40e. F4 closed: :2672 exit convention verbatim, ordering append :2632 -> throw :2638 -> write :2640, throw confirmed a '+' line, and process.exit untouched by the delivery. F5 closed: 0 secret/network tokens in added source, setText resolved to a real textContent sink, the only raw-HTML sink is a clear-to-empty, and the four input guards were verified by execution. All nine FR-B001-001..009 verified, with FR-B001-001 proven by executing the shared rule against the real config: an 11:37 ET run of the 11:00 ET morning window returns 11:00 ET, a genuine transformation rather than a passthrough. rlportfoliobrief.js is 16 insertions and 0 deletions, so the consumer boundary cannot have been weakened. Independently re-ran selftest 3429 passed / 0 failed, pii-scan 0 findings, artifact-lint exit 0; 0 TODO/FIXME/HACK and 0 skip markers in added lines; DoD 19/19 with an incremental, non-batched check history. All three phaseStubs judged honest and none a disguised skip. Verdict SHIP_WITH_NOTES with three non-blocking observations left for validate to attach: F3 (adversarialRegression.line 902 vs the real :1039), N1 (pre-existing duplicate newYorkCivilCutoff at portfolio-survival-allocation-lab.html:7906, route-only), and N2 (the simplify stub's closing clause is broader than its verified grounds). status and certification.status deliberately untouched.",
+      "phasesExecuted": [
+        "audit"
+      ],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-28T21:53:24Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "action": "verified",
+      "note": "Certified. Measured at the TARGET status throughout, which is the only way this packet's real bar is visible: artifact-lint skips its mode-specific report gates below the promotion set, so a green lint at in_progress predicts nothing about done. The packet was copied to a scratch directory with BOTH status and certification.status flipped (flipping one alone manufactures a spurious mismatch issue) and linted there: 4 issues BEFORE, every one of them the missing validate phase or its required report section, and 0 AFTER. Transition guard went failureCount 2 / failedGateIds [G022] -> 0 / []. All runs used an isolated git archive HEAD export at 7c89497277 with node_modules AND .git symlinked; the working tree carries 84 foreign uncommitted files from other sessions, and without the .git symlink two selftest groups that shell out to git report failures that are artifacts of the export. Executed: selftest 3429 passed / 0 failed, pii-scan files=10342 findings=0, both exit 0. THE SCENARIO WAS REPLAYED RATHER THAN RE-READ, because recorded evidence proves the behavior worked once and only a replay proves it works now: the live suite returned 19 passed including case 18, this bug's own row at tests/portfolio-survival-brief.spec.mjs:1039, emitting options=4 state=unavailable named=generic-evidence-cutoff-conflict. The publisher half was replayed separately against the REAL published artifacts and is the strongest observation of the turn, unarranged: market-brief.payload.json carries generatedAt 2026-08-27T15:30:59.849Z against its own declared cutoff of 15:00:00.000Z -- 30m59s late, the exact defect shape from bug.md -- while asOf correctly reads 15:00:00.000Z, and validate-brief-payload.mjs passes with 'every evidence timestamp is at or before the declared window cutoff: PASS'. Under the defect the two would be equal and the consumer would refuse its own publisher's output. THE :1039 DIVISION OF LABOUR WAS CONFIRMED STRUCTURALLY, not accepted from the record: awk over the row shows it rewrites asOf in BOTH served artifacts before asserting, so no publisher-written value reaches the page it inspects, which is why it survived the revert while 15 sibling rows went red. The division is real -- :1039 guards the consumer half, the 15 rows that read the real artifacts guard the publisher half -- and only the row's NAME is misleading; the coverage is sound and report.md states the limitation plainly. TWO CLAIMED-CLOSED OBSERVATIONS DID NOT SURVIVE VERIFICATION and were corrected rather than carried forward. F3 IS closed: the report carries a verified grep -n locate at :1039 and states that the test title, not the line number, is the stable identity scenario-manifest.json binds; but its cross-reference pointed at a section named 'The Adversarial Row' that does not exist in the report, and has been repointed to Regression E2E. N2 is NOT closed and the sentence asserting it was is withdrawn: execution.phaseStubs.simplify.reason still ends 'So there remains nothing for a simplify pass to collapse', so the narrowing was asserted but never applied. The stub text is deliberately left unchanged because execution.phaseStubs is not a certification field and rewriting another phase's justification would make the record say that phase wrote something it did not; the scoped reading is recorded in report.md instead. N1 was NOT absorbed silently: filed as residue res-alloc-lab-duplicate-civil-cutoff in .specify/memory/open-work.md with owner bubbles.implement and a concrete next action. Investigating it upgraded the finding -- the two implementations DIVERGE rather than merely duplicate, proven by executing both side by side: for the nonexistent civil time 2026-03-08 02:30 inside the spring-forward gap the shared version returns null while the local copy returns 2026-03-08T06:30:00.000Z, a fabricated instant for a moment that never occurred, which is the same class of defect this bug was filed for. It is pre-existing (1 before, 1 after, 0 touched by the delivery diff) and out of blast radius, so it was recorded and not repaired here.",
+      "phasesExecuted": [
+        "validate"
+      ],
       "provenanceMode": "specialist"
     }
   ],

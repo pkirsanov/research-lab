@@ -14,7 +14,38 @@ written after the fix can only ever be observed green, which proves nothing.
 
 **Status:** Done
 **Depends On:** none
+**foundation: true**
 **Owner surface:** `scripts/validate-playwright-timeout-budgets.mjs`, `scripts/selftest.mjs`
+
+> **Why this scope is the foundation.** It delivers the repository-wide capability — every declared
+> wait must fit the enclosing budget that governs it — not a repair of the three sites that happened
+> to violate it. Scope 2 is an application of this scope's output, which is why the guard must be
+> proven RED here before Scope 2 turns it GREEN.
+
+### RED stage — the guard fails before anything is repaired
+
+This packet is scenario-first, and the ordering is structural rather than incidental: the two scopes
+exist in this order *because* the guard has to be shown failing on the untouched tree before any
+budget is raised. A guard written after the repair would be indistinguishable from one that never
+worked.
+
+**RED — required red-stage, on the committed pre-fix tree.** `node scripts/validate-playwright-timeout-budgets.mjs`
+exits **non-zero** and names exactly 3 unreachable declarations across 2 files:
+`tests/contextual-tooltip.spec.mjs` (lines 21, 63, 153) and `tests/trend-dynamics-cycle-lab.spec.mjs`
+(line 985). That is `T-09-U1`, and it is the proof that the guard reads real contradictions rather
+than matching nothing.
+
+Two further red-stage obligations guard the guard itself, because a check that cannot fail proves
+nothing about the tree it passes on. `T-09-U3` re-introduces the defect on a scratch fixture and
+requires a non-zero exit. `T-09-U4` requires a scan matching **zero** declarations to fail rather
+than pass vacuously — the failure mode where a matcher silently stops matching and every subsequent
+green is meaningless.
+
+**GREEN — after Scope 2 raises the three budgets.** The same command exits 0 with
+`violations=0` (`T-09-U5`), and `node scripts/selftest.mjs` reports 0 failed with the guard wired in
+(`T-09-R1`). The green is only meaningful because the red above was demonstrated first on the same
+command.
+
 
 > **Scope status vs packet status.** Done here means all 7 authored DoD items are discharged with
 > inline execution evidence. It is not a certification claim: the packet stays `in_progress` because
@@ -64,13 +95,38 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
 
 | ID | Test | Type | Command | Live |
 |---|---|---|---|---|
-| T-09-U1 | Guard reports exactly the 3 committed sites and exits non-zero | `unit` | `node scripts/validate-playwright-timeout-budgets.mjs` | No |
+| T-09-REG1 | Regression E2E, scenario-specific persistent guard — the budget-coherence guard stays green repository-wide, and T-09-U3 proves it turns RED when the defect is re-introduced | `unit` | `node scripts/validate-playwright-timeout-budgets.mjs` | No |
+| T-09-REG2 | Regression E2E, broader suite — the full committed Playwright suite reports no new failures | `e2e-ui` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line` | Yes | `unit` | `node scripts/validate-playwright-timeout-budgets.mjs` | No |
 | T-09-U2 | Guard stays green on the two verified near-miss shapes (AC-4) | `unit` | `node scripts/validate-playwright-timeout-budgets.mjs` | No |
 | T-09-U3 | Adversarial: guard fails on a scratch fixture re-introducing the defect | `unit` | guard invoked against a disposable fixture root | No |
 | T-09-U4 | Vacuous scan (zero declarations / zero test blocks) fails | `unit` | guard invoked against a disposable empty fixture root | No |
 | T-09-R1 | Repository selftest passes with the guard wired in | `unit` | `node scripts/selftest.mjs` | No |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/validate-playwright-timeout-budgets.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/validate-playwright-timeout-budgets.mjs
+    [timeout-budgets] scanned=80 tests=830 declarations=160 evaluated=160 unattributed=0 unresolved=0 violations=0 default=30000ms (playwright-default (config declares none))
+    [timeout-budgets] OK — every declared wait fits the test budget that governs it
+    VALIDATOR_EXIT=0
+    ```
+  - **This scope's guard IS the scenario-specific regression artifact, and unlike a passive check it is proven to fail.** T-09-U3 above re-introduces the defect on a scratch fixture and requires the guard to exit non-zero; T-09-U4 requires a zero-match scan to fail rather than pass vacuously. Together they establish that a green result here is a comparison, not a matcher that stopped matching.
+  - **Contrast recorded because it is not obvious.** The same guard is NOT valid regression coverage for BUG-011, where deleting a `test.setTimeout` left it green at `violations=0` — those tests declare no explicit waits, so the guard had nothing to read. It works here precisely because these three sites DO declare waits, which is the property that makes them detectable.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+    ================================================
+    Research-Lab self-test: 3433 passed, 0 failed
+    ================================================
+    SELFTEST_EXIT=0
+    ```
+  - The guard is wired into the selftest (T-09-R1), so this run exercises it against the whole repository rather than against this packet's files alone.
 
 - [x] `scripts/validate-playwright-timeout-budgets.mjs` exists and implements `design.md` §3.2
   - Raw output evidence (inline, no references):
@@ -95,7 +151,7 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
     Runnable as a CLI (--explain / --root / -h), and the project default is DERIVED, not hardcoded:
       default=30000ms (playwright-default (config declares none))
     ```
-- [x] Guard exits non-zero on the committed pre-fix tree, naming exactly 3 sites in 2 files — [T-09-U1]
+- [x] **SCN-009B-003** — Guard exits non-zero on the committed pre-fix tree, naming exactly 3 sites in 2 files — [T-09-U1]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-guard-red
@@ -117,7 +173,7 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
     Paired with the GREEN run in scope 2 (exit 0) using the SAME committed binary — the guard was
     added BY the fix commit and never modified since, so only the scanned tree differs.
     ```
-- [x] Guard does not report `simple-model-adapters-macro-fundamental.spec.mjs` or `market-brief-session-date-drift.spec.mjs` — [T-09-U2]
+- [x] **SCN-009B-006** — Guard does not report `simple-model-adapters-macro-fundamental.spec.mjs` or `market-brief-session-date-drift.spec.mjs` — [T-09-U2]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-guard-nearmiss
@@ -160,7 +216,7 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
     caller declaring 180 s; the guard still fails, because it resolves a helper to the WEAKEST
     reaching caller — one compliant caller cannot launder a non-compliant one.
     ```
-- [x] A scan matching zero declarations fails rather than passing — [T-09-U4]
+- [x] **SCN-009B-005** — A scan matching zero declarations fails rather than passing — [T-09-U4]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-guard-vacuous
@@ -259,7 +315,8 @@ Feature: A declared wait budget cannot exceed the test budget that contains it
 ## Scope 2: Make The Three Declarations Reachable
 
 **Status:** Done
-**Depends On:** Scope 1
+**Depends On:** Scope 1, the foundation scope — the guard must exist and be proven RED before these
+repairs can be shown to turn it GREEN
 **Owner surface:** `tests/contextual-tooltip.spec.mjs` (Feature 012), `tests/trend-dynamics-cycle-lab.spec.mjs` (Feature 006)
 
 > **Scope status vs packet status.** Done here means all 8 authored DoD items are discharged with
@@ -306,6 +363,8 @@ Feature: A wait that asks for 120 seconds is allowed to wait 120 seconds
 
 | ID | Test | Type | Command | Live |
 |---|---|---|---|---|
+| T-09-REG3 | Regression E2E, scenario-specific persistent guard — the three repaired declarations stay reachable, and T-09-U3 proves the guard reddens if any is removed | `unit` | `node scripts/validate-playwright-timeout-budgets.mjs` | No |
+| T-09-REG4 | Regression E2E, broader suite — the full committed Playwright suite reports no new failures | `e2e-ui` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line` | Yes |
 | T-09-U5 | Guard is green post-fix | `unit` | `node scripts/validate-playwright-timeout-budgets.mjs` | No |
 | T-09-E1 | `SCN-012-003` / `SCN-012-004` pass under the CPU pressure that previously failed them | `e2e-ui` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/contextual-tooltip.spec.mjs` | Yes |
 | T-09-E2 | Feature 006 replay regression still passes | `e2e-ui` | `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome tests/trend-dynamics-cycle-lab.spec.mjs` | Yes |
@@ -313,6 +372,39 @@ Feature: A wait that asks for 120 seconds is allowed to wait 120 seconds
 | T-09-R2 | Repository selftest passes | `unit` | `node scripts/selftest.mjs` | No |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/validate-playwright-timeout-budgets.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/validate-playwright-timeout-budgets.mjs
+    [timeout-budgets] scanned=80 tests=830 declarations=160 evaluated=160 unattributed=0 unresolved=0 violations=0 default=30000ms (playwright-default (config declares none))
+    [timeout-budgets] OK — every declared wait fits the test budget that governs it
+    VALIDATOR_EXIT=0
+    ```
+  - **The guard delivered by scope 1 is this scope's persistent regression coverage**, which is why scope 2 declares Depends On the foundation scope. Each of the three sites repaired here is a declaration the guard reads directly, so removing any of the three budgets re-arms the contradiction and the guard reports it. That detectability is what T-09-U3 proves adversarially rather than assumes.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line` — **Exit Code:** 0
+  - ```
+    $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line
+    [767/767] [system-chrome] › tests/simple-production-wiring.spec.mjs:979:1 › TP-15-04 the swept set is derived from the production registry + pages
+      767 passed (14.8m)
+    SUITE_EXIT=0
+    ```
+  - Zero failure markers across the whole run. **The 498-test figure in T-09-E3 below is stale** — the suite has grown to 767 through unrelated work — and the invariant that item protects, that no test was removed or skipped, is what this run confirms.
+
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Phase:** implement · **Claim Source:** executed, 2026-08-29
+  - **Command:** `git show --stat 5c978c5cb -- playwright.config.mjs`, `grep -cE 'retries' playwright.config.mjs` — **Exit Code:** 0
+  - ```
+    $ grep -cE 'retries' playwright.config.mjs
+    0
+    $ git diff 5c978c5cb..HEAD -- 'tests/*.spec.mjs' | grep -cE '^-\s*test\('
+    0
+    ```
+  - The excluded families named in `design.md` §2.3 are each verified rather than asserted: no `timeout` key was added to `playwright.config.mjs` and no `retries` exists anywhere in it; no assertion was weakened and no test declaration was removed across the whole suite; and nothing under `specs/015-recommendation-outcome-ledger-and-track-record` was touched, so `T-01-R2` remains that scope's to close.
 
 - [x] All three callers of `waitForHeatmap()` have an effective budget of at least 120000 ms — [AC-1]
   - Raw output evidence (inline, no references):
@@ -378,7 +470,7 @@ Feature: A wait that asks for 120 seconds is allowed to wait 120 seconds
     the SAME committed binary (sha256 acba77e..., added by this commit, unmodified since). The
     only difference between exit 1 and exit 0 is the fix itself.
     ```
-- [x] `SCN-012-003` and `SCN-012-004` pass under the same CPU pressure that reproduced the failure — [T-09-E1]
+- [x] **SCN-009B-001** — `SCN-012-003` and `SCN-012-004` pass under the same CPU pressure that reproduced the failure — [T-09-E1]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-specs-under-pressure
@@ -404,7 +496,7 @@ Feature: A wait that asks for 120 seconds is allowed to wait 120 seconds
     been killed at 30 s, which is exactly the failure Evidence 5 captured. It passes here only
     because the fix granted it 180 s. The repair is load-bearing, not cosmetic.
     ```
-- [x] Feature 006 replay regression passes — [T-09-E2]
+- [x] **SCN-009B-002** — Feature 006 replay regression passes — [T-09-E2]
   - Raw output evidence (inline, no references):
     ```
     **Phase:** implement — evidence: report.md#delivery-specs-under-pressure

@@ -1,0 +1,1087 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/008-portfolio-survival-and-brief-lab",
+  "readme": [
+    "Declarative controlled-break map consumed by scripts/scenario-receipts.mjs.",
+    "",
+    "One record per scenario id. The runner applies `edits` to `breakFile` inside an",
+    "ISOLATED COPY of the working tree, never in the shared tree, then emits the four",
+    "receipts scenario-state-resolve.sh derives RED_VERIFIED / IMPLEMENTED /",
+    "GREEN_TARGETED / REGRESSION_GREEN from.",
+    "",
+    "Fields:",
+    "  test               test identity, sourced from the manifest `linkedTests` and",
+    "                     verified against it at run time (a mismatch is refused).",
+    "  breakFile          repo-relative file the break is applied to.",
+    "  edits[]            {find, replace}; each `find` MUST occur exactly once or the",
+    "                     scenario is refused rather than guessed at. Either side may",
+    "                     be an array of lines, which is joined with newlines.",
+    "  control            the negative control. RED and GREEN cite it byte-identically;",
+    "                     scenario-state-resolve.sh:406 refuses SCS-CONTROL-SUBSTITUTED",
+    "                     otherwise. The runner emits one string to both, so they cannot drift.",
+    "  claim              the claim the receipt is evidence for.",
+    "  implementationRefs production paths the scenario's behavior lives in.",
+    "  vacuous            set true, with vacuousReason, when the behavior CANNOT be broken",
+    "                     in a way that fails its own test. That is a real finding about the",
+    "                     test, and it is recorded here rather than papered over with an",
+    "                     invented break.",
+    "",
+    "An entry is only worth anything once the runner has actually executed it and",
+    "observed the red fail at its own assertion. An unverified entry is worse than an",
+    "absent one, because it looks like coverage."
+  ],
+  "entries": {
+    "SCN-008-001": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-001 valid local portfolio import creates one current revision",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "      supersedes: currentWorkspace.currentPortfolioId,",
+          "replace": "      supersedes: null,"
+        }
+      ],
+      "control": "a committed second revision records supersedes: null instead of the portfolioId it replaced, so the revision chain loses its lineage and a reader cannot tell which revision any later one superseded",
+      "claim": "A confirmed import commits exactly one new current revision whose lineage names the revision it superseded",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-002": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-002 invalid or secret-bearing import is atomic and redacted",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "  function secretFieldName(value, policy) {",
+            "    var normalized = normalizeFieldName(value);",
+            "    return policy.import.secretFieldTokens.some(function (token) { return normalized.indexOf(token) !== -1; });",
+            "  }",
+            "",
+            "  function secretValue(value, policy) {",
+            "    if (typeof value !== \"string\") return false;",
+            "    return policy.import.secretValuePrefixes.some(function (prefix) {",
+            "      return value.length >= policy.import.secretValueMinimumLength && value.indexOf(prefix) === 0;",
+            "    });",
+            "  }"
+          ],
+          "replace": [
+            "  function secretFieldName(value, policy) {",
+            "    return false;",
+            "  }",
+            "",
+            "  function secretValue(value, policy) {",
+            "    return false;",
+            "  }"
+          ]
+        }
+      ],
+      "control": "secret detection removed: secretFieldName and secretValue always return false, so a secret-bearing import raises no P008-IMPORT-SECRET",
+      "claim": "A secret-bearing or invalid import is rejected atomically and its value is redacted rather than stored",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-003": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-003 explicit mandate alone supplies every hard constraint",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "    var absentFields = MANDATE_NULLABLE_POLICY_FIELDS.filter(function (name) { return body[name] === null; });",
+          "replace": "    var absentFields = [];"
+        }
+      ],
+      "control": "MANDATE_NULLABLE_POLICY_FIELDS absent-detection removed so absent policy fields report 0 instead of 4",
+      "claim": "Only the explicit mandate supplies hard constraints, and an absent policy field is reported absent rather than inferred",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-004": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-004 no mandate leaves goal fit and survival unavailable",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "    policy.mandate.neverInferredFields.forEach(function (name) { inferredValues[name] = null; });",
+          "replace": "    policy.mandate.neverInferredFields.forEach(function (name) { inferredValues[name] = 0.07; });"
+        }
+      ],
+      "control": "projectRouteStates never-inferred fields seeded with 0.07 instead of null, so a missing mandate renders an inferred number",
+      "claim": "With no mandate, goal fit and survival are reported unavailable rather than inferred from a default",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-005": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-005 TP-04-05 personal state coexists with the shared cache and the only published read is the constant privacy boundary",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "                    metrics: { privacyBoundary: \"local-only\", personalDataIncluded: false },",
+          "replace": "                    metrics: { privacyBoundary: \"local-only\", personalDataIncluded: true },"
+        }
+      ],
+      "control": "the published tool read declares personalDataIncluded: true, so the constant privacy boundary no longer asserts that nothing personal crossed into the shared cache",
+      "claim": "Private portfolio state coexists with the shared public cache, and the only published read is the constant privacy boundary",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+
+    "SCN-008-011": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-011 clear behavior removes ranking influence and preserves portfolio",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "    candidate.behaviorEvents = [];",
+            "    candidate.interestSignals = [];",
+            "    candidate.actionOutcomes = retainedOutcomes;"
+          ],
+          "replace": [
+            "    candidate.interestSignals = [];",
+            "    candidate.actionOutcomes = retainedOutcomes;"
+          ]
+        }
+      ],
+      "control": "buildBehaviorClearCandidate no longer empties behaviorEvents, so a behavior clear leaves the ranking influence it claims to remove",
+      "claim": "Clearing behavior removes behavior-derived ranking influence and preserves the portfolio",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-012": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-012 behavior evidence excludes engagement and sensitive profiling",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "  function forbiddenBehaviorField(name, policy) {",
+            "    var normalized = normalizeFieldName(name);",
+            "    return policy.behavior.forbiddenEventFields.some(function (token) { return normalized.indexOf(token) !== -1; });",
+            "  }"
+          ],
+          "replace": [
+            "  function forbiddenBehaviorField(name, policy) {",
+            "    return false;",
+            "  }"
+          ]
+        }
+      ],
+      "control": "forbiddenBehaviorField always returns false, so engagement and sensitive-profiling fields are accepted into behavior evidence",
+      "claim": "Behavior evidence excludes engagement metrics and sensitive profiling fields",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+
+    "SCN-008-013": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-013 arithmetic CAGR and conditional drag stay separate",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "      compoundedCagr: compounded,",
+          "replace": "      compoundedCagr: arithmetic,"
+        }
+      ],
+      "control": "compoundedCagr is assigned the arithmetic annualized value, so the CAGR row reproduces the arithmetic row instead of compounding the wealth index",
+      "claim": "Arithmetic annualized return, compounded CAGR and observed volatility drag are rendered as three separate quantities and are never collapsed into one return",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+
+    "SCN-008-015": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-015 concentration lenses expose overlap and missing look through",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "      missing.push(displayId);",
+            "    }",
+            "",
+            "    var buckets = Object.keys(totals).sort().map(function (name) {"
+          ],
+          "replace": [
+            "      totals[\"Other\"] = (totals[\"Other\"] || 0) + weight;",
+            "      coveredWeight += weight;",
+            "      includedIds.push(record.id);",
+            "    }",
+            "",
+            "    var buckets = Object.keys(totals).sort().map(function (name) {"
+          ]
+        }
+      ],
+      "control": "a holding the lens cannot classify is bucketed as Other and counted as covered, so an unmeasurable lens renders as complete",
+      "claim": "Concentration lenses expose overlap and missing look-through rather than folding unclassifiable holdings into a complete-looking distribution",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+
+    "SCN-008-016": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-016 beta alpha R squared and residual risk stay separate",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "    if (sxx <= 0) return { state: \"benchmark-degenerate\", sampleSize: n };",
+            "",
+            "    var beta = sxy / sxx;",
+            "    var alphaPeriod = my - beta * mx;"
+          ],
+          "replace": [
+            "    if (sxx <= 0) return { state: \"benchmark-degenerate\", sampleSize: n };",
+            "",
+            "    var beta = sxy / syy;",
+            "    var alphaPeriod = my - beta * mx;"
+          ]
+        }
+      ],
+      "control": "beta is divided by the portfolio's own variance instead of the benchmark's, conflating the regression slope with an inverse-scaled correlation",
+      "claim": "Beta, alpha, R squared and residual risk are computed and reported as separate quantities",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+
+    "SCN-008-017": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-017 marginal and total risk contributions reconcile",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "      marginal.push(mrc);",
+            "      contribution.push(w[i] * mrc);",
+            "      total += w[i] * mrc;"
+          ],
+          "replace": [
+            "      marginal.push(mrc);",
+            "      contribution.push(mrc);",
+            "      total += mrc;"
+          ]
+        }
+      ],
+      "control": "the weight factor is dropped from the Euler contribution, so the marginal contribution is reported as the total contribution and the sum no longer reconciles to portfolio risk",
+      "claim": "Marginal and total risk contributions are distinct and reconcile to portfolio risk by Euler decomposition",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-010": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-010 insufficient completed history produces zero inferred actions",
+      "breakFile": "rlportfoliobrief.js",
+      "edits": [
+        {
+          "find": "        behaviorHistory: floor.satisfied ? \"sufficient-history\" : \"insufficient-history\",",
+          "replace": "        behaviorHistory: \"sufficient-history\","
+        }
+      ],
+      "control": "the brief always reports sufficient-history, so a history below the declared behavior floor is no longer disclosed as insufficient and the shortfall becomes invisible to the reader",
+      "claim": "Below the declared behavior floor the brief states insufficient-history rather than presenting the shortfall as sufficient evidence",
+      "implementationRefs": ["rlportfoliobrief.js"]
+    },
+    "SCN-008-014": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-014 unrecovered drawdown stops at the evidence cutoff",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var recoveryDate = null, recoveryPeriods = null, recoveryState = \"unrecovered\";",
+          "replace": "    var recoveryDate = dates[dates.length - 1], recoveryPeriods = idx.length - 1, recoveryState = \"recovered\";"
+        }
+      ],
+      "control": "computeDrawdown seeds a recovery that never happened, so an episode still under water at the evidence cutoff reports a recovered state with a fabricated recovery date and duration",
+      "claim": "A drawdown unrecovered at the evidence cutoff is labelled unrecovered as of that cutoff and no recovery date or duration is fabricated",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-039": {
+      "test": "tests/portfolio-allocation.functional.mjs#TP-13-08 a saved allocation survives a reread and is emptied by the full personal clear",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "    \"rlPortfolioWorkspaceV1.pointer\",",
+            "    \"rlPortfolioWorkspaceV1.slotA\",",
+            "    \"rlPortfolioWorkspaceV1.slotB\",",
+            "    \"rlPortfolioWorkspaceV1.quarantine\","
+          ],
+          "replace": [
+            "    \"rlPortfolioWorkspaceV1.quarantine\","
+          ]
+        }
+      ],
+      "control": "the workspace record is dropped from the declared full-personal sweep, so a saved allocation is still readable off the storage adapters after a confirmed full-personal clear",
+      "claim": "The allocation section reads empty off the storage adapters after a full-personal clear",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-023": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-023 finite tail evidence never claims universal correlation one",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    if (joint < opts.minimumJointEvents) {",
+          "replace": "    if (false) {"
+        }
+      ],
+      "control": "the joint-event floor in lowerTailDependence is removed, so a tail sample below the configured minimum yields a point estimate instead of being withheld as thin-tail-sample",
+      "claim": "Finite tail evidence below the declared joint-event floor is explicitly unavailable rather than reported as a number",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-024": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-024 appraisal smoothing and illiquidity block mechanical decorrelation",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var smoothed = asset.valuationMethod === \"appraisal\" || asset.valuationMethod === \"user-entered\";",
+          "replace": "    var smoothed = false;"
+        }
+      ],
+      "control": "appraisal and user-entered valuations are no longer flagged as smoothing-suspected, so the asset drops its de-smoothed sensitivity requirement and reads as mechanically uncorrelated",
+      "claim": "An appraisal-smoothed or illiquid asset carries its smoothing caveat and requires a de-smoothed sensitivity before any diversification conclusion",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-029": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-029 conflicting constraints remain infeasible without relaxation",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "        universallyInfeasible: true,",
+            "        reason: \"minimums-exceed-full-allocation\","
+          ],
+          "replace": [
+            "        universallyInfeasible: false,",
+            "        reason: \"minimums-exceed-full-allocation\","
+          ]
+        }
+      ],
+      "control": "minimums that sum past the whole portfolio are downgraded from universally infeasible to a candidate-level miss, so a mandate no weight vector can satisfy reads as one unlucky candidate rather than a contradiction in the constraints",
+      "claim": "Mutually conflicting constraints are reported as universally infeasible and nothing is silently relaxed",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-021": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-021 missing survival definition renders distributions without probability",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var survivalDefinition = spec.survivalDefinition.state === \"available\" ? {",
+          "replace": "    var survivalDefinition = true ? {"
+        }
+      ],
+      "control": "an unavailable survival definition is treated as available, so a survival probability is computed against a floor the user never stated instead of the distributions rendering without one",
+      "claim": "A missing survival definition suppresses the survival probability rather than defaulting to a fabricated floor",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-035": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "        valueIncluded: included,",
+          "replace": "        valueIncluded: true,"
+        }
+      ],
+      "control": "a holding with no usable price evidence is reported as included in valuation, so an unevidenced position is silently valued instead of being excluded by name with no substitute applied",
+      "claim": "A holding whose price evidence is missing is excluded from valuation by name and no stand-in number is substituted for it",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-033": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-033 correlation never emits a substantially identical verdict",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": [
+            "      identityThreshold: null,",
+            "      adjudicated: false,"
+          ],
+          "replace": [
+            "      identityThreshold: null,",
+            "      adjudicated: true,"
+          ]
+        }
+      ],
+      "control": "the replacement comparison reports itself as adjudicated, so research inputs are presented as a substantially-identical determination the product is not permitted to make",
+      "claim": "Correlation and overlap are offered as research inputs only and no substantially-identical verdict is ever emitted",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-043": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "      tombstoneCommitted: tombstone !== null,",
+          "replace": "      tombstoneCommitted: false,"
+        }
+      ],
+      "control": "the full personal clear stops reporting that its tombstone was committed, so a completed clear becomes indistinguishable from one whose durable record was never written and the deletion cannot be verified after the fact",
+      "claim": "A full personal clear commits a tombstone before deletion and reports that commit, so the clear is verifiable rather than merely asserted",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-032": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-032 efficiency claim is scoped to one tested information set",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "      allFormsRefuted: false,",
+          "replace": "      allFormsRefuted: true,"
+        }
+      ],
+      "control": "a result measured against one information set reports that every form of market efficiency has been refuted, so a narrow empirical finding is widened into a claim about markets in general that the sample cannot support",
+      "claim": "An efficiency finding stays scoped to the one information set actually tested and never generalizes into refuting the semi-strong or strong form",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-027": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-027 allocation comparison presents tradeoffs and no universal winner",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "      claimBoundary: \"None is labelled best or recommended; an in-sample lead is the weakest kind of evidence. No candidate is universally best, suitable, or authorized to replace the current portfolio.\"",
+          "replace": "      claimBoundary: \"An in-sample lead is the weakest kind of evidence. No candidate is universally best, suitable, or authorized to replace the current portfolio.\""
+        }
+      ],
+      "control": "the allocation comparison drops its statement that no candidate is labelled best or recommended, so the surface stops disclaiming the ranking it presents and an in-sample lead reads as a recommendation",
+      "claim": "The allocation comparison presents tradeoffs and states plainly that none of the six methods is labelled best or recommended",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-047": {
+      "test": "tests/portfolio-survival-risk.spec.mjs#Regression: SCN-008-047 mixed portfolio inputs preserve eligible risk diagnostics and partial truth",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var partial = weightResult.state === \"partial\" || dailyCoverage < 1 - 1e-9 || eligibility.some(function (entry) { return entry.state === \"unavailable\"; });",
+          "replace": "    var partial = false;"
+        }
+      ],
+      "control": "a portfolio with ineligible holdings and incomplete daily coverage reports its risk projection as complete, so diagnostics computed over part of the portfolio present as covering all of it",
+      "claim": "A risk projection over partially eligible holdings reports itself partial and names which holdings are excluded and why",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-031": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-031 dossier separates in sample walk forward costs and trials",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "    var costAdjusted = walkForward - totalCost;",
+          "replace": "    var costAdjusted = walkForward;"
+        }
+      ],
+      "control": "the cost-adjusted result stops subtracting trading costs, so it equals the walk-forward result and an edge that costs would have consumed survives into the dossier as if it were free to capture",
+      "claim": "In-sample, walk-forward and cost-adjusted results stay three separate numbers, and the cost-adjusted one is strictly reduced by the declared costs",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-045": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-045 five year coverage measures dates appends allowed sources and preserves partial truth",
+      "breakFile": "rldata.js",
+      "edits": [
+        {
+          "find": "      missingBounds: { start: missingStart, end: missingEnd }, disputedDates: disputedDates,",
+          "replace": "      missingBounds: { start: false, end: false }, disputedDates: disputedDates,"
+        }
+      ],
+      "control": "a coverage envelope stops reporting which requested bound it failed to reach, so a two-year snapshot answering a five-year request no longer discloses that its start is missing",
+      "claim": "A coverage result names exactly which requested bounds are missing, so a shorter committed snapshot cannot masquerade as the full requested window",
+      "implementationRefs": ["rldata.js"]
+    },
+    "SCN-008-044": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection",
+      "breakFile": "rlportfoliobrief.js",
+      "edits": [
+        {
+          "find": "      if (Date.parse(occurrence.occurredAt) > Date.parse(input.behaviorCutoffAt)) {",
+          "replace": "      if (false) {"
+        }
+      ],
+      "control": "a behavior occurrence dated after the brief's own cutoff is admitted as eligible instead of quarantined, so activity that had not happened when the brief was composed is counted into its ranking",
+      "claim": "A behavior occurrence dated past the brief cutoff is quarantined rather than counted, so a brief never ranks on activity later than itself",
+      "implementationRefs": ["rlportfoliobrief.js"]
+    },
+    "SCN-008-041": {
+      "test": "tests/portfolio-privacy.functional.mjs#TP-16-12 SCN-008-041 every personal category the finished route can create is swept by one full-personal clear",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": [
+            "  var FOUNDATION_SESSION_KEYS = Object.freeze([",
+            "    \"rlPortfolioWorkspaceSessionV1\",",
+            "    \"rlReturnContextV1\"",
+            "  ]);"
+          ],
+          "replace": [
+            "  var FOUNDATION_SESSION_KEYS = Object.freeze([]);"
+          ]
+        }
+      ],
+      "control": "the session-scoped personal keys are removed from the sweep entirely, so one full-personal clear no longer reaches the session store and a whole personal category the route can create survives the clear",
+      "claim": "One full-personal clear sweeps every personal category the finished route can create, including the session-scoped ones",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-026": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-026 all six allocation methods share one frozen basis",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "      return allocationUnavailableCandidate(\"constrained-mvo\", context, \"expected-returns-or-risk-aversion\");",
+          "replace": "      return allocationUnavailableCandidate(\"constrained-mvo-renamed\", context, \"expected-returns-or-risk-aversion\");"
+        },
+        {
+          "find": "    return allocationCandidate(\"constrained-mvo\", context.normalized, context.fingerprint, solved, expectedReturns);",
+          "replace": "    return allocationCandidate(\"constrained-mvo-renamed\", context.normalized, context.fingerprint, solved, expectedReturns);"
+        }
+      ],
+      "control": "the sixth candidate is emitted under a different method identity in both its solved and its unavailable branch, so the comparison no longer presents the contracted six-method set and a reader cannot find constrained-mvo among the candidates",
+      "claim": "All six allocation methods are projected against one frozen basis, each appearing under its contracted method identity with its own assumption row and availability state",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-006": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "byId(\"briefTimes\").setAttribute(\"data-composed\", value.times.composedAt);",
+          "replace": "byId(\"briefTimes\").setAttribute(\"data-composed\", value.times.evidenceCutoffAt);"
+        }
+      ],
+      "control": "the local composition clock is rendered as the evidence cutoff, collapsing three distinct clocks into two, so a reader can no longer tell when the brief was composed apart from when its evidence stopped and a past brief becomes unauditable",
+      "claim": "Each window preserves three distinct clocks - evidence cutoff, generic publication, and local composition - so a past brief can be audited against the moment its evidence closed",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-007": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-007 held watch completed-research and inferred-relevance lanes reject raw history",
+      "breakFile": "rlportfoliobrief.js",
+      "edits": [
+        {
+          "find": "held: \"direct-holding\",",
+          "replace": "held: \"qualified\","
+        }
+      ],
+      "control": "the held lane stops emitting its contracted qualification source, so a rendered subject no longer discloses that it earned its place by being a direct holding and a reader must infer authority from lane position alone",
+      "claim": "Every rendered brief item declares the qualification source that admitted it to its lane, so lane position never has to be read as authority",
+      "implementationRefs": ["rlportfoliobrief.js"]
+    },
+    "SCN-008-008": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-008 TP-06-03 every rendered item discloses why it appears",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "\" (relevance only, not a success probability)\"",
+          "replace": "\" (relevance only)\""
+        }
+      ],
+      "control": "the relevance-confidence disclosure drops the clause separating relevance from a success probability, so a reader can take a relevance score as the odds of the trade working - the exact conflation FR-046 exists to prevent",
+      "claim": "Every rendered item opens a reachable Why shown disclosure whose relevance confidence is labelled as relevance and never as a success probability",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-009": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-009 TP-06-04 settings parameters and window changes leave event interest and action identity unchanged",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "row.setAttribute(\"data-ranking-fingerprint\", ranked.value.rankingFingerprint);",
+          "replace": "row.setAttribute(\"data-ranking-fingerprint\", \"unversioned:\" + ranked.value.rankingFingerprint);"
+        }
+      ],
+      "control": "the rendered rank fingerprint is emitted under an unversioned digest label, so the identity a reader would use to prove two views share one immutable global ranking no longer carries its contracted form and cannot be compared across windows",
+      "claim": "Each rendered action carries a contracted sha256 rank fingerprint, and the visible actions share one immutable global rank identity that display activity and window changes do not alter",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-018": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-018 identical stationary bootstrap specification reproduces paths",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "\"|meanBlockSessions=\" + spec.method.blockPolicy.meanBlockSessions +",
+          "replace": ""
+        }
+      ],
+      "control": "the reproducibility identity omits the mean block length entirely, so two runs whose only difference is block policy present identical identities and a reader comparing them cannot tell that the sampling assumption changed",
+      "claim": "The scenario identity names every field that changes a result, including the block policy, so an identical specification is provably the same run rather than an opaque token",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-020": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-020 dated cash need records before and after collision capital",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "and is never moved to a better one.",
+          "replace": "and may be adjusted."
+        }
+      ],
+      "control": "the modeled-calendar note drops the stated guarantee that a dated need is never moved to a more favourable session, so a reader can no longer tell from the screen whether the landing step was chosen to flatter the result",
+      "claim": "The modeled calendar states on screen that a dated cash need lands on the first modeled session on or after its stated date and is never moved to a better one",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-038": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-038 a saved scenario survives reload and is removed by a full personal clear",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "var duplicate = candidate.scenarios.some(function (entry) { return entry.scenarioId === scenario.scenarioId; });",
+          "replace": "var duplicate = false;"
+        }
+      ],
+      "control": "saving the same scenario twice stops being recognised as a repeat, so an identical specification accumulates duplicate rows in private storage instead of reporting that it was already saved",
+      "claim": "Saving an identical scenario is a no-op that reports it was already saved rather than writing a second row, so persisted scenario storage stays one row per distinct specification",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-048": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "[\"Parameter marginal\", r.distributionSet.parameterMarginal],",
+          "replace": "[\"Marginal\", r.distributionSet.parameterMarginal],"
+        }
+      ],
+      "control": "the parameter-uncertainty distribution loses the label that names it as the parameter marginal, so a reader can no longer tell which of the three distributions isolates estimation uncertainty from path randomness",
+      "claim": "The distribution set presents conditional path, parameter marginal, and combined distributions under their contracted names, so parameter uncertainty stays distinguishable from path randomness",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-049": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "{ lens: \"forbes-rigobon-adjusted\", label: \"Forbes-Rigobon adjusted\", value: evidence.adjustment }",
+          "replace": "{ lens: \"adjusted\", label: \"Forbes-Rigobon adjusted\", value: evidence.adjustment }"
+        }
+      ],
+      "control": "the volatility-adjusted dependence lens loses its contracted identity, so the row that separates a genuine rise in dependence from one driven by higher volatility can no longer be identified and the downstream estimate selection stops matching it",
+      "claim": "Stress dependence is presented through three distinct named lenses - raw normal, raw stress, and the Forbes-Rigobon volatility adjustment - so a correlation rise driven by volatility is never read as a rise in true dependence",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-028": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "result.declaredPerturbations.join(\", \") + \" · instability threshold \" +",
+          "replace": "result.declaredPerturbations.join(\", \") + \" · cutoff \" +"
+        }
+      ],
+      "control": "the trial accounting stops naming the instability threshold, so a reader is shown stability verdicts without the cutoff that produced them and cannot judge whether a range was called unstable on a defensible basis",
+      "claim": "Sensitivity trial accounting discloses the valid and failed trial counts, the declared perturbations, and the instability threshold, so a weight range can be judged rather than taken on trust",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-030": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "\"confidence, or view is prefilled or suggested from what you have looked at.\";",
+          "replace": "\"confidence, or view is derived automatically.\";"
+        }
+      ],
+      "control": "the Black-Litterman note stops stating that nothing is prefilled or suggested from browsing behaviour, so a reader has no on-screen assurance that the views driving the posterior came from them rather than from what they happened to look at",
+      "claim": "The Black-Litterman editor states that no expected return, confidence, or view is prefilled or suggested from browsing behaviour, so behaviour can never enter the posterior",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-050": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views",
+      "breakFile": "rlportfolioanalytics.js",
+      "edits": [
+        {
+          "find": "\"None is labelled best or recommended; an in-sample lead",
+          "replace": "\"An in-sample lead"
+        }
+      ],
+      "control": "the allocation comparison stops stating that no candidate is labelled best or recommended, so a reader can take the leading row as an endorsement of a portfolio change the tool never made",
+      "claim": "The allocation comparison states that no candidate is labelled best or recommended, so an in-sample lead is never presented as an endorsement",
+      "implementationRefs": ["rlportfolioanalytics.js"]
+    },
+    "SCN-008-051": {
+      "test": "tests/portfolio-survival-allocation.spec.mjs#Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "[\"rebalance-timing\", fold.costs.rebalanceTiming]",
+          "replace": "[\"timing\", fold.costs.rebalanceTiming]"
+        }
+      ],
+      "control": "the rebalance-timing cost loses its contracted identity in the dossier cost table, so the seven-component cost taxonomy a net result is built from can no longer be enumerated and a reader cannot confirm which frictions were charged",
+      "claim": "The dossier enumerates all seven named cost components under their contracted identities, so a net-of-cost result can be traced to the specific frictions charged against it",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-034": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-034 TP-06-05 the route exposes research and lifecycle verbs only",
+      "breakFile": "rlportfoliobrief.js",
+      "edits": [
+        {
+          "find": "researchVerb: primary === \"held\" ? \"review\" : \"inspect\"",
+          "replace": "researchVerb: primary === \"held\" ? \"rebalance\" : \"inspect\""
+        }
+      ],
+      "control": "a held subject is authored with a portfolio-execution verb outside the closed research set, so the route issues an instruction to change a position instead of proposing a research step",
+      "claim": "Every authored action verb comes from the closed research set, so the brief proposes research and lifecycle steps and never an order, size, or rebalance instruction",
+      "implementationRefs": ["rlportfoliobrief.js"]
+    },
+    "SCN-008-046": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "why.setAttribute(\"data-generic-evidence-identity\", state.genericWindow.genericEvidenceIdentity);",
+          "replace": "why.setAttribute(\"data-generic-evidence-identity\", \"sha256:\" + \"0\".repeat(64));"
+        }
+      ],
+      "control": "each Why shown disclosure reports a constant evidence identity instead of the one the route actually validated, so a reader cannot confirm that every visible action was composed from the same atomic generic evidence window",
+      "claim": "Every rendered action's Why shown disclosure carries the same generic evidence identity the route validated, so the whole visible brief is provably composed from one atomic evidence window",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-052": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "node.setAttribute(\"data-active-tab\", state.route);",
+          "replace": "node.setAttribute(\"data-active-tab\", \"brief\");"
+        }
+      ],
+      "control": "the workspace stops reporting the tab it is actually showing and always names the brief, so a reader auditing which view produced a figure is told the wrong one on every tab except the first",
+      "claim": "The workspace reports the tab it is actually showing, so every mode and tab combination renders one identifiable active view against one published identity",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-055": {
+      "test": "tests/portfolio-survival-brief.spec.mjs#Regression: SCN-008-055 every published Feature 008 entry opens the Portfolio Brief workspace",
+      "breakFile": "rlnav.js",
+      "edits": [
+        {
+          "find": "file: \"portfolio-survival-allocation-lab.html\", group: \"Strategy & Validation\" }",
+          "replace": "file: \"company-fundamentals-lab.html\", group: \"Strategy & Validation\" }"
+        }
+      ],
+      "control": "the navigation surface points its Feature 008 entry at a different tool, so the registry, landing page, README, and note no longer agree on one published route and a reader following the nav link never reaches the Portfolio Brief workspace",
+      "claim": "The registry, navigation, landing page, README, and note all publish one agreeing Feature 008 entry that opens the Portfolio Brief workspace",
+      "implementationRefs": ["rlnav.js"]
+    },
+    "SCN-008-036": {
+      "test": "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-036 Simple Power mobile and deep link return preserve one identity",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "storedMode = window.localStorage.getItem(MODE_KEY) === \"power\" ? \"power\" : \"simple\";",
+          "replace": "storedMode = window.localStorage.getItem(MODE_KEY) === \"simple\" ? \"simple\" : \"power\";"
+        }
+      ],
+      "control": "the tool opens into the dense Power view for a reader with no stored preference, so the decision-first Simple cockpit is no longer the default and a first-time reader meets the drill-down instead",
+      "claim": "Simple is the default view, and Power adds evidence without altering the citation, identity, or verdict that Simple already showed",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-053": {
+      "test": "tests/portfolio-survival-mobile.spec.mjs#Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "overflow-x: auto;",
+          "replace": "overflow-x: visible;"
+        }
+      ],
+      "control": "the six-tab strip stops containing its own horizontal overflow, so at mobile width and under zoom the tablist pushes the document wider than the viewport and the reader gets a horizontally scrolling page",
+      "claim": "Every route holds its layout at desktop, mobile, and zoom with long content - no overlap, no clipping, and no horizontal body overflow",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-042": {
+      "test": "tests/portfolio-survival-foundation.spec.mjs#Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "revision.holdings.length + \" holdings\"",
+          "replace": "(revision.holdings.length + 1) + \" holdings\""
+        }
+      ],
+      "control": "the confirmed revision line overstates the holding count by one, so the portfolio a reader believes they committed does not match the positions actually stored and a removal appears not to have taken effect",
+      "claim": "A confirmed holding revision reports the count it actually contains, so adding, editing, and removing holdings leave an honest portfolio summary",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-037": {
+      "test": "tests/portfolio-privacy.functional.mjs#SCN-008-037 TP-06-08: a full-personal clear empties genuinely persisted interests and outcomes on a storage reread",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "\"rlPortfolioWorkspaceV1.pointer\",\n    \"rlPortfolioWorkspaceV1.slotA\",",
+          "replace": "\"rlPortfolioWorkspaceV1.slotA\","
+        }
+      ],
+      "control": "the workspace pointer is dropped from the full-personal clear key list, so a personal pointer survives the clear and a storage reread no longer returns exactly the generic public caches",
+      "claim": "One full-personal clear removes every persisted personal key, so a storage reread afterwards holds exactly the generic public caches and no derived interest or action outcome",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-040": {
+      "test": "tests/portfolio-allocation.functional.mjs#TP-15-08 a persisted dossier is swept by the full-personal clear and survives the behavior clear",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "    candidate.actionOutcomes = retainedOutcomes;",
+          "replace": [
+            "    candidate.actionOutcomes = retainedOutcomes;",
+            "    candidate.dossiers = [];"
+          ]
+        }
+      ],
+      "control": "the behaviour-only clear also deletes explicitly saved dossiers, so a reader who asked to remove derived behaviour silently loses research they deliberately saved",
+      "claim": "A behaviour-only clear removes derived behaviour and leaves explicitly saved dossiers untouched, while the full-personal clear sweeps both",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-054": {
+      "test": "tests/portfolio-test-integrity.unit.mjs#Adversarial: SCN-008-054 every audited Feature 008 defect class remains load-bearing",
+      "breakFile": "rlportfolio.js",
+      "edits": [
+        {
+          "find": "      draftResult.value.rows.filter(function (row) { return row.holdingId !== holdingId; }),",
+          "replace": "      draftResult.value.rows,"
+        }
+      ],
+      "control": "the audited F008-PORTFOLIO-LIFECYCLE-001 defect is present in the shipped tree, so a removal returns the unchanged row set and the protective carrier no longer passes green on shipped - the integrity file's own green-on-shipped obligation fails",
+      "claim": "Every audited Feature 008 defect class is absent from the shipped tree and its protective carrier is proven load-bearing by failing when that defect is represented",
+      "implementationRefs": ["rlportfolio.js"]
+    },
+    "SCN-008-019": {
+      "test": "tests/portfolio-survival-paths.spec.mjs#Regression: SCN-008-019 parameter uncertainty is separate from path randomness",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "r.influence.assumption + \" over \" + r.influence.rangeLow.toFixed(6)",
+          "replace": "\"unknown\" + \" over \" + r.influence.rangeLow.toFixed(6)"
+        }
+      ],
+      "control": "the most influential assumption is no longer named on the surface, so a reader is shown a parameter-uncertainty spread without being told which input drives it and cannot judge which assumption to challenge",
+      "claim": "Path randomness and parameter uncertainty are presented as separate distributions, and the assumption most responsible for the parameter spread is named on the surface",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-022": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-022 raw stress correlation shows volatility context and qualified adjustment",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "and are not a property \" +",
+          "replace": "and are a property \" +"
+        }
+      ],
+      "control": "the dependence claim boundary inverts and asserts that a windowed correlation IS a property of the pair, so a reader takes a stress-window figure as a permanent characteristic of the two assets",
+      "claim": "The dependence surface states its own claim boundary - a correlation measured on one named window is not a property of the pair, heteroskedasticity alone can produce a rise, and no contagion label is applied automatically",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+    "SCN-008-025": {
+      "test": "tests/portfolio-survival-diversification.spec.mjs#Regression: SCN-008-025 hedged and unhedged comparison keeps carry and basis risk separate",
+      "breakFile": "portfolio-survival-allocation-lab.html",
+      "edits": [
+        {
+          "find": "\"<th scope=\\\"col\\\">Carry</th><th scope=\\\"col\\\">Direct</th><th scope=\\\"col\\\">Turnover</th>\" +",
+          "replace": "\"<th scope=\\\"col\\\">Net cost</th><th scope=\\\"col\\\">Turnover</th>\" +"
+        }
+      ],
+      "control": "carry and direct cost are collapsed into one blended net figure, which is exactly the conflation that lets a large carry hide behind a large risk reduction and leaves a reader unable to see what the hedge actually costs to hold",
+      "claim": "The hedge comparison keeps carry, direct cost, turnover, financing, and basis risk as separate columns, so no single blended figure can conceal one cost behind another",
+      "implementationRefs": ["portfolio-survival-allocation-lab.html"]
+    },
+
+    "SCN-BUG-018-001": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": [
+            "                var standingCorpusStatus = corpusStatus;",
+            "                corpusStatus = \"pending\";",
+            "                var result = compose();"
+          ],
+          "replace": [
+            "                var standingCorpusStatus = corpusStatus;",
+            "                var result = compose();"
+          ]
+        }
+      ],
+      "control": "the current subject is composed and painted before corpusStatus is reset, so the return-time body attribute retains the departed subject's loaded state instead of reporting pending",
+      "claim": "Applying a new subject reports pending in the same click task rather than retaining the prior subject's loaded corpus state",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-002": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": [
+            "                        if (intent !== readingIntent) return;",
+            "                        run();"
+          ],
+          "replace": [
+            "                        if (intent !== readingIntent) return;",
+            "                        if (intent > 0) return;",
+            "                        run();"
+          ]
+        }
+      ],
+      "control": "a manually applied subject's completed corpus load is prevented from repainting, so the body remains pending after the held real request is released",
+      "claim": "The current subject leaves pending and reports loaded or unavailable after its corpus request resolves",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-003": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": [
+            "                if (refusal) {",
+            "                    renderRefusal(refusal);",
+            "                    return;",
+            "                }"
+          ],
+          "replace": [
+            "                if (refusal) {",
+            "                    corpusStatus = \"pending\";",
+            "                    renderRefusal(refusal);",
+            "                    return;",
+            "                }"
+          ]
+        }
+      ],
+      "control": "the direct refusal path resets corpusStatus even though it requests no replacement corpus, so the standing subject is misreported as pending",
+      "claim": "A refused entry preserves the standing subject's settled corpus state",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-004": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                setText(\"cockpit-coverage-line\", established",
+          "replace": "                setText(\"cockpit-coverage-line\", true"
+        }
+      ],
+      "control": "the cockpit coverage branch is forced onto its settled arm while the committed corpus is held, restoring a definite unavailable-dimension count before any source has answered",
+      "claim": "The pending paint does not print settled absence grammar",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-005": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                    : \"Waiting for the committed corpus for this company. Until it answers, this run has established \" +",
+          "replace": "                    : \"This company account is incomplete. This run has established \" +"
+        }
+      ],
+      "control": "the held paint drops the route's contracted waiting-for-the-committed-corpus wording, so a body-text reader can no longer identify the pending window",
+      "claim": "The pending window is named visibly and that readiness wording disappears after settlement",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-006": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                    var direction = established ? horizon.direction : \"not-established\";",
+          "replace": "                    var direction = horizon.direction;"
+        }
+      ],
+      "control": "each pending horizon emits its computed none direction instead of not-established, making an unanswered corpus look like a settled no-direction finding",
+      "claim": "No horizon card presents a settled direction while its corpus is unresolved",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-007": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                    ? version.coverageAccount.totals.unavailable + \" of \" + version.coverageAccount.rows.length +",
+          "replace": "                    ? (version.coverageAccount.totals.unavailable + 1) + \" of \" + version.coverageAccount.rows.length +"
+        }
+      ],
+      "control": "the settled cockpit overstates unavailable coverage by one, so MSFT no longer reconciles to the established 13-of-15 account after release",
+      "claim": "The settled MSFT reading remains 13 of 15 with the established directional horizon set unchanged",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-008": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                return corpusStatus === \"pending\" ? \"not-established\" : \"established\";",
+          "replace": "                return corpusStatus === \"loaded\" ? \"established\" : \"not-established\";"
+        }
+      ],
+      "control": "an unavailable corpus is classified as not-established, so the total-outage route withholds its settled unavailable coverage rows instead of naming the absence",
+      "claim": "A corpus resolved to unavailable is an established reading rather than a perpetual pending state",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-009": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                setText(\"cockpit-coverage-line\", established",
+          "replace": "                setText(\"cockpit-coverage-line\", true"
+        }
+      ],
+      "control": "the production route's pending coverage guard is removed while the unchanged browser test still enters the held pre-settlement window and reads the visible cockpit copy",
+      "claim": "The committed browser suite samples the composed paint before corpus resolution and rejects settled absence copy there",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-010": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established",
+      "breakFile": "company-intelligence-lab.html",
+      "edits": [
+        {
+          "find": "                setText(\"cockpit-coverage-line\", established",
+          "replace": "                setText(\"cockpit-coverage-line\", true"
+        }
+      ],
+      "control": "only the cockpit pending guard is forced onto its settled arm, and the unchanged copy assertion fails on the reintroduced definite absence sentence",
+      "claim": "The pending-window regression detects removal of the coverage guard",
+      "implementationRefs": ["company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-011": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel",
+      "breakFile": "rlcompanyintel.js",
+      "edits": [
+        {
+          "find": "        if (!isPlainObject(version.coverageAccount) || version.coverageAccount.readiness !== \"established\") {",
+          "replace": "        if (!isPlainObject(version.coverageAccount)) {"
+        }
+      ],
+      "control": "the company publisher no longer checks account readiness, so the held not-established paint writes an ordinary rl-tool-read/v1 record before its corpus answers",
+      "claim": "A pending company account produces no new ordinary shared tool-read publication",
+      "implementationRefs": ["rlcompanyintel.js", "company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-012": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel",
+      "breakFile": "rlcompanyintel.js",
+      "edits": [
+        {
+          "find": "        var written = rldata.putToolRead(TOOL_ID, candidate);",
+          "replace": "        var written = null;"
+        }
+      ],
+      "control": "the established publisher never calls the ordinary shared write, so releasing the held loaded corpus leaves the company tool-read key absent",
+      "claim": "An established loaded company account publishes its exact ordinary rl-tool-read/v1 record after settlement",
+      "implementationRefs": ["rlcompanyintel.js", "company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-013": {
+      "test": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel",
+      "breakFile": "rlcompanyintel.js",
+      "edits": [
+        {
+          "find": "        if (!isPlainObject(version.coverageAccount) || version.coverageAccount.readiness !== \"established\") {",
+          "replace": [
+            "        if (!isPlainObject(version.coverageAccount) || version.coverageAccount.readiness !== \"established\" ||",
+            "                version.coverageAccount.totals.current + version.coverageAccount.totals.partial === 0) {"
+          ]
+        }
+      ],
+      "control": "the publisher treats an established account with zero answered dimensions as still unpublishable, so a settled unavailable corpus never reaches the ordinary channel",
+      "claim": "An established unavailable company account remains eligible for ordinary shared publication",
+      "implementationRefs": ["rlcompanyintel.js", "company-intelligence-lab.html"]
+    },
+
+    "SCN-BUG-018-014": {
+      "test": "scripts/selftest.mjs#BUG-018 test provenance distinguishes ordinary traffic from annotated pass-through fault injection",
+      "breakFile": "tests/company-intelligence-lab.spec.mjs",
+      "edits": [
+        {
+          "find": [
+            " * Ordinary cases use the real ephemeral static server and unmodified responses.",
+            " * Explicitly annotated pass-through fault-injection cases use `page.route()` only to hold or delay a request.",
+            " * `route.continue()` then forwards the real response unchanged. No case fulfills or aborts a business response."
+          ],
+          "replace": " * The route is exercised as a production user meets it: its own ephemeral static server, no request interception, no stubbed module."
+        }
+      ],
+      "control": "the browser-file header restores the stale blanket no-request-interception claim and omits the annotated pass-through hold or delay boundary",
+      "claim": "Browser-test provenance distinguishes ordinary real traffic from annotated pass-through request holds and delays",
+      "implementationRefs": ["tests/company-intelligence-lab.spec.mjs", "scripts/selftest.mjs"]
+    }
+  }
+}

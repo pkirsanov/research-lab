@@ -2441,3 +2441,32 @@ No validation or audit verdict is recorded during planning.
 ## Current Certifying Window
 
 The prior execution record is preserved above. Current status is governed by the canonical transition checks.
+
+## Consumer Impact Sweep — Repository Packet Revision 40
+
+**Phase:** test
+
+**Claim Source:** interpreted
+
+The actionable Research Lab packet validated at decision `rb:vscode-0cc9797b22a783b6a9be5d7946541ba3:40` before repository access.
+
+| Check | Exit | Observed count | Captured lines | Capture SHA-256 |
+|---|---:|---:|---:|---|
+| Scenario-linked target resolution | 0 | 69 references resolved | 1 | `06a4c0bef2351ed6765a81094110187914a369f221bc494446a8d33bb04a059b` |
+| Requested canonical identifier `git grep` across the six declared production and test surfaces | 0 | 426 matches | 426 | `35966c0bb0d2f0f75a2e2a017020e779210af00c34114ccaeb759853a13fae27` |
+| `rlPortfolioMandate|rlMandate` no-match sweep across the same six surfaces | 0 | 0 matches, explicit `STALE_ALIAS_SWEEP=PASS` | 2 | `0dc29970002ac8990e16e9588a3869fe110a4841b102df0fe9c1ddc508c1e639` |
+| `node --test tests/portfolio-foundation.unit.mjs` | 0 | 61 passed, 0 failed, 0 skipped, 0 todo | 376 | `f0100e704b4eb0a5a0dd5f38357a6cc834cbe3c54fab34fea85c4f156ee8ae79` |
+| `node --test tests/portfolio-privacy.functional.mjs` | 0 | 24 passed, 0 failed, 0 skipped, 0 todo | 154 | `c4ccd7f091fdab530b9ef91361002a142c90f633ca7d78f4ba1545a8b6d9df54` |
+| SCN-008-003 exact Playwright `--grep` row | 0 | 1 passed, 5 policy consumers cited | 17 | `ce6a82b8e06efccd79a5940ed042d132d4b2520ad82ab10625dfcafc80520302` |
+| SCN-008-004 exact Playwright `--grep` row | 0 | 1 passed, 5 policy consumers projected | 16 | `f4febc2ebbd0bd282b736592ee6468efe93c0f0d654b9358d977f9fcb9cfe379` |
+
+The sweep covers four consumer classes:
+
+1. **Editor:** mandate file input, counters, conflict impact, row renderers, confirm, discard, and result state.
+2. **Routes and policy consumers:** direct hashes `#risk-xray`, `#path-lab`, and `#allocation`; policy consumers `allocation`, `diversification`, `dossier`, `path-lab`, and `risk-xray`.
+3. **Workspace identity and storage:** semantic payload, identity inputs, identity token, workspace hashes, durable pointer and slots, and session storage.
+4. **Exact-key validators and exports:** mandate and cash-need draft/revision field sets, validation paths, route projection, and the public contract.
+
+The public `RLPORTFOLIO` contract exports `buildMandateCandidate`, `buildMandateClearCandidate`, `validateMandateDraft`, and `validateMandateRevision`. It also exports `projectRouteStates`. `normalizeCashNeedDraft` and `validateCashNeed` remain internal helpers. The four exact-key arrays remain internal guards.
+
+**Interpretation:** Canonical matches are non-vacuous across every declared consumer class. The guessed aliases are absent from all six production and test surfaces. The requested unit, functional, and exact browser rows confirm the surviving references execute without stale first-party aliases.

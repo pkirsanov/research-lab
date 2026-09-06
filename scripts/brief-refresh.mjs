@@ -149,6 +149,25 @@ export function buildCompanyFundamentalsOwnerRead(readJson, hashObject) {
   };
 }
 
+export function reassertSnapshotOwnerRead(payload, snapshot, toolId) {
+  const isObject = (value) => value !== null && typeof value === 'object' && !Array.isArray(value);
+  if (!isObject(payload?.toolReads)) throw new Error('payload.toolReads must be a non-array object for owner-read reassertion');
+  if (!isObject(snapshot?.toolReads)) throw new Error('snapshot.toolReads must be a non-array object for owner-read reassertion');
+  if (typeof toolId !== 'string' || !toolId.trim()) throw new Error('owner-read reassertion requires a non-empty toolId');
+
+  const sourceRead = snapshot.toolReads[toolId];
+  if (!isObject(sourceRead)) throw new Error(`snapshot.toolReads.${toolId} must be a non-array object`);
+
+  const sourceBytes = JSON.stringify(sourceRead);
+  const copy = JSON.parse(sourceBytes);
+  if (!isObject(copy)) throw new Error(`snapshot.toolReads.${toolId} must be JSON-serializable as an object`);
+
+  const replaced = Object.prototype.hasOwnProperty.call(payload.toolReads, toolId);
+  const changed = JSON.stringify(payload.toolReads[toolId]) !== sourceBytes;
+  payload.toolReads[toolId] = copy;
+  return { toolId, disposition: 'reasserted', changed, replaced };
+}
+
 /* BUG-010 §3.3 — preservation across the Tier-B narrative merge, in the RE-ASSERTION shape.
    The narrative lane owns toolCoverage, so projecting the disclosure into the Tier-A read is not
    enough on its own: a rewrite lands on top of it. This restores the deterministic sentence onto

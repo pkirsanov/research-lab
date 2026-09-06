@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/_bugs/BUG-027-per-page-check-executes-inert-json/spec.md",
+  "generatedAt": "2026-08-31T06:48:04Z",
+  "stage": "bug-filing",
+  "scenarios": [
+    {
+      "id": "SCN-BUG027-001",
+      "title": "Malformed executable JavaScript fails",
+      "requiredTestType": "functional",
+      "scopeRef": "scopes.md#scope-1-type-aware-per-page-validation",
+      "linkedTests": [],
+      "plannedTest": "__FUTURE_TEST__",
+      "evidenceRefs": [],
+      "implementationRefs": [
+        ".specify/memory/agents.md"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "static-metadata",
+        "dependency-path"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          ".specify/memory/agents.md"
+        ],
+        "negativeControl": "Insert invalid syntax into an executable inline JavaScript body and require a nonzero process exit.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG027-002",
+      "title": "Malformed inert JSON fails",
+      "requiredTestType": "functional",
+      "scopeRef": "scopes.md#scope-1-type-aware-per-page-validation",
+      "linkedTests": [],
+      "plannedTest": "__FUTURE_TEST__",
+      "evidenceRefs": [],
+      "implementationRefs": [
+        ".specify/memory/agents.md"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "static-metadata",
+        "dependency-path"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          ".specify/memory/agents.md"
+        ],
+        "negativeControl": "Corrupt an application/json body while retaining its declared type and require a JSON-specific failure.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG027-003",
+      "title": "Valid inert JSON and executable JavaScript pass together",
+      "requiredTestType": "functional",
+      "scopeRef": "scopes.md#scope-1-type-aware-per-page-validation",
+      "linkedTests": [],
+      "plannedTest": "__FUTURE_TEST__",
+      "evidenceRefs": [],
+      "implementationRefs": [
+        ".specify/memory/agents.md",
+        "company-intelligence-lab.html"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "static-metadata",
+        "dependency-path"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          ".specify/memory/agents.md"
+        ],
+        "negativeControl": "Replace the valid JSON body with malformed JSON and require the same production entrypoint to fail.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG027-004",
+      "title": "A missing literal DOM ID fails",
+      "requiredTestType": "functional",
+      "scopeRef": "scopes.md#scope-1-type-aware-per-page-validation",
+      "linkedTests": [],
+      "plannedTest": "__FUTURE_TEST__",
+      "evidenceRefs": [],
+      "implementationRefs": [
+        ".specify/memory/agents.md"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "static-metadata",
+        "dependency-path"
+      ],
+      "lockdown": {
+        "state": "unlocked"
+      },
+      "testMechanism": {
+        "entrypoint": "production-cli",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          ".specify/memory/agents.md"
+        ],
+        "negativeControl": "Remove the HTML id targeted by a literal getElementById call and require the command to name the missing ID.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    }
+  ]
+}

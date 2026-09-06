@@ -14,21 +14,28 @@ specification states the behaviour that replaces it.
 
 It does not specify a new pricing rule. It specifies where pricing stops.
 
-### Single-Capability Justification
+## Domain Capability Model
 
-**Classification:** Existing-capability extension with one pack-backed implementation.
+**Capability: a sourced statutory bound that the engine consults rather than knows.**
 
-This packet extends the existing claim-age adjustment contract. `tax-rules/benefit/2026.json`
-adds `earliestClaimAge` inside the existing `earlyReductionRule` record.
-`rltaxsocialsecurity.js::applyClaimAgeAdjustment` reads that figure before the existing
-per-month factor loop. It reuses the existing citation and `RLTAX-THRESHOLD-UNAVAILABLE`
-contracts.
+The defect was a claim age of 720 months priced at $1,800 monthly — a figure for an age nobody is
+permitted to claim at. The engine had no bound to check, so it extrapolated the reduction factors
+past the point where they mean anything and returned a confident number.
 
-The packet adds no second benefit engine, pack provider, claim-age strategy, or schema adapter.
-The pack already owns sourced thresholds, and the engine already owns claim-age adjustment. A
-new foundation would duplicate those boundaries. The matching design classification is
-`### Single-Implementation Justification`, not a foundation and overlay split with invented
-variation axes.
+| Concern | Where it belongs |
+|---|---|
+| Knowing what the earliest priceable age IS | The benefit rule pack, carried with a source reference and locator |
+| Refusing a claim age below it | The claim-age module, which reads the pack figure |
+| Saying WHY a figure is absent | Every surface that would have shown the figure |
+| Declaring the figure is unavailable | The pack, as an explicit AbsentFigure rather than a default |
+
+The placement is the capability. A bound held as a literal in the engine would be a number nobody
+could audit against the statute, and the first time it disagreed with the authority somebody would
+adjust it to make a test pass. Held as a sourced pack figure, it is checkable against the cited
+authority — which is what the last user-validation item asks a human to do.
+
+The capability deliberately stops at *priceability*. It does not advise when to claim, and it does
+not rank ages; it only refuses to price what the statute does not permit.
 
 ## Behaviour Under Specification
 

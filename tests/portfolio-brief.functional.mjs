@@ -294,6 +294,258 @@ function briefInput(overrides = {}) {
   }, overrides.input || {});
 }
 
+const BUG_007_HOSTILE_KEYS = Object.freeze(['__proto__', 'constructor', 'toString']);
+
+function ownDescriptors(target) {
+  return new Map(Reflect.ownKeys(target).map((key) => [key, Object.getOwnPropertyDescriptor(target, key)]));
+}
+
+function descriptorEqual(left, right) {
+  if (!left || !right) return left === right;
+  return left.configurable === right.configurable &&
+    left.enumerable === right.enumerable &&
+    left.writable === right.writable &&
+    Object.is(left.value, right.value) &&
+    left.get === right.get &&
+    left.set === right.set;
+}
+
+function sharedBuiltInSnapshot() {
+  return [
+    { name: 'Object.prototype', target: Object.prototype },
+    { name: 'Object', target: Object },
+    { name: 'Object.prototype.toString', target: Object.prototype.toString }
+  ].map((entry) => ({ ...entry, descriptors: ownDescriptors(entry.target) }));
+}
+
+function sharedBuiltInDiff(snapshot) {
+  return snapshot.flatMap((entry) => {
+    const current = ownDescriptors(entry.target);
+    const keys = new Set([...entry.descriptors.keys(), ...current.keys()]);
+    return [...keys]
+      .filter((key) => !descriptorEqual(entry.descriptors.get(key), current.get(key)))
+      .map((key) => `${entry.name}.${String(key)}`);
+  });
+}
+
+function restoreSharedBuiltIns(snapshot) {
+  snapshot.forEach((entry) => {
+    const baselineKeys = new Set(entry.descriptors.keys());
+    Reflect.ownKeys(entry.target).forEach((key) => {
+      if (!baselineKeys.has(key)) Reflect.deleteProperty(entry.target, key);
+    });
+    entry.descriptors.forEach((descriptor, key) => Object.defineProperty(entry.target, key, descriptor));
+  });
+}
+
+function ownLookup(key, value) {
+  const lookup = Object.create(null);
+  Object.defineProperty(lookup, key, { configurable: true, enumerable: true, value, writable: true });
+  return lookup;
+}
+
+function inheritedLookup(key, value) {
+  return Object.create(ownLookup(key, value));
+}
+
+function bug007CaseInput(loaded, axis, key, lookups = {}) {
+  const hostileIndex = BUG_007_HOSTILE_KEYS.indexOf(key);
+  const hostileEvidenceId = `e-b007-${axis}-${hostileIndex}`;
+  const completions = axis === 'subjectId'
+    ? [
+        { subjectId: key, subjectKind: 'ticker', domain: 'ordinary-domain', category: 'ticker-research-completed', horizon: 'medium-term', completedAt: `${BRIEF_DAY}T12:00:00.000Z` },
+        { subjectId: 'ordinary-peer', subjectKind: 'ticker', domain: 'ordinary-domain', category: 'risk-analysis-completed', horizon: 'medium-term', completedAt: '2026-07-14T12:00:00.000Z' }
+      ]
+    : [
+        { subjectId: 'domain-support-alpha', subjectKind: 'ticker', domain: key, category: 'ticker-research-completed', horizon: 'medium-term', completedAt: `${BRIEF_DAY}T12:00:00.000Z` },
+        { subjectId: 'domain-support-beta', subjectKind: 'ticker', domain: key, category: 'risk-analysis-completed', horizon: 'medium-term', completedAt: '2026-07-14T12:00:00.000Z' }
+      ];
+  return {
+    hostileEvidenceId,
+    input: briefInput({
+      loaded,
+      input: {
+        completions,
+        evidence: [ev(hostileEvidenceId, key, axis === 'subjectId' ? 'ticker' : 'domain', `${BRIEF_DAY}T13:00:00.000Z`, 0.8, axis === 'subjectId' ? 'ordinary-domain' : key)],
+        holdings: [],
+        owners: lookups.owners,
+        priorEvidenceIds: lookups.priorEvidenceIds,
+        watchlist: []
+      }
+    })
+  };
+}
+
+function invokeBug007Case(loaded, axis, key, lookups = {}) {
+  const snapshot = sharedBuiltInSnapshot();
+  const prepared = bug007CaseInput(loaded, axis, key, lookups);
+  let result = null;
+  let thrown = null;
+  let mutationBeforeCleanup = [];
+  let mutationAfterCleanup = [];
+  try {
+    try {
+      result = loaded.brief.composeBrief(prepared.input);
+    } catch (error) {
+      thrown = { name: error.name, message: error.message };
+    }
+    mutationBeforeCleanup = sharedBuiltInDiff(snapshot);
+  } finally {
+    restoreSharedBuiltIns(snapshot);
+    mutationAfterCleanup = sharedBuiltInDiff(snapshot);
+  }
+  return { axis, hostileEvidenceId: prepared.hostileEvidenceId, key, mutationAfterCleanup, mutationBeforeCleanup, result, thrown };
+}
+
+test('BUG-007: normal brief order and refusal precedence remain unchanged', () => {
+  const loaded = loadBrief();
+  const normal = loaded.brief.composeBrief(briefInput({ loaded }));
+  assert.equal(normal.ok, true, JSON.stringify(normal.error || {}));
+  assert.deepEqual(loaded.brief.laneOrder,
+    ['held', 'watchlist', 'completedResearch', 'inferredRelevance']);
+  assert.deepEqual(loaded.brief.laneOrder.flatMap((lane) =>
+    normal.value.lanes[lane].map((item) => item.subjectId)),
+  ['MSFT', 'BND', 'ZZTOP', 'semiconductors']);
+
+  const localRefusal = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: { composedAt: 'invalid-local-composition-time' }
+  }));
+  assert.deepEqual(localRefusal, {
+    ok: false,
+    error: {
+      contractVersion: 'PortfolioError/v1',
+      code: 'P008-BRIEF-COMPOSED',
+      reason: 'local-composition-time-required',
+      field: 'composedAt',
+      row: null,
+      valueEchoed: false,
+      recoverable: false
+    }
+  });
+
+  const nonFinitePolicy = {
+    ...loaded.policy,
+    behavior: { ...loaded.policy.behavior, maximumEvidenceAgeDays: Number.POSITIVE_INFINITY }
+  };
+  const sharedPolicyRefusal = loaded.brief.composeBrief(briefInput({
+    loaded,
+    input: { policy: nonFinitePolicy }
+  }));
+  assert.deepEqual(sharedPolicyRefusal, {
+    ok: false,
+    error: {
+      contractVersion: 'PortfolioError/v1',
+      code: 'P008-CONFIG',
+      reason: 'non-finite-policy',
+      valueEchoed: false,
+      recoverable: false,
+      field: 'policy.behavior.maximumEvidenceAgeDays'
+    }
+  });
+});
+
+test('BUG-007: prototype-sensitive completion keys are safe own keys', () => {
+  const loaded = loadBrief();
+  const cases = ['subjectId', 'domain'].flatMap((axis) =>
+    BUG_007_HOSTILE_KEYS.map((key) => invokeBug007Case(loaded, axis, key)));
+
+  assert.equal(cases.length, 6, 'all three subject and all three domain cases must execute');
+  assert.deepEqual(cases.map((entry) => entry.mutationAfterCleanup),
+    cases.map(() => []), 'finally cleanup must restore every shared built-in after every hostile attempt');
+  assert.deepEqual(cases.map((entry) => entry.mutationBeforeCleanup),
+    cases.map(() => []), 'caller keys must never mutate Object.prototype, Object, or Object.prototype.toString');
+  assert.deepEqual(cases.map((entry) => entry.thrown),
+    cases.map(() => null), 'every hostile call must return through the declared result contract without throwing');
+  assert.equal(cases.every((entry) => entry.result?.ok === true), true,
+    'every hostile call must produce a successful composition result');
+});
+
+test('BUG-007: prototype-sensitive completion subjects are safe own keys', () => {
+  const loaded = loadBrief();
+  const cases = BUG_007_HOSTILE_KEYS.map((key) => invokeBug007Case(loaded, 'subjectId', key));
+
+  assert.deepEqual(cases.map((entry) => entry.mutationAfterCleanup), cases.map(() => []));
+  assert.deepEqual(cases.map((entry) => entry.mutationBeforeCleanup), cases.map(() => []));
+  assert.deepEqual(cases.map((entry) => entry.thrown), cases.map(() => null));
+  cases.forEach((entry) => {
+    assert.equal(entry.result?.ok, true, `${entry.key} must return a successful result`);
+    const rows = entry.result.value.lanes.completedResearch.filter((item) => item.subjectId === entry.key);
+    assert.equal(rows.length, 1, `${entry.key} must appear exactly once as completed research`);
+    assert.deepEqual(rows[0].evidenceIds, [entry.hostileEvidenceId]);
+    assert.deepEqual(rows[0].explanation.evidenceEventCategories, ['ticker-research-completed']);
+    assert.equal(rows[0].owner, null);
+    assert.equal(rows[0].unownedCapability, true);
+    assert.equal(rows[0].confirmationBasis, 'no-prior-window');
+  });
+});
+
+test('BUG-007: prototype-sensitive completion domains are safe own keys', () => {
+  const loaded = loadBrief();
+  const cases = BUG_007_HOSTILE_KEYS.map((key) => invokeBug007Case(loaded, 'domain', key));
+
+  assert.deepEqual(cases.map((entry) => entry.mutationAfterCleanup), cases.map(() => []));
+  assert.deepEqual(cases.map((entry) => entry.mutationBeforeCleanup), cases.map(() => []));
+  assert.deepEqual(cases.map((entry) => entry.thrown), cases.map(() => null));
+  cases.forEach((entry) => {
+    assert.equal(entry.result?.ok, true, `${entry.key} must return a successful result`);
+    assert.equal(entry.result.value.states.behaviorFloor.distinctCompletions, 2);
+    assert.equal(entry.result.value.states.behaviorFloor.distinctUtcDates, 2);
+    assert.equal(entry.result.value.states.behaviorFloor.satisfied, true);
+    const rows = entry.result.value.lanes.inferredRelevance.filter((item) => item.subjectId === entry.key);
+    assert.equal(rows.length, 1, `${entry.key} must appear exactly once as inferred relevance`);
+    assert.deepEqual(rows[0].evidenceIds, [entry.hostileEvidenceId]);
+    assert.deepEqual(rows[0].explanation.evidenceEventCategories,
+      ['ticker-research-completed', 'risk-analysis-completed']);
+    assert.match(rows[0].explanation.whyShown, /2 explicitly completed research action/);
+  });
+});
+
+test('BUG-007: own lookup semantics and RED cleanup preserve shared built-ins', () => {
+  const loaded = loadBrief();
+  const owner = { toolId: 'risk-xray', href: 'risk-xray.html' };
+  const cases = BUG_007_HOSTILE_KEYS.flatMap((key) => {
+    const evidenceId = bug007CaseInput(loaded, 'subjectId', key).hostileEvidenceId;
+    return [
+      {
+        kind: 'own',
+        outcome: invokeBug007Case(loaded, 'subjectId', key, {
+          owners: ownLookup(key, owner),
+          priorEvidenceIds: ownLookup(key, [evidenceId])
+        })
+      },
+      {
+        kind: 'inherited',
+        outcome: invokeBug007Case(loaded, 'subjectId', key, {
+          owners: inheritedLookup(key, owner),
+          priorEvidenceIds: inheritedLookup(key, [evidenceId])
+        })
+      }
+    ];
+  });
+
+  assert.deepEqual(cases.map((entry) => entry.outcome.mutationAfterCleanup), cases.map(() => []));
+  assert.deepEqual(cases.map((entry) => entry.outcome.mutationBeforeCleanup), cases.map(() => []));
+  assert.deepEqual(cases.map((entry) => entry.outcome.thrown), cases.map(() => null));
+  cases.forEach(({ kind, outcome }) => {
+    assert.equal(outcome.result?.ok, true, `${outcome.key} ${kind} lookup must compose`);
+    const row = outcome.result.value.lanes.completedResearch.find((item) => item.subjectId === outcome.key);
+    assert.ok(row, `${outcome.key} ${kind} lookup must retain its completed-research row`);
+    if (kind === 'own') {
+      assert.deepEqual(row.owner, owner);
+      assert.equal(row.unownedCapability, false);
+      assert.equal(row.explanation.deepLink, owner.href);
+      assert.equal(row.confirmationBasis, 'same-evidence-as-prior-window');
+    } else {
+      assert.equal(row.owner, null, 'an inherited owner must behave like an absent owner');
+      assert.equal(row.unownedCapability, true);
+      assert.equal(row.explanation.deepLink, null);
+      assert.equal(row.confirmationBasis, 'no-prior-window',
+        'an inherited prior-evidence array must behave like an absent prior window');
+    }
+  });
+});
+
 test('SCN-008-006 TP-05-01: each window is identified from the generic config and no later observation enters an earlier cutoff', () => {
   const loaded = loadBrief();
   const ids = loaded.windows.map((w) => w.id);
@@ -597,6 +849,132 @@ test('FR-041 the local action-history cutoff is a fourth clock and is actually e
     'expired activity cannot clear the behaviour floor');
   assert.deepEqual(stale.value.lanes.completedResearch, [],
     'an expired completion cannot qualify a subject');
+});
+
+test('BUG-006: composeBrief validates shared evidence-age policy before Date formatting', () => {
+  const loaded = loadBrief();
+  const millisecondsPerDay = 86400000;
+  const timeClipMinimumMilliseconds = -8640000000000000;
+  const composedAt = `${BRIEF_DAY}T15:40:00.000Z`;
+  const maximumEvidenceAgeDays = 100 * 365 + 25;
+  const overflowEvidenceAgeDays = 100100000;
+  const invalidBehaviorPolicyRefusal = {
+    ok: false,
+    error: {
+      contractVersion: 'PortfolioError/v1',
+      code: 'P008-CONFIG',
+      reason: 'invalid-policy',
+      valueEchoed: false,
+      recoverable: false,
+      field: 'behavior'
+    }
+  };
+  const nonFinitePolicyRefusal = {
+    ok: false,
+    error: {
+      contractVersion: 'PortfolioError/v1',
+      code: 'P008-CONFIG',
+      reason: 'non-finite-policy',
+      valueEchoed: false,
+      recoverable: false,
+      field: 'policy.behavior.maximumEvidenceAgeDays'
+    }
+  };
+
+  function policyWithMaximumEvidenceAgeDays(value) {
+    return {
+      ...loaded.policy,
+      behavior: { ...loaded.policy.behavior, maximumEvidenceAgeDays: value }
+    };
+  }
+
+  function composeOutcome(policy, input = {}) {
+    try {
+      const result = loaded.brief.composeBrief(briefInput({
+        loaded,
+        input: { ...input, policy }
+      }));
+      if (!result.ok) return { threw: false, result };
+      return {
+        threw: false,
+        result: {
+          ok: true,
+          actionHistoryCutoffAt: result.value.times.actionHistoryCutoffAt
+        }
+      };
+    } catch (error) {
+      return {
+        threw: true,
+        error: { name: error.name, message: error.message }
+      };
+    }
+  }
+
+  const oneDayAbovePolicy = policyWithMaximumEvidenceAgeDays(maximumEvidenceAgeDays + 1);
+  const localPrecedence = composeOutcome(oneDayAbovePolicy, { composedAt: 'invalid-local-composition-time' });
+  assert.deepEqual(localPrecedence, {
+    threw: false,
+    result: {
+      ok: false,
+      error: {
+        contractVersion: 'PortfolioError/v1',
+        code: 'P008-BRIEF-COMPOSED',
+        reason: 'local-composition-time-required',
+        field: 'composedAt',
+        row: null,
+        valueEchoed: false,
+        recoverable: false
+      }
+    }
+  }, 'the existing local composition-time error must retain precedence over shared policy validation');
+
+  assert.equal(loaded.policy.behavior.maximumEvidenceAgeDays, 56, 'the committed policy must remain 56 days');
+  const committedPolicy = composeOutcome(loaded.policy);
+  assert.deepEqual(committedPolicy, {
+    threw: false,
+    result: {
+      ok: true,
+      actionHistoryCutoffAt: new Date(Date.parse(composedAt) - 56 * millisecondsPerDay).toISOString()
+    }
+  }, 'the committed 56-day policy must keep composing with the existing cutoff arithmetic');
+
+  assert.equal(maximumEvidenceAgeDays, 36525, 'the accepted boundary must be derived independently as 100 years plus 25 leap days');
+  const boundaryPolicy = policyWithMaximumEvidenceAgeDays(maximumEvidenceAgeDays);
+  assert.deepEqual(composeOutcome(boundaryPolicy), {
+    threw: false,
+    result: {
+      ok: true,
+      actionHistoryCutoffAt: new Date(Date.parse(composedAt) - maximumEvidenceAgeDays * millisecondsPerDay).toISOString()
+    }
+  }, '36525 days must compose successfully without changing the cutoff expression');
+
+  const nonFinitePolicy = policyWithMaximumEvidenceAgeDays(Number.POSITIVE_INFINITY);
+  const overflowPolicy = policyWithMaximumEvidenceAgeDays(overflowEvidenceAgeDays);
+  assert.deepEqual(loaded.portfolio.validatePolicy(oneDayAbovePolicy), invalidBehaviorPolicyRefusal);
+  assert.deepEqual(loaded.portfolio.validatePolicy(nonFinitePolicy), nonFinitePolicyRefusal);
+  assert.deepEqual(loaded.portfolio.validatePolicy(overflowPolicy), invalidBehaviorPolicyRefusal);
+
+  const overflowCutoffMilliseconds = Date.parse(composedAt) - overflowEvidenceAgeDays * millisecondsPerDay;
+  assert.equal(overflowCutoffMilliseconds < timeClipMinimumMilliseconds, true,
+    'the overflow fixture must independently cross the backward ECMAScript TimeClip boundary');
+  assert.throws(
+    () => new Date(overflowCutoffMilliseconds).toISOString(),
+    { name: 'RangeError', message: 'Invalid time value' },
+    'direct formatting must prove the fixture reaches the dangerous runtime class'
+  );
+
+  const invalidPolicyOutcomes = {
+    oneDayAbove: composeOutcome(oneDayAbovePolicy),
+    nonFinite: composeOutcome(nonFinitePolicy),
+    backwardTimeClipOverflow: composeOutcome(overflowPolicy)
+  };
+  assert.equal(oneDayAbovePolicy.behavior.maximumEvidenceAgeDays, 36526,
+    'composition must not clamp or replace the rejected value');
+  assert.deepEqual(invalidPolicyOutcomes, {
+    oneDayAbove: { threw: false, result: invalidBehaviorPolicyRefusal },
+    nonFinite: { threw: false, result: nonFinitePolicyRefusal },
+    backwardTimeClipOverflow: { threw: false, result: invalidBehaviorPolicyRefusal }
+  }, 'a successful invalid-policy composition proves validator bypass, while RangeError proves Date formatting was reached');
 });
 
 test('FR-057 a repeat over the same evidence is not reported as independent confirmation', () => {

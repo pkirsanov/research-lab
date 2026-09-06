@@ -1,0 +1,248 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "featureDir": "specs/031-volatility-roughness-and-model-assumption-diagnostic",
+  "generatedBy": "bubbles.plan",
+  "stage": "design-planned",
+  "stageNote": "Planning only. Feature 011 is the delivered sole technical dependency. SCOPE-028-01 is the next implementation target, followed strictly by SCOPE-028-02, SCOPE-028-03, and SCOPE-028-04. Each scenario has one owner, derived traits, trait-specific obligations, and planned test rows. linkedTests and evidenceRefs remain empty because no Feature 028 test or implementation has executed.",
+  "scenarioCount": 14,
+  "scenarios": [
+    {
+      "scenarioId": "SCN-028-001",
+      "scopeId": "SCOPE-028-01",
+      "status": "not_started",
+      "title": "Supported multi-q scaling",
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "All fixed q and lag points, scaling fits, common-H fit, admission fields, supported classification, formula-owned incremental bootstrap evidence, 1/7/25/500 batch equivalence, and diagnostic identity are produced by the single RLVOL owner, then remain visible after the UI projection exists.", "satisfiedBy": ["TP-028-01-01", "TP-028-01-06", "TP-028-03-03", "TP-028-04-03"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Perturb one admitted fit below its threshold and require the supported result to disappear."},
+      "linkedTests": [],
+      "testRows": ["TP-028-01-01", "TP-028-01-06", "TP-028-03-03", "TP-028-04-03", "TP-028-04-06"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-002",
+      "scopeId": "SCOPE-028-03",
+      "status": "not_started",
+      "title": "Diagnostic remains opt-in",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["user-visible-ui"],
+      "obligations": [
+        {"trait": "user-visible-ui", "requiredProof": "The real route first paints the unchanged Feature 011 decision, keeps page and wrapper states disabled with no canonical diagnostic, and before enablement has no diagnostic invocation or additional provider request.", "satisfiedBy": ["TP-028-03-01", "TP-028-03-05"]}
+      ],
+      "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-cache", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["volatility-sizing-lab.html", "rlvol.js"], "negativeControl": "Enable the diagnostic and require invocation to begin, proving the disabled assertion detects the enablement boundary."},
+      "linkedTests": [],
+      "testRows": ["TP-028-03-01", "TP-028-03-05", "TP-028-04-06"],
+      "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-003",
+      "scopeId": "SCOPE-028-01",
+      "status": "not_started",
+      "title": "Insufficient retained observations",
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "499, 500, and 501 retained observations prove the exact admission boundary.", "satisfiedBy": ["TP-028-01-02"]},
+        {"trait": "degraded-state", "requiredProof": "Unavailable retains valid evidence and emits no H or classification.", "satisfiedBy": ["TP-028-01-02", "TP-028-03-03"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Add one retained observation to move 499 to 500 and require the insufficiency reason to clear."},
+      "linkedTests": [], "testRows": ["TP-028-01-02", "TP-028-03-03", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-004",
+      "scopeId": "SCOPE-028-01",
+      "status": "not_started",
+      "title": "Invalid volatility proxy values",
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Invalid closes, broken continuity, and non-positive or non-finite proxy values receive one closed primary exclusion reason.", "satisfiedBy": ["TP-028-01-02"]},
+        {"trait": "degraded-state", "requiredProof": "Admission is reassessed from retained values, never bridges invalid rows, and the excluded-input outcome remains visible after the UI projection exists.", "satisfiedBy": ["TP-028-01-02", "TP-028-03-03"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Repair the invalid endpoint and require its exclusion reason to disappear without bridging another row."},
+      "linkedTests": [], "testRows": ["TP-028-01-02", "TP-028-03-03", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-005",
+      "scopeId": "SCOPE-028-01",
+      "status": "not_started",
+      "title": "Per-order fit is weak",
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Valid-lag count, positive slope, and per-order R-squared boundaries are exercised immediately below, at, and above admission.", "satisfiedBy": ["TP-028-01-03"]},
+        {"trait": "degraded-state", "requiredProof": "Inconclusive retains all points and fits while withholding H.", "satisfiedBy": ["TP-028-01-03", "TP-028-03-03"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Raise the weak per-order fit to the exact admission boundary and require that failure reason to clear."},
+      "linkedTests": [], "testRows": ["TP-028-01-03", "TP-028-03-03", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-006",
+      "scopeId": "SCOPE-028-01",
+      "status": "not_started",
+      "title": "Cross-order scaling is weak",
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Common-fit R-squared and maximum residual boundaries are exercised immediately below, at, and above policy.", "satisfiedBy": ["TP-028-01-04"]},
+        {"trait": "degraded-state", "requiredProof": "Inconclusive exposes residuals and failed rules while withholding H.", "satisfiedBy": ["TP-028-01-04", "TP-028-03-03"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Reduce the excessive common-fit residual to the exact limit and require the residual failure to clear."},
+      "linkedTests": [], "testRows": ["TP-028-01-04", "TP-028-03-03", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-007",
+      "scopeId": "SCOPE-028-01",
+      "status": "not_started",
+      "title": "Uncertainty is too wide",
+      "behaviorClass": "calculation",
+      "changeType": "new",
+      "requiredTestType": "unit",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Formula-owned start, step, and finalize behavior exercises 449, 450, and 451 complete fits, all 500 attempts, 1/7/25/500 batch equivalence, and interval widths below, at, and above 0.25.", "satisfiedBy": ["TP-028-01-05"]},
+        {"trait": "degraded-state", "requiredProof": "Deterministic incremental bootstrap preserves candidate, attempted, completed, and rejected evidence while withholding unsupported H.", "satisfiedBy": ["TP-028-01-05", "TP-028-01-06"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Change the completed-resample count or interval width across its boundary and require the admission state to change."},
+      "linkedTests": [], "testRows": ["TP-028-01-05", "TP-028-01-06", "TP-028-03-03", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-008",
+      "scopeId": "SCOPE-028-02",
+      "status": "not_started",
+      "title": "Evidence lies below the smooth benchmark",
+      "behaviorClass": "decision",
+      "changeType": "new",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Only an upper interval endpoint strictly below 0.5 classifies below, exactly one wrapper-owned non-blocking conflict is projected without mutating or extending the base decision, and the result remains visible after UI wiring.", "satisfiedBy": ["TP-028-02-01", "TP-028-02-02", "TP-028-02-05", "TP-028-03-06"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Move the upper interval endpoint to 0.5 and require the below-benchmark conflict to disappear."},
+      "linkedTests": [], "testRows": ["TP-028-02-01", "TP-028-02-02", "TP-028-02-05", "TP-028-03-06", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-009",
+      "scopeId": "SCOPE-028-02",
+      "status": "not_started",
+      "title": "Evidence does not distinguish the benchmark",
+      "behaviorClass": "decision",
+      "changeType": "new",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "degraded-state"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Endpoint equality and internal containment classify as indistinguishable.", "satisfiedBy": ["TP-028-02-01", "TP-028-02-03"]},
+        {"trait": "degraded-state", "requiredProof": "No conflict, equality claim, or model-validation claim is emitted, including after the UI projection exists.", "satisfiedBy": ["TP-028-02-03", "TP-028-03-06"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Move the full interval strictly below 0.5 and require classification and wrapper conflicts to change."},
+      "linkedTests": [], "testRows": ["TP-028-02-01", "TP-028-02-03", "TP-028-03-06", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-010",
+      "scopeId": "SCOPE-028-02",
+      "status": "not_started",
+      "title": "Evidence lies above the benchmark",
+      "behaviorClass": "decision",
+      "changeType": "new",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Only a lower interval endpoint strictly above 0.5 classifies above, projection contains no bullish, bearish, long, short, buy, or sell interpretation, and the result remains neutral after UI wiring.", "satisfiedBy": ["TP-028-02-01", "TP-028-02-03", "TP-028-03-06"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Move the lower interval endpoint to 0.5 and require the above-benchmark classification to disappear."},
+      "linkedTests": [], "testRows": ["TP-028-02-01", "TP-028-02-03", "TP-028-03-06", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-011",
+      "scopeId": "SCOPE-028-04",
+      "status": "not_started",
+      "title": "Stale cached source",
+      "behaviorClass": "integration",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["degraded-state", "dependency-path", "user-visible-ui"],
+      "obligations": [
+        {"trait": "degraded-state", "requiredProof": "All conclusions preserve stale qualification and source timing from one cloned, deep-frozen runtime.bars and readCachedBars metadata snapshot.", "satisfiedBy": ["TP-028-04-01", "TP-028-04-04"]},
+        {"trait": "dependency-path", "requiredProof": "Enablement consumes the immutable current cache snapshot without hydrate, ensureBars, fetch, or provider calls, while an independent existing refresh may continue and later cause normal source-key invalidation.", "satisfiedBy": ["cache-case:stale-paints-before-delta", "TP-028-04-01", "TP-028-04-04"]},
+        {"trait": "user-visible-ui", "requiredProof": "The current production route visibly labels the diagnostic stale with source timing.", "satisfiedBy": ["TP-028-04-04"]}
+      ],
+      "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-cache", "assertionSurface": "visible-ui", "dependencyPath": "same-origin-real", "productionOwners": ["volatility-sizing-lab.html", "rlvol.js"], "negativeControl": "Change the cached source key during evaluation and require the stale result to be discarded rather than displayed."},
+      "linkedTests": [], "testRows": ["TP-028-04-01", "TP-028-04-04", "TP-028-04-05", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-012",
+      "scopeId": "SCOPE-028-04",
+      "status": "not_started",
+      "title": "Browser and Node parity",
+      "behaviorClass": "integration",
+      "changeType": "new",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation", "shared-consumer"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "Browser-global and CommonJS consumers produce canonically identical values, state, ordered reasons, bootstrap evidence, classification, and identity.", "satisfiedBy": ["TP-028-04-02", "TP-028-04-03"]},
+        {"trait": "shared-consumer", "requiredProof": "Owner parity and the current route prove the same canonical result, and presentation changes do not recompute or alter identity.", "satisfiedBy": ["parity:TP-028-04-02", "consumer-surface:TP-028-04-04"]}
+      ],
+      "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-cache", "assertionSurface": "visible-ui", "dependencyPath": "cache-only", "productionOwners": ["rlvol.js", "volatility-sizing-lab.html"], "negativeControl": "Perturb one browser input field while holding the CommonJS packet fixed and require canonical parity to fail."},
+      "linkedTests": [], "testRows": ["TP-028-04-02", "TP-028-04-03", "TP-028-04-04", "TP-028-04-05", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-013",
+      "scopeId": "SCOPE-028-02",
+      "status": "not_started",
+      "title": "Existing decision invariance",
+      "behaviorClass": "compatibility",
+      "changeType": "new",
+      "requiredTestType": "integration",
+      "regressionRequired": true,
+      "behaviorTraits": ["pure-calculation"],
+      "obligations": [
+        {"trait": "pure-calculation", "requiredProof": "VolDecisionDiagnosticProjectionV1 preserves the exact frozen rlvol-decision-read/v1 object reference, canonical bytes, key set, conflict order, and decisionId across disabled, pending, and available states; wrapper and diagnostic parentDecisionId equal that unchanged identity, wrapper conflicts never enter the base owner read, and route projection preserves those facts after UI wiring.", "satisfiedBy": ["TP-028-02-04", "TP-028-02-05", "TP-028-03-06"]}
+      ],
+      "testMechanism": {"entrypoint": "public-function", "inputOrigin": "synthetic-fixture", "assertionSurface": "returned-value", "dependencyPath": "not-applicable", "productionOwners": ["rlvol.js"], "negativeControl": "Attempt to alter a wrapper-only conflict and require the frozen base reference and canonical bytes to remain unchanged."},
+      "linkedTests": [], "testRows": ["TP-028-02-04", "TP-028-02-05", "TP-028-03-06", "TP-028-04-06"], "evidenceRefs": []
+    },
+    {
+      "scenarioId": "SCN-028-014",
+      "scopeId": "SCOPE-028-03",
+      "status": "not_started",
+      "title": "Accessible evidence",
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": ["user-visible-ui", "responsive-accessible"],
+      "obligations": [
+        {"trait": "user-visible-ui", "requiredProof": "Page states disabled, computing, cancelled, and stale-result remain distinct from canonical unavailable, inconclusive, and supported evidence, and complete evidence remains usable at desktop, 320 CSS pixels, and 200 percent zoom.", "satisfiedBy": ["TP-028-03-02", "TP-028-03-04", "TP-028-03-05"]},
+        {"trait": "responsive-accessible", "requiredProof": "Native controls, focus, polite announcements, spoken equations, semantic tables, textual non-color meaning, narrow width, and zoom expose every interaction and result.", "satisfiedBy": ["TP-028-03-02", "TP-028-03-04"]}
+      ],
+      "testMechanism": {"entrypoint": "production-route", "inputOrigin": "synthetic-cache", "assertionSurface": "accessibility-tree", "dependencyPath": "same-origin-real", "productionOwners": ["volatility-sizing-lab.html"], "negativeControl": "Remove one accessible name or textual state in the test fixture and require the accessibility assertion to fail."},
+      "linkedTests": [], "testRows": ["TP-028-03-02", "TP-028-03-04", "TP-028-03-05", "TP-028-04-06"], "evidenceRefs": []
+    }
+  ]
+}

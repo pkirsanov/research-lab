@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:paths`, `remediation`
 **Depends On:** 21
@@ -40,6 +40,10 @@ Scenario: A user runs and supersedes a complete dependent survival scenario
 
 ## Change Boundary
 
+**Allowed file families:** the path, scenario, and survival-distribution regions of `rlportfolioanalytics.js`, the Path Lab route/controller regions of `portfolio-survival-allocation-lab.html`, the scenario policy block of `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-paths.functional.mjs`, `tests/portfolio-survival-paths.spec.mjs`, and the path fixtures under `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** the store-lifecycle regions of `rlportfolio.js`, `rlportfoliobrief.js` ranking, `market-brief.*` and `scripts/brief-*`, the risk formulas in `rlportfolioanalytics.js` outside shared typed inputs, its diversification/hedge and allocation-solver regions, dossier persistence (`tests/portfolio-dossier.functional.mjs`), `rldata.js`, `rlnav.js`, `rlbrief.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** path/survival portions of `rlportfolioanalytics.js`, Path Lab route/controller regions, scenario policy, path fixtures, `tests/portfolio-analytics.unit.mjs`, a focused paths functional carrier, and `tests/portfolio-survival-paths.spec.mjs`.
 - **Excluded:** portfolio store lifecycle, brief ranking, generic publisher, risk formulas outside shared typed inputs, diversification/hedge interpretation, allocation solvers, dossier persistence, registry/docs, and framework-managed files.
 
@@ -54,11 +58,21 @@ Scenario: A user runs and supersedes a complete dependent survival scenario
 
 ## Consumer Impact Sweep
 
+**The route is not renamed or retired.** The rename/removal detector matches implementation item 2, `Remove route hardcoding and the 200-path truncation`. What is removed there are hardcoded **values inside** the Path Lab controller — a fixed horizon, a silent 200-path cap, and a median-only cash adjustment. The route itself, its hash, and its controller keep their identity; the change replaces a hidden constant with the visible configured budget or an explicit budget state.
+
+One contract effect is real. Implementation item 1 reconciles `ScenarioSpecification/v1` with the full FR-086 through FR-104 identity field set, so the identity a scenario hashes to changes shape. That is an extension of a contract rather than a rename of one, but every consumer that compares or stores a scenario identity is re-verified below.
+
 | Consumer | Required proof |
 |---|---|
 | Path Lab charts, tables, and progress states | Every projection reads one matching scenario and compute-token identity. |
 | Allocation and hedge comparison | Common path IDs, cash-flow timing, costs, and uncertainty remain reusable. |
 | Dossier records | Scenario, calibration, cancellation, and distribution identities remain complete and reproducible. |
+
+| Causal binding | Executable assertion |
+|---|---|
+| Scenario distribution causal authority: `runScenarioJob` → `startPathScenario` → `appendPathLab` → `#pathDistributionSet` | TP-22-03 exact title `Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path` reads `#pathDistributionSet` after the matching scenario job publishes, then asserts the distribution contract and its conditional-path, parameter-marginal, combined, terminal-wealth, drawdown, and cash-need outcomes. |
+
+**Consumer classes that do not exist in this repository.** Research Lab is build-free static HTML and JavaScript on GitHub Pages, so there is no server route, no API client, no generated client, no authentication redirect, and no breadcrumb framework. Navigation is the fixed in-page tab hash set plus the landing registry, and the landing registry — `tools.json`, `index.html`, `rlnav.js`, `README.md`, `notes/**` — is an excluded surface for this scope. The only deep links are those fixed hashes, and Path Lab's hash is unchanged by the hardcoding removal above. A stale-reference scan therefore has no first-party target outside the rows above.
 
 ## UI Scenario Matrix
 
@@ -71,7 +85,7 @@ Scenario: A user runs and supersedes a complete dependent survival scenario
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Five rows have authored current declarations, including exact TP-22-01 through TP-22-05 titles in their named files. TP-22-06 remains an aggregate planned carrier because the named selftest file has no exact TP-22-06 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -90,6 +104,14 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Scope-22 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 22 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 22 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
+
+- [x] SCN-008-048 behavior: a user runs and supersedes a complete dependent survival scenario, and only the matching compute token publishes, the last valid result stays visible otherwise, every path applies each contribution, withdrawal, fee, and CashNeed at its declared timing, wealth/drawdown/recovery/floor-breach/collision/terminal distributions carry path and parameter uncertainty separately, regime or fat-tail state is calibrated and disclosed or explicitly unavailable, and no hidden 200-path cap, fixed horizon, or median-only cash adjustment changes the result. Evidence: [TP-22-03 And TP-22-05](report.md#tp-22-03-and-tp-22-05) — the complete Path Lab carrier passes 11/11 including `SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path` and `SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view`; [TP-22-02](report.md#tp-22-02) — chunk cancellation and supersession preserve the last valid result and the complete multi-path flow and distribution records survive a public JSON round trip; [RED And GREEN](report.md#red-and-green) — the run reaches all 42,000 configured work units and the legacy median-path cash rendering was replaced by the engine's all-path result; [TP-22-04](report.md#tp-22-04) — a reduced `ScenarioSpecification` with median-only survival cannot pass; [Uncertainty Declarations](report.md#uncertainty-declarations) — regime/fat-tail stays explicitly unavailable unless a separately calibrated model satisfies it
 - [x] SCN-008-048 is implemented with the complete scenario identity, compute lifecycle, all-path cash needs, and separate uncertainty distributions. Evidence: [Scenario Contract Evidence](report.md#scenario-contract-evidence), [Coverage Report](report.md#coverage-report)
 - [x] TP-22-01 unit evidence passes. Evidence: [TP-22-01](report.md#tp-22-01)
 - [x] TP-22-02 functional evidence passes. Evidence: [TP-22-02](report.md#tp-22-02)

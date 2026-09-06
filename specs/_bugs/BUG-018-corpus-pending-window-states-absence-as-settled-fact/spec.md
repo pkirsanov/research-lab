@@ -13,6 +13,13 @@ presented in the grammar the route reserves for a settled finding.
 It applies to `company-intelligence-lab.html` and, where the distinction has to be expressible at
 all, to `rlcompanyintel.js`.
 
+## Outcome Contract
+
+- **Intent:** Preserve the immediate cache-first company reading while preventing unresolved corpus state from appearing or publishing as settled evidence.
+- **Success Signal:** A `not-established` account emits no settled UI claim and no ordinary `RLDATA` read. A replacement subject reports `pending`, never the prior subject's corpus status. Established `loaded` and `unavailable` accounts both render and publish through the ordinary channel. The complete company browser suite, company unit suite, and repository selftest exit zero, with all 14 mapped scenario lifecycle states green.
+- **Hard Constraints:** Keep first paint cache-first and network-independent. Preserve the settled MSFT `13 of 15` account and treat `unavailable` as established. Pass-through E2E holds may delay requests only before `route.continue()` forwards each real response unchanged. Do not change the shared `RLDATA` schema, another tool's publication behavior, or add a hidden fallback or default. BUG-025 remains an independent request-termination guarantee. Its non-goals preserve BUG-018's pending copy and settled predicate. BUG-026 remains an independent overlapping-intent atomicity guarantee. Its non-goals preserve BUG-018's pending and settled copy, and its acceptance requires BUG-018 regressions to remain green. BUG-018 does not claim every request terminates or that arbitrary overlapping completions commit atomically.
+- **Failure Condition:** The outcome fails if unresolved state creates a settled UI or ordinary-channel claim, or a subject inherits the prior subject's status. It also fails if established `loaded` or `unavailable` output stops rendering or publishing, any mapped scenario fails, or a hard constraint changes.
+
 ## Behaviour Under Specification
 
 The route has three honest states for a coverage claim, and today it renders only two:
@@ -24,6 +31,19 @@ The route has three honest states for a coverage claim, and today it renders onl
 | not-yet-established | The corpus has not resolved, so absence is unknown | **Rendered as settled-absent** |
 
 The third state is the subject of this specification.
+
+## Capability Proportionality
+
+### Single-Capability Justification
+
+This packet is a narrow bug fix inside the existing Company Multi-Horizon Intelligence
+composition capability. FR-018-001 through FR-018-005 constrain the readiness semantics of its
+existing coverage account and route rendering. The mechanism in `design.md` identifies one
+additive readiness input to `buildCoverageAccount()` and applies its output on
+`company-intelligence-lab.html`. The three existing scopes repair current-subject state, pending
+composition, and the regression gap without introducing a second implementation or shared
+cross-feature surface. A separate domain capability foundation would invent variation that this
+packet neither requires nor delivers.
 
 ## Requirements
 

@@ -98,11 +98,11 @@ Scope 03 implements `tadNormalizeLevels`, `tadClusterConfluence`, `tadUpdateLeve
 
 ## Change Boundary And Rollback
 
-**Allowed edits:** Feature 007 page/config/validator, Feature 007 selftest marker, Feature 007 browser file, and Feature 007 fixtures.
+**Allowed file families:** Feature 007 page/config/validator, Feature 007 selftest marker, Feature 007 browser file, and Feature 007 fixtures.
 
 **Marker-bounded page edit:** Scope 03 declarations and lifecycle persistence live between `/* ---------- Feature 007 Scope 03: levels and setup lifecycle ---------- */` and its matching end marker. Selftest additions use the corresponding sub-marker.
 
-**Explicitly excluded:** all shared runtime helpers, every owner page, registries/navigation, Market Brief, package/workflow files, Feature 005/006 paths, and unrelated tests. Scope 03 does not change gate evaluation or validation arithmetic assigned to Scopes 04 and 07.
+**Excluded surfaces (must remain untouched):** all shared runtime helpers, every owner page, registries/navigation, Market Brief, package/workflow files, Feature 005/006 paths, and unrelated tests. Scope 03 does not change gate evaluation or validation arithmetic assigned to Scopes 04 and 07.
 
 **Rollback/restore:** remove only Scope 03 code/config/fixture/test hunks, delete no prior candidate record outside test-owned Feature 007 storage, rerun Scopes 01-02 focused rows and the cumulative suite, and verify every shared/excluded path has no Scope 03 hunk.
 
@@ -114,7 +114,7 @@ Write legal/illegal transition, target-order, level-provenance, and exact browse
 
 | ID | Type | Category | Scenario | File / Location | Exact behavior / persistent title | Command | Live System | Evidence Anchor |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| TP-03-01 | Unit | unit | SCN-007-008, 012, 013, 025, 026 | `scripts/selftest.mjs` | Execute level normalization/confluence/lifecycle, all eight setup evaluators, every legal/illegal candidate transition, terminal immutability, target ordering, risk-plan freeze, and deterministic identities | `node scripts/selftest.mjs` | No | `report.md#tp-03-01` |
+| TP-03-01 | Unit | unit | SCN-007-008, 012, 013, 025, 026 | `scripts/selftest.mjs` | Canary: runs before any broad Scope 03 suite rerun. Execute level normalization/confluence/lifecycle, all eight setup evaluators, every legal/illegal candidate transition, terminal immutability, target ordering, risk-plan freeze, and deterministic identities | `node scripts/selftest.mjs` | No | `report.md#tp-03-01` |
 | TP-03-02 | Contract validator | functional | SCN-007-008, 012, 013, 025, 026 | `scripts/validate-technical-analysis-decision.mjs` | Validate all setup definitions, profile variants, predicates, trigger events, target selectors, expiry/horizon, claim ids, parameter bounds, and closed references | `node scripts/validate-technical-analysis-decision.mjs` | No | `report.md#tp-03-02` |
 | TP-03-03 | Regression E2E | e2e-ui | SCN-007-008 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-008 wick creates a failed-break candidate without actor or motive claims` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-008 wick creates a failed-break candidate without actor or motive claims" --reporter=list` | Yes | `report.md#scenario-scn-007-008` |
 | TP-03-04 | Regression E2E | e2e-ui | SCN-007-012 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-012 candidate becomes armed before trigger with no backdated entry` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-012 candidate becomes armed before trigger with no backdated entry" --reporter=list` | Yes | `report.md#scenario-scn-007-012` |
@@ -147,4 +147,16 @@ Write legal/illegal transition, target-order, level-provenance, and exact browse
 
 #### Build Quality Gate
 
-- [x] Focused RED/GREEN records, setup/level config parity, marker and local-storage review, safe-language scan, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. — Evidence: [report.md#lint-and-quality](report.md#lint-and-quality) and [report.md#adversarial-verification](report.md#adversarial-verification); `git diff --check` clean, reader-legibility 0 leaks/27 pages, no interception or silent-pass patterns in the 5 new tests, no local storage introduced, and four findings recorded in Uncertainty Declarations rather than deferred silently.
+- [x] Focused RED/GREEN records, setup/level config parity, marker and local-storage review, safe-language scan, no-interception/silent-pass scan, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, and traceability are current and clean with every finding accounted for. — Evidence: [report.md#lint-and-quality](report.md#lint-and-quality) and [report.md#adversarial-verification](report.md#adversarial-verification); `git diff --check` clean, reader-legibility 0 leaks/27 pages, no interception or silent-pass patterns in the 5 new tests, no local storage introduced, and four findings recorded in Uncertainty Declarations with a named owner rather than dropped silently.
+
+#### Scenario Fidelity And Planning Guardrails
+
+These items are authored by `bubbles.plan` to state the obligation each Gherkin scenario and each shared-surface guardrail places on this scope. They are unchecked because the planning owner authors obligations, not evidence: the executing owner marks each one and links the resolving `report.md` anchor.
+
+- [ ] SCN-007-012: a pattern observed before its trigger stays ARMED — the exact trigger and expiry are visible and no hypothetical entry is backdated to the pullback low.
+- [ ] SCN-007-025: when the trigger window closes before confirmation the candidate becomes EXPIRED with its unmet trigger named, its original vintage, parameters, comparison set, gate outcomes, and expiry stay inspectable, and a similar pattern seen afterwards creates a new candidate rather than reopening the expired one.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope exist as persistent `Regression:` titles and pass on their exact Test Plan commands.
+- [ ] Broader E2E regression suite passes on the complete cumulative Feature 007 browser file after every focused row in this scope.
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, covering every surface named in the Shared Infrastructure Impact Sweep above.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by reversing only the Scope 03 marker-bounded hunks and rerunning the Scope 01-02 focused rows.
+- [ ] Change Boundary is respected and zero excluded file families were changed; the allowed and excluded surfaces named above are the complete boundary for this scope.

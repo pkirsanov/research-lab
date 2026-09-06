@@ -294,7 +294,7 @@
             <p class="dim" id="subject-help">Tickers only. A position, size, cost basis or profit entry is refused and
                 nothing is stored.</p>
             <p id="link-notice" class="dim" hidden></p>
-            <p id="subject-refusal" class="refusal" hidden></p>
+            <p id="subject-refusal" class="refusal" role="alert" aria-live="assertive" aria-atomic="true" hidden></p>
             <p id="subject-identity"></p>
             <div class="segment" role="group" aria-label="View mode">
                 <button type="button" id="mode-simple" data-mode-button="simple" aria-pressed="true">Simple</button>
@@ -439,7 +439,7 @@
     <!-- The coverage registry, embedded.
 
          This repository is build-free and its pages are meant to open straight off disk, but a
-         `file://` document has a null origin and Chrome refuses `fetch()` from it entirely, so
+         `file://` document has a null origin and Chrome refuses browser reads from it entirely, so
          the committed company-intelligence.config.json is unreachable for a reader with no
          server. A classic <script> tag is the one mechanism that still loads at that origin,
          which is why the shared modules below work there and the registry did not.
@@ -457,7 +457,8 @@
          request that produces no response of any kind leaves the embedded copy standing. -->
     <script type="application/json" data-embedded-config="company-intelligence.config.json">
 {
-  "contractVersion": "company-intelligence-config/v1",
+    "contractVersion": "company-intelligence-config/v2",
+    "readBoundMs": 10000,
   "note": "Coverage registry and composition policy for the Company Multi-Horizon Intelligence Lab. Fifteen dimensions are mandatory on every run; a dimension with no source answers with an explicit unavailable state and a named reason rather than a blank. decisionTimeSource is 'caller' because every composition function takes an explicit decisionTime and the module reads no clock.",
   "decisionTimeSource": "caller",
   "maxBranches": 5,
@@ -758,6 +759,7 @@
                something else — including an entry this tool refused — no longer repaints over
                that newer answer. */
             var readingIntent = 0;
+                var routeConfigurationRefused = false;
 
             /* ---------- the only two DOM access helpers ---------- */
 
@@ -802,6 +804,7 @@
                sufficient too. A count that has not been established is not written as a number,
                because "15" and "not yet asked" must not look alike to a machine either. */
             function setBodyState(runStatus, unavailableCount, readiness) {
+                if (routeConfigurationRefused && runStatus !== "refused") return;
                 var settled = readiness !== "not-established";
                 document.body.setAttribute("data-run-status", runStatus);
                 document.body.setAttribute("data-coverage-unavailable", settled ? String(unavailableCount) : "not-established");
@@ -1076,6 +1079,7 @@
                final — the later debounced pass finds every ticker already enhanced and changes
                nothing, so what is on screen when a run reports its status is what stays there. */
             function enhanceTickers() {
+                if (routeConfigurationRefused) return;
                 if (window.RLTKR && typeof window.RLTKR.scan === "function") window.RLTKR.scan(document);
             }
 
@@ -1098,14 +1102,32 @@
                 notice.setAttribute("data-link-handoff", "refused");
             }
 
-            function renderRefusal(refusal) {
+            function renderRefusal(refusal, presentation) {
+                if (presentation !== "standing-reading" && presentation !== "route-terminal") {
+                    throw new Error("RLCOMPANYINTEL_ROUTE_UNKNOWN_REFUSAL_PRESENTATION:" + String(presentation));
+                }
                 var node = byId("subject-refusal");
-                node.hidden = false;
+                if (presentation === "route-terminal") {
+                    if (routeConfigurationRefused) return;
+                    routeConfigurationRefused = true;
+                    readingIntent += 1;
+                    document.body.setAttribute("data-tkr-noauto", "true");
+                    var identity = byId("subject-identity");
+                    identity.textContent = "";
+                    identity.hidden = true;
+                    Array.prototype.forEach.call(document.querySelectorAll("[data-surface]"), function (surface) { surface.hidden = true; });
+                    setBodyState("refused", 0, "not-established");
+                    node.textContent = "C025-CONFIG-SCHEMA: The coverage registry could not be read, so no horizon was composed.";
+                    node.setAttribute("data-refusal-code", "C025-CONFIG-SCHEMA");
+                    node.hidden = false;
+                    return;
+                }
                 /* The detail carries whatever the operator typed. It reaches the DOM through
                    textContent only, so markup renders as visible characters and never as nodes. */
                 node.textContent = refusal.code + ": " + refusal.message +
                     (refusal.detail ? " [" + refusal.detail + "]" : "");
                 node.setAttribute("data-refusal-code", refusal.code);
+                node.hidden = false;
                 enhanceTickers();
                 setBodyState("refused", 0, corpusReadiness());
             }
@@ -1237,11 +1259,22 @@
                     stateCell.appendChild(el("span", established ? rowState : "not established yet",
                         { class: "state", "data-state": rowState }));
                     tr.appendChild(stateCell);
-                    tr.appendChild(el("td", established
-                        ? (row.reasonCode === null ? "no reason needed" : row.reasonCode)
-                        : "no reason yet, because the corpus has not answered", {
+                    var reasonCell = el("td", null, {
                         "data-coverage-reason": established ? (row.reasonCode === null ? "none" : row.reasonCode) : "not-established"
-                    }));
+                    });
+                    if (!established) {
+                        reasonCell.appendChild(el("span", "no reason yet, because the corpus has not answered"));
+                    } else if (row.reasonCode === null) {
+                        reasonCell.appendChild(el("span", "no reason needed"));
+                    } else {
+                        reasonCell.appendChild(el("span", row.reasonCode, { "data-reason-code": row.reasonCode }));
+                        if (rowState === "unavailable") {
+                            reasonCell.appendChild(el("span", ". " + row.label + " is unavailable because " + row.reasonCode + ".", {
+                                class: "dim", "data-absence-statement": "true"
+                            }));
+                        }
+                    }
+                    tr.appendChild(reasonCell);
                     tr.appendChild(el("td", row.asOf === null ? "no dated source" : row.asOf));
                     tr.appendChild(el("td", hasAge
                         ? row.ageDays + (row.ageDays === 1 ? " day old" : " days old")
@@ -1513,8 +1546,9 @@
             }
 
             function render(result) {
+                if (routeConfigurationRefused) return;
                 if (result.refusal) {
-                    renderRefusal(result.refusal);
+                    renderRefusal(result.refusal, "standing-reading");
                     return;
                 }
                 byId("subject-refusal").hidden = true;
@@ -1562,6 +1596,7 @@
             }
 
             function run() {
+                if (routeConfigurationRefused) return;
                 setBodyState("composing", 0, corpusReadiness());
                 render(compose());
             }
@@ -1569,11 +1604,12 @@
             /* ---------- events ---------- */
 
             function applySubject() {
+                if (routeConfigurationRefused) return;
                 var raw = byId("subject-input").value.trim();
                 readingIntent += 1;
                 var refusal = INTEL.refuseInput(raw);
                 if (refusal) {
-                    renderRefusal(refusal);
+                    renderRefusal(refusal, "standing-reading");
                     return;
                 }
                 currentTicker = raw.toUpperCase();
@@ -1605,6 +1641,54 @@
 
             /* ---------- committed corpus ---------- */
 
+            function routeDocumentFailure(path, error, boundExceeded, transportUnavailable) {
+                var message = error && typeof error.message === "string" ? error.message : String(error);
+                var failure = new Error(message);
+                if (error && typeof error.name === "string") failure.name = error.name;
+                failure.rlDocument = path;
+                failure.boundExceeded = boundExceeded === true;
+                failure.transportUnavailable = transportUnavailable === true;
+                return failure;
+            }
+
+            /* One request owns one controller and one timer. The timer remains armed until the
+               response body consumer settles, so headers alone cannot outlive the declared
+               acquisition bound. Every exit clears its timer and every expiry aborts the real
+               browser request rather than only rejecting a wrapper promise. */
+            function readRouteDocument(path, consumeResponse) {
+                var bound = registry.readBoundMs;
+                var controller = null;
+                var timer = null;
+                var expired = false;
+
+                function clearReadTimer() {
+                    if (timer === null) return;
+                    clearTimeout(timer);
+                    timer = null;
+                }
+
+                try {
+                    controller = new AbortController();
+                    timer = setTimeout(function () {
+                        expired = true;
+                        controller.abort();
+                    }, bound);
+                    return fetch(path, { cache: "no-store", signal: controller.signal })
+                        .then(
+                            function (response) { return consumeResponse(response); },
+                            function (error) { throw routeDocumentFailure(path, error, expired, true); }
+                        )
+                        .catch(function (error) {
+                            if (error && error.rlDocument === path) throw error;
+                            throw routeDocumentFailure(path, error, expired, expired);
+                        })
+                        .finally(clearReadTimer);
+                } catch (error) {
+                    clearReadTimer();
+                    return Promise.reject(routeDocumentFailure(path, error, expired, false));
+                }
+            }
+
             /* Same-origin committed bars only. This appends the delta the shared cache is missing
                and never refetches a symbol a sibling already cached. */
             function loadOne(symbol) {
@@ -1612,8 +1696,8 @@
                     var cached = window.RLDATA.bars(symbol, "1d");
                     if (Array.isArray(cached) && cached.length > 0) return Promise.resolve("cached");
                 }
-                return fetch("data/bars/" + encodeURIComponent(symbol) + ".json", { cache: "no-store" })
-                    .then(function (response) {
+                return readRouteDocument("data/bars/" + encodeURIComponent(symbol) + ".json",
+                    function (response) {
                         if (!response.ok) throw new Error("http " + response.status);
                         return response.json();
                     })
@@ -1626,18 +1710,21 @@
             }
 
             function loadCorpus() {
+                if (routeConfigurationRefused) return Promise.resolve("refused");
                 var intent = readingIntent;
                 corpusStatus = "pending";
                 return Promise.all([loadOne(currentTicker), loadOne(BENCHMARK_SYMBOL)])
                     .then(function (outcomes) {
+                        if (routeConfigurationRefused) return "refused";
                         corpusStatus = outcomes.indexOf("loaded") >= 0 || outcomes.indexOf("cached") >= 0 ? "loaded" : "unavailable";
                         return loadEvents();
                     })
                     .then(function () {
+                        if (routeConfigurationRefused) return "refused";
                         return loadResearchRecord();
                     })
                     .then(function () {
-                        if (intent !== readingIntent) return;
+                        if (routeConfigurationRefused || intent !== readingIntent) return;
                         run();
                     });
             }
@@ -1647,6 +1734,7 @@
                subject the registry does not cover is a normal absence: nothing is requested and
                the event dimension states that absence itself rather than showing an empty date. */
             function loadEvents() {
+                if (routeConfigurationRefused) return Promise.resolve("refused");
                 var subject = INTEL.resolveSubject(currentTicker, {
                     secCompanies: SEC_COMPANIES, barSymbols: [currentTicker], decisionTime: decisionTime()
                 });
@@ -1670,19 +1758,20 @@
             var committedBodies = {};
 
             function loadOptionalJson(path, assign) {
+                if (routeConfigurationRefused) return Promise.resolve("refused");
                 if (!path) {
                     assign(null);
                     return Promise.resolve("uncovered");
                 }
                 if (!Object.prototype.hasOwnProperty.call(committedBodies, path)) {
-                    committedBodies[path] = fetch(path, { cache: "no-store" })
-                        .then(function (response) {
+                    committedBodies[path] = readRouteDocument(path, function (response) {
                             if (!response.ok) throw new Error("http " + response.status);
                             return response.text();
                         })
                         .catch(function () { return null; });
                 }
                 return committedBodies[path].then(function (body) {
+                    if (routeConfigurationRefused) return "refused";
                     var file = null;
                     if (typeof body === "string") {
                         try { file = JSON.parse(body); }
@@ -1701,6 +1790,7 @@
                subject. The module names every path and the route issues every request, so the
                module keeps no read authority and no filesystem authority of its own. */
             function loadResearchRecord() {
+                if (routeConfigurationRefused) return Promise.resolve("refused");
                 var subject = INTEL.resolveSubject(currentTicker, {
                     secCompanies: SEC_COMPANIES, barSymbols: [currentTicker], decisionTime: decisionTime()
                 });
@@ -1768,32 +1858,30 @@
                embedded copy is used only when the request produced NO response of any kind —
                the signature of an origin that cannot issue requests, not of a bad answer. */
             function readConfig() {
-                return fetch(CONFIG_PATH, { cache: "no-store" })
+                return readRouteDocument(CONFIG_PATH, function (response) {
+                        if (!response.ok) throw new Error("http " + response.status);
+                        return response.json();
+                    })
                     .then(
-                        function (response) { return { response: response }; },
-                        function () { return { unreachable: true }; }
-                    )
-                    .then(function (outcome) {
-                        if (outcome.unreachable) return { document: embeddedConfig(), source: "embedded" };
-                        if (!outcome.response.ok) throw new Error("http " + outcome.response.status);
-                        return outcome.response.json().then(function (document_) {
-                            return { document: document_, source: "served" };
-                        });
-                    });
+                        function (document_) { return { document: document_, source: "served" }; },
+                        function (error) {
+                            if (error && error.transportUnavailable) {
+                                return { document: embeddedConfig(), source: "embedded" };
+                            }
+                            throw error;
+                        }
+                    );
             }
 
             /* Compose from the registry copy that ships inside this document, before any request
-               is issued. Returns true when the paint actually happened. */
+               is issued. The raw document stays local until the complete validator returns. */
             function paintFromEmbedded() {
-                try {
-                    config = embeddedConfig();
-                    registry = INTEL.readCoverageRegistry(config);
-                } catch (error) {
-                    return false;
-                }
+                var document_ = embeddedConfig();
+                var nextRegistry = INTEL.readCoverageRegistry(document_);
+                config = document_;
+                registry = nextRegistry;
                 run();
                 document.body.setAttribute("data-registry-source", "embedded");
-                return true;
             }
 
             /* Cache-first first paint (P12). The registry this document carries is already on
@@ -1822,23 +1910,37 @@
                 byId("mode-power").addEventListener("click", function () { setMode("power"); });
                 setMode("simple");
 
-                var paintedFrom = paintFromEmbedded() ? JSON.stringify(config) : null;
+                var paintedFrom = null;
+                try {
+                    paintFromEmbedded();
+                    paintedFrom = JSON.stringify(config);
+                } catch (error) {
+                    renderRefusal({
+                        code: error && error.code ? error.code : "C025-CONFIG-SCHEMA",
+                        message: "The coverage registry could not be read, so no horizon was composed. " + error.message
+                    }, "route-terminal");
+                    return;
+                }
 
                 readConfig()
                     .then(function (outcome) {
-                        var resolved = JSON.stringify(outcome.document);
+                        if (routeConfigurationRefused) return;
+                        var document_ = outcome.document;
+                        var nextRegistry = INTEL.readCoverageRegistry(document_);
+                        var resolved = JSON.stringify(document_);
                         /* Recompose only when the registry that arrived actually says something
                            else. Repainting an identical registry would throw away the reader's
                            own drill-down state for no change in what is shown. */
+                        config = document_;
+                        registry = nextRegistry;
                         if (resolved !== paintedFrom) {
-                            config = outcome.document;
-                            registry = INTEL.readCoverageRegistry(config);
                             run();
                         }
                         document.body.setAttribute("data-registry-source", outcome.source);
                         return loadCorpus();
                     })
                     .catch(function (error) {
+                        if (routeConfigurationRefused) return;
                         var code = error && error.code ? error.code : "C025-CONFIG-SCHEMA";
                         renderRefusal({
                             code: code,
@@ -1847,7 +1949,7 @@
                                 : "The served coverage registry could not be read, so the view below is composed "
                                     + "from the copy embedded in this document and may not match this deployment. "
                                     + error.message
-                        });
+                        }, "route-terminal");
                     });
             }
 

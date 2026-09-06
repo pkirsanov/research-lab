@@ -271,6 +271,16 @@ local_manifest="$LOCAL_FIXTURE/.github/bubbles/release-manifest.json"
 
 [[ -f "$local_manifest" ]] && pass "Local-source install copies generated release manifest" || fail "Local-source install copies generated release manifest"
 [[ -f "$local_provenance" ]] && pass "Local-source install writes install provenance" || fail "Local-source install writes install provenance"
+[[ -f "$LOCAL_FIXTURE/.gitleaks.toml" ]] \
+  && pass "First install creates the repository-root gitleaks policy required by pii-scan" \
+  || fail "First install creates the repository-root gitleaks policy required by pii-scan"
+cmp -s "$ROOT_DIR/.gitleaks.toml" "$LOCAL_FIXTURE/.gitleaks.toml" \
+  && pass "First-install gitleaks policy matches the canonical source template" \
+  || fail "First-install gitleaks policy matches the canonical source template"
+release_manifest_section_has_checksum \
+  "$local_manifest" sourceOnlyFileChecksums '.gitleaks.toml' "$(bubbles_sha256_file "$ROOT_DIR/.gitleaks.toml")" \
+  && pass "Release manifest integrity-tracks the source-only gitleaks template" \
+  || fail "Release manifest integrity-tracks the source-only gitleaks template"
 
 [[ "$(bubbles_json_string_field "$local_provenance" installMode)" == 'local-source' ]] \
   && pass "Local-source provenance records install mode" \
@@ -298,6 +308,8 @@ assert_no_path_leak "$local_provenance" "$DIRTY_SOURCE" "Local-source provenance
 # reference.)
 local_scripts_dir="$LOCAL_FIXTURE/.github/bubbles/scripts"
 printf '#!/usr/bin/env bash\n# orphan prune probe (intentionally stale)\n' > "$local_scripts_dir/__orphan_prune_probe.sh"
+printf '\n# project-owned stricter rule\n' >> "$LOCAL_FIXTURE/.gitleaks.toml"
+local_gitleaks_checksum_before_reinstall="$(bubbles_sha256_file "$LOCAL_FIXTURE/.gitleaks.toml")"
 (
   cd "$LOCAL_FIXTURE"
   bash "$ROOT_DIR/install.sh" --local-source "$DIRTY_SOURCE" >/dev/null
@@ -312,6 +324,9 @@ printf '#!/usr/bin/env bash\n# orphan prune probe (intentionally stale)\n' > "$l
   && [[ -z "$(checksum_snapshot_value "$LOCAL_FIXTURE/.github/bubbles/.checksums" 'bubbles/scripts/__orphan_prune_probe.sh')" ]] \
   && pass "Pruned framework script is absent from manifest and checksum provenance" \
   || fail "Pruned framework script is absent from manifest and checksum provenance"
+[[ "$(bubbles_sha256_file "$LOCAL_FIXTURE/.gitleaks.toml")" == "$local_gitleaks_checksum_before_reinstall" ]] \
+  && pass "Re-install preserves an existing project-owned gitleaks policy" \
+  || fail "Re-install preserves an existing project-owned gitleaks policy"
 
 # IMP-008: the orphan prune now also covers agents/prompts/instructions/skills,
 # keyed on the PREVIOUS install's manifest so a framework file removed upstream

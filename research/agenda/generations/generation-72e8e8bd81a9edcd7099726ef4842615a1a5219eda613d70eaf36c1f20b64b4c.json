@@ -1,0 +1,38 @@
+{
+  "contractVersion": "research-generation/v1",
+  "generationId": "generation-72e8e8bd81a9edcd7099726ef4842615a1a5219eda613d70eaf36c1f20b64b4c",
+  "generationCutoff": "2026-08-29T11:01:49.243Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "declaredTopicCount": 3,
+  "classifications": [
+    {
+      "dossierId": null,
+      "mode": "every-generation",
+      "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+      "reviewId": "review-01606e514f596dfca559bd34a7a7b861cea79b21ff946249e185743a47848142",
+      "selectionReason": "mode-required",
+      "state": "unavailable",
+      "topicId": "geopolitical-supply-shock"
+    },
+    {
+      "dossierId": null,
+      "mode": "cadence",
+      "reason": "cadence-not-elapsed",
+      "reviewId": null,
+      "selectionReason": "cadence-not-elapsed",
+      "state": "not-due",
+      "topicId": "defense-earnings-acceleration"
+    },
+    {
+      "dossierId": null,
+      "mode": "cadence",
+      "reason": "topic-model-not-applicable",
+      "reviewId": "review-d3a1cc3514ed848849a70b44e5c29718926c966cd9a4945ee0e5bf239601c3fb",
+      "selectionReason": "cadence-elapsed",
+      "state": "unavailable",
+      "topicId": "food-inputs-outlook"
+    }
+  ],
+  "candidateFingerprint": "sha256:9d44513bb86eb8dff4f90b7fd10ee1744eed419463b149f341fe0294cec98784"
+}

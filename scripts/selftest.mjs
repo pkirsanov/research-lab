@@ -3011,6 +3011,124 @@ try {
   assert(signalsInstruction.length > 0 && handTypedInLane.length === 0,
     'the signals lane instruction holds no second hand-maintained copy of the event key list (hand-typed: ' + handTypedInLane.join(', ') + ')');
 
+  /* F002-PUB-20260902-02 — deterministic owner reads survive model-owned coverage merges.
+     The source read is deliberately richer than the overwritten target and includes every field
+     lost by the failed scheduled publication. Both mutation directions are exercised so a helper
+     that merely assigns the snapshot object cannot satisfy the regression. */
+  const refreshModule = await import('./brief-refresh.mjs');
+  const reassertOwnerRead = refreshModule.reassertSnapshotOwnerRead;
+  assert(typeof reassertOwnerRead === 'function',
+    'the brief refresh exports a generic snapshot owner-read reassertion helper');
+  if (typeof reassertOwnerRead === 'function') {
+    const causalToolId = 'causal-rotation-lab';
+    const sourceOwnerRead = {
+      contractVersion: 'tool-model-read/v1',
+      id: causalToolId,
+      evidenceAsOf: '2026-09-02T19:00:00Z',
+      regimeVersionId: 'regime:2026-09-02:pre-close',
+      confirmation: [{ id: 'confirm:breadth', evidence: ['SPY', 'RSP'] }],
+      invalidation: [{ id: 'invalidate:credit', threshold: { relation: 'below', value: 0.97 } }],
+      metrics: { planEligible: true, stage: 'cause-confirmed' },
+      deepLink: 'causal-rotation-lab.html'
+    };
+    const ownerSnapshot = { toolReads: { [causalToolId]: sourceOwnerRead } };
+    const ownerPayload = {
+      toolReads: {
+        [causalToolId]: {
+          id: causalToolId,
+          evidenceAsOf: 'model-replaced',
+          confirmation: []
+        }
+      }
+    };
+    const sourceBytes = JSON.stringify(sourceOwnerRead);
+    const disposition = reassertOwnerRead(ownerPayload, ownerSnapshot, causalToolId);
+    assert(JSON.stringify(ownerPayload.toolReads[causalToolId]) === sourceBytes
+      && ownerPayload.toolReads[causalToolId] !== sourceOwnerRead
+      && ownerPayload.toolReads[causalToolId].confirmation !== sourceOwnerRead.confirmation
+      && ownerPayload.toolReads[causalToolId].invalidation[0].threshold !== sourceOwnerRead.invalidation[0].threshold,
+    'snapshot owner-read reassertion deep-copies the exact deterministic causal read');
+    assert(disposition.toolId === causalToolId && disposition.disposition === 'reasserted'
+      && disposition.changed === true && disposition.replaced === true,
+    'snapshot owner-read reassertion reports a useful replacement disposition');
+
+    ownerPayload.toolReads[causalToolId].confirmation[0].evidence.push('PAYLOAD-MUTATION');
+    assert(JSON.stringify(sourceOwnerRead) === sourceBytes,
+      'mutating the restored payload read cannot alias the frozen snapshot owner read');
+    reassertOwnerRead(ownerPayload, ownerSnapshot, causalToolId);
+    const restoredBytes = JSON.stringify(ownerPayload.toolReads[causalToolId]);
+    sourceOwnerRead.invalidation[0].threshold.value = 0.5;
+    assert(JSON.stringify(ownerPayload.toolReads[causalToolId]) === restoredBytes,
+      'mutating the snapshot owner read after restoration cannot alias the payload copy');
+
+    const malformedOwnerReadCases = [
+      { payload: {}, snapshot: ownerSnapshot, expected: /payload\.toolReads/ },
+      { payload: { toolReads: [] }, snapshot: ownerSnapshot, expected: /payload\.toolReads/ },
+      { payload: { toolReads: {} }, snapshot: {}, expected: /snapshot\.toolReads/ },
+      { payload: { toolReads: {} }, snapshot: { toolReads: [] }, expected: /snapshot\.toolReads/ },
+      { payload: { toolReads: {} }, snapshot: { toolReads: {} }, expected: /causal-rotation-lab/ },
+      { payload: { toolReads: {} }, snapshot: { toolReads: { [causalToolId]: null } }, expected: /causal-rotation-lab/ },
+      { payload: { toolReads: {} }, snapshot: { toolReads: { [causalToolId]: [] } }, expected: /causal-rotation-lab/ }
+    ];
+    const malformedOwnerReadRefusals = malformedOwnerReadCases.map((probe) => {
+      try {
+        reassertOwnerRead(probe.payload, probe.snapshot, causalToolId);
+        return false;
+      } catch (error) {
+        return error instanceof Error && probe.expected.test(error.message);
+      }
+    });
+    assert(malformedOwnerReadRefusals.every(Boolean),
+      'snapshot owner-read reassertion fails loud on malformed maps and absent or invalid source reads');
+  }
+
+  const laneMergeAt = laneSource.indexOf('for (const result of results) Object.assign(payload, loadFragment(result));');
+  const companyReassertAt = laneSource.indexOf('const companyDisclosure = reassertCompanyOwnerReadDisclosure');
+  const causalReassertAt = laneSource.indexOf("reassertSnapshotOwnerRead(payload, snapshot, 'causal-rotation-lab')");
+  const researchFinalizeAt = laneSource.indexOf('researchRuntime.finalizeResearchAgendaRuntime');
+  assert(laneMergeAt !== -1 && companyReassertAt > laneMergeAt && causalReassertAt > companyReassertAt
+    && researchFinalizeAt > causalReassertAt,
+  'causal owner-read restoration runs after lane merge and company disclosure but before research finalization');
+  assert(/import\s*\{[^}]*reassertSnapshotOwnerRead[^}]*\}\s*from\s*'\.\/brief-refresh\.mjs'/.test(laneSource)
+    && /snapshot\.toolReads\?\.\['causal-rotation-lab'\]\s*!==\s*undefined/.test(laneSource)
+    && /\[brief-parallel\] causal owner-read structurally reasserted/.test(laneSource),
+  'the narrative collector conditionally restores and logs the snapshot causal owner read structurally');
+
+  /* Regime vocabulary follows the same one-source pattern as the event contract above: the
+     validator owns a frozen array, derives its private membership Set and error from that array,
+     and renders the exact same values into the core-lane instruction. */
+  const validatorModule = await import('./validate-brief-payload.mjs');
+  const regimeBiases = validatorModule.BRIEF_REGIME_BIASES;
+  const regimeInstruction = typeof validatorModule.briefRegimeBiasInstruction === 'function'
+    ? validatorModule.briefRegimeBiasInstruction() : '';
+  assert(Array.isArray(regimeBiases) && Object.isFrozen(regimeBiases)
+    && JSON.stringify(regimeBiases) === JSON.stringify(['bull', 'bear', 'neutral']),
+  'the payload validator exports exactly one frozen bull bear neutral regime-bias vocabulary');
+  assert(regimeInstruction === 'regime.bias must be exactly one of bull|bear|neutral.',
+    'the regime-bias authoring instruction renders the exact validator-owned vocabulary');
+
+  const regimeErrors = (bias) => {
+    const candidate = JSON.parse(JSON.stringify(payload));
+    candidate.regime.bias = bias;
+    return validateBriefPayload(candidate, registry, config, snapshot, agendaRegistry)
+      .filter((error) => /^regime\.bias must be /.test(error));
+  };
+  assert(['bull', 'bear', 'neutral'].every((bias) => regimeErrors(bias).length === 0)
+    && regimeErrors('sideways').join(',') === 'regime.bias must be bull|bear|neutral',
+  'regime validation accepts all three owned values and rejects an outside value with the derived vocabulary');
+
+  const validatorSource = read('scripts/validate-brief-payload.mjs');
+  assert(/const BRIEF_REGIME_BIAS_SET = new Set\(BRIEF_REGIME_BIASES\)/.test(validatorSource)
+    && /BRIEF_REGIME_BIAS_SET\.has\(payload\.regime\.bias\)/.test(validatorSource)
+    && /`regime\.bias must be \$\{BRIEF_REGIME_BIASES\.join\('\|'\)\}`/.test(validatorSource)
+    && !/export\s+const\s+BRIEF_REGIME_BIAS_SET/.test(validatorSource),
+  'regime validation derives a private Set and refusal text from the one exported frozen array');
+  const regimeCoreRegion = laneSource.slice(laneSource.indexOf("id: 'core'"), laneSource.indexOf("id: 'signals'"));
+  const regimeCoreInstruction = regimeCoreRegion.slice(regimeCoreRegion.indexOf('instructions: `'), regimeCoreRegion.lastIndexOf('`'));
+  assert(/import\s*\{[^}]*briefRegimeBiasInstruction[^}]*\}\s*from\s*'\.\/validate-brief-payload\.mjs'/.test(laneSource)
+    && regimeCoreInstruction.includes('${briefRegimeBiasInstruction()}'),
+  'the core lane renders its closed regime-bias vocabulary from the payload validator');
+
   /* ── the same drift, one field over: the attention VERB vocabulary ────────────────────────────
      `verb` is closed, and the lane was told the field existed but never which values it admits.
      The 2026-08-20 02:02 EDT publication authored two well-formed items on real watchlist
@@ -3151,28 +3269,65 @@ try {
      survived only in a comment — which is exactly the failure mode this packet already found
      once in rlbrief.js. Both halves are therefore executed below.
 
-     The fixture is the committed item's JUDGEMENT ONLY, which is what the authoring lane
-     actually hands over. Recomposing the committed item as published proves nothing here: a
-     `decision-attention/v1` envelope carries its own observed half, so it survives an outage
-     snapshot untouched and the branch never runs — measured, not supposed. */
+     The fixture is a lane JUDGEMENT ONLY, which is what the authoring lane actually hands over.
+     Recomposing a published item proves nothing here: a `decision-attention/v1` envelope carries
+     its own observed half, so it survives an outage snapshot untouched and the branch never
+     runs — measured, not supposed. */
   const outageConfig = JSON.parse(read('market-brief.config.json'));
   const outageRegistry = JSON.parse(read('tools.json'));
   const outageAgenda = JSON.parse(read('research-agenda.json'));
   const outageSnapshot = JSON.parse(read('market-brief.snapshot.json'));
   const committedForOutage = JSON.parse(read('market-brief.payload.json'));
-  const laneJudgementOnly = {};
-  for (const key of RLATTN_AUTHORED_KEYS) {
-    if (committedForOutage.attention[0][key] !== undefined) laneJudgementOnly[key] = committedForOutage.attention[0][key];
-  }
-  const outageBasePayload = Object.assign({}, committedForOutage, { attention: [laneJudgementOnly] });
+  /* The fixture is CONSTRUCTED rather than harvested from the published tier, for the same reason
+     the SCN-BUG009-R1 rows above stopped depending on the market being interesting. Harvesting
+     `attention[0]` assumed the tier is never empty — but an empty tier is a GUARANTEED outcome,
+     not an anomaly: the composer refuses candidates and "if every candidate is refused the tier
+     publishes empty and the brief still publishes". On 2026-08-27 the pre-market run refused all
+     five candidates as RLATTN-OVERLAP, `attention[0]` was undefined, and this whole group threw
+     on `.headline` — taking the deploy gate, and therefore the published brief, down with it.
+     A quiet tier is not a defect and must not read as one. */
+  const outageTrackedSubjects = Object.keys(outageSnapshot.tracked || {}).sort();
+  assert(outageTrackedSubjects.length > 0,
+    'the committed snapshot carries at least one observable subject, so the outage fixture below is built against real observed state rather than passing vacuously');
+  const outageSubject = outageTrackedSubjects[0];
+  /* Observability is CONSTRUCTED on the chosen subject, exactly as SCN-BUG009-R1-E2E does. The
+     gate refuses a candidate whose subject clears no declared band (RLATTN-PROVENANCE), so
+     harvesting whatever the market happened to be doing made this row depend on the weather too.
+     Live input health is asserted separately and unconditionally by the observableSubjectTally
+     row above; conflating the two is what let a quiet tier read as a broken gate. */
+  const outageObservedSubject = Object.assign({}, outageSnapshot.tracked[outageSubject], {
+    ma200Dist: -20, maStack: 'tangled',
+    levels: Object.assign({}, outageSnapshot.tracked[outageSubject].levels,
+      { high52w: 160, low52w: 80, ma20: 104, ma50: 108, ma200: 125 }),
+    flags: Object.assign({}, outageSnapshot.tracked[outageSubject].flags, { persistenceGateMet: true })
+  });
+  const outageObservableSnapshot = Object.assign({}, outageSnapshot, {
+    tracked: Object.assign({}, outageSnapshot.tracked, { [outageSubject]: outageObservedSubject })
+  });
+  const laneJudgementOnly = {
+    headline: `${outageSubject} sits far from its 200-day`, rationale: 'structural',
+    verb: 'monitor', horizon: 'swing', severity: 'moderate', imminence: 'latent',
+    escalationTrigger: 'a close back above the 200-day',
+    invalidation: 'a close below the 52-week low',
+    expiry: new Date(Date.parse(committedForOutage.generatedAt) + 3 * 86400000).toISOString()
+  };
+  /* Actions are emptied for the fixture run ONLY. Overlap is resolved by scanning the day's
+     action prose for watchlist tickers, so any real subject can be claimed by an action on any
+     given day — which is exactly what refused all five candidates on 2026-08-27. Leaving the
+     live actions in place would make this row's subject a lottery the outage branch has no
+     stake in. The snapshot stays real, so observability is still measured, not assumed. */
+  const outageBasePayload = Object.assign({}, committedForOutage, {
+    attention: [laneJudgementOnly],
+    nextSession: Object.assign({}, committedForOutage.nextSession, { actions: [] })
+  });
   delete outageBasePayload.attentionExclusions;
   const systemicRows = (result) => (result.payload.attentionExclusions || [])
     .filter((exclusion) => exclusion && exclusion.code === 'RLATTN-SNAPSHOT-UNOBSERVABLE');
 
   const outageRun = recomposePayloadAttention(outageBasePayload, outageConfig, { tracked: {} });
-  const observableRun = recomposePayloadAttention(outageBasePayload, outageConfig, outageSnapshot);
+  const observableRun = recomposePayloadAttention(outageBasePayload, outageConfig, outageObservableSnapshot);
   assert(observableRun.items.length === 1 && systemicRows(observableRun).length === 0,
-    'the same candidate BUILDS against the committed snapshot and records no systemic cause, so the fixture is a genuinely observable item and the outage branch discriminates rather than always firing');
+    'the same candidate BUILDS against a snapshot whose subject is observable by construction and records no systemic cause, so the fixture is a genuinely observable item and the outage branch discriminates rather than always firing');
   assert(outageRun.items.length === 0 && systemicRows(outageRun).length === 1
     && systemicRows(outageRun)[0].index === -1 && systemicRows(outageRun)[0].subject === null,
     'against a snapshot the gate cannot observe, the composer builds nothing and records the systemic cause exactly ONCE with no subject, rather than leaving only per-candidate refusals that never name why every one of them failed');
@@ -10415,6 +10570,94 @@ try {
   const publicState8 = JSON.stringify(JSON.parse(durable8.rlData).toolReads);
   assert(!/MSFT|BND|holdings|costBasis|mandate|behaviorEvents|interestSignals|rlPortfolioWorkspace/.test(publicState8),
     'Scope 04 TP-04-04: the shared public cache carries no holding, conclusion, or personal storage name');
+
+  /* TP-B007-008. Read the production modules themselves. The scanner removes comments without
+     removing quoted code, then derives every P008 code passed as the first argument of a call.
+     That excludes registry keys and comparison-only strings without maintaining a second code list. */
+  const portfolioErrorFiles8 = ['rlportfolio.js', 'rlportfoliobrief.js', 'rlportfolioanalytics.js'];
+  const portfolioErrorSources8 = Object.fromEntries(portfolioErrorFiles8.map((file) => [file, read(file)]));
+  const withoutComments8 = (source) => {
+    let output = '', state = 'code';
+    for (let index = 0; index < source.length; index += 1) {
+      const character = source[index], next = source[index + 1];
+      if (state === 'line') {
+        if (character === '\n') { output += character; state = 'code'; }
+      } else if (state === 'block') {
+        if (character === '*' && next === '/') { state = 'code'; index += 1; }
+        else if (character === '\n') output += character;
+      } else if (state !== 'code') {
+        output += character;
+        if (character === '\\') { output += next || ''; index += 1; }
+        else if (character === state) state = 'code';
+      } else if (character === '"' || character === "'" || character === '`') {
+        state = character;
+        output += character;
+      } else if (character === '/' && next === '/') {
+        state = 'line';
+        index += 1;
+      } else if (character === '/' && next === '*') {
+        state = 'block';
+        index += 1;
+      } else output += character;
+    }
+    return output;
+  };
+  const registryMatch8 = /var ERROR_CODES = Object\.freeze\(\{([\s\S]*?)\n  \}\);/.exec(portfolioErrorSources8['rlportfolio.js']);
+  const registeredCodes8 = registryMatch8
+    ? Array.from(registryMatch8[1].matchAll(/["'](P008-[A-Z-]+)["']\s*:/g), (match) => match[1])
+    : [];
+  const registeredSet8 = new Set(registeredCodes8);
+  const firstCallArgument8 = (source, openIndex) => {
+    let argument = '', depth = 0, quote = null;
+    for (let index = openIndex + 1; index < source.length; index += 1) {
+      const character = source[index];
+      if (quote !== null) {
+        argument += character;
+        if (character === '\\') { argument += source[index + 1] || ''; index += 1; }
+        else if (character === quote) quote = null;
+      } else if (character === '"' || character === "'" || character === '`') {
+        quote = character;
+        argument += character;
+      } else if (character === '(' || character === '[' || character === '{') {
+        depth += 1;
+        argument += character;
+      } else if (character === ')' || character === ']' || character === '}') {
+        if (character === ')' && depth === 0) return argument;
+        depth -= 1;
+        argument += character;
+      } else if (character === ',' && depth === 0) return argument;
+      else argument += character;
+    }
+    return argument;
+  };
+  const emittedCodesFrom8 = (source) => {
+    const code = withoutComments8(source);
+    const calls = /\b(?:failure|portfolioError|contractErr|err|clearFailure|scenarioComputeFailure)\s*\(/g;
+    const emitted = [];
+    let call;
+    while ((call = calls.exec(code)) !== null) {
+      const firstArgument = firstCallArgument8(code, code.indexOf('(', call.index));
+      emitted.push(...Array.from(firstArgument.matchAll(/["'](P008-[A-Z-]+)["']/g), (match) => match[1]));
+    }
+    return emitted;
+  };
+  const emittedByModule8 = Object.fromEntries(portfolioErrorFiles8.map((file) => [
+    file,
+    emittedCodesFrom8(portfolioErrorSources8[file])
+  ]));
+  const emittedCodes8 = Array.from(new Set(Object.values(emittedByModule8).flat())).sort();
+  const missingCodes8 = (registry, emitted) => emitted.filter((code) => !registry.has(code));
+  const missingRegisteredCodes8 = missingCodes8(registeredSet8, emittedCodes8);
+  const inventedCode8 = 'P008-SELFTEST-INVENTED';
+  const inventedCodeDetected8 = missingCodes8(registeredSet8, emittedCodes8.concat(inventedCode8)).includes(inventedCode8);
+  const removedCode8 = emittedCodes8.find((code) => registeredSet8.has(code));
+  const reducedRegistry8 = new Set(registeredCodes8);
+  reducedRegistry8.delete(removedCode8);
+  const removedCodeDetected8 = Boolean(removedCode8) && missingCodes8(reducedRegistry8, emittedCodes8).includes(removedCode8);
+  assert(registryMatch8 !== null && registeredCodes8.length === 52 && registeredSet8.size === 52
+    && emittedCodes8.length === 45 && portfolioErrorFiles8.every((file) => emittedByModule8[file].length > 0)
+    && missingRegisteredCodes8.length === 0 && inventedCodeDetected8 && removedCodeDetected8,
+  'Feature 008 PortfolioError registry covers every quoted production emitter');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 008 Scope 04 canary group threw): ' + e.message); }
 
 /* ---------- Feature 019 Scope 01: agenda registry contract ---------- */
@@ -14226,6 +14469,79 @@ try {
       && finiteDisplay020.policy === 'nearest-dollar'
       && finiteDisplay020.ruleStatus === 'enacted-current-law',
     'TB-020-04: formatForDisplay refuses a record carrying Infinity, -Infinity or NaN with RLTAX-FIGURE-UNREPRESENTABLE on domain display:value, that refusal carries no figure and no rule standing, and a finite record still rounds to the value and status it carried before the guard');
+
+    /* TB-020-05 (BUG-020). The ORIGIN guard (E1), which TB-020-04 deliberately does not reach.
+       A red-green probe against E1 was non-discriminating while TB-020-04 stood alone: deleting
+       the origin guard let the overflowing sum flow onward until E3 caught it at the display
+       seam, so the suite still saw a refusal and stayed green. That is a real hole rather than a
+       probe artefact. The refusal a reader gets is not the same refusal: E1 names
+       `income:grossSupportedIncome` and tells them their declared amounts summed out of range,
+       while E3 names `display:value` and can only say a record arrived unprintable. Silently
+       trading the first for the second is the degradation this assertion exists to catch, so it
+       pins the DOMAIN and not merely the code — asserting the code alone would pass on the E3
+       cascade and reopen the hole. */
+    const overflowWorkspace020 = workspaceAt('single', 9e307);
+    overflowWorkspace020.income.qualifiedDividend = 9e307;
+    const overflowSettled020 = RLTAX.computeAnnualFederalTax(overflowWorkspace020, settlePack);
+    const overflowRefusals020 = Object.keys(overflowSettled020)
+      .map((key) => overflowSettled020[key])
+      .filter((member) => member && RLTAXRULES.isUnavailable(member));
+    assert(Number.isFinite(9e307) && !Number.isFinite(9e307 + 9e307)
+      && overflowRefusals020.length > 0
+      && overflowRefusals020.some((refusal) => refusal.code === 'RLTAX-FIGURE-UNREPRESENTABLE'
+        && refusal.domain === 'income:grossSupportedIncome')
+      /* No stage settles a figure from a sum that does not exist, and none carries a standing. */
+      && !overflowRefusals020.some((refusal) => refusal.ruleStatus !== undefined)
+      /* A settled member may legitimately carry `value: null` — that is the MeasureCompleteness
+         shape for an incomplete measure, and `modifiedAdjustedGross` uses it here. The defect
+         this pins is narrower: a member carrying an actual non-finite NUMBER while not being a
+         refusal, which is the `$∞` / `$NaN` figure the bug reported. Testing `!Number.isFinite`
+         alone would flag the null case and make this assertion fail against correct behaviour. */
+      && Object.keys(overflowSettled020).every((key) => {
+        const member = overflowSettled020[key];
+        if (!member || typeof member !== 'object' || RLTAXRULES.isUnavailable(member)) return true;
+        return !(typeof member.value === 'number' && !Number.isFinite(member.value));
+      }),
+    'TB-020-05: two declared amounts each inside double range but summing beyond it are refused at their ORIGIN with RLTAX-FIGURE-UNREPRESENTABLE on domain income:grossSupportedIncome, not merely caught downstream at the display seam, and no stage carries a rule standing on a figure that does not exist');
+
+    /* TB-020-06 (BUG-020). The R2 render fallback in lifetime-tax-strategy-lab.html, which is the
+       third and last layer and the only one with no assertion of its own until now.
+
+       Why this row exists in the form it does. TB-020-03 asserts the user-visible outcome — no
+       infinity symbol and no NaN reaches a stage row — and it is defended INDEPENDENTLY by R2, E1
+       and E3. Defence in depth is the correct engineering here, but it has a testing consequence
+       that is easy to misread: a single-mutation probe against any one layer leaves the other two
+       standing, the outcome holds, and the probe reports non-discriminating. That is not a vacuous
+       assertion. It means TB-020-03 alone cannot establish that any INDIVIDUAL layer is
+       load-bearing, so a layer could be deleted as dead code and nothing would go red.
+
+       The resolution is one assertion per layer rather than a harness that composes mutations:
+       E3 has TB-020-04, E1 has TB-020-05, and R2 has this row. Each pins the behaviour of its own
+       layer in isolation, so each layer's removal now fails something specific — which is what the
+       Definition of Done row was reaching for.
+
+       R2 is source-pinned rather than executed because it lives inside an inline <script> in a
+       page this build-free suite does not load. That is weaker than executing it, and it is
+       recorded as such: it pins the guard's presence and its ordering relative to the
+       String(record.value) fallback it protects, which is exactly what a deletion or a reorder
+       would break. */
+    const labSource020 = read('lifetime-tax-strategy-lab.html');
+    const stageValueBody020 = /function stageValueText\(record\)\s*\{[\s\S]*?\n            \}/
+      .exec(labSource020);
+    const r2Guard020 = stageValueBody020 === null ? '' : stageValueBody020[0];
+    const r2GuardAt = r2Guard020.indexOf('if (!Number.isFinite(record.value)) return "no figure";');
+    const r2FallbackAt = r2Guard020.indexOf('return String(record.value);');
+    assert(stageValueBody020 !== null
+      && r2GuardAt >= 0
+      /* Order is the whole point: the guard must precede the stringifying fallback, because
+         String(Infinity) is the literal text "Infinity" and that is the symbol the bug reported. */
+      && r2FallbackAt >= 0 && r2GuardAt < r2FallbackAt
+      /* And the refusal branch still precedes both, so a refusal renders as its code and reason
+         rather than falling through to either numeric path. */
+      && r2Guard020.indexOf('RULES.isUnavailable(record)') >= 0
+      && r2Guard020.indexOf('RULES.isUnavailable(record)') < r2GuardAt
+      && String(Infinity) === 'Infinity' && String(NaN) === 'NaN',
+    'TB-020-06: the R2 render fallback in lifetime-tax-strategy-lab.html still guards a non-finite record value before the String(record.value) fallback that would otherwise print the literal text "Infinity" or "NaN", and the refusal branch still precedes both');
 
     /* TP-02-10: every unsupported feature is surfaced and no result claims a complete federal tax. */
     const noticeIds = balancedSettled.unsupportedFeatureNotices.map((notice) => notice.id);
@@ -22998,16 +23314,120 @@ try {
   const config25 = JSON.parse(read('company-intelligence.config.json'));
   const moduleSource25 = read('rlcompanyintel.js');
   const routeSource25 = read('company-intelligence-lab.html');
+  const browserSource25 = read('tests/company-intelligence-lab.spec.mjs');
   const decisionTime25 = '2026-08-18T00:00:00.000Z';
   const registry25 = INTEL25.readCoverageRegistry(config25);
+
+  const browserHeaderEnd25 = browserSource25.indexOf('\nimport ');
+  const browserHeader25 = browserHeaderEnd25 > 0 ? browserSource25.slice(0, browserHeaderEnd25) : '';
+  const accurateBrowserProvenance25 = (text) => (
+    /Ordinary cases use the real ephemeral static server and unmodified responses\./.test(text)
+    && /Explicitly annotated fault-injection cases either pass through `page\.route\(\)` unchanged or make a real[\s\S]{0,20}Node HTTP server withhold one repository file until an explicit release\./.test(text)
+    && /High-risk mutation controls may[\s\S]{0,20}serve one bounded in-memory route or module mutation; no case intercepts or fulfills a business-data response\./.test(text)
+    && !/no request interception/i.test(text)
+  );
+  const staleBlanketProvenance25 = 'The route is exercised as a production user meets it: its own ephemeral static server, no request interception, no stubbed module.';
+  const stalePassThroughOnlyProvenance25 = 'Ordinary cases use the real ephemeral static server and unmodified responses. Explicitly annotated pass-through fault-injection cases use page.route only. No case fulfills business data.';
+  assert(accurateBrowserProvenance25(browserHeader25)
+    && !accurateBrowserProvenance25(staleBlanketProvenance25)
+    && !accurateBrowserProvenance25(stalePassThroughOnlyProvenance25),
+  'BUG-018 test provenance distinguishes ordinary unmodified traffic from annotated pass-through, real-server fault injection, and bounded route-or-module mutation controls');
+
+  const corpusRequestGate25 = extractFn(browserSource25, 'installCorpusRequestGate');
+  const bug018WindowTests25 = browserSource25.slice(browserSource25.indexOf("test('Regression: BUG-018 scope 1"));
+  const usesExplicitCorpusGate25 = (testSource) => {
+    const synchronizationSource = testSource.replace(/\btest\.setTimeout\s*\(\s*[\d_]+\s*\)\s*;?/g, '');
+    return /await corpusGate\.entered/.test(testSource)
+      && /corpusGate\.release\(\)/.test(testSource)
+      && !/setTimeout\s*\(|waitForTimeout\s*\(/.test(synchronizationSource)
+      && !/heldCorpusRequests?|heldCorpusRequestCount|requestCount/.test(testSource)
+      && /page\.route\('\*\*\/data\/\*\*'/.test(corpusRequestGate25)
+      && /entered\.resolve\(\);[\s\S]*await release\.promise;/.test(corpusRequestGate25)
+      && /route\.continue\(\)/.test(corpusRequestGate25)
+      && !/route\.(?:fulfill|abort)\(/.test(corpusRequestGate25);
+  };
+  assert(usesExplicitCorpusGate25(bug018WindowTests25)
+    && !usesExplicitCorpusGate25(bug018WindowTests25 + '\nsetTimeout(function () {}, 2500);')
+    && !usesExplicitCorpusGate25(bug018WindowTests25 + '\nlet heldCorpusRequestCount = 0;'),
+  'BUG-018 request windows use explicit entry and release gates without elapsed-time, counters, or response substitution');
 
   /* TP-025-01: the coverage floor is complete and closed. */
   assert(registry25.rows.length === 15
     && JSON.stringify(registry25.rows.map((row) => row.dimensionId).sort())
       === JSON.stringify(INTEL25.MANDATORY_DIMENSION_IDS.slice().sort())
-    && config25.contractVersion === 'company-intelligence-config/v1'
+    && config25.contractVersion === 'company-intelligence-config/v2'
+    && config25.readBoundMs === 10000
+    && registry25.readBoundMs === config25.readBoundMs
     && registry25.horizons.length === 4,
-  'TP-025-01: the committed coverage registry declares exactly the fifteen mandatory dimensions and four horizons');
+  'TP-025-01: the committed coverage registry declares the v2 read bound, exactly the fifteen mandatory dimensions and four horizons');
+
+  /* BUG-025 functional event security. The unit carrier owns the exhaustive invalid-input
+     matrix. This block instead locks the cross-file authority contract shared by the committed
+     config, its embedded route mirror, the validator, and the route's sole request primitive. */
+  const normalizedEvent25 = registry25.eventSource.coveredSubjects[0];
+  const canonicalEventMatch25 = /^company:([a-z0-9]+(?:-[a-z0-9]+)*)$/.exec(normalizedEvent25.subjectId);
+  const derivedEventPath25 = canonicalEventMatch25 === null ? null
+    : 'data/company-intelligence/company-' + canonicalEventMatch25[1] + '/events.json';
+  assert(registry25.eventSource.coveredSubjects.length === 1
+    && derivedEventPath25 === normalizedEvent25.eventsPath
+    && INTEL25.eventsPathFor(registry25, normalizedEvent25.subjectId) === derivedEventPath25,
+  'TP-025-SEC-01: the accepted committed company subject derives the exact event document returned to the route');
+
+  const duplicateEventConfig25 = JSON.parse(JSON.stringify(config25));
+  duplicateEventConfig25.eventSource.coveredSubjects.push(
+    JSON.parse(JSON.stringify(duplicateEventConfig25.eventSource.coveredSubjects[0]))
+  );
+  let duplicateEventCode25 = null;
+  try { INTEL25.readCoverageRegistry(duplicateEventConfig25); }
+  catch (error) { duplicateEventCode25 = error && error.code; }
+  assert(duplicateEventCode25 === 'C025-CONFIG-SCHEMA',
+  'TP-025-SEC-02: a duplicate committed event subject is refused before it can become route authority');
+
+  const embeddedConfigMatch25 = /<script type="application\/json" data-embedded-config="company-intelligence\.config\.json">([\s\S]*?)<\/script>/.exec(routeSource25);
+  let embeddedConfig25 = null;
+  try { embeddedConfig25 = embeddedConfigMatch25 === null ? null : JSON.parse(embeddedConfigMatch25[1]); }
+  catch (error) { embeddedConfig25 = null; }
+  const driftedEmbeddedConfig25 = embeddedConfig25 === null ? null : JSON.parse(JSON.stringify(embeddedConfig25));
+  if (driftedEmbeddedConfig25 !== null) driftedEmbeddedConfig25.eventSource.coveredSubjects[0].eventsPath += '?drift=1';
+  assert(embeddedConfig25 !== null
+    && JSON.stringify(embeddedConfig25) === JSON.stringify(config25)
+    && JSON.stringify(driftedEmbeddedConfig25) !== JSON.stringify(config25),
+  'TP-025-SEC-03: the embedded config object equals the committed object and a one-field event-path drift defeats parity');
+
+  const eventReaderSource25 = extractFn(moduleSource25, 'readEventSource');
+  const eventPathSource25 = extractFn(moduleSource25, 'eventsPathFor');
+  const routeReaderSource25 = extractFn(routeSource25, 'readRouteDocument');
+  const forbiddenEventMechanism25 = /\bnew\s+URL\s*\(|\bURL\s*\.\s*parse\s*\(|\bdecodeURI(?:Component)?\s*\(|\.\s*(?:normalize|resolve|join|replace|replaceAll)\s*\(/;
+  const routeFetchSites25 = routeSource25.match(/\bfetch\s*\(/g) || [];
+  const helperFetchSites25 = routeReaderSource25.match(/\bfetch\s*\(/g) || [];
+  assert(!forbiddenEventMechanism25.test(eventReaderSource25)
+    && !/\bfetch\s*\(/.test(moduleSource25)
+    && !/\bfetch\s*\(/.test(eventPathSource25)
+    && routeFetchSites25.length === 1
+    && helperFetchSites25.length === 1,
+  'TP-025-SEC-04: event authority uses no URL parsing, decoding or normalization and the route retains exactly one fetch site inside readRouteDocument');
+
+  const equalityGuard25 = 'if (entry.eventsPath !== derivedPath) {';
+  const equalityGuardCount25 = moduleSource25.split(equalityGuard25).length - 1;
+  let activeMismatchCode25 = null;
+  let equalityMutantAccepted25 = false;
+  const mismatchConfig25 = JSON.parse(JSON.stringify(config25));
+  mismatchConfig25.eventSource.coveredSubjects[0].eventsPath = 'data/company-intelligence/company-aapl/events.json';
+  try { INTEL25.readCoverageRegistry(mismatchConfig25); }
+  catch (error) { activeMismatchCode25 = error && error.code; }
+  if (equalityGuardCount25 === 1) {
+    const mutantSource25 = moduleSource25.replace(equalityGuard25, 'if (false) {');
+    const mutantSandbox25 = { module: { exports: {} }, globalThis: {} };
+    try {
+      Function('module', 'globalThis', mutantSource25)(mutantSandbox25.module, mutantSandbox25.globalThis);
+      mutantSandbox25.module.exports.readCoverageRegistry(mismatchConfig25);
+      equalityMutantAccepted25 = true;
+    } catch (error) { equalityMutantAccepted25 = false; }
+  }
+  assert(activeMismatchCode25 === 'C025-CONFIG-SCHEMA'
+    && equalityGuardCount25 === 1
+    && equalityMutantAccepted25,
+  'TP-025-SEC-05: removing the one subject-to-path equality guard admits the named mismatch, proving the functional contract check can fail');
 
   /* A registry missing a mandatory dimension is refused rather than composed from. */
   let incompleteCode25 = null;
@@ -28442,15 +28862,41 @@ try {
   const hllEventNames = ['hlEventsInWindow', 'hlScenarioTotal', 'hlScenariosUsable', 'hlEventCaveat',
     'hlObservationOf', 'hlDiffObservation'];
   const hllEv = build(hllEventNames.map((n) => extractFn(hllSrc, n)), hllEventNames);
-  const hllRealEvents = JSON.parse(read('market-brief.payload.json')).events;
+  const hllPayload = JSON.parse(read('market-brief.payload.json'));
+  const hllRealEvents = hllPayload.events;
   const hllNow = Date.parse('2026-08-19T00:00:00Z');
-  const hllShort = hllEv.hlEventsInWindow(hllRealEvents, 5, hllNow);
-  const hllLong = hllEv.hlEventsInWindow(hllRealEvents, 21, hllNow);
-  assert(Array.isArray(hllRealEvents) && hllRealEvents.length > 0
-    && hllShort.length > 0 && hllLong.length > hllShort.length
-    && hllShort.every((e) => e.daysOut >= 0),
-    'a longer horizon admits strictly more scheduled events than a shorter one, so the window is load-bearing ('
+  // WHY A FIXTURE. Windowing used to be proved by measuring the SHIPPED payload from this frozen
+  // clock. But the payload is regenerated four times a day and its calendar only looks FORWARD, so
+  // as publication moved on, the 5-session window (~7.2 calendar days from a fixed 2026-08-19)
+  // slid off the back of the calendar. On 2026-08-27 the regenerated payload put 0 events inside
+  // it against 4 inside 21 sessions, and the run went red with no behaviour changed — the
+  // assertion had been measuring the market's event density, not the window. A fixed clock needs a
+  // fixed calendar; the live payload is held to a separate, density-independent property below.
+  const hllWindowFixture = [
+    { event: 'inside both windows', when: '2026-08-20', impliedMovePct: null, scenarios: [] },
+    { event: 'inside both windows', when: '2026-08-24', impliedMovePct: null, scenarios: [] },
+    { event: 'inside the long window only', when: '2026-09-01', impliedMovePct: null, scenarios: [] },
+    { event: 'inside the long window only', when: '2026-09-15', impliedMovePct: null, scenarios: [] },
+    { event: 'beyond both windows', when: '2026-11-30', impliedMovePct: null, scenarios: [] }
+  ];
+  const hllShort = hllEv.hlEventsInWindow(hllWindowFixture, 5, hllNow);
+  const hllLong = hllEv.hlEventsInWindow(hllWindowFixture, 21, hllNow);
+  assert(hllShort.length > 0 && hllLong.length > hllShort.length
+    && hllShort.every((e) => e.daysOut >= 0)
+    && hllLong.every((e) => e.when !== '2026-11-30'),
+    'a longer horizon admits strictly more scheduled events than a shorter one, and neither admits an event beyond its own end, so the window is load-bearing ('
     + hllShort.length + ' at 5 sessions vs ' + hllLong.length + ' at 21)');
+  // The SHIPPED calendar is still held to a real contract, measured from its own clock rather than
+  // a frozen one: it parses, and widening the horizon never DROPS an event. That is monotonicity,
+  // which holds however busy or quiet the market calendar happens to be on publication day.
+  const hllPayloadNow = Date.parse(hllPayload.generatedAt);
+  const hllShippedShort = hllEv.hlEventsInWindow(hllRealEvents, 5, hllPayloadNow);
+  const hllShippedLong = hllEv.hlEventsInWindow(hllRealEvents, 21, hllPayloadNow);
+  assert(Array.isArray(hllRealEvents) && hllRealEvents.length > 0 && Number.isFinite(hllPayloadNow)
+    && hllShippedLong.length >= hllShippedShort.length
+    && hllShippedLong.every((e) => Number.isFinite(e.daysOut) && e.daysOut >= -1),
+    'the shipped brief calendar parses against its own generation clock and widening the horizon never drops an event ('
+    + hllShippedShort.length + ' at 5 sessions vs ' + hllShippedLong.length + ' at 21 of ' + hllRealEvents.length + ' published)');
   assert(hllEv.hlEventsInWindow(null, 21, hllNow).length === 0
     && hllEv.hlEventsInWindow([{ when: 'not-a-date' }], 21, hllNow).length === 0
     && hllEv.hlEventsInWindow(hllRealEvents, 21, NaN).length === 0,
@@ -28459,12 +28905,20 @@ try {
     'an event with no declared implied move stays null rather than being filled in');
 
   // Declared scenario probabilities are only usable if they actually form a distribution.
-  assert(Math.abs(hllEv.hlScenarioTotal(hllLong[0].scenarios) - 1) <= 0.02
-    && hllEv.hlScenariosUsable(hllLong[0].scenarios) === true
+  const hllScenarioFixture = [{ name: 'up', prob: 0.3 }, { name: 'flat', prob: 0.5 }, { name: 'down', prob: 0.2 }];
+  assert(Math.abs(hllEv.hlScenarioTotal(hllScenarioFixture) - 1) <= 0.02
+    && hllEv.hlScenariosUsable(hllScenarioFixture) === true
     && hllEv.hlScenariosUsable([{ prob: 0.5 }, { prob: 0.2 }]) === false
     && hllEv.hlScenariosUsable([{ name: 'no prob' }]) === false
     && hllEv.hlScenarioTotal([]) === null,
     'a scenario set is usable only when its declared probabilities sum to one, so a malformed set is reported rather than renormalised');
+  // The shipped calendar is held to that same contract directly, rather than through whichever
+  // event happened to sort first in a window: EVERY published event that declares scenarios must
+  // carry a usable distribution. That cannot go vacuously green either — the count is reported.
+  const hllShippedScenarioEvents = hllRealEvents.filter((e) => Array.isArray(e.scenarios) && e.scenarios.length > 0);
+  assert(hllShippedScenarioEvents.every((e) => hllEv.hlScenariosUsable(e.scenarios) === true),
+    'every scheduled event the brief publishes with declared scenarios carries a usable distribution ('
+    + hllShippedScenarioEvents.length + ' of ' + hllRealEvents.length + ' published events declare one)');
 
   // A catalyst inside the horizon must be surfaced as a limit on the analog rate.
   assert(typeof hllEv.hlEventCaveat(hllLong) === 'string'
@@ -29198,14 +29652,33 @@ try {
      so this pins the contract rather than the wording of one sentence. */
   const coreOwned = new Set(['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology']);
   const coreRequired = laneRequired
-    .filter((pattern) => !pattern.includes('*') && !pattern.includes('[]'))
-    .filter((pattern) => pattern.split('.').length > 1 && coreOwned.has(pattern.split('.')[0]));
+    .map((pattern) => pattern.split('.'))
+    .filter((segments) => segments.length > 1 && coreOwned.has(segments[0]))
+    .map((segments) => segments.join('.'));
   assert(coreRequired.includes('regime.vix.regimeLabel') && coreRequired.includes('regime.vix.falsifier'),
     'the core lane is genuinely required to emit regime.vix.regimeLabel and regime.vix.falsifier, the two leaves it silently omitted 4/4 times');
 
-  assert(/const requiredLeaves = requiredLeavesFor\(lane\.keys\)/.test(laneAcceptSrc)
+  const representativeSelected = [
+    'dataAsOf.*',
+    'regime.levels.*',
+    'backdrop.trendEvidence.**',
+    'nextSession.actions.[].subject',
+  ];
+  assert(representativeSelected.every((pattern) => coreRequired.includes(pattern)),
+    'the core selector retains canonical wildcard, recursive-wildcard, and actual nextSession.actions.[].subject array syntax');
+
+  const selectorDefinition = laneAcceptSrc.match(/function requiredLeavesFor\(keys\) \{([\s\S]*?)\n\}/);
+  assert(selectorDefinition
+    && /const owned = new Set\(keys\);/.test(selectorDefinition[1])
+    && /return BRIEF_NARRATIVE_FIELDS_REQUIRED\s+\.map\(\(pattern\) => pattern\.split\('\.'\)\)\s+\.filter\(\(segments\) => segments\.length > 1 && owned\.has\(segments\[0\]\)\);/.test(selectorDefinition[1]),
+    'requiredLeavesFor is defined once from every canonical required-field pattern and selects only by the lane-owned top-level segment without dropping wildcard or array patterns');
+
+  const missingFieldsDefinition = laneAcceptSrc.match(/function missingRequiredFieldsFor\(fragment, keys\) \{([\s\S]*?)\n\}/);
+  assert(missingFieldsDefinition
+    && /return requiredLeavesFor\(keys\)\s+\.map\(\(segments\) => segments\.join\('\.'\)\)\s+\.filter\(\(pattern\) => !present\.some\(\(entry\) => matchesFieldPatterns\(\[pattern\], entry\.segments\)\)\);/.test(missingFieldsDefinition[1])
+    && /const requiredLeaves = requiredLeavesFor\(lane\.keys\)\.map\(\(segments\) => segments\.join\('\.'\)\);/.test(laneAcceptSrc)
     && /REJECTED unless every one of these nested fields is present/.test(laneAcceptSrc),
-    'the lane prompt states the required nested fields it will be rejected for omitting — enforcing an acceptance contract the lane was never told is what made the failure deterministic');
+    'prompt rendering and missing-field matching share requiredLeavesFor, so author instructions and acceptance cannot select different canonical patterns');
 
   /* Both prompt branches must carry it: the research branch builds its own string, so wiring only
      the main branch would leave the research lanes judged by an unstated contract. */
@@ -30022,6 +30495,59 @@ try {
     'TB-SEC-03-02: a --file in another Git checkout is refused at registration with the dirty-target exit rather than accepted as a new anchor, and the foreign file is byte-identical afterwards because the refusal lands before any target is hashed or mutated (exit ' + secForeignExit + ')');
 } catch (e) { failures++; console.log('  \u2717 FAIL (security findings guard threw): ' + e.message); }
 /* ---------- security phase F-SEC-01..03 (END) ---------- */
+/* ---------- BUG-011 — causal consumer tests declare their own budget (START) ---------- */
+/* The defect: these tests inherit Playwright's implicit 30 s default because the
+   config declares no timeout. One full analytics page load plus a network settle
+   measured 23.7 s on a single uncontended worker — 79% of a budget nobody chose —
+   so under the suite's own four-worker parallelism the margin disappears and the
+   file goes red intermittently.
+
+   THIS IS THE ONLY PERSISTENT REGRESSION COVERAGE FOR THAT DEFECT, and it exists
+   because the obvious candidate was tested and REFUTED. `validate-playwright-
+   timeout-budgets.mjs` stays green (violations=0, exit 0) when a setTimeout is
+   deleted from this file, because that guard only checks whether a DECLARED wait
+   fits its governing budget and these tests declare no explicit waits — their
+   settles are bare `waitForLoadState('networkidle')`. A guard with nothing to
+   read cannot catch a deletion, so citing it as regression coverage would have
+   been a claim the tooling does not support. */
+try {
+  const ccrsPath = 'tests/causal-rotation-consumers.spec.mjs';
+  const ccrsText = read(ccrsPath);
+  const BUDGET_FLOOR_MS = 60000;
+
+  const testDecls = (ccrsText.match(/^\s*test\(/gm) || []).length;
+  const budgetDecls = ccrsText.match(/^\s*test\.setTimeout\(\s*[0-9_]+\s*\)/gm) || [];
+
+  assert(testDecls > 0,
+    'SCN-011B-REG the regression matcher found at least one test declaration in ' + ccrsPath +
+    ' \u2014 a matcher that silently stopped matching would pass this whole block vacuously (' +
+    testDecls + ' found)');
+
+  assert(budgetDecls.length === testDecls,
+    'SCN-011B-REG every test in ' + ccrsPath + ' declares its own timeout budget, so none of them ' +
+    'silently inherits the 30 s Playwright default that produced the intermittent red (' +
+    budgetDecls.length + ' budget(s) for ' + testDecls + ' test(s))');
+
+  const budgetValues = budgetDecls.map((d) => Number(String(d).replace(/[^0-9]/g, '')));
+  const belowFloor = budgetValues.filter((v) => v < BUDGET_FLOOR_MS);
+  assert(belowFloor.length === 0,
+    'SCN-011B-REG every declared budget in ' + ccrsPath + ' clears the ' + BUDGET_FLOOR_MS +
+    ' ms floor \u2014 the measured single-worker cost is 23.7 s, so anything at or near the 30 s ' +
+    'default leaves no margin for four-worker contention (' + belowFloor.length + ' below floor of ' +
+    budgetValues.length + ')');
+
+  /* ADVERSARIAL CONTROL. Without this, the three assertions above would pass
+     equally on a file where the matcher had rotted, and would therefore prove
+     nothing. Stripping one budget from an in-memory copy must drop the count —
+     if it does not, the regex no longer matches what it claims to match. */
+  const strippedOnce = ccrsText.replace(/^\s*test\.setTimeout\(\s*[0-9_]+\s*\);?[^\n]*\n/m, '');
+  const strippedCount = (strippedOnce.match(/^\s*test\.setTimeout\(\s*[0-9_]+\s*\)/gm) || []).length;
+  assert(strippedCount === budgetDecls.length - 1,
+    'SCN-011B-REG ADVERSARIAL the budget matcher detects a removed declaration, so a real ' +
+    'regression that deletes one would turn this block red rather than leaving it green (' +
+    budgetDecls.length + ' \u2192 ' + strippedCount + ' after stripping one)');
+} catch (e) { failures++; console.log('  \u2717 FAIL (BUG-011 budget regression guard threw): ' + e.message); }
+/* ---------- BUG-011 — causal consumer tests declare their own budget (END) ---------- */
 
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));

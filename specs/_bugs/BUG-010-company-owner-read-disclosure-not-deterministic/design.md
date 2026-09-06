@@ -168,6 +168,43 @@ Scope 03 must verify by diff that the two conjuncts at `scripts/selftest.mjs` li
 Given that the last three commits to touch that line all modified it, an explicit check that this
 change did **not** is the cheapest possible defence against a fourth flap.
 
+## Capability Foundation
+
+The foundation is the **publish gate**, `scripts/validate-brief-payload.mjs`. It is the only position
+of the four that is repository-wide and permanent: it evaluates every coverage entry in every
+published payload and refuses the publish when the disclosure is absent.
+
+It is the foundation rather than one of the fixes because the other three positions make the *current*
+pipeline correct, while the gate makes a *future* regression impossible to ship. `§1.4` records the
+reason it was needed at all: the gate did not look, so a payload missing the disclosure reached the
+site and was discovered later by a failing selftest rather than refused at the boundary.
+
+The distinction matters for where the failure surfaces. Without the gate, the same defect returns as
+an intermittent red in an unrelated assertion — which is what had already happened twice, and what
+caused the assertion to be relaxed rather than the producer to be fixed.
+
+## Concrete Implementations
+
+| # | Position | File | Act |
+|---|---|---|---|
+| a | Producer | `scripts/brief-refresh.mjs` | emit the adapter id and the no-recommendation disclosure deterministically, from facts the lane already holds |
+| b | Preservation | `scripts/brief-narrative-parallel.mjs` | carry both facts across the narrative merge so the model cannot drop them |
+| c | Enforcement | `scripts/validate-brief-payload.mjs` | refuse at publish when a coverage entry lacks either fact |
+| d | Data repair | `market-brief.payload.json` | repair the one committed window that already shipped without the disclosure |
+
+### Variation Axes
+
+| Axis | Values | Consequence |
+|---|---|---|
+| **Failure mode if omitted** | silent-wrong (a, b, d) vs undetected-forever (c) | a, b and d each produce a payload that is wrong but fixable. Omitting c means the next occurrence ships and is found later by an unrelated red, which is the history this packet exists to end. |
+| **Temporal target** | future windows (a, b) vs the one window already published (d) vs both (c) | d is not a code change and cannot be tested by re-running the producer; it is verified by reading the committed payload. This is why the repair is its own scope rather than a side effect of the producer fix. |
+| **Who can drop the facts** | the model (b) vs the code path (a) | b exists *because* a is not sufficient: the deterministic lane can emit both facts and the narrative merge can still discard them, since `§1.3` records that the narrative lane owns the key and was never asked to preserve anything. |
+
+The axis most easily missed is the third. Fixing only the producer looks complete — the facts are
+emitted — and still ships windows without them, because emission and survival are different
+properties. `T-10-U9` is the test that distinguishes them: a narrative result that drops both facts
+must still yield a published entry carrying them.
+
 ## 5. Ownership
 
 | Surface | Owner |

@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "spec": "specs/015-recommendation-outcome-ledger-and-track-record",
+  "readme": [
+    "Controlled-break declarations for spec 015, consumed by scripts/scenario-receipts.mjs",
+    "via --map. Same contract as scripts/scenario-break-map.json; kept in a separate file",
+    "because the runner validates every entry id against ONE spec's scenario-manifest.json,",
+    "so a shared file would refuse each spec's entries while running the other.",
+    "",
+    "Spec 015 differs from 008 in one way that matters when authoring: its manifest links",
+    "tests at FILE level (tests/recommendation-track-record.unit.mjs) rather than at",
+    "file#testname. The red run therefore executes the whole file, so a break anywhere in",
+    "that file's covered surface produces a red. That makes it EASIER to get a non-zero exit",
+    "and correspondingly easier to record a red that does not actually demonstrate the",
+    "scenario's own claim. Every entry here must still break the behavior its scenario names,",
+    "and the control line must say which specific assertion the break defeats.",
+    "",
+    "No entry is committed until the runner reports COMPLETE for it. SURVIVED means the",
+    "declared break is not discriminated and the entry must be fixed or removed, never kept."
+  ],
+  "entries": {
+    "SCN-015-008": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": [
+            "            return {",
+            "                ok: false,",
+            "                error: { code: PREDICATE_AMEND_CODE, reason: \"predicate-amend-refused\", field: \"claimHash\", path: relativePath }",
+            "            };"
+          ],
+          "replace": [
+            "            return { ok: true, path: relativePath, written: false, reused: true };"
+          ]
+        }
+      ],
+      "control": "a claim whose hashed predicate terms differ from the already-stored ones is accepted as a reuse instead of refused, so a predicate can be amended after the fact and the record no longer proves what was actually claimed at the time",
+      "claim": "A predicate amended after the claim was minted is structurally refused rather than silently rewritten",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-004": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        \"resolved-flat\": CONTRIBUTION_COUNT,",
+          "replace": "        \"resolved-flat\": CONTRIBUTION_NUMBER,"
+        }
+      ],
+      "control": "a resolved-flat outcome is routed to the number side instead of the count side, so an outcome that genuinely resolved to flat stops being counted as resolved and is folded into the numeric summary it was deliberately kept out of",
+      "claim": "A resolved-flat outcome is reported as resolved and stays distinguishable from unresolved in both the record and the report",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-001": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": [
+            "        if (claim.predicate === null) {",
+            "            return { reason: \"no-authored-predicate\", field: \"predicate\" };",
+            "        }"
+          ],
+          "replace": [
+            "        if (false) {",
+            "            return { reason: \"no-authored-predicate\", field: \"predicate\" };",
+            "        }"
+          ]
+        }
+      ],
+      "control": "a claim carrying no authored predicate is accepted instead of refused, so a claim can be minted with nothing frozen and later scored against whatever predicate is convenient",
+      "claim": "A claim is proposed only with an authored predicate, frozen at mint, so what was claimed cannot be decided after the outcome is known",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-015": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        if (!Object.prototype.hasOwnProperty.call(row, CLAIM_REF_FIELD)) {",
+          "replace": "        if (false) {"
+        }
+      ],
+      "control": "a ledger row carrying no claim reference stops being refused as unscoreable, so a resolution can be written against a row that never named a claim and an outcome is attributed to something that was never proposed",
+      "claim": "A resolution cannot be written against a claimless row, so every scored outcome traces to a claim that was actually minted",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-010": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        \"no-committed-series\",",
+          "replace": ""
+        }
+      ],
+      "control": "no-committed-series is removed from the closed mint-refusal set, so a claim with no committed price series is no longer classified not-evaluable and silently rejoins the scoreable population it was excluded from",
+      "claim": "A claim with no committed series is minted and recorded as not-evaluable rather than dropped from or counted in the denominator",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-013": {
+      "test": "tests/recommendation-track-record.unit.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "    var ROW_V2_FIELDS = unionSorted([ROW_V2_REQUIRED_FIELDS, ROW_V2_MEASURED_OPTIONAL_FIELDS, [CLAIM_REF_FIELD]]);",
+          "replace": "    var ROW_V2_FIELDS = unionSorted([ROW_V2_REQUIRED_FIELDS, ROW_V2_MEASURED_OPTIONAL_FIELDS]);"
+        }
+      ],
+      "control": "claimRef is dropped from the accepted v2 field set, so a v2 row that names the claim minted in the same pass is refused as carrying an unknown field and the pointer joining a row to its claim cannot be written at all",
+      "claim": "A v2 row carries claimRef referencing the claim minted in the same pass, so a recommendation and the claim it was scored against stay joined",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-002": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        else if (outcomeValue > 0) outcomeClass = \"win\";",
+          "replace": "        else if (outcomeValue > 0) outcomeClass = \"loss\";"
+        }
+      ],
+      "control": "a claim whose outcome moved in the direction it predicted is classified as a loss, so a satisfied claim is recorded against the author and the track record inverts",
+      "claim": "A satisfied claim resolves to a positive outcome and is classified as a win",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-003": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        else outcomeClass = \"loss\";",
+          "replace": "        else outcomeClass = \"win\";"
+        }
+      ],
+      "control": "a claim whose outcome moved against its prediction is classified as a win, so an invalidated claim is credited and the hit rate counts failures as successes",
+      "claim": "An invalidated claim resolves to a negative outcome and is classified as a loss",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-005": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": "        \"unresolvable-legacy\": \"unresolvableLegacy\"",
+          "replace": "        \"unresolvable-legacy\": \"unresolved\""
+        }
+      ],
+      "control": "legacy anonymous rows are routed into the ordinary unresolved bucket instead of their own permanent one, so rows nobody ever attributed to a claim are folded into the population being scored rather than held apart from it",
+      "claim": "A legacy anonymous row stays in its own permanent unresolvable-legacy bucket and is never folded into the scoreable population",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-009": {
+      "test": "tests/recommendation-track-record.functional.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": [
+            "            if (existing === bytes) return { ok: true, path: relativePath, written: false, reused: true };",
+            "            var incomingTerms = stableStringify(hashedTermsOf(claim));"
+          ],
+          "replace": [
+            "            if (existing === bytes) return { ok: true, path: relativePath, written: true, reused: false };",
+            "            var incomingTerms = stableStringify(hashedTermsOf(claim));"
+          ]
+        }
+      ],
+      "control": "a byte-identical re-mint reports itself as a fresh write rather than a reuse, so re-running the resolver stops being observably a no-op and the store can no longer show that a second pass changed nothing",
+      "claim": "Re-running the resolver changes nothing: a byte-identical claim resolves to the same object and is reported as reused rather than written again",
+      "implementationRefs": ["rlclaims.js"]
+    },
+    "SCN-015-014": {
+      "test": "tests/recommendation-track-record.integration.mjs",
+      "breakFile": "rlclaims.js",
+      "edits": [
+        {
+          "find": [
+            "        if (contractVersion === ROW_CONTRACT_V1) return ROW_V1_FIELDS;",
+            "        if (contractVersion === ROW_CONTRACT_V2) return ROW_V2_FIELDS;"
+          ],
+          "replace": [
+            "        if (contractVersion === ROW_CONTRACT_V2) return ROW_V2_FIELDS;"
+          ]
+        }
+      ],
+      "control": "the dual-version reader stops recognising v1 at all, so the 240 committed v1 rows resolve to no field set and every one of them becomes an invalid row rather than a valid older shape",
+      "claim": "A v1 row and a v2 row are both valid under one reader, so the older committed shape keeps working alongside the newer one",
+      "implementationRefs": ["rlclaims.js"]
+    }
+  }
+}

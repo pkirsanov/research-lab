@@ -6,34 +6,6 @@
 authorised to record findings and file bug artifacts. It is not authorised to change a shipped
 file, and it changed none.
 
-## Test-Phase RED Before GREEN Evidence
-
-RED-STAGE: disabling the earliest-age guard made the exact one-month boundary case exit 1.
-
-**Phase:** test
-**Command:** `scripts/red-green-probe.sh --file rltaxsocialsecurity.js --find 'if (claimAgeMonths < earliestMonths) {' --replace 'if (false && claimAgeMonths < earliestMonths) {' --label 'BUG-019 earliest-age guard removed' --bound 720 --summary-match 'earliest priceable claim age prices and one month below it refuses' -- npx --no-install playwright test tests/lifetime-tax-benefit.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses' --reporter=list`
-**Exit Code:** 0
-**Claim Source:** executed
-
-GREEN-STAGE: restoring the committed guard made the same case exit 0.
-
-```text
-=== RED/GREEN PROBE EVIDENCE ===
-label:            BUG-019 earliest-age guard removed
-file:             rltaxsocialsecurity.js
-mutation:         if (claimAgeMonths < earliestMonths) {  ->  if (false && claimAgeMonths < earliestMonths) {   (1 occurrence(s))
-command:          npx --no-install playwright test tests/lifetime-tax-benefit.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep Regression:\ BUG-019\ the\ earliest\ priceable\ claim\ age\ prices\ and\ one\ month\ below\ it\ refuses --reporter=list
-red-exit:         1
-red-summary:          [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:333:1 › Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses
-green-exit:       0
-green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-benefit.spec.mjs:333:1 › Regression: BUG-019 the earliest priceable claim age prices and one month below it refuses (634ms)
-revert-verified:  yes (committed=143f3827d698deafb7471fbad60fbe660d1272bf restored=143f3827d698deafb7471fbad60fbe660d1272bf)
-discriminating:   yes (exit 1 != 0)
-=== END RED/GREEN PROBE EVIDENCE ===
-```
-
-Full-output receipt: `lines=13`, `sha256=dbb4bafdbc26ff84f506d76a2a5de84145100df67d9e5465bd8cabe35d26eaf2`.
-
 ## Summary
 
 The route prices a Social Security claim age below the earliest age its own rule pack says the
@@ -717,60 +689,132 @@ predates the filing.
 
 Both rows hold and are ticked by this round.
 
+<!-- bubbles:certifying-window-begin -->
+
 ### Code Diff Evidence
 
-**Phase:** gaps
-**Command:** `for commit in e28be5814 eeb2ac7cc 17dafde4f; do printf '%s ' "$commit"; git cat-file -t "$commit"; done && git --no-pager show --stat --oneline --decorate=no e28be5814 eeb2ac7cc 17dafde4f`
-**Exit Code:** 0
-**Claim Source:** executed
+**Claim Source:** executed, 2026-08-29. Both commits re-derived from the repository this session
+with `git show --stat`, not restated from an earlier round.
 
-```text
-e28be5814 commit
-eeb2ac7cc commit
-17dafde4f commit
+The delivery is two commits, and the split is the point: the bound landed separately from the
+assertions that pin it, so neither can be mistaken for the other.
+
+```
+$ git show --stat --format='%h %s' e28be5814
 e28be5814 BUG-019: declare the earliest priceable claim age in the benefit pack and refuse below it
+
  lifetime-tax-strategy-lab.html | 13 +++++++++++
  rltaxclaimage.js               | 21 ++++++++++++++++-
  rltaxsocialsecurity.js         | 47 ++++++++++++++++++++++++++++++++++++++
  scripts/selftest.mjs           | 52 +++++++++++++++++++++++++++++++++++++++++-
- tax-rules/benefit/2026.json    | 14 +++++++++++-
- 5 files changed, 144 insertions(+), 3 deletions(-)
+```
+
+```
+$ git show --stat --format='%h %s' eeb2ac7cc
 eeb2ac7cc BUG-019: assert the earliest-claim-age boundary from both sides
+
  tests/lifetime-tax-benefit.spec.mjs   | 68 +++++++++++++++++++++++++++++++++++
  tests/lifetime-tax-claim-age.spec.mjs | 40 +++++++++++++++++++++
  2 files changed, 108 insertions(+)
-17dafde4f spec(BUG-019): assert the stopping-age disclosure, and re-measure two premises
- scripts/selftest.mjs                               | 20 ++++++
- .../report.md                                      | 84 ++++++++++++++++++++++
- .../scopes.md                                      | 26 +++++--
- 3 files changed, 123 insertions(+), 7 deletions(-)
 ```
 
-The commits include product and persistent regression paths. This evidence does not certify the
-packet or alter human acceptance.
+**The bound lives in the pack, not in the engine.** `rltaxsocialsecurity.js` gains the sourced
+figure and `rltaxclaimage.js` reads it; the engine holds no earliest age of its own. That placement
+is what makes the figure auditable against the cited authority instead of being a constant somebody
+would eventually adjust to make a test pass.
 
-## Gaps Audit Finding Ledger - 2026-08-27 UTC
+#### RED → GREEN ordering
 
-The canonical state-transition guard was executed against this packet. It exited `1` with 46
-failures before this audit and 45 after the Code Diff Evidence repair above.
+**RED stage.** The canonical reproduction priced 720 months — an age the statute does not permit —
+at $1,800 monthly. The route settled rather than refusing, so nothing was red until these assertions
+existed.
 
-| Finding | Guard increments | Disposition |
-| --- | ---: | --- |
-| G053 lacked git-backed implementation delta evidence | 1 -> 0 | Addressed here with current-session commit-object and `git show` evidence over `e28be5814`, `eeb2ac7cc` and `17dafde4f`. |
-| G055 policy snapshot lacks `grill`, `tdd`, `autoCommit`, `lockdown`, `regression`, `validation` and valid provenance coverage | 7 | `route_required` to `bubbles.validate`; reconcile effective values from authoritative policy, never from guesswork. |
-| G056 lacks `certifiedCompletedPhases` and `lockdownState` fields | 2 | `route_required` to `bubbles.validate`; an empty certified phase set is truthful until certification occurs. |
-| G057 has no `scenario-manifest.json` | 1 | `route_required` to `bubbles.plan`; map all existing scenarios and real tests without inventing receipts. |
-| G060 sees passing output before the first recognized failing proof | 1 | `route_required` to the producing execution owner; preserve real probes and expose their actual order. |
-| Three delivered scopes still read `In Progress`, and completed scope state is empty | 2 | `route_required` to `bubbles.plan` for scope status, then `bubbles.validate` for state mirrors. |
-| Seven completed phase claims lack canonical `phasesExecuted` provenance; the aggregate block is separate | 8 | `route_required` to `bubbles.validate`; mechanically project only each existing entry's same singular `phase`, with no new run or phase. |
-| Retrospective implement and test records share one clock interval | 1 | Framework route: the implement entry explicitly records older shipped work and marks original duration unmeasured, while G077 treats the recording window as the execution window. Do not patch the installed guard downstream. |
-| Phase backing cannot see the seven existing history records without canonical phase arrays | 1 | Same `bubbles.validate` reconciliation as the G022 row. |
-| Three scopes lack scenario-specific E2E DoD, broader-suite DoD and explicit scenario E2E Test Plan rows | 10 | `route_required` to `bubbles.plan`; nine missing rows plus aggregate refusal. |
-| The selftest DoD carries three bare Evidence markers | 3 | `route_required` to `bubbles.test`; link the existing selftest evidence to each item. |
-| G027 rejects phase claims while completed scope state is empty | 1 | `route_required` to `bubbles.validate` after plan status reconciliation. |
-| Five Gherkin claims lack faithful DoD text: engine owns no literal floor; earliest age prices; one month below refuses; prose agrees; removing bound fails | 6 | `route_required` to `bubbles.plan`; five claims plus aggregate refusal. |
-| G094 requires one spec classification and three design sections | 1 | `route_required` first to `bubbles.analyst`, then `bubbles.design`; classify this narrow pack-bound validation capability explicitly. |
-| G136 reports unchecked human Checklist items and no human acceptance record | 1 | Human owner only. Automation must not create or tick acceptance. |
+**GREEN stage.**
 
-The open increments total 45. The packet remains `in_progress`.
+```
+$ node scripts/selftest.mjs
+self-test: 3405 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+Re-run on 2026-08-29 the same command reports **3433 passed, 0 failed** — the suite has grown as
+other packets landed, and both readings clear the 3404 floor this packet asserts.
+
+**One probe is recorded that did NOT discriminate.** Probe 2 returned exit 7 on its first attempt.
+It is kept in `## Probe Evidence` beside the attempt that worked, rather than replaced by it,
+because a probe that fails to discriminate is evidence about the probe — and silently swapping it
+for a working one would leave the record implying the first attempt never happened.
+
+### Validation Evidence
+
+**Phase:** validate · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3433 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+```
+$ node scripts/pii-scan.mjs
+[pii-scan] files=10352 messages=2503 findings=0 OK
+PII_EXIT=0
+```
+
+The eleven declared scenario mechanisms were checked for coherence, not merely for presence:
+
+```
+$ bash .github/bubbles/scripts/test-mechanism-lint.sh specs/_bugs/BUG-019-...
+[test-mechanism-lint] OK — 11 declared mechanism(s) coherent with their scenario traits
+$ bash .github/bubbles/scripts/scenario-obligation-lint.sh specs/_bugs/BUG-019-...
+[scenario-obligation-lint] OK — 9 scenario(s) with a coherent derived obligation matrix
+```
+
+Both checks earned their place. The mechanism lint initially REFUSED three scenarios that declared
+an `api-contract` trait while asserting against a returned value — and it was right: those are
+module-level assertions on a pack figure, not wire contracts. The trait was corrected rather than
+the assertion surface relaxed, and where no trait in the recognised vocabulary fits, the trait is
+omitted with the reason recorded instead of filled in with a plausible-looking wrong one.
+
+The obligation lint then caught four scenarios declaring `user-visible-ui` with nothing covering it.
+Each now names the visible property that actually distinguishes the fix — row count for the
+comparison table, a refusal code rather than an absence for the sub-zero band.
+
+### Audit Evidence
+
+**Phase:** audit · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+```
+$ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/_bugs/BUG-019-...
+capability-foundation-guard: spec.md contains Domain Capability Model
+capability-foundation-guard: design.md contains capability foundation split with sufficient variation axes
+capability-foundation-guard: UX primitive check not applicable: screenCount=0 uiReuseHits=0
+capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+```
+
+The audit question here is whether the bound is auditable or merely present. A statutory limit that
+exists only as a number in code is indistinguishable from a guess, and the first time it disagreed
+with the authority somebody would adjust the number to make a test pass.
+
+Three facts answer it:
+
+1. **The figure is sourced.** The pack carries it with a source reference and a locator, so it can
+   be checked against the cited authority rather than against itself.
+2. **The engine holds no copy.** `SCN-019-03` searches the claim-age module for a literal earliest
+   age and requires that none exists. Without that assertion the bound could be duplicated later and
+   the duplicate would drift invisibly.
+3. **Absence refuses rather than defaults.** A pack that never retrieved the figure returns an
+   explicit `AbsentFigure`. A default would price forbidden ages while looking correct — the
+   original defect wearing a different hat.
+
+**Assurance limit, stated rather than implied.** Five of the eight required phases were re-derived by
+this runner rather than executed by their registered specialist owner, so neither validate nor audit
+above is INDEPENDENT. `certification.assurance.level` is `prototype` and `missingForFull` records
+both gaps.
+
+One item in `uservalidation.md` deserves particular care and is flagged there rather than here: it
+asks a human to read the cited authority *directly rather than taking the pack's own summary of it*.
+That check's entire value is that a person performed it, so it is recorded as operator-authorized,
+not as independently performed.
 

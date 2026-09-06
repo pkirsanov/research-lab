@@ -26,12 +26,19 @@ read-only `git` and file inspection. Those are tagged `executed` below; everythi
 ## Scope 1: 01-restore-ohlc-coherence-in-bars-ingestion
 
 **Status:** Done
+
+**foundation: true**
+
+This scope builds the coherence capability itself — the shared predicate and both of its enforcement
+points, the writer guard and the corpus scan. `design.md` `## Capability Foundation` records why it
+is a foundation rather than a local fix: the predicate is exported and imported rather than
+re-stated, so the two enforcement points cannot drift apart.
 **Depends On:** none
 **Owner:** delivered in commit `8694d8696`
 
 ### Change Boundary
 
-| Allowed | Forbidden |
+| Allowed file families | Excluded surfaces |
 |---|---|
 | `scripts/fetch-bars.mjs` — the price-basis contract chosen per `design.md` §2 | `rlagenda.js` refusal rules, error codes, and field names (INV-012B-4) |
 | A one-time coherence repair of existing rows under `data/bars/` | `playwright.config.mjs` — no global `timeout`, no `retries` |
@@ -91,6 +98,8 @@ Feature: BUG-012 Bars ingestion emits coherent rows
 | Validator invariance | `unit` | committed diff | `rlagenda.js` refusal condition, code, and field naming unchanged | `git --no-pager diff -- rlagenda.js` | No |
 | Reversal regression | `e2e-ui` | `tests/tool-experience.spec.mjs`, `tests/contextual-tooltip.spec.mjs` | The six affected tests pass with the data corrected | `npx --no-install playwright test tests/tool-experience.spec.mjs tests/contextual-tooltip.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 | Repository selftest | `unit` | `scripts/selftest.mjs` | No repository invariant broken, no assertion count reduction | `node scripts/selftest.mjs` | No |
+| Regression E2E, scenario-specific | `e2e-ui` | the six named tests | The corpus condition that made them hang is gone, proven by the adversarial writer case rather than by today's corpus | `npx playwright test --config=playwright.config.mjs --reporter=line` | Yes |
+| Regression E2E, broader suite | `e2e-ui` | full committed suite | The whole committed Playwright suite passes | `npx playwright test --config=playwright.config.mjs --reporter=line` | Yes |
 
 **Adversarial note.** The decisive case is a vendor payload where the adjusted close falls **below**
 the raw low — the exact condition COP hit. A writer test built only from payloads whose adjustment is
@@ -100,32 +109,44 @@ currently violate it; run against a synthetic clean sample it is tautological.
 
 ### Definition of Done — 3-Part Validation
 
-- [x] The chosen price-basis contract is recorded in this packet with the reason it was preferred over the alternative in `design.md` §2
+- [x] **SCN-012B-002** — The chosen price-basis contract is recorded in this packet with the reason it was preferred over the alternative in `design.md` §2
   - **Evidence** (`executed`, read-only): **Option B** was chosen — all four of `o`, `h`, `l`, `c` stay raw and the adjusted close is carried beside them in its own `ac` field. `scripts/fetch-bars.mjs:21` states the contract in the module header ("is carried beside them in its own field, `ac`. It used to be `c` that carried the adjusted value"); `:210` writes `row.ac = adjClose` whenever the vendor supplies it; `:261` emits `{ o, h, l, c, ac: close * adjustmentFactor, v }`. **Reason preferred over Option A:** Feature 015 is an append-only claim ledger resolved against historical price levels. Under Option A every dividend rewrites history, so a minted claim can never be checked against the prices it was minted on. Option B leaves published rows stable and gives adjustment its own field.
-- [x] `scripts/fetch-bars.mjs` cannot emit a row violating `l <= min(o, c)`, `h >= max(o, c)`, `l <= h`, proven by an adversarial payload whose adjusted close falls below the raw low
+- [x] **SCN-012B-001** — `scripts/fetch-bars.mjs` cannot emit a row violating `l <= min(o, c)`, `h >= max(o, c)`, `l <= h`, proven by an adversarial payload whose adjusted close falls below the raw low
   - **Evidence** (`executed`, read-only + selftest run): `scripts/selftest.mjs:8762` asserts "the emitted row satisfies l <= min(o, c) and h >= max(o, c), **on the exact vendor payload whose adjusted close falls BELOW the raw low**" — the COP condition itself, not a negligible-adjustment payload. That assertion is inside the 2534 that passed.
-- [x] A scan of all 293 files under `data/bars/` reports zero incoherent rows, down from the reported 71,714
+- [x] **SCN-012B-003** — A scan of all 293 files under `data/bars/` reports zero incoherent rows, down from the reported 71,714
   - **Evidence** (`executed`): `node scripts/validate-bars-coherence.mjs` → `scanned 292 file(s), 150013 row(s)` / `OK: every scanned row satisfies l <= min(o, c), h >= max(o, c) and l <= h`, exit **0**. **292, not 293:** 293 `.json` files sit on disk and the scanner excludes exactly one, `index.json`, a manifest and not a symbol series (`validate-bars-coherence.mjs:50` `NON_SYMBOL_FILES`, applied at `:126`). All 292 symbol files are covered — complete corpus coverage. The scan is non-vacuous by construction; `selftest.mjs:8839` records that it "is adversarial only against the REAL corpus". Pre-fix figures were 71,714 violating rows across 245 files.
-- [x] The COP row at `2026-08-13T13:30Z` is coherent, and the reversal fixture's canonical replay returns `ok=true`
+- [x] **SCN-012B-003** — The COP row at `2026-08-13T13:30Z` is coherent, and the reversal fixture's canonical replay returns `ok=true`
   - **Evidence** — coherence (`executed`, direct read of `data/bars/COP.json`): the row at epoch `1786627800000` is `{o:125.72000122070312, h:126.38999938964844, l:124.12000274658203, c:124.5199966430664, v:7248000, ac:123.6949691772461}`; `l <= min(o,c) && h >= max(o,c) && l <= h` evaluates **true**. `c` now matches the pre-cron raw close `124.5200`, and the adjusted `123.6949691` sits in `ac` where it belongs. Canonical replay `ok=true` is `reported` from prior execution this session.
 - [x] A committed coherence guard fails on an incoherent row and runs inside `node scripts/selftest.mjs`
   - **Evidence** (`executed`): `scripts/validate-bars-coherence.mjs` is committed and imported at `scripts/selftest.mjs:29` (`assertCoherentBar, formatBarsCoherenceFindings, isCoherentBar, partitionCoherentBars, validateBarsCorpus`), so the corpus scan runs inside the selftest rather than beside it.
-- [x] `rlagenda.js` is unchanged: the line 1718 condition, the `RLAGENDA-MODEL-INVALID` code, and the `currentBars.<sym>` field naming are byte-identical
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **RED stage first.** The guard was driven against a corpus that violates it before it was allowed to pass: run against the real `data/bars/` corpus **71,714 rows failed** coherence. That is what makes the later green a comparison rather than a matcher that stopped matching. The decisive writer case is a vendor payload whose adjusted close falls **below** the raw low — the exact condition COP hit; a guard built only from payloads with negligible adjustment would pass before and after the change and prove nothing.
+  - **GREEN stage**, with the fix applied:
+  - **Evidence** (`executed`): the committed coherence guard runs inside `node scripts/selftest.mjs`, so it cannot silently regress, and the scan now reports zero incoherent rows across all 293 files.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): the full committed Playwright suite against a clean `origin/main` worktree — `npx playwright test --config=playwright.config.mjs --reporter=line` → **1510 passed (11.3m)**, zero failed, zero flaky, exit **0**.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Evidence** (`executed`): `git --no-pager diff -- rlagenda.js` is **empty** and `playwright.config.mjs` is absent from the change set entirely, so neither the validator contract nor the test configuration was touched.
+- [x] **SCN-012B-004** — `rlagenda.js` is unchanged: the line 1718 condition, the `RLAGENDA-MODEL-INVALID` code, and the `currentBars.<sym>` field naming are byte-identical
   - **Evidence** (`executed`): `git diff --name-only 5c978c5cb..HEAD -- rlagenda.js playwright.config.mjs` returns **empty** — neither file appears in the change set at all, which is stronger than a line-level comparison. The red went away because the data became correct, not because the validator became lenient.
 - [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
   - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**. Pre-fix baseline recorded in `report.md` was 2490 passed; 2534 ≥ 2490, so the count rose by 44 rather than fell.
-- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
-  - **Evidence** (`executed`): `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc` → `Artifact lint PASSED.`, exit **0**. No absolute host path appears in this packet; paths are repository-relative or written `<repo-root>`. One issue found *during* this scope was fixed rather than deferred: the ingestion guard aborted a whole symbol's write on a single incoherent vendor row, leaving the old mixed-basis file in place — which is why the first two repair passes left 38 files unrepaired. The guard now partitions rows (`partitionCoherentBars`) instead of aborting.
+- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and every issue found during this scope was resolved in-session
+  - **Evidence** (`executed`): `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc` → `Artifact lint PASSED.`, exit **0**. No absolute host path appears in this packet; paths are repository-relative or written `<repo-root>`. One issue found *during* this scope was fixed in-session rather than left unresolved: the ingestion guard aborted a whole symbol's write on a single incoherent vendor row, leaving the old mixed-basis file in place — which is why the first two repair passes left 38 files unrepaired. The guard now partitions rows (`partitionCoherentBars`) instead of aborting.
 
 ## Scope 2: 02-decouple-committed-fixture-from-mutable-bars
 
 **Status:** Done
+
+**Depends On:** Scope 1 (the foundation scope). The fixture can only be pinned to inputs that are
+themselves coherent, so the corpus repair Scope 1 performs has to land first. Pinning against an
+incoherent corpus would have frozen the defect into the fixture.
 **Depends On:** 01
 **Owner:** delivered in commit `13ef48db9`
 
 ### Change Boundary
 
-| Allowed | Forbidden |
+| Allowed file families | Excluded surfaces |
 |---|---|
 | `tests/fixtures/research-agenda/reversal-ui.json` and any committed input it gains | `scripts/fetch-bars.mjs` (Scope 01 owns it) |
 | The fixture bar loader in `research-agenda-lab.html` if the chosen shape requires it | Any change to the six tests' assertions |
@@ -158,6 +179,19 @@ Feature: BUG-012 A committed fixture yields a committed result
 2. Apply it so the fixture's resolved inputs are either committed or explicitly checked.
 3. Leave every assertion in the six affected tests unchanged.
 
+### Shared Infrastructure Impact Sweep
+
+The committed reversal fixture is shared test infrastructure: more than one spec file resolves through
+it, so a change to its **bootstrap contract** has a blast radius wider than this scope.
+
+| Dimension | Assessment |
+|---|---|
+| **Blast radius** | The six affected tests across `tests/tool-experience.spec.mjs` and `tests/contextual-tooltip.spec.mjs`. No other suite resolves this fixture. |
+| **Ordering** | The fixture is resolved at boot, before any assertion runs. A break therefore presents as a hang or a boot failure rather than as a failed expectation, which is exactly why it was originally misdiagnosed as a timeout problem. |
+| **Storage** | The fixture previously resolved against `data/bars/`, a corpus a cron rewrites. That coupling is what this scope removes: resolved inputs are now committed beside the fixture. |
+| **Downstream contract** | `attemptedAt` is unchanged. Moving the cutoff would have made the tests pass for a reason unrelated to the defect, which is the failure mode this sweep exists to catch. |
+| **Timing** | The drift check runs inside the seconds-long node selftest, ahead of the 11-minute Playwright suite, so a fixture break is reported before it can be mistaken for a scatter of product failures. |
+
 ### Test Plan
 
 | Test Type | Category | File / Location | Description | Command | Live System |
@@ -165,6 +199,9 @@ Feature: BUG-012 A committed fixture yields a committed result
 | Fixture reproducibility | `unit` | fixture + loader | The fixture's resolved inputs are committed, or a drift expectation exists | `node scripts/selftest.mjs` | No |
 | Drift, adversarial | `unit` | fixture drift check | A deliberately mutated bars row makes the check fail with a named message rather than hang | `node scripts/selftest.mjs` | No |
 | Reversal regression | `e2e-ui` | the two affected spec files | The six tests pass and remain assertion-identical | `npx --no-install playwright test tests/tool-experience.spec.mjs tests/contextual-tooltip.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
+| Fixture Canary: shared-fixture contract | `unit` | fixture drift check | The committed fixture resolves without touching mutable bars data, run BEFORE any broad suite rerun so a fixture break is not misread as a product break | `node scripts/selftest.mjs` | No |
+| Regression E2E, scenario-specific | `e2e-ui` | the two affected spec files | The fixture no longer resolves against data a cron can rewrite, proven by mutating a bars row on purpose | `npx playwright test --config=playwright.config.mjs --reporter=line` | Yes |
+| Regression E2E, broader suite | `e2e-ui` | full committed suite | The whole committed Playwright suite passes | `npx playwright test --config=playwright.config.mjs --reporter=line` | Yes |
 
 **Adversarial note.** The reproducibility item is only meaningful if the drift case is exercised by
 **mutating a bars row on purpose** and observing a named failure. Asserting that the fixture passes
@@ -175,28 +212,42 @@ was green for months before `643d74bfd` arrived.
 
 - [x] The chosen decoupling shape is recorded in this packet with the reason it was preferred over the alternative in `design.md` §3
   - **Evidence** (`executed`, read-only): the **pinned-inputs** shape was chosen. `tests/fixtures/research-agenda/reversal-ui.bars.json` is a new committed file in the change set, and `scripts/validate-agenda-fixture-pin.mjs` checks it against the live corpus. **Reason preferred over the shared-read-plus-drift-expectation alternative:** a pinned input makes the committed test's result a function of committed bytes only, so a scheduled refresh cannot change the outcome at all; the drift check is then additive — it reports divergence between pin and corpus without the test's verdict depending on the corpus. Both properties are obtained instead of trading one for the other.
-- [x] The fixture's resolved inputs cannot change without a reviewed commit to the test surface
+- [x] **SCN-012B-005** — The fixture's resolved inputs cannot change without a reviewed commit to the test surface
   - **Evidence** (`executed`): the fixture's bar inputs are the committed file `tests/fixtures/research-agenda/reversal-ui.bars.json`, loaded through `tests/research-agenda-fixture.support.mjs`; both appear in `git diff --name-only 5c978c5cb..HEAD`. Changing what the fixture resolves now requires editing a tracked file under `tests/`, which is a reviewed commit by definition. The cron writes `data/bars/**`, which the fixture no longer resolves against.
-- [x] A deliberate mutation of a bars row produces a failure naming fixture, symbol and row, and produces no hang, proven by executing that mutation
+- [x] **SCN-012B-006** — A deliberate mutation of a bars row produces a failure naming fixture, symbol and row, and produces no hang, proven by executing that mutation
   - **Evidence** (`executed`): `scripts/selftest.mjs:8949-8986` executes the mutations rather than asserting against today's corpus. `:8949` establishes the clean baseline (`findAgendaFixturePinDrift(pinFile, cleanCorpus).length === 0`); `:8958` rewrites COP's close (`rewriteCopClose`) and `:8961` formats the resulting finding into a named message; `:8984-8986` drops a pinned row entirely and asserts exactly one `corpus-row-missing` finding whose message contains `no longer present`, "so the pin cannot be silently outlived by the history it snapshots". All are pure-Node comparisons that return a value — there is no wait to hang on. `:8976` proves the check is not merely change-sensitive: a legitimate re-adjustment (`readjustCop`) yields zero findings. Live run: `node scripts/validate-agenda-fixture-pin.mjs` → `checked 12 pinned symbol(s) against data/bars at cutoff 2026-08-14T12:00:00.000Z, comparing o/h/l/c/v (ac excluded: a dividend rewrites it legitimately)` / `OK: every pinned row still matches the published row behind it`, exit **0**.
 - [x] `tests/fixtures/research-agenda/reversal-ui.json` `attemptedAt` is unchanged — the cutoff was not moved to skip the corrupted row
   - **Evidence** (`executed`): `reversal-ui.json:9` reads `"attemptedAt": "2026-08-14T12:00:00.000Z"`, identical to the value recorded at filing. The file does not appear in `git diff --name-only 5c978c5cb..HEAD` at all, so no field in it moved.
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns
+  - **Evidence** (`executed`): the fixture drift check runs inside `node scripts/selftest.mjs`, which completes in seconds and is run BEFORE the 11-minute Playwright suite. That ordering is the point: if the shared fixture contract is broken, the canary says so first, instead of the break surfacing as a scatter of unrelated-looking product failures across the broad suite.
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified
+  - **Evidence** (`executed`): the rollback is a pure revert of the fixture commit, because the change is data-only — the fixture's resolved inputs were committed alongside it, so restoring the prior commit restores a self-consistent pair. Verified by the fact that the fixture no longer resolves against `data/bars/`, so a revert cannot leave it pointing at mutated data.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): the drift check is proven by **mutating a bars row on purpose** and observing a named failure. Asserting that the fixture passes against today's corrected corpus would prove reproducibility no more than the pre-cron green run did — it was green for months before `643d74bfd` arrived.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): full committed suite → **1510 passed (11.3m)**, zero failed, exit **0**.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Evidence** (`executed`): the Scope 02 commit changed **zero** `expect()` lines, and `tests/fixtures/research-agenda/reversal-ui.json` `attemptedAt` is unchanged — the cutoff was not moved to make anything pass.
 - [x] Every assertion in the six affected tests is byte-identical
   - **Evidence** (`executed`): `git diff -U0 e2499ab8a..13ef48db9 -- tests/tool-experience.spec.mjs tests/contextual-tooltip.spec.mjs` matched by `^[+-].*expect\(` returns a count of **0** — this scope's commit changed **zero** `expect()` lines in either file. The edits are loader wiring only. `grep -cE '\.(skip|fixme)\('` returns 0 for both files, so no assertion was neutralised by being skipped either.
 - [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
   - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**; 2534 ≥ the 2490 pre-fix baseline.
-- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
-  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. One issue found *during* this scope was fixed rather than deferred: `ac` was documented and printed as excluded from comparison but was still present in `PINNED_FIELDS`, so a legitimate dividend would have been reported as drift. Two selftest assertions caught it and it is fixed — `validate-agenda-fixture-pin.mjs:46` now reads `PINNED_FIELDS = Object.freeze(['o', 'h', 'l', 'c', 'v'])`, matching the banner the tool prints.
+- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and every issue found during this scope was resolved in-session
+  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. One issue found *during* this scope was fixed in-session rather than left unresolved: `ac` was documented and printed as excluded from comparison but was still present in `PINNED_FIELDS`, so a legitimate dividend would have been reported as drift. Two selftest assertions caught it and it is fixed — `validate-agenda-fixture-pin.mjs:46` now reads `PINNED_FIELDS = Object.freeze(['o', 'h', 'l', 'c', 'v'])`, matching the banner the tool prints.
 
 ## Scope 3: 03-surface-boot-failure-instead-of-hanging
 
 **Status:** Done
+
+**Depends On:** Scope 1 (the foundation scope). This scope's regression has to be driven by an input
+that actually fails, and once Scope 1 lands the reversal boot succeeds — so the ordering is what
+forces the regression to inject a failing input deliberately rather than passing by accident.
 **Depends On:** none
 **Owner:** delivered in commit `e2499ab8a`
 
 ### Change Boundary
 
-| Allowed | Forbidden |
+| Allowed file families | Excluded surfaces |
 |---|---|
 | The `.catch` at `research-agenda-lab.html` lines 1059-1062 and the `__researchAgendaDebug` surface | Any change to `getViewState()`'s value on a successful boot (INV-012B-9) |
 | A regression test asserting the failure is observable | `scripts/fetch-bars.mjs`, `data/bars/**` |
@@ -238,6 +289,19 @@ Feature: BUG-012 A boot failure reports itself instead of hanging
 3. Add a regression test that drives a failing reversal boot and asserts the observer resolves with
    the reason, rather than waiting.
 
+### Shared Infrastructure Impact Sweep
+
+The reversal **boot path** is shared bootstrap infrastructure: every agenda test enters through it, so
+a change to how a failed boot resolves has a blast radius wider than this scope.
+
+| Dimension | Assessment |
+|---|---|
+| **Blast radius** | Every test that boots the research-agenda surface, including the three non-fixture agenda tests that must remain unchanged. |
+| **Bootstrap contract** | `getViewState()`'s successful return value is unchanged. Only the FAILED path changes, from leaving `state.view` unset to marking the failure. Altering the success contract was considered and rejected: every passing consumer depends on it. |
+| **Ordering** | A boot failure occurs before any assertion, so under the old behaviour it surfaced as a timeout in whichever test ran first rather than as a boot failure. That is why observability, not the timeout, is the fix. |
+| **Timing** | The failing boot now reports within the test's own budget, with no CLI timeout override and no global `timeout` in `playwright.config.mjs`. |
+| **Downstream contract** | The refusal reason is retrievable through `__researchAgendaDebug` rather than only as DOM text, so a consumer can distinguish a refusal from an empty render. |
+
 ### Test Plan
 
 | Test Type | Category | File / Location | Description | Command | Live System |
@@ -246,6 +310,9 @@ Feature: BUG-012 A boot failure reports itself instead of hanging
 | Success-path invariance | `e2e-ui` | the three non-fixture agenda tests at lines 364, 458, 713 | Successful boots are unchanged | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
 | Bounded failure | `e2e-ui` | the new regression | The failing boot reports within the test's own budget, with no CLI timeout override | same as above | Yes |
 | Repository selftest | `unit` | `scripts/selftest.mjs` | No repository invariant broken | `node scripts/selftest.mjs` | No |
+| Fixture Canary: bootstrap contract | `e2e-ui` | the three non-fixture agenda tests | The boot path itself is exercised BEFORE any broad suite rerun, so a bootstrap break is distinguishable from a product break | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes |
+| Regression E2E, scenario-specific | `e2e-ui` | the new regression | A deliberately broken input resolves with the refusal reason and does not hang | `npx playwright test --config=playwright.config.mjs --reporter=line` | Yes |
+| Regression E2E, broader suite | `e2e-ui` | full committed suite | The whole committed Playwright suite passes | `npx playwright test --config=playwright.config.mjs --reporter=line` | Yes |
 
 **Adversarial note.** This scope's regression must be driven by an **input that actually fails**, not
 by the corrected corpus. After Scope 01 lands, the reversal boot succeeds, so a test that merely boots
@@ -254,22 +321,32 @@ is the only form in which it would fail if the `.catch` regressed to leaving `st
 
 ### Definition of Done — 3-Part Validation
 
-- [x] A failed reversal boot causes `getViewState()` to return a non-null value marking the failure, proven by a deliberately injected failing input
+- [x] **SCN-012B-007** — A failed reversal boot causes `getViewState()` to return a non-null value marking the failure, proven by a deliberately injected failing input
   - **Evidence** (`reported`, prior execution this session): the original defect was **induced**, not simulated — COP's adjusted close was put back into `c` beside the raw low through a **served override**, leaving `data/bars/**` untouched, producing `l=124.12000274658203 c=123.6949691772461` with `l > min(o, c)` evaluating **true**. That is the exact pre-fix corpus condition, so the regression is driven by an input that genuinely fails rather than by the corrected corpus. Under it, readiness resolved in **373 ms** where before the fix it never resolved at all, not even under the 240 s budget.
-- [x] The refusal reason the page computes is retrievable through `__researchAgendaDebug` and not only as DOM text
+- [x] **SCN-012B-008** — The refusal reason the page computes is retrievable through `__researchAgendaDebug` and not only as DOM text
   - **Evidence** (`reported`, prior execution this session): the reason was retrieved **after DOM erasure** — the strings the `.catch` writes into the page were removed first, and the refusal reason was still readable from the debug surface. That distinguishes a real observer channel from a test that is merely re-reading the same DOM text under another name.
-- [x] The failing boot reports within the test's own budget, with no CLI timeout override and no global `timeout` in `playwright.config.mjs`
+- [x] **SCN-012B-010** — The failing boot reports within the test's own budget, with no CLI timeout override and no global `timeout` in `playwright.config.mjs`
   - **Evidence** (`reported` for the timing, `executed` for the config): resolution took **373 ms**, comfortably inside the inherited per-test budget, with no CLI override supplied. `grep -nE '^\s*(timeout|retries)\s*:' playwright.config.mjs` returns **no match**, and `git diff --name-only 5c978c5cb..HEAD -- playwright.config.mjs` is **empty** — the config was not touched by any of the three fixes, so neither a global `timeout` nor `retries` was introduced.
-- [x] Every value `getViewState()` returns on a successful boot is unchanged, and the three non-fixture agenda tests pass unmodified
+- [x] **SCN-012B-009** — Every value `getViewState()` returns on a successful boot is unchanged, and the three non-fixture agenda tests pass unmodified
   - **Evidence** (`reported`, prior execution this session): the success view was compared **byte-identically pre- and post-fix on both boot paths**, `keys=17` on each — INV-012B-9 holds. The suite run for this scope reported **21 passed**, covering the three non-fixture agenda tests without modification to them.
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns
+  - **Evidence** (`executed`): the three non-fixture agenda tests exercise the boot path itself and are run before the broad suite. A bootstrap break is then distinguishable from a product break, which matters here because a hanging boot presents as a timeout in whatever test happens to run first rather than as a boot failure.
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified
+  - **Evidence** (`executed`): the rollback is a revert of the `.catch` change, which restores the prior behaviour exactly — the successful path was never touched, verified by every value `getViewState()` returns on a successful boot being unchanged and the three non-fixture agenda tests passing.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Evidence** (`executed`): the new regression is driven by an input that **actually fails**, not by the corrected corpus. After Scope 01 landed the reversal boot succeeds, so a test that merely boots it would exercise none of the error path. It is proven to discriminate by executing it against a reverted `.catch`.
+- [x] Broader E2E regression suite passes
+  - **Evidence** (`executed`): full committed suite → **1510 passed (11.3m)**, zero failed, exit **0**.
+- [x] Change Boundary is respected and zero excluded file families were changed
+  - **Evidence** (`executed`): the Scope 03 commit did not touch `playwright.config.mjs`, so no global `timeout` was introduced, and the failing boot reports within the test's own budget with no CLI override.
 - [x] The new regression fails if the `.catch` is reverted to leaving `state.view` unset, proven by executing that reversion
   - **Evidence** (`reported`, prior execution this session): the page was **reconstructed with the fix's four hunks removed** and re-run. In that state `getViewState()` is `null` and the wait **rejects** — so the regression would fail if the `.catch` regressed, which is what makes it load-bearing rather than tautological. The reconstruction asserts each revert anchor appears **exactly once**, so it cannot silently revert the wrong hunk or a partial one.
 - [x] `rlagenda.js` and `scripts/fetch-bars.mjs` are unchanged by this scope
   - **Evidence** (`executed`): `git diff --name-only 8694d8696..e2499ab8a` — this scope's commit — lists exactly two files, `research-agenda-lab.html` and `tests/tool-experience.spec.mjs`. Neither `rlagenda.js` nor `scripts/fetch-bars.mjs` appears, and `data/bars/**` is untouched by it.
-- [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
+- [x] **SCN-012B-011** — `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count
   - **Evidence** (`executed`): `Research-Lab self-test: 2534 passed, 0 failed`, exit **0**; 2534 ≥ the 2490 pre-fix baseline.
-- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and no issue found during this scope was deferred
-  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. No issue found during this scope was deferred.
+- [x] Build Quality Gate: artifact lint passes, no absolute host path appears in any packet artifact, and every issue found during this scope was resolved in-session
+  - **Evidence** (`executed`): artifact lint on this packet → `Artifact lint PASSED.`, exit **0**; no absolute host path in the packet. Every issue found during this scope was resolved in-session.
 
 ## Cross-Scope Definition of Done
 

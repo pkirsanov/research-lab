@@ -53,6 +53,21 @@ Scenario: Complete Feature 007 and shared-consumer matrix remains executable
 9. Account for every finding. A product/test/docs/governance issue outside the allowed Feature 007 boundary is preserved verbatim in a `route_required` packet with owner and evidence; it is not silently removed from the ledger.
 10. Record current raw evidence in this scope's `report.md` under the phase that executed it. Only `bubbles.validate` may write certification or request a terminal state transition.
 
+## Consumer Impact Sweep
+
+Scope 09 introduces no new interface. It is the only scope whose rollback contract may REMOVE a live first-party surface: the exact Feature 007 route, config, and note entries in the three registries, and any Feature 007 marker inside a shared file. If that removal is exercised, every consumer of the removed identifier must be re-checked here before the scope closes.
+
+| Consumer / reference surface | Required change or proof | Stale-reference assertion |
+| --- | --- | --- |
+| `tools.json`, `index.html::TOOLS`, `rlnav.js::TOOLS` | Only the exact Feature 007 entries are added or removed; no other tool is reordered or reformatted | Registry equality selftest plus real route navigation |
+| Shared navigation and landing-page links | The Feature 007 route resolves, or is absent from all three registries together | Real browser navigation in the provider and registry suites |
+| `notes/technical-analysis-decision-lab.md` deep links | Every referenced id, path, and command resolves | Feature 007 validator note-reference checks |
+| `RLDATA.toolReads` and Market Brief registry-derived coverage | Coverage stays registry-derived with no duplicated Feature 007 calculation | `scripts/validate-brief-payload.mjs` |
+| Feature 007 markers inside `rldata.js`, Strategy Validation, the six owner pages, and `scripts/selftest.mjs` | A reversed marker leaves no dangling caller in the host file | Full selftest plus that host's own canary suite |
+| Planning manifests, Test Plan rows, and evidence refs | Scenario ids, titles, files, and anchors stay in sync | Plan sync and traceability guard |
+
+No API client, generated client, server route, redirect, or breadcrumb framework exists in this repository. The table above is the complete first-party consumer set for anything this scope may remove.
+
 ## Shared Infrastructure Impact Sweep
 
 | Protected surface | Independent canary | Failure ownership rule | Restore contract |
@@ -66,9 +81,9 @@ Scenario: Complete Feature 007 and shared-consumer matrix remains executable
 
 ## Change Boundary And Rollback
 
-**Allowed repair files:** Feature 007 page/config/note/validator/test/fixtures; `rlvalidation.js`; exact Feature 007 markers in `rldata.js`, Strategy Validation, six owner pages, and `scripts/selftest.mjs`; exact Feature 007 registry entries.
+**Allowed file families (repair only):** Feature 007 page/config/note/validator/test/fixtures; `rlvalidation.js`; exact Feature 007 markers in `rldata.js`, Strategy Validation, six owner pages, and `scripts/selftest.mjs`; exact Feature 007 registry entries.
 
-**Explicitly excluded:** weakening or deleting a planned assertion; changing an existing suite to match broken behavior; edits to Feature 005/006 source/tests/specs; broad shared-file rewrites; packages/workflows; Market Brief calculations/payload; unrelated pages/tests/docs; certification fields; and terminal status.
+**Excluded surfaces (must remain untouched):** weakening or deleting a planned assertion; changing an existing suite to match broken behavior; edits to Feature 005/006 source/tests/specs; broad shared-file rewrites; packages/workflows; Market Brief calculations/payload; unrelated pages/tests/docs; certification fields; and terminal status.
 
 **Path-scoped repair rule:** inspect only the failing path, its exact marker, and nearest owning contract before an edit. Preserve all unrelated dirty work and never stage, commit, reset, clean, reformat, or rewrite a shared file.
 
@@ -84,7 +99,7 @@ SCN-007-032 is authored before the protected-matrix browser assertion. Capture t
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | TP-09-01 | Source-lock contract | functional | SCN-007-032 | `scripts/validate-node-source-lock.mjs` | Existing exact package, single registry, lock integrity, lifecycle-script, and no-browser-download policy remains valid | `node scripts/validate-node-source-lock.mjs` | No | `report.md#tp-09-01` |
 | TP-09-02 | Runner identity | functional | SCN-007-032 | Checkout-local Playwright | Resolve without install and print exactly `Version 1.61.1` | `npx --no-install playwright --version` | No | `report.md#tp-09-02` |
-| TP-09-03 | Broad production helper suite | unit | SCN-007-001 through 032 | `scripts/selftest.mjs` | Execute every existing group plus all 65 Feature 007 page symbols, seven shared validation symbols, owner/registry/data canaries, and exact pass/fail totals | `node scripts/selftest.mjs` | No | `report.md#tp-09-03` |
+| TP-09-03 | Broad production helper suite | unit | SCN-007-001 through 032 | `scripts/selftest.mjs` | Canary: runs before any broad browser-suite rerun. Execute every existing group plus all 65 Feature 007 page symbols, seven shared validation symbols, owner/registry/data canaries, and exact pass/fail totals | `node scripts/selftest.mjs` | No | `report.md#tp-09-03` |
 | TP-09-04 | Complete feature validator | functional | SCN-007-001 through 032 | `scripts/validate-technical-analysis-decision.mjs` | Validate production config/page/note/fixtures/owners/registries/symbols/claims/sessions/setups/comparisons/validation/publication and exact rejection inventory | `node scripts/validate-technical-analysis-decision.mjs` | No | `report.md#tp-09-04` |
 | TP-09-05 | Page integrity | functional | SCN-007-023 | `technical-analysis-decision-lab.html` | Parse every inline script and require every literal ID reference | Exact `TAD-PAGE-INLINE-ID` command from Scope 01 | No | `report.md#tp-09-05` |
 | TP-09-06 | Protected-matrix Regression E2E | e2e-ui | SCN-007-032 | `tests/technical-analysis-decision-lab.spec.mjs` | `Regression: SCN-007-032 complete Feature 007 protected matrix remains executable` | `npx --no-install playwright test tests/technical-analysis-decision-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-007-032 complete Feature 007 protected matrix remains executable" --reporter=list` | Yes | `report.md#scenario-scn-007-032` |
@@ -142,3 +157,15 @@ No stress/load row is present because Feature 007 has no numeric latency, throug
 #### Build Quality Gate
 
 - [x] All focused and broad commands, RED/GREEN records, title/outcome comparison, changed-path and marker classification, finding ledger, editor diagnostics, `git diff --check`, artifact lint/freshness, G094, plan sync, traceability, no-deferral/fabrication scans, framework write guard, Bubbles doctor, and repository readiness are current and clean for owned work; terminal status and certification remain owned by `bubbles.validate`. Evidence: report.md#audit-verdict — three findings fixed and revalidated; git diff --check clean; artifact lint PASSED
+
+#### Scenario Fidelity And Planning Guardrails
+
+These items are authored by `bubbles.plan` to state the obligation the Gherkin scenario and each shared-surface guardrail places on this scope. They are unchecked because the planning owner authors obligations, not evidence: the executing owner marks each one and links the resolving `report.md` anchor.
+
+- [ ] SCN-007-032: the complete Feature 007 and shared-consumer matrix remains executable — every SCN-007-001 through SCN-007-031 behavior has a persistent non-silent assertion with current evidence, the shared data, owner, validation, credential, registry, canvas, and prior-feature canaries retain their accepted behavior, and every discovered finding is fixed with the affected checks rerun before completion.
+- [ ] The Consumer Impact Sweep above is complete for every registry entry or shared marker this scope removes, and zero stale first-party references remain.
+- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior in this scope exist as persistent `Regression:` titles and pass on their exact Test Plan commands.
+- [ ] Broader E2E regression suite passes on the complete cumulative Feature 007 browser file plus the named prior-feature and shared-consumer suites.
+- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns, covering every surface named in the Shared Infrastructure Impact Sweep above.
+- [ ] Rollback or restore path for shared infrastructure changes is documented and verified by reversing only the defect-causing Feature 007 marker or hunk and rerunning its focused test and independent canary.
+- [ ] Change Boundary is respected and zero excluded file families were changed; the allowed and excluded surfaces named above are the complete boundary for this scope.

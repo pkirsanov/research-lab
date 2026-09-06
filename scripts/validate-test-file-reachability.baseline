@@ -32,40 +32,18 @@
 # declared glob `tests/*.integration.mjs`. 48 -> 26. Shrink only; no entry was
 # added, and no entry was removed that the guard had not first reported stale.
 #
+# PRUNED 2026-08-27: 24 entries removed after the guard reported each of them
+# STALE. 20 are now selected by the declared glob `tests/*.unit.mjs` (19
+# `.unit.mjs` plus 1 `.contracts.unit.mjs`); 2 by `tests/*.security.mjs`; 1 by
+# `tests/*.load.mjs`; 1 by `tests/*.stress.mjs`. 26 -> 2. Shrink only; no entry
+# was added, and no entry was removed that the guard had not first reported
+# stale.
+#
 # ---- unreachable suffix families -----------------------------------------
-#     19 | .unit.mjs
-#      2 | .security.mjs
 #      1 | .canary.mjs
-#      1 | .contracts.unit.mjs
-#      1 | .load.mjs
 #      1 | .mjs
-#      1 | .stress.mjs
 #
 # ---- frozen files (LC_ALL=C sorted) --------------------------------------
 
-tests/company-fundamentals-contracts.unit.mjs
-tests/company-intelligence.unit.mjs
-tests/contextual-tooltip.unit.mjs
-tests/journey.unit.mjs
 tests/market-action-consumer-trace.mjs
-tests/market-action.unit.mjs
-tests/market-session-evidence.unit.mjs
-tests/place-based-rental-market.contracts.unit.mjs
-tests/portfolio-analytics.unit.mjs
-tests/portfolio-foundation.unit.mjs
-tests/provider-credentials.load.mjs
-tests/provider-credentials.stress.mjs
-tests/provider-credentials.unit.mjs
 tests/recommendation-track-record.canary.mjs
-tests/recommendation-track-record.unit.mjs
-tests/red-alert.security.mjs
-tests/red-alert.unit.mjs
-tests/simple-model-adapters-macro-fundamental.unit.mjs
-tests/simple-model-adapters-market.unit.mjs
-tests/simple-model-adapters-strategy-property.unit.mjs
-tests/simple-models.unit.mjs
-tests/simple-production-bridge.unit.mjs
-tests/tool-experience-shell.unit.mjs
-tests/tool-experience.unit.mjs
-tests/web-evidence.security.mjs
-tests/web-evidence.unit.mjs

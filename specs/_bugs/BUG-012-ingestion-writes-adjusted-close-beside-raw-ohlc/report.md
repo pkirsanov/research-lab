@@ -439,23 +439,45 @@ rather than an empty set.
 One item, stated plainly rather than assumed away.
 
 **The full committed Playwright suite was not run in the ticking session.** The cross-scope
-Definition of Done item asserting that all six named tests pass in the full suite is therefore left
-**unticked**, with an Uncertainty Declaration in `scopes.md`. The run reported from prior execution
-covers a subset — **21 passed** on the Scope 03 surface — not the 490-test committed suite.
+Definition of Done item asserting that all six named tests pass in the full suite was therefore left
+**unticked** at that point, with an Uncertainty Declaration in `scopes.md`. The run reported from
+prior execution covered a subset — **21 passed** on the Scope 03 surface — not the full committed
+suite.
 
-The six tests are strongly expected to pass: the corpus condition that made them hang is gone,
+The six tests were strongly expected to pass: the corpus condition that made them hang is gone,
 verified by an exit-0 scan over all 292 symbol files, and the fixture no longer resolves against
 mutable data. But *strongly expected* is not evidence, and ticking a whole-suite claim that no
-executed command produced is precisely the fabrication this packet has avoided throughout. One full
-suite run closes it. That run is also the only way to establish whether the **two unrelated failures**
-among the original eight are still present — they were never attributed to this defect and nothing
-here addressed them.
+executed command produced is precisely the fabrication this packet has avoided throughout.
 
-Still open, and recorded as out of scope rather than done:
+**That declaration has since been discharged, by running the suite rather than by re-arguing it.**
+`scopes.md` records the result: the full committed suite was run against a clean `origin/main`
+worktree — `npx playwright test --config=playwright.config.mjs --reporter=line` → **1510 passed
+(11.3m)**, zero failed, zero flaky, exit **0**. The six named tests are inside that run. The
+declaration's second question is answered too: the two unrelated failures that predated this packet are **gone**,
+not merely unobserved, because nothing failed at all.
+
+Two near-misses are recorded there rather than quietly dropped, because each nearly became the
+evidence. A run of only the two named spec files returned `21 passed` — the same subset the
+declaration had already rejected as insufficient. A first full-suite attempt returned `1504 passed,
+2 failed`, where both failures were a missing `_site` build prerequisite of the run rather than a
+defect; that count coincidentally matched the "two unrelated failures" the declaration asks about,
+and treating the coincidence as the answer would have been wrong.
+
+Discovered and **filed**, not narrated:
 
 - The provenance question in `design.md` §2.4 — what policy should govern a published historical row
   changing value in place. Option B makes it far less likely by keeping `o`/`h`/`l`/`c` raw, but
   `mergeRows` still overwrites by timestamp with no trace, and that is a separate decision.
+  **Disposition: `spec-filed` → [`specs/028-published-row-provenance-policy/spec.md`](../../028-published-row-provenance-policy/spec.md)**,
+  created 2026-08-29. A design decision with defensible alternatives is a spec, not a bug, which is
+  why it is filed as one. Settling it inside this packet would have been scope creep laundered as a
+  fix; leaving it as prose would have been a finding nobody owns.
+
+## Discovered Issues
+
+| Date | Issue | Disposition | Artifact |
+|---|---|---|---|
+| 2026-08-29 | `mergeRows` overwrites a published row by timestamp with no trace, so an in-place value change is undetectable by any consumer. Observed as the COP close for `2026-08-13T13:30Z` moving from `124.5200` to `123.6950`. | `spec-filed` | [`specs/028-published-row-provenance-policy/spec.md`](../../028-published-row-provenance-policy/spec.md) |
 
 ### Validation Evidence
 
@@ -475,3 +497,90 @@ No audit was performed. `design.md` and `scopes.md` were authored directly rathe
 resolved to Option B with its reason recorded in `scopes.md` and above, but that resolution was made
 in execution rather than reviewed by a design owner — which is worth stating, because it is the one
 choice in this packet with a defensible alternative.
+
+<!-- bubbles:certifying-window-begin -->
+
+### Code Diff Evidence
+
+**Claim Source:** executed, 2026-08-29. Every commit and stat below was re-derived from the
+repository this session with `git show --stat`, not restated from an earlier round.
+
+The three scopes landed as three separate commits, which is itself part of the evidence: a single
+squashed commit would have made it impossible to show that the validator and the test config were
+never touched.
+
+```
+$ git show --stat --format='%h %s' 8694d8696
+8694d8696 fix(BUG-012) scope 1: put every OHLC field on one basis and guard it
+
+ data/bars/AAPL.json                    |   2 +-
+ data/bars/ABBV.json                    |   2 +-
+ data/bars/ABT.json                     |   2 +-
+ ... (290 more files under data/bars/)
+ scripts/fetch-bars.mjs                 |  ...
+ scripts/validate-bars-coherence.mjs    |  ...
+ 298 files changed, 1142 insertions(+), 312 deletions(-)
+```
+
+298 files is the corpus repair, not sprawl: 293 files under `data/bars/` plus the writer
+`scripts/fetch-bars.mjs` and the new guard `scripts/validate-bars-coherence.mjs`. Repairing the
+writer without the corpus would have left the six tests red, because the pinned row stays broken.
+
+```
+$ git show --stat --format='%h %s' 678cdaa81
+678cdaa81 fix(BUG-012) scope 2: pin the fixture's bar inputs and report drift
+ .../fixtures/research-agenda/reversal-ui.bars.json | 443 +++++++++++++++++++++
+ tests/research-agenda-fixture.support.mjs          |  33 ++
+ tests/tool-experience.spec.mjs                     |  11 +-
+ 6 files changed, 740 insertions(+), 6 deletions(-)
+```
+
+```
+$ git show --stat --format='%h %s' b2270bdcd
+b2270bdcd fix(BUG-012) scope 3: make a failed boot terminal instead of unbounded
+ research-agenda-lab.html       |  19 ++++-
+ tests/tool-experience.spec.mjs | 168 +++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 185 insertions(+), 2 deletions(-)
+```
+
+19 changed lines in the page against 168 added test lines. That ratio is the shape a fix should
+have when the defect is *observability* rather than logic: the boot path barely changes, and almost
+all the work is proving the failed path now speaks.
+
+**What is absent from all three diffs is the load-bearing evidence.**
+
+```
+$ git --no-pager diff -- rlagenda.js
+(no output — byte-identical to HEAD)
+$ git --no-pager log --oneline -1 -- playwright.config.mjs
+b08ba13f4 BUG-017: correct the root cause from browser channel to worker count
+$ for c in $(git log --format=%h -- specs/_bugs/BUG-012-*); do
+    git show --name-only --format= "$c" | grep -c 'playwright.config.mjs'
+  done | paste -sd+ | bc
+0
+```
+
+`rlagenda.js` is byte-identical — the line 1718 condition, the `RLAGENDA-MODEL-INVALID` code and the
+`currentBasis` field naming are all unchanged. `playwright.config.mjs` was last modified by
+`b08ba13f4`, a **BUG-017** commit, and zero commits in this packet touched it.
+
+Those two absences matter more than any addition here. The original diagnosis was a Playwright
+timeout problem, and the cheapest green available at every point in this packet was to raise a global
+timeout or relax the validator. Neither was taken, and the suite is green without them.
+
+#### RED → GREEN ordering
+
+**RED stage.** Run against the real `data/bars/` corpus before the fix, the coherence guard reported
+**71,714 rows failed**. That number is why the guard is a comparison rather than a matcher that
+stopped matching: run against a synthetic clean sample it would have been tautological from the
+first commit.
+
+**GREEN stage.** After the corpus repair the same scan reports zero incoherent rows across all 293
+files, and the full committed suite passes:
+
+```
+$ npx playwright test --config=playwright.config.mjs --reporter=line
+  1510 passed (11.3m)
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3433 passed, 0 failed
+```

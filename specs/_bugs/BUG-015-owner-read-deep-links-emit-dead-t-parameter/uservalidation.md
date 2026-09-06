@@ -1,14 +1,19 @@
-# User Validation: BUG-015 — Filed, Nothing Delivered
+# User Validation: BUG-015 — Owner-Read Deep Links Emit A Dead `t` Parameter
 
-This packet files a defect and implements nothing. There is no delivered behaviour to exercise.
+This file was authored when the packet was a filing only, and its title and opening paragraph said
+so. That is now stale: both scopes record **Status: Done** and all 18 Definition-of-Done items in
+`scopes.md` are checked, with zero unchecked. The header has been corrected rather than left to
+contradict the packet's own record.
 
-The Automation Readiness items below record facts about the **filing** — that the defect is real,
-grounded, and correctly attributed. They are ticked where an executed check establishes them.
+The Automation Readiness items below record facts about the **filing** — that the defect was real,
+grounded, and correctly attributed. They are ticked where an executed check established them, and
+this turn ticked no further one.
 
 **Ticking an Automation Readiness item grants no acceptance whatsoever.** Acceptance is the
-Checklist section plus the acceptance record, and only a human establishes it. Every Checklist item
-is unticked and the Human Acceptance Record is unfilled, because nothing has been fixed and the
-product question at the centre of the remedy has not been answered.
+Checklist section plus the acceptance record. The Checklist is now checked on the repository
+operator's explicit authorization dated 2026-08-27, transcribed by automation — not on automation's
+own judgement. Acceptance is not certification: `status` and `certification.status` remain
+`in_progress`, and gates other than G136 are still failing.
 
 ## Automation Readiness
 
@@ -25,28 +30,59 @@ product question at the centre of the remedy has not been answered.
 - [x] The enabling commit is identified and introduced all three lines together. **`git show a4b10dc5b` adds both `deepLink` expressions and the `?t=SPY` navigation; `a4b10dc5b` is the most recent commit touching either affected file.**
 - [x] No source file was modified and no selftest assertion was added. **The only additions are this packet's seven artifacts under `specs/_bugs/BUG-015-owner-read-deep-links-emit-dead-t-parameter/`.**
 - [x] The user-visible consequence was observed in a browser. **Observed against the repository's own `startStaticServer()` harness, reading `#ticker` on each real route. Control: `options-structure-lab.html?ticker=NVDA` yields `NVDA` and no query yields `SPY`, so a working corridor is detectable by this reading. `intraday-tape-lab.html?t=NVDA` and `swing-structure-lab.html?t=NVDA` both yield `SPY` — a link naming `NVDA` opens `SPY`. `intraday-tape-lab.html?ticker=NVDA` also yields `SPY`, so the emitting-half rename alone would change no observed value; the two-halves finding is measured, not derived. Full block in `report.md` § The consequence, observed in a browser. This observes the DEFECT only — Scope 2's Definition of Done still requires the post-fix reading to return `NVDA`.**
-- [ ] The outcome for a subject that cannot be honoured is chosen. **Left unticked deliberately. `refused`, `absent` and out-of-catalog currently collapse to silence. What replaces that is a product choice, enumerated as open question 1 in `design.md` and owned by Scope 1.**
-- [ ] Whether these routes should be openable by link at all is answered. **Left unticked deliberately. Open question 4 in `design.md`. If the answer is no, the correct remedy is to stop publishing a subject-bearing link, and Scope 2 shrinks to deleting two expressions.**
+- [x] The outcome for a subject that cannot be honoured is chosen. **Re-derived first-hand
+  2026-08-29 against the tree, not read out of `design.md`.** The answer is the disclosure that
+  already ships: `RLTKR.linkedSubject()` returns `status` in `accepted | absent | refused` with
+  `raw` pinned to `null`, and `showLinkNotice` renders the outcome. Verified uniform across all four
+  subject-bearing routes — `options-structure-lab.html`, `gamma-trading-lab.html`,
+  `intraday-tape-lab.html` and `swing-structure-lab.html` each carry `showLinkNotice` 3× and
+  `linkedSubject` 1×. `refused`, `absent` and out-of-catalog no longer collapse to silence.
+- [x] Whether these routes should be openable by link at all is answered. **Re-derived first-hand
+  2026-08-29.** The answer is honour the subject, not stop publishing it. Both routes compose their
+  link from `RLTKR.SUBJECT_PARAM` and read it back through `linkedSubject`, which makes all four
+  routes uniform rather than leaving two permanently unaddressable. Scope 2 therefore delivered the
+  wiring rather than shrinking to deleting two expressions.
+
+*Note (2026-08-28, superseded 2026-08-29): the two items above were written while Scope 1 was open,
+and both scopes have since closed. That turn left them unticked on an explicit and correct
+condition — it "did not re-derive either answer" and recorded only the operator's acceptance. This
+turn re-derived both from the live tree with the commands above, which is the condition that note
+named, so they are now ticked on observed fact rather than on the report's prose.*
+
+*Correction found while re-deriving, recorded rather than absorbed: `report.md` attributed these
+decisions to commit `8dd19dd6e`, which is a **BUG-017** commit whose diffstat contains zero BUG-015
+files. The decisions are real and implemented; the attribution was wrong. The delivering commit is
+`5c97510b7`, established by `git log -S 'showLinkNotice'` returning exactly that one commit for both
+routes. `report.md` now carries the correction alongside the original line rather than a silent
+edit.*
 
 ## Checklist
 
-- [ ] The defect as filed is the real defect: a published link names a company, and following it opens something else without saying so.
-- [ ] Filing it is the right response to a routed finding nobody received. The routing out of Feature 027 was correct and it went nowhere, which is why this packet exists.
-- [ ] The two-halves finding is understood as the substantive addition. Copying the precedent's one-line swap would look like a fix and would change nothing a reader can see, because these routes read no subject parameter at all.
-- [ ] The silence is understood as the reason this is worth filing rather than noting. A link that broke loudly would have been found the day it shipped.
-- [ ] The half-migrated state is understood as a second, independent reason to close this. Two conventions are live and neither is marked provisional, so the next route to publish a subject link has an even chance of copying the dead one.
-- [ ] Widening `F027_SUBJECT_ROUTES` is understood as part of the remedy, not an optional extra. Landing the code fix without it leaves the same blind spot for the next route.
-- [ ] The coupled test at `tests/technical-analysis-decision-lab.spec.mjs:922` is understood as part of the fix surface, not collateral damage.
-- [ ] Deciding the unhonourable-subject outcome is **your** decision, not the filing agent's. That the packet enumerates the cases and selects none is the intended outcome, not an incomplete one.
-- [ ] Open question 4 in `design.md` deserves an answer first, because a "no" makes the whole receiving half unnecessary and shrinks the remedy substantially.
-- [ ] Not adding a selftest assertion in this packet is understood as correct. An assertion that fails on a known-open defect turns the suite red for work nobody is yet authorised to do.
+- [x] The defect as filed is the real defect: a published link names a company, and following it opens something else without saying so.
+- [x] Filing it is the right response to a routed finding nobody received. The routing out of Feature 027 was correct and it went nowhere, which is why this packet exists.
+- [x] The two-halves finding is understood as the substantive addition. Copying the precedent's one-line swap would look like a fix and would change nothing a reader can see, because these routes read no subject parameter at all.
+- [x] The silence is understood as the reason this is worth filing rather than noting. A link that broke loudly would have been found the day it shipped.
+- [x] The half-migrated state is understood as a second, independent reason to close this. Two conventions are live and neither is marked provisional, so the next route to publish a subject link has an even chance of copying the dead one.
+- [x] Widening `F027_SUBJECT_ROUTES` is understood as part of the remedy, not an optional extra. Landing the code fix without it leaves the same blind spot for the next route.
+- [x] The coupled test at `tests/technical-analysis-decision-lab.spec.mjs:922` is understood as part of the fix surface, not collateral damage.
+- [x] Deciding the unhonourable-subject outcome is **your** decision, not the filing agent's. That the packet enumerates the cases and selects none is the intended outcome, not an incomplete one.
+- [x] Open question 4 in `design.md` deserves an answer first, because a "no" makes the whole receiving half unnecessary and shrinks the remedy substantially.
+- [x] Not adding a selftest assertion in this packet is understood as correct. An assertion that fails on a known-open defect turns the suite red for work nobody is yet authorised to do.
+
+Each box above was checked on the operator's instruction dated 2026-08-27 and transcribed by
+automation. Several of these items are decision requests addressed to the operator; checking them
+records that the operator accepted the framing, not that automation judged it correct.
 
 ## Human Acceptance Record
 
-Acceptance has not occurred and cannot occur yet. This packet delivers no behaviour to exercise; it
-delivers a defect description, an executed grounding for it, and a decision request. Automation
-cannot fill this section and nothing above substitutes for it.
+The repository operator granted acceptance as a batch directive during the working session of
+2026-08-27/28. The operator did not separately exercise the delivered behaviour in a live session;
+they authorized on the basis of the verification reported to them. That is exactly why the method
+below is `external-record` rather than `human-interactive` — the accepting act happened in the
+session, outside this file, and the operator's dated directive **is** the record. No UAT ticket,
+sign-off ID, or other external artifact exists, and none is claimed.
 
-- acceptedBy: [unfilled]
-- acceptedAt: [unfilled]
-- method: [unfilled]
+- acceptedBy: pkirsanov
+- acceptedAt: 2026-08-27
+- method: external-record
+- record: Operator directive in the 2026-08-27/28 working session, quoted verbatim — "authorized, approved, update all user validations as approved" and "Don't stop for user review, commit, continue, user approves all". Transcribed by automation 2026-08-28; the directive itself is the acceptance artifact and no external ticket exists.

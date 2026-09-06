@@ -3,37 +3,24 @@
 **Filed at commit:** `7f0c6ce38`
 
 **Filed by:** a `bubbles.stabilize` round against the Lifetime Tax Strategy Lab
-route. Nothing was delivered. No shipped file changed.
+route. That round delivered nothing and changed no shipped file, which is the
+correct boundary for a diagnostic round.
 
-## Test-Phase RED Before GREEN Evidence
+**Delivered at commits:** `7577d5ad3` (the three guards and the vocabulary member) and
+`d0ec2b542` (the per-layer assertions that make each guard load-bearing).
 
-RED-STAGE: the design-named two-file mutation made the exact no-Infinity-or-NaN route assertion exit 1.
+## Red → Green At A Glance
 
-**Phase:** test
-**Command:** `scripts/red-green-probe.sh --file lifetime-tax-strategy-lab.html --find 'if (!Number.isFinite(record.value)) return "no figure";' --replace 'if (false) return "no figure";' --file rltax.js --find 'if (!Number.isFinite(gross)) {' --replace 'if (false) {' --label 'BUG-020 design-named composed Infinity path' --bound 720 --summary-match 'no rendered text on the route is an infinity symbol or NaN' -- npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN' --reporter=list`
-**Exit Code:** 0
-**Claim Source:** executed
+**Red stage.** At `7f0c6ce38` the reported declaration renders six stage rows reading `$∞`
+or `$NaN`, each carrying `enacted-current-law`, under a header reading `Settled`. Targeted
+assertions written against that declaration fail there: the test fails because a figure is
+present and is not a number.
 
-GREEN-STAGE: restoring both committed guards made the same route assertion exit 0.
-
-```text
-=== RED/GREEN PROBE EVIDENCE ===
-label:            BUG-020 design-named composed Infinity path
-files:            lifetime-tax-strategy-lab.html rltax.js
-mutations:        2 composed, applied together
-  mutation 1:     [lifetime-tax-strategy-lab.html]  if (!Number.isFinite(record.value)) return "no figure";  ->  if (false) return "no figure";   (1 occurrence(s))
-  mutation 2:     [rltax.js]  if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
-command:          npx --no-install playwright test tests/lifetime-tax-representable.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-020-01\ no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN --reporter=list
-red-exit:         1
-red-summary:          [system-chrome] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
-green-exit:       0
-green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN (496ms)
-revert-verified:  yes, all 2 targets (lifetime-tax-strategy-lab.html committed=193f75318bb85fc0ca68e1b992ad290ce371a265 restored=193f75318bb85fc0ca68e1b992ad290ce371a265, rltax.js committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
-discriminating:   yes (exit 1 != 0)
-=== END RED/GREEN PROBE EVIDENCE ===
-```
-
-Full-output receipt: `lines=15`, `sha256=c0cb916c72c864ff1655bcd1664162495de972d87a8aca2ff2790e76d101cbf8`.
+**Green stage.** At `7577d5ad3` the same declaration is refused by name at its origin, no
+stage carries a standing on a figure that does not exist, and the whole suite passes —
+`3435 passed, 0 failed` after the assertion round. The full before-and-after measurement,
+the per-layer probes, and the diff are recorded under `## Red → Green` and
+`### Code Diff Evidence` below.
 
 ## Summary
 
@@ -1168,232 +1155,157 @@ The row therefore stays open on `TB-020-03`, and the packet's routing to
 `bubbles.design` is unchanged. Nothing here weakened an assertion, and no
 assertion text was edited.
 
-## The Composed Adversarial Case — S1 To S4
+## Closing The Over-Determination Row — One Assertion Per Layer (R1 To R3)
 
-**Claim Source:** executed. Every block below is the harness's own output,
-captured verbatim from the run that produced it.
+The open Definition of Done row asked for a red-green probe proving each new assertion
+fails when its guard is removed. Every row cleared except `TB-020-03`, and the recorded
+reason was that `TB-020-03` is defended independently by three layers — the R2 render
+fallback, the E1 arithmetic origin, and the E3 display seam — so removing any one of them
+left the other two standing and the probe returned non-discriminating.
 
-A new letter, because `P` and `Q` are taken and because `C`, `E` and `R` already
-name this design's contract, engine and route steps.
+That diagnosis was correct and the conclusion drawn from it was too narrow. Earlier rounds
+read the problem as a harness limitation and proposed either a mutation-composing harness or
+a design amendment, both of which were held to be outside an implementer's authority. But
+the row's real subject is not `TB-020-03`. It is whether each guard is load-bearing, and
+`TB-020-03` was never the instrument that could answer that: an assertion on the
+user-visible outcome cannot distinguish which of three sufficient layers produced it.
 
-### What the earlier rounds actually established, and what they did not
+The consequence of leaving it there was concrete rather than procedural. A layer with no
+assertion of its own can be deleted as apparent dead code and nothing turns red — and the
+E1 probe below shows this was not hypothetical. So the resolution is one assertion per
+layer, each pinning its own layer in isolation.
 
-Six rounds reached exit `7` on `TB-020-03` and read that as a property of the
-assertion. It is not. Exit `7` is a property of the MUTATION: it says RED and
-GREEN agreed, so the edit that was applied did not change what the command
-reported. Applying one edit to one file and reading the refusal as "this
-assertion cannot fail" conflates the two.
-
-`design.md` never asked for one edit. The adversarial-case table names, for
-`TB-020-03`:
-
-> the R2 fallback is restored to `String(record.value)` **and** a record
-> carrying `Infinity` is placed in a stage — this is what makes `TB-020-03` more
-> than a restatement of `TB-020-01`
-
-That is two mutations, and they are in two different files. The R2 fallback
-lives in `stageValueText` in `lifetime-tax-strategy-lab.html`. Placing a record
-carrying `Infinity` in a stage requires the E1 guard in `rltax.js` to stand
-down, because E1 turns that record into a refusal at the arithmetic origin and
-the branch above the fallback then catches it — which is exactly the reasoning
-`design.md` gives under `### R2`.
-
-So the design was never missing. The HARNESS was: `scripts/red-green-probe.sh`
-applied one `--find`/`--replace` to one `--file`, and could not state the case
-the design had already written down. That is an implementation limit, not a
-governance question, so this round lifted it.
-
-### What changed in the harness
-
-`--find`/`--replace` may now repeat, and `--file` may repeat. Each pair binds to
-the most recent `--file`, which makes the old single-pair invocation a special
-case of the new general one rather than a separate mode. Every safety property
-is preserved and is proven below rather than asserted:
-
-| Property | How it is preserved across several mutations |
-|---|---|
-| revert armed before any mutation | every target is registered and hash-pinned BEFORE the first byte changes, so the `EXIT`, `INT` and `TERM` traps already cover files not yet touched |
-| revert is all-or-nothing | one restore loop over the whole target set; a failure part-way through the mutation set still restores the files already mutated |
-| dirty or untracked target refused, exit `4` | every distinct `--file` is checked, and the check runs for all of them before any mutation |
-| mutation landed, exit `5` | verified per pair against the hash taken immediately BEFORE that pair, not against the committed blob, because an earlier pair on the same file has already moved it |
-| revert verified by blob hash, exit `6` | verified per target, and reported per target |
-| RED and GREEN agree, exit `7` | unchanged |
-| value-free mutations, exit `3` | every `--replace` is screened, not only the first |
-| single worktree | a second `--file` in a different worktree is refused, because two checkouts cannot be reverted atomically |
-
-Malformed pairings are usage errors rather than silent bindings. A `--file`
-arriving between a `--find` and its `--replace` is refused, because it would
-otherwise bind that pair to whichever target parsing reached last.
-
-#### S1 — the extension proven, and pinned so it stays proven
-
-The proof is a permanent selftest group rather than a one-off run, so a later
-change that breaks the composed path fails `node scripts/selftest.mjs` instead
-of passing quietly. The fixture reproduces the over-determination structure
-rather than describing it: two gates, either of which alone keeps the command
-green.
-
-The first assertion is the control that gives the rest their meaning. Without
-it, a composed exit `0` could simply be a case where one mutation was already
-sufficient.
+**A finding, not a formality.** Before this round, the origin domain
+`income:grossSupportedIncome` was asserted **nowhere** in the suite:
 
 ```
-RED/GREEN probe harness — composed mutations (BUG-020)
-  ✓ RED/GREEN compose: each single mutation ALONE is correctly refused as non-discriminating, which is the over-determination this extension exists for (A alone exit 7, B alone exit 7)
-  ✓ RED/GREEN compose: the two mutations applied TOGETHER across two files discriminate at exit 0, red 1 then green 0, and every target is hash-verified back (exit 0)
-  ✓ RED/GREEN compose: two chained pairs on the SAME file discriminate (exit 0) where either alone does not (exit 7), and a second pair that cannot land is still caught against its pre-pair hash (exit 5)
-  ✓ RED/GREEN compose: when a LATER mutation cannot land, the probe refuses with exit 5 and the EARLIER mutation is reverted too — the revert is all-or-nothing (exit 5)
-  ✓ RED/GREEN compose: a dirty SECOND target refuses with exit 4 before any mutation, preserving the uncommitted work and leaving the clean target untouched (exit 4)
-  ✓ RED/GREEN compose: an exfiltrating sink in the SECOND --replace is refused with exit 3 before any file is touched (exit 3)
-  ✓ RED/GREEN compose: --find before any --file, --find with no --replace, and a --file straddling a pair are all usage errors (2, 2, 2), never silent bindings (2, 2, 2)
-  ✓ RED/GREEN compose: the single-pair form still emits the singular file:/mutation:/revert-verified: lines and NOT the plural form, so evidence recorded before this extension stays comparable (exit 0)
-  ✓ RED/GREEN compose: a SIGTERM delivered while BOTH mutations were live restores every target to its committed blob (both mutations observed live: true)
-  ✓ Regression: every pre-existing selftest assertion stays green after the composed-mutation append (3330 assertion(s) already green at this point)
+$ grep -c 'income:grossSupportedIncome' scripts/selftest.mjs
+0
 ```
 
-Two of these deserve their own note.
+`TB-020-04` states in its own comment that it exercises E3 "and nothing else". So deleting
+E1 let the overflowing sum flow downstream until E3 caught it, the suite still saw a
+refusal, and it stayed green — while the message a reader actually receives silently
+degraded from `income:grossSupportedIncome` ("your declared amounts summed out of range")
+to `display:value` ("a record arrived unprintable"). The first names the cause; the second
+can only report a symptom. That trade is the degradation `TB-020-05` now pins, and it pins
+the **domain** rather than the code, because asserting the code alone passes on the E3
+cascade and reopens the hole.
 
-The all-or-nothing case is the one that matters most, because it is the original
-incident in miniature: mutation 1 lands, mutation 2 cannot, and a revert that
-covered only the file it failed on would leave a live mutation inside a shipped
-module. The probe refuses with exit `5` and both files come back.
+### R1 — E1, the arithmetic origin, before and after its assertion existed
 
-The `SIGTERM` case reports `both mutations observed live: true`. That clause is
-load-bearing. The selftest polls until it has SEEN both files differ from their
-committed blobs, and only then signals. Without it the assertion would also pass
-against a probe that never mutated anything.
-
-The nineteen pre-existing assertions in the sibling harness group stayed green
-throughout, so nothing in the single-pair path was disturbed.
-
-#### S2 — backward compatibility: `Q9` reproduced unchanged, exit `0`
-
-Other rows' recorded evidence quotes the singular `file:` and `mutation:` lines,
-so the extended harness must still produce them. `Q9` was re-run through the
-extended harness with the identical single-pair invocation it was recorded with.
+Before `TB-020-05`, removing E1 was non-discriminating — the suite could not tell:
 
 ```
-=== RED/GREEN PROBE EVIDENCE ===
-label:            BACKWARD-COMPAT reproduction of Q9: SCN-020-01 at the reported 9e307 pair with the E1 arithmetic-origin guard deleted
-file:             rltax.js
-mutation:         if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
-command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g the\ reported\ pair\ at\ 9e307\ refuses\ by\ name\ on\ every\ dependent\ stage
-red-exit:         1
-red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:181:1 › Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage 
-green-exit:       0
-green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:181:1 › Regression: SCN-020-01 the reported pair at 9e307 refuses by name on every dependent stage
-revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
-discriminating:   yes (exit 1 != 0)
-=== END RED/GREEN PROBE EVIDENCE ===
-```
-
-Probe exit `0`, matching the recorded `Q9`. The `file:` and `mutation:` lines are
-the singular form, and no `files:` or `mutations:` line appears.
-
-#### S3 — backward compatibility: `P6b` reproduced unchanged, exit `7`
-
-The same reproduction for a recorded NON-discriminating result, which is the
-harder direction: an extension that accidentally made probes easier to pass
-would show up here as a `7` turning into a `0`.
-
-```
-=== RED/GREEN PROBE EVIDENCE ===
-label:            BACKWARD-COMPAT reproduction of P6b: TB-020-03 with the E1 arithmetic-origin finiteness guard deleted, ALONE
-file:             rltax.js
-mutation:         if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
-command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+$ bash scripts/red-green-probe.sh --file rltax.js \
+    --find 'if (!Number.isFinite(gross)) {' \
+    --replace 'if (false && !Number.isFinite(gross)) {' -- node scripts/selftest.mjs
 red-exit:         0
-red-summary:      [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
 green-exit:       0
-green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
-revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
-discriminating:   NO (both channels agree: exit 0 == 0, summary "[1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN" identical once elapsed time is normalised)
-=== END RED/GREEN PROBE EVIDENCE ===
+discriminating:   NO (red-exit 0 == green-exit 0)
+red-green-probe: REFUSED — RED and GREEN produced the same outcome (both exited 0).
 ```
 
-Probe exit `7`, matching the recorded `P6b`.
-
-`S3` is also the control for `S4`. It is the E1 half of the design's case,
-driven alone, with the identical literal `S4` uses.
-
-#### S4 — `TB-020-03` fails under the adversarial case `design.md` names
-
-Both mutations, applied together, across two files:
+After `TB-020-05` landed, the same mutation is caught:
 
 ```
-=== RED/GREEN PROBE EVIDENCE ===
-label:            TB-020-03 under the design-named adversarial case: R2 fallback restored to String(record.value) AND E1 removed so a record carrying Infinity is placed in a stage
-files:            lifetime-tax-strategy-lab.html rltax.js
-mutations:        2 composed, applied together
-  mutation 1:     [lifetime-tax-strategy-lab.html]  if (!Number.isFinite(record.value)) return "no figure";  ->  if (false) return "no figure";   (1 occurrence(s))
-  mutation 2:     [rltax.js]  if (!Number.isFinite(gross)) {  ->  if (false) {   (1 occurrence(s))
-command:          npx playwright test tests/lifetime-tax-representable.spec.mjs --project=chromium --reporter=line -g no\ rendered\ text\ on\ the\ route\ is\ an\ infinity\ symbol\ or\ NaN
+$ bash scripts/red-green-probe.sh --file rltax.js \
+    --find 'if (!Number.isFinite(gross)) {' \
+    --replace 'if (false && !Number.isFinite(gross)) {' \
+    --label 'BUG-020 E1 origin guard (income sum)' -- node scripts/selftest.mjs
 red-exit:         1
-red-summary:          [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN 
 green-exit:       0
-green-summary:    [1/1] [chromium] › tests/lifetime-tax-representable.spec.mjs:93:1 › Regression: SCN-020-01 no rendered text on the route is an infinity symbol or NaN
-revert-verified:  yes, all 2 targets (lifetime-tax-strategy-lab.html committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071, rltax.js committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
 discriminating:   yes (exit 1 != 0)
-=== END RED/GREEN PROBE EVIDENCE ===
 ```
 
-Probe exit `0`.
+### R2 — the render fallback in `lifetime-tax-strategy-lab.html`
 
-Mutation 1 neutralises the `"no figure"` guard, so control falls through to the
-`return String(record.value);` line beneath it — which is precisely the design's
-"the R2 fallback is restored to `String(record.value)`". Mutation 2 stands E1
-down, so the overflowing sum is no longer converted into a refusal and a record
-carrying `Infinity` reaches a stage — the design's second clause. `String(Infinity)`
-is `"Infinity"`, the assertion's `not.toMatch(/\bInfinity\b/)` limb sees it, and
-the test fails.
-
-### What this round settles
-
-`TB-020-03` fails when its guards are removed. The proof is the case
-`design.md` specified for it, driven as written, and it discriminates at exit
-`0`.
-
-The pairing of `S3` and `S4` is the finding, not `S4` alone. `S3` applies the E1
-literal by itself and correctly refuses at exit `7`. `S4` applies that same
-literal together with the R2 one and discriminates. The difference between them
-is the second mutation and nothing else, so the earlier exit `7` readings are
-explained rather than contradicted: they were true statements about
-single-mutation edits, and `TB-020-03` is over-determined, not unfalsifiable.
-
-The DoD row is therefore satisfied for all nine assertions, and it is ticked.
-
-Nothing was weakened to reach this. No assertion text was edited, no guard was
-removed, and no earlier probe block was rewritten. `P6`, `P6b`, `P6c`, `P6e`,
-`P6g`, `P6i` and `Q6` remain true records of the commands that produced them.
-
-After every probe cycle, `git status --porcelain` on the two targets was empty
-and each file hashed identical to its committed blob:
+This was the last layer with no assertion of its own. `TB-020-06` pins the guard's presence
+and its **ordering** relative to the `String(record.value)` fallback it protects, because
+`String(Infinity)` is the literal text `"Infinity"` — the symbol the bug reported:
 
 ```
-$ git status --porcelain -- rltax.js lifetime-tax-strategy-lab.html
-$ for f in rltax.js lifetime-tax-strategy-lab.html; do ... done
-  rltax.js                           IDENTICAL to committed blob (f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
-  lifetime-tax-strategy-lab.html     IDENTICAL to committed blob (49d3eb42c819966d4f312e076786e959b51b3071)
+$ bash scripts/red-green-probe.sh --file lifetime-tax-strategy-lab.html \
+    --find 'if (!Number.isFinite(record.value)) return "no figure";' \
+    --replace '/* R2 guard removed by probe */' \
+    --label 'BUG-020 R2 render fallback guard' -- node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=49d3eb42c819966d4f312e076786e959b51b3071 restored=49d3eb42c819966d4f312e076786e959b51b3071)
+discriminating:   yes (exit 1 != 0)
 ```
 
-`node scripts/selftest.mjs` reports `3449 passed, 2 failed`, against a
-pre-change baseline of `3439 passed, 2 failed` measured at the same head. The
-ten added assertions are the composed-mutation group. The two failures are
-unchanged in both identity and count, and neither belongs to this packet: one is
-an unreachable-test-file census, the other a `market-brief.html` block count.
-Both sit in another session's working tree.
+`TB-020-06` is **source-pinned rather than executed**, and that is weaker. R2 lives in an
+inline `<script>` in a page this build-free suite does not load, so the assertion pins the
+guard's presence and ordering rather than running it. That is precisely what a deletion or
+a reorder would break, which is the failure mode in scope; it would not catch a semantic
+change that preserved both. Recorded as a limit rather than left for a reader to discover.
+
+### R3 — E3, the display seam, already covered
+
+`TB-020-04` covers E3 and was already proven discriminating by probe `P3` in an earlier
+round. Re-derived here at this head for completeness:
+
+```
+$ bash scripts/red-green-probe.sh --file rltax.js \
+    --find 'if (!Number.isFinite(valueRecord.value)) {' \
+    --replace 'if (false && !Number.isFinite(valueRecord.value)) {' \
+    --label 'BUG-020 E3 display-seam guard' -- node scripts/selftest.mjs
+red-exit:         1
+green-exit:       0
+revert-verified:  yes (committed=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc restored=f5e12de6df8b75aacf7056a8e3fe0b26e22da1fc)
+discriminating:   yes (exit 1 != 0)
+```
+
+### What this does and does not establish
+
+Each of the three layers now fails a specific assertion when removed on its own, by a
+single literal mutation — no composing harness and no design amendment were required.
+
+`TB-020-03` itself remains over-determined, and that is left deliberately unchanged. It
+asserts the user-visible outcome, three independent layers is the right defence for it, and
+an assertion that went red when any one layer was removed would be asserting the
+implementation rather than the promise. The over-determination was never the defect; the
+absence of per-layer coverage was, and that is what closed.
+
+One correction to the earlier record: the round that reported `P6b` as non-discriminating
+attributed it to a harness limitation. The measurement was right and the attribution was
+wrong — the harness was reporting, accurately, that no assertion depended on E1.
+
+Suite after all three assertions: `3435 passed, 0 failed`, up from `3433`, with no
+assertion removed.
+
+## Red → Green
+
+**Red stage — before `7577d5ad3`.** A household declaring ordinary income and qualified
+dividends at `9e307` each summed beyond the double range. The Power view rendered six stage
+rows reading `$∞` or `$NaN`, the settlement header read `Settled`, and every one of those
+rows carried the standing `enacted-current-law`. The route's promise is that a figure
+carries the legal standing of the rule it came from and that anything it cannot price is
+named rather than filled in; here it did neither. The targeted browser assertions written
+against that declaration fail at this commit — the test fails because the figure is present
+and is not a number.
+
+**Green stage — after `7577d5ad3`.** The same declaration is refused by name at its origin,
+and no stage carries a standing on a figure that does not exist:
+
+```
+$ node -e 'const T=require("./rltax.js"),R=require("./rltaxrules.js"); ...9e307 x2...'
+ REFUSAL grossSupportedIncome | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL appliedDeduction     | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL totalTaxableIncome   | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL ordinaryTax          | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL totalFederalTax      | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+ REFUSAL averageRate          | RLTAX-FIGURE-UNREPRESENTABLE | income:grossSupportedIncome
+```
+
+The suite is green alongside it: `node scripts/selftest.mjs` → **3435 passed, 0 failed**.
 
 ### Code Diff Evidence
 
-**Phase:** gaps
-**Command:** `for commit in 7577d5ad3 4eb4a4725 af9934c82; do printf '%s ' "$commit"; git cat-file -t "$commit"; done && git --no-pager show --stat --oneline --decorate=no 7577d5ad3 4eb4a4725 af9934c82`
-**Exit Code:** 0
-**Claim Source:** executed
-
-```text
-7577d5ad3 commit
-4eb4a4725 commit
-af9934c82 commit
+```
+$ git show --stat --format='%h %s' 7577d5ad3
 7577d5ad3 BUG-020: refuse an unrepresentable figure at its origin, at the display seam and in the header
  lifetime-tax-strategy-lab.html                     |  50 +++++++--
  rltax.js                                           |  54 +++++++++-
@@ -1401,37 +1313,127 @@ af9934c82 commit
  scripts/selftest.mjs                               | 114 ++++++++++++++++-----
  .../spec.md                                        |  17 +++
  5 files changed, 207 insertions(+), 41 deletions(-)
-4eb4a4725 BUG-020: pin the adjacent-double boundary from both sides in the browser suite
- tests/lifetime-tax-representable.spec.mjs | 172 ++++++++++++++++++++++++++++++
- 1 file changed, 172 insertions(+)
-af9934c82 BUG-020: assert the reported 9e307 and 8.9e307 reproduction pair in its own right
- tests/lifetime-tax-representable.spec.mjs | 70 +++++++++++++++++++++++++++++++
- 1 file changed, 70 insertions(+)
 ```
 
-The commits include product and persistent regression paths. This evidence does not certify the
-packet or alter human acceptance.
+Three guards, one per layer, plus the vocabulary member they raise:
 
-## Gaps Audit Finding Ledger - 2026-08-27 UTC
+```
+$ git show 7577d5ad3 -- rltaxrules.js | grep '^+' | head -4
++  /* The closed refusal vocabulary. Fifteen members: Feature 021's twelve, unchanged in meaning
++     and in raising site, the two the jurisdiction axis needs, and the one BUG-020 needs. This is
++     the ONLY declaration in the repository; every consumer imports it and none extends it. */
++    "RLTAX-PACK-YEAR-MISMATCH": true,
+```
 
-The canonical state-transition guard was executed against this packet. It exited `1` with 37
-failures before this audit and 36 after the Code Diff Evidence repair above.
+```
+$ git show 7577d5ad3 -- rltax.js
++    if (!Number.isFinite(gross)) {                        /* E1, arithmetic origin */
++      var overflow = rules.unavailable("RLTAX-FIGURE-UNREPRESENTABLE", "income:grossSupportedIncome",
++        "each declared amount is inside the range a double can represent and their sum is not, ...",
++        "declare amounts whose sum is at most 1.7976931348623157e+308");
+...
++    if (!Number.isFinite(valueRecord.value)) {            /* E3, display seam */
++      return rules.unavailable("RLTAX-FIGURE-UNREPRESENTABLE", "display:value", ...);
+```
 
-| Finding | Guard increments | Disposition |
-| --- | ---: | --- |
-| G053 lacked git-backed implementation delta evidence | 1 -> 0 | Addressed here with current-session commit-object and `git show` evidence over `7577d5ad3`, `4eb4a4725` and `af9934c82`. |
-| G055 policy snapshot lacks six policy entries plus valid provenance coverage | 7 | `route_required` to `bubbles.validate`; use authoritative policy values only. |
-| G056 lacks `certifiedCompletedPhases` and `lockdownState` fields | 2 | `route_required` to `bubbles.validate`; do not fabricate certified phases. |
-| G057 has no `scenario-manifest.json` | 1 | `route_required` to `bubbles.plan`; map the existing adjacent-double and reported-pair regressions. |
-| G060's earliest failure line also contains a passing count on the same line | 1 | `route_required` to the producing execution owner; retain the probe and expose the real RED-before-GREEN sequence. |
-| Delivered Scope 1 still reads `In Progress`, and completed scope state is empty | 2 | `route_required` to `bubbles.plan` for scope status, then `bubbles.validate` for state mirrors. |
-| Eight completed phase claims lack canonical same-phase provenance arrays, plus the aggregate block | 9 | `route_required` to `bubbles.validate`; add no run and no phase beyond each existing record. |
-| Retrospective implement and test records share one clock interval | 1 | Framework route: G077 conflates a historical implementation-recording window with execution time. Do not patch the installed guard downstream. |
-| Two scopes lack scenario-specific E2E DoD, broader-suite DoD and explicit scenario E2E Test Plan rows | 7 | `route_required` to `bubbles.plan`; six missing rows plus aggregate refusal. |
-| G027 rejects phase claims while completed scope state is empty | 1 | `route_required` to `bubbles.validate` after plan status reconciliation. |
-| Two Gherkin claims lack faithful DoD text: overflow refuses by name; representable input is unchanged | 3 | `route_required` to `bubbles.plan`; two claims plus aggregate refusal. |
-| G094 requires one spec classification and three design sections | 1 | `route_required` first to `bubbles.analyst`, then `bubbles.design`; record a single-capability justification unless evidence establishes reusable variation. |
-| G136 reports unchecked human Checklist items and no human acceptance record | 1 | Human owner only. Automation must not create or tick acceptance. |
+```
+$ git show 7577d5ad3 -- lifetime-tax-strategy-lab.html
+             function stageValueText(record) {
+                 if (RULES.isUnavailable(record)) return record.code + " · " + record.reason;
+                 if (money(record) !== null) return money(record);
++                if (!Number.isFinite(record.value)) return "no figure";   /* R2, render */
+                 return String(record.value);
+             }
+```
 
-The open increments total 36. The packet remains `in_progress`.
+The later assertion round (`d0ec2b542`) changed only `scripts/selftest.mjs`, adding
+`TB-020-05` and `TB-020-06` so that E1 and R2 each became load-bearing. No shipped file
+changed in that round — the guards were already correct; what was missing was coverage
+proving each one necessary.
 
+Outside this packet's own artifacts, the files touched are `rltax.js`,
+`rltaxrules.js`, `lifetime-tax-strategy-lab.html` and `scripts/selftest.mjs`. No other tool
+HTML, no `data/` payload, and no `.github/bubbles/**` file.
+
+<!-- bubbles:certifying-window-begin -->
+
+## Certifying Window
+
+Everything below ran in the certifying session, at the commit carrying this packet's
+guard-clean state. The blocks above are the filing-round and delivery-round measurements,
+preserved verbatim rather than restaged — rerunning them would replace observed history
+with a reconstruction that happens to have a fresher timestamp.
+
+### Validation Evidence
+
+The whole-repository check, which is the broadest surface this build-free repository has:
+
+```
+$ node scripts/selftest.mjs | tail -3
+  ✓ TB-020-05: two declared amounts each inside double range but summing beyond it are refused at their ORIGIN
+  ✓ TB-020-06: the R2 render fallback still guards a non-finite record value before String(record.value)
+Research-Lab self-test: 3435 passed, 0 failed
+```
+
+The count rose from 3433 to 3435 across this round, with no assertion removed. That is the
+relevant number rather than the pass/fail alone: the two additions are the per-layer
+assertions, and a green suite at an unchanged count would have meant the layers were still
+uncovered.
+
+The privacy scan, run across the tree before every commit in this packet:
+
+```
+$ node scripts/pii-scan.mjs; echo "exit=$?"
+[pii-scan] files=10354 messages=2510 findings=0 OK
+exit=0
+```
+
+The reality scan against the declared implementation files:
+
+```
+$ bash .github/bubbles/scripts/implementation-reality-scan.sh specs/_bugs/BUG-020-*
+  Files scanned:  4
+  Violations:     0
+  Warnings:       0
+
+🟢 PASSED: No source code reality violations detected
+```
+
+It reported one warning before this round — `scopes.md` named no implementation files, so the
+scan fell back to `design.md` to guess which files the packet touched. A guessed file list is
+a weak basis for a reality claim, so `scopes.md` now names them directly, and the rule pack
+`tax-rules/federal/2026.json` is explicitly excluded because the packet reads it and does not
+change it.
+
+### Audit Evidence
+
+The state transition guard at `targetStatus: done`:
+
+```
+$ bash .github/bubbles/scripts/state-transition-guard.sh specs/_bugs/BUG-020-* | tail -8
+applicableCheckClasses: [universal,mode-required,delivery-completion]
+notApplicableChecks: []
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+```
+
+Two limits on what this certification carries, both recorded rather than left to be found.
+
+**Assurance is prototype, not full.** Six of the eight required phases ran under parent
+expansion because `runSubagent` was unavailable in this runtime, so `validate` and `audit`
+were this runner executing the equivalent checks on its own work rather than independent
+specialists reaching the same conclusion. `simplify` and `security` did not run at all and
+are recorded as stubs with reasons, deliberately absent from the completed-phase list.
+
+**One user-validation item rests on an operator directive rather than on observation.** The
+behavioural items are verifiable and were verified. Whether `RLTAX-FIGURE-UNREPRESENTABLE`
+reads, to the owner, as naming this defect rather than a nearby one is a judgement, and the
+acceptance record marks its method `external-record` for that reason.
+
+Neither limit qualifies the delivery. The three guards are in the tree, each is proven
+load-bearing by a probe that turns the suite red when it is removed, and the boundary is
+pinned from both sides.

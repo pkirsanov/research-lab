@@ -1,0 +1,995 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "version": 1,
+  "featureDir": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-08-30T08:36:14Z",
+  "stage": "post-scope-4-delivery-evidence-reconciliation",
+  "stageNote": "The first ten entries preserve the historical scenario links and evidence already recorded for Scopes 1 through 3. SCN-BUG-018-011 through SCN-BUG-018-014 record delivered Scope 4 tests and link to the existing Scope 4 execution evidence in report.md. This reconciliation adds no new implementation claim, specialist phase, or certification.",
+  "scenarioCount": 14,
+  "businessScenarioMapping": "None. This is a bug packet descended from F-CHAOS-025-01. SCN-BUG-018-001 through SCN-BUG-018-003 belong to Scope 1, SCN-BUG-018-004 through SCN-BUG-018-008 belong to Scope 2, SCN-BUG-018-009 through SCN-BUG-018-010 belong to Scope 3, and SCN-BUG-018-011 through SCN-BUG-018-014 belong to Scope 4.",
+  "scenarios": [
+    {
+      "id": "SCN-BUG-018-001",
+      "scenarioId": "SCN-BUG-018-001",
+      "businessScenario": null,
+      "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
+      "scope": 1,
+      "title": "Applying a new subject from a settled page",
+      "gherkin": {
+        "given": "the route has settled on a subject with data-corpus-status loaded",
+        "when": "the operator applies a different subject and the body is sampled in the same task as the click handler",
+        "then": "data-corpus-status reads pending and does not read loaded"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "return-time-ordering",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "return-time-ordering",
+          "requiredProof": "Sample data-corpus-status in the same production click task, before a microtask, paint, or corpus response can replace the synchronous apply state.",
+          "satisfiedBy": [
+            "ordering:at-return",
+            "ordering:sentinel",
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The unresolved subject is named pending rather than inheriting the previous subject's loaded value.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#applySubject",
+        "company-intelligence-lab.html#setBodyState"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it"
+        }
+      ],
+      "testRows": [
+        "Scope 1 / Scenario-specific regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#the-regression-case-fails-before-the-change-for-the-attribute-reason",
+        "report.md#the-same-case-passes-after-the-change"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "internal-state",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html"
+        ],
+        "negativeControl": "The unfixed route is exercised with the same browser case and returns loaded from the previous subject where pending is required.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-002",
+      "scenarioId": "SCN-BUG-018-002",
+      "businessScenario": null,
+      "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
+      "scope": 1,
+      "title": "The attribute recovers when that subject's corpus resolves",
+      "gherkin": {
+        "given": "a subject has just been applied and its corpus is in flight",
+        "when": "the corpus resolves",
+        "then": "data-corpus-status reads loaded or unavailable"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "dependency-path",
+          "requiredProof": "After the held same-origin corpus request is released, the production route leaves pending and reports loaded or unavailable for the current subject.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#applySubject",
+        "company-intelligence-lab.html#loadCorpus",
+        "company-intelligence-lab.html#setBodyState"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it"
+        }
+      ],
+      "testRows": [
+        "Scope 1 / Scenario-specific regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#the-same-case-passes-after-the-change"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "internal-state",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html"
+        ],
+        "negativeControl": "The request is held long enough to establish pending before release; failure to apply the resolved corpus leaves the attribute pending and fails the bounded assertion.",
+        "negativeControlMechanism": "adversarial-input"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-003",
+      "scenarioId": "SCN-BUG-018-003",
+      "businessScenario": null,
+      "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
+      "scope": 1,
+      "title": "A refused entry does not reset the attribute for the standing subject",
+      "gherkin": {
+        "given": "the route has settled on a subject with data-corpus-status loaded",
+        "when": "the operator enters a value the route refuses",
+        "then": "the standing subject's corpus state is not misreported as pending"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Both committed refusal shapes leave the standing subject's settled corpus state unchanged instead of manufacturing pending state.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#applySubject",
+        "company-intelligence-lab.html#renderRefusal",
+        "company-intelligence-lab.html#setBodyState"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it"
+        }
+      ],
+      "testRows": [
+        "Scope 1 / Scenario-specific regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#the-same-case-passes-after-the-change"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "internal-state",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js"
+        ],
+        "negativeControl": "A valid replacement subject enters pending, while each refused value must preserve the pre-refusal corpus status; conflating those paths fails one side of the paired assertion.",
+        "negativeControlMechanism": "adversarial-input"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-004",
+      "scenarioId": "SCN-BUG-018-004",
+      "businessScenario": null,
+      "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
+      "scope": 2,
+      "title": "The pending window does not print a settled absence count",
+      "gherkin": {
+        "given": "a matching committed-corpus request has entered a deterministic hold",
+        "when": "the route reaches its first composed paint for a deep-linked subject",
+        "then": "the cockpit does not assert a definite count of dimensions with no usable source"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route's visible coverage line does not match the settled absence grammar while the corpus request is held.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The pending claim is named not-established and does not publish a numeric unavailable count as a plausible settled value.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The same-origin corpus request is observed and held before the pending paint is sampled, so the test proves the unresolved boundary rather than an empty shell.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#render",
+        "company-intelligence-lab.html#setBodyState",
+        "rlcompanyintel.js#buildCoverageAccount"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+        }
+      ],
+      "testRows": [
+        "Scope 2 / SCN-BUG-018-004 scenario-specific regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#the-new-case-fails-without-the-fix-for-the-copy-reason",
+        "report.md#the-same-case-passes-against-the-corrected-route"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js"
+        ],
+        "negativeControl": "Removing only the pending coverage-line guard restores the settled absence sentence and fails the unchanged visible-copy assertion.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-005",
+      "scenarioId": "SCN-BUG-018-005",
+      "businessScenario": null,
+      "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
+      "scope": 2,
+      "title": "The pending window is visible without inspecting an attribute",
+      "gherkin": {
+        "given": "a matching committed-corpus request has entered a deterministic hold",
+        "when": "the rendered body text is scanned on the composed paint",
+        "then": "readiness wording is present and that wording is absent once the corpus resolves"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Rendered body text names that the route is waiting for the committed corpus, without requiring attribute inspection.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Pending copy is explicit and disappears after resolution, so it cannot masquerade as permanent settled copy.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The assertion spans the held and released states of the same real same-origin corpus request on one page.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#render",
+        "company-intelligence-lab.html#loadCorpus",
+        "rlcompanyintel.js#buildCoverageAccount"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+        }
+      ],
+      "testRows": [
+        "Scope 2 / SCN-BUG-018-005 scenario-specific regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#the-same-case-passes-against-the-corrected-route"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js"
+        ],
+        "negativeControl": "Permanent readiness wording fails the settled half, while absent readiness wording fails the held half of the same browser case.",
+        "negativeControlMechanism": "adversarial-input"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-006",
+      "scenarioId": "SCN-BUG-018-006",
+      "businessScenario": null,
+      "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
+      "scope": 2,
+      "title": "Horizon directions are not asserted against an unresolved corpus",
+      "gherkin": {
+        "given": "a matching committed-corpus request has entered a deterministic hold",
+        "when": "the horizon cards are read on the composed paint",
+        "then": "no card presents a settled direction as a finding"
+      },
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "All four visible horizon cards carry readable not-established summaries rather than settled directions.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Direction, evidence quality, and horizon readiness each carry not-established while the corpus is unresolved.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The cards are sampled only after a committed corpus request is confirmed held and before that same boundary is released.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#renderHorizonCards",
+        "company-intelligence-lab.html#render",
+        "rlcompanyintel.js#buildCoverageAccount"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+        }
+      ],
+      "testRows": [
+        "Scope 2 / SCN-BUG-018-006 scenario-specific regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#the-same-case-passes-against-the-corrected-route"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js"
+        ],
+        "negativeControl": "Restoring a pending none or absent horizon value fails the per-card direction, quality, and readiness assertions.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-007",
+      "scenarioId": "SCN-BUG-018-007",
+      "businessScenario": null,
+      "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
+      "scope": 2,
+      "title": "The settled reading is unchanged",
+      "gherkin": {
+        "given": "the corpus has resolved for the covered subject",
+        "when": "the settled cockpit and horizon cards are read",
+        "then": "the cockpit states 13 of 15 mandatory dimensions have no usable source and three of the four horizons carry a direction"
+      },
+      "behaviorClass": "ui",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The settled production route still shows 13 of 15, with event, immediate, and swing directional and structural at none.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The assertion is made after the held same-origin corpus request is released and the route reports established readiness.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#render",
+        "company-intelligence-lab.html#renderHorizonCards",
+        "rlcompanyintel.js#buildCoverageAccount"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+        }
+      ],
+      "testRows": [
+        "Scope 2 / SCN-BUG-018-007 scenario-specific regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#the-same-case-passes-against-the-corrected-route"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js"
+        ],
+        "negativeControl": "Changing the settled count or any member of the expected directional horizon set fails the same-page settled assertions.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-008",
+      "scenarioId": "SCN-BUG-018-008",
+      "businessScenario": null,
+      "scopeId": "02-stop-asserting-absence-the-route-has-not-established",
+      "scope": 2,
+      "title": "A corpus that resolves to unavailable is still a settled reading",
+      "gherkin": {
+        "given": "every committed corpus request fails",
+        "when": "the corpus state resolves to unavailable",
+        "then": "the reading is presented as settled and not as perpetually pending"
+      },
+      "behaviorClass": "ui",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route remains a readable composed cockpit after every committed source is unavailable.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Coverage rows name unavailable data instead of remaining pending, blank, or numeric zero.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The browser case fails every committed source request and observes the resulting production-route state.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#loadCorpus",
+        "company-intelligence-lab.html#corpusReadiness",
+        "company-intelligence-lab.html#render",
+        "rlcompanyintel.js#buildCoverageAccount"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Stabilize: every committed source unavailable degrades to a named absence, not a blank or a zero"
+        }
+      ],
+      "testRows": [
+        "Scope 2 / SCN-BUG-018-008 scenario-specific regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#the-offline-first-paint-the-guarantee-option-b-was-most-at-risk-of-breaking"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js"
+        ],
+        "negativeControl": "Treating unavailable as unresolved leaves readiness pending or withholds the settled unavailable rows, which fails the outage assertions.",
+        "negativeControlMechanism": "adversarial-input"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-009",
+      "scenarioId": "SCN-BUG-018-009",
+      "businessScenario": null,
+      "scopeId": "03-close-the-structural-test-gap",
+      "scope": 3,
+      "title": "A test samples the composed paint before the corpus resolves",
+      "gherkin": {
+        "given": "a test that does not enter through the settled-state fixture",
+        "when": "it holds the committed corpus and samples the composed paint",
+        "then": "it asserts the copy on that paint is not a settled absence claim"
+      },
+      "behaviorClass": "ui",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The persistent browser case asserts the production route's visible coverage copy during the unresolved paint.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The case asserts named not-established state rather than accepting a settled absence or an empty shell.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "A committed corpus request is observed held before the composed paint is sampled, and the settled-state fixture is not used to enter the scenario.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#render",
+        "company-intelligence-lab.html#setBodyState",
+        "rlcompanyintel.js#buildCoverageAccount"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+        }
+      ],
+      "testRows": [
+        "Scope 3 / Scenario-specific regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#the-new-case-fails-without-the-fix-for-the-copy-reason",
+        "report.md#the-same-case-passes-against-the-corrected-route"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js"
+        ],
+        "negativeControl": "The pre-fix route and the corrected route with only the pending coverage guard removed both fail the unchanged copy assertion.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-010",
+      "scenarioId": "SCN-BUG-018-010",
+      "businessScenario": null,
+      "scopeId": "03-close-the-structural-test-gap",
+      "scope": 3,
+      "title": "The new case detects a reintroduction",
+      "gherkin": {
+        "given": "the corrected route",
+        "when": "the pre-corpus guard is removed",
+        "then": "the new case fails"
+      },
+      "behaviorClass": "ui",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The unchanged browser assertion fails on the visible settled-absence sentence when the pending coverage guard is removed.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The failure names the exact settled grammar received during unresolved state rather than timing out or failing a setup assertion.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#render",
+        "rlcompanyintel.js#buildCoverageAccount"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 scope 2 the composed paint states no absence the corpus has not established"
+        }
+      ],
+      "testRows": [
+        "Scope 3 / Adversarial regression E2E"
+      ],
+      "evidenceRefs": [
+        "report.md#and-it-fails-again-with-only-the-guard-removed-on-the-otherwise-corrected-route"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "visible-ui",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js"
+        ],
+        "negativeControl": "A bounded mutation removes only the cockpit pending guard and produces the original settled absence sentence, causing the exact visible-copy assertion to fail.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-011",
+      "scenarioId": "SCN-BUG-018-011",
+      "businessScenario": null,
+      "scopeId": "04-enforce-the-shared-rldata-publication-trust-boundary",
+      "scope": 4,
+      "title": "A pending company reading is withheld from the ordinary channel",
+      "gherkin": {
+        "given": "observation of the ordinary shared tool-read channel begins before route navigation and a matching committed-corpus request has entered a deterministic hold",
+        "when": "the route paints a composed account whose readiness is not-established",
+        "then": "no new rl-tool-read/v1 record for that not-established account is published"
+      },
+      "behaviorClass": "data-integrity",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "mutable-state",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Observe the persisted ordinary tool-read channel before navigation, after request entry, and before release; the channel identity or publication sequence must show that the not-established paint produced no new write.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The unresolved account is withheld rather than encoded as an ordinary settled read with none or absent values.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "A matching same-origin corpus request must signal entry and remain blocked on the held request-entry gate until its release signal while the channel assertion is sampled.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#compose",
+        "rlcompanyintel.js#buildToolReadObject",
+        "rlcompanyintel.js#publishToolRead",
+        "rldata.js#putToolRead"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 pending readiness is withheld from the ordinary RLDATA tool-read channel"
+        }
+      ],
+      "testRows": [
+        "Scope 4 / Scenario-specific regression E2E — pending channel"
+      ],
+      "evidenceRefs": [
+        "report.md#scope-4-pending-publication",
+        "report.md#scope-4-red-green"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js",
+          "rldata.js"
+        ],
+        "negativeControl": "Removing only the company publisher readiness guard writes a new ordinary record during the held not-established paint and fails the unchanged channel assertion.",
+        "negativeControlMechanism": "mutation"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-012",
+      "scenarioId": "SCN-BUG-018-012",
+      "businessScenario": null,
+      "scopeId": "04-enforce-the-shared-rldata-publication-trust-boundary",
+      "scope": 4,
+      "title": "A loaded company reading publishes after settlement",
+      "gherkin": {
+        "given": "the pending account has not been published to the ordinary channel",
+        "when": "the held corpus request is released and the account settles as loaded",
+        "then": "the ordinary channel contains an rl-tool-read/v1 record for the established settled reading"
+      },
+      "behaviorClass": "data-integrity",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "mutable-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "After release and established readiness, read the company key through production RLDATA and prove its exact nine-key rl-tool-read/v1 record carries the settled account rather than the pending paint.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The same same-origin request observed at entry is explicitly released before the established predicate and publication are asserted.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#compose",
+        "rlcompanyintel.js#buildToolReadObject",
+        "rlcompanyintel.js#publishToolRead",
+        "rldata.js#putToolRead"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 settled readiness publishes to the ordinary RLDATA tool-read channel"
+        }
+      ],
+      "testRows": [
+        "Scope 4 / Scenario-specific regression E2E — loaded settlement"
+      ],
+      "evidenceRefs": [
+        "report.md#scope-4-loaded-publication",
+        "report.md#scope-4-red-green"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js",
+          "rldata.js"
+        ],
+        "negativeControl": "Keeping the publisher suppressed after readiness becomes established leaves the channel sequence unchanged and fails the required settled-publication assertion.",
+        "negativeControlMechanism": "perturbed-input"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-013",
+      "scenarioId": "SCN-BUG-018-013",
+      "businessScenario": null,
+      "scopeId": "04-enforce-the-shared-rldata-publication-trust-boundary",
+      "scope": 4,
+      "title": "An unavailable company reading is settled and still publishes",
+      "gherkin": {
+        "given": "the real ephemeral static server reports every committed corpus source unavailable",
+        "when": "the account settles with unavailable corpus status and established readiness",
+        "then": "the ordinary channel contains an rl-tool-read/v1 record for the established unavailable account and the route does not remain permanently withheld"
+      },
+      "behaviorClass": "data-integrity",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "mutable-state",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "After unavailable settlement, read the company key through production RLDATA and prove its exact nine-key rl-tool-read/v1 record represents the settled unavailable account.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Unavailable is represented as an honest settled outcome and is not conflated with not-established or silently dropped.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The browser runs against the real ephemeral static server's missing-source path, awaits unavailable corpus status plus established readiness, and only then asserts publication.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "company-intelligence-lab.html#loadCorpus",
+        "company-intelligence-lab.html#compose",
+        "rlcompanyintel.js#buildToolReadObject",
+        "rlcompanyintel.js#publishToolRead",
+        "rldata.js#putToolRead"
+      ],
+      "linkedTests": [
+        {
+          "file": "tests/company-intelligence-lab.spec.mjs",
+          "testId": "Regression: BUG-018 unavailable settlement remains publishable on the ordinary RLDATA tool-read channel"
+        }
+      ],
+      "testRows": [
+        "Scope 4 / Scenario-specific regression E2E — unavailable settlement"
+      ],
+      "evidenceRefs": [
+        "report.md#scope-4-unavailable-publication",
+        "report.md#scope-4-red-green"
+      ],
+      "testMechanism": {
+        "entrypoint": "production-route",
+        "inputOrigin": "recorded-fixture",
+        "assertionSurface": "persisted-state",
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html",
+          "rlcompanyintel.js",
+          "rldata.js"
+        ],
+        "negativeControl": "Treating unavailable as still pending produces no settled ordinary record and fails the required post-settlement channel assertion.",
+        "negativeControlMechanism": "adversarial-input"
+      }
+    },
+    {
+      "id": "SCN-BUG-018-014",
+      "scenarioId": "SCN-BUG-018-014",
+      "businessScenario": null,
+      "scopeId": "04-enforce-the-shared-rldata-publication-trust-boundary",
+      "scope": 4,
+      "title": "Browser-test provenance distinguishes pass-through fault injection",
+      "gherkin": {
+        "given": "ordinary route cases and annotated hold or delay cases share one browser test file",
+        "when": "that file documents its request boundary",
+        "then": "it identifies annotated cases as pass-through interception using the real response and does not claim the whole file has no request interception"
+      },
+      "behaviorClass": "static-metadata",
+      "changeType": "fixed",
+      "requiredTestType": "functional",
+      "regressionRequired": true,
+      "lockdown": false,
+      "behaviorTraits": [
+        "static-metadata"
+      ],
+      "obligations": [
+        {
+          "trait": "static-metadata",
+          "requiredProof": "An artifact assertion rejects the blanket no-interception sentence and accepts count-independent wording that distinguishes ordinary real-response cases from annotated pass-through hold or delay regions.",
+          "satisfiedBy": [
+            "scripts/selftest.mjs#BUG-018 test provenance distinguishes ordinary traffic from annotated pass-through fault injection"
+          ]
+        }
+      ],
+      "implementationRefs": [
+        "tests/company-intelligence-lab.spec.mjs"
+      ],
+      "linkedTests": [
+        {
+          "file": "scripts/selftest.mjs",
+          "testId": "BUG-018 test provenance distinguishes ordinary traffic from annotated pass-through fault injection"
+        }
+      ],
+      "testRows": [
+        "Scope 4 / Scenario-specific functional regression — test provenance"
+      ],
+      "evidenceRefs": [
+        "report.md#scope-4-selftest",
+        "report.md#scope-4-provenance",
+        "report.md#scope-4-red-green"
+      ],
+      "testMechanism": {
+        "entrypoint": "public-function",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "returned-value",
+        "dependencyPath": "not-applicable",
+        "productionOwners": [
+          "tests/company-intelligence-lab.spec.mjs",
+          "scripts/selftest.mjs"
+        ],
+        "negativeControl": "Restoring the stale blanket no-request-interception sentence causes the artifact assertion to fail while accurate count-independent pass-through wording remains accepted.",
+        "negativeControlMechanism": "adversarial-input"
+      }
+    }
+  ]
+}

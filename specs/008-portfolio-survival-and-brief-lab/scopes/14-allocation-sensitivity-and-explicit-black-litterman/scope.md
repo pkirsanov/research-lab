@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Done
+**Status:** In Progress
 
 **Scope-Kind:** runtime-behavior
 
@@ -94,6 +94,10 @@ Author independent posterior/sensitivity identities, trial counts, mutation isol
 | TP-14-07 | Broader Regression E2E | e2e-ui | SCN-008-026 through SCN-008-030 | `tests/portfolio-survival-allocation.spec.mjs` | Execute the complete cumulative Feature 008 Allocation browser suite after every Scope 14 focused row | `npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-14-07` |
 
 ### Definition of Done
+
+- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
 
 #### Core Delivery Items
 

@@ -10,6 +10,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 GC="$SCRIPT_DIR/goal-contract.sh"
+G082_GUARD="$SCRIPT_DIR/convergence-cap-guard.sh"
 BOUNDARY_RESOLVER="$SCRIPT_DIR/work-boundary-resolve.sh"
 SCHEMA="$REPO_ROOT/bubbles/schemas/goal-contract.schema.json"
 
@@ -53,6 +54,38 @@ freeze_default() {
     --session-id vscode-abc123 \
     --repository-alias bubbles \
     ${1+"$@"}
+}
+
+# add_authority_mirror <dir> <session-id>
+# Adds the complete local actionable repository context required to use a Goal
+# Contract as convergence-attempt authority. The Goal Contract command remains
+# responsible for validating that provenance agrees with this trusted context.
+add_authority_mirror() {
+  local d="$1" session_id="$2"
+  local temporary_file="$d/session.authorized.json"
+  mkdir -p "$d/specs/038-goal-fidelity"
+  jq --arg root "$d" --arg session "$session_id" '
+    .repositoryBindingMirror = {
+      repositoryRoot: $root,
+      repositoryAlias: "bubbles",
+      repositoryResolution: {
+        sessionId: $session,
+        decisionId: ("rb:" + $session + ":1"),
+        controlRevision: 1,
+        controlPathDigest: "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        authority: "concrete-target",
+        transition: "established",
+        scopeKind: "command",
+        scopeId: null,
+        targetKind: "absolute-target",
+        pathVisibility: "local",
+        actionable: true
+      },
+      mirroredControlRevision: 1,
+      mirroredAt: "2026-08-30T00:00:00Z"
+    }
+  ' "$d/session.json" > "$temporary_file"
+  mv "$temporary_file" "$d/session.json"
 }
 
 # expect_rc <label> <expected-rc> <command...>
@@ -854,6 +887,174 @@ if [[ "$t41_ver" == "goal-contract/v1" && "$t41_has" == "false" && "$t41_note" =
   pass "T41 a freeze with no semantic flag stays v1 and keeps the exact v1 note format"
 else
   fail "T41 v1 compatibility (version='$t41_ver', hasSemantic='$t41_has', note='$t41_note')"
+fi
+
+# ── BUG-037 Scope 1: complete authorization, not identity-core shape ──────
+
+d42="$(new_case t42-authorized-attempt)"
+freeze_default "$d42" >/dev/null 2>&1
+add_authority_mirror "$d42" vscode-abc123
+if bash "$GC" authorize-attempt --session-file "$d42/session.json" \
+    --repository-root "$d42" --spec-dir specs/038-goal-fidelity \
+    > "$d42/attempt.json" 2> "$d42/attempt.err"; then
+  if [[ "$(jq -r '[keys_unsorted[]] | sort | join(",")' "$d42/attempt.json")" == "goalId,revision,sourceRequestDigest,specDir" ]] \
+     && [[ "$(jq -r '.specDir' "$d42/attempt.json")" == "specs/038-goal-fidelity" ]] \
+     && [[ "$(jq -r '.goalId' "$d42/attempt.json")" == "gc:vscode-abc123:1" ]]; then
+    pass "T42 a complete v1 contract plus matching repository authority emits only physical spec identity and the stable goal core"
+  else
+    fail "T42 authorize-attempt emitted the wrong projection: $(cat "$d42/attempt.json")"
+  fi
+else
+  fail "T42 complete v1 authorize-attempt failed: $(cat "$d42/attempt.err")"
+fi
+
+d43="$(new_case t43-core-only)"
+freeze_default "$d43" >/dev/null 2>&1
+add_authority_mirror "$d43" vscode-abc123
+jq '.goalContract |= {goalId, revision, sourceRequestDigest}' "$d43/session.json" \
+  > "$d43/session.core.json"
+mv "$d43/session.core.json" "$d43/session.json"
+expect_rc "T43 a three-field core cannot authorize convergence" 1 \
+  bash "$GC" authorize-attempt --session-file "$d43/session.json" \
+    --repository-root "$d43" --spec-dir specs/038-goal-fidelity
+
+d44="$(new_case t44-pending)"
+freeze_default "$d44" >/dev/null 2>&1
+bash "$GC" revise --session-file "$d44/session.json" \
+  --approval-note "request expansion" --intent "pending expanded intent" >/dev/null 2>&1
+add_authority_mirror "$d44" vscode-abc123
+jq '.goalContract.approval = {
+      state: "pending-expansion",
+      approvedAt: null,
+      approvalNote: "awaiting operator approval"
+    }' "$d44/session.json" > "$d44/session.pending.json"
+mv "$d44/session.pending.json" "$d44/session.json"
+expect_rc "T44 pending-expansion remains a structurally valid stored contract" 0 \
+  bash "$GC" verify --session-file "$d44/session.json"
+expect_rc "T44b pending-expansion cannot authorize convergence" 1 \
+  bash "$GC" authorize-attempt --session-file "$d44/session.json" \
+    --repository-root "$d44" --spec-dir specs/038-goal-fidelity
+
+d45="$(new_case t45-chain)"
+freeze_default "$d45" >/dev/null 2>&1
+bash "$GC" revise --session-file "$d45/session.json" \
+  --approval-note "approved revision" --intent "approved revision two" >/dev/null 2>&1
+add_authority_mirror "$d45" vscode-abc123
+jq '.goalContract.supersedes = "gc:vscode-abc123:0"' "$d45/session.json" \
+  > "$d45/session.chain.json"
+mv "$d45/session.chain.json" "$d45/session.json"
+expect_rc "T45 a later revision must name its immediate predecessor" 1 \
+  bash "$GC" verify --session-file "$d45/session.json"
+expect_rc "T45b a broken revision chain cannot authorize convergence" 1 \
+  bash "$GC" authorize-attempt --session-file "$d45/session.json" \
+    --repository-root "$d45" --spec-dir specs/038-goal-fidelity
+
+d46="$(new_case t46-v2-authority)"
+freeze_semantic "$d46" sess46 --execution-shape reusable-capability \
+  --allow-change-class new-shared-library --delta-budget maxNewFiles=2 >/dev/null 2>&1
+add_authority_mirror "$d46" sess46
+mkdir -p "$d46/specs/041-x"
+expect_rc "T46 a complete v2 contract remains valid attempt authority" 0 \
+  bash "$GC" authorize-attempt --session-file "$d46/session.json" \
+    --repository-root "$d46" --spec-dir specs/041-x
+
+if python3 -c 'import jsonschema' >/dev/null 2>&1; then
+  bash "$GC" ref --session-file "$d42/session.json" > "$d42/ref-v1.json" 2>/dev/null
+  bash "$GC" ref --session-file "$d46/session.json" > "$d46/ref-v2.json" 2>/dev/null
+  if validate_as goalRef "$d42/ref-v1.json" && validate_as goalRef "$d46/ref-v2.json"; then
+    pass "T47 goalRef schema compatibility accepts both sanctioned v1 and v2 transition payloads"
+  else
+    fail "T47 goalRef schema rejected a sanctioned v1 or v2 transition payload"
+  fi
+
+  jq '.approval = {
+        state: "operator-approved",
+        approvedAt: "2026-08-30T00:00:00Z",
+        approvalNote: "invalid revision-one approval"
+      }' "$d42/attempt.json" >/dev/null 2>&1 || true
+  jq '.goalContract.approval = {
+        state: "operator-approved",
+        approvedAt: "2026-08-30T00:00:00Z",
+        approvalNote: "invalid revision-one approval"
+      }' "$d42/session.json" > "$d42/schema-bad-r1.json"
+  jq '.goalContract' "$d42/schema-bad-r1.json" > "$d42/schema-bad-r1-contract.json"
+  if validate_as goalContract "$d42/schema-bad-r1-contract.json"; then
+    fail "T47b schema accepted operator-approved metadata on revision one"
+  else
+    pass "T47b schema rejects operator-approved metadata on revision one"
+  fi
+
+  jq '.goalContract | .schemaVersion = "goal-contract/v2"' "$d42/session.json" \
+    > "$d42/schema-v2-no-semantic.json"
+  if validate_as goalContract "$d42/schema-v2-no-semantic.json"; then
+    fail "T47c schema accepted v2 without semanticBoundary"
+  else
+    pass "T47c schema requires semanticBoundary for v2"
+  fi
+
+  # The schema and executable validator consume the same provenance corpus.
+  # Unsafe identifiers must not validate declaratively and then fail only when
+  # the contract becomes convergence authority.
+  for provenance_case in runner sessionId repositoryAlias; do
+    case "$provenance_case" in
+      runner)
+        jq '.goalContract.provenance.runner = "bubbles goal"' "$d42/session.json" \
+          > "$d42/schema-bad-provenance-session.json"
+        ;;
+      sessionId)
+        jq '.goalContract.provenance.sessionId = "vscode:unsafe"' "$d42/session.json" \
+          > "$d42/schema-bad-provenance-session.json"
+        ;;
+      repositoryAlias)
+        jq '.goalContract.provenance.repositoryAlias = "bubbles source"' "$d42/session.json" \
+          > "$d42/schema-bad-provenance-session.json"
+        ;;
+    esac
+    jq '.goalContract' "$d42/schema-bad-provenance-session.json" \
+      > "$d42/schema-bad-provenance-contract.json"
+    if validate_as goalContract "$d42/schema-bad-provenance-contract.json"; then
+      fail "T47d schema accepted unsafe provenance.$provenance_case"
+    else
+      pass "T47d schema rejects unsafe provenance.$provenance_case"
+    fi
+    expect_rc "T47e executable validator rejects unsafe provenance.$provenance_case" 1 \
+      bash "$GC" verify --session-file "$d42/schema-bad-provenance-session.json"
+  done
+else
+  skip "T47 schema authorization and goalRef compatibility (python3 jsonschema not installed)"
+fi
+
+# T48 — every Goal lifecycle command rejects an existing non-object session
+# root through the shared object reader. A valid JSON scalar is malformed state,
+# not an absent contract and not an object that freeze may repair.
+d48="$(new_case t48-object-root)"
+printf '%s\n' 'null' > "$d48/session.json"
+cp "$d48/session.json" "$d48/session.before"
+expect_rc "T48 read rejects a non-object session root through shared validation" 1 \
+  bash "$GC" read --session-file "$d48/session.json"
+expect_rc "T48b freeze rejects a non-object session root instead of repairing it" 1 \
+  freeze_default "$d48"
+if cmp -s "$d48/session.before" "$d48/session.json"; then
+  pass "T48c rejected Goal Contract operations preserve the malformed prior bytes"
+else
+  fail "T48c a rejected Goal Contract operation changed the prior session bytes"
+fi
+
+# T49 — Goal Contract and G082 expose one shared authorized-attempt resolver.
+# Neither consumer may retain a private contract/core validator that can drift
+# back to three-field shape checks.
+private_validator_hits="$(grep -nE '^[[:space:]]*(contract_violations|valid_core)\(\)|def valid_core:' \
+  "$GC" "$G082_GUARD" || true)"
+if [[ -z "$private_validator_hits" ]]; then
+  pass "T49 Goal Contract and G082 contain no private contract/core validator"
+else
+  fail "T49 private contract/core validator remains: $private_validator_hits"
+fi
+if grep -q 'session_state_authorized_attempt' "$GC" \
+   && grep -q 'session_state_authorized_attempt' "$G082_GUARD"; then
+  pass "T49b Goal Contract and G082 both consume the shared authorized-attempt resolver"
+else
+  fail "T49b one authority consumer bypasses session_state_authorized_attempt"
 fi
 
 echo

@@ -208,6 +208,24 @@ SCN-008-050 executes through `tests/portfolio-analytics.unit.mjs`,
 `tests/portfolio-survival-allocation.spec.mjs`. The live rows use the real fixture-overlay server with no request
 interception or DOM injection.
 
+The receipt below repeats the exact command, exit code, and result line of the three carriers that execute
+SCN-008-050, already recorded per row under Test Evidence in this report. No new execution is claimed here.
+
+```text
+# SCN-008-050 carriers — 3 of 3 executed, 0 failed, 0 skipped
+$ node --test tests/portfolio-analytics.unit.mjs
+exit: 0
+# tests 102   # pass 102   # fail 0   # skipped 0
+$ node --test tests/portfolio-allocation.functional.mjs
+exit: 0
+# tests 6   # pass 6   # fail 0   # skipped 0
+$ npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+	PASS SCN-008-050 six real methods enforce one complete basis and explicit views
+	PASS SCN-008-050 infeasible constraints remain visible and explicit posterior changes allocation
+	15 passed (27.8s)
+```
+
 ## Coverage Report
 
 Unit coverage exercises basis validation, projection, all six interfaces, ERC/KKT identities, BL equilibrium and
@@ -229,6 +247,27 @@ trials, solver/cost/path/survival rendering, no-winner copy, and mobile/table pa
 - Artifact lint: exit 0 with `Artifact lint PASSED`.
 - Canonical focused traceability: exit 0 with 50 scenarios, 184 test rows, 50 report evidence references, and zero warnings.
 
+The receipt below repeats the exit codes and result lines of the quality commands listed immediately above,
+together with the declared-matrix result already recorded under Test Evidence. No new execution is claimed here.
+
+```text
+$ node scripts/build-pages-site.mjs --dry-run
+exit: 0
+registeredPages: 28   rootFiles: 121
+$ node scripts/validate-spec-test-paths.mjs
+exit: 0
+new missing paths: 0
+$ git diff --check
+exit: 0
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/008-portfolio-survival-and-brief-lab
+exit: 0
+Artifact lint PASSED
+$ node scripts/selftest.mjs
+exit: 0
+Research-Lab self-test: 3245 passed, 0 failed
+RESULT: PASSED (0 warnings)
+```
+
 ## Shared Infrastructure And Rollback Evidence
 
 - All six candidates carry one basis fingerprint and one ordered common-path set. The exact browser row asserts one
@@ -239,6 +278,22 @@ trials, solver/cost/path/survival rendering, no-winner copy, and mobile/table pa
 	clear resets expected returns, benchmark, views, and sensitivity alongside other controller-derived personal state.
 - Scope 21 risk, Scope 22 paths, and Scope 23 diversification remain separate consumers; no formula was copied into
 	the route.
+
+The canary behind the one-fingerprint and no-regression claims above is the complete Allocation browser carrier
+and the repository selftest, both already recorded under Test Evidence in this report. Their receipts are
+repeated here so this section carries its own evidence; no new execution is claimed.
+
+```text
+$ npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+	PASS SCN-008-026 all six allocation methods share one frozen basis
+	PASS allocation rows preserve mobile canvas/table parity and infeasible states
+	PASS all four dossier and claim-boundary regressions
+	15 passed (27.8s)
+$ node scripts/selftest.mjs
+exit: 0
+Research-Lab self-test: 3245 passed, 0 failed
+```
 
 ## Spot-Check Recommendations
 

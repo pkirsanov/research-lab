@@ -9,8 +9,9 @@ set -euo pipefail
 # for a whole goal/sprint SESSION. It is the AGGREGATE sibling of Gate
 # G082 (`convergence-cap-guard.sh`):
 #
-#   * G082 caps convergence iterations PER (specDir, agent) — a per-spec
-#     ceiling read from `bubbles/workflows.yaml` `maxConvergenceIterations`.
+#   * G082 caps convergence iterations PER authorized Goal Contract attempt and
+#     canonical spec — a per-attempt ceiling read from `bubbles/workflows.yaml`
+#     `maxConvergenceIterations`.
 #   * G128 (this gate) caps the AGGREGATE usage across the WHOLE session —
 #     every spec, every agent — read from a `sessionBudget` object recorded
 #     in `.specify/memory/bubbles.session.json`.
@@ -18,7 +19,7 @@ set -euo pipefail
 # The active budget is whatever the running session recorded under
 # `sessionBudget` in the session file. Its three dimensions are:
 #
-#   maxTotalConvergenceIterations  aggregate sum of `convergenceLoops[].iterationCount`
+#   maxTotalConvergenceIterations  aggregate effective count across attempts
 #   maxWallClockMinutes            earliest → latest `turnSnapshots[].timestamp`, in minutes
 #   maxToolCalls                   aggregate `toolCallCount` counter
 #
@@ -83,7 +84,8 @@ set -euo pipefail
 #       "maxWallClockMinutes":           <int|null>,
 #       "maxToolCalls":                  <int|null>
 #     },
-#     "convergenceLoops": [ { "iterationCount": <int>, ... }, ... ],
+#     "convergenceLoops": [ { "specDir": <path>, "goalRef": <identity|null>,
+#                              "iterationCount": <int>, ... }, ... ],
 #     "turnSnapshots":    [ { "timestamp": "<RFC3339>", ... }, ... ],
 #     "toolCallCount":    <int>
 #   }
@@ -115,6 +117,24 @@ set -euo pipefail
 
 QUIET="false"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SESSION_STATE_LIB="$SCRIPT_DIR/session-state-lib.sh"
+
+if [[ ! -f "$SESSION_STATE_LIB" ]]; then
+  echo "session-cap-guard: shared session-state library not found: $SESSION_STATE_LIB" >&2
+  exit 2
+fi
+# shellcheck source=./session-state-lib.sh
+source "$SESSION_STATE_LIB"
+
+SESSION_CAP_TEMP_DIR=""
+cleanup_session_cap_snapshots() {
+  if [[ -n "$SESSION_CAP_TEMP_DIR" && -d "$SESSION_CAP_TEMP_DIR" ]]; then
+    rm -rf "$SESSION_CAP_TEMP_DIR"
+  fi
+}
+trap cleanup_session_cap_snapshots EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # The soft boundary. Deliberately a single number: a per-dimension threshold
 # would let the noisiest dimension pick its own warning point, and the whole
@@ -218,30 +238,47 @@ if [[ ! -f "$SESSION_FILE" ]]; then
   exit 0
 fi
 
-# --- Validate session.json is parseable JSON -----------------------------
+# --- Read and normalize one immutable session snapshot -------------------
 
-if ! jq empty "$SESSION_FILE" >/dev/null 2>&1; then
-  echo "session-cap-guard: $SESSION_FILE is not valid JSON" >&2
+umask 077
+SESSION_CAP_TEMP_DIR="$(mktemp -d "${TMPDIR:-/tmp}/bubbles-session-cap.XXXXXX")" || {
+  echo "session-cap-guard: could not create a private session snapshot directory" >&2
+  exit 2
+}
+SESSION_SNAPSHOT="$SESSION_CAP_TEMP_DIR/session.json"
+NORMALIZED_CONVERGENCE="$SESSION_CAP_TEMP_DIR/convergence.json"
+
+if ! session_state_read_object "$SESSION_FILE" refuse "$SESSION_SNAPSHOT"; then
+  echo "session-cap-guard: $SESSION_FILE is not valid session object state" >&2
+  exit 2
+fi
+if ! session_state_validate_convergence "$SESSION_SNAPSHOT" "$REPO_ROOT" "$NORMALIZED_CONVERGENCE"; then
+  echo "session-cap-guard: inconsistent convergence attempt state: shared validation refused" >&2
   exit 2
 fi
 
 # --- No-op unless a sessionBudget object is present ----------------------
 
-if ! jq -e '.sessionBudget != null' "$SESSION_FILE" >/dev/null 2>&1; then
+if ! jq -e '.sessionBudget != null' "$SESSION_SNAPSHOT" >/dev/null 2>&1; then
   info "no sessionBudget recorded in $SESSION_FILE; nothing to enforce"
   echo "PASS Gate G128 (session_cap_enforcement_gate) — no sessionBudget recorded"
   exit 0
 fi
+if ! jq -e '.sessionBudget | type == "object"' "$SESSION_SNAPSHOT" >/dev/null 2>&1; then
+  session_state_diagnostic session-cap-guard REFUSED SESSION_BUDGET_INVALID \
+    message "sessionBudget must be an object when present" sessionFile "$SESSION_FILE" >&2
+  exit 2
+fi
 
 # --- Extract the raw caps ("null" when absent) ---------------------------
 
-CAP_CONV="$(jq -r '.sessionBudget.maxTotalConvergenceIterations // "null"' "$SESSION_FILE")"
-CAP_MINS="$(jq -r '.sessionBudget.maxWallClockMinutes // "null"' "$SESSION_FILE")"
-CAP_TOOLS="$(jq -r '.sessionBudget.maxToolCalls // "null"' "$SESSION_FILE")"
-CAP_SINGLE_BYTES="$(jq -r '.sessionBudget.maxSingleToolResultBytes // "null"' "$SESSION_FILE")"
-CAP_CUM_BYTES="$(jq -r '.sessionBudget.maxCumulativeToolResultBytes // "null"' "$SESSION_FILE")"
-CAP_REQ_TOKENS="$(jq -r '.sessionBudget.maxPromptTokensPerRequest // "null"' "$SESSION_FILE")"
-CAP_CUM_TOKENS="$(jq -r '.sessionBudget.maxCumulativePromptTokens // "null"' "$SESSION_FILE")"
+CAP_CONV="$(jq -r '.sessionBudget.maxTotalConvergenceIterations // "null"' "$SESSION_SNAPSHOT")"
+CAP_MINS="$(jq -r '.sessionBudget.maxWallClockMinutes // "null"' "$SESSION_SNAPSHOT")"
+CAP_TOOLS="$(jq -r '.sessionBudget.maxToolCalls // "null"' "$SESSION_SNAPSHOT")"
+CAP_SINGLE_BYTES="$(jq -r '.sessionBudget.maxSingleToolResultBytes // "null"' "$SESSION_SNAPSHOT")"
+CAP_CUM_BYTES="$(jq -r '.sessionBudget.maxCumulativeToolResultBytes // "null"' "$SESSION_SNAPSHOT")"
+CAP_REQ_TOKENS="$(jq -r '.sessionBudget.maxPromptTokensPerRequest // "null"' "$SESSION_SNAPSHOT")"
+CAP_CUM_TOKENS="$(jq -r '.sessionBudget.maxCumulativePromptTokens // "null"' "$SESSION_SNAPSHOT")"
 
 # All caps null/absent → no-op (the default for every existing repo).
 if [[ "$CAP_CONV" == "null" && "$CAP_MINS" == "null" && "$CAP_TOOLS" == "null" &&
@@ -275,20 +312,37 @@ validate_cap "maxCumulativePromptTokens" "$CAP_CUM_TOKENS"
 
 # --- Compute the aggregate usage across ALL specs in one jq pass ---------
 #
+# Identity-bearing records are grouped by canonical specDir plus the complete
+# Goal Contract identity core. One attempt contributes its maximum summary
+# count, so compatible pre-upgrade per-agent duplicates cannot be double-counted.
+# Distinct goal revisions remain distinct and all contribute. Identity-free
+# legacy records retain their historical singleton accounting and each
+# contributes once. A malformed identity-bearing record fails closed rather
+# than being discarded or treated as a fresh attempt.
+#
 # Timestamps are parsed with jq's `fromdateiso8601`, NOT the system `date`,
 # so wall-clock math is identical on GNU (WSL/Linux) and BSD (macOS)
-# userland. Non-numeric convergence entries are coerced to 0 rather than
-# crashing jq; the final integer validations below still catch a malformed
-# aggregate.
+# userland.
 
-AGG_JSON="$(jq -c '
-  {
-    convObserved: (
-      (.convergenceLoops // [])
-      | map(.iterationCount // 0)
-      | map(if type == "number" then . else 0 end)
-      | add // 0
-    ),
+AGG_JSON="$(jq -c --slurpfile normalized "$NORMALIZED_CONVERGENCE" '
+  ($normalized[0] // []) as $loops
+  | [$loops[] | select(.goalRef != null) | . + {
+      __attemptKey: ([.specDir, .goalRef.goalId, .goalRef.revision, .goalRef.sourceRequestDigest] | @json)
+    }] as $authorized
+  | [$loops[] | select(.goalRef == null)] as $legacy
+  | ($authorized | group_by(.__attemptKey)) as $authorizedGroups
+  | {
+      observed: (([$authorizedGroups[] | [.[].iterationCount] | max] | add // 0)
+                 + ([$legacy[].iterationCount] | add // 0)),
+      attempts: (($authorizedGroups | length) + ($legacy | length)),
+      authorizedAttempts: ($authorizedGroups | length),
+      legacyRecords: ($legacy | length)
+    } as $convergence
+  | {
+    convObserved: $convergence.observed,
+    convAttempts: $convergence.attempts,
+    convAuthorizedAttempts: $convergence.authorizedAttempts,
+    convLegacyRecords: $convergence.legacyRecords,
     toolPresent:  ((has("toolCallCount")) and (.toolCallCount != null)),
     toolObserved: (.toolCallCount // null),
     toolType:     (.toolCallCount | type),
@@ -301,7 +355,7 @@ AGG_JSON="$(jq -c '
       | if ($ts | length) >= 1 then (($ts | max) - ($ts | min)) / 60 else null end
     )
   }
-' "$SESSION_FILE" 2>/dev/null || true)"
+' "$SESSION_SNAPSHOT" 2>/dev/null || true)"
 
 if [[ -z "$AGG_JSON" ]] || ! echo "$AGG_JSON" | jq empty >/dev/null 2>&1; then
   echo "session-cap-guard: failed to compute aggregate usage from $SESSION_FILE" >&2
@@ -309,6 +363,9 @@ if [[ -z "$AGG_JSON" ]] || ! echo "$AGG_JSON" | jq empty >/dev/null 2>&1; then
 fi
 
 CONV_OBSERVED="$(echo "$AGG_JSON" | jq -r '.convObserved')"
+CONV_ATTEMPTS="$(echo "$AGG_JSON" | jq -r '.convAttempts')"
+CONV_AUTHORIZED_ATTEMPTS="$(echo "$AGG_JSON" | jq -r '.convAuthorizedAttempts')"
+CONV_LEGACY_RECORDS="$(echo "$AGG_JSON" | jq -r '.convLegacyRecords')"
 TOOL_PRESENT="$(echo "$AGG_JSON" | jq -r '.toolPresent')"
 TOOL_OBSERVED="$(echo "$AGG_JSON" | jq -r '.toolObserved')"
 TOOL_TYPE="$(echo "$AGG_JSON" | jq -r '.toolType')"
@@ -491,14 +548,14 @@ if [[ "${#BREACHES[@]}" -gt 0 ]]; then
       echo "    - $b"
     done
     echo "  aggregate usage:"
-    echo "    convergence iterations:     $CONV_OBSERVED (cap $(fmt_cap "$CAP_CONV"))"
+    echo "    convergence iterations:     $CONV_OBSERVED across $CONV_ATTEMPTS effective attempt(s) (authorized=$CONV_AUTHORIZED_ATTEMPTS legacy=$CONV_LEGACY_RECORDS; cap $(fmt_cap "$CAP_CONV"))"
     echo "    wall-clock minutes:         $(fmt_min) (cap $(fmt_cap "$CAP_MINS"))"
     echo "    tool calls:                 $(fmt_tool) (cap $(fmt_cap "$CAP_TOOLS"))"
     echo "    largest tool result bytes:  $(fmt_obs "$SINGLE_BYTES_OBSERVED") (cap $(fmt_cap "$CAP_SINGLE_BYTES"))"
     echo "    tool result bytes total:    $(fmt_obs "$CUM_BYTES_OBSERVED") (cap $(fmt_cap "$CAP_CUM_BYTES"))"
     echo "    max prompt tokens/request:  $(fmt_obs "$REQ_TOKENS_OBSERVED") (cap $(fmt_cap "$CAP_REQ_TOKENS"))"
     echo "    prompt tokens total:        $(fmt_obs "$CUM_TOKENS_OBSERVED") (cap $(fmt_cap "$CAP_CUM_TOKENS"))"
-    echo "  distinction from G082:        G082 caps iterations PER (specDir, agent); G128 caps the AGGREGATE across the whole session"
+    echo "  distinction from G082:        G082 caps one canonical spec + authorized attempt; G128 caps the AGGREGATE of every distinct attempt across the whole session"
     echo "  remediation:                  orchestrator MUST emit a 'blocked' RESULT-ENVELOPE referencing Gate G128 and STOP the session (no further specs/scopes)"
   } >&2
   exit 1
@@ -573,7 +630,7 @@ if [[ "${#CONSUMPTION[@]}" -gt 0 ]]; then
   fi
 fi
 
-info "aggregate convergence=$CONV_OBSERVED (cap $(fmt_cap "$CAP_CONV")), wall-clock=$(fmt_min)min (cap $(fmt_cap "$CAP_MINS")), toolCalls=$(fmt_tool) (cap $(fmt_cap "$CAP_TOOLS"))"
+info "aggregate convergence=$CONV_OBSERVED across $CONV_ATTEMPTS effective attempt(s) (authorized=$CONV_AUTHORIZED_ATTEMPTS legacy=$CONV_LEGACY_RECORDS; cap $(fmt_cap "$CAP_CONV")), wall-clock=$(fmt_min)min (cap $(fmt_cap "$CAP_MINS")), toolCalls=$(fmt_tool) (cap $(fmt_cap "$CAP_TOOLS"))"
 info "context volume: largestToolResult=$(fmt_obs "$SINGLE_BYTES_OBSERVED")B (cap $(fmt_cap "$CAP_SINGLE_BYTES")), toolResultTotal=$(fmt_obs "$CUM_BYTES_OBSERVED")B (cap $(fmt_cap "$CAP_CUM_BYTES")), maxPromptTokens=$(fmt_obs "$REQ_TOKENS_OBSERVED") (cap $(fmt_cap "$CAP_REQ_TOKENS")), promptTokensTotal=$(fmt_obs "$CUM_TOKENS_OBSERVED") (cap $(fmt_cap "$CAP_CUM_TOKENS"))"
 echo "PASS Gate G128 (session_cap_enforcement_gate) — no aggregate cap exceeded (conv=$CONV_OBSERVED/$(fmt_cap "$CAP_CONV"), mins=$(fmt_min)/$(fmt_cap "$CAP_MINS"), tools=$(fmt_tool)/$(fmt_cap "$CAP_TOOLS"), toolBytesMax=$(fmt_obs "$SINGLE_BYTES_OBSERVED")/$(fmt_cap "$CAP_SINGLE_BYTES"), toolBytesSum=$(fmt_obs "$CUM_BYTES_OBSERVED")/$(fmt_cap "$CAP_CUM_BYTES"), promptTokensMax=$(fmt_obs "$REQ_TOKENS_OBSERVED")/$(fmt_cap "$CAP_REQ_TOKENS"), promptTokensSum=$(fmt_obs "$CUM_TOKENS_OBSERVED")/$(fmt_cap "$CAP_CUM_TOKENS"))"
 exit 0

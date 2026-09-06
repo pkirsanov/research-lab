@@ -1,0 +1,283 @@
+{
+  "version": 3,
+  "featureDir": "specs/031-volatility-roughness-and-model-assumption-diagnostic",
+  "featureName": "Volatility Roughness and Model-Assumption Diagnostic",
+  "createdAt": "2026-09-01T19:52:11Z",
+  "lastUpdatedAt": "2026-09-02T05:20:25Z",
+  "status": "not_started",
+  "workflowMode": "product-to-planning",
+  "planningOnly": true,
+  "planMaturityOnly": true,
+  "planningOnlyJustification": "Planning-owned artifacts are reconciled to the corrected release, specification, design, and scope contracts. Feature 011 is the sole technical dependency. Planning is complete and ready for audit; no implementation, mode transition, or certification is claimed.",
+  "releasePhase": "improvement-plan",
+  "flags": [],
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [
+    "specs/011-volatility-regime-and-sizing-lab"
+  ],
+  "flagsIntroduced": [],
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "workBoundary": {
+    "repositoryRoots": [
+      "research-lab"
+    ],
+    "specTargets": [
+      "specs/031-volatility-roughness-and-model-assumption-diagnostic"
+    ],
+    "allowedPaths": [
+      "specs/031-volatility-roughness-and-model-assumption-diagnostic/spec.md",
+      "specs/031-volatility-roughness-and-model-assumption-diagnostic/design.md",
+      "specs/031-volatility-roughness-and-model-assumption-diagnostic/scopes.md",
+      "specs/031-volatility-roughness-and-model-assumption-diagnostic/scenario-manifest.json",
+      "specs/031-volatility-roughness-and-model-assumption-diagnostic/test-plan.json",
+      "specs/031-volatility-roughness-and-model-assumption-diagnostic/report.md",
+      "specs/031-volatility-roughness-and-model-assumption-diagnostic/uservalidation.md",
+      "specs/031-volatility-roughness-and-model-assumption-diagnostic/state.json"
+    ],
+    "crossRepoPolicy": "forbidden"
+  },
+  "execution": {
+    "goalContractRef": {
+      "goalId": "gc:vscode-9031c5cf542a36002cef5e096a8d536f:3",
+      "revision": 3,
+      "sourceRequestDigest": "sha256:38d0707d2f0aa8ab35f867d708243076c2eb2ebd32996db45b6b4a84a7098583"
+    },
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
+    "currentPhaseStatus": "completed",
+    "currentScope": null,
+    "substate": "ready_for_audit",
+    "runStartedAt": "2026-09-02T05:20:25Z",
+    "completedAt": "2026-09-02T05:20:25Z",
+    "scopeProgress": [
+      { "scopeId": "SCOPE-028-01", "status": "not_started" },
+      { "scopeId": "SCOPE-028-02", "status": "not_started" },
+      { "scopeId": "SCOPE-028-03", "status": "not_started" },
+      { "scopeId": "SCOPE-028-04", "status": "not_started" }
+    ],
+    "completedPhaseClaims": [
+      {
+        "phase": "analyze",
+        "agent": "bubbles.analyst",
+        "scopes": [],
+        "claimedAt": "2026-09-01T19:52:11Z",
+        "evidenceRef": "specs/031-volatility-roughness-and-model-assumption-diagnostic/spec.md"
+      }
+    ],
+    "pendingTransitionRequests": [],
+    "nextRequiredOwner": "bubbles.audit",
+    "nextRequiredTarget": "Audit the corrected planning packet under workflowMode product-to-planning. Preserve status and certification as not_started, with no current scope and zero completed scopes; do not perform a mode transition or certification.",
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": "vscode-9031c5cf542a36002cef5e096a8d536f",
+      "currentAttemptId": "AUD-028-002",
+      "attempts": [
+        {
+          "attemptId": "AUD-028-001",
+          "resultState": "SUPERSEDED",
+          "agent": "bubbles.audit",
+          "recordedAt": "2026-09-02T07:32:05Z",
+          "targetRevision": "sha256:48d924790ed460c111f3dc8b4e713f72ddfa96052370235dc0cbe4708ec23adc",
+          "contractDigest": "sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190",
+          "auditProfile": "planning-maturity-v1",
+          "targetStatus": "specs_hardened",
+          "auditVerdict": "BLOCKED",
+          "outcome": "blocked",
+          "evidenceRef": "report.md#audit-evidence-aud-028-001",
+          "nextRequiredOwner": "bubbles.workflow",
+          "supersedesAttemptId": null,
+          "addressedFindings": [
+            "F028-AUD-001",
+            "F028-AUD-002",
+            "F028-HISTORICAL-TRACEABILITY-ROW-COUNT"
+          ],
+          "unresolvedFindings": [
+            "F028-AUD-003-GOAL-CONTRACT-PROVENANCE",
+            "F028-AUD-004-STALE-COMPLETION-STATEMENT",
+            "F028-AUD-005-TRACEABILITY-PROFILE-MISMATCH"
+          ],
+          "blockingCode": "AUDIT_PROVENANCE_CONFLICT",
+          "resumeFromPhase": null,
+          "summary": "The contract-linted audit result is BLOCKED. The host-authoritative revision-2 goal cannot be artifact-bound because execution.goalContractRef is null. Status, certification, scopes, and DoD remain unchanged."
+        },
+        {
+          "attemptId": "AUD-028-002",
+          "resultState": "ACTIVE",
+          "agent": "bubbles.audit",
+          "recordedAt": "2026-09-02T09:04:21Z",
+          "targetRevision": "sha256:eb3090a9581862220165892486c9b9b7a17666740c6dfe8792d53df229eb5afb",
+          "contractDigest": "sha256:b3cb88eff3d0f9298932bc3b00c7f9ed9079ac5b7c074749656a18c6d80d3190",
+          "auditProfile": "planning-maturity-v1",
+          "targetStatus": "specs_hardened",
+          "auditVerdict": "PLANNING_REWORK_REQUIRED",
+          "outcome": "route_required",
+          "evidenceRef": "report.md#audit-evidence-aud-028-002",
+          "nextRequiredOwner": "bubbles.workflow",
+          "supersedesAttemptId": "AUD-028-001",
+          "addressedFindings": [
+            "F028-AUD-001",
+            "F028-AUD-002",
+            "F028-HISTORICAL-TRACEABILITY-ROW-COUNT",
+            "F028-AUD-003-GOAL-CONTRACT-PROVENANCE",
+            "F028-AUD-004-STALE-COMPLETION-STATEMENT"
+          ],
+          "unresolvedFindings": [
+            "F028-AUD-005-TRACEABILITY-PROFILE-MISMATCH"
+          ],
+          "blockingCode": "PLANNING_GATE_FAILED",
+          "resumeFromPhase": null,
+          "summary": "The current planning packet passes the registry-bound planning transition guard and focused planning checks. Goal provenance and Completion Statement repairs close F028-AUD-003 and F028-AUD-004. F028-AUD-005 remains routed to the canonical Bubbles workflow owner because the installed standalone traceability guard lacks planning-versus-authored coverage semantics. Status, certification, scopes, and DoD remain unchanged."
+        }
+      ]
+    }
+  },
+  "certification": {
+    "status": "not_started",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.analyst",
+      "phasesExecuted": [
+        "analyze"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-09-01T19:41:00Z",
+      "completedAt": "2026-09-01T19:52:11Z",
+      "summary": "Created the grounded Feature 028 business specification with 40 functional requirements, 14 business scenarios, a domain capability model, and an explicit QuantitativeFinance boundary. No product code or tests changed."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-09-01T20:29:21Z",
+      "completedAt": "2026-09-01T20:29:21Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Only one instant was recorded for this historical planning run; elapsed duration was not measured.",
+      "summary": "Created the four-scope sequential execution plan, scenario-obligation manifest, persistent test plan, evidence template, and planning user-validation baseline. No implementation, product test, browser check, performance check, human acceptance, or certification was claimed."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "bootstrap",
+        "plan"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-09-02T02:10:44Z",
+      "completedAt": "2026-09-02T02:21:04Z",
+      "summary": "Reconciled planning-owned contracts to the additive wrapper, incremental bootstrap, state separation, immutable snapshot, direct-file limitation, scenario mechanisms, regression E2E rows, consumer trace, shared canaries, and change boundaries. Focused planning guards pass. Planning maturity remains unclaimed because Gate G090 requires the missing orchestrator-managed .specify/memory/bubbles.session.json snapshot. Scope progress remains zero, and implementation remains blocked on A04, A06, A09, and A11 plus required revalidation after A09 or A11 delivery."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-09-02T05:00:49Z",
+      "completedAt": "2026-09-02T05:00:49Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Only the completion instant was captured for this surgical planning correction; elapsed duration was not measured.",
+      "summary": "Reclassified Scope 1 and Scope 2 as contract-only from their formula and projection proof surfaces. Preserved Scope 3 and Scope 4 as runtime-behavior because they own browser, file-origin, dependency-path, compatibility, and release proof. Artifact lint, scenario-obligation lint, and the planning-maturity transition guard passed. No implementation or product tests ran. All scopes remain Not Started, every DoD item remains unchecked, and status remains not_started pending bubbles.validate ownership of any authorized ceiling transition."
+    },
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "not_started",
+      "startedAt": "2026-09-02T05:20:25Z",
+      "completedAt": "2026-09-02T05:20:25Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Only the completion instant was captured for this surgical planning-state metadata correction; elapsed duration was not measured.",
+      "summary": "Addressed F028-AUD-001 and F028-AUD-002 in live planning metadata. The earlier A04/A06/A09/A11 pickup prohibition and special revalidation trigger are superseded by the corrected release, specification, design, and scope contracts. Feature 011 remains the sole technical dependency. The packet is ready for bubbles.audit with workflowMode product-to-planning, status and certification not_started, no current scope, and zero completed scopes. No implementation, mode transition, or certification was performed."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "scopeLayout": "single-file",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "lockdownApprovals": "lockdown-approvals.json",
+    "invalidationLedger": "invalidation-ledger.json",
+    "transitionRequests": "transition-requests.json",
+    "reworkQueue": "rework-queue.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "scopeDoneGates": [
+      "G020",
+      "G021",
+      "G022",
+      "G023",
+      "G024",
+      "G025",
+      "G055",
+      "G056",
+      "G057",
+      "G058",
+      "G059",
+      "G060",
+      "G061"
+    ],
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Planning-owned contracts are reconciled to the corrected release, specification, design, and scope contracts. Feature 011 is the sole technical dependency. The packet is ready for bubbles.audit. Scope progress remains zero; no implementation, mode transition, or certification is claimed."
+}

@@ -47,7 +47,39 @@ concurrent Feature 008/015 work and are not attributed to this scope.
 
 ## Test Evidence
 
+**Phase:** implement
 **Claim Source:** executed
+
+The declared Scope 17 matrix is one six-command run. The consolidated receipt below carries the exact command,
+exit code, and result line of every row; the per-row receipts that follow are the same six executions recorded
+individually. TP-17-03, TP-17-04, and TP-17-06 are anchored here because this block contains their receipts.
+
+{#test-evidence}
+{#tp-17-03}
+{#tp-17-04}
+{#tp-17-06}
+
+```text
+# Scope 17 declared matrix — 6 of 6 commands executed, 0 failed, 0 skipped
+$ node --test tests/portfolio-foundation.unit.mjs
+exit: 0
+tests: 58   pass: 58   fail: 0   skipped: 0
+$ node --test tests/portfolio-privacy.functional.mjs
+exit: 0
+tests: 21   pass: 21   fail: 0   skipped: 0
+$ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-042 holdings can be added edited removed and cleared to an honest empty portfolio" --reporter=list
+exit: 0
+1 passed
+$ npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-043 full personal clear tombstones derives and verifies every personal category" --reporter=list
+exit: 0
+1 passed
+$ node --test --test-name-pattern="Adversarial: full personal clear detects undeclared keys live state and arbitrary residue" tests/portfolio-privacy.functional.mjs
+exit: 0
+tests: 1   pass: 1   fail: 0   skipped: 0
+$ node scripts/selftest.mjs
+exit: 0
+Research-Lab self-test: 3136 passed, 0 failed
+```
 
 ### TP-17-01
 

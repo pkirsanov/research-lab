@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Done
+**Status:** In Progress
 
 **Scope-Kind:** runtime-behavior
 
@@ -97,6 +97,7 @@ No analytical canvas is added in this scope. Responsive pixel/box checks prove t
 | `rlnav.js` | No edit in this scope; return strip remains unavailable until final shared integration | Route-local return fallback to `#brief` is tested without claiming shared strip behavior |
 | Privacy inventory | Completion/dismissal/clear effects and excluded sources match stored minimal records | Functional inventory/composition parity |
 | Generic Market Brief copy | Attributed evidence may display; local command uses closed research verb | Functional and UI forbidden-language scan |
+| SCN-008-008 connected output authority | `rankResearchActions()` → `renderBrief()` → `#briefLanes` | TP-06-10 exact title `Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible` exercises the production clear path and asserts that the rendered `inferredRelevance` lane contains zero items after recomposition. The legacy `briefClearHistory` token names the initiating control, not the connected ranking output, so this current-source graph is authoritative. TP-06-09 remains the separate lifecycle-outcome carrier and cannot satisfy this ranking binding. |
 
 ## Change Boundary And Rollback
 
@@ -126,6 +127,12 @@ Author complete why-shown, forbidden mutation, lifecycle, owner-handoff, and clo
 | TP-06-10 | Regression E2E | e2e-ui | SCN-008-008 | `tests/portfolio-survival-brief.spec.mjs` | `Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible` | `npx --no-install playwright test tests/portfolio-survival-brief.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-008 TP-06-10 the clear control is exposed where behaviour-derived ranking is visible" --reporter=list` | Yes | `report.md#tp-06-10` |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 06 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
 
 #### Core Delivery Items
 

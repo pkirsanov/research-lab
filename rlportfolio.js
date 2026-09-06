@@ -29,6 +29,8 @@
   var CONSTRAINT_VERSION = "MandateConstraint/v1";
   var MANDATE_PREVIEW_VERSION = "portfolio-mandate-preview/v1";
   var ROUTE_STATE_VERSION = "portfolio-route-state/v1";
+  // A century is a conservative evidence horizon; 25 days covers its maximum leap-day allowance.
+  var MAXIMUM_EVIDENCE_AGE_DAYS = 100 * 365 + 25;
   var HASH_PATTERN = /^sha256:[a-f0-9]{64}$/;
   var CURRENCY_PATTERN = /^[A-Z]{3}$/;
   var DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -62,12 +64,31 @@
     "P008-CLEAR-CONFIRMATION": true,
     "P008-CLEAR-UNDECLARED": true,
     "P008-CLEAR-PARTIAL": true,
+    "P008-REBASE-PARTIAL": true,
+    "P008-TRUTH-INPUT": true,
     "P008-BEHAVIOR-IDENTITY": true,
     "P008-BEHAVIOR-TIME": true,
     "P008-BEHAVIOR-FLOOR": true,
+    "P008-BRIEF-INPUT": true,
+    "P008-BRIEF-TIME": true,
+    "P008-BRIEF-EVIDENCE": true,
+    "P008-BRIEF-COMPOSE": true,
+    "P008-BRIEF-COMPOSED": true,
+    "P008-BRIEF-CUTOFF": true,
+    "P008-BRIEF-POLICY": true,
+    "P008-BRIEF-PUBLISHED": true,
+    "P008-BRIEF-WINDOW-ID": true,
+    "P008-BRIEF-WINDOWS": true,
+    "P008-ACTION-SHAPE": true,
     "P008-ACTION-RANK": true,
     "P008-ACTION-WHY": true,
-    "P008-RETURN-CONTEXT": true
+    "P008-ACTION-LIFECYCLE": true,
+    "P008-COMPUTE-BUDGET": true,
+    "P008-COMPUTE-CANCELLED": true,
+    "P008-COMPUTE-SUPERSEDED": true,
+    "P008-WORKSPACE-COMPUTE": true,
+    "P008-RETURN-CONTEXT": true,
+    "P008-INTERNAL": true
   });
   var TOP_POLICY_FIELDS = Object.freeze([
     "analytics", "behavior", "calibration", "contractVersion", "display", "import", "mandate", "queue", "solver", "storage"
@@ -540,7 +561,8 @@
         !exactStringSet(behaviorPolicy.outcomeStates, OUTCOME_STATES) ||
         !stringArray(behaviorPolicy.forbiddenEventFields, false) ||
         !behaviorPolicy.forbiddenEventFields.every(function (token) { return /^[a-z0-9]+$/.test(token); }) ||
-        !Number.isInteger(behaviorPolicy.maxBehaviorEvents) || behaviorPolicy.maxBehaviorEvents <= 0) {
+        !Number.isInteger(behaviorPolicy.maxBehaviorEvents) || behaviorPolicy.maxBehaviorEvents <= 0 ||
+        behaviorPolicy.maximumEvidenceAgeDays > MAXIMUM_EVIDENCE_AGE_DAYS) {
       return failure("P008-CONFIG", "invalid-policy", "behavior", null, false);
     }
     var numericSections = [value.behavior, value.solver, value.calibration, value.queue];
@@ -576,14 +598,20 @@
     return success(clone(value));
   }
 
+  function optionalErrorField(value, holder, key, valid) {
+    if (!Object.prototype.hasOwnProperty.call(holder, key)) return true;
+    // `PortfolioError/v1` retains all seven keys, so an inapplicable optional carries an explicit null.
+    return value === null || valid(value);
+  }
+
   function validatePortfolioError(value) {
     if (!isPlainObject(value)) return failure("P008-SCHEMA-CORRUPT", "error-required", "error", null, false);
     var unknown = hasOnlyFields(value, ERROR_FIELDS);
     if (unknown) return failure("P008-SCHEMA-CORRUPT", "unknown-field", unknown, null, false);
     if (value.contractVersion !== ERROR_VERSION || !ERROR_CODES[value.code] || !SAFE_REASON_PATTERN.test(value.reason || "") ||
         value.valueEchoed !== false || typeof value.recoverable !== "boolean" ||
-        (Object.prototype.hasOwnProperty.call(value, "field") && !nonEmptyString(value.field)) ||
-        (Object.prototype.hasOwnProperty.call(value, "row") && (!Number.isInteger(value.row) || value.row <= 0))) {
+        !optionalErrorField(value.field, value, "field", nonEmptyString) ||
+        !optionalErrorField(value.row, value, "row", function (row) { return Number.isInteger(row) && row > 0; })) {
       return failure("P008-SCHEMA-CORRUPT", "invalid-error", "error", null, false);
     }
     return success(clone(value));
@@ -2468,7 +2496,7 @@
     if (!dedupedResult.ok) return dedupedResult;
     dedupedResult.value.events.forEach(function (event) {
       // Created HERE, after the age filter. A domain with no in-window evidence must not own a
-      // bucket at all: `latest` would stay null and `expiresAt` below becomes an invalid date.
+      // bucket at all: `latest` would stay null and `expiresAt` below then THROWS RangeError.
       var key = String(event.domain);
       if (!byDomain[key]) {
         byDomain[key] = {

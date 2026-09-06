@@ -47,7 +47,6 @@ equal-sized deletion and addition.
 | AC-9 | No test is removed, renamed, or skipped by this fix — asserted over the fix commit and the delivered file, not as a pinned suite total. |
 
 ## Out of scope
-
 - **Making the three owner pages load faster.** This packet changes how long the test may take, not
   what the page does. `sector-research-lab.html`, `global-rotation-lab.html` and
   `real-assets-lab.html` are untouched.
@@ -59,6 +58,28 @@ equal-sized deletion and addition.
   recorded as context, not claimed as this defect.
 - **Any change inside `specs/015-recommendation-outcome-ledger-and-track-record`.** That packet has
   in-flight uncommitted work and is untouched here.
+
+### Single-Capability Justification
+
+One concrete implementation is correct here, and no reusable foundation should be built.
+
+The fix is a single declared value: `playwright.config.mjs` had no `timeout`, so every test in the
+file silently inherited Playwright's implicit 30000 ms default. Declaring the budget replaces an
+inherited number with a chosen one. There is no second provider, no alternative strategy, and no
+variation axis — a timeout is one number in one config, and the only question a reader can ask
+about it is whether the number was chosen or fell out of a default.
+
+Gate G094 fires here on a false positive worth naming rather than hiding. Its trigger pattern
+matches the words adapter, provider, strategy, plugin, channel, driver, connector and variant.
+This packet's single hit is `design.md:63`, "the siblings share one cost **driver**" — *driver* in
+the ordinary English sense of a cost driver, not the architectural sense of a pluggable driver. The
+guard's own diagnostic says so plainly: *"keywords do not promote the shape"*. The honest response
+is to record why one implementation is right, which is what this section does. Rewording the prose
+to dodge the pattern was available and was rejected: it would edit an accurate sentence to quiet a
+gate, and would leave the next packet to rediscover the same false positive.
+
+The `executionShape` is `one-off`, and it should stay that way. Widening it would require a Goal
+Contract revision, not a planner deciding the work was larger than the operator framed it.
 
 ## Traceability
 

@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:allocation`, `remediation`
 **Depends On:** 23
@@ -41,6 +41,10 @@ Scenario: A user compares six allocations with exclusions cash leverage turnover
 
 ## Change Boundary
 
+**Allowed file families:** the allocation, Black-Litterman, and sensitivity regions of `rlportfolioanalytics.js`, the Allocation route and view-editor regions of `portfolio-survival-allocation-lab.html`, the allocation policy block of `portfolio-survival-allocation.config.json`, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-allocation.functional.mjs`, `tests/portfolio-survival-allocation.spec.mjs`, and the allocation fixtures under `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** the store-lifecycle regions of `rlportfolio.js`, `rlportfoliobrief.js` ranking, `market-brief.*` and `scripts/brief-*`, the path-generator internals of `rlportfolioanalytics.js` except typed common-path consumption, dossier persistence (`tests/portfolio-dossier.functional.mjs`), `rldata.js`, `rlnav.js`, `rlbrief.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** allocation/BL/sensitivity portions of `rlportfolioanalytics.js`, Allocation route/editor regions, policy/fixtures, `tests/portfolio-analytics.unit.mjs`, `tests/portfolio-allocation.functional.mjs`, and `tests/portfolio-survival-allocation.spec.mjs`.
 - **Excluded:** personal store lifecycle, brief ranking, generic publisher, path generator internals except typed common-path consumption, dossier persistence, registry/docs, and framework-managed files.
 
@@ -61,6 +65,12 @@ Scenario: A user compares six allocations with exclusions cash leverage turnover
 | Black-Litterman editor | Explicit views, uncertainty, posterior, and resulting allocation remain attributable and behavior-independent. |
 | Dossier and sensitivity views | Every solver attempt, residual, constraint, perturbation, and outcome retains its identity. |
 
+The consumer-facing surface is the `portfolio-survival-allocation-lab.html#allocation` deep link (`workspaceTabAllocation`), which hosts the six method rows and the Black-Litterman view editor. The sweep is a stale-reference scan confirming that hash, its tab id, and the per-method result field names stay identical for the sensitivity and dossier consumers.
+
+| Causal binding | Executable assertion |
+|---|---|
+| Allocation comparison causal authority: `runAllocationComparison` → `allocationModel` → `appendAllocationComparison` → `#allocationTable` | TP-24-03 exact title `Regression: SCN-008-050 six real allocation methods enforce one complete basis and explicit views` reads `#allocationTable` after explicit inputs and the view are applied, then asserts six method rows, one basis fingerprint, ERC and KKT diagnostics, shared paths, costs, survival outcomes, complete sensitivity, and the no-winner boundary. |
+
 ## UI Scenario Matrix
 
 | Scenario | Preconditions | Steps | Expected | Test Type |
@@ -72,7 +82,7 @@ Scenario: A user compares six allocations with exclusions cash leverage turnover
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Five rows have authored current declarations, including exact TP-24-01 through TP-24-05 titles in their named files. TP-24-06 remains an aggregate planned carrier because the named selftest file has no exact TP-24-06 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -91,6 +101,14 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Scope-24 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 24 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 24 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
+
+- [x] SCN-008-050 behavior: a user compares six allocations with exclusions, cash, leverage, turnover, groups, and an explicit Black Litterman view, and each method enforces the common applicable constraints or returns infeasible with diagnostics, risk parity solves contribution balance rather than inverse volatility, constrained MVO optimizes inside the feasible set rather than clipping an unconstrained answer, the explicit BL horizon, magnitude, range, confidence, source, and uncertainty produce the posterior returns its own allocation uses, and every candidate exposes convergence, constraint, cost, contribution, path, survival, turnover, and sensitivity outcomes without a winner. Evidence: [TP-24-03 and complete carrier](report.md#tp-24-03-and-tp-24-05) — 15/15 including `SCN-008-050 six real methods enforce one complete basis and explicit views`, `SCN-008-050 infeasible constraints remain visible and explicit posterior changes allocation`, `SCN-008-026 all six allocation methods share one frozen basis`, `SCN-008-027 allocation comparison presents tradeoffs and no universal winner`, `SCN-008-029 conflicting constraints remain infeasible without relaxation`, and `SCN-008-030 explicit BL keeps equilibrium, view, posterior, and uncertainty separate`; [TP-24-04](report.md#tp-24-04) — inverse volatility as ERC, post-hoc clipping, ignored asset bounds, missing benchmark identity, posterior-disconnected weights, and structurally impossible minimums without an irreducible conflict set are each independently rejected; [TP-24-01](report.md#tp-24-01) and [coverage](report.md#coverage-report) — all six interfaces, ERC/KKT identities, BL equilibrium and posterior, costs, contributions, common paths, survival, every sensitivity axis, and irreducible conflicts.
 - [x] SCN-008-050 is implemented with real constrained methods, explicit BL posterior, complete outcomes, and no universal winner. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-24-03-and-tp-24-05).
 - [x] TP-24-01 unit evidence passes. Evidence: [TP-24-01](report.md#tp-24-01).
 - [x] TP-24-02 functional evidence passes. Evidence: [TP-24-02](report.md#tp-24-02).

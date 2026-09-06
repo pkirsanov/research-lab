@@ -130,6 +130,31 @@ run_expect_fake_integration_failure() {
   fi
 }
 
+run_expect_live_intercept_failure() {
+  local feature_dir="$1"
+  local label="$2"
+  local output=""
+  local output_file="$TMPDIR/run-expect-live-intercept.txt"
+  local status=0
+
+  if bubbles_run_with_timeout 180 bash "$SCAN_SCRIPT" "$feature_dir" --verbose >"$output_file" 2>&1; then
+    output="$(cat "$output_file")"
+    echo "$output"
+    fail "$label"
+    return
+  else
+    status=$?
+    output="$(cat "$output_file")"
+    echo "$output"
+  fi
+
+  if [[ "$status" -eq 1 ]] && grep -Fq 'LIVE_TEST_INTERCEPT' <<< "$output"; then
+    pass "$label"
+  else
+    fail "$label"
+  fi
+}
+
 create_shell_heavy_fixture() {
   local feature_dir="$FIXTURE_ROOT/shell-heavy-feature"
   mkdir -p "$feature_dir/scripts" "$feature_dir/config" "$feature_dir/docs"
@@ -142,6 +167,8 @@ create_shell_heavy_fixture() {
 ### Implementation Files
 
 - \`$feature_dir/scripts/validate.sh\`
+- \`$feature_dir/scripts/runtime.mjs\`
+- \`$feature_dir/scripts/preload.cjs\`
 - \`$feature_dir/config/service.yaml\`
 - \`$feature_dir/config/service.yml\`
 - \`$feature_dir/config/schema.json\`
@@ -152,6 +179,22 @@ EOF
 #!/usr/bin/env bash
 set -euo pipefail
 echo "fixture validation complete"
+EOF
+
+  cat > "$feature_dir/scripts/runtime.mjs" <<'EOF'
+export function validateRuntime(identity) {
+  if (identity === "") throw new Error("runtime identity is required");
+  return { identity };
+}
+EOF
+
+  cat > "$feature_dir/scripts/preload.cjs" <<'EOF'
+"use strict";
+
+module.exports = function validatePreload(identity) {
+  if (identity === "") throw new Error("preload identity is required");
+  return { identity };
+};
 EOF
 
   cat > "$feature_dir/config/service.yaml" <<'EOF'
@@ -387,6 +430,84 @@ func noop() {}
 EOF
 }
 
+create_fault_injection_fixture() {
+  local feature_dir="$FIXTURE_ROOT/fault-injection-feature"
+  local test_file="$feature_dir/tests/browser.spec.mjs"
+  mkdir -p "$(dirname "$test_file")"
+
+  cat > "$feature_dir/scopes.md" <<EOF
+# Scopes: Fault Injection Fixture
+
+## Scope 1: Real Browser Path
+
+### Implementation Files
+
+- \`$test_file\` — e2e-ui live-system carrier
+EOF
+
+  # Line 2 is exempt (declared + justified). Line 6 is the CONTROL: an
+  # undeclared interception in the same file that MUST still be reported, so a
+  # passing exemption can never be mistaken for a disabled gate.
+  cat > "$test_file" <<'EOF'
+// bubbles:fault-injection-begin reason=disables the module to produce a genuine before-page
+await page.route("**/module*.js", (route) => route.fulfill({ status: 200, body: "/* off */" }));
+// bubbles:fault-injection-end
+
+export async function installIntercept(page) {
+  await page.route("**/api/items", async (route) => {
+    await route.fulfill({ status: 200, body: "[]" });
+  });
+}
+EOF
+}
+
+create_fault_injection_wordless_fixture() {
+  local feature_dir="$FIXTURE_ROOT/fault-injection-wordless-feature"
+  local test_file="$feature_dir/tests/browser.spec.mjs"
+  mkdir -p "$(dirname "$test_file")"
+
+  cat > "$feature_dir/scopes.md" <<EOF
+# Scopes: Wordless Fault Injection Fixture
+
+## Scope 1: Real Browser Path
+
+### Implementation Files
+
+- \`$test_file\` — e2e-ui live-system carrier
+EOF
+
+  # A marker with no justification must be rejected AND must grant no exemption.
+  cat > "$test_file" <<'EOF'
+// bubbles:fault-injection-begin reason=
+await page.route("**/api/items", (route) => route.fulfill({ status: 200, body: "[]" }));
+// bubbles:fault-injection-end
+EOF
+}
+
+create_mjs_live_intercept_fixture() {
+  local feature_dir="$FIXTURE_ROOT/mjs-live-intercept-feature"
+  local test_file="$feature_dir/tests/browser.spec.mjs"
+  mkdir -p "$(dirname "$test_file")"
+
+  cat > "$feature_dir/scopes.md" <<EOF
+# Scopes: MJS Live Interception Fixture
+
+## Scope 1: Real Browser Path
+
+### Implementation Files
+
+- \`$test_file\` — e2e-ui live-system carrier
+EOF
+
+  cat > "$test_file" <<'EOF'
+export async function installIntercept(page) {
+  await page.route("**/api/items", async (route) => {
+    await route.fulfill({ status: 200, body: "[]" });
+  });
+}
+EOF
+}
+
 create_sensitive_storage_fixture() {
   SENSITIVE_REPO="$FIXTURE_ROOT/sensitive-storage-repo"
   SENSITIVE_FEATURE="$SENSITIVE_REPO/specs/001-sensitive-storage"
@@ -478,11 +599,12 @@ create_go_connector_package_fixture
 create_fake_connector_fixture
 create_telemetry_noop_adapter_fixture
 create_fake_noop_integration_fixture
+create_mjs_live_intercept_fixture
 create_sensitive_storage_fixture
 
 echo "Running implementation-reality-scan discovery selftest..."
-echo "Scenario: shell-heavy fixtures resolve honest implementation inventory."
-run_expect_success "$FIXTURE_ROOT/shell-heavy-feature" "Shell-heavy fixture resolves .sh/.yaml/.yml/.json/docs-backed inventory"
+echo "Scenario: shell-heavy and JavaScript-module fixtures resolve honest implementation inventory."
+run_expect_success "$FIXTURE_ROOT/shell-heavy-feature" "Discovery fixture resolves .sh/.mjs/.cjs/.yaml/.yml/.json/docs-backed inventory"
 
 echo "Scenario: missing inventories still fail with ZERO_FILES_RESOLVED."
 run_expect_zero_files_failure "$FIXTURE_ROOT/missing-inventory-feature" "Missing-inventory fixture fails honestly without shim files"
@@ -498,6 +620,47 @@ run_expect_success "$FIXTURE_ROOT/telemetry-noop-adapter-feature" "Telemetry no-
 
 echo "Scenario: a bare non-telemetry no-op integration body is STILL flagged (exclusion opens no hole)."
 run_expect_fake_integration_failure "$FIXTURE_ROOT/fake-noop-integration-feature" "Bare non-telemetry, non-quoted no-op integration body is still flagged as FAKE_INTEGRATION"
+
+echo "Scenario: an MJS live-system carrier reaches interception detection."
+run_expect_live_intercept_failure "$FIXTURE_ROOT/mjs-live-intercept-feature" "MJS e2e-ui carrier is discovered and flagged as LIVE_TEST_INTERCEPT"
+
+# A declared, justified fault-injection region is exempt — but the SAME file
+# carries an undeclared interception that must still be reported. Asserting
+# both in one run is what proves the exemption is scoped rather than a switch
+# that turns Scan 6 off.
+create_fault_injection_fixture
+fi_out="$TMPDIR/fault-injection.txt"
+if bubbles_run_with_timeout 180 bash "$SCAN_SCRIPT" "$FIXTURE_ROOT/fault-injection-feature" --verbose > "$fi_out" 2>&1; then
+  fi_status=0
+else
+  fi_status=$?
+fi
+cat "$fi_out"
+if [[ "$fi_status" -eq 1 ]] \
+  && grep -Fq 'api/items' "$fi_out" \
+  && ! grep -Fq 'module*.js' "$fi_out" \
+  && ! grep -Fq 'FAULT_INJECTION_MARKER' "$fi_out"; then
+  pass "Justified fault-injection region is exempt while an undeclared interception in the same file still fails"
+else
+  fail "Justified fault-injection region is exempt while an undeclared interception in the same file still fails"
+fi
+
+# A marker with no reason= must be rejected AND must grant no exemption.
+create_fault_injection_wordless_fixture
+fiw_out="$TMPDIR/fault-injection-wordless.txt"
+if bubbles_run_with_timeout 180 bash "$SCAN_SCRIPT" "$FIXTURE_ROOT/fault-injection-wordless-feature" --verbose > "$fiw_out" 2>&1; then
+  fiw_status=0
+else
+  fiw_status=$?
+fi
+cat "$fiw_out"
+if [[ "$fiw_status" -eq 1 ]] \
+  && grep -Fq 'carries no reason=' "$fiw_out" \
+  && grep -Fq 'LIVE_TEST_INTERCEPT' "$fiw_out"; then
+  pass "Wordless fault-injection marker is rejected and grants no exemption"
+else
+  fail "Wordless fault-injection marker is rejected and grants no exemption"
+fi
 
 echo "Scenario: semantic Scan 2B distinguishes storage operations and exact session classification."
 run_scan_in_repo "$SENSITIVE_REPO" "$SENSITIVE_FEATURE"

@@ -1,0 +1,105 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-8609f883d9d557b0270cde0d8da3b1956d6368110588fa462ca7711c66197514",
+  "generationId": "generation-defb55d3be56081c6517746e3d5f4565da05ed650cda312607323a7bde55aade",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-08-28T20:31:37.165Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-MISSING-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No current, corroborated official evidence was acquired for any declared actor (United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers, OPEC buffer producers) within the freshness window. The acquisition bundle retained zero sources and the 'official-policy-and-statements' requirement is missing-or-stale, so no actor-state observation exists to interpret. Reaction functions are observed-change-only by contract; with no observed change there is nothing to author and no private intent may be inferred.",
+      "gaps": [
+        "official-policy-and-statements requirement (actor-state coverage) is missing-or-stale; zero official sources retained.",
+        "No verified declared policy or attributable statement for United States, Iran, or Oman mediators inside the 24h freshness window.",
+        "No observation firing the us-inventory-response, iran-transit-control, or insured-throughput-tightening reaction rules."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No current evidence bears on the escalation tree (staged-reopening, managed-coercion, escalation and its single-route-disruption and dual-route-or-infrastructure-shock children). No entry-trigger observation (transit-restriction-observed, insured-capacity-tightens) and no invalidation observation (transit-normalizes, insurance-normalizes) was acquired. Scenario probabilities are not authored here by contract; with no evidence there is no situational input for the downstream probability model.",
+      "gaps": [
+        "No observation of transit-restriction-observed or insured-capacity-tightens entry triggers.",
+        "No observation of transit-normalizes or insurance-normalizes invalidations.",
+        "measured-maritime-flow requirement (physical-flow, insured-flow) is missing-or-stale, leaving all scenario branches unsupported."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured maritime flow was acquired for Hormuz, Bab el-Mandeb, or the Red Sea. The 'measured-maritime-flow' requirement (physical-flow and insured-flow coverage) is missing-or-stale and zero maritime-observation or official sources were retained. No physicalPassFraction or insuredPassFraction reading exists, so the current transit and insured-capacity state cannot be characterized as normal, impaired, or restricted.",
+      "gaps": [
+        "measured-maritime-flow requirement is missing-or-stale; no maritime-observation source retained.",
+        "No measured transit, loadings, delay, or insured-capacity figure for Hormuz, Bab el-Mandeb, or Red Sea within 24h.",
+        "No basis to evaluate physicalPassFraction or insuredPassFraction against the declared impairment (0.8) or normalization (0.95) thresholds."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No energy or input-balance evidence was acquired for the declared channels (oil, refined-products, lng, fertilizer, aluminum, shipping). The 'energy-and-input-balances' requirement (transmission-input coverage) is missing-or-stale within its 72h window and zero official or industry-data sources were retained. Without inventory, production, export, or policy-response observations there is no measured transmission input to interpret; commodity shock ranges are not authored here by contract.",
+      "gaps": [
+        "energy-and-input-balances requirement (transmission-input) is missing-or-stale; no official or industry-data source retained.",
+        "No inventory, production, export, or coordinated-policy-response observation for any declared channel.",
+        "No confirmed inventory-response to evaluate the inventory-response-confirmed trigger."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "No committed same-origin daily bars were acquired for the declared public proxies (e.g., BNO, USO, XLE, MPC, PSX, XOM, CVX, COP, DBC, DBA, XLB, XLI). The 'committed-public-bars' requirement (proxy-bar coverage) is missing-or-stale within its 48h window. Proxy sensitivity ranges and calibration are not authored here by contract, and with no proxy-bar evidence there is no current situational input for the equity-proxy calibration step.",
+      "gaps": [
+        "committed-public-bars requirement (proxy-bar) is missing-or-stale; no committed-bar source retained.",
+        "No same-origin committed daily bars for any declared proxy within 48h.",
+        "Proxy calibration cannot be evidenced against the declared minimumCalibrationEvents."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No observation was acquired that changes any declared trigger or invalidation state. Triggers (transit-restriction-observed, insured-capacity-tightens, inventory-response-confirmed) and invalidations (transit-normalizes, insurance-normalizes, evidence-stales) all rely on maritime-flow, insured-capacity, or inventory observations that are missing-or-stale. The evidence-stales invalidation condition (no supporting observation inside the 24h window) is consistent with the current empty evidence state.",
+      "gaps": [
+        "No physicalPassFraction change to evaluate transit-restriction-observed or transit-normalizes.",
+        "No insuredPassFraction reading to evaluate insured-capacity-tightens or insurance-normalizes.",
+        "No policyResponse confirmation to evaluate inventory-response-confirmed."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The source ledger is empty. The acquisition bundle retained zero sources across all four requirements (official-policy-and-statements, measured-maritime-flow, energy-and-input-balances, committed-public-bars); coverage reports retainedSourceCount 0 with all four material claims rejected as unauthorable, and committedEvidence is empty. There are no sources, evidence records, or new evidence identifiers to ledger for this generation.",
+      "gaps": [
+        "Zero sources retained in the web evidence bundle (retainedSourceCount 0, rejectedMaterialClaimCount 4).",
+        "All four material claims are marked authorable=false with freshnessState unsupported.",
+        "No committed evidence records available (committedEvidence empty)."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No predecessor dossier is available (priorDossier is null), so no change relative to a prior situation can be assessed. Change assessment and direction classification are not authored here by contract. With no prior baseline and no current evidence, there is no measurable movement to characterize.",
+      "gaps": [
+        "priorDossier is null; no predecessor situation to compare against.",
+        "No current evidence records to differentiate from any prior state.",
+        "Change direction and assessment are downstream, model-owned outputs and are intentionally not authored here."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

@@ -2,13 +2,13 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `integration:workspace`, `remediation`
 **Depends On:** 25
 **Entry Gate:** Every scope in `Depends On` must be Done.
-**Execution State:** Scope 26 is Done. All nine DoD items are checked with evidence in [report.md](report.md). Scope 27 is the next dependency-unblocked remediation scope and has not started. Scopes 27-29 remain Not Started.
-**Worktree Reality:** `rlportfolio.js` contains the delivered `PortfolioWorkspaceViewModel/v1` and `WorkspaceComputeController/v1` work, and `rlnav.js` contains the strict `ReturnContext/v1` consumer. All six Test Plan rows are executed and passing; see [test evidence](report.md#test-evidence).
+**Planning State:** In Progress. Unchecked DoD rows keep this scope nonterminal. Test carriers are authored, while execution and certification remain owned by their evidence and state authorities.
+**Worktree Reality:** `rlportfolio.js` contains the planned `PortfolioWorkspaceViewModel/v1` and `WorkspaceComputeController/v1` surfaces, and `rlnav.js` contains the strict `ReturnContext/v1` consumer. Carrier presence does not establish execution or completion.
 **Finding:** F008-COMPUTE-NAV-001
 **Requirements:** FR-067, FR-154; NFR-002, NFR-012, NFR-013.
 
@@ -42,6 +42,10 @@ Scenario: A user switches modes tabs and owning tools while a newer workspace co
 
 ## Change Boundary
 
+**Allowed file families:** the controller and navigation regions of `portfolio-survival-allocation-lab.html`, one additive strict `ReturnContext/v1` consumer block in `rlnav.js`, the handoff helpers in `rlportfolio.js`, `tests/portfolio-workspace.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, `tests/portfolio-survival-mobile.spec.mjs`, the workspace fixtures under `tests/fixtures/portfolio-survival-allocation/**`, and the named existing-consumer navigation canaries.
+
+**Excluded surfaces:** the analytics formulas in `rlportfolioanalytics.js`, `rlportfoliobrief.js` behavior ranking, `market-brief.*` and `scripts/brief-*`, `rlbrief.js`, provider credentials in `rldata.js`, every `rlnav.js` region outside the strict ReturnContext marker, `rlapp.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** controller/navigation regions of `portfolio-survival-allocation-lab.html`, additive strict `rlnav.js` ReturnContext consumer, `rlportfolio.js` handoff helpers, workspace fixtures, focused workspace functional tests, Feature 008 brief/mobile browser tests, and named existing-consumer navigation canaries.
 - **Excluded:** analytics formulas, behavior ranking, public publisher, provider credentials, global `rlnav` behavior unrelated to strict ReturnContext, registry/docs, and framework-managed files.
 
@@ -64,6 +68,11 @@ Scenario: A user switches modes tabs and owning tools while a newer workspace co
 | Shared navigation without context | No strip, no storage allocation, no focus mutation. |
 | Tests/docs/deep links | Zero stale `#workspace`; canonical feature entry is `#brief`. |
 
+| Causal binding | Executable assertion |
+|---|---|
+| Immutable workspace publication causal authority: `computeWorkspace` → `runWorkspaceCompute` → `renderWorkspaceCompute` → `#workspaceCompute` | TP-26-03 exact title `Regression: SCN-008-052 mode tabs rebase and compute tokens preserve one immutable workspace` reads `#workspaceCompute` through mode changes, all six tabs, direct navigation, and an accepted rebase, then asserts one active identity and token, unchanged compute count during presentation, and an atomic sibling rebase. |
+| Cross-page owner-return causal authority: `writeReturnContext` → `writeOwnerHandoff` → `consume` → `renderStrip` → `restoreReturnFocus` → `#rlreturn-strip` → `#workspaceCompute` | TP-26-04 exact title `Regression: SCN-008-052 owning tool consumes ReturnContext and restores Portfolio Brief focus` observes `#rlreturn-strip` on the owning page and `#workspaceCompute` after browser return, then asserts single-use session consumption, public URL shape, visible owner context, restored disclosure, action identity, and keyboard focus. |
+
 ## UI Scenario Matrix
 
 | Scenario | Preconditions | Steps | Expected | Test Type |
@@ -74,7 +83,7 @@ Scenario: A user switches modes tabs and owning tools while a newer workspace co
 
 ## Test Plan
 
-All six rows are authored and executed. TP-26-01 and TP-26-05 are carried by `tests/portfolio-workspace.functional.mjs`. Per-row results, provenance and exit codes are recorded in [report.md](report.md#test-evidence).
+Five rows have authored current declarations: TP-26-01 through TP-26-05 match exact titles in their named files. TP-26-06 remains an aggregate planned carrier because its multi-file shared-consumer command has no one exact Scope 26 title. This plan grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -93,7 +102,15 @@ All six rows are authored and executed. TP-26-01 and TP-26-05 are carried by `te
 
 ### Definition of Done - Tiered Validation
 
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Scope-26 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 26 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 26 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
+
 - [x] SCN-008-052 is implemented with one compute, token/last-valid/rebase safety, visible owner-return strip, and exact focus restoration. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-26-03).
+- [ ] A user switches modes, tabs, and owning tools while a newer workspace compute completes: given one active immutable workspace view model and one later draft identity, mode and tab navigation render the active view model without recomputing analytics; only the newest matching compute token may publish while last-valid results remain visible; an explicit rebase atomically replaces every sibling projection under one identity; ReturnContext is consumed by the owning destination and renders a visible From Portfolio Brief return strip; and returning restores the original action disclosure and keyboard focus without private URL or public read data.
 - [x] TP-26-01 workspace functional evidence passes. Evidence: [TP-26-01](report.md#tp-26-01).
 - [x] TP-26-02 ReturnContext functional evidence passes. Evidence: [TP-26-02](report.md#tp-26-02).
 - [x] TP-26-03 one-compute/rebase real-page regression passes. Evidence: [TP-26-03](report.md#tp-26-03).

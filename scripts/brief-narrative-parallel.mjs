@@ -15,11 +15,11 @@ import {
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
-import { distinctRowsBy, reassertCompanyOwnerReadDisclosure, trackedAsOfReader } from './brief-refresh.mjs';
+import { distinctRowsBy, reassertCompanyOwnerReadDisclosure, reassertSnapshotOwnerRead, trackedAsOfReader } from './brief-refresh.mjs';
 import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
-import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction } from './validate-brief-payload.mjs';
+import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction, briefRegimeBiasInstruction } from './validate-brief-payload.mjs';
 import { attentionAuthoredKeysInstruction, attentionCardBudgetInstruction, attentionExpiryFormatInstruction, attentionHeadlineCapInstruction, attentionRationaleBudgetInstruction, attentionSubjectMenuInstruction, attentionSubjectUniquenessInstruction, attentionVerbContractInstruction, briefFreshnessBadgeInstruction, recommendationConfidenceContractInstruction } from './build-attention-items.mjs';
-import { BRIEF_NARRATIVE_FIELDS_REQUIRED, briefBackdropKeysInstruction } from './reader-vocabulary.mjs';
+import { BRIEF_NARRATIVE_FIELDS_REQUIRED, briefBackdropKeysInstruction, matchesFieldPatterns, walkBriefStrings } from './reader-vocabulary.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
 
 const ROOT = process.cwd();
@@ -66,7 +66,7 @@ const lanes = [
         id: 'core',
         keys: ['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology'],
         web: true,
-        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. ${briefFreshnessBadgeInstruction()} Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()}`
+        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. ${briefFreshnessBadgeInstruction()} ${briefRegimeBiasInstruction()} Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()}`
     },
     {
         id: 'signals',
@@ -191,28 +191,32 @@ function hasExactFragmentKeys(fragment, keys) {
    later as a red D13 coverage assertion against the already-committed payload. The
    required list in reader-vocabulary.mjs is the canonical answer to "which narrative
    fields must exist", so it is enforced HERE too, at the point a lane can still be
-   retried. Only literal paths are checked: the wildcard patterns ('*', '[]', '**')
-   describe shapes whose arity depends on the publish, and a lane that legitimately
-   emits zero of them is not incomplete. */
+   retried.
+
+   Wildcard patterns used to be skipped, on the reasoning that a lane emitting zero of a
+   `**` subtree is not incomplete. The publisher disagrees: findMissingRequiredNarrativeFields
+   requires at least one string under EVERY required pattern, wildcards included. So the lane was
+   told zero was acceptable while the publish path treated it as fatal, and the disagreement was
+   paid at the worst rung — the outer narrative retry re-sends an identical prompt, so the
+   2026-08-29 morning window lost both attempts to the same five wildcard groups and published
+   nothing. Satisfaction is now decided by the PUBLISHER'S OWN matcher over the same required
+   list, so the two cannot drift and a miss is caught where the retry still carries feedback. */
 function requiredLeavesFor(keys) {
     const owned = new Set(keys);
     return BRIEF_NARRATIVE_FIELDS_REQUIRED
-        .filter((pattern) => !pattern.includes('*') && !pattern.includes('[]'))
         .map((pattern) => pattern.split('.'))
         .filter((segments) => segments.length > 1 && owned.has(segments[0]));
 }
 
+function missingRequiredFieldsFor(fragment, keys) {
+    const present = walkBriefStrings(fragment);
+    return requiredLeavesFor(keys)
+        .map((segments) => segments.join('.'))
+        .filter((pattern) => !present.some((entry) => matchesFieldPatterns([pattern], entry.segments)));
+}
+
 function missingRequiredLeaves(fragment, keys) {
-    const missing = [];
-    for (const segments of requiredLeavesFor(keys)) {
-        let node = fragment;
-        for (const segment of segments) {
-            if (node === null || typeof node !== 'object' || !(segment in node)) { node = undefined; break; }
-            node = node[segment];
-        }
-        if (node === undefined || node === null || node === '') missing.push(segments.join('.'));
-    }
-    return missing;
+    return missingRequiredFieldsFor(fragment, keys);
 }
 
 /* Why a rejected fragment was rejected, in the lane's own vocabulary. `readCompleteFragment`
@@ -807,6 +811,10 @@ try {
        publish. */
     const companyDisclosure = reassertCompanyOwnerReadDisclosure(payload, (relative) => readJson(resolve(ROOT, relative)));
     console.log(`[brief-parallel] company owner-read disclosure ${companyDisclosure.reasserted ? 'reasserted' : 'already present'} on ${companyDisclosure.id}`);
+    if (snapshot.toolReads?.['causal-rotation-lab'] !== undefined) {
+        const causalOwnerRead = reassertSnapshotOwnerRead(payload, snapshot, 'causal-rotation-lab');
+        console.log(`[brief-parallel] causal owner-read structurally reasserted on ${causalOwnerRead.toolId} changed=${causalOwnerRead.changed}`);
+    }
     payload.toolId = 'market-brief';
     payload.window = windowId;
     /* The payload inherits the Tier-A window cutoff verbatim. It must never fall back to the run

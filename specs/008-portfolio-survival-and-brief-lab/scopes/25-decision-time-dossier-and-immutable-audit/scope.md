@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:dossier`, `remediation`
 **Depends On:** 24
@@ -40,6 +40,10 @@ Scenario: A user audits and corrects a cost-aware walk-forward allocation dossie
 
 ## Change Boundary
 
+**Allowed file families:** the walk-forward and dossier regions of `rlportfolioanalytics.js` and `rlportfolio.js`, the Dossier route regions of `portfolio-survival-allocation-lab.html`, `tests/portfolio-allocation.functional.mjs`, `tests/portfolio-dossier.functional.mjs`, `tests/portfolio-survival-allocation.spec.mjs`, and the dossier fixtures under `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** `market-brief.html`, `market-brief.*.json`, `brief-history*.jsonl`, `scripts/brief-*`, `rlbrief.js`, `rlportfoliobrief.js` behavior ranking, the core path-generation, dependence/hedge, and allocation-solver math in `rlportfolioanalytics.js` outside typed result consumption, `rldata.js`, `rlnav.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** walk-forward/dossier portions of `rlportfolioanalytics.js` and `rlportfolio.js`, Dossier route regions, dossier fixtures, `tests/portfolio-allocation.functional.mjs`, a focused dossier functional carrier, and `tests/portfolio-survival-allocation.spec.mjs`.
 - **Excluded:** public publisher, behavior ranking, core path generation, dependence/hedge calculations except typed results, allocation solver math except typed results, registry/docs, and framework-managed files.
 
@@ -60,6 +64,12 @@ Scenario: A user audits and corrects a cost-aware walk-forward allocation dossie
 | Privacy clear and private export | Dossier state remains clearable, previewed, user-selected, local, and absent from public surfaces. |
 | Allocation, stress, view, and hedge trials | Every inspected variant enters the ledger exactly once with decision-time provenance. |
 
+The consumer-facing surface is the `portfolio-survival-allocation-lab.html#dossier` deep link (`workspaceTabDossier`), which reload restores directly. The sweep is a stale-reference scan confirming that hash, its tab id, and the ledger record field names stay identical for the allocation, stress, view, and hedge trial writers.
+
+| Causal binding | Executable assertion |
+|---|---|
+| Persisted dossier audit causal authority: `scope25SavedDossier` → `appendScope25Audit` → `#dossierRecordTable` | TP-25-03 exact title `Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export` reads `#dossierRecordTable` before and after reload, correction, and export, then asserts the prior record prefix remains unchanged while correction and export-receipt records append under new audit heads. |
+
 ## UI Scenario Matrix
 
 | Scenario | Preconditions | Steps | Expected | Test Type |
@@ -70,7 +80,7 @@ Scenario: A user audits and corrects a cost-aware walk-forward allocation dossie
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Four rows have authored current declarations, including exact TP-25-01 through TP-25-04 titles in their named files. TP-25-05 remains an aggregate planned carrier because the named selftest file has no exact TP-25-05 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -88,7 +98,15 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Scope-25 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 25 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 25 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
+
 - [x] SCN-008-051 is implemented with decision-time walk-forward, complete cost/trial/state records, append corrections, persistence, and private export. Evidence: [scenario contract](report.md#scenario-contract-evidence), [coverage](report.md#coverage-report), and [real-page behavior](report.md#tp-25-03).
+- [ ] A user audits and corrects a cost-aware walk-forward allocation dossier: given explicit decision dates, rebalance dates, embargo, cost components, source vintages, and tried variant identities, walk-forward evaluation fits only decision-time evidence; in-sample, out-of-sample, stress, gross, net, not-evaluated, infeasible, and unavailable states remain distinct; commission, spread, slippage, turnover, financing, carry, and rebalance timing are itemized or net remains unavailable; every tried method, parameter, sample, stress, view, and hedge ratio is counted; an appended correction supersedes without rewriting the prior record; and reload plus explicit private export preserve identities, provenance, invalidation, and privacy warnings.
 - [x] TP-25-01 allocation functional evidence passes. Evidence: [TP-25-01](report.md#tp-25-01).
 - [x] TP-25-02 dossier functional evidence passes. Evidence: [TP-25-02](report.md#tp-25-02).
 - [x] TP-25-03 real-page regression passes. Evidence: [TP-25-03](report.md#tp-25-03).

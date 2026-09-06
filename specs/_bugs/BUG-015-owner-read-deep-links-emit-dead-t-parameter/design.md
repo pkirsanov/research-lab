@@ -205,6 +205,42 @@ to the feature that found the defect. Difficulty is not the obstacle; authorisat
 
 ---
 
+## Capability Foundation
+
+The foundation is **not built by this packet**, and that is the whole shape of the remedy. It already
+exists as `rlticker.js`'s subject-parameter contract: `RLTKR.SUBJECT_PARAM` as the single canonical
+spelling, `RLTKR.linkedSubject()` as the single reader returning
+`{ status, subject, raw }` with `status` in `accepted | absent | refused`, `SUBJECT_PATTERN` as the
+normalisation rule, and `raw` pinned to `null` so a refused value can never reach a sink.
+
+Feature 027 established it and corrected the identical defect in two files. This packet extends its
+**coverage**, not its design — no new mechanism, no new number, no second spelling.
+
+The enforcement half of the foundation is `F027_SUBJECT_ROUTES` in `scripts/selftest.mjs`, which
+assertion 1.20 iterates. That constant is why the defect was silent: a route outside it is neither
+checked nor reported as unchecked, so the guard was blind to exactly the routes that were wrong.
+Widening it takes the guard from covering half the surface to covering all of it.
+
+## Concrete Implementations
+
+| Half | Sites | Act |
+|---|---|---|
+| Emitting | `intraday-tape-lab.html`, `swing-structure-lab.html` | compose `deepLink` from `RLTKR.SUBJECT_PARAM` instead of a hard-coded `t` |
+| Receiving | the same two routes, joining five existing call sites (`options-structure-lab.html:2565`, `gamma-trading-lab.html:1842`, `options-flow-feed-lab.html:714`, `volatility-sizing-lab.html:1150`, `company-intelligence-lab.html:1724`) | delegate the query read to `RLTKR.linkedSubject()` and wire the returned subject into the route's existing initial-state selection |
+| Enforcement | `F027_SUBJECT_ROUTES` in `scripts/selftest.mjs` | add both routes, taking assertion 1.20 from two emitted names to four |
+
+### Variation Axes
+
+| Axis | Values | Consequence |
+|---|---|---|
+| **Half of the round trip** | emitting vs receiving | They fail independently and are fixed independently. An emitter corrected alone publishes a canonical link the route still cannot read; a reader corrected alone can honour a link nothing emits. Only both halves together make the link live in both directions, which is what scope 2 is named for. |
+| **Precedent density** | emitting has **2** prior applications; receiving has **5** | Neither half is novel. `design.md` §"What the remedy is not" records the real obstacle: both files were read-only to the feature that found the defect, so authorisation was the blocker, not difficulty. |
+| **Failure visibility** | silent vs guarded | Before widening `F027_SUBJECT_ROUTES`, a wrong route was invisible to assertion 1.20 rather than reported as unchecked. After, the same class of defect is caught at the guard instead of by a reader following a dead link. |
+
+The axis most easily missed is the second: the low precedent density is evidence that this is
+coverage extension rather than capability creation. A packet that invented a parallel convention
+would show zero prior applications, not seven.
+
 ## Rejected Alternative: Teach The Reader To Accept `t`
 
 `linkedSubject` takes an optional `paramName`, so a route could call

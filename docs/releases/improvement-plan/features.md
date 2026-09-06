@@ -329,18 +329,20 @@ to accelerate convergence, and execution/release must record a new date and repo
 ### Planned Registry Growth
 
 The registry becomes 29 only if Portfolio Survival (008), Market Regime (013), Recommendation Track Record
-(015), and Research Agenda (019) all land and pass their release gates. Features 016 and 020 extend existing
-tools and do not increase that count.
+(015), and Research Agenda (019) all land and pass their release gates. Features 016, 020, and 028 extend
+existing tools and do not increase that count.
 
-### Lower-Priority, Non-Exit Work
+### Optional, Non-Exit Work
 
 | Capability | Binding | Current truth | Disposition |
 |---|---|---|---|
 | Shared cycle and seasonality exchange | `specs/014-shared-cycle-and-seasonality-exchange` | `not_started` | Optional after required P0-P4 work |
 | Auction gamma playbook extension | `specs/016-auction-gamma-playbook` | `specs_hardened`; implementation not started | Optional after required P0-P4 work |
+| Volatility roughness and model-assumption diagnostic | `specs/031-volatility-roughness-and-model-assumption-diagnostic` | `not_started`, planning-only, uncertified, and not delivered. Requirements, the UI/UX scenario contract, design, four ordered scopes, scenario manifest, persistent test plan, report template, user-validation planning baseline, and state record exist. No Feature 028 implementation, Feature 028 test execution, product validation, human acceptance, or certification exists. Feature 011 is the sole technical dependency and is `done` and certified. | **Operator-prioritized ASAP ahead of unresolved A04, A06, A09, and A11, which are release-order constraints only and remain undelivered where so recorded.** Feature 028 remains optional, non-gating, and outside the phase exit criteria. It extends the existing Feature 011 volatility-sizing tool in Power mode through an additive immutable diagnostic with its own `diagnosticId` and unchanged base `decisionId`. A09 supplies no roughness, structure-function, zeta, or Hurst capability. A11 supplies no additive `RLVOL` decision schema. Shared `RLVOL` and volatility-workspace changes receive ordinary compatibility review against current consumers; A09 or A11 delivery does not invalidate this plan. Uses the existing non-blocking conflict vocabulary, fixed $q$ and lag grids, a planned Node 20 `ubuntu-latest` 750 ms reference, and separate planned `system-chrome` smoke coverage. Promises no additional file-origin regression and does not claim to restore Feature 011's existing `file://` configuration limitation. Adds no root page, tool-registry row, provider, backend, or catalogue-count increment. |
 
 <!-- bubbles:feature id=cycle-seasonality-exchange spec=specs/014-shared-cycle-and-seasonality-exchange delivery=optional -->
 <!-- bubbles:feature id=auction-gamma-extension spec=specs/016-auction-gamma-playbook delivery=optional -->
+<!-- bubbles:feature id=volatility-roughness-diagnostic spec=specs/031-volatility-roughness-and-model-assumption-diagnostic delivery=optional -->
 
 ### G101 Interpretation
 

@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `overlay:brief`, `remediation`
 **Depends On:** 19
@@ -40,6 +40,10 @@ Scenario: Portfolio Brief composes a DST-boundary window from generic evidence a
 
 ## Change Boundary
 
+**Allowed file families:** `rlportfoliobrief.js`, the Brief and Why-shown regions of `portfolio-survival-allocation-lab.html`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-publisher-boundary.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, the generic-evidence fixtures under `tests/fixtures/portfolio-survival-allocation/**`, and the Feature 008 API canaries in `scripts/selftest.mjs`.
+
+**Excluded surfaces:** `market-brief.html`, `market-brief.payload.json`, `market-brief.snapshot.json`, `market-brief.config.json`, `brief-history*.jsonl`, `scripts/brief-refresh.mjs`, `scripts/brief-refresh-and-push.sh`, `scripts/brief-refresh-scheduled.sh`, `rlbrief.js`, the personal-store schema in `rlportfolio.js`, the risk/path/allocation regions of `rlportfolioanalytics.js`, provider credentials in `rldata.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** `rlportfoliobrief.js`, the Brief/Why-shown route regions, Feature 008 generic fixtures, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-publisher-boundary.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, and API canaries in `scripts/selftest.mjs`.
 - **Excluded:** public publisher writes/scheduler, personal store schema, risk/path/allocation math, provider credentials, registry/docs surfaces, and framework-managed files.
 
@@ -56,9 +60,12 @@ Scenario: Portfolio Brief composes a DST-boundary window from generic evidence a
 
 | Consumer | Required proof |
 |---|---|
+| `composePortfolioBrief` → `renderBrief` → `#briefIdentity` | TP-20-03 exact title `Regression: SCN-008-046 generic evidence DST policy complete API and global queue remain coherent` asserts that `#briefIdentity` carries the accepted generic evidence identity, then verifies five-source composition, the global cap, Why-shown identity parity, and last-valid preservation. |
 | Generic snapshot, payload, history, watchlist, and owner reads | Every required identity enters one validated local projection without personal publication. |
 | Browser and CommonJS consumers | All eight functions expose identical frozen behavior and closed error shapes. |
 | Brief lanes, Why shown, and lifecycle controls | One queue order, cap, stale policy, and last-valid identity remain consistent. |
+
+The consumer surfaces are the `rlportfoliobrief.js` API client — the same eight frozen functions loaded by both the browser page and the CommonJS test carriers — and the `portfolio-survival-allocation-lab.html#brief` deep link (`workspaceTabBrief`) that renders the lanes and Why shown. The sweep is a stale-reference scan confirming every exported function name and closed error code is identical under both loaders.
 
 ## UI Scenario Matrix
 
@@ -71,7 +78,7 @@ Scenario: Portfolio Brief composes a DST-boundary window from generic evidence a
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Four rows have authored current declarations, including the exact TP-20-01, TP-20-02, TP-20-03, and TP-20-04 carriers. TP-20-05 remains an aggregate planned carrier because the named selftest file has no exact TP-20-05 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -88,6 +95,13 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 - Reverting this scope restores only the brief module, route projection, fixtures, and tests; it never rewrites public brief history.
 
 ### Definition of Done - Tiered Validation
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Scope-20 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 20 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 20 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
 
 - [x] Portfolio Brief composes a DST-boundary window from generic evidence and local scope; SCN-008-046 also proves the full API, closed errors, one global queue cap, and no personal publisher flow. Evidence: [Code Diff Evidence](report.md#code-diff-evidence), [TP-20-01](report.md#tp-20-01), [TP-20-02](report.md#tp-20-02), [TP-20-03](report.md#tp-20-03), [TP-20-04](report.md#tp-20-04).
 - [x] TP-20-01 functional evidence passes. Evidence: [TP-20-01](report.md#tp-20-01).

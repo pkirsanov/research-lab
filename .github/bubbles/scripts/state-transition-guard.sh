@@ -14,6 +14,7 @@
 #     [--target-status STATUS] \
 #     [--expect-workflow-mode MODE] \
 #     [--expect-contract-digest sha256:HEX] \
+#     [--delivery-base-ref REF --delivery-head-ref REF] \
 #     [--revert-on-fail]
 #
 # Exit codes:
@@ -242,6 +243,10 @@ revert_on_fail="false"
 expect_target_status=""
 expect_workflow_mode=""
 expect_contract_digest=""
+delivery_base_ref=""
+delivery_head_ref=""
+delivery_base_ref_seen="false"
+delivery_head_ref_seen="false"
 while (( $# > 0 )); do
   case "$1" in
     --revert-on-fail)
@@ -284,11 +289,45 @@ while (( $# > 0 )); do
       [[ -n "$expect_contract_digest" ]] || block_contract E009-USAGE "--expect-contract-digest requires a value"
       shift
       ;;
+    --delivery-base-ref)
+      (( $# >= 2 )) || block_contract E009-USAGE "--delivery-base-ref requires a value"
+      [[ "$delivery_base_ref_seen" == "false" ]] || block_contract E009-USAGE "--delivery-base-ref may be supplied only once"
+      [[ -n "$2" ]] || block_contract E009-USAGE "--delivery-base-ref requires a value"
+      delivery_base_ref="$2"
+      delivery_base_ref_seen="true"
+      shift 2
+      ;;
+    --delivery-base-ref=*)
+      [[ "$delivery_base_ref_seen" == "false" ]] || block_contract E009-USAGE "--delivery-base-ref may be supplied only once"
+      delivery_base_ref="${1#*=}"
+      [[ -n "$delivery_base_ref" ]] || block_contract E009-USAGE "--delivery-base-ref requires a value"
+      delivery_base_ref_seen="true"
+      shift
+      ;;
+    --delivery-head-ref)
+      (( $# >= 2 )) || block_contract E009-USAGE "--delivery-head-ref requires a value"
+      [[ "$delivery_head_ref_seen" == "false" ]] || block_contract E009-USAGE "--delivery-head-ref may be supplied only once"
+      [[ -n "$2" ]] || block_contract E009-USAGE "--delivery-head-ref requires a value"
+      delivery_head_ref="$2"
+      delivery_head_ref_seen="true"
+      shift 2
+      ;;
+    --delivery-head-ref=*)
+      [[ "$delivery_head_ref_seen" == "false" ]] || block_contract E009-USAGE "--delivery-head-ref may be supplied only once"
+      delivery_head_ref="${1#*=}"
+      [[ -n "$delivery_head_ref" ]] || block_contract E009-USAGE "--delivery-head-ref requires a value"
+      delivery_head_ref_seen="true"
+      shift
+      ;;
     *)
       block_contract E009-USAGE "unknown or policy-selecting argument: $1"
       ;;
   esac
 done
+
+if [[ "$delivery_base_ref_seen" != "$delivery_head_ref_seen" ]]; then
+  block_contract E009-USAGE "--delivery-base-ref and --delivery-head-ref must be supplied together"
+fi
 
 if [[ ! -d "$feature_dir" ]]; then
   block_contract E009-STATE-MALFORMED "feature directory does not exist"
@@ -4099,6 +4138,10 @@ echo ""
 #        <!-- bubbles:g040-skip-end --> HTML-comment markers is excluded
 #        from the scan, letting governance docs / post-mortems quote
 #        follow-up narrative inline without flipping spec status.
+#   (iv) The literal label token `Exposure-Deferred:` — mandated in scope
+#        bodies by vertical-delivery-plan-guard.sh — is stripped from each
+#        scope line before the scan. Only the token is removed; the reason
+#        written after it stays in the scan. See the Strategy (iv) note below.
 # =============================================================================
 echo "--- Check 18: Deferral Language Scan (Gate G040) ---"
 
@@ -4153,11 +4196,39 @@ else
   # bubbles:g040-skip-begin / bubbles:g040-skip-end sentinel markers.
   # Marker lines themselves are dropped via `next` so they are never fed
   # to the grep.
+  #
+  # Strategy (iv): the same filter neutralizes the `Exposure-Deferred:` LABEL
+  # TOKEN. Two framework gates read the same scope body and contradicted each
+  # other: vertical-delivery-plan-guard.sh REQUIRES the literal
+  # `Exposure-Deferred: <reason> -> <spec section>` on any scope that ships no
+  # runnable consumer surface, and `deferred` is a G040 term — so no wording
+  # satisfied both and such a scope could never reach done. The label is
+  # legitimate for exactly the reason Strategy (i)'s followUpOwner /
+  # "Follow-Up Narrative" exemptions are: it is SCHEMA-STRUCTURAL — a mandated
+  # field name another guard parses — not prose in which an author admits
+  # deferring work.
+  #
+  # The token is STRIPPED, not the line EXCLUDED, and that distinction is the
+  # whole point. Excluding the line would let "Exposure-Deferred: punted to a
+  # future iteration" pass G040 silently, turning a mandated label into a
+  # blanket exemption for any deferral prose written after it. Stripping leaves
+  # the REASON in the scan, so a genuinely deferring reason still blocks.
+  # Guarded by an adversarial selftest pair (a benign label that must NOT block
+  # and a deferring reason that MUST), so this cannot regress into an exclusion.
+  #
+  # The token is spelled with per-character classes because POSIX awk has no
+  # portable case-insensitivity (IGNORECASE is gawk-only), and the optional
+  # `- **` / `**` markdown wrapper is consumed so the residue is clean prose.
+  # Scope scan only: the report scan below is unchanged, matching the
+  # vertical-delivery guard, which reads scope bodies and never report.md.
   deferral_strip_awk='
     /^```/ || /^    ```/ { in_block = !in_block; next }
     /<!-- bubbles:g040-skip-begin -->/ { skip = 1; next }
     /<!-- bubbles:g040-skip-end -->/ { skip = 0; next }
-    !in_block && !skip { print }
+    !in_block && !skip {
+      gsub(/(-[[:space:]]*)?[*]*[Ee][Xx][Pp][Oo][Ss][Uu][Rr][Ee]-[Dd][Ee][Ff][Ee][Rr][Rr][Ee][Dd][[:space:]]*:[*]*/, " ")
+      print
+    }
   '
 
   for scope_path in ${scope_files[@]+"${scope_files[@]}"}; do
@@ -4590,20 +4661,28 @@ else
     c43_empty_stdout_sha256="e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     c43_analysis="$(jq -rs --arg empty_sha "$c43_empty_stdout_sha256" '
       # BUG-033 facet 2: unwrap every TRANSPARENT prefix, not just a bare
-      # leading `bash`/`sh`. A shell invoked with `-c`, an `env` prefix, and
-      # leading `VAR=value` assignments do not change WHICH program ran, so
-      # three ordinary spellings of one command must resolve to one family.
+      # leading `bash`/`sh`. A shell invoked with `-c`, an `env` prefix,
+      # leading `VAR=value` assignments, and an option-free `timeout` or
+      # `gtimeout` plus its numeric duration do not change WHICH program ran,
+      # so ordinary spellings of one command must resolve to one family.
       # Before this, `node -e x`, `env P=1 node -e x` and `zsh -c node -e x`
       # resolved to `node`, `env` and `zsh`, and the group was refused as a
       # multi-identity collision — the re-spelling case the rule above promises
       # to tolerate. `bash -c x` was worse still: it stripped `bash` and left
       # `-c`, so the family was a flag. The recursion is what makes composed
-      # prefixes (`env A=1 zsh -c ...`) collapse rather than half-collapse.
+      # prefixes (`env A=1 timeout 300 zsh -c ...`) collapse rather than
+      # half-collapse. Timeout options are deliberately not interpreted: they
+      # can alter exit semantics, so only the transparent DURATION form is
+      # normalized.
       def strip_wrappers:
         if ((.[0] // "") | test("^(bash|sh|zsh|ksh|dash)$"))
           then (if ((.[1] // "") == "-c") then (.[2:] | strip_wrappers) else (.[1:] | strip_wrappers) end)
         elif ((.[0] // "") == "env") then (.[1:] | strip_wrappers)
         elif ((.[0] // "") | test("^[A-Za-z_][A-Za-z0-9_]*=")) then (.[1:] | strip_wrappers)
+        elif ((.[0] // "") | test("^(timeout|gtimeout)$"))
+          and ((.[1] // "") | test("^[0-9]+([.][0-9]+)?[smhd]?$"))
+          and (length > 2)
+          then (.[2:] | strip_wrappers)
         else . end;
       def cmd_parts:
         ( . / " " | map(select(length > 0)) ) | strip_wrappers;

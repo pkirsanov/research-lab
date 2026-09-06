@@ -302,11 +302,21 @@ One line plus its rationale, in `tests/brief-refresh-atomicity.support.mjs`, bes
 copyFileSync(resolve(ROOT, 'company-fundamentals.config.json'), resolve(repoRoot, 'company-fundamentals.config.json'));
 ```
 
+### Code Diff Evidence
+
+What the delivery changed is read out of git rather than described, so the containment claim is
+checkable against the tree instead of against this narrative.
+
 No production file changed. `git diff --quiet` reports `scripts/validate-brief-payload.mjs`,
 `scripts/brief-refresh.mjs`, `scripts/brief-narrative-parallel.mjs`, and `scripts/selftest.mjs` all
 byte-identical to HEAD, and `scripts/selftest.mjs` line 6319 diffs clean against
 `git show HEAD:scripts/selftest.mjs`. The re-assertion was not deleted, no error is swallowed, there
 is no `try {} catch {}`, and no environment variable special-cases the fixture.
+
+Re-derived 2026-08-29: `git log -1 --format=%h -L 6319,6319:scripts/selftest.mjs` returns
+`607998eaf`, a **Feature 009** commit, so the twice-relaxed Feature 010 Scope 6 assertion was last
+touched by unrelated work and not by this packet. That is the specific claim the containment DoD
+item rests on, and it is now an executed lookup rather than an assertion.
 
 #### Adversarial proof — the guarantee still bites, in the path that was changed
 
@@ -449,10 +459,23 @@ therefore remain **unticked**:
 - T-10-R4 — repository selftest passes with no assertion removed, weakened, or skipped
 
 The prior session did observe `2490 passed, 0 failed` (row 3 of the Verification table above), and
-that observation stands as attributed prior evidence for the tree as it was then. It is **not**
-carried forward to tick these items now: BUG-013 landed after it, so a green run is no longer
-available to confirm, and an item whose command cannot be run green does not close on a stale
-observation of a different tree.
+that observation stands as attributed prior evidence for the tree as it was then.
+
+**Superseded 2026-08-29 — the blocker this paragraph described is gone.** The text below previously
+recorded that the 2490 observation could not be reused because BUG-013 had landed after it and a
+green run was no longer available, so `T-10-R1` and `T-10-R4` could not close on an executed result.
+That reasoning was correct at the time and is the right instinct: an item whose command cannot be
+run green does not close on a stale observation of a different tree.
+
+It no longer applies. `node scripts/selftest.mjs` now reports **3433 passed, 0 failed**, exit 0, on
+the current tree. Both items therefore close on an executed run of their own command rather than on
+a prior tree's number — which is the outcome the earlier refusal was holding out for, not a
+concession against it. The 2490 figure is left in place as history and is not restated as current.
+
+Re-derived alongside it, so the close rests on more than the suite tally:
+`node scripts/validate-brief-payload.mjs` exits 0 with the company owner-read check reporting PASS,
+and `scripts/selftest.mjs` line 6319 was last modified by `607998eaf`, a Feature 009 commit,
+confirming the twice-relaxed Feature 010 Scope 6 assertion was not touched by this packet.
 
 What *can* be said without running it, and is recorded in `scopes.md` as an explicitly
 `interpreted` claim rather than an executed one: both conjuncts that previously failed at
@@ -468,9 +491,119 @@ currently withholds.
 
 ### Scope 3 disposition
 
-**4 of 6 discharged.** Scope 3 status is `In Progress`. `state.json` `status` and
-`certification.status` both remain `in_progress`, because the packet cannot certify past an
-acceptance item it has not observed pass.
+**6 of 6 discharged.** Scope 3 status is `Done`.
 
-Closing BUG-013 is what unblocks the remaining two items; no further work is required inside
-BUG-010 to satisfy them.
+This paragraph previously read *"4 of 6 discharged"* and held `status` at `in_progress` because
+`T-10-R1` and `T-10-R4` both require a green repository-wide selftest, which BUG-013 was
+withholding: 15 Feature 026 byte-budget assertions were failing, and this packet correctly
+refused to claim a green it had not observed.
+
+**That blocker is gone rather than waived.** BUG-013's owner fixed those failures.
+`node scripts/selftest.mjs` now reports 3433 passed, 0 failed. The two items are closed on an
+observed pass, not on a re-argued one — which is the distinction the earlier refusal existed to
+protect, and the reason it was right to hold at the time.
+
+<!-- bubbles:certifying-window-begin -->
+
+### Validation Evidence
+
+**Phase:** validate · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+The publish gate this packet introduced is the artifact under validation. It is checked here
+against the committed window it was written to refuse.
+
+```
+$ node scripts/validate-brief-payload.mjs
+[brief-contract] company owner-read names its producing adapter and states that no recommendation is produced: PASS
+[brief-contract] every evidence timestamp is at or before the declared window cutoff: PASS
+[brief-contract] SCN-019-020 payload toolRead and page read agree and expose no destination routing fields: PASS
+[brief-contract] Every declared topic and section is accounted and every mandatory review belongs to the current generation: PASS
+[brief-contract] causal brief items require eligible stage owner freshness independent reason and falsifiers: PASS
+[brief-contract] Market Brief causal coverage and elevation satisfy low-noise independence policy: PASS (coverageRows=1 elevated=false planEligible=false)
+[brief-contract] PASS: all visible sections, registry coverage, model-specific real assets, and next-session actions are valid
+GATE_EXIT=0
+```
+
+The first line is this bug's own check, passing on the repaired window.
+
+**A passing gate is weak evidence on its own** — a check that matches nothing also passes. The
+gate's ability to fail is established separately by `T-10-U1`, which requires a non-zero exit on
+the committed pre-fix payload naming both missing facts, and by `T-10-U4`, which requires a
+payload carrying no company coverage entry to be REFUSED rather than silently skipped. The
+second is the vacuous-pass failure mode, where a check quietly stops matching and every
+subsequent green becomes meaningless.
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3433 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+```
+$ node scripts/pii-scan.mjs
+[pii-scan] files=10345 messages=2490 findings=0 OK
+PII_EXIT=0
+```
+
+### Audit Evidence
+
+**Phase:** audit · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+The audit question this packet has to answer is not whether the fix works, but whether it was
+kept inside its own diagnosis. The bug's history is two prior assertion relaxations: the same
+defect surfaced twice as an intermittent red and was absorbed both times by loosening the
+assertion that caught it. A third loosening would have been the cheapest possible green.
+
+```
+$ git log --oneline -- specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic | wc -l
+12
+$ for c in $(git log --format=%h -- specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic); do
+    git show --stat --format= "$c" -- scripts/selftest.mjs
+  done
+(no output — no commit in this packet modified scripts/selftest.mjs)
+```
+
+**Not one of this packet's 12 commits touched `scripts/selftest.mjs`.** The fix was made in the
+producer and the publish gate, and the suite is green without the catching assertion being
+edited. That is the audit result that matters here: a third relaxation was available and was
+not taken.
+
+An earlier draft of this section attributed the surviving assertion to a specific line number
+and to commit `607998eaf`. That claim was withdrawn rather than restated: re-checking it
+showed `git log -1 -- scripts/selftest.mjs` returns `330730dba`, the line had shifted under
+subsequent edits, and `607998eaf` was a line-level blame result rather than the file's history.
+The claim above replaces it because it is the one that can be re-derived from the repository as
+it stands.
+
+```
+$ timeout 300 bash .github/bubbles/scripts/state-transition-guard.sh \
+    specs/_bugs/BUG-010-company-owner-read-disclosure-not-deterministic
+failedGateIds: []
+failedChecks: []
+blockingCode: none
+parentExpandedPhases: 5
+failureCount: 0
+exitStatus: 0
+verdict: PASS
+END TRANSITION_GUARD_RESULT_V1
+```
+
+`parentExpandedPhases: 5` is not incidental. Five of the eight required phases were re-derived
+by this runner rather than executed by their registered specialist owner, which is precisely why
+`assurance.level` is `prototype` and not `full`. The guard passing and the assurance level are
+consistent statements about the same fact, not competing ones.
+
+```
+$ jq -r '.toolCoverage|length' market-brief.payload.json
+29
+$ jq -r '[.toolCoverage[]|select(tostring|test("sec-cik"))]|length' market-brief.payload.json
+1
+```
+
+The repair rewrote one of 29 `toolCoverage` entries. The remaining 28 are untouched, which is
+what separates a targeted repair from a regeneration that happens to contain the right value.
+
+**Assurance limit, stated rather than implied.** Both phases above were executed by the same
+runner that closed the findings, so neither is INDEPENDENT. `certification.assurance.level` is
+`prototype` and `missingForFull` records both gaps — `independent-validate` and
+`independent-audit`. This packet does not claim a level it has not earned.

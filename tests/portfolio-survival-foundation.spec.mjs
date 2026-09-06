@@ -2167,3 +2167,31 @@ test('Regression: SCN-008-045 five year coverage measures dates appends allowed 
   console.log(`[TP-19-03] actual=${result.firstDate}..${result.lastDate} rows=${result.rows.length} state=${result.state}`);
   console.log(`[TP-19-03] requests=${scopeRequests.map(({ pathname }) => pathname).join(',')}`);
 });
+
+/* SCN-008-054's primary carrier is the mutation suite in
+ * tests/portfolio-test-integrity.unit.mjs, which proves each audited defect class
+ * would still be CAUGHT if it returned. That suite runs entirely at the node level
+ * and crosses no production route, so it cannot discharge the scenario's declared
+ * consumer-surface obligation (`shared-consumer` requires producer-consumer parity
+ * plus a current consumer-surface assertion). This test is that half, and only that
+ * half: ONE audited class, asserted on the shipped page a reader actually sees. It
+ * does not claim to cover every audited class — the mutation suite does that. */
+test('Regression: SCN-008-054 the audited lifecycle defect stays repaired at the consumer surface', async ({ page }) => {
+  await openRoute(page);
+  await importValid(page, 'SCN-008-054 consumer surface');
+
+  await page.locator('#beginHoldingEdit').click();
+  const rows = page.locator('#holdingEditorRows tr[data-holding-id]');
+  const before = await rows.count();
+  expect(before, 'the editor must hold more than one row for a removal to mean anything').toBeGreaterThan(1);
+
+  // F008-PORTFOLIO-LIFECYCLE-001 returned the UNCHANGED row set, so a removal looked
+  // accepted and changed nothing. The row count is the reader-visible consequence.
+  await rows.first().getByRole('button', { name: 'Remove holding' }).click();
+  await expect(rows).toHaveCount(before - 1);
+
+  await page.locator('#confirmHoldingRevision').click();
+  await expect(page.locator('#currentRevision')).toContainText(`${before - 1} holding`);
+
+  console.log(`[SCN-008-054] consumerSurface rowsBefore=${before} rowsAfter=${before - 1}`);
+});

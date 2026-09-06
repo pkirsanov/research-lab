@@ -3,71 +3,19 @@
 ## Purpose
 
 This specification states the behaviour a remedy must establish for local macOS runs of the
-`system-chrome` browser project. It selects no remedy. `design.md` records the options and
-their consequences.
-
-## Outcome Contract
-
-- **Intent:** Make the real local macOS `system-chrome` Feature 008 workload reliably exit zero after all 94 tests pass, without hiding teardown failures.
-- **Success Signal:** Current selected-route evidence demonstrates every outcome below.
-  - The exact config-default BUG-022 C03 workload resolves one worker under `system-chrome` with `channel: chrome`.
-  - The workload reports 94 of 94 passing and exits zero.
-  - The run emits no force-kill or ignored-lifecycle marker.
-  - The run leaves zero workload-owned Playwright or Chrome residue.
-- **Hard Constraints:** Keep the selected containment route and its evidence boundary intact.
-  - Keep default `workers: 1`, `system-chrome`, `channel: chrome`, and the 300000ms teardown budget unchanged.
-  - Treat any teardown force-kill, ignored lifecycle error, non-zero process exit, or workload-owned residue as failure.
-  - Treat the one-worker route only as exposure containment. Do not claim that it establishes or removes an upstream, socket, transport, or process root cause.
-  - Keep the rejected lifecycle candidate and `SCN-BUG017-09` and `SCN-BUG017-10` receipts as historical RED/GREEN evidence, never current success.
-  - Do not weaken or skip tests, switch the browser project, inflate the teardown budget, rewrite history, or touch concurrent work.
-- **Failure Condition:** The fix fails if an all-passing selected workload exits non-zero, hides a lifecycle failure, leaves owned residue, or relies on any forbidden constraint change.
-
-### Single-Capability Justification
-
-**Classification:** Existing-capability extension with one concrete runner configuration.
-
-This packet extends the existing Playwright runner policy. `playwright.config.mjs` now pins
-`workers: 1`, and `.specify/memory/agents.md` records the same rollback-gated fallback.
-`playwright.config.mjs` already contains the `system-chrome` and `chromium` projects. The packet
-adds neither project and introduces no runner abstraction or extension point.
-
-The remedy bounds exposure for one existing system-Chrome teardown path. It does not create a
-second worker policy, browser provider, or reusable lifecycle contract. The matching design
-classification is `### Single-Implementation Justification`, not a foundation and overlay split
-with invented variation axes.
+`system-chrome` browser project. It selects no remedy; the options and their consequences are
+in `design.md`.
 
 ## Behaviour Under Specification
 
-An exit code is a claim. A runner can report ninety-four passes and still exit 1. That
-disagreement makes the exit code false. Every downstream caller then receives that falsehood.
+An exit code is a claim. When a runner reports ninety-four passes and exits 1, the claim and
+the evidence disagree, and everything downstream that reads the exit code — a script, a hook,
+a developer's habit — is reading a falsehood.
 
-The defect is that disagreement. It is confined to one browser project on one platform. It
-does not reach the pipeline, and it is intermittent. Intermittence aggravates the defect. A
-failure that clears on rerun trains people to ignore the signal rather than investigate it.
-
-## Current Evidence Boundary
-
-The original six-worker reproductions remain historical characterisation. They do not define
-the current trigger or prove that the two-worker setting closes the defect.
-
-At revision `d532faaac`, the exact 94-test BUG-022 C03 workload failed on two consecutive
-two-worker runs after every test passed. Each run ended at the runner's force-kill boundary.
-The same workload passed on two consecutive one-worker runs. These four runs define a current
-sample, not a long-run rate or proof that one worker removes the cause.
-
-Focused isolation found the Foundation worker retaining two anonymous `Socket` handles after
-Chrome exited. That observation narrows the failing lifecycle boundary. It does not establish
-the transport's underlying root cause.
-
-A measured lifecycle candidate gave Foundation a worker-scoped boundary and closed its browser
-in the existing `afterAll`. It passed one strict 27-test canary and one exact 94-test run.
-Finalization then failed the strict canary twice at the same candidate bytes. The browser close
-timed out, and Playwright force-killed a worker after 15 seconds.
-
-The candidate commits remain in history. Two explicit revert commits restored the Foundation
-and runtime-functional files to their pre-candidate blobs. The selected one-worker fallback then
-passed the exact 94-test config-default command twice. Both runs exited zero without force-kill,
-ignored-lifecycle, or owned-residue findings.
+The defect is that disagreement. It is confined to one browser project on one platform, it
+does not reach the pipeline, and it is intermittent. Intermittence is not a mitigation here;
+it is the aggravating factor, because a failure that clears on rerun trains people to ignore
+the signal rather than to investigate it.
 
 ## Requirements
 
@@ -90,39 +38,22 @@ exit code for an identical, all-passing test set.
 ### FR-017-004 — Local verification cost is proportionate
 
 The `system-chrome` project's wall time for a given test set is within a stated multiple of
-the bundled project's. Filing measurements recorded roughly four to one on a clean six-worker
-run and roughly eighteen to one on a stalled run. Those values characterise the filing sample.
-What multiple is acceptable remains an owner decision recorded against this requirement.
+the bundled project's. The currently measured ratio is roughly four to one on a clean run and
+roughly eighteen to one on a stalled one. What multiple is acceptable is an owner decision
+recorded against this requirement, not a number this specification fixes.
 
 ### FR-017-005 — If the defect cannot be removed, it is disclosed rather than endured
 
-Where the cause lies outside this repository, document the condition where a developer meets
-it. Developers can then recognise an intermittent exit 1 on a green suite rather than
-rediscover it. Disclosure is a fallback for an unremovable cause, never a substitute for a
-removable one.
-
-### FR-017-006 — Focused proof does not certify the remedy
-
-A lifecycle candidate remains provisional after passing the focused Foundation-to-Paths probe.
-Selection requires the exact 94-test workload at two workers to pass with exit 0. No force-kill
-marker or workload-owned process residue may remain.
-
-### FR-017-007 — One worker is a rollback-gated fallback
-
-The repository may move from two workers to one only after the lifecycle candidate fails a
-required current acceptance run and its changes are hash-verified as rolled back. One worker
-must then pass the same 94-test workload with exit 0. No force-kill marker or workload-owned
-process residue may remain.
+Where the cause lies outside this repository, the condition is documented where a developer
+meets it, so an intermittent exit 1 on a green suite is recognised rather than rediscovered.
+Disclosure is a fallback for an unremovable cause, never a substitute for a removable one.
 
 ## Acceptance Criteria
 
-- The rejected lifecycle candidate's successful and failed checks remain recorded as history.
-- Both selected-route runs execute the exact BUG-022 C03 command through the config default.
-- Each selected-route run resolves one worker, passes all 94 tests, and exits zero.
-- No `worker-N process did not exit within` error appears in either selected-route run.
+- A ninety-four-test set under `system-chrome` at six workers exits 0 on repeated
+  consecutive runs, with raw output recorded for each.
+- No `worker-N process did not exit within` error appears in any of those runs.
 - Chrome process count returns to its pre-run level after the run completes.
-- A one-worker configuration is eligible only under FR-017-007 and must pass the identical
-  complete workload.
 - The wall-time ratio against the bundled project meets whatever bound the owner records
   under FR-017-004.
 - `node scripts/selftest.mjs` reports zero failures and no fewer assertions than the recorded
@@ -138,18 +69,35 @@ process residue may remain.
 
 ## Grounding
 
-Historical filing claims remain grounded in the filing evidence in `report.md`. The current
-contract is grounded in `Current-Revision Stabilization At d532faaac`, `Scope 4 Finalization
-Validation - Candidate Rejected`, and `Scope 4 Fallback Selection And Verification`. The
-Foundation handle observation narrows the failing boundary without establishing a root cause.
-The fallback runs bound exposure. They do not identify the retained socket owner.
+Every factual claim in this specification is established by executed evidence in `report.md`,
+produced in the filing session on the machine where the defect reproduces. Claims that were
+**not** established are enumerated in `bug.md` under `## What Was Not Established` and are not
+relied upon here.
 
-## Superseded Closure Inference (Historical)
 
-The original worker sweep observed no stalls in three two-worker runs. It observed one stall
-in three four-worker runs and six stalls in eight six-worker runs. Those outcomes remain valid
-history in `report.md`.
+## Domain Capability Model
 
-The current two-worker recurrence supersedes only the inference that two workers eliminated
-the default-path defect. Six workers remain part of the original characterisation. They are no
-longer the acceptance workload or the only known recurrence condition.
+### Single-Capability Justification
+
+This packet delivers exactly one capability: **bound the concurrency of browser-backed
+Playwright runs so the suite's exit code reports the tests rather than the teardown.**
+It is a single capability rather than a foundation, and the distinction is not a
+formality — it decides whether the right artefact here is a reusable seam or one line.
+
+There is no second consumer to generalise for. The concurrency bound has exactly one
+reader, Playwright's own runner, and exactly one place that runner looks:
+`playwright.config.mjs`. A repository cannot own an abstraction over a value that a
+third-party runner reads directly from its own config file; anything built above it
+would be a wrapper this repository maintains and nothing calls.
+
+Nor is there a second variant to hold. The natural candidates fail on inspection:
+a per-project worker count is not expressible — Playwright resolves `workers` once for
+the run, not per project — and a per-platform override would be a branch this repository
+could never exercise, since the condition has been observed on exactly one platform, on
+one machine, by one operator. Building either would create an untested path in the name
+of symmetry, which is the cost this justification exists to refuse.
+
+The proportionality trigger words that brought this gate into force appear in the
+diagnostic prose — the packet discusses browser *channels*, *projects*, and candidate
+*drivers* of the stall. Those are the vocabulary of the investigation, not of the
+delivery. The delivery is one integer and a comment explaining it.

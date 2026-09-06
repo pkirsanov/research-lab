@@ -417,6 +417,8 @@ bubbles/scripts/session-liveness-selftest.sh
 bubbles/scripts/session-liveness.sh
 bubbles/scripts/session-review-selftest.sh
 bubbles/scripts/session-review.sh
+bubbles/scripts/session-state-lib-selftest.sh
+bubbles/scripts/session-state-lib.sh
 bubbles/scripts/shellcheck-lint-selftest.sh
 bubbles/scripts/shellcheck-lint.sh
 bubbles/scripts/skill-description-load-selftest.sh
@@ -436,6 +438,7 @@ bubbles/scripts/state-linkage-backfill-selftest.sh
 bubbles/scripts/state-linkage-backfill.sh
 bubbles/scripts/state-snapshot-selftest.sh
 bubbles/scripts/state-snapshot.sh
+bubbles/scripts/state-transition-delivery-range-selftest.sh
 bubbles/scripts/state-transition-guard-perf-selftest.sh
 bubbles/scripts/state-transition-guard-selftest.sh
 bubbles/scripts/state-transition-guard.sh

@@ -1,6 +1,6 @@
 # BUG-018: The Corpus-Pending Window States Absence As Settled Fact
 
-**Status:** Filed, unstarted. Reproduced in this session. Root cause established. No fix attempted.
+**Status:** Delivered. Reproduced at filing, root cause established, and both facets fixed across `6881aa3a4` (Scope 1) and `4784fd4e0` (Scopes 2-3), each with a dedicated regression test in `tests/company-intelligence-lab.spec.mjs`.
 
 **Severity:** P2 (Medium). Transient and self-correcting. It corrupts no data, persists nothing,
 and breaks no workflow. It does show a confident, wrong, negative conclusion about a company for

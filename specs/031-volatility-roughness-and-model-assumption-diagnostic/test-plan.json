@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "specId": "028",
+  "generatedBy": "bubbles.plan",
+  "evidenceBoundary": "Planning only. Commands, persistent files, and exact titles are obligations, not execution evidence.",
+  "commandCatalog": {
+    "CMD-SELFTEST": "node scripts/selftest.mjs",
+    "CMD-UNIT": "node --test tests/*.unit.mjs",
+    "CMD-INTEGRATION": "node --test tests/*.integration.mjs",
+    "CMD-E2E-VOL": "npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 tests/volatility-sizing-lab.spec.mjs",
+    "CMD-ARTIFACT": "bash .github/bubbles/scripts/artifact-lint.sh specs/031-volatility-roughness-and-model-assumption-diagnostic 'SCN-028-[0-9]{3}'",
+    "CMD-TRACE": "bash .github/bubbles/scripts/traceability-guard.sh specs/031-volatility-roughness-and-model-assumption-diagnostic"
+  },
+  "scopes": [
+    {
+      "scopeId": "SCOPE-028-01",
+      "foundation": true,
+      "dependsOn": [],
+      "tests": [
+        {"id":"TP-028-01-01","type":"unit","file":"tests/rlvol-roughness.unit.mjs","scenarioIds":["SCN-028-001"],"testTitle":"SCN-028-001 supported multi-q scaling returns complete admitted evidence","commandRef":"CMD-UNIT","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-01-02","type":"unit","file":"tests/rlvol-roughness.unit.mjs","scenarioIds":["SCN-028-003","SCN-028-004"],"testTitle":"Regression: SCN-028-003 and SCN-028-004 retain exact insufficiency and exclusion evidence","commandRef":"CMD-UNIT","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-01-03","type":"unit","file":"tests/rlvol-roughness.unit.mjs","scenarioIds":["SCN-028-005"],"testTitle":"Regression: SCN-028-005 rejects weak per-order fits at every boundary","commandRef":"CMD-UNIT","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-01-04","type":"unit","file":"tests/rlvol-roughness.unit.mjs","scenarioIds":["SCN-028-006"],"testTitle":"Regression: SCN-028-006 rejects weak common scaling and excessive residuals","commandRef":"CMD-UNIT","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-01-05","type":"unit","file":"tests/rlvol-roughness.unit.mjs","scenarioIds":["SCN-028-007"],"testTitle":"Regression: SCN-028-007 withholds H for incomplete or wide incremental bootstrap evidence","commandRef":"CMD-UNIT","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-01-06","type":"integration","file":"tests/volatility-roughness.integration.mjs","scenarioIds":["SCN-028-001","SCN-028-003","SCN-028-007"],"testTitle":"RLVOL diagnostic contract is immutable and keeps admitted and withheld states distinct","commandRef":"CMD-INTEGRATION","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-01-08","type":"functional","file":"scripts/selftest.mjs","scenarioIds":["SCN-028-001","SCN-028-003","SCN-028-007"],"testTitle":"Canary: existing RLVOL exports and UMD consumers survive the additive roughness foundation","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true}
+      ]
+    },
+    {
+      "scopeId": "SCOPE-028-02",
+      "foundation": false,
+      "dependsOn": ["SCOPE-028-01"],
+      "tests": [
+        {"id":"TP-028-02-01","type":"unit","file":"tests/rlvol-roughness.unit.mjs","scenarioIds":["SCN-028-008","SCN-028-009","SCN-028-010"],"testTitle":"SCN-028 benchmark classification uses strict outside and inclusive containment boundaries","commandRef":"CMD-UNIT","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-02-02","type":"integration","file":"tests/volatility-roughness.integration.mjs","scenarioIds":["SCN-028-008"],"testTitle":"Regression: SCN-028-008 projects one non-blocking below-benchmark conflict","commandRef":"CMD-INTEGRATION","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-02-03","type":"integration","file":"tests/volatility-roughness.integration.mjs","scenarioIds":["SCN-028-009","SCN-028-010"],"testTitle":"Regression: benchmark containment emits no conflict and above-benchmark evidence stays non-directional","commandRef":"CMD-INTEGRATION","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-02-04","type":"integration","file":"tests/volatility-roughness.integration.mjs","scenarioIds":["SCN-028-013"],"testTitle":"Regression: SCN-028-013 preserves exact Feature 011 bytes and parent identity in every wrapper state","commandRef":"CMD-INTEGRATION","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-02-05","type":"functional","file":"scripts/selftest.mjs","scenarioIds":["SCN-028-008","SCN-028-013"],"testTitle":"Feature 028 additive diagnostic preserves Feature 011 identity and conflict compatibility","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true}
+      ]
+    },
+    {
+      "scopeId": "SCOPE-028-03",
+      "foundation": false,
+      "dependsOn": ["SCOPE-028-02"],
+      "tests": [
+        {"id":"TP-028-03-01","type":"e2e-ui","file":"tests/volatility-sizing-lab.spec.mjs","scenarioIds":["SCN-028-002"],"testTitle":"Regression: SCN-028-002 keeps first paint and provider activity unchanged until enablement","commandRef":"CMD-E2E-VOL","liveSystem":true,"regressionRequired":true},
+        {"id":"TP-028-03-02","type":"e2e-ui","file":"tests/volatility-sizing-lab.spec.mjs","scenarioIds":["SCN-028-014"],"testTitle":"SCN-028-014 separates page evaluation outcomes from canonical diagnostic evidence","commandRef":"CMD-E2E-VOL","liveSystem":true,"regressionRequired":true},
+        {"id":"TP-028-03-03","type":"e2e-ui","file":"tests/volatility-sizing-lab.spec.mjs","scenarioIds":["SCN-028-001","SCN-028-003","SCN-028-004","SCN-028-005","SCN-028-006","SCN-028-007"],"testTitle":"Regression: Scope 1 formula and admission outcomes remain visible after Power projection wiring","commandRef":"CMD-E2E-VOL","liveSystem":true,"regressionRequired":true},
+        {"id":"TP-028-03-04","type":"e2e-ui","file":"tests/volatility-sizing-lab.spec.mjs","scenarioIds":["SCN-028-014"],"testTitle":"Regression: Feature 028 Power evidence remains usable at narrow width and zoom","commandRef":"CMD-E2E-VOL","liveSystem":true,"regressionRequired":true},
+        {"id":"TP-028-03-05","type":"e2e-ui","file":"tests/volatility-sizing-lab.spec.mjs","scenarioIds":["SCN-028-002","SCN-028-014"],"testTitle":"Regression: Feature 028 withheld states preserve evidence and never substitute H","commandRef":"CMD-E2E-VOL","liveSystem":true,"regressionRequired":true},
+        {"id":"TP-028-03-06","type":"e2e-ui","file":"tests/volatility-sizing-lab.spec.mjs","scenarioIds":["SCN-028-008","SCN-028-009","SCN-028-010","SCN-028-013"],"testTitle":"Regression: Scope 2 wrapper states preserve the production-route base decision after UI wiring","commandRef":"CMD-E2E-VOL","liveSystem":true,"regressionRequired":true}
+      ]
+    },
+    {
+      "scopeId": "SCOPE-028-04",
+      "foundation": false,
+      "dependsOn": ["SCOPE-028-03"],
+      "tests": [
+        {"id":"TP-028-04-01","type":"integration","file":"tests/volatility-roughness.integration.mjs","scenarioIds":["SCN-028-011"],"testTitle":"Regression: SCN-028-011 evaluates one immutable cached snapshot without ensureBars","commandRef":"CMD-INTEGRATION","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-04-02","type":"integration","file":"tests/volatility-roughness.integration.mjs","scenarioIds":["SCN-028-012"],"testTitle":"SCN-028-012 browser-global and CommonJS diagnostics are canonically identical","commandRef":"CMD-INTEGRATION","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-04-03","type":"stress","file":"tests/rlvol-roughness.unit.mjs","scenarioIds":["SCN-028-001","SCN-028-012"],"testTitle":"NFR-028-002 incrementally evaluates 1500 closes and 500 resamples within 750 ms on Node 20","commandRef":"CMD-UNIT","liveSystem":false,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"},
+        {"id":"TP-028-04-04","type":"e2e-ui","file":"tests/volatility-sizing-lab.spec.mjs","scenarioIds":["SCN-028-011","SCN-028-012"],"testTitle":"Regression: stale diagnostic reuses the real cache and presentation changes do not recompute","commandRef":"CMD-E2E-VOL","liveSystem":true,"regressionRequired":true},
+        {"id":"TP-028-04-05","type":"functional","file":"scripts/selftest.mjs","scenarioIds":["SCN-028-011","SCN-028-012"],"testTitle":"Feature 028 preserves registry UMD ownership and exact file-origin unavailability parity","commandRef":"CMD-SELFTEST","liveSystem":false,"regressionRequired":true},
+        {"id":"TP-028-04-06","type":"regression","file":"tests/rlvol-roughness.unit.mjs; tests/volatility-roughness.integration.mjs; tests/volatility-sizing-lab.spec.mjs; scripts/selftest.mjs","scenarioIds":["SCN-028-001","SCN-028-002","SCN-028-003","SCN-028-004","SCN-028-005","SCN-028-006","SCN-028-007","SCN-028-008","SCN-028-009","SCN-028-010","SCN-028-011","SCN-028-012","SCN-028-013","SCN-028-014"],"testTitle":"Regression: complete Feature 028 scenario contract remains green","commandRefs":["CMD-SELFTEST","CMD-UNIT","CMD-INTEGRATION","CMD-E2E-VOL"],"liveSystem":true,"regressionRequired":true,"testState":"planned-not-authored","status":"planned-not-executed"}
+      ]
+    }
+  ]
+}

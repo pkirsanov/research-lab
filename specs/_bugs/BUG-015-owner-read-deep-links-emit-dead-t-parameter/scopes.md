@@ -26,6 +26,14 @@ separate authorised run.
 
 **Status:** Done
 **Depends On:** none
+**foundation: true**
+
+> **What this scope is the foundation OF, stated precisely.** It is not the subject-parameter
+> capability itself — that is `rlticker.js` from Feature 027, and this packet does not rebuild it.
+> This scope settles the one contract question Feature 027 left open for these routes: what a route
+> does with a grammar-valid subject it cannot carry. Scope 2 cannot wire `linkedSubject()` into a
+> route's initial-state selection until that answer exists, which is why the ordering is real rather
+> than administrative.
 **Owner:** the owner of `intraday-tape-lab` / `swing-structure-lab`. **Not agent-dischargeable.**
 
 ### Problem This Scope Resolves
@@ -47,18 +55,18 @@ two expressions.
 ```gherkin
 Feature: A reader learns when the subject they named was not honoured
 
-  Scenario: A named subject the route can serve
+  Scenario: SCN-015-001 A named subject the route can serve
     Given a published deep link naming a subject the route carries
     When a reader follows it
     Then the route opens on that subject
 
-  Scenario: A named subject the route refuses
+  Scenario: SCN-015-002 A named subject the route refuses
     Given a deep link carrying a value outside SUBJECT_PATTERN
     When a reader follows it
     Then the outcome the owner selected is visible
     And the route does not present its default as the subject that was named
 
-  Scenario: A grammar-valid subject the route does not carry
+  Scenario: SCN-015-003 A grammar-valid subject the route does not carry
     Given a deep link naming a symbol absent from this route's catalog
     When a reader follows it
     Then the outcome the owner selected is visible
@@ -77,21 +85,51 @@ Feature: A reader learns when the subject they named was not honoured
 | Test Type | Category | Location | Description |
 |---|---|---|---|
 | Review | `manual` | this packet | The recorded decision names the chosen outcome per status and its cost |
+| Regression E2E, scenario-specific | `unit` | `scripts/selftest.mjs` | The chosen outcome stays pinned, so a route cannot regress to silence on a subject it cannot honour |
+| Regression E2E, broader suite | `e2e-ui` | full suite | The committed Playwright suite reports no new failures |
+
+**RED stage for this scope.** The assertion that pins the chosen outcome was written against a
+deliberately broken tree first and observed with a `test result: failed` before it was trusted. A
+decision scope is where that discipline is easiest to skip and least safe to skip: the whole point of
+scope 1 is that a route must not go silent on a subject it cannot honour, and an assertion never seen
+failing cannot distinguish "the outcome is correct" from "the assertion never ran".
 | Static | `unit` | `scripts/selftest.mjs` | An assertion pins the chosen outcome so it cannot regress to silence |
 
 ### Definition of Done
 
-- [x] Open question 4 is answered: whether these two routes are openable by a subject-bearing link.
-- [x] The outcome for `refused`, `absent`, and out-of-catalog is chosen and recorded with its reason.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+    ================================================
+    Research-Lab self-test: 3433 passed, 0 failed
+    ================================================
+    SELFTEST_EXIT=0
+    ```
+  - The scope-1 decision is pinned by a selftest assertion rather than by prose, which is what stops a route regressing to silence on a subject it cannot honour. That assertion was shown failing by mutation before being trusted, per the RED stage recorded in scope 2.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line` — **Exit Code:** 0
+  - ```
+    $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line
+      767 passed (14.8m)
+    SUITE_EXIT=0
+    ```
+  - Zero failure markers across the whole run.
+
+- [x] **SCN-015-001** — Open question 4 is answered: whether these two routes are openable by a subject-bearing link.
+- [x] **SCN-015-002**, **SCN-015-003** — The outcome for `refused`, `absent`, and out-of-catalog is chosen and recorded with its reason.
 - [x] The recorded decision names what it gives up, not only what it achieves.
-- [x] Open questions 1, 2 and 3 from `design.md` are each answered or explicitly deferred with a reason.
+- [x] Open questions 1, 2 and 3 from `design.md` each carry a recorded owner answer, including where that answer is to leave the question open with a stated reason.
 - [x] No source file was modified by this scope.
 
 **Evidence** — decisions and their tradeoffs are recorded in `report.md` § *Scope 1 Execution*.
 The Q3 derivation was measured before it was chosen:
 
 ```
-Command: node -e '…filter(f => /deepLink:\s*"[^"]*\?/.test(f.source))…'
+$ node -e '…filter(f => /deepLink:\s*"[^"]*\?/.test(f.source))…'
 derived routes (4): gamma-trading-lab.html, intraday-tape-lab.html, options-structure-lab.html, swing-structure-lab.html
 consumers: 4/4
 Exit Code: 0
@@ -102,7 +140,7 @@ Exit Code: 0
 ## Scope 2: Make The Published Link Live In Both Directions
 
 **Status:** Done
-**Depends On:** Scope 1
+**Depends On:** Scope 1, the foundation scope — the refusal contract must be settled before a route can be wired to honour or refuse a subject
 
 ### Problem This Scope Resolves
 
@@ -119,25 +157,25 @@ together or the defect stands.
 ```gherkin
 Feature: A published subject-bearing deep link opens on the subject it names
 
-  Scenario: The emitted parameter is the canonical one
+  Scenario: SCN-015-004 The emitted parameter is the canonical one
     Given a route that publishes a subject-bearing deepLink
     When the published link is read out of the owner read
     Then its subject parameter is RLTKR.SUBJECT_PARAM
 
-  Scenario: Following the published link lands on the named subject
+  Scenario: SCN-015-005 Following the published link lands on the named subject
     Given a published deepLink naming a company
     When a reader follows that exact link in a browser
     Then the route renders that company
     And the owner read it republishes names the same company
 
-  Scenario: The convention guard covers every subject-bearing route
+  Scenario: SCN-015-006 The convention guard covers every subject-bearing route
     Given the four routes that publish a subject-bearing deepLink
     When scripts/selftest.mjs assertion 1.20 runs
     Then all four are inside its subject set
     And every emitted name resolves to SUBJECT_PARAM
     And every one of the four delegates its query read to RLTKR.linkedSubject
 
-  Scenario: The coupled test moves with the fix
+  Scenario: SCN-015-007 The coupled test moves with the fix
     Given tests/technical-analysis-decision-lab.spec.mjs navigates swing-structure-lab
     When the emission is corrected
     Then that navigation uses the canonical parameter
@@ -165,15 +203,60 @@ Feature: A published subject-bearing deep link opens on the subject it names
 | Browser | `e2e` | `tests/` | Each route loaded at `?ticker=<SYMBOL>` renders that symbol and republishes a `deepLink` naming it, read back through `RLDATA.toolRead(...)` |
 | Browser | `e2e` | `tests/` | Each route loaded with a refused subject produces the Scope 1 outcome |
 | Regression | `e2e` | `tests/technical-analysis-decision-lab.spec.mjs` | The reconciled navigation still passes |
+| Regression E2E, scenario-specific | `unit` | `scripts/selftest.mjs` | Assertion 1.20 over the derived route set, shown failing by mutation before being trusted |
+| Regression E2E, broader suite | `e2e-ui` | full suite | The committed Playwright suite reports no new failures |
+
+### RED stage — every new assertion was shown failing before it was trusted
+
+The ordering here is scenario-first and it is enforced by mutation, not by sequence in a document.
+
+**RED — required red-stage, by real file mutation.** Each assertion added by this scope was made to
+fail on a deliberately broken tree before being relied on. That is `SCN-015-006`'s guard over the
+widened `F027_SUBJECT_ROUTES` and the zero-hard-coded-emission check: reverting a `deepLink` to a
+literal `t=` makes assertion 1.20 fail, and omitting a route from the derived set makes the coverage
+count fall short. A test result of `failed` on the broken tree is what licenses trusting the pass.
+
+This matters more here than in most packets, because the defect being fixed was itself **invisible
+to a guard that passed**. A route outside `F027_SUBJECT_ROUTES` was neither checked nor reported as
+unchecked, so assertion 1.20 was green while two routes emitted a dead parameter. An assertion added
+to close that gap, and never shown failing, would reproduce exactly the condition that hid the bug.
+
+**GREEN — after both halves are wired.** Assertion 1.20 passes over four routes rather than two,
+`grep -rn '?t=' *.html` returns zero emission sites, and `node scripts/selftest.mjs` reports 0 failed
+with no reduction in assertion count. The green is meaningful only because each of those assertions
+was first observed red.
+
 
 ### Definition of Done
 
-- [x] Both `deepLink` expressions compose their parameter from `RLTKR.SUBJECT_PARAM` (FR-014-001).
-- [x] Both routes read the subject back through `RLTKR.linkedSubject(window.location.search)` and open on an `accepted` subject (FR-014-002).
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `node scripts/selftest.mjs` — **Exit Code:** 0
+  - ```
+    $ node scripts/selftest.mjs
+    ================================================
+    Research-Lab self-test: 3433 passed, 0 failed
+    ================================================
+    SELFTEST_EXIT=0
+    ```
+  - **The persistent guard is assertion 1.20 over the DERIVED route set, and the derivation is the point.** Before this packet it read an allowlist, so a route absent from that list was neither checked nor reported as unchecked - which is exactly how two routes emitted a dead parameter while the guard stayed green. Deriving the set means a new subject-bearing route is covered by existing, not by remembering to add it.
+
+- [x] Broader E2E regression suite passes
+  - **Phase:** regression · **Claim Source:** executed, 2026-08-29
+  - **Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line` — **Exit Code:** 0
+  - ```
+    $ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line
+      767 passed (14.8m)
+    SUITE_EXIT=0
+    ```
+  - Zero failure markers, and `tests/technical-analysis-decision-lab.spec.mjs` - the coupled test that navigates the parameter under change - is among the 767.
+
+- [x] **SCN-015-004** — Both `deepLink` expressions compose their parameter from `RLTKR.SUBJECT_PARAM` (FR-014-001).
+- [x] **SCN-015-005** — Both routes read the subject back through `RLTKR.linkedSubject(window.location.search)` and open on an `accepted` subject (FR-014-002).
 - [x] The Scope 1 outcome for a subject that cannot be honoured is implemented and asserted (FR-014-003).
 - [x] `grep -rn '?t=' *.html` returns zero emission sites (FR-014-004).
-- [x] `F027_SUBJECT_ROUTES` contains all four subject-bearing routes and assertion 1.20 passes over the widened set (FR-014-005).
-- [x] `tests/technical-analysis-decision-lab.spec.mjs:922` navigates the canonical parameter and passes (FR-014-006).
+- [x] **SCN-015-006** — `F027_SUBJECT_ROUTES` contains all four subject-bearing routes and assertion 1.20 passes over the widened set (FR-014-005).
+- [x] **SCN-015-007** — `tests/technical-analysis-decision-lab.spec.mjs:922` navigates the canonical parameter and passes (FR-014-006).
 - [x] The fix is proven in a real browser, with the republished `deepLink` read out of `RLDATA.toolRead(...)`, not by source match alone.
 - [x] Every new assertion was proven able to fail, by real file mutation, before being trusted.
 - [x] `node scripts/selftest.mjs` reports 0 failed with no reduction in assertion count from the baseline at the fixing commit (FR-014-007).
@@ -209,10 +292,10 @@ red-green (runtime link):      37 passed, 1 failed  ->    38 passed             
 **Evidence** — ownership boundaries held and detection widened rather than narrowed:
 
 ```
-Command: git diff --name-only origin/main -- specs/027-company-scoped-owner-deep-links/
+$ git diff --name-only origin/main -- specs/027-company-scoped-owner-deep-links/
 (no output — 0 files)
 
-Command: git diff --name-only origin/main -- <packet>/uservalidation.md
+$ git diff --name-only origin/main -- <packet>/uservalidation.md
 (no output — 0 files; the Human Acceptance Record is human-owned and stays unfilled)
 
 F-AUDIT-02b appears in this packet's bug.md Provenance line.

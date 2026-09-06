@@ -3,12 +3,20 @@
   "featureDir": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact",
   "featureName": "BUG-018 The Corpus-Pending Window States Absence As Settled Fact",
   "createdAt": "2026-08-23T00:00:00Z",
-  "lastUpdatedAt": "2026-08-23T00:00:00Z",
-  "certifiedAt": null,
-  "status": "in_progress",
+  "lastUpdatedAt": "2026-08-31T02:23:20Z",
+  "completedAt": "2026-08-31T02:23:20Z",
+  "certifiedAt": "2026-08-31T02:23:20Z",
+  "status": "done",
   "blockedReason": null,
-  "priorBlockedReason": null,
-  "blockedReasonResolved": null,
+  "priorBlockedReason": "G088 post_certification_spec_edit_gate refuses terminal certification because spec.md has an uncommitted planning-truth edit. This validation invocation is forbidden from editing spec.md and the operator requested no commit. Commit the already-validated planning truth through its owning workflow, then run a fresh terminal certification.",
+  "blockedReasonResolved": {
+    "resolvedAt": "2026-08-31T02:23:20Z",
+    "resolvedBy": "bubbles.validate",
+    "priorStatus": "blocked",
+    "verbatimBlockerPreservedIn": "priorBlockedReason",
+    "resolutionClass": "commit-prerequisite-satisfied",
+    "resolution": "The focused planning and independent-audit truth was committed at aae6c4f1097bacec71b72dedac6e6540b2ed0d6f. At current HEAD 5bb698b4577bba93b714d12598b1d68e48f80521, fresh validate-owned scenario-state, receipt-freshness, goal-fidelity, artifact-lint, assurance, terminal-for-mode, and asserted transition checks all exited zero. G088 is therefore no longer triggered."
+  },
   "crossFeatureEditAuthorization": null,
   "workflowMode": "bugfix-fastlane",
   "planningOnly": false,
@@ -26,23 +34,26 @@
     "design": "design.md",
     "scopes": "scopes.md",
     "report": "report.md",
-    "uservalidation": "uservalidation.md"
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
   },
   "execution": {
     "activeAgent": null,
-    "currentPhase": "implement",
+    "currentPhase": "finalize",
     "currentPhaseStatus": "complete",
     "phaseReconciliation": null,
     "executionModel": "direct-authorized-runner",
     "parentAgent": null,
-    "runStartedAt": "2026-08-23T00:00:00Z",
-    "completedAt": null,
-    "substate": "implemented",
-    "currentScope": "03-close-the-structural-test-gap",
-    "nextRequiredOwner": "bubbles.plan, to schedule the two findings routed out of Scope 2 and to close the packet-shape debt; then a human, for the uservalidation.md Human Acceptance Record; then bubbles.validate for phase certification",
-    "nextRequiredTarget": "specs/_bugs/BUG-018-corpus-pending-window-states-absence-as-settled-fact/report.md#what-was-not-established",
-    "nextRequiredReason": "All three scopes are delivered and both facets are closed. What remains is not behaviour. Two findings are routed OUT of this scope and are not counted as delivered: (1) no unit case was added to tests/company-intelligence.unit.mjs for the new buildCoverageAccount readiness argument, so readiness round-tripping onto the account and C025-READ-CONTRACT firing on a word outside the closed set are exercised only through the browser case and through the 25 existing two-argument call sites that prove the default; (2) dimensionCard() at company-intelligence-lab.html:835 still prints 'unavailable' with a named absence sentence on a pre-corpus paint. No requirement in spec.md names that surface, and the coverage-table treatment cannot simply be repeated on it because that treatment withholds every row, which on the dimension cards would also hide values a warm shared cache genuinely resolved. Whether those cards withhold wholesale or withhold only the absence claim is a product judgement and belongs to bubbles.plan. Packet-shape debt is unchanged and still the packet owner's: policySnapshot is short of the fields the transition guard wants (G055), scenario-manifest.json does not exist (G057), and report.md references an untracked test path belonging to another session. Gate G136 human acceptance remains unestablished: uservalidation.md carries no filled Human Acceptance Record, and this scope does change a rendered surface, so a human can now actually accept it.",
-    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented', now covering Scopes 1, 2 and 3. Scope 2 implements the product decision recorded in design.md '## Open Questions For The Owner — Resolved 2026-08-23': Option A then Option B, withhold, taken by the orchestrating session under the operator's standing authorization and disclosed as such rather than presented as an independently reached engineering conclusion. Four shipped files changed across the packet: rlcompanyintel.js (buildCoverageAccount gains an optional third readiness argument defaulting to 'established', plus the COVERAGE_READINESS_STATES export; additive, so all 25 existing two-argument call sites are unchanged), company-intelligence-lab.html (corpusReadiness() maps corpusStatus onto that vocabulary and only 'pending' withholds, so a corpus resolved to 'unavailable' still reads settled and the offline first paint survives; the cockpit sentence, the horizon cards, the power-mode coverage tally and rows, and the body attributes all read that one readiness; the static body shell drops its literal data-coverage-unavailable=\"0\"), tests/company-intelligence-lab.spec.mjs (one added case, nothing removed or weakened) and notes/company-intelligence-lab.md (the body-attribute contract this change alters). data-run-status is untouched: 'composed' still means the paint composed its horizons, which is what the file:// and all-requests-outstanding first-paint tests wait on; the new data-reading-readiness is the single documented predicate FR-018-005 asks for. The new case fails against the pre-fix route at c402bfa3e on the copy assertion and not a timeout (Received: '15 of 15 mandatory dimensions have no usable source in this run.'), fails again on the otherwise-corrected route with only the cockpit guard reverted, and passes against the corrected route; all three runs are recorded verbatim in report.md. The scratch worktree used for those runs was removed and git worktree list reports only the main checkout. The 025 browser suite rose 38 to 39 with nothing removed, the 025 unit suite held at 90, and node scripts/selftest.mjs reported 3404 passed 0 failed measured directly in the shared working tree. specs/025-company-multi-horizon-intelligence-lab/report.md was not edited. No branch or remote was pushed, merged, rebased or moved, and every commit staged explicit paths. Ten of ten Scope 2 and six of six Scope 3 Definition of Done items are ticked; all seven cross-scope items remain unticked and are not claimed. completedPhaseClaims records the implement phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "runStartedAt": "2026-08-30T00:37:33Z",
+    "completedAt": "2026-08-31T02:20:44Z",
+    "substate": "certified",
+    "currentScope": null,
+    "nextRequiredOwner": null,
+    "nextRequiredTarget": null,
+    "nextRequiredReason": null,
+    "phaseClaimNote": "currentPhase is 'implement' with substate 'implemented', now covering Scopes 1, 2 and 3. Scope 2 implements the product decision recorded in design.md '## Open Questions For The Owner \u2014 Resolved 2026-08-23': Option A then Option B, withhold, taken by the orchestrating session under the operator's standing authorization and disclosed as such rather than presented as an independently reached engineering conclusion. Four shipped files changed across the packet: rlcompanyintel.js (buildCoverageAccount gains an optional third readiness argument defaulting to 'established', plus the COVERAGE_READINESS_STATES export; additive, so all 25 existing two-argument call sites are unchanged), company-intelligence-lab.html (corpusReadiness() maps corpusStatus onto that vocabulary and only 'pending' withholds, so a corpus resolved to 'unavailable' still reads settled and the offline first paint survives; the cockpit sentence, the horizon cards, the power-mode coverage tally and rows, and the body attributes all read that one readiness; the static body shell drops its literal data-coverage-unavailable=\"0\"), tests/company-intelligence-lab.spec.mjs (one added case, nothing removed or weakened) and notes/company-intelligence-lab.md (the body-attribute contract this change alters). data-run-status is untouched: 'composed' still means the paint composed its horizons, which is what the file:// and all-requests-outstanding first-paint tests wait on; the new data-reading-readiness is the single documented predicate FR-018-005 asks for. The new case fails against the pre-fix route at c402bfa3e on the copy assertion and not a timeout (Received: '15 of 15 mandatory dimensions have no usable source in this run.'), fails again on the otherwise-corrected route with only the cockpit guard reverted, and passes against the corrected route; all three runs are recorded verbatim in report.md. The scratch worktree used for those runs was removed and git worktree list reports only the main checkout. The 025 browser suite rose 38 to 39 with nothing removed, the 025 unit suite held at 90, and node scripts/selftest.mjs reported 3404 passed 0 failed measured directly in the shared working tree. specs/025-company-multi-horizon-intelligence-lab/report.md was not edited. No branch or remote was pushed, merged, rebased or moved, and every commit staged explicit paths. Ten of ten Scope 2 and six of six Scope 3 Definition of Done items are ticked; all seven cross-scope items remain unticked and are not claimed. completedPhaseClaims records the implement phase as an execution claim only; certification.certifiedCompletedPhases stays empty because phase certification is bubbles.validate's to write.",
+    "terminalCertificationNote": "This note supersedes phaseClaimNote for current-state interpretation. Fresh validate-owned certification completed at HEAD 5bb698b4577bba93b714d12598b1d68e48f80521 after the G088 prerequisite landed at aae6c4f1097bacec71b72dedac6e6540b2ed0d6f. All fourteen scenarios are certifiable, all thirty-five input-closure receipts are fresh, the asserted bugfix-fastlane transition guard passed, and assurance derived full at high risk with no missing full-assurance input. No next owner remains.",
     "completedPhaseClaims": [
       {
         "phase": "bug",
@@ -69,6 +80,104 @@
           "02-stop-asserting-absence-the-route-has-not-established",
           "03-close-the-structural-test-gap"
         ]
+      },
+      {
+        "phase": "simplify",
+        "agent": "bubbles.simplify",
+        "claimedAt": "2026-08-30T00:22:48Z",
+        "evidenceRef": "report.md#simplify-phase--bubblessimplify--2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap"
+        ]
+      },
+      {
+        "phase": "security",
+        "agent": "bubbles.security",
+        "claimedAt": "2026-08-30T00:47:14Z",
+        "evidenceRef": "report.md#security-phase-bubbles-security-2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap"
+        ]
+      },
+      {
+        "phase": "test",
+        "agent": "bubbles.test",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-30T07:36:38Z",
+        "evidenceRef": "report.md#scope-4-red-green",
+        "receiptRef": ".specify/runtime/tool-calls.jsonl",
+        "receiptSessionId": "auto-20260830T073139-2240373",
+        "evidenceSha256": "3de8b99b42ebf9fc4d519abb1a5a760bb34b046285c1d23aaf713ff0d38e938a",
+        "scopes": [
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "note": "An independently executed bubbles.test pass reran the isolated scenario-receipts command for SCN-BUG-018-011 through SCN-BUG-018-014. The captured output reported exit 0, 4 of 4 scenarios COMPLETE, red lanes non-zero, implement/green/live where applicable/regression lanes zero, all 14 manifest scenarios mapped, and the shared tree unchanged."
+      },
+      {
+        "phase": "stabilize",
+        "agent": "bubbles.stabilize",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-30T17:40:33Z",
+        "evidenceRef": "report.md#stabilize-phase-current-session-2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "note": "Independent specialist revalidation at 095d76dc431860b0ddd904a5b0c5c4ab821f3c99: 50 of 50 repeated BUG-018 browser executions passed under --fail-on-flaky-tests, the repository selftest reported 3437 passed and 0 failed, artifact lint passed, regression quality reported 0 violations and 0 warnings, and implementation reality reported 0 violations and 0 warnings. BUG018-STABILIZE-002 and BUG018-STABILIZE-003 are closed. BUG-025 and BUG-026 remain independent routed packets and are not claimed delivered."
+      },
+      {
+        "phase": "regression",
+        "agent": "bubbles.goal",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-30T17:49:35Z",
+        "evidenceRef": "report.md#regression-phase-current-session-2026-08-30",
+        "receiptRef": ".specify/runtime/tool-calls.jsonl",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "note": "The bubbles.regression dispatch returned no result. The direct-authorized bubbles.goal runner executed all fourteen isolated scenario mutation cycles at the committed revision. Every RED lane exited non-zero, every restored targeted and live lane exited zero, every whole-file regression lane exited zero, and the shared tree remained unchanged."
+      },
+      {
+        "phase": "validate",
+        "agent": "bubbles.validate",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-30T19:03:08Z",
+        "evidenceRef": "report.md#validation-phase-current-session-2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "note": "Direct specialist validation at source revision 095d76dc431860b0ddd904a5b0c5c4ab821f3c99. Goal fidelity passed after the Success Signal demonstration was added. Unit, complete browser, selftest, scenario-state, strict receipt-freshness, implementation-reality, artifact-lint, privacy, traceability, artifact-freshness, and changed-spec checks passed. The transition guard's remaining required specialist is audit. BUG-025 and BUG-026 remain independent and are not claimed executed or delivered."
+      },
+      {
+        "phase": "audit",
+        "agent": "bubbles.audit",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T00:39:35Z",
+        "evidenceRef": "report.md#independent-audit-evidence-bubbles-audit-2026-08-31",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "note": "Two independent bubbles.audit slices completed. The first independently reproduced 91 unit passes, 42 system-Chrome passes, and 3437 selftest passes with exact report parity. The second independently reproduced every contract, receipt, traceability, regression-quality, implementation-reality, security, privacy, goal-fidelity, artifact, and transition check. No in-boundary finding remains."
       }
     ],
     "pendingTransitionRequests": [],
@@ -95,6 +204,213 @@
           "02-stop-asserting-absence-the-route-has-not-established"
         ],
         "resolvedBy": "bubbles.implement, 2026-08-23, report.md '## Scope 2 And Scope 3 Delivery Evidence'"
+      },
+      {
+        "scopeId": "04-enforce-the-shared-rldata-publication-trust-boundary",
+        "scope": 4,
+        "status": "Done",
+        "dependsOn": [
+          "03-close-the-structural-test-gap"
+        ],
+        "resolvedBy": "bubbles.test, 2026-08-30, report.md#scope-4-red-green and .specify/runtime/tool-calls.jsonl"
+      }
+    ],
+    "executionHistory": [
+      {
+        "agent": "bubbles.bug",
+        "phasesExecuted": [
+          "bug"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#test-evidence",
+        "outcome": "completed_diagnostic",
+        "scopes": [],
+        "summary": "Filed and independently reproduced both original defect facets."
+      },
+      {
+        "agent": "bubbles.implement",
+        "phasesExecuted": [
+          "implement"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#scope-4-publication-trust-boundary",
+        "outcome": "completed_owned",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "summary": "Delivered current-subject readiness, honest pending rendering, deterministic regressions, and settled-only shared publication."
+      },
+      {
+        "agent": "bubbles.simplify",
+        "phasesExecuted": [
+          "simplify"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#simplify-phase--bubblessimplify--2026-08-30",
+        "outcome": "completed_owned",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap"
+        ],
+        "summary": "Reviewed the delivered readiness path and simplified its original test-only request tracking."
+      },
+      {
+        "agent": "bubbles.security",
+        "phasesExecuted": [
+          "security"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#security-phase-bubbles-security-2026-08-30",
+        "outcome": "completed_diagnostic",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap"
+        ],
+        "summary": "Identified the publication-boundary and browser-provenance findings that Scope 4 closed."
+      },
+      {
+        "agent": "bubbles.test",
+        "phasesExecuted": [
+          "test"
+        ],
+        "provenanceMode": "specialist",
+        "expansionEvidenceRef": "report.md#scope-4-red-green",
+        "receiptRef": ".specify/runtime/tool-calls.jsonl",
+        "receiptSessionId": "auto-20260830T073139-2240373",
+        "startedAt": "2026-08-30T07:31:39Z",
+        "finishedAt": "2026-08-30T07:36:38Z",
+        "outcome": "completed_owned",
+        "scopes": [
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "scenarioIds": [
+          "SCN-BUG-018-011",
+          "SCN-BUG-018-012",
+          "SCN-BUG-018-013",
+          "SCN-BUG-018-014"
+        ],
+        "summary": "Independently reran the isolated Scope 4 scenario receipts. The run exited 0 with 4 of 4 scenarios complete, required red failures, passing implementation/green/live/regression lanes, 14 of 14 manifest scenarios mapped, and no shared-tree mutation."
+      },
+      {
+        "agent": "bubbles.stabilize",
+        "phasesExecuted": [
+          "stabilize"
+        ],
+        "provenanceMode": "specialist",
+        "startedAt": "2026-08-30T17:39:02Z",
+        "finishedAt": "2026-08-30T17:40:33Z",
+        "outcome": "completed_diagnostic",
+        "evidenceRef": "report.md#stabilize-phase-current-session-2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "addressedFindings": [
+          "BUG018-STABILIZE-002",
+          "BUG018-STABILIZE-003"
+        ],
+        "unresolvedFindings": [],
+        "summary": "Completed an independent stabilize revalidation at 095d76dc431860b0ddd904a5b0c5c4ab821f3c99. The strict repeated browser run completed 50 of 50, selftest completed at 3437 of 3437, artifact lint passed, and both regression-quality and implementation-reality reported zero violations and zero warnings. BUG-025 and BUG-026 remain independent routed packets; this entry does not claim either packet was executed, validated, certified, or delivered."
+      },
+      {
+        "agent": "bubbles.goal",
+        "phasesExecuted": [
+          "regression"
+        ],
+        "provenanceMode": "parent-expanded",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "The runSubagent regression dispatch returned no result, so the authorized parent expanded and executed the complete regression phase directly.",
+        "expansionEvidenceRef": "report.md#regression-phase-current-session-2026-08-30",
+        "startedAt": "2026-08-30T17:05:20Z",
+        "finishedAt": "2026-08-30T17:23:00Z",
+        "outcome": "completed_owned",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "scenarioIds": [
+          "SCN-BUG-018-001",
+          "SCN-BUG-018-002",
+          "SCN-BUG-018-003",
+          "SCN-BUG-018-004",
+          "SCN-BUG-018-005",
+          "SCN-BUG-018-006",
+          "SCN-BUG-018-007",
+          "SCN-BUG-018-008",
+          "SCN-BUG-018-009",
+          "SCN-BUG-018-010",
+          "SCN-BUG-018-011",
+          "SCN-BUG-018-012",
+          "SCN-BUG-018-013",
+          "SCN-BUG-018-014"
+        ],
+        "summary": "Re-emitted and verified the complete fourteen-scenario receipt lifecycle at the committed BUG-018 revision."
+      },
+      {
+        "agent": "bubbles.validate",
+        "phasesExecuted": [
+          "validate"
+        ],
+        "provenanceMode": "specialist",
+        "finishedAt": "2026-08-30T19:03:08Z",
+        "outcome": "completed_diagnostic",
+        "evidenceRef": "report.md#validation-phase-current-session-2026-08-30",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "summary": "Completed the direct specialist validation pipeline at source revision 095d76dc431860b0ddd904a5b0c5c4ab821f3c99 and routed the still-required independent delivery audit. No certification or terminal-status field was changed."
+      },
+      {
+        "agent": "bubbles.goal",
+        "phasesExecuted": [
+          "audit"
+        ],
+        "provenanceMode": "parent-expanded",
+        "expandedBy": "bubbles.goal",
+        "expansionReason": "The runSubagent audit dispatch returned no result, so the authorized parent expanded and executed the complete audit phase directly.",
+        "expansionEvidenceRef": "report.md#audit-phase-current-session-2026-08-30",
+        "startedAt": "2026-08-30T19:08:00Z",
+        "finishedAt": "2026-08-30T19:30:10Z",
+        "outcome": "completed_diagnostic",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "summary": "Audited all forty-one DoD items, eight acceptance records, fourteen scenario lifecycles, the committed diff, live-test authenticity, security, privacy, and independent finding boundaries. This parent-expanded result is superseded for assurance by the later independent bubbles.audit slices."
+      },
+      {
+        "agent": "bubbles.audit",
+        "phasesExecuted": [
+          "audit"
+        ],
+        "provenanceMode": "specialist",
+        "startedAt": "2026-08-31T00:20:00Z",
+        "finishedAt": "2026-08-31T00:39:35Z",
+        "outcome": "completed_diagnostic",
+        "evidenceRef": "report.md#independent-audit-evidence-bubbles-audit-2026-08-31",
+        "scopes": [
+          "01-make-data-corpus-status-describe-the-subject-on-screen",
+          "02-stop-asserting-absence-the-route-has-not-established",
+          "03-close-the-structural-test-gap",
+          "04-enforce-the-shared-rldata-publication-trust-boundary"
+        ],
+        "addressedFindings": [],
+        "unresolvedFindings": [],
+        "summary": "Two independent audit slices reproduced the complete correctness and certification evidence. Unit tests passed 91 of 91, system-Chrome passed 42 of 42, selftest passed 3437 of 3437, all fourteen scenario lifecycles were certifiable, all thirty-five closure receipts were fresh, the asserted transition guard passed, and no in-boundary finding remained."
       }
     ],
     "audit": null
@@ -115,6 +431,22 @@
       "action": "scope-1-delivered",
       "atCommit": "6a6f8a36e",
       "note": "Scope 1 only. Moved the corpusStatus reset ahead of the synchronous compose-and-render in applySubject(), guarded so a refused entry keeps reporting the standing subject, and added one regression case that samples the body inside the click task instead of entering through the openComposedRoute fixture that waits the window out. Failing-then-passing proof recorded verbatim: the unfixed route reports Expected pending, Received loaded, which is the attribute assertion and not a timeout. 025 browser suite 37 to 38 with nothing removed; 025 unit suite unchanged at 90; selftest 3404 passed 0 failed measured at HEAD plus these two files in a detached worktree. Scopes 2 and 3 untouched and Not Started; the coverage sentence and the horizon cards were not edited. No branch was pushed."
+    },
+    {
+      "at": "2026-08-30T00:22:48Z",
+      "phase": "simplify",
+      "agent": "bubbles.simplify",
+      "action": "completed-owned-test-simplification",
+      "atCommit": "f0d9c158b7",
+      "note": "Reviewed the actual BUG-018 production and test delivery from commits 6881aa3a4 and 4784fd4e0 across code reuse, code quality, and efficiency. Production source remains unchanged because the readiness contract already has one owner and each branch serves a distinct rendered surface. Replaced a held-request URL array used only for its length with heldCorpusRequestCount and removed the unused callback parameter. The focused BUG-018 scope 2 browser case passed, the complete Company Intelligence browser suite passed 39 of 39, the bugfix regression-quality guard reported zero violations and warnings, and the repository selftest reported 3435 passed and zero failed. Only simplify provenance was added. Top-level status and certification remain in_progress, and no other phase was claimed."
+    },
+    {
+      "at": "2026-08-30T00:47:14Z",
+      "phase": "security",
+      "agent": "bubbles.security",
+      "action": "completed-diagnostic-with-findings",
+      "atCommit": "1beee8270fec1ccb1ad9c93dd219bb4dcf9c0467",
+      "note": "Reviewed the BUG-018 route, module, browser tests, fault-injection boundaries, and packet. Executed G034, implementation reality and interception scanning, focused browser security checks, the company module suite, the repository model-sink and CSP selftest, dependency source-lock validation, regression quality, and artifact lint. Raised SEC-BUG018-001 for not-established output still crossing the persisted RLDATA owner-read boundary and SEC-BUG018-002 for the browser file's stale no-interception provenance sentence. No production source, test, certification field, or terminal status was changed."
     }
   ],
   "defect": {
@@ -144,13 +476,13 @@
         "pendingHorizons": "event=none/absent immediate=none/absent structural=none/absent swing=none/absent (cold cache)",
         "settledHorizons": "event=flat/thin immediate=constructive/thin structural=none/absent swing=constructive/thin",
         "magnitudeDependsOnCacheWarmth": "cold cache 15 of 15 (first-time reader following a published deep link); warm cache 14 of 15 (returning reader, one bar leg served synchronously by loadOne at company-intelligence-lab.html:1520); settled truth 13 of 15 in both cases",
-        "attributeCorrectness": "correct but unrendered — a consumer reading data-corpus-status is protected"
+        "attributeCorrectness": "correct but unrendered \u2014 a consumer reading data-corpus-status is protected"
       },
       {
         "facet": 2,
         "name": "the attribute retains the previous subject's value during a manual apply",
         "observed": "data-corpus-status reads loaded for a subject whose corpus has not been requested",
-        "attributeCorrectness": "wrong — the committed suite's own readiness convention returns immediately on a stale value, so the workaround for facet 1 does not hold here",
+        "attributeCorrectness": "wrong \u2014 the committed suite's own readiness convention returns immediately on a stale value, so the workaround for facet 1 does not hold here",
         "independentlyDeliverable": true
       }
     ],
@@ -159,7 +491,7 @@
       "orderingIsUnconditional": "paintFromEmbedded() calls run() synchronously at company-intelligence-lab.html:1707 and boot() reaches its first loadCorpus() only at company-intelligence-lab.html:1749, so the first composed paint of every load precedes the first corpus request by construction, not by a race",
       "claimIsUnconditionalProse": "company-intelligence-lab.html:1460-1462 emits the coverage sentence with no branch on readiness",
       "runStatusIgnoresReadiness": "company-intelligence-lab.html:1484 passes composed unconditionally; setBodyState at company-intelligence-lab.html:787-791 writes data-run-status from its parameter and data-corpus-status from module scope with no consistency rule between them",
-      "facet2Ordering": "applySubject() composes and renders at company-intelligence-lab.html:1503-1504, then calls loadCorpus() at :1507, and the corpusStatus reset lives inside loadCorpus() at :1540 — one turn after the paint has already copied the old value"
+      "facet2Ordering": "applySubject() composes and renders at company-intelligence-lab.html:1503-1504, then calls loadCorpus() at :1507, and the corpusStatus reset lives inside loadCorpus() at :1540 \u2014 one turn after the paint has already copied the old value"
     },
     "affectedFiles": [
       "company-intelligence-lab.html:745",
@@ -180,13 +512,13 @@
       "title": "Missing data renders as missing",
       "source": "docs/Product-Principles.md:52-56",
       "text": "Absent data shows as unavailable or incomplete. Never zero. Never inferred. Never a plausible placeholder.",
-      "blockingPattern": ".github/instructions/product-principles.instructions.md — 'missing data rendered as zero, neutral, or inferred'"
+      "blockingPattern": ".github/instructions/product-principles.instructions.md \u2014 'missing data rendered as zero, neutral, or inferred'"
     },
     "whyTheCommittedSuiteDoesNotCatchIt": {
       "browserSuite": "all 37 tests enter through openComposedRoute at tests/company-intelligence-lab.spec.mjs:42, whose gate at :58-59 waits for data-run-status=composed AND data-corpus-status in {loaded, unavailable}; the fixture waits the defect out, so no assertion in the file ever samples the pending paint",
       "theOneTestThatEntersTheWindow": "the offline first-paint case at tests/company-intelligence-lab.spec.mjs:1121-1174 asserts the route REACHES a composed cockpit with no runtime fetch resolved, and asserts nothing about whether the copy on that paint is honest; at :1174 it waits for the corpus to leave pending before continuing",
       "unitSuite": "tests/company-intelligence.unit.mjs exercises rlcompanyintel.js, which is handed a corpus and asked to compose; readiness is not one of its inputs so the distinction is not expressible there",
-      "classification": "missing test category, not a broken test — Scope 3 exists to close it"
+      "classification": "missing test category, not a broken test \u2014 Scope 3 exists to close it"
     },
     "baselinesAtFiling": {
       "selftest": "3404 passed, 0 failed, exit 0",
@@ -207,14 +539,14 @@
   "dedup": {
     "performedInFilingSession": true,
     "scanned": [
-      "specs/_bugs/ — 19 packets, BUG-001 through BUG-017",
-      "specs/010-company-fundamentals-and-brief-lab/bugs/ — 1 packet",
-      "specs/012-market-action-center-and-guided-tools/bugs/ — 7 packets"
+      "specs/_bugs/ \u2014 19 packets, BUG-001 through BUG-017",
+      "specs/010-company-fundamentals-and-brief-lab/bugs/ \u2014 1 packet",
+      "specs/012-market-action-center-and-guided-tools/bugs/ \u2014 7 packets"
     ],
     "method": "directory enumeration plus a content grep across every bug artifact for data-corpus-status, corpus-status, cockpit-coverage-line, corpus-pending and 'mandatory dimensions'",
     "result": "zero matches; no existing packet covers this surface or this mechanism"
   },
-  "terminalTransitionBlockers": [
+  "historicalTransitionBlockersAtScope1": [
     "Scope 1 is Done with six of six Definition of Done items ticked, but Scopes 2 and 3 are Not Started with zero of ten and zero of six ticked, and the cross-scope set is untouched.",
     "Facet 1 is live. The pending window still prints a definite absence count with no user-visible readiness wording; only facet 2, the stale attribute, is closed.",
     "Scope 2 is blocked on design.md open question 1, a product decision about what a reader sees on the first paint of every load. No evidence settles it and it is not agent-dischargeable.",
@@ -222,7 +554,7 @@
     "Gate G136 human acceptance is not established. uservalidation.md Checklist items are unticked and its Human Acceptance Record is unfilled; Scope 1 delivers an attribute correction with no rendered surface for a human to exercise.",
     "No independent party re-derived any measurement. certification.certifiedCompletedPhases is empty because phase certification belongs to bubbles.validate."
   ],
-  "knownLimitation": {
+  "historicalKnownLimitationAtScope1": {
     "statement": "The defect and its cause are both established. What is established: at dc54a8547, the first composed paint of every load precedes the first corpus request unconditionally, so data-run-status reads composed while data-corpus-status reads pending; in that window, with ZERO injected delay on a cold cache, the cockpit prints '15 of 15 mandatory dimensions have no usable source in this run' and all four horizon cards read none/absent, against a settled 13 of 15 in which three horizons carry directions; a case-insensitive body-text scan for readiness wording returns nothing; the magnitude falls to 14 of 15 on a warm cache because loadOne serves one bar leg synchronously, so a returning reader sees a smaller but still wrong overstatement; and during a manual apply data-corpus-status retains the previous subject's value, observed reading loaded for a subject whose corpus had not been requested. What is NOT established: a printed count that drifts behind that stale attribute, which is reachable by construction but was not produced because both subjects tried settle at the count they showed; behaviour under file://, where the corpus resolves to unavailable rather than staying pending; the window's width on a real network; and which of the three remedies in design.md is correct. Scope 1 has since closed the last of those observations: as of 2026-08-23 the corpusStatus reset precedes the paint in applySubject(), so during a manual apply data-corpus-status reads pending for the subject on screen rather than retaining the previous subject's value. Every other statement here still describes live behaviour, because facet 1 is untouched.",
     "recordedIn": [
       "bug.md 'The Second Facet, Stated Separately' and 'Root Cause'",
@@ -234,18 +566,42 @@
     "whyNotClosedHere": "Scope 1 was delivered because it is a self-contained ordering correction that no product decision gates. Scope 2 was not: selecting between withholding the claim and marking it provisional would prejudge a product judgement the owner reserves, and Scope 3 cannot assert copy that has not been chosen.",
     "consequenceForStatus": "status stays in_progress with certification.status equal to it. Scope 1 is Done with six of six Definition of Done items ticked; Scopes 2 and 3 are Not Started with zero ticked, which is the accurate representation of a packet whose second facet is closed and whose first is not."
   },
+  "currentStateReconciliation": {
+    "recordedAt": "2026-08-31T02:23:20Z",
+    "status": "done",
+    "deliveredScopes": [
+      "01-make-data-corpus-status-describe-the-subject-on-screen",
+      "02-stop-asserting-absence-the-route-has-not-established",
+      "03-close-the-structural-test-gap",
+      "04-enforce-the-shared-rldata-publication-trust-boundary"
+    ],
+    "behavior": "All four scopes are Done. All forty-one DoD items remain checked with evidence. At current HEAD 5bb698b4577bba93b714d12598b1d68e48f80521, all fourteen scenarios resolve certifiable, all thirty-five closure receipts are fresh, and the asserted bugfix-fastlane transition guard authorizes done.",
+    "planningRemediation": "The earlier G088 commit prerequisite is satisfied by aae6c4f1097bacec71b72dedac6e6540b2ed0d6f. The earlier G094, scenario-contract, policy-snapshot, user-acceptance-record, and live-test interception conditions remain closed. User acceptance remains explicitly classified as an external record rather than agent-observed acceptance.",
+    "remainingOwnership": "None. Fresh validate-owned certification derived full assurance at high risk and advanced both status mirrors to done.",
+    "historicalRecord": "historicalTransitionBlockersAtScope1, historicalKnownLimitationAtScope1, and execution.phaseClaimNote preserve earlier execution states and are explicitly historical, not assertions about the current four-scope packet."
+  },
   "certification": {
-    "status": "in_progress",
+    "status": "done",
     "lockdownState": "unlocked",
-    "completedAt": null,
-    "certifiedAt": null,
+    "completedAt": "2026-08-31T02:23:20Z",
+    "certifiedAt": "2026-08-31T02:23:20Z",
     "completedScopes": [
       "01-make-data-corpus-status-describe-the-subject-on-screen",
       "02-stop-asserting-absence-the-route-has-not-established",
-      "03-close-the-structural-test-gap"
+      "03-close-the-structural-test-gap",
+      "04-enforce-the-shared-rldata-publication-trust-boundary"
     ],
-    "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "certification.status remains in_progress and equal to the top-level status. All three scopes are Done and both facets are closed, but the cross-scope Definition of Done is not complete: uservalidation.md carries no filled Human Acceptance Record, scenario-manifest.json does not exist, policySnapshot is short of the fields the transition guard wants, and two findings are routed out to bubbles.plan rather than closed. certifiedCompletedPhases stays EMPTY: it is bubbles.validate's to write, and no independent party re-derived any evidence in report.md. bubbles.implement touched exactly two fields in this object, both factual mirrors of scopes.md rather than verdicts: scopeProgress, and completedScopes, which now names all three scopes because the state-transition guard reports an integrity failure when a scope artifact reads Done and this list omits it. Leaving either one behind scopes.md would itself be a false record.",
+    "certifiedCompletedPhases": [
+      "implement",
+      "test",
+      "regression",
+      "simplify",
+      "stabilize",
+      "security",
+      "validate",
+      "audit"
+    ],
+    "certificationFieldWriteNote": "Fresh bubbles.validate certification at current HEAD 5bb698b4577bba93b714d12598b1d68e48f80521 advanced both status mirrors together after the G088 prerequisite landed at aae6c4f1097bacec71b72dedac6e6540b2ed0d6f. The validate-owned run independently executed scenario-state resolution, strict receipt freshness, transition-contract resolution, goal fidelity, assurance derivation, terminal-for-mode, artifact lint, and the asserted transition guard. Every required command exited zero. completedScopes, scopeProgress, and certifiedCompletedPhases are preserved from the accepted completion record.",
     "scopeProgress": [
       {
         "scopeId": "01-make-data-corpus-status-describe-the-subject-on-screen",
@@ -266,20 +622,58 @@
         "dodUnchecked": 0
       },
       {
+        "scopeId": "04-enforce-the-shared-rldata-publication-trust-boundary",
+        "status": "done",
+        "dodChecked": 12,
+        "dodUnchecked": 0
+      },
+      {
         "scopeId": "cross-scope",
         "status": "not_started",
-        "dodChecked": 0,
-        "dodUnchecked": 7
+        "dodChecked": 7,
+        "dodUnchecked": 0
       }
-    ]
+    ],
+    "assurance": {
+      "level": "full",
+      "riskClass": "high",
+      "missingForFull": [],
+      "reason": "complete integrity chain (implementation + full test coverage + all tests passing + independent audit) — full assurance",
+      "evidenceRef": "report.md#fresh-current-head-certification-bubbles-validate-2026-08-31"
+    }
   },
   "transitionRequests": [],
   "reworkQueue": [],
   "policySnapshot": {
-    "capturedAt": "2026-08-23T00:00:00Z",
-    "workflowMode": "bugfix-fastlane",
-    "statusCeiling": "done",
-    "antiFabrication": "enforced",
-    "evidenceStandard": "executed-only; every command in report.md ran in this session at dc54a8547"
-  }
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "completedScopes": [
+    "01-make-data-corpus-status-describe-the-subject-on-screen",
+    "02-stop-asserting-absence-the-route-has-not-established",
+    "03-close-the-structural-test-gap",
+    "04-enforce-the-shared-rldata-publication-trust-boundary"
+  ]
 }

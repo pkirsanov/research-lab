@@ -313,6 +313,84 @@ Plan rows while the parity header admitted 11, leaving TP-16-12 with no evidence
 item. Corrected. Four occurrences is a property of how these scopes were authored,
 not four separate slips.
 
+**Current-session re-verification receipts.** Seven DoD items cite this section,
+and several of them assert execution outcomes — whole-feature traceability
+reporting `RESULT: PASSED`, and the atomic release reaching `index.html`,
+`tools.json`, `rlnav.js`, README and the note. Those are claims about what ran,
+so they are backed here by commands actually executed in this session. Read them
+together with the next section: the "reverted registration" described above is
+the historical record, and registration has since been **delivered**.
+
+**Command:** `bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --all-scopes`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:** this is the exact command the Feature Completion Gate DoD item names,
+and the exact string it requires (`RESULT: PASSED`).
+
+```text
+# traceability-guard --all-scopes (Feature Completion Gate)
+$ bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --all-scopes
+exit: 0
+lines: 578
+sha256: 45ecc25daad3a931afbaf097df87c22ed25e677f4834e1e74b140ca99b8cff6b
+--- last 9 ---
+--- Traceability Summary ---
+ℹ️  Scenarios checked: 55
+ℹ️  Test rows checked: 216
+ℹ️  Scenario-to-row mappings: 55
+ℹ️  Concrete test file references: 55
+ℹ️  Report evidence references: 55
+ℹ️  DoD fidelity scenarios: 55 (mapped: 55, unmapped: 0)
+ℹ️  Edge confidence (IMP-015 Scope B): declared=110 inferred=0 ambiguous=0
+
+RESULT: PASSED (0 warnings)
+```
+
+<!-- verify: bash bubbles/scripts/evidence-capture.sh --verify 45ecc25daad3a931afbaf097df87c22ed25e677f4834e1e74b140ca99b8cff6b -- bash .github/bubbles/scripts/traceability-guard.sh specs/008-portfolio-survival-and-brief-lab --all-scopes -->
+
+**Command:** `grep -c 'portfolio-survival-allocation-lab' index.html tools.json rlnav.js README.md notes/portfolio-survival-allocation-lab.md`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:** every one of the five release surfaces carries the route, so the
+atomic-release DoD item is evidenced by the current registry state rather than by
+the reverted attempt described above.
+
+```text
+$ grep -c portfolio-survival-allocation-lab index.html tools.json rlnav.js README.md notes/portfolio-survival-allocation-lab.md
+exit: 0
+lines: 5
+sha256: d094200189c2524b7f6154b9cc59cc87d60247b63b493c869d387a61bc01b832
+--- output ---
+index.html:3
+tools.json:6
+rlnav.js:2
+README.md:1
+notes/portfolio-survival-allocation-lab.md:1
+```
+
+<!-- verify: bash bubbles/scripts/evidence-capture.sh --verify d094200189c2524b7f6154b9cc59cc87d60247b63b493c869d387a61bc01b832 -- grep -c portfolio-survival-allocation-lab index.html tools.json rlnav.js README.md notes/portfolio-survival-allocation-lab.md -->
+
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+**Claim Source:** executed
+**Output:** the canonical repository check, run with the route registered. The
+count is **3426 passed, 0 failed**; the 1640 figure quoted earlier in this
+section is the historical run and is not restated as current.
+
+```text
+# node scripts/selftest.mjs (canonical repository check)
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3912
+sha256: 2ef1284cf3af2f7bfef64894a1abb1597bbcc58760df8dfaa477550e53af3152
+--- last 3 ---
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+<!-- verify: bash bubbles/scripts/evidence-capture.sh --verify 2ef1284cf3af2f7bfef64894a1abb1597bbcc58760df8dfaa477550e53af3152 -- node scripts/selftest.mjs -->
+
 ### <a id="s16-registration-delivered"></a>Registration DELIVERED - superseding the earlier finding
 
 The finding above stands as the record of what was attempted and reverted. It is

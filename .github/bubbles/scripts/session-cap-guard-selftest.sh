@@ -71,7 +71,11 @@ ko()   {
 
 stage_repo_root() {
   local root="$1"
-  mkdir -p "$root/.specify/memory"
+  mkdir -p \
+    "$root/.specify/memory" \
+    "$root/specs/900-a" \
+    "$root/specs/901-b"
+  ln -s 900-a "$root/specs/900-contained-alias"
 }
 
 write_session_json() {
@@ -127,6 +131,18 @@ assert_stdout_contains() {
     return 1
   fi
   ok "$label: stdout contains '$needle'"
+}
+
+assert_stdout_not_contains() {
+  local needle="$1"
+  local label="$2"
+  if grep -Fq -- "$needle" "$WORKSPACE/stdout.last"; then
+    ko "$label: stdout unexpectedly contained '$needle'"
+    echo "  --- stdout ---" >&2
+    last_stdout >&2
+    return 1
+  fi
+  ok "$label: stdout excludes '$needle'"
 }
 
 assert_stderr_contains() {
@@ -263,7 +279,7 @@ write_session_json "$SE_ROOT" '{"sessionBudget": {'
 run_guard "$SE_ROOT"
 
 assert_exit 2 "Se exit code (malformed JSON)"
-assert_stderr_contains "session-cap-guard" "Se stderr has diagnostic prefix"
+assert_stderr_contains "SESSION_INVALID_JSON" "Se stderr has shared integrity code"
 assert_stderr_contains "not valid JSON" "Se stderr names malformed-JSON condition"
 
 # =============================================================================
@@ -720,6 +736,250 @@ else
   else
     ok "Sy: docs-only stays unbounded"
   fi
+fi
+
+# =============================================================================
+# BUG-037: aggregate accounting spans attempts without double-counting updates.
+# =============================================================================
+
+note "Scenario Sza: two authorized attempts contribute 6 + 7, not duplicate-update 1 + 6 + 7"
+
+SZA_ROOT="$WORKSPACE/sza"
+stage_repo_root "$SZA_ROOT"
+write_session_json "$SZA_ROOT" '{
+  "sessionBudget": { "maxTotalConvergenceIterations": 12 },
+  "convergenceLoops": [
+    {
+      "specDir": "specs/900-a",
+      "goalRef": {
+        "goalId": "gc:bug037-g128:1",
+        "revision": 1,
+        "sourceRequestDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "iterationCount": 1,
+      "lastUpdated": "2026-08-30T00:00:00Z",
+      "agent": "bubbles.workflow"
+    },
+    {
+      "specDir": "specs/900-contained-alias",
+      "goalRef": {
+        "goalId": "gc:bug037-g128:1",
+        "revision": 1,
+        "sourceRequestDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "iterationCount": 6,
+      "lastUpdated": "2026-08-30T00:01:00Z",
+      "agent": "bubbles.goal"
+    },
+    {
+      "specDir": "specs/900-a",
+      "goalRef": {
+        "goalId": "gc:bug037-g128:2",
+        "revision": 2,
+        "sourceRequestDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "iterationCount": 7,
+      "lastUpdated": "2026-08-30T00:02:00Z",
+      "agents": ["bubbles.goal"]
+    }
+  ]
+}'
+
+run_guard "$SZA_ROOT"
+
+assert_exit 1 "Sza exit code (effective aggregate 13 > cap 12)"
+assert_stderr_contains "aggregate iterationCount=13" "Sza sums one maximum per distinct authorized attempt"
+assert_stderr_contains "across 2 effective attempt(s)" "Sza does not double-count the revision-one update"
+assert_stderr_contains "authorized=2 legacy=0" "Sza reports attempt composition"
+
+note "Scenario Szb: the same two attempts pass exactly at aggregate cap 13"
+
+SZB_ROOT="$WORKSPACE/szb"
+stage_repo_root "$SZB_ROOT"
+write_session_json "$SZB_ROOT" "$(jq '.sessionBudget.maxTotalConvergenceIterations = 13' "$SZA_ROOT/.specify/memory/bubbles.session.json")"
+
+run_guard "$SZB_ROOT"
+
+assert_exit 0 "Szb exit code (effective aggregate 13 == cap 13)"
+assert_stdout_contains "conv=13/13" "Szb reports the de-duplicated boundary value"
+assert_stdout_contains "across 2 effective attempt(s)" "Szb reports both distinct revisions"
+
+note "Scenario Szc: a partial identity-bearing summary fails closed"
+
+SZC_ROOT="$WORKSPACE/szc"
+stage_repo_root "$SZC_ROOT"
+write_session_json "$SZC_ROOT" '{
+  "convergenceLoops": [
+    {
+      "specDir": "specs/900-a",
+      "goalRef": { "goalId": "gc:bug037-g128:1", "revision": 1 },
+      "iterationCount": 6,
+      "lastUpdated": "2026-08-30T00:00:00Z",
+      "agent": "bubbles.workflow"
+    }
+  ]
+}'
+
+run_guard "$SZC_ROOT"
+
+assert_exit 2 "Szc exit code (partial goalRef rejected)"
+assert_stderr_contains "SESSION_GOAL_REF_INVALID" "Szc uses the shared goal-reference integrity class"
+assert_stdout_not_contains "no sessionBudget recorded" "Szc refuses partial identity before default-off messaging"
+assert_stdout_not_contains "PASS Gate G128" "Szc emits no clean no-budget verdict"
+
+note "Scenario Szd: present non-object roots fail before the no-budget no-op"
+
+for root_value in null '[]' '"scalar"'; do
+  SZD_ROOT="$WORKSPACE/szd-${root_value//[^A-Za-z0-9]/x}"
+  stage_repo_root "$SZD_ROOT"
+  write_session_json "$SZD_ROOT" "$root_value"
+
+  run_guard "$SZD_ROOT"
+
+  assert_exit 2 "Szd non-object root $root_value"
+  assert_stderr_contains "SESSION_ROOT_NOT_OBJECT" "Szd names the shared root integrity class for $root_value"
+  assert_stdout_not_contains "PASS Gate G128" "Szd emits no clean verdict for $root_value"
+done
+
+note "Scenario Sze: a malformed convergence count fails shared validation"
+
+SZE_ROOT="$WORKSPACE/sze"
+stage_repo_root "$SZE_ROOT"
+write_session_json "$SZE_ROOT" '{
+  "convergenceLoops": [
+    { "specDir": "specs/900-a", "goalRef": null, "iterationCount": "6" }
+  ]
+}'
+
+run_guard "$SZE_ROOT"
+
+assert_exit 2 "Sze malformed iterationCount rejected"
+assert_stderr_contains "SESSION_ITERATION_INVALID" "Sze names the shared count integrity class"
+assert_stdout_not_contains "no sessionBudget recorded" "Sze refuses malformed count before default-off messaging"
+assert_stdout_not_contains "PASS Gate G128" "Sze emits no empty aggregate summary"
+
+note "Scenario Szf: an unresolved stored spec path cannot disappear from G128"
+
+SZF_ROOT="$WORKSPACE/szf"
+stage_repo_root "$SZF_ROOT"
+write_session_json "$SZF_ROOT" '{
+  "sessionBudget": { "maxTotalConvergenceIterations": 100 },
+  "convergenceLoops": [
+    {
+      "specDir": "specs/900-missing",
+      "goalRef": {
+        "goalId": "gc:bug037-g128:1",
+        "revision": 1,
+        "sourceRequestDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "iterationCount": 6,
+      "lastUpdated": "2026-08-30T00:00:00Z",
+      "agent": "bubbles.goal"
+    }
+  ]
+}'
+
+run_guard "$SZF_ROOT"
+
+assert_exit 2 "Szf unresolved specDir rejected"
+assert_stderr_contains "SESSION_SPEC_NOT_FOUND" "Szf names the shared physical-spec integrity class"
+
+note "Scenario Szg: a malformed current Goal Contract cannot be ignored"
+
+SZG_ROOT="$WORKSPACE/szg"
+stage_repo_root "$SZG_ROOT"
+write_session_json "$SZG_ROOT" '{
+  "goalContract": { "goalId": "gc:bug037-g128:1", "revision": 1 },
+  "convergenceLoops": []
+}'
+
+run_guard "$SZG_ROOT"
+
+assert_exit 2 "Szg malformed current Goal Contract rejected"
+assert_stderr_contains "SESSION_GOAL_INVALID" "Szg names the shared current-goal integrity class"
+assert_stdout_not_contains "no sessionBudget recorded" "Szg validates current goal before default-off messaging"
+assert_stdout_not_contains "PASS Gate G128" "Szg emits no clean no-budget verdict"
+
+note "Scenario Szh: valid legacy singletons retain pre-upgrade aggregate accounting"
+
+SZH_ROOT="$WORKSPACE/szh"
+stage_repo_root "$SZH_ROOT"
+write_session_json "$SZH_ROOT" '{
+  "sessionBudget": { "maxTotalConvergenceIterations": 10 },
+  "convergenceLoops": [
+    { "specDir": "specs/900-a", "goalRef": null, "iterationCount": 2 },
+    { "specDir": "specs/900-a", "goalRef": null, "iterationCount": 3 },
+    {
+      "specDir": "specs/900-a",
+      "goalRef": {
+        "goalId": "gc:bug037-g128:1",
+        "revision": 1,
+        "sourceRequestDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "iterationCount": 6,
+      "lastUpdated": "2026-08-30T00:00:00Z",
+      "agent": "bubbles.goal"
+    }
+  ]
+}'
+
+run_guard "$SZH_ROOT"
+
+assert_exit 1 "Szh legacy singleton sum plus authorized maximum exceeds cap"
+assert_stderr_contains "aggregate iterationCount=11" "Szh retains defined legacy singleton accounting"
+assert_stderr_contains "across 3 effective attempt(s)" "Szh reports one authorized attempt plus two legacy records"
+assert_stderr_contains "authorized=1 legacy=2" "Szh reports legacy composition"
+
+note "Scenario Szi: equal basenames in distinct physical directories stay distinct"
+
+SZI_ROOT="$WORKSPACE/szi"
+stage_repo_root "$SZI_ROOT"
+mkdir -p "$SZI_ROOT/specs/left/900-shared" "$SZI_ROOT/specs/right/900-shared"
+write_session_json "$SZI_ROOT" '{
+  "sessionBudget": { "maxTotalConvergenceIterations": 12 },
+  "convergenceLoops": [
+    {
+      "specDir": "specs/left/900-shared",
+      "goalRef": {
+        "goalId": "gc:bug037-g128-basename:1",
+        "revision": 1,
+        "sourceRequestDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "iterationCount": 6,
+      "lastUpdated": "2026-08-30T00:00:00Z",
+      "agent": "bubbles.workflow"
+    },
+    {
+      "specDir": "specs/right/900-shared",
+      "goalRef": {
+        "goalId": "gc:bug037-g128-basename:1",
+        "revision": 1,
+        "sourceRequestDigest": "sha256:4444444444444444444444444444444444444444444444444444444444444444"
+      },
+      "iterationCount": 7,
+      "lastUpdated": "2026-08-30T00:01:00Z",
+      "agent": "bubbles.goal"
+    }
+  ]
+}'
+
+run_guard "$SZI_ROOT"
+
+assert_exit 1 "Szi equal basenames contribute 6 + 7 across distinct physical specs"
+assert_stderr_contains "aggregate iterationCount=13" "Szi does not merge equal basenames"
+assert_stderr_contains "across 2 effective attempt(s)" "Szi reports two physical attempt keys"
+
+note "Scenario Szj: production G128 keeps no private convergence validator"
+
+if grep -Eq 'def[[:space:]]+(valid_core|norm_spec)' "$GUARD_SCRIPT"; then
+  ko "Szj: production guard reintroduced private jq convergence validation"
+else
+  ok "Szj: production guard delegates convergence validation and physical identity to session-state-lib.sh"
+fi
+if grep -Fq 'session_state_validate_convergence "$SESSION_SNAPSHOT" "$REPO_ROOT" "$NORMALIZED_CONVERGENCE"' "$GUARD_SCRIPT"; then
+  ok "Szj: production guard normalizes every convergence record before aggregate no-op or accounting"
+else
+  ko "Szj: production guard no longer invokes shared convergence normalization"
 fi
 
 # =============================================================================

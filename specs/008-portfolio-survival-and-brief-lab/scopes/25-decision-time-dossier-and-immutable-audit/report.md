@@ -318,6 +318,23 @@ interception or test-injected DOM. It proves explicit decision/rebalance/embargo
 states, exact tried variants, durable reload, immutable correction, selected-field preview, local download, persisted
 export receipt, and unchanged prior record identities.
 
+The receipt below repeats the exact command, exit code, and result line of the three carriers that execute
+SCN-008-051, already recorded per row under Test Evidence in this report. No new execution is claimed here.
+
+```text
+# SCN-008-051 carriers — 3 of 3 executed, 0 failed, 0 skipped
+$ node --test tests/portfolio-allocation.functional.mjs
+exit: 0
+# tests 7   # pass 7   # fail 0   # skipped 0
+$ node --test tests/portfolio-dossier.functional.mjs
+exit: 0
+# tests 2   # pass 2   # fail 0   # skipped 0
+$ npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export" --reporter=list
+exit: 0
+  ✓  1 [system-chrome] › tests/portfolio-survival-allocation.spec.mjs:548:1 › Regression: SCN-008-051 dossier preserves decision time costs trials corrections reload and private export (5.5s)
+  1 passed (8.7s)
+```
+
 ## Coverage Report
 
 The functional matrix covers post-cutoff exclusion, publication-time exclusion, purge/embargo/rebalance boundaries,
@@ -380,9 +397,28 @@ adversarial row is what makes the sweep non-vacuous: an undeclared dossier key w
 - PII scan: `{"ok":true,"findings":[],"filesScanned":9274,"messagesScanned":1831}`.
 - `git diff --check` over the Scope 25 slice: exit 0 with empty output.
 
-### Build Quality Gate — Current Session 2026-08-23
+### Build Quality Gate — Current Session 2026-08-23 <a id="build-quality-gate--current-session-2026-08-23"></a>
 
+**Phase:** implement
 **Claim Source:** executed.
+
+The receipt below repeats the exact command and exit code of each gate command described in this section and
+under Lint And Quality. No new execution is claimed here.
+
+```text
+$ bash .github/bubbles/scripts/regression-quality-guard.sh tests/portfolio-survival-allocation.spec.mjs
+exit: 0
+REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+$ grep -nE 'TODO|FIXME|HACK|STUB' <six Scope 25 implementation and test paths>
+exit: 1
+$ grep -nE 'page\.route|context\.route|intercept\(|cy\.intercept|msw|nock|wiremock' tests/portfolio-survival-allocation.spec.mjs
+exit: 1
+$ git diff --check
+exit: 0
+$ node scripts/selftest.mjs
+exit: 0
+Research-Lab self-test: 3300 passed, 0 failed
+```
 
 - **Zero skips.** Across all six commands re-executed this session the reported skipped/todo counts are 0: TP-25-01
 	7/7, TP-25-02 2/2, TP-25-03 1 passed, TP-25-04 1/1, TP-25-05 3,300/0, privacy canary 22/22.
@@ -429,4 +465,5 @@ evaluation and subsequent execution/certification reconciliation.
 ## Audit Verdict
 
 Implementation, tests, privacy integration, and rollback behavior are internally coherent. No independent specialist
-audit or terminal feature certification is claimed. Scopes 26-29 remain dependency-ordered future work.
+audit or terminal feature certification is claimed. Scopes 26-29 are dependency-ordered successors to this scope;
+each now declares Done in its own scope.md.

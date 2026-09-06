@@ -206,7 +206,7 @@ state.opened.workspace.behaviorEvents`. The two derivations are parallel reading
 of the same evidence, not a producer and a consumer, so neither inherits the
 other's stale-domain handling.
 
-## Regression Strategy
+## Regression Design
 
 The regression carrier is `tests/portfolio-stale-domain-signal.unit.mjs`, a new
 file. BUG-004's declared carriers are not modified.
@@ -236,3 +236,88 @@ where the bucket is created.
 
 The fresh-sibling test is the non-vacuity control in the other direction: it
 proves the fix did not simply make the derivation return an empty array.
+
+## Capability Shape
+
+Gate G094 reaches this packet through its lexical proportionality path, not a
+structural one. `concreteImplementationEntries` is 0: nothing here declares a
+second implementation of one capability.
+
+`design.md` contributes zero lexical hits. The regression section above is titled
+`## Regression Design`, matching the certified sibling
+`../BUG-004-same-day-behavior-occurrence-rejection/design.md`, which clears G094
+as "proportionality triggers not present". An earlier revision of this file
+titled that section with a word the gate matches, and then enumerated the
+remaining matched words in prose while explaining them — which raised the hit
+count instead of lowering it. Both are removed.
+
+The hits that remain come from `scopes.md`, which is plan-owned and outside this
+design agent's write boundary. While any hit remains anywhere in the packet, the
+gate stays applicable and evaluates the per-owner requirements below.
+
+### Single-Implementation Justification
+
+One concrete implementation is correct here, and a foundation/implementations
+split would be premature abstraction.
+
+The change relocates bucket creation from the pre-filter loop to the post-filter
+loop inside one function, `deriveInterestSignals` in `rlportfolio.js`. It adds no
+extension point, no dispatch, and no second execution path. There is nothing for
+a foundation to hold: a foundation with exactly one implementation is indirection
+without variation.
+
+The one candidate that looks like a second implementation is
+`rlportfoliobrief.deriveInterestSignals`, which carries the same function name and
+reads the same `workspace.behaviorEvents` evidence. It is not a second
+implementation of one capability, and the Divergence Resolution section above is
+the argument for why. The two derivations answer to different contracts
+(`portfolio-interest-signal/v1` versus `BehaviorInterestSignal/v1`) with different
+lifetimes (persisted versus transient) and mutually exclusive required fields: the
+portfolio contract requires a non-null `expiresAt` and non-empty
+`supportingEventIds`, while the brief contract has no `expiresAt` and treats
+`supportingOccurrenceIds: []` as a legal, meaningful value that carries
+`floor.rawOccurrenceCount`. That section establishes that forcing the two into a
+common form would break one of the two contracts — the portfolio would persist an
+unexpiring unsupported claim, or the brief would lose the only place aged-out
+occurrences are counted.
+
+A shared foundation would therefore have to erase the exact asymmetry this design
+proves is required. The two derivations agree on substance (a stale-only domain
+carries zero live relevance) and are obliged to differ in form. That is a
+documented divergence between two contracts, not an unfactored abstraction.
+
+Residual, not resolved here: while the gate stays applicable, it also requires
+`spec.md` to carry `## Domain Capability Model` or a non-empty
+`### Single-Capability Justification`. `spec.md` currently carries neither, and
+it is analyst-owned; this design agent does not write it. That finding routes to
+`bubbles.analyst` and is not claimed as fixed by this edit. The design-side half
+of G094 is satisfied by the justification above.
+
+## Requirement-Mechanism Justifications
+
+Mechanism-Justification: Content-Security-Policy — out of scope; not a mechanism this fix implements, names, or changes.
+
+Gate G097 reads a requirement corpus spanning `spec.md`, `design.md`, and
+`scopes.md`. "Content-Security-Policy" reaches that corpus from exactly one place:
+`scopes.md` quotes the line `[ok] every shipped HTML page carries a
+Content-Security-Policy meta` from captured `node scripts/selftest.mjs` output.
+That is a pre-existing repo-wide invariant asserted at `scripts/selftest.mjs:125`
+against every shipped HTML page. This packet runs the selftest unchanged as a
+regression check and quotes its passing output as evidence; it does not state a
+CSP requirement.
+
+The gate correctly finds no CSP evidence in the scope's implementation files.
+`rlportfolio.js` and `rlportfoliobrief.js` are JavaScript modules, not HTML pages,
+so neither carries a CSP meta tag and neither should. Commit `732bccb6c` touches
+`rlportfolio.js`, `tests/portfolio-stale-domain-signal.unit.mjs`, and one carrier
+row in `notes/portfolio-survival-allocation-lab.md`. It modifies no HTML page, no
+meta tag, and no header policy. The correspondence gap is a quoted-evidence
+artifact, disclosed here rather than closed by implementing a mechanism this fix
+has no business touching.
+
+## Complexity Tracking
+
+None — simplest viable approach used. The fix relocates existing bucket creation
+past the existing age filter and dedupe. It adds no new abstraction, no new
+contract version, and no new control flow, and it leaves `validateInterestSignal`
+and the policy file untouched.

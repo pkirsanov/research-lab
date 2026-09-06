@@ -2295,4 +2295,328 @@ Severity is recorded here as **Medium** on validate's own authority, assessed at
 
 The prior execution record is preserved above. Current status is governed by the canonical transition checks.
 
+## Scope 01 Attribution Contract - Independent Test Re-Verification (Binding Revision 36)
+
+**Agent:** `bubbles.test`
+**Phase:** test
+**Claim Source:** interpreted
+**Validated HEAD:** `1beee8270fec1ccb1ad9c93dd219bb4dcf9c0467`
+**Detached execution tree:** `/tmp/research-lab-scope01-attribution-95469636-r36`
+**Binding decision:** `rb:vscode-0cc9797b22a783b6a9be5d7946541ba3:36`
+
+**Interpretation:** The immutable history output accounts for all 953 changed paths without treating the root commit as isolated Scope 01 history. Exactly 12 `A` records match the closed attribution ledger, 426 paths match the declared excluded set, and the remaining 515 paths complete the non-attributable set. The 25-edge inventory contains only the declared production reads and test-only dependencies. Both negative sentinels reject an excluded production edge and a filesystem or process write edge. The locked runner, 61-test unit suite, 24-test privacy suite, 17-test real-page browser suite, and repository selftest all completed without a failure or skip. Taken together, the current-session executions support the scope's path, dependency, mutation, and consumer attribution while making no isolated-commit claim for the other 941 paths.
+
+Every history and coupling command was first run separately in the form recorded by the scope. The two one-line sentinels were then rerun from temporary transcriptions of the same command bodies solely to obtain verifiable output hashes. The selftest canary ran before the cumulative browser suite.
+
+| Evidence | Exit | Output lines | SHA-256 | Required signal |
+| --- | ---: | ---: | --- | --- |
+| Revision-36 repository packet validation | 0 | 1 | `03df5899ab0828ccd5bd62e2d1ee9797ca000876e5d7e2087b4a22946fac1dd4` | Actionable Research Lab packet at revision 36 |
+| Historical commit inventory | 0 | 953 | `a7dbf196fa576cbc448401228c4efa2ff6c5b98ea29fd547f1125a6a69969fbf` | Exact required count and immutable hash |
+| Scope 01 attribution inventory | 0 | 12 | `4a16a68a72ea516bb1534b801f4ceabccf81119f7585ddecb5d2114f151f5509` | Exactly 12 ledger paths, each status `A` |
+| Explicitly excluded historical paths | 0 | 426 | `703931fe90db2eefb7c1d0bb5ad673d641ba50d49dc905068369f5c994be0847` | Exact required count and immutable hash |
+| Import and load inventory | 0 | 25 | `600fb71a75584905471e063daf5797169b6814fe69c9e7ed07b91cd60bd5c027` | Only declared production and test dependencies |
+| Production excluded-edge sentinel | 0 | 1 | `a24310c4b139a3410b499239d2bf6d9a0e4555807b6ce1fc7df25c25f727c9b3` | `SCOPE01_PRODUCTION_EXCLUDED_EDGE=PASS` |
+| Filesystem write-edge sentinel | 0 | 1 | `c8e89501f5aa8eea7f262d12f75623da29b7b923f79d7990989fdbac09104498` | `SCOPE01_FILESYSTEM_WRITE_EDGE=PASS` |
+| Node source lock | 0 | 22 | `e9bb9b552e92cd5b05328a34448e33d4bcc2b39dfe4f5ae0e430911374c711b1` | Actual graph passes; 16 adversarial inputs rejected |
+| Playwright version | 0 | 1 | `ec60000cff0b2bb61c0bd02338c28b5001eb04073e84ef331029c941b4b9a332` | Exactly `Version 1.61.1` |
+| Repository selftest canary | 0 | 3928 | `15d53b7cce463cbd81f2100d5baa45b0466de6f7b04e0eb521e3e530c6ff70fd` | 3435 passed, 0 failed |
+| Portfolio foundation unit suite | 0 | 376 | `1a43856c6501c826a5a177abd283ed5988d0b30a2fe029dc4d89d22ff25f9222` | 61 passed, 0 failed, 0 skipped |
+| Portfolio privacy functional suite | 0 | 154 | `86fc5fce11acb2904f85713d187bc72816fda1ca35c13ea463496af48e632d1b` | 24 passed, 0 failed, 0 skipped |
+| Portfolio foundation browser suite | 0 | 168 | `e7b9794ce9e58dfc97718da3ad9a9d6c1a6111dbc6c527d76d9747c840f4274c` | 17 passed |
+
+### Current-Session Raw Evidence Windows
+
+```text
+REPOSITORY PACKET VALID actionable=true repository=research-lab decision=rb:vscode-0cc9797b22a783b6a9be5d7946541ba3:36 revision=36
+# Spec 008 Scope 01 historical commit inventory
+exit: 0
+lines: 953
+sha256: a7dbf196fa576cbc448401228c4efa2ff6c5b98ea29fd547f1125a6a69969fbf
+# Spec 008 Scope 01 exact 12-path attribution inventory
+exit: 0
+lines: 12
+sha256: 4a16a68a72ea516bb1534b801f4ceabccf81119f7585ddecb5d2114f151f5509
+A       portfolio-survival-allocation-lab.html
+A       portfolio-survival-allocation.config.json
+A       rlportfolio.js
+A       tests/fixtures/portfolio-survival-allocation/invalid-secret-portfolio.csv
+A       tests/fixtures/portfolio-survival-allocation/manual-alternative.json
+A       tests/fixtures/portfolio-survival-allocation/provenance.json
+A       tests/fixtures/portfolio-survival-allocation/removable-invalid-portfolio.csv
+A       tests/fixtures/portfolio-survival-allocation/valid-portfolio.csv
+A       tests/portfolio-foundation.unit.mjs
+A       tests/portfolio-privacy.functional.mjs
+A       tests/portfolio-survival-foundation.spec.mjs
+A       tests/portfolio-survival.support.mjs
+# Spec 008 Scope 01 explicitly excluded historical paths
+exit: 0
+lines: 426
+sha256: 703931fe90db2eefb7c1d0bb5ad673d641ba50d49dc905068369f5c994be0847
+# Spec 008 Scope 01 25-edge import and load inventory
+exit: 0
+lines: 25
+sha256: 600fb71a75584905471e063daf5797169b6814fe69c9e7ed07b91cd60bd5c027
+SCOPE01_PRODUCTION_EXCLUDED_EDGE=PASS
+SCOPE01_FILESYSTEM_WRITE_EDGE=PASS
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+Version 1.61.1
+# Spec 008 Scope 01 selftest canary
+exit: 0
+lines: 3928
+sha256: 15d53b7cce463cbd81f2100d5baa45b0466de6f7b04e0eb521e3e530c6ff70fd
+Research-Lab self-test: 3435 passed, 0 failed
+# Spec 008 Scope 01 61-test unit suite
+exit: 0
+lines: 376
+sha256: 1a43856c6501c826a5a177abd283ed5988d0b30a2fe029dc4d89d22ff25f9222
+# tests 61
+# pass 61
+# fail 0
+# skipped 0
+# Spec 008 Scope 01 24-test privacy suite
+exit: 0
+lines: 154
+sha256: 86fc5fce11acb2904f85713d187bc72816fda1ca35c13ea463496af48e632d1b
+# tests 24
+# pass 24
+# fail 0
+# skipped 0
+# Spec 008 Scope 01 17-test foundation browser suite
+exit: 0
+lines: 168
+sha256: e7b9794ce9e58dfc97718da3ad9a9d6c1a6111dbc6c527d76d9747c840f4274c
+17 passed (51.9s)
+```
+
+This run appended evidence only. It did not modify `scope.md`, source, tests, `state.json`, or certification fields.
+
+## Scope 01 Historical Attribution And Coupling Contract - Implement Re-Execution (2026-08-30)
+
+**Agent:** `bubbles.implement`
+**Phase:** implement
+**Claim Source:** interpreted
+**Validated HEAD:** `1beee8270fec1ccb1ad9c93dd219bb4dcf9c0467`
+**Detached execution tree:** `/tmp/research-lab-scope01-attribution-95469636-r36`
+**Binding input:** session `vscode-0cc9797b22a783b6a9be5d7946541ba3`, decision `rb:vscode-0cc9797b22a783b6a9be5d7946541ba3:36`, expected control revision 36
+**Binding validation result:** exit 0; `PREFLIGHT_COMMITTED` decision `rb:vscode-0cc9797b22a783b6a9be5d7946541ba3:37`, control revision 37, repository `research-lab`
+
+This is an independent implement-phase execution. It does not reuse the test-phase evidence above. The supplied worktree was detached, clean, and at the exact requested HEAD before execution. It remained clean at that HEAD after every inventory and test completed.
+
+### Interpretation And Claim Limit
+
+**Interpretation:** The immutable commit inventory contains 953 paths. The closed Scope 01 pathspec returns exactly the 12 ledger paths, each with historical status `A`. The excluded pathspec returns exactly 426 paths. The remaining 515 paths are non-attributable repository context, so the closed partition is $12 + 426 + 515 = 953$. None of the other 941 paths is used as Scope 01 implementation evidence.
+
+Because each of the 12 ledger paths is an added file, its historical diff contains additions under that file identity rather than a pre-existing-file modification. The scope's required-attribution column supplies the file-purpose mapping. The 25-edge import/load inventory then bounds production coupling to the lab's two script loads, its mandatory-config fetch, and `rlportfolio.js`'s read-only `rlcontracts.js` dependency. The remaining edges are the declared Node built-ins, Playwright runtime, and Scope 01 support-file test dependencies. Both negative sentinels pass. The source-lock gate rejects all 16 adversarial cases. The declared unit, privacy, browser, and repository canary suites pass with zero failures and zero skipped tests where the runner reports skip counts.
+
+**Claim limit:** This evidence establishes only the contract's path, added-hunk/file-purpose, dependency, runtime-write, browser-storage, and public-consumer attribution at commit `db06c29650ba351770297acefa658f51cbc4ff00`. It does not claim that Scope 01 had an isolated commit, that the other 941 co-committed paths were unchanged, or that any of those paths belongs to Scope 01.
+
+### Exact Commands
+
+Every command below ran from `/tmp/research-lab-scope01-attribution-95469636-r36`. The capture helper executed each command after `--` without filtering its output.
+
+```bash
+# 1. Historical commit inventory
+timeout 120 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 historical commit inventory" -- \
+  git diff-tree --no-commit-id --name-status -r db06c29650ba351770297acefa658f51cbc4ff00
+
+# 2. Closed Scope 01 path inventory
+timeout 30 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 exact 12-path attribution inventory" -- \
+  git diff-tree --no-commit-id --name-status -r \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  portfolio-survival-allocation.config.json \
+  rlportfolio.js \
+  portfolio-survival-allocation-lab.html \
+  tests/portfolio-foundation.unit.mjs \
+  tests/portfolio-privacy.functional.mjs \
+  tests/portfolio-survival-foundation.spec.mjs \
+  tests/portfolio-survival.support.mjs \
+  tests/fixtures/portfolio-survival-allocation/valid-portfolio.csv \
+  tests/fixtures/portfolio-survival-allocation/invalid-secret-portfolio.csv \
+  tests/fixtures/portfolio-survival-allocation/removable-invalid-portfolio.csv \
+  tests/fixtures/portfolio-survival-allocation/manual-alternative.json \
+  tests/fixtures/portfolio-survival-allocation/provenance.json
+
+# 3. Excluded historical inventory
+timeout 120 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 explicitly excluded historical paths" -- \
+  git diff-tree --no-commit-id --name-only -r \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  rldata.js rlnav.js rlapp.js rlbrief.js market-brief.html \
+  ':(top,glob)market-brief.*.json' ':(top,glob)brief-history*.jsonl' \
+  ':(top,glob)scripts/brief-*' tools.json index.html README.md \
+  ':(top,glob)notes/**' package.json package-lock.json \
+  ':(top,glob)rl*.js' ':(exclude,top)rlportfolio.js' \
+  ':(top,glob)specs/001-*/**' ':(top,glob)specs/002-*/**' \
+  ':(top,glob)specs/003-*/**' ':(top,glob)specs/004-*/**' \
+  ':(top,glob)specs/005-*/**' ':(top,glob)specs/006-*/**' \
+  ':(top,glob)specs/007-*/**' ':(top,glob).github/bubbles/**'
+
+# 4. Import/load inventory
+timeout 30 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 import and load inventory" -- \
+  git grep -nE \
+  '(^[[:space:]]*import[[:space:]]|require\(|<script[^>]+src=|fetch\()' \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  rlportfolio.js portfolio-survival-allocation-lab.html \
+  tests/portfolio-foundation.unit.mjs \
+  tests/portfolio-privacy.functional.mjs \
+  tests/portfolio-survival-foundation.spec.mjs \
+  tests/portfolio-survival.support.mjs
+
+# 5. Production excluded-edge sentinel
+if timeout 30 git grep -nE \
+  '(^|[^[:alnum:]_])(rldata\.js|rlnav\.js|rlapp\.js|rlbrief\.js|market-brief([^[:alnum:]_]|$)|brief-history|tools\.json|index\.html|package(-lock)?\.json|notes/|scripts/brief-)' \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  portfolio-survival-allocation.config.json rlportfolio.js \
+  portfolio-survival-allocation-lab.html
+then
+  printf 'SCOPE01_PRODUCTION_EXCLUDED_EDGE=FAIL\n'
+  exit 1
+else
+  result=$?
+  if [[ "$result" -ne 1 ]]; then exit "$result"; fi
+  printf 'SCOPE01_PRODUCTION_EXCLUDED_EDGE=PASS\n'
+fi
+
+# 6. Filesystem write-edge sentinel
+if timeout 30 git grep -nE \
+  '(writeFile|appendFile|createWriteStream|renameSync|copyFile|unlink|rmSync|mkdirSync|spawnSync|execFile|execSync|child_process)' \
+  db06c29650ba351770297acefa658f51cbc4ff00 -- \
+  portfolio-survival-allocation.config.json rlportfolio.js \
+  portfolio-survival-allocation-lab.html \
+  tests/portfolio-foundation.unit.mjs \
+  tests/portfolio-privacy.functional.mjs \
+  tests/portfolio-survival-foundation.spec.mjs \
+  tests/portfolio-survival.support.mjs
+then
+  printf 'SCOPE01_FILESYSTEM_WRITE_EDGE=FAIL\n'
+  exit 1
+else
+  result=$?
+  if [[ "$result" -ne 1 ]]; then exit "$result"; fi
+  printf 'SCOPE01_FILESYSTEM_WRITE_EDGE=PASS\n'
+fi
+
+# 7. Node source lock
+timeout 120 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 node source lock" -- \
+  node scripts/validate-node-source-lock.mjs
+
+# 8. Locked browser runner
+timeout 60 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 Playwright version" -- \
+  npx --no-install playwright --version
+
+# 9. TP-01-02
+timeout 600 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 24-test privacy suite" -- \
+  node --test tests/portfolio-privacy.functional.mjs
+
+# 10. TP-01-07 canary, before the browser suite
+timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 selftest canary" -- \
+  node scripts/selftest.mjs
+
+# 11. TP-01-01 and the direct TP-01-07 namespace canary
+timeout 600 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 61-test unit suite" -- \
+  node --test tests/portfolio-foundation.unit.mjs
+
+# 12. TP-01-06, after the source and shared-contract canaries
+timeout 900 bash .github/bubbles/scripts/evidence-capture.sh \
+  --label "Spec 008 Scope 01 17-test foundation browser suite" -- \
+  npx --no-install playwright test \
+  tests/portfolio-survival-foundation.spec.mjs \
+  --config=playwright.config.mjs --project=system-chrome --reporter=list
+```
+
+### Current-Session Command Ledger
+
+| Check | Command | Exit | Lines | SHA-256 | Actual signal |
+| --- | --- | ---: | ---: | --- | --- |
+| Historical commit inventory | `git diff-tree --no-commit-id --name-status -r db06c29650ba351770297acefa658f51cbc4ff00` | 0 | 953 | `a7dbf196fa576cbc448401228c4efa2ff6c5b98ea29fd547f1125a6a69969fbf` | Exact required count and immutable hash |
+| Closed Scope 01 path inventory | Exact Command 2 above | 0 | 12 | `4a16a68a72ea516bb1534b801f4ceabccf81119f7585ddecb5d2114f151f5509` | All 12 exact paths; every status is `A` |
+| Excluded historical inventory | Exact Command 3 above | 0 | 426 | `703931fe90db2eefb7c1d0bb5ad673d641ba50d49dc905068369f5c994be0847` | Exact required count and immutable hash |
+| Import/load inventory | `git grep -nE '(^[[:space:]]*import[[:space:]]|require\(|<script[^>]+src=|fetch\()' db06c29650ba351770297acefa658f51cbc4ff00 -- rlportfolio.js portfolio-survival-allocation-lab.html tests/portfolio-foundation.unit.mjs tests/portfolio-privacy.functional.mjs tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival.support.mjs` | 0 | 25 | `600fb71a75584905471e063daf5797169b6814fe69c9e7ed07b91cd60bd5c027` | Exactly 25 declared production and test edges |
+| Production excluded-edge sentinel | Exact Command 5 above, run separately before its capture rerun | 0 | 1 | `a24310c4b139a3410b499239d2bf6d9a0e4555807b6ce1fc7df25c25f727c9b3` | `SCOPE01_PRODUCTION_EXCLUDED_EDGE=PASS` |
+| Filesystem write-edge sentinel | Exact Command 6 above, run separately before its capture rerun | 0 | 1 | `c8e89501f5aa8eea7f262d12f75623da29b7b923f79d7990989fdbac09104498` | `SCOPE01_FILESYSTEM_WRITE_EDGE=PASS` |
+| Node source lock | `node scripts/validate-node-source-lock.mjs` | 0 | 22 | `e9bb9b552e92cd5b05328a34448e33d4bcc2b39dfe4f5ae0e430911374c711b1` | Actual graph passes; 16 adversarial inputs rejected |
+| Playwright version | `npx --no-install playwright --version` | 0 | 1 | `ec60000cff0b2bb61c0bd02338c28b5001eb04073e84ef331029c941b4b9a332` | Exactly `Version 1.61.1` |
+| TP-01-02 privacy suite | `node --test tests/portfolio-privacy.functional.mjs` | 0 | 154 | `e35a81f5ae56790ab1b20b2e9cfa07b7493020e0ebdf85fe704c3256d9e7a49f` | 24 passed, 0 failed, 0 skipped |
+| TP-01-07 repository canary | `node scripts/selftest.mjs` | 0 | 3928 | `c3a046a3fc323c7e31db07b9c8fa096756f4a27ff5f7180722648939a9e4d237` | 3435 passed, 0 failed |
+| TP-01-01 and TP-01-07 unit suite | `node --test tests/portfolio-foundation.unit.mjs` | 0 | 376 | `34f896f4aafd7430ab0d0a6d8f477f2a21e861bb70cbb2c4acad1c7f70f5140f` | 61 passed, 0 failed, 0 skipped |
+| TP-01-06 cumulative browser suite | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | 0 | 168 | `d7dfc2a540472890646e4c162a85930b278fe199d57a166307d9dca6e8b4e68f` | 17 passed |
+
+The TP-01-07 selftest and unit canaries ran before TP-01-06. The source-lock and exact Playwright-version gates also ran before the browser suite.
+
+### Current-Session Captured Signals
+
+```text
+WORKTREE_DETACHED=yes
+WORKTREE_CLEAN=yes
+WORKTREE_HEAD_MATCH=yes
+# Spec 008 Scope 01 historical commit inventory
+exit: 0
+lines: 953
+sha256: a7dbf196fa576cbc448401228c4efa2ff6c5b98ea29fd547f1125a6a69969fbf
+# Spec 008 Scope 01 exact 12-path attribution inventory
+exit: 0
+lines: 12
+sha256: 4a16a68a72ea516bb1534b801f4ceabccf81119f7585ddecb5d2114f151f5509
+A       portfolio-survival-allocation-lab.html
+A       portfolio-survival-allocation.config.json
+A       rlportfolio.js
+A       tests/fixtures/portfolio-survival-allocation/invalid-secret-portfolio.csv
+A       tests/fixtures/portfolio-survival-allocation/manual-alternative.json
+A       tests/fixtures/portfolio-survival-allocation/provenance.json
+A       tests/fixtures/portfolio-survival-allocation/removable-invalid-portfolio.csv
+A       tests/fixtures/portfolio-survival-allocation/valid-portfolio.csv
+A       tests/portfolio-foundation.unit.mjs
+A       tests/portfolio-privacy.functional.mjs
+A       tests/portfolio-survival-foundation.spec.mjs
+A       tests/portfolio-survival.support.mjs
+# Spec 008 Scope 01 explicitly excluded historical paths
+exit: 0
+lines: 426
+sha256: 703931fe90db2eefb7c1d0bb5ad673d641ba50d49dc905068369f5c994be0847
+# Spec 008 Scope 01 import and load inventory
+exit: 0
+lines: 25
+sha256: 600fb71a75584905471e063daf5797169b6814fe69c9e7ed07b91cd60bd5c027
+SCOPE01_PRODUCTION_EXCLUDED_EDGE=PASS
+SCOPE01_FILESYSTEM_WRITE_EDGE=PASS
+[node-source-lock] actual=PASS
+[node-source-lock] OK adversarial=16 unexpectedAcceptances=0
+Version 1.61.1
+# Spec 008 Scope 01 24-test privacy suite
+exit: 0
+sha256: e35a81f5ae56790ab1b20b2e9cfa07b7493020e0ebdf85fe704c3256d9e7a49f
+# tests 24
+# pass 24
+# fail 0
+# skipped 0
+# Spec 008 Scope 01 selftest canary
+exit: 0
+sha256: c3a046a3fc323c7e31db07b9c8fa096756f4a27ff5f7180722648939a9e4d237
+Research-Lab self-test: 3435 passed, 0 failed
+# Spec 008 Scope 01 61-test unit suite
+exit: 0
+sha256: 34f896f4aafd7430ab0d0a6d8f477f2a21e861bb70cbb2c4acad1c7f70f5140f
+# tests 61
+# pass 61
+# fail 0
+# skipped 0
+# Spec 008 Scope 01 17-test foundation browser suite
+exit: 0
+sha256: d7dfc2a540472890646e4c162a85930b278fe199d57a166307d9dca6e8b4e68f
+17 passed (1.0m)
+WORKTREE_HEAD_MATCH_AFTER_TESTS=yes
+WORKTREE_CLEAN_AFTER_TESTS=yes
+```
+
+This section resolves only the revised attribution item's missing current-session execution evidence. It does not edit or certify `scope.md`, change scope or feature status, modify source or tests, or write `state.json` or `certification.*`.
+
 

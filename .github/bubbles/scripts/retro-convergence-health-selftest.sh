@@ -28,7 +28,10 @@ stage_repo() {
   local sid="$1"
   local repo="$WORKSPACE/$sid"
   rm -rf "$repo"
-  mkdir -p "$repo/.specify/memory"
+  mkdir -p \
+    "$repo/.specify/memory" \
+    "$repo/specs/900-retro-fixture" \
+    "$repo/specs/nested/900-retro-fixture"
   printf '%s' "$repo"
 }
 
@@ -125,6 +128,117 @@ write_ambient_cross_spec_session() {
 EOF
 }
 
+write_bug037_attempt_session() {
+  local repo="$1"
+  cat > "$repo/.specify/memory/bubbles.session.json" <<EOF
+{
+  "sessionId": "bug037-retro",
+  "goalContract": {
+    "schemaVersion": "goal-contract/v2",
+    "goalId": "gc:bug037-retro:2",
+    "revision": 2,
+    "sourceRequestDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222",
+    "intent": "Report current and historical BUG-037 convergence attempts",
+    "successSignal": "Retrospective health preserves attempt history without duplicate-update inflation",
+    "hardConstraints": ["Complete Goal Contract authority is required"],
+    "nonGoals": ["Changing retrospective health thresholds"],
+    "targetReferences": [
+      {"kind": "spec", "value": "specs/900-retro-fixture"}
+    ],
+    "workBoundary": {
+      "repositoryRoots": ["bubbles"],
+      "specTargets": ["specs/900-retro-fixture"],
+      "allowedPaths": ["bubbles/scripts/**"],
+      "crossRepoPolicy": "forbidden"
+    },
+    "semanticBoundary": {
+      "executionShape": "existing-capability-change",
+      "allowedChangeClasses": ["existing-test"],
+      "approvalRequiredChangeClasses": [],
+      "deltaBudget": {"maxNewFiles": 0}
+    },
+    "createdAt": "2026-08-30T00:00:00Z",
+    "provenance": {
+      "runner": "bubbles.goal",
+      "sessionId": "bug037-retro",
+      "repositoryAlias": "bubbles"
+    },
+    "approval": {
+      "state": "operator-approved",
+      "approvedAt": "2026-08-30T00:00:00Z",
+      "approvalNote": "operator approved the retrospective revision-two fixture"
+    },
+    "supersedes": "gc:bug037-retro:1"
+  },
+  "repositoryBindingMirror": {
+    "repositoryRoot": "$repo",
+    "repositoryAlias": "bubbles",
+    "repositoryResolution": {
+      "sessionId": "bug037-retro",
+      "decisionId": "rb:bug037-retro:1",
+      "controlRevision": 1,
+      "controlPathDigest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "authority": "concrete-target",
+      "transition": "established",
+      "scopeKind": "command",
+      "scopeId": null,
+      "targetKind": "absolute-target",
+      "pathVisibility": "local",
+      "actionable": true
+    },
+    "mirroredControlRevision": 1,
+    "mirroredAt": "2026-08-30T00:00:00Z"
+  },
+  "convergenceLoops": [
+    {
+      "specDir": "specs/900-retro-fixture",
+      "goalRef": {
+        "goalId": "gc:bug037-retro:1",
+        "revision": 1,
+        "sourceRequestDigest": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+      },
+      "iterationCount": 16,
+      "lastUpdated": "2026-08-28T03:24:39Z",
+      "agents": ["bubbles.goal"]
+    },
+    {
+      "specDir": "$repo/specs/900-retro-fixture",
+      "goalRef": {
+        "goalId": "gc:bug037-retro:2",
+        "revision": 2,
+        "sourceRequestDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "iterationCount": 1,
+      "lastIterationAt": "2026-08-29T10:00:00Z",
+      "agent": "bubbles.workflow"
+    },
+    {
+      "specDir": "./specs/900-retro-fixture/",
+      "goalRef": {
+        "goalId": "gc:bug037-retro:2",
+        "revision": 2,
+        "sourceRequestDigest": "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+      },
+      "iterationCount": 2,
+      "lastUpdated": "2026-08-29T11:00:00Z",
+      "agents": ["bubbles.goal"]
+    },
+    {
+      "specDir": "specs/nested/900-retro-fixture",
+      "goalRef": {
+        "goalId": "gc:bug037-retro-other:1",
+        "revision": 1,
+        "sourceRequestDigest": "sha256:9999999999999999999999999999999999999999999999999999999999999999"
+      },
+      "iterationCount": 99,
+      "lastUpdated": "2026-08-29T12:00:00Z",
+      "agents": ["bubbles.goal"]
+    }
+  ]
+}
+EOF
+}
+
 run_health() {
   local repo="$1"
   shift
@@ -156,6 +270,16 @@ assert_stdout_contains() {
     ok "$label stdout contains '$needle'"
   else
     ko "$label stdout missing '$needle'"
+    cat "$WORKSPACE/stdout.last"
+  fi
+}
+
+assert_stdout_empty() {
+  local label="$1"
+  if [[ ! -s "$WORKSPACE/stdout.last" ]]; then
+    ok "$label stdout is empty"
+  else
+    ko "$label stdout unexpectedly contains a clean result"
     cat "$WORKSPACE/stdout.last"
   fi
 }
@@ -202,7 +326,7 @@ run_health "$repo" --schema legacy
 assert_exit "S1 legacy metrics" 0
 assert_json "S1 legacy metrics"
 assert_jq "S1 legacy exact keys" 'keys == ["avgLoopIterations", "compactionFrequency", "maxConvergenceIterations", "preExistingDeferralCount", "snapshotCompleteness"]'
-assert_jq "S1 average loop count" '.avgLoopIterations == 1.5'
+assert_jq "S1 effective legacy attempt count" '.avgLoopIterations == 2'
 
 echo ""
 echo "--- S1b: full schema includes convergenceHealth output contract ---"
@@ -212,6 +336,153 @@ run_health "$repo"
 assert_exit "S1b full schema" 0
 assert_json "S1b full schema"
 assert_jq "S1b convergenceHealth schema" '.convergenceHealth == {"recapCount": 0, "handoffCount": 0, "summarizeHistoryCount": 0, "turnCount": 2, "slo": "pass"}'
+
+echo ""
+echo "--- S1d: BUG-037 reports current and historical attempts without duplicate-update inflation ---"
+repo="$(stage_repo s1d-bug037-attempts)"
+write_bug037_attempt_session "$repo"
+run_health "$repo"
+assert_exit "S1d BUG-037 attempt accounting" 0
+assert_json "S1d BUG-037 attempt accounting"
+assert_jq "S1d current revision" '.attemptAccounting.current.goalId == "gc:bug037-retro:2" and .attemptAccounting.current.revision == 2'
+assert_jq "S1d current effective count" '.attemptAccounting.current.iterationCount == 2'
+assert_jq "S1d current agents are attribution, not budgets" '.attemptAccounting.current.agents == ["bubbles.goal", "bubbles.workflow"]'
+assert_jq "S1d canonical timestamp reconciliation" '.attemptAccounting.current.lastUpdated == "2026-08-29T11:00:00Z"'
+assert_jq "S1d historical accounting" '.attemptAccounting.totalAttempts == 2 and .attemptAccounting.historicalAttempts == 1 and .attemptAccounting.historicalMaxIterations == 16'
+assert_jq "S1d equal basename remains isolated" '.maxConvergenceIterations == 16 and .avgLoopIterations == 9'
+assert_jq "S1d G090 thresholds remain unchanged" '.thresholds == {"recapHandoffFailedWhenGreaterThan": 2, "summarizeHistoryFailedWhenGreaterThan": 2, "snapshotCompletenessRequired": 1}'
+assert_jq "S1d unrelated G090 metrics remain unchanged" '.compactionFrequency == 1 and .preExistingDeferralCount == 0 and .snapshotCompleteness == 1 and .convergenceHealth == {"recapCount": 0, "handoffCount": 0, "summarizeHistoryCount": 0, "turnCount": 0, "slo": "pass"}'
+
+echo ""
+echo "--- S1e: present non-object roots fail before skip or health output ---"
+for root_value in null '[]' '"scalar"'; do
+  repo="$(stage_repo "s1e-root-${root_value//[^A-Za-z0-9]/x}")"
+  printf '%s\n' "$root_value" > "$repo/.specify/memory/bubbles.session.json"
+  run_health "$repo"
+  assert_exit "S1e non-object root $root_value" 2
+  assert_stderr_contains "S1e non-object root $root_value" "SESSION_ROOT_NOT_OBJECT"
+  assert_stdout_empty "S1e non-object root $root_value"
+done
+
+echo ""
+echo "--- S1f: malformed matching convergence counts fail shared validation ---"
+repo="$(stage_repo s1f-malformed-count)"
+write_healthy_session "$repo"
+jq '.executionRuntime = "manual" | .convergenceLoops[0].iterationCount = "bad"' \
+  "$repo/.specify/memory/bubbles.session.json" > "$repo/malformed-count.json"
+mv "$repo/malformed-count.json" "$repo/.specify/memory/bubbles.session.json"
+run_health "$repo"
+assert_exit "S1f malformed matching count" 2
+assert_stderr_contains "S1f malformed matching count" "SESSION_ITERATION_INVALID"
+assert_stdout_empty "S1f malformed matching count"
+
+echo ""
+echo "--- S1g: partial matching goal references fail shared validation ---"
+repo="$(stage_repo s1g-partial-goal-ref)"
+write_bug037_attempt_session "$repo"
+jq '.executionRuntime = "manual" | del(.convergenceLoops[1].goalRef.sourceRequestDigest)' \
+  "$repo/.specify/memory/bubbles.session.json" > "$repo/partial-goal-ref.json"
+mv "$repo/partial-goal-ref.json" "$repo/.specify/memory/bubbles.session.json"
+run_health "$repo"
+assert_exit "S1g partial matching goalRef" 2
+assert_stderr_contains "S1g partial matching goalRef" "SESSION_GOAL_REF_INVALID"
+assert_stdout_empty "S1g partial matching goalRef"
+
+echo ""
+echo "--- S1h: unresolved stored spec paths fail instead of disappearing ---"
+repo="$(stage_repo s1h-unresolved-spec)"
+write_healthy_session "$repo"
+jq '.executionRuntime = "manual" | .convergenceLoops[0].specDir = "specs/900-missing"' \
+  "$repo/.specify/memory/bubbles.session.json" > "$repo/unresolved-spec.json"
+mv "$repo/unresolved-spec.json" "$repo/.specify/memory/bubbles.session.json"
+run_health "$repo"
+assert_exit "S1h unresolved stored specDir" 2
+assert_stderr_contains "S1h unresolved stored specDir" "SESSION_SPEC_NOT_FOUND"
+assert_stdout_empty "S1h unresolved stored specDir"
+
+echo ""
+echo "--- S1i: malformed current Goal Contracts fail complete validation ---"
+repo="$(stage_repo s1i-malformed-current-goal)"
+write_bug037_attempt_session "$repo"
+jq '.executionRuntime = "manual" | del(.goalContract.approval)' \
+  "$repo/.specify/memory/bubbles.session.json" > "$repo/malformed-current-goal.json"
+mv "$repo/malformed-current-goal.json" "$repo/.specify/memory/bubbles.session.json"
+run_health "$repo"
+assert_exit "S1i malformed current Goal Contract" 2
+assert_stderr_contains "S1i malformed current Goal Contract" "SESSION_GOAL_INVALID"
+assert_stdout_empty "S1i malformed current Goal Contract"
+
+echo ""
+echo "--- S1j: pending current Goal Contracts cannot select an attempt ---"
+repo="$(stage_repo s1j-pending-current-goal)"
+write_bug037_attempt_session "$repo"
+jq '.executionRuntime = "manual" | .goalContract.approval = {"state":"pending-expansion","approvedAt":null,"approvalNote":"awaiting operator approval"}' \
+  "$repo/.specify/memory/bubbles.session.json" > "$repo/pending-current-goal.json"
+mv "$repo/pending-current-goal.json" "$repo/.specify/memory/bubbles.session.json"
+run_health "$repo"
+assert_exit "S1j pending current Goal Contract" 2
+assert_stderr_contains "S1j pending current Goal Contract" "SESSION_GOAL_UNAUTHORIZED"
+assert_stdout_empty "S1j pending current Goal Contract"
+
+echo ""
+echo "--- S1k: identity-bearing history without current authority fails closed ---"
+repo="$(stage_repo s1k-missing-current-goal)"
+write_bug037_attempt_session "$repo"
+jq '.executionRuntime = "manual" | del(.goalContract)' \
+  "$repo/.specify/memory/bubbles.session.json" > "$repo/missing-current-goal.json"
+mv "$repo/missing-current-goal.json" "$repo/.specify/memory/bubbles.session.json"
+run_health "$repo"
+assert_exit "S1k missing current Goal Contract" 2
+assert_stderr_contains "S1k missing current Goal Contract" "SESSION_GOAL_MISSING"
+assert_stdout_empty "S1k missing current Goal Contract"
+
+echo ""
+echo "--- S1l: a contained physical alias is attributed to the requested spec ---"
+repo="$(stage_repo s1l-contained-alias)"
+ln -s "900-retro-fixture" "$repo/specs/900-contained-alias"
+cat > "$repo/.specify/memory/bubbles.session.json" <<'EOF'
+{
+  "sessionId": "retro-health-contained-alias",
+  "convergenceLoops": [
+    {
+      "specDir": "specs/900-contained-alias",
+      "goalRef": null,
+      "iterationCount": 4,
+      "agent": "bubbles.workflow"
+    }
+  ]
+}
+EOF
+run_health "$repo"
+assert_exit "S1l contained alias" 0
+assert_json "S1l contained alias"
+assert_jq "S1l alias uses physical requested-spec identity" '.maxConvergenceIterations == 4 and .avgLoopIterations == 4'
+assert_jq "S1l alias produces one legacy current summary" '.attemptAccounting.current.kind == "legacy" and .attemptAccounting.current.iterationCount == 4 and .attemptAccounting.totalAttempts == 1'
+
+echo ""
+echo "--- S1m: production G090 retains only shared convergence validation ---"
+if grep -Eq 'canonical_spec_dir|def[[:space:]]+(valid_core|norm_spec)' "$RETRO_HEALTH"; then
+  ko "S1m production reader reintroduced private convergence identity filtering"
+else
+  ok "S1m production reader delegates physical identity and record validation to session-state-lib.sh"
+fi
+numbers_filter_count="$(grep -Ec '\|[[:space:]]*numbers' "$RETRO_HEALTH" || true)"
+if [[ "$numbers_filter_count" == "1" ]]; then
+  ok "S1m exactly one unrelated numeric filter remains"
+else
+  ko "S1m convergence numeric filtering returned or the unrelated filter changed (observed=$numbers_filter_count)"
+fi
+if grep -Fq '.turnCount? | numbers' "$RETRO_HEALTH"; then
+  ok "S1m the remaining numeric filter is the unchanged turnCount SLO calculation"
+else
+  ko "S1m unrelated turnCount SLO calculation changed"
+fi
+if grep -Fq 'session_state_authority_context' "$RETRO_HEALTH" &&
+   grep -Fq 'session_state_authorized_attempt' "$RETRO_HEALTH"; then
+  ok "S1m current Goal Contract selection uses shared mirror authority and authorized attempt identity"
+else
+  ko "S1m current Goal Contract selection bypasses shared authority helpers"
+fi
 
 echo ""
 echo "--- S1c: paired state-snapshot records count as one complete snapshot ---"

@@ -336,6 +336,21 @@ This row is also where the repository's real committed-surface PII gate runs —
 | Immutable workspace projections | Six tabs and both modes | No identity, value, rank, truth state or conclusion changes | Green — mechanical proof below |
 | Chart / table parity | Risk, paths, dependence, allocation | Every canvas state has an equivalent table and focus route | Green — `tablesSeen=16 across 4 projections x 6 tabs` ([#tp-27-03](#tp-27-03)) |
 
+The receipt below repeats the exact command, exit code, and result line of the two canaries named in the table,
+already recorded in full under TP-27-03 and TP-27-05 in this report. No new execution is claimed here.
+
+```text
+$ npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow" --reporter=list
+exit: 0
+[TP-27-03] tablesSeen=16 across 4 projections x 6 tabs
+[TP-27-03] sheet-open-390x422 bodyOverflow=0 clipped=0 overlaps=0 targets=9
+  1 passed (5.1s)
+$ bash .github/bubbles/scripts/evidence-capture.sh --label "TP-27-05 node scripts/selftest.mjs" -- node scripts/selftest.mjs
+exit: 0
+lines: 3738
+sha256: 79c40dd2051e7d6af9c9138bc136e92e59e4d50d5b9d2ff2c095e3a0073ab117
+```
+
 ### Projection-only proof
 
 The projection-only claim is the one most easily asserted and least often proven, so it is tested
@@ -576,7 +591,7 @@ scope's `runtime-behavior` kind:
 
 ## Lint And Quality
 
-### Build Quality Gate — current session, 2026-08-23
+### Build Quality Gate — current session, 2026-08-23 <a id="build-quality-gate--current-session-2026-08-23"></a>
 
 **Claim Source:** executed (bubbles.implement, this session)
 

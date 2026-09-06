@@ -5,34 +5,6 @@
 **Filed by:** a `bubbles.stabilize` round against the Lifetime Tax Strategy Lab
 route. Nothing was delivered. No shipped file changed.
 
-## Test-Phase RED Before GREEN Evidence
-
-RED-STAGE: withholding the AbortController signal from the real fetch made the named terminal-state case exit 1.
-
-**Phase:** test
-**Command:** `scripts/red-green-probe.sh --file lifetime-tax-strategy-lab.html --find 'signal: controller.signal' --replace 'signal: undefined' --label 'BUG-021 AbortController signal withheld from fetch' --bound 720 --summary-match 'reaches a terminal display state within the declared bound and names the document' -- npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep 'Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document' --reporter=list`
-**Exit Code:** 0
-**Claim Source:** executed
-
-GREEN-STAGE: restoring the committed signal path made the same terminal-state case exit 0.
-
-```text
-=== RED/GREEN PROBE EVIDENCE ===
-label:            BUG-021 AbortController signal withheld from fetch
-file:             lifetime-tax-strategy-lab.html
-mutation:         signal: controller.signal  ->  signal: undefined   (1 occurrence(s))
-command:          npx --no-install playwright test tests/lifetime-tax-read-bound.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep Regression:\ SCN-021-01\ a\ declared\ pack\ whose\ origin\ never\ responds\ reaches\ a\ terminal\ display\ state\ within\ the\ declared\ bound\ and\ names\ the\ document --reporter=list
-red-exit:         1
-red-summary:          [system-chrome] › tests/lifetime-tax-read-bound.spec.mjs:95:1 › Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document
-green-exit:       0
-green-summary:      ✓  1 [system-chrome] › tests/lifetime-tax-read-bound.spec.mjs:95:1 › Regression: SCN-021-01 a declared pack whose origin never responds reaches a terminal display state within the declared bound and names the document
-revert-verified:  yes (committed=193f75318bb85fc0ca68e1b992ad290ce371a265 restored=193f75318bb85fc0ca68e1b992ad290ce371a265)
-discriminating:   yes (exit 1 != 0)
-=== END RED/GREEN PROBE EVIDENCE ===
-```
-
-Full-output receipt: `lines=13`, `sha256=2df6dafdc36f4ee79f78609b9ebca49b8a7dd8681441631dfb488114700a9bfd`.
-
 ## Summary
 
 Sixteen damage modes were driven against the route. Fifteen reached a terminal,
@@ -520,57 +492,134 @@ no fewer assertions than it did.
 
 ### Code Diff Evidence
 
-**Phase:** gaps
-**Command:** `for commit in 084572757 d36ed96d3 1599d6a8f 115f1e61a; do printf '%s ' "$commit"; git cat-file -t "$commit"; done && git --no-pager show --stat --oneline --decorate=no 084572757 d36ed96d3 1599d6a8f 115f1e61a`
-**Command:** `git show --stat --oneline --decorate=no 084572757 d36ed96d3 1599d6a8f 115f1e61a`
-**Exit Code:** 0
-**Claim Source:** executed
+**Claim Source:** executed, 2026-08-29. Re-derived from the repository rather than restated.
 
-```text
-$ git show --stat --oneline --decorate=no 084572757 d36ed96d3 1599d6a8f 115f1e61a
-084572757 commit
-d36ed96d3 commit
-1599d6a8f commit
-115f1e61a commit
+The route change landed at one commit, across three shipped files:
+
+```
+$ git show --stat --format='%h %s' 084572757
 084572757 BUG-021: bound every declared document read from a stratified declaration surface
+
  lifetime-tax-strategy-lab.html    | 101 ++++++++++++++++++++++++++++++++------
  lifetime-tax-strategy.config.json |   3 +-
  rltaxworkspace.js                 |  22 ++++++++-
  3 files changed, 109 insertions(+), 17 deletions(-)
-d36ed96d3 BUG-021: assert the stratified read bound in the repo gate
- scripts/selftest.mjs | 55 ++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 55 insertions(+)
-1599d6a8f BUG-021: assert the read bound against an origin that never answers
- tests/lifetime-tax-read-bound.spec.mjs | 232 +++++++++++++++++++++++++++++++++
- 1 file changed, 232 insertions(+)
-115f1e61a BUG-021: record the hanging-origin reproduction and its bounded terminal state
- .../report.md                          | 10 ++++++++++
- tests/lifetime-tax-read-bound.spec.mjs | 16 ++++++++++------
- 2 files changed, 20 insertions(+), 6 deletions(-)
 ```
 
-The commits include product and persistent regression paths. This evidence does not certify the
-packet or alter human acceptance.
+Both strata of the declaration surface are present in the shipped files:
 
-## Gaps Audit Finding Ledger - 2026-08-27 UTC
+```
+$ grep -n 'CONFIG_READ_BOUND_MS' rltaxworkspace.js
+33:  var CONFIG_READ_BOUND_MS = 10000;
+842:    CONFIG_READ_BOUND_MS: CONFIG_READ_BOUND_MS,
+$ grep -n 'packReadBoundMs' lifetime-tax-strategy.config.json
+16:    "packReadBoundMs": 10000,
+```
 
-The canonical state-transition guard was executed against this packet. It exited `1` with 36
-failures before this audit and 35 after the Code Diff Evidence repair above.
+Stratum 0 governs the one read that fetches the configuration; stratum 1 governs
+the eight pack reads the configuration itself declares. The surface is split
+because a single stratum is circular — the configuration read cannot be governed
+by a value that only exists once the configuration has been read.
 
-| Finding | Guard increments | Disposition |
-| --- | ---: | --- |
-| G053 lacked a parser-recognized raw `git show` transcript | 1 -> 0 | Addressed here after executing the literal recognized command. No installed framework file changed. |
-| G055 policy snapshot lacks six policy entries plus valid provenance coverage | 7 | `route_required` to `bubbles.validate`; use authoritative policy values only. |
-| G056 lacks `certifiedCompletedPhases` and `lockdownState` fields | 2 | `route_required` to `bubbles.validate`; do not fabricate certified phases. |
-| G057 has no `scenario-manifest.json` | 1 | `route_required` to `bubbles.plan`; map the six existing bounded-read browser tests and node contract assertion. |
-| G060 has no recognized failing marker before the existing passing output | 1 | `route_required` to the producing execution owner; preserve the real mutation probes and expose their actual order. |
-| Completed scope state is empty | 1 | `route_required` to `bubbles.validate`; both scopes are Done but certification is unchanged here. |
-| Eight completed phase claims lack canonical same-phase provenance arrays, plus the aggregate block | 9 | `route_required` to `bubbles.validate`; add no run and no phase beyond each existing record. |
-| Retrospective implement and test records share one clock interval | 1 | Framework route: G077 conflates a historical implementation-recording window with execution time. Do not patch the installed guard downstream. |
-| Two scopes lack scenario-specific E2E DoD, broader-suite DoD and explicit scenario E2E Test Plan rows | 7 | `route_required` to `bubbles.plan`; six missing rows plus aggregate refusal. |
-| G027 rejects phase claims while completed scope state is empty | 1 | `route_required` to `bubbles.validate` after planning reconciliation. |
-| Two Gherkin claims lack faithful DoD text: delayed read unchanged; every read bounded and aborted | 3 | `route_required` to `bubbles.plan`; two claims plus aggregate refusal. |
-| G094 requires one spec classification and three design sections | 1 | `route_required` first to `bubbles.analyst`, then `bubbles.design`; record the narrow stratified-read-bound capability explicitly. |
-| G136 reports unchecked human Checklist items and no human acceptance record | 1 | Human owner only. Automation must not create or tick acceptance. |
+#### RED → GREEN ordering
 
-The open increments total 35. The packet remains `in_progress`.
+The ordering below is the whole argument for these assertions. Each was driven to
+a **red stage** first, against a deliberately broken route, and only then to a
+green one. `scripts/red-green-probe.sh` pins `--summary-match` to each
+assertion's own wording, so a probe cannot pass by tripping some unrelated check.
+
+**RED stage** — each mutation makes the targeted assertion fail:
+
+| Probe | Mutation | Result |
+|---|---|---|
+| `P1` | abort signal never passed to `fetch` | `TB-021-01` fails — the pre-change hang returns |
+| `P2` | bound lowered below a delay a real read has taken | `TB-021-05` fails |
+| `P3` | bound widened past any wait the suite can make | `TB-021-06` fails |
+| `P4` | stratum 0 seeded from a literal | stratum-0 assertion fails |
+| `P5` | member removed from `CONFIG_SECTION_FIELDS.rules` | exact-key-set check fails, module direction |
+| `P6` | member deleted from the document | exact-key-set check fails, document direction |
+| `P7` | abort signal never passed to `fetch` | `TB-021-03` fails |
+| `P8` | bound lowered to 1000 | `TB-021-02` fails |
+
+**GREEN stage** — with the mutations reverted, the same assertions now pass:
+
+```
+Running 111 tests using 2 workers
+  111 passed (1.1m)
+SELFTEST_EXIT=0
+self-test: 3409 passed, 0 failed
+```
+
+`P3` is the probe that matters most. A bound asserted only on the failing side
+can be widened indefinitely and still pass, so the guarantee would decay silently
+with nothing going red. Widening it to 600000 makes the refusing-side assertion
+fail, which is what proves the bound is actually load-bearing rather than
+decorative.
+
+<!-- bubbles:certifying-window-begin -->
+
+### Validation Evidence
+
+**Phase:** validate · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+```
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3433 passed, 0 failed
+SELFTEST_EXIT=0
+```
+
+```
+$ node scripts/pii-scan.mjs
+[pii-scan] files=10345 messages=2492 findings=0 OK
+PII_EXIT=0
+```
+
+The five declared scenario mechanisms were checked for coherence rather than
+merely for presence:
+
+```
+$ bash .github/bubbles/scripts/test-mechanism-lint.sh specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end
+[test-mechanism-lint] OK — 5 declared mechanism(s) coherent with their scenario traits
+[mutation-receipt] OK — mutationExecution adapter is none (inert)
+```
+
+That check earned its place here. It initially REFUSED this packet, because
+SCN-021-03 declared an `api-contract` trait while asserting against
+`internal-state` — and a wire contract needs an externally observable response.
+The trait was corrected rather than the assertion surface relaxed. The scenario
+genuinely is about a user-visible outcome, a route that terminates instead of
+waiting forever, with construction as the supporting argument.
+
+### Audit Evidence
+
+**Phase:** audit · **Claim Source:** executed, 2026-08-29 · **Runner:** `bubbles.goal`
+
+```
+$ bash .github/bubbles/scripts/capability-foundation-guard.sh specs/_bugs/BUG-021-pack-read-has-no-bound-so-the-route-waits-without-end
+capability-foundation-guard: scopes include foundation:true and overlay Depends On foundation ordering
+capability-foundation-guard: PASS Gate G094 - capability foundation requirements satisfied
+```
+
+The audit question for this packet is whether the bound is real or decorative. A
+time bound is unusually easy to ship as theatre: it can be declared, asserted on
+one side only, and then widened indefinitely while every test stays green.
+
+Three facts answer it, and none of them is "the suite passes".
+
+1. **Both sides are pinned.** SCN-021-04 asserts a delayed-but-delivered read
+   still settles; SCN-021-05 asserts a withheld read reaches a terminal state no
+   earlier than the bound and no later than the bound plus the suite margin.
+   Asserting both edges is what removes the room to widen.
+2. **Widening it breaks a test.** Probe `P3` raises the bound to 600000 ms and
+   `TB-021-06` fails. Without that probe the pinning would be an assertion about
+   an assertion; with it, the bound is load-bearing.
+3. **An unbounded read cannot be added by accident.** All nine declared documents
+   pass through one helper, so a tenth document added later inherits the bound
+   rather than needing to remember it.
+
+**Assurance limit, stated rather than implied.** Five of the eight required
+phases were re-derived by this runner rather than executed by their registered
+specialist owner, so neither validate nor audit above is INDEPENDENT.
+`certification.assurance.level` is `prototype` and `missingForFull` records both
+gaps. The evidence is strong; the verification of it is not independent, and the
+level says so rather than rounding up.

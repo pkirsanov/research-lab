@@ -20,27 +20,11 @@ Record G093-compatible changed-path classification and path-scoped git evidence 
 
 ## Test Evidence
 
-Each section receives the exact command, exit code, claim source, and raw output from the matching tool-log execution.
-
-### TP-14-01
-
-### TP-14-02
-
-### TP-14-03
-
-### TP-14-04
-
-### TP-14-05
-
-### TP-14-06
-
-### TP-14-07
+Each section receives the exact command, exit code, claim source, and raw output from the matching tool-log execution. The per-row TP-14-01 through TP-14-07 and per-scenario SCN-008-028/030 blocks are recorded below under their explicit anchors.
 
 ## Scenario Contract Evidence
 
-### Scenario SCN-008-028
-
-### Scenario SCN-008-030
+Recorded below under the explicit `scenario-scn-008-028` and `scenario-scn-008-030` anchors.
 
 ## Coverage Report
 
@@ -94,6 +78,35 @@ reflected back at them.
 holdings, display mode and research frequency as arguments and deliberately
 ignore them, reporting `behaviorSignalsSeen` alongside `behaviorDerivedViews: 0`.
 A function that never received those inputs could not prove it ignored them.
+
+The receipt below repeats the exact command, exit code, and result line of the seven declared Scope 14 rows that
+prove FR-130 through FR-140, already recorded per row under TP-14-01 through TP-14-07 in this report. No new
+execution is claimed here.
+
+```text
+# Scope 14 declared matrix — 7 of 7 commands executed, 0 failed, 0 skipped
+$ node --test tests/portfolio-analytics.unit.mjs
+exit: 0
+# pass 74   # fail 0
+$ node --test tests/portfolio-allocation.functional.mjs
+exit: 0
+# pass 3   # fail 0
+$ npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-028 unstable allocation shows weight ranges and reversal conditions" --reporter=list
+exit: 0
+  1 passed (3.8s)
+$ npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-030 behavior cannot alter Black Litterman views returns or confidence" --reporter=list
+exit: 0
+  1 passed (4.0s)
+$ npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-030 explicit Black Litterman view keeps equilibrium view posterior and uncertainty separate" --reporter=list
+exit: 0
+  1 passed (3.6s)
+$ npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: Feature 008 allocation sensitivity ranges and Black Litterman editor preserve mobile table parity" --reporter=list
+exit: 0
+  1 passed (4.0s)
+$ npx --no-install playwright test tests/portfolio-survival-allocation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+  9 passed (15.7s)
+```
 
 ### TP-14-01 <a id="tp-14-01"></a>
 

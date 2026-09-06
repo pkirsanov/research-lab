@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Done
+**Status:** In Progress
 
 **Scope-Kind:** runtime-behavior
 
@@ -94,6 +94,7 @@ No canvas is introduced in this brief-only scope. Canvas pixel/table parity begi
 | Existing owner tools | Fixed public route/hash only; no specialist formula duplicated | `tools.json` route validation and browser request/deep-link ledger |
 | Local privacy inventory | Behavior floor, event counts, direct/inferred source and queue suppression remain inspectable | Functional composition/inventory parity |
 | Route hashes | `#brief` is public; no subject, ticker, portfolio id, amount, parameter, or inference appears | Browser history/location/referrer assertions |
+| SCN-008-006 connected output authority | `composeBrief()` → `renderBrief()` → `#briefTimes` | TP-05-02 exact title `Regression: SCN-008-006 all four exact ET windows preserve cutoff and composition time` observes the rendered window, cutoff, publication time, and composition time. |
 
 ## Change Boundary And Rollback
 
@@ -128,6 +129,12 @@ Add every window/source/floor/ranking and browser assertion before composer/rend
 | TP-05-13 | Brief composition functional | functional | SCN-008-006 | `tests/portfolio-brief.functional.mjs` | `FR-050 partial or stale evidence keeps its state and cannot support an action as if fresh` | `node --test tests/portfolio-brief.functional.mjs` | Yes | `report.md#tp-05-13` |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 05 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
 
 #### Core Delivery Items
 

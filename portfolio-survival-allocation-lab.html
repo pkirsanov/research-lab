@@ -776,7 +776,8 @@
                  data-workspace-identity="none" data-compute-token="none"
                  data-compute-count="0" data-presentation-count="0"
                  data-active-tab="brief" data-active-mode="simple"
-                 data-last-refusal="none" data-rebase-state="idle">No workspace computed yet.</div>
+                  data-last-refusal="none" data-rebase-state="idle"
+                  data-rebase-changed-inputs="">No workspace computed yet.</div>
             <div id="modeSeg" class="mode-seg" role="group" aria-label="Detail level">
                 <button id="modeSimple" type="button" aria-pressed="true" tabindex="0">Simple</button>
                 <button id="modePower" type="button" aria-pressed="false" tabindex="-1">Power</button>
@@ -6722,6 +6723,13 @@
             var workspaceComputeCount = 0;
             var workspacePresentationCount = 0;
             var workspaceMode = "simple";
+            var WORKSPACE_IDENTITY_FIELD_NAMES = Object.freeze([
+                "generic", "portfolio", "mandate", "behavior", "scenario", "policy"
+            ]);
+            var WORKSPACE_REBASE_STATES = Object.freeze(["idle", "previewed", "accepted", "refused"]);
+            var acceptedWorkspaceIdentityInputs = null;
+            var workspaceRebaseState = "idle";
+            var workspaceRebaseChangedInputs = [];
 
             function workspaceIdentityInputs() {
                 var revision = currentRevision();
@@ -6737,53 +6745,152 @@
                 };
             }
 
+            function acceptedIdentitySnapshot(inputs) {
+                var snapshot = {};
+                WORKSPACE_IDENTITY_FIELD_NAMES.forEach(function (name) {
+                    snapshot[name] = inputs[name];
+                });
+                return Object.freeze(snapshot);
+            }
+
+            function orderedChangedIdentityInputs(changedIdentityInputs) {
+                return WORKSPACE_IDENTITY_FIELD_NAMES.filter(function (name) {
+                    return changedIdentityInputs.indexOf(name) !== -1;
+                });
+            }
+
+            function setWorkspaceRebaseState(nextState, changedIdentityInputs) {
+                if (WORKSPACE_REBASE_STATES.indexOf(nextState) === -1) {
+                    throw new Error("Unsupported workspace rebase state: " + nextState);
+                }
+                workspaceRebaseState = nextState;
+                workspaceRebaseChangedInputs = orderedChangedIdentityInputs(changedIdentityInputs);
+            }
+
+            function hasSubstantivePortfolioIdentity(inputs) {
+                return inputs.portfolio !== "portfolio-none";
+            }
+
             /* A safe token, not a formatted sentence: it is compared for equality and written into
                a session handoff, so anything that could carry a holding name or a value is stripped
                here rather than trusted not to appear. */
-            function workspaceIdentityToken() {
-                var inputs = workspaceIdentityInputs();
+            function workspaceIdentityTokenFromInputs(inputs) {
                 return ("ws." + inputs.generic + "." + inputs.portfolio + "." + inputs.mandate)
                     .replace(/[^a-z0-9._:-]/gi, "-").slice(0, 120);
             }
 
+            function workspaceIdentityToken() {
+                return workspaceIdentityTokenFromInputs(workspaceIdentityInputs());
+            }
+
             /* Projections are READ from what the route has already produced. Nothing here computes
-               an analytic; a slot with no result yields null, which `computeWorkspace` records as an
-               unavailable state rather than an empty success. */
-            function workspaceProjectors() {
+               an analytic. Every sibling returns one identity-bound object so an atomic rebase can
+               replace all six slots together. Optional views remain explicitly unavailable rather
+               than becoming null or masquerading as available results. */
+            function workspaceProjection(slot, workspaceIdentity, present) {
                 return {
-                    brief: function () { return state.portfolioBrief ? { slot: "brief", present: true } : null; },
-                    risk: function () { return state.routeStates ? { slot: "risk", present: true } : null; },
+                    slot: slot,
+                    workspaceIdentity: workspaceIdentity,
+                    availability: present ? "available" : "unavailable",
+                    present: present,
+                    unavailableReason: present ? null : "route-projection-not-present"
+                };
+            }
+
+            function workspaceProjectors(workspaceIdentity) {
+                return {
+                    brief: function () {
+                        return workspaceProjection("brief", workspaceIdentity, Boolean(state.portfolioBrief));
+                    },
+                    risk: function () {
+                        return workspaceProjection("risk", workspaceIdentity, Boolean(state.routeStates));
+                    },
                     paths: function () {
-                        return state.pathCompute && state.pathCompute.result ? { slot: "paths", present: true } : null;
+                        return workspaceProjection("paths", workspaceIdentity,
+                            Boolean(state.pathCompute && state.pathCompute.result));
                     },
-                    dependence: function () { return state.routeStates ? { slot: "dependence", present: true } : null; },
+                    dependence: function () {
+                        return workspaceProjection("dependence", workspaceIdentity, Boolean(state.routeStates));
+                    },
                     allocations: function () {
-                        return state.allocationInputs ? { slot: "allocations", present: true } : null;
+                        return workspaceProjection("allocations", workspaceIdentity, Boolean(state.allocationInputs));
                     },
-                    dossier: function () { return state.dossierOpened ? { slot: "dossier", present: true } : null; }
+                    dossier: function () {
+                        return workspaceProjection("dossier", workspaceIdentity, Boolean(state.dossierOpened));
+                    }
                 };
             }
 
             function runWorkspaceCompute() {
                 if (!state.policy) return;
-                var identity = workspaceIdentityToken();
+                var nextIdentityInputs = workspaceIdentityInputs();
+                var identity = workspaceIdentityTokenFromInputs(nextIdentityInputs);
+                var rebasePreview = null;
+                var changedIdentityInputs = [];
+                var rebaseRequired = false;
+
+                if (acceptedWorkspaceIdentityInputs !== null) {
+                    rebasePreview = workspaceController.previewRebase(
+                        nextIdentityInputs, acceptedWorkspaceIdentityInputs
+                    );
+                    if (!rebasePreview.ok) {
+                        setWorkspaceRebaseState("refused", changedIdentityInputs);
+                        renderWorkspaceCompute(rebasePreview.error.code);
+                        return;
+                    }
+                    changedIdentityInputs = orderedChangedIdentityInputs(
+                        rebasePreview.value.changedIdentityInputs
+                    );
+                    rebaseRequired = rebasePreview.value.rebaseRequired;
+                }
+
+                if (rebaseRequired) {
+                    setWorkspaceRebaseState("previewed", changedIdentityInputs);
+                    renderWorkspaceCompute(null);
+                } else {
+                    setWorkspaceRebaseState("idle", changedIdentityInputs);
+                }
+
                 var issued = workspaceController.issue(identity, now());
-                if (!issued.ok) { renderWorkspaceCompute(issued.error.code); return; }
+                if (!issued.ok) {
+                    setWorkspaceRebaseState("refused", changedIdentityInputs);
+                    renderWorkspaceCompute(issued.error.code);
+                    return;
+                }
                 workspaceComputeCount += 1;
                 var built = api.computeWorkspace({
                     workspaceIdentity: identity,
                     computeTokenId: issued.value.tokenId,
                     generatedAt: now(),
-                    projectors: workspaceProjectors()
+                    projectors: workspaceProjectors(identity)
                 }, {
                     genericEvidence: state.genericWindow
                         ? { identity: state.genericWindow.genericEvidenceIdentity }
                         : {},
                     portfolioTruth: state.routeStates ? { contractVersion: state.routeStates.contractVersion } : null
                 }, state.policy);
-                if (!built.ok) { renderWorkspaceCompute(built.error.code); return; }
-                var published = workspaceController.publish(issued.value.tokenId, built.value);
-                renderWorkspaceCompute(published.ok ? null : published.error.code);
+                if (!built.ok) {
+                    setWorkspaceRebaseState("refused", changedIdentityInputs);
+                    renderWorkspaceCompute(built.error.code);
+                    return;
+                }
+                var published = rebaseRequired
+                    ? workspaceController.acceptRebase(issued.value.tokenId, built.value)
+                    : workspaceController.publish(issued.value.tokenId, built.value);
+                if (!published.ok) {
+                    setWorkspaceRebaseState("refused", changedIdentityInputs);
+                    renderWorkspaceCompute(published.error.code);
+                    return;
+                }
+                if (rebaseRequired) {
+                    acceptedWorkspaceIdentityInputs = acceptedIdentitySnapshot(nextIdentityInputs);
+                    setWorkspaceRebaseState("accepted", changedIdentityInputs);
+                } else if (acceptedWorkspaceIdentityInputs === null &&
+                    hasSubstantivePortfolioIdentity(nextIdentityInputs)) {
+                    acceptedWorkspaceIdentityInputs = acceptedIdentitySnapshot(nextIdentityInputs);
+                    setWorkspaceRebaseState("idle", changedIdentityInputs);
+                }
+                renderWorkspaceCompute(null);
             }
 
             /* Presentation-only. It takes the published object and a mode/tab pair and has no access
@@ -6800,20 +6907,40 @@
                 var node = byId("workspaceCompute");
                 if (!node) return;
                 var snapshot = workspaceController.snapshot();
+                var activeViewModel = snapshot.activeViewModel;
+                var unavailableProjections = activeViewModel
+                    ? api.WORKSPACE_SIBLING_PROJECTIONS.filter(function (slot) {
+                        var projection = activeViewModel[slot];
+                        return !projection || projection.present !== true ||
+                            projection.availability !== "available";
+                    }) : [];
+                var activeProjectionSlot = api.WORKSPACE_TAB_PROJECTIONS[state.route];
+                var activeProjection = activeViewModel && activeProjectionSlot
+                    ? activeViewModel[activeProjectionSlot] : null;
+                var activeProjectionAvailability = activeProjection && activeProjection.present === true &&
+                    activeProjection.availability === "available" ? "available" : "unavailable";
                 node.setAttribute("data-workspace-identity", snapshot.activeIdentity || "none");
                 node.setAttribute("data-compute-token",
-                    snapshot.activeViewModel ? snapshot.activeViewModel.computeTokenId : "none");
+                    activeViewModel ? activeViewModel.computeTokenId : "none");
                 node.setAttribute("data-compute-count", String(workspaceComputeCount));
                 node.setAttribute("data-presentation-count", String(workspacePresentationCount));
                 node.setAttribute("data-active-tab", state.route);
                 node.setAttribute("data-active-mode", workspaceMode);
                 node.setAttribute("data-draft-identity", snapshot.draftIdentity || "none");
                 node.setAttribute("data-last-refusal", refusalCode || "none");
-                node.setAttribute("data-unavailable-projections", snapshot.activeViewModel
-                    ? String(snapshot.activeViewModel.unavailableStates.length) : "0");
-                node.textContent = snapshot.activeViewModel
+                node.setAttribute("data-rebase-state", workspaceRebaseState);
+                node.setAttribute("data-rebase-changed-inputs", workspaceRebaseChangedInputs.join(","));
+                node.setAttribute("data-unavailable-projections", String(unavailableProjections.length));
+                node.setAttribute("data-unavailable-projection-slots", unavailableProjections.join(","));
+                node.setAttribute("data-active-projection-availability",
+                    activeViewModel ? activeProjectionAvailability : "unavailable");
+                var availabilityCopy = unavailableProjections.length === 0
+                    ? "all sibling views available"
+                    : "unavailable sibling views: " + unavailableProjections.join(", ");
+                node.textContent = activeViewModel
                     ? ("One workspace · identity " + snapshot.activeIdentity +
-                       " · every tab reads this result · " + workspaceComputeCount + " compute(s)")
+                       " · every tab reads this result · " + availabilityCopy + " · " +
+                       workspaceComputeCount + " compute(s)")
                     : "No workspace computed yet.";
             }
 

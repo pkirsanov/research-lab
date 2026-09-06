@@ -1,0 +1,83 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-026-superseded-company-corpus-state-writes",
+  "featureName": "BUG-026 A Superseded Company Corpus Load Writes Current-Subject State",
+  "createdAt": "2026-08-30T00:00:00Z",
+  "lastUpdatedAt": "2026-08-30T00:00:00Z",
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "linkedImplementationSpec": "specs/025-company-multi-horizon-intelligence-lab",
+  "scopeLayout": "single-file",
+  "requiresRevalidation": false,
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "bug",
+    "currentPhaseStatus": "complete",
+    "executionModel": "direct-authorized-runner",
+    "currentScope": "01-make-current-subject-state-an-atomic-latest-intent-commit",
+    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredTarget": "specs/_bugs/BUG-026-superseded-company-corpus-state-writes/design.md",
+    "nextRequiredReason": "Confirm the per-intent snapshot and atomic current-subject commit design before implementation.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimedAt": "2026-08-30T00:00:00Z",
+        "evidenceRef": "report.md#source-intent-ownership-inspection",
+        "scopes": []
+      }
+    ],
+    "scopeInventory": [
+      {
+        "scopeId": "01-make-current-subject-state-an-atomic-latest-intent-commit",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      }
+    ]
+  },
+  "executionHistory": [
+    {
+      "at": "2026-08-30T00:00:00Z",
+      "phase": "bug",
+      "agent": "bubbles.bug",
+      "action": "filed-independent-finding",
+      "note": "Classified BUG018-STABILIZE-004 as an independent concurrency-integrity defect, grounded the pre-guard module-state writes in the production load chain, and created the complete packet without claiming reversed-completion reproduction or delivery."
+    }
+  ],
+  "certification": {
+    "status": "in_progress",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-make-current-subject-state-an-atomic-latest-intent-commit",
+        "status": "not_started",
+        "dodChecked": 0,
+        "dodUnchecked": 8
+      }
+    ],
+    "lockdownState": "unlocked"
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "policySnapshot": {
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "off", "source": "repo-default" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "repo-default" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  }
+}

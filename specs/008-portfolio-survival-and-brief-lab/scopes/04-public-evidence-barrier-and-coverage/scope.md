@@ -2,7 +2,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** Done
+**Status:** In Progress
 
 **Scope-Kind:** runtime-behavior
 
@@ -66,6 +66,7 @@ Scenario: SCN-008-035 - One holding has stale prices and another lacks factor hi
 | Consumer | Required compatibility proof | Stale-reference / leakage assertion |
 |----------|------------------------------|-------------------------------------|
 | Existing `RLDATA.ensureBars` callers | Identical return/cache/request behavior outside the additive method | Existing selftest and provider-credential browser suite remain green |
+| `RLDATA.ensureBarCoverage` → route-local `holdingEvidence` → `renderHoldingTruth` → `#truthSummary` / `#truthRows` | TP-04-06 exact title `Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth` reads rendered row attributes and visible summary/row text after real import, cache, reload, corruption, and storage-degradation paths | Missing/stale evidence stays named per holding; no zero, average, current, or neighbouring-holding substitute appears. TP-04-05 is the separate public-cache/privacy carrier and cannot satisfy this renderer binding |
 | `RLDATA.toolReads`, `rlapp.js`, Market Brief | Constant privacy-boundary read only; no personalized conclusion | Raw tool-read inspection and generic page canary contain zero sentinel |
 | Generic publisher scripts and public artifacts | Read-only boundary subject; no import/key/argv/env flow from `rlportfolio.js` | Functional owned-file/subprocess-input scan and unchanged path inventory |
 | New route and analytics overlays | Receive only source-qualified public bar/generic envelopes plus local fingerprints | Request ledger permits same-origin public fixture paths only |
@@ -80,6 +81,10 @@ Scenario: SCN-008-035 - One holding has stale prices and another lacks factor hi
 | Private storage corruption handling | Last-valid pointer, no downgrade, sanitized quarantine, session-only truth | Scope 01/03 storage and clear functional suites |
 
 ## Change Boundary And Rollback
+
+**Allowed file families:** `tests/portfolio-publisher-boundary.functional.mjs`, `tests/fixtures/portfolio-survival-allocation/**` (Scope 04 entries), one marker-bounded Feature 008 block in each of `rldata.js` and `scripts/selftest.mjs`, plus `rlportfolio.js`, `portfolio-survival-allocation-lab.html`, `portfolio-survival-allocation.config.json`, `tests/portfolio-foundation.unit.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-foundation.spec.mjs`, and `tests/portfolio-survival.support.mjs`.
+
+**Excluded surfaces:** `market-brief.html`, `market-brief.payload.json`, `market-brief.snapshot.json`, `market-brief.config.json`, `brief-history*.jsonl`, `scripts/brief-refresh.mjs`, `scripts/brief-refresh-and-push.sh`, `scripts/brief-refresh-scheduled.sh`, `scripts/com.researchlab.brief-refresh.plist`, `rlbrief.js`, `rlnav.js`, `rlapp.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `data/bars/**`, `watchlist.json`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
 
 **Allowed new files:** `tests/portfolio-publisher-boundary.functional.mjs` and Scope 04 fixture entries.
 
@@ -107,6 +112,13 @@ Create each coverage, boundary, partial-state, sentinel, and real-page assertion
 | TP-04-08 | Broader Regression E2E | e2e-ui | SCN-008-001 through SCN-008-005, SCN-008-011, SCN-008-012, SCN-008-035 | `tests/portfolio-survival-foundation.spec.mjs` | Execute the complete cumulative foundation browser suite after shared coverage and privacy-boundary checks are green | `npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | Yes | `report.md#tp-04-08` |
 
 ### Definition of Done
+
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Scope-04 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 04 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 04 `consumer` result from the Feature 008 verifier proves the exact connected binding `rldata.js::ensureBarCoverage` → `holdingEvidence` → `renderHoldingTruth` → `#truthSummary` / `#truthRows` → TP-04-06 (`Regression: SCN-008-035 partial data corrupt schema and localStorage disabled preserve truth`), including a non-vacuous assertion on a connected visible result. TP-04-05 remains the separate SCN-008-005 public-cache/privacy carrier and must not be selected for the renderer binding. Every declared canonical identifier, source surface, consumer class, and test carrier resolves, zero forbidden stale aliases remain, the focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
 
 #### Core Delivery Items
 

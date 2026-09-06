@@ -1,0 +1,346 @@
+{
+  "version": 3,
+  "featureDir": "specs/008-portfolio-survival-and-brief-lab/bugs/BUG-007-compose-brief-prototype-sensitive-keys",
+  "featureName": "BUG-007 Compose Brief Prototype-Sensitive Keys",
+  "createdAt": "2026-08-26T16:08:41Z",
+  "lastUpdatedAt": "2026-08-26T22:40:14Z",
+  "completedAt": null,
+  "certifiedAt": null,
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": "specs/008-portfolio-survival-and-brief-lab",
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "flagsIntroduced": [],
+  "requiresRevalidation": false,
+  "scopeLayout": "single-file",
+  "filedAtCommit": "e41176758d5abe66d73596c66b54807bbb02eada",
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "testPlan": "test-plan.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.harden",
+    "currentPhase": "harden",
+    "currentPhaseStatus": "route_required",
+    "substate": "hardening-blocked-mutation-causality",
+    "executionModel": "direct-authorized-runner",
+    "parentAgent": "bubbles.bug",
+    "runStartedAt": "2026-08-26T22:33:08Z",
+    "completedAt": "2026-08-26T22:40:14Z",
+    "currentScope": "01-harden-caller-keyed-brief-aggregation",
+    "nextRequiredOwner": "bubbles.plan",
+    "nextRequiredTarget": "BUG-007 mutation-causality scope boundary and persistent regression",
+    "nextRequiredReason": "Exhaustive hardening passed focused functional 34 of 34, real-browser 19 of 19, exact Feature 008 browser 95 of 95, canonical selftest 3426 of 3426, artifact lint, traceability, implementation reality, regression quality, source syntax, parity, silent-pass scans, source/test integrity, and protected-parent identity. Direct execution of the registered null-prototype mutant proved HARDEN-B007-001: the fs.readFileSync hook applies once, the _compile hook then throws on the already-mutated zero-anchor source, and the carrier counts that injector self-error as successful discrimination. The current scope explicitly excludes injector edits, so plan must admit the test-owned causal repair before test and harden rerun. Stabilize is the normal successor only after harden completes.",
+    "completedPhaseClaims": ["design", "plan", "implement", "test", "regression", "simplify", "gaps"],
+    "pendingTransitionRequests": ["BUG-007-ROUTE-010"],
+    "scopeInventory": [
+      {
+        "scopeId": "01-harden-caller-keyed-brief-aggregation",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      }
+    ]
+  },
+  "completedScopes": [],
+  "certification": {
+    "status": "in_progress",
+    "lockdownState": "unlocked",
+    "completedAt": null,
+    "certifiedAt": null,
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-harden-caller-keyed-brief-aggregation",
+        "status": "Not Started",
+        "certifiedAt": null
+      }
+    ]
+  },
+  "policySnapshot": {
+    "workflowMode": "bugfix-fastlane",
+    "grill": { "mode": "off", "source": "repo-default" },
+    "tdd": { "mode": "scenario-first", "source": "workflow-forced" },
+    "autoCommit": { "mode": "on", "source": "operator-request" },
+    "lockdown": { "mode": "off", "source": "repo-default" },
+    "regression": { "mode": "protected-scenarios", "source": "workflow-forced" },
+    "validation": { "mode": "certification-required", "source": "repo-default" }
+  },
+  "modeTransitions": [],
+  "transitionRequests": [
+    {
+      "id": "BUG-007-ROUTE-001",
+      "status": "completed",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "design.md",
+      "reason": "The current-source normal and six-case hostile matrix is independently reproduced with cleanup. Confirm the complete map inventory and selected narrow representation boundary before test or source work."
+    },
+    {
+      "id": "BUG-007-ROUTE-002",
+      "status": "completed",
+      "fromAgent": "bubbles.design",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md, scenario-manifest.json, test-plan.json",
+      "reason": "The design confirms direct Object.create(null) allocation with direct own-property membership, preserves accepted inherited-looking keys and all ordering and envelope behavior, distinguishes browser-global coverage from the user-visible constructor path, and assigns mutation proof to the existing test-integrity carrier. Reconcile the one-scope planning handoff before persistent RED authorship."
+    },
+    {
+      "id": "BUG-007-ROUTE-003",
+      "status": "completed",
+      "fromAgent": "bubbles.plan",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-brief.functional.mjs, tests/portfolio-survival-brief.spec.mjs, tests/portfolio-test-integrity.unit.mjs",
+      "reason": "The authoritative one-scope plan now requires scenario-first RED for all six direct exported hostile subject/domain cases, normal order controls, no throw, no shared built-in mutation, unconditional cleanup, the real browser-visible constructor workflow, and an exact one-anchor in-memory mutation proof without tracked-source mutation. Author and execute those persistent tests before any rlportfoliobrief.js change."
+    },
+    {
+      "id": "BUG-007-ROUTE-004",
+      "status": "completed",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.implement",
+      "target": "rlportfoliobrief.js",
+      "reason": "Persistent functional, browser, and test-integrity carriers now exist. The exact focused RED executed all 34 functional tests: 30 passed, exactly four new hostile-key titles failed, and zero were skipped. Each hostile key mutated its inherited built-in target before the expected TypeError path, while finally cleanup completed. Apply only the planned null-prototype allocations and own-property reads, then return to bubbles.test for GREEN and broader verification."
+    },
+    {
+      "id": "BUG-007-ROUTE-005",
+      "status": "completed",
+      "fromAgent": "bubbles.implement",
+      "nextRequiredOwner": "bubbles.test",
+      "target": "tests/portfolio-survival-brief.spec.mjs and the remaining BUG-007 regression plan",
+      "reason": "The bounded rlportfoliobrief.js repair is implemented. Independently execute the focused functional and mutation carriers, the scenario browser carrier, the exact broader Feature 008 browser command, canonical selftest, packet guards, implementation reality, and receipt integrity before quality ownership."
+    },
+    {
+      "id": "BUG-007-ROUTE-006",
+      "status": "completed",
+      "fromAgent": "bubbles.test",
+      "nextRequiredOwner": "bubbles.regression",
+      "target": "BUG-007 post-implementation source, three persistent carriers, and current test receipts",
+      "reason": "TP-B007-001 through TP-B007-010 pass in the current test session with 16 valid closure-bearing identities, zero stale or unknown BUG-007 identities, zero carrier skips or interception, and clean source/test integrity. Run the required independent regression phase before simplify and later quality ownership."
+    },
+    {
+      "id": "BUG-007-ROUTE-007",
+      "status": "completed",
+      "fromAgent": "bubbles.regression",
+      "nextRequiredOwner": "bubbles.simplify",
+      "target": "rlportfoliobrief.js and the three persistent BUG-007 carriers",
+      "reason": "The independent regression phase is clean across the exact 200-line implementation diff, 34-test functional carrier, 2-test in-memory mutation carrier, 19-test real-browser carrier, all 9 scenario links, shared Feature 008 composer contracts, and unchanged source/test bytes. Review the bounded source and carrier surface for simplification without changing behavior or planner-owned, human-owned, validation-owned, or certification artifacts."
+    },
+    {
+      "id": "BUG-007-ROUTE-008",
+      "status": "completed",
+      "fromAgent": "bubbles.simplify",
+      "nextRequiredOwner": "bubbles.gaps",
+      "target": "BUG-007 residual gap inventory and ownership reconciliation",
+      "reason": "The exact source delta and three persistent carriers were reviewed for reuse, quality, naming, and efficiency. Direct null-prototype allocation and own-property membership are already the simplest auditable form; no source or test edit was made. Fresh functional 34 of 34, mutation 2 of 2, regression-quality, post-mutation byte-integrity, and protected-parent checks pass. Review remaining gap ownership without changing acceptance, DoD, TP-B007-011, global receipt closure, validation, certification, or terminal status."
+    },
+    {
+      "id": "BUG-007-ROUTE-009",
+      "status": "completed",
+      "fromAgent": "bubbles.gaps",
+      "nextRequiredOwner": "bubbles.harden",
+      "target": "BUG-007 exhaustive hardening profile",
+      "reason": "The exhaustive gap audit found no source, persistent-test, scenario, Test Plan, DoD-shape, or implementation-reality delivery gap. Fresh focused functional, mutation, packet, traceability, carrier-quality, scenario-resolution, syntax, and whitespace checks pass. The report now preserves the real scoped and global receipt split without refreshing or relabeling test-owned or unrelated historical identities. Run the registered hardening profile next without changing acceptance, DoD, TP-B007-011, certification, terminal status, or the protected parent Feature 008 transaction unless a new grounded finding requires owner routing."
+    },
+    {
+      "id": "BUG-007-ROUTE-010",
+      "status": "pending",
+      "fromAgent": "bubbles.harden",
+      "nextRequiredOwner": "bubbles.plan",
+      "target": "scopes.md, scenario-manifest.json, test-plan.json, and the excluded shared injector boundary",
+      "reason": "HARDEN-B007-001 proves the current mutation carrier can pass when the represented mutant fails on an injector self-error rather than the protective assertion. The current scope explicitly excludes a tracked tests/portfolio-defect-injector.cjs edit. Add the exact mutation-causality scenario, Test Plan row or strengthened TP-B007-005 mapping, DoD obligation, and allowed test boundary before routing the repair to bubbles.test. Do not change human acceptance, TP-B007-011, certification, scope status, or top-level status."
+    }
+  ],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "at": "2026-08-26T16:08:41Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filed-reproduced-inventoried-and-routed",
+      "note": "Bound Research Lab authority at control revision 230. Preserved the separate dirty parent Feature 008 scope and root test-plan transaction. Read the SEC-B006-S1 source finding and current composeBrief path. Executed a process-isolated normal plus six-case subject/domain matrix: normal output retained the four expected lanes and subjects; every __proto__, constructor, and toString subject/domain case returned no envelope, threw TypeError at categoriesBySubject indexOf, and mutated Object.prototype, Object, or Object.prototype.toString respectively; cleanup returned every target to none. Filed the complete BUG-007 packet with a one-scope null-prototype and own-membership design. No source, persistent test, parent artifact, push, delivery claim, human acceptance, or certification change was made.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-26T16:14:24Z",
+      "agent": "bubbles.bug",
+      "phase": "bug",
+      "action": "filing-gates-executed-repaired-and-rerun",
+      "note": "Artifact lint, traceability, and scope-context gates passed on first execution. Scenario-obligation lint initially refused three noncanonical trait names, and test-mechanism lint initially refused a high-risk normal scenario with only a perturbed-input control. Replaced the traits with pure-calculation and degraded-state, strengthened the normal scenario to an in-memory LANE_ORDER source mutation, and reran both refused gates at exit 0. All edits remained inside the BUG-007 packet; no product source, persistent test, parent Feature 008 artifact, certification, human acceptance, or push changed.",
+      "phasesExecuted": ["bug"],
+      "provenanceMode": "specialist"
+    },
+    {
+      "at": "2026-08-26T16:31:23Z",
+      "agent": "bubbles.design",
+      "phase": "design",
+      "action": "design-reconciled-and-routed",
+      "note": "Ran as bubbles.design after confirming Research Lab repository authority at control revision 231. Read the complete BUG-007 packet, current rlportfoliobrief.js composeBrief and distinctCount paths, the allocation-page caller and completion recorder, the functional and browser carriers, and the existing in-memory mutation infrastructure. Confirmed the recorded six-case reproduction matches the current ten-map and nested-set source path. Selected direct Object.create(null) allocation and direct Object.prototype.hasOwnProperty.call membership with no helper. Preserved normal subject and lane order, lane aggregation, result and refusal envelopes, the direct-export key contract, and the narrower UI token contract. Added the real UI-reachable constructor path and the existing test-integrity carrier to the design handoff. Focused artifact lint passed. Changed only design.md and execution-owned state. Source, persistent tests, scopes, human acceptance, certification, and push remain unchanged.",
+      "phasesExecuted": ["bootstrap"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T16:27:02Z"
+    },
+    {
+      "at": "2026-08-26T16:44:42Z",
+      "agent": "bubbles.plan",
+      "phase": "plan",
+      "action": "one-scope-plan-reconciled-and-routed-to-persistent-red",
+      "note": "Confirmed Research Lab repository authority at control revision 232 and reconciled the one vertical scope, scenario manifest, and structured test plan to design commit 454d7be4c81e2756a1d9dd6632f5d532e024c522. The plan names rlportfoliobrief.js and the persistent functional, browser, and test-integrity carriers; requires all six direct exported hostile subject/domain cases, normal controls, no throw, no Object.prototype/Object/Object.prototype.toString mutation, exact ordering, unconditional cleanup, the contract-reachable visible constructor workflow, and an exact one-anchor in-memory mutation without tracked-source writes. Artifact lint, traceability, scenario obligations, mechanism coherence, scope context fit, implementation reality, and Gate G094 passed in this plan run. All DoD, persistent test execution, human acceptance, source implementation, and certification remain incomplete. No push occurred.",
+      "phasesExecuted": ["bootstrap"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T16:41:19Z"
+    },
+    {
+      "at": "2026-08-26T17:01:42Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "persistent-carriers-authored-focused-red-discriminated-and-routed",
+      "note": "Confirmed Research Lab authority at control revision 233. Authored the planned persistent functional, real-browser, and in-memory mutation carriers. Executed the exact focused command twice against unchanged rlportfoliobrief.js, once directly and once through evidence-capture: 34 tests, 30 pass, exactly four new hostile-key failures, zero skipped/todo. The normal/refusal control and all prior tests passed. All six hostile subject/domain cases exposed the inherited built-in date-property mutation, and post-finally cleanup assertions passed before the RED mutation assertion. Scenario test resolution and regression-quality --bugfix passed for all three carriers. git diff confirmed rlportfoliobrief.js and tests/portfolio-defect-injector.cjs unchanged. Browser, mutation, broader regression, selftest, implementation reality, human acceptance, certification, and push were not run or changed. Routed the bounded source repair to bubbles.implement.",
+      "phasesExecuted": [],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T17:01:42Z"
+    },
+    {
+      "at": "2026-08-26T17:46:51Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "action": "independent-green-browser-regression-selftest-guards-and-receipts-routed",
+      "note": "Confirmed Research Lab authority at control revision 238 and preserved every dirty parent Feature 008 scope, report, and root test-plan path. Independently executed the focused functional carrier at 34 of 34, in-memory mutation carrier at 2 of 2 with clean tracked bytes, scenario browser carrier at 19 of 19 including the six exported hostile cases and visible constructor flow, exact eight-file Feature 008 browser matrix at 95 of 95, and canonical selftest at 3426 of 3426. Scenario resolution found all 9 links, bugfix regression quality accepted all 3 carriers with zero violations or warnings, all 6 packet guards passed, implementation reality reported 1 file with 0 violations and 0 warnings, and all 16 current BUG-007 test identities were closure-bearing and valid with zero stale or unknown. Changed only test-owned report and execution state, left scopes, structured plan statuses, human acceptance, certification, and terminal status unchanged, completed inbound routes 004 and 005, and routed 006 to bubbles.regression. No source or persistent test edit and no push occurred.",
+      "phasesExecuted": ["test"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T17:33:52Z"
+    },
+    {
+      "at": "2026-08-26T18:01:47Z",
+      "agent": "bubbles.regression",
+      "phase": "regression",
+      "action": "independent-regression-clean-and-routed-to-simplify",
+      "note": "Confirmed Research Lab authority at control revision 240 and preserved the separate 49-path dirty parent Feature 008 scopes, reports, and root test-plan transaction at binary-patch sha256 37e28a7dd65839134fba81f550a1cfbf2a4ad4b9b184f5387fbac07469b0db9c. Reviewed the complete d49a2955b rlportfoliobrief.js diff and adjacent parent plus BUG-004, BUG-005, and BUG-006 contracts. Independently executed the focused functional carrier at 34 of 34, the in-memory mutation carrier at 2 of 2, and the real browser carrier at 19 of 19. Bugfix regression quality accepted all 3 carriers with zero violations or warnings, all 9 scenario links resolved, and pre/post sha256 plus Git diff checks proved source, all 3 carriers, and the shared injector unchanged. Canonical supersession reduced the test owner's 23 appends to 16 current identities; all 16 are closure-bearing, current-hash valid, exit-zero, single-owner/single-spec, and cover all 10 required row tags. The canonical global strict checker remains exit 1 with 147 total, 82 current, 18 valid, 22 stale, and 42 unknown identities; those unrelated historical identities were not refreshed. No source, test, parent Feature 008 artifact, user validation, DoD, structured Test Plan status, certification, terminal status, or push changed. Completed route 006 and routed route 007 to bubbles.simplify.",
+      "phasesExecuted": ["regression"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T17:52:24Z"
+    },
+    {
+      "at": "2026-08-26T18:19:33Z",
+      "agent": "bubbles.simplify",
+      "phase": "simplify",
+      "action": "no-change-simplification-verified-and-routed-to-gaps",
+      "note": "Confirmed Research Lab authority at control revision 242 and preserved all 59 protected parent Feature 008 scope, report, and root test-plan paths at aggregate Git-object manifest sha256 f9c9c4a25f14a2e857fc5390696a451f790bbf85869c286fc87049c409e220fb. Reviewed the exact d49a2955b rlportfoliobrief.js diff and the functional, real-browser, and in-memory mutation carriers through independent reuse, quality, and efficiency passes. Found the direct Object.create(null) and Object.prototype.hasOwnProperty.call form already minimal and explicitly required for local security auditability, so no source or test edit was made and the browser carrier was not rerun. Fresh focused functional passed 34 of 34; mutation integrity passed 2 of 2; regression quality found zero violations and zero warnings; source, all three carriers, and the shared injector retained their exact sha256 values before and after mutation. Changed only simplify-owned report and execution state, completed route 007, and routed route 008 to bubbles.gaps. Acceptance, DoD, structured Test Plan statuses, TP-B007-011, global receipt closure, validation, certification, scope/spec status, and push remain unchanged.",
+      "phasesExecuted": ["simplify"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T18:16:36Z"
+    },
+    {
+      "at": "2026-08-26T18:39:53Z",
+      "agent": "bubbles.gaps",
+      "phase": "gaps",
+      "action": "no-delivery-gap-receipt-truth-corrected-and-routed-to-harden",
+      "note": "Confirmed Research Lab authority at control revision 244 and preserved the separate dirty parent Feature 008 scopes, reports, and root test-plan transaction. Audited all seven requirements, three scenarios, twelve Test Plan rows, sixteen DoD items, report claims, transition routes, source sites, three persistent carriers, and current receipts. Fresh focused functional passed 34 of 34, in-memory mutation passed 2 of 2, all six packet guards passed, implementation reality reported one file with zero violations and zero warnings, regression quality accepted all three carriers with zero violations and zero warnings, and all nine scenario links resolved. Found no delivery gap. Corrected only the report's time-sensitive receipt claim: current BUG-007 test receipts are 9 valid and 7 stale after later report-only changes; global strict is 29 stale and 42 unknown, comprising the original 22 unrelated stale identities plus the seven report-bound BUG-007 guard identities. No receipt was refreshed or relabeled. Changed only gaps-owned report and execution state, completed route 008, and routed route 009 to bubbles.harden. Acceptance, DoD, structured Test Plan statuses, TP-B007-011, certification, scope/spec status, terminal state, and push remain unchanged.",
+      "phasesExecuted": ["gaps"],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T18:23:42Z"
+    },
+    {
+      "at": "2026-08-26T22:40:14Z",
+      "agent": "bubbles.harden",
+      "phase": "harden",
+      "action": "exhaustive-hardening-found-mutation-causality-defect-and-routed",
+      "note": "Refreshed Research Lab repository authority at control revision 249 and preserved all 49 dirty parent Feature 008 transaction files at aggregate sha256 19ad2e42e0ec72165baee5e35fbb3a2a2c2345e884462a9c2973cc5f4350b358. Independently executed focused functional 34 of 34, registered mutation 2 of 2, real-browser 19 of 19, exact Feature 008 browser 95 of 95, canonical selftest 3426 of 3426, artifact lint, traceability, implementation reality, regression quality, source syntax, exact 3-scenario/12-row/12-DoD parity, silent-pass and interception scans, source/test hash integrity, and current scoped/global receipt accounting. Product behavior and shipped source protections are clean. A direct registered-mutant probe found HARDEN-B007-001: the injector applies through fs.readFileSync and then _compile throws on the already-mutated zero-anchor source, while the carrier treats that infrastructure failure as load-bearing discrimination. Completed inbound route 009 and routed 010 to bubbles.plan because the current scope excludes the shared injector edit. Did not add harden to completedPhaseClaims because H2 and H7 fail. Acceptance, DoD, structured Test Plan status, TP-B007-011, certification, scope/spec status, top-level status, source, tests, receipts, and push remain unchanged.",
+      "phasesExecuted": [],
+      "provenanceMode": "specialist",
+      "statusBefore": "in_progress",
+      "runStartedAt": "2026-08-26T22:33:08Z"
+    }
+  ],
+  "addressedFindings": [
+    {
+      "id": "SEC-B006-S1-FILING",
+      "summary": "The high-severity finding is independently reproduced, classified, inventoried, and represented by a complete BUG-007 packet with persistent adversarial test obligations.",
+      "owner": "bubbles.bug",
+      "status": "addressed",
+      "evidenceRef": "report.md#before-fix-reproduction"
+    },
+    {
+      "id": "SEC-B006-S1-DESIGN",
+      "summary": "The current-source map inventory, direct null-prototype allocation, own-property membership boundary, contract preservation, browser reachability, and persistent consumer set are reconciled in design.md.",
+      "owner": "bubbles.design",
+      "status": "addressed",
+      "evidenceRef": "design.md"
+    },
+    {
+      "id": "SEC-B006-S1-PLAN",
+      "summary": "The authoritative design is represented by one vertical scope with synchronized scenario and structured test handoffs, exact source and persistent carrier paths, a reachable visible constructor workflow, and in-memory mutation adequacy.",
+      "owner": "bubbles.plan",
+      "status": "addressed",
+      "evidenceRef": "scopes.md"
+    },
+    {
+      "id": "SEC-B006-S1-PERSISTENT-RED",
+      "summary": "The three planned persistent carriers are authored. The exact focused command executes all six hostile cases and discriminates unchanged source while normal and prior controls pass, cleanup succeeds, and regression-quality checks accept every carrier.",
+      "owner": "bubbles.test",
+      "status": "addressed",
+      "evidenceRef": "report.md#tp-b007-000"
+    },
+    {
+      "id": "SEC-B006-S1-IMPLEMENTATION",
+      "summary": "The bounded null-prototype and own-membership repair is committed at d49a2955b and its focused implementation checks are recorded.",
+      "owner": "bubbles.implement",
+      "status": "addressed",
+      "evidenceRef": "report.md#implementation-focused-green"
+    },
+    {
+      "id": "SEC-B006-S1-TEST",
+      "summary": "Current test ownership independently passed focused functional, mutation, scenario browser, broader Feature 008 browser, canonical selftest, packet guard, implementation reality, carrier integrity, and scoped receipt checks.",
+      "owner": "bubbles.test",
+      "status": "addressed",
+      "evidenceRef": "report.md#bug007-current-focused-functional"
+    },
+    {
+      "id": "SEC-B006-S1-REGRESSION",
+      "summary": "Independent regression found no source, behavior, ordering, caller-map ownership, built-in integrity, browser, cross-spec, carrier-quality, test-count, or byte-integrity regression; the scoped test receipt closure is current while unrelated global strict history remains truthfully red.",
+      "owner": "bubbles.regression",
+      "status": "addressed",
+      "evidenceRef": "report.md#bug007-regression-phase"
+    },
+    {
+      "id": "SEC-B006-S1-SIMPLIFY",
+      "summary": "Independent reuse, quality, and efficiency review found the direct null-prototype allocations and own-property checks already form the smallest auditable implementation; fresh focused, mutation, carrier-quality, and byte-integrity checks pass with no source or test edit.",
+      "owner": "bubbles.simplify",
+      "status": "addressed",
+      "evidenceRef": "report.md#bug007-simplify-phase"
+    },
+    {
+      "id": "SEC-B006-S1-GAPS",
+      "summary": "Exhaustive requirements, design, scenario, Test Plan, DoD, report, route, source, carrier, and receipt audit found no delivery gap. The report now distinguishes historical test-phase receipt validity from the current 9-valid/7-stale BUG-007 split and 29-stale/42-unknown global truth without changing any receipt identity.",
+      "owner": "bubbles.gaps",
+      "status": "addressed",
+      "evidenceRef": "report.md#bug007-gaps-phase"
+    }
+  ],
+  "unresolvedFindings": [
+    {
+      "id": "HARDEN-B007-001",
+      "summary": "The shared in-memory defect injector can apply once through fs.readFileSync and then throw from _compile on the already-mutated zero-anchor source; the BUG-007 mutation carrier accepts that injector self-error as successful defect discrimination.",
+      "owner": "bubbles.plan",
+      "status": "open",
+      "evidenceRef": "report.md#harden-b007-001"
+    }
+  ]
+}

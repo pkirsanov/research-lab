@@ -8,16 +8,18 @@ set -euo pipefail
 # Mechanically enforces the orchestrator convergence iteration cap
 # (`maxConvergenceIterations`, default 10) declared in
 # `bubbles/workflows.yaml`. Reads `.specify/memory/bubbles.session.json`
-# and inspects the `convergenceLoops[]` array (additively appended by
+# and inspects the `convergenceLoops[]` array (append-preserved by
 # `bubbles/scripts/state-snapshot.sh --convergence-iteration <N>`),
-# filters entries whose `specDir` matches the spec directory passed on
-# the command line, and computes the maximum observed `iterationCount`
-# for that spec.
+# derives the active attempt from the current Goal Contract, and computes
+# the maximum observed `iterationCount` for that exact authorized attempt.
+# Historical attempts remain visible as diagnostics but cannot poison a new
+# authorized Goal Contract revision. Without a Goal Contract, identity-free
+# legacy entries retain the pre-upgrade fail-closed verdict.
 #
 # Exit codes:
 #   0  cap not exceeded (or no convergence loops recorded for this spec)
 #   1  cap exceeded — orchestrator MUST treat this spec as `blocked`
-#       with finding G082; stderr names the cap and the offending agent
+#       with finding G082; stderr names the cap and active attempt
 #   2  malformed / missing inputs (workflows.yaml, session.json), or
 #       missing required arguments — diagnostic on stderr
 #
@@ -39,11 +41,13 @@ set -euo pipefail
 #   {
 #     "convergenceLoops": [
 #       {
-#         "specDir":        "<path>",
-#         "agent":          "<bubbles.workflow|bubbles.goal|...>",
+#         "specDir":        "<canonical-repo-relative-path>",
+#         "goalRef":        {"goalId": "...", "revision": 2,
+#                            "sourceRequestDigest": "sha256:..."},
 #         "iterationCount": <int>,
-#         "lastIterationAt":"<RFC3339>",
-#         "cappedAt":       "<RFC3339|null>"
+#         "startedAt":      "<RFC3339>",
+#         "lastUpdated":    "<RFC3339>",
+#         "agents":         ["bubbles.workflow", "bubbles.goal"]
 #       },
 #       ...
 #     ]
@@ -53,6 +57,15 @@ set -euo pipefail
 
 QUIET="false"
 SPEC_DIR=""
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
+SESSION_STATE_LIB="$SCRIPT_DIR/session-state-lib.sh"
+
+if [[ ! -f "$SESSION_STATE_LIB" ]]; then
+  echo "convergence-cap-guard: required session-state library not found: $SESSION_STATE_LIB" >&2
+  exit 2
+fi
+# shellcheck source=./session-state-lib.sh
+source "$SESSION_STATE_LIB"
 
 usage() {
   cat <<'EOF'
@@ -216,45 +229,156 @@ if [[ ! -f "$SESSION_FILE" ]]; then
   exit 0
 fi
 
-# --- Validate session.json is parseable JSON -----------------------------
+# --- Read one immutable object snapshot ----------------------------------
 
-if ! jq empty "$SESSION_FILE" >/dev/null 2>&1; then
-  echo "convergence-cap-guard: $SESSION_FILE is not valid JSON" >&2
+STATE_WORKSPACE="$(mktemp -d "${TMPDIR:-/tmp}/bubbles-convergence-cap.XXXXXX")" || {
+  echo "convergence-cap-guard: could not create session snapshot workspace" >&2
+  exit 2
+}
+cleanup() {
+  rm -rf "$STATE_WORKSPACE"
+}
+trap cleanup EXIT INT TERM
+SESSION_SNAPSHOT="$STATE_WORKSPACE/session.json"
+if ! session_state_read_object "$SESSION_FILE" refuse "$SESSION_SNAPSHOT"; then
+  echo "convergence-cap-guard: $SESSION_FILE is not valid session object state" >&2
   exit 2
 fi
 
-# --- Compute max iterationCount for matching specDir entries -------------
+# --- Canonical spec identity ---------------------------------------------
+
+NORMALIZED_SPEC=""
+if ! NORMALIZED_SPEC="$(session_state_canonical_spec "$REPO_ROOT" "$SPEC_DIR")"; then
+  echo "convergence-cap-guard: <specDir> must be a canonical repo-relative path or an absolute path under $REPO_ROOT (got: $SPEC_DIR)" >&2
+  exit 2
+fi
+
+# --- Resolve the active attempt from the trusted Goal Contract -----------
 #
-# We accept any convergenceLoops[] entry whose specDir matches either the
-# raw spec dir argument OR a trailing-path equivalent (so callers can pass
-# absolute or repo-relative forms interchangeably).
+# Identity equality uses the complete authorization core: goalId, revision,
+# and sourceRequestDigest. `agent` is attribution only. Multiple compatible
+# pre-upgrade records for one identity are grouped as one effective attempt by
+# taking their maximum count and unioning their agents. A partial identity or a
+# record that copies the current goalId+revision with another digest is an
+# integrity error, never an empty budget.
 
-NORMALIZED_SPEC="$SPEC_DIR"
-# Strip trailing slash if present.
-NORMALIZED_SPEC="${NORMALIZED_SPEC%/}"
+NORMALIZED_RECORDS="$STATE_WORKSPACE/convergence.json"
+if ! session_state_validate_convergence \
+  "$SESSION_SNAPSHOT" "$REPO_ROOT" "$NORMALIZED_SPEC" "$NORMALIZED_RECORDS"; then
+  echo "convergence-cap-guard: inconsistent convergence attempt state: shared validation refused" >&2
+  echo "  specDir:      $NORMALIZED_SPEC" >&2
+  echo "  session.json: $SESSION_FILE" >&2
+  exit 2
+fi
 
-MAX_OBSERVED_JSON="$(jq -r --arg specDir "$NORMALIZED_SPEC" '
-  (.convergenceLoops // [])
-  | map(select(
-      (.specDir // "") == $specDir
-      or ((.specDir // "") | endswith("/" + ($specDir | sub("^.*/"; ""))))
-    ))
-  | if length == 0 then
-      {observed: 0, agent: "none", lastIterationAt: null}
-    else
-      (max_by(.iterationCount // 0))
-      | {observed: (.iterationCount // 0), agent: (.agent // "unknown"), lastIterationAt: (.lastIterationAt // null)}
-    end
-' "$SESSION_FILE" 2>/dev/null || true)"
+GOAL_PRESENT="$(jq -r 'has("goalContract") and .goalContract != null' "$SESSION_SNAPSHOT")"
+if [[ "$GOAL_PRESENT" == "true" ]]; then
+  MIRROR_JSON="$(jq -c '.repositoryBindingMirror // null' "$SESSION_SNAPSHOT")"
+  if ! AUTHORITY_CONTEXT="$(session_state_authority_context "$REPO_ROOT" "$MIRROR_JSON" mirror)"; then
+    echo "convergence-cap-guard: inconsistent convergence attempt state: repository authority is invalid" >&2
+    echo "  specDir:      $NORMALIZED_SPEC" >&2
+    echo "  session.json: $SESSION_FILE" >&2
+    exit 2
+  fi
+  if ! ATTEMPT_CORE="$(session_state_authorized_attempt "$SESSION_SNAPSHOT" "$AUTHORITY_CONTEXT" "$NORMALIZED_SPEC")"; then
+    echo "convergence-cap-guard: inconsistent convergence attempt state: complete Goal Contract authorization failed" >&2
+    echo "  specDir:      $NORMALIZED_SPEC" >&2
+    echo "  session.json: $SESSION_FILE" >&2
+    exit 2
+  fi
 
-if [[ -z "$MAX_OBSERVED_JSON" ]] || ! echo "$MAX_OBSERVED_JSON" | jq empty >/dev/null 2>&1; then
+  GOAL_ID="$(jq -r '.goalId' <<< "$ATTEMPT_CORE")"
+  GOAL_REVISION="$(jq -r '.revision' <<< "$ATTEMPT_CORE")"
+  GOAL_DIGEST="$(jq -r '.sourceRequestDigest' <<< "$ATTEMPT_CORE")"
+  CURRENT_RECORDS="$(jq -c --arg goal "$GOAL_ID" --argjson revision "$GOAL_REVISION" --arg digest "$GOAL_DIGEST" '
+    [.[] | select(
+      .goalRef != null
+      and .goalRef.goalId == $goal
+      and .goalRef.revision == $revision
+      and .goalRef.sourceRequestDigest == $digest)]
+  ' "$NORMALIZED_RECORDS")"
+  HISTORICAL_RECORDS="$(jq -c --arg goal "$GOAL_ID" --argjson revision "$GOAL_REVISION" --arg digest "$GOAL_DIGEST" '
+    [.[] | select((
+      .goalRef != null
+      and .goalRef.goalId == $goal
+      and .goalRef.revision == $revision
+      and .goalRef.sourceRequestDigest == $digest) | not)]
+  ' "$NORMALIZED_RECORDS")"
+  ATTEMPT_JSON="$(jq -cn \
+    --arg goal "$GOAL_ID" \
+    --argjson revision "$GOAL_REVISION" \
+    --argjson current "$CURRENT_RECORDS" \
+    --argjson historical "$HISTORICAL_RECORDS" '
+    def maximum($records): if ($records | length) == 0 then 0 else [$records[].iterationCount] | max end;
+    def agents($records): [$records[].agents[]] | unique;
+    def latest($records): [$records[].lastUpdated | select(. != null)] | max // null;
+    def identity_key: [.goalRef.goalId, .goalRef.revision, .goalRef.sourceRequestDigest] | @json;
+    (([$historical[] | select(.goalRef != null) | identity_key] | unique | length)
+      + (if any($historical[]; .goalRef == null) then 1 else 0 end)) as $historical_count
+    | {
+        error:null,
+        attemptKind:"goal",
+        goalId:$goal,
+        revision:$revision,
+        observed:maximum($current),
+        agents:agents($current),
+        lastUpdated:latest($current),
+        historicalAttempts:$historical_count,
+        historicalMax:maximum($historical)
+      }
+  ')"
+else
+  if jq -e 'any(.[]; .goalRef != null)' "$NORMALIZED_RECORDS" >/dev/null 2>&1; then
+    session_state_diagnostic convergence-cap-guard REFUSED SESSION_GOAL_MISSING \
+      specDir "$NORMALIZED_SPEC" message "identity-bearing history requires a current authorized Goal Contract" >&2
+    echo "convergence-cap-guard: inconsistent convergence attempt state: identity-bearing history has no current authorization" >&2
+    exit 2
+  fi
+  ATTEMPT_JSON="$(jq -cn --argjson current "$(jq -c '[.[] | select(.goalRef == null)]' "$NORMALIZED_RECORDS")" '
+    def maximum($records): if ($records | length) == 0 then 0 else [$records[].iterationCount] | max end;
+    def agents($records): [$records[].agents[]] | unique;
+    def latest($records): [$records[].lastUpdated | select(. != null)] | max // null;
+    {
+      error:null,
+      attemptKind:"legacy",
+      goalId:null,
+      revision:null,
+      observed:maximum($current),
+      agents:agents($current),
+      lastUpdated:latest($current),
+      historicalAttempts:0,
+      historicalMax:0
+    }
+  ')"
+fi
+
+if [[ -z "$ATTEMPT_JSON" ]] || ! jq empty <<< "$ATTEMPT_JSON" >/dev/null 2>&1; then
   echo "convergence-cap-guard: failed to parse convergenceLoops[] from $SESSION_FILE" >&2
   exit 2
 fi
 
-OBSERVED="$(echo "$MAX_OBSERVED_JSON" | jq -r '.observed')"
-OFFENDING_AGENT="$(echo "$MAX_OBSERVED_JSON" | jq -r '.agent')"
-LAST_AT="$(echo "$MAX_OBSERVED_JSON" | jq -r '.lastIterationAt // "unknown"')"
+ATTEMPT_ERROR="$(jq -r '.error // empty' <<< "$ATTEMPT_JSON")"
+if [[ -n "$ATTEMPT_ERROR" ]]; then
+  echo "convergence-cap-guard: inconsistent convergence attempt state: $ATTEMPT_ERROR" >&2
+  echo "  specDir:      $NORMALIZED_SPEC" >&2
+  echo "  session.json: $SESSION_FILE" >&2
+  exit 2
+fi
+
+OBSERVED="$(jq -r '.observed' <<< "$ATTEMPT_JSON")"
+ATTEMPT_KIND="$(jq -r '.attemptKind' <<< "$ATTEMPT_JSON")"
+GOAL_ID="$(jq -r '.goalId // "legacy"' <<< "$ATTEMPT_JSON")"
+GOAL_REVISION="$(jq -r '.revision // "legacy"' <<< "$ATTEMPT_JSON")"
+CONTRIBUTING_AGENTS="$(jq -r '.agents | if length == 0 then "none" else join(",") end' <<< "$ATTEMPT_JSON")"
+LAST_AT="$(jq -r '.lastUpdated // "unknown"' <<< "$ATTEMPT_JSON")"
+HISTORICAL_ATTEMPTS="$(jq -r '.historicalAttempts' <<< "$ATTEMPT_JSON")"
+HISTORICAL_MAX="$(jq -r '.historicalMax' <<< "$ATTEMPT_JSON")"
+
+if [[ "$ATTEMPT_KIND" == "goal" ]]; then
+  ATTEMPT_LABEL="goalId=$GOAL_ID revision=$GOAL_REVISION"
+else
+  ATTEMPT_LABEL="legacy"
+fi
 
 if ! [[ "$OBSERVED" =~ ^[0-9]+$ ]]; then
   echo "convergence-cap-guard: malformed iterationCount in session.json: $OBSERVED" >&2
@@ -267,10 +391,13 @@ if [[ "$OBSERVED" -gt "$MAX_ITERATIONS" ]]; then
   {
     echo "G082 convergence_cap_enforcement_gate violation"
     echo "  specDir:                  $NORMALIZED_SPEC"
-    echo "  agent:                    $OFFENDING_AGENT"
+    echo "  active attempt:           $ATTEMPT_LABEL"
+    echo "  contributing agents:      $CONTRIBUTING_AGENTS"
     echo "  observed iterationCount:  $OBSERVED"
     echo "  maxConvergenceIterations: $MAX_ITERATIONS"
-    echo "  lastIterationAt:          $LAST_AT"
+    echo "  lastUpdated:              $LAST_AT"
+    echo "  historical attempts:      $HISTORICAL_ATTEMPTS"
+    echo "  historical maximum:       $HISTORICAL_MAX"
     echo "  workflows.yaml:           $WORKFLOWS_YAML"
     echo "  session.json:             $SESSION_FILE"
     echo "  remediation:              orchestrator MUST emit a 'blocked' RESULT-ENVELOPE referencing Gate G082 and STOP further convergence iterations for this spec"
@@ -278,6 +405,6 @@ if [[ "$OBSERVED" -gt "$MAX_ITERATIONS" ]]; then
   exit 1
 fi
 
-info "specDir=$NORMALIZED_SPEC observed=$OBSERVED maxConvergenceIterations=$MAX_ITERATIONS"
-echo "PASS Gate G082 (convergence_cap_enforcement_gate) — cap=$MAX_ITERATIONS, observed=$OBSERVED, specDir=$NORMALIZED_SPEC"
+info "specDir=$NORMALIZED_SPEC attempt=$ATTEMPT_LABEL observed=$OBSERVED maxConvergenceIterations=$MAX_ITERATIONS agents=$CONTRIBUTING_AGENTS lastUpdated=$LAST_AT historicalAttempts=$HISTORICAL_ATTEMPTS historicalMax=$HISTORICAL_MAX"
+echo "PASS Gate G082 (convergence_cap_enforcement_gate) — cap=$MAX_ITERATIONS, observed=$OBSERVED, specDir=$NORMALIZED_SPEC, attempt=$ATTEMPT_LABEL, agents=$CONTRIBUTING_AGENTS, lastUpdated=$LAST_AT, historicalAttempts=$HISTORICAL_ATTEMPTS, historicalMax=$HISTORICAL_MAX"
 exit 0

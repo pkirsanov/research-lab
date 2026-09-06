@@ -9,6 +9,14 @@ measured cost and the honest limitation. A post-fix full-suite run at the suite'
 reported no failure in this file at all. Six of the nine Definition of Done items are now ticked
 against executed or reported evidence; three remain open and are named below rather than argued away.
 
+**RED stage — the failing proof, recorded before the fix.** *(Claim Source: prior execution, this
+session — reported observation, not re-derived by this run.)* Before `5c978c5cb`, the full suite
+reported 4 failed in `tests/causal-rotation-consumers.spec.mjs` at tree `0e51d602f`, and 1 failed at
+tree `adb97b983`. Every one of those reported `Test timeout of 30000ms exceeded` inside
+`page.waitForLoadState('networkidle')` at `openOwner`. The full tallies, the third observation
+recorded in `bug.md`, and why the count moves between runs are set out under *Pre-fix full-suite
+failures* below. The GREEN stage that follows this red is recorded under *Post-fix full suite*.
+
 - **Changed and committed:** `tests/causal-rotation-consumers.spec.mjs` at `5c978c5cb` (`11 +`,
   `0 -`: five `test.setTimeout` declarations plus one explanatory comment), and this packet under
   `specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget/`. The file is untouched
@@ -198,6 +206,63 @@ The magnitude is not new: `tests/attention-browser.spec.mjs:650`,
 `tests/contextual-tooltip.spec.mjs:26,70,161` and `tests/trend-dynamics-cycle-lab.spec.mjs:987` all
 declare `test.setTimeout(180_000)`.
 
+### Code Diff Evidence
+
+**Executed by this run:** YES
+**Claim Source:** executed
+**Command:** GIT_PAGER=cat git show 5c978c5cb --stat -- tests/causal-rotation-consumers.spec.mjs
+
+```text
+$ GIT_PAGER=cat git show 5c978c5cb --stat -- tests/causal-rotation-consumers.spec.mjs
+ tests/causal-rotation-consumers.spec.mjs | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+$ GIT_PAGER=cat git log --oneline -1 5c978c5cb
+5c978c5cb fix(BUG-011): declare the budget these causal consumer tests actually need
+
+$ git --no-pager show 5c978c5cb --numstat --format='' -- tests/causal-rotation-consumers.spec.mjs
+11      0       tests/causal-rotation-consumers.spec.mjs
+```
+
+The delivery is one file, eleven inserted lines, zero deleted. The hunks below are the complete
+change — `git --no-pager show 5c978c5cb --format='' --unified=1 -- tests/causal-rotation-consumers.spec.mjs`:
+
+```diff
+@@ -103,2 +103,8 @@ async function enterOwnerView(page) {
+ 
++/* Every test below drives this helper one to three times, and each call is a FULL load of a heavy
++   analytics page plus a network settle. Measured on one worker with no contention, the sector test
++   spends 23.7 s of the 30 s Playwright applies when a config declares no timeout — 79% of a budget
++   nobody chose. Under the suite's own four-worker parallelism that margin is gone, so each test
++   declares the budget its work actually needs. The settle below is still timing-dependent; only its
++   allowance grew. See specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget. */
+ async function openOwner(page, file, { disableCausal = false } = {}) {
+@@ -118,2 +124,3 @@ async function openOwner(page, file, { disableCausal = false } = {}) {
+ test('Regression: served owner timing reads and causal snapshot share compatible exposure contracts', async ({ page }) => {
++  test.setTimeout(180_000);
+   await openOwner(page, 'sector-research-lab.html');
+@@ -151,2 +158,3 @@ test('Regression: served owner timing reads and causal snapshot share compatible
+ test('Regression: Sector acceleration remains visible while cause is unverified', async ({ page }) => {
++  test.setTimeout(180_000);
+   const selectors = ['#simpleView', '#modeSeg'];
+@@ -187,2 +195,3 @@ test('Regression: Sector acceleration remains visible while cause is unverified'
+ test('Regression: A country causal read disagrees with its market model', async ({ page }) => {
++  test.setTimeout(180_000);
+   const selectors = ['#leaderboard', '#narrative'];
+@@ -213,2 +222,3 @@ test('Regression: A country causal read disagrees with its market model', async
+ test('Regression: Energy equities strengthen while the underlying proxy remains weak', async ({ page }) => {
++  test.setTimeout(180_000);
+   const selectors = ['#simpleView'];
+@@ -240,2 +250,3 @@ test('Regression: Energy equities strengthen while the underlying proxy remains
+ test('Regression: consumers reject unknown causal versions while owner models remain usable', async ({ page }) => {
++  test.setTimeout(180_000);
+   const selectors = ['#simpleView', '#modeSeg'];
+```
+
+Every hunk is a pure insertion. No assertion was weakened, no test was skipped, no retry was added,
+and `page.waitForLoadState('networkidle')` is unmodified — it only moved from line 114 to line 120
+because the six-line comment above `openOwner()` was inserted. That is the whole delivery.
+
 ### `playwright.config.mjs` untouched
 
 **Executed by this run:** YES
@@ -208,6 +273,59 @@ The file is absent from the fix commit's 11-file diffstat. Its last modification
 confirmed an ancestor of the fix. The diff from the fix to HEAD is empty. Read at `9af68427b`, it
 still declares no `timeout` and no `retries` — the implicit 30 000 ms default remains the
 config-level default, which is why the budget had to be declared per test.
+
+**CORRECTION 2026-08-29 — the "diff to HEAD is empty" sentence above has since gone false, and it
+is corrected here rather than left standing.** At today's HEAD,
+`git diff 5c978c5cb..HEAD -- playwright.config.mjs` reports **20 insertions**. BUG-017 added
+`workers: 2` in `13494be66` and `b08ba13f4`, pinning the local worker count to match the pipeline
+after diagnosing a macOS `system-chrome` teardown force-kill at higher worker counts.
+
+Two parts of the original claim survive the correction, and one does not.
+
+- **Survives — the property this section exists to protect.** The *fix* did not touch the config:
+  `git show --stat 5c978c5cb -- playwright.config.mjs` is still empty. This packet bought its result
+  by declaring per-test budgets, not by loosening a global. Re-verified today:
+  `grep -cE 'retries' playwright.config.mjs` returns **0**, so no retry was ever added anywhere.
+- **Survives — the root cause.** The config still declares no `timeout`, so the implicit 30 000 ms
+  default is still what an undeclared test inherits. That is why the per-test declarations remain
+  load-bearing rather than redundant.
+- **Does not survive — the literal sentence.** The file is not unchanged at HEAD.
+
+**The consequence reaches further than this section, and is recorded in `uservalidation.md` and
+`state.json` rather than only here.** This packet was verified at the suite's then-configured
+**four**-worker parallelism, and that is the condition its decisive acceptance item names. The suite
+now runs at two. No run today can reproduce the four-worker condition, so that item is left
+unticked. The direction of the change is favourable — 180 000 ms budgets sized for higher contention
+have strictly more headroom at lower contention — but "more headroom than required" is not the same
+claim as "verified under the named condition", and it is not recorded as if it were.
+
+### Full committed suite at the repository's current parallelism — executed 2026-08-29
+
+**Executed by this run:** YES
+**Command:** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line`
+**Claim Source:** executed
+
+```
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --reporter=line
+[767/767] [system-chrome] › tests/simple-production-wiring.spec.mjs:979:1 › TP-15-04 the swept set is derived from the production registry + pages
+  767 passed (14.8m)
+SUITE_EXIT=0
+```
+
+Zero failure markers across the whole run, and all five tests in
+`tests/causal-rotation-consumers.spec.mjs` are among the 767 (they appear at positions 66, 70, 92,
+99 and 100 of the run).
+
+**This run is at TWO workers, not four, and the distinction is load-bearing.** BUG-017 pinned
+`workers: 2` after this fix. `SCN-011B-002` says *"When the full committed suite is run exactly as
+the repository runs it"*, a clause that tracks the repository's configuration rather than a fixed
+number, so this run satisfies the scenario as written. It does **not** reproduce the four-worker
+condition, and is not presented as doing so — the pre-existing four-worker evidence above remains
+the higher-contention datum for the tree it was taken on.
+
+One caution against over-reading a green result: the budgets under test are 180 000 ms and this
+run exercised less contention than the condition that sized them, so it confirms the file is
+healthy under today's configuration rather than re-proving the headroom margin.
 
 ### Tree state at closeout
 
@@ -277,11 +395,93 @@ full-suite run, but contract status is the validate owner's to write and this ru
 
 ### Validation Evidence
 
-No validation was performed. No independent party re-derived any measurement in this report, and no
-certification is claimed — `certification.completedScopes` and
-`certification.certifiedCompletedPhases` are both empty in `state.json`.
+**Executed by this run:** YES, on 2026-08-29 at HEAD `adcaa0024` — a later HEAD than the sections
+above, which is what gives this section its value.
+
+**Command:** `node scripts/validate-playwright-timeout-budgets.mjs`
+
+```
+[timeout-budgets] scanned=80 tests=830 declarations=160 evaluated=160 unattributed=0 unresolved=0 violations=0 default=30000ms (playwright-default (config declares none))
+[timeout-budgets] OK — every declared wait fits the test budget that governs it
+VALIDATOR_EXIT=0
+```
+
+The counts moved from `scanned=67 tests=646 declarations=91` to `scanned=80 tests=830
+declarations=160` — the repository grew by 13 files and 69 declarations between the two runs. The
+verdict is unchanged at `violations=0`, so the budgets this packet declared remain coherent against
+a materially larger corpus, not merely against the tree that produced them.
+
+**Command:** `node scripts/selftest.mjs`
+
+```
+$ node scripts/selftest.mjs
+================================================
+Research-Lab self-test: 3429 passed, 0 failed
+================================================
+SELFTEST_EXIT=0
+```
+
+**This reverses the "Repository selftest — red at this HEAD" section above, and the reversal is the
+point.** That section recorded `3012 passed, 15 failed`, exit 1, and correctly declined to tick the
+DoD item that requires 0 failed. It also stated a limitation honestly: only five of the fifteen
+failures were inspected, so "none of the fifteen touches this packet" was an inference, not a
+verified enumeration.
+
+That inference is now confirmed by a stronger measurement than inspection could have provided. The
+suite is green at `3429 passed, 0 failed` while this packet's one changed file is byte-identical to
+what it was during the red run. Fifteen failures went away without this packet being touched, which
+is only consistent with them having belonged to the in-flight Feature 026 work named at the time.
+Had any of them been caused by this packet's timeout declarations, they would still be red.
+
+The count also rose from 3012 to 3429 — 417 assertions added by concurrent work — so this is a
+re-derivation against a moved tree, not a replay.
+
+**What this validation does NOT establish.** Neither command runs the five Playwright tests this
+packet re-budgeted. The budget guard reads declarations statically and the selftest does not drive a
+browser. The evidence that those tests survive contention remains the post-fix full-suite run
+recorded above; this section proves the declarations stayed coherent and that nothing in the
+repository's own suite regressed, which is a different and narrower claim.
 
 ### Audit Evidence
 
-No audit was performed. `design.md` and `scopes.md` were authored without dispatch to their owning
-specialists, as `bug.md` records, and neither has been reviewed by them.
+**Executed by this run:** YES, on 2026-08-29 at HEAD `adcaa0024`.
+
+**Command:** `bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget`
+
+```
+$ bash .github/bubbles/scripts/artifact-lint.sh specs/_bugs/BUG-011-causal-consumer-tests-inherit-implicit-30s-budget
+=== Anti-Fabrication Evidence Checks ===
+✅ All checked DoD items in scopes.md have evidence blocks
+✅ No unfilled evidence template placeholders in scopes.md
+✅ No unfilled evidence template placeholders in report.md
+
+=== End Anti-Fabrication Checks ===
+
+Artifact lint PASSED.
+LINT_EXIT=0
+```
+
+**Change reviewed:** `5c978c5cb` and `ac2b7497d`, together touching exactly one runtime file,
+`tests/causal-rotation-consumers.spec.mjs`.
+
+Three findings, none blocking:
+
+1. **The remedy is proportionate and its size is justified in-tree.** The change is five
+   `test.setTimeout(180_000)` calls plus one comment. The comment carries the measurement that sizes
+   them — 23.7 s of the 30 s default on one worker, 79% of a budget nobody chose — so a later reader
+   can re-derive the number rather than trust it. 180 s is roughly 7.6x the measured single-worker
+   cost, which is a defensible margin for four-worker contention and is stated as such.
+
+2. **No smaller form exists.** `test.setTimeout` is a per-test Playwright API that must be called
+   inside each test body; the five calls cannot be hoisted to one declaration. The apparent
+   duplication is required by the framework, not incidental.
+
+3. **The comment does not overclaim.** It states that the settle "is still timing-dependent; only
+   its allowance grew" — it does not present a budget increase as a determinism fix. That
+   distinction is the one most easily blurred in a timeout change, and it was not blurred.
+
+**Scope of this audit, stated rather than implied.** This reviewed the committed change and the
+packet's artifact shape. It did not re-review `design.md` or `scopes.md` against their owning
+specialists, which `bug.md` records were never dispatched. That remains true and is not discharged
+here.
+

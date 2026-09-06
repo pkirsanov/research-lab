@@ -224,6 +224,32 @@ SCN-008-049 executes through `tests/portfolio-analytics.unit.mjs`,
 `tests/portfolio-survival-diversification.spec.mjs`. The browser carrier uses the real fixture-overlay server.
 It does not intercept requests or inject a test DOM.
 
+The carriers and their recorded exit codes, from [Test Evidence](#test-evidence):
+
+```text
+$ node --test tests/portfolio-analytics.unit.mjs                                  # TP-23-01 distinct samples, adjustment, appraisal, basis risk
+exit: 0   tests 97   pass 97   fail 0   skipped 0   todo 0
+
+$ node --test tests/portfolio-diversification.functional.mjs                      # TP-23-02 costs and projection contracts
+exit: 0   tests 2   pass 2   fail 0   skipped 0   todo 0
+
+$ npx --no-install playwright test tests/portfolio-survival-diversification.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0   10 passed (40.9s)
+  PASS SCN-008-049 stress dependence appraisal and hedge effectiveness retain distinct qualified evidence
+  PASS SCN-008-049 hedge variants reuse the selected survival scenario and path identities
+
+$ node --test --test-name-pattern="Adversarial: reduced diversification and hedge shortcuts cannot satisfy the contract" tests/portfolio-analytics.unit.mjs
+exit: 0   tests 1   pass 1   fail 0
+```
+
+The two exact `SCN-008-049` browser rows carry the scenario: the first proves stress dependence, appraisal
+limits, and hedge effectiveness stay *distinct* qualified evidence rather than one blended number; the second
+proves hedge variants reuse the selected survival scenario and path identities, which is what keeps the common
+paths common. The adversarial unit row makes the claim non-vacuous — reduced diversification and hedge
+shortcuts are refused rather than accepted. Regression basis risk and costs are held separate by the sibling
+`SCN-008-025` rows in the same carrier, which keep carry and basis risk apart and block a net-benefit claim
+when cost evidence is missing instead of assuming zero.
+
 ## Coverage Report
 
 The unit matrix covers sample identity, stress selection, raw and adjusted estimates, intervals, tail events,

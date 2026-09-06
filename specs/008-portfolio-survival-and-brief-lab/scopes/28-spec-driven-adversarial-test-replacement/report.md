@@ -71,7 +71,7 @@ STALE BASELINE tests/portfolio-foundation.unit.mjs — now reachable; remove it 
 
 The new Node carrier `tests/portfolio-test-integrity.unit.mjs` was itself an orphan when it was authored, because no declared glob selected it. It is now reachable through the stable `node --test tests/*.unit.mjs` command declared in `.specify/memory/agents.md`. Declaring the glob raised declared globs from 8 to 9 and reachable files from 157 to 178, and lowered orphans from 27 to 6.
 
-The same glob also reclaimed `tests/portfolio-analytics.unit.mjs` and `tests/portfolio-foundation.unit.mjs`, which were previously frozen in the ratchet baseline. The validator now reports both as `STALE BASELINE` and exits 0. That is the ratchet behaving as designed: the baseline is allowed to shrink, and a shrinking baseline is not a failure. Removing those stale entries from `scripts/validate-test-file-reachability.baseline` is a follow-up owned by the baseline, not a condition of this row.
+The same glob also reclaimed `tests/portfolio-analytics.unit.mjs` and `tests/portfolio-foundation.unit.mjs`, which were previously frozen in the ratchet baseline. The validator now reports both as `STALE BASELINE` and exits 0. That is the ratchet behaving as designed: the baseline is allowed to shrink, and a shrinking baseline is not a failure. Both entries remain present in `scripts/validate-test-file-reachability.baseline`; removing them is ratchet-file hygiene owned by that baseline, not a condition of this row, and no BUG packet or routed finding under this feature currently carries that removal.
 
 ### TP-28-02
 
@@ -416,6 +416,22 @@ No percentage coverage claim is made. The earlier observed totals remain 239 Nod
 
 **Claim Source:** executed for the first two rows and the historical selftest result. The latest merged selftest result is inherited. The fourth row is `interpreted`: it rests on the verified fact that Scope 28's only non-test change is a command-registry entry, combined with the historical TP-28-06 mount sweep. No separate existing-consumer browser matrix was executed in that session.
 
+The receipt below repeats the exact exit code and result line of the two executed canaries named in the table,
+already recorded in full under TP-28-05 and TP-28-01 in this report. No new execution is claimed here.
+
+```text
+# Scope 28 TP-28-05 regression quality guard
+exit: 0
+sha256: 65b556124166f9981f9c5561b2f4a8a83439e0c34b321d4135850c14d0254688
+  REGRESSION QUALITY RESULT: 0 violation(s), 0 warning(s)
+  Files scanned: 8
+  Files with adversarial signals: 8
+# Scope 28 TP-28-06 repository selftest
+exit: 0
+sha256: aeee1d7481e7987e6e3be4678cd3bec9866c1a99f835658612edf849ce173ddc
+Research-Lab self-test: 3314 passed, 0 failed
+```
+
 ## Test-Only Rollback Proof
 
 **Phase:** implement
@@ -439,6 +455,11 @@ The separate Scope 27 mutation control that remains is the `Adversarial: SCN-008
 **Claim Source:** executed
 **Command:** `git diff --check`
 **Exit Code:** 0
+
+```text
+$ git diff --check
+exit: 0
+```
 
 No whitespace or conflict-marker error. The command produced no output, which is its clean result.
 
@@ -1576,3 +1597,274 @@ The current evidence is the [TP-28-02 Repair Reverification](#tp-28-02-repair-re
 All six Scope 28 Test Plan rows are green with the mixed provenance recorded in that table. TP-28-03 and TP-28-06 use parent-current-session captures, accurately labeled as not executed by this report owner, with sha256 values `de26f4cc017b7da2ee9884b64ba409366b189621f156a266bde2aefcbcacaa70` and `98c87fd32c6095acd11494d89c6ece7d86c14012bf331875c9501708ac028b57` respectively.
 
 No checkbox or status is changed here. Final Scope 28 checkbox and status handling is ready for and routed to `bubbles.plan`.
+
+## Consumer Impact Sweep Evidence
+
+This section closes the gap that kept the Consumer Impact Sweep row open: the sweep table in
+[scope.md](scope.md) declared five required proofs, and this report carried a proof for only one
+of them, inside the Shared Infrastructure table, where the shared-consumer row was explicitly
+tagged `interpreted` with the admission that no existing-consumer matrix had been executed. Every
+row below is executed in this session.
+
+**Phase:** test
+**Executed:** YES (in current session)
+**Claim Source:** executed
+
+**Current-session re-execution — this block, not the per-row sub-sections below, is the evidence
+window.** The five sweep rows were re-run in this session and their commands and real exit codes are
+recorded here, ahead of the first sub-heading, because the sub-headings terminate the window that
+Check 9 resolves for the DoD rows citing `report.md#consumer-impact-sweep-evidence`. The re-run was
+necessary rather than cosmetic: the previously recorded browser receipt had gone stale, meaning an
+input file changed after the capture, so the recorded result no longer described the current tree.
+Where a number measured below disagrees with a number quoted in [scope.md](scope.md), the measured
+value is authoritative and the disagreement is explained rather than reconciled away.
+
+**Sweep rows 1 and 2 — every SCN-008-001..055 contract resolves to its authored carrier. Exit Code: 0.**
+
+```text
+$ timeout 600 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/008-portfolio-survival-and-brief-lab
+[scenario-test-resolve] OK — 68 reference(s) resolved via literal-scan; 68 category comparison(s) not applicable (no test-discovery adapter declared)
+SCENARIO_TEST_RESOLVE_RC=0
+```
+
+Sixty-eight of sixty-eight linked-test references resolve with zero unresolved. This guard reads the
+reference; it does not execute the referenced test, so Scope 28 still neither owns nor runs the
+SCN-008-055 carrier that Scope 29 authored.
+
+**Sweep row 3 — the eight-spec Feature 008 browser matrix. Exit Code: 0, `94 passed (2.7m)`.**
+
+```text
+$ timeout 1740 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+lines: 303
+sha256: 40274bfb629d737280b778d62e6c9873b8c137cd2e423f07ddef40243a8a1aaf
+
+Running 94 tests using 2 workers
+  ✓  94 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:463:1 › Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view (5.3s)
+
+  94 passed (2.7m)
+```
+
+Excerpted from the bounded capture; the sha256 above covers all 303 produced lines and is
+re-derivable with
+`bash .github/bubbles/scripts/evidence-capture.sh --verify 40274bfb629d737280b778d62e6c9873b8c137cd2e423f07ddef40243a8a1aaf -- <the command above>`.
+Discovery equals passes — `Running 94 tests` opens and `94 passed` closes — so no selector matched
+zero tests, and there were zero failed, zero flaky, zero skipped.
+
+**The measured count is 94, not the 95 quoted in [scope.md](scope.md), and the difference is
+accounted for rather than absorbed.** Exactly one test left this matrix between the two runs: the
+mocked adversarial title `Adversarial: SCN-008-053 reduced accessibility implementations fail closed`
+was moved out of `tests/portfolio-survival-accessibility.spec.mjs` into a separate carrier whose
+basename is `portfolio-accessibility-mutation.spec.mjs`. That carrier is not one of the eight files
+named on this command line, so the matrix legitimately discovers one fewer test. Verified in this
+session rather than assumed: the new carrier holds exactly one `test(` title, `git status --porcelain`
+reports it untracked (`??`) and reports the accessibility spec modified (`M`), which is the shape a
+move produces. The relocation is a mocked-versus-live classification change owned outside this scope
+and is not attributed here.
+
+**Sweep row 4 — existing shared-data and navigation consumers stay green. Exit Code: 0.**
+
+```text
+$ timeout 1740 node scripts/selftest.mjs
+exit: 0
+lines: 3895
+sha256: d51187eca598eadba87106313df03841aef94b1ee1e144ef86b863ad54fee2e1
+
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+Excerpted from the bounded capture; the sha256 covers all 3895 produced lines and is re-derivable
+with `bash .github/bubbles/scripts/evidence-capture.sh --verify d51187eca598eadba87106313df03841aef94b1ee1e144ef86b863ad54fee2e1 -- timeout 1740 node scripts/selftest.mjs`.
+`0 failed` is what makes the row sound: the registered-tool mount sweep over the shared `rldata.js`
+and `rlnav.js` consumers is one group inside this run, so a zero-failure total is a green group
+without needing the group line quoted back. Scope 28 makes no edit to `scripts/selftest.mjs`, so the
+pass is not bought by weakening a budget.
+
+**Sweep row 5 — zero stale first-party references remain. Exit Code: 0.**
+
+```text
+$ timeout 300 grep -rn "TP_27_04_CONTROL" .
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/report.md:440
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/report.md:445
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/report.md:1681
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/report.md:1685
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/report.md:1689
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/scope.md:79
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/scope.md:104
+GREP_RC=0   (7 matching lines, every one of them inside this scope's own artifacts)
+
+$ ls tests/ | grep -c 'tp-27-04-control'
+0
+LS_GREP_RC=1   (absent from the working tree)
+
+$ git ls-tree -r HEAD --name-only | grep -c 'tp-27-04-control'
+0
+LSTREE_RC=1   (never tracked in HEAD)
+```
+
+Line numbers are listed without their matched text so this record does not multiply its own hits.
+**The hit count is self-referential and is reported as measured at execution time, before this block
+was written.** Every match is prose in this scope's own `scope.md` and `report.md` — the two
+artifacts whose job is to record the deletion, and which therefore predict their own presence — and
+writing this very paragraph raises the count again. That is why the count is not the load-bearing
+claim. The load-bearing claim is that zero *executable* references survive, and that is established
+by the two edit-independent probes above: the carrier is absent from the working tree and absent from
+`HEAD`, so nothing can import, glob, or run it, no matter how many times a document names it.
+
+### Sweep row 1 and 2 — every SCN-008-001..055 contract resolves to its authored carrier
+
+**Command:** `timeout 600 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/008-portfolio-survival-and-brief-lab`
+**Exit Code:** 0
+
+```text
+$ timeout 600 bash .github/bubbles/scripts/scenario-test-resolve.sh specs/008-portfolio-survival-and-brief-lab
+[scenario-test-resolve] OK — 68 reference(s) resolved via literal-scan; 68 category comparison(s) not applicable (no test-discovery adapter declared)
+SCENARIO_TEST_RESOLVE_EXIT=0
+```
+
+Sixty-eight of sixty-eight linked-test references resolve, with zero unresolved. This is the
+check that previously exited 1 on SCN-008-055's unresolved title; that title is now authored by
+Scope 29 and resolves, so the sweep's first two rows hold on one command. Scope 28 still does not
+own or execute the SCN-008-055 carrier — this guard reads the reference, it does not run the test.
+
+### Sweep row 3 — every Feature 008 browser carrier executes with no zero-match success
+
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 29 broader Feature 008 browser regression matrix" -- timeout 1740 npx --no-install playwright test tests/portfolio-survival-foundation.spec.mjs tests/portfolio-survival-brief.spec.mjs tests/portfolio-survival-risk.spec.mjs tests/portfolio-survival-paths.spec.mjs tests/portfolio-survival-diversification.spec.mjs tests/portfolio-survival-allocation.spec.mjs tests/portfolio-survival-mobile.spec.mjs tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list`
+**Exit Code:** 0
+
+```text
+Running 95 tests using 2 workers
+  ✓  92 [system-chrome] › tests/portfolio-survival-risk.spec.mjs:565:1 › Regression: Feature 008 Risk X-Ray refuses rather than showing a partial portfolio (1.4s)
+  ✓  93 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:405:1 › Regression: Feature 008 an incomplete cash need is refused rather than partly assumed (3.1s)
+  ✓  94 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:422:1 › Regression: SCN-008-048 complete scenario cash needs uncertainty and compute tokens govern every path (6.9s)
+  ✓  95 [system-chrome] › tests/portfolio-survival-paths.spec.mjs:463:1 › Regression: SCN-008-048 cancelled and superseded path jobs cannot replace the last valid view (4.7s)
+
+  95 passed (2.9m)
+exit: 0
+sha256: 254fedd3e4cd59e807db3ec744f7a912957ab07125868aaa386deb1ee0dde26d
+```
+
+Discovery equals passes — `Running 95 tests` opens and `95 passed` closes — so no selector matched
+zero tests and nothing was skipped. **This is one execution, not two.** The identical run is
+recorded by its owner at
+[`scopes/29-documentation-and-registry-truth/report.md#broader-feature-008-browser-regression`](../29-documentation-and-registry-truth/report.md#broader-feature-008-browser-regression),
+and the shared sha256 above is what makes that identity checkable rather than asserted. It is
+cited here for Scope 28's sweep row and is not counted as a second observation.
+
+The recorded count is 95 against the 93 in the TP-28-03 Current Receipt; the matrix has grown
+since that capture and the increment is not attributed here.
+
+### Sweep row 4 — existing shared-data and navigation consumers stay green
+
+**Command:** `timeout 1800 bash .github/bubbles/scripts/evidence-capture.sh --label "Scope 28 consumer sweep: repository selftest registered-tool mount sweep" -- timeout 1740 node scripts/selftest.mjs`
+**Exit Code:** 0
+
+```text
+# Scope 28 consumer sweep: repository selftest registered-tool mount sweep
+$ timeout 1740 node scripts/selftest.mjs
+exit: 0
+lines: 3912
+sha256: 753bbc6b4bf5211fc055479c427d12987fae1d9e5230a2c08cc0414dea770b1a
+
+================================================
+Research-Lab self-test: 3426 passed, 0 failed
+================================================
+```
+
+This row was `interpreted` before and is now executed. `0 failed` is what makes the inference
+sound: the registered-tool mount sweep over the shared `rldata.js` / `rlnav.js` consumers is one
+group inside this run, so a green total is a green group without needing the group line quoted
+back. The count moved from the 3404 recorded on TP-28-06 to 3426 because concurrent packets added
+assertions; no assertion was removed and Scope 28 makes no edit to `scripts/selftest.mjs`.
+
+### Sweep row 5 — zero stale first-party references remain
+
+**Command:** `grep -rn 'TP_27_04_CONTROL' --exclude-dir=.git .`; `ls tests/ | grep -c 'tp-27-04-control'`; `git ls-tree -r HEAD --name-only | grep -c 'tp-27-04-control'`
+**Exit Code:** 0
+
+```text
+$ grep -rn 'TP_27_04_CONTROL' --exclude-dir=.git .
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/report.md:440
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/report.md:445
+./specs/008-portfolio-survival-and-brief-lab/scopes/28-spec-driven-adversarial-test-replacement/scope.md:79
+TP_27_04_CONTROL_RC=0 (3 hits, all in this scope's own deletion records)
+
+$ ls tests/ | grep -c 'tp-27-04-control'
+0
+LS_GREP_RC=1 (absent from the working tree)
+
+$ git ls-tree -r HEAD --name-only | grep -c 'tp-27-04-control'
+0
+LSTREE_RC=1 (never tracked)
+```
+
+Scope 28's only removal was the disposable Scope 27 mutation control, so the stale-reference
+question reduces to whether anything still reaches it. Three hits remain and all three are the
+deletion records in this scope's own `scope.md` and `report.md` — the two artifacts that predict
+their own presence and explain why the basename is spelled unrooted. Zero executable references
+survive: the file is absent from the working tree and absent from `HEAD`, so nothing can import,
+glob, or run it.
+
+### Sweep verdict
+
+Rows 1 through 5 are established on executed commands. The Consumer Impact Sweep row in
+[scope.md](scope.md) is satisfied.
+
+The separate Change Boundary row is **not** satisfied and is deliberately left open; its blocker
+is recorded in the next section. The two rows are adjacent but not equivalent — a sweep asks
+whether every consumer of a change still resolves, and a boundary asks whether the change stayed
+where it said it would.
+
+## Change Boundary Row — Current Blocker
+
+**Phase:** test
+**Executed:** YES (in current session)
+**Claim Source:** executed
+**Command:** `git status --porcelain`; `git diff -- rlportfolio.js rlportfoliobrief.js`
+**Exit Code:** 0
+
+```text
+$ git status --porcelain   (excluded-family paths only)
+ M rlportfolio.js
+ M rlportfoliobrief.js
+
+$ git diff --stat -- rlportfolio.js rlportfoliobrief.js
+ rlportfolio.js      | 31 ++++++++++++++++++++++++++++---
+ rlportfoliobrief.js |  2 +-
+ 2 files changed, 29 insertions(+), 4 deletions(-)
+```
+
+Both files are named verbatim under **Excluded surfaces** in this scope's Change Boundary, and
+both are dirty. Neither delta is Scope 28's work — the subject matter is the `PortfolioError/v1`
+contract-error shape, not test integrity. That is why the row is left open rather than failed
+outright: the question is ownership, not authorship.
+
+The blocker is that the ownership record has regressed. The already-checked Build Quality Gate
+row establishes its `no production-source edits` clause by citing
+`bugs/BUG-004-same-day-behavior-occurrence-rejection` as having adopted `rlportfolio.js`, quoting
+that packet as reading `status: done` and `certification.status: done` certified at
+`2026-08-25T06:29:12Z`. Read in this session, that packet reads:
+
+```text
+$ node -e "const s=require('./specs/008-portfolio-survival-and-brief-lab/bugs/BUG-004-same-day-behavior-occurrence-rejection/state.json');console.log('status=',s.status,'cert=',(s.certification||{}).status,'certifiedAt=',(s.certification||{}).certifiedAt)"
+status= blocked cert= blocked certifiedAt= null
+```
+
+The adoption that closed the clause is therefore no longer in force, and no other packet has
+taken it up. `BUG-007-compose-brief-prototype-sensitive-keys` (`status: in_progress`) declares
+`rlportfoliobrief.js` in its Allowed list but does **not** name `rlportfolio.js`.
+`BUG-008-stale-mutation-carrier-mappings` excludes *all* product source explicitly. So the
+31-line `rlportfolio.js` delta currently has no declaring owner.
+
+This is the same condition the Build Quality Gate row already identified as disqualifying, in its
+own words: a clause asserting the absence of production-source edits cannot be satisfied by a
+check that never looked at the production file. Ticking the Change Boundary row now would assert
+containment over a surface that is demonstrably uncontained, so it stays open until an owner
+adopts the `rlportfolio.js` delta — either BUG-004 returning to `done`, or another packet naming
+that file in its Change Boundary.
+
+Routing: production-source ownership of the `rlportfolio.js` and `rlportfoliobrief.js` deltas to
+`/bubbles.implement`. Nothing in this reconciliation edits either file.
+

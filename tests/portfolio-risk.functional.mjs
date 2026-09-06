@@ -40,6 +40,35 @@ function mixedPortfolio() {
   };
 }
 
+test("BUG-009 risk mapping: unsupported holdings remain named exclusions", () => {
+  const treatment = RLPA.assetTreatment([
+    {
+      holdingId: "listed",
+      symbol: "AAA",
+      assetType: "listed",
+      weight: 0.6,
+      lookThrough: { "Issuer A": 1 }
+    },
+    {
+      holdingId: "unsupported",
+      symbol: "UNKNOWN",
+      assetType: "unresolved",
+      weight: 0.4
+    }
+  ]);
+
+  assert.equal(treatment.state, "ok");
+  assert.deepEqual(treatment.marketBased, ["AAA"]);
+  assert.deepEqual(treatment.excludedFromMarketAnalytics, [
+    { symbol: "UNKNOWN", assetType: "unresolved" }
+  ]);
+  assert.equal(treatment.lookThrough.state, "partial");
+  assert.deepEqual(treatment.lookThrough.coveredIds, ["listed"]);
+  assert.deepEqual(treatment.lookThrough.missingIds, ["unsupported"]);
+  assert.equal(treatment.lookThrough.coveredWeight, 0.6);
+  assert.equal(treatment.lookThrough.uncoveredWeight, 0.4);
+});
+
 test("SCN-008-047 mixed portfolio freezes one cutoff and composes partial structured risk output", () => {
   const input = mixedPortfolio();
   const projection = RLPA.riskXRayProjection(input);

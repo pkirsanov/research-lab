@@ -1,0 +1,443 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "version": 1,
+  "featureDir": "specs/_bugs/BUG-025-company-corpus-read-never-settles",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-09-01T06:04:37Z",
+  "stage": "audit-rework-planning-reconciliation",
+  "scenarioCount": 8,
+  "scenarios": [
+    {
+      "id": "SCN-BUG-025-001",
+      "scenarioId": "SCN-BUG-025-001",
+      "scopeId": "01-declare-and-enforce-one-read-bound",
+      "title": "A same-origin corpus response never answers",
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route visibly leaves pending and renders an established unavailable performance account after the held request is aborted.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a never-answering corpus request reaches a bounded unavailable result"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The performance row names its unavailable state and reason without inventing a value.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a never-answering corpus request reaches a bounded unavailable result"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The live route executes the committed read bound and the real server observes the underlying request close after expiry.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a never-answering corpus request reaches a bounded unavailable result"
+          ]
+        }
+      ],
+      "implementationRefs": ["company-intelligence-lab.html#loadCorpus"],
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a never-answering corpus request reaches a bounded unavailable result"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-first-red-browser-bounded-acquisition",
+        "report.md#test-phase-focused-browser",
+        "report.md#final-tree-test-phase-2026-09-01"
+      ]
+    },
+    {
+      "id": "SCN-BUG-025-002",
+      "scenarioId": "SCN-BUG-025-002",
+      "scopeId": "01-declare-and-enforce-one-read-bound",
+      "title": "A slow response answers inside the bound",
+      "behaviorClass": "ui",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route visibly reaches established loaded performance from the response released inside the bound.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 an inside-bound response settles normally"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The live route applies the committed read bound without aborting a valid response released before expiry.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 an inside-bound response settles normally"
+          ]
+        }
+      ],
+      "implementationRefs": ["company-intelligence-lab.html#loadCorpus"],
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 an inside-bound response settles normally"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-first-red-browser-bounded-acquisition",
+        "report.md#test-phase-focused-browser",
+        "report.md#final-tree-test-phase-2026-09-01"
+      ]
+    },
+    {
+      "id": "SCN-BUG-025-003",
+      "scenarioId": "SCN-BUG-025-003",
+      "scopeId": "01-declare-and-enforce-one-read-bound",
+      "title": "The served configuration response never answers",
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route visibly preserves its embedded first paint and later reaches an established reading after the served configuration stalls.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a stalled served configuration preserves embedded first paint and settles"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The stalled served configuration retains the validated embedded configuration instead of inventing another policy value.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a stalled served configuration preserves embedded first paint and settles"
+          ]
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The live route executes the embedded committed read bound for the served-configuration request and continues only after that request settles by abort.",
+          "satisfiedBy": [
+            "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a stalled served configuration preserves embedded first paint and settles"
+          ]
+        }
+      ],
+      "implementationRefs": ["company-intelligence-lab.html#readConfig"],
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 a stalled served configuration preserves embedded first paint and settles"
+      ],
+      "evidenceRefs": [
+        "report.md#scenario-first-red-browser-bounded-acquisition",
+        "report.md#test-phase-focused-browser",
+        "report.md#final-tree-test-phase-2026-09-01"
+      ]
+    },
+    {
+      "id": "SCN-BUG-025-004",
+      "scenarioId": "SCN-BUG-025-004",
+      "scopeId": "01-declare-and-enforce-one-read-bound",
+      "title": "Synchronous request setup fails before a usable promise exists",
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route visibly reaches its established unavailable performance account after selected-path fetch setup throws synchronously."
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The selected document uses the existing named unavailable caller outcome, no network request proceeds for that path, and no bounded-read timer remains active."
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "synthetic-boundary",
+        "productionOwners": [
+          "company-intelligence-lab.html"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "visible-ui",
+        "negativeControl": "Delegate the selected path to native fetch instead of throwing synchronously. The selected server request and loaded account must make the unavailable, zero-network, and setup-failure assertions fail.",
+        "mechanismNote": "Load the production route from the existing ephemeral static origin, wrap only the selected-path browser fetch primitive before route code executes, throw synchronously before it returns a usable promise, delegate every other request unchanged, and assert visible caller settlement, zero selected-path server requests, and zero active helper timers."
+      },
+      "implementationRefs": [
+        "company-intelligence-lab.html#readRouteDocument",
+        "company-intelligence-lab.html#loadOne"
+      ],
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 synchronous fetch setup failure reaches existing unavailable state with zero timers"
+      ],
+      "evidenceRefs": [
+        "report.md#test-finding-closure-2026-08-31",
+        "report.md#final-tree-test-phase-2026-09-01"
+      ]
+    },
+    {
+      "id": "SCN-BUG-025-005",
+      "scenarioId": "SCN-BUG-025-005",
+      "scopeId": "01-declare-and-enforce-one-read-bound",
+      "title": "A late valid response cannot overwrite a newer settled subject",
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The production route keeps the second valid subject visible with its settled corpus/readiness attributes and complete horizon account when the older valid response completes, and a post-settlement DOM-node sentinel proves the stale completion caused no repaint."
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "A real ephemeral same-origin server records entry and explicit release of the first subject's unmodified committed response while the second valid subject settles from unmodified repository responses; releasing the first response produces no stale ordinary tool-read publication and leaves the second subject's published record byte-for-byte unchanged."
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "company-intelligence-lab.html#applySubject",
+          "company-intelligence-lab.html#loadCorpus",
+          "company-intelligence-lab.html#render",
+          "rlcompanyintel.js#publishToolRead",
+          "rldata.js#putToolRead"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "visible-ui",
+        "negativeControl": "An in-memory ephemeral-server route mutation that removes only the intent-versus-readingIntent stale-completion return must cause a post-settlement repaint or ordinary tool-read publication and make this carrier fail without changing the working tree.",
+        "negativeControlMechanism": "mutation",
+        "mechanismNote": "Serve the unmodified production route and repository files from the existing ephemeral HTTP origin. Hold data/bars/MSFT.json after real server entry. Apply the valid AAPL subject. Require AAPL to reach established settlement and publish its ordinary read. Snapshot subject identity, body corpus/readiness attributes, every horizon account, the company tool read, a live horizon DOM-node identity, and the company putToolRead call count. Release the held MSFT response. Observe its server completion and bounded-read timer cleanup. Require the AAPL snapshots and node identity to remain unchanged with zero further company publication calls. Run the negative control from an in-memory ephemeral-server route override that removes only the stale-intent return. Do not change the working tree, intercept requests, guess from elapsed time, or author fixture business responses."
+      },
+      "implementationRefs": [
+        "company-intelligence-lab.html#applySubject",
+        "company-intelligence-lab.html#loadCorpus",
+        "company-intelligence-lab.html#render",
+        "rlcompanyintel.js#publishToolRead",
+        "rldata.js#putToolRead"
+      ],
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 late valid completion cannot overwrite a newer settled subject"
+      ],
+      "evidenceRefs": [
+        "report.md#test-finding-bug-025-test-004",
+        "report.md#final-tree-test-phase-2026-09-01"
+      ]
+    },
+    {
+      "id": "SCN-BUG-025-006",
+      "scenarioId": "SCN-BUG-025-006",
+      "scopeId": "01-declare-and-enforce-one-read-bound",
+      "title": "An accepted canonical company subject authorizes only its canonical event document",
+      "behaviorClass": "ui",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "dependency-path",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current production route remains composed rather than refused, reaches an established MSFT reading, and presents the financial-events row from the committed event document rather than an unavailable substitute."
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "A real ephemeral same-origin request ledger records data/company-intelligence/company-msft/events.json exactly once, records no other events.json path, and the browser records no off-origin request."
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production validator accepts the exact company:msft declaration and its exact subject-derived repository path without trimming, case conversion, decoding, normalization, fallback, or alternate path authority."
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "rlcompanyintel.js#readEventSource",
+          "rlcompanyintel.js#eventsPathFor",
+          "company-intelligence-lab.html#loadCorpus"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "ephemeral-real",
+        "assertionSurface": "visible-ui",
+        "negativeControl": "An in-memory module mutation bounded to readEventSource() replaces the unique `if (subjectMatch === null) {` predicate with `if (subjectMatch === null || entry.subjectId === \"company:msft\") {`. The canonical pair is rejected before eventsPathFor() lookup, so the composed established state, exact one-request ledger, and loaded financial-events assertions must fail without a runtime error.",
+        "negativeControlMechanism": "mutation",
+        "mechanismNote": "Serve the unmodified production route, module, committed config, and repository event document from a request-logging ephemeral HTTP origin. Assert the visible settled result and the complete browser request ledger. For the negative control, replace exactly one current canonical-subject predicate inside readEventSource(); do not mutate eventsPathFor() or the declared-versus-derived equality guard. Mutated module bytes exist only in the negative-control server response and never change the working tree."
+      },
+      "implementationRefs": [
+        "rlcompanyintel.js#readEventSource",
+        "rlcompanyintel.js#eventsPathFor",
+        "company-intelligence-lab.html#loadCorpus"
+      ],
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 canonical company event path is requested once and exclusively"
+      ],
+      "evidenceRefs": [
+        "report.md#bug-025-sec-001-unit-matrix",
+        "report.md#bug-025-sec-001-canonical-browser",
+        "report.md#bug-025-sec-001-selftest",
+        "report.md#final-tree-test-phase-2026-09-01"
+      ]
+    },
+    {
+      "id": "SCN-BUG-025-007",
+      "scenarioId": "SCN-BUG-025-007",
+      "scopeId": "01-declare-and-enforce-one-read-bound",
+      "title": "An embedded backslash authority is refused before transport",
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "dependency-path",
+        "responsive-accessible",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "The current production route reaches its existing C025-CONFIG-SCHEMA route-level refusal and suppresses both result surfaces plus the subject identity before any settled output is presented."
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Reading readiness and unavailable coverage remain not-established, the fixed safe refusal omits the rejected payload, and no normalization, retry, repair, fallback, or unavailable-result substitution creates a success path."
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "The real browser and ephemeral origin record zero route-owned fetch or XHR requests, zero requests to the backslash payload, and zero off-origin requests after embedded validation begins."
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "The refusal is exposed through the existing visible atomic alert with role=alert, aria-live=assertive, and aria-atomic=true. Every non-empty childList or characterData update in that live region is counted without deduplicating identical text and totals exactly one. Initial-load refusal leaves document.activeElement exactly equal to document.body."
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The production route validates the embedded event pair before run() or readConfig() and raises exact C025-CONFIG-SCHEMA for the embedded backslash authority."
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "rlcompanyintel.js#readEventSource",
+          "company-intelligence-lab.html#paintFromEmbedded",
+          "company-intelligence-lab.html#renderRefusal"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "accessibility-tree",
+        "negativeControl": "Three bounded in-memory mutations are discriminating. Removing exactly the declared-versus-derived event-path equality guard must fail a named refusal or transport discriminator. Focusing #subject-input immediately after the alert becomes visible must fail only the exact document.activeElement === document.body assertion. Repeating the same non-empty alert text update immediately after reveal must fail only the exact one-update assertion. No runtime error, timeout, navigation failure, or server crash counts.",
+        "negativeControlMechanism": "mutation",
+        "mechanismNote": "Serve the production route with only its embedded event-path value changed and serve either production bytes or one exact bounded mutation from the real ephemeral origin. Keep the committed config and every repository data file unchanged. Count every non-empty childList or characterData record targeting #subject-refusal or a descendant; do not compare with a prior snapshot. Assert direct body-element identity, route state, alert semantics, and the complete browser/server request ledgers without request interception."
+      },
+      "implementationRefs": [
+        "rlcompanyintel.js#readEventSource",
+        "company-intelligence-lab.html#paintFromEmbedded",
+        "company-intelligence-lab.html#renderRefusal"
+      ],
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 embedded backslash authority refuses before transport"
+      ],
+      "evidenceRefs": [
+        "report.md#bug-025-sec-001-unit-matrix",
+        "report.md#bug-025-sec-001-embedded-browser",
+        "report.md#bug-025-sec-001-mutation-preconditions",
+        "report.md#bug-025-sec-001-selftest",
+        "report.md#final-tree-test-phase-2026-09-01"
+      ]
+    },
+    {
+      "id": "SCN-BUG-025-008",
+      "scenarioId": "SCN-BUG-025-008",
+      "scopeId": "01-declare-and-enforce-one-read-bound",
+      "title": "A served valid-subject and path mismatch becomes a terminal refusal",
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "riskTier": "high",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "dependency-path",
+        "responsive-accessible",
+        "runtime-config"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "After the valid embedded first paint, the current production route transitions in place to terminal C025-CONFIG-SCHEMA, keeps data-registry-source=embedded, and suppresses both result surfaces plus the subject identity."
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "The invalid served candidate cannot become an embedded success, ordinary unavailable result, retry, fallback, later settled repaint, or continuation from either registry."
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "After the held served candidate is released over the real ephemeral origin, the request ledger records no bar, event, plan, pointer, or version continuation and never requests the mismatched event path."
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "Every non-empty childList or characterData update in the fixed safe atomic alert is counted without deduplicating identical text and totals exactly one, the rejected path is absent, and the already focused subject input retains focus throughout the asynchronous refusal."
+        },
+        {
+          "trait": "runtime-config",
+          "requiredProof": "The served company:msft candidate paired with the canonical AAPL event path is validated before config or registry assignment and raises exact C025-CONFIG-SCHEMA."
+        }
+      ],
+      "testMechanism": {
+        "dependencyPath": "same-origin-real",
+        "productionOwners": [
+          "rlcompanyintel.js#readEventSource",
+          "company-intelligence-lab.html#readConfig",
+          "company-intelligence-lab.html#boot",
+          "company-intelligence-lab.html#renderRefusal"
+        ],
+        "entrypoint": "production-route",
+        "inputOrigin": "synthetic-fixture",
+        "assertionSurface": "accessibility-tree",
+        "negativeControl": "Three bounded in-memory mutations are discriminating: removing exactly the declared-versus-derived equality guard must expose mismatch acceptance or corpus continuation; removing exactly route-terminal result suppression must leave stale visibility or readiness; and repeating the same non-empty alert text update immediately after reveal must fail only the exact one-update assertion. Arbitrary runtime failure does not count.",
+        "negativeControlMechanism": "mutation",
+        "mechanismNote": "Serve the unmodified route and embedded object from a real ephemeral origin. Hold the served config response after request entry, assert embedded first paint, focus the subject input, then release a valid v2 object whose MSFT subject declares the canonical AAPL path. Record every non-empty childList or characterData alert update without snapshot deduplication, plus the full request ledger, visible and accessibility state, retained focus, registry-source state, and absence of later repaint. Mutated bytes exist only in bounded ephemeral server responses."
+      },
+      "implementationRefs": [
+        "rlcompanyintel.js#readEventSource",
+        "company-intelligence-lab.html#readConfig",
+        "company-intelligence-lab.html#boot",
+        "company-intelligence-lab.html#renderRefusal"
+      ],
+      "linkedTests": [
+        "tests/company-intelligence-lab.spec.mjs#Regression: BUG-025 served subject-path mismatch becomes terminal without continuation or focus theft"
+      ],
+      "evidenceRefs": [
+        "report.md#bug-025-sec-001-unit-matrix",
+        "report.md#bug-025-sec-001-served-browser",
+        "report.md#bug-025-sec-001-mutation-preconditions",
+        "report.md#bug-025-sec-001-selftest",
+        "report.md#final-tree-test-phase-2026-09-01"
+      ]
+    }
+  ]
+}

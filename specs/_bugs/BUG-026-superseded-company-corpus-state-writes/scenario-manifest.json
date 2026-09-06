@@ -1,0 +1,47 @@
+{
+  "contractVersion": "scenario-manifest/v1",
+  "version": 1,
+  "featureDir": "specs/_bugs/BUG-026-superseded-company-corpus-state-writes",
+  "generatedBy": "bubbles.bug",
+  "generatedAt": "2026-08-30T00:00:00Z",
+  "stage": "bug-filing",
+  "scenarioCount": 3,
+  "scenarios": [
+    {
+      "id": "SCN-BUG-026-001",
+      "scopeId": "01-make-current-subject-state-an-atomic-latest-intent-commit",
+      "title": "An older subject completes after a newer subject",
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "implementationRefs": ["company-intelligence-lab.html#loadCorpus"],
+      "plannedTest": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-026 a superseded load cannot overwrite the latest company intent",
+      "evidenceRefs": []
+    },
+    {
+      "id": "SCN-BUG-026-002",
+      "scopeId": "01-make-current-subject-state-an-atomic-latest-intent-commit",
+      "title": "An obsolete load populates only immutable keyed caches",
+      "behaviorClass": "ui",
+      "changeType": "fixed",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "implementationRefs": ["company-intelligence-lab.html#loadOptionalJson"],
+      "plannedTest": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-026 obsolete work changes no current-subject slot",
+      "evidenceRefs": []
+    },
+    {
+      "id": "SCN-BUG-026-003",
+      "scopeId": "01-make-current-subject-state-an-atomic-latest-intent-commit",
+      "title": "A refused replacement preserves the standing subject",
+      "behaviorClass": "ui",
+      "changeType": "regression",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "implementationRefs": ["company-intelligence-lab.html#applySubject"],
+      "plannedTest": "tests/company-intelligence-lab.spec.mjs#Regression: BUG-018 scope 1 data-corpus-status describes the subject on screen, not the one that left it",
+      "evidenceRefs": []
+    }
+  ]
+}

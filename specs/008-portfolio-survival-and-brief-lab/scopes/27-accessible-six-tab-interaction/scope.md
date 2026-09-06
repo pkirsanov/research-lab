@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `integration:accessibility`, `remediation`
 **Depends On:** 26
@@ -39,6 +39,10 @@ Scenario: A keyboard and screen-reader user completes the portfolio workflow und
 
 ## Change Boundary
 
+**Allowed file families:** the accessibility regions of `portfolio-survival-allocation-lab.html` (markup, CSS, and controller interaction only), `tests/portfolio-survival-accessibility.spec.mjs`, `tests/portfolio-survival-mobile.spec.mjs`, the accessibility fixtures under `tests/fixtures/portfolio-survival-allocation/**`, and the route parse/page-integrity canaries in `scripts/selftest.mjs`.
+
+**Excluded surfaces:** `rlportfolioanalytics.js`, `rlportfoliobrief.js`, the personal schemas in `rlportfolio.js`, `market-brief.*` and `scripts/brief-*`, `rlbrief.js`, provider credentials in `rldata.js`, shared navigation behavior in `rlnav.js` and `rlapp.js`, `rlchart.js`, `rlg.js`, `rlticker.js`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** route HTML/CSS/controller accessibility regions, Feature 008 accessibility fixtures, `tests/portfolio-survival-mobile.spec.mjs`, a focused accessibility browser carrier, and route parse/selftest canaries.
 - **Excluded:** analytics and ranking logic, personal schemas, generic publisher, provider credentials, unrelated shared navigation behavior, registry/docs, and framework-managed files.
 
@@ -57,6 +61,7 @@ Scenario: A keyboard and screen-reader user completes the portfolio workflow und
 | Mode and six-tab controls | Roving focus, activation, announcements, and active panels remain deterministic. |
 | Sheets, dialogs, tooltips, charts, and tables | Focus, semantics, equivalent content, and invoker restoration remain complete. |
 | Desktop, mobile, zoomed, spaced, reduced-motion, and forced-color projections | Every projection preserves the same identity, values, states, and conclusions. |
+| `applyDisplayMode` → `setRovingTabindex` → `#modeSimple` | TP-27-01 exact title `Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete` drives Arrow, Home, End, Enter, and Space, then observes the single roving tab stop and the selected mode's pressed state. |
 
 ## UI Scenario Matrix
 
@@ -69,14 +74,14 @@ Scenario: A keyboard and screen-reader user completes the portfolio workflow und
 
 ## Test Plan
 
-**Execution Reconciliation:** These rows remain planning-owned definitions. Their execution proof is not authored or restated here: each row links to the test-owned report, and its [post-merge validation](report.md#post-merge-validation---2026-08-23) records merged-tree coverage for the SCN-008-053 browser carrier and repository selftest. The eight checked DoD items below resolve to those report anchors, so this planning artifact retains the scope-level `Done` mirror without making a planner execution or feature-certification claim. TP-27-04 uses Playwright interception for disposable document mutations, so it remains a non-live `functional` carrier rather than `e2e-ui`. TP-27-05 reuses the pre-existing shared selftest carrier and is not a Scope 27-authored scenario test.
+**Execution Reconciliation:** These rows remain planning-owned definitions. Their execution proof is not authored or restated here: each row links to the test-owned report, and its [post-merge validation](report.md#post-merge-validation---2026-08-23) records merged-tree coverage for the SCN-008-053 browser carrier and repository selftest. The eight checked DoD items below resolve to those report anchors, so this planning artifact retains the scope-level `Done` mirror without making a planner execution or feature-certification claim. TP-27-04 uses Playwright interception for disposable document mutations, so it remains a non-live `functional` carrier rather than `e2e-ui`, and it is held in the separate carrier file its row names rather than beside the rows above. Co-locating an intercepting carrier with live-stack carriers made the whole file read as a live-system carrier that contained an intercept, which the canonical taxonomy forbids; the split follows the boundary that taxonomy already draws and changes no assertion. TP-27-05 reuses the pre-existing shared selftest carrier and is not a Scope 27-authored scenario test.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Authoring Status | Evidence |
 |---|---|---|---|---|---|---|---|---|---|
 | TP-27-01 | Regression E2E | e2e-ui | 053 | `tests/portfolio-survival-accessibility.spec.mjs` | Exact title: `Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete` | `npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 keyboard tabs modals and screen reader states are complete" --reporter=list` | Yes | Authored | `report.md#tp-27-01` |
 | TP-27-02 | Preferences E2E | e2e-ui | 053 | `tests/portfolio-survival-accessibility.spec.mjs` | Exact title: `Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision` | `npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 reduced motion forced colors contrast and text spacing preserve every decision" --reporter=list` | Yes | Authored | `report.md#tp-27-02` |
 | TP-27-03 | Responsive E2E | e2e-ui | 053 | `tests/portfolio-survival-mobile.spec.mjs` | Exact title: `Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow` | `npx --no-install playwright test tests/portfolio-survival-mobile.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-008-053 zoom mobile and long content have no overlap clipping or body overflow" --reporter=list` | Yes | Authored | `report.md#tp-27-03` |
-| TP-27-04 | Adversarial mutation | functional | 053 | `tests/portfolio-survival-accessibility.spec.mjs` | Disposable keyboard, skip-link, focus, motion, and color-only mutations each fail | `npx --no-install playwright test tests/portfolio-survival-accessibility.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Adversarial: SCN-008-053 reduced accessibility implementations fail closed" --reporter=list` | No | Authored | `report.md#tp-27-04` |
+| TP-27-04 | Adversarial mutation | functional | 053 | `tests/portfolio-accessibility-mutation.spec.mjs` | Disposable keyboard, skip-link, focus, motion, and color-only mutations each fail | `npx --no-install playwright test tests/portfolio-accessibility-mutation.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Adversarial: SCN-008-053 reduced accessibility implementations fail closed" --reporter=list` | No | Authored | `report.md#tp-27-04` |
 | TP-27-05 | Broader regression | functional | 053 | `scripts/selftest.mjs` | Shared route, registry, and static-site invariants remain green | `node scripts/selftest.mjs` | No | Existing shared carrier | `report.md#tp-27-05` |
 
 ## Rollback And Restore
@@ -87,7 +92,15 @@ Scenario: A keyboard and screen-reader user completes the portfolio workflow und
 
 ### Definition of Done - Tiered Validation
 
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Scope-27 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 27 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 27 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
+
 - [x] SCN-008-053 is implemented across keyboard, screen reader, preferences, zoom, touch, desktop, and mobile without changing conclusions. Evidence: [scenario contract](report.md#scenario-contract-evidence), and the no-conclusion-change half is proven by the control-verified [projection-only proof](report.md#projection-only-proof) — 166 analytics-token matches in the file, 0 across all 399 added lines.
+- [ ] A keyboard and screen-reader user completes the portfolio workflow under accessibility preferences: with reduced motion, forced colors, 200 percent zoom, and text-spacing overrides active, using the skip link, navigating mode and workspace tabs with Arrow/Home/End/Enter/Space, opening and closing modal sheets, and inspecting every chart, table, and truth state keeps focus order, selection announcements, labels, errors, and return targets deterministic; modal focus is trapped only while open and returns to the invoker; every chart decision is available in an equivalent table without motion or color dependence; and no text, control, focus ring, tooltip, sheet, or status overlaps, clips, or causes body-level horizontal scrolling.
 - [x] TP-27-01 keyboard/screen-reader real-page regression passes. Evidence: [TP-27-01](report.md#tp-27-01).
 - [x] TP-27-02 reduced-motion/forced-colors/contrast/text-spacing real-page regression passes. Evidence: [TP-27-02](report.md#tp-27-02).
 - [x] TP-27-03 responsive/zoom/no-overlap real-page regression passes. Evidence: [TP-27-03](report.md#tp-27-03).

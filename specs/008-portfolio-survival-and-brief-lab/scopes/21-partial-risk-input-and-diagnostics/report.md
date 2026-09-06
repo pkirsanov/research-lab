@@ -214,6 +214,29 @@ Artifact lint and canonical focused traceability pass. All five declared command
 X-Ray browser carrier passes 13/13, and the repository selftest passes 3,192/0. Scope 21 is ready for
 planning-owned DoD closure and validate-owned status reconciliation.
 
+The consolidated receipt below repeats the exact command, exit code, and result line of each row already
+recorded under Test Evidence and Lint And Quality in this report; no new execution is claimed here.
+
+```text
+# Scope 21 declared matrix — 5 of 5 commands executed, 0 failed, 0 skipped
+$ node --test tests/portfolio-analytics.unit.mjs
+exit: 0
+# tests 81   # pass 81   # fail 0   # skipped 0
+$ node --test tests/portfolio-risk.functional.mjs
+exit: 0
+# tests 2   # pass 2   # fail 0   # skipped 0
+$ npx --no-install playwright test tests/portfolio-survival-risk.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list
+exit: 0
+13 passed
+$ node --test --test-name-pattern="Adversarial: reduced risk input and diagnostic paths cannot satisfy Risk X Ray" tests/portfolio-analytics.unit.mjs
+exit: 0
+# tests 1   # pass 1   # fail 0   # skipped 0
+$ node scripts/selftest.mjs
+exit: 0
+Research-Lab self-test: 3192 passed, 0 failed
+RESULT: PASSED (0 warnings)
+```
+
 ## Audit Verdict
 
 Scope 21 implementation, tests, rollback behavior, and cross-consumer compatibility are internally consistent.

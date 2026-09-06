@@ -74,4 +74,8 @@ claim Facet-C ratification for either rule.
 - Adversarial contract proof: `tests/distributed-briefs.contract.mjs`
 - Registry-addition and non-actionability E2E proof: `tests/distributed-briefs-foundation.e2e.mjs`
 - Product architecture and operating contract: `README.md` and `.github/copilot-instructions.md`
-- Per-feature field-level models: `specs/*/design.md` under each feature's `## Data Model`
+- Per-feature field-level models: `specs/<feature>/design.md`, under whichever contract
+  section that design declares. Most feature designs do not use a `## Data Model`
+  heading, so read the design's own headings rather than assuming one name. Feature
+  008's portfolio, dossier and return-context contracts, for example, sit under
+  `## Contract And Error Model` and `## Storage, Migration, Quarantine, And Atomicity`.

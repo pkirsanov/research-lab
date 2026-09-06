@@ -2,7 +2,7 @@
 
 Links: [spec.md](../../spec.md) | [design.md](../../design.md) | [scope index](../_index.md) | [report.md](report.md)
 
-**Status:** Done
+**Status:** In Progress
 **Scope-Kind:** runtime-behavior
 **Tags:** `foundation:true`, `remediation`
 **Depends On:** 17
@@ -38,6 +38,10 @@ Scenario: Repeated completed research produces one consistent relevance result
 
 ## Change Boundary
 
+**Allowed file families:** `rlportfolio.js` (behavior-event and occurrence regions), `rlportfoliobrief.js`, the Brief and Why-shown regions of `portfolio-survival-allocation-lab.html`, `tests/portfolio-behavior-occurrence.unit.mjs`, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-privacy.functional.mjs`, `tests/portfolio-survival-brief.spec.mjs`, and the behavior fixtures under `tests/fixtures/portfolio-survival-allocation/**`.
+
+**Excluded surfaces:** the mandate/optimizer, risk, and path regions of `rlportfolioanalytics.js`, `rldata.js` generic evidence acquisition, `rlnav.js`, `rlbrief.js`, `market-brief.html`, `market-brief.*.json`, `scripts/brief-*`, `tools.json`, `index.html`, `README.md`, `notes/**`, `package.json`, `package-lock.json`, `specs/001-*` through `specs/007-*`, and `.github/bubbles/**`.
+
 - **Allowed:** `rlportfolio.js`, `rlportfoliobrief.js`, the Brief/Why-shown route regions, behavior fixtures, `tests/portfolio-brief.functional.mjs`, `tests/portfolio-privacy.functional.mjs`, and `tests/portfolio-survival-brief.spec.mjs`.
 - **Excluded:** mandate/optimizer inputs, public publisher outputs, generic evidence acquisition, risk/path math, registry/docs, and framework-managed files.
 
@@ -56,6 +60,9 @@ Scenario: Repeated completed research produces one consistent relevance result
 | Behavior store and privacy clear | Occurrences retain complete identities and remain clearable without changing explicit portfolio facts. |
 | Portfolio Brief and Why shown | Both consume the same rank result, reasons, and suppressed-action inventory. |
 | Route rows and dossier records | Action IDs, order, cutoff, and policy fingerprint remain identical across projections. |
+| `rankResearchActions` → `renderBrief` → `#briefLanes` | TP-18-03 exact title `Regression: SCN-008-044 behavior identity decay floor and ranking remain canonical across every projection` reads the rendered action rows and proves their IDs, order, rank reasons, and ranking fingerprint match the canonical result across modes and reload. |
+
+This scope keeps every consumer identifier stable, so the sweep is a stale-reference scan over the two in-tool deep links the ranking result reaches — `portfolio-survival-allocation-lab.html#brief` (`workspaceTabBrief`) and `portfolio-survival-allocation-lab.html#dossier` (`workspaceTabDossier`) — confirming action IDs, reason keys, and the suppressed-action inventory resolve identically from both.
 
 ## UI Scenario Matrix
 
@@ -66,7 +73,7 @@ Scenario: Repeated completed research produces one consistent relevance result
 
 ## Test Plan
 
-Every remediation assertion and exact title below is `planned-not-authored` at P1. Existing carrier paths do not imply that the new test exists.
+Four rows have authored current declarations, including TP-18-03's exact browser title. TP-18-05 remains an aggregate planned carrier because the named selftest file has no exact TP-18-05 declaration. This authorship reconciliation grants no execution credit.
 
 | ID | Test Type | Category | Scenario | File / Location | Executable Behavior | Command | Live System | Evidence |
 |---|---|---|---|---|---|---|---|---|
@@ -84,7 +91,15 @@ Every remediation assertion and exact title below is `planned-not-authored` at P
 
 ### Definition of Done - Tiered Validation
 
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior
+  - **Two facts together, 2026-08-29 (session-bound).** Existence and discrimination: all 55 manifest scenarios resolve to receipt-derived states across RED_VERIFIED → IMPLEMENTED → GREEN_TARGETED → GREEN_LIVE → REGRESSION_GREEN, so each has a carrier proven to fail when its behavior is broken. Passing: those carriers ran green inside the complete-repository suite at HEAD `1bfa922c9` — `767 passed (16.5m)`. A pass alone would not show the tests discriminate; the receipts are what make this more than a green count.
+- [x] Broader E2E regression suite passes
+  - **Re-verified 2026-08-29 (session-bound):** `npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome` at HEAD `1bfa922c9` → `767 passed (16.5m)`, zero failures. A complete-repository pass is a superset of this scope's named broad row, so it discharges it directly.
+- [ ] Scope-18 attribution covers every claimed path and marker, hunk, or whole-file ownership declaration, with no unauthorized excluded coupling. It makes no isolated-commit claim and no claim about unrelated co-committed paths. → **Resolution condition:** the Scope 18 `boundary` result from the Feature 008 verifier passes, its attributed path set is complete, and an independent audit accepts the result.
+- [ ] Consumer impact sweep completed; zero stale first-party references remain → **Resolution condition:** the Scope 18 `consumer` result from the Feature 008 verifier proves non-vacuous matches for every declared canonical identifier, source surface, consumer class, and test carrier, with zero forbidden stale aliases. The focused behavior tests named in this scope's Test Plan pass, and an independent audit accepts the result.
+
 - [x] SCN-008-044 is implemented with one canonical ranking projection and no engagement or constraint inference. → Evidence: [TP-18-01](report.md#tp-18-01), [TP-18-03](report.md#tp-18-03), [Scenario Contract Evidence](report.md#scenario-contract-evidence)
+- [ ] Repeated completed research produces one consistent relevance result: only exact semantic duplicates collapse, future-dated events are rejected or quarantined instead of receiving extra weight, the evidence floor uses distinct eligible dates and completion identities rather than raw event count, and storage, Portfolio Brief, Why shown, and route order expose the same canonical ranked action identities. Verifying rows: TP-18-01, TP-18-03, and TP-18-04.
 - [x] TP-18-01 functional evidence passes. → Evidence: [TP-18-01](report.md#tp-18-01)
 - [x] TP-18-02 privacy functional evidence passes. → Evidence: [TP-18-02](report.md#tp-18-02)
 - [x] TP-18-03 real-page regression passes. → Evidence: [TP-18-03](report.md#tp-18-03)

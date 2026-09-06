@@ -9,6 +9,131 @@ detection band values were drafted under delegation without owner review.
 
 ---
 
+## Change Boundary
+
+This packet is a repair, so its delivery surface is bounded, and the bound below is
+derived from git rather than asserted. It is the `git show --stat` union of the
+non-artifact files changed by this packet's own delivery commits. Nothing was added
+to widen it and nothing was omitted to narrow it.
+
+**Delivery commits** — ten logical changes across seventeen commit objects. Seven
+landed twice as duplicate-subject pairs when the merge `e8235b996` reconciled local
+research work with remote `main`; each pair carries an identical file set, so the
+duplication moves the boundary not at all. All seventeen are ancestors of `HEAD`.
+
+| Logical change | Commit (duplicate) |
+| --- | --- |
+| `fix(BUG-009 R1)` produce the observed half | `8eec36f74` (`90c9d73c9`) |
+| `fix(BUG-009 R1)` attach the observed half on both builder entry points | `bc1bd98e7` (`3e170e637`) |
+| `fix(BUG-009 R1)` bind lane judgement to its instrument | `c54f9142c` (`92da4a953`) |
+| `fix(BUG-009 R1)` observe the market benchmark | `723f952a8` (`48a1fa3d9`) |
+| `revert(BUG-009 R1)` the benchmark is not observable, and pin why | `5d240bf7a` (`49d9957fe`) |
+| `fix(brief)` tell the lane the one-ticker rule | `80abbf3c9` |
+| `harden(BUG-009)` close the pin that could not fail | `9f4a8f628` |
+| `simplify(BUG-009)` retire the superseded verb wrapper | `fde43b91a` |
+| `fix(BUG-009 R4)` an empty feed states refusal, not calm | `e2178ad3e` (`5eac1fcd9`) |
+| `fix(BUG-009 R4)` dedupe exclusions in the page projection | `496923a72` (`7933ff178`) |
+
+**Allowed file families** — the complete delivery surface. Eleven paths and no
+twelfth.
+
+| Allowed path | Permitted change | Changed by |
+| --- | --- | --- |
+| `rlattentiongate.js` | The observed-half producer this packet adds — `observeGate`, `attachObserved`, `resolvePolicy`, `resolveSubject` and their top-level helpers. | 7 of the 10 |
+| `scripts/build-attention-items.mjs` | Attach the observed half on both builder entry points; carry the refusal records. | 5 of the 10 |
+| `scripts/selftest.mjs` | The `BUG-009 R1` and `BUG-009 R4` assertion groups. | all 10 |
+| `market-brief.config.json` | Declare `attention-detection-policy/v1`, the external artifact the producer reads. | `8eec36f74` |
+| `rlbrief.js` | `emptyAttentionStatement` — one empty-feed vocabulary, inside spec 026's renderer. | `e2178ad3e`, `496923a72` |
+| `market-brief.html` | Pass the payload's `attentionExclusions` through; hold no second copy of the vocabulary. | `e2178ad3e` |
+| `scripts/build-brief-page-artifacts.mjs` | Carry `attentionExclusions` into the page projection, deduped to fit the first-load budget. | `e2178ad3e`, `496923a72` |
+| `scripts/brief-narrative-parallel.mjs` | Tell the authoring lane the one-ticker rule the subject resolver enforces. | `80abbf3c9` |
+| `tests/market-brief-cockpit.spec.mjs` | The `SCN-BUG009-R4` refused-versus-quiet browser rows. | `e2178ad3e`, `496923a72` |
+| `notes/market-brief.md` | The runbook half of the benchmark observation, added and then reverted with the reason pinned. | `723f952a8`, `5d240bf7a` |
+| `market-brief.page.json` | Regenerated projection, written by `build-brief-page-artifacts.mjs` and never hand-edited. | `e2178ad3e`, `496923a72` |
+
+Packet artifacts under
+`specs/_bugs/BUG-009-decision-attention-gate-result-producer-absent/` carry
+execution evidence and execution-only state. They are bookkeeping rather than
+delivery and sit outside the eleven-path surface above. Across all seventeen
+delivery objects the only `specs/` prefix touched is `specs/_bugs/`.
+
+**Excluded surfaces** — each verified untouched by every one of the seventeen
+delivery objects. A change to any of these is a boundary violation, and collateral
+cleanup inside them is not authorized.
+
+| Excluded surface | Reason |
+| --- | --- |
+| `rlattention.js` | The attention renderer. Scope 4 settles the empty-feed vocabulary in `rlbrief.js` precisely so no second copy lands here. Its byte-budget repair `ac8d3f3ef` belongs to BUG-014, not to this packet. |
+| `tests/attention-browser.spec.mjs` | Spec 017's cockpit suite. This packet runs it as a regression gate and never edits it — see the discrepancy note below. |
+| `.github/workflows/tier-a.yml` | Scope 4b decided the omitted payload path is a boundary rather than an oversight; adding it would stage whatever happened to be dirty in the runner. |
+| `scripts/brief-refresh.mjs` | Reads the payload as a committed artifact and never writes it — the R-5 boundary its own comment names. |
+| `scripts/brief-refresh-and-push.sh` | The publication driver. Executed to produce evidence, never modified. |
+| `market-brief.payload.json` | Written by scheduled publication runs. This packet observes it and never hand-edits it. |
+| `scripts/validate-brief-payload.mjs` | Run as a gate at exit 0. The validator is inspected, never relaxed to admit this packet's output. |
+| `rlcockpit.js`, `market-brief.config.page.json` | Adjacent brief surfaces owned by spec 026 and the brief-decision work. |
+| `index.html`, `tools.json`, `rlnav.js` | The registry and navigation triple. This packet adds no tool and changes no route. |
+| `specs/026-actionable-brief-brevity-and-cross-asset/` | Coordinated with — Scope 4 settles ownership of the empty-feed statement there — but never edited from this packet. |
+| `specs/008-portfolio-survival-and-brief-lab/`, `specs/007-technical-analysis-decision-lab/`, `specs/017-*` | Foreign packets, including the unrelated `BUG-009-risk-mutation-assertion-origin` that shares this packet's number and nothing else. |
+| `.github/bubbles/**` | Framework-managed; changes only through the sanctioned installer. |
+
+**One discrepancy, recorded rather than papered over.** Every Test Plan row in this
+file names `tests/attention-browser.spec.mjs` as the regression E2E file. Git does
+not support that. No delivery commit touches it, and the `SCN-BUG009-R4` rows this
+packet wrote live in `tests/market-brief-cockpit.spec.mjs` — eleven `BUG-009`
+references there against two incidental ones in the browser suite. Running the
+browser suite as a regression gate was real and is not in question; the claim that
+this packet's rows live in it is what the commits contradict. The boundary above
+records where the code actually went. Correcting the Test Plan rows is a separate
+edit and is deliberately not made here.
+
+- [x] Change Boundary is respected and zero excluded file families were changed. **VERIFIED BY EXECUTION rather than asserted.** **Evidence:** the allowed table and the excluded table are complements produced by one sweep over all seventeen delivery objects, not two claims written independently. Raw output below.
+
+**Command** (run from `<repo-root>`, `DELIV` = the seventeen delivery objects):
+
+```
+$ for f in <excluded paths>; do HIT=""; for c in $DELIV; do \
+    git --no-pager show --stat --format='' "$c" --name-only | grep -qxF "$f" && HIT="$HIT $c"; \
+  done; [ -z "$HIT" ] && echo "  UNTOUCHED: $f" || echo "  TOUCHED($HIT): $f"; done
+
+  UNTOUCHED: rlattention.js
+  UNTOUCHED: tests/attention-browser.spec.mjs
+  UNTOUCHED: .github/workflows/tier-a.yml
+  UNTOUCHED: scripts/brief-refresh.mjs
+  UNTOUCHED: scripts/brief-refresh-and-push.sh
+  UNTOUCHED: market-brief.payload.json
+  UNTOUCHED: rlcockpit.js
+  UNTOUCHED: scripts/validate-brief-payload.mjs
+  UNTOUCHED: market-brief.config.page.json
+  UNTOUCHED: index.html
+  UNTOUCHED: tools.json
+  UNTOUCHED: rlnav.js
+
+$ # same sweep, directory prefixes
+  UNTOUCHED: specs/026-actionable-brief-brevity-and-cross-asset/
+  UNTOUCHED: .github/bubbles/
+  UNTOUCHED: specs/008-portfolio-survival-and-brief-lab/
+  UNTOUCHED: specs/007-technical-analysis-decision-lab/
+  UNTOUCHED: specs/017-
+
+$ # which specs/ prefixes the delivery objects DO touch
+  specs/_bugs/
+
+$ # the complementary ALLOWED union, with the number of delivery objects touching each
+     17 scripts/selftest.mjs
+     11 rlattentiongate.js
+      7 scripts/build-attention-items.mjs
+      4 tests/market-brief-cockpit.spec.mjs
+      4 scripts/build-brief-page-artifacts.mjs
+      4 rlbrief.js
+      4 notes/market-brief.md
+      4 market-brief.page.json
+      2 market-brief.html
+      2 market-brief.config.json
+      1 scripts/brief-narrative-parallel.mjs
+```
+
+---
+
 ## Scope 1: Owner decision on remedy direction
 
 **Status:** Done

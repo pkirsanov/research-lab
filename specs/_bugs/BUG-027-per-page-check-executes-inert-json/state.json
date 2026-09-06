@@ -1,0 +1,164 @@
+{
+  "version": 3,
+  "featureDir": "specs/_bugs/BUG-027-per-page-check-executes-inert-json",
+  "featureName": "BUG-027 Per-Page Check Executes Inert JSON as JavaScript",
+  "createdAt": "2026-08-31T06:48:04Z",
+  "lastUpdatedAt": "2026-08-31T07:21:18Z",
+  "status": "in_progress",
+  "blockedReason": null,
+  "workflowMode": "bugfix-fastlane",
+  "planningOnly": false,
+  "planningOnlyJustification": null,
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "specDependsOn": [],
+  "scopeLayout": "single-file",
+  "requiresRevalidation": false,
+  "artifacts": {
+    "bug": "bug.md",
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes.md",
+    "report": "report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json"
+  },
+  "execution": {
+    "activeAgent": "bubbles.bug",
+    "currentPhase": "design",
+    "currentPhaseStatus": "route_required",
+    "substate": null,
+    "executionModel": "direct-authorized-runner",
+    "runStartedAt": "2026-08-31T06:48:04Z",
+    "completedAt": null,
+    "currentScope": "01-type-aware-per-page-validation",
+    "nextRequiredOwner": "bubbles.design",
+    "nextRequiredTarget": "BUG-027 executable MIME inventory and final validator design",
+    "nextRequiredReason": "The filing independently reproduced the registered command failure and corrected its premature unauthored-carrier path reference. Design ownership must confirm the executable MIME allowlist and module parser rule before plan ownership selects a carrier path and confirms the scenario links. No implementation dispatch is authorized by this filing.",
+    "completedPhaseClaims": [
+      {
+        "phase": "bug",
+        "agent": "bubbles.bug",
+        "claimSource": "executed",
+        "partial": false,
+        "claimedAt": "2026-08-31T06:48:04Z",
+        "evidenceRef": "report.md#current-session-reproduction",
+        "scopes": [],
+        "note": "Validated the Research Lab binding, reproduced the canonical command failure, allocated collision-free BUG-027, and created the full filing packet without changing runtime or test files."
+      }
+    ],
+    "scopeInventory": [
+      {
+        "scopeId": "01-type-aware-per-page-validation",
+        "scope": 1,
+        "status": "Not Started",
+        "dependsOn": []
+      }
+    ],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "executionHistory": [
+    {
+      "at": "2026-08-31T06:48:04Z",
+      "phase": "bug",
+      "agent": "bubbles.bug",
+      "action": "filed-independent-command-validator-defect",
+      "note": "Reproduced BUG-025-SIMPLIFY-GAP-001 with the exact registered per-page validator. Filed BUG-027 with four adversarial scenario contracts. Runtime repair and post-fix verification remain unclaimed.",
+      "phasesExecuted": [
+        "bug"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SIMPLIFY-GAP-001:filed"
+      ],
+      "unresolvedFindings": [
+        "BUG-027-DESIGN-OWNERSHIP"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "evidenceRef": "report.md#current-session-reproduction"
+    },
+    {
+      "at": "2026-08-31T07:21:18Z",
+      "phase": "bug",
+      "agent": "bubbles.bug",
+      "action": "corrected-filing-artifact-test-path-hygiene",
+      "note": "Removed the premature unauthored carrier path from the BUG-027 filing seed while retaining all four adversarial scenarios, focused Test Plan intent, and empty linkedTests. The focused path guard now reports zero new missing paths. Artifact lint passes. The repository selftest now fails only on the untouched validate-owned BUG-025 certification count.",
+      "phasesExecuted": [
+        "bug"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "outcome": "route_required",
+      "addressedFindings": [
+        "BUG-025-SELFTEST-001"
+      ],
+      "unresolvedFindings": [
+        "BUG-027-DESIGN-REQUIRED"
+      ],
+      "nextRequiredOwner": "bubbles.design",
+      "evidenceRef": "report.md#filing-artifact-hygiene-2026-08-31"
+    }
+  ],
+  "certification": {
+    "status": "in_progress",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scopeId": "01-type-aware-per-page-validation",
+        "status": "not_started",
+        "dodChecked": 0,
+        "dodUnchecked": 9
+      }
+    ],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    },
+    "invalidationLedger": []
+  },
+  "transitionRequests": [
+    {
+      "id": "BUG-027-ROUTE-001",
+      "status": "pending",
+      "fromAgent": "bubbles.bug",
+      "nextRequiredOwner": "bubbles.design",
+      "target": "Finalize BUG-027 type-aware validator design from the current executable script-type inventory",
+      "reason": "Confirm the executable MIME allowlist and module-script parser rule. Preserve application/json parsing, executable syntax checks, literal DOM-ID checks, one explicit-page command, and the excluded product-source boundary. Route the finalized design to bubbles.plan for scope ownership."
+    }
+  ],
+  "reworkQueue": [],
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "workflow-forced"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  }
+}

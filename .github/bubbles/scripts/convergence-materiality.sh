@@ -72,6 +72,12 @@
 #   2  usage or runtime error
 set -euo pipefail
 
+SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" >/dev/null 2>&1 && pwd -P)"
+SESSION_STATE_LIB="$SCRIPT_DIR/session-state-lib.sh"
+[[ -f "$SESSION_STATE_LIB" ]] || { echo "convergence-materiality: required session-state library not found: $SESSION_STATE_LIB" >&2; exit 2; }
+# shellcheck source=./session-state-lib.sh
+source "$SESSION_STATE_LIB"
+
 usage() {
   cat <<'EOF'
 Usage: convergence-materiality.sh check --session-file <path> --planned-delta <json>
@@ -166,80 +172,92 @@ scenario_targets() {
   fi
 }
 
-write_baseline() {
-  local payload="$1" revision="$2" tmp
-  tmp="$(mktemp "$(dirname "$SESSION_FILE")/.convergence-materiality.XXXXXX")"
-  jq --argjson b "$payload" --argjson rev "$revision" \
-    '. + { convergenceBaseline: ($b + { atRevision: $rev }) }' "$SESSION_FILE" > "$tmp"
-  mv "$tmp" "$SESSION_FILE"
-}
+materiality_baseline_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3"
+  local current="$4" command_kind="$5" iteration="$6"
+  local revision baseline at growth
+  : "$operation_context"
 
-contract_revision() {
-  jq -r '.goalContract.revision // 0' "$SESSION_FILE"
-}
+  revision="$(jq -r '.goalContract.revision // 0' "$locked_input")" || return 2
+  baseline="$(jq -c '.convergenceBaseline // null' "$locked_input")" || return 2
 
-cmd_show() {
-  parse "$@"
-  jq -c '.convergenceBaseline // null' "$SESSION_FILE"
-}
-
-cmd_baseline() {
-  parse "$@"
-  require_delta
-  local current rev existing
-  current="$(normalise "$PLANNED_DELTA" "$(scenario_targets)")"
-  rev="$(contract_revision)"
-  existing="$(jq -c '.convergenceBaseline // null' "$SESSION_FILE")"
-  if [[ "$existing" != "null" ]]; then
-    local at
-    at="$(jq -r '.atRevision // -1' <<< "$existing")"
-    # Re-baselining without an approved revision is how a brake gets released
-    # from inside the loop. Only a contract revision may reset it.
-    [[ "$at" != "$rev" ]] ||
-      fail_refuse "a baseline already exists at contract revision $rev. Re-baselining without an approved revision would release the brake from inside the loop — widen the contract with 'goal-contract.sh revise --approval-note' first."
+  if [[ "$command_kind" == "baseline" ]]; then
+    if [[ "$baseline" != "null" ]]; then
+      at="$(jq -r '.atRevision // -1' <<< "$baseline")" || return 2
+      if [[ "$at" == "$revision" ]]; then
+        echo "convergence-materiality: REFUSED — a baseline already exists at contract revision $revision. Re-baselining without an approved revision would release the brake from inside the loop — widen the contract with 'goal-contract.sh revise --approval-note' first." >&2
+        return 1
+      fi
+    fi
+    jq --argjson b "$current" --argjson rev "$revision" \
+      '. + { convergenceBaseline: ($b + { atRevision: $rev }) }' "$locked_input" > "$candidate" || return 2
+    echo "convergence-materiality: baseline recorded at contract revision $revision"
+    return 0
   fi
-  write_baseline "$current" "$rev"
-  echo "convergence-materiality: baseline recorded at contract revision $rev"
-}
-
-cmd_check() {
-  parse "$@"
-  require_delta
-  local current rev baseline
-  current="$(normalise "$PLANNED_DELTA" "$(scenario_targets)")"
-  rev="$(contract_revision)"
-  baseline="$(jq -c '.convergenceBaseline // null' "$SESSION_FILE")"
 
   if [[ "$baseline" == "null" ]]; then
-    write_baseline "$current" "$rev"
-    echo "convergence-materiality: OK (first iteration — baseline recorded at contract revision $rev)"
+    jq --argjson b "$current" --argjson rev "$revision" \
+      '. + { convergenceBaseline: ($b + { atRevision: $rev }) }' "$locked_input" > "$candidate" || return 2
+    echo "convergence-materiality: OK (first iteration — baseline recorded at contract revision $revision)"
     return 0
   fi
 
-  # An approved revision legitimately resets the brake: the operator has just
-  # re-declared what the goal is allowed to become.
-  local at
-  at="$(jq -r '.atRevision // -1' <<< "$baseline")"
-  if [[ "$at" != "$rev" ]]; then
-    write_baseline "$current" "$rev"
-    echo "convergence-materiality: OK (contract revision moved $at -> $rev; baseline re-recorded against the approved contract)"
+  at="$(jq -r '.atRevision // -1' <<< "$baseline")" || return 2
+  if [[ "$at" != "$revision" ]]; then
+    jq --argjson b "$current" --argjson rev "$revision" \
+      '. + { convergenceBaseline: ($b + { atRevision: $rev }) }' "$locked_input" > "$candidate" || return 2
+    echo "convergence-materiality: OK (contract revision moved $at -> $revision; baseline re-recorded against the approved contract)"
     return 0
   fi
 
-  local growth
   growth="$(jq -r -n --argjson b "$baseline" --argjson c "$current" '
     [ (($c.changeClasses - $b.changeClasses)[] | "change class \(. | tojson)"),
       (($c.targets - $b.targets)[] | "target \(. | tojson)"),
       ($c.counts | to_entries[] | . as $e
         | select($e.value > (($b.counts[$e.key]) // 0))
         | "\($e.key) \((($b.counts[$e.key]) // 0)) -> \($e.value)") ]
-    | join("; ")')"
+    | join("; ")')" || return 2
 
   if [[ -n "$growth" ]]; then
-    fail_refuse "iteration ${ITERATION:-<n>} grows the goal: $growth. Undeclared expansion is a NEW GOAL, not a fixable obstacle — neverStopForFixableObstacles does not apply. Either narrow the plan back inside the baseline, or record an approved widening with 'goal-contract.sh revise --approval-note' and re-baseline."
+    echo "convergence-materiality: REFUSED — iteration ${iteration:-<n>} grows the goal: $growth. Undeclared expansion is a NEW GOAL, not a fixable obstacle — neverStopForFixableObstacles does not apply. Either narrow the plan back inside the baseline, or record an approved widening with 'goal-contract.sh revise --approval-note' and re-baseline." >&2
+    return 1
   fi
 
-  echo "convergence-materiality: OK (iteration ${ITERATION:-<n>} is within the baseline at contract revision $rev)"
+  cp "$locked_input" "$candidate" || return 3
+  echo "convergence-materiality: OK (iteration ${iteration:-<n>} is within the baseline at contract revision $revision)"
+}
+
+cmd_show() {
+  parse "$@"
+  local snapshot rc=0
+  snapshot="$(mktemp "${TMPDIR:-/tmp}/convergence-materiality-show.XXXXXX")" || fail_usage "could not create immutable session snapshot"
+  session_state_read_object "$SESSION_FILE" refuse "$snapshot" || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    rm -f "$snapshot"
+    return "$rc"
+  fi
+  jq -c '.convergenceBaseline // null' "$snapshot"
+  rm -f "$snapshot"
+}
+
+cmd_baseline() {
+  parse "$@"
+  require_delta
+  local current transaction_rc=0
+  current="$(normalise "$PLANNED_DELTA" "$(scenario_targets)")"
+  session_state_transaction "$SESSION_FILE" refuse convergence-materiality-baseline \
+    materiality_baseline_mutation "$current" baseline "$ITERATION" || transaction_rc=$?
+  return "$transaction_rc"
+}
+
+cmd_check() {
+  parse "$@"
+  require_delta
+  local current transaction_rc=0
+  current="$(normalise "$PLANNED_DELTA" "$(scenario_targets)")"
+  session_state_transaction "$SESSION_FILE" refuse convergence-materiality-check \
+    materiality_baseline_mutation "$current" check "$ITERATION" || transaction_rc=$?
+  return "$transaction_rc"
 }
 
 # ===========================================================================
@@ -364,25 +382,85 @@ target_digest() {
 }
 
 adhoc_surface_recorded() {
-  [[ -f "$SESSION_FILE" ]] || return 1
-  jq -e --arg sid "$ADHOC_SESSION_ID" '(.adHocSurfaces[$sid] // null) != null' "$SESSION_FILE" >/dev/null 2>&1
+  local snapshot="$1"
+  jq -e --arg sid "$ADHOC_SESSION_ID" '(.adHocSurfaces[$sid] // null) != null' "$snapshot" >/dev/null 2>&1
 }
 
-# The effective surface is the opening declaration PLUS every boundary declared
-# since. Both are read together so a widened session never has to re-open.
-adhoc_effective_surface() {
-  jq -r --arg sid "$ADHOC_SESSION_ID" '
-    (.adHocSurfaces[$sid] // {}) as $s
-    | (($s.surfaces // []) + (($s.declarations // []) | map(.target)))
-    | unique | .[]' "$SESSION_FILE" 2>/dev/null || true
+materiality_adhoc_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3" filter="$4"
+  shift 4
+  : "$operation_context"
+  jq "$@" "$filter" "$locked_input" > "$candidate"
 }
 
 adhoc_write() {
-  local filter="$1"; shift
-  local tmp
-  tmp="$(mktemp "$(dirname "$SESSION_FILE")/.convergence-materiality.XXXXXX")"
-  jq "$@" "$filter" "$SESSION_FILE" > "$tmp"
-  mv "$tmp" "$SESSION_FILE"
+  local operation="$1" filter="$2" transaction_rc=0
+  shift 2
+  session_state_transaction "$SESSION_FILE" refuse "$operation" \
+    materiality_adhoc_mutation "$filter" "$@" || transaction_rc=$?
+  return "$transaction_rc"
+}
+
+materiality_guard_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3"
+  local session_id="$4" target="$5" digest="$6" at="$7"
+  local entry
+  : "$operation_context"
+  MATERIALITY_PUBLIC_RC=0
+
+  if ! jq -e --arg sid "$session_id" '(.adHocSurfaces[$sid] // null) != null' "$locked_input" >/dev/null 2>&1; then
+    cp "$locked_input" "$candidate" || return 3
+    printf 'verdict=SKIPPED\nreason=no-opening-surface\n'
+    return 0
+  fi
+
+  while IFS= read -r entry; do
+    [[ -n "$entry" ]] || continue
+    if [[ "$target" == "$entry" || "$target" == "$entry"/* ]]; then
+      cp "$locked_input" "$candidate" || return 3
+      printf 'target=%s\nmatchedSurface=%s\nverdict=ALLOWED\n' "$target" "$entry"
+      return 0
+    fi
+  done < <(jq -r --arg sid "$session_id" '
+    (.adHocSurfaces[$sid] // {}) as $s
+    | (($s.surfaces // []) + (($s.declarations // []) | map(.target)))
+    | unique | .[]' "$locked_input")
+
+  jq --arg sid "$session_id" --arg t "$target" --arg d "$digest" --arg at "$at" '
+    .adHocSurfaces[$sid].refusals = ((.adHocSurfaces[$sid].refusals // []) + [{
+      target: $t, digest: $d, at: $at }])' "$locked_input" > "$candidate" || return 2
+  printf 'target=%s\nwitnessDigest=%s\nverdict=REFUSED\n' "$target" "$digest"
+  echo "convergence-materiality: REFUSED — the first mutable action on '$target' lands outside the opening surface recorded for session $session_id. Undeclared expansion is a NEW GOAL, not a fixable obstacle — neverStopForFixableObstacles does not apply. Either narrow the plan back inside the opening surface, or widen it explicitly with 'convergence-materiality.sh declare-boundary --target $target --note <why>' BEFORE the mutation lands." >&2
+  MATERIALITY_PUBLIC_RC=1
+  return 0
+}
+
+materiality_declare_boundary_mutation() {
+  local locked_input="$1" candidate="$2" operation_context="$3"
+  local session_id="$4" target="$5" note="$6" current_digest="$7" at="$8"
+  local witness
+  : "$operation_context"
+
+  if ! jq -e --arg sid "$session_id" '(.adHocSurfaces[$sid] // null) != null' "$locked_input" >/dev/null 2>&1; then
+    echo "convergence-materiality: no opening surface recorded for session $session_id — record one with 'open-surface' before widening it" >&2
+    return 2
+  fi
+
+  witness="$(jq -r --arg sid "$session_id" --arg t "$target" '
+    [ (.adHocSurfaces[$sid].refusals // [])[] | select(.target == $t) | .digest ] | last // ""' "$locked_input")" || return 2
+  if [[ -n "$witness" ]]; then
+    printf 'witnessDigest=%s\ncurrentDigest=%s\n' "$witness" "$current_digest"
+    if [[ "$current_digest" != "$witness" ]]; then
+      printf 'verdict=REFUSED\n'
+      echo "convergence-materiality: REFUSED — '$target' changed between the refusal ($witness) and this declaration ($current_digest) — the mutation already landed, so this boundary would be granted retroactively to authorise work that was already done. A declaration widens what MAY happen, never what DID. Undeclared expansion is a NEW GOAL, not a fixable obstacle: revert '$target' to the witnessed bytes and declare the boundary before re-running the action, or record the expansion as the new goal it is." >&2
+      return 1
+    fi
+  fi
+
+  jq --arg sid "$session_id" --arg t "$target" --arg note "$note" --arg at "$at" '
+    .adHocSurfaces[$sid].declarations = ((.adHocSurfaces[$sid].declarations // []) + [{
+      target: $t, note: $note, at: $at }])' "$locked_input" > "$candidate" || return 2
+  printf 'target=%s\nverdict=DECLARED\n' "$target"
 }
 
 now_iso() { date -u +%Y-%m-%dT%H:%M:%SZ; }
@@ -406,7 +484,7 @@ cmd_open_surface() {
     surfaces_json="$(jq -c --arg s "$norm" '. + [$s] | unique' <<< "$surfaces_json")"
   done <<< "$ADHOC_SURFACES"
 
-  adhoc_write '.adHocSurfaces = ((.adHocSurfaces // {}) | .[$sid] = {
+  adhoc_write convergence-materiality-open-surface '.adHocSurfaces = ((.adHocSurfaces // {}) | .[$sid] = {
       openedAt: $at, surfaces: $surfaces, note: $note, declarations: [], refusals: []
     })' \
     --arg sid "$ADHOC_SESSION_ID" --arg at "$(now_iso)" \
@@ -426,11 +504,24 @@ cmd_surface() {
     printf 'verdict=SKIPPED\n'
     return 0
   fi
-  if ! adhoc_surface_recorded; then
+  if [[ ! -e "$SESSION_FILE" ]]; then
     printf 'verdict=UNRECORDED\n'
     return 0
   fi
-  jq -c --arg sid "$ADHOC_SESSION_ID" '.adHocSurfaces[$sid]' "$SESSION_FILE"
+  local snapshot rc=0
+  snapshot="$(mktemp "${TMPDIR:-/tmp}/convergence-materiality-surface.XXXXXX")" || fail_usage "could not create immutable session snapshot"
+  session_state_read_object "$SESSION_FILE" refuse "$snapshot" || rc=$?
+  if [[ "$rc" -ne 0 ]]; then
+    rm -f "$snapshot"
+    return "$rc"
+  fi
+  if ! adhoc_surface_recorded "$snapshot"; then
+    rm -f "$snapshot"
+    printf 'verdict=UNRECORDED\n'
+    return 0
+  fi
+  jq -c --arg sid "$ADHOC_SESSION_ID" '.adHocSurfaces[$sid]' "$snapshot"
+  rm -f "$snapshot"
   printf 'verdict=RECORDED\n'
 }
 
@@ -467,41 +558,23 @@ cmd_guard() {
   fi
   # =======================================================================
 
-  # No recorded opening surface means no brake. The surface is DECLARED, never
-  # inferred from the request text, so absent a declaration there is nothing to
-  # be outside of — and refusing on a guessed intent would be worse than not
-  # binding at all.
-  if ! adhoc_surface_recorded; then
+  # No session means no recorded opening surface and therefore no brake. An
+  # existing malformed session is not absence: the shared transaction refuses
+  # it before any clean verdict can be emitted.
+  if [[ ! -e "$SESSION_FILE" ]]; then
     printf 'verdict=SKIPPED\n'
     printf 'reason=no-opening-surface\n'
     return 0
   fi
 
-  local target norm_target entry
+  local target digest transaction_rc=0
   target="$(normalise_path "$ADHOC_TARGET")"
-  while IFS= read -r entry; do
-    [[ -n "$entry" ]] || continue
-    norm_target="$entry"
-    if [[ "$target" == "$norm_target" || "$target" == "$norm_target"/* ]]; then
-      printf 'target=%s\n' "$target"
-      printf 'matchedSurface=%s\n' "$norm_target"
-      printf 'verdict=ALLOWED\n'
-      return 0
-    fi
-  done <<< "$(adhoc_effective_surface)"
-
-  # Witness the target's current bytes at the moment of refusal. A declaration
-  # issued later against a CHANGED witness is a mutation that already landed.
-  local digest
   digest="$(target_digest "$ADHOC_REPO_ROOT/$target")"
-  adhoc_write '.adHocSurfaces[$sid].refusals = ((.adHocSurfaces[$sid].refusals // []) + [{
-      target: $t, digest: $d, at: $at }])' \
-    --arg sid "$ADHOC_SESSION_ID" --arg t "$target" --arg d "$digest" --arg at "$(now_iso)"
-
-  printf 'target=%s\n' "$target"
-  printf 'witnessDigest=%s\n' "$digest"
-  printf 'verdict=REFUSED\n'
-  fail_refuse "the first mutable action on '$target' lands outside the opening surface recorded for session $ADHOC_SESSION_ID ($(adhoc_effective_surface | tr '\n' ' ')). Undeclared expansion is a NEW GOAL, not a fixable obstacle — neverStopForFixableObstacles does not apply. Either narrow the plan back inside the opening surface, or widen it explicitly with 'convergence-materiality.sh declare-boundary --target $target --note <why>' BEFORE the mutation lands."
+  MATERIALITY_PUBLIC_RC=0
+  session_state_transaction "$SESSION_FILE" refuse convergence-materiality-guard \
+    materiality_guard_mutation "$ADHOC_SESSION_ID" "$target" "$digest" "$(now_iso)" || transaction_rc=$?
+  [[ "$transaction_rc" -eq 0 ]] || return "$transaction_rc"
+  return "$MATERIALITY_PUBLIC_RC"
 }
 
 cmd_declare_boundary() {
@@ -515,35 +588,12 @@ cmd_declare_boundary() {
   fi
   [[ -n "$ADHOC_TARGET" ]] || fail_usage "--target is required"
   [[ -n "$ADHOC_NOTE" ]] || fail_usage "--note is required — a boundary is widened on a stated reason, never silently"
-  adhoc_surface_recorded ||
-    fail_usage "no opening surface recorded for session $ADHOC_SESSION_ID — record one with 'open-surface' before widening it"
-
-  local target witness current
+  local target current transaction_rc=0
   target="$(normalise_path "$ADHOC_TARGET")"
-  witness="$(jq -r --arg sid "$ADHOC_SESSION_ID" --arg t "$target" '
-    [ (.adHocSurfaces[$sid].refusals // [])[] | select(.target == $t) | .digest ] | last // ""' "$SESSION_FILE")"
-
-  # ADVERSARIAL: a boundary cannot be self-granted retroactively. If this target
-  # was refused and its bytes have CHANGED since that refusal, the mutation
-  # already landed and declaring the boundary now would launder a completed
-  # expansion into an authorised one. The honest reading is unchanged: it was a
-  # new goal, and it is still a new goal.
-  if [[ -n "$witness" ]]; then
-    current="$(target_digest "$ADHOC_REPO_ROOT/$target")"
-    printf 'witnessDigest=%s\n' "$witness"
-    printf 'currentDigest=%s\n' "$current"
-    if [[ "$current" != "$witness" ]]; then
-      printf 'verdict=REFUSED\n'
-      fail_refuse "'$target' changed between the refusal ($witness) and this declaration ($current) — the mutation already landed, so this boundary would be granted retroactively to authorise work that was already done. A declaration widens what MAY happen, never what DID. Undeclared expansion is a NEW GOAL, not a fixable obstacle: revert '$target' to the witnessed bytes and declare the boundary before re-running the action, or record the expansion as the new goal it is."
-    fi
-  fi
-
-  adhoc_write '.adHocSurfaces[$sid].declarations = ((.adHocSurfaces[$sid].declarations // []) + [{
-      target: $t, note: $note, at: $at }])' \
-    --arg sid "$ADHOC_SESSION_ID" --arg t "$target" --arg note "$ADHOC_NOTE" --arg at "$(now_iso)"
-
-  printf 'target=%s\n' "$target"
-  printf 'verdict=DECLARED\n'
+  current="$(target_digest "$ADHOC_REPO_ROOT/$target")"
+  session_state_transaction "$SESSION_FILE" refuse convergence-materiality-declare-boundary \
+    materiality_declare_boundary_mutation "$ADHOC_SESSION_ID" "$target" "$ADHOC_NOTE" "$current" "$(now_iso)" || transaction_rc=$?
+  return "$transaction_rc"
 }
 
 case "${1:-}" in

@@ -4,27 +4,43 @@ import { spawn } from 'node:child_process';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
+import {
+  buildToolAuthorRequest,
+  verifyAuthorRequestFingerprint
+} from '../scripts/brief-author.mjs';
+
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SHADOW_CLI = join(ROOT, 'scripts', 'brief-shadow-generate.mjs');
+const CANARY_BRIEF = Object.freeze({
+  contractVersion: 'tool-brief/v1',
+  briefId: 'local-provider-canary',
+  summary: 'Bounded shadow candidate.',
+  citations: ['local-provider-canary']
+});
 
 function frozenCanaryRequest() {
-  return {
-    contractVersion: 'tool-author-request/v1',
-    instructions: 'Return one JSON tool-author-response/v1 object. Copy requestFingerprint exactly. Set brief to one small JSON object.',
-    data: {
-      contractVersion: 'tool-author-data/v1',
-      compactedRead: { state: 'available', observationRef: 'local-provider-canary' },
-      includedFactIds: ['local-provider-canary'],
-      omittedFacts: []
+  const built = buildToolAuthorRequest({
+    contractVersion: 'compact-author-input/v1',
+    compactedRead: {
+      state: 'available',
+      observationRef: 'local-provider-canary',
+      candidate: CANARY_BRIEF
     },
-    provider: 'shadow-route',
-    model: 'selected-by-shadow-profile',
-    promptPolicy: 'local-provider-canary/v1',
-    schema: 'tool-brief/v1',
-    validator: 'brief-author/v1',
-    maxOutputTokens: 128,
-    requestFingerprint: `sha256:${'c'.repeat(64)}`
-  };
+    includedFactIds: ['local-provider-canary'],
+    omittedFacts: [],
+    maxOutputTokens: 128
+  }, {
+    providerId: 'shadow-route',
+    modelId: 'selected-by-shadow-profile',
+    promptPolicyVersion: 'local-provider-canary/v1',
+    schemaVersion: 'tool-brief/v1',
+    validatorVersion: 'brief-author/v1'
+  });
+  assert.equal(built.ok, true, JSON.stringify(built.error || null));
+  const verified = verifyAuthorRequestFingerprint(built.request);
+  assert.equal(verified.ok, true, JSON.stringify(verified.error || null));
+  assert.equal(verified.request, built.request);
+  return built.request;
 }
 
 function requiredEnvironment(name) {
@@ -36,6 +52,7 @@ function requiredEnvironment(name) {
 
 function runCanary() {
   return new Promise((resolve, reject) => {
+    const request = frozenCanaryRequest();
     const child = spawn(process.execPath, [SHADOW_CLI], {
       cwd: ROOT,
       env: process.env,
@@ -50,10 +67,11 @@ function runCanary() {
     child.once('close', (code, signal) => resolve({
       code,
       signal,
+      request,
       stdout: Buffer.concat(stdout).toString('utf8'),
       stderr: Buffer.concat(stderr).toString('utf8')
     }));
-    child.stdin.end(JSON.stringify(frozenCanaryRequest()));
+    child.stdin.end(JSON.stringify(request));
   });
 }
 
@@ -63,12 +81,14 @@ function assertCanaryResult(result, profileId) {
   assert.equal(parsed.contractVersion, 'brief-shadow-result/v1');
   assert.equal(parsed.authoritative, false);
   assert.equal(parsed.profile.profileId, profileId);
-  assert.equal(parsed.authorResponse.requestFingerprint, frozenCanaryRequest().requestFingerprint);
+  assert.equal(parsed.authorResponse.requestFingerprint, result.request.requestFingerprint);
+  assert.deepEqual(Object.keys(parsed.authorResponse).sort(), ['brief', 'contractVersion', 'requestFingerprint']);
   assert(parsed.candidate && typeof parsed.candidate === 'object' && !Array.isArray(parsed.candidate));
+  assert.deepEqual(parsed.candidate, parsed.authorResponse.brief);
   for (const dimension of ['inputTokens', 'outputTokens', 'totalTokens']) {
     assert(['measured', 'unmeasured'].includes(parsed.usage[dimension].state));
     if (parsed.usage[dimension].state === 'measured') {
-      assert(Number.isInteger(parsed.usage[dimension].value));
+      assert(Number.isSafeInteger(parsed.usage[dimension].value));
       assert(parsed.usage[dimension].value >= 0);
     } else {
       assert.equal(Object.hasOwn(parsed.usage[dimension], 'value'), false);
@@ -78,14 +98,14 @@ function assertCanaryResult(result, profileId) {
   assert.equal(parsed.usage.monetaryCost.state, 'not-applicable');
 }
 
-test('Regression E2E: SCN-030-002 OMLX returns tiny strict JSON with truthful usage state', async () => {
+test('Regression E2E: SCN-030-002 OMLX returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state', async () => {
   assert.equal(process.env.BRIEF_SHADOW_PROFILE, 'omlx-openai-compatible-qwen38');
   requiredEnvironment('BRIEF_OMLX_BASE_URL');
   const result = await runCanary();
   assertCanaryResult(result, 'omlx-openai-compatible-qwen38');
 });
 
-test('Regression E2E: SCN-030-002 Ollama returns tiny strict JSON with truthful usage state', async () => {
+test('Regression E2E: SCN-030-002 Ollama returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state', async () => {
   assert.equal(process.env.BRIEF_SHADOW_PROFILE, 'ollama-openai-compatible');
   requiredEnvironment('BRIEF_OLLAMA_BASE_URL');
   requiredEnvironment('BRIEF_OLLAMA_MODEL');

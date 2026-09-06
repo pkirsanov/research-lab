@@ -9,13 +9,21 @@ import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 
 import {
-  resolveShadowRuntimeProfile
+  resolveShadowRuntimeProfile,
+  runShadowAuthor
 } from '../scripts/brief-route-runtime.mjs';
 import {
   buildOpenAICompatibleChatRequest,
   invokeOpenAICompatibleChat,
-  qualifyOpenAICompatibleModel
+  qualifyOpenAICompatibleModel,
+  runOpenAICompatibleAuthor
 } from '../scripts/brief-openai-compatible-adapter.mjs';
+import {
+  buildFinalAuthorRequest,
+  buildToolAuthorRequest,
+  buildToolAuthorRequestV2,
+  invokeAuthor
+} from '../scripts/brief-author.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(HERE, '..');
@@ -43,33 +51,70 @@ const PROTECTED_PATHS = Object.freeze([
   '.npmrc'
 ]);
 
-function frozenAuthorRequest(overrides = {}) {
-  const request = {
-    contractVersion: 'tool-author-request/v1',
-    instructions: 'Return one bounded JSON response for the frozen data.',
+const AUTHOR_IDENTITY = Object.freeze({
+  providerId: 'shadow-route',
+  modelId: 'selected-by-shadow-profile',
+  promptPolicyVersion: 'shadow-canary/v1',
+  schemaVersion: 'tool-brief/v1',
+  validatorVersion: 'brief-author/v1'
+});
+
+function frozenAuthorRequest(compactedRead = { state: 'available', observationRef: 'observation-shadow-1' }) {
+  const built = buildToolAuthorRequest({
+    contractVersion: 'compact-author-input/v1',
+    compactedRead,
+    includedFactIds: ['fact-shadow-1'],
+    omittedFacts: [],
+    maxOutputTokens: 96
+  }, AUTHOR_IDENTITY);
+  assert.equal(built.ok, true, JSON.stringify(built.error || null));
+  return built.request;
+}
+
+function canonicalAuthorRequest() {
+  return frozenAuthorRequest();
+}
+
+function canonicalToolV2AuthorRequest() {
+  const built = buildToolAuthorRequestV2({
+    contractVersion: 'compact-tool-brief-v2-input/v1',
     data: {
-      contractVersion: 'tool-author-data/v1',
-      compactedRead: { state: 'available', observationRef: 'observation-shadow-1' },
-      includedFactIds: ['fact-shadow-1'],
-      omittedFacts: []
+      contractVersion: 'tool-author-data/v2',
+      compactedRead: { state: 'available', observationRef: 'observation-shadow-v2' }
     },
-    provider: 'shadow-route',
-    model: 'selected-by-shadow-profile',
-    promptPolicy: 'shadow-canary/v1',
-    schema: 'tool-brief/v1',
-    validator: 'brief-author/v1',
-    maxOutputTokens: 96,
-    requestFingerprint: `sha256:${'a'.repeat(64)}`
-  };
-  return Object.assign(request, overrides);
+    maxOutputTokens: 96
+  }, AUTHOR_IDENTITY);
+  assert.equal(built.ok, true, JSON.stringify(built.error || null));
+  return built.request;
+}
+
+function canonicalFinalAuthorRequest() {
+  const built = buildFinalAuthorRequest({
+    contractVersion: 'compact-final-author-input/v1',
+    finalInput: { contractVersion: 'final-author-input/v1', state: 'available' },
+    participantIds: ['participant-shadow-1'],
+    orderedSourceToolIds: ['tool-shadow-1'],
+    includedFactIds: ['fact-shadow-1'],
+    omittedFacts: [],
+    maxOutputTokens: 96
+  }, AUTHOR_IDENTITY);
+  assert.equal(built.ok, true, JSON.stringify(built.error || null));
+  return built.request;
 }
 
 function validAuthorEnvelope(request, suffix = 'ok') {
+  const responseContract = request.contractVersion === 'tool-author-request/v2'
+    ? 'tool-author-response/v2'
+    : request.contractVersion === 'final-author-request/v1'
+      ? 'final-author-response/v1'
+      : 'tool-author-response/v1';
+  const payloadKey = request.contractVersion === 'final-author-request/v1' ? 'final' : 'brief';
+  const payloadContract = payloadKey === 'final' ? 'final-brief/v1' : request.contractVersion === 'tool-author-request/v2' ? 'tool-brief/v2' : 'tool-brief/v1';
   return {
-    contractVersion: 'tool-author-response/v1',
+    contractVersion: responseContract,
     requestFingerprint: request.requestFingerprint,
-    brief: {
-      contractVersion: 'tool-brief/v1',
+    [payloadKey]: {
+      contractVersion: payloadContract,
       briefId: `shadow-${suffix}`,
       summary: 'Bounded shadow candidate.',
       citations: ['fact-shadow-1']
@@ -196,14 +241,213 @@ function snapshotAuthority() {
   for (const absolutePath of [absoluteStatusPath, `${absoluteStatusPath}.publish-ack`]) {
     files[absolutePath] = existsSync(absolutePath) ? hashValue(readFileSync(absolutePath)) : '<absent>';
   }
+  const status = gitOutput(['status', '--porcelain=v1', '--untracked-files=all']);
   const indexPath = gitOutput(['rev-parse', '--git-path', 'index']).trim();
   const absoluteIndexPath = indexPath.startsWith('/') ? indexPath : join(ROOT, indexPath);
   return {
     files,
     index: hashValue(readFileSync(absoluteIndexPath)),
-    status: gitOutput(['status', '--porcelain=v1', '--untracked-files=all'])
+    status
   };
 }
+
+test('Security regression: SCN-030-002 unsafe token counts and overflow refuse before normalized usage', () => {
+  const maximum = Number.MAX_SAFE_INTEGER;
+  const acceptedMaximum = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: maximum,
+    completion_tokens: 0,
+    total_tokens: maximum
+  });
+  assert.equal(acceptedMaximum.ok, true, JSON.stringify(acceptedMaximum.error || null));
+  assert.equal(acceptedMaximum.value.inputTokens.value, maximum);
+
+  const unsafeCases = [
+    {
+      name: 'reported rounded-equality tuple',
+      usage: { prompt_tokens: maximum + 1, completion_tokens: 1, total_tokens: maximum + 1 }
+    },
+    {
+      name: 'unsafe completion count',
+      usage: { prompt_tokens: 0, completion_tokens: maximum + 1, total_tokens: maximum + 1 }
+    },
+    {
+      name: 'unsafe provider total',
+      usage: { prompt_tokens: 1, completion_tokens: 1, total_tokens: maximum + 1 }
+    },
+    {
+      name: 'safe operands with overflowing sum',
+      usage: { prompt_tokens: maximum, completion_tokens: 1 }
+    }
+  ];
+  for (const adversarial of unsafeCases) {
+    const refused = RLBRIEFROUTE.normalizeLocalUsage(adversarial.usage);
+    assert.equal(refused.ok, false, adversarial.name);
+    assert.equal(refused.error.code, 'B030-USAGE-INVALID', adversarial.name);
+  }
+
+  const inconsistent = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: 3,
+    completion_tokens: 4,
+    total_tokens: 8
+  });
+  assert.equal(inconsistent.ok, false);
+  assert.equal(inconsistent.error.code, 'B030-USAGE-INVALID');
+  assert.equal(inconsistent.error.reason, 'provider-total-inconsistent');
+
+  for (const absentUsage of [
+    {},
+    { prompt_tokens: null, completion_tokens: null, total_tokens: null }
+  ]) {
+    const normalized = RLBRIEFROUTE.normalizeLocalUsage(absentUsage);
+    assert.equal(normalized.ok, true, JSON.stringify(normalized.error || null));
+    for (const dimension of ['inputTokens', 'outputTokens', 'totalTokens']) {
+      assert.equal(normalized.value[dimension].state, 'unmeasured');
+      assert.equal(Object.hasOwn(normalized.value[dimension], 'value'), false);
+    }
+  }
+
+  const unsafeReceipt = {
+    ...acceptedMaximum.value,
+    inputTokens: {
+      state: 'measured',
+      value: maximum + 1,
+      source: 'provider-response'
+    }
+  };
+  const rejectedReceipt = RLBRIEFROUTE.validateUsageReceipt(unsafeReceipt);
+  assert.equal(rejectedReceipt.ok, false);
+  assert.equal(rejectedReceipt.error.code, 'B030-USAGE-INVALID');
+});
+
+test('Security regression: SCN-030-003 retained request fingerprint mutation refuses before process transport or HTTP dispatch', async () => {
+  const counters = {
+    childSpawn: 0,
+    modelList: 0,
+    chat: 0
+  };
+  const server = await startServer(async (request, response) => {
+    if (request.url === '/spawn-observed') {
+      counters.childSpawn += 1;
+      await readBody(request);
+      return responseJson(response, 200, { ok: true });
+    }
+    if (request.url === '/v1/models') {
+      counters.modelList += 1;
+      await readBody(request);
+      return responseJson(response, 200, {
+        object: 'list',
+        data: [{ id: 'Qwen3.8-27B-3bit-MLX', object: 'model' }]
+      });
+    }
+    if (request.url === '/v1/chat/completions') {
+      counters.chat += 1;
+      const body = JSON.parse(await readBody(request));
+      const authorRequest = JSON.parse(body.messages[1].content);
+      return responseJson(response, 200, openAIResponse(
+        authorRequest,
+        { prompt_tokens: 2, completion_tokens: 3, total_tokens: 5 }
+      ));
+    }
+    return responseJson(response, 404, { error: { code: 'unknown-path' } });
+  });
+
+  const originalEnvironment = {};
+  for (const key of PROFILE_KEYS) originalEnvironment[key] = process.env[key];
+  process.env.BRIEF_SHADOW_PROFILE = 'omlx-openai-compatible-qwen38';
+  process.env.BRIEF_OMLX_BASE_URL = server.baseUrl;
+  delete process.env.BRIEF_OLLAMA_BASE_URL;
+  delete process.env.BRIEF_OLLAMA_MODEL;
+
+  try {
+    const resolved = resolveShadowRuntimeProfile(process.env);
+    assert.equal(resolved.ok, true, JSON.stringify(resolved.error || null));
+    const profile = resolved.value;
+    const canonical = canonicalAuthorRequest();
+    const originalFingerprint = canonical.requestFingerprint;
+    const mutations = [
+      ['contractVersion', (request) => { request.contractVersion = 'final-author-request/v1'; }],
+      ['data', (request) => { request.data.compactedRead.observationRef = 'observation-shadow-mutated'; }],
+      ['provider', (request) => { request.provider = 'mutated-provider'; }],
+      ['model', (request) => { request.model = 'mutated-model'; }],
+      ['promptPolicy', (request) => { request.promptPolicy = 'mutated-policy/v1'; }],
+      ['schema', (request) => { request.schema = 'mutated-schema/v1'; }],
+      ['validator', (request) => { request.validator = 'mutated-validator/v1'; }],
+      ['maxOutputTokens', (request) => { request.maxOutputTokens += 1; }]
+    ];
+    const childProbe = [
+      "const http = require('node:http');",
+      "let input = '';",
+      "process.stdin.setEncoding('utf8');",
+      "process.stdin.on('data', (chunk) => { input += chunk; });",
+      "process.stdin.on('end', () => {",
+      "  const request = JSON.parse(input);",
+      "  http.get(process.argv[1], (response) => {",
+      "    response.resume();",
+      "    response.on('end', () => {",
+      "      const finalRequest = request.contractVersion === 'final-author-request/v1';",
+      "      const toolV2Request = request.contractVersion === 'tool-author-request/v2';",
+      "      const payloadKey = finalRequest ? 'final' : 'brief';",
+      "      const contractVersion = finalRequest ? 'final-author-response/v1' : (toolV2Request ? 'tool-author-response/v2' : 'tool-author-response/v1');",
+      "      process.stdout.write(JSON.stringify({ contractVersion, requestFingerprint: request.requestFingerprint, [payloadKey]: {} }));",
+      "    });",
+      "  }).on('error', () => process.exit(2));",
+      "});"
+    ].join('\n');
+
+    for (const [field, mutate] of mutations) {
+      const retainedDigestRequest = JSON.parse(JSON.stringify(canonical));
+      mutate(retainedDigestRequest);
+      assert.equal(retainedDigestRequest.requestFingerprint, originalFingerprint, field);
+
+      let transportCallbacks = 0;
+      const transportResult = await invokeAuthor(retainedDigestRequest, {
+        transport: async (requestJson) => {
+          transportCallbacks += 1;
+          return JSON.stringify(validAuthorEnvelope(JSON.parse(requestJson), `transport-${field}`));
+        },
+        timeoutMs: 5000,
+        maxStdoutBytes: 16384
+      });
+      assert.equal(transportCallbacks, 0, `${field} stale fingerprint reached the transport callback`);
+      assert.equal(transportResult.ok, false, `${field} transport boundary accepted a stale fingerprint`);
+
+      const childSpawnsBefore = counters.childSpawn;
+      const childResult = await invokeAuthor(retainedDigestRequest, {
+        command: process.execPath,
+        args: ['-e', childProbe, `${server.baseUrl}/spawn-observed`],
+        timeoutMs: 5000,
+        maxStdoutBytes: 16384
+      });
+      assert.equal(counters.childSpawn, childSpawnsBefore, `${field} stale fingerprint spawned a child`);
+      assert.equal(childResult.ok, false, `${field} child boundary accepted a stale fingerprint`);
+
+      const routeModelsBefore = counters.modelList;
+      const routeChatsBefore = counters.chat;
+      const routeResult = await runShadowAuthor(retainedDigestRequest, {
+        environment: process.env,
+        resolvedProfile: profile
+      });
+      assert.equal(counters.modelList, routeModelsBefore, `${field} stale fingerprint reached route model preflight`);
+      assert.equal(counters.chat, routeChatsBefore, `${field} stale fingerprint reached route chat dispatch`);
+      assert.equal(routeResult.ok, false, `${field} route boundary accepted a stale fingerprint`);
+
+      const adapterModelsBefore = counters.modelList;
+      const adapterChatsBefore = counters.chat;
+      const adapterResult = await runOpenAICompatibleAuthor(profile, retainedDigestRequest);
+      assert.equal(counters.modelList, adapterModelsBefore, `${field} stale fingerprint reached adapter model preflight`);
+      assert.equal(counters.chat, adapterChatsBefore, `${field} stale fingerprint reached adapter chat dispatch`);
+      assert.equal(adapterResult.ok, false, `${field} adapter boundary accepted a stale fingerprint`);
+    }
+
+    assert.deepEqual(counters, { childSpawn: 0, modelList: 0, chat: 0 });
+  } finally {
+    for (const key of PROFILE_KEYS) {
+      if (originalEnvironment[key] === undefined) delete process.env[key];
+      else process.env[key] = originalEnvironment[key];
+    }
+    await server.close();
+  }
+});
 
 test('Regression: SCN-030-001 explicit profile resolves once or refuses before HTTP', async () => {
   let requestCount = 0;
@@ -267,13 +511,14 @@ test('Regression: SCN-030-001 explicit profile resolves once or refuses before H
   }
 });
 
-test('Regression: SCN-030-002 exact model preflight precedes one bounded strict JSON completion', async () => {
+test('Regression: SCN-030-002 exact model preflight precedes one bounded dynamic-schema completion', async () => {
   const observed = [];
   const state = {
     includeModel: true,
     usage: { prompt_tokens: 11, completion_tokens: 7, total_tokens: 18 },
     candidate: null,
-    failModels: false
+    failModels: false,
+    finishReason: 'stop'
   };
   const server = await startServer(async (request, response) => {
     const body = await readBody(request);
@@ -289,6 +534,7 @@ test('Regression: SCN-030-002 exact model preflight precedes one bounded strict 
       const chat = JSON.parse(body);
       const authorRequest = JSON.parse(chat.messages[1].content);
       const responseBody = openAIResponse(authorRequest, state.usage);
+      responseBody.choices[0].finish_reason = state.finishReason;
       if (state.candidate !== null) responseBody.choices[0].message.content = state.candidate;
       return responseJson(response, 200, responseBody);
     }
@@ -314,9 +560,31 @@ test('Regression: SCN-030-002 exact model preflight precedes one bounded strict 
     const chatRequest = JSON.parse(observed[1].body);
     assert.equal(chatRequest.model, 'Qwen3.8-27B-3bit-MLX');
     assert.equal(chatRequest.stream, false);
-    assert.deepEqual(chatRequest.response_format, { type: 'json_object' });
+    assert.deepEqual(chatRequest.response_format, {
+      type: 'json_schema',
+      json_schema: {
+        name: 'brief_author_response',
+        strict: true,
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['contractVersion', 'requestFingerprint', 'brief'],
+          properties: {
+            contractVersion: { type: 'string', const: 'tool-author-response/v1' },
+            requestFingerprint: { type: 'string', const: request.requestFingerprint },
+            brief: { type: 'object' }
+          }
+        }
+      }
+    });
+    assert.equal(chatRequest.reasoning_effort, 'none');
     assert.equal(chatRequest.messages.length, 2);
     assert.equal(chatRequest.messages[0].role, 'system');
+    assert(chatRequest.messages[0].content.includes(JSON.stringify({
+      contractVersion: 'tool-author-response/v1',
+      requestFingerprint: request.requestFingerprint,
+      brief: {}
+    })));
     assert.equal(chatRequest.messages[1].role, 'user');
     assert.deepEqual(JSON.parse(chatRequest.messages[1].content), request);
     assert.equal(Object.hasOwn(chatRequest, 'tools'), false);
@@ -328,6 +596,49 @@ test('Regression: SCN-030-002 exact model preflight precedes one bounded strict 
     assert.equal(result.usage.totalTokens.value, 18);
     assert.equal(result.usage.providerCredits.state, 'not-applicable');
     assert.equal(result.usage.monetaryCost.state, 'not-applicable');
+
+    const additionalContracts = [
+      {
+        request: canonicalToolV2AuthorRequest(),
+        responseContract: 'tool-author-response/v2',
+        payloadKey: 'brief'
+      },
+      {
+        request: canonicalFinalAuthorRequest(),
+        responseContract: 'final-author-response/v1',
+        payloadKey: 'final'
+      }
+    ];
+    for (const contract of additionalContracts) {
+      const observedBefore = observed.length;
+      const completedContract = await runShadowCli(environment, contract.request);
+      assert.equal(completedContract.code, 0, completedContract.stderr);
+      const contractResult = safeJson(completedContract.stdout);
+      const contractRequests = observed.slice(observedBefore);
+      assert.deepEqual(contractRequests.map((entry) => entry.url), ['/v1/models', '/v1/chat/completions']);
+      const contractChat = JSON.parse(contractRequests[1].body);
+      assert.deepEqual(contractChat.response_format, {
+        type: 'json_schema',
+        json_schema: {
+          name: 'brief_author_response',
+          strict: true,
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['contractVersion', 'requestFingerprint', contract.payloadKey],
+            properties: {
+              contractVersion: { type: 'string', const: contract.responseContract },
+              requestFingerprint: { type: 'string', const: contract.request.requestFingerprint },
+              [contract.payloadKey]: { type: 'object' }
+            }
+          }
+        }
+      });
+      assert.equal(contractChat.reasoning_effort, 'none');
+      assert.equal(contractResult.authorResponse.contractVersion, contract.responseContract);
+      assert.deepEqual(Object.keys(contractResult.authorResponse), ['contractVersion', 'requestFingerprint', contract.payloadKey]);
+      assert.deepEqual(contractResult.candidate, contractResult.authorResponse[contract.payloadKey]);
+    }
 
     state.includeModel = false;
     const chatCountBeforeMissing = observed.filter((entry) => entry.url === '/v1/chat/completions').length;
@@ -356,13 +667,34 @@ test('Regression: SCN-030-002 exact model preflight precedes one bounded strict 
     const nonObjectCandidate = await runShadowCli(environment, request);
     assert.notEqual(nonObjectCandidate.code, 0);
     assert.equal(safeJson(nonObjectCandidate.stderr)?.error?.code, 'B030-VALIDATION');
+
+    state.candidate = JSON.stringify({ ...validAuthorEnvelope(request), extra: true });
+    const extraKeyCandidate = await runShadowCli(environment, request);
+    assert.notEqual(extraKeyCandidate.code, 0);
+    assert.equal(safeJson(extraKeyCandidate.stderr)?.error?.reason, 'candidate-schema-mismatch');
+
+    state.candidate = JSON.stringify({ ...validAuthorEnvelope(request), requestFingerprint: `sha256:${'b'.repeat(64)}` });
+    const wrongIdentityCandidate = await runShadowCli(environment, request);
+    assert.notEqual(wrongIdentityCandidate.code, 0);
+    assert.equal(safeJson(wrongIdentityCandidate.stderr)?.error?.reason, 'candidate-schema-mismatch');
+
+    state.candidate = JSON.stringify({ ...validAuthorEnvelope(request), brief: [] });
+    const nonObjectPayload = await runShadowCli(environment, request);
+    assert.notEqual(nonObjectPayload.code, 0);
+    assert.equal(safeJson(nonObjectPayload.stderr)?.error?.reason, 'candidate-schema-mismatch');
+
+    state.candidate = null;
+    state.finishReason = 'length';
+    const nonStop = await runShadowCli(environment, request);
+    assert.notEqual(nonStop.code, 0);
+    assert.equal(safeJson(nonStop.stderr)?.error?.reason, 'completion-message-shape');
   } finally {
     await server.close();
   }
 });
 
 test('Stress: SCN-030-002 finite byte deadline retry and concurrency limits refuse at cap plus one', async () => {
-  const request = frozenAuthorRequest({ data: { contractVersion: 'tool-author-data/v1', padding: '' } });
+  const request = frozenAuthorRequest({ contractVersion: 'feature-030-padding/v1', padding: '' });
   const state = {
     modelBody: null,
     chatBody: null,
@@ -421,10 +753,10 @@ test('Stress: SCN-030-002 finite byte deadline retry and concurrency limits refu
     const baseRequestBody = buildOpenAICompatibleChatRequest(profile, request);
     assert.equal(baseRequestBody.ok, true, JSON.stringify(baseRequestBody.error || null));
     const padAtCap = 'x'.repeat(limits.chatMaxRequestBytes - baseRequestBody.bytes);
-    const atCapRequest = frozenAuthorRequest({ data: { contractVersion: 'tool-author-data/v1', padding: padAtCap } });
+    const atCapRequest = frozenAuthorRequest({ contractVersion: 'feature-030-padding/v1', padding: padAtCap });
     const atCapBody = buildOpenAICompatibleChatRequest(profile, atCapRequest);
     assert.equal(atCapBody.bytes, limits.chatMaxRequestBytes);
-    const overCapRequest = frozenAuthorRequest({ data: { contractVersion: 'tool-author-data/v1', padding: `${padAtCap}x` } });
+    const overCapRequest = frozenAuthorRequest({ contractVersion: 'feature-030-padding/v1', padding: `${padAtCap}x` });
     const overCapBody = buildOpenAICompatibleChatRequest(profile, overCapRequest);
     assert.equal(overCapBody.ok, false);
     assert.equal(overCapBody.error.code, 'B030-ADAPTER-CONFIG');

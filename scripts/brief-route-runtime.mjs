@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { invokeAuthor, validateAuthorEnvelope } from './brief-author.mjs';
+import { invokeAuthor, validateAuthorEnvelope, verifyAuthorRequestFingerprint } from './brief-author.mjs';
 
 const require = createRequire(import.meta.url);
 const RLBRIEFROUTE = require('../rlbriefroute.js');
@@ -91,6 +91,8 @@ function publicProfile(profile) {
 export async function runShadowAuthor(authorRequest, options = {}) {
   const request = validateFrozenAuthorRequest(authorRequest);
   if (!request.ok) return request;
+  const fingerprint = verifyAuthorRequestFingerprint(authorRequest);
+  if (!fingerprint.ok) return fingerprint;
   const environment = isPlainObject(options.environment) ? options.environment : process.env;
   const resolved = options.resolvedProfile || resolveShadowRuntimeProfile(environment);
   const profileResult = resolved && resolved.profileId ? { ok: true, value: resolved } : resolved;

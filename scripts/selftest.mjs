@@ -30066,6 +30066,84 @@ try {
     && omlx.value.transportContract === ollama.value.transportContract,
   'Feature 030 resolves each exact profile to its declared provider and model while both share one transport contract');
 
+  const { buildOpenAICompatibleChatRequest } = await import('./brief-openai-compatible-adapter.mjs');
+  const {
+    buildFinalAuthorRequest,
+    buildToolAuthorRequest,
+    buildToolAuthorRequestV2,
+    verifyAuthorRequestFingerprint
+  } = await import('./brief-author.mjs');
+  const fingerprintIdentity = {
+    providerId: 'shadow-route',
+    modelId: 'selected-by-shadow-profile',
+    promptPolicyVersion: 'shadow-canary/v1',
+    schemaVersion: 'tool-brief/v1',
+    validatorVersion: 'brief-author/v1'
+  };
+  const canonicalAuthorRequests = [
+    buildToolAuthorRequest({
+      contractVersion: 'compact-author-input/v1',
+      compactedRead: { state: 'available', observationRef: 'selftest-tool-v1' },
+      includedFactIds: ['fact-selftest-v1'],
+      omittedFacts: [],
+      maxOutputTokens: 64
+    }, fingerprintIdentity),
+    buildToolAuthorRequestV2({
+      contractVersion: 'compact-tool-brief-v2-input/v1',
+      data: { contractVersion: 'tool-author-data/v2', observationRef: 'selftest-tool-v2' },
+      maxOutputTokens: 64
+    }, fingerprintIdentity),
+    buildFinalAuthorRequest({
+      contractVersion: 'compact-final-author-input/v1',
+      finalInput: { contractVersion: 'final-author-input/v1', state: 'available' },
+      participantIds: ['participant-selftest'],
+      orderedSourceToolIds: ['tool-selftest'],
+      includedFactIds: ['fact-selftest-final'],
+      omittedFacts: [],
+      maxOutputTokens: 64
+    }, fingerprintIdentity)
+  ];
+  const canonicalBytesBeforeVerification = canonicalAuthorRequests.map((built) => built.ok ? JSON.stringify(built.request) : null);
+  const fingerprintVerdicts = canonicalAuthorRequests.map((built) => built.ok ? verifyAuthorRequestFingerprint(built.request) : built);
+  const canonicalBytesAfterVerification = canonicalAuthorRequests.map((built) => built.ok ? JSON.stringify(built.request) : null);
+  assert(canonicalAuthorRequests.every((built) => built.ok)
+    && fingerprintVerdicts.every((verdict, index) => verdict.ok && verdict.request === canonicalAuthorRequests[index].request)
+    && JSON.stringify(canonicalBytesAfterVerification) === JSON.stringify(canonicalBytesBeforeVerification)
+    && canonicalAuthorRequests.every((built) => /^sha256:[0-9a-f]{64}$/.test(built.request.requestFingerprint)),
+  'Feature 030 verifies canonical tool v1 tool v2 and final requests without changing builder request bytes or fingerprints');
+  const schemaContracts = [
+    ['tool-author-request/v1', 'tool-author-response/v1', 'brief'],
+    ['tool-author-request/v2', 'tool-author-response/v2', 'brief'],
+    ['final-author-request/v1', 'final-author-response/v1', 'final']
+  ];
+  const schemaProfiles = [omlx.value, ollama.value];
+  const schemaMatrixIsExact = schemaProfiles.every((profile, profileIndex) => schemaContracts.every((contract, contractIndex) => {
+    const requestFingerprint = 'sha256:' + String(profileIndex + contractIndex + 1).repeat(64);
+    const request = {
+      contractVersion: contract[0],
+      instructions: 'Return one bounded candidate object.',
+      data: { contractVersion: 'feature-030-selftest-data/v1' },
+      maxOutputTokens: 64,
+      requestFingerprint
+    };
+    const built = buildOpenAICompatibleChatRequest(profile, request);
+    if (!built.ok) return false;
+    const schema = built.value.response_format.json_schema.schema;
+    return built.value.model === profile.modelId
+      && built.value.reasoning_effort === 'none'
+      && built.value.response_format.type === 'json_schema'
+      && built.value.response_format.json_schema.strict === true
+      && schema.type === 'object'
+      && schema.additionalProperties === false
+      && JSON.stringify(schema.required) === JSON.stringify(['contractVersion', 'requestFingerprint', contract[2]])
+      && JSON.stringify(Object.keys(schema.properties).sort()) === JSON.stringify(['contractVersion', 'requestFingerprint', contract[2]].sort())
+      && schema.properties.contractVersion.const === contract[1]
+      && schema.properties.requestFingerprint.const === requestFingerprint
+      && schema.properties[contract[2]].type === 'object';
+  }));
+  assert(schemaMatrixIsExact,
+  'Feature 030 builds the dynamic strict three-key response schema and standard no-reasoning request for every request contract through both profiles');
+
   const missingProfile = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, {});
   const unknownProfile = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, { BRIEF_SHADOW_PROFILE: 'ollama' });
   const incompleteProfile = RLBRIEFROUTE.resolveShadowProfile(shadowPolicy, {
@@ -30102,15 +30180,47 @@ try {
 
   const measured = RLBRIEFROUTE.normalizeLocalUsage({ prompt_tokens: 4, completion_tokens: 6, total_tokens: 10 });
   const missing = RLBRIEFROUTE.normalizeLocalUsage(undefined);
+  const nullUsage = RLBRIEFROUTE.normalizeLocalUsage({ prompt_tokens: null, completion_tokens: null, total_tokens: null });
   const inconsistent = RLBRIEFROUTE.normalizeLocalUsage({ prompt_tokens: 4, completion_tokens: 6, total_tokens: 11 });
+  const maximumUsage = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: Number.MAX_SAFE_INTEGER,
+    completion_tokens: 0,
+    total_tokens: Number.MAX_SAFE_INTEGER
+  });
+  const unsafePrompt = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: Number.MAX_SAFE_INTEGER + 1,
+    completion_tokens: 1,
+    total_tokens: Number.MAX_SAFE_INTEGER + 1
+  });
+  const unsafeCompletion = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: 0,
+    completion_tokens: Number.MAX_SAFE_INTEGER + 1,
+    total_tokens: Number.MAX_SAFE_INTEGER + 1
+  });
+  const unsafeTotal = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: 1,
+    completion_tokens: 1,
+    total_tokens: Number.MAX_SAFE_INTEGER + 1
+  });
+  const overflowingSum = RLBRIEFROUTE.normalizeLocalUsage({
+    prompt_tokens: Number.MAX_SAFE_INTEGER,
+    completion_tokens: 1
+  });
+  const unsafeReceipt = RLBRIEFROUTE.validateUsageReceipt(Object.assign({}, maximumUsage.value, {
+    totalTokens: { state: 'measured', value: Number.MAX_SAFE_INTEGER + 1, source: 'provider-response' }
+  }));
   assert(measured.ok && measured.value.inputTokens.value === 4 && measured.value.outputTokens.value === 6
     && measured.value.totalTokens.value === 10
     && missing.ok && ['inputTokens', 'outputTokens', 'totalTokens'].every((member) =>
       missing.value[member].state === 'unmeasured' && !Object.prototype.hasOwnProperty.call(missing.value[member], 'value'))
+    && nullUsage.ok && ['inputTokens', 'outputTokens', 'totalTokens'].every((member) =>
+      nullUsage.value[member].state === 'unmeasured' && !Object.prototype.hasOwnProperty.call(nullUsage.value[member], 'value'))
+    && maximumUsage.ok && maximumUsage.value.totalTokens.value === Number.MAX_SAFE_INTEGER
     && missing.value.providerCredits.state === 'not-applicable'
     && missing.value.monetaryCost.state === 'not-applicable'
-    && !inconsistent.ok && inconsistent.error.code === 'B030-USAGE-INVALID',
-  'Feature 030 normalizes present token integers, preserves absent usage as unmeasured without zero, and rejects inconsistent totals');
+    && [unsafePrompt, unsafeCompletion, unsafeTotal, overflowingSum, unsafeReceipt, inconsistent].every((verdict) =>
+      !verdict.ok && verdict.error.code === 'B030-USAGE-INVALID'),
+  'Feature 030 admits only safe token integers, refuses overflow and inconsistent totals, and preserves missing or null usage without zero');
 
   const policyText = JSON.stringify(shadowPolicy);
   const unsafeEndpoint = RLBRIEFROUTE.validateEndpoint('https://user@example.invalid/path');

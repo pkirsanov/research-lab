@@ -3,7 +3,7 @@
   "featureDir": "specs/_bugs/BUG-022-historical-report-declaration-leak",
   "featureName": "BUG-022 Historical Report Declaration Leak",
   "createdAt": "2026-08-27T00:00:00Z",
-  "lastUpdatedAt": "2026-09-02T02:04:17Z",
+  "lastUpdatedAt": "2026-09-03T06:07:21Z",
   "certifiedAt": null,
   "status": "in_progress",
   "blockedReason": null,
@@ -22,19 +22,19 @@
     "testPlan": "test-plan.json"
   },
   "execution": {
-    "activeAgent": "bubbles.plan",
-    "currentPhase": "plan",
+    "activeAgent": "bubbles.test",
+    "currentPhase": "test",
     "currentPhaseStatus": "route_required",
-    "executionModel": "direct-authorized-runner",
+    "executionModel": "dispatched-scenario-node",
     "parentAgent": "bubbles.goal",
-    "runStartedAt": "2026-09-01T23:17:13Z",
-    "completedAt": "2026-09-01T23:20:13Z",
+    "runStartedAt": "2026-09-03T05:41:33Z",
+    "completedAt": "2026-09-03T06:07:21Z",
     "currentScope": "01-separate-active-declarations-from-historical-receipts",
-    "nextRequiredOwner": "bubbles.validate",
-    "nextRequiredTarget": "specs/_bugs/BUG-022-historical-report-declaration-leak/state.json",
-    "nextRequiredReason": "C55 is current-passed and its plan-owned Markdown, scenario, and machine Test Plan mirrors agree at 71 checked and 1 unchecked DoD row. Both 029-era root entries retain their bytes under underscore-prefixed superseded names, so the duplicate-number planning prerequisite is closed without occupying Feature 031 or reserved Feature 032. C58 was not rerun. Validate-owned scope progress remains the only open prerequisite before bubbles.test reruns C58.",
-    "phaseClaimNote": "The tax-close-bug-022 revision-5 packet validated without repository-binding preflight. Planning reconciled final C55 receipts at lines 2618, 2619, and 2624; aligned the Markdown, scenario manifest, and machine Test Plan; and preserved both 029-era paths under collision-safe superseded names with byte-identical shock packet contents. C58 remains unchecked and was not run. Certification, human acceptance, historical report evidence, source, tests, and unrelated dirty work remain unchanged.",
-    "substate": "needs_reverification",
+    "nextRequiredOwner": "bubbles.goal",
+    "nextRequiredTarget": "specs/_bugs/BUG-022-historical-report-declaration-leak",
+    "nextRequiredReason": "Current stable-input C58 evidence records 3,475 passed and 0 failed at exit 0 across 3,986 output lines. Return to the active top-level runner for the registered dependent node tax-close-bug-022. Preserve scenario-bound receipts, terminal certification, phase closure, and human acceptance as separate obligations.",
+    "phaseClaimNote": "The tax-test-bug-022-c58 packet validated unchanged at control revision 57. The exact canonical child command node scripts/selftest.mjs passed on matching pre-run and post-run input identities with full-output SHA-256 188287888816c2faac0607d59b2b665090de182b80fe14b5144fa40d77adba41. This is aggregate C58 evidence only; it does not promote a scenario, scope, phase, certification field, or acceptance record.",
+    "substate": "independently_verified",
     "completedPhaseClaims": [
       {
         "phase": "implement",
@@ -200,7 +200,7 @@
     "certifiedAt": null,
     "completedScopes": [],
     "certifiedCompletedPhases": [],
-    "certificationFieldWriteNote": "Validate independently derived the current Scope 1 artifact at 72/0 checked/unchecked and reconciled certification.scopeProgress to that exact DoD count. Test-owned C58 evidence remains recorded at tool-log line 2626, and the exact post-reconciliation canonical selftest passed at 3,467/0. Both completedScopes mirrors remain empty and scopeProgress remains in_progress because the plan-owned scope artifact is still In Progress, receipt-derived scenario states are not certifiable, required specialist phases remain incomplete, and human acceptance is absent. Packet status and certification.status remain in_progress; certification completion timestamps remain null and certifiedCompletedPhases remains empty. This is nonterminal completion-mirror bookkeeping, not terminal certification.",
+    "certificationFieldWriteNote": "The tax-validate-bug-022-state-mirror phase independently recomputed the current active artifact mirror at 72/0 checked/unchecked. certification.scopeProgress already matched that exact count, so no count changed. This phase did not execute or mark C58 and does not adopt a prior aggregate receipt as current-phase evidence. Both completedScopes mirrors remain empty, scopeProgress remains in_progress, all eight scenario states remain PLANNED, certification timestamps remain null, certifiedCompletedPhases remains empty, and human acceptance remains uninferred. Packet status and certification.status remain in_progress. The immediate route is the exact dependent C58 aggregate node owned by bubbles.test.",
     "scopeProgress": [
       {
         "scopeId": "01-separate-active-declarations-from-historical-receipts",
@@ -1294,6 +1294,56 @@
       ],
       "nextRequiredOwner": "bubbles.plan",
       "summary": "Reconciled only validate-owned DoD counts from 71 checked and 1 unchecked to the current 72 checked and 0 unchecked. The exact canonical selftest passed with 3,467 assertions and zero failures, artifact lint and traceability passed, and the focused scope-progress validator reported zero new drift. Terminal certification remains refused: the plan-owned scope status and C58 machine mirrors are stale, all eight scenarios lack current receipt-derived certifiable states, required security, validate, and audit phase completion is absent, and the five-item human checklist plus Human Acceptance Record remain human-owned and incomplete. Packet and certification status remain in_progress, completedScopes and certifiedCompletedPhases remain empty, and no acceptance or terminal timestamp was written."
+    },
+    {
+      "at": "2026-09-03T05:41:33Z",
+      "agent": "bubbles.validate",
+      "phase": "validate",
+      "phasesExecuted": ["validate"],
+      "action": "rechecked-current-completion-mirror-and-routed-exact-c58",
+      "executionModel": "dispatched-scenario-node",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-09-03T05:35:14Z",
+      "completedAt": "2026-09-03T05:41:33Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#validate-owned-state-mirror-recheck-control-revision-57",
+      "addressedFindings": [
+        "VALIDATE-BUG022-HANDOFF-EPOCH-DRIFT",
+        "VALIDATE-BUG022-SCOPE-PROGRESS-DRIFT"
+      ],
+      "unresolvedFindings": [
+        "TP-BUG022-R4-C58"
+      ],
+      "nextRequiredOwner": "bubbles.test",
+      "summary": "Validated the exact tax-validate-bug-022-state-mirror packet at control revision 57 and independently derived the current active mirror as 72 checked and 0 unchecked DoD rows, 56 checked and 0 unchecked explicit machine mappings, eight scenario contracts, and 71 traceability Test Plan rows. certification.scopeProgress was already correct at 72/0, so its count did not change. Artifact lint, traceability, freshness, goal fidelity, and focused mirror assertions passed. The asserted done guard correctly refused G060, G022, G027, and G136, so all terminal, scenario, completed-scope, certified-phase, timestamp, and human-acceptance fields remain nonterminal. This phase did not execute or mark C58 and routes only the dependent tax-test-bug-022-c58 node to bubbles.test."
+    },
+    {
+      "at": "2026-09-03T06:07:21Z",
+      "agent": "bubbles.test",
+      "phase": "test",
+      "phasesExecuted": ["test"],
+      "action": "reran-current-c58-aggregate-only",
+      "executionModel": "dispatched-scenario-node",
+      "parentAgent": "bubbles.goal",
+      "startedAt": "2026-09-03T05:41:33Z",
+      "completedAt": "2026-09-03T06:07:21Z",
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "scopesCompleted": [],
+      "outcome": "route_required",
+      "evidenceRef": "report.md#c58-aggregate-recheck-control-revision-57",
+      "addressedFindings": [
+        "TP-BUG022-R4-C58"
+      ],
+      "unresolvedFindings": [
+        "BUG022-SCENARIO-RECEIPT-CLOSURE",
+        "BUG022-TERMINAL-CERTIFICATION"
+      ],
+      "nextRequiredOwner": "bubbles.goal",
+      "summary": "Validated the exact tax-test-bug-022-c58 packet at control revision 57 and ran only the canonical C58 aggregate child command from the repository root under finite evidence capture. Matching pre-run and post-run input identities bind the result to HEAD eba665b8ee5569b2bb14c4ab6f868cb7636788c8 and the recorded current artifact bytes. C58 passed 3,475 assertions with 0 failures at exit 0 across 3,986 lines; full-output SHA-256 is 188287888816c2faac0607d59b2b665090de182b80fe14b5144fa40d77adba41. The receipt is aggregate-only and does not advance scenario, scope, phase, certification, or acceptance state. The registered dependent node tax-close-bug-022 returns to the active top-level runner for scenario receipt and closure work."
     }
   ]
 }

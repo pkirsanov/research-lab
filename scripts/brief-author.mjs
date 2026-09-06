@@ -97,6 +97,18 @@ function requestFingerprint(request) {
   }))}`;
 }
 
+export function verifyAuthorRequestFingerprint(request) {
+  if (!request || typeof request !== 'object' || Array.isArray(request)
+    || typeof request.requestFingerprint !== 'string'
+    || !/^sha256:[0-9a-f]{64}$/.test(request.requestFingerprint)) {
+    return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-fingerprint-invalid', 'request.requestFingerprint');
+  }
+  if (requestFingerprint(request) !== request.requestFingerprint) {
+    return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-fingerprint-mismatch', 'request.requestFingerprint');
+  }
+  return { ok: true, request };
+}
+
 /* Recursively scan a value for secret-shaped keys and instruction/markup-shaped strings. Returns a
    { reason, field } finding or null. Reused by both the request builder and the envelope gate. */
 function scanUnsafe(value, field) {
@@ -279,6 +291,8 @@ export async function invokeAuthor(request, options) {
   if (!request || typeof request !== 'object' || dispatchable.indexOf(request.contractVersion) === -1 || typeof request.requestFingerprint !== 'string') {
     return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-invalid', 'request');
   }
+  const fingerprint = verifyAuthorRequestFingerprint(request);
+  if (!fingerprint.ok) return fingerprint;
   // A v2 request may not be dispatched at all unless its capability ledger grants nothing.
   if (request.contractVersion === TOOL_AUTHOR_REQUEST_V2_CONTRACT) {
     const ledger = assertAuthorV2Capabilities(request);

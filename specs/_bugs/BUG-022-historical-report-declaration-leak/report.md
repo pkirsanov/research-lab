@@ -5927,3 +5927,162 @@ Both completed-scope mirrors and `certifiedCompletedPhases` remain empty.
 Certification timestamps remain null. No human acceptance, scenario state,
 source, test, installed framework, proposal, branch, worktree, Git, deployment,
 or unrelated dirty path was mutated by this validation record.
+
+## Validate-Owned State Mirror Recheck - Control Revision 57 {#validate-owned-state-mirror-recheck-control-revision-57}
+
+**Phase:** validate
+**Claim Source:** interpreted
+**Interpretation:** The exact current artifact set had already advanced beyond
+the supplied 71 checked and 1 unchecked handoff before this invocation. The
+active scope, machine Test Plan, scenario manifest, and validate-owned
+certification mirror now agree at 72 checked and 0 unchecked DoD rows. This
+phase confirms that nonterminal mirror only. It does not execute or mark C58,
+adopt an earlier C58 receipt as current-phase evidence, promote a scenario,
+infer human acceptance, or certify terminal completion.
+
+### Repository Binding
+
+The inherited `tax-validate-bug-022-state-mirror` packet passed
+`repository-binding.sh validate-packet` against session
+`vscode-7fbaa0072aa19f2dad3c4e8b6569c268`, control revision 57, and control-path
+digest
+`sha256:091ebb74a3dc57bfab99a63219b3f1e4662c1e5f3cea94fafc5dd801352f47ac`.
+The validator resolved repository alias `research-lab`, decision
+`rb:vscode-7fbaa0072aa19f2dad3c4e8b6569c268:57:node:tax-validate-bug-022-state-mirror`,
+and scope `tax-validate-bug-022-state-mirror` as actionable.
+
+### Exact Current Mirror Counts
+
+**Command:** bounded read-only mirror assertion over `scopes.md`,
+`test-plan.json`, `scenario-manifest.json`, and `state.json`
+**Exit Code:** 0
+
+```text
+BUG022_MIRROR_ASSERT_BEGIN
+SCOPES_DOD_CHECKED=72
+SCOPES_DOD_UNCHECKED=0
+TEST_PLAN_MAPPINGS_CHECKED=56
+TEST_PLAN_MAPPINGS_UNCHECKED=0
+9:  "scenarioCount": 8,
+14:      "checked": 72,
+15:      "unchecked": 0,
+20:      "unchecked": 0,
+208:        "dodChecked": 72,
+209:        "dodUnchecked": 0
+BUG022_MIRROR_ASSERT=PASS
+BUG022_MIRROR_ASSERT_END
+```
+
+Traceability independently counted 8 scenarios and 71 Test Plan rows. The
+machine Test Plan contains 56 explicit Test Plan-to-DoD mapping objects. These
+are different inventories and both are internally clean. The scope remains
+`In Progress`; both completed-scope mirrors and `certifiedCompletedPhases`
+remain empty.
+
+### Executed Narrow Validation
+
+| Check | Exit | Complete-output SHA-256 | Current signal |
+| --- | ---: | --- | --- |
+| G070 pre-certification goal fidelity | 0 | `3bc6db28381ca97126677622f3eccd914d5ec26e9fae7e71814eeaf2db389a46` | Outcome contract linkage passed. |
+| Scope DoD progress, post-edit `--all` | 0 | `ecb9a6062e06eb00fe69297273b8037196d5479a2cb7ba248f316efd0b43a869` | 72 agreeing claims, 0 new drift, 0 stale drift. |
+| Artifact lint | 0 | `182cf27f7948b167f9fdebccae5bf6994636355face5d8ae0a4d55666dc9b567` | Required artifacts, checkbox shape, status mirror, and evidence checks passed. |
+| Traceability guard | 0 | `1f01814a059310aa020bdabb4fcdec6d56f14ea01d86d7bb8a72ad13668b1478` | 8 scenarios, 71 rows, 8 concrete-test mappings, 8 report mappings, 0 warnings. |
+| Scenario-state resolver | 0 | `9a95943adf945033d412edcc1a7177099f2afedd11fdd50210902b1628ed658e` | All 8 scenarios remain `PLANNED`; 676 superseded revision-drift receipts were excluded as nonblocking. |
+| Artifact freshness guard | 0 | `d3dbc8264f10a2f1fedd677e01567a281dd8dbae8cbad163d33fc4d243fe3dcb` | 0 failures and 0 warnings. |
+| Transition contract resolver | 0 | `4a0a4c130f031b123853b4b9ba0d12745cc369bb8f1f105e513a05425991985d` | `bugfix-fastlane`, target `done`, current `in_progress`, delivery-completion profile. |
+| Asserted terminal state guard | 1 | `a339637f16210f0f2d9b7f23704fbf398f37d1f367111abb9e95b470aab7a695` | Terminal certification correctly refused: `G060`, `G022`, `G027`, and `G136`; 13 failures. |
+
+The asserted guard failure is the required nonterminal boundary. It is not a
+failure of the 72/0 completion-count mirror. C58 was not run in this phase.
+
+### Finding Accounting And Exact Owner Route
+
+| Finding | Disposition | Owner |
+| --- | --- | --- |
+| `VALIDATE-BUG022-HANDOFF-EPOCH-DRIFT` | Addressed. Current artifact hashes and direct count assertions replace the stale supplied 71/1 premise with current 72/0 truth. | `bubbles.validate` |
+| `VALIDATE-BUG022-SCOPE-PROGRESS-DRIFT` | Addressed. `certification.scopeProgress` already matched current artifact truth at 72/0; no count mutation was required. | `bubbles.validate` |
+| `TP-BUG022-R4-C58` | Unresolved in this phase by instruction. The dependent node must run the canonical C58 aggregate check against the post-report current bytes. | `bubbles.test` |
+
+The immediate packet is scenario node `tax-test-bug-022-c58`. Its requirement
+is to run the canonical C58 aggregate check only after this validate-owned
+mirror is current and to preserve scenario-bound receipt requirements as
+separate obligations. This report changes no `scopes.md`, `test-plan.json`,
+`scenario-manifest.json`, `uservalidation.md`, source, test, Feature 030, or
+other concurrent file.
+
+## C58 Aggregate Recheck - Control Revision 57 {#c58-aggregate-recheck-control-revision-57}
+
+**Phase:** test
+**Claim Source:** executed
+**Command:** `node scripts/selftest.mjs`
+**Exit Code:** 0
+
+The inherited `tax-test-bug-022-c58` packet passed
+`repository-binding.sh validate-packet` against session
+`vscode-7fbaa0072aa19f2dad3c4e8b6569c268`, control revision 57, and the
+compiled scenario declaration for node `tax-test-bug-022-c58`. The packet
+payload was not rewritten. C58 ran from the repository root under an outer
+1,800-second supervisor through the installed evidence-capture wrapper. The
+child command was exactly `node scripts/selftest.mjs`.
+
+### Current Input Identities
+
+The following identities were read immediately before C58 and re-read after
+the definitive run. Both reads matched exactly.
+
+| Input | SHA-256 |
+| --- | --- |
+| Repository `HEAD` | `eba665b8ee5569b2bb14c4ab6f868cb7636788c8` |
+| `scripts/selftest.mjs` | `1c13a35edc7842277dda48f38a724b99845ef3a41fc7b0c2054166f4fe51594d` |
+| `scripts/validate-test-file-reachability.mjs` | `6c763237506bfeb0b99a26a86b7075859a4ae84d5220bbcac7aa84cefd03426f` |
+| `scripts/validate-test-file-reachability.baseline` | `dbab8720445e1fdc267e381f49b1bee76f49c7e345c18ef669bccf85a820fd73` |
+| `tests/playwright-runtime.foundation.functional.mjs` | `9877f64beef3eeae2ef84c66be89114df54ab71bd151a69701d60be78ed6882b` |
+| `scopes.md` | `9724f56e576e48574accdc7f91a2802bee21c75a10ea40a0b056b171a8469e26` |
+| `test-plan.json` | `bf139833d00f161b6b05b86d8af05e3adf4b3bed640355d55e790bc1a8027578` |
+| `state.json` before this execution update | `98321ff9bccb6dcf5ab6b5379aedc55b6ebe6c6833843e229da0c05ce2733ccc` |
+| `scenario-manifest.json` | `57ff52a3f873d46a47948bacb122324b710057d99cef1e89361a4565eece0942` |
+| `report.md` before this evidence append | `4a563fdb8ce76ddc1931a166fa26c03eac9e0a61d60ddfc1562a370161c54664` |
+| Compiled scenario plan | `c4f5075205547fe75665b53c55c8e9207d8b7f8ef0005ba6e8e528964ee577b7` |
+
+The scoped status read before execution showed existing modifications only in
+`scripts/selftest.mjs`, `report.md`, and `state.json`. This phase treated the
+current `scripts/selftest.mjs` bytes as an input and did not edit them.
+
+### Captured C58 Evidence
+
+```text
+# BUG-022 C58 tax-test-bug-022-c58 current aggregate definitive run
+$ node scripts/selftest.mjs
+exit: 0
+lines: 3986
+sha256: 188287888816c2faac0607d59b2b665090de182b80fe14b5144fa40d77adba41
+failure-shaped lines: none
+================================================
+Research-Lab self-test: 3475 passed, 0 failed
+================================================
+C58_CAPTURE_EXIT=0
+```
+
+Two direct-terminal rendering attempts returned stream fragments without an
+evidence-capture header, exit, line count, hash, or aggregate footer. No C58
+conclusion was inferred from those fragments. The isolated definitive run
+above is the sole evidence of record.
+
+### C58 Result And Owner Route
+
+**Claim Source:** interpreted
+**Interpretation:** The executed output directly closes only the aggregate
+`TP-BUG022-R4-C58` check. The command carried no scenario binding and supplies
+no scenario receipt, terminal certification, workflow-phase completion, or
+human acceptance evidence.
+
+| Finding | Disposition | Owner |
+| --- | --- | --- |
+| `TP-BUG022-R4-C58` | Addressed by the current stable-input aggregate receipt: 3,475 passed, 0 failed, exit 0, 3,986 lines, SHA-256 `188287888816c2faac0607d59b2b665090de182b80fe14b5144fa40d77adba41`. | `bubbles.test` |
+| `BUG022-SCENARIO-RECEIPT-CLOSURE` | Unresolved by C58. The registered dependent node is `tax-close-bug-022`, which preserves scenario receipts as separate obligations. | `bubbles.goal` |
+| `BUG022-TERMINAL-CERTIFICATION` | Unchanged. C58 does not satisfy or relabel the prior G060, G022, G027, or G136 terminal obligations. | `bubbles.validate` and the human acceptance owner |
+
+This node changes only BUG-022 test-owned report evidence and execution state.
+It does not change `scopes.md`, `test-plan.json`, `scenario-manifest.json`,
+`uservalidation.md`, source, tests, certification fields, Feature 030, or any
+other concurrent work.

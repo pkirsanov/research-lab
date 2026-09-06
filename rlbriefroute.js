@@ -228,10 +228,10 @@
   }
 
   function usageDimension(nativeUsage, field) {
-    if (!isPlainObject(nativeUsage) || !Object.prototype.hasOwnProperty.call(nativeUsage, field)) {
+    if (!isPlainObject(nativeUsage) || !Object.prototype.hasOwnProperty.call(nativeUsage, field) || nativeUsage[field] === null) {
       return { ok: true, value: { state: "unmeasured", reason: "provider-field-missing" } };
     }
-    if (!Number.isInteger(nativeUsage[field]) || nativeUsage[field] < 0) {
+    if (!Number.isSafeInteger(nativeUsage[field]) || nativeUsage[field] < 0) {
       return failure(ERRORS.USAGE_INVALID, "provider-token-invalid", "usage." + field);
     }
     return { ok: true, value: { state: "measured", value: nativeUsage[field], source: "provider-response" } };
@@ -247,9 +247,17 @@
     if (!input.ok) return input;
     if (!output.ok) return output;
     if (!total.ok) return total;
-    if (input.value.state === "measured" && output.value.state === "measured" && total.value.state === "measured"
-      && input.value.value + output.value.value !== total.value.value) {
-      return failure(ERRORS.USAGE_INVALID, "provider-total-inconsistent", "usage.total_tokens");
+    if (input.value.state === "measured" && output.value.state === "measured") {
+      if (input.value.value > Number.MAX_SAFE_INTEGER - output.value.value) {
+        return failure(ERRORS.USAGE_INVALID, "provider-token-overflow", "usage.total_tokens");
+      }
+      var computedTotal = input.value.value + output.value.value;
+      if (!Number.isSafeInteger(computedTotal)) {
+        return failure(ERRORS.USAGE_INVALID, "provider-token-overflow", "usage.total_tokens");
+      }
+      if (total.value.state === "measured" && computedTotal !== total.value.value) {
+        return failure(ERRORS.USAGE_INVALID, "provider-total-inconsistent", "usage.total_tokens");
+      }
     }
     var receipt = {
       contractVersion: RECEIPT_CONTRACT,
@@ -267,7 +275,7 @@
     if (!isPlainObject(value) || !isNonEmptyString(value.state)) return false;
     if (value.state === "measured") {
       return exactKeys(value, ["state", "value", "source"])
-        && Number.isInteger(value.value) && value.value >= 0 && isNonEmptyString(value.source);
+        && Number.isSafeInteger(value.value) && value.value >= 0 && isNonEmptyString(value.source);
     }
     if (value.state === "unmeasured") return exactKeys(value, ["state", "reason"]) && isNonEmptyString(value.reason);
     return allowNotApplicable === true && value.state === "not-applicable" && exactKeys(value, ["state"]);

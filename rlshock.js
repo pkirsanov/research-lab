@@ -1005,6 +1005,234 @@
     return validateVersionedIdentity(value, path, "offset-version", context);
   }
 
+  /* Scope 2 sub-pass 1: interval-subtraction offset composition. Section 8.5 and
+     Section 9.2 of design.md. Gross and every effective offset compose as intervals.
+     An offset outside its effective lag window or past its expiry contributes no
+     numeric value but remains visible. An unavailable required offset widens the
+     range through its source-qualified upper bound, or withholds the net result
+     when no such bound exists. Zero capacity is never inserted for a missing or
+     unavailable offset. */
+
+  function offsetHasExpired(offset, asOfInstant) {
+    if (offset.expiryAt === null) return false;
+    return Date.parse(asOfInstant) >= Date.parse(offset.expiryAt);
+  }
+
+  function offsetIsWithinLagWindow(offset, elapsedSinceShockStart) {
+    if (elapsedSinceShockStart === null || typeof elapsedSinceShockStart === "undefined") return true;
+    if (!isPlainObject(offset.lag) || typeof offset.lag.value !== "number") return true;
+    return elapsedSinceShockStart >= offset.lag.value;
+  }
+
+  function classifyOffsetForNet(offset, asOfInstant, elapsedSinceShockStart) {
+    if (offsetHasExpired(offset, asOfInstant)) return { effective: false, reason: "expired" };
+    if (!offsetIsWithinLagWindow(offset, elapsedSinceShockStart)) return { effective: false, reason: "not-yet-available" };
+    var accessible = offset.accessibleCapacity;
+    var unavailable = offset.lifecycleState === "unavailable" || (isPlainObject(accessible) && accessible.state === "unavailable");
+    if (unavailable) {
+      if (offset.unknownCapacityUpperBound !== null && offset.unknownCapacityUpperBound.state === "current") {
+        return { effective: true, reason: "unavailable-with-bound", widensOnly: true };
+      }
+      return { effective: false, reason: offset.requiredForNet ? "withheld" : "unavailable-without-bound" };
+    }
+    return { effective: true, reason: "accessible" };
+  }
+
+  function composeNetRange(gross, offsets, asOfInstant, elapsedSinceShockStart) {
+    var grossRangeFailure = validateRange(gross, "$.gross", gross);
+    if (grossRangeFailure) return grossRangeFailure;
+    if (!Array.isArray(offsets)) return failure("RLSHOCK-TYPE", "$.offsets", "Offsets must be an array.", offsets);
+    if (typeof asOfInstant !== "string" || asOfInstant.trim() === "") {
+      return failure("RLSHOCK-TIME", "$.asOf", "Expected a canonical UTC instant.", asOfInstant);
+    }
+    var offsetLow = 0;
+    var offsetBase = 0;
+    var offsetHigh = 0;
+    var citedOffsetVersionIds = [];
+    var effectiveClassifications = [];
+    var withheld = false;
+    var withheldPath = null;
+    for (var index = 0; index < offsets.length; index += 1) {
+      var offset = offsets[index];
+      var offsetPath = indexPath("$.offsets", index);
+      if (!isPlainObject(offset)) return failure("RLSHOCK-TYPE", offsetPath, "Expected an offset object.", offsets);
+      var classification = classifyOffsetForNet(offset, asOfInstant, elapsedSinceShockStart);
+      if (!classification.effective) {
+        if (classification.reason === "withheld") {
+          withheld = true;
+          withheldPath = offsetPath;
+        }
+        effectiveClassifications.push({ offsetId: offset.offsetId, reason: classification.reason });
+        continue;
+      }
+      citedOffsetVersionIds.push(offset.versionId);
+      if (classification.widensOnly) {
+        offsetHigh += offset.unknownCapacityUpperBound.range.high;
+        effectiveClassifications.push({ offsetId: offset.offsetId, reason: classification.reason });
+      } else {
+        offsetLow += offset.accessibleCapacity.range.low;
+        offsetBase += offset.accessibleCapacity.range.base;
+        offsetHigh += offset.accessibleCapacity.range.high;
+        effectiveClassifications.push({ offsetId: offset.offsetId, reason: classification.reason });
+      }
+    }
+    if (withheld) {
+      return success({
+        state: "unavailable",
+        range: null,
+        citedGrossRange: null,
+        citedOffsetVersionIds: citedOffsetVersionIds,
+        offsetClassifications: effectiveClassifications,
+        reason: "A required offset lacks accessible capacity and a source-qualified upper bound."
+      }, { withheldPath: withheldPath });
+    }
+    var netLow = Math.max(0, gross.low - offsetHigh);
+    var netBase = Math.max(0, gross.base - offsetBase);
+    var netHigh = Math.max(0, gross.high - offsetLow);
+    if (!(netLow <= netBase && netBase <= netHigh)) {
+      return failure("RLSHOCK-RANGE", "$.net", "Composed net range is not monotonic.", { gross: gross, offsetLow: offsetLow, offsetBase: offsetBase, offsetHigh: offsetHigh });
+    }
+    return success({
+      state: "current",
+      range: { low: netLow, base: netBase, high: netHigh },
+      citedGrossRange: { low: gross.low, base: gross.base, high: gross.high },
+      citedOffsetVersionIds: citedOffsetVersionIds,
+      offsetClassifications: effectiveClassifications
+    });
+  }
+
+  /* Scope 2 sub-pass 1: independent DAG structural validation. Section 9.1 of
+     design.md. Re-derives endpoint resolution, rank ordering, an independent
+     topological sort, path continuity, no-repeat edges and nodes, and
+     conflict-group cardinality directly from a graph object, separate from the
+     inline checks already folded into validatePrimitiveEnvelope. A directed
+     cycle is refused with RLSHOCK-GRAPH-CYCLE at its closing edge path. */
+
+  function validateGraphStructure(graph, resourcePolicy) {
+    var context = graph;
+    if (!isPlainObject(graph)) return failure("RLSHOCK-TYPE", "$.graph", "Expected a graph object.", context);
+    var shape = shapeFailure(graph, "$.graph", GRAPH_FIELDS, GRAPH_FIELDS, context);
+    if (shape) return shape;
+    if (!Array.isArray(graph.nodes) || !Array.isArray(graph.edges) || !Array.isArray(graph.paths)) {
+      return failure("RLSHOCK-TYPE", "$.graph", "Graph collections must be arrays.", context);
+    }
+    var maxNodes = isPlainObject(resourcePolicy) && typeof resourcePolicy.maxGraphNodesPerSnapshot === "number" ? resourcePolicy.maxGraphNodesPerSnapshot : 200;
+    if (graph.nodes.length > maxNodes) return failure("RLSHOCK-RESOURCE", indexPath("$.graph.nodes", maxNodes), "Graph node count exceeds the resolved policy.", context);
+
+    var nodeIds = [];
+    var nodeRanks = Object.create(null);
+    for (var nodeIndex = 0; nodeIndex < graph.nodes.length; nodeIndex += 1) {
+      var node = graph.nodes[nodeIndex];
+      var nodePath = indexPath("$.graph.nodes", nodeIndex);
+      if (!isPlainObject(node) || typeof node.nodeId !== "string") return failure("RLSHOCK-TYPE", nodePath, "Expected a graph node object.", context);
+      if (nodeIds.indexOf(node.nodeId) !== -1) return failure("RLSHOCK-DUPLICATE", fieldPath(nodePath, "nodeId"), "Duplicate graph node.", context);
+      if (!Number.isInteger(node.rank) || node.rank < 0) return failure("RLSHOCK-GRAPH-CYCLE", fieldPath(nodePath, "rank"), "Node rank must be a non-negative integer.", context);
+      nodeIds.push(node.nodeId);
+      nodeRanks[node.nodeId] = node.rank;
+    }
+
+    var edgeIds = [];
+    var edgesById = Object.create(null);
+    var adjacency = Object.create(null);
+    var inDegree = Object.create(null);
+    for (var initIndex = 0; initIndex < nodeIds.length; initIndex += 1) {
+      adjacency[nodeIds[initIndex]] = [];
+      inDegree[nodeIds[initIndex]] = 0;
+    }
+
+    for (var edgeIndex = 0; edgeIndex < graph.edges.length; edgeIndex += 1) {
+      var edge = graph.edges[edgeIndex];
+      var edgePath = indexPath("$.graph.edges", edgeIndex);
+      if (!isPlainObject(edge) || typeof edge.edgeId !== "string") return failure("RLSHOCK-TYPE", edgePath, "Expected a graph edge object.", context);
+      if (edgeIds.indexOf(edge.edgeId) !== -1) return failure("RLSHOCK-DUPLICATE", fieldPath(edgePath, "edgeId"), "Duplicate graph edge.", context);
+      edgeIds.push(edge.edgeId);
+      edgesById[edge.edgeId] = edge;
+      if (nodeIds.indexOf(edge.fromNodeId) === -1) return failure("RLSHOCK-GRAPH-ENDPOINT", fieldPath(edgePath, "fromNodeId"), "Edge source node does not resolve.", context);
+      if (nodeIds.indexOf(edge.toNodeId) === -1) return failure("RLSHOCK-GRAPH-ENDPOINT", fieldPath(edgePath, "toNodeId"), "Edge target node does not resolve.", context);
+      if (nodeRanks[edge.fromNodeId] >= nodeRanks[edge.toNodeId]) return failure("RLSHOCK-GRAPH-CYCLE", fieldPath(edgePath, "toNodeId"), "Edge rank must increase.", context);
+      adjacency[edge.fromNodeId].push({ toNodeId: edge.toNodeId, edgeId: edge.edgeId });
+      inDegree[edge.toNodeId] += 1;
+    }
+
+    var queue = [];
+    var remainingIndegree = Object.create(null);
+    for (var degIndex = 0; degIndex < nodeIds.length; degIndex += 1) {
+      remainingIndegree[nodeIds[degIndex]] = inDegree[nodeIds[degIndex]];
+      if (inDegree[nodeIds[degIndex]] === 0) queue.push(nodeIds[degIndex]);
+    }
+    var visitedCount = 0;
+    var queueHead = 0;
+    while (queueHead < queue.length) {
+      var current = queue[queueHead];
+      queueHead += 1;
+      visitedCount += 1;
+      var outEdges = adjacency[current];
+      for (var outIndex = 0; outIndex < outEdges.length; outIndex += 1) {
+        var toNodeId = outEdges[outIndex].toNodeId;
+        remainingIndegree[toNodeId] -= 1;
+        if (remainingIndegree[toNodeId] === 0) queue.push(toNodeId);
+      }
+    }
+    if (visitedCount !== nodeIds.length) {
+      var cyclicSet = Object.create(null);
+      for (var cycIndex = 0; cycIndex < nodeIds.length; cycIndex += 1) {
+        if (remainingIndegree[nodeIds[cycIndex]] > 0) cyclicSet[nodeIds[cycIndex]] = true;
+      }
+      for (var closingIndex = 0; closingIndex < graph.edges.length; closingIndex += 1) {
+        var candidate = graph.edges[closingIndex];
+        if (cyclicSet[candidate.fromNodeId] && cyclicSet[candidate.toNodeId]) {
+          return failure("RLSHOCK-GRAPH-CYCLE", indexPath("$.graph.edges", closingIndex), "Directed cycle detected by independent topological validation.", context);
+        }
+      }
+      return failure("RLSHOCK-GRAPH-CYCLE", "$.graph.edges", "Directed cycle detected by independent topological validation.", context);
+    }
+
+    var pathIds = [];
+    var conflictGroups = Object.create(null);
+    for (var pathIndex = 0; pathIndex < graph.paths.length; pathIndex += 1) {
+      var graphPath = graph.paths[pathIndex];
+      var graphPathPath = indexPath("$.graph.paths", pathIndex);
+      if (!isPlainObject(graphPath) || typeof graphPath.pathId !== "string") return failure("RLSHOCK-TYPE", graphPathPath, "Expected a graph path object.", context);
+      if (pathIds.indexOf(graphPath.pathId) !== -1) return failure("RLSHOCK-DUPLICATE", fieldPath(graphPathPath, "pathId"), "Duplicate path id.", context);
+      pathIds.push(graphPath.pathId);
+      if (!Array.isArray(graphPath.edgeIds) || graphPath.edgeIds.length === 0) return failure("RLSHOCK-GRAPH-PATH", fieldPath(graphPathPath, "edgeIds"), "Path requires at least one edge.", context);
+
+      var seenEdgeIds = Object.create(null);
+      var seenNodeIds = Object.create(null);
+      var priorEdge = null;
+      for (var pathEdgeIndex = 0; pathEdgeIndex < graphPath.edgeIds.length; pathEdgeIndex += 1) {
+        var edgeId = graphPath.edgeIds[pathEdgeIndex];
+        var edgeIdxPath = indexPath(fieldPath(graphPathPath, "edgeIds"), pathEdgeIndex);
+        if (seenEdgeIds[edgeId]) return failure("RLSHOCK-DUPLICATE", edgeIdxPath, "Path edge repeats.", context);
+        seenEdgeIds[edgeId] = true;
+        var selectedEdge = edgesById[edgeId];
+        if (!selectedEdge) return failure("RLSHOCK-GRAPH-PATH", edgeIdxPath, "Path edge does not resolve.", context);
+        if (priorEdge && priorEdge.toNodeId !== selectedEdge.fromNodeId) return failure("RLSHOCK-GRAPH-PATH", edgeIdxPath, "Path edges are discontinuous.", context);
+        if (pathEdgeIndex === 0) {
+          if (seenNodeIds[selectedEdge.fromNodeId]) return failure("RLSHOCK-GRAPH-PATH", edgeIdxPath, "Path node repeats.", context);
+          seenNodeIds[selectedEdge.fromNodeId] = true;
+        }
+        if (seenNodeIds[selectedEdge.toNodeId]) return failure("RLSHOCK-GRAPH-PATH", edgeIdxPath, "Path node repeats.", context);
+        seenNodeIds[selectedEdge.toNodeId] = true;
+        priorEdge = selectedEdge;
+      }
+      if (!priorEdge || priorEdge.toNodeId !== graphPath.outcomeNodeId) return failure("RLSHOCK-GRAPH-PATH", fieldPath(graphPathPath, "outcomeNodeId"), "Path does not reach its outcome.", context);
+      if (graphPath.conflictGroupId !== null && graphPath.conflictGroupId !== undefined) {
+        if (typeof graphPath.conflictGroupId !== "string") return failure("RLSHOCK-TYPE", fieldPath(graphPathPath, "conflictGroupId"), "Conflict group id must be a string or null.", context);
+        if (!conflictGroups[graphPath.conflictGroupId]) conflictGroups[graphPath.conflictGroupId] = [];
+        conflictGroups[graphPath.conflictGroupId].push(graphPath.pathId);
+      }
+    }
+    var conflictGroupKeys = Object.keys(conflictGroups);
+    for (var groupIndex = 0; groupIndex < conflictGroupKeys.length; groupIndex += 1) {
+      if (conflictGroups[conflictGroupKeys[groupIndex]].length < 2) {
+        return failure("RLSHOCK-GRAPH-PATH", "$.graph.paths", "A conflict group requires at least two visible paths.", context);
+      }
+    }
+
+    return success({ nodeIds: nodeIds, edgeIds: edgeIds, pathIds: pathIds, topologicalOrder: queue, conflictGroupIds: conflictGroupKeys });
+  }
+
   function validateActor(value, path, context) {
     var shape = shapeFailure(value, path, ACTOR_FIELDS, ACTOR_FIELDS, context);
     if (shape) return shape;
@@ -1607,6 +1835,8 @@
     validateObservationSet: validateObservationSet,
     validateAdapterOutput: validateAdapterOutput,
     composeSnapshot: composeSnapshot,
+    composeNetRange: composeNetRange,
+    validateGraphStructure: validateGraphStructure,
     validateSnapshot: validateSnapshot,
     projectClaimRows: projectClaimRows,
     projectEdgeRows: projectEdgeRows,

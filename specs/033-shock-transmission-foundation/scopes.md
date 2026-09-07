@@ -551,10 +551,10 @@ Planning does not execute delivery work. Every item remains unchecked until its 
 
 #### Test Evidence Items
 
-- [ ] `DOD-02-TP-02-01` SCN-031-005 Gross disruption does not become net loss: TP-02-01 passes and every effective offset contributes to the interval result.
-- [ ] `DOD-02-TP-02-02` SCN-031-006 An unavailable offset widens uncertainty: TP-02-02 passes with upper-bound widening and no-bound withholding.
-- [ ] `DOD-02-TP-02-03` SCN-031-008 Conflicting edges remain visible: TP-02-03 passes and opposing paths remain visible.
-- [ ] `DOD-02-TP-02-04` SCN-031-009 Physical and financial mechanisms stay separate: TP-02-04 passes and physical evidence alone cannot assert financial breakage.
+- [x] `DOD-02-TP-02-01` SCN-031-005 Gross disruption does not become net loss: TP-02-01 passes and every effective offset contributes to the interval result. → Evidence: [Scope 2 Sub-pass 1 of 3](report.md#scope-2-sub-pass-1-of-3--interval-subtraction-composition-and-dag-structural-validation--2026-09-06)
+- [x] `DOD-02-TP-02-02` SCN-031-006 An unavailable offset widens uncertainty: TP-02-02 passes with upper-bound widening and no-bound withholding. → Evidence: [Scope 2 Sub-pass 1 of 3](report.md#scope-2-sub-pass-1-of-3--interval-subtraction-composition-and-dag-structural-validation--2026-09-06)
+- [x] `DOD-02-TP-02-03` SCN-031-008 Conflicting edges remain visible: TP-02-03 passes and opposing paths remain visible. → Evidence: [Scope 2 Sub-pass 1 of 3](report.md#scope-2-sub-pass-1-of-3--interval-subtraction-composition-and-dag-structural-validation--2026-09-06)
+- [x] `DOD-02-TP-02-04` SCN-031-009 Physical and financial mechanisms stay separate: TP-02-04 passes and physical evidence alone cannot assert financial breakage. → Evidence: [Scope 2 Sub-pass 1 of 3](report.md#scope-2-sub-pass-1-of-3--interval-subtraction-composition-and-dag-structural-validation--2026-09-06)
 - [ ] `DOD-02-TP-02-05` SCN-031-010 Independent policy actors remain independent: TP-02-05 passes across all five independent policy actors.
 - [ ] `DOD-02-TP-02-06` SCN-031-011 An announcement is not implementation: TP-02-06 passes and announcement cannot promote implementation or effect.
 - [ ] `DOD-02-TP-02-07` SCN-031-012 Policy layers may conflict: TP-02-07 passes and policy layers remain independent.

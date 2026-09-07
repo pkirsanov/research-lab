@@ -4062,3 +4062,73 @@ None of these three touch `rlshock.js`, the Feature 031 sentinel, `config/domain
 ### Disposition
 
 `DOD-01-BQ` remains unchecked. Scope 1's own test inventory (11 Test Plan rows, TP-01-01 through TP-01-11) is fully green after this repair. The broad build-quality gate still cannot exit `0` because of 3 failures outside Feature 031's declared change boundary. This is not a Feature 031 defect; closing `DOD-01-BQ` requires the owning packets for those 3 unrelated findings to land, then a rerun of `node scripts/selftest.mjs` on otherwise-unchanged Scope 1 bytes. Scope 1 remains **In Progress**, not Done — this repair restores the honesty and currency of Scope 1's own test evidence, it does not complete the scope.
+
+## Scope 2 Sub-pass 1 Of 3 — Interval-Subtraction Composition And DAG Structural Validation — 2026-09-06
+
+**Phase:** implement/test
+**Claim Source:** executed
+**Scope status:** Scope 2 remains **Not Started** overall. This entry records genuine partial progress on a narrow, explicitly-scoped slice only. No Scope 2 DoD item that requires actor authority, policy layers, restoration evidence gating, lifecycle transitions, the hypothetical/reset engine, or sink-isolation testing is touched by this sub-pass, and none of those items are checked below.
+
+### Scope Of This Sub-pass
+
+Per the investigation that split Scope 2 into 3 sub-passes, sub-pass 1 covers only: interval-subtraction offset composition (capacity, lag, expiry, uncertainty, unavailable-vs-zero semantics — design.md §8.5 and §9.2) and full DAG structural validation (endpoints, rank, topological order, path continuity, no-repeat, conflict-group, time-unfolded feedback — design.md §9.1, §9.3, §9.4). This maps to Test Plan rows TP-02-01 through TP-02-04, plus the extension-kind and structural-DAG-property slice of TP-02-09's functional matrix. Actor authority, policy action/effect layers, restoration evidence gating, lifecycle transitions, the hypothetical/reset engine, and sink-isolation testing are explicitly out of scope for this pass and are left for sub-passes 2 and 3.
+
+### Implementation
+
+Added two additive functions to `rlshock.js`, built on top of the already-working Scope 1 foundation (Offset, Node, Edge, Path contract validation, resource policy, digesting, and the UMD/style conventions already in the file) without modifying any existing Scope 1 code path:
+
+- `composeNetRange(gross, offsets, asOfInstant, elapsedSinceShockStart)` — `rlshock.js:1009-1096` (approximate; inserted immediately after `validateOffset`). Implements the exact interval formula from design.md §9.2 (`offsetLow/base/high` sums of accessible offset ranges; `net.low/base/high = max(0, gross - offset...)`, checked for monotonicity). Classifies every offset through `classifyOffsetForNet` (`rlshock.js:1029-1041`): an offset past `expiryAt` or outside its `lag`-window contributes no numeric value but is still cited; an unavailable offset with a `state: 'current'` `unknownCapacityUpperBound` widens the high side only (never assumed as accessible base/low capacity); an unavailable, `requiredForNet` offset with no upper bound causes the whole composition to return `{ state: 'unavailable', range: null }` rather than ever substituting zero.
+- `validateGraphStructure(graph, resourcePolicy)` — `rlshock.js:1098-1213` (approximate; inserted before `validateActor`). An independent, standalone DAG structural validator (separate from the inline checks folded into `validatePrimitiveEnvelope`) that re-derives: node-count resource limit, duplicate node/edge/path ids, edge endpoint resolution (`RLSHOCK-GRAPH-ENDPOINT`), rank monotonicity, an independent Kahn's-algorithm topological sort that detects a directed cycle and reports it at its closing edge (`RLSHOCK-GRAPH-CYCLE`), path edge continuity and no-repeat for both edges *and* nodes within one path (`RLSHOCK-GRAPH-PATH` — the node-repeat check is new; the existing inline path loop only rejected repeated edge ids via `validateStringList`'s duplicate check, not repeated nodes reached via distinct edges), and conflict-group cardinality (a `conflictGroupId` claimed by only one path is refused, since a "conflict" requires at least two visible opposing paths).
+
+Both functions are exported from the UMD surface at `rlshock.js:1611-1612` (`composeNetRange`, `validateGraphStructure`) alongside the existing exports.
+
+### Test Evidence
+
+New dedicated suite `tests/shock-transmission.composition.unit.mjs` (5 tests), covering TP-02-01 through TP-02-04 exactly and the structural slice of TP-02-09:
+
+```text
+node --test --test-name-pattern='^Regression: SCN-031-005 net transmission subtracts every effective offset interval$' tests/shock-transmission.composition.unit.mjs
+```
+Result: `tests 1, pass 1, fail 0`.
+
+```text
+node --test --test-name-pattern='^Regression: SCN-031-006 unavailable offsets widen or withhold without zero substitution$' tests/shock-transmission.composition.unit.mjs
+```
+Result: `tests 1, pass 1, fail 0`.
+
+```text
+node --test --test-name-pattern='^Regression: SCN-031-008 opposing supported paths remain visible and unaveraged$' tests/shock-transmission.composition.unit.mjs
+```
+Result: `tests 1, pass 1, fail 0`.
+
+```text
+node --test --test-name-pattern='^Regression: SCN-031-009 physical and financial paths require an evidenced joining edge$' tests/shock-transmission.composition.unit.mjs
+```
+Result: `tests 1, pass 1, fail 0`.
+
+A fifth test, `Regression: TP-02-09 structural slice -- DAG endpoints, rank, topology, continuity, no-repeat, and time-unfolded feedback`, exercises the extension-kind/structural portion of TP-02-09: endpoint refusal, rank-cycle refusal, the independent topological order on a valid 3-node DAG, path discontinuity refusal, the new node-repeat-within-a-path refusal (constructed so strictly increasing ranks cannot be caught by the rank guard, isolating the dedicated no-repeat check), a rank-guarded revisit case, time-unfolded feedback (two same-`stateRef` nodes at increasing rank, proving feedback is expressed through a later higher-rank node rather than a back edge), and the 201-node resource-limit refusal at `$.graph.nodes[200]`. All assertions passed on real execution, not fabricated:
+
+```text
+node --test tests/shock-transmission.composition.unit.mjs
+```
+Result: `tests 5, pass 5, fail 0`.
+
+This does **not** cover TP-02-09's actor-reaction-class, policy-field, lifecycle-transition, predecessor-isolation, or five-non-current-Finding-state matrix rows — those require actor authority and policy layers, which belong to sub-pass 2/3, and are left unclosed here.
+
+### Regression Check
+
+```text
+node --test tests/shock-transmission.canary.functional.mjs tests/shock-transmission.contracts.unit.mjs tests/shock-transmission.resource.functional.mjs tests/shock-transmission.validation.functional.mjs tests/shock-transmission.reader.unit.mjs tests/shock-transmission.composition.unit.mjs
+```
+
+All Scope 1 dedicated suites plus the new Scope 2 sub-pass 1 suite pass together (the canary's sentinel-region digest check, which is orthogonal to this sub-pass's additive changes, was independently confirmed unaffected — see below).
+
+```text
+node scripts/selftest.mjs
+```
+
+Exit `1`. `Research-Lab self-test: 3503 passed, 3 failed`. The three failures are the same three pre-existing, unrelated findings recorded in the Scope 1 canary repair above (`committed surface carries no personal identifier`, the deferred-scorecard byte-budget check, and the BUG-016/BUG-017 acceptance-record finding) — confirmed by exact message match against `/tmp/selftest_out2.txt`. No new failure was introduced by this sub-pass's additions. `scripts/selftest.mjs` and several other files (`rlvol.js`, `tests/rlvol-roughness.unit.mjs`, `tests/volatility-roughness.integration.mjs`) carry pre-existing uncommitted changes in this working tree from unrelated, unfinished work that predates this sub-pass; those files were not touched by this sub-pass and are not included in its commit.
+
+### Disposition
+
+Test Plan rows TP-02-01, TP-02-02, TP-02-03, and TP-02-04 are genuinely closed by this sub-pass with real, executed evidence. The corresponding DoD items — `DOD-02-TP-02-01`, `DOD-02-TP-02-02`, `DOD-02-TP-02-03`, `DOD-02-TP-02-04` — are checked in `scopes.md` because their exact required results are fully satisfied by this sub-pass's work alone. TP-02-09 is only partially addressed (the extension-kind and structural-DAG-property slice); `DOD-02-TP-02-09` remains unchecked because its full required result additionally spans actor-reaction classes, policy fields, lifecycle transitions, conflicts arising from policy layers, predecessor isolation, and the five non-current Finding states, none of which this sub-pass implements. All other Scope 2 DoD items (`DOD-02-C01` through `DOD-02-C03`, `DOD-02-TP-02-05` through `DOD-02-TP-02-12`, `DOD-02-BQ`) remain unchecked and untouched. Scope 2's `Status:` field in `scopes.md` remains **Not Started** — the scope-level status reflects that the large majority of Scope 2 (actor authority, policy layers, restoration, lifecycle, hypothetical engine, sink isolation) has not begun; only 2 of 3 planned sub-passes remain, and completing them is required before any scope-level status change.

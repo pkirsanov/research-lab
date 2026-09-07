@@ -826,6 +826,50 @@
     return failureResult || success(value);
   }
 
+  function resolveDefinitionRegistries(definition) {
+    var context = definition;
+    if (!isPlainObject(definition)) return failure("RLSHOCK-TYPE", "$", "Definition must be an object.", context);
+    if (definition.contractVersion !== CONTRACT_VERSIONS.definition) return failure("RLSHOCK-VERSION-UNSUPPORTED", "$.contractVersion", "Unsupported definition version.", context);
+    if (!Array.isArray(definition.horizonRegistry)) return failure("RLSHOCK-TYPE", "$.horizonRegistry", "Horizon registry must be an array.", context);
+    if (!Array.isArray(definition.leverRegistry)) return failure("RLSHOCK-TYPE", "$.leverRegistry", "Lever registry must be an array.", context);
+
+    var horizonRegistry = definition.horizonRegistry.map(function (horizon) {
+      return {
+        horizonId: horizon.horizonId,
+        label: horizon.label,
+        order: horizon.order,
+        durationBasis: horizon.durationBasis,
+        startExclusive: horizon.startExclusive,
+        endInclusive: horizon.endInclusive,
+        scenarioSetId: horizon.scenarioSetId,
+        calibrationPolicyId: horizon.calibrationPolicyId
+      };
+    });
+    var leverRegistry = definition.leverRegistry.map(function (lever) {
+      return {
+        leverId: lever.leverId,
+        label: lever.label,
+        description: lever.description,
+        unitId: lever.unitId,
+        minimum: lever.minimum,
+        maximum: lever.maximum,
+        step: lever.step,
+        baselinePath: lever.baselinePath,
+        targetIds: lever.targetIds.slice(),
+        ownerAdapterId: lever.ownerAdapterId
+      };
+    });
+
+    return success({
+      definitionId: definition.definitionId,
+      definitionDigest: definition.definitionDigest,
+      horizonRegistry: horizonRegistry,
+      horizonRegistryDigest: digest(horizonRegistry),
+      leverRegistry: leverRegistry,
+      leverRegistryDigest: digest(leverRegistry)
+    });
+  }
+
   function validateObservationSetCandidate(value, definition, cutoff) {
     var context = value;
     var privateFailure = privateFieldFailure(value, "$", context);
@@ -2130,6 +2174,7 @@
     digest: digest,
     resolveResourcePolicy: resolveResourcePolicy,
     validateDefinition: validateDefinition,
+    resolveDefinitionRegistries: resolveDefinitionRegistries,
     validateObservationSet: validateObservationSet,
     validateAdapterOutput: validateAdapterOutput,
     composeSnapshot: composeSnapshot,

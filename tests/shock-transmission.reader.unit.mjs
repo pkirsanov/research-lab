@@ -127,3 +127,48 @@ test('Regression: SCN-031-024 hypothetical projection is nonpersistable and rese
   assert.equal(wrongLeverResult.ok, false);
   assert.equal(wrongLeverResult.error.code, 'RLSHOCK-UNKNOWN-MEMBER');
 });
+
+test('Regression: SCN-031-026 selected definitions expose independent ordered lever models', () => {
+  const { definition } = setup();
+  const registries = unwrap(RLSHOCK.resolveDefinitionRegistries(definition));
+
+  assert.deepEqual(Object.keys(registries).sort(), [
+    'definitionId', 'definitionDigest', 'horizonRegistry', 'horizonRegistryDigest',
+    'leverRegistry', 'leverRegistryDigest'
+  ].sort());
+  assert.equal(registries.definitionId, definition.definitionId);
+  assert.equal(registries.definitionDigest, definition.definitionDigest);
+
+  // The horizon registry retains stable ids, order, labels, and interval bounds.
+  assert.deepEqual(registries.horizonRegistry, definition.horizonRegistry);
+  registries.horizonRegistry.forEach((horizon, index) => {
+    assert.equal(horizon.order, index);
+  });
+
+  // The lever registry retains stable ids, units, bounds, steps, baseline paths, and target ids.
+  assert.deepEqual(registries.leverRegistry, definition.leverRegistry);
+  registries.leverRegistry.forEach((lever, index) => {
+    const source = definition.leverRegistry[index];
+    assert.equal(lever.leverId, source.leverId);
+    assert.equal(lever.unitId, source.unitId);
+    assert.equal(lever.minimum, source.minimum);
+    assert.equal(lever.maximum, source.maximum);
+    assert.equal(lever.step, source.step);
+    assert.equal(lever.baselinePath, source.baselinePath);
+    assert.deepEqual(lever.targetIds, source.targetIds);
+  });
+
+  // Both registries are frozen and carry stable digests distinct from each other.
+  assert.equal(Object.isFrozen(registries.horizonRegistry), true);
+  assert.equal(Object.isFrozen(registries.leverRegistry), true);
+  assert.equal(Object.isFrozen(registries.leverRegistry[0]), true);
+  assert.notEqual(registries.horizonRegistryDigest, registries.leverRegistryDigest);
+  assert.equal(registries.horizonRegistryDigest, RLSHOCK.digest(registries.horizonRegistry));
+  assert.equal(registries.leverRegistryDigest, RLSHOCK.digest(registries.leverRegistry));
+
+  // The resolver performs no topic switch, clearing, or route claim: calling it twice on the same
+  // definition is idempotent and never mutates the source definition object.
+  const registriesAgain = unwrap(RLSHOCK.resolveDefinitionRegistries(definition));
+  assert.deepEqual(registriesAgain, registries);
+  assert.deepEqual(definition.horizonRegistry, registries.horizonRegistry, 'the source definition horizon registry is unchanged after resolution');
+});

@@ -575,7 +575,7 @@ Planning does not execute delivery work. Every item remains unchecked until its 
 
 ## Scope 3: Dynamic Definitions And Immutable V1 V2 Publication
 
-**Status:** Not Started
+**Status:** In Progress (sub-pass: `resolveDefinitionRegistries` delivered and tested; v1/v2 dual-read, generation-transaction composition, content-addressed definition publication, and migration/e2e coverage remain undone — see report.md for the itemized remainder)
 
 **Depends On:** Scope 1, Scope 2.
 
@@ -717,7 +717,7 @@ Planning does not execute delivery work. Every item remains unchecked until its 
 
 #### Test Evidence Items
 
-- [ ] `DOD-03-TP-03-01` SCN-031-014 Topic definitions declare arbitrary horizons: TP-03-01 passes across two independent horizon registries.
+- [x] `DOD-03-TP-03-01` SCN-031-014 Topic definitions declare arbitrary horizons: TP-03-01 passes across two independent horizon registries. Claim Source: executed — `node --test tests/shock-transmission.definitions.unit.mjs` (2026-09-06).
 - [ ] `DOD-03-TP-03-02` TP-03-02 passes the SCN-031-015 tolerance boundaries. It preserves curve evidence while each row-level provenance deletion returns an exact-path refusal.
 - [ ] `DOD-03-TP-03-03` SCN-031-016 Unsupported probability remains withheld: TP-03-03 passes with no neutral probability insertion.
 - [ ] `DOD-03-TP-03-04` SCN-031-017 A revised curve preserves its predecessor: TP-03-04 passes through an owned immutable publication round trip.
@@ -725,7 +725,7 @@ Planning does not execute delivery work. Every item remains unchecked until its 
 - [ ] `DOD-03-TP-03-06` TP-03-06 passes every transaction failure injection and restoration assertion.
 - [ ] `DOD-03-TP-03-07` TP-03-07 passes cutoff, vintage, interval, and calibration boundaries.
 - [ ] `DOD-03-TP-03-08` TP-03-08 passes before the full repository selftest and preserves its inventory.
-- [ ] `DOD-03-TP-03-09` SCN-031-026 lever-registry prerequisite: TP-03-09 proves the pure registry model without performing a topic switch or claiming clearing behavior.
+- [x] `DOD-03-TP-03-09` SCN-031-026 lever-registry prerequisite: TP-03-09 proves the pure registry model without performing a topic switch or claiming clearing behavior. Claim Source: executed — `node --test tests/shock-transmission.reader.unit.mjs` (2026-09-06).
 - [ ] `DOD-03-TP-03-10` TP-03-10 proves 262143, 262144, and 262145 canonical artifact behavior through the owner boundary.
 - [ ] `DOD-03-TP-03-11` TP-03-11 proves predecessor integrity for every revised primitive.
 - [ ] `DOD-03-TP-03-12` TP-03-12 proves Scope 3 alone publishes both production v2 definition families before selection and preserves immutable predecessor rules.

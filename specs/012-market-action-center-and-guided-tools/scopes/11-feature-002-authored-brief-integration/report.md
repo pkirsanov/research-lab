@@ -333,6 +333,75 @@ This is not vestigial: `lane.web` gates a real, live capability at `scripts/brie
 
 **Conclusion:** three of the four items this session was asked to close are genuinely resolved or confirmed out-of-boundary (`F012-S11-REACHABILITY-LOAD-012` resolved; `F012-S11-FEATURE-TRACE-013` and the residual TP-11-12 failures confirmed pre-existing/unrelated). But this reverification surfaced a real, reproducible, in-boundary regression against Scope 11's own author-boundary contract (TP-11-03) that was not previously routed and is not closed. Scope 11's DoD checkboxes and `state.json` `scopeProgress` are left unchanged (not marked done) pending a decision on `F012-S11-NARRATIVE-WEB-BOUNDARY-021`.
 
+## `F012-S11-NARRATIVE-WEB-BOUNDARY-021` — RESOLVED (2026-09-06, continuation session)
+
+**Fix:** `scripts/brief-narrative-parallel.mjs` lines 68 and 74 — `web: true` → `web: false` on the `core` and `signals` lanes. The `groups`, `coverage`, and `research` lanes, and the dedicated `research-acquisition` lane (line 132, `web: true`), are untouched. This is the exact end-state Scope 11's own Implementation Plan step 3 already specified ("web acquisition may occur only in Scope 10's stage"); the `core`/`signals` lanes had `web: true` by drift since commit `ec89de469d` (2026-07-16), predating this scope's own test.
+
+**Architecture concern the prior report raised — checked, not a blocker:** Scope 10's bounded `research-acquisition` lane produces the frozen `WebEvidenceBundle/v1` that Scope 11's own `ToolAuthorRequest/v2` contract (`tests/tool-brief-v2.unit.mjs`, `scripts/brief-author.mjs`) already requires as the sole evidence source for the powerless `ToolBrief/v2` author — `core`/`signals` narrative-section authors are a separate, legacy prose pipeline (`brief-narrative-parallel.mjs`) that never fed the v2 author boundary at all. Removing their live web access does not remove any evidence source `ToolBrief/v2` actually consumes; it removes an out-of-contract network path that Scope 11's own DoD requires closed ("no web... authority" — Core Delivery Item 2, DoD line 2). No substitute was needed because the v2 author path was never wired to it.
+
+**TP-11-03 — reproduced GREEN:**
+
+```text
+$ node --test tests/tool-brief-v2-author-boundary.functional.mjs
+✔ the author boundary module imports nothing that could reach the network, a shell, or the repository (1.42675ms)
+✔ the declared v2 capability ledger grants nothing and a granted capability is refused before dispatch (2.215542ms)
+✔ legacy narrative author lanes cannot browse after web evidence moves before authorship (0.300209ms)
+✔ a real bounded author process receives exactly the frozen owner read and qualified evidence (29.476125ms)
+✔ the bounded process is closed against oversize, malformed, timeout, and duplicate responses (457.225375ms)
+✔ an envelope whose fingerprint does not match the dispatched request is refused (2.020417ms)
+✔ SCN-012-006 a single-origin material claim never becomes authorable evidence (1.243542ms)
+✔ SCN-012-007 a syndicated common-origin claim is refused at author time even if it reaches the brief (3.194834ms)
+✔ a market-state claim with no owner evidence is refused as ungrounded (1.249083ms)
+tests 9
+pass 9
+fail 0
+cancelled 0
+skipped 0
+todo 0
+```
+
+The previously-failing assertion (`legacy narrative author lanes cannot browse after web evidence moves before authorship`, expecting `/web:\s*false\b/` for `core`/`signals`) now passes for real. This is the first genuine green receipt for TP-11-03; the 2026-09-01 receipt row 2501's "nine passed, zero failures" claim did not match the committed source at that time and is superseded by this receipt.
+
+**No other file, fixture, or script in the repository depends on the removed `web: true` behavior.** Checked by: (1) `grep` across the repo for `lane.web`/`web:\s*true` outside `scripts/brief-narrative-parallel.mjs` itself — zero hits; the only remaining `web: true` in that file is the dedicated `research-acquisition` lane (line 132), which is correct and untouched; (2) every test file referencing `brief-narrative-parallel.mjs` or the `core`/`signals` lane ids by name (`tests/brief-refresh-atomicity.test.mjs`, `tests/brief-refresh-atomicity.support.mjs`, `tests/distributed-briefs.final-budget.stress.mjs`, `tests/attention-payload-contract.test.mjs`, `tests/playwright-runtime.foundation.functional.mjs`, `tests/web-evidence.functional.mjs`) inspected directly — none assert or rely on the `web` flag's value for `core`/`signals`; they reference the lane *ids* for retry/backoff/attention-authoring fixture behavior only, orthogonal to network capability.
+
+**No new regression — broad selftest:**
+
+```text
+$ node scripts/selftest.mjs
+Research-Lab self-test: 3497 passed, 2 failed
+```
+
+Identical failure count and identical two failures to the pre-fix baseline (`market-brief.html` deferred-scorecard first-load byte budget at `scripts/selftest.mjs:9501`, and the BUG-016/BUG-017 acceptance-baseline bulk-stamp guard at `scripts/selftest.mjs:30155`) — both already documented above as pre-existing and outside Scope 11's Change Boundary. No new failure references `brief-narrative-parallel.mjs`, `core`, or `signals`.
+
+**Feature 002 regression family (TP-11-11) — re-run, one pre-existing unrelated flake found and confirmed pre-existing (not caused by this fix):**
+
+```text
+$ node --test tests/distributed-briefs*.unit.mjs tests/distributed-briefs*.functional.mjs tests/distributed-briefs*.integration.mjs tests/distributed-briefs*.e2e.mjs tests/distributed-briefs*.stress.mjs tests/distributed-briefs*.canary.mjs tests/distributed-briefs*-canary.mjs tests/distributed-briefs*.contract.mjs tests/distributed-briefs*.consumer-trace.mjs
+tests 78
+pass 77
+fail 1   # SCN-019-012 real generation publishes one atomic agenda and brief payload transaction
+```
+
+This single failure was reproduced identically (same test, same assertion, `actual: '2026-07-15' !== expected: '2026-07-16'`) with the fix backed out via `git stash` on the same worktree — it is a pre-existing, date-sensitive test unrelated to this change, present on `main` before this session's edit. `tests/brief-refresh-atomicity.test.mjs` was also run directly and produces the identical 38 pass / 5 fail split with and without this fix (`SCN-019-012 real generation publishes one atomic agenda and brief payload transaction`, `REG-019-004 pre-projection defer ignores only stale disk page parity`, `publication withholds an ineligible causal elevation without discarding the brief`, `REG-019-004 corrupted post-build page blocks before staging and restores every owned baseline byte`, `Regression canary: existing brief atomicity restores every prior owned path under coupled fault injection`) — all five confirmed pre-existing by the same stash/pop comparison, none touching `brief-narrative-parallel.mjs`'s lane `web` flags.
+
+**Every Test Plan row re-verified fresh in this session, on the fixed candidate:**
+
+| Row | Command | Result |
+| --- | --- | --- |
+| TP-11-01 | `node scripts/validate-tool-experience.mjs --dependency feature-002 --require-accepted` | exit 0, `shadow=PASS shadowOnly=true integrationClaims=0`, adversarial=13/13 rejected |
+| TP-11-02 | `node --test tests/tool-brief-v2.unit.mjs` | 19 pass / 0 fail |
+| TP-11-03 | `node --test tests/tool-brief-v2-author-boundary.functional.mjs` | 9 pass / 0 fail (see above — now genuinely green) |
+| TP-11-04 | `node --test tests/tool-brief-v2-publication.integration.mjs` | 12 pass / 0 fail |
+| TP-11-05..08 | `npx --no-install playwright test tests/tool-brief-v2.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list` | 4 pass / 0 fail (all four scenario titles) |
+| TP-11-09 | `npx --no-install playwright test tests/tool-experience.spec.mjs --config=playwright.config.mjs --project=system-chrome --grep "Regression: SCN-012-028 Feature 002 without published milestones exposes exact Brief gate and no author request" --reporter=list` | 1 pass / 0 fail |
+| TP-11-10 | `node --test tests/tool-brief-v2*.stress.mjs` | 5 pass / 0 fail |
+| TP-11-11 | (family command above) | 77 pass / 1 fail — pre-existing SCN-019-012 flake, confirmed unrelated by stash/pop |
+| TP-11-12 | `node scripts/selftest.mjs` | 3497 pass / 2 fail — both pre-existing, outside Change Boundary (see above) |
+| TP-11-13 | `node --test tests/tool-brief-v2*.unit.mjs tests/tool-brief-v2*.functional.mjs tests/tool-brief-v2*.integration.mjs tests/tool-brief-v2*.stress.mjs` | 45 pass / 0 fail |
+| TP-11-14 | `for test_file in tests/distributed-briefs*.load.mjs; do node "$test_file" \|\| exit 1; done` | exit 0, `history load: 8 passed, 0 failed` |
+
+**Verdict on Scope 11 closure:** `F012-S11-NARRATIVE-WEB-BOUNDARY-021` — the single item blocking closure as of the prior entry — is resolved with a genuine, reproduced GREEN receipt. All 14 Test Plan rows now have fresh, real, in-session evidence. The only non-green rows (TP-11-11's one flake, TP-11-12's two residuals) are confirmed pre-existing, confirmed unrelated to any Scope 11 Implementation File by direct stash/pop comparison, and confirmed outside Scope 11's Change Boundary (owned by Scope 05's cockpit byte budget, the BUG-016/017 acceptance registry, and an unrelated date-sensitive Feature 002 fixture respectively). All four Core Delivery Items are supported by this evidence: the Feature 002 predicate was mechanically checked (TP-11-01) before this edit; ToolAuthorRequest/ToolBrief v2 enforce frozen input and powerless authorship (TP-11-02/03/04, now including the closed network boundary); atomic publication with private-sentinel exclusion is proven (TP-11-04/08/10); and the false-predicate fail-closed path still holds (TP-11-09). Scope 11's DoD checkboxes and `state.json` `scopeProgress` are updated to `done` below.
+
 ## Uncertainty Declarations
 
 ### TP-11-12 broad selftest

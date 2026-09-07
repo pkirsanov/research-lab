@@ -4,7 +4,7 @@
 
 Planning authority: [spec.md](../../spec.md), [design.md](../../design.md), and the [scope index](../_index.md). Execution evidence belongs in [report.md](report.md).
 
-**Status:** In Progress (external gate `feature-002` SATISFIED — re-executed verdict status=done/done, matched 4/4; XFC-01 resolved for this gate in commit `85a9ce1d` by the producer publishing `state.milestones` for capabilities it genuinely delivered, with `tool-experience.config.json` byte-unchanged. The implementation candidate is under current verification.)
+**Status:** Done (external gate `feature-002` SATISFIED — re-executed verdict status=done/done, matched 4/4; XFC-01 resolved for this gate in commit `85a9ce1d` by the producer publishing `state.milestones` for capabilities it genuinely delivered, with `tool-experience.config.json` byte-unchanged. All 14 Test Plan rows have fresh in-session GREEN receipts as of 2026-09-06 — see report.md's `F012-S11-NARRATIVE-WEB-BOUNDARY-021 — RESOLVED` entry, which fixed the last open finding: `core`/`signals` narrative lanes in `scripts/brief-narrative-parallel.mjs` now correctly declare `web: false`, matching this scope's own Implementation Plan step 3. TP-11-03's genuine pass, and re-verification of every other row, closes this scope.)
 
 **Scope-Kind:** runtime-behavior
 
@@ -175,30 +175,30 @@ After the external gate passes, create author-boundary, claim mapping, concise h
 
 #### Core Delivery Items
 
-- [ ] The exact Feature 002 predicate was mechanically true before integration; no narrative implementation claim or fixture bypass was used.
-- [ ] ToolAuthorRequest/ToolBrief v2 enforce frozen owner+bundle input, powerless authorship, claim-level corroboration/owner grounding, concise/current/no-action/carried truth, and safe rendering.
-- [ ] Public tool/ticker/Center objects publish through the existing one-generation pointer-last transaction with private sentinel exclusion and byte-identical failure preservation.
-- [ ] False/regressed dependency state still renders SCN-012-028 and makes zero author/publication calls; v1 consumers/rollback remain valid.
+- [x] The exact Feature 002 predicate was mechanically true before integration; no narrative implementation claim or fixture bypass was used.
+- [x] ToolAuthorRequest/ToolBrief v2 enforce frozen owner+bundle input, powerless authorship, claim-level corroboration/owner grounding, concise/current/no-action/carried truth, and safe rendering.
+- [x] Public tool/ticker/Center objects publish through the existing one-generation pointer-last transaction with private sentinel exclusion and byte-identical failure preservation.
+- [x] False/regressed dependency state still renders SCN-012-028 and makes zero author/publication calls; v1 consumers/rollback remain valid.
 
 #### Test Evidence Items - Exact Parity With 14 Test Plan Rows
 
-- [ ] TP-11-01 gate evidence proves Feature 002 was eligible.
-- [ ] TP-11-02 unit evidence proves ToolAuthorRequest/ToolBrief v2 contracts and v1 compatibility.
-- [ ] TP-11-03 functional evidence proves powerless author and unsupported/correlated claim rejection.
-- [ ] TP-11-04 integration evidence proves atomic public generation, public ticker scope, rollback, and private exclusion.
-- [ ] TP-11-05 E2E evidence proves SCN-012-005 exact frozen inputs and author boundary.
-- [ ] TP-11-06 E2E evidence proves SCN-012-008 concise cited hierarchy.
-- [ ] TP-11-07 E2E evidence proves SCN-012-018 Center action/catalyst priority and falsifiers.
-- [ ] TP-11-08 E2E evidence proves SCN-012-020 public ticker publication with zero private fields.
-- [ ] TP-11-09 E2E evidence proves SCN-012-028 gate still fails closed after integration code exists.
-- [ ] TP-11-10 stress evidence proves bounded author/publication behavior at configured limits.
-- [ ] TP-11-11 Feature 002 regression evidence proves existing distributed Brief contracts remain green.
-- [ ] TP-11-12 broad selftest evidence proves the existing Research Lab baseline remains green.
-- [ ] TP-11-13 scope-family evidence proves every non-Playwright ToolBrief v2 suite runs under `node:test`, while browser suites remain Playwright-owned.
-- [ ] TP-11-14 load evidence proves every Feature 002 `.load.mjs` program runs
+- [x] TP-11-01 gate evidence proves Feature 002 was eligible.
+- [x] TP-11-02 unit evidence proves ToolAuthorRequest/ToolBrief v2 contracts and v1 compatibility.
+- [x] TP-11-03 functional evidence proves powerless author and unsupported/correlated claim rejection.
+- [x] TP-11-04 integration evidence proves atomic public generation, public ticker scope, rollback, and private exclusion.
+- [x] TP-11-05 E2E evidence proves SCN-012-005 exact frozen inputs and author boundary.
+- [x] TP-11-06 E2E evidence proves SCN-012-008 concise cited hierarchy.
+- [x] TP-11-07 E2E evidence proves SCN-012-018 Center action/catalyst priority and falsifiers.
+- [x] TP-11-08 E2E evidence proves SCN-012-020 public ticker publication with zero private fields.
+- [x] TP-11-09 E2E evidence proves SCN-012-028 gate still fails closed after integration code exists.
+- [x] TP-11-10 stress evidence proves bounded author/publication behavior at configured limits.
+- [x] TP-11-11 Feature 002 regression evidence proves existing distributed Brief contracts remain green.
+- [x] TP-11-12 broad selftest evidence proves the existing Research Lab baseline remains green.
+- [x] TP-11-13 scope-family evidence proves every non-Playwright ToolBrief v2 suite runs under `node:test`, while browser suites remain Playwright-owned.
+- [x] TP-11-14 load evidence proves every Feature 002 `.load.mjs` program runs
   through the direct-Node family command and remains reachable without
   `node:test`, Playwright, or baseline ownership.
 
 #### Build Quality Gate
 
-- [ ] Eligibility gate, scenario RED/GREEN, exact system-Chrome identity, no-interception scan, author capability ledger, claim/citation/origin mutations, private sentinel scan, pointer/hash/history/rollback/dirty-tree canaries, v1/v2 compatibility, stress caps, protected-path diff, editor diagnostics, `git diff --check`, source-lock, validators, artifact lint, and broad selftest are current and clean.
+- [x] Eligibility gate, scenario RED/GREEN, exact system-Chrome identity, no-interception scan, author capability ledger, claim/citation/origin mutations, private sentinel scan, pointer/hash/history/rollback/dirty-tree canaries, v1/v2 compatibility, stress caps, protected-path diff, editor diagnostics, `git diff --check`, source-lock, validators, artifact lint, and broad selftest are current and clean.

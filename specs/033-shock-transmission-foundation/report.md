@@ -4015,3 +4015,50 @@ The protected comparison covers `tools.json`, `index.html`, `rlnav.js`, `site-ex
 | `F031-HUMAN-ACCEPTANCE-001` | Preserved. No human acceptance item was read as execution evidence or modified. | Human reviewer after delivery |
 
 Scope 1 remains In Progress. No certification or human-acceptance decision is made here.
+
+## Scope 01 Canary Baseline Repair — 2026-09-06
+
+**Phase:** implement/test
+**Claim Source:** executed
+
+### Observation
+
+Re-running the Scope 1 dedicated Test Plan rows found `tests/shock-transmission.canary.functional.mjs` failing:
+
+```text
+node --test tests/shock-transmission.contracts.unit.mjs tests/shock-transmission.validation.functional.mjs \
+  tests/shock-transmission.resource.functional.mjs tests/shock-transmission.canary.functional.mjs \
+  tests/shock-transmission.reader.unit.mjs
+```
+
+Result before repair: `tests 10, pass 9, fail 1`. The failing assertion compared `BASELINE_SELFTEST_SHA256` (committed `98605f5e...806a0a`) against the live digest of `scripts/selftest.mjs` with the Feature 031 sentinel region excised (`1dc2d455...ccb37d7`). `git log --oneline -5 -- scripts/selftest.mjs` shows `scripts/selftest.mjs` changed after the canary's baseline was committed, through unrelated later merges (`907db2c7d`, `2e6826b85`, `22f5094e7`, ...). The Feature 031 sentinel block itself (`grep -n "Feature 031 shock-transmission foundation" scripts/selftest.mjs`) is intact and unchanged — only bytes outside the sentinel drifted, which is exactly the drift this canary exists to detect and which requires a baseline refresh, not a code fix.
+
+### Repair
+
+Recomputed the sentinel-excised SHA-256 of the current `scripts/selftest.mjs` and updated `BASELINE_SELFTEST_SHA256` in `tests/shock-transmission.canary.functional.mjs` (line 11) from `98605f5e7eda14e09cebf62597953fcd21c5e7d710ea255e28c342ca1e806a0a` to `1dc2d455c44d1f942c8370879fb9f0ef55bcac653670a0941c2fcdbb2ccb37d7`. No production file (`rlshock.js`, `scripts/selftest.mjs`) was changed. Only the stale test fixture baseline moved.
+
+### Verification
+
+```text
+node --test tests/shock-transmission.contracts.unit.mjs tests/shock-transmission.validation.functional.mjs \
+  tests/shock-transmission.resource.functional.mjs tests/shock-transmission.canary.functional.mjs \
+  tests/shock-transmission.reader.unit.mjs
+```
+
+Result: `tests 10, pass 10, fail 0`.
+
+```text
+node scripts/selftest.mjs
+```
+
+Exit `1`. `Research-Lab self-test: 3499 passed, 3 failed`. All three "Feature 031 shock-transmission foundation" group assertions pass. The three failures are unrelated to this spec's change boundary:
+
+- `committed surface carries no personal identifier`
+- `the deferred scorecard is a real 11982-byte artifact whose inclusion would exceed the blocking first-load budget`
+- `the real BUG-016/BUG-017 pair is cleared as ONE declared acceptance act rather than by a new baseline entry...`
+
+None of these three touch `rlshock.js`, the Feature 031 sentinel, `config/domain-model.yaml`'s shock entries, or any file in Scope 1's allowed file families. This is a reduction from the 5 pre-existing unrelated failures recorded in the prior `DOD-01-BQ` uncertainty declaration (`F031-BROAD-OPTIONS-FLOW-001`, the 5-reference `XRL-PATH-GUARD-HIST-001` finding, and `XRL-BUG017-DOD-001`) to 3, apparently repaired by intervening unrelated work; the remaining 3 are still owned by other classified packets under the `route-same-repo` boundary rule, not by Feature 031.
+
+### Disposition
+
+`DOD-01-BQ` remains unchecked. Scope 1's own test inventory (11 Test Plan rows, TP-01-01 through TP-01-11) is fully green after this repair. The broad build-quality gate still cannot exit `0` because of 3 failures outside Feature 031's declared change boundary. This is not a Feature 031 defect; closing `DOD-01-BQ` requires the owning packets for those 3 unrelated findings to land, then a rerun of `node scripts/selftest.mjs` on otherwise-unchanged Scope 1 bytes. Scope 1 remains **In Progress**, not Done — this repair restores the honesty and currency of Scope 1's own test evidence, it does not complete the scope.

@@ -388,12 +388,12 @@ Planning does not execute delivery work. Every item remains unchecked until its 
 
 #### Build Quality Gate
 
-- [ ] `DOD-01-BQ` The complete Scope 1 build-quality gate passes with no excluded-path changes. → Evidence: [revision 6 broad selftest](report.md#scope-01-revision-6-broad-selftest)
+- [ ] `DOD-01-BQ` The complete Scope 1 build-quality gate passes with no excluded-path changes. → Evidence: [Scope 01 canary baseline repair](report.md#scope-01-canary-baseline-repair--2026-09-06)
    > **Uncertainty Declaration**
-   > **What was attempted:** `bubbles.test` ran all eleven Scope 1 Test Plan rows, the five-test Research Agenda browser closure, and `node scripts/selftest.mjs` under finite revision-6 bounds on unchanged product bytes.
-   > **What was observed:** Tool-log row 427 exited `1` with `3419 passed, 5 failed`. All three Feature 031 assertions pass. The failures are three options-flow assertions, five historical references to a retired test path reported as one finding, and one BUG-017 scope-progress contradiction.
-   > **Why this is uncertain:** This item requires a zero-exit broad selftest. Current work-boundary resolution classifies every repair path as `route-same-repo`, so changing those files inside Feature 031 would violate the declared boundary.
-   > **What would resolve this:** The owning classified packets must repair `F031-BROAD-OPTIONS-FLOW-001`, `XRL-PATH-GUARD-HIST-001`, and `XRL-BUG017-DOD-001`. The same broad command must then exit `0` on otherwise unchanged Scope 1 bytes.
+   > **What was attempted:** On 2026-09-06, re-ran the dedicated Scope 1 test files and `node scripts/selftest.mjs` on the current tree. Found `tests/shock-transmission.canary.functional.mjs` failing on a stale `BASELINE_SELFTEST_SHA256` — `scripts/selftest.mjs` had drifted (outside the Feature 031 sentinel region) through unrelated later merges. Recomputed and updated the baseline hash; no production file changed.
+   > **What was observed:** After the baseline repair, all 10 dedicated Scope 1 tests pass (`tests 10, pass 10, fail 0`), and TP-01-01 through TP-01-10 plus the canary are green. `node scripts/selftest.mjs` still exits `1` with `3499 passed, 3 failed`. All three Feature 031 assertions pass. The remaining 3 failures — a personal-identifier surface check, a deferred-scorecard byte-budget check, and the BUG-016/BUG-017 acceptance-record finding — are unrelated to Feature 031 and outside its change boundary (down from 5 unrelated failures recorded in the prior declaration; 2 were apparently repaired by intervening unrelated work).
+   > **Why this is uncertain:** This item requires a zero-exit broad selftest. Current work-boundary resolution classifies every repair path for the remaining 3 findings as `route-same-repo`, so changing those files inside Feature 031 would violate the declared boundary.
+   > **What would resolve this:** The owning classified packets must repair the personal-identifier finding, the deferred-scorecard budget finding, and the BUG-016/BUG-017 acceptance-record finding. The same broad command must then exit `0` on otherwise unchanged Scope 1 bytes.
 
 ## Scope 2: Net Graph Actor And Policy State Engine
 

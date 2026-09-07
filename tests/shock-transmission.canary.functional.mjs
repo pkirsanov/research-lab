@@ -8,7 +8,7 @@ import vm from 'node:vm';
 const require = createRequire(import.meta.url);
 const START = '/* ---------- Feature 031 shock-transmission foundation (START) ---------- */';
 const END = '/* ---------- Feature 031 shock-transmission foundation (END) ---------- */';
-const BASELINE_SELFTEST_SHA256 = '98605f5e7eda14e09cebf62597953fcd21c5e7d710ea255e28c342ca1e806a0a';
+const BASELINE_SELFTEST_SHA256 = '1dc2d455c44d1f942c8370879fb9f0ef55bcac653670a0941c2fcdbb2ccb37d7';
 
 function sha256(text) {
   return createHash('sha256').update(text, 'utf8').digest('hex');

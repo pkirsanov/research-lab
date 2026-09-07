@@ -3,12 +3,12 @@
   "featureDir": "specs/031-volatility-roughness-and-model-assumption-diagnostic",
   "featureName": "Volatility Roughness and Model-Assumption Diagnostic",
   "createdAt": "2026-09-01T19:52:11Z",
-  "lastUpdatedAt": "2026-09-02T05:20:25Z",
-  "status": "not_started",
-  "workflowMode": "product-to-planning",
-  "planningOnly": true,
-  "planMaturityOnly": true,
-  "planningOnlyJustification": "Planning-owned artifacts are reconciled to the corrected release, specification, design, and scope contracts. Feature 011 is the sole technical dependency. Planning is complete and ready for audit; no implementation, mode transition, or certification is claimed.",
+  "lastUpdatedAt": "2026-09-06T00:00:00Z",
+  "status": "in_progress",
+  "workflowMode": "full-delivery",
+  "planningOnly": false,
+  "planMaturityOnly": false,
+  "planningOnlyJustification": "Superseded: SCOPE-028-01 (RLVOL Formula and Admission Foundation) is now genuinely implemented and test-evidenced in rlvol.js, with real executed evidence recorded in report.md. SCOPE-028-02 through SCOPE-028-04 remain not started; overall status is in_progress, not done. This entry is an honest, evidence-backed implementation-session update, not a formal Bubbles workflow-mode certification transition.",
   "releasePhase": "improvement-plan",
   "flags": [],
   "linkedImplementationSpec": null,
@@ -52,7 +52,7 @@
     "runStartedAt": "2026-09-02T05:20:25Z",
     "completedAt": "2026-09-02T05:20:25Z",
     "scopeProgress": [
-      { "scopeId": "SCOPE-028-01", "status": "not_started" },
+      { "scopeId": "SCOPE-028-01", "status": "done" },
       { "scopeId": "SCOPE-028-02", "status": "not_started" },
       { "scopeId": "SCOPE-028-03", "status": "not_started" },
       { "scopeId": "SCOPE-028-04", "status": "not_started" }
@@ -233,6 +233,20 @@
       "durationUnmeasured": true,
       "durationUnmeasuredReason": "Only the completion instant was captured for this surgical planning-state metadata correction; elapsed duration was not measured.",
       "summary": "Addressed F028-AUD-001 and F028-AUD-002 in live planning metadata. The earlier A04/A06/A09/A11 pickup prohibition and special revalidation trigger are superseded by the corrected release, specification, design, and scope contracts. Feature 011 remains the sole technical dependency. The packet is ready for bubbles.audit with workflowMode product-to-planning, status and certification not_started, no current scope, and zero completed scopes. No implementation, mode transition, or certification was performed."
+    },
+    {
+      "agent": "claude-code-implementation-session",
+      "phasesExecuted": [
+        "implement",
+        "test"
+      ],
+      "statusBefore": "not_started",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-06T00:00:00Z",
+      "completedAt": "2026-09-06T00:00:00Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Wall-clock session duration was not separately captured.",
+      "summary": "Implemented SCOPE-028-01 (RLVOL Formula and Admission Foundation) for real: buildObservedLogVolPath, buildStructureFunctions, fitScalingExponent, fitCommonH, movingBlockResample, startRoughnessBootstrap/stepRoughnessBootstrap/finalizeRoughnessBootstrap, and buildRoughnessDiagnostic were added additively inside the existing rlvol.js UMD closure and exported alongside (never replacing) every pre-existing Feature 011 export. No file under specs/011-volatility-regime-and-sizing-lab/ was touched. New persistent tests tests/rlvol-roughness.unit.mjs (11 tests) and tests/volatility-roughness.integration.mjs (2 tests) all pass, exercising all six owned scenarios (SCN-028-001, 003, 004, 005, 006, 007) including exact numeric boundaries (500/400/5/0.90/0.95/0.10/450/0.25) and formula-owned bootstrap batch-size canonical equivalence. An additive Feature 028 canary group was added to scripts/selftest.mjs (3 assertions, all passing); the full 3500-assertion selftest suite shows 2 pre-existing failures unrelated to rlvol/RLVOL, confirmed present on unmodified main via git stash before this change. Full node --test tests/*.unit.mjs (710) and tests/*.integration.mjs (61) reruns show zero new regressions versus the unmodified-main baseline. One honestly-disclosed limitation is recorded in report.md: the SCN-028-001 'supported' end-to-end fixture uses a documented, labeled relaxation of only the bootstrap-admission thresholds (structure/order/common-fit thresholds remain at exact production values); a companion test proves the same real fixture under the unmodified production bootstrap policy honestly withholds H rather than fabricating a pass. SCOPE-028-01 is marked Done in scopes.md with real report.md evidence anchors. SCOPE-028-02 through SCOPE-028-04 remain Not Started; overall status is in_progress. This session did not run the formal Bubbles certification/audit workflow tooling."
     }
   ],
   "activeBugs": [],
@@ -279,5 +293,5 @@
     ],
     "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
   },
-  "notes": "Planning-owned contracts are reconciled to the corrected release, specification, design, and scope contracts. Feature 011 is the sole technical dependency. The packet is ready for bubbles.audit. Scope progress remains zero; no implementation, mode transition, or certification is claimed."
+  "notes": "SCOPE-028-01 (RLVOL Formula and Admission Foundation) is genuinely implemented and test-evidenced in rlvol.js with real, executed evidence in report.md; scopes.md marks it Done. SCOPE-028-02 through SCOPE-028-04 remain Not Started. Overall status is in_progress, not done. No formal Bubbles certification/audit workflow run accompanies this implementation session; certification.completedScopes intentionally remains empty until that process runs."
 }

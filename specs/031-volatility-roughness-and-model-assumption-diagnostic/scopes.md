@@ -58,14 +58,14 @@ Feature 011 supplies the unchanged volatility workspace and decision contract. F
 
 | Scope | Name | Surfaces | Owning scenarios | Status |
 | --- | --- | --- | --- | --- |
-| SCOPE-028-01 | RLVOL Formula and Admission Foundation | `rlvol.js`, formula tests | SCN-028-001, 003, 004, 005, 006, 007 | Not Started |
+| SCOPE-028-01 | RLVOL Formula and Admission Foundation | `rlvol.js`, formula tests | SCN-028-001, 003, 004, 005, 006, 007 | Done |
 | SCOPE-028-02 | Additive Decision and Conflict Projection | `rlvol.js`, decision integration tests | SCN-028-008, 009, 010, 013 | Not Started |
 | SCOPE-028-03 | Power Evidence UI and Accessibility | `volatility-sizing-lab.html`, Playwright | SCN-028-002, 014 | Not Started |
 | SCOPE-028-04 | Integration, Cache, Compatibility, Performance, and Release Proof | cache/browser/Node/file-origin/registry/release checks | SCN-028-011, 012 | Not Started |
 
 ## Scope 1: RLVOL Formula and Admission Foundation
 
-**Status:** Not Started
+**Status:** Done
 
 Scope-Kind: contract-only
 
@@ -154,24 +154,24 @@ Scenario: SCN-028-007 Uncertainty is too wide
 
 #### Core Items
 
-- [ ] Complete formula, admission, deterministic bootstrap, identity, and immutable-result behavior implements all six owned scenarios. Evidence: `report.md#scope-028-01-implementation`.
-- [ ] No excluded surface, ambient source, or second formula owner changes. Evidence: `report.md#scope-028-01-boundary`.
+- [x] Complete formula, admission, deterministic bootstrap, identity, and immutable-result behavior implements all six owned scenarios. Evidence: `report.md#scope-028-01-implementation`.
+- [x] No excluded surface, ambient source, or second formula owner changes. Evidence: `report.md#scope-028-01-boundary`.
 
 #### Test Items — seven rows, seven items
 
-- [ ] TP-028-01-01 passes for SCN-028-001. Evidence: `report.md#tp-028-01-01`.
-- [ ] TP-028-01-02 passes for SCN-028-003 and SCN-028-004. Evidence: `report.md#tp-028-01-02`.
-- [ ] TP-028-01-03 passes for SCN-028-005. Evidence: `report.md#tp-028-01-03`.
-- [ ] TP-028-01-04 passes for SCN-028-006. Evidence: `report.md#tp-028-01-04`.
-- [ ] TP-028-01-05 passes for SCN-028-007. Evidence: `report.md#tp-028-01-05`.
-- [ ] TP-028-01-06 passes for SCN-028-001, SCN-028-003, and SCN-028-007. Evidence: `report.md#tp-028-01-06`.
-- [ ] TP-028-01-08 independent shared-owner canary passes. Evidence: `report.md#tp-028-01-08`.
-- [ ] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns. Evidence: `report.md#scope-028-01-canary`.
-- [ ] Rollback or restore path for shared infrastructure changes is documented and verified. Evidence: `report.md#scope-028-01-rollback`.
+- [x] TP-028-01-01 passes for SCN-028-001. Evidence: `report.md#tp-028-01-01`.
+- [x] TP-028-01-02 passes for SCN-028-003 and SCN-028-004. Evidence: `report.md#tp-028-01-02`.
+- [x] TP-028-01-03 passes for SCN-028-005. Evidence: `report.md#tp-028-01-03`.
+- [x] TP-028-01-04 passes for SCN-028-006. Evidence: `report.md#tp-028-01-04`.
+- [x] TP-028-01-05 passes for SCN-028-007. Evidence: `report.md#tp-028-01-05`.
+- [x] TP-028-01-06 passes for SCN-028-001, SCN-028-003, and SCN-028-007. Evidence: `report.md#tp-028-01-06`.
+- [x] TP-028-01-08 independent shared-owner canary passes. Evidence: `report.md#tp-028-01-08`.
+- [x] Independent canary suite for shared fixture/bootstrap contracts passes before broad suite reruns. Evidence: `report.md#scope-028-01-canary`.
+- [x] Rollback or restore path for shared infrastructure changes is documented and verified. Evidence: `report.md#scope-028-01-rollback`.
 
 #### Build Quality Gate
 
-- [ ] Boundary matrices, replay, deep-freeze, source ownership, selftest canaries, and docs alignment are independently verified with no skipped check or unresolved finding. Evidence: `report.md#scope-028-01-quality`.
+- [x] Boundary matrices, replay, deep-freeze, source ownership, selftest canaries, and docs alignment are independently verified with no skipped check or unresolved finding. Evidence: `report.md#scope-028-01-quality`.
 
 ## Scope 2: Versioned Decision Diagnostic Projection
 

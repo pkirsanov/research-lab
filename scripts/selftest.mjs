@@ -511,6 +511,63 @@ try {
     'Registry-wide Market Brief coverage selftest includes the registered volatility owner read');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 011 RLVOL foundation group threw): ' + e.message + '\n' + (e.stack || '')); }
 
+/* ---------- Feature 028 (SCOPE-028-01): additive RLVOL roughness diagnostic canary ---------- */
+try {
+  group('Feature 028 RLVOL roughness/model-assumption diagnostic (additive, SCOPE-028-01)');
+  const { createRequire: createRequire028 } = await import('node:module');
+  const require028 = createRequire028(import.meta.url);
+  const RLVOL028 = require028('../rlvol.js');
+
+  /* Canary: every pre-existing RLVOL export used above still resolves after the additive
+     roughness module load — proves no second formula owner and no export was removed. */
+  assert(
+    typeof RLVOL028.buildVolDecisionRead === 'function' && typeof RLVOL028.projectVolToolRead === 'function' &&
+    typeof RLVOL028.sizingMultiplier === 'function' && typeof RLVOL028.garch11Fit === 'function' &&
+    typeof RLVOL028.validateUniverse === 'function' && typeof RLVOL028.decisionId === 'function',
+    'Feature 028 additive load preserves every pre-existing Feature 011 RLVOL export');
+
+  /* Canary: the additive roughness formula surface is present and frozen with the exact
+     spec-fixed grids and thresholds; grid configurability requires a later versioned contract. */
+  const settings028 = RLVOL028.roughnessSettings();
+  assert(
+    typeof RLVOL028.buildObservedLogVolPath === 'function' && typeof RLVOL028.buildStructureFunctions === 'function' &&
+    typeof RLVOL028.fitScalingExponent === 'function' && typeof RLVOL028.fitCommonH === 'function' &&
+    typeof RLVOL028.movingBlockResample === 'function' && typeof RLVOL028.startRoughnessBootstrap === 'function' &&
+    typeof RLVOL028.stepRoughnessBootstrap === 'function' && typeof RLVOL028.finalizeRoughnessBootstrap === 'function' &&
+    typeof RLVOL028.buildRoughnessDiagnostic === 'function' && Object.isFrozen(settings028) &&
+    JSON.stringify(settings028.momentOrders) === JSON.stringify([0.5, 1.0, 1.5, 2.0]) &&
+    JSON.stringify(settings028.lags) === JSON.stringify([1, 2, 4, 8, 16, 32]) &&
+    settings028.minimumProxyObservations === 500 && settings028.bootstrapResamples === 500 &&
+    settings028.minimumCompleteResamples === 450 && settings028.maximumIntervalWidth === 0.25,
+    'Feature 028 roughness formula surface is exported with the exact fixed q/lag grids and admission thresholds');
+
+  /* Canary: insufficient sample honestly withholds H rather than fabricating a value, and the
+     result carries the unchanged Feature 011 decisionId supplied to it as parentDecisionId
+     without altering that decision (buildVolDecisionRead is never re-invoked here). */
+  const stubParentDecisionId028 = RLVOL028.decisionId({ owner: 'selftest-feature-028-stub-parent' });
+  const tinyBars028 = [];
+  for (let i = 0; i <= 30; i += 1) tinyBars028.push({ t: Date.UTC(2020, 0, 1) + i * 86400000, c: 100 + i * 0.01 });
+  const roughnessInput028 = Object.freeze({
+    contractVersion: 'rlvol-roughness-input/v1',
+    parentDecisionId: stubParentDecisionId028,
+    decisionTime: '2020-06-01T00:00:00.000Z',
+    source: Object.freeze({
+      id: 'selftest', url: null, symbol: 'SELFTEST', interval: '1d',
+      observedAsOf: '2020-06-01', retrievedAt: '2020-06-01T00:00:00.000Z',
+      freshness: 'fresh', sourceObservationCount: tinyBars028.length
+    }),
+    bars: Object.freeze(tinyBars028),
+    settings: settings028
+  });
+  const withheld028 = RLVOL028.buildRoughnessDiagnostic(roughnessInput028, undefined);
+  assert(
+    withheld028.state === 'unavailable' && withheld028.conclusion.h === null &&
+    withheld028.conclusion.classification === null && withheld028.parentDecisionId === stubParentDecisionId028 &&
+    withheld028.reasons.includes('RETAINED_OBSERVATIONS_BELOW_500') && Object.isFrozen(withheld028) &&
+    JSON.stringify(roughnessInput028.bars) === JSON.stringify(tinyBars028),
+    'Feature 028 withholds H under insufficient sample, carries the unchanged parentDecisionId, and never mutates its input');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 028 RLVOL roughness canary group threw): ' + e.message + '\n' + (e.stack || '')); }
+
 /* ---------- ETF: Sharpe deflation + shock models ---------- */
 try {
   group('etf-momentum-lab.html \u2014 Deflated/Probabilistic Sharpe + MC shocks');

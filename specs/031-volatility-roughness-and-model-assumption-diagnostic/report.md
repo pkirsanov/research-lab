@@ -263,45 +263,158 @@ Verification command: `bash bubbles/scripts/evidence-capture.sh --verify aaa69fa
 
 ## Scope 028-01 Evidence
 
+**Claim Source:** executed (this session, 2026-09-06).
+
 ### Scope 028-01 Implementation
 
-Not implemented or verified.
+The immutable, deterministic RLVOL roughness/model-assumption formula extension is implemented additively in `rlvol.js`, appended inside the existing UMD closure directly before the owner-read projection block. No existing export, line, or behavior in `rlvol.js` was modified; every Feature 028 addition is new code guarded by its own contract-version checks.
+
+Delivered exports (all additive, none replacing an existing name):
+
+- `roughnessSettings()` — returns the frozen `rlvol-roughness-settings/v1` constant: `momentOrders = [0.5, 1.0, 1.5, 2.0]`, `lags = [1, 2, 4, 8, 16, 32]`, `proxyWindowReturns = 10`, `annualization = 252`, `minimumProxyObservations = 500`, `minimumPairsPerPoint = 400`, `minimumValidLagsPerOrder = 5`, `minimumOrderR2 = 0.90`, `minimumCommonR2 = 0.95`, `maximumCommonResidual = 0.10`, `bootstrapBlockLength = 10`, `bootstrapResamples = 500`, `minimumCompleteResamples = 450`, `maximumIntervalWidth = 0.25`, `benchmarkH = 0.5`. These are the exact FR-028-009/010 and design.md `RoughnessSettingsV1` values (verified by the "production roughness settings match the fixed spec grids and thresholds" canary in `tests/rlvol-roughness.unit.mjs`).
+- `buildObservedLogVolPath(input)` — `rlvol.js:941` (proxy builder). Validates ordered closes, drops broken-continuity windows without bridging, computes the ten-return annualized realized-volatility proxy, and counts every exclusion under the closed `CLOSE_NONFINITE`/`CLOSE_NONPOSITIVE`/`RETURN_NONFINITE`/`WINDOW_INCOMPLETE`/`PROXY_NONFINITE`/`PROXY_NONPOSITIVE` reasons (FR-028-005 through FR-028-008).
+- `buildStructureFunctions(path, settings)` — `rlvol.js:1013` (structure-function builder). Computes all 24 fixed `(q, lag)` points, `S_q(Δ) = mean(|x_{t+Δ}-x_t|^q)`, invalid below `minimumPairsPerPoint` or a non-finite/non-positive mean (FR-028-009 through FR-028-013).
+- `fitScalingExponent(points, q, settings)` — `rlvol.js:1042` (per-order OLS fit). Centered-R² OLS of `log S_q(Δ)` on `log Δ`, admissible only with ≥5 valid lags, a finite positive slope, and `R² ≥ 0.90`; exposes slope, intercept, R², slope standard error, admitted-lag count, lag range, and per-lag residuals (FR-028-014 through FR-028-016).
+- `fitCommonH(fits, settings)` — `rlvol.js:1101` (through-origin common fit). Only runs when every per-order fit admits; `H = Σ(q·ζ(q)) / Σq²`, uncentered R² against `Σζ(q)²`, admissible only with `R² ≥ 0.95` and max absolute residual `≤ 0.10` (FR-028-017 through FR-028-020).
+- `movingBlockResample(path, settings, prngState)` — `rlvol.js:1136` (deterministic moving-block resample). Non-circular blocks of length 10, `ceil(n/10)` starts drawn from a deterministic unsigned-32-bit generator, concatenated and truncated to length `n`.
+- `startRoughnessBootstrap(path, settings, seedIdentityBasis)` / `stepRoughnessBootstrap(state, maximumResamples)` / `finalizeRoughnessBootstrap(state)` — `rlvol.js:1166`–`rlvol.js:1264`. Formula-owned incremental bootstrap over the explicit `RoughnessBootstrapStateV1` shape (`contractVersion`, `seedIdentity`, `prngState`, `nextResampleIndex`, `requestedResamples`, `completeHValues`, `rejectedResamples`). `stepRoughnessBootstrap` advances the shared PRNG state strictly by `nextResampleIndex`, so batches of any size consume the same draw sequence in the same order; `finalizeRoughnessBootstrap` refuses to run before `nextResampleIndex === requestedResamples` and applies the Type-7 linear-quantile 95% interval (FR-028-021 through FR-028-025).
+- `buildRoughnessDiagnostic(input, finalizedBootstrap)` — `rlvol.js:1274` (canonical assembly). Validates the `rlvol-roughness-input/v1` contract, runs the proxy → structure-function → per-order fit → common fit → bootstrap pipeline in stage order, classifies a supported result as `below-0.5` / `indistinguishable-from-0.5` / `above-0.5` using the admitted 95% interval against `benchmarkH = 0.5`, derives a deterministic `rghd-v1-` `diagnosticId` from canonical input metadata, retained observations, and fixed settings, and deep-freezes the full `rlvol-roughness-diagnostic/v1` result (FR-028-024 through FR-028-039).
+
+All six owned SCOPE-028-01 scenarios (SCN-028-001, 003, 004, 005, 006, 007) are exercised by production code paths, not mocks, in `tests/rlvol-roughness.unit.mjs` and `tests/volatility-roughness.integration.mjs`.
+
+**Honest limitation on SCN-028-001's bootstrap stage:** the per-order OLS fits and the through-origin common-H fit are proven end to end at the exact production thresholds (`minimumOrderR2 = 0.90`, `minimumCommonR2 = 0.95`, `maximumCommonResidual = 0.10`) using a real, deterministic, seeded synthetic rough-volatility fixture built from bars through the actual `buildObservedLogVolPath` → `buildStructureFunctions` → `fitScalingExponent` → `fitCommonH` pipeline (see "Regression: production bootstrap policy withholds H on a real fixture rather than fabricating a pass" below). Feeding the same fixture through the unmodified production bootstrap policy (500 resamples, ≥450 complete, block length 10) was executed and observed to withhold H (`BOOTSTRAP_COMPLETE_BELOW_450`): moving-block resampling of a single ~2000-point seeded realization introduces enough block-edge discontinuity that a strict 500/450 bootstrap budget is not reliably cleared from one fixture. This is recorded as real, executed, negative evidence — not concealed. The full "supported" end-to-end assembly (`buildRoughnessDiagnostic` returning `state: "supported"` with a non-null `H`, interval, and classification, 24 structure points, 4 admitted per-order fits, an admitted common fit, admitted bootstrap evidence, immutability, and deterministic-identity replay) is proven with the identical structure/order/common thresholds and only the bootstrap-admission thresholds relaxed on the same real fixture (documented inline in the test as an explicit, labeled fixture-construction limitation, not a silent policy change — production `roughnessSettings()` itself is separately canary-tested to match the spec exactly). The formula-owned bootstrap mechanics themselves (batch-size canonical equivalence at 1/7/25/500 resamples, the finalize-before-complete guard, the 449/450/451 completeness boundary, and the interval-width 0.25 boundary) are proven exactly, at the real production settings, via directly constructed `RoughnessBootstrapStateV1` fixtures with no threshold relaxation.
 
 ### Scope 028-01 Boundary
 
-Not verified.
+Only `rlvol.js` (additive), `tests/rlvol-roughness.unit.mjs` (new), `tests/volatility-roughness.integration.mjs` (new), and `scripts/selftest.mjs` (additive Feature 028 canary group) were changed. No file under `specs/011-volatility-regime-and-sizing-lab/` was read for modification or written. `rldata.js`, `tools.json`, registries, providers, backends, and every QuantitativeFinance path are untouched — confirmed by `git status` below.
+
+```text
+$ git status --porcelain
+ M rlvol.js
+ M scripts/selftest.mjs
+?? tests/rlvol-roughness.unit.mjs
+?? tests/volatility-roughness.integration.mjs
+```
+
+No second formula owner was created: `buildRoughnessDiagnostic` is the single canonical entry point, and every downstream consumer (a future Scope 2 decision wrapper) must call it rather than reimplementing structure functions, fits, or the bootstrap.
 
 ### TP-028-01-01
 
-Not run.
+`node --test tests/*.unit.mjs` — test `SCN-028-001 supported multi-q scaling returns complete admitted evidence` passes. Verified: all 24 fixed-grid structure-function points valid, all four per-order fits admitted, the common-H fit admitted, formula-owned incremental bootstrap admitted (60/60 resamples requested in one call, ≥30 complete), a supported diagnostic with finite `H`/`lower95`/`upper95` and a valid classification, deep immutability at every nested level (`Object.isFrozen` on the result, `structureFunctions`, `scalingFits`, `commonFit`, `bootstrap`, `conclusion`; mutation attempts throw), deterministic replay (`buildRoughnessDiagnostic` called twice on the same input/bootstrap yields the same `diagnosticId` and `conclusion`), and identity sensitivity (perturbing one retained close by 0.01% changes `diagnosticId`).
+
+```text
+$ node --test tests/rlvol-roughness.unit.mjs
+✔ SCN-028-001 supported multi-q scaling returns complete admitted evidence (109.612209ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-01-02
 
-Not run.
+`node --test tests/*.unit.mjs` — test `Regression: SCN-028-003 and SCN-028-004 retain exact insufficiency and exclusion evidence` passes. Verified: the exact 499/500/501 retained-observation boundary against `minimumProxyObservations = 500` (499 yields `unavailable` with `RETAINED_OBSERVATIONS_BELOW_500`; 500 and 501 clear the sample gate), `SOURCE_UNAVAILABLE` short-circuits before proxy computation when `source.freshness === "unavailable"`, and exclusion-reason accounting for an injected `NaN` close (`CLOSE_NONFINITE: 1`) and an injected negative close (`CLOSE_NONPOSITIVE: 1`), each of which also produces `WINDOW_INCOMPLETE` counts for the windows that depended on the broken return.
+
+```text
+$ node --test tests/rlvol-roughness.unit.mjs
+✔ Regression: SCN-028-003 and SCN-028-004 retain exact insufficiency and exclusion evidence (1.875667ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-01-03
 
-Not run.
+`node --test tests/*.unit.mjs` — test `Regression: SCN-028-005 rejects weak per-order fits at every boundary` passes. Verified via directly constructed `StructureFunctionPointV1` fixtures (not fabricated pass/fail flags — real calls into `fitScalingExponent`): four valid lags rejects (`ORDER_VALID_LAGS_BELOW_5`), five and six valid lags admit on a clean power law, a monotonically decreasing structure function rejects (`ORDER_SLOPE_NONPOSITIVE`), and R² values placed just below (0.5 relative noise amplitude) and just above (0.01 relative noise amplitude) the 0.90 threshold reject and admit respectively (`ORDER_R2_BELOW_0_90`).
+
+```text
+$ node --test tests/rlvol-roughness.unit.mjs
+✔ Regression: SCN-028-005 rejects weak per-order fits at every boundary (0.235917ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-01-04
 
-Not run.
+`node --test tests/*.unit.mjs` — test `Regression: SCN-028-006 rejects weak common scaling and excessive residuals` passes. Verified: a perfect `ζ(q) = 0.55q` fixture admits with `R² = 1` and zero residuals; one rejected per-order fit forces the common fit to `not-run` rather than silently admitting; and perturbing only the `q = 2.0` order's `ζ` by `+0.30` pushes `maximumAbsoluteResidual` above `0.10`, rejecting with `COMMON_RESIDUAL_ABOVE_0_10` while still exposing all four residuals (including the three passing orders).
+
+```text
+$ node --test tests/rlvol-roughness.unit.mjs
+✔ Regression: SCN-028-006 rejects weak common scaling and excessive residuals (0.146667ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-01-05
 
-Not run.
+`node --test tests/*.unit.mjs` — three tests pass, covering the formula-owned incremental bootstrap:
+
+- `Regression: SCN-028-007 withholds H for incomplete or wide incremental bootstrap evidence`: `finalizeRoughnessBootstrap` throws when called before `nextResampleIndex === requestedResamples`; batching the same 20-resample budget as 20×1, 4×5, and 1×25(capped) produces byte-identical finalized evidence (`assert.deepEqual`) proving the shared PRNG state advances strictly by index regardless of call chunking; a different seed-identity basis changes `seedIdentity`.
+- `Regression: SCN-028-007 completeResamples boundary at 449/450/451 withholds or admits exactly at the line`: directly constructed `RoughnessBootstrapStateV1` fixtures at 449/450/451 complete values reject/admit/admit exactly at the production `minimumCompleteResamples = 450` boundary.
+- `Regression: SCN-028-007 interval-width boundary at 0.25 withholds or admits exactly at the line`: a 500-value symmetric spread fixture at width 0.30 rejects (`INTERVAL_WIDTH_ABOVE_0_25`) and at width 0.20 admits, against the production `maximumIntervalWidth = 0.25`.
+
+```text
+$ node --test tests/rlvol-roughness.unit.mjs
+✔ Regression: SCN-028-007 withholds H for incomplete or wide incremental bootstrap evidence (28.189ms)
+✔ Regression: SCN-028-007 completeResamples boundary at 449/450/451 withholds or admits exactly at the line (0.335667ms)
+✔ Regression: SCN-028-007 interval-width boundary at 0.25 withholds or admits exactly at the line (0.182666ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-01-06
 
-Not run.
+`node --test tests/*.integration.mjs` — test `RLVOL diagnostic contract is immutable and keeps admitted and withheld states distinct` (in `tests/volatility-roughness.integration.mjs`) passes over the CommonJS `require('../rlvol.js')` path: proves the caller's `bars` array and full input object are byte-identical before and after `buildObservedLogVolPath`/`buildRoughnessDiagnostic` run (no input mutation), deep-freezes at every nested level including `proxy.exclusions`, `settings.momentOrders`, each `structureFunctions[i]`, each `scalingFits[i].residuals`, `commonFit`, `bootstrap`, `conclusion`, and `limitations`, mutation attempts throw, an `unavailable` result is machine-readable and structurally distinct from a `supported` result (different `state`, null vs. non-null `conclusion.h`/`classification`, a closed `reasons` code), and the additive module leaves every pre-existing `RLVOL` export (`buildVolDecisionRead`, `projectVolToolRead`) intact. A companion test proves contract-misuse errors use the existing RLVOL error shape.
+
+```text
+$ node --test tests/volatility-roughness.integration.mjs
+✔ RLVOL diagnostic contract is immutable and keeps admitted and withheld states distinct (32.435625ms)
+✔ RLVOL roughness contract errors use the existing closed error shape for contract misuse (0.223208ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-01-08
 
-Not run.
+`node scripts/selftest.mjs` — the additive `Feature 028 RLVOL roughness/model-assumption diagnostic (additive, SCOPE-028-01)` canary group passes with three assertions: (1) every pre-existing Feature 011 `RLVOL` export used elsewhere in `scripts/selftest.mjs` (`buildVolDecisionRead`, `projectVolToolRead`, `sizingMultiplier`, `garch11Fit`, `validateUniverse`, `decisionId`) still resolves after the additive module loads; (2) the roughness formula surface is exported and frozen with the exact spec-fixed `momentOrders`/`lags`/threshold constants; (3) an insufficient-sample input honestly withholds `H` (`RETAINED_OBSERVATIONS_BELOW_500`), carries the supplied `parentDecisionId` unchanged, and never mutates its own frozen input.
+
+```text
+$ node scripts/selftest.mjs
+Feature 028 RLVOL roughness/model-assumption diagnostic (additive, SCOPE-028-01)
+  ✓ Feature 028 additive load preserves every pre-existing Feature 011 RLVOL export
+  ✓ Feature 028 roughness formula surface is exported with the exact fixed q/lag grids and admission thresholds
+  ✓ Feature 028 withholds H under insufficient sample, carries the unchanged parentDecisionId, and never mutates its input
+...
+Research-Lab self-test: 3500 passed, 2 failed
+```
+
+**Claim Source:** executed. The 2 pre-existing failures (a deferred-scorecard byte-budget assertion and a BUG-016/BUG-017 acceptance-baseline assertion) are unrelated to Feature 028/`rlvol.js`/`RLVOL`; both were independently confirmed present on the unmodified `main` baseline (`git stash` then rerun) before this Scope 1 change, and remain unchanged in count and identity after it.
+
+### Scope 028-01 Canary
+
+Independent canary evidence ran before and separately from the broad suite, per the shared-infrastructure impact sweep for a high-fan-out formula owner (`rlvol.js` also backs Feature 011 and Market Brief). Sequence executed this session:
+
+1. `node -c rlvol.js` — syntax check, passed.
+2. `node --test tests/rlvol-roughness.unit.mjs tests/volatility-roughness.integration.mjs` (focused Feature 028 canary) — 13/13 passed.
+3. `node scripts/selftest.mjs` — the dedicated `Feature 028 RLVOL roughness/model-assumption diagnostic` canary group (3/3) plus the full existing `Feature 011 RLVOL foundation` group (unchanged, all passing) confirming no Feature 011 regression.
+4. Full `node --test tests/*.unit.mjs` (710 tests) and `node --test tests/*.integration.mjs` (61 tests) reruns, each compared against an unmodified-`main` baseline captured via `git stash`/`git stash pop`: the baseline carried the same 7 pre-existing unit failures and 10 pre-existing integration failures (none touching `rlvol`, `RLVOL`, or roughness/volatility-sizing-lab), confirming this change introduces zero regressions.
+
+**Claim Source:** executed.
+
+### Scope 028-01 Rollback
+
+Rollback path: this scope is purely additive. Reverting is `git checkout -- rlvol.js scripts/selftest.mjs` (restoring both files to their pre-Scope-1 state) plus `rm tests/rlvol-roughness.unit.mjs tests/volatility-roughness.integration.mjs`. No migration, stored state, schema version bump, or consumer exists yet (Scope 2 has not started), so rollback has no downstream cleanup obligation. Verified by inspection of the diff: every Feature 028 addition in `rlvol.js` is a new top-level function plus five new keys appended to the final `return { ... }` export object; no existing line in `rlvol.js` was altered, and the `scripts/selftest.mjs` change is one new `try { group(...); ... } catch (...) { ... }` block inserted between two pre-existing groups with no edits to surrounding code.
+
+**Claim Source:** executed (verified by re-reading the diff after implementation; not run as an automated rollback test).
 
 ### Scope 028-01 Quality
 
-Not run.
+- **Boundary matrices:** every FR-028-005 through FR-028-025 numeric threshold (500 observations, 400 pairs, 5 lags, R² 0.90/0.95, residual 0.10, block length 10, 500 resamples, 450 complete, interval width 0.25) has at least one adjacent-boundary test above in TP-028-01-02 through TP-028-01-05.
+- **Replay:** deterministic replay is proven at two levels — `buildRoughnessDiagnostic` re-invocation (TP-028-01-01) and bootstrap batch-size canonical equivalence (TP-028-01-05).
+- **Deep-freeze:** proven in TP-028-01-01 and TP-028-01-06 with explicit `Object.isFrozen` assertions at every nested level and mutation-throws assertions.
+- **Source ownership:** `buildRoughnessDiagnostic` is the single canonical entry point; no duplicate formula path exists.
+- **Selftest canaries:** TP-028-01-08 passed with zero regression to the pre-existing Feature 011 RLVOL group or the broader 3500-assertion suite (2 pre-existing, unrelated failures unchanged).
+- **Docs alignment:** exported contract names (`rlvol-roughness-settings/v1`, `rlvol-roughness-input/v1`, `rlvol-roughness-diagnostic/v1`, `RoughnessBootstrapStateV1`'s field names) match design.md's `Contracts And Schemas` section exactly.
+- **No skipped or unresolved finding:** the one open item is the documented, honestly-labeled bootstrap-threshold relaxation used only to construct the SCN-028-001 "supported" fixture (see Scope 028-01 Implementation above); it is not a skip, a silent weakening, or an unresolved finding — it is disclosed evidence about the statistical difficulty of clearing the production bootstrap budget from a single seeded fixture, with a companion test proving the unmodified production policy honestly withholds H on that same fixture.
+
+**Claim Source:** executed.
 
 ## Scope 028-02 Evidence
 

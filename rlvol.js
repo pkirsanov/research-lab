@@ -883,6 +883,498 @@
         return Math.round(value * factor) / factor;
     }
 
+    /* ═══════════ Feature 028 — RLVOL roughness/model-assumption diagnostic (SCOPE-028-01) ═══════════
+       Additive, immutable, deterministic formula extension. Consumes the same bars already
+       hydrated for Feature 011; never fetches, never mutates Feature 011 exports or output.
+       Contract owner: specs/031-volatility-roughness-and-model-assumption-diagnostic/design.md */
+
+    var ROUGHNESS_SETTINGS = Object.freeze({
+        contractVersion: "rlvol-roughness-settings/v1",
+        proxyWindowReturns: 10,
+        annualization: ANNUALIZATION,
+        momentOrders: Object.freeze([0.5, 1.0, 1.5, 2.0]),
+        lags: Object.freeze([1, 2, 4, 8, 16, 32]),
+        minimumProxyObservations: 500,
+        minimumPairsPerPoint: 400,
+        minimumValidLagsPerOrder: 5,
+        minimumOrderR2: 0.90,
+        minimumCommonR2: 0.95,
+        maximumCommonResidual: 0.10,
+        bootstrapBlockLength: 10,
+        bootstrapResamples: 500,
+        minimumCompleteResamples: 450,
+        maximumIntervalWidth: 0.25,
+        benchmarkH: 0.5
+    });
+
+    function roughnessSettings() { return ROUGHNESS_SETTINGS; }
+
+    /* deterministic unsigned-32-bit generator; zero seed maps to a fixed nonzero state */
+    function roughnessSeedFromBasis(basis) {
+        var bytes = canonicalize(basis);
+        var hash = 0x811c9dc5;
+        for (var index = 0; index < bytes.length; index += 1) {
+            hash ^= bytes.charCodeAt(index);
+            hash = Math.imul(hash, 0x01000193);
+        }
+        var seed = hash >>> 0;
+        if (seed === 0) seed = 0x9e3779b9;
+        return seed;
+    }
+
+    function roughnessNextUint32(state) {
+        var s = state >>> 0;
+        if (s === 0) s = 0x9e3779b9;
+        s ^= (s << 13); s >>>= 0;
+        s ^= (s >>> 17); s >>>= 0;
+        s ^= (s << 5); s >>>= 0;
+        return s >>> 0;
+    }
+
+    function roughnessRandom01(state) {
+        var next = roughnessNextUint32(state);
+        return { value: next / 4294967296, state: next };
+    }
+
+    /* ── ordered close validation + observed log-volatility proxy path (FR-028-005..008) ── */
+
+    function buildObservedLogVolPath(input) {
+        if (!isPlainObject(input)) throw schemaError("RLVOL_SCHEMA_INVALID", "input", "roughness input object is required");
+        if (!Array.isArray(input.bars)) throw schemaError("RLVOL_SCHEMA_INVALID", "bars", "an ordered bars array is required");
+        var settings = input.settings || ROUGHNESS_SETTINGS;
+        var windowReturns = settings.proxyWindowReturns;
+        var bars = input.bars;
+        var n = bars.length;
+
+        var exclusions = {
+            CLOSE_NONFINITE: 0, CLOSE_NONPOSITIVE: 0, RETURN_NONFINITE: 0,
+            WINDOW_INCOMPLETE: 0, PROXY_NONFINITE: 0, PROXY_NONPOSITIVE: 0
+        };
+
+        var closeValid = new Array(n);
+        for (var i = 0; i < n; i += 1) {
+            var c = isPlainObject(bars[i]) ? bars[i].c : NaN;
+            if (!Number.isFinite(c)) { closeValid[i] = false; exclusions.CLOSE_NONFINITE += 1; }
+            else if (c <= 0) { closeValid[i] = false; exclusions.CLOSE_NONPOSITIVE += 1; }
+            else closeValid[i] = true;
+        }
+
+        var returns = new Array(n);
+        var returnValid = new Array(n).fill(false);
+        for (var r = 1; r < n; r += 1) {
+            if (closeValid[r - 1] && closeValid[r]) {
+                var value = Math.log(bars[r].c / bars[r - 1].c);
+                if (Number.isFinite(value)) { returns[r] = value; returnValid[r] = true; }
+                else { exclusions.RETURN_NONFINITE += 1; }
+            }
+        }
+
+        var path = [];
+        var candidateWindowCount = 0;
+        for (var end = windowReturns; end < n; end += 1) {
+            candidateWindowCount += 1;
+            var complete = true;
+            var sumSq = 0;
+            for (var k = end - windowReturns + 1; k <= end; k += 1) {
+                if (!returnValid[k]) { complete = false; break; }
+            }
+            if (!complete) { exclusions.WINDOW_INCOMPLETE += 1; continue; }
+            for (var k2 = end - windowReturns + 1; k2 <= end; k2 += 1) { sumSq += returns[k2] * returns[k2]; }
+            var sigma = Math.sqrt((settings.annualization / windowReturns) * sumSq);
+            if (!Number.isFinite(sigma)) { exclusions.PROXY_NONFINITE += 1; continue; }
+            if (sigma <= 0) { exclusions.PROXY_NONPOSITIVE += 1; continue; }
+            var x = Math.log(sigma);
+            if (!Number.isFinite(x)) { exclusions.PROXY_NONFINITE += 1; continue; }
+            path.push({ index: end, value: x });
+        }
+
+        function dateOf(index) {
+            var row = bars[index];
+            if (!isPlainObject(row) || !Number.isFinite(row.t)) return null;
+            var iso = new Date(row.t).toISOString().slice(0, 10);
+            return isIsoDate(iso) ? iso : null;
+        }
+
+        return Object.freeze({
+            values: Object.freeze(path.map(function (p) { return p.value; })),
+            retainedObservationCount: path.length,
+            sourceObservationCount: n,
+            candidateWindowCount: candidateWindowCount,
+            firstDate: path.length ? dateOf(path[0].index) : null,
+            lastDate: path.length ? dateOf(path[path.length - 1].index) : null,
+            exclusions: Object.freeze(exclusions)
+        });
+    }
+
+    /* ── structure functions (FR-028-009..013) ── */
+
+    var STRUCTURE_REASONS = { VALID: "VALID", BELOW_400: "PAIR_COUNT_BELOW_400", NONFINITE: "MEAN_NONFINITE", NONPOSITIVE: "MEAN_NONPOSITIVE" };
+
+    function buildStructureFunctions(path, settings) {
+        var s = settings || ROUGHNESS_SETTINGS;
+        var points = [];
+        s.momentOrders.forEach(function (q) {
+            s.lags.forEach(function (lag) {
+                var pairCount = Math.max(0, path.length - lag);
+                var reason = STRUCTURE_REASONS.VALID;
+                var valueOut = null;
+                var valid = false;
+                if (pairCount < s.minimumPairsPerPoint) {
+                    reason = STRUCTURE_REASONS.BELOW_400;
+                } else {
+                    var accSum = 0;
+                    for (var t = 0; t < pairCount; t += 1) {
+                        accSum += Math.pow(Math.abs(path[t + lag] - path[t]), q);
+                    }
+                    var meanValue = accSum / pairCount;
+                    if (!Number.isFinite(meanValue)) reason = STRUCTURE_REASONS.NONFINITE;
+                    else if (meanValue <= 0) reason = STRUCTURE_REASONS.NONPOSITIVE;
+                    else { valid = true; valueOut = meanValue; }
+                }
+                points.push(Object.freeze({ q: q, lagDays: lag, value: valueOut, pairCount: pairCount, valid: valid, reason: reason }));
+            });
+        });
+        return Object.freeze(points);
+    }
+
+    /* ── per-order OLS scaling fit (FR-028-014..016) ── */
+
+    function fitScalingExponent(points, q, settings) {
+        var s = settings || ROUGHNESS_SETTINGS;
+        var ordered = points.filter(function (p) { return p.q === q; });
+        var valid = ordered.filter(function (p) { return p.valid; });
+        var reasons = [];
+
+        if (valid.length < s.minimumValidLagsPerOrder) reasons.push("ORDER_VALID_LAGS_BELOW_5");
+
+        if (valid.length < 2) {
+            return Object.freeze({
+                q: q, state: "rejected", zeta: null, intercept: null, r2: null, slopeStandardError: null,
+                admittedLagCount: valid.length, lagRange: null, residuals: Object.freeze([]), reasons: Object.freeze(reasons)
+            });
+        }
+
+        var us = valid.map(function (p) { return Math.log(p.lagDays); });
+        var vs = valid.map(function (p) { return Math.log(p.value); });
+        var uBar = mean(us);
+        var vBar = mean(vs);
+        var sxx = 0, sxy = 0;
+        for (var i = 0; i < us.length; i += 1) { sxx += (us[i] - uBar) * (us[i] - uBar); sxy += (us[i] - uBar) * (vs[i] - vBar); }
+        var slope = sxx > 0 ? sxy / sxx : NaN;
+        var intercept = Number.isFinite(slope) ? (vBar - slope * uBar) : NaN;
+
+        var residuals = [];
+        var ssRes = 0, ssTot = 0;
+        for (var j = 0; j < us.length; j += 1) {
+            var fitted = intercept + slope * us[j];
+            var e = vs[j] - fitted;
+            residuals.push({ lagDays: valid[j].lagDays, value: e });
+            ssRes += e * e;
+            ssTot += (vs[j] - vBar) * (vs[j] - vBar);
+        }
+        var r2 = ssTot > 0 ? 1 - ssRes / ssTot : null;
+        var se = (us.length > 2 && sxx > 0) ? Math.sqrt((ssRes / (us.length - 2)) / sxx) : null;
+
+        if (!(Number.isFinite(slope) && slope > 0)) reasons.push("ORDER_SLOPE_NONPOSITIVE");
+        if (r2 === null || !(r2 >= s.minimumOrderR2)) reasons.push("ORDER_R2_BELOW_0_90");
+
+        var admissible = valid.length >= s.minimumValidLagsPerOrder && Number.isFinite(slope) && slope > 0 &&
+            r2 !== null && r2 >= s.minimumOrderR2;
+
+        var lagValues = valid.map(function (p) { return p.lagDays; });
+        return Object.freeze({
+            q: q,
+            state: admissible ? "admitted" : "rejected",
+            zeta: Number.isFinite(slope) ? slope : null,
+            intercept: Number.isFinite(intercept) ? intercept : null,
+            r2: r2,
+            slopeStandardError: se,
+            admittedLagCount: valid.length,
+            lagRange: Object.freeze({ minimum: Math.min.apply(null, lagValues), maximum: Math.max.apply(null, lagValues) }),
+            residuals: Object.freeze(residuals),
+            reasons: Object.freeze(reasons)
+        });
+    }
+
+    /* ── common-H through-origin fit (FR-028-017..020) ── */
+
+    function fitCommonH(fits, settings) {
+        var s = settings || ROUGHNESS_SETTINGS;
+        var reasons = [];
+        var allAdmitted = fits.every(function (f) { return f.state === "admitted"; });
+        if (!allAdmitted) {
+            return Object.freeze({ state: "not-run", candidateH: null, r2: null, residuals: Object.freeze([]), maximumAbsoluteResidual: null, reasons: Object.freeze(["ORDER_R2_BELOW_0_90"]) });
+        }
+        var numerator = 0, denominator = 0;
+        fits.forEach(function (f) { numerator += f.q * f.zeta; denominator += f.q * f.q; });
+        var h = denominator > 0 ? numerator / denominator : NaN;
+        var residuals = [];
+        var ssRes = 0, ssTot = 0, maxAbs = 0;
+        fits.forEach(function (f) {
+            var e = f.zeta - f.q * h;
+            residuals.push({ q: f.q, value: e });
+            ssRes += e * e;
+            ssTot += f.zeta * f.zeta;
+            if (Math.abs(e) > maxAbs) maxAbs = Math.abs(e);
+        });
+        var r2 = ssTot > 0 ? 1 - ssRes / ssTot : null;
+        if (r2 === null || !(r2 >= s.minimumCommonR2)) reasons.push("COMMON_R2_BELOW_0_95");
+        if (!(maxAbs <= s.maximumCommonResidual)) reasons.push("COMMON_RESIDUAL_ABOVE_0_10");
+        var admissible = Number.isFinite(h) && r2 !== null && r2 >= s.minimumCommonR2 && maxAbs <= s.maximumCommonResidual;
+        return Object.freeze({
+            state: admissible ? "admitted" : "rejected",
+            candidateH: Number.isFinite(h) ? h : null,
+            r2: r2,
+            residuals: Object.freeze(residuals),
+            maximumAbsoluteResidual: Number.isFinite(maxAbs) ? maxAbs : null,
+            reasons: Object.freeze(reasons)
+        });
+    }
+
+    /* ── deterministic moving-block resample (FR-028-021..023) ── */
+
+    function movingBlockResample(path, settings, prngState) {
+        var s = settings || ROUGHNESS_SETTINGS;
+        var n = path.length;
+        var blockLength = s.bootstrapBlockLength;
+        var numBlocks = Math.ceil(n / blockLength);
+        var state = prngState;
+        var resampled = [];
+        for (var b = 0; b < numBlocks; b += 1) {
+            var draw = roughnessRandom01(state);
+            state = draw.state;
+            var maxStart = n - blockLength;
+            var start = maxStart > 0 ? Math.floor(draw.value * (maxStart + 1)) : 0;
+            if (start > maxStart) start = maxStart;
+            if (start < 0) start = 0;
+            for (var k = 0; k < blockLength && resampled.length < n; k += 1) {
+                resampled.push(path[start + k]);
+            }
+        }
+        return { values: resampled.slice(0, n), state: state };
+    }
+
+    function runFullFit(path, settings) {
+        var points = buildStructureFunctions(path, settings);
+        var fits = settings.momentOrders.map(function (q) { return fitScalingExponent(points, q, settings); });
+        var common = fitCommonH(fits, settings);
+        return { points: points, fits: fits, common: common };
+    }
+
+    /* ── formula-owned incremental bootstrap (start/step/finalize) ── */
+
+    function startRoughnessBootstrap(path, settings, seedIdentityBasis) {
+        var s = settings || ROUGHNESS_SETTINGS;
+        if (!Array.isArray(path)) throw schemaError("RLVOL_SCHEMA_INVALID", "path", "an ordered retained path array is required");
+        var seedIdentity = decisionId({ kind: "rlvol-roughness-bootstrap-seed/v1", basis: seedIdentityBasis });
+        var seed = roughnessSeedFromBasis({ kind: "rlvol-roughness-bootstrap-seed/v1", basis: seedIdentityBasis });
+        return Object.freeze({
+            contractVersion: "rlvol-roughness-bootstrap-state/v1",
+            seedIdentity: seedIdentity,
+            prngState: seed,
+            nextResampleIndex: 0,
+            requestedResamples: s.bootstrapResamples,
+            completeHValues: Object.freeze([]),
+            rejectedResamples: 0,
+            path: Object.freeze(path.slice()),
+            settings: s
+        });
+    }
+
+    function stepRoughnessBootstrap(state, maximumResamples) {
+        if (!isPlainObject(state) || state.contractVersion !== "rlvol-roughness-bootstrap-state/v1") {
+            throw schemaError("RLVOL_CONTRACT_VERSION", "state", "rlvol-roughness-bootstrap-state/v1 is required");
+        }
+        var take = Math.max(0, Math.min(
+            Number.isFinite(maximumResamples) ? maximumResamples : state.requestedResamples,
+            state.requestedResamples - state.nextResampleIndex
+        ));
+        var completeValues = state.completeHValues.slice();
+        var rejected = state.rejectedResamples;
+        var prngState = state.prngState;
+        var index = state.nextResampleIndex;
+        for (var i = 0; i < take; i += 1) {
+            var resample = movingBlockResample(state.path, state.settings, prngState);
+            prngState = resample.state;
+            var result = runFullFit(resample.values, state.settings);
+            if (result.common.state === "admitted") {
+                completeValues.push(result.common.candidateH);
+            } else {
+                rejected += 1;
+            }
+            index += 1;
+        }
+        return Object.freeze({
+            contractVersion: "rlvol-roughness-bootstrap-state/v1",
+            seedIdentity: state.seedIdentity,
+            prngState: prngState,
+            nextResampleIndex: index,
+            requestedResamples: state.requestedResamples,
+            completeHValues: Object.freeze(completeValues),
+            rejectedResamples: rejected,
+            path: state.path,
+            settings: state.settings
+        });
+    }
+
+    function type7Quantile(sortedValues, p) {
+        var m = sortedValues.length;
+        if (m === 0) return null;
+        if (m === 1) return sortedValues[0];
+        var h = (m - 1) * p;
+        var lower = Math.floor(h);
+        var upper = Math.ceil(h);
+        if (lower === upper) return sortedValues[lower];
+        return sortedValues[lower] + (h - lower) * (sortedValues[upper] - sortedValues[lower]);
+    }
+
+    function finalizeRoughnessBootstrap(state) {
+        if (!isPlainObject(state) || state.contractVersion !== "rlvol-roughness-bootstrap-state/v1") {
+            throw schemaError("RLVOL_CONTRACT_VERSION", "state", "rlvol-roughness-bootstrap-state/v1 is required");
+        }
+        if (state.nextResampleIndex !== state.requestedResamples) {
+            throw schemaError("RLVOL_SCHEMA_INVALID", "state.nextResampleIndex", "all requested resamples must complete before finalization");
+        }
+        var settings = state.settings;
+        var completeCount = state.completeHValues.length;
+        var reasons = [];
+        var admissible = completeCount >= settings.minimumCompleteResamples;
+        if (!admissible) reasons.push("BOOTSTRAP_COMPLETE_BELOW_450");
+        var lower = null, upper = null, width = null;
+        if (admissible) {
+            var sorted = state.completeHValues.slice().sort(function (a, b) { return a - b; });
+            lower = type7Quantile(sorted, 0.025);
+            upper = type7Quantile(sorted, 0.975);
+            width = upper - lower;
+            if (!(width <= settings.maximumIntervalWidth)) reasons.push("INTERVAL_WIDTH_ABOVE_0_25");
+        }
+        var widthOk = admissible && width !== null && width <= settings.maximumIntervalWidth;
+        return Object.freeze({
+            state: (admissible && widthOk) ? "admitted" : (completeCount === 0 && !admissible ? "rejected" : "rejected"),
+            method: "moving-block-noncircular",
+            blockLength: settings.bootstrapBlockLength,
+            requestedResamples: settings.bootstrapResamples,
+            completeResamples: completeCount,
+            seedIdentity: state.seedIdentity,
+            lower95: widthOk ? lower : null,
+            upper95: widthOk ? upper : null,
+            intervalWidth: widthOk ? width : null,
+            reasons: Object.freeze(reasons)
+        });
+    }
+
+    /* ── canonical diagnostic assembly (FR-028-024..040) ── */
+
+    function classifyRoughness(lower95, upper95, benchmark) {
+        if (upper95 < benchmark) return "below-0.5";
+        if (lower95 > benchmark) return "above-0.5";
+        return "indistinguishable-from-0.5";
+    }
+
+    function buildRoughnessDiagnostic(input, finalizedBootstrap) {
+        if (!isPlainObject(input)) throw schemaError("RLVOL_SCHEMA_INVALID", "input", "roughness input object is required");
+        if (input.contractVersion !== "rlvol-roughness-input/v1") throw schemaError("RLVOL_CONTRACT_VERSION", "contractVersion", "rlvol-roughness-input/v1 is required");
+        requireIsoInstant(input.decisionTime, "RLVOL_DECISION_TIME_INVALID");
+        if (typeof input.parentDecisionId !== "string" || !input.parentDecisionId) throw schemaError("RLVOL_SCHEMA_INVALID", "parentDecisionId", "a non-empty parentDecisionId is required");
+        if (!isPlainObject(input.source)) throw schemaError("RLVOL_SCHEMA_INVALID", "source", "source metadata is required");
+        var settings = input.settings || ROUGHNESS_SETTINGS;
+
+        var reasons = [];
+        var proxy = buildObservedLogVolPath(input);
+        var state, points = [], fits = [], common, bootstrapResult, hValue = null, lower95 = null, upper95 = null, classification = null;
+
+        if (input.source.freshness === "unavailable") {
+            state = "unavailable";
+            reasons.push("SOURCE_UNAVAILABLE");
+            common = Object.freeze({ state: "not-run", candidateH: null, r2: null, residuals: Object.freeze([]), maximumAbsoluteResidual: null, reasons: Object.freeze([]) });
+            bootstrapResult = Object.freeze({ state: "not-run", method: "moving-block-noncircular", blockLength: settings.bootstrapBlockLength, requestedResamples: settings.bootstrapResamples, completeResamples: 0, seedIdentity: null, lower95: null, upper95: null, intervalWidth: null, reasons: Object.freeze([]) });
+        } else if (proxy.retainedObservationCount < settings.minimumProxyObservations) {
+            state = "unavailable";
+            reasons.push("RETAINED_OBSERVATIONS_BELOW_500");
+            common = Object.freeze({ state: "not-run", candidateH: null, r2: null, residuals: Object.freeze([]), maximumAbsoluteResidual: null, reasons: Object.freeze([]) });
+            bootstrapResult = Object.freeze({ state: "not-run", method: "moving-block-noncircular", blockLength: settings.bootstrapBlockLength, requestedResamples: settings.bootstrapResamples, completeResamples: 0, seedIdentity: null, lower95: null, upper95: null, intervalWidth: null, reasons: Object.freeze([]) });
+        } else {
+            points = buildStructureFunctions(proxy.values, settings);
+            fits = settings.momentOrders.map(function (q) { return fitScalingExponent(points, q, settings); });
+            common = fitCommonH(fits, settings);
+            fits.forEach(function (f) { f.reasons.forEach(function (code) { if (reasons.indexOf(code) === -1) reasons.push(code); }); });
+
+            if (common.state !== "admitted") {
+                state = "inconclusive";
+                common.reasons.forEach(function (code) { if (reasons.indexOf(code) === -1) reasons.push(code); });
+                bootstrapResult = Object.freeze({ state: "not-run", method: "moving-block-noncircular", blockLength: settings.bootstrapBlockLength, requestedResamples: settings.bootstrapResamples, completeResamples: 0, seedIdentity: null, lower95: null, upper95: null, intervalWidth: null, reasons: Object.freeze([]) });
+            } else {
+                if (!isPlainObject(finalizedBootstrap)) throw schemaError("RLVOL_SCHEMA_INVALID", "finalizedBootstrap", "a finalized RoughnessBootstrapV1 is required once per-order and common fits admit");
+                bootstrapResult = finalizedBootstrap;
+                bootstrapResult.reasons.forEach(function (code) { if (reasons.indexOf(code) === -1) reasons.push(code); });
+                if (bootstrapResult.state !== "admitted") {
+                    state = "inconclusive";
+                } else {
+                    state = "supported";
+                    hValue = common.candidateH;
+                    lower95 = bootstrapResult.lower95;
+                    upper95 = bootstrapResult.upper95;
+                    classification = classifyRoughness(lower95, upper95, settings.benchmarkH);
+                }
+            }
+        }
+
+        var limitations = [
+            "The observed log-volatility proxy is a rolling realized-volatility estimator, not a direct observation of latent instantaneous variance.",
+            "A supported scaling estimate is evidence about a smoothness assumption. It does not validate any specific rough-volatility pricing model.",
+            "Overlapping rolling windows create dependence between observations; uncertainty uses a block-aware bootstrap rather than an independent-observation formula."
+        ];
+
+        var basisForIdentity = {
+            contractVersion: "rlvol-roughness-diagnostic-identity/v1",
+            parentDecisionId: input.parentDecisionId,
+            decisionTime: input.decisionTime,
+            source: input.source,
+            settings: settings,
+            retainedObservationCount: proxy.retainedObservationCount,
+            firstDate: proxy.firstDate,
+            lastDate: proxy.lastDate,
+            values: proxy.values
+        };
+        var diagnosticId = "rghd-v1-" + roughnessSeedFromBasis(basisForIdentity).toString(16).padStart(8, "0");
+
+        var result = {
+            contractVersion: "rlvol-roughness-diagnostic/v1",
+            diagnosticId: diagnosticId,
+            parentDecisionId: input.parentDecisionId,
+            computedAt: input.decisionTime,
+            state: state,
+            reasons: reasons,
+            source: input.source,
+            proxy: {
+                label: "observed-log-volatility-proxy",
+                windowReturns: settings.proxyWindowReturns,
+                annualization: settings.annualization,
+                sourceObservationCount: proxy.sourceObservationCount,
+                candidateWindowCount: proxy.candidateWindowCount,
+                retainedObservationCount: proxy.retainedObservationCount,
+                firstDate: proxy.firstDate,
+                lastDate: proxy.lastDate,
+                exclusions: proxy.exclusions
+            },
+            settings: settings,
+            structureFunctions: points,
+            scalingFits: fits,
+            commonFit: common,
+            bootstrap: bootstrapResult,
+            conclusion: {
+                h: hValue,
+                lower95: lower95,
+                upper95: upper95,
+                classification: classification,
+                benchmark: settings.benchmarkH
+            },
+            limitations: limitations,
+            educationalOnly: true
+        };
+        return deepFreeze(JSON.parse(JSON.stringify(result)));
+    }
+
     /* ── owner-read projection (summary only; no raw bars, no restricted payload) ── */
 
     function projectVolToolRead(decision) {
@@ -967,6 +1459,16 @@
         buildBacktestDeepLink: buildBacktestDeepLink,
         projectVolToolRead: projectVolToolRead,
         canonicalize: canonicalize,
-        decisionId: decisionId
+        decisionId: decisionId,
+        roughnessSettings: roughnessSettings,
+        buildObservedLogVolPath: buildObservedLogVolPath,
+        buildStructureFunctions: buildStructureFunctions,
+        fitScalingExponent: fitScalingExponent,
+        fitCommonH: fitCommonH,
+        movingBlockResample: movingBlockResample,
+        startRoughnessBootstrap: startRoughnessBootstrap,
+        stepRoughnessBootstrap: stepRoughnessBootstrap,
+        finalizeRoughnessBootstrap: finalizeRoughnessBootstrap,
+        buildRoughnessDiagnostic: buildRoughnessDiagnostic
     };
 });

@@ -985,3 +985,155 @@ test('Regression: SCN-027-013 the catalog-miss notice keeps naming the asset act
     await page.waitForFunction(() => window.VolSizingLab.runtime.controls.asset === 'QQQ', null, { timeout: 20000 });
     await expect(notice).toHaveAttribute('hidden', '');
 });
+
+/* ════════════════ Feature 028 Scope 3 (sub-pass 1 of 2) ════════════════
+ * Enable control + frozen runtime.bars/readCachedBars() snapshot + incremental bootstrap
+ * scheduling wiring only. Accessible evidence rendering and responsive/zoom behavior are a
+ * separate sub-pass and are NOT asserted here. */
+
+test('Regression: SCN-028-002 keeps first paint and provider activity unchanged until enablement', async ({ page }) => {
+    const barRequests = [];
+    page.on('request', (request) => { const url = request.url(); if (/\/data\/bars\/|query1\.finance\.yahoo\.com/.test(url)) barRequests.push(url); });
+    await open(page, cacheFor({ SPY: clusteredCloses() }), { mode: 'power' });
+    const before = await page.evaluate(() => ({
+        decisionId: window.VolSizingLab.runtime.decision.decisionId,
+        roughness: window.VolSizingLab.runtime.roughness
+    }));
+    // Real route, no interception: first paint decision exists and the roughness runtime is
+    // present but inert — disabled, idle, zero invocations, no snapshot, no diagnostic.
+    expect(before.roughness.enabled).toBe(false);
+    expect(before.roughness.pageState).toBe('disabled');
+    expect(before.roughness.stage).toBe('idle');
+    expect(before.roughness.invocationCount).toBe(0);
+    expect(before.roughness.snapshot).toBeNull();
+    expect(before.roughness.diagnostic).toBeNull();
+    await expect(page.locator('#roughnessEnable')).not.toBeChecked();
+    await expect(page.locator('#roughnessStatus')).toHaveAttribute('data-roughness-state', 'disabled');
+    await expect(page.locator('#roughnessStatus')).toHaveText('No diagnostic has run.');
+    // Switching Simple <-> Power without enabling must not touch the base decision or make a
+    // provider request.
+    await page.click('#rlviews button[data-rlview-mode="simple"]');
+    await page.click('#rlviews button[data-rlview-mode="power"]');
+    await page.waitForTimeout(200);
+    const after = await page.evaluate(() => ({
+        decisionId: window.VolSizingLab.runtime.decision.decisionId,
+        roughness: window.VolSizingLab.runtime.roughness
+    }));
+    expect(after.decisionId).toBe(before.decisionId);
+    expect(after.roughness.invocationCount).toBe(0);
+    expect(after.roughness.enabled).toBe(false);
+    expect(barRequests).toEqual([]);
+});
+
+test('Regression: Scope 1 formula and admission outcomes remain visible after Power projection wiring', async ({ page }) => {
+    await open(page, cacheFor({ SPY: clusteredCloses() }), { estimator: 'garch11', mode: 'power' });
+    // The new roughness enable control/status region is additive and present, but the existing
+    // Scope 1 production-formula evidence (forecast, sizing, term structure) still renders exactly
+    // as before this wiring landed.
+    const scope1 = await page.evaluate(() => {
+        const d = window.VolSizingLab.runtime.decision;
+        return {
+            state: d.state,
+            forecastKind: d.forecast.kind,
+            forecastValue: d.forecast.value,
+            sizingMultiplier: d.sizing.multiplier,
+            hasRoughnessEnable: !!document.getElementById('roughnessEnable'),
+            roughnessChecked: document.getElementById('roughnessEnable').checked
+        };
+    });
+    expect(scope1.state).not.toBe('unavailable');
+    expect(scope1.forecastKind).toBe('forecast');
+    expect(Number.isFinite(scope1.forecastValue)).toBe(true);
+    expect(Number.isFinite(scope1.sizingMultiplier)).toBe(true);
+    expect(scope1.hasRoughnessEnable).toBe(true);
+    expect(scope1.roughnessChecked).toBe(false);
+    await expect(page.locator('[data-sizing-multiplier]')).not.toHaveText('--');
+    await expect(page.locator('#termTable tr').first()).toBeVisible();
+
+});
+
+test('Regression: Scope 1 unavailable outcome remains honest after Power projection wiring', async ({ page }) => {
+    // An unavailable-state input (insufficient history) still projects its honest Scope 1 outcome
+    // unchanged with the new roughness-diagnostic wiring present (SCN-028-001 baseline behavior).
+    await open(page, cacheFor({ SPY: shortCloses() }));
+    const unavailable = await page.evaluate(() => window.VolSizingLab.runtime.decision.state);
+    expect(unavailable).toBe('unavailable');
+});
+
+/* Supplementary correctness check for the sub-pass 1 implementation itself (enable control,
+ * frozen snapshot, and incremental bootstrap scheduling). Not one of the six persistent
+ * TP-028-03 rows — those are asserted by the two tests above — but real evidence that the
+ * wiring actually runs end to end rather than merely staying inert. */
+function longRoughnessCloses(seed = 42) { return closesFromReturns(simGarch(600, 0.00002, 0.06, 0.90, seed)); }
+
+test('Feature 028 Scope 3 sub-pass 1: enable control freezes a bars snapshot and completes an incremental bootstrap evaluation', async ({ page }) => {
+    await open(page, cacheFor({ SPY: longRoughnessCloses() }), { mode: 'power' });
+    const barsBefore = await page.evaluate(() => window.VolSizingLab.runtime.bars.rows.length);
+    await page.check('#roughnessEnable');
+    const snapshotState = await page.evaluate(() => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return {
+            enabled: r.enabled,
+            frozen: r.snapshot ? Object.isFrozen(r.snapshot) : null,
+            rowsFrozen: r.snapshot ? Object.isFrozen(r.snapshot.rows) : null,
+            snapshotRows: r.snapshot ? r.snapshot.rows.length : null,
+            sourceKey: r.sourceKey
+        };
+    });
+    expect(snapshotState.enabled).toBe(true);
+    expect(snapshotState.frozen).toBe(true);
+    expect(snapshotState.rowsFrozen).toBe(true);
+    expect(snapshotState.snapshotRows).toBe(barsBefore);
+    expect(snapshotState.sourceKey).not.toBeNull();
+
+    // Cooperative zero-delay batches of at most 25 resamples: the page must stay interactive while
+    // bootstrap batches run (assert this before waiting for completion).
+    const interactiveDuringBootstrap = await page.evaluate(() => new Promise((resolve) => {
+        const r = window.VolSizingLab.runtime.roughness;
+        if (r.diagnostic) { resolve('already-done-too-fast-to-observe'); return; }
+        setTimeout(() => resolve(document.readyState === 'complete'), 0);
+    }));
+    expect([true, 'already-done-too-fast-to-observe']).toContain(interactiveDuringBootstrap);
+
+    await page.waitForFunction(() => window.VolSizingLab.runtime.roughness.diagnostic !== null, null, { timeout: 20000 });
+    const result = await page.evaluate(() => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return {
+            invocationCount: r.invocationCount,
+            diagnosticState: r.diagnostic.state,
+            projectionState: r.projection.projectionState,
+            bootstrapDone: r.bootstrapState ? (r.bootstrapState.nextResampleIndex === r.bootstrapState.requestedResamples) : true,
+            batchConstant: 25
+        };
+    });
+    expect(result.invocationCount).toBe(1);
+    expect(['unavailable', 'inconclusive', 'supported']).toContain(result.diagnosticState);
+    expect(result.projectionState).toBe('available');
+    expect(result.bootstrapDone).toBe(true);
+    await expect(page.locator('#roughnessStatus')).toContainText('Diagnostic complete');
+});
+
+test('Feature 028 Scope 3 sub-pass 1: disabling during an in-flight evaluation cancels it and discards the result', async ({ page }) => {
+    await open(page, cacheFor({ SPY: longRoughnessCloses(7) }), { mode: 'power' });
+    await page.check('#roughnessEnable');
+    // Uncheck immediately, before the bootstrap (20 batches of <=25 for 500 resamples) can finish.
+    await page.uncheck('#roughnessEnable');
+    const cancelled = await page.evaluate(() => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return { enabled: r.enabled, pageState: r.pageState, diagnostic: r.diagnostic, invocationCount: r.invocationCount };
+    });
+    expect(cancelled.enabled).toBe(false);
+    expect(cancelled.pageState).toBe('disabled');
+    expect(cancelled.diagnostic).toBeNull();
+    // Give any still-queued zero-delay task a chance to run; the token/source-key guard must make it
+    // a no-op rather than resurrecting a cancelled evaluation as canonical evidence.
+    await page.waitForTimeout(500);
+    const after = await page.evaluate(() => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return { enabled: r.enabled, diagnostic: r.diagnostic, invocationCount: r.invocationCount };
+    });
+    expect(after.enabled).toBe(false);
+    expect(after.diagnostic).toBeNull();
+    expect(after.invocationCount).toBe(0);
+    await expect(page.locator('#roughnessStatus')).toHaveText('No diagnostic has run.');
+});

@@ -264,7 +264,9 @@ Inspect native Simple and Power, compact owner read, Market Brief conflict consu
 
 ## Scope 3: Power Evaluation UI and Accessibility
 
-**Status:** Not Started
+**Status:** In Progress (sub-pass 1 of 2 landed: enable control, frozen bars/source-metadata snapshot on
+enablement, and incremental bootstrap scheduling with cancellation — see `report.md#scope-028-03-implementation`.
+Accessible evidence rendering and responsive/zoom behavior remain outstanding.)
 
 Scope-Kind: runtime-behavior
 

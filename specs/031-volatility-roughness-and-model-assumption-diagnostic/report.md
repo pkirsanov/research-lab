@@ -534,41 +534,165 @@ Note: this working tree independently carries pre-existing, unrelated, uncommitt
 
 ## Scope 028-03 Evidence
 
+**Scope 3 Sub-pass 1 of 2 (2026-09-06).** Scope 3 status remains **Not Started → In Progress**, NOT Done. This
+sub-pass covers only the enable control, the deep-frozen `runtime.bars`/`readCachedBars()` snapshot taken solely
+on enablement, and the cooperative incremental bootstrap scheduling wiring (zero-delay batches of at most 25
+resamples, cancellation tokens). It does not implement the accessible state/table rendering, the responsive/zoom
+behavior, or TP-028-03-02/04/05/06 — those are sub-pass 2. No DoD checkbox in `scopes.md` for Scope 3 is checked
+by this sub-pass; none is fully satisfied yet.
+
 ### Scope 028-03 Implementation
 
-Not implemented or verified.
+Implemented in `volatility-sizing-lab.html` (Change Boundary's sole allowed production file), additive only,
+`rlvol.js` untouched by this sub-pass:
+
+- Markup: native `<input type="checkbox" id="roughnessEnable">` enable control and a persistent
+  `role="status" aria-live="polite"` region (`#roughnessStatus`), placed in the Power view between the existing
+  "Vol-targeting sizing" card and the "Provenance" card, i.e. after existing sizing evidence and before the
+  provenance footer, per Implementation Plan item 1 (`volatility-sizing-lab.html:646-660`).
+- Runtime state: `runtime.roughness` (`enabled`, `pageState`, `stage`, `evaluationToken`, `sourceKey`, `snapshot`,
+  `bootstrapState`, `diagnostic`, `projection`, `invocationCount`) added to the existing `runtime` object
+  (`volatility-sizing-lab.html:678-692`), exposed read-only for tests through the existing
+  `window.VolSizingLab.runtime` getter (unchanged export shape).
+- `enableRoughness()` (`volatility-sizing-lab.html:~925-943`): bumps `evaluationToken`, deep-clones and
+  deep-freezes the CURRENT `runtime.bars` (the exact object `readCachedBars()` already produced during the
+  existing cache-first paint) via `roughnessCloneFreeze()`, derives a `sourceKey` from asset + row count + last
+  bar timestamp + `observedAsOf` + source id, and queues the first stage with `setTimeout(fn, 0)`. It calls
+  `hydrate()`, `RLDATA.ensureBars()`, and `fetch()` nowhere in this path — verified both by code inspection and by
+  TP-028-03-01's zero-bar-request assertion below.
+- `disableRoughness()`: bumps the token, clears `diagnostic`/`projection`/`bootstrapState`, sets `pageState` back
+  to `"disabled"`. Does not touch cached bars.
+- Cooperative scheduling: `roughnessRunProxyAndFitStage()` runs the cheap non-incremental proxy+per-order+common
+  fit synchronously via RLVOL's own exported `buildObservedLogVolPath`/`buildStructureFunctions`/
+  `fitScalingExponent`/`fitCommonH` (no page-local reimplementation of any formula); only when the common fit
+  admits does it call `RLVOL.startRoughnessBootstrap()` and hand off to
+  `roughnessRunBootstrapBatch()`, which requests at most `ROUGHNESS_BATCH_SIZE = 25` resamples per
+  `RLVOL.stepRoughnessBootstrap()` call, re-queues itself with `setTimeout(fn, 0)` until
+  `nextResampleIndex === requestedResamples`, then calls `RLVOL.finalizeRoughnessBootstrap()` and
+  `RLVOL.buildRoughnessDiagnostic()` (`volatility-sizing-lab.html:~944-1010`).
+- Cancellation: every stage checks `roughnessStageStillCurrent(token, sourceKey)` — comparing against
+  `runtime.roughness.evaluationToken`/`sourceKey` — before adopting any returned state or scheduling the next
+  task; a mismatch (disablement or a fresh enablement) makes the stale task a no-op rather than resurrecting a
+  cancelled/stale evaluation as canonical evidence. `RoughnessRuntimeV1.pageState` is kept to the design's fixed
+  `"disabled" | "computing" | "cancelled" | "stale-result"` union; a normal completion does not add a fifth
+  pageState value — completion is instead read from `runtime.roughness.diagnostic` /
+  `runtime.roughness.projection.projectionState`, matching design.md's statement that cancellation and
+  stale-result are page evaluation outcomes, not diagnostic states (design.md:553, 891).
+- Not implemented in this sub-pass (left for sub-pass 2, explicitly out of scope per the task boundary): full
+  accessible evidence rendering (threshold ledger, structure-function/benchmark charts and same-data tables,
+  exclusion ledger, replay disclosure, QuantitativeFinance handoff), Simple-view compact notice, 320px/200%-zoom
+  layout, and asset/history-change diagnostic-identity invalidation (design.md's "Bar, asset, or retained-history
+  changes retain enablement but invalidate the diagnostic identity" clause is NOT yet wired — today an
+  in-progress or completed evaluation is not automatically restarted on an asset change; only explicit
+  enable/disable toggling is covered).
 
 ### Scope 028-03 Boundary
 
-Not verified.
+No new route, registry row, provider, persistence, worker, package, pricing, or trading behavior was added. Only
+`volatility-sizing-lab.html` was changed in production code; `rlvol.js` was read but not modified. The tests file
+touched is exactly the allowed `tests/volatility-sizing-lab.spec.mjs`. `rlshock.js` and other shock-transmission
+files were not touched (per instruction, to avoid conflicting with concurrent unrelated work).
 
 ### TP-028-03-01
 
-Not run.
+**PASS (Claim Source: executed).** Test `Regression: SCN-028-002 keeps first paint and provider activity
+unchanged until enablement` added at `tests/volatility-sizing-lab.spec.mjs:994`. Real route via
+`startStaticServer()`, no `page.route`/interception, only a `page.on('request')` listener. Asserts, on first paint
+before any enablement: `runtime.roughness.enabled === false`, `pageState === "disabled"`, `stage === "idle"`,
+`invocationCount === 0`, `snapshot === null`, `diagnostic === null`, the checkbox unchecked, and the status region
+reads "No diagnostic has run." Then switches Simple → Power → Simple → Power without ever checking the enable
+control and asserts the base `decision.decisionId` is unchanged, `invocationCount` stays 0, and `barRequests`
+(matched against `/data/bars/` and the Yahoo Finance host) is `[]`.
+
+Executed:
+```
+npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs \
+  --project=system-chrome --grep "SCN-028-002 keeps first paint"
+1 passed (2026-09-06)
+```
 
 ### TP-028-03-02
 
-Not run.
+Not run — sub-pass 2 (accessible state/table rendering and separation from canonical states).
 
 ### TP-028-03-03
 
-Not run.
+**PASS (Claim Source: executed).** Test `Regression: Scope 1 formula and admission outcomes remain visible after
+Power projection wiring` added at `tests/volatility-sizing-lab.spec.mjs:1028`, exact persistent title match. Opens
+the real route with an admissible clustered-volatility fixture (GARCH estimator, Power mode) and asserts the
+Scope 1 production formulas remain intact after this sub-pass's wiring: `decision.state !== "unavailable"`,
+`forecast.kind === "forecast"`, finite forecast value and sizing multiplier, the new `#roughnessEnable` control is
+present but unchecked, `[data-sizing-multiplier]` is populated, and the term-structure table renders. A companion
+test, `Regression: Scope 1 unavailable outcome remains honest after Power projection wiring`
+(`tests/volatility-sizing-lab.spec.mjs:1055`), reopens the route with an insufficient-history fixture and asserts
+`decision.state === "unavailable"` is unchanged by the wiring (SCN-028-001 baseline still visible).
+
+Executed:
+```
+npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs \
+  --project=system-chrome --grep "Scope 1 formula and admission outcomes remain visible after Power projection wiring|Scope 1 unavailable outcome remains honest"
+2 passed (2026-09-06)
+```
 
 ### TP-028-03-04
 
-Not run.
+Not run — sub-pass 2 (320 CSS pixel / 200% zoom responsive behavior). NOT claimed working.
 
 ### TP-028-03-05
 
-Not run.
+Not run — sub-pass 2 (withheld-state evidence retention and "Withheld" wording).
 
 ### TP-028-03-06
 
-Not run.
+Not run — sub-pass 2 (wrapper-state regression after full UI wiring).
 
 ### Scope 028-03 Quality
 
-Not run.
+Not run in full — deferred to the end of sub-pass 2, when accessibility/responsiveness are actually implemented
+and can be honestly verified. Real-route authenticity and no-silent-pass are partially evidenced by this
+sub-pass's own executed tests above (real static server, no interception, real DOM/runtime assertions).
+
+### Scope 028-03 Sub-pass 1 — additional executed evidence (implementation correctness, not a TP row)
+
+Two supplementary tests prove the enable/snapshot/bootstrap-scheduling implementation actually runs end to end
+rather than staying inert (not one of the six persistent TP-028-03 rows, which are covered above):
+
+- `Feature 028 Scope 3 sub-pass 1: enable control freezes a bars snapshot and completes an incremental bootstrap
+  evaluation` (`tests/volatility-sizing-lab.spec.mjs:1069`): enables the diagnostic over a 600-bar admissible
+  fixture, asserts the snapshot and its `rows` array are `Object.isFrozen`, the row count matches
+  `runtime.bars.rows.length` at enablement time, a `sourceKey` is derived, the page stays interactive while
+  batches run, and after waiting for completion asserts `invocationCount === 1`, `diagnostic.state` is one of
+  `unavailable`/`inconclusive`/`supported`, `projection.projectionState === "available"`, the bootstrap state's
+  `nextResampleIndex === requestedResamples`, and the status region reads "Diagnostic complete...".
+- `Feature 028 Scope 3 sub-pass 1: disabling during an in-flight evaluation cancels it and discards the result`
+  (`tests/volatility-sizing-lab.spec.mjs:1116`): enables then immediately disables before the ~20-batch bootstrap
+  can finish, asserts the runtime is back to `enabled: false`, `pageState: "disabled"`, `diagnostic: null`, then
+  waits 500ms for any still-queued zero-delay task to run and re-asserts `diagnostic: null` and
+  `invocationCount === 0` — proving the token/source-key guard discards the in-flight work rather than adopting
+  it as canonical evidence after the control was turned off.
+
+Executed:
+```
+npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs \
+  --project=system-chrome --grep "Scope 3 sub-pass 1"
+2 passed (2026-09-06)
+```
+
+Full spec file (34 tests, includes all pre-existing Scope 1/2 and this sub-pass's 6 new tests):
+```
+npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 \
+  tests/volatility-sizing-lab.spec.mjs
+34 passed (2026-09-06)
+```
+
+Full repository self-test:
+```
+node scripts/selftest.mjs
+3503 passed, 3 failed
+```
+The 3 failures are the pre-existing, unrelated known failures (personal-identifier scan, deferred-scorecard
+byte-budget, and the BUG-016/BUG-017 Human-Acceptance-Record baseline finding) — none introduced by this
+sub-pass, none touching `volatility-sizing-lab.html`, `rlvol.js`, or `tests/volatility-sizing-lab.spec.mjs`.
 
 ## Scope 028-04 Evidence
 

@@ -643,6 +643,21 @@
                 </p>
             </div>
 
+            <div class="card" id="modelAssumptionDiagnostic">
+                <h2>Volatility roughness &amp; model-assumption diagnostic</h2>
+                <p class="parity">Opt-in only. Educational scaling-exponent diagnostic over the already-hydrated
+                    price history above — separate from, and never a substitute for, the Feature 011 decision.</p>
+                <p>
+                    <label for="roughnessEnable">
+                        <input type="checkbox" id="roughnessEnable">
+                        Enable diagnostic
+                    </label>
+                </p>
+                <div id="roughnessStatus" role="status" aria-live="polite" data-roughness-state="disabled">
+                    No diagnostic has run.
+                </div>
+            </div>
+
             <div class="card">
                 <h2>Provenance</h2>
                 <div id="provenanceLedger"></div>
@@ -682,7 +697,19 @@
                 bars: null,
                 decision: null,
                 ui: { mode: "simple" },
-                refresh: { active: false, promise: null }
+                refresh: { active: false, promise: null },
+                roughness: {
+                    enabled: false,
+                    pageState: "disabled",
+                    stage: "idle",
+                    evaluationToken: 0,
+                    sourceKey: null,
+                    snapshot: null,
+                    bootstrapState: null,
+                    diagnostic: null,
+                    projection: null,
+                    invocationCount: 0
+                }
             };
 
             function byId(id) { return document.getElementById(id); }
@@ -816,6 +843,187 @@
                 }
                 text(byId("decisionLive"), parts);
                 text(byId("appStatus"), d.state === "unavailable" ? "Unavailable — " + d.forecast.unavailableReason : "Ready — one computation feeds Simple, Power, and the owner read");
+            }
+
+            /* ═══════════ Feature 028 Scope 3 (sub-pass 1 of 2) — opt-in roughness diagnostic ═══════════
+               Enable control, frozen-snapshot capture, and cooperative incremental bootstrap scheduling
+               only. Accessible evidence rendering, the semantic tables, and the responsive/zoom behavior
+               are sub-pass 2. This block never calls hydrate(), RLDATA.ensureBars(), or fetch(); it reads
+               only the already-hydrated runtime.bars this page's own existing cache-first paint produced. */
+
+            /* deep-freeze a JSON-cloned snapshot so later control or bar mutation cannot leak into an
+               in-flight or completed evaluation; mirrors the RLVOL foundation's own deep-freeze policy */
+            function roughnessCloneFreeze(value) {
+                var clone = JSON.parse(JSON.stringify(value));
+                (function freeze(node) {
+                    if (node && typeof node === "object" && !Object.isFrozen(node)) {
+                        Object.freeze(node);
+                        Object.keys(node).forEach(function (key) { freeze(node[key]); });
+                    }
+                })(clone);
+                return clone;
+            }
+
+            /* identity over exactly what the diagnostic formula consumes: which asset, which rows, and
+               which cache metadata. Any change here must start a fresh evaluation over a fresh snapshot. */
+            function roughnessSourceKey(snapshot, asset) {
+                if (!snapshot) return null;
+                var rows = snapshot.rows || [];
+                var last = rows.length ? rows[rows.length - 1] : null;
+                return [
+                    asset,
+                    rows.length,
+                    last ? last.t : null,
+                    snapshot.observedAsOf,
+                    snapshot.source ? snapshot.source.id : null
+                ].join("|");
+            }
+
+            function renderRoughnessStatus() {
+                var node = byId("roughnessStatus");
+                if (!node) return;
+                var r = runtime.roughness;
+                node.setAttribute("data-roughness-state", r.pageState);
+                var text_;
+                if (!r.enabled) text_ = "No diagnostic has run.";
+                else if (r.pageState === "cancelled") text_ = "Diagnostic cancelled by a control change; the prior result is discarded.";
+                else if (r.pageState === "stale-result") text_ = "Diagnostic input changed; the prior result is discarded and a fresh evaluation is starting.";
+                else if (r.diagnostic && r.projection) text_ = "Diagnostic complete — canonical state " + r.diagnostic.state + ".";
+                else if (r.pageState === "computing") text_ = "Computing diagnostic (" + r.stage + ")" + (r.bootstrapState ? " — " + r.bootstrapState.nextResampleIndex + " of " + r.bootstrapState.requestedResamples + " resamples" : "") + "…";
+                else text_ = "No diagnostic has run.";
+                text(node, text_);
+            }
+
+            /* Enablement freezes the CURRENT already-hydrated bars; it triggers no second fetch. An
+               already-running independent refresh (from hydrate()) may still complete later and will
+               invalidate this snapshot normally through the source-key check in the next control read. */
+            function enableRoughness() {
+                var r = runtime.roughness;
+                r.enabled = true;
+                r.evaluationToken += 1;
+                r.snapshot = roughnessCloneFreeze(runtime.bars || { rows: [], observedAsOf: null, retrievedAt: nowIso(), source: { id: "none", url: null } });
+                r.sourceKey = roughnessSourceKey(r.snapshot, runtime.controls.asset);
+                r.bootstrapState = null;
+                r.diagnostic = null;
+                r.projection = null;
+                r.pageState = "computing";
+                r.stage = "proxy";
+                renderRoughnessStatus();
+                var token = r.evaluationToken;
+                var sourceKey = r.sourceKey;
+                setTimeout(function () { roughnessRunProxyAndFitStage(token, sourceKey); }, 0);
+            }
+
+            function disableRoughness() {
+                var r = runtime.roughness;
+                r.enabled = false;
+                r.evaluationToken += 1;
+                r.stage = "idle";
+                r.pageState = "disabled";
+                r.bootstrapState = null;
+                r.diagnostic = null;
+                r.projection = null;
+                renderRoughnessStatus();
+            }
+
+            /* A token or source-key mismatch means a disablement, re-enablement, or bar/asset change
+               happened after this task was queued; the returned/in-flight work is discarded and never
+               adopted, matching the design's cancelled/stale-result separation from canonical state. */
+            function roughnessStageStillCurrent(token, sourceKey) {
+                var r = runtime.roughness;
+                return r.enabled && r.evaluationToken === token && r.sourceKey === sourceKey;
+            }
+
+            function roughnessBuildInput(settings) {
+                var r = runtime.roughness;
+                return {
+                    contractVersion: "rlvol-roughness-input/v1",
+                    decisionTime: nowIso(),
+                    parentDecisionId: runtime.decision ? runtime.decision.decisionId : null,
+                    source: { freshness: r.snapshot && r.snapshot.rows.length ? "fresh" : "unavailable", id: r.snapshot ? r.snapshot.source.id : "none", retrievedAt: r.snapshot ? r.snapshot.retrievedAt : nowIso() },
+                    bars: r.snapshot ? r.snapshot.rows : [],
+                    settings: settings
+                };
+            }
+
+            /* Cheap, synchronous, non-incremental proxy + per-order + common fit stage. Only when the
+               common fit admits does the (potentially expensive) incremental bootstrap stage run at all;
+               this uses only RLVOL's own exported pure functions, never a page-local reimplementation. */
+            function roughnessRunProxyAndFitStage(token, sourceKey) {
+                if (!roughnessStageStillCurrent(token, sourceKey)) { return; }
+                var r = runtime.roughness;
+                r.stage = "fits";
+                renderRoughnessStatus();
+                var settings = RLVOL.roughnessSettings();
+                var proxy;
+                try { proxy = RLVOL.buildObservedLogVolPath(roughnessBuildInput(settings)); }
+                catch (e) { roughnessFinalizeWithoutBootstrap(token, sourceKey, settings); return; }
+                if (proxy.retainedObservationCount < settings.minimumProxyObservations) {
+                    roughnessFinalizeWithoutBootstrap(token, sourceKey, settings);
+                    return;
+                }
+                var points = RLVOL.buildStructureFunctions(proxy.values, settings);
+                var fits = settings.momentOrders.map(function (q) { return RLVOL.fitScalingExponent(points, q, settings); });
+                var common = RLVOL.fitCommonH(fits, settings);
+                if (!roughnessStageStillCurrent(token, sourceKey)) { return; }
+                if (common.state !== "admitted") {
+                    roughnessFinalizeWithoutBootstrap(token, sourceKey, settings);
+                    return;
+                }
+                r.stage = "bootstrap";
+                var seedBasis = { contractVersion: "rlvol-roughness-bootstrap-seed-basis/v1", sourceKey: sourceKey, retainedObservationCount: proxy.retainedObservationCount, firstDate: proxy.firstDate, lastDate: proxy.lastDate };
+                r.bootstrapState = RLVOL.startRoughnessBootstrap(proxy.values, settings, seedBasis);
+                renderRoughnessStatus();
+                setTimeout(function () { roughnessRunBootstrapBatch(token, sourceKey, settings); }, 0);
+            }
+
+            /* Zero-delay batches of at most 25 resamples per task (a scheduling constant only — it
+               cannot change bootstrap order or values, per design.md's incremental-equivalence rule).
+               Each returned state is adopted only after the token/source-key check above; the page then
+               yields through another zero-delay task before requesting the next batch. */
+            var ROUGHNESS_BATCH_SIZE = 25;
+            function roughnessRunBootstrapBatch(token, sourceKey, settings) {
+                if (!roughnessStageStillCurrent(token, sourceKey)) { return; }
+                var r = runtime.roughness;
+                var next = RLVOL.stepRoughnessBootstrap(r.bootstrapState, ROUGHNESS_BATCH_SIZE);
+                if (!roughnessStageStillCurrent(token, sourceKey)) { return; }
+                r.bootstrapState = next;
+                renderRoughnessStatus();
+                if (next.nextResampleIndex < next.requestedResamples) {
+                    setTimeout(function () { roughnessRunBootstrapBatch(token, sourceKey, settings); }, 0);
+                    return;
+                }
+                r.stage = "finalize";
+                var finalized;
+                try { finalized = RLVOL.finalizeRoughnessBootstrap(next); }
+                catch (e) { roughnessFinalizeWithoutBootstrap(token, sourceKey, settings); return; }
+                if (!roughnessStageStillCurrent(token, sourceKey)) { return; }
+                roughnessCompleteEvaluation(token, sourceKey, settings, finalized);
+            }
+
+            function roughnessFinalizeWithoutBootstrap(token, sourceKey, settings) {
+                if (!roughnessStageStillCurrent(token, sourceKey)) { return; }
+                var r = runtime.roughness;
+                r.stage = "finalize";
+                roughnessCompleteEvaluation(token, sourceKey, settings, undefined);
+            }
+
+            function roughnessCompleteEvaluation(token, sourceKey, settings, finalizedBootstrap) {
+                if (!roughnessStageStillCurrent(token, sourceKey)) { return; }
+                var r = runtime.roughness;
+                var diagnostic = RLVOL.buildRoughnessDiagnostic(roughnessBuildInput(settings), finalizedBootstrap);
+                r.invocationCount += 1;
+                if (!roughnessStageStillCurrent(token, sourceKey)) { return; }
+                r.diagnostic = diagnostic;
+                r.projection = RLVOL.buildDiagnosticProjection(runtime.decision, "available", diagnostic);
+                /* RoughnessRuntimeV1.pageState is a fixed "disabled" | "computing" | "cancelled" |
+                   "stale-result" union — it names interrupted or absent page evaluation outcomes only.
+                   A normal completion is not one of those; the canonical result is carried by
+                   r.diagnostic.state and r.projection.projectionState instead, so pageState is simply
+                   left at "computing" (the accurate description of the page evaluation process that just
+                   finished) and renderRoughnessStatus() below reports completion from r.diagnostic. */
+                r.stage = "idle";
+                renderRoughnessStatus();
             }
 
             /* ── Power ── */
@@ -1179,6 +1387,9 @@
                 });
                 byId("historyRange").addEventListener("change", function () { readControls(); hydrate(false); });
                 byId("refreshBtn").addEventListener("click", function () { hydrate(true); });
+                byId("roughnessEnable").addEventListener("change", function () {
+                    if (this.checked) enableRoughness(); else disableRoughness();
+                });
                 byId("provenanceBtn").addEventListener("click", function () {
                     var d = runtime.decision; if (!d) return;
                     byId("provenanceDialogBody").innerHTML = '<p>Forecast is typed <strong>' + d.forecast.kind + "</strong> (estimator " + d.forecast.estimator + "); realized is typed <strong>" + d.realized.kind + "</strong> (estimator " + d.realized.estimator + "). The two are never interchanged.</p><p>Source id: <code>" + (d.forecast.source ? d.forecast.source.id : "unknown") + "</code>. As-of: <code>" + (d.asOf || "unavailable") + "</code>. Educational only.</p>";

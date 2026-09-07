@@ -59,7 +59,7 @@ Feature 011 supplies the unchanged volatility workspace and decision contract. F
 | Scope | Name | Surfaces | Owning scenarios | Status |
 | --- | --- | --- | --- | --- |
 | SCOPE-028-01 | RLVOL Formula and Admission Foundation | `rlvol.js`, formula tests | SCN-028-001, 003, 004, 005, 006, 007 | Done |
-| SCOPE-028-02 | Additive Decision and Conflict Projection | `rlvol.js`, decision integration tests | SCN-028-008, 009, 010, 013 | Not Started |
+| SCOPE-028-02 | Additive Decision and Conflict Projection | `rlvol.js`, decision integration tests | SCN-028-008, 009, 010, 013 | Done |
 | SCOPE-028-03 | Power Evidence UI and Accessibility | `volatility-sizing-lab.html`, Playwright | SCN-028-002, 014 | Not Started |
 | SCOPE-028-04 | Integration, Cache, Compatibility, Performance, and Release Proof | cache/browser/Node/file-origin/registry/release checks | SCN-028-011, 012 | Not Started |
 
@@ -175,7 +175,7 @@ Scenario: SCN-028-007 Uncertainty is too wide
 
 ## Scope 2: Versioned Decision Diagnostic Projection
 
-**Status:** Not Started
+**Status:** Done
 
 Scope-Kind: contract-only
 
@@ -246,21 +246,21 @@ Inspect native Simple and Power, compact owner read, Market Brief conflict consu
 
 #### Core Items
 
-- [ ] Classification, decision composition, and conflict projection implement the four owned scenarios without changing Feature 011 semantics. Evidence: `report.md#scope-028-02-implementation`.
-- [ ] Consumer sweep finds no rigid parser, stale reference, reordered conflict, or second identity. Evidence: `report.md#scope-028-02-consumers`.
+- [x] Classification, decision composition, and conflict projection implement the four owned scenarios without changing Feature 011 semantics. Evidence: `report.md#scope-028-02-implementation`.
+- [x] Consumer sweep finds no rigid parser, stale reference, reordered conflict, or second identity. Evidence: `report.md#scope-028-02-consumers`.
 
 #### Test Items — five rows, five items
 
-- [ ] TP-028-02-01 passes for SCN-028-008, SCN-028-009, and SCN-028-010. Evidence: `report.md#tp-028-02-01`.
-- [ ] TP-028-02-02 passes for SCN-028-008. Evidence: `report.md#tp-028-02-02`.
-- [ ] TP-028-02-03 passes for SCN-028-009 and SCN-028-010. Evidence: `report.md#tp-028-02-03`.
-- [ ] TP-028-02-04 passes for SCN-028-013. Evidence: `report.md#tp-028-02-04`.
-- [ ] TP-028-02-05 passes for SCN-028-008 and SCN-028-013. Evidence: `report.md#tp-028-02-05`.
-- [ ] Consumer impact sweep is complete and zero stale first-party references remain. Evidence: `report.md#scope-028-02-consumer-sweep`.
+- [x] TP-028-02-01 passes for SCN-028-008, SCN-028-009, and SCN-028-010. Evidence: `report.md#tp-028-02-01`.
+- [x] TP-028-02-02 passes for SCN-028-008. Evidence: `report.md#tp-028-02-02`.
+- [x] TP-028-02-03 passes for SCN-028-009 and SCN-028-010. Evidence: `report.md#tp-028-02-03`.
+- [x] TP-028-02-04 passes for SCN-028-013. Evidence: `report.md#tp-028-02-04`.
+- [x] TP-028-02-05 passes for SCN-028-008 and SCN-028-013. Evidence: `report.md#tp-028-02-05`.
+- [x] Consumer impact sweep is complete and zero stale first-party references remain. Evidence: `report.md#scope-028-02-consumer-sweep`.
 
 #### Build Quality Gate
 
-- [ ] Invariance, compatibility, neutral language, owner-read minimization, rollback, and docs alignment are verified with no unresolved finding. Evidence: `report.md#scope-028-02-quality`.
+- [x] Invariance, compatibility, neutral language, owner-read minimization, rollback, and docs alignment are verified with no unresolved finding. Evidence: `report.md#scope-028-02-quality`.
 
 ## Scope 3: Power Evaluation UI and Accessibility
 

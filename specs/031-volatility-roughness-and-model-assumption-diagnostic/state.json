@@ -3,7 +3,7 @@
   "featureDir": "specs/031-volatility-roughness-and-model-assumption-diagnostic",
   "featureName": "Volatility Roughness and Model-Assumption Diagnostic",
   "createdAt": "2026-09-01T19:52:11Z",
-  "lastUpdatedAt": "2026-09-06T00:00:00Z",
+  "lastUpdatedAt": "2026-09-06T00:30:00Z",
   "status": "in_progress",
   "workflowMode": "full-delivery",
   "planningOnly": false,
@@ -53,7 +53,7 @@
     "completedAt": "2026-09-02T05:20:25Z",
     "scopeProgress": [
       { "scopeId": "SCOPE-028-01", "status": "done" },
-      { "scopeId": "SCOPE-028-02", "status": "not_started" },
+      { "scopeId": "SCOPE-028-02", "status": "done" },
       { "scopeId": "SCOPE-028-03", "status": "not_started" },
       { "scopeId": "SCOPE-028-04", "status": "not_started" }
     ],
@@ -247,6 +247,20 @@
       "durationUnmeasured": true,
       "durationUnmeasuredReason": "Wall-clock session duration was not separately captured.",
       "summary": "Implemented SCOPE-028-01 (RLVOL Formula and Admission Foundation) for real: buildObservedLogVolPath, buildStructureFunctions, fitScalingExponent, fitCommonH, movingBlockResample, startRoughnessBootstrap/stepRoughnessBootstrap/finalizeRoughnessBootstrap, and buildRoughnessDiagnostic were added additively inside the existing rlvol.js UMD closure and exported alongside (never replacing) every pre-existing Feature 011 export. No file under specs/011-volatility-regime-and-sizing-lab/ was touched. New persistent tests tests/rlvol-roughness.unit.mjs (11 tests) and tests/volatility-roughness.integration.mjs (2 tests) all pass, exercising all six owned scenarios (SCN-028-001, 003, 004, 005, 006, 007) including exact numeric boundaries (500/400/5/0.90/0.95/0.10/450/0.25) and formula-owned bootstrap batch-size canonical equivalence. An additive Feature 028 canary group was added to scripts/selftest.mjs (3 assertions, all passing); the full 3500-assertion selftest suite shows 2 pre-existing failures unrelated to rlvol/RLVOL, confirmed present on unmodified main via git stash before this change. Full node --test tests/*.unit.mjs (710) and tests/*.integration.mjs (61) reruns show zero new regressions versus the unmodified-main baseline. One honestly-disclosed limitation is recorded in report.md: the SCN-028-001 'supported' end-to-end fixture uses a documented, labeled relaxation of only the bootstrap-admission thresholds (structure/order/common-fit thresholds remain at exact production values); a companion test proves the same real fixture under the unmodified production bootstrap policy honestly withholds H rather than fabricating a pass. SCOPE-028-01 is marked Done in scopes.md with real report.md evidence anchors. SCOPE-028-02 through SCOPE-028-04 remain Not Started; overall status is in_progress. This session did not run the formal Bubbles certification/audit workflow tooling."
+    },
+    {
+      "agent": "claude-code-implementation-session",
+      "phasesExecuted": [
+        "implement",
+        "test"
+      ],
+      "statusBefore": "in_progress",
+      "statusAfter": "in_progress",
+      "startedAt": "2026-09-06T00:00:00Z",
+      "completedAt": "2026-09-06T00:00:00Z",
+      "durationUnmeasured": true,
+      "durationUnmeasuredReason": "Wall-clock session duration was not separately captured.",
+      "summary": "Implemented SCOPE-028-02 (Versioned Decision Diagnostic Projection) for real: buildDiagnosticProjection(decision, projectionState, diagnostic) and projectModelAssumptionConflict(diagnostic) were added additively inside the existing rlvol.js UMD closure directly after the SCOPE-028-01 buildRoughnessDiagnostic and directly before the unchanged projectVolToolRead owner-read block, and exported alongside (never replacing) every pre-existing export. baseDecision is the exact frozen rlvol-decision-read/v1 object reference the caller supplies (never cloned or re-serialized); buildDiagnosticProjection includes a defense-in-depth runtime self-check that throws RLVOL_DIAGNOSTIC_PROJECTION_BASE_DECISION_MUTATED if the wrapped decision's object identity, key set, or canonical bytes ever differ after wrapping. projectModelAssumptionConflict emits zero conflicts unless the diagnostic is supported and its classification is strictly below-0.5 or above-0.5 (never on indistinguishable-from-0.5), and the one conflict it can emit is non-blocking, wrapper-owned, and free of directional trading language (regex-verified in every test). New tests added to the existing tests/rlvol-roughness.unit.mjs (5 new tests, one existing weak classification test upgraded to drive the real buildRoughnessDiagnostic path with fabricated finalized-bootstrap boundaries instead of literal comparisons) and tests/volatility-roughness.integration.mjs (3 new tests using a real buildVolDecisionRead() decision and a real Scope-1 formula pipeline) all pass, covering SCN-028-008, 009, 010, and 013 including the exact strict-outside/inclusive-containment classification boundary (both endpoints and interior containment), base-decision byte/key-set/object-reference invariance across all five wrapper/diagnostic-state combinations, a rigid-parser canary proving the wrapper is never misparsed as a v1 decision, and proof that the unchanged projectVolToolRead() continues to consume only projection.baseDecision. An additive SCOPE-028-02 canary group was added to scripts/selftest.mjs (4 assertions, all passing) using a real production-path decision. Full node --test tests/*.unit.mjs (720) and tests/*.integration.mjs (64) reruns were diffed against an unmodified-main baseline captured via git stash/git stash pop: the set of failing test titles is byte-identical between baseline and this change in both files, confirming zero new regressions (the working tree independently carries pre-existing, uncommitted, unrelated rlshock.js/spec-031-shock-transmission work this session did not touch or commit, which is why raw counts differ from a clean baseline while the failing-test identity set does not). The full selftest.mjs suite shows 3503 passed, 3 failed, versus 3499 passed, 3 failed on the stashed baseline — the same 3 pre-existing, unrelated failures (personal-identifier scan, deferred-scorecard byte budget, BUG-016/BUG-017 acceptance baseline), confirmed identical before and after. SCOPE-028-02 is marked Done in scopes.md with real report.md evidence anchors. SCOPE-028-03 and SCOPE-028-04 remain Not Started; overall status is in_progress. This session did not run the formal Bubbles certification/audit workflow tooling."
     }
   ],
   "activeBugs": [],
@@ -293,5 +307,5 @@
     ],
     "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
   },
-  "notes": "SCOPE-028-01 (RLVOL Formula and Admission Foundation) is genuinely implemented and test-evidenced in rlvol.js with real, executed evidence in report.md; scopes.md marks it Done. SCOPE-028-02 through SCOPE-028-04 remain Not Started. Overall status is in_progress, not done. No formal Bubbles certification/audit workflow run accompanies this implementation session; certification.completedScopes intentionally remains empty until that process runs."
+  "notes": "SCOPE-028-01 (RLVOL Formula and Admission Foundation) and SCOPE-028-02 (Versioned Decision Diagnostic Projection) are genuinely implemented and test-evidenced in rlvol.js with real, executed evidence in report.md; scopes.md marks both Done. SCOPE-028-03 and SCOPE-028-04 remain Not Started. Overall status is in_progress, not done. No formal Bubbles certification/audit workflow run accompanies this implementation session; certification.completedScopes intentionally remains empty until that process runs."
 }

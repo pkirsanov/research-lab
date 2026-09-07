@@ -1375,6 +1375,83 @@
         return deepFreeze(JSON.parse(JSON.stringify(result)));
     }
 
+    /* ═══════════ Feature 028 — versioned decision/diagnostic projection (SCOPE-028-02) ═══════════
+       Additive wrapper composition only. Never mutates, reorders, reserializes, or reinterprets
+       the frozen Feature 011 `rlvol-decision-read/v1` object; `baseDecision` is the exact caller
+       object reference. Contract owner: specs/031-.../design.md#versioned-decision-diagnostic-projection */
+
+    var DIAGNOSTIC_PROJECTION_STATES = ["disabled", "pending", "available"];
+
+    function projectModelAssumptionConflict(diagnostic) {
+        if (!isPlainObject(diagnostic) || diagnostic.contractVersion !== "rlvol-roughness-diagnostic/v1") {
+            throw schemaError("RLVOL_CONTRACT_VERSION", "diagnostic", "an rlvol-roughness-diagnostic/v1 diagnostic is required");
+        }
+        if (diagnostic.state !== "supported" || diagnostic.conclusion.classification === "indistinguishable-from-0.5" || diagnostic.conclusion.classification === null) {
+            return [];
+        }
+        var asOfLabel = diagnostic.proxy.lastDate ? diagnostic.proxy.lastDate : "an unavailable proxy as-of date";
+        var lower = roundTo(diagnostic.conclusion.lower95, 3);
+        var upper = roundTo(diagnostic.conclusion.upper95, 3);
+        var detail = "The observed log-volatility proxy's 95% scaling-exponent interval [" + lower + ", " + upper +
+            "] as of " + asOfLabel + " excludes the smooth-process benchmark H=0.5. This is evidence about the " +
+            "volatility-proxy smoothness assumption only; the Feature 011 conditional-volatility decision above is " +
+            "unchanged and this conflict never alters it.";
+        return [Object.freeze({
+            code: "MODEL_ASSUMPTION_H05_CONFLICT",
+            detail: detail,
+            observationIds: Object.freeze([]),
+            blocking: false,
+            kind: "model-assumption",
+            diagnosticId: diagnostic.diagnosticId,
+            parentDecisionId: diagnostic.parentDecisionId,
+            deepLink: "volatility-sizing-lab.html?mode=power#model-assumption-diagnostic"
+        })];
+    }
+
+    function buildDiagnosticProjection(decision, projectionState, diagnostic) {
+        if (!isPlainObject(decision) || decision.contractVersion !== "rlvol-decision-read/v1") {
+            throw schemaError("RLVOL_CONTRACT_VERSION", "decision", "an rlvol-decision-read/v1 decision is required");
+        }
+        if (!contains(DIAGNOSTIC_PROJECTION_STATES, projectionState)) {
+            throw schemaError("RLVOL_SCHEMA_INVALID", "projectionState", "projectionState must be disabled, pending, or available");
+        }
+        var diagnosticId = null;
+        var modelAssumptionDiagnostic = null;
+        var conflicts = [];
+        if (projectionState === "available") {
+            if (!isPlainObject(diagnostic) || diagnostic.contractVersion !== "rlvol-roughness-diagnostic/v1") {
+                throw schemaError("RLVOL_SCHEMA_INVALID", "diagnostic", "an rlvol-roughness-diagnostic/v1 diagnostic is required when projectionState is available");
+            }
+            if (diagnostic.parentDecisionId !== decision.decisionId) {
+                throw schemaError("RLVOL_SCHEMA_INVALID", "diagnostic.parentDecisionId", "diagnostic.parentDecisionId must equal the base decision's decisionId");
+            }
+            diagnosticId = diagnostic.diagnosticId;
+            modelAssumptionDiagnostic = diagnostic;
+            conflicts = projectModelAssumptionConflict(diagnostic);
+        } else if (diagnostic !== null && typeof diagnostic !== "undefined") {
+            throw schemaError("RLVOL_SCHEMA_INVALID", "diagnostic", "diagnostic must be null or omitted when projectionState is disabled or pending");
+        }
+        var beforeKeys = Object.keys(decision).sort().join(",");
+        var beforeBytes = canonicalize(decision);
+        var wrapper = {
+            contractVersion: "rlvol-decision-diagnostic-projection/v1",
+            parentDecisionId: decision.decisionId,
+            baseDecision: decision,
+            projectionState: projectionState,
+            diagnosticId: diagnosticId,
+            modelAssumptionDiagnostic: modelAssumptionDiagnostic,
+            conflicts: conflicts
+        };
+        var frozen = deepFreeze(wrapper);
+        /* invariance self-check: the wrapped base decision's identity, key set, and canonical
+           bytes are unchanged by wrapping (defense-in-depth; deepFreeze never clones a frozen
+           object, so this can only fail if a future edit introduces mutation). */
+        if (frozen.baseDecision !== decision || Object.keys(decision).sort().join(",") !== beforeKeys || canonicalize(decision) !== beforeBytes) {
+            throw new Error("RLVOL_DIAGNOSTIC_PROJECTION_BASE_DECISION_MUTATED");
+        }
+        return frozen;
+    }
+
     /* ── owner-read projection (summary only; no raw bars, no restricted payload) ── */
 
     function projectVolToolRead(decision) {
@@ -1469,6 +1546,8 @@
         startRoughnessBootstrap: startRoughnessBootstrap,
         stepRoughnessBootstrap: stepRoughnessBootstrap,
         finalizeRoughnessBootstrap: finalizeRoughnessBootstrap,
-        buildRoughnessDiagnostic: buildRoughnessDiagnostic
+        buildRoughnessDiagnostic: buildRoughnessDiagnostic,
+        buildDiagnosticProjection: buildDiagnosticProjection,
+        projectModelAssumptionConflict: projectModelAssumptionConflict
     };
 });

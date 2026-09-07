@@ -135,6 +135,148 @@ test('RLVOL diagnostic contract is immutable and keeps admitted and withheld sta
     assert.equal(typeof RLVOL.projectVolToolRead, 'function');
 });
 
+/* ── SCOPE-028-02: Additive Decision and Conflict Projection ── */
+
+function buildDecisionFixture(seed, overrides) {
+    const closes = [100];
+    let s = seed >>> 0;
+    const rng = () => { s = (Math.imul(s, 1103515245) + 12345) & 0x7fffffff; return s / 0x7fffffff; };
+    for (let i = 0; i < 300; i += 1) {
+        const r = (rng() * 2 - 1) * 0.01;
+        closes.push(closes[closes.length - 1] * Math.exp(r));
+    }
+    const rows = closes.map((c, i) => ({ t: Date.UTC(2024, 0, 1) + i * 86400000, c }));
+    return RLVOL.buildVolDecisionRead(Object.assign({
+        decisionTime: '2024-06-01T12:00:00.000Z',
+        configVersion: 'test-rlvol-v1',
+        controls: { asset: 'SPY', estimator: 'ewma', termLengthDays: 21, targetVol: 0.15, notional: 100000, historyRange: '5y' },
+        asset: { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', cohort: 'equity-index', management: 'free-float', defaultTargetVol: 0.15, regimeWindowObs: 120, minForecastObs: 60, reviewWindowHours: 100000, limitations: [] },
+        policy: { ewma: { lambda: 0.94, seedWindow: 20 }, garch: { maxIter: 200, tolerance: 1e-8, minOmega: 1e-12, maxPersistence: 0.999 }, forecast: { defaultHorizonDays: 21, maxHorizonDays: 63, annualization: 252 }, regime: { calmMaxPct: 25, normalMaxPct: 75, elevatedMaxPct: 95 }, sizing: { cap: 2.0, forecastVolFloor: 0.05 }, managedSuppression: { zeroReturnFraction: 0.30, minAbsDailyReturn: 0.0005, identicalCloseRun: 10 }, history: { defaultRange: '5y', longRangeOptions: ['10y', 'max'], dailyBarReviewHours: 100000 } },
+        bars: { rows, observedAsOf: '2024-10-27', retrievedAt: '2024-06-01T11:30:00.000Z', source: { id: 'test-snapshot', url: null } }
+    }, overrides || {}));
+}
+
+function realDiagnosticForDecision(decision, classification) {
+    /* build a genuine rlvol-roughness-diagnostic/v1 from real production formulas (same
+       synthetic-fixture pattern as SCN-028-001), then fabricate only the finalized-bootstrap
+       interval endpoints (the caller-owned stage) to hit each classification boundary. */
+    const bars = syntheticBars(2000, 4242);
+    const settings = Object.assign({}, RLVOL.roughnessSettings());
+    const input = Object.assign(baseInput(bars, { settings }), { parentDecisionId: decision.decisionId });
+    const bounds = classification === 'below-0.5' ? [0.30, 0.44]
+        : classification === 'above-0.5' ? [0.55, 0.70]
+        : [0.4, 0.6];
+    const proxy = RLVOL.buildObservedLogVolPath(input);
+    const points = RLVOL.buildStructureFunctions(proxy.values, settings);
+    const fits = settings.momentOrders.map((q) => RLVOL.fitScalingExponent(points, q, settings));
+    const common = RLVOL.fitCommonH(fits, settings);
+    if (common.state !== 'admitted') throw new Error('test fixture common fit did not admit');
+    const finalized = Object.freeze({
+        state: 'admitted', method: 'moving-block-noncircular', blockLength: settings.bootstrapBlockLength,
+        requestedResamples: settings.bootstrapResamples, completeResamples: settings.bootstrapResamples,
+        seedIdentity: 'integration-test-seed', lower95: bounds[0], upper95: bounds[1], intervalWidth: bounds[1] - bounds[0],
+        reasons: Object.freeze([])
+    });
+    return RLVOL.buildRoughnessDiagnostic(input, finalized);
+}
+
+test('Regression: SCN-028-008 projects one non-blocking below-benchmark conflict without mutating the base decision', () => {
+    const decision = buildDecisionFixture(9001);
+    const decisionSnapshot = RLVOL.canonicalize(decision);
+    const diagnostic = realDiagnosticForDecision(decision, 'below-0.5');
+    assert.equal(diagnostic.conclusion.classification, 'below-0.5');
+
+    const projection = RLVOL.buildDiagnosticProjection(decision, 'available', diagnostic);
+    assert.equal(projection.contractVersion, 'rlvol-decision-diagnostic-projection/v1');
+    assert.equal(projection.conflicts.length, 1);
+    assert.equal(projection.conflicts[0].code, 'MODEL_ASSUMPTION_H05_CONFLICT');
+    assert.equal(projection.conflicts[0].blocking, false);
+    assert.equal(projection.conflicts[0].diagnosticId, diagnostic.diagnosticId);
+    assert.equal(projection.conflicts[0].parentDecisionId, decision.decisionId);
+
+    /* no base mutation */
+    assert.equal(RLVOL.canonicalize(decision), decisionSnapshot);
+    assert.equal(projection.baseDecision, decision);
+    assert.ok(Object.isFrozen(projection));
+    assert.throws(() => { projection.projectionState = 'disabled'; });
+});
+
+test('Regression: benchmark containment emits no conflict and above-benchmark evidence stays non-directional', () => {
+    const decision = buildDecisionFixture(9002);
+
+    const containDiagnostic = realDiagnosticForDecision(decision, 'indistinguishable-from-0.5');
+    const containProjection = RLVOL.buildDiagnosticProjection(decision, 'available', containDiagnostic);
+    assert.equal(containProjection.conflicts.length, 0);
+
+    const aboveDiagnostic = realDiagnosticForDecision(decision, 'above-0.5');
+    const aboveProjection = RLVOL.buildDiagnosticProjection(decision, 'available', aboveDiagnostic);
+    assert.equal(aboveProjection.conflicts.length, 1);
+    const prose = JSON.stringify(aboveProjection.conflicts) + JSON.stringify(aboveProjection.modelAssumptionDiagnostic.conclusion);
+    assert.ok(!/bullish|bearish|\blong\b|\bshort\b|\bbuy\b|\bsell\b/i.test(prose), 'above-benchmark evidence must carry no directional trading language');
+});
+
+test('Regression: SCN-028-013 preserves exact Feature 011 bytes and parent identity in every wrapper state', () => {
+    const decision = buildDecisionFixture(9003);
+    const originalBytes = RLVOL.canonicalize(decision);
+    const originalKeys = Object.keys(decision).sort();
+    const originalConflictsBytes = JSON.stringify(decision.conflicts);
+    const originalDecisionId = decision.decisionId;
+
+    const below = realDiagnosticForDecision(decision, 'below-0.5');
+    const contain = realDiagnosticForDecision(decision, 'indistinguishable-from-0.5');
+    const above = realDiagnosticForDecision(decision, 'above-0.5');
+
+    const cases = [
+        ['disabled', null],
+        ['pending', null],
+        ['available', below],
+        ['available', contain],
+        ['available', above]
+    ];
+
+    cases.forEach(([projectionState, diagnostic]) => {
+        const projection = RLVOL.buildDiagnosticProjection(decision, projectionState, diagnostic);
+        assert.equal(projection.baseDecision, decision, 'exact base object reference for state ' + projectionState);
+        assert.equal(RLVOL.canonicalize(decision), originalBytes, 'canonical bytes unchanged for state ' + projectionState);
+        assert.deepEqual(Object.keys(decision).sort(), originalKeys, 'exact key set unchanged for state ' + projectionState);
+        assert.equal(JSON.stringify(decision.conflicts), originalConflictsBytes, 'conflict order/content unchanged for state ' + projectionState);
+        assert.equal(decision.contractVersion, 'rlvol-decision-read/v1');
+        assert.equal(decision.decisionId, originalDecisionId);
+        assert.equal(projection.parentDecisionId, originalDecisionId);
+        if (projectionState === 'available') {
+            assert.equal(projection.diagnosticId, diagnostic.diagnosticId);
+            assert.equal(projection.modelAssumptionDiagnostic.parentDecisionId, originalDecisionId);
+        } else {
+            assert.equal(projection.diagnosticId, null);
+            assert.equal(projection.modelAssumptionDiagnostic, null);
+            assert.deepEqual(projection.conflicts, []);
+        }
+    });
+
+    /* a rigid parser bound to the exact Feature 011 v1 key set accepts wrapper.baseDecision in
+       every state but rejects the wrapper object itself as a different, unrecognized contract */
+    function rigidV1Parse(candidate) {
+        const keys = Object.keys(candidate).sort();
+        if (keys.length !== originalKeys.length || keys.some((k, i) => k !== originalKeys[i])) {
+            throw new Error('RIGID_PARSER_UNKNOWN_SHAPE');
+        }
+        if (candidate.contractVersion !== 'rlvol-decision-read/v1') throw new Error('RIGID_PARSER_WRONG_VERSION');
+        return candidate;
+    }
+    const availableProjection = RLVOL.buildDiagnosticProjection(decision, 'available', below);
+    cases.forEach(([projectionState, diagnostic]) => {
+        const projection = RLVOL.buildDiagnosticProjection(decision, projectionState, diagnostic);
+        assert.doesNotThrow(() => rigidV1Parse(projection.baseDecision));
+        assert.throws(() => rigidV1Parse(projection));
+    });
+    assert.equal(rigidV1Parse(availableProjection.baseDecision).decisionId, originalDecisionId);
+
+    /* the unchanged owner-read projection continues to consume only projection.baseDecision */
+    const ownerRead = RLVOL.projectVolToolRead(availableProjection.baseDecision);
+    assert.equal(ownerRead.metrics.decisionId, originalDecisionId);
+    assert.equal(ownerRead.metrics.conflicts.length, decision.conflicts.length);
+});
+
 test('RLVOL roughness contract errors use the existing closed error shape for contract misuse', () => {
     assert.throws(() => RLVOL.buildRoughnessDiagnostic({ contractVersion: 'wrong/v1' }, undefined),
         (err) => err && err.code === 'RLVOL_CONTRACT_VERSION');

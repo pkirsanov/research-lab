@@ -418,41 +418,119 @@ Rollback path: this scope is purely additive. Reverting is `git checkout -- rlvo
 
 ## Scope 028-02 Evidence
 
+**Claim Source:** executed (this session, 2026-09-06).
+
 ### Scope 028-02 Implementation
 
-Not implemented or verified.
+`buildDiagnosticProjection(decision, projectionState, diagnostic)` and `projectModelAssumptionConflict(diagnostic)` are implemented additively in `rlvol.js`, inserted inside the existing UMD closure directly after `buildRoughnessDiagnostic` (SCOPE-028-01) and directly before the unchanged owner-read projection block (`projectVolToolRead`). Both are new top-level functions; no existing line in `rlvol.js` was altered, and both are appended to the module's final `return { ... }` export object alongside (never replacing) every prior export.
+
+- `projectModelAssumptionConflict(diagnostic)` — `rlvol.js:1385`. Validates the `rlvol-roughness-diagnostic/v1` contract, then returns `[]` unless `diagnostic.state === "supported"` and `conclusion.classification` is `"below-0.5"` or `"above-0.5"` (strictly excludes `"indistinguishable-from-0.5"` and `null`). When a conflict is warranted it returns exactly one frozen `ModelAssumptionConflictV1` object: `code: "MODEL_ASSUMPTION_H05_CONFLICT"`, `blocking: false`, `kind: "model-assumption"`, `diagnosticId`/`parentDecisionId` copied from the diagnostic, a fixed `deepLink: "volatility-sizing-lab.html?mode=power#model-assumption-diagnostic"`, and a `detail` string naming the proxy, interval, benchmark, and as-of date with no bullish/bearish/long/short/buy/sell language (verified by regex assertion in every test below).
+- `buildDiagnosticProjection(decision, projectionState, diagnostic)` — `rlvol.js:1401`. Validates the caller's `decision` is an `rlvol-decision-read/v1` object and `projectionState` is one of `disabled`/`pending`/`available`. For `available`, requires a valid `rlvol-roughness-diagnostic/v1` diagnostic whose `parentDecisionId` equals `decision.decisionId` (else throws `RLVOL_SCHEMA_INVALID`); for `disabled`/`pending`, requires `diagnostic` to be `null`/`undefined` (else throws). Assembles `rlvol-decision-diagnostic-projection/v1` with `parentDecisionId = decision.decisionId`, `baseDecision = decision` (the exact object reference — never cloned, never re-serialized through `JSON.parse(JSON.stringify(...))`), `diagnosticId`/`modelAssumptionDiagnostic` (null unless available), and `conflicts` from `projectModelAssumptionConflict`. Before returning, it re-checks (defense-in-depth) that `frozen.baseDecision === decision`, that `Object.keys(decision)` and `canonicalize(decision)` are byte-identical to their pre-wrap values, and throws `RLVOL_DIAGNOSTIC_PROJECTION_BASE_DECISION_MUTATED` if not — this can only fire if a future edit introduces mutation, since `deepFreeze` is a no-op on an already-frozen object and never clones.
+
+Both functions are exported from the module's `return` block (`buildDiagnosticProjection`, `projectModelAssumptionConflict`) alongside the unchanged Scope-1 exports.
+
+All four owned SCOPE-028-02 scenarios (SCN-028-008, 009, 010, 013) are exercised against production code, not mocks, in `tests/rlvol-roughness.unit.mjs` and `tests/volatility-roughness.integration.mjs`. The integration-level tests build a genuine `rlvol-decision-read/v1` decision through the unchanged `RLVOL.buildVolDecisionRead()` and a genuine `rlvol-roughness-diagnostic/v1` diagnostic through the unchanged Scope-1 `buildObservedLogVolPath` → `buildStructureFunctions` → `fitScalingExponent` → `fitCommonH` → `buildRoughnessDiagnostic` pipeline (the caller-owned finalized-bootstrap interval endpoints are set directly at each classification boundary, which is the same integration seam the real caller uses after formula-owned incremental bootstrap completes — `buildRoughnessDiagnostic` trusts its `finalizedBootstrap` argument by contract).
 
 ### Scope 028-02 Consumers
 
-Not verified.
+Consumer impact sweep performed by search, per the design.md `#consumer-projection` guidance:
+
+- `grep -n "decisionId\|parentDecisionId\|baseDecision\|conflicts\|rlvol-decision-read/v1" rlvol.js` — confirms `projectVolToolRead()` still reads only its `decision` argument's own fields and is never passed a wrapper; it is unmodified.
+- `grep -rn "projectVolToolRead(" .` outside `rlvol.js` — resolves to `tests/simple-model-adapters*.mjs` and `scripts/selftest.mjs` call sites; none constructs or expects a `rlvol-decision-diagnostic-projection/v1` object, so none is affected by the additive wrapper.
+- `grep -rln "buildVolDecisionRead\b" *.js *.html` — no `.html` route (Simple/Power UI) currently calls `buildDiagnosticProjection` because Scope 3 (UI wiring) has not started; the wrapper exists only as a formula-level contract at this scope, matching the Scope 2 "Consumer Surface" note in `scopes.md` ("the existing `volatility-sizing-lab.html` web page decision projection through the additive `RLVOL` result contract" — the contract, not the page wiring, is this scope's deliverable).
+- No `decisionId`, `parentDecisionId`, or `conflicts` key was renamed, and no existing v1 field changed shape; `rlvol-decision-read/v1`'s own `conflicts` array is read-only-preserved by the wrapper (never appended, replaced, or reordered — proven in TP-028-02-04 below).
+
+Zero stale first-party references were found; the wrapper is purely additive at this scope.
 
 ### TP-028-02-01
 
-Not run.
+`node --test tests/*.unit.mjs` — test `SCN-028 benchmark classification uses strict outside and inclusive containment boundaries` passes. Drives `classifyRoughness` through the real production path (`buildRoughnessDiagnostic`) with a real admitted proxy/structure/per-order/common-fit pipeline on a genuine synthetic fixture, and a caller-finalized bootstrap fabricated at each boundary: below (`upper95=0.44`), above (`lower95=0.55`), endpoint-equal at the lower bound (`lower95=0.5`), endpoint-equal at the upper bound (`upper95=0.5`), and interior containment (`[0.4, 0.6]`) — all five classify exactly as `below-0.5` / `above-0.5` / `indistinguishable-from-0.5` per the strict-outside/inclusive-containment rule.
+
+```text
+$ node --test tests/rlvol-roughness.unit.mjs
+✔ SCN-028 benchmark classification uses strict outside and inclusive containment boundaries (6.601750ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-02-02
 
-Not run.
+`node --test tests/*.integration.mjs` — test `Regression: SCN-028-008 projects one non-blocking below-benchmark conflict without mutating the base decision` (in `tests/volatility-roughness.integration.mjs`) passes. Builds a real `rlvol-decision-read/v1` decision and a real below-benchmark-classified diagnostic, projects it, and verifies exactly one `MODEL_ASSUMPTION_H05_CONFLICT` conflict with `blocking: false` and correct `diagnosticId`/`parentDecisionId`, that the base decision's canonical bytes are unchanged before/after, that `projection.baseDecision === decision` (exact reference), and that the frozen projection throws on mutation attempts.
+
+```text
+$ node --test tests/volatility-roughness.integration.mjs
+✔ Regression: SCN-028-008 projects one non-blocking below-benchmark conflict without mutating the base decision (4.918958ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-02-03
 
-Not run.
+`node --test tests/*.integration.mjs` — test `Regression: benchmark containment emits no conflict and above-benchmark evidence stays non-directional` passes: an interval containing 0.5 (`[0.4, 0.6]`, including both endpoint-equal cases in the companion unit test) produces zero wrapper conflicts, and an above-benchmark interval produces exactly one conflict whose `detail` and the diagnostic's `conclusion` JSON contain no bullish/bearish/long/short/buy/sell language (checked by regex against the full serialized conflict and conclusion).
+
+```text
+$ node --test tests/volatility-roughness.integration.mjs
+✔ Regression: benchmark containment emits no conflict and above-benchmark evidence stays non-directional (6.878542ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-02-04
 
-Not run.
+`node --test tests/*.integration.mjs` — test `Regression: SCN-028-013 preserves exact Feature 011 bytes and parent identity in every wrapper state` passes across `disabled`, `pending`, and three `available` diagnostics (`below-0.5`, `indistinguishable-from-0.5`, `above-0.5`): in every state, `projection.baseDecision === decision` (exact object reference), `RLVOL.canonicalize(decision)` is byte-identical to its pre-projection value, `Object.keys(decision).sort()` is the identical key set, `decision.conflicts` is byte-identical (order and content), `decision.contractVersion` and `decision.decisionId` are unchanged, `projection.parentDecisionId === decision.decisionId`, and (when available) `diagnostic.parentDecisionId === decision.decisionId`. A rigid parser bound to the exact Feature 011 v1 key set accepts `projection.baseDecision` in every state but throws on the wrapper object itself, proving the wrapper is never misparsed as a v1 decision. The unchanged `projectVolToolRead()` is also proven to still consume only `projection.baseDecision` and return the same `decisionId` and conflict count as calling it directly on the unwrapped decision.
+
+```text
+$ node --test tests/volatility-roughness.integration.mjs
+✔ Regression: SCN-028-013 preserves exact Feature 011 bytes and parent identity in every wrapper state (8.863500ms)
+```
+
+**Claim Source:** executed.
 
 ### TP-028-02-05
 
-Not run.
+`node scripts/selftest.mjs` — the additive `Feature 028 additive diagnostic preserves Feature 011 identity and conflict compatibility (SCOPE-028-02)` canary group passes with real assertions: the new exports resolve; a real `buildVolDecisionRead()` decision wrapped as `disabled`/`pending` preserves the exact base-decision object and byte-identical canonical bytes with zero wrapper conflicts; `projectVolToolRead()` invoked on `projection.baseDecision` still resolves the same `decisionId`; and a fabricated below-benchmark `available` diagnostic adds exactly one non-blocking `MODEL_ASSUMPTION_H05_CONFLICT` wrapper conflict while the base decision's own `conflicts` array, object reference, and canonical bytes remain untouched.
+
+```text
+$ node scripts/selftest.mjs
+Feature 028 additive diagnostic preserves Feature 011 identity and conflict compatibility (SCOPE-028-02)
+  ✓ Feature 028 additive wrapper exports are present after SCOPE-028-02
+  ✓ Feature 028 disabled/pending wrapper states preserve the exact unchanged Feature 011 decision
+  ✓ Feature 028 owner-read projection remains unchanged and decision-scoped
+  ✓ Feature 028 available-state wrapper adds exactly one non-blocking conflict while the base decision object, bytes, and its own conflicts array remain untouched
+...
+Research-Lab self-test: 3503 passed, 3 failed
+```
+
+**Claim Source:** executed. The same 3 pre-existing failures present on the unmodified baseline (`committed surface carries no personal identifier`, `the deferred scorecard is a real 11982-byte artifact...`, `the real BUG-016/BUG-017 pair is cleared as ONE declared acceptance act...`) remain unchanged in count and identity; none touches `rlvol.js`, `RLVOL`, or volatility-sizing-lab, confirmed by rerunning the identical selftest on unmodified `main` via `git stash`/`git stash pop` (3499 passed, 3 failed, same 3 failure titles) immediately before this Scope 2 change.
 
 ### Scope 028-02 Consumer Sweep
 
-Not run.
+Complete — see "Scope 028-02 Consumers" above. Zero stale first-party references were found. No route, registry, provider, or `rldata.js` consumer was touched (`git status --porcelain` below confirms the only files this scope changed).
+
+```text
+$ git status --porcelain -- rlvol.js scripts/selftest.mjs tests/rlvol-roughness.unit.mjs tests/volatility-roughness.integration.mjs specs/031-volatility-roughness-and-model-assumption-diagnostic/
+ M rlvol.js
+ M scripts/selftest.mjs
+ M tests/rlvol-roughness.unit.mjs
+ M tests/volatility-roughness.integration.mjs
+ M specs/031-volatility-roughness-and-model-assumption-diagnostic/report.md
+ M specs/031-volatility-roughness-and-model-assumption-diagnostic/scopes.md
+ M specs/031-volatility-roughness-and-model-assumption-diagnostic/state.json
+```
+
+Note: this working tree independently carries pre-existing, unrelated, uncommitted changes to `rlshock.js` and a new untracked `tests/shock-transmission.composition.unit.mjs` (Feature 030/031 shock-transmission work, dated before this session per `git log -1 --format=%cI -- rlshock.js` = `2026-09-02T19:17:58-07:00`). This session did not create, modify, or commit those files; they are excluded from this Scope 2 commit.
 
 ### Scope 028-02 Quality
 
-Not run.
+- **Invariance:** proven in TP-028-02-04 (unit and integration) across all five wrapper/diagnostic-state combinations, including the defense-in-depth runtime self-check inside `buildDiagnosticProjection` itself.
+- **Compatibility:** `projectVolToolRead()` is unmodified and proven (TP-028-02-04, TP-028-02-05) to still operate correctly on `projection.baseDecision`; every pre-existing Feature 011 export remains present (proven transitively by the full selftest run and the pre-existing `Feature 011 RLVOL foundation` canary group, unchanged and still passing).
+- **Neutral language:** every conflict `detail` and every classification path is regex-checked in three separate tests (unit ×2, integration ×1) for the absence of bullish/bearish/long/short/buy/sell language.
+- **Owner-read minimization:** `projectVolToolRead()` is proven to receive only `projection.baseDecision`, never the wrapper or its conflicts array (TP-028-02-04's owner-read assertion).
+- **Rollback:** this scope is purely additive — two new top-level functions plus two new export keys in `rlvol.js`, plus new test blocks and one new selftest `try/catch` group. Rollback is `git checkout -- rlvol.js scripts/selftest.mjs tests/rlvol-roughness.unit.mjs tests/volatility-roughness.integration.mjs`, restoring exactly the Scope-1-complete state; no migration or stored state exists.
+- **Docs alignment:** `rlvol-decision-diagnostic-projection/v1`'s field names (`parentDecisionId`, `baseDecision`, `projectionState`, `diagnosticId`, `modelAssumptionDiagnostic`, `conflicts`) and `ModelAssumptionConflictV1`'s field names match design.md's `Versioned Decision Diagnostic Projection` and `Conflict Extension` sections exactly.
+- **No skipped or unresolved finding:** none. Full `node --test tests/*.unit.mjs` (720 tests) and `node --test tests/*.integration.mjs` (64 tests) reruns were compared against an unmodified-`main` baseline captured via `git stash`/`git stash pop`; the set of failing test titles is byte-identical between baseline and this change in both files (confirmed by diffing sorted failure-title lists), so this change introduces zero new regressions. The raw pass/fail counts differ only because the working tree independently carries pre-existing uncommitted, unrelated `rlshock.js`/spec-031-shock-transmission work that `git stash` also stashes; with that unrelated work present (as it is in both the "before" and "after" states actually compared), the failing-test identity set is unchanged.
+
+**Claim Source:** executed.
 
 ## Scope 028-03 Evidence
 

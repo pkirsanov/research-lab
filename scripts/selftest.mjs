@@ -568,6 +568,72 @@ try {
     'Feature 028 withholds H under insufficient sample, carries the unchanged parentDecisionId, and never mutates its input');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 028 RLVOL roughness canary group threw): ' + e.message + '\n' + (e.stack || '')); }
 
+/* ---------- Feature 028 (SCOPE-028-02): additive decision/conflict projection canary ---------- */
+try {
+  group('Feature 028 additive diagnostic preserves Feature 011 identity and conflict compatibility (SCOPE-028-02)');
+  const { createRequire: createRequire02802 } = await import('node:module');
+  const require02802 = createRequire02802(import.meta.url);
+  const RLVOL02802 = require02802('../rlvol.js');
+
+  assert(
+    typeof RLVOL02802.buildDiagnosticProjection === 'function' && typeof RLVOL02802.projectModelAssumptionConflict === 'function',
+    'Feature 028 additive wrapper exports are present after SCOPE-028-02');
+
+  /* build a real Feature 011 decision through the unchanged production path */
+  const closesFor02802 = [100];
+  let rngState02802 = 424242 >>> 0;
+  const rng02802 = () => { rngState02802 = (Math.imul(rngState02802, 1103515245) + 12345) & 0x7fffffff; return rngState02802 / 0x7fffffff; };
+  for (let i = 0; i < 300; i += 1) { const r = (rng02802() * 2 - 1) * 0.01; closesFor02802.push(closesFor02802[closesFor02802.length - 1] * Math.exp(r)); }
+  const rows02802 = closesFor02802.map((c, i) => ({ t: Date.UTC(2024, 0, 1) + i * 86400000, c }));
+  const decision02802 = RLVOL02802.buildVolDecisionRead({
+    decisionTime: '2024-06-01T12:00:00.000Z', configVersion: 'selftest-rlvol-028-02-v1',
+    controls: { asset: 'SPY', estimator: 'ewma', termLengthDays: 21, targetVol: 0.15, notional: 100000, historyRange: '5y' },
+    asset: { symbol: 'SPY', name: 'SPDR S&P 500 ETF Trust', cohort: 'equity-index', management: 'free-float', defaultTargetVol: 0.15, regimeWindowObs: 120, minForecastObs: 60, reviewWindowHours: 100000, limitations: [] },
+    policy: { ewma: { lambda: 0.94, seedWindow: 20 }, garch: { maxIter: 200, tolerance: 1e-8, minOmega: 1e-12, maxPersistence: 0.999 }, forecast: { defaultHorizonDays: 21, maxHorizonDays: 63, annualization: 252 }, regime: { calmMaxPct: 25, normalMaxPct: 75, elevatedMaxPct: 95 }, sizing: { cap: 2.0, forecastVolFloor: 0.05 }, managedSuppression: { zeroReturnFraction: 0.30, minAbsDailyReturn: 0.0005, identicalCloseRun: 10 }, history: { defaultRange: '5y', longRangeOptions: ['10y', 'max'], dailyBarReviewHours: 100000 } },
+    bars: { rows: rows02802, observedAsOf: '2024-10-27', retrievedAt: '2024-06-01T11:30:00.000Z', source: { id: 'selftest-snapshot', url: null } }
+  });
+  const decisionBytesBefore02802 = RLVOL02802.canonicalize(decision02802);
+
+  const disabledProjection02802 = RLVOL02802.buildDiagnosticProjection(decision02802, 'disabled', null);
+  const pendingProjection02802 = RLVOL02802.buildDiagnosticProjection(decision02802, 'pending', null);
+  assert(
+    disabledProjection02802.baseDecision === decision02802 && pendingProjection02802.baseDecision === decision02802 &&
+    disabledProjection02802.diagnosticId === null && disabledProjection02802.conflicts.length === 0 &&
+    pendingProjection02802.diagnosticId === null && pendingProjection02802.conflicts.length === 0 &&
+    RLVOL02802.canonicalize(decision02802) === decisionBytesBefore02802,
+    'Feature 028 disabled/pending wrapper states preserve the exact unchanged Feature 011 decision');
+
+  /* the existing compact owner-read continues to consume only projection.baseDecision */
+  const ownerRead02802 = RLVOL02802.projectVolToolRead(disabledProjection02802.baseDecision);
+  assert(ownerRead02802.metrics.decisionId === decision02802.decisionId, 'Feature 028 owner-read projection remains unchanged and decision-scoped');
+
+  /* a fabricated below-benchmark supported diagnostic adds exactly one non-blocking wrapper
+     conflict without altering the base decision's own conflicts array */
+  const fabricatedDiagnostic02802 = Object.freeze({
+    contractVersion: 'rlvol-roughness-diagnostic/v1', diagnosticId: 'rghd-v1-selftest028', parentDecisionId: decision02802.decisionId,
+    computedAt: decision02802.computedAt, state: 'supported', reasons: Object.freeze([]),
+    source: Object.freeze({ id: 'selftest-source', url: null, symbol: 'SPY', interval: '1d', observedAsOf: '2024-10-27', retrievedAt: '2024-06-01T11:30:00.000Z', freshness: 'fresh', sourceObservationCount: 300 }),
+    proxy: Object.freeze({ label: 'observed-log-volatility-proxy', windowReturns: 10, annualization: 252, sourceObservationCount: 300, candidateWindowCount: 290, retainedObservationCount: 290, firstDate: '2024-01-11', lastDate: '2024-10-27', exclusions: Object.freeze({}) }),
+    settings: RLVOL02802.roughnessSettings(), structureFunctions: Object.freeze([]), scalingFits: Object.freeze([]),
+    commonFit: Object.freeze({ state: 'admitted', candidateH: 0.4, r2: 0.99, residuals: Object.freeze([]), maximumAbsoluteResidual: 0.01, reasons: Object.freeze([]) }),
+    bootstrap: Object.freeze({ state: 'admitted', method: 'moving-block-noncircular', blockLength: 10, requestedResamples: 500, completeResamples: 500, seedIdentity: 'selftest-seed', lower95: 0.30, upper95: 0.44, intervalWidth: 0.14, reasons: Object.freeze([]) }),
+    conclusion: Object.freeze({ h: 0.4, lower95: 0.30, upper95: 0.44, classification: 'below-0.5', benchmark: 0.5 }),
+    limitations: Object.freeze([]), educationalOnly: true
+  });
+  const availableProjection02802 = RLVOL02802.buildDiagnosticProjection(decision02802, 'available', fabricatedDiagnostic02802);
+  assert(
+    availableProjection02802.baseDecision === decision02802 &&
+    RLVOL02802.canonicalize(decision02802) === decisionBytesBefore02802 &&
+    JSON.stringify(availableProjection02802.baseDecision.conflicts) === JSON.stringify(decision02802.conflicts) &&
+    availableProjection02802.conflicts.length === 1 &&
+    availableProjection02802.conflicts[0].code === 'MODEL_ASSUMPTION_H05_CONFLICT' &&
+    availableProjection02802.conflicts[0].blocking === false &&
+    availableProjection02802.conflicts[0].parentDecisionId === decision02802.decisionId &&
+    availableProjection02802.diagnosticId === fabricatedDiagnostic02802.diagnosticId &&
+    Object.isFrozen(availableProjection02802),
+    'Feature 028 available-state wrapper adds exactly one non-blocking conflict while the base decision object, bytes, and its own conflicts array remain untouched');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 028 SCOPE-028-02 projection canary group threw): ' + e.message + '\n' + (e.stack || '')); }
+
 /* ---------- ETF: Sharpe deflation + shock models ---------- */
 try {
   group('etf-momentum-lab.html \u2014 Deflated/Probabilistic Sharpe + MC shocks');

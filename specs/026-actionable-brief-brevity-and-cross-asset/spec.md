@@ -2158,6 +2158,12 @@ These are recorded for the design and plan owners. None blocks this analysis.
 
 ---
 
+## Domain-Invariant Justifications
+
+- Invariant-Justification: INV-RL-SHOCK-QUALIFIERS-LOSSLESS — This is a shock-transmission domain invariant (declared in `config/domain-model.yaml`) about `projectEdgeRows` preserving causal paths, refuters, limitations, triggers, and invalidations. It is enforced in `rlshock.js` (`projectEdgeRows`, line 1544) and proved by `tests/shock-transmission.reader.unit.mjs` and `tests/shock-transmission.validation.functional.mjs` — all owned by spec 031/033 (shock-transmission-foundation), not by this spec. Spec 026 (actionable brief brevity and cross-asset coverage) does not modify `rlshock.js`, `projectEdgeRows`, or any shock-edge projection path; none of its scope files reference these implementation files. The invariant is out of scope for this spec's own implementation files and is correctly absent from them — the domain-invariant guard (G130) evaluates the full repo-wide domain model against each spec's per-scope implementation-file list, which surfaces this as unanchored-from-026's-perspective even though it is anchored in full within spec 031/033's own files.
+
+---
+
 ## Evidence Sources
 
 Every claim in this document was read from the working tree during this analysis.

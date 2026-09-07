@@ -280,6 +280,59 @@ todo 0
 duration_ms 573.113666
 ```
 
+## Current Candidate Reverification — 2026-09-06
+
+**Phase:** implement
+
+**Claim Source:** executed
+
+**Repository binding:** revision `bf65fe1c6a83` (HEAD at time of this reverification). `scripts/selftest.mjs` SHA-256 `6cc820054739083f0a4a7c2023c65d5c85c6b3134a46eefff958c20ed2fc8a0b` (changed from the 2026-09-01 candidate identity by unrelated intervening work; no Scope 11 source file was edited in this session).
+
+This session investigated the three items the caller flagged as open: TP-11-12, `F012-S11-REACHABILITY-LOAD-012`, and `F012-S11-FEATURE-TRACE-013`. It also re-ran every already-green Test Plan row rather than trusting the 2026-09-01 receipts, and that re-run surfaced a fourth, previously unrouted regression. Scope 11 is **not** closed by this session.
+
+### `F012-S11-REACHABILITY-LOAD-012` — RESOLVED
+
+**Command:** `node scripts/validate-test-file-reachability.mjs`
+
+**Observation:** `tests/distributed-briefs.history.load.mjs` is now classified `[direct-node-script]`, declared at 4 site(s), first `specs/002-distributed-tool-briefs-and-history/scopes/07-bounded-history-and-legacy-migration/scope.md:87`. It is no longer in the orphan set (`scripts/validate-test-file-reachability.baseline` lists only `tests/market-action-consumer-trace.mjs` and `tests/recommendation-track-record.canary.mjs`, neither owned by Scope 11 or Scope 02). TP-11-14 was executed directly per its scope.md command (`for test_file in tests/distributed-briefs*.load.mjs; do node "$test_file" || exit 1; done`): exit 0, `history load: 8 passed, 0 failed`. This finding is closed; TP-11-14 has a real green receipt.
+
+The validator's overall process exit is still 1, but exclusively from 24 `CLASSIFICATION ERROR` lines against `specs/008-*`, `specs/030-*`, `specs/031-*`, and `specs/_ops/OPS-integrate-research-lab-main/*` authority documents, none of which reference Feature 002, Feature 012, or any Scope 11 implementation file.
+
+### `F012-S11-FEATURE-TRACE-013` — confirmed real, confirmed outside Scope 11's boundary
+
+**Command:** `bash .github/bubbles/scripts/scenario-test-resolve.sh specs/012-market-action-center-and-guided-tools`
+
+**Observation:** exactly `35 unresolved reference(s) of 65 checked`, matching the finding. Root cause traced: every one of the 35 `MISSING-FILE` lines cites a `scenario-manifest.json` `linkedTests` entry written in the legacy `"path :: title"` string form (e.g. `SCN-012-032 -> tests/journey.spec.mjs :: Regression: ...`). `.github/bubbles/scripts/scenario-test-resolve.sh`'s `normalize()` function only splits a string reference on `#`, so a `::`-form reference is treated as one literal (non-existent) file path — `tests/journey.spec.mjs :: Regression: ...` — and reported MISSING-FILE even though `tests/journey.spec.mjs` exists on disk and contains the exact cited title (verified directly, e.g. `tests/journey.spec.mjs:599`).
+
+Checked all 35 cited scenario ids against Scope 11's own four scenarios: none of SCN-012-005, SCN-012-008, SCN-012-018, or SCN-012-020 appear in the unresolved list, and each of their `linkedTests` entries already uses the object form (`{"file": ..., "testId": ...}`) or a bare path, which the resolver parses correctly. The 35 unresolved references belong to other Scope 12 scopes (Journey, Red Alert, Market Action Center shell, contextual tooltip, web evidence, provider credentials, simple model adapters, portfolio matrix/stress) whose `scenario-manifest.json` entries and whose owning scopes Scope 11 has no authority or Change-Boundary permission to edit, and the resolver itself lives under `.github/bubbles/scripts/`, a framework-managed path explicitly excluded by Scope 11's Change Boundary. This finding is real, is not caused by any Scope 11 change, and cannot be closed from within Scope 11. It remains routed to `bubbles.plan` for Feature 012, as the original finding stated.
+
+### TP-11-12 broad selftest — improved, and the remaining failures are confirmed pre-existing/unrelated
+
+**Command:** `node scripts/selftest.mjs`
+
+**Observation:** `Research-Lab self-test: 3497 passed, 2 failed` (previously 3460 passed, 4 failed at the 2026-09-01 candidate). The 4 failures the report previously routed (`tests/distributed-briefs.history.load.mjs` reachability, the TP-02-12 tax-pack assertion, the spec-029 collision, and the BUG-022 certification-ratio assertion) are now gone — resolved by other owners' work landing on `main` since 2026-09-01, not by this session. Two different failures are now present:
+
+1. `market-brief.html`'s deferred-scorecard first-load budget assertion (`scripts/selftest.mjs:9501`) — the assertion depends on the live byte sizes of `market-brief.page.json`, `market-brief.snapshot.page.json`, etc. (data files refreshed 2026-09-06, unrelated to any Scope 11 code path) summing, with the scorecard added back in, to more than `budgets.briefFirstLoadMaxBytes`; today they do not (175089 + 11982 = 187071 ≤ 204800). This assertion was introduced by commit `2e6826b85` (`wip(scope-05): preserve public-delivery closure repairs`), not by Scope 11, and concerns the Scope 05 market-brief cockpit data pipeline, not the ToolBrief v2 author/publication contract Scope 11 owns.
+2. The BUG-016/BUG-017 acceptance-baseline bulk-stamp guard (`scripts/selftest.mjs:30155`) — introduced by commit `57c003889` (`docs(acceptance): record the operator acceptance of BUG-016 and BUG-017...`), entirely about human-acceptance-record bookkeeping unrelated to Feature 002, Feature 012, or any Scope 11 file.
+
+Both are confirmed pre-existing (introduced by other scopes' commits, not present in any Scope 11 Implementation File) and outside Scope 11's Change Boundary. Scope 11 has broken no existing invariant: this broad-selftest run demonstrates 3497 passes including every ToolBrief v2/publication/privacy canary, with the two residual failures owned elsewhere. Absent the fourth finding below, this would have been sufficient to treat TP-11-12 as satisfied for Scope 11's own purposes.
+
+### NEW: `F012-S11-NARRATIVE-WEB-BOUNDARY-021` (unrouted, within Scope 11's own Change Boundary) — Scope 11 is NOT closed
+
+Re-running TP-11-03 exactly as scope.md specifies (`node --test tests/tool-brief-v2-author-boundary.functional.mjs`, also exercised via the TP-11-13 family command `node --test tests/tool-brief-v2*.unit.mjs tests/tool-brief-v2*.functional.mjs tests/tool-brief-v2*.integration.mjs tests/tool-brief-v2*.stress.mjs`) reproduces, deterministically, one failing test that the 2026-09-01 receipt (row 2501, "nine author-boundary functional tests passed with zero failures") did not report:
+
+```text
+✖ legacy narrative author lanes cannot browse after web evidence moves before authorship
+  expected: /web:\s*false\b/
+  actual:   id: 'core', ... web: true, ...
+```
+
+The test (`tests/tool-brief-v2-author-boundary.functional.mjs:113-132`) asserts that the `core` and `signals` lanes in `scripts/brief-narrative-parallel.mjs` (a Scope 11 Modified Implementation File) declare `web: false`, while only the separately named `research-acquisition` lane retains web capability. `git blame` on `scripts/brief-narrative-parallel.mjs:66-74` shows `web: true` for both `core` and `signals` dating to commit `ec89de469d` (2026-07-16), predating Scope 11's own test file (`ff31ed2e2`, 2026-09-02) — i.e. this assertion has apparently never actually passed since the test was written; the 2026-09-01 report's "nine passed, zero failures" claim for TP-11-03 does not match what the committed source and test currently produce.
+
+This is not vestigial: `lane.web` gates a real, live capability at `scripts/brief-narrative-parallel.mjs:504` (`if (lane.web && process.env.BRIEF_NO_WEB !== '1') { for (const host of NARRATIVE_WEB_ALLOWLIST) args.push('--allow-url=' + host); }`), granting the `core`/`signals` LLM-author subprocess `--allow-url` access to a real host allowlist (Yahoo Finance, FRED, BLS, BEA, Fed, Reuters, CNBC, MarketWatch, Investing.com, CME, TreasuryDirect — `scripts/web-evidence-policy.mjs:1-7`) during the live narrative-refresh pipeline (`scripts/brief-refresh-and-push.sh`, which does not set `BRIEF_NO_WEB=1`). Scope 11's own Implementation Plan step 3 calls for exactly this removal ("web acquisition may occur only in Scope 10's stage"), so the required end-state is specified — but flipping `web: true` to `web: false` on a currently-live production authoring path changes what data the `core`/`signals` narrative sections can draw on in real Market Brief generation, and this session found no evidence establishing whether Scope 10's frozen evidence bundle already supplies an equivalent substitute for these two legacy lanes. Determining that is a real product/architecture judgment call about the live narrative pipeline's behavior, not a mechanical test-driven fix, so it was not made unilaterally in this session.
+
+**Conclusion:** three of the four items this session was asked to close are genuinely resolved or confirmed out-of-boundary (`F012-S11-REACHABILITY-LOAD-012` resolved; `F012-S11-FEATURE-TRACE-013` and the residual TP-11-12 failures confirmed pre-existing/unrelated). But this reverification surfaced a real, reproducible, in-boundary regression against Scope 11's own author-boundary contract (TP-11-03) that was not previously routed and is not closed. Scope 11's DoD checkboxes and `state.json` `scopeProgress` are left unchanged (not marked done) pending a decision on `F012-S11-NARRATIVE-WEB-BOUNDARY-021`.
+
 ## Uncertainty Declarations
 
 ### TP-11-12 broad selftest

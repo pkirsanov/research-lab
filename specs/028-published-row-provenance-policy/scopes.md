@@ -4,7 +4,7 @@
 
 ## Scope 1: Measure The Exposure And Record The Owner Decision
 
-**Status:** Not Started
+**Status:** Blocked — measurement done, owner decision pending
 
 **foundation: true**
 
@@ -44,12 +44,12 @@ Scenario: the owner decision is recorded before any mechanism is built
 
 ### Definition of Done
 
-- [ ] SCN-028-01 holds: the exposure is measured and the count recorded, distinguishing arithmetic-caused changes from vendor restatements
-- [ ] SCN-028-02 holds: the owner decision, its date, its reasoning, and the rejected alternatives are recorded in `design.md`
-- [ ] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass
-- [ ] Broader E2E regression suite passes
-- [ ] Change Boundary is respected and zero excluded file families were changed
-- [ ] Build Quality Gate: artifact lint clean, selftest 0 failed, pii-scan 0 findings
+- [x] SCN-028-01 holds: the exposure is measured and the count recorded, distinguishing arithmetic-caused changes from vendor restatements (see `design.md` § Measured Exposure; `scripts/measure-provenance-exposure.mjs`, executed 2026-09-06)
+- [ ] SCN-028-02 holds: the owner decision, its date, its reasoning, and the rejected alternatives are recorded in `design.md` — **NOT DONE.** `design.md` records a recommendation for the owner to ratify, not a recorded owner decision. No agent may make this decision on the owner's behalf; `uservalidation.md`'s acceptance record explicitly excludes it.
+- [x] Scenario-specific E2E regression tests for EVERY new/changed/fixed behavior exist and pass (TP-028-01, TP-028-REG1 — see `report.md`)
+- [x] Broader E2E regression suite passes (`node scripts/selftest.mjs`, pre-existing unrelated failures noted in `report.md`)
+- [x] Change Boundary is respected and zero excluded file families were changed (only `scripts/measure-provenance-exposure.mjs` added and `design.md`/`scopes.md`/`report.md`/`state.json` updated; no write to `data/bars/*.json` or the ingestion write path)
+- [ ] Build Quality Gate: artifact lint clean, selftest 0 failed, pii-scan 0 findings — selftest reports 2 pre-existing failures unrelated to this change (see `report.md`); not independently re-verified as pre-existing baseline by a second agent
 
 ### Change Boundary
 

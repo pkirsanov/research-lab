@@ -2,16 +2,16 @@
   "version": 1,
   "featureName": "published-row-provenance-policy",
   "featureDir": "specs/028-published-row-provenance-policy",
-  "status": "not_started",
+  "status": "in_progress",
   "workflowMode": "full-delivery",
   "createdAt": "2026-08-29T18:05:00Z",
-  "lastUpdatedAt": "2026-08-29T18:05:00Z",
+  "lastUpdatedAt": "2026-09-06T00:00:00Z",
   "completedAt": null,
   "certifiedAt": null,
   "scopeLayout": "single-file",
   "planningOnly": false,
   "requiresRevalidation": false,
-  "blockedReason": null,
+  "blockedReason": "Scope 1's exposure measurement (SCN-028-01) is done and evidence-backed. The owner decision (SCN-028-02) required to complete Scope 1 has not been recorded — it is reserved for the human owner and must not be made by an implementing agent (see spec.md and uservalidation.md).",
   "filedBy": "bubbles.goal",
   "filedAsDispositionFor": "specs/_bugs/BUG-012-ingestion-writes-adjusted-close-beside-raw-ohlc",
   "filingNote": "Filed 2026-08-29 as the spec-filed disposition required by Gate G095 for a discovered issue BUG-012 recorded as 'out of scope rather than done'. Under the Discovered-Issue Disposition rule a disposition is discharged by CREATING the tracked artifact, not by narrating the finding, so this packet exists on disk as of that turn. It is a design decision with defensible alternatives rather than a defect with one correct fix, which is why it is a spec and not a bug.",
@@ -45,10 +45,19 @@
       "phasesExecuted": [],
       "provenanceMode": "specialist",
       "summary": "Filed this packet as the spec-filed disposition for a discovered issue in BUG-012. No scope work was started and no phase was executed, so phasesExecuted is empty rather than populated with claims nothing has earned."
+    },
+    {
+      "agent": "background-delivery-agent",
+      "startedAt": "2026-09-06T00:00:00Z",
+      "finishedAt": "2026-09-06T00:00:00Z",
+      "outcome": "blocked_on_owner_decision",
+      "phasesExecuted": [],
+      "provenanceMode": "specialist",
+      "summary": "Implemented and executed the read-only exposure measurement (TP-028-01, TP-028-REG1) required by Scope 1: scripts/measure-provenance-exposure.mjs, run against the full 292-file/150,127-row corpus, non-mutation proven by corpus hash before/after. Result recorded in design.md. Deliberately did NOT record an owner decision for SCN-028-02 — spec.md and uservalidation.md both reserve that decision for the human owner, and an implementing agent choosing it would settle the policy by proxy. Scope 1 and this spec remain not done."
     }
   ],
   "certification": {
-    "status": "not_started",
+    "status": "in_progress",
     "certifiedAt": null,
     "certifiedCompletedPhases": [],
     "completedScopes": [],
@@ -56,15 +65,16 @@
     "scopeProgress": [
       {
         "scopeId": "01-measure-exposure-and-record-decision",
-        "status": "Not Started",
-        "dodChecked": 0,
-        "dodUnchecked": 6
+        "status": "blocked",
+        "blockedReason": "Exposure measured and recorded (SCN-028-01 done). Owner decision (SCN-028-02) not recorded — reserved for the human owner per spec.md and uservalidation.md.",
+        "dodChecked": 4,
+        "dodUnchecked": 2
       }
     ],
     "assurance": {
       "level": "prototype",
-      "missingForFull": ["independent-validate", "independent-audit"],
-      "detail": "Nothing has been executed against this packet, so there is no measurement for a validator to re-derive and no delivery for an auditor to attack. The level records the absence of independent verification rather than implying any verification occurred."
+      "missingForFull": ["owner-decision", "independent-validate", "independent-audit"],
+      "detail": "The exposure measurement has been executed and is reproducible (node scripts/measure-provenance-exposure.mjs). The owner decision this scope's Definition of Done requires has not been made by anyone with authority to make it, so the scope is blocked rather than done, and no certification claim is made."
     }
   },
   "specDependsOn": [],

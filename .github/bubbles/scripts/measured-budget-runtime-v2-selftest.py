@@ -999,7 +999,7 @@ class TypedGraphTests(RuntimeCase):
         self.expect("MBE-SCHEMA-DRIFT", lambda: self.runtime.usage_record(record=bad))
         nested = {"contractType":"usage-snapshot","schemaVersion":2,"snapshotId":"snapshot:bad","adapterId":"adapter:selftest",
                   "sessionIdentityId":identity["sessionIdentityId"],"cursor":1,"previousCursor":0,"measurement":[],"observedAt":T[1],
-                  "metadata":{"PrIvAtE_pAtH":"/home/private"}}
+                  "metadata":{"PrIvAtE_pAtH":"redacted-path-value"}}
         self.expect("MBE-SCHEMA-DRIFT", lambda: self.runtime.usage_record(record=nested))
 
     def test_receipt_correction_must_replace_current_leaf(self) -> None:

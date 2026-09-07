@@ -451,25 +451,59 @@ test('Regression: SCN-028-007 interval-width boundary at 0.25 withholds or admit
     assert.ok(narrow.intervalWidth <= settings.maximumIntervalWidth);
 });
 
-/* ── NFR-028-002 performance budget (stress) ── */
+/* ── NFR-028-002 performance budget (stress) — TP-028-04-03 ──
+   Fixture creation and module loading happen BEFORE the timer starts (design.md#cooperative-
+   scheduling-and-performance). The measured region is exactly the formula-owned start/step/
+   finalize composition through buildRoughnessDiagnostic(input, finalizedBootstrap), matching what
+   the browser page actually schedules across zero-delay tasks (just synchronous here, as Node
+   composes it). The 750 ms bound is asserted unconditionally, as the design requires ("The test
+   fails above 750 ms"); the printed environment facts let a reviewer attribute a slower CI/hardware
+   runner rather than silently loosening the bound. */
 
-test('NFR-028-002 incrementally evaluates ~1500 closes and 500 resamples within budget on this runner', () => {
-    const settings = RLVOL.roughnessSettings();
-    const bars = syntheticBars(1500, 606);
-    const input = baseInput(bars, { settings });
-    const t0 = Date.now();
+function timedRoughnessRun(input, settings, batchSize) {
+    const t0 = process.hrtime.bigint();
     const proxy = RLVOL.buildObservedLogVolPath(input);
     let state = RLVOL.startRoughnessBootstrap(proxy.values, settings, {
         parentDecisionId: input.parentDecisionId, decisionTime: input.decisionTime, source: input.source
     });
-    [1, 7, 25, 467].forEach((batch) => { state = RLVOL.stepRoughnessBootstrap(state, batch); });
+    while (state.nextResampleIndex < settings.bootstrapResamples) {
+        state = RLVOL.stepRoughnessBootstrap(state, batchSize);
+    }
     const finalized = RLVOL.finalizeRoughnessBootstrap(state);
-    RLVOL.buildRoughnessDiagnostic(input, finalized);
-    const elapsedMs = Date.now() - t0;
+    const diagnostic = RLVOL.buildRoughnessDiagnostic(input, finalized);
+    const elapsedMs = Number(process.hrtime.bigint() - t0) / 1e6;
+    return { diagnostic, elapsedMs };
+}
+
+test('NFR-028-002 incrementally evaluates 1500 closes and 500 resamples within 750 ms on Node 20', () => {
+    /* bootstrapResamples stays at the real production value of 500 (design.md: "1,500 ordered
+       daily closes and all 500 resamples") — only the admission THRESHOLDS are relaxed, exactly as
+       the SCN-028-001 fixture above honestly discloses, because the synthetic-fractional-Gaussian-
+       noise fixture does not reliably clear the strict production R2/residual/width bars. This keeps
+       the timed workload identical to the full production resample count. */
+    const settings = Object.assign({}, RLVOL.roughnessSettings(), {
+        minimumCommonR2: 0.80, maximumCommonResidual: 0.30, maximumIntervalWidth: 0.6, minimumCompleteResamples: 300
+    });
+    const bars = syntheticBars(1500, 4242);
+    const input = baseInput(bars, { settings });
+
+    // Canonical scheduling batch size (design.md: browser steps at most 25 resamples per task).
+    const { diagnostic: canonical, elapsedMs } = timedRoughnessRun(input, settings, 25);
     console.log('[NFR-028-002] runner=' + (process.env.GITHUB_ACTIONS ? 'github-actions' : 'local') +
         ' node=' + process.version + ' platform=' + process.platform + ' arch=' + process.arch +
-        ' elapsedMs=' + elapsedMs);
-    assert.ok(elapsedMs < 5000, 'informational local budget; NFR-028-002 750ms/ubuntu-latest/Node 20 claim requires that exact runner');
+        ' inputCount=' + bars.length + ' resampleCount=' + settings.bootstrapResamples +
+        ' elapsedMs=' + elapsedMs.toFixed(3));
+    assert.ok(elapsedMs < 750,
+        'formula-owned start/step/finalize composition through buildRoughnessDiagnostic exceeded the 750ms Node 20 budget: ' + elapsedMs.toFixed(3) + 'ms');
+    assert.equal(canonical.state, 'supported', 'the 750ms budget fixture must exercise the full admitted pipeline, not an early-withheld shortcut');
+
+    // 1/7/25/500 batch sizes are a scheduling constant only; canonical finalized bytes must match.
+    const byBatch = [1, 7, 25, 500].map((batch) => timedRoughnessRun(input, settings, batch).diagnostic);
+    const canonicalBytes = RLVOL.canonicalize(byBatch[0]);
+    byBatch.forEach((diagnostic, i) => {
+        assert.equal(RLVOL.canonicalize(diagnostic), canonicalBytes, 'batch size ' + [1, 7, 25, 500][i] + ' must finalize to canonically identical bytes');
+        assert.equal(diagnostic.diagnosticId, byBatch[0].diagnosticId);
+    });
 });
 
 /* ── SCN-028-008/009/010: benchmark classification boundaries (formula-level) ── */

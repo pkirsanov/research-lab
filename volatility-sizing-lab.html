@@ -569,6 +569,7 @@
                 <a class="cta" id="backtestCta" data-backtest-cta href="#" rel="noopener">Does vol-targeting pay? Test
                     it in the Strategy Validation Lab →</a>
                 <p class="parity" data-decision-id></p>
+                <p id="roughnessSimpleNotice" class="parity" role="status" aria-live="polite" hidden></p>
             </div>
         </section>
 
@@ -656,6 +657,67 @@
                 <div id="roughnessStatus" role="status" aria-live="polite" data-roughness-state="disabled">
                     No diagnostic has run.
                 </div>
+
+                <div id="roughnessEvidence" hidden>
+                    <p id="roughnessConclusion"></p>
+                    <p class="parity">Definitions — <strong>q</strong> is a moment order (0.5, 1.0, 1.5, 2.0);
+                        <strong>lag</strong> is the spacing in trading days between the observations a structure
+                        function compares; <strong>&#950;(q)</strong> (zeta) is the fitted scaling exponent of that
+                        structure function against lag, per order; <strong>H</strong> (the Hurst exponent) is the
+                        single common slope of &#950;(q) against q&#183;H through the origin, fit across all admitted
+                        orders. H below 0.5 indicates rougher-than-Brownian scaling in this proxy; nothing here
+                        changes the Feature 011 forecast, regime, or sizing decision above.</p>
+
+                    <h3>Threshold ledger</h3>
+                    <table class="fallback" aria-label="Admission thresholds and outcomes">
+                        <thead><tr><th scope="col">Check</th><th scope="col">Requirement</th><th scope="col">Observed</th><th scope="col">Outcome</th></tr></thead>
+                        <tbody id="roughnessThresholdTable"></tbody>
+                    </table>
+
+                    <h3>Structure functions</h3>
+                    <canvas id="roughnessStructureChart" width="600" height="180" role="img"
+                        aria-label="Structure function log value by log lag, per moment order"></canvas>
+                    <p class="chart-summary" id="roughnessStructureSummary">--</p>
+                    <table class="fallback" aria-label="Structure function points, one row per order and lag">
+                        <thead><tr><th scope="col">q</th><th scope="col">Lag (days)</th><th scope="col">Value</th><th scope="col">Pair count</th><th scope="col">Valid</th><th scope="col">Reason</th></tr></thead>
+                        <tbody id="roughnessStructureTable"></tbody>
+                    </table>
+
+                    <h3>Per-order fits and common H</h3>
+                    <canvas id="roughnessBenchmarkChart" width="600" height="180" role="img"
+                        aria-label="Fitted zeta of q against q, compared with the common H line and the H equals one half benchmark"></canvas>
+                    <p class="chart-summary" id="roughnessBenchmarkSummary">--</p>
+                    <table class="fallback" aria-label="Per-order scaling fit evidence">
+                        <thead><tr><th scope="col">q</th><th scope="col">State</th><th scope="col">&#950;(q)</th><th scope="col">Intercept</th><th scope="col">R&#178;</th><th scope="col">SE(&#950;)</th><th scope="col">Admitted lags</th><th scope="col">Lag range</th><th scope="col">Reasons</th></tr></thead>
+                        <tbody id="roughnessFitTable"></tbody>
+                    </table>
+                    <div class="kv"><span>Common-H fit</span><span id="roughnessCommonFit">--</span></div>
+
+                    <h3>Bootstrap</h3>
+                    <div class="kv"><span>Method</span><span id="roughnessBootstrapMethod">--</span></div>
+                    <div class="kv"><span>Resamples</span><span id="roughnessBootstrapCount">--</span></div>
+                    <div class="kv"><span>95% interval</span><span id="roughnessBootstrapInterval">--</span></div>
+
+                    <h3>Exclusion ledger</h3>
+                    <table class="fallback" aria-label="Proxy exclusion reasons and counts">
+                        <thead><tr><th scope="col">Reason</th><th scope="col">Count</th></tr></thead>
+                        <tbody id="roughnessExclusionTable"></tbody>
+                    </table>
+
+                    <h3>Limitations</h3>
+                    <ul id="roughnessLimitations"></ul>
+
+                    <h3>Replay disclosure</h3>
+                    <p id="roughnessReplay" class="parity"></p>
+
+                    <h3>QuantitativeFinance handoff</h3>
+                    <p class="parity">This diagnostic runs entirely in this page against the already-hydrated
+                        history above; it does not call the QuantitativeFinance API or any remote service. The
+                        finding is informational only and is not consumed anywhere else.
+                        <a id="roughnessQfHandoff" href="#" rel="noopener">Reference this evidence
+                            (<span id="roughnessQfLink">--</span>) →</a>
+                    </p>
+                </div>
             </div>
 
             <div class="card">
@@ -735,6 +797,10 @@
                     rows: rows.map(function (row) { return { t: row.t, c: row.c }; }),
                     observedAsOf: new Date(rows[rows.length - 1].t).toISOString().slice(0, 10),
                     retrievedAt: info.at ? new Date(info.at).toISOString() : nowIso(),
+                    /* Feature 028 SCOPE-028-04: carry the EXISTING RLDATA.barInfo() freshness state
+                       ("fresh"/"stale"/"missing") through unchanged, so a stale-but-usable cache is
+                       neither silently treated as fresh nor conflated with "unavailable" (no rows). */
+                    cacheFreshness: info.state || "stale",
                     source: { id: info.src || "pages-snapshot", url: null }
                 };
             }
@@ -763,6 +829,7 @@
                 if (!runtime.config) return null;
                 runtime.bars = readCachedBars(runtime.controls.asset);
                 runtime.decision = RLVOL.buildVolDecisionRead(buildInput());
+                if (runtime.roughness) restartRoughnessIfSourceChanged();
                 render();
                 return runtime.decision;
             }
@@ -796,6 +863,7 @@
 
             function renderSimple(d) {
                 byId("simpleDegraded").innerHTML = degradedBanner(d);
+                if (runtime.roughness) renderRoughnessSimpleNotice();
                 var ready = d.state !== "unavailable";
                 var forecastNode = q("[data-forecast-value]");
                 text(forecastNode, ready && d.forecast.value != null ? pct(d.forecast.value, 1) : "--");
@@ -901,7 +969,7 @@
                 var r = runtime.roughness;
                 r.enabled = true;
                 r.evaluationToken += 1;
-                r.snapshot = roughnessCloneFreeze(runtime.bars || { rows: [], observedAsOf: null, retrievedAt: nowIso(), source: { id: "none", url: null } });
+                r.snapshot = roughnessCloneFreeze(runtime.bars || { rows: [], observedAsOf: null, retrievedAt: nowIso(), cacheFreshness: "missing", source: { id: "none", url: null } });
                 r.sourceKey = roughnessSourceKey(r.snapshot, runtime.controls.asset);
                 r.bootstrapState = null;
                 r.diagnostic = null;
@@ -924,6 +992,8 @@
                 r.diagnostic = null;
                 r.projection = null;
                 renderRoughnessStatus();
+                renderRoughnessEvidence();
+                renderRoughnessSimpleNotice();
             }
 
             /* A token or source-key mismatch means a disablement, re-enablement, or bar/asset change
@@ -940,7 +1010,10 @@
                     contractVersion: "rlvol-roughness-input/v1",
                     decisionTime: nowIso(),
                     parentDecisionId: runtime.decision ? runtime.decision.decisionId : null,
-                    source: { freshness: r.snapshot && r.snapshot.rows.length ? "fresh" : "unavailable", id: r.snapshot ? r.snapshot.source.id : "none", retrievedAt: r.snapshot ? r.snapshot.retrievedAt : nowIso() },
+                    /* SCN-028-011: reuse the frozen snapshot's real RLDATA.barInfo() freshness — a
+                       stale-but-present cache stays "stale" (computed and labelled), never silently
+                       promoted to "fresh" and never conflated with the true no-rows "unavailable" case. */
+                    source: { freshness: r.snapshot && r.snapshot.rows.length ? (r.snapshot.cacheFreshness || "fresh") : "unavailable", id: r.snapshot ? r.snapshot.source.id : "none", retrievedAt: r.snapshot ? r.snapshot.retrievedAt : nowIso() },
                     bars: r.snapshot ? r.snapshot.rows : [],
                     settings: settings
                 };
@@ -1024,6 +1097,159 @@
                    finished) and renderRoughnessStatus() below reports completion from r.diagnostic. */
                 r.stage = "idle";
                 renderRoughnessStatus();
+                renderRoughnessEvidence();
+                renderRoughnessSimpleNotice();
+            }
+
+            /* ═══════════ Feature 028 Scope 3 (sub-pass 2 of 2) — accessible evidence rendering ═══════════
+               Renders every threshold, exclusion, point, fit, residual, bootstrap count, interval, source
+               fact, setting, limitation, and identity from the canonical result (Implementation Plan item 6).
+               Every chart is paired with a permanently available same-data semantic table (item 7). This
+               block only reads runtime.roughness.diagnostic/projection; it computes nothing. */
+
+            function roughnessEscapeHtml(value) {
+                return String(value == null ? "" : value).replace(/[&<>"']/g, function (ch) {
+                    return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch];
+                });
+            }
+
+            function roughnessNum(value, digits) {
+                return typeof value === "number" && isFinite(value) ? value.toFixed(digits == null ? 3 : digits) : "--";
+            }
+
+            function renderRoughnessSimpleNotice() {
+                var node = byId("roughnessSimpleNotice");
+                if (!node) return;
+                var r = runtime.roughness;
+                var conflict = r.projection && r.projection.conflicts && r.projection.conflicts.length ? r.projection.conflicts[0] : null;
+                if (!r.enabled || !conflict) { node.hidden = true; text(node, ""); return; }
+                text(node, "Model-assumption note: " + conflict.detail + " This is informational only — the decision above is unchanged.");
+                node.hidden = false;
+            }
+
+            function renderRoughnessEvidence() {
+                var evidenceNode = byId("roughnessEvidence");
+                if (!evidenceNode) return;
+                var r = runtime.roughness;
+                var diag = r.diagnostic, proj = r.projection;
+                if (!r.enabled || !diag || !proj) { evidenceNode.hidden = true; return; }
+                evidenceNode.hidden = false;
+
+                var conclusion = diag.conclusion || {};
+                var hText = conclusion.h != null
+                    ? "H = " + roughnessNum(conclusion.h, 3) + " (95% interval " + roughnessNum(conclusion.lower95, 3) + "–" + roughnessNum(conclusion.upper95, 3) + "), classification " + (conclusion.classification || "unavailable") + "."
+                    : "H is Withheld — the canonical diagnostic state is " + diag.state + " and no scaling exponent is substituted or defaulted to zero.";
+                /* SCN-028-011: a usable-but-stale cached snapshot must still compute — never silently
+                   withheld or upgraded to fresh — and every rendered conclusion must carry that source
+                   timing explicitly rather than implying the evidence reflects the latest bar. */
+                var staleLabel = diag.source && diag.source.freshness === "stale"
+                    ? " Source is STALE as of " + (diag.source.retrievedAt || "an unknown retrieval time") + "; this evidence reflects the cached bars available at diagnostic time, not a fresher re-fetch."
+                    : "";
+                text(byId("roughnessConclusion"), "Diagnostic state: " + diag.state + "." + staleLabel + " " + hText + " Educational only; the Feature 011 decision above is unchanged (decision " + proj.parentDecisionId + ").");
+
+                var thresholdRows = [];
+                thresholdRows.push({ check: "Minimum proxy observations", requirement: ">= " + (diag.settings ? diag.settings.minimumProxyObservations : "--"), observed: diag.proxy ? diag.proxy.retainedObservationCount : "--", outcome: diag.proxy && diag.settings && diag.proxy.retainedObservationCount >= diag.settings.minimumProxyObservations ? "met" : "not met" });
+                thresholdRows.push({ check: "Common-H fit", requirement: "admitted", observed: diag.commonFit ? diag.commonFit.state : "--", outcome: diag.commonFit && diag.commonFit.state === "admitted" ? "met" : "not met" });
+                thresholdRows.push({ check: "Bootstrap", requirement: "admitted, " + (diag.bootstrap ? diag.bootstrap.requestedResamples : "--") + " resamples", observed: diag.bootstrap ? diag.bootstrap.state + ", " + diag.bootstrap.completeResamples + " complete" : "--", outcome: diag.bootstrap && diag.bootstrap.state === "admitted" ? "met" : "not met" });
+                byId("roughnessThresholdTable").innerHTML = thresholdRows.map(function (row) {
+                    return "<tr><th scope=\"row\">" + roughnessEscapeHtml(row.check) + "</th><td>" + roughnessEscapeHtml(row.requirement) + "</td><td>" + roughnessEscapeHtml(row.observed) + "</td><td>" + roughnessEscapeHtml(row.outcome) + "</td></tr>";
+                }).join("");
+
+                var points = diag.structureFunctions || [];
+                byId("roughnessStructureTable").innerHTML = points.length ? points.map(function (pt) {
+                    return "<tr><th scope=\"row\">" + roughnessNum(pt.q, 1) + "</th><td>" + pt.lagDays + "</td><td>" + (pt.value != null ? roughnessNum(pt.value, 4) : "--") + "</td><td>" + pt.pairCount + "</td><td>" + (pt.valid ? "yes" : "no") + "</td><td>" + roughnessEscapeHtml(pt.reason || "") + "</td></tr>";
+                }).join("") : '<tr><td colspan="6">No structure-function points.</td></tr>';
+                text(byId("roughnessStructureSummary"), points.length ? "Structure function log-value by log-lag across " + points.length + " (order, lag) points." : "Structure functions unavailable.");
+                drawRoughnessStructureChart(points);
+
+                var fits = diag.scalingFits || [];
+                byId("roughnessFitTable").innerHTML = fits.length ? fits.map(function (fit) {
+                    return "<tr><th scope=\"row\">" + roughnessNum(fit.q, 1) + "</th><td>" + fit.state + "</td><td>" + (fit.zeta != null ? roughnessNum(fit.zeta, 4) : "--") + "</td><td>" + (fit.intercept != null ? roughnessNum(fit.intercept, 4) : "--") + "</td><td>" + (fit.r2 != null ? roughnessNum(fit.r2, 3) : "--") + "</td><td>" + (fit.slopeStandardError != null ? roughnessNum(fit.slopeStandardError, 4) : "--") + "</td><td>" + fit.admittedLagCount + "</td><td>" + (fit.lagRange ? fit.lagRange.minimum + "–" + fit.lagRange.maximum : "--") + "</td><td>" + (fit.reasons || []).map(roughnessEscapeHtml).join(", ") + "</td></tr>";
+                }).join("") : '<tr><td colspan="9">No per-order fits.</td></tr>';
+                text(byId("roughnessBenchmarkSummary"), fits.length ? "Fitted ζ(q) per order versus q, benchmarked against the common-H line and H = 0.5." : "Per-order fits unavailable.");
+                drawRoughnessBenchmarkChart(fits, diag.commonFit);
+
+                var cf = diag.commonFit || {};
+                text(byId("roughnessCommonFit"), cf.state + (cf.candidateH != null ? " — candidate H " + roughnessNum(cf.candidateH, 3) + ", R² " + roughnessNum(cf.r2, 3) + ", max |residual| " + roughnessNum(cf.maximumAbsoluteResidual, 4) : "") + ((cf.reasons || []).length ? " (" + cf.reasons.join(", ") + ")" : ""));
+
+                var bs = diag.bootstrap || {};
+                text(byId("roughnessBootstrapMethod"), bs.method ? bs.method + ", block length " + bs.blockLength : "--");
+                text(byId("roughnessBootstrapCount"), bs.requestedResamples != null ? bs.completeResamples + " of " + bs.requestedResamples + " complete" : "--");
+                text(byId("roughnessBootstrapInterval"), bs.lower95 != null ? roughnessNum(bs.lower95, 3) + "–" + roughnessNum(bs.upper95, 3) + " (width " + roughnessNum(bs.intervalWidth, 3) + ")" : "withheld — " + (bs.state || "not-run"));
+
+                var exclusions = (diag.proxy && diag.proxy.exclusions) || {};
+                var exKeys = Object.keys(exclusions);
+                byId("roughnessExclusionTable").innerHTML = exKeys.length ? exKeys.map(function (key) {
+                    return "<tr><th scope=\"row\">" + roughnessEscapeHtml(key) + "</th><td>" + exclusions[key] + "</td></tr>";
+                }).join("") : '<tr><td colspan="2">No exclusions recorded.</td></tr>';
+
+                var limitations = diag.limitations || [];
+                byId("roughnessLimitations").innerHTML = limitations.length ? limitations.map(function (item) { return "<li>" + roughnessEscapeHtml(item) + "</li>"; }).join("") : "<li>None recorded.</li>";
+
+                text(byId("roughnessReplay"), "Replay: this diagnostic is fully deterministic from the frozen bars snapshot, settings, and bootstrap seed identity " + (bs.seedIdentity || "--") + " captured at enablement. Re-enabling over the same unchanged source (asset, row count, last bar timestamp, cache metadata) reproduces byte-identical canonical output. Diagnostic id " + (diag.diagnosticId || "--") + ", computed " + (diag.computedAt || "--") + ".");
+
+                var qfHref = "volatility-sizing-lab.html?mode=power#model-assumption-diagnostic";
+                byId("roughnessQfHandoff").setAttribute("href", qfHref);
+                text(byId("roughnessQfLink"), diag.diagnosticId || "--");
+            }
+
+            function drawRoughnessStructureChart(points) {
+                var canvas = byId("roughnessStructureChart");
+                var valid = (points || []).filter(function (pt) { return pt.valid && pt.value != null; });
+                if (!valid.length) { blankCanvas(canvas, "No valid structure-function points"); return; }
+                var p = prepareCanvas(canvas);
+                var lags = valid.map(function (pt) { return Math.log(pt.lagDays); });
+                var vals = valid.map(function (pt) { return pt.value; });
+                var minX = Math.min.apply(null, lags), maxX = Math.max.apply(null, lags), rangeX = (maxX - minX) || 1;
+                var minY = Math.min.apply(null, vals), maxY = Math.max.apply(null, vals), rangeY = (maxY - minY) || 1;
+                var colors = { "0.5": "#65c9d8", "1": "#e4b55f", "1.5": "#f17f6f", "2": "#55d6a6" };
+                p.context.fillStyle = "#9db0be"; p.context.font = "11px Avenir Next";
+                valid.forEach(function (pt) {
+                    var x = 30 + (Math.log(pt.lagDays) - minX) / rangeX * (p.width - 56);
+                    var y = 18 + (maxY - pt.value) / rangeY * (p.height - 40);
+                    p.context.fillStyle = colors[String(pt.q)] || "#9db0be";
+                    p.context.beginPath(); p.context.arc(x, y, 3, 0, Math.PI * 2); p.context.fill();
+                });
+            }
+
+            function drawRoughnessBenchmarkChart(fits, commonFit) {
+                var canvas = byId("roughnessBenchmarkChart");
+                var admitted = (fits || []).filter(function (fit) { return fit.state === "admitted" && fit.zeta != null; });
+                if (!admitted.length) { blankCanvas(canvas, "No admitted per-order fits"); return; }
+                var p = prepareCanvas(canvas);
+                var qs = admitted.map(function (fit) { return fit.q; });
+                var zetas = admitted.map(function (fit) { return fit.zeta; });
+                var maxQ = Math.max.apply(null, qs.concat([2]));
+                var maxZ = Math.max.apply(null, zetas.concat([maxQ * 0.5, maxQ * (commonFit && commonFit.candidateH != null ? commonFit.candidateH : 0)]));
+                var minZ = Math.min(0, Math.min.apply(null, zetas));
+                var rangeZ = (maxZ - minZ) || 1;
+                function toXY(qv, zv) { return { x: 30 + qv / maxQ * (p.width - 56), y: 18 + (maxZ - zv) / rangeZ * (p.height - 40) }; }
+                p.context.strokeStyle = "#e4b55f"; p.context.setLineDash([4, 4]); p.context.beginPath();
+                var a0 = toXY(0, 0), a1 = toXY(maxQ, maxQ * 0.5);
+                p.context.moveTo(a0.x, a0.y); p.context.lineTo(a1.x, a1.y); p.context.stroke();
+                if (commonFit && commonFit.candidateH != null) {
+                    p.context.strokeStyle = "#65c9d8"; p.context.setLineDash([]); p.context.beginPath();
+                    var b0 = toXY(0, 0), b1 = toXY(maxQ, maxQ * commonFit.candidateH);
+                    p.context.moveTo(b0.x, b0.y); p.context.lineTo(b1.x, b1.y); p.context.stroke();
+                }
+                p.context.setLineDash([]);
+                p.context.fillStyle = "#f17f6f";
+                admitted.forEach(function (fit) {
+                    var pt = toXY(fit.q, fit.zeta);
+                    p.context.beginPath(); p.context.arc(pt.x, pt.y, 3, 0, Math.PI * 2); p.context.fill();
+                });
+            }
+
+            /* Bar, asset, or retained-history changes retain enablement but invalidate the diagnostic
+               identity and begin a new evaluation over a new frozen snapshot (design.md's Data And Event
+               Flow section). Estimator and sizing controls are not diagnostic inputs and must not restart
+               the evaluation. Called from recompute() after runtime.bars is re-read. */
+            function restartRoughnessIfSourceChanged() {
+                var r = runtime.roughness;
+                if (!r || !r.enabled) return;
+                var candidateKey = roughnessSourceKey(runtime.bars, runtime.controls.asset);
+                if (candidateKey === r.sourceKey) return;
+                enableRoughness();
             }
 
             /* ── Power ── */
@@ -1035,6 +1261,7 @@
                 drawTermChart(d);
                 drawPersistenceChart(d);
                 drawEstimatorChart(d);
+                if (runtime.roughness) renderRoughnessEvidence();
                 text(q("[data-persistence]"), d.persistence.persistence != null ? d.persistence.persistence.toFixed(3) : "--");
                 text(q("[data-halflife]"), d.persistence.halfLifeDays != null ? d.persistence.halfLifeDays.toFixed(1) + " trading days" : "--");
                 byId("powerDegraded").innerHTML = degradedBanner(d);
@@ -1399,7 +1626,7 @@
                 var resizeTimer = null;
                 window.addEventListener("resize", function () {
                     clearTimeout(resizeTimer);
-                    resizeTimer = setTimeout(function () { if (runtime.ui.mode === "power" && runtime.decision) { drawTermChart(runtime.decision); drawPersistenceChart(runtime.decision); drawEstimatorChart(runtime.decision); } }, 150);
+                    resizeTimer = setTimeout(function () { if (runtime.ui.mode === "power" && runtime.decision) { drawTermChart(runtime.decision); drawPersistenceChart(runtime.decision); drawEstimatorChart(runtime.decision); if (runtime.roughness && runtime.roughness.diagnostic) renderRoughnessEvidence(); } }, 150);
                 });
             }
 

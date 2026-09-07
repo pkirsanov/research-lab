@@ -1137,3 +1137,268 @@ test('Feature 028 Scope 3 sub-pass 1: disabling during an in-flight evaluation c
     expect(after.invocationCount).toBe(0);
     await expect(page.locator('#roughnessStatus')).toHaveText('No diagnostic has run.');
 });
+
+/* ═══════════ Feature 028 Scope 3 sub-pass 2 of 2 — accessible evidence rendering, Simple-view
+ * compact notice, responsive/zoom behavior, and asset-change identity invalidation. TP-028-03-02,
+ * -04, -05, -06. Real route via startStaticServer(), no interception. */
+
+test('SCN-028-014 separates page evaluation outcomes from canonical diagnostic evidence', async ({ page }) => {
+    await open(page, cacheFor({ SPY: longRoughnessCloses(11) }), { mode: 'power' });
+
+    // Native control is keyboard-operable: focus it directly (matching this suite's existing
+    // keyboard-access convention) and toggle with the keyboard, not a pointer click.
+    await page.locator('#roughnessEnable').focus();
+    await expect(page.locator('#roughnessEnable')).toBeFocused();
+    await page.keyboard.press('Space');
+    await expect(page.locator('#roughnessEnable')).toBeChecked();
+
+    // The busy state is announced through the single polite status region, and the diagnostic
+    // region is additive next to it.
+    await expect(page.locator('#roughnessStatus')).toHaveAttribute('aria-live', 'polite');
+    await expect(page.locator('#roughnessStatus')).toHaveAttribute('role', 'status');
+
+    await page.waitForFunction(() => window.VolSizingLab.runtime.roughness.diagnostic !== null, null, { timeout: 20000 });
+
+    const state = await page.evaluate(() => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return { pageState: r.pageState, diagnosticState: r.diagnostic.state, projectionState: r.projection.projectionState };
+    });
+    // Page evaluation outcomes (disabled/computing/cancelled/stale-result) never leak into the
+    // canonical diagnostic or wrapper state vocabularies.
+    expect(['unavailable', 'inconclusive', 'supported']).toContain(state.diagnosticState);
+    expect(['disabled', 'pending', 'available']).toContain(state.projectionState);
+    expect(state.projectionState).not.toBe('cancelled');
+    expect(state.projectionState).not.toBe('stale-result');
+
+    await expect(page.locator('#roughnessStatus')).toContainText('Diagnostic complete');
+    await expect(page.locator('#roughnessEvidence')).toBeVisible();
+    // Complete semantic tables are permanently present (not chart-only), one row per threshold and
+    // per structure-function point.
+    const thresholdRows = await page.locator('#roughnessThresholdTable tr').count();
+    expect(thresholdRows).toBeGreaterThan(0);
+    // Non-color state meaning: the region carries a data attribute and text, not only a color class.
+    await expect(page.locator('#roughnessStatus')).toHaveAttribute('data-roughness-state', 'computing');
+
+    // Cancelling (disabling) discards the completed result rather than serializing it further; the
+    // evidence region is hidden again, matching "cancelled and stale-result work is discarded".
+    await page.locator('#roughnessEnable').focus();
+    await page.keyboard.press('Space');
+    await expect(page.locator('#roughnessEnable')).not.toBeChecked();
+    await expect(page.locator('#roughnessEvidence')).toBeHidden();
+    const cleared = await page.evaluate(() => window.VolSizingLab.runtime.roughness.diagnostic);
+    expect(cleared).toBeNull();
+});
+
+test('Regression: Feature 028 Power evidence remains usable at narrow width and zoom', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 900 });
+    await open(page, cacheFor({ SPY: longRoughnessCloses(13) }), { mode: 'power' });
+    await page.check('#roughnessEnable');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.roughness.diagnostic !== null, null, { timeout: 20000 });
+    await expect(page.locator('#roughnessEvidence')).toBeVisible();
+
+    // No page-level horizontal overflow at 320 CSS pixels.
+    const overflowAt320 = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflowAt320).toBeLessThanOrEqual(2);
+
+    // Every labelled evidence table remains reachable (present in the DOM and not display:none) at
+    // this width.
+    for (const id of ['roughnessThresholdTable', 'roughnessStructureTable', 'roughnessFitTable', 'roughnessExclusionTable']) {
+        await expect(page.locator('#' + id)).toBeAttached();
+    }
+
+    // 200% zoom: Chromium supports the CSS `zoom` property, which is what a real browser-level page
+    // zoom does to the layout viewport's effective CSS pixel budget. Apply it and re-check overflow.
+    await page.evaluate(() => { document.documentElement.style.zoom = '2'; });
+    await page.waitForTimeout(50);
+    const overflowAtZoom = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflowAtZoom).toBeLessThanOrEqual(2);
+    await expect(page.locator('#roughnessEvidence')).toBeVisible();
+    await page.evaluate(() => { document.documentElement.style.zoom = '1'; });
+});
+
+test('Regression: Feature 028 withheld states preserve evidence and never substitute H', async ({ page }) => {
+    // Insufficient-history fixture: Feature 011 itself is unavailable, so the roughness proxy also
+    // cannot reach its minimum retained-observation threshold — a genuine data-limitation withhold.
+    await open(page, cacheFor({ SPY: shortCloses() }), { mode: 'power' });
+    await page.check('#roughnessEnable');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.roughness.diagnostic !== null, null, { timeout: 20000 });
+
+    const diag = await page.evaluate(() => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return { state: r.diagnostic.state, h: r.diagnostic.conclusion.h, reasons: r.diagnostic.reasons };
+    });
+    expect(diag.state).not.toBe('supported');
+    expect(diag.h).toBeNull();
+    expect(diag.reasons.length).toBeGreaterThan(0);
+
+    // The conclusion text says Withheld rather than substituting zero or omitting the fact.
+    await expect(page.locator('#roughnessConclusion')).toContainText('Withheld');
+    // Intermediate evidence (the threshold ledger) is still rendered, not blanked out.
+    await expect(page.locator('#roughnessEvidence')).toBeVisible();
+    const thresholdRows = await page.locator('#roughnessThresholdTable tr').count();
+    expect(thresholdRows).toBeGreaterThan(0);
+});
+
+test('Regression: Scope 2 wrapper states preserve the production-route base decision after UI wiring', async ({ page }) => {
+    await open(page, cacheFor({ SPY: longRoughnessCloses(17) }), { mode: 'power' });
+    const before = await page.evaluate(() => ({
+        decisionId: window.VolSizingLab.runtime.decision.decisionId,
+        ownerReadHref: document.getElementById('ownerReadLink').getAttribute('href')
+    }));
+
+    await page.check('#roughnessEnable');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.roughness.diagnostic !== null, null, { timeout: 20000 });
+
+    const wired = await page.evaluate(() => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return {
+            decisionId: window.VolSizingLab.runtime.decision.decisionId,
+            baseIsSameReference: r.projection.baseDecision === window.VolSizingLab.runtime.decision,
+            projectionState: r.projection.projectionState,
+            parentDecisionId: r.projection.parentDecisionId,
+            conflictCount: r.projection.conflicts.length,
+            ownerReadHref: document.getElementById('ownerReadLink').getAttribute('href')
+        };
+    });
+    // Exact base identity is unchanged by enabling the diagnostic through the route.
+    expect(wired.decisionId).toBe(before.decisionId);
+    expect(wired.parentDecisionId).toBe(before.decisionId);
+    expect(wired.baseIsSameReference).toBe(true);
+    expect(wired.projectionState).toBe('available');
+    // Zero or one conflict — never accumulated or duplicated.
+    expect(wired.conflictCount).toBeLessThanOrEqual(1);
+    // Owner read is unaffected by diagnostic enablement.
+    expect(wired.ownerReadHref).toBe(before.ownerReadHref);
+
+    // Conflict isolation: disabling and re-enabling produces a fresh projection, never an
+    // accumulation of conflicts across evaluations.
+    await page.uncheck('#roughnessEnable');
+    await page.check('#roughnessEnable');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.roughness.diagnostic !== null, null, { timeout: 20000 });
+    const reenabled = await page.evaluate(() => window.VolSizingLab.runtime.roughness.projection.conflicts.length);
+    expect(reenabled).toBeLessThanOrEqual(1);
+});
+
+/* Supplementary correctness check (not one of the six persistent TP-028-03 rows): design.md's "Bar,
+ * asset, or retained-history changes retain enablement but invalidate the diagnostic identity and
+ * begin a new evaluation over a new frozen snapshot" clause. */
+test('Feature 028 Scope 3 sub-pass 2: an asset change while enabled invalidates the diagnostic identity and starts a fresh evaluation', async ({ page }) => {
+    await open(page, cacheFor({ SPY: longRoughnessCloses(21), NVDA: longRoughnessCloses(23) }), { mode: 'power' });
+    await page.check('#roughnessEnable');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.roughness.diagnostic !== null, null, { timeout: 20000 });
+    const before = await page.evaluate(() => ({
+        sourceKey: window.VolSizingLab.runtime.roughness.sourceKey,
+        diagnosticId: window.VolSizingLab.runtime.roughness.diagnostic.diagnosticId
+    }));
+
+    await openNativeResearchSurface(page);
+    await page.selectOption('#assetSelect', 'NVDA');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.controls.asset === 'NVDA' && !window.VolSizingLab.runtime.refresh.active);
+    // Still enabled, but the identity must be a fresh one over the new asset's snapshot.
+    await page.waitForFunction((prevKey) => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return r.enabled && r.sourceKey !== prevKey;
+    }, before.sourceKey, { timeout: 5000 });
+    await page.waitForFunction(() => window.VolSizingLab.runtime.roughness.diagnostic !== null, null, { timeout: 20000 });
+    const after = await page.evaluate(() => ({
+        enabled: window.VolSizingLab.runtime.roughness.enabled,
+        sourceKey: window.VolSizingLab.runtime.roughness.sourceKey,
+        diagnosticId: window.VolSizingLab.runtime.roughness.diagnostic.diagnosticId
+    }));
+    expect(after.enabled).toBe(true);
+    expect(after.sourceKey).not.toBe(before.sourceKey);
+    expect(after.diagnosticId).not.toBe(before.diagnosticId);
+});
+
+/* ═══════════ SCOPE-028-04: Integration, Snapshot, Compatibility, Performance, and Release Proof ═══════════ */
+
+/* preseed a cache bucket whose `at` timestamp is older than the 12h dailyBarReviewHours policy
+   window (volatility-sizing-universe.json), so RLDATA.barInfo() reports state "stale" — usable
+   rows, but explicitly not fresh — for readCachedBars() to carry through unchanged. */
+function staleCacheFor(barsBySymbol) {
+    const staleAt = Date.now() - (20 * 3600 * 1000); // 20h old > 12h review window
+    const buckets = {};
+    for (const sym of Object.keys(barsBySymbol)) {
+        buckets[sym] = { '1d': { at: staleAt, src: 'pages-snapshot', rows: barRows(barsBySymbol[sym]) } };
+    }
+    return { v: 1, bars: buckets, quotes: {}, options: {}, si: {}, macro: null, events: {}, toolReads: {} };
+}
+
+test('Regression: stale diagnostic reuses the real cache and presentation changes do not recompute', async ({ page }) => {
+    const barRequests = [];
+    page.on('request', (request) => { const url = request.url(); if (/\/data\/bars\/|query1\.finance\.yahoo\.com/.test(url)) barRequests.push(url); });
+
+    /* The page's own EXISTING (Feature 011) boot sequence calls hydrate(false) immediately after
+       first paint, and this test's local static server legitimately serves a same-origin
+       pages-snapshot bar dataset — so an unpatched real hydrate can WIN the race and silently
+       refresh a deliberately-seeded stale bucket back to fresh before this test ever observes it.
+       That race is Feature 011's own boot behavior (out of Scope 4's change boundary) and is
+       ITSELF the exact "independent refresh already in progress" case design.md carves out —
+       not a defect to paper over. To get a deterministic, honest read of the diagnostic's actual
+       stale-source handling (rather than a coin flip on local I/O timing), this ONE test patches
+       only RLDATA.ensureBars — never intercepting a network request, never touching production
+       source — to resolve with the EXISTING cached rows unchanged, i.e. simulating an offline or
+       already-fresh-enough refresh outcome. barInfo()/bars() (what readCachedBars() actually
+       reads) are left completely real and unpatched, so the "stale" freshness label below is
+       still the real production RLDATA.barInfo() computation over the real seeded timestamp. */
+    await page.addInitScript(() => {
+        let real;
+        Object.defineProperty(window, 'RLDATA', {
+            configurable: true,
+            get() { return real; },
+            set(value) {
+                real = value;
+                if (value && typeof value.ensureBars === 'function' && !value.__staleTestPatched) {
+                    value.ensureBars = function (sym, interval) { return Promise.resolve(value.bars(sym, interval)); };
+                    value.__staleTestPatched = true;
+                }
+            }
+        });
+    });
+
+    await open(page, staleCacheFor({ SPY: longRoughnessCloses() }), { mode: 'power' });
+    await openNativeResearchSurface(page);
+
+    const cacheState = await page.evaluate(() => {
+        const bars = window.VolSizingLab.runtime.bars;
+        return { cacheFreshness: bars ? bars.cacheFreshness : null, rows: bars ? bars.rows.length : 0 };
+    });
+    expect(cacheState.cacheFreshness).toBe('stale');
+    expect(cacheState.rows).toBeGreaterThan(0);
+
+    await page.check('#roughnessEnable');
+    await page.waitForFunction(() => window.VolSizingLab.runtime.roughness.diagnostic !== null, null, { timeout: 20000 });
+
+    const evaluated = await page.evaluate(() => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return {
+            sourceFreshness: r.diagnostic.source.freshness,
+            invocationCount: r.invocationCount,
+            diagnosticId: r.diagnostic.diagnosticId,
+            state: r.diagnostic.state
+        };
+    });
+    /* SCN-028-011: the diagnostic computes from the stale-but-usable snapshot rather than being
+       withheld merely for staleness, and it faithfully labels the source it actually used */
+    expect(evaluated.sourceFreshness).toBe('stale');
+    expect(['unavailable', 'inconclusive', 'supported']).toContain(evaluated.state);
+    /* the stale label is visibly rendered, carrying source timing, not just present in machine state */
+    await expect(page.locator('#roughnessConclusion')).toContainText('STALE');
+
+    /* enablement itself made no bar request; the diagnostic reused the exact page-boot cache read */
+    expect(barRequests).toEqual([]);
+
+    /* presentation-only recompute (identical asset/bars — the same trigger a benign control-bar
+       redraw would cause) must not recompute the diagnostic: recompute() calls
+       restartRoughnessIfSourceChanged() on every invocation, and it must be a no-op when the
+       derived source key has not actually changed. invocationCount and diagnosticId stay exact. */
+    await page.evaluate(() => { window.VolSizingLab.recompute(); window.VolSizingLab.recompute(); });
+    await page.waitForTimeout(200);
+    const afterToggle = await page.evaluate(() => {
+        const r = window.VolSizingLab.runtime.roughness;
+        return { invocationCount: r.invocationCount, diagnosticId: r.diagnostic ? r.diagnostic.diagnosticId : null };
+    });
+    expect(afterToggle.invocationCount).toBe(evaluated.invocationCount);
+    expect(afterToggle.diagnosticId).toBe(evaluated.diagnosticId);
+    expect(barRequests).toEqual([]);
+});

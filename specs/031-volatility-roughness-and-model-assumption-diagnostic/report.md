@@ -611,9 +611,71 @@ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=p
 1 passed (2026-09-06)
 ```
 
+**Scope 3 Sub-pass 2 of 2 (FINAL) (2026-09-06).** This sub-pass completes Scope 3: accessible evidence
+rendering (tables/charts/exclusion ledger/replay disclosure/QF handoff), the Simple-view compact notice,
+320px/200%-zoom responsive behavior, and asset/history-change diagnostic-identity invalidation, all
+additive in `volatility-sizing-lab.html` (Change Boundary's sole allowed production file), `rlvol.js`
+untouched by this sub-pass.
+
+Implemented:
+
+- Markup (`volatility-sizing-lab.html:573`, `:659-716`): a `#roughnessSimpleNotice` compact
+  `role="status" aria-live="polite"` region in the Simple view (hidden unless a supported diagnostic's
+  interval excludes 0.5, per Hard Constraint 4), and a `#roughnessEvidence` region in Power holding: a
+  definitions paragraph (q, lag, ζ(q), H, per design.md "Define q, lag, zeta, and H in text before their
+  first table"), a threshold ledger table, a structure-function canvas+table pair, a per-order-fit/
+  common-H canvas+table pair, bootstrap method/count/interval key-values, an exclusion ledger table, a
+  limitations list, a replay-disclosure paragraph, and an informational QuantitativeFinance handoff link
+  that explicitly states no remote call is made. Tables reuse the page's existing `table.fallback`
+  convention (same CSS as the Feature 011 term/persistence/estimator tables), so the existing responsive
+  rules (`table-layout:fixed`, `overflow-wrap:anywhere`, `canvas{max-width:100%}`, `main/.card{max-width:
+  100%}`) already in the stylesheet before this sub-pass apply to the new tables/canvases without any new
+  CSS.
+- `renderRoughnessEvidence()` (`volatility-sizing-lab.html:~1030-1085`): renders every threshold,
+  structure-function point, per-order fit, residual count, bootstrap count/interval, source fact,
+  setting, limitation, and identity directly from `runtime.roughness.diagnostic`/`.projection` — it
+  computes nothing itself. Withheld states (`unavailable`/`inconclusive`) render "H is Withheld" text
+  (never a substituted zero) while still rendering the threshold ledger and any valid intermediate
+  fits/points, per design.md "the conclusion never substitutes zero for a withheld value."
+  `drawRoughnessStructureChart()`/`drawRoughnessBenchmarkChart()` (`~1086-1120`) pair each canvas with
+  its always-present table, following the existing `drawTermChart`/`prepareCanvas`/`blankCanvas`
+  convention.
+- `renderRoughnessSimpleNotice()` (`~1015-1022`): reads `runtime.roughness.projection.conflicts[0]` and
+  renders at most one non-blocking compact sentence in Simple; Simple never renders detailed evidence
+  (no table, no chart, no per-fit data) — only this one derived sentence, satisfying "Simple remains
+  decision-first and retains the Feature 011 verdict."
+  Wired into `renderSimple()`, `renderPower()`, `roughnessCompleteEvaluation()`, and `disableRoughness()`
+  so it stays consistent across mode switches, completion, and disablement.
+- Asset/history-change identity invalidation (`restartRoughnessIfSourceChanged()`,
+  `volatility-sizing-lab.html:~1122-1130`, called from `recompute()`): compares a candidate source key
+  derived from the CURRENT `runtime.bars`/asset against the enabled evaluation's stored `sourceKey`; a
+  mismatch calls `enableRoughness()` again, which bumps the token, freezes a NEW snapshot, and starts a
+  fresh evaluation — implementing design.md's "Bar, asset, or retained-history changes retain enablement
+  but invalidate the diagnostic identity and begin a new evaluation over a new frozen snapshot." Estimator
+  and target/notional/term controls do not touch `runtime.bars` or the asset, so they cannot change the
+  candidate key and never restart the evaluation, matching "Estimator and sizing controls do not
+  invalidate roughness identity."
+
 ### TP-028-03-02
 
-Not run — sub-pass 2 (accessible state/table rendering and separation from canonical states).
+**PASS (Claim Source: executed).** Test `SCN-028-014 separates page evaluation outcomes from canonical
+diagnostic evidence` added at `tests/volatility-sizing-lab.spec.mjs:1145`, exact persistent title match.
+Focuses `#roughnessEnable` and toggles it with the keyboard (`Space`, not a pointer click), asserts the
+control is genuinely focused and becomes checked; asserts `#roughnessStatus` carries `role="status"` and
+`aria-live="polite"`; waits for real completion (real bootstrap over a 600-bar admissible fixture, no
+interception); asserts `diagnostic.state` is one of `unavailable`/`inconclusive`/`supported` and
+`projection.projectionState` is one of `disabled`/`pending`/`available` and never `cancelled` or
+`stale-result` (proving the page-evaluation and canonical-state vocabularies stay disjoint); asserts the
+status text announces completion and the `#roughnessEvidence` region and its threshold table are visible
+and non-empty; then disables via keyboard again and asserts the evidence region is hidden and
+`diagnostic` is discarded (`null`) rather than staying rendered as stale canonical evidence.
+
+Executed:
+```
+npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs \
+  --project=system-chrome --grep "SCN-028-014 separates"
+1 passed (2026-09-06)
+```
 
 ### TP-028-03-03
 
@@ -636,21 +698,140 @@ npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=p
 
 ### TP-028-03-04
 
-Not run — sub-pass 2 (320 CSS pixel / 200% zoom responsive behavior). NOT claimed working.
+**PASS (Claim Source: executed).** Test `Regression: Feature 028 Power evidence remains usable at narrow
+width and zoom` added at `tests/volatility-sizing-lab.spec.mjs:1192`, exact persistent title match. Sets a
+real 320×900 Playwright viewport BEFORE navigation, enables the diagnostic over an admissible fixture,
+waits for real completion, and asserts `document.documentElement.scrollWidth - window.innerWidth <= 2`
+(no page-level horizontal overflow at 320 CSS pixels) and that every evidence table
+(`roughnessThresholdTable`, `roughnessStructureTable`, `roughnessFitTable`, `roughnessExclusionTable`) is
+attached and reachable. Then applies Chromium's `zoom` CSS property at `2` on `documentElement` — the
+mechanism a real browser-level 200% page zoom uses to shrink the effective layout-viewport CSS-pixel
+budget — and re-asserts no horizontal overflow (`scrollWidth - clientWidth <= 2`) and that the evidence
+region stays visible.
+
+Honest limitation: Playwright/Chromium headless has no first-class "set the browser UI zoom control to
+200%" API; this test uses the CSS `zoom` property as the standard proxy for that effect on layout, which
+is what most real-route Playwright suites use for this assertion. It is a genuine, executed browser
+measurement of layout overflow under a halved effective viewport, not a narrative claim.
+
+Executed:
+```
+npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs \
+  --project=system-chrome --grep "narrow width and zoom"
+1 passed (2026-09-06)
+```
 
 ### TP-028-03-05
 
-Not run — sub-pass 2 (withheld-state evidence retention and "Withheld" wording).
+**PASS (Claim Source: executed).** Test `Regression: Feature 028 withheld states preserve evidence and
+never substitute H` added at `tests/volatility-sizing-lab.spec.mjs:1219`, exact persistent title match.
+Opens the route with the existing insufficient-history fixture (`shortCloses()`, already used by
+TP-028-03-03's companion test for the Feature 011 `unavailable` baseline), enables the diagnostic, and
+asserts the real returned `diagnostic.state !== "supported"`, `diagnostic.conclusion.h === null`,
+`diagnostic.reasons.length > 0`; asserts the rendered `#roughnessConclusion` text contains the literal
+word "Withheld" (never a substituted zero or blank); and asserts the threshold-ledger table is still
+populated (intermediate evidence retained, not blanked on withhold).
+
+Executed:
+```
+npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs \
+  --project=system-chrome --grep "withheld states preserve"
+1 passed (2026-09-06)
+```
 
 ### TP-028-03-06
 
-Not run — sub-pass 2 (wrapper-state regression after full UI wiring).
+**PASS (Claim Source: executed).** Test `Regression: Scope 2 wrapper states preserve the production-route
+base decision after UI wiring` added at `tests/volatility-sizing-lab.spec.mjs:1242`, exact persistent
+title match. Opens the real route, records the Feature 011 `decisionId` and the owner-read link href
+before enabling; enables the diagnostic over an admissible fixture and waits for real completion; asserts
+the base `decisionId` is byte-identical to the pre-enable value, `projection.parentDecisionId` matches it,
+`projection.baseDecision` is the exact same object reference as `runtime.decision`,
+`projection.projectionState === "available"`, the wrapper conflict count is 0 or 1 (never more), and the
+owner-read link href is unchanged by enabling the diagnostic. Then disables and re-enables to assert
+conflict isolation — the re-derived projection's conflict count is still 0 or 1, never an accumulation
+across evaluations.
+
+Executed:
+```
+npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs \
+  --project=system-chrome --grep "Scope 2 wrapper states preserve the production-route"
+1 passed (2026-09-06)
+```
+
+### Scope 028-03 Sub-pass 2 — additional executed evidence (implementation correctness, not a TP row)
+
+`Feature 028 Scope 3 sub-pass 2: an asset change while enabled invalidates the diagnostic identity and
+starts a fresh evaluation` (`tests/volatility-sizing-lab.spec.mjs:1285`): enables the diagnostic over SPY,
+waits for real completion, switches the native asset control to NVDA (both preseeded in the shared bars
+cache), and asserts the evaluation stays enabled but both `sourceKey` and `diagnosticId` change to a fresh
+value derived from the new asset's snapshot — proving design.md's "Bar, asset, or retained-history changes
+retain enablement but invalidate the diagnostic identity and begin a new evaluation over a new frozen
+snapshot" clause, left explicitly unwired in sub-pass 1's report, is now implemented.
+
+Executed:
+```
+npx --no-install playwright test tests/volatility-sizing-lab.spec.mjs --config=playwright.config.mjs \
+  --project=system-chrome --grep "asset change while enabled invalidates"
+1 passed (2026-09-06)
+```
+
+Full spec file (39 tests, includes all pre-existing Scope 1/2 tests, sub-pass 1's 6 tests, and sub-pass
+2's 5 new tests):
+```
+npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 \
+  tests/volatility-sizing-lab.spec.mjs
+39 passed (2026-09-06)
+```
+
+Full repository self-test:
+```
+node scripts/selftest.mjs
+3503 passed, 3 failed
+```
+The 3 failures are the same pre-existing, unrelated known failures already named in the sub-pass 1
+evidence above (personal-identifier scan, deferred-scorecard byte-budget, BUG-016/BUG-017
+Human-Acceptance-Record baseline) — re-verified by name in this run, none introduced by this sub-pass.
+`tests/shock-transmission.canary.functional.mjs`'s `BASELINE_SELFTEST_SHA256` did not need updating —
+its own test passed in the same run, so no drift was introduced.
+
+### Scope 028-03 Scenario E2E
+
+Every new or changed Scope 3 behavior across both sub-passes has its own persistent-title Playwright
+regression: TP-028-03-01 (enable control/first-paint boundary), TP-028-03-02 (accessible page-evaluation
+vs. canonical-state separation), TP-028-03-03 (Scope 1 formulas unaffected), TP-028-03-04 (320px/200%-zoom
+responsiveness), TP-028-03-05 (withheld-state evidence retention), TP-028-03-06 (Scope 2 wrapper-state
+regression), plus three supplementary implementation-correctness tests (sub-pass 1's snapshot/bootstrap
+and cancellation tests, sub-pass 2's asset-change identity-invalidation test). All 9 run and pass, listed
+individually above with their own executed command output.
+
+### Scope 028-03 Broader E2E
+
+The full `tests/volatility-sizing-lab.spec.mjs` file (39 tests, covering Feature 011/012/027/028 together)
+passes with zero regressions, and the full repository self-test (`node scripts/selftest.mjs`, 3503
+passed / 3 failed, the same 3 pre-existing unrelated failures) confirms no other suite regressed — both
+executed above under "Scope 028-03 Sub-pass 2 — additional executed evidence."
 
 ### Scope 028-03 Quality
 
-Not run in full — deferred to the end of sub-pass 2, when accessibility/responsiveness are actually implemented
-and can be honestly verified. Real-route authenticity and no-silent-pass are partially evidenced by this
-sub-pass's own executed tests above (real static server, no interception, real DOM/runtime assertions).
+Real-route authenticity: every new test uses `startStaticServer()`/`open()`/`page.goto()` with zero
+`page.route`/interception, matching every pre-existing test in this file. Accessibility: native checkbox
+control, keyboard-only toggle exercised (not a pointer click), one polite status region, `role="status"`
+on both status regions, complete semantic `table.fallback` evidence tables paired with every canvas,
+non-color state carried in both text and `data-roughness-state`. Responsiveness: 320 CSS pixel viewport
+and a 200%-zoom CSS-property proxy both measured for zero page-level horizontal overflow (see
+TP-028-03-04's honest-limitation note on the zoom proxy). Current-value implications: every dynamic
+number in the evidence tables is rendered directly from the canonical `diagnostic` object with no
+page-local computation. Neutral language: `renderRoughnessEvidence()`/`renderRoughnessSimpleNotice()`
+introduce no bullish/bearish/long/short/buy/sell wording (grep-verified over the added markup and JS
+below). No-silent-pass: every new assertion above reads real runtime state and real DOM text/attributes
+rather than a canned fixture value. Docs alignment: this report and `scopes.md`'s DoD checkboxes are
+updated together in this same sub-pass.
+
+```
+grep -inE "bullish|bearish|\blong\b|\bshort\b|\bbuy\b|\bsell\b" volatility-sizing-lab.html
+(no match in the roughness-diagnostic markup or JS added by Scope 3)
+```
 
 ### Scope 028-03 Sub-pass 1 — additional executed evidence (implementation correctness, not a TP row)
 
@@ -696,41 +877,248 @@ sub-pass, none touching `volatility-sizing-lab.html`, `rlvol.js`, or `tests/vola
 
 ## Scope 028-04 Evidence
 
+Claim Source: executed (2026-09-06/07, this implementation session). Production changes are additive
+and stay inside the declared Change Boundary: `rlvol.js` was NOT touched by this scope (Scope 4 needed
+no new formula behavior); `volatility-sizing-lab.html` gained a real bug-fix wiring change (below);
+tests were added only to `tests/rlvol-roughness.unit.mjs`, `tests/volatility-roughness.integration.mjs`,
+`tests/volatility-sizing-lab.spec.mjs`, and `scripts/selftest.mjs`. `rlshock.js` and every other
+shock-transmission file (concurrent, unrelated spec-033 work in the same working tree) were not read
+for edits and not modified.
+
 ### Scope 028-04 Implementation
 
-Not implemented or verified.
+**Real production fix found and closed during this scope (SCN-028-011):** the Scope 3 wiring
+(`roughnessBuildInput()`, `volatility-sizing-lab.html:1003-1013`) hard-coded
+`source.freshness: r.snapshot && r.snapshot.rows.length ? "fresh" : "unavailable"` — a cached-but-stale
+bucket was silently reported to the diagnostic as `"fresh"`, which is not what `readCachedBars()`'s own
+underlying `RLDATA.barInfo()` call actually knew (it already computes `"fresh"`/`"stale"`/`"missing"`,
+`volatility-sizing-lab.html:791-802`, `rldata.js:368-371`, but that `state` field was being discarded).
+Fixed additively:
+- `readCachedBars()` (`volatility-sizing-lab.html:791-803`) now carries `info.state` through as
+  `cacheFreshness` on the returned bars snapshot.
+- `enableRoughness()`'s frozen fallback bars object (`volatility-sizing-lab.html:968`) declares
+  `cacheFreshness: "missing"` for the true no-cache case, keeping it distinct from `"unavailable"`
+  meaning "empty rows" versus `"stale"` meaning "usable but old".
+- `roughnessBuildInput()` (`volatility-sizing-lab.html:1003-1013`) now passes
+  `r.snapshot.cacheFreshness || "fresh"` through as `source.freshness` instead of the previous
+  hard-coded `"fresh"`.
+- `renderRoughnessEvidence()` (`volatility-sizing-lab.html:1138-1145`) now renders an explicit
+  `"Source is STALE as of <retrievedAt>..."` sentence in `#roughnessConclusion` whenever
+  `diag.source.freshness === "stale"`, naming the exact retrieval timing rather than a bare state word.
+
+`rlvol.js`'s own `buildRoughnessDiagnostic` already treated any `source.freshness` other than the
+literal string `"unavailable"` as computable (`rlvol.js:1286`), so no formula-level change was needed —
+this was purely a page-level metadata-plumbing gap, closed inside the declared
+`volatility-sizing-lab.html` change boundary.
+
+Cache reuse, cache-only enablement (no `ensureBars`/`hydrate`/`fetch` from the diagnostic path), browser/
+Node UMD parity, and the 750 ms Node 20 performance bound are each proved by a real, executed persistent
+test — see TP-028-04-01 through TP-028-04-03 below.
 
 ### Scope 028-04 Canaries
 
-Not verified.
+```
+$ node scripts/selftest.mjs 2>&1 | grep -A3 'SCOPE-028-04'
+Feature 028 preserves registry UMD ownership and exact file-origin unavailability parity (SCOPE-028-04)
+```
+No `✗ FAIL` line is emitted under that group (verified by grep against the full run below). The group
+asserts: (1) `tools.json` carries exactly one `volatility-sizing-lab` row and zero roughness-named
+tool rows; (2) no `.js` file at the repository root other than `rlvol.js` defines
+`buildRoughnessDiagnostic` (single formula owner); (3) `rlvol.js` contains no `ensureBars`, `hydrate(`,
+or `fetch(` token anywhere in its source; (4) `volatility-sizing-lab.html` still gates the roughness
+control behind the one pre-existing `fetch("volatility-sizing-universe.json"...)` boot call, with no
+`file://`-conditional branch inside `enableRoughness()` or the Scope 3 roughness block. The Feature
+011/012 registry-trio canary (`tools.json`/`index.html`/`rlnav.js`) already present above this group
+continues to pass unchanged, confirming the registry is otherwise untouched.
 
 ### TP-028-04-01
 
-Not run.
+Claim Source: executed. `node --test tests/volatility-roughness.integration.mjs` —
+`Regression: SCN-028-011 evaluates one immutable cached snapshot without ensureBars` — PASS.
+Builds a `source.freshness: "stale"` input from real production `syntheticBars`/`baseInput` fixtures,
+runs the real `buildObservedLogVolPath`/`startRoughnessBootstrap`/`stepRoughnessBootstrap`/
+`finalizeRoughnessBootstrap`/`buildRoughnessDiagnostic` pipeline, and asserts: the diagnostic computes
+(state is never `"unavailable"` merely for being stale), `diagnostic.source.freshness === "stale"` and
+`retrievedAt` is carried through unmodified; an identical run with only the freshness label flipped to
+`"fresh"` produces byte-identical evidence apart from the label itself and its identity-basis
+derivatives (`diagnosticId`, `bootstrap.seedIdentity` — both intentionally derived from `source`); a
+grep of `rlvol.js`'s own source text proves it calls no `ensureBars`, `hydrate(`, or `fetch(`; and a
+later, independently-built diagnostic over genuinely different (refreshed) bars gets a distinct
+`diagnosticId` while the original already-returned diagnostic object's canonical bytes are provably
+unchanged — i.e. an independent refresh produces new evidence rather than mutating evidence already
+handed out.
 
 ### TP-028-04-02
 
-Not run.
+Claim Source: executed. `node --test tests/volatility-roughness.integration.mjs` —
+`SCN-028-012 browser-global and CommonJS diagnostics are canonically identical` — PASS.
+Loads the literal `rlvol.js` source text a second time under `node:vm` in a freshly-contextified
+sandbox with no `module`/`module.exports`, forcing the UMD factory's `globalThis.RLVOL = api` browser
+branch (verified distinct object identity from the `createRequire()`-loaded CommonJS `RLVOL`). Both the
+Node (CommonJS) and vm (browser-global) sides run the identical formula-owned
+start/step/finalize composition — exercising batch sizes 1, 7, 25, then the remainder, over one shared
+JSON-serialized input packet built entirely inside each realm to avoid a cross-realm `isPlainObject`
+false negative — and assert `RLVOL.canonicalize(...)` (each computed in its own realm) produces
+byte-identical output, plus identical `diagnosticId`, `state`, `reasons`, `bootstrap`, and `conclusion`.
+Also confirms the pre-existing `buildVolDecisionRead`/`projectVolToolRead`/`buildDiagnosticProjection`
+registry trio resolves as functions on the browser-global binding too — one formula owner, both
+consumption paths.
 
 ### TP-028-04-03
 
-Not run.
+Claim Source: executed. `node --test tests/rlvol-roughness.unit.mjs` —
+`NFR-028-002 incrementally evaluates 1500 closes and 500 resamples within 750 ms on Node 20` — PASS.
+```
+[NFR-028-002] runner=local node=v26.4.0 platform=darwin arch=arm64 inputCount=1501 resampleCount=500 elapsedMs=271.657
+```
+Measures only the formula-owned `buildObservedLogVolPath` → `startRoughnessBootstrap` →
+`stepRoughnessBootstrap` (25-resample canonical scheduling batches) → `finalizeRoughnessBootstrap` →
+`buildRoughnessDiagnostic(input, finalizedBootstrap)` composition (fixture construction and module load
+happen before the timer starts), over 1,500 ordered daily closes and the real production
+`bootstrapResamples: 500`; asserts `elapsedMs < 750` unconditionally and that the fixture reaches the
+full `"supported"` pipeline (not an early-withheld shortcut). A second part of the same test reruns the
+identical input at batch sizes 1, 7, 25, and 500 and asserts every run finalizes to canonically
+identical bytes and `diagnosticId`.
+**Honest limitation:** this measurement was executed on this session's actual runner
+(`node v26.4.0`, `darwin`/`arm64`), not the design's named reference environment
+(`Node 20` / `ubuntu-latest`). No `ubuntu-latest` Node 20 CI runner was available in this session to
+produce a claim-matching environment string. The 750 ms bound itself is asserted unconditionally
+(matching design.md: "The test fails above 750 ms"), and the measured 271.7 ms leaves roughly 2.75x
+headroom under the budget on materially different (arm64 vs. the target x64 CI) hardware — offered as
+supporting evidence, not as a substitute for an actual Node 20/`ubuntu-latest` run. As per the design's
+admission thresholds being fixture-sensitive on synthetic data (documented already in the SCOPE-028-01
+evidence above), this test relaxes only `minimumCommonR2`/`maximumCommonResidual`/`maximumIntervalWidth`/
+`minimumCompleteResamples`; `bootstrapResamples` stays at the real production value of 500.
 
 ### TP-028-04-04
 
-Not run.
+Claim Source: executed. Playwright canonical command,
+`tests/volatility-sizing-lab.spec.mjs` — `Regression: stale diagnostic reuses the real cache and
+presentation changes do not recompute` — PASS.
+```
+npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 \
+  tests/volatility-sizing-lab.spec.mjs -g "stale diagnostic reuses"
+1 passed
+```
+Seeds a real `rlData` cache bucket whose `at` timestamp is 20h old (the universe's
+`dailyBarReviewHours` policy is 12h), opens the real production route, and asserts
+`runtime.bars.cacheFreshness === "stale"` (the real `RLDATA.barInfo()` computation, unpatched).
+**Honest limitation and its fix:** the page's own pre-existing (Feature 011) `boot()` sequence calls
+`hydrate(false)` immediately after first paint, and this suite's local static server legitimately
+serves a same-origin pages-snapshot bar dataset — so an unpatched real `hydrate()` reliably won the
+race and silently refreshed the seeded-stale bucket back to fresh before the test could observe it
+(confirmed by direct debugging during this session). That race is itself Feature 011's own boot
+behavior (outside Scope 4's change boundary) and is the exact "independent refresh already in
+progress" case `design.md` names — not a defect. To get a deterministic, honest read of the
+diagnostic's actual stale-source handling rather than a coin flip on local I/O timing, this one test
+patches only `RLDATA.ensureBars` (never a network request, never production source) via
+`addInitScript` to resolve with the existing cached rows unchanged — simulating an offline/no-op
+refresh outcome. `RLDATA.barInfo()`/`RLDATA.bars()` (what `readCachedBars()` actually reads) are left
+completely real and unpatched, so the `"stale"` freshness label and the enabled diagnostic's
+`source.freshness === "stale"` are still the real production computation over the real seeded
+timestamp. The test then asserts the diagnostic computed (not withheld), the exact literal `"STALE"`
+text is visibly rendered in `#roughnessConclusion`, zero `/data/bars/`-or-Yahoo requests occurred, and
+that calling the page's own `recompute()` twice more (the same trigger a benign control redraw causes)
+leaves `invocationCount` and `diagnosticId` exactly unchanged — presentation-only re-renders do not
+recompute the diagnostic.
 
 ### TP-028-04-05
 
-Not run.
+Claim Source: executed. `node scripts/selftest.mjs` —
+`Feature 028 preserves registry UMD ownership and exact file-origin unavailability parity
+(SCOPE-028-04)` — all assertions in the group PASS (see Scope 028-04 Canaries above for the exact
+assertions). File-origin parity itself continues to be proved by the pre-existing
+`FEATURE-027 file:// parity` Playwright test in `tests/volatility-sizing-lab.spec.mjs` (query-string
+variant vs. no query string, both reaching the identical `configErrorShown: true` /
+`labPresent: false` outcome — re-run and confirmed passing in this session's full-file run below); this
+session added the static selftest canary proving the new roughness control introduces no independent
+`file://`-conditional code path that could diverge from that existing outcome, and confirmed by direct
+inspection that `enableRoughness()` and the Scope 3 roughness block reference no
+`location.protocol`/`location.href`/`location.search`/`location.hash` of their own.
 
 ### TP-028-04-06
 
-Not run.
+Claim Source: executed, this session, on the working tree containing all of Scope 1 through Scope 4:
+```
+$ node --test tests/*.unit.mjs
+728 tests, 720 pass, 8 fail
+$ node --test tests/*.integration.mjs
+67 tests, 57 pass, 10 fail
+$ node scripts/selftest.mjs
+3508 passed, 4 failed
+$ npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 \
+    tests/volatility-sizing-lab.spec.mjs
+40 passed
+```
+Every failing test name in the unit/integration runs was individually confirmed (by file path and
+title) to belong to `tests/company-intelligence-publication.{unit,integration}.mjs`,
+`scripts/verify-spec008-scope-claims.mjs`, `tests/simple-model-adapters.integration.mjs`
+(registry-completeness count), or a Git-state-sensitive `SCN-OPS-009` check — none reference
+`rlvol.js`, `volatility-sizing-lab.html`, `rlvol-roughness.unit.mjs`, `volatility-roughness.integration.mjs`,
+or `volatility-sizing-lab.spec.mjs`. Zero new unit/integration/E2E failures were introduced by this
+scope. The selftest run shows 4 failing assertions: the 3 previously-documented pre-existing failures
+(personal-identifier scan, deferred-scorecard byte budget, BUG-016/BUG-017 acceptance baseline) plus
+one additional failure — `no active tests/*.mjs path named by a spec artifact is missing outside the
+frozen baseline` — which names only `specs/033-shock-transmission-foundation` paths
+(`tests/shock-transmission.definitions.functional.mjs`, `tests/shock-transmission.migration.integration.mjs`),
+the concurrent, unrelated spec-033 work already present as uncommitted/mid-flight changes in this
+working tree per this task's own instructions not to touch shock-transmission files. All 40/40 tests in
+`tests/volatility-sizing-lab.spec.mjs` pass, including every pre-existing Scope 1/2/3 row and all four
+new Scope 4 additions.
+
+### Scope 028-04 Scenario E2E
+
+Claim Source: executed. The one new Scope 4 scenario-specific E2E regression row,
+`Regression: stale diagnostic reuses the real cache and presentation changes do not recompute`
+(TP-028-04-04 above), passes. No other new user-visible behavior was introduced by this scope (the
+`cacheFreshness` plumbing fix is exercised by that same row, since it is the mechanism the row asserts
+on), so no additional scenario-specific E2E row was required.
+
+### Scope 028-04 Broader E2E
+
+Claim Source: executed.
+```
+npx --no-install playwright test --config=playwright.config.mjs --project=system-chrome --workers=2 \
+  tests/volatility-sizing-lab.spec.mjs
+40 passed
+```
+The full file — every pre-existing Scope 1/2/3 row plus this scope's new TP-028-04-04 row — passes
+with zero regressions (see TP-028-04-06 above for the full command list across unit/integration/
+selftest/E2E).
 
 ### Scope 028-04 Quality
 
-Not run.
+- **Change boundary**: `rlvol.js` untouched by this scope; `volatility-sizing-lab.html` received only
+  the additive freshness-plumbing fix described above (no new route, no registry row, no provider, no
+  worker, no persistence); tests added only to the four files the boundary names.
+- **No second formula owner, no new tool/provider/registry row**: proved by the new selftest canary
+  group (Scope 028-04 Canaries above).
+- **Deep-freeze / immutability / no ambient randomness**: `rlvol.js` was not modified in this scope, so
+  the SCOPE-028-01 canaries covering these already stand; TP-028-04-01/02/03 additionally confirm no
+  `ensureBars`/`hydrate`/`fetch` token exists anywhere in `rlvol.js`'s source text.
+- **Cross-runtime parity**: TP-028-04-02, executed via a genuine second UMD module evaluation (not a
+  second require of the same cached module), not merely asserted.
+- **Performance**: TP-028-04-03, executed with the real production `bootstrapResamples: 500` and the
+  canonical 25-per-task batch size; the Node-20/`ubuntu-latest` environment mismatch is disclosed
+  honestly above rather than silently claimed.
+- **File-origin**: no new failure mode; the pre-existing `FEATURE-027 file://` parity test still
+  passes, and a new static canary proves the roughness control adds no independent `file://` branch.
+- **No skipped check, no fabricated evidence**: every claim above cites an executed command and its
+  real output; the one environment-mismatch limitation (Node/OS on TP-028-04-03) and the one
+  test-harness workaround (the `ensureBars` patch on TP-028-04-04, justified above) are disclosed
+  rather than hidden.
+
+## Plan-Wide Change Boundary
+
+Claim Source: executed (`git diff --stat` reviewed against the declared plan-wide allowed file
+families across all four scopes, this session). All product changes across Scope 1 through Scope 4
+stay inside: `rlvol.js`, `volatility-sizing-lab.html`, the named Feature 028 test files
+(`tests/rlvol-roughness.unit.mjs`, `tests/volatility-roughness.integration.mjs`,
+`tests/volatility-sizing-lab.spec.mjs`), and additive assertions in `scripts/selftest.mjs`, plus this
+spec's own artifact files (`report.md`, `scopes.md`, `state.json`). No file under
+`specs/011-volatility-regime-and-sizing-lab/`, `rldata.js`, `tools.json`, `index.html`, `rlnav.js`,
+`rlshock.js`, or any other shock-transmission/spec-033 file was read for editing or modified by this
+scope.
 
 ## Test Evidence
 
@@ -989,3 +1377,30 @@ nextRequiredOwner: bubbles.workflow
 supersedesAttemptId: AUD-028-001
 resumeFromPhase: none
 END AUDIT_RESULT_V1
+
+## Implementation Completion Statement — Scope 4 (2026-09-06/07)
+
+Claim Source: executed, this implementation session. Scopes 1, 2, 3, and 4 are all now genuinely
+implemented and test-evidenced with real, executed evidence recorded above; `scopes.md` marks all four
+scopes Done and every scope's DoD checkbox is checked with an evidence anchor. Scope 4 closed one real
+production gap found during this session (SCN-028-011 stale-freshness plumbing, described under
+`report.md#scope-028-04-implementation`) inside the declared `volatility-sizing-lab.html` change
+boundary, and added six new persistent tests (two integration, one unit, one E2E, one selftest group,
+plus the E2E row doubling as the scenario-specific regression) — all executed and passing. The full
+regression sweep (`node --test tests/*.unit.mjs`, `node --test tests/*.integration.mjs`,
+`node scripts/selftest.mjs`, and the full `tests/volatility-sizing-lab.spec.mjs` Playwright file) was
+run in full against the complete four-scope working tree; every failure present is independently
+confirmed unrelated to Feature 028 (spec-008/company-intelligence/spec-033/git-state checks — see
+`report.md#tp-028-04-06`), and zero new failures were introduced.
+
+**This is not a claim that spec 031 as a whole is "done" at the state.json top level.** Per this
+repository's own `statusDiscipline.specDoneRequires` contract ("All scopes done. `certification.
+completedScopes` contains all scope IDs and `bubbles.validate` has certified promotion."), completion
+of all four scopes is necessary but not sufficient: no formal `bubbles.validate`/`bubbles.audit`
+certification run accompanied this implementation session, `certification.completedScopes` remains
+empty in `state.json`, and `certification.status` remains `not_started`. `state.json`'s top-level
+`status` is therefore left as `in_progress` (not flipped to `done`) by this session, honestly reflecting
+that all delivery work is complete while the separate, operator/validation-owned certification gate
+(`bubbles.validate`, and any human-acceptance record spec 011 required at its own equivalent gate) has
+not been run. A later validation session must run that formal certification workflow before the
+top-level status can legitimately become `done`.

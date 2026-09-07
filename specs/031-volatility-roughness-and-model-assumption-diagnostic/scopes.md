@@ -61,7 +61,7 @@ Feature 011 supplies the unchanged volatility workspace and decision contract. F
 | SCOPE-028-01 | RLVOL Formula and Admission Foundation | `rlvol.js`, formula tests | SCN-028-001, 003, 004, 005, 006, 007 | Done |
 | SCOPE-028-02 | Additive Decision and Conflict Projection | `rlvol.js`, decision integration tests | SCN-028-008, 009, 010, 013 | Done |
 | SCOPE-028-03 | Power Evidence UI and Accessibility | `volatility-sizing-lab.html`, Playwright | SCN-028-002, 014 | Not Started |
-| SCOPE-028-04 | Integration, Cache, Compatibility, Performance, and Release Proof | cache/browser/Node/file-origin/registry/release checks | SCN-028-011, 012 | Not Started |
+| SCOPE-028-04 | Integration, Cache, Compatibility, Performance, and Release Proof | cache/browser/Node/file-origin/registry/release checks | SCN-028-011, 012 | Done |
 
 ## Scope 1: RLVOL Formula and Admission Foundation
 
@@ -264,9 +264,10 @@ Inspect native Simple and Power, compact owner read, Market Brief conflict consu
 
 ## Scope 3: Power Evaluation UI and Accessibility
 
-**Status:** In Progress (sub-pass 1 of 2 landed: enable control, frozen bars/source-metadata snapshot on
-enablement, and incremental bootstrap scheduling with cancellation — see `report.md#scope-028-03-implementation`.
-Accessible evidence rendering and responsive/zoom behavior remain outstanding.)
+**Status:** Done (sub-pass 1 of 2 landed the enable control, frozen bars/source-metadata snapshot, and
+incremental bootstrap scheduling with cancellation; sub-pass 2 of 2 landed accessible evidence rendering,
+the Simple-view compact notice, 320px/200% zoom responsive behavior, and asset/history-change diagnostic-
+identity invalidation — see `report.md#scope-028-03-implementation`.)
 
 Scope-Kind: runtime-behavior
 
@@ -339,27 +340,27 @@ Playwright canonical command: `npx --no-install playwright test --config=playwri
 
 #### Core Items
 
-- [ ] Opt-in cooperative evaluation and accessible states implement both owned scenarios without formula duplication or first-paint regression. Evidence: `report.md#scope-028-03-implementation`.
-- [ ] No new route, registry row, provider, persistence, worker, package, or pricing or trading behavior exists. Evidence: `report.md#scope-028-03-boundary`.
+- [x] Opt-in cooperative evaluation and accessible states implement both owned scenarios without formula duplication or first-paint regression. Evidence: `report.md#scope-028-03-implementation`.
+- [x] No new route, registry row, provider, persistence, worker, package, or pricing or trading behavior exists. Evidence: `report.md#scope-028-03-boundary`.
 
 #### Test Items — six rows, six items
 
-- [ ] TP-028-03-01 passes for SCN-028-002. Evidence: `report.md#tp-028-03-01`.
-- [ ] TP-028-03-02 passes for SCN-028-014. Evidence: `report.md#tp-028-03-02`.
-- [ ] TP-028-03-03 passes for SCN-028-001, SCN-028-003, SCN-028-004, SCN-028-005, SCN-028-006, and SCN-028-007. Evidence: `report.md#tp-028-03-03`.
-- [ ] TP-028-03-04 passes for SCN-028-014. Evidence: `report.md#tp-028-03-04`.
-- [ ] TP-028-03-05 passes for SCN-028-002 and SCN-028-014. Evidence: `report.md#tp-028-03-05`.
-- [ ] TP-028-03-06 passes for SCN-028-008, SCN-028-009, SCN-028-010, and SCN-028-013 after UI wiring. Evidence: `report.md#tp-028-03-06`.
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass. Evidence: `report.md#scope-028-03-scenario-e2e`.
-- [ ] Broader E2E regression suite passes. Evidence: `report.md#scope-028-03-broader-e2e`.
+- [x] TP-028-03-01 passes for SCN-028-002. Evidence: `report.md#tp-028-03-01`.
+- [x] TP-028-03-02 passes for SCN-028-014. Evidence: `report.md#tp-028-03-02`.
+- [x] TP-028-03-03 passes for SCN-028-001, SCN-028-003, SCN-028-004, SCN-028-005, SCN-028-006, and SCN-028-007. Evidence: `report.md#tp-028-03-03`.
+- [x] TP-028-03-04 passes for SCN-028-014. Evidence: `report.md#tp-028-03-04`.
+- [x] TP-028-03-05 passes for SCN-028-002 and SCN-028-014. Evidence: `report.md#tp-028-03-05`.
+- [x] TP-028-03-06 passes for SCN-028-008, SCN-028-009, SCN-028-010, and SCN-028-013 after UI wiring. Evidence: `report.md#tp-028-03-06`.
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass. Evidence: `report.md#scope-028-03-scenario-e2e`.
+- [x] Broader E2E regression suite passes. Evidence: `report.md#scope-028-03-broader-e2e`.
 
 #### Build Quality Gate
 
-- [ ] Real-route authenticity, chronology, accessibility, responsiveness, current-value implications, neutral language, no-silent-pass scans, and docs alignment are verified. Evidence: `report.md#scope-028-03-quality`.
+- [x] Real-route authenticity, chronology, accessibility, responsiveness, current-value implications, neutral language, no-silent-pass scans, and docs alignment are verified. Evidence: `report.md#scope-028-03-quality`.
 
 ## Scope 4: Integration, Snapshot, Compatibility, Performance, and Release Proof
 
-**Status:** Not Started
+**Status:** Done
 
 Scope-Kind: runtime-behavior
 
@@ -425,27 +426,27 @@ Playwright canonical command: `npx --no-install playwright test --config=playwri
 
 #### Core Items
 
-- [ ] Cache reuse, stale honesty, browser and CommonJS parity, compatibility, and performance implement both owned scenarios and applicable NFRs without excluded changes. Evidence: `report.md#scope-028-04-implementation`.
-- [ ] Registry, file-origin, shared-cache, Feature 011, rollback, and full-suite canaries remain intact. Evidence: `report.md#scope-028-04-canaries`.
+- [x] Cache reuse, stale honesty, browser and CommonJS parity, compatibility, and performance implement both owned scenarios and applicable NFRs without excluded changes. Evidence: `report.md#scope-028-04-implementation`.
+- [x] Registry, file-origin, shared-cache, Feature 011, rollback, and full-suite canaries remain intact. Evidence: `report.md#scope-028-04-canaries`.
 
 #### Test Items — six rows, six items
 
-- [ ] TP-028-04-01 passes for SCN-028-011. Evidence: `report.md#tp-028-04-01`.
-- [ ] TP-028-04-02 passes for SCN-028-012. Evidence: `report.md#tp-028-04-02`.
-- [ ] TP-028-04-03 passes for SCN-028-001 and SCN-028-012 and records the reference environment. Evidence: `report.md#tp-028-04-03`.
-- [ ] TP-028-04-04 passes for SCN-028-011 and SCN-028-012. Evidence: `report.md#tp-028-04-04`.
-- [ ] TP-028-04-05 passes for SCN-028-011 and SCN-028-012. Evidence: `report.md#tp-028-04-05`.
-- [ ] TP-028-04-06 passes for SCN-028-001 through SCN-028-014 with every canonical command. Evidence: `report.md#tp-028-04-06`.
-- [ ] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass. Evidence: `report.md#scope-028-04-scenario-e2e`.
-- [ ] Broader E2E regression suite passes. Evidence: `report.md#scope-028-04-broader-e2e`.
+- [x] TP-028-04-01 passes for SCN-028-011. Evidence: `report.md#tp-028-04-01`.
+- [x] TP-028-04-02 passes for SCN-028-012. Evidence: `report.md#tp-028-04-02`.
+- [x] TP-028-04-03 passes for SCN-028-001 and SCN-028-012 and records the reference environment (honest Node/OS mismatch disclosed — see evidence). Evidence: `report.md#tp-028-04-03`.
+- [x] TP-028-04-04 passes for SCN-028-011 and SCN-028-012. Evidence: `report.md#tp-028-04-04`.
+- [x] TP-028-04-05 passes for SCN-028-011 and SCN-028-012. Evidence: `report.md#tp-028-04-05`.
+- [x] TP-028-04-06 passes for SCN-028-001 through SCN-028-014 with every canonical command. Evidence: `report.md#tp-028-04-06`.
+- [x] Scenario-specific E2E regression tests for every new/changed/fixed behavior pass. Evidence: `report.md#scope-028-04-scenario-e2e`.
+- [x] Broader E2E regression suite passes. Evidence: `report.md#scope-028-04-broader-e2e`.
 
 #### Build Quality Gate
 
-- [ ] Artifact, traceability, scenario-obligation, capability-foundation, regression-quality, change-boundary, planning checks, docs alignment, and finding closure pass with actual output and no skip, warning, deferral, or unresolved finding. Evidence: `report.md#scope-028-04-quality`.
+- [x] Artifact, traceability, scenario-obligation, capability-foundation, regression-quality, change-boundary, planning checks, docs alignment, and finding closure pass with actual output and no skip, warning, deferral, or unresolved finding. Evidence: `report.md#scope-028-04-quality`.
 
 ## Plan-Wide Execution Rules
 
-- [ ] Change Boundary is respected and zero excluded file families were changed. Evidence: `report.md#plan-wide-change-boundary`.
+- [x] Change Boundary is respected and zero excluded file families were changed. Evidence: `report.md#plan-wide-change-boundary`.
 - Begin from the delivered Feature 011 base and execute SCOPE-028-01 through SCOPE-028-04 strictly in order. The next scope starts only after its dependency is Done with accepted evidence.
 - Tests derive from the specification and design. Fix implementation rather than weakening conformant tests.
 - Every changed behavior has a persistent regression row. Real-route E2E uses the existing same-origin server with no interception.

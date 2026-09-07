@@ -634,6 +634,63 @@ try {
     'Feature 028 available-state wrapper adds exactly one non-blocking conflict while the base decision object, bytes, and its own conflicts array remain untouched');
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 028 SCOPE-028-02 projection canary group threw): ' + e.message + '\n' + (e.stack || '')); }
 
+/* ---------- Feature 028 (SCOPE-028-04): registry/UMD-ownership and file-origin parity canary (TP-028-04-05) ---------- */
+try {
+  group('Feature 028 preserves registry UMD ownership and exact file-origin unavailability parity (SCOPE-028-04)');
+
+  /* No new tool, registry, or provider: the tools.json/index.html/rlnav.js trio for
+     volatility-sizing-lab is byte-identical in shape to the Feature 011/012 canary above —
+     Feature 028 registered nothing of its own and reused the one existing tool row. */
+  const toolsRegistry02804 = JSON.parse(read('tools.json')).tools;
+  assert(
+    toolsRegistry02804.filter((tool) => tool.id === 'volatility-sizing-lab').length === 1 &&
+    toolsRegistry02804.filter((tool) => /roughness|rlvol-roughness/i.test(JSON.stringify(tool))).length === 0,
+    'Feature 028 adds no new tools.json registry row and no roughness-named tool');
+
+  /* Single formula owner: rlvol.js is still the only UMD module exporting the roughness surface.
+     No sibling module in the repo root defines buildRoughnessDiagnostic. */
+  const rootFiles02804 = readdirSync(ROOT).filter((f) => f.endsWith('.js') && f !== 'rlvol.js');
+  const secondOwner02804 = rootFiles02804.filter((f) => {
+    try { return /function\s+buildRoughnessDiagnostic\s*\(/.test(readFileSync(join(ROOT, f), 'utf8')); }
+    catch (e) { return false; }
+  });
+  assert(secondOwner02804.length === 0, 'Feature 028 introduces no second RLVOL/roughness formula owner outside rlvol.js: ' + JSON.stringify(secondOwner02804));
+
+  /* rlvol.js calls no ensureBars/hydrate/fetch from any formula path — the pure UMD boundary
+     Hard Constraint the incremental bootstrap and diagnostic composition must never cross. */
+  const rlvolSource02804 = read('rlvol.js');
+  assert(
+    !/ensureBars|\bhydrate\s*\(|\bfetch\s*\(/.test(rlvolSource02804),
+    'Feature 028 rlvol.js formula owner calls no ensureBars, hydrate, or fetch');
+
+  /* Exact file-origin unavailability parity: the roughness enable control lives INSIDE the same
+     boot()/fetch(volatility-sizing-universe.json) sequence Feature 011 already fails under
+     file://, and the additive code introduces no independent file://-only success or bypass
+     path (no direct file:// read, no alternate config source, no operational-success branch
+     that would let the roughness control become interactive when configuration is unavailable). */
+  const volHtml02804 = read('volatility-sizing-lab.html');
+  assert(
+    /id="roughnessEnable"/.test(volHtml02804) &&
+    /fetch\("volatility-sizing-universe\.json"/.test(volHtml02804),
+    'Feature 028 roughness control exists and the existing single fetch()-gated boot sequence is unchanged');
+  const configErrorGate02804 = volHtml02804.indexOf('showConfigError');
+  const roughnessEnableGate02804 = volHtml02804.indexOf('function enableRoughness');
+  assert(
+    configErrorGate02804 !== -1 && roughnessEnableGate02804 !== -1 &&
+    !/file:\s*\/\//.test(volHtml02804.slice(roughnessEnableGate02804, roughnessEnableGate02804 + 4000)),
+    'Feature 028 enableRoughness() defines no file:// special-case path around the existing configuration-unavailable gate');
+
+  /* the additive roughness block never references location.protocol, window.location.href
+     query/fragment parsing, or any file://-conditional branch of its own */
+  const roughnessBlockStart02804 = volHtml02804.indexOf('Feature 028 Scope 3');
+  const roughnessBlockEnd02804 = volHtml02804.indexOf('QuantitativeFinance handoff') > -1
+    ? volHtml02804.indexOf('QuantitativeFinance handoff') + 4000 : volHtml02804.length;
+  const roughnessBlock02804 = roughnessBlockStart02804 !== -1 ? volHtml02804.slice(roughnessBlockStart02804, roughnessBlockEnd02804) : '';
+  assert(
+    roughnessBlockStart02804 !== -1 && !/location\.(protocol|href|search|hash)/.test(roughnessBlock02804),
+    'Feature 028 roughness UI block reads no location.protocol/href/search/hash of its own — it inherits the existing route boundary unmodified');
+} catch (e) { failures++; console.log('  ✗ FAIL (Feature 028 SCOPE-028-04 registry/file-origin canary group threw): ' + e.message + '\n' + (e.stack || '')); }
+
 /* ---------- ETF: Sharpe deflation + shock models ---------- */
 try {
   group('etf-momentum-lab.html \u2014 Deflated/Probabilistic Sharpe + MC shocks');

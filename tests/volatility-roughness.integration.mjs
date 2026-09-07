@@ -8,6 +8,8 @@
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
 
 const require = createRequire(import.meta.url);
 const RLVOL = require('../rlvol.js');
@@ -284,4 +286,173 @@ test('RLVOL roughness contract errors use the existing closed error shape for co
         (err) => err && (err.code === 'RLVOL_SCHEMA_INVALID' || err.message === 'RLVOL_DECISION_TIME_INVALID'));
     assert.throws(() => RLVOL.finalizeRoughnessBootstrap({ contractVersion: 'wrong/v1' }),
         (err) => err && err.code === 'RLVOL_CONTRACT_VERSION');
+});
+
+/* ═══════════ SCOPE-028-04: Integration, Snapshot, Compatibility, Performance, and Release Proof ═══════════ */
+
+/* ── TP-028-04-01 / SCN-028-011: one immutable cached-snapshot evaluation, honestly labeled stale ── */
+
+test('Regression: SCN-028-011 evaluates one immutable cached snapshot without ensureBars', () => {
+    const bars = syntheticBars(2000, 4242);
+    const settings = RLVOL.roughnessSettings();
+
+    /* Mirrors readCachedBars()+enableRoughness() in volatility-sizing-lab.html: a frozen snapshot
+       of `runtime.bars` plus its RLDATA.barInfo() derived metadata is captured ONCE. This test
+       proves the formula-owned diagnostic accepts and computes from a source explicitly marked
+       "stale" (a usable-but-old cache, distinct from "unavailable" meaning no rows at all) rather
+       than silently promoting it to "fresh" or refusing to compute. */
+    const staleRetrievedAt = '2000-01-01T00:00:00.000Z'; // far in the past relative to decisionTime
+    const staleInput = baseInput(bars, {
+        settings,
+        decisionTime: '2005-01-01T00:00:00.000Z',
+        source: {
+            id: 'test-source', url: null, symbol: 'TESTX', interval: '1d',
+            observedAsOf: '2000-01-01', retrievedAt: staleRetrievedAt,
+            freshness: 'stale', sourceObservationCount: bars.length
+        }
+    });
+
+    const proxy = RLVOL.buildObservedLogVolPath(staleInput);
+    assert.ok(proxy.retainedObservationCount >= settings.minimumProxyObservations,
+        'the stale-but-present snapshot must still be computed, never withheld merely for being stale');
+
+    let state = RLVOL.startRoughnessBootstrap(proxy.values, settings, {
+        parentDecisionId: staleInput.parentDecisionId, decisionTime: staleInput.decisionTime, source: staleInput.source
+    });
+    state = RLVOL.stepRoughnessBootstrap(state, settings.bootstrapResamples);
+    const finalized = RLVOL.finalizeRoughnessBootstrap(state);
+    const diagnostic = RLVOL.buildRoughnessDiagnostic(staleInput, finalized);
+
+    /* the diagnostic computed (state is not "unavailable" merely because the source is stale) and
+       carries the exact source timing forward for presentation to label, unmodified */
+    assert.notEqual(diagnostic.state, 'unavailable');
+    assert.equal(diagnostic.source.freshness, 'stale');
+    assert.equal(diagnostic.source.retrievedAt, staleRetrievedAt);
+
+    /* a second, fresh-labeled evaluation over the IDENTICAL bars produces the identical canonical
+       diagnostic bytes except for the source metadata itself — proving the formula performs no
+       hidden re-fetch, re-derivation, or second read of "current" staleness on its own */
+    const freshInput = baseInput(bars, {
+        settings,
+        decisionTime: staleInput.decisionTime,
+        parentDecisionId: staleInput.parentDecisionId,
+        source: Object.assign({}, staleInput.source, { freshness: 'fresh' })
+    });
+    let freshState = RLVOL.startRoughnessBootstrap(proxy.values, settings, {
+        parentDecisionId: freshInput.parentDecisionId, decisionTime: freshInput.decisionTime, source: freshInput.source
+    });
+    freshState = RLVOL.stepRoughnessBootstrap(freshState, settings.bootstrapResamples);
+    const freshFinalized = RLVOL.finalizeRoughnessBootstrap(freshState);
+    const freshDiagnostic = RLVOL.buildRoughnessDiagnostic(freshInput, freshFinalized);
+    /* diagnosticId and bootstrap.seedIdentity are, by design, derived FROM source (Feature 028's
+       identity basis includes parentDecisionId/decisionTime/source — see basisForIdentity in
+       rlvol.js), so a freshness-label change legitimately changes them; every other computed
+       evidence field must be identical since the underlying bars and formulas did not change. */
+    const withoutSource = (d) => Object.assign({}, d, {
+        source: undefined, computedAt: undefined, diagnosticId: undefined,
+        bootstrap: Object.assign({}, d.bootstrap, { seedIdentity: undefined })
+    });
+    assert.deepEqual(JSON.parse(JSON.stringify(withoutSource(diagnostic))), JSON.parse(JSON.stringify(withoutSource(freshDiagnostic))),
+        'only the source freshness label (and its identity-basis derivatives) differs; every computed evidence field is unaffected by the stale/fresh label itself');
+
+    /* the immutable snapshot contract: neither call above ever names or requires ensureBars/hydrate/fetch —
+       buildRoughnessDiagnostic and its formula-owned bootstrap stages take only an explicit bars array and
+       never reference a global RLDATA, network, or timer surface (this module is the pure UMD formula owner) */
+    const rlvolSource = readFileSync(new URL('../rlvol.js', import.meta.url), 'utf8');
+    assert.ok(!/ensureBars|\bhydrate\s*\(|\bfetch\s*\(/.test(rlvolSource),
+        'rlvol.js must call no ensureBars, hydrate, or fetch from any formula path');
+
+    /* an independent, already-in-flight refresh producing a DIFFERENT bars array is simply a
+       different input to a fresh diagnostic build — it never mutates the frozen snapshot already
+       captured above; the diagnosticId changes because the underlying evidence genuinely changed */
+    const refreshedBars = syntheticBars(2000, 4242).concat([{ t: bars[bars.length - 1].t + 86400000, c: bars[bars.length - 1].c * 1.01 }]);
+    const refreshedInput = baseInput(refreshedBars, { settings, decisionTime: staleInput.decisionTime, parentDecisionId: staleInput.parentDecisionId, source: freshInput.source });
+    const refreshedProxy = RLVOL.buildObservedLogVolPath(refreshedInput);
+    let refreshedState = RLVOL.startRoughnessBootstrap(refreshedProxy.values, settings, {
+        parentDecisionId: refreshedInput.parentDecisionId, decisionTime: refreshedInput.decisionTime, source: refreshedInput.source
+    });
+    refreshedState = RLVOL.stepRoughnessBootstrap(refreshedState, settings.bootstrapResamples);
+    const refreshedFinalized = RLVOL.finalizeRoughnessBootstrap(refreshedState);
+    const refreshedDiagnostic = RLVOL.buildRoughnessDiagnostic(refreshedInput, refreshedFinalized);
+    assert.notEqual(refreshedDiagnostic.diagnosticId, diagnostic.diagnosticId,
+        'a later independent refresh with different bars must produce a distinct diagnostic identity rather than silently overwriting the earlier frozen snapshot result');
+    /* and the ORIGINAL diagnostic object, already returned above, remains byte-identical: nothing
+       mutated it when the "independent refresh" input was built and evaluated afterward */
+    assert.equal(RLVOL.canonicalize(diagnostic), RLVOL.canonicalize(RLVOL.buildRoughnessDiagnostic(staleInput, finalized)));
+});
+
+/* ── TP-028-04-02 / SCN-028-012: browser-global and CommonJS diagnostics are canonically identical ── */
+
+test('SCN-028-012 browser-global and CommonJS diagnostics are canonically identical', () => {
+    /* Load the EXACT same rlvol.js source text a second time, executed under a vm sandbox that has
+       no `module`/`module.exports` object — forcing the UMD factory down its browser-global
+       `globalThis.RLVOL = api` branch instead of the `module.exports = api` branch createRequire()
+       already exercised for the RLVOL binding used throughout this file. This proves the two UMD
+       consumption paths are not just similarly-shaped but produce byte-identical results from
+       identical input, per Hard Constraint 8. */
+    const source = readFileSync(new URL('../rlvol.js', import.meta.url).pathname, 'utf8');
+    /* an EMPTY sandbox, contextified by vm itself: vm.createContext() gives this context its own
+       fresh realm intrinsics (its own Array, Object, JSON, ...). rlvol.js's own isPlainObject()
+       compares Object.getPrototypeOf(value) against ITS OWN realm's Object.prototype, so a plain
+       object built in the outer (Node test) realm and handed across the boundary would fail that
+       check even though it is a perfectly ordinary object — the classic cross-realm-identity trap.
+       The fix used below is to build the packet AND run the whole diagnostic INSIDE the vm realm
+       from a JSON string (primitives only cross the boundary), so every object the formula inspects
+       is a same-realm object, exactly like a real browser page never sharing objects with Node. */
+    const sandbox = { console };
+    vm.createContext(sandbox);
+    vm.runInContext('(function(){' + source + '\n})();', sandbox, { filename: 'rlvol.browser-global.vm.js' });
+    const BrowserRLVOL = sandbox.RLVOL;
+    assert.equal(typeof BrowserRLVOL, 'object', 'the browser-global UMD branch must attach RLVOL to globalThis when no CommonJS module object exists');
+    assert.notEqual(BrowserRLVOL, RLVOL, 'the two consumers must be genuinely separate module evaluations, not the same cached object');
+
+    const bars = syntheticBars(1200, 777);
+    const settings = RLVOL.roughnessSettings();
+    const packet = baseInput(bars, { settings, decisionTime: '2003-05-01T00:00:00.000Z' });
+    const packetJson = JSON.stringify(packet);
+
+    function runDiagnosticNode() {
+        const proxy = RLVOL.buildObservedLogVolPath(packet);
+        const seedIdentity = { parentDecisionId: packet.parentDecisionId, decisionTime: packet.decisionTime, source: packet.source };
+        let state = RLVOL.startRoughnessBootstrap(proxy.values, packet.settings, seedIdentity);
+        // exercise batch sizes 1, 7, 25 and the remainder — proving both consumers share one deterministic start-index sequence
+        [1, 7, 25].forEach((batch) => { state = RLVOL.stepRoughnessBootstrap(state, batch); });
+        while (state.nextResampleIndex < packet.settings.bootstrapResamples) state = RLVOL.stepRoughnessBootstrap(state, 500);
+        const finalized = RLVOL.finalizeRoughnessBootstrap(state);
+        return RLVOL.buildRoughnessDiagnostic(packet, finalized);
+    }
+
+    const nodeDiagnostic = runDiagnosticNode();
+
+    sandbox.PACKET_JSON = packetJson;
+    const browserResultJson = vm.runInContext(
+        'JSON.stringify((function () {' +
+        '  var packet = JSON.parse(PACKET_JSON);' +
+        '  var proxy = RLVOL.buildObservedLogVolPath(packet);' +
+        '  var seedIdentity = { parentDecisionId: packet.parentDecisionId, decisionTime: packet.decisionTime, source: packet.source };' +
+        '  var state = RLVOL.startRoughnessBootstrap(proxy.values, packet.settings, seedIdentity);' +
+        '  [1, 7, 25].forEach(function (batch) { state = RLVOL.stepRoughnessBootstrap(state, batch); });' +
+        '  while (state.nextResampleIndex < packet.settings.bootstrapResamples) state = RLVOL.stepRoughnessBootstrap(state, 500);' +
+        '  var finalized = RLVOL.finalizeRoughnessBootstrap(state);' +
+        '  var diagnostic = RLVOL.buildRoughnessDiagnostic(packet, finalized);' +
+        '  return { canonical: RLVOL.canonicalize(diagnostic), diagnostic: diagnostic };' +
+        '})());',
+        sandbox, { filename: 'rlvol.browser-global.run.vm.js' }
+    );
+    const browserResult = JSON.parse(browserResultJson);
+    const browserDiagnostic = browserResult.diagnostic;
+
+    assert.equal(browserResult.canonical, RLVOL.canonicalize(nodeDiagnostic),
+        'canonical bytes (each produced by RLVOL.canonicalize() in its OWN realm) must be identical between the browser-global and CommonJS UMD consumers');
+    assert.equal(browserDiagnostic.diagnosticId, nodeDiagnostic.diagnosticId);
+    assert.equal(browserDiagnostic.state, nodeDiagnostic.state);
+    assert.deepEqual(browserDiagnostic.reasons, nodeDiagnostic.reasons);
+    assert.deepEqual(browserDiagnostic.bootstrap, nodeDiagnostic.bootstrap);
+    assert.deepEqual(browserDiagnostic.conclusion, nodeDiagnostic.conclusion);
+
+    /* the pre-existing Feature 011 registry trio (buildVolDecisionRead/projectVolToolRead/canonicalize)
+       is present and functionally identical on both UMD branches too — this module has one owner */
+    assert.equal(typeof BrowserRLVOL.buildVolDecisionRead, 'function');
+    assert.equal(typeof BrowserRLVOL.projectVolToolRead, 'function');
+    assert.equal(typeof BrowserRLVOL.buildDiagnosticProjection, 'function');
 });

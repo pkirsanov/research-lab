@@ -18,7 +18,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_BINDING="$SCRIPT_DIR/repository-binding.sh"
-SESSION_STATE_LIB="$SCRIPT_DIR/session-state-lib.sh"
 
 usage() {
   cat <<'EOF'
@@ -26,9 +25,13 @@ Usage: bash bubbles/scripts/state-snapshot.sh \
          --phase <name> [--scope-id <id>] [--note <string>] [--mode <start|end>] \
          [--posture <autonomy>] \
          [--context-boundary <kind>[:<checkpointId>]] \
+         [--mbe-posture <off|shadow|advisory|reference-enforce> \
+          --mbe-store-root <path> --mbe-epoch-context <path>] \
          [--decision <text> [--decision-principle <name>] [--decision-chose <option>] \
           [--decision-considered <csv>]] \
          [--convergence-iteration <N> --spec-dir <path>] \
+         [--session-budget-json <object> \
+          --expected-session-budget-revision <N>] \
          [--scenario-file <compiled-scenario.json> --node-id <node-id>] \
          --session-id <id> --session-control-file <path> --binding-packet-file <path>
 
@@ -63,17 +66,22 @@ Optional:
   --mode <start|end>   Records turn-start (default) or turn-end.
   --convergence-iteration <N>
                        Integer ≥ 0. When supplied alongside --spec-dir,
-                       append-preserves the summary keyed by canonical specDir
-                       plus the current Goal Contract identity core. Updates
-                       must be equal (idempotent) or advance by exactly one.
-                       Legacy goal-free records retain their historical
-                       (specDir, agent) compatibility key. Enforced by Gate
-                       G082 via `bubbles/scripts/convergence-cap-guard.sh`.
-                       Both --convergence-iteration and --spec-dir MUST be
+                       additively writes/updates the
+                       (hostSessionId, specDir, agent)
+                       entry in `convergenceLoops[]`. Enforced by Gate G082
+                       via `bubbles/scripts/convergence-cap-guard.sh`. Both
+                       --convergence-iteration and --spec-dir MUST be
                        supplied together; supplying only one is an error.
   --spec-dir <path>    Spec directory (repo-relative) that the
                        convergence iteration refers to. Paired with
                        --convergence-iteration.
+  --session-budget-json <object>
+                       Exact seven-cap session policy to append. Paired with
+                       --expected-session-budget-revision. The first write
+                       expects 0. A correction expects the unique current head.
+  --expected-session-budget-revision <N>
+                       Non-negative compare-and-append revision. Paired with
+                       --session-budget-json.
   -h, --help           Print this usage and exit.
 
 Behavior:
@@ -130,6 +138,14 @@ SESSION_CONTROL_FILE=""
 BINDING_PACKET_FILE=""
 SCENARIO_FILE=""
 NODE_ID=""
+MBE_POSTURE="off"
+MBE_STORE_ROOT=""
+MBE_EPOCH_CONTEXT=""
+MBE_EPOCH_JSON=""
+SESSION_BUDGET_JSON=""
+EXPECTED_SESSION_BUDGET_REVISION=""
+SESSION_BUDGET_FLAG_SEEN=0
+EXPECTED_SESSION_BUDGET_REVISION_FLAG_SEEN=0
 
 if [[ $# -eq 0 ]]; then
   usage >&2
@@ -194,6 +210,21 @@ while [[ $# -gt 0 ]]; do
       fi
       shift 2
       ;;
+    --mbe-posture)
+      [[ $# -ge 2 ]] || { echo "state-snapshot: --mbe-posture requires a value" >&2; exit 2; }
+      MBE_POSTURE="$2"
+      shift 2
+      ;;
+    --mbe-store-root)
+      [[ $# -ge 2 ]] || { echo "state-snapshot: --mbe-store-root requires a value" >&2; exit 2; }
+      MBE_STORE_ROOT="$2"
+      shift 2
+      ;;
+    --mbe-epoch-context)
+      [[ $# -ge 2 ]] || { echo "state-snapshot: --mbe-epoch-context requires a value" >&2; exit 2; }
+      MBE_EPOCH_CONTEXT="$2"
+      shift 2
+      ;;
     --decision)
       [[ $# -ge 2 ]] || { echo "state-snapshot: --decision requires a value" >&2; exit 2; }
       DECISION="$2"
@@ -222,6 +253,26 @@ while [[ $# -gt 0 ]]; do
     --spec-dir)
       [[ $# -ge 2 ]] || { echo "state-snapshot: --spec-dir requires a value" >&2; exit 2; }
       SPEC_DIR="$2"
+      shift 2
+      ;;
+    --session-budget-json)
+      [[ $# -ge 2 ]] || { echo "state-snapshot: --session-budget-json requires a value" >&2; exit 2; }
+      [[ "$SESSION_BUDGET_FLAG_SEEN" -eq 0 ]] || {
+        echo "state-snapshot: duplicate --session-budget-json is ambiguous" >&2
+        exit 2
+      }
+      SESSION_BUDGET_FLAG_SEEN=1
+      SESSION_BUDGET_JSON="$2"
+      shift 2
+      ;;
+    --expected-session-budget-revision)
+      [[ $# -ge 2 ]] || { echo "state-snapshot: --expected-session-budget-revision requires a value" >&2; exit 2; }
+      [[ "$EXPECTED_SESSION_BUDGET_REVISION_FLAG_SEEN" -eq 0 ]] || {
+        echo "state-snapshot: duplicate --expected-session-budget-revision is ambiguous" >&2
+        exit 2
+      }
+      EXPECTED_SESSION_BUDGET_REVISION_FLAG_SEEN=1
+      EXPECTED_SESSION_BUDGET_REVISION="$2"
       shift 2
       ;;
     --session-id)
@@ -276,6 +327,20 @@ if [[ -n "$SPEC_DIR" && -z "$CONV_ITER" ]]; then
   exit 2
 fi
 
+if [[ -n "$SESSION_BUDGET_JSON" && -z "$EXPECTED_SESSION_BUDGET_REVISION" ]]; then
+  echo "state-snapshot: --session-budget-json requires --expected-session-budget-revision" >&2
+  exit 2
+fi
+if [[ -n "$EXPECTED_SESSION_BUDGET_REVISION" && -z "$SESSION_BUDGET_JSON" ]]; then
+  echo "state-snapshot: --expected-session-budget-revision requires --session-budget-json" >&2
+  exit 2
+fi
+if [[ -n "$EXPECTED_SESSION_BUDGET_REVISION" ]] &&
+  ! [[ "$EXPECTED_SESSION_BUDGET_REVISION" =~ ^[0-9]+$ ]]; then
+  echo "state-snapshot: --expected-session-budget-revision must be a non-negative integer" >&2
+  exit 2
+fi
+
 # Validate --convergence-iteration is a non-negative integer.
 if [[ -n "$CONV_ITER" ]]; then
   if ! [[ "$CONV_ITER" =~ ^[0-9]+$ ]]; then
@@ -297,6 +362,21 @@ case "$MODE" in
     exit 2
     ;;
 esac
+
+case "$MBE_POSTURE" in
+  off | shadow | advisory | reference-enforce) ;;
+  *) echo "state-snapshot: --mbe-posture must be off, shadow, advisory, or reference-enforce (got: $MBE_POSTURE)" >&2; exit 2 ;;
+esac
+if [[ "$MBE_POSTURE" != "off" && -n "$MBE_STORE_ROOT" && -n "$MBE_EPOCH_CONTEXT" ]]; then
+  MBE_EPOCH_JSON="$(python3 "$SCRIPT_DIR/mbe-reference-verify.py" \
+    --store-root "$MBE_STORE_ROOT" --context "$MBE_EPOCH_CONTEXT" --purpose epoch 2>/dev/null || true)"
+fi
+if [[ "$MBE_POSTURE" == "reference-enforce" ]]; then
+  [[ -n "$CONTEXT_BOUNDARY_KIND" ]] || { echo "state-snapshot: reference-enforce requires --context-boundary" >&2; exit 3; }
+  [[ -n "$MBE_STORE_ROOT" && -d "$MBE_STORE_ROOT" ]] || { echo "state-snapshot: reference-enforce requires an existing --mbe-store-root" >&2; exit 3; }
+  [[ -n "$MBE_EPOCH_CONTEXT" && -f "$MBE_EPOCH_CONTEXT" ]] || { echo "state-snapshot: reference-enforce requires an existing --mbe-epoch-context" >&2; exit 3; }
+  [[ -n "$MBE_EPOCH_JSON" ]] || { echo "state-snapshot: reference-enforce requires a verified MBE epoch" >&2; exit 3; }
+fi
 
 # Record the posture that produced this turn, so an audit never has to
 # reconstruct the operator's shell environment. A resolver failure (e.g. an
@@ -326,19 +406,39 @@ if ! command -v jq >/dev/null 2>&1; then
   exit 3
 fi
 
-[[ -f "$SESSION_STATE_LIB" ]] || { echo "state-snapshot: session-state library missing at $SESSION_STATE_LIB" >&2; exit 3; }
-# shellcheck source=session-state-lib.sh
-source "$SESSION_STATE_LIB"
-
 # --- Validated repository root ---------------------------------------------
 
 [[ -f "$REPOSITORY_BINDING" ]] || { echo "state-snapshot: repository binding validator missing at $REPOSITORY_BINDING" >&2; exit 3; }
 NORMALIZED_PACKET_FILE=""
-SNAPSHOT_NORMALIZED_FILE=""
+TMP_FILE=""
+CONV_TMP=""
+POLICY_TMP=""
+PRE_TRANSACTION_STATE=""
+
+# --- Exclusive descriptor-safe transaction --------------------------------
+#
+# The outer process validates packet authority before deriving any repository
+# path. It then delegates one complete state transaction to session-state-io.py.
+# The helper creates missing parent directories without following symlinks.
+# Its flock strategy opens without truncation and rechecks descriptor identity.
+# Its mkdir strategy rechecks both directory and holder identity before cleanup.
+# The child holds that lock across mirror, policy, turn, and convergence writes.
+SESSION_LOCK_STRATEGY=""
+LOCK_TRANSACTION_MODE="${BUBBLES_STATE_SNAPSHOT_LOCK_TRANSACTION:-}"
+
+# Detect flock once before dispatching the helper-owned transaction.
+session_lock_have_flock() {
+  command -v flock >/dev/null 2>&1
+}
+
+_lock_trace() { [[ -z "${BUBBLES_LOCK_TRACE:-}" ]] || printf '%s %s %s %s\n' "$(date +%s.%N)" "$1" "$$" "$SESSION_LOCK_STRATEGY" >> "$BUBBLES_LOCK_TRACE" 2>/dev/null || true; } # LOCKTRACE-DEBUG
 
 cleanup_temp_files() {
   [[ -z "$NORMALIZED_PACKET_FILE" ]] || rm -f "$NORMALIZED_PACKET_FILE"
-  [[ -z "$SNAPSHOT_NORMALIZED_FILE" ]] || rm -f "$SNAPSHOT_NORMALIZED_FILE"
+  [[ -z "$TMP_FILE" ]] || rm -f "$TMP_FILE"
+  [[ -z "$CONV_TMP" ]] || rm -f "$CONV_TMP"
+  [[ -z "$POLICY_TMP" ]] || rm -f "$POLICY_TMP"
+  [[ -z "$PRE_TRANSACTION_STATE" ]] || rm -f "$PRE_TRANSACTION_STATE"
 }
 
 trap cleanup_temp_files EXIT
@@ -352,9 +452,6 @@ cp -- "$BINDING_PACKET_FILE" "$NORMALIZED_PACKET_FILE" || {
 }
 chmod 600 "$NORMALIZED_PACKET_FILE"
 
-# Validate the private packet copy before trusting its repository root. This
-# read-only check also validates any requested goal node. The validated bytes
-# become immutable callback input; no repository writer is nested here.
 MIRROR_GOAL_NODE_ARGS=()
 if [[ -n "$SCENARIO_FILE" ]]; then
   MIRROR_GOAL_NODE_ARGS=(--scenario-file "$SCENARIO_FILE" --node-id "$NODE_ID")
@@ -365,7 +462,7 @@ BINDING_OUTPUT="$(bash "$REPOSITORY_BINDING" validate-packet \
   --session-id "$SESSION_ID" \
   --session-control-file "$SESSION_CONTROL_FILE" \
   --packet-file "$NORMALIZED_PACKET_FILE" \
-  "${MIRROR_GOAL_NODE_ARGS[@]}" 2>&1)"
+  ${MIRROR_GOAL_NODE_ARGS[@]+"${MIRROR_GOAL_NODE_ARGS[@]}"} 2>&1)"
 BINDING_RC=$?
 set -e
 if [[ "$BINDING_RC" -ne 0 ]]; then
@@ -373,379 +470,424 @@ if [[ "$BINDING_RC" -ne 0 ]]; then
   exit "$BINDING_RC"
 fi
 
-# Freeze all callback inputs after external packet validation. The callback
-# reads only the transaction's locked snapshot and commits mirror, turn,
-# optional decision/context, and convergence state as one object.
-PACKET_JSON="$(cat "$NORMALIZED_PACKET_FILE")"
-REPO_ROOT="$(jq -r '.repositoryRoot' <<< "$PACKET_JSON")"
+REPO_ROOT="$(jq -r '.repositoryRoot' "$NORMALIZED_PACKET_FILE")"
+PACKET_SESSION_ID="$(jq -r '.repositoryResolution.sessionId' "$NORMALIZED_PACKET_FILE")"
+if [[ "$PACKET_SESSION_ID" != "$SESSION_ID" ]]; then
+  echo "state-snapshot: validated packet session does not match --session-id" >&2
+  exit 2
+fi
+SESSION_STATE_IO="$SCRIPT_DIR/session-state-io.py"
+[[ -f "$SESSION_STATE_IO" ]] || {
+  echo "state-snapshot: session state I/O helper is unavailable" >&2
+  exit 3
+}
+if ! command -v python3 >/dev/null 2>&1; then
+  echo "state-snapshot: python3 is required for descriptor-safe session state I/O." >&2
+  exit 3
+fi
 SESSION_DIR="$REPO_ROOT/.specify/memory"
 SESSION_FILE="$SESSION_DIR/bubbles.session.json"
 
-# Preserve the repository mirror command's session-path boundary while snapshot
-# consumes the validated packet as data instead of invoking another writer.
-if [[ -L "$REPO_ROOT/.specify" || -L "$SESSION_DIR" || -L "$SESSION_FILE" ]]; then
-  printf '%s\n' 'REPOSITORY MIRROR REFUSED reason=SESSION_MIRROR_SYMLINK repoLocalSideEffects=zero' >&2
-  exit 1
-fi
-mkdir -p "$SESSION_DIR" || exit 3
-if [[ -L "$REPO_ROOT/.specify" || -L "$SESSION_DIR" || -L "$SESSION_FILE" ]] ||
-  [[ "$(cd -P "$SESSION_DIR" 2>/dev/null && pwd -P)" != "$SESSION_DIR" ]]; then
-  printf '%s\n' 'REPOSITORY MIRROR REFUSED reason=SESSION_MIRROR_SYMLINK repoLocalSideEffects=zero' >&2
-  exit 1
+# Resolve posture only after packet authority establishes the repository and
+# exact host session. A first policy write supplies its requested boundedness.
+# Every later unattended lookup reads only the validated session policy head.
+if [[ -z "$POSTURE" && -x "$SCRIPT_DIR/autonomy-resolve.sh" ]]; then
+  AUTONOMY_ARGS=(--format json --repo-root "$REPO_ROOT")
+  if [[ -n "$SESSION_BUDGET_JSON" ]]; then
+    REQUESTED_BUDGET_STATE="$(jq -r '
+      [
+        .maxTotalConvergenceIterations,
+        .maxWallClockMinutes,
+        .maxToolCalls,
+        .maxSingleToolResultBytes,
+        .maxCumulativeToolResultBytes,
+        .maxPromptTokensPerRequest,
+        .maxCumulativePromptTokens
+      ]
+      | if any(.[]; . != null) then "bounded" else "unbounded" end
+    ' <<< "$SESSION_BUDGET_JSON")"
+    AUTONOMY_ARGS+=(--session-budget "$REQUESTED_BUDGET_STATE")
+  else
+    AUTONOMY_ARGS+=(
+      --session-id "$SESSION_ID"
+      --session-control-file "$SESSION_CONTROL_FILE"
+      --binding-packet-file "$NORMALIZED_PACKET_FILE"
+    )
+    if [[ -n "$SCENARIO_FILE" ]]; then
+      AUTONOMY_ARGS+=(--scenario-file "$SCENARIO_FILE" --node-id "$NODE_ID")
+    fi
+  fi
+  POSTURE="$(bash "$SCRIPT_DIR/autonomy-resolve.sh" \
+    ${AUTONOMY_ARGS[@]+"${AUTONOMY_ARGS[@]}"} 2>/dev/null |
+    sed -n 's/.*"autonomy":"\([^"]*\)".*/\1/p')"
 fi
 
-AUTHORITY_CONTEXT="$(session_state_authority_context "$REPO_ROOT" "$PACKET_JSON" packet)" || exit $?
-AGENT_NAME="${BUBBLES_AGENT_NAME:-unknown}"
-session_state_validate_agent "$AGENT_NAME" || exit $?
+PRE_TRANSACTION_STATE=""
+if [[ -n "${BUBBLES_STATE_SNAPSHOT_TRANSACTION_ACTIVE:-}" && -n "$SESSION_BUDGET_JSON" ]]; then
+  PRE_TRANSACTION_STATE="$(mktemp)"
+  chmod 600 "$PRE_TRANSACTION_STATE"
+  if [[ -f "$SESSION_FILE" ]]; then
+    cp -- "$SESSION_FILE" "$PRE_TRANSACTION_STATE"
+  else
+    printf '{}\n' > "$PRE_TRANSACTION_STATE"
+  fi
+fi
 
+case "$LOCK_TRANSACTION_MODE" in
+  "")
+    if session_lock_have_flock; then
+      SESSION_LOCK_STRATEGY="flock-run"
+    else
+      SESSION_LOCK_STRATEGY="mkdir-run"
+    fi
+    ;;
+  flock|flock-run) SESSION_LOCK_STRATEGY="flock-run" ;;
+  mkdir|mkdir-run) SESSION_LOCK_STRATEGY="mkdir-run" ;;
+  *)
+    echo "state-snapshot: invalid BUBBLES_STATE_SNAPSHOT_LOCK_TRANSACTION" >&2
+    exit 2
+    ;;
+esac
+
+TRANSACTION_ARGS=(
+  --phase "$PHASE"
+  --mode "$MODE"
+  --session-id "$SESSION_ID"
+  --session-control-file "$SESSION_CONTROL_FILE"
+  --binding-packet-file "$NORMALIZED_PACKET_FILE"
+)
+[[ -z "$SCOPE_ID" ]] || TRANSACTION_ARGS+=(--scope-id "$SCOPE_ID")
+[[ -z "$OCCURRENCE_ID" ]] || TRANSACTION_ARGS+=(--occurrence-id "$OCCURRENCE_ID")
+[[ -z "$NOTE" ]] || TRANSACTION_ARGS+=(--note "$NOTE")
+[[ -z "$POSTURE" ]] || TRANSACTION_ARGS+=(--posture "$POSTURE")
+if [[ -n "$CONTEXT_BOUNDARY_KIND" ]]; then
+  if [[ -n "$CONTEXT_BOUNDARY_ID" ]]; then
+    TRANSACTION_ARGS+=(--context-boundary "$CONTEXT_BOUNDARY_KIND:$CONTEXT_BOUNDARY_ID")
+  else
+    TRANSACTION_ARGS+=(--context-boundary "$CONTEXT_BOUNDARY_KIND")
+  fi
+fi
+[[ -z "$DECISION" ]] || TRANSACTION_ARGS+=(--decision "$DECISION")
+[[ -z "$DECISION_PRINCIPLE" ]] || TRANSACTION_ARGS+=(--decision-principle "$DECISION_PRINCIPLE")
+[[ -z "$DECISION_CHOSE" ]] || TRANSACTION_ARGS+=(--decision-chose "$DECISION_CHOSE")
+[[ -z "$DECISION_CONSIDERED" ]] || TRANSACTION_ARGS+=(--decision-considered "$DECISION_CONSIDERED")
 if [[ -n "$CONV_ITER" ]]; then
-  SPEC_DIR="$(session_state_canonical_spec "$REPO_ROOT" "$SPEC_DIR")" || exit $?
+  TRANSACTION_ARGS+=(--convergence-iteration "$CONV_ITER" --spec-dir "$SPEC_DIR")
+fi
+if [[ -n "$SESSION_BUDGET_JSON" ]]; then
+  TRANSACTION_ARGS+=(
+    --session-budget-json "$SESSION_BUDGET_JSON"
+    --expected-session-budget-revision "$EXPECTED_SESSION_BUDGET_REVISION"
+  )
+fi
+if [[ -n "$SCENARIO_FILE" ]]; then
+  TRANSACTION_ARGS+=(--scenario-file "$SCENARIO_FILE" --node-id "$NODE_ID")
 fi
 
+if [[ -z "${BUBBLES_STATE_SNAPSHOT_TRANSACTION_ACTIVE:-}" ]]; then
+  if [[ "$SESSION_LOCK_STRATEGY" == "flock-run" ]]; then
+    LOCK_RELATIVE_PATH=".specify/runtime/session-state/bubbles.session.json.flock"
+  else
+    LOCK_RELATIVE_PATH=".specify/runtime/session-state/bubbles.session.json.lock"
+  fi
+  _lock_trace REQUEST
+  BUBBLES_STATE_SNAPSHOT_TRANSACTION_ACTIVE=1 \
+    BUBBLES_STATE_SNAPSHOT_LOCK_TRANSACTION="$SESSION_LOCK_STRATEGY" \
+    BUBBLES_AGENT_NAME="${BUBBLES_AGENT_NAME:-}" \
+    python3 "$SESSION_STATE_IO" "$SESSION_LOCK_STRATEGY" \
+      --root "$REPO_ROOT" \
+      --relative-lock "$LOCK_RELATIVE_PATH" \
+      --timeout-seconds 120 -- \
+      "$BASH" "${BASH_SOURCE[0]}" ${TRANSACTION_ARGS[@]+"${TRANSACTION_ARGS[@]}"}
+  exit $?
+fi
+
+AGENT_NAME="${BUBBLES_AGENT_NAME:-unknown}"
 TIMESTAMP="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-SNAPSHOT_MUTATION_JSON="$(jq -cn \
+
+# --- Exact-session policy compare-and-append -------------------------------
+
+if [[ -n "$SESSION_BUDGET_JSON" ]]; then
+  if [[ -n "$PRE_TRANSACTION_STATE" ]]; then
+    POLICY_SOURCE_FILE="$PRE_TRANSACTION_STATE"
+  else
+    POLICY_SOURCE_FILE="$SESSION_FILE"
+  fi
+  POLICY_TMP="$(mktemp)"
+  chmod 600 "$POLICY_TMP"
+  set +e
+  jq \
+    --arg hostSessionId "$SESSION_ID" \
+    --arg recordedAt "$TIMESTAMP" \
+    --argjson expectedRevision "$EXPECTED_SESSION_BUDGET_REVISION" \
+    --argjson requestedBudget "$SESSION_BUDGET_JSON" '
+    def cap_keys:
+      ["schemaVersion", "maxTotalConvergenceIterations", "maxWallClockMinutes",
+       "maxToolCalls", "maxSingleToolResultBytes", "maxCumulativeToolResultBytes",
+       "maxPromptTokensPerRequest", "maxCumulativePromptTokens"];
+    def outer_keys:
+      ["recordSchemaVersion", "hostSessionId", "revision", "supersedesRevision",
+       "recordedAt", "budget"];
+    def valid_timestamp:
+      type == "string"
+      and test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")
+      and (try (fromdateiso8601 | type == "number") catch false);
+    def valid_budget:
+      type == "object"
+      and ((keys - cap_keys) | length) == 0
+      and .schemaVersion == 1
+      and ([cap_keys[1:][] as $key
+        | ((has($key) | not) or .[$key] == null
+           or ((.[$key] | type) == "number" and (.[$key] | floor) == .[$key] and .[$key] >= 0))]
+        | all);
+    def valid_record:
+      type == "object"
+      and ((keys | sort) == (outer_keys | sort))
+      and .recordSchemaVersion == 1
+      and (.hostSessionId | type) == "string" and (.hostSessionId | length) > 0
+      and (.revision | type) == "number" and (.revision | floor) == .revision and .revision > 0
+      and (.supersedesRevision == null
+           or ((.supersedesRevision | type) == "number"
+               and (.supersedesRevision | floor) == .supersedesRevision
+               and .supersedesRevision > 0
+               and .supersedesRevision < .revision))
+      and (.recordedAt | valid_timestamp)
+      and (.budget | valid_budget);
+    def normalized_budget:
+      {
+        schemaVersion: 1,
+        maxTotalConvergenceIterations: (.maxTotalConvergenceIterations // null),
+        maxWallClockMinutes: (.maxWallClockMinutes // null),
+        maxToolCalls: (.maxToolCalls // null),
+        maxSingleToolResultBytes: (.maxSingleToolResultBytes // null),
+        maxCumulativeToolResultBytes: (.maxCumulativeToolResultBytes // null),
+        maxPromptTokensPerRequest: (.maxPromptTokensPerRequest // null),
+        maxCumulativePromptTokens: (.maxCumulativePromptTokens // null)
+      };
+    def select_head($records):
+      if ($records | length) == 0 then {revision: 0, budget: null}
+      elif (all($records[]; valid_record) | not) then error("invalid-policy-record")
+      elif (($records | map(.revision) | unique | length) != ($records | length)) then error("duplicate-policy-revision")
+      elif (($records | map(select(.revision == 1 and .supersedesRevision == null)) | length) != 1) then error("missing-policy-root")
+      elif ([$records[] | select(.revision > 1) as $record
+             | (([$records[] | select(.revision == ($record.revision - 1))] | length) != 1
+                or $record.supersedesRevision != ($record.revision - 1))]
+            | any) then error("branching-policy-chain")
+      else ($records | max_by(.revision))
+      end;
+    if (.sessionBudgetHistory? != null and (.sessionBudgetHistory | type) != "array") then
+      error("invalid-policy-history")
+    elif ($requestedBudget | valid_budget | not) then
+      error("invalid-requested-budget")
+    else
+      . as $root
+      | ($root.sessionBudgetHistory // []) as $history
+      | ([$history[] | select(.hostSessionId == $hostSessionId)]) as $records
+      | select_head($records) as $head
+      | ($requestedBudget | normalized_budget) as $normalized
+      | if $head.revision == 0 and $expectedRevision == 0 then
+          $root + {sessionBudgetHistory: ($history + [{
+            recordSchemaVersion: 1,
+            hostSessionId: $hostSessionId,
+            revision: 1,
+            supersedesRevision: null,
+            recordedAt: $recordedAt,
+            budget: $normalized
+          }])}
+        elif $head.revision == 1 and $expectedRevision == 0 and $head.budget == $normalized then
+          $root
+        elif $head.revision != $expectedRevision then
+          error("stale-policy-revision")
+        elif $head.budget == $normalized then
+          $root
+        else
+          $root + {sessionBudgetHistory: ($history + [{
+            recordSchemaVersion: 1,
+            hostSessionId: $hostSessionId,
+            revision: ($head.revision + 1),
+            supersedesRevision: $head.revision,
+            recordedAt: $recordedAt,
+            budget: $normalized
+          }])}
+        end
+    end
+    ' "$POLICY_SOURCE_FILE" > "$POLICY_TMP"
+  POLICY_RC=$?
+  set -e
+  if [[ "$POLICY_RC" -ne 0 ]]; then
+    echo "state-snapshot: session policy compare-and-append refused" >&2
+    exit 4
+  fi
+fi
+
+set +e
+BINDING_OUTPUT="$(bash "$REPOSITORY_BINDING" mirror-session \
+  --session-id "$SESSION_ID" \
+  --session-control-file "$SESSION_CONTROL_FILE" \
+  --packet-file "$NORMALIZED_PACKET_FILE" \
+  ${MIRROR_GOAL_NODE_ARGS[@]+"${MIRROR_GOAL_NODE_ARGS[@]}"} 2>&1)"
+BINDING_RC=$?
+set -e
+if [[ "$BINDING_RC" -ne 0 ]]; then
+  printf '%s\n' "$BINDING_OUTPUT" >&2
+  exit "$BINDING_RC"
+fi
+
+if [[ ! -f "$SESSION_FILE" ]]; then
+  printf '{}\n' > "$SESSION_FILE"
+fi
+
+# --- Build snapshot record -------------------------------------------------
+
+# Compute next turnNumber from existing turnSnapshots array length.
+NEXT_TURN="$(jq '
+  (.turnSnapshots // []) | length + 1
+' "$SESSION_FILE")"
+
+# Append a new record. We use --argjson for ints, --arg for strings, and
+# pass scope_id / note as strings that may be empty (mapped to null below).
+#
+# `goalRef` is DERIVED from `.goalContract` in this same read, never accepted as
+# a flag (IMP-038 SCOPE-3 / GF-1, GF-5). A caller-supplied ref could disagree
+# with the contract the turn actually ran under, which is precisely the
+# substitution this field exists to make detectable. It is `null` for a
+# read-only or pre-IMP-038 run that froze no contract. The projection matches
+# `goal-contract.sh ref` exactly: identity plus boundary, no contract prose.
+TMP_FILE="$(mktemp "$SESSION_DIR/.bubbles.session.json.update.XXXXXX")"
+
+jq \
+  --argjson turn "$NEXT_TURN" \
   --arg timestamp "$TIMESTAMP" \
   --arg phase "$PHASE" \
-  --arg scopeId "$SCOPE_ID" \
-  --arg occurrenceId "$OCCURRENCE_ID" \
+  --arg scope_id "$SCOPE_ID" \
+  --arg occurrence_id "$OCCURRENCE_ID" \
   --arg note "$NOTE" \
   --arg mode "$MODE" \
   --arg posture "$POSTURE" \
-  --arg contextBoundaryKind "$CONTEXT_BOUNDARY_KIND" \
-  --arg contextBoundaryId "$CONTEXT_BOUNDARY_ID" \
+  --arg cbKind "$CONTEXT_BOUNDARY_KIND" \
+  --arg cbId "$CONTEXT_BOUNDARY_ID" \
+  --arg mbePosture "$MBE_POSTURE" \
+  --argjson mbeEpoch "${MBE_EPOCH_JSON:-null}" \
   --arg decision "$DECISION" \
-  --arg decisionPrinciple "$DECISION_PRINCIPLE" \
-  --arg decisionChose "$DECISION_CHOSE" \
-  --arg decisionConsidered "$DECISION_CONSIDERED" \
+  --arg dprinciple "$DECISION_PRINCIPLE" \
+  --arg dchose "$DECISION_CHOSE" \
+  --arg dconsidered "$DECISION_CONSIDERED" \
   --arg agent "$AGENT_NAME" \
-  --arg hostSessionId "$SESSION_ID" \
-  --arg convergenceIteration "$CONV_ITER" \
-  --arg specDir "$SPEC_DIR" \
-  '{
-    timestamp:$timestamp,
-    phase:$phase,
-    scopeId:$scopeId,
-    occurrenceId:$occurrenceId,
-    note:$note,
-    mode:$mode,
-    posture:$posture,
-    contextBoundaryKind:$contextBoundaryKind,
-    contextBoundaryId:$contextBoundaryId,
-    decision:$decision,
-    decisionPrinciple:$decisionPrinciple,
-    decisionChose:$decisionChose,
-    decisionConsidered:$decisionConsidered,
-    agent:$agent,
-    hostSessionId:$hostSessionId,
-    convergenceIteration:(if $convergenceIteration == "" then null else ($convergenceIteration | tonumber) end),
-    specDir:(if $specDir == "" then null else $specDir end)
-  }')" || exit 2
-
-state_snapshot_goal_ref() {
-  local locked_input="$1" authority_context="$2"
-  local contract violations goal_session goal_alias authority_session authority_alias
-
-  if [[ "$(jq -r 'has("goalContract") and .goalContract != null' "$locked_input")" != "true" ]]; then
-    printf '%s' 'null'
-    return 0
-  fi
-
-  contract="$(jq -c '.goalContract' "$locked_input")" || return 2
-  violations="$(session_state_goal_contract_violations "$contract")" || return 2
-  if [[ -n "$violations" ]]; then
-    session_state_diagnostic state-snapshot REFUSED SESSION_GOAL_INVALID \
-      message "current Goal Contract failed complete validation" violations "$violations" >&2
-    return 2
-  fi
-
-  goal_session="$(jq -r '.provenance.sessionId' <<< "$contract")"
-  goal_alias="$(jq -r '.provenance.repositoryAlias' <<< "$contract")"
-  authority_session="$(jq -r '.sessionId' <<< "$authority_context")"
-  authority_alias="$(jq -r '.repositoryAlias' <<< "$authority_context")"
-  if [[ "$goal_session" != "$authority_session" ]]; then
-    session_state_diagnostic state-snapshot REFUSED SESSION_PROVENANCE_SESSION \
-      message "Goal Contract session does not match repository authority" \
-      goalSession "$goal_session" authoritySession "$authority_session" >&2
-    return 2
-  fi
-  if [[ "$goal_alias" != "$authority_alias" ]]; then
-    session_state_diagnostic state-snapshot REFUSED SESSION_PROVENANCE_REPOSITORY \
-      message "Goal Contract repository alias does not match repository authority" \
-      goalRepository "$goal_alias" authorityRepository "$authority_alias" >&2
-    return 2
-  fi
-
-  jq -c '{
-    goalId:.goalId,
-    revision:.revision,
-    sourceRequestDigest:.sourceRequestDigest,
-    workBoundary:.workBoundary
-  } + (if has("semanticBoundary") then {semanticBoundary:.semanticBoundary} else {} end)' <<< "$contract"
-}
-
-state_snapshot_validate_ordinal() {
-  local incoming="$1" previous="$2" authorized="$3" spec_dir="$4"
-  if [[ "$previous" == "none" ]]; then
-    if [[ "$authorized" == "true" && "$incoming" -ne 1 ]]; then
-      echo "state-snapshot: refusing convergence update for a new authorized attempt: first iteration must be 1 (requested=$incoming specDir=$spec_dir)" >&2
-      return 1
-    fi
-    return 0
-  fi
-  if [[ "$incoming" -eq "$previous" || "$incoming" -eq $((previous + 1)) ]]; then
-    return 0
-  fi
-  if [[ "$incoming" -lt "$previous" ]]; then
-    echo "state-snapshot: refusing non-monotonic convergence update for specDir=$spec_dir: current=$previous requested=$incoming" >&2
-    return 1
-  fi
-  echo "state-snapshot: refusing skipped convergence ordinal for specDir=$spec_dir: current=$previous requested=$incoming" >&2
-  return 1
-}
-
-state_snapshot_matching_spellings() {
-  local locked_input="$1" canonical_spec="$2"
-  local count index raw_spec observed result='[]'
-  count="$(jq -r '(.convergenceLoops // []) | length' "$locked_input")" || return 2
-  index=0
-  while [[ "$index" -lt "$count" ]]; do
-    raw_spec="$(jq -r --argjson index "$index" '.convergenceLoops[$index].specDir' "$locked_input")" || return 2
-    observed="$(session_state_canonical_spec "$REPO_ROOT" "$raw_spec")" || return $?
-    if [[ "$observed" == "$canonical_spec" ]]; then
-      result="$(jq -cn --argjson values "$result" --arg value "$raw_spec" '$values + [$value]')" || return 2
-    fi
-    index=$((index + 1))
-  done
-  printf '%s' "$result"
-}
-
-state_snapshot_mutation() {
-  local locked_input="$1" candidate="$2" operation_context="$3"
-  local packet="$4" authority_context="$5" mutation="$6"
-  local timestamp mirror
-  local goal_ref incoming spec_dir agent authorized=false attempt='null'
-  local previous='none' matching_spellings='[]' validation_rc=0
-  : "$operation_context"
-
-  timestamp="$(jq -r '.timestamp' <<< "$mutation")" || return 2
-  mirror="$(jq -cn \
-    --argjson binding "$packet" \
-    --arg timestamp "$timestamp" \
-    '$binding + {
-      mirroredControlRevision: $binding.repositoryResolution.controlRevision,
-      mirroredAt: $timestamp
-    }')" || return 2
-  goal_ref="$(state_snapshot_goal_ref "$locked_input" "$authority_context")" || return $?
-  incoming="$(jq -r '.convergenceIteration // empty' <<< "$mutation")"
-  spec_dir="$(jq -r '.specDir // empty' <<< "$mutation")"
-  agent="$(jq -r '.agent' <<< "$mutation")"
-
-  if [[ -n "$incoming" ]]; then
-    SNAPSHOT_NORMALIZED_FILE="$(mktemp "$(dirname "$candidate")/.state-snapshot.convergence.XXXXXX")" || return 3
-    session_state_validate_convergence "$locked_input" "$REPO_ROOT" "$spec_dir" \
-      "$SNAPSHOT_NORMALIZED_FILE" || validation_rc=$?
-    if [[ "$validation_rc" -ne 0 ]]; then
-      rm -f "$SNAPSHOT_NORMALIZED_FILE"
-      SNAPSHOT_NORMALIZED_FILE=""
-      return "$validation_rc"
-    fi
-
-    if [[ "$goal_ref" != "null" ]]; then
-      authorized=true
-      attempt="$(session_state_authorized_attempt "$locked_input" "$authority_context" "$spec_dir")" || {
-        validation_rc=$?
-        rm -f "$SNAPSHOT_NORMALIZED_FILE"
-        SNAPSHOT_NORMALIZED_FILE=""
-        return "$validation_rc"
-      }
-      previous="$(jq -r --argjson attempt "$attempt" '
-        [.[] | select(
-          .goalRef != null
-          and .goalRef.goalId == $attempt.goalId
-          and .goalRef.revision == $attempt.revision
-          and .goalRef.sourceRequestDigest == $attempt.sourceRequestDigest
-        ) | .iterationCount]
-        | if length == 0 then "none" else (max | tostring) end
-      ' "$SNAPSHOT_NORMALIZED_FILE")" || validation_rc=2
-    else
-      if jq -e 'any(.[]; .goalRef != null)' "$SNAPSHOT_NORMALIZED_FILE" >/dev/null 2>&1; then
-        session_state_diagnostic state-snapshot REFUSED SESSION_GOAL_MISSING \
-          message "current Goal Contract is required for identity-bearing attempt authority" >&2
-        validation_rc=2
-      else
-        previous="$(jq -r --arg agent "$agent" '
-          [.[] | select(.goalRef == null and ((.agents // []) | index($agent) != null)) | .iterationCount]
-          | if length == 0 then "none" else (max | tostring) end
-        ' "$SNAPSHOT_NORMALIZED_FILE")" || validation_rc=2
-      fi
-    fi
-    if [[ "$validation_rc" -eq 0 ]]; then
-      matching_spellings="$(state_snapshot_matching_spellings "$locked_input" "$spec_dir")" || validation_rc=$?
-    fi
-    rm -f "$SNAPSHOT_NORMALIZED_FILE"
-    SNAPSHOT_NORMALIZED_FILE=""
-    [[ "$validation_rc" -eq 0 ]] || return "$validation_rc"
-    state_snapshot_validate_ordinal "$incoming" "$previous" "$authorized" "$spec_dir" || return $?
-  fi
-
-  if ! jq -e '
-      ((.turnSnapshots // []) | type) == "array"
-      and ((.autonomyDecisions // []) | type) == "array"
-    ' "$locked_input" >/dev/null 2>&1; then
-    session_state_diagnostic state-snapshot REFUSED SESSION_SNAPSHOT_COLLECTION_INVALID \
-      message "turnSnapshots and autonomyDecisions must be arrays when present" >&2
-    return 2
-  fi
-
-  SNAPSHOT_NEXT_TURN="$(jq -r '((.turnSnapshots // []) | length) + 1' "$locked_input")" || return 2
-  if ! [[ "$SNAPSHOT_NEXT_TURN" =~ ^[1-9][0-9]*$ ]]; then
-    session_state_diagnostic state-snapshot REFUSED SESSION_TURN_INVALID \
-      message "snapshot callback could not derive a positive committed turn number" >&2
-    return 2
-  fi
-  if ! jq \
-    --argjson mirror "$mirror" \
-    --argjson mutation "$mutation" \
-    --argjson goalRef "$goal_ref" \
-    --argjson matchingSpecSpellings "$matching_spellings" \
-    --argjson turn "$SNAPSHOT_NEXT_TURN" '
-    def same_spec:
-      .specDir as $recordSpec
-      | ($recordSpec | type) == "string"
-        and ($matchingSpecSpellings | index($recordSpec) != null);
-    def same_core($goal):
-      (.goalRef | type) == "object"
-      and .goalRef.goalId == $goal.goalId
-      and .goalRef.revision == $goal.revision
-      and .goalRef.sourceRequestDigest == $goal.sourceRequestDigest;
-    def record_agents:
-      ((.agents // []) as $recordAgents
-       | (if ($recordAgents | type) == "array" then $recordAgents else [] end)
-         + [(.agent // empty)])
-      | map(select(type == "string" and length > 0));
-    def canonical_times($records):
-      {
-        started: (
-          [$records[] | (.startedAt // .lastUpdated // .lastIterationAt // empty)
-           | select(type == "string" and length > 0)]
-          | min // $mutation.timestamp
-        ),
-        updated: (
-          [$records[] | (.lastUpdated // .lastIterationAt // empty)
-           | select(type == "string" and length > 0)]
-          | max // $mutation.timestamp
-        )
-      };
-    . as $root
-    | ($root + {
-        repositoryBindingMirror: $mirror,
-        turnSnapshots: ((($root.turnSnapshots // []) + [{
+  --arg host_session "$SESSION_ID" \
+  --arg has_policy "$([[ -n "$SESSION_BUDGET_JSON" ]] && printf true || printf false)" \
+  --slurpfile policy_state "${POLICY_TMP:-$SESSION_FILE}" \
+  '
+  def goal_ref:
+    if (.goalContract | type) == "object" then
+      { goalId: .goalContract.goalId,
+        revision: .goalContract.revision,
+        sourceRequestDigest: .goalContract.sourceRequestDigest,
+        workBoundary: .goalContract.workBoundary }
+    else null end;
+    . as $live
+    | (if $has_policy == "true"
+      then $live + {sessionBudgetHistory: $policy_state[0].sessionBudgetHistory}
+      else $live
+      end) as $root
+  | ($root | goal_ref) as $goalRef
+  | ($root + {
+      turnSnapshots: ((($root.turnSnapshots // []) + [
+        {
           turnNumber: $turn,
-          timestamp: $mutation.timestamp,
-          phase: $mutation.phase,
-          occurrenceId: (if $mutation.occurrenceId == "" then null else $mutation.occurrenceId end),
-          scopeId: (if $mutation.scopeId == "" then null else $mutation.scopeId end),
-          mode: $mutation.mode,
-          posture: (if $mutation.posture == "" then null else $mutation.posture end),
-          note: (if $mutation.note == "" then null else $mutation.note end),
-          agent: $mutation.agent,
-          hostSessionId: $mutation.hostSessionId,
-          goalRef: $goalRef
-        }])),
-        autonomyPosture: (if $mutation.posture == "" then ($root.autonomyPosture // null) else $mutation.posture end),
-        contextBoundary: (
-          if $mutation.contextBoundaryKind == "" then ($root.contextBoundary // null)
-          else {
-            kind: $mutation.contextBoundaryKind,
-            checkpointId: (if $mutation.contextBoundaryId == "" then null else $mutation.contextBoundaryId end),
-            at: $mutation.timestamp
-          }
-          end
-        ),
-        autonomyDecisions: (
-          if $mutation.decision == "" then ($root.autonomyDecisions // [])
-          else (($root.autonomyDecisions // []) + [{
-            turnNumber: $turn,
-            timestamp: $mutation.timestamp,
-            description: $mutation.decision,
-            principle: (if $mutation.decisionPrinciple == "" then null else $mutation.decisionPrinciple end),
-            chose: (if $mutation.decisionChose == "" then null else $mutation.decisionChose end),
-            considered: (
-              if $mutation.decisionConsidered == "" then []
-              else ($mutation.decisionConsidered | split(",") | map(gsub("^ +| +$"; "")) | map(select(length > 0)))
-              end
-            ),
-            posture: (if $mutation.posture == "" then null else $mutation.posture end),
-            agent: $mutation.agent
-          }])
-          end
-        )
-      }) as $snapshot
-    | if $mutation.convergenceIteration == null then
-        $snapshot
-      else
-        ($root.convergenceLoops // []) as $loops
-        | (if $goalRef != null then
-            [$loops[] | select(same_spec and same_core($goalRef))] as $current
-            | ([$current[].iterationCount] | max // null) as $previous
-            | canonical_times($current) as $times
-            | ([$current[] | record_agents[]] + [$mutation.agent] | unique) as $agents
-            | ($current[0] // {}) as $base
-            | ([$loops[] | select((same_spec and same_core($goalRef)) | not)] + [
-                ($base + {
-                  specDir: $mutation.specDir,
-                  goalRef: $goalRef,
-                  iterationCount: $mutation.convergenceIteration,
-                  startedAt: $times.started,
-                  lastUpdated: (if $previous == $mutation.convergenceIteration then $times.updated else $mutation.timestamp end),
-                  agents: $agents
-                } | del(.agent, .lastIterationAt))
-              ])
-          else
-            [$loops[]
-             | select(same_spec)
-             | select(.goalRef == null)
-             | select((.agent // "") == $mutation.agent
-                      or ((.agents // []) | if type == "array" then index($mutation.agent) != null else false end))] as $current
-            | ([$current[].iterationCount] | max // null) as $previous
-            | canonical_times($current) as $times
-            | ($current[0] // {}) as $base
-            | ([$loops[]
-                | select((same_spec
-                          and (.goalRef == null)
-                          and (((.agent // "") == $mutation.agent)
-                               or ((.agents // []) | if type == "array" then index($mutation.agent) != null else false end))) | not)] + [
-                ($base + {
-                  specDir: $mutation.specDir,
-                  agent: $mutation.agent,
-                  iterationCount: $mutation.convergenceIteration,
-                  startedAt: $times.started,
-                  lastUpdated: (if $previous == $mutation.convergenceIteration then $times.updated else $mutation.timestamp end),
-                  goalRef: null
-                } | del(.agents, .lastIterationAt))
-              ])
-          end) as $updated
-        | $snapshot + {convergenceLoops:$updated}
-      end
-    ' "$locked_input" > "$candidate"; then
-    session_state_diagnostic state-snapshot REFUSED SESSION_CANDIDATE_INVALID \
-      message "snapshot callback could not build one complete candidate object" >&2
-    return 2
-  fi
-}
+          timestamp: $timestamp,
+          phase: $phase,
+          occurrenceId: (if $occurrence_id == "" then null else $occurrence_id end),
+          scopeId: (if $scope_id == "" then null else $scope_id end),
+          mode: $mode,
+          posture: (if $posture == "" then null else $posture end),
+          note: (if $note == "" then null else $note end),
+          agent: $agent,
+          hostSessionId: (if $host_session == "" then null else $host_session end),
+          goalRef: $goalRef,
+          mbeEpoch: $mbeEpoch
+        }
+      ])),
+      autonomyPosture: (if $posture == "" then ($root.autonomyPosture // null) else $posture end),
+      contextBoundary: (
+        if $cbKind == "" then ($root.contextBoundary // null)
+        else ({ kind: $cbKind,
+                checkpointId: (if $cbId == "" then null else $cbId end),
+                at: $timestamp }
+              + (if $mbeEpoch == null then {} else { mbeEpoch: $mbeEpoch } end))
+        end
+      ),
+      autonomyDecisions: (
+        if $decision == "" then ($root.autonomyDecisions // [])
+        else (($root.autonomyDecisions // []) + [{
+          turnNumber: $turn,
+          timestamp: $timestamp,
+          description: $decision,
+          principle: (if $dprinciple == "" then null else $dprinciple end),
+          chose: (if $dchose == "" then null else $dchose end),
+          considered: (if $dconsidered == "" then []
+                       else ($dconsidered | split(",") | map(gsub("^ +| +$"; "")) | map(select(length > 0))) end),
+          posture: (if $posture == "" then null else $posture end),
+          agent: $agent
+        }])
+        end
+      )
+    })
+    + (if $mbePosture == "off" then {} else { mbeRolloutPosture: $mbePosture } end)
+  ' "$SESSION_FILE" > "$TMP_FILE"
 
-# Commit the validated repository mirror, turn, optional decision/context, and
-# optional convergence summary through one lock acquisition and one replacement.
-# Any callback refusal occurs before the shared transaction can replace bytes.
-SNAPSHOT_NEXT_TURN=""
-set +e
-session_state_transaction "$SESSION_FILE" initialize-object state-snapshot state_snapshot_mutation "$PACKET_JSON" "$AUTHORITY_CONTEXT" "$SNAPSHOT_MUTATION_JSON"
-TRANSACTION_RC=$?
-set -e
-if [[ "$TRANSACTION_RC" -ne 0 ]]; then
-  exit "$TRANSACTION_RC"
+mv "$TMP_FILE" "$SESSION_FILE"
+TMP_FILE=""
+[[ -z "$POLICY_TMP" ]] || rm -f "$POLICY_TMP"
+POLICY_TMP=""
+[[ -z "$PRE_TRANSACTION_STATE" ]] || rm -f "$PRE_TRANSACTION_STATE"
+PRE_TRANSACTION_STATE=""
+
+# --- Convergence loop update (Gate G082) -----------------------------------
+#
+# When both --convergence-iteration and --spec-dir are supplied, additively
+# update the `convergenceLoops[]` array entry keyed by
+# (hostSessionId, specDir, agent).
+# If an entry for that key already exists, replace its `iterationCount` and
+# `lastUpdated`. Otherwise append a new entry. Other entries (for other
+# sessions, specs, or agents) are NEVER touched. Legacy entries without
+# `hostSessionId` do not match the expanded key and remain stored unchanged.
+#
+# This array is consumed by `bubbles/scripts/convergence-cap-guard.sh`
+# which enforces `maxConvergenceIterations` (default 10) per Gate G082.
+if [[ -n "$CONV_ITER" && -n "$SPEC_DIR" ]]; then
+  CONV_TMP="$(mktemp "$SESSION_DIR/.bubbles.session.json.convergence.XXXXXX")"
+  jq \
+    --arg hostSessionId "$SESSION_ID" \
+    --arg specDir "$SPEC_DIR" \
+    --arg agent "$AGENT_NAME" \
+    --argjson iterationCount "$CONV_ITER" \
+    --arg lastUpdated "$TIMESTAMP" \
+    '
+    def goal_ref:
+      if (.goalContract | type) == "object" then
+        { goalId: .goalContract.goalId,
+          revision: .goalContract.revision,
+          sourceRequestDigest: .goalContract.sourceRequestDigest,
+          workBoundary: .goalContract.workBoundary }
+      else null end;
+    . as $root
+    | ($root | goal_ref) as $goalRef
+    | ($root.convergenceLoops // []) as $loops
+    | ([ $loops[]
+         | select(.hostSessionId != $hostSessionId or .specDir != $specDir or .agent != $agent)
+       ] + [{
+         hostSessionId: $hostSessionId,
+         specDir: $specDir,
+         agent: $agent,
+         iterationCount: $iterationCount,
+         lastUpdated: $lastUpdated,
+         goalRef: $goalRef
+       }]) as $updated
+    | $root + { convergenceLoops: $updated }
+    ' "$SESSION_FILE" > "$CONV_TMP"
+  mv "$CONV_TMP" "$SESSION_FILE"
+  CONV_TMP=""
 fi
-NEXT_TURN="$SNAPSHOT_NEXT_TURN"
 
 # Echo a one-line summary to stdout for orchestrator log capture.
 if [[ -n "$CONV_ITER" && -n "$SPEC_DIR" ]]; then

@@ -1,9 +1,9 @@
 {
-  "installedVersion": "7.28.0",
+  "installedVersion": "7.29.0",
   "installMode": "local-source",
-  "sourceRef": "fix/g093-certification-window",
-  "sourceGitSha": "a5e811c60602af4c633a284a308b10029d620d18",
+  "sourceRef": "main",
+  "sourceGitSha": "1bbf1c56f5452718eba50e0d5d73e8733c882f06",
   "sourceDirty": false,
   "targetRepoSlug": "research-lab",
-  "installedAt": "2026-09-02T02:57:20Z"
+  "installedAt": "2026-09-07T05:39:36Z"
 }

@@ -22,17 +22,6 @@
 #   T9. Canonical v3    -> nested certification.scopeProgress plus current
 #       scopeLayout/statusDiscipline fields produce no deprecation warning.
 #   T10. Legacy v3      -> top-level scopeProgress still produces a warning.
-#   T18-T22. Gate G022 phaseStubs parity with state-transition-guard.sh: a stub
-#       carrying a non-empty `reason` (or a non-empty string entry) satisfies a
-#       required specialist phase at BOTH check sites, while an empty-reason
-#       stub and an unstubbed phase stay refused at both.
-#   T23-T26. The marker COUNTER agrees with the marker CONSUMER about what a
-#       marker is: only an occurrence OUTSIDE a fenced code block counts. A
-#       fence-blind count broke both ways — over-strict (a report that merely
-#       QUOTES the marker in an evidence block was failed as "Multiple
-#       markers") and over-permissive (a report with only a quoted occurrence
-#       was granted a prior-window exemption it never opted into, silently
-#       disabling Check-3 for the whole file).
 #
 # Check-3 only runs at state.json status == "done"; every fixture sets that.
 # The overall lint exit code is non-zero (minimal fixtures omit spec/design/
@@ -534,334 +523,145 @@ out="$(run_lint "$d")"
 expect_in "T17 prose naming no file is still refused (1/2 signals)" \
   "$out" "lacks terminal output signals"
 
-# ─────────────────────────────────────────────────────────────────────────────
-# T18-T22: Gate G022 phaseStubs parity with state-transition-guard.sh.
+# ── BUG-041: packet-form-aware required-artifact resolution (T18-T22) ─────────
 #
-# v4.1.0 lets a phase be honestly declared no-work-needed via
-# execution.phaseStubs[<phase>] (or top-level phaseStubs[<phase>]).
-# state-transition-guard.sh Check 6 merged those into its phase block; this
-# linter could not see them, so the two surfaces split on byte-identical
-# content — the guard passed a stubbed `implement`, the linter reported it
-# MISSING under a message reading FABRICATION, and the only way past the linter
-# was to invent the phantom phase owner the stub exists to avoid.
+# A BUG packet's required-artifact set is a FUNCTION of its declared packet form,
+# and that function is owned by bubbles/registry/bug-packet.yaml. Before BUG-041
+# artifact-lint.sh applied one hard-coded FEATURE list to every bug packet, so a
+# packet taking the compact route the framework recommends could not pass.
 #
-# The linter checks required specialists in TWO places with distinguishable
-# wording, so each assertion below names which one it is proving:
-#   site 1 "found in"    / "missing from"  (SPECIALIST PHASE COMPLETION block)
-#   site 2 "recorded in" / "NOT in"        (Check 5)
-# A fix applied to only one site would leave the same disagreement on the other
-# path, so every case is asserted against both.
+# Nothing in this file observed the artifact-presence check at all — T1-T17 are
+# entirely about the Check-3 certifying window — which is why that defect was
+# silent. The cases below pin the resolved behaviour. They are purely additive:
+# no assertion above is modified, relaxed, renumbered or deleted.
+#
+# These assertions target the artifact-presence stdout lines, NOT the exit code,
+# for the same reason T1-T17 do: the fixtures are minimal and the overall lint
+# verdict is non-zero for unrelated reasons.
 
-# make_g022_fixture <name> — feature dir carrying the minimum a `done` packet
-# needs for the run to REACH both sites: a scopes.md with a Done scope and a
-# checked DoD item. Without it the Gate G027 block reads an unset `done_scopes`
-# and `set -u` aborts the lint before Check 5, so a site-2 assertion would be
-# testing the abort rather than the check. The caller overwrites state.json.
-make_g022_fixture() {
-  local name="$1"
-  local dir="$TMP/specs/$name"
+# make_bug_fixture <name> [packet-word] — create bugs/<name>/ carrying the three
+# compact artifacts. bug.md answers every micro-fix admission condition
+# admissibly and report.md satisfies the assurance floor, so a declared compact
+# packet resolves `form=compact` through micro-fix-admission.sh. Omitting the
+# packet word leaves state.json undeclared. Echoes the absolute directory.
+make_bug_fixture() {
+  local name="$1" packet_word="${2:-}"
+  local dir="$TMP/bugs/$name"
+  local packet_line=""
   rm -rf "$dir"
   mkdir -p "$dir"
-  cat > "$dir/scopes.md" <<'SCOPES'
-# Scopes
+  [[ -n "$packet_word" ]] && packet_line=",
+  \"packet\": \"$packet_word\""
+  cat > "$dir/state.json" <<STATE
+{
+  "status": "in_progress",
+  "schemaVersion": 3,
+  "bugId": "$name"$packet_line
+}
+STATE
+  cat > "$dir/bug.md" <<'BUGMD'
+# Bug
 
-## SCOPE-1: Correct the assertion
+Root cause: a hard-coded artifact list stood in for a resolved contract.
 
-**Status:** Done
+micro-fix-admission: no-new-behavior = no
+micro-fix-admission: no-schema-change = no
+micro-fix-admission: no-auth-surface = no
+micro-fix-admission: no-payment-surface = no
+micro-fix-admission: no-secret-surface = no
+micro-fix-admission: no-deployment-surface = no
+micro-fix-admission: no-cross-product-effect = no
+micro-fix-admission: contract-preserving = yes
+BUGMD
+  cat > "$dir/report.md" <<'RPTMD'
+# Report
 
-### Definition of Done
-
-- [x] The corrected assertion fails against the old behaviour
-SCOPES
+Reproduced before the fix. The regression test fails without the fix and
+passes with the fix, and every run records its exit code.
+RPTMD
   printf '%s\n' "$dir"
 }
 
-# ── T18: a phase satisfied ONLY by a stub carrying a non-empty `reason` is
-# accepted. Nothing else in this fixture records `implement`.
-d="$(make_g022_fixture g022-stub-honoured)"
-cat > "$d/state.json" <<'STATE'
-{
-  "version": 3,
-  "status": "done",
-  "workflowMode": "bugfix-fastlane",
-  "policySnapshot": {},
-  "certification": {
-    "status": "done",
-    "completedScopes": ["SCOPE-1"],
-    "certifiedCompletedPhases": ["test", "validate", "audit"]
-  },
-  "execution": {
-    "phaseStubs": {
-      "implement": {
-        "reason": "the remedy changed test files only; no product source was touched",
-        "justification": "the defect was a test asserting the wrong thing"
-      }
-    }
-  }
-}
-STATE
+# ── T18: an ADMITTED compact packet carrying only bug.md/report.md/state.json
+# produces ZERO missing-artifact failures. This is the filed defect: before the
+# fix this fixture was rejected for spec.md, design.md, scopes.md and
+# uservalidation.md, none of which the compact contract requires.
+d="$(make_bug_fixture BUG-901-compact-admitted micro)"
 out="$(run_lint "$d")"
-expect_in "T18a site 1 accepts a phase satisfied only by a non-empty-reason stub" \
-  "$out" "Required specialist phase 'implement' found in"
-expect_not_in "T18b site 1 raises no G022 FABRICATION for the stubbed phase" \
-  "$out" "Required specialist phase 'implement' missing from"
-expect_in "T18c site 2 accepts the same stub" \
-  "$out" "Required specialist phase 'implement' recorded in"
-expect_not_in "T18d site 2 raises no G022 violation for the stubbed phase" \
-  "$out" "Required specialist phase 'implement' NOT in"
+expect_in "T18 a declared compact packet resolves to the compact form" \
+  "$out" 'Bug packet form: compact (state.json .packet="micro")'
+expect_in "T18 the compact form is confirmed by micro-fix admission" \
+  "$out" "Packet form 'compact' confirmed by micro-fix admission"
+expect_in "T18 bug.md is a required artifact of the compact form" \
+  "$out" "Required artifact exists: bug.md"
+expect_not_in "T18 an admitted compact packet has NO missing-artifact failure" \
+  "$out" "Missing required artifact"
 
-# ── T19: ADVERSARIAL. An empty/whitespace `reason` is the anti-fabrication half
-# of the contract — a stub with nothing said in it buys nothing. Both sites must
-# still refuse, or the fix would have converted G022 into a formality.
-d="$(make_g022_fixture g022-empty-reason-rejected)"
-cat > "$d/state.json" <<'STATE'
-{
-  "version": 3,
-  "status": "done",
-  "workflowMode": "bugfix-fastlane",
-  "policySnapshot": {},
-  "certification": {
-    "status": "done",
-    "completedScopes": ["SCOPE-1"],
-    "certifiedCompletedPhases": ["test", "validate", "audit"]
-  },
-  "execution": {
-    "phaseStubs": {
-      "implement": { "reason": "   ", "justification": "no reason given" }
-    }
-  }
-}
-STATE
+# ── T19: ANTI-OVER-REACH CONTROL for T18. The fix must reduce the required set
+# for the compact form only. A declared FULL packet missing design.md still
+# fails, proving T18 passes because the form was resolved and not because the
+# artifact-presence check was disabled for bug packets.
+d="$(make_bug_fixture BUG-902-full-missing-design full)"
+printf '# Scopes\n' > "$d/scopes.md"
+printf '# User Validation\n' > "$d/uservalidation.md"
 out="$(run_lint "$d")"
-expect_in "T19a site 1 still refuses a stub whose reason is whitespace" \
-  "$out" "Required specialist phase 'implement' missing from"
-expect_in "T19b site 2 still refuses a stub whose reason is whitespace" \
-  "$out" "Required specialist phase 'implement' NOT in"
-expect_not_in "T19c an empty-reason stub is never reported as satisfied" \
-  "$out" "Required specialist phase 'implement' found in"
+expect_in "T19 a declared full packet resolves to the full form" \
+  "$out" 'Bug packet form: full (state.json .packet="full")'
+expect_in "T19 a full packet missing design.md still FAILS" \
+  "$out" "Missing required artifact: $d/design.md"
 
-# ── T20: ADVERSARIAL CONTROL. A phase neither claimed nor stubbed is still
-# refused, proving T18 passes because the stub was read and not because the
-# required-specialist check was loosened into accepting anything.
-d="$(make_g022_fixture g022-unstubbed-still-refused)"
-cat > "$d/state.json" <<'STATE'
-{
-  "version": 3,
-  "status": "done",
-  "workflowMode": "bugfix-fastlane",
-  "policySnapshot": {},
-  "certification": {
-    "status": "done",
-    "completedScopes": ["SCOPE-1"],
-    "certifiedCompletedPhases": ["test", "validate", "audit"]
-  },
-  "execution": {
-    "phaseStubs": {
-      "docs": { "reason": "no documentation surface changed" }
-    }
-  }
-}
-STATE
+# ── T20: an UNDECLARED packet resolves to the registry absent-default and is
+# linted as full. Silence can never reduce a requirement, so a genuinely missing
+# artifact still fails.
+d="$(make_bug_fixture BUG-903-undeclared)"
+printf '# Scopes\n' > "$d/scopes.md"
+printf '# User Validation\n' > "$d/uservalidation.md"
 out="$(run_lint "$d")"
-expect_in "T20a site 1 still refuses a phase neither claimed nor stubbed" \
-  "$out" "Required specialist phase 'implement' missing from"
-expect_in "T20b site 2 still refuses a phase neither claimed nor stubbed" \
-  "$out" "Required specialist phase 'implement' NOT in"
+expect_in "T20 an undeclared packet falls back to the registry absent-default" \
+  "$out" "Bug packet form: full (no state.json .packet declaration; registry absent-default)"
+expect_in "T20 the absent-default full set still fails a missing artifact" \
+  "$out" "Missing required artifact: $d/design.md"
 
-# ── T21: the top-level `phaseStubs` fallback the guard implements. Here
-# `execution` carries no stubs at all, so reading only execution.phaseStubs
-# would miss this packet entirely.
-d="$(make_g022_fixture g022-top-level-fallback)"
-cat > "$d/state.json" <<'STATE'
-{
-  "version": 3,
-  "status": "done",
-  "workflowMode": "bugfix-fastlane",
-  "policySnapshot": {},
-  "certification": {
-    "status": "done",
-    "completedScopes": ["SCOPE-1"],
-    "certifiedCompletedPhases": ["test", "validate", "audit"]
-  },
-  "execution": { "completedPhaseClaims": [] },
-  "phaseStubs": {
-    "implement": { "reason": "delivery was a two-file test correction" }
-  }
-}
-STATE
+# ── T21: declaring the reduced form is a REQUEST, never a grant. A packet that
+# declares compact but answers an admission condition inadmissibly is escalated
+# by micro-fix-admission.sh and linted as full, so the declaration cannot become
+# the override flag micro-fix-packet.yaml sets to `overrideFlag: none`.
+d="$(make_bug_fixture BUG-904-forged-compact micro)"
+cat > "$d/bug.md" <<'BUGMD'
+# Bug
+
+Root cause: a hard-coded artifact list stood in for a resolved contract.
+
+micro-fix-admission: no-new-behavior = no
+micro-fix-admission: no-schema-change = no
+micro-fix-admission: no-auth-surface = no
+micro-fix-admission: no-payment-surface = yes
+micro-fix-admission: no-secret-surface = no
+micro-fix-admission: no-deployment-surface = no
+micro-fix-admission: no-cross-product-effect = no
+micro-fix-admission: contract-preserving = yes
+BUGMD
 out="$(run_lint "$d")"
-expect_in "T21a site 1 reads the top-level phaseStubs fallback" \
-  "$out" "Required specialist phase 'implement' found in"
-expect_in "T21b site 2 reads the top-level phaseStubs fallback" \
-  "$out" "Required specialist phase 'implement' recorded in"
+expect_in "T21 a compact declaration that fails admission is refused" \
+  "$out" "micro-fix admission resolves 'full'"
+expect_in "T21 the refused packet is then linted as the full artifact set" \
+  "$out" "Missing required artifact: $d/design.md"
 
-# ── T22: the string-form stub entry the guard also accepts, paired with its own
-# adversarial control in the SAME fixture: a non-empty string satisfies
-# `implement`, an all-whitespace string leaves `audit` refused.
-d="$(make_g022_fixture g022-string-form-stub)"
-cat > "$d/state.json" <<'STATE'
-{
-  "version": 3,
-  "status": "done",
-  "workflowMode": "bugfix-fastlane",
-  "policySnapshot": {},
-  "certification": {
-    "status": "done",
-    "completedScopes": ["SCOPE-1"],
-    "certifiedCompletedPhases": ["test", "validate"]
-  },
-  "execution": {
-    "phaseStubs": {
-      "implement": "the remedy touched no product source",
-      "audit": "   "
-    }
-  }
-}
-STATE
+# ── T22: the required set is SOURCED from bug-packet.yaml, not from the historic
+# hard-coded feature list. The two sets disagree on exactly two members, and both
+# are asserted here: bug.md is required of every bug form (the old list never
+# named it) and spec.md is required of none (the old list demanded it). This is
+# the F-041-01 adjudication in design.md §5.1.
+d="$(make_bug_fixture BUG-905-registry-sourced-set full)"
+printf '# Design\n' > "$d/design.md"
+printf '# Scopes\n' > "$d/scopes.md"
+printf '# User Validation\n' > "$d/uservalidation.md"
+rm -f "$d/bug.md"
 out="$(run_lint "$d")"
-expect_in "T22a site 1 accepts a non-empty string-form stub" \
-  "$out" "Required specialist phase 'implement' found in"
-expect_in "T22b site 2 accepts a non-empty string-form stub" \
-  "$out" "Required specialist phase 'implement' recorded in"
-expect_in "T22c site 1 still refuses an all-whitespace string-form stub" \
-  "$out" "Required specialist phase 'audit' missing from"
-expect_in "T22d site 2 still refuses an all-whitespace string-form stub" \
-  "$out" "Required specialist phase 'audit' NOT in"
-
-# ─────────────────────────────────────────────────────────────────────────────
-# T23-T26: the certifying-window marker COUNTER must agree with the marker
-# CONSUMER about what a marker is.
-#
-# The consumer loop honors the marker only when `in_code_block -eq 0`. The
-# counter used a fence-blind `grep -cF`, so the two split on byte-identical
-# content and the disagreement broke in BOTH directions:
-#   over-strict     one real marker + a quoted one -> "Multiple markers", and
-#                   the only downstream escapes were rewriting another agent's
-#                   verbatim evidence or hand-patching a managed file.
-#   over-permissive zero real markers + one quoted -> count 1 -> in_pre_window
-#                   is set and NOTHING ever clears it (the consumer never sees
-#                   an unfenced marker), so every block in the file becomes
-#                   "prior-window history" and Check-3 stops enforcing —
-#                   precisely the silent disable the design forbids.
-# Quoting a transcript that mentions the marker is ordinary evidence recording,
-# so both directions are reachable from honest authoring.
-
-# ── T23: THE BUG. One real marker plus a verbatim artifact-lint transcript that
-# quotes the marker inside a fence. Accepted, and the real marker still opens
-# the window.
-d="$(make_fixture cw-fenced-quote)"
-cat > "$d/report.md" <<'RPT'
-# Report
-
-Prior-window historical evidence:
-```
-historical-only
-```
-
-<!-- bubbles:certifying-window-begin -->
-
-Fresh evidence — artifact-lint transcript pasted verbatim:
-```
-$ bash bubbles/scripts/artifact-lint.sh specs/008-example
-ℹ️  Skipped 47 evidence blocks before <!-- bubbles:certifying-window-begin --> (prior-window history)
-Artifact lint: 63 passed, 0 failed
-exit code: 0
-```
-RPT
-out="$(run_lint "$d")"
-expect_not_in "T23a a marker QUOTED inside a fence is not counted as a real marker" \
-  "$out" "Multiple <!-- bubbles:certifying-window-begin --> markers"
-expect_in "T23b the one real marker still opens the certifying window" \
-  "$out" "Skipped 1 evidence blocks before <!-- bubbles:certifying-window-begin -->"
-expect_in "T23c the transcript-quoting post-marker block passes Check-3" \
-  "$out" "contain legitimate terminal output"
-
-# ── T24: ADVERSARIAL. Two REAL markers still fail loud, and the reported count
-# is 2 — not 4 — so the fenced quotes were excluded rather than the check being
-# switched off. This is the assertion that proves the fix did not weaken T3.
-d="$(make_fixture cw-two-real-plus-quote)"
-cat > "$d/report.md" <<'RPT'
-# Report
-
-<!-- bubbles:certifying-window-begin -->
-
-Block A:
-```
-$ echo hi
-hi ok
-finished in 0.1s
-```
-
-<!-- bubbles:certifying-window-begin -->
-
-Block B quoting the marker twice:
-```
-$ grep -n 'certifying-window-begin' specs/008-example/report.md
-5429:<!-- bubbles:certifying-window-begin -->
-5891:<!-- bubbles:certifying-window-begin -->
-```
-RPT
-out="$(run_lint "$d")"
-expect_in "T24a two REAL unfenced markers still fail loud" \
-  "$out" "Multiple <!-- bubbles:certifying-window-begin --> markers (2)"
-expect_not_in "T24b the two fenced quotes are not added to the count" \
-  "$out" "Multiple <!-- bubbles:certifying-window-begin --> markers (4)"
-
-# ── T25: a quoted occurrence BEFORE the real marker must not be mistaken for
-# the window start — the real marker is, so the quoting block stays prior-window.
-d="$(make_fixture cw-quote-before-marker)"
-cat > "$d/report.md" <<'RPT'
-# Report
-
-Prior-window block that QUOTES the marker:
-```
-$ grep -n 'certifying-window-begin' specs/008-example/report.md
-5429:<!-- bubbles:certifying-window-begin -->
-```
-
-<!-- bubbles:certifying-window-begin -->
-
-Fresh evidence:
-```
-$ cargo test --lib
-running 3 tests
-test result: ok. 3 passed; 0 failed; finished in 0.42s
-```
-RPT
-out="$(run_lint "$d")"
-expect_not_in "T25a one real marker plus a quote is not a duplicate" \
-  "$out" "Multiple <!-- bubbles:certifying-window-begin --> markers"
-expect_in "T25b the real marker (not the quote) opens the window" \
-  "$out" "Skipped 1 evidence blocks before <!-- bubbles:certifying-window-begin -->"
-expect_in "T25c the post-marker block is still enforced and passes" \
-  "$out" "contain legitimate terminal output"
-
-# ── T26: ADVERSARIAL, the over-permissive direction. ZERO real markers and one
-# quoted occurrence must behave exactly like a marker-less report: full Check-3
-# enforcement, no prior-window exemption. A fence-blind count granted the
-# exemption here and never cleared it, disabling Check-3 for the entire file.
-d="$(make_fixture cw-quote-only-no-real-marker)"
-cat > "$d/report.md" <<'RPT'
-# Report
-
-Evidence that only QUOTES the marker:
-```
-$ grep -n 'certifying-window' specs/008-example/report.md
-5891:<!-- bubbles:certifying-window-begin -->
-```
-
-Unmarked weak evidence:
-```
-TODO
-```
-RPT
-out="$(run_lint "$d")"
-expect_not_in "T26a a quoted-only marker grants no prior-window exemption" \
-  "$out" "evidence blocks before <!-- bubbles:certifying-window-begin -->"
-expect_in "T26b Check-3 still enforces the whole file (anti-silent-disable)" \
-  "$out" "Evidence block too short"
-expect_in "T26c the enforced failure names the unmarked weak block" \
-  "$out" "Unmarked weak evidence"
+expect_in "T22 bug.md is required because bug-packet.yaml declares it" \
+  "$out" "Missing required artifact: $d/bug.md"
+expect_not_in "T22 spec.md is required of no bug packet form" \
+  "$out" "Missing required artifact: $d/spec.md"
 
 echo
 echo "artifact-lint selftest: $passes/$assertions assertions passed"

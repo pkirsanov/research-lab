@@ -22,18 +22,16 @@ umask 077
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPOSITORY_BINDING="$SCRIPT_DIR/repository-binding.sh"
 GUARD_LIB="$SCRIPT_DIR/guard-lib.sh"
-SESSION_STATE_LIB="$SCRIPT_DIR/session-state-lib.sh"
 [[ -f "$GUARD_LIB" ]] || { echo "context-compactor: guard-lib.sh missing at $GUARD_LIB" >&2; exit 2; }
-[[ -f "$SESSION_STATE_LIB" ]] || { echo "context-compactor: session-state-lib.sh missing at $SESSION_STATE_LIB" >&2; exit 2; }
 # shellcheck source=/dev/null
 source "$GUARD_LIB"
-# shellcheck source=./session-state-lib.sh
-source "$SESSION_STATE_LIB"
 
 usage() {
   cat <<'EOF'
 Usage: bash bubbles/scripts/context-compactor.sh \
   [--session-id <id> --session-control-file <path> --binding-packet-file <path>] \
+  [--mbe-posture <off|shadow|advisory|reference-enforce> \
+   --mbe-store-root <path> --mbe-epoch-context <path>] \
   <raw-result-file>
 
 Reads a raw subagent RESULT-ENVELOPE (markdown is preferred; minimal JSON
@@ -80,6 +78,10 @@ VALIDATED_PACKET=""
 COMPACTOR_SESSION_FILE=""
 SCENARIO_FILE=""
 NODE_ID=""
+MBE_POSTURE="off"
+MBE_STORE_ROOT=""
+MBE_EPOCH_CONTEXT=""
+MBE_EPOCH_JSON=""
 raw_file=""
 
 while [[ $# -gt 0 ]]; do
@@ -109,6 +111,21 @@ while [[ $# -gt 0 ]]; do
       NODE_ID="$2"
       shift 2
       ;;
+    --mbe-posture)
+      [[ $# -ge 2 ]] || { echo "context-compactor: --mbe-posture requires a value" >&2; exit 2; }
+      MBE_POSTURE="$2"
+      shift 2
+      ;;
+    --mbe-store-root)
+      [[ $# -ge 2 ]] || { echo "context-compactor: --mbe-store-root requires a value" >&2; exit 2; }
+      MBE_STORE_ROOT="$2"
+      shift 2
+      ;;
+    --mbe-epoch-context)
+      [[ $# -ge 2 ]] || { echo "context-compactor: --mbe-epoch-context requires a value" >&2; exit 2; }
+      MBE_EPOCH_CONTEXT="$2"
+      shift 2
+      ;;
     -h|--help)
       usage
       exit 0
@@ -126,6 +143,20 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -n "$raw_file" ]] || { usage >&2; exit 2; }
+
+case "$MBE_POSTURE" in
+  off | shadow | advisory | reference-enforce) ;;
+  *) echo "context-compactor: --mbe-posture must be off, shadow, advisory, or reference-enforce (got: $MBE_POSTURE)" >&2; exit 2 ;;
+esac
+if [[ "$MBE_POSTURE" != "off" && -n "$MBE_STORE_ROOT" && -n "$MBE_EPOCH_CONTEXT" ]]; then
+  MBE_EPOCH_JSON="$(python3 "$SCRIPT_DIR/mbe-reference-verify.py" \
+    --store-root "$MBE_STORE_ROOT" --context "$MBE_EPOCH_CONTEXT" --purpose epoch 2>/dev/null || true)"
+fi
+if [[ "$MBE_POSTURE" == "reference-enforce" ]]; then
+  [[ -n "$MBE_STORE_ROOT" && -d "$MBE_STORE_ROOT" ]] || { echo "context-compactor: reference-enforce requires an existing --mbe-store-root" >&2; exit 3; }
+  [[ -n "$MBE_EPOCH_CONTEXT" && -f "$MBE_EPOCH_CONTEXT" ]] || { echo "context-compactor: reference-enforce requires an existing --mbe-epoch-context" >&2; exit 3; }
+  [[ -n "$MBE_EPOCH_JSON" ]] || { echo "context-compactor: reference-enforce requires a verified MBE epoch" >&2; exit 3; }
+fi
 
 BINDING_REQUIRED=false
 if [[ -n "$SESSION_ID" || -n "$SESSION_CONTROL_FILE" || -n "$BINDING_PACKET_FILE" ]]; then
@@ -529,44 +560,12 @@ compact_record="$(
     printf '"actionable":%s,' "$actionable_v"
   fi
   printf '"timestamp":"%s",' "$timestamp_v"
+  if [[ -n "$MBE_EPOCH_JSON" ]]; then
+    printf '"mbeEpoch":%s,' "$MBE_EPOCH_JSON"
+  fi
   printf '"rawPointer":"%s"' "$(printf '%s' "$raw_abs" | json_escape)"
   printf '}'
 )"
-
-context_compactor_session_mutation() {
-  local locked_input="$1" candidate="$2" operation_context="$3"
-  local raw_pointer="$4" compacted_at="$5" record="$6"
-  : "$operation_context"
-
-  jq \
-    --arg rawPointer "$raw_pointer" \
-    --arg compactedAt "$compacted_at" \
-    --argjson record "$record" \
-    '
-    . as $root
-    | if ($root.envelopesReceived // []) | type == "array" then
-        $root + {
-          envelopesReceived: (
-            ($root.envelopesReceived // [])
-            | map(
-                if (.rawPointer // "") == $rawPointer
-                   and (.compactedAt == null or (.compactedAt // "") == "")
-                then . + { compactedAt: $compactedAt }
-                else .
-                end
-              )
-          ),
-          compactedHistory: (
-            (($root.compactedHistory // [])
-             | map(select((.rawPointer // "") != $rawPointer)))
-            + [$record]
-          )
-        }
-      else
-        $root
-      end
-    ' "$locked_input" > "$candidate"
-}
 
 # --- Gate G083: stamp `compactedAt` AND persist the compact record --------
 # together, in ONE rewrite of the session file.
@@ -587,13 +586,51 @@ if command -v jq >/dev/null 2>&1 && [[ "$BINDING_REQUIRED" == true ]]; then
   _comp_repo_root="$BINDING_REPOSITORY_ROOT"
   if [[ -n "$_comp_repo_root" ]]; then
     _comp_session_file="$COMPACTOR_SESSION_FILE"
-    _comp_now="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
-    _comp_transaction_rc=0
-    session_state_transaction "$_comp_session_file" no-op context-compactor-commit \
-      context_compactor_session_mutation "$raw_abs" "$_comp_now" "$compact_record" || _comp_transaction_rc=$?
-    if [[ "$_comp_transaction_rc" -ne 0 ]]; then
-      echo "context-compactor: could not commit compactedAt and compactedHistory through the shared session transaction" >&2
-      exit "$_comp_transaction_rc"
+    if [[ -f "$_comp_session_file" ]]; then
+      _comp_now="$(date -u '+%Y-%m-%dT%H:%M:%SZ')"
+      _comp_tmp="$(mktemp "$(dirname "$_comp_session_file")/.bubbles-session.XXXXXX" 2>/dev/null || true)"
+      if [[ -z "$_comp_tmp" ]]; then
+        echo "context-compactor: cannot create a temp file beside $_comp_session_file; refusing a non-atomic compaction" >&2
+        exit 3
+      fi
+      if jq \
+          --arg rawPointer "$raw_abs" \
+          --arg compactedAt "$_comp_now" \
+          --argjson record "$compact_record" \
+          '
+          . as $root
+          | if ($root.envelopesReceived // []) | type == "array" then
+              $root + {
+                envelopesReceived: (
+                  ($root.envelopesReceived // [])
+                  | map(
+                      if (.rawPointer // "") == $rawPointer
+                         and (.compactedAt == null or (.compactedAt // "") == "")
+                      then . + { compactedAt: $compactedAt }
+                      else .
+                      end
+                    )
+                ),
+                compactedHistory: (
+                  (($root.compactedHistory // [])
+                   | map(select((.rawPointer // "") != $rawPointer)))
+                  + [$record]
+                )
+              }
+            else
+              $root
+            end
+          ' "$_comp_session_file" > "$_comp_tmp" 2>/dev/null; then
+        if ! mv "$_comp_tmp" "$_comp_session_file" 2>/dev/null; then
+          rm -f "$_comp_tmp" 2>/dev/null || true
+          echo "context-compactor: could not replace $_comp_session_file atomically" >&2
+          exit 3
+        fi
+      else
+        rm -f "$_comp_tmp" 2>/dev/null || true
+        echo "context-compactor: could not rewrite $_comp_session_file; compactedAt and compactedHistory must land together" >&2
+        exit 3
+      fi
     fi
   fi
 fi

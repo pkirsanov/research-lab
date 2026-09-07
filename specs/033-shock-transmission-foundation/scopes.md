@@ -208,7 +208,7 @@ The duplicate review removed SCN-031-024 sink isolation from TP-02-09. TP-02-12 
 | # | Scope | Surfaces | Primary tests | DoD summary | Status |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Canonical contract, exact refusals, and production binding | UMD foundation, domain SST, existing Research Agenda route, dedicated unit, functional, and focused live tests | Unit, functional, resource boundary, E2E UI | Closed contract, exact paths, canonical identity, byte limits, permanent registered-route binding | In Progress |
-| 2 | Net graph, actor, and policy engine | UMD foundation, dedicated unit tests, existing-route projection helpers | Unit, functional, adversarial | Offset math, DAGs, conflicts, actor authority, lifecycle, local state | Not Started |
+| 2 | Net graph, actor, and policy engine | UMD foundation, dedicated unit tests, existing-route projection helpers | Unit, functional, adversarial | Offset math, DAGs, conflicts, actor authority, lifecycle, local state | In Progress |
 | 3 | Dynamic definitions and immutable publication | Agenda resolver, refresh and generation transaction, v2 definitions, migration tests | Unit, functional, integration | Dynamic registries, cutoff and vintage, dual-read, single-write, history | Not Started |
 | 4 | Three adapters and lossless consumer | UMD adapters, parent resolver, exact callers, definition consumption, Agenda Power seam, compact consumers | Unit, functional, integration, E2E UI | Three domains, closed resolution, live lossless consumer, coherent rollback | Not Started |
 | 5 | Existing-route experience and boundaries | Research Agenda Simple and Power, Playwright, discovery and protected-product checks | E2E UI, functional, regression, build | Honest UI, accessibility, non-persistence, no new route, protected history | Not Started |
@@ -397,7 +397,7 @@ Planning does not execute delivery work. Every item remains unchecked until its 
 
 ## Scope 2: Net Graph Actor And Policy State Engine
 
-**Status:** Not Started
+**Status:** In Progress
 
 **Depends On:** Scope 1.
 
@@ -545,9 +545,9 @@ Planning does not execute delivery work. Every item remains unchecked until its 
 
 #### Core Items
 
-- [ ] `DOD-02-C01` Net composition, DAGs, time-unfolded feedback, conflict preservation, actor authority, policy layers, restoration, and local hypothetical behavior match the design.
-- [ ] `DOD-02-C02` Current computation has no predecessor input and local hypothetical state cannot enter any canonical path.
-- [ ] `DOD-02-C03` Scope 2 changes only its allowed file families and leaves owner modules and consumer surfaces unchanged.
+- [x] `DOD-02-C01` Net composition, DAGs, time-unfolded feedback, conflict preservation, actor authority, policy layers, restoration, and local hypothetical behavior match the design. → Evidence: [Scope 2 Sub-pass 3 of 3 (FINAL)](report.md#scope-2-sub-pass-3-of-3-final--local-hypothetical-and-reset-engine-with-sink-isolation-integration-proof--2026-09-06)
+- [x] `DOD-02-C02` Current computation has no predecessor input and local hypothetical state cannot enter any canonical path. → Evidence: [Scope 2 Sub-pass 3 of 3 (FINAL)](report.md#scope-2-sub-pass-3-of-3-final--local-hypothetical-and-reset-engine-with-sink-isolation-integration-proof--2026-09-06)
+- [x] `DOD-02-C03` Scope 2 changes only its allowed file families and leaves owner modules and consumer surfaces unchanged. → Evidence: [Scope 2 Sub-pass 3 of 3 (FINAL)](report.md#scope-2-sub-pass-3-of-3-final--local-hypothetical-and-reset-engine-with-sink-isolation-integration-proof--2026-09-06)
 
 #### Test Evidence Items
 
@@ -561,12 +561,17 @@ Planning does not execute delivery work. Every item remains unchecked until its 
 - [x] `DOD-02-TP-02-08` SCN-031-013 Restoration requires its named condition: TP-02-08 passes and restoration requires its named observation. → Evidence: [Scope 2 Sub-pass 2 of 3](report.md#scope-2-sub-pass-2-of-3--actor-authority-policy-effect-independence-restoration-evidence-gating-and-lifecycle-transitions--2026-09-06)
 - [x] `DOD-02-TP-02-09` TP-02-09 passes its extension-kind, reaction-class, policy-field, lifecycle, conflict, predecessor-isolation, five non-current Finding-state, and directional-substitute mutations before GREEN. → Evidence: [Scope 2 Sub-pass 2 of 3](report.md#scope-2-sub-pass-2-of-3--actor-authority-policy-effect-independence-restoration-evidence-gating-and-lifecycle-transitions--2026-09-06)
 - [x] `DOD-02-TP-02-10` TP-02-10 passes before the full repository selftest and preserves its inventory. → Evidence: [Scope 2 Sub-pass 2 of 3](report.md#scope-2-sub-pass-2-of-3--actor-authority-policy-effect-independence-restoration-evidence-gating-and-lifecycle-transitions--2026-09-06)
-- [ ] `DOD-02-TP-02-11` SCN-031-024 A local hypothetical leaves canonical research unchanged: TP-02-11 proves pure projection and exact reset.
-- [ ] `DOD-02-TP-02-12` SCN-031-024 sink isolation: TP-02-12 proves every canonical sink remains unchanged in an owned ephemeral repository.
+- [x] `DOD-02-TP-02-11` SCN-031-024 A local hypothetical leaves canonical research unchanged: TP-02-11 proves pure projection and exact reset. → Evidence: [Scope 2 Sub-pass 3 of 3 (FINAL)](report.md#scope-2-sub-pass-3-of-3-final--local-hypothetical-and-reset-engine-with-sink-isolation-integration-proof--2026-09-06)
+- [x] `DOD-02-TP-02-12` SCN-031-024 sink isolation: TP-02-12 proves every canonical sink remains unchanged in an owned ephemeral repository. → Evidence: [Scope 2 Sub-pass 3 of 3 (FINAL)](report.md#scope-2-sub-pass-3-of-3-final--local-hypothetical-and-reset-engine-with-sink-isolation-integration-proof--2026-09-06)
 
 #### Build Quality Gate
 
-- [ ] `DOD-02-BQ` Node, source-lock, artifact, scenario, mechanism, reference, prose, diff, no-skip, and change-boundary checks pass before Scope 3 starts.
+- [ ] `DOD-02-BQ` Node, source-lock, artifact, scenario, mechanism, reference, prose, diff, no-skip, and change-boundary checks pass before Scope 3 starts. → Evidence: [Scope 2 Sub-pass 3 of 3 (FINAL)](report.md#scope-2-sub-pass-3-of-3-final--local-hypothetical-and-reset-engine-with-sink-isolation-integration-proof--2026-09-06)
+   > **Uncertainty Declaration**
+   > **What was attempted:** On 2026-09-06, after TP-02-11 and TP-02-12 passed and every dedicated Scope 2 test file was rerun green, `node scripts/selftest.mjs` was run as the broad build-quality gate this item names.
+   > **What was observed:** `3503 passed, 3 failed`, zero canary drift (`Feature 031 composition canary preserves the registered selftest inventory` and the Scope 1 foundation canary both pass against the current `BASELINE_SELFTEST_SHA256`). The 3 failures are the same pre-existing, unrelated findings recorded against `DOD-01-BQ`: a personal-identifier surface check, a deferred-scorecard byte-budget check, and the BUG-016/BUG-017 acceptance-record finding. No Scope 2 file or assertion is implicated in any of the 3.
+   > **Why this is uncertain:** `DOD-02-BQ`, like `DOD-01-BQ`, requires a zero-exit broad gate. The same 3 findings sit outside Scope 2's allowed file families (`rlshock.js` hypothetical/composition/graph/lifecycle/policy sections, the dedicated Scope 2 test files, Scope 2 fixtures, and the existing Feature 031 selftest sentinel) and outside this scope's change boundary, so repairing them here would violate that boundary exactly as it would for Scope 1.
+   > **What would resolve this:** The same owning classified packets that block `DOD-01-BQ` must repair the personal-identifier finding, the deferred-scorecard budget finding, and the BUG-016/BUG-017 acceptance-record finding. The same broad command must then exit `0` on otherwise unchanged Scope 2 bytes.
 
 ## Scope 3: Dynamic Definitions And Immutable V1 V2 Publication
 

@@ -461,3 +461,35 @@ export function deleteMember(value, parts) {
   delete target[parts[parts.length - 1]];
   return candidate;
 }
+
+/* SCN-031-024 local hypothetical fixtures — Scope 2 sub-pass 3. */
+export function makeHypothetical(baselineViewState, definition, snapshot, RLSHOCK, overrides = {}) {
+  const lever = definition.leverRegistry[0];
+  const leverValues = { [lever.leverId]: lever.minimum };
+  return {
+    contractVersion: 'shock-transmission/hypothetical/v1',
+    topicId: baselineViewState.topicId,
+    baseSnapshotId: baselineViewState.snapshotId,
+    baseSnapshotDigest: snapshot.snapshotDigest,
+    definitionDigest: definition.definitionDigest,
+    baselineViewDigest: RLSHOCK.digest(baselineViewState),
+    leverValues,
+    changedLeverIds: [lever.leverId],
+    projectionClass: 'user-hypothetical',
+    persistable: false,
+    createdInMemoryAt: '2026-09-06T00:00:00.000Z',
+    ...overrides
+  };
+}
+
+export function makeHypotheticalAdapterOutput(baselineViewState, overrides = {}) {
+  const section = clone(baselineViewState.baseline);
+  section.claims = section.claims.map((claim, index) => (
+    index === 0 ? { ...claim, statement: 'User hypothetical: lever set to its declared minimum.' } : claim
+  ));
+  return { ...section, ...overrides };
+}
+
+export function makeProjectionInput(hypothetical, adapterOutput) {
+  return { contractVersion: 'shock-transmission/projection-input/v1', hypothetical, adapterOutput };
+}

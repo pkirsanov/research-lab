@@ -126,7 +126,7 @@
       {
         "scopeId": "02-net-graph-actor-and-policy-engine",
         "scopeName": "Net Graph Actor And Policy State Engine",
-        "status": "not_started",
+        "status": "in_progress",
         "dependsOn": [
           "01-canonical-contract-and-exact-refusals"
         ]

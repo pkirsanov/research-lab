@@ -25,6 +25,8 @@
     viewState: "shock-transmission/view-state/v1",
     claimRow: "shock-transmission/claim-row/v1",
     edgeRow: "shock-transmission/edge-row/v1",
+    hypothetical: "shock-transmission/hypothetical/v1",
+    projectionInput: "shock-transmission/projection-input/v1",
     error: "shock-transmission/error/v1"
   });
 
@@ -196,6 +198,12 @@
     "edgeId", "pathId", "order", "sign", "unitId", "range", "lag", "persistence",
     "evidenceRefs", "limitations", "refuters"
   ]);
+  var HYPOTHETICAL_FIELDS = Object.freeze([
+    "contractVersion", "topicId", "baseSnapshotId", "baseSnapshotDigest", "definitionDigest",
+    "baselineViewDigest", "leverValues", "changedLeverIds", "projectionClass", "persistable",
+    "createdInMemoryAt"
+  ]);
+  var PROJECTION_INPUT_FIELDS = Object.freeze(["contractVersion", "hypothetical", "adapterOutput"]);
 
   function normalizeFieldName(value) {
     return String(value).replace(/[^A-Za-z0-9]/g, "").toLowerCase();
@@ -1912,6 +1920,126 @@
     return null;
   }
 
+  function validateBaselineSectionShape(value, path, context) {
+    var shape = shapeFailure(value, path, VIEW_BASELINE_FIELDS, VIEW_BASELINE_FIELDS, context);
+    if (shape) return shape;
+    if (!Array.isArray(value.claims)) return failure("RLSHOCK-TYPE", fieldPath(path, "claims"), "Claims must be an array.", context);
+    if (!Array.isArray(value.edges)) return failure("RLSHOCK-TYPE", fieldPath(path, "edges"), "Edges must be an array.", context);
+    for (var claimIndex = 0; claimIndex < value.claims.length; claimIndex += 1) {
+      var claimFailure = validateClaim(value.claims[claimIndex], indexPath(fieldPath(path, "claims"), claimIndex), context);
+      if (claimFailure) return claimFailure;
+    }
+    for (var edgeIndex = 0; edgeIndex < value.edges.length; edgeIndex += 1) {
+      var edgePath = indexPath(fieldPath(path, "edges"), edgeIndex);
+      var edge = value.edges[edgeIndex];
+      var edgeShape = shapeFailure(edge, edgePath, VIEW_EDGE_FIELDS, VIEW_EDGE_FIELDS, context);
+      if (edgeShape) return edgeShape;
+      var rangeFailure = validateRange(edge.range, fieldPath(edgePath, "range"), context);
+      if (rangeFailure) return rangeFailure;
+      var signFailure = validateEnum(edge.sign, EDGE_SIGNS, fieldPath(edgePath, "sign"), context, "RLSHOCK-SIGN");
+      if (signFailure) return signFailure;
+      var evidenceFailure = validateStringList(edge.evidenceRefs, fieldPath(edgePath, "evidenceRefs"), context, true);
+      if (evidenceFailure) return failure("RLSHOCK-PROJECTION-LOSSY", fieldPath(edgePath, "evidenceRefs"), "Edge evidence is missing.", context);
+      var limitationsFailure = validateStringList(edge.limitations, fieldPath(edgePath, "limitations"), context, true);
+      if (limitationsFailure) return failure("RLSHOCK-PROJECTION-LOSSY", fieldPath(edgePath, "limitations"), "Edge limitation is missing.", context);
+      var refuterFailure = validateStringList(edge.refuters, fieldPath(edgePath, "refuters"), context, true);
+      if (refuterFailure) return failure("RLSHOCK-PROJECTION-LOSSY", fieldPath(edgePath, "refuters"), "Edge refuter is missing.", context);
+    }
+    return null;
+  }
+
+  function validateLeverValues(value, leverRegistry, path, context) {
+    if (!isPlainObject(value)) return failure("RLSHOCK-TYPE", path, "Expected a lever-id-to-value map.", context);
+    var declaredIds = leverRegistry.map(function (lever) { return lever.leverId; }).sort(compareCodePoints);
+    var actualIds = Object.keys(value).sort(compareCodePoints);
+    for (var actualIndex = 0; actualIndex < actualIds.length; actualIndex += 1) {
+      if (declaredIds.indexOf(actualIds[actualIndex]) === -1) return failure("RLSHOCK-UNKNOWN-MEMBER", fieldPath(path, actualIds[actualIndex]), "Unknown lever.", context);
+    }
+    for (var leverIndex = 0; leverIndex < leverRegistry.length; leverIndex += 1) {
+      var lever = leverRegistry[leverIndex];
+      var leverPath = fieldPath(path, lever.leverId);
+      if (!hasOwn(value, lever.leverId)) return failure("RLSHOCK-MISSING-MEMBER", leverPath, "Lever value is missing.", context);
+      var numberFailure = validateNumber(value[lever.leverId], leverPath, context, false);
+      if (numberFailure) return numberFailure;
+      if (value[lever.leverId] < lever.minimum || value[lever.leverId] > lever.maximum) return failure("RLSHOCK-RANGE", leverPath, "Lever value is outside its declared bounds.", context);
+    }
+    return null;
+  }
+
+  function validateHypothetical(value, definition, baselineViewState, context) {
+    var shape = shapeFailure(value, "$", HYPOTHETICAL_FIELDS, HYPOTHETICAL_FIELDS, context);
+    if (shape) return shape;
+    if (value.contractVersion !== CONTRACT_VERSIONS.hypothetical) return failure("RLSHOCK-VERSION-UNSUPPORTED", "$.contractVersion", "Unsupported hypothetical version.", context);
+    if (value.topicId !== baselineViewState.topicId) return failure("RLSHOCK-REFERENCE", "$.topicId", "The hypothetical topic must match the loaded baseline.", context);
+    if (value.baseSnapshotId !== baselineViewState.snapshotId) return failure("RLSHOCK-REFERENCE", "$.baseSnapshotId", "The hypothetical base snapshot must match the loaded baseline.", context);
+    var baseDigestFailure = validateDigest(value.baseSnapshotDigest, "$.baseSnapshotDigest", context);
+    if (baseDigestFailure) return baseDigestFailure;
+    if (value.definitionDigest !== definition.definitionDigest) return failure("RLSHOCK-REFERENCE", "$.definitionDigest", "The hypothetical definition digest must match the loaded definition.", context);
+    var baselineDigestFailure = validateDigest(value.baselineViewDigest, "$.baselineViewDigest", context);
+    if (baselineDigestFailure) return baselineDigestFailure;
+    if (value.baselineViewDigest !== digest(baselineViewState)) return failure("RLSHOCK-DIGEST", "$.baselineViewDigest", "The hypothetical baseline digest must match the loaded baseline view exactly.", context);
+    var leverFailure = validateLeverValues(value.leverValues, definition.leverRegistry, "$.leverValues", context);
+    if (leverFailure) return leverFailure;
+    var changedFailure = validateStringList(value.changedLeverIds, "$.changedLeverIds", context, true);
+    if (changedFailure) return changedFailure;
+    var declaredLeverIds = definition.leverRegistry.map(function (lever) { return lever.leverId; });
+    for (var changedIndex = 0; changedIndex < value.changedLeverIds.length; changedIndex += 1) {
+      if (declaredLeverIds.indexOf(value.changedLeverIds[changedIndex]) === -1) return failure("RLSHOCK-UNKNOWN-MEMBER", indexPath("$.changedLeverIds", changedIndex), "Changed lever id is not declared by the definition.", context);
+    }
+    if (value.projectionClass !== "user-hypothetical") return failure("RLSHOCK-VOCABULARY", "$.projectionClass", "A local hypothetical must declare projectionClass user-hypothetical.", context);
+    if (value.persistable !== false) return failure("RLSHOCK-HYPOTHETICAL-PERSIST", "$.persistable", "A local hypothetical must declare persistable false.", context);
+    var instantFailure = validateInstant(value.createdInMemoryAt, "$.createdInMemoryAt", context, false);
+    if (instantFailure) return instantFailure;
+    return null;
+  }
+
+  function validatePersistenceCandidate(value, path) {
+    var effectivePath = typeof path === "string" && path.trim() !== "" ? path : "$";
+    if (!isPlainObject(value)) return failure("RLSHOCK-TYPE", effectivePath, "A persistence candidate must be a plain object.", value);
+    if (value.contractVersion === CONTRACT_VERSIONS.hypothetical || value.contractVersion === CONTRACT_VERSIONS.projectionInput) {
+      return failure("RLSHOCK-HYPOTHETICAL-PERSIST", fieldPath(effectivePath, "contractVersion"), "A local hypothetical or projection-input contract cannot enter a canonical sink.", value);
+    }
+    if (value.projectionClass === "user-hypothetical") {
+      return failure("RLSHOCK-HYPOTHETICAL-PERSIST", fieldPath(effectivePath, "projectionClass"), "User-hypothetical state cannot enter a canonical sink.", value);
+    }
+    if (hasOwn(value, "persistable") && value.persistable === false) {
+      return failure("RLSHOCK-HYPOTHETICAL-PERSIST", fieldPath(effectivePath, "persistable"), "Non-persistable state cannot enter a canonical sink.", value);
+    }
+    return success(value);
+  }
+
+  function projectViewState(baselineViewState, definition, projectionInput) {
+    var envelopeFailure = validateViewEnvelope(baselineViewState);
+    if (envelopeFailure) return envelopeFailure;
+    if (baselineViewState.projectionClass !== "baseline") return failure("RLSHOCK-CONTRACT", "$.projectionClass", "projectViewState requires a loaded baseline view as its starting point.", baselineViewState);
+    if (baselineViewState.persistable !== false) return failure("RLSHOCK-HYPOTHETICAL-PERSIST", "$.persistable", "A baseline view must already declare persistable false.", baselineViewState);
+    if (!isPlainObject(definition) || definition.contractVersion !== CONTRACT_VERSIONS.definition) return failure("RLSHOCK-CONTRACT", "$", "A validated definition is required.", definition);
+    var inputShape = shapeFailure(projectionInput, "$", PROJECTION_INPUT_FIELDS, PROJECTION_INPUT_FIELDS, projectionInput);
+    if (inputShape) return inputShape;
+    if (projectionInput.contractVersion !== CONTRACT_VERSIONS.projectionInput) return failure("RLSHOCK-VERSION-UNSUPPORTED", "$.contractVersion", "Unsupported projection-input version.", projectionInput);
+
+    if (projectionInput.hypothetical === null) {
+      if (projectionInput.adapterOutput !== null) return failure("RLSHOCK-CONTRACT", "$.adapterOutput", "A reset projection admits no adapter output.", projectionInput);
+      var resetView = cloneCanonical(baselineViewState);
+      resetView.comparison = null;
+      resetView.changedLeverIds = [];
+      resetView.persistable = false;
+      return success(resetView);
+    }
+
+    var hypotheticalFailure = validateHypothetical(projectionInput.hypothetical, definition, baselineViewState, projectionInput.hypothetical);
+    if (hypotheticalFailure) return hypotheticalFailure;
+    var sectionFailure = validateBaselineSectionShape(projectionInput.adapterOutput, "$.adapterOutput", projectionInput);
+    if (sectionFailure) return sectionFailure;
+
+    var comparisonView = cloneCanonical(baselineViewState);
+    comparisonView.projectionClass = "user-hypothetical";
+    comparisonView.comparison = cloneCanonical(projectionInput.adapterOutput);
+    comparisonView.changedLeverIds = projectionInput.hypothetical.changedLeverIds.slice().sort(compareCodePoints);
+    comparisonView.persistable = false;
+    return success(comparisonView);
+  }
+
   function projectClaimRows(viewState) {
     var envelopeFailure = validateViewEnvelope(viewState);
     if (envelopeFailure) return envelopeFailure;
@@ -2013,6 +2141,8 @@
     validatePolicyRestorationLayerAlignment: validatePolicyRestorationLayerAlignment,
     applyRestorationObservation: applyRestorationObservation,
     validateSnapshot: validateSnapshot,
+    projectViewState: projectViewState,
+    validatePersistenceCandidate: validatePersistenceCandidate,
     projectClaimRows: projectClaimRows,
     projectEdgeRows: projectEdgeRows,
     readerSentence: readerSentence

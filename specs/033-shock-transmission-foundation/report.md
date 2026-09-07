@@ -4132,3 +4132,83 @@ Exit `1`. `Research-Lab self-test: 3503 passed, 3 failed`. The three failures ar
 ### Disposition
 
 Test Plan rows TP-02-01, TP-02-02, TP-02-03, and TP-02-04 are genuinely closed by this sub-pass with real, executed evidence. The corresponding DoD items — `DOD-02-TP-02-01`, `DOD-02-TP-02-02`, `DOD-02-TP-02-03`, `DOD-02-TP-02-04` — are checked in `scopes.md` because their exact required results are fully satisfied by this sub-pass's work alone. TP-02-09 is only partially addressed (the extension-kind and structural-DAG-property slice); `DOD-02-TP-02-09` remains unchecked because its full required result additionally spans actor-reaction classes, policy fields, lifecycle transitions, conflicts arising from policy layers, predecessor isolation, and the five non-current Finding states, none of which this sub-pass implements. All other Scope 2 DoD items (`DOD-02-C01` through `DOD-02-C03`, `DOD-02-TP-02-05` through `DOD-02-TP-02-12`, `DOD-02-BQ`) remain unchecked and untouched. Scope 2's `Status:` field in `scopes.md` remains **Not Started** — the scope-level status reflects that the large majority of Scope 2 (actor authority, policy layers, restoration, lifecycle, hypothetical engine, sink isolation) has not begun; only 2 of 3 planned sub-passes remain, and completing them is required before any scope-level status change.
+
+## Scope 2 Sub-pass 2 Of 3 — Actor Authority, Policy-Effect Independence, Restoration Evidence Gating, And Lifecycle Transitions — 2026-09-06
+
+**Phase:** implement/test
+**Claim Source:** executed
+**Scope status:** Scope 2 remains **Not Started** overall. This entry records genuine partial progress on a second, explicitly-scoped slice. No Scope 2 DoD item that requires the hypothetical/reset engine or sink-isolation testing (SCN-031-024) is touched by this sub-pass, and neither is checked below. Sub-pass 3 (hypothetical/reset engine and sink isolation, TP-02-11/TP-02-12) remains outstanding, so the scope-level `Status:` field in `scopes.md` stays **Not Started**.
+
+### Scope Of This Sub-pass
+
+Per the investigation that split Scope 2 into 3 sub-passes, sub-pass 2 covers: the five-actor authority model (executive, Treasury, Energy, Fed, Congress — must never collapse into each other; design.md §8.6, §12), Policy Action and effect-layer independence (growth/inflation/liquidity/credibility/physical-capacity; announcement-is-not-implementation; design.md §8.7, §9.2/§12), restoration-condition evidence gating (only an admitted observation can set a condition to `met`; design.md §8.7), and lifecycle-transition rules (design.md §11.1). This maps to Test Plan rows TP-02-05 through TP-02-08, the actor/policy/lifecycle portion of TP-02-09's functional matrix, and TP-02-10. The hypothetical/reset engine and sink-isolation testing (TP-02-11, TP-02-12) are explicitly out of scope for this pass and are left for sub-pass 3.
+
+### Implementation
+
+Added five additive functions to `rlshock.js`, built on top of the Scope 1 foundation and sub-pass 1's composition/graph functions, inserted between the existing `validatePolicyAction` and `validateNode` functions (no existing function body was modified):
+
+- `LIFECYCLE_TRANSITIONS` table and `validateLifecycleTransition(kind, fromState, toState, context)` — `rlshock.js:1236-1254`. A direct, closed encoding of the design.md §11.1 "Allowed State Changes" table for all nine lifecycle-owning primitive kinds (`shock`, `offset`, `actor-reaction`, `policy`, `edge-or-path`, `scenario-curve`, `finding`, `restoration`, `foundation`). Refuses an unknown `kind`, refuses `fromState === toState` (a content revision is explicitly not a transition per design.md §11.1's closing paragraph), and refuses any `toState` not present in the table for the given `fromState`.
+- `composeActorAuthorityRoster(actors, actorReactions, policyActions)` — `rlshock.js:1256-1297`. Builds a roster keyed strictly by each actor's own `actorId`; every reaction and policy action is appended only to its own declared owner's bucket, with no aggregation step that could merge one actor's items into another's. Refuses a duplicate actor id, an unknown `actorClass`, an unresolved `actorId` on a reaction, or an unresolved `ownerActorId` on a policy action (`RLSHOCK-POLICY-AUTHORITY`). Also returns `institutionalRoleActorIds`, grouping actors by the five canonical institutional classes (`executive`, `finance-ministry`, `resource-agency`, `central-bank`, `legislature`) so a caller can directly verify the Federal Reserve's actor id never equals the executive's.
+- `evaluatePolicyPublication(policyAction, context)` — `rlshock.js:1299-1327`. Implements SCN-031-011 (announcement is not implementation): refuses (`RLSHOCK-LIFECYCLE`) any effect whose `state !== 'unavailable'` unless `lifecycleState` is `implemented`, `effective`, or `ineffective`; a genuinely `announced`-only action can only publish `unavailable` effects. Separately reports `effectivenessClaimed` as true only when `lifecycleState === 'effective'`. Refuses a duplicate effect dimension (`RLSHOCK-POLICY-AUTHORITY`) so one dimension can never silently substitute for another.
+- `validatePolicyRestorationLayerAlignment(policyAction, restorationConditionsById, context)` — `rlshock.js:1329-1341`. Implements design.md §8.7/§9.2's "one layer cannot inherit another layer's state": refuses (`RLSHOCK-POLICY-AUTHORITY`) when a policy action's `restorationConditionIds` names a condition whose `layer` differs from the action's own `policyLayer` — an effective liquidity action can never restore a solvency or physical-capacity condition.
+- `applyRestorationObservation(condition, observation, context)` — `rlshock.js:1349-1376`. Implements SCN-031-013: the action alone (an `observation` of `null`) leaves the condition's state unchanged. A non-`admitted` observation is refused (`RLSHOCK-EVIDENCE`) even if it names `observedState: 'met'`. A genuinely admitted observation with valid evidence/source refs and a legal lifecycle transition (via `validateLifecycleTransition('restoration', ...)`, same-state content revisions permitted) produces a new immutable version carrying the *observation's* evidence, source, and timestamp — never the action's.
+
+All five functions are exported from the UMD surface (`rlshock.js`, in the `return deepFreeze({...})` block) alongside the existing exports: `validateLifecycleTransition`, `composeActorAuthorityRoster`, `evaluatePolicyPublication`, `validatePolicyRestorationLayerAlignment`, `applyRestorationObservation`.
+
+### Test Evidence
+
+Four new tests appended to `tests/shock-transmission.composition.unit.mjs`, covering TP-02-05 through TP-02-08 exactly:
+
+```text
+node --test --test-name-pattern='^Regression: SCN-031-010 policy actions retain five independent owners and layers$' tests/shock-transmission.composition.unit.mjs
+```
+Result: `tests 1, pass 1, fail 0`.
+
+```text
+node --test --test-name-pattern='^Regression: SCN-031-011 announcement evidence cannot promote implementation or effect$' tests/shock-transmission.composition.unit.mjs
+```
+Result: `tests 1, pass 1, fail 0`.
+
+```text
+node --test --test-name-pattern='^Regression: SCN-031-012 liquidity and inflation effects remain independent by layer$' tests/shock-transmission.composition.unit.mjs
+```
+Result: `tests 1, pass 1, fail 0`.
+
+```text
+node --test --test-name-pattern='^Regression: SCN-031-013 restoration requires its named admitted observation$' tests/shock-transmission.composition.unit.mjs
+```
+Result: `tests 1, pass 1, fail 0`.
+
+A tenth test in the same file, `Regression: TP-02-09 lifecycle-transition slice -- allowed and rejected transitions per primitive kind`, independently exercises `validateLifecycleTransition` across `policy` and `restoration` kinds (an allowed move, an illegal jump, a same-state content-revision refusal, and an unknown-kind refusal).
+
+New dedicated suite `tests/shock-transmission.lifecycle.functional.mjs` — `Feature 031 composition lifecycle and authority mutation matrix` (TP-02-09's actor/policy/lifecycle portion, 8 subtests):
+
+```text
+node --test tests/shock-transmission.lifecycle.functional.mjs
+```
+Result: `tests 9, pass 9, fail 0` (the parent test plus 8 `t.test` subtests). The matrix covers: (1) lifecycle transitions for every one of the nine declared primitive kinds, both an allowed and a rejected move each; (2) every Actor Reaction claim-class collection (`observedBehavior`, `statedIntent`, `inferredNextAction`, `constraints`, `falsifiers`) exercised with its correct and an incorrect claim class, proving the class-matching guard rejects a directional substitute; (3) every Policy Action field participating in one real `effective` action with two independent effect dimensions and an aligned restoration condition; (4) a full `announced -> implemented -> effective` lifecycle walk combined with a `unmet -> partially-met -> met` restoration walk driven by two distinct admitted observations; (5) a conflict-group structural check (opposing paths never averaged); (6) predecessor isolation — `composeNetRange.length === 4`, `evaluatePolicyPublication.length === 2`, and `applyRestorationObservation.length === 3` are asserted directly against the exported function arity, proving none of these Scope 2 composition functions accepts a predecessor argument; (7) the five non-current Finding states (`stale`, `missing`, `conflicted`, `unsupported`, `invalidated`) checked against the closed `FINDING_STATES` vocabulary and five directional-substitute strings (`bullish`, `bearish`, `buy`, `sell`, `positive`), none of which is a member of the closed state set; (8) an actor-authority mutation test proving a Federal Reserve-owned policy action stays in the Fed's own roster bucket and is never absorbed into the executive's bucket, and that a mutated (unresolvable) owner is refused outright rather than silently merged.
+
+New test in `tests/shock-transmission.canary.functional.mjs` — `Feature 031 composition canary preserves the registered selftest inventory` (the exact TP-02-10 title, same shared file sub-pass 1's canary already occupies with a distinct Scope 1 title, per scopes.md's stated convention of multiple distinct-titled canaries per file):
+
+```text
+node --test --test-name-pattern='^Feature 031 composition canary preserves the registered selftest inventory$' tests/shock-transmission.canary.functional.mjs
+```
+Result: `tests 1, pass 1, fail 0`. The canary re-requires the frozen production `rlshock.js` export and exercises, against that live production export (not a mock): `composeNetRange` (gross-vs-net divergence), `validateGraphStructure` (a genuine two-node cycle refused with `RLSHOCK-GRAPH-CYCLE`), `composeActorAuthorityRoster` (the five canonical institutional roles, proving the Fed's policy action never appears in the executive's bucket), `evaluatePolicyPublication` (an announced action refused for claiming a current effect), `applyRestorationObservation` (no observation leaves a condition unmet), and `validateLifecycleTransition` (one allowed, one rejected policy transition) — all before the full repository selftest runs.
+
+While adding this canary test, the existing `BASELINE_SELFTEST_SHA256` sentinel-region-excised hash in `tests/shock-transmission.canary.functional.mjs` was found stale again (same class of drift as the one repaired during Scope 1, recorded above): `scripts/selftest.mjs` had drifted outside the Feature 031 sentinel region through commit `77e86bd1d` (an unrelated, concurrent RLVOL/Feature-031-adjacent scope's work, not touched by this sub-pass). Recomputed the sentinel-excised SHA-256 of the current `scripts/selftest.mjs` and updated `BASELINE_SELFTEST_SHA256` from `1dc2d455c44d1f942c8370879fb9f0ef55bcac653670a0941c2fcdbb2ccb37d7` to `6aa3964641cdb099fda27d85a64555567e2505c63f0d7b615c39cf2f38ea0cd6` (test fixture only; no production file changed).
+
+### Regression Check
+
+```text
+node --test tests/shock-transmission.canary.functional.mjs tests/shock-transmission.contracts.unit.mjs tests/shock-transmission.resource.functional.mjs tests/shock-transmission.validation.functional.mjs tests/shock-transmission.reader.unit.mjs tests/shock-transmission.composition.unit.mjs tests/shock-transmission.lifecycle.functional.mjs
+```
+All Scope 1 dedicated suites plus both Scope 2 sub-pass suites pass together.
+
+```text
+node scripts/selftest.mjs
+```
+Exit `1`. `Research-Lab self-test: 3503 passed, 3 failed`. The three failures are the same three pre-existing, unrelated findings already recorded above (`committed surface carries no personal identifier`, the deferred-scorecard byte-budget check, and the BUG-016/BUG-017 acceptance-record finding). The `Feature 031 shock-transmission foundation` group in the selftest output is entirely green (3/3). No new failure was introduced by this sub-pass's additions. `rlvol.js`, `tests/rlvol-roughness.unit.mjs`, and `tests/volatility-roughness.integration.mjs` continue to carry pre-existing uncommitted changes from unrelated, concurrent work in this working tree; those files were not touched by this sub-pass and are not included in its commit.
+
+### Disposition
+
+Test Plan rows TP-02-05, TP-02-06, TP-02-07, and TP-02-08 are genuinely closed by this sub-pass with real, executed evidence. The corresponding DoD items — `DOD-02-TP-02-05` through `DOD-02-TP-02-08` — are checked in `scopes.md`. Combined with sub-pass 1's structural slice, TP-02-09's full required result (extension kinds, every Actor Reaction claim class, every Policy Action field, lifecycle transitions, conflicts, predecessor isolation, the five non-current Finding states, and rejection of a directional substitute for each) is now genuinely exercised by the combination of `tests/shock-transmission.composition.unit.mjs`'s structural slice (sub-pass 1) and `tests/shock-transmission.lifecycle.functional.mjs` (this sub-pass); `DOD-02-TP-02-09` is checked. TP-02-10 is genuinely closed with its exact title and command; `DOD-02-TP-02-10` is checked. TP-02-11 and TP-02-12 (the hypothetical/reset engine and sink-isolation testing) are untouched by this sub-pass; `DOD-02-TP-02-11` and `DOD-02-TP-02-12` remain unchecked, as does `DOD-02-C02` (which explicitly requires local-hypothetical-cannot-enter-canonical-path behavior that does not exist yet). `DOD-02-C01` remains unchecked because it requires the hypothetical contract's behavior to match the design, which sub-pass 3 has not yet built. `DOD-02-C03` remains unchecked pending a final cross-sub-pass file-boundary review at the end of sub-pass 3. `DOD-02-BQ` remains unchecked pending the full Scope 2 build-quality gate at the end of sub-pass 3. Scope 2's `Status:` field in `scopes.md` remains **Not Started** — only 1 of 3 planned sub-passes (the hypothetical/reset engine and sink isolation) remains, and completing it is required before any scope-level status change to In Progress or Done.

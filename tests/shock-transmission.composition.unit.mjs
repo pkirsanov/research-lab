@@ -375,3 +375,216 @@ test('Regression: TP-02-09 structural slice -- DAG endpoints, rank, topology, co
   const overLimit = RLSHOCK.validateGraphStructure({ nodes: manyNodes, edges: [], paths: [] }, { maxGraphNodesPerSnapshot: 200 });
   assertRefusal(overLimit, 'RLSHOCK-RESOURCE');
 });
+
+/* Scope 2 sub-pass 2: actor authority, policy/effect independence, restoration
+   evidence gating, and lifecycle transitions (design.md Sections 8.6-8.7, 9, 11,
+   12; TP-02-05 through TP-02-08). */
+
+function makeActor(overrides = {}) {
+  return {
+    actorId: 'actor:test',
+    label: 'Test actor',
+    actorClass: 'executive',
+    state: 'active',
+    sourceRefs: ['source:test'],
+    asOf: AS_OF,
+    ...overrides
+  };
+}
+
+function makePolicyAction(overrides = {}) {
+  return {
+    policyActionId: 'policy:test',
+    versionId: 'policy-version-test-a1',
+    predecessorVersionId: null,
+    ownerActorId: 'actor:test',
+    lifecycleState: 'announced',
+    triggerConditionIds: ['trigger:test'],
+    instrumentId: 'instrument:test',
+    amountOrState: quantity({ low: 0.01, base: 0.01, high: 0.01 }),
+    lag: { value: 0, unitId: 'calendar-day' },
+    reversible: true,
+    policyLayer: 'liquidity',
+    effects: [{ dimension: 'liquidity', state: 'unavailable', quantity: null }],
+    restorationConditionIds: [],
+    evidenceRefs: ['evidence:test'],
+    sourceRefs: ['source:test'],
+    asOf: AS_OF,
+    limitations: [],
+    ...overrides
+  };
+}
+
+function makeRestorationCondition(overrides = {}) {
+  return {
+    conditionId: 'condition:test',
+    versionId: 'restoration-version-test-a1',
+    predecessorVersionId: null,
+    ownerRef: 'actor:test',
+    layer: 'liquidity',
+    state: 'unmet',
+    observationRule: 'Named restoration observation rule.',
+    evidenceRefs: [],
+    sourceRefs: [],
+    observedAt: null,
+    limitations: [],
+    ...overrides
+  };
+}
+
+test('Regression: SCN-031-010 policy actions retain five independent owners and layers', () => {
+  const actors = [
+    makeActor({ actorId: 'actor:executive', label: 'Executive', actorClass: 'executive' }),
+    makeActor({ actorId: 'actor:treasury', label: 'Treasury', actorClass: 'finance-ministry' }),
+    makeActor({ actorId: 'actor:energy', label: 'Energy Department', actorClass: 'resource-agency' }),
+    makeActor({ actorId: 'actor:fed', label: 'Federal Reserve', actorClass: 'central-bank' }),
+    makeActor({ actorId: 'actor:congress', label: 'Congress', actorClass: 'legislature' })
+  ];
+  const policyActions = [
+    makePolicyAction({ policyActionId: 'policy:executive-1', ownerActorId: 'actor:executive' }),
+    makePolicyAction({ policyActionId: 'policy:treasury-1', ownerActorId: 'actor:treasury' }),
+    makePolicyAction({ policyActionId: 'policy:energy-1', ownerActorId: 'actor:energy' }),
+    makePolicyAction({ policyActionId: 'policy:fed-1', ownerActorId: 'actor:fed' }),
+    makePolicyAction({ policyActionId: 'policy:congress-1', ownerActorId: 'actor:congress' })
+  ];
+  const roster = unwrap(RLSHOCK.composeActorAuthorityRoster(actors, [], policyActions));
+
+  // Every one of the five institutional roles maps to exactly one, distinct actor id.
+  assert.equal(Object.keys(roster.institutionalRoleActorIds).length, 5);
+  ['executive', 'finance-ministry', 'resource-agency', 'central-bank', 'legislature'].forEach((cls) => {
+    assert.equal(roster.institutionalRoleActorIds[cls].length, 1);
+  });
+  const fedActorId = roster.institutionalRoleActorIds['central-bank'][0];
+  const executiveActorId = roster.institutionalRoleActorIds['executive'][0];
+  assert.notEqual(fedActorId, executiveActorId);
+
+  // Federal Reserve ownership cannot collapse into executive ownership: the Fed's policy
+  // action id lives strictly in the Fed's own roster bucket, never the executive's.
+  assert.deepEqual(roster.roster[fedActorId].policyActionIds, ['policy:fed-1']);
+  assert.equal(roster.roster[executiveActorId].policyActionIds.includes('policy:fed-1'), false);
+  assert.deepEqual(roster.roster[executiveActorId].policyActionIds, ['policy:executive-1']);
+
+  // A policy action whose ownerActorId does not resolve to a declared actor is refused --
+  // coordination between actors never lets one silently stand in for another's authority.
+  const unresolved = RLSHOCK.composeActorAuthorityRoster(actors, [], [makePolicyAction({ policyActionId: 'policy:ghost', ownerActorId: 'actor:unknown' })]);
+  assertRefusal(unresolved, 'RLSHOCK-POLICY-AUTHORITY');
+
+  // Two actors sharing one actor id is refused outright -- the roster cannot be built
+  // from an already-collapsed identity.
+  const collapsed = RLSHOCK.composeActorAuthorityRoster(
+    [makeActor({ actorId: 'actor:shared', actorClass: 'executive' }), makeActor({ actorId: 'actor:shared', actorClass: 'central-bank' })],
+    [],
+    []
+  );
+  assertRefusal(collapsed, 'RLSHOCK-DUPLICATE');
+});
+
+test('Regression: SCN-031-011 announcement evidence cannot promote implementation or effect', () => {
+  // An announced-only action cannot publish a current effect value.
+  const announced = makePolicyAction({
+    lifecycleState: 'announced',
+    effects: [{ dimension: 'liquidity', state: 'current', quantity: quantity({ low: 0.01, base: 0.01, high: 0.01 }) }]
+  });
+  assertRefusal(RLSHOCK.evaluatePolicyPublication(announced), 'RLSHOCK-LIFECYCLE');
+
+  // The same announced action publishing only an unavailable effect remains valid --
+  // announced without implementation evidence stays announced, with no effect claim.
+  const announcedUnavailable = unwrap(RLSHOCK.evaluatePolicyPublication(makePolicyAction({ lifecycleState: 'announced' })));
+  assert.equal(announcedUnavailable.implemented, false);
+  assert.equal(announcedUnavailable.effectivenessClaimed, false);
+
+  // Once implementation evidence exists (lifecycleState: implemented), a current effect
+  // value may publish, but no effectiveness claim is published without an effective state.
+  const implemented = unwrap(RLSHOCK.evaluatePolicyPublication(makePolicyAction({
+    lifecycleState: 'implemented',
+    effects: [{ dimension: 'liquidity', state: 'current', quantity: quantity({ low: 0.01, base: 0.01, high: 0.01 }) }]
+  })));
+  assert.equal(implemented.implemented, true);
+  assert.equal(implemented.effectivenessClaimed, false);
+
+  const effective = unwrap(RLSHOCK.evaluatePolicyPublication(makePolicyAction({
+    lifecycleState: 'effective',
+    effects: [{ dimension: 'liquidity', state: 'current', quantity: quantity({ low: 0.01, base: 0.01, high: 0.01 }) }]
+  })));
+  assert.equal(effective.effectivenessClaimed, true);
+});
+
+test('Regression: SCN-031-012 liquidity and inflation effects remain independent by layer', () => {
+  const dualEffect = unwrap(RLSHOCK.evaluatePolicyPublication(makePolicyAction({
+    lifecycleState: 'effective',
+    effects: [
+      { dimension: 'liquidity', state: 'current', quantity: quantity({ low: 0.02, base: 0.02, high: 0.02 }) },
+      { dimension: 'inflation', state: 'current', quantity: quantity({ low: -0.01, base: -0.01, high: -0.01 }) }
+    ]
+  })));
+  // Both dimensions remain separately addressable; neither is averaged into the other.
+  assert.equal(dualEffect.effectsByDimension.liquidity.quantity.range.base, 0.02);
+  assert.equal(dualEffect.effectsByDimension.inflation.quantity.range.base, -0.01);
+  assert.notEqual(dualEffect.effectsByDimension.liquidity.quantity.range.base, dualEffect.effectsByDimension.inflation.quantity.range.base);
+
+  // A duplicated effect dimension is refused: one dimension can never silently stand in
+  // for another inside a single action.
+  const duplicated = RLSHOCK.evaluatePolicyPublication(makePolicyAction({
+    lifecycleState: 'effective',
+    effects: [
+      { dimension: 'liquidity', state: 'current', quantity: quantity({ low: 0.02, base: 0.02, high: 0.02 }) },
+      { dimension: 'liquidity', state: 'current', quantity: quantity({ low: 0.03, base: 0.03, high: 0.03 }) }
+    ]
+  }));
+  assertRefusal(duplicated, 'RLSHOCK-POLICY-AUTHORITY');
+
+  // An effective liquidity action does not restore solvency or physical capacity: its
+  // restoration condition ids may only reference conditions declared on its own layer.
+  const liquidityAction = makePolicyAction({ lifecycleState: 'effective', policyLayer: 'liquidity', restorationConditionIds: ['condition:solvency'] });
+  const solvencyCondition = makeRestorationCondition({ conditionId: 'condition:solvency', layer: 'solvency' });
+  const misaligned = RLSHOCK.validatePolicyRestorationLayerAlignment(liquidityAction, { 'condition:solvency': solvencyCondition });
+  assertRefusal(misaligned, 'RLSHOCK-POLICY-AUTHORITY');
+
+  const liquidityCondition = makeRestorationCondition({ conditionId: 'condition:liquidity', layer: 'liquidity' });
+  const alignedAction = makePolicyAction({ lifecycleState: 'effective', policyLayer: 'liquidity', restorationConditionIds: ['condition:liquidity'] });
+  const aligned = unwrap(RLSHOCK.validatePolicyRestorationLayerAlignment(alignedAction, { 'condition:liquidity': liquidityCondition }));
+  assert.equal(aligned.alignedLayer, 'liquidity');
+});
+
+test('Regression: SCN-031-013 restoration requires its named admitted observation', () => {
+  const condition = makeRestorationCondition({ state: 'unmet' });
+
+  // The action alone -- no observation at all -- leaves the condition exactly as it was.
+  const unchanged = unwrap(RLSHOCK.applyRestorationObservation(condition, null));
+  assert.equal(unchanged.state, 'unmet');
+
+  // A non-admitted claim cannot move the condition even if it names "met".
+  const notAdmitted = RLSHOCK.applyRestorationObservation(condition, {
+    observationId: 'observation:test', admitted: false, observedState: 'met',
+    evidenceRefs: ['evidence:test'], sourceRefs: ['source:test'], asOf: AS_OF, limitations: []
+  });
+  assertRefusal(notAdmitted, 'RLSHOCK-EVIDENCE');
+
+  // An admitted observation with an illegal jump (unmet directly to a state outside the
+  // allowed transition set) is refused by the lifecycle table.
+  const illegalJump = RLSHOCK.applyRestorationObservation(
+    { ...condition, state: 'met' },
+    { observationId: 'observation:test', admitted: true, observedState: 'unavailable', evidenceRefs: ['evidence:test'], sourceRefs: ['source:test'], asOf: AS_OF, limitations: [] }
+  );
+  assertRefusal(illegalJump, 'RLSHOCK-LIFECYCLE');
+
+  // Only a genuinely admitted observation, following an allowed transition, sets the
+  // condition to met -- and it carries that observation's own evidence, not the action's.
+  const met = unwrap(RLSHOCK.applyRestorationObservation(condition, {
+    observationId: 'observation:test', admitted: true, observedState: 'met',
+    evidenceRefs: ['evidence:restoration-observed'], sourceRefs: ['source:restoration-observed'], asOf: AS_OF, limitations: []
+  }));
+  assert.equal(met.state, 'met');
+  assert.deepEqual(met.evidenceRefs, ['evidence:restoration-observed']);
+  assert.equal(met.predecessorVersionId, condition.versionId);
+  assert.notEqual(met.versionId, condition.versionId);
+});
+
+test('Regression: TP-02-09 lifecycle-transition slice -- allowed and rejected transitions per primitive kind', () => {
+  assert.equal(unwrap(RLSHOCK.validateLifecycleTransition('policy', 'announced', 'implemented')).toState, 'implemented');
+  assertRefusal(RLSHOCK.validateLifecycleTransition('policy', 'announced', 'effective'), 'RLSHOCK-LIFECYCLE');
+  assertRefusal(RLSHOCK.validateLifecycleTransition('policy', 'announced', 'announced'), 'RLSHOCK-LIFECYCLE');
+  assert.equal(unwrap(RLSHOCK.validateLifecycleTransition('restoration', 'partially-met', 'unmet')).toState, 'unmet');
+  assertRefusal(RLSHOCK.validateLifecycleTransition('restoration', 'met', 'partially-met'), 'RLSHOCK-LIFECYCLE');
+  assertRefusal(RLSHOCK.validateLifecycleTransition('unknown-kind', 'a', 'b'), 'RLSHOCK-LIFECYCLE');
+});

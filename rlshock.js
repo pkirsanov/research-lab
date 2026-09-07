@@ -1370,6 +1370,176 @@
     return validateVersionedIdentity(value, path, "policy-version", context);
   }
 
+  /* Scope 2 sub-pass 2: lifecycle transition table (design.md Section 11.1). Every
+     state change creates a new immutable version; a new version retaining the same
+     state while changing evidence is a content revision, not a transition, and is
+     rejected here so callers use the correct path for that case. */
+
+  var LIFECYCLE_TRANSITIONS = Object.freeze({
+    shock: Object.freeze({ observed: Object.freeze(["revised", "resolved", "superseded"]), revised: Object.freeze(["resolved", "superseded"]) }),
+    offset: Object.freeze({ available: Object.freeze(["constrained", "exhausted", "unavailable"]), constrained: Object.freeze(["available", "exhausted", "unavailable"]) }),
+    "actor-reaction": Object.freeze({ observed: Object.freeze(["refuted", "superseded"]), inferred: Object.freeze(["observed", "refuted", "superseded"]) }),
+    policy: Object.freeze({ announced: Object.freeze(["implemented", "reversed"]), implemented: Object.freeze(["effective", "ineffective", "reversed"]), effective: Object.freeze(["ineffective", "reversed"]) }),
+    "edge-or-path": Object.freeze({ candidate: Object.freeze(["supported", "conflicted", "refuted", "superseded"]), supported: Object.freeze(["conflicted", "refuted", "superseded"]), conflicted: Object.freeze(["supported", "refuted", "superseded"]) }),
+    "scenario-curve": Object.freeze({ proposed: Object.freeze(["published", "superseded"]), published: Object.freeze(["revised", "superseded"]) }),
+    finding: Object.freeze({ current: Object.freeze(["stale", "invalidated", "superseded"]), stale: Object.freeze(["invalidated", "superseded"]) }),
+    restoration: Object.freeze({ unmet: Object.freeze(["partially-met", "met", "invalidated"]), "partially-met": Object.freeze(["unmet", "met", "invalidated"]), met: Object.freeze(["unmet", "invalidated"]) }),
+    foundation: Object.freeze({ active: Object.freeze(["supported"]), supported: Object.freeze(["retired"]) })
+  });
+
+  function validateLifecycleTransition(kind, fromState, toState, context) {
+    if (!hasOwn(LIFECYCLE_TRANSITIONS, kind)) return failure("RLSHOCK-LIFECYCLE", "$.kind", "Unknown lifecycle-owning primitive kind.", context || { kind: kind });
+    var table = LIFECYCLE_TRANSITIONS[kind];
+    if (fromState === toState) return failure("RLSHOCK-LIFECYCLE", "$.toState", "Retaining the same state is a content revision, not a lifecycle transition.", context || { kind: kind, fromState: fromState, toState: toState });
+    var allowed = table[fromState];
+    if (!allowed || allowed.indexOf(toState) === -1) return failure("RLSHOCK-LIFECYCLE", "$.toState", "Lifecycle transition is not permitted from the declared state.", context || { kind: kind, fromState: fromState, toState: toState });
+    return success({ kind: kind, fromState: fromState, toState: toState });
+  }
+
+  /* Scope 2 sub-pass 2: five-actor authority model (design.md Section 8.6 and
+     Section 12). Every actor reaction and policy action is partitioned strictly
+     under its own declared owner actor id. No aggregation step merges one actor's
+     reactions or policy actions into another actor's bucket, so a Federal Reserve
+     (central-bank) action can never collapse into an executive actor's roster
+     entry, and coordination among actors never implies shared control. */
+
+  function composeActorAuthorityRoster(actors, actorReactions, policyActions) {
+    var context = { actors: actors, actorReactions: actorReactions, policyActions: policyActions };
+    if (!Array.isArray(actors)) return failure("RLSHOCK-TYPE", "$.actors", "Actors must be an array.", context);
+    var roster = Object.create(null);
+    var classByActorId = Object.create(null);
+    var actorIds = [];
+    for (var actorIndex = 0; actorIndex < actors.length; actorIndex += 1) {
+      var actor = actors[actorIndex];
+      var actorPath = indexPath("$.actors", actorIndex);
+      if (!isPlainObject(actor) || typeof actor.actorId !== "string") return failure("RLSHOCK-TYPE", actorPath, "Expected an actor object.", context);
+      if (hasOwn(classByActorId, actor.actorId)) return failure("RLSHOCK-DUPLICATE", fieldPath(actorPath, "actorId"), "Duplicate actor id.", context);
+      if (!isKnown(ACTOR_CLASSES, actor.actorClass)) return failure("RLSHOCK-VOCABULARY", fieldPath(actorPath, "actorClass"), "Value is outside the closed vocabulary.", context);
+      classByActorId[actor.actorId] = actor.actorClass;
+      actorIds.push(actor.actorId);
+      roster[actor.actorId] = { actorId: actor.actorId, actorClass: actor.actorClass, reactionIds: [], policyActionIds: [] };
+    }
+    var institutionalRoleActorIds = Object.create(null);
+    for (var roleIndex = 0; roleIndex < actorIds.length; roleIndex += 1) {
+      var roleClass = classByActorId[actorIds[roleIndex]];
+      if (["executive", "finance-ministry", "resource-agency", "central-bank", "legislature"].indexOf(roleClass) !== -1) {
+        if (!institutionalRoleActorIds[roleClass]) institutionalRoleActorIds[roleClass] = [];
+        institutionalRoleActorIds[roleClass].push(actorIds[roleIndex]);
+      }
+    }
+    if (Array.isArray(actorReactions)) {
+      for (var reactionIndex = 0; reactionIndex < actorReactions.length; reactionIndex += 1) {
+        var reaction = actorReactions[reactionIndex];
+        var reactionPath = indexPath("$.actorReactions", reactionIndex);
+        if (!isPlainObject(reaction) || typeof reaction.actorId !== "string" || typeof reaction.reactionId !== "string") return failure("RLSHOCK-TYPE", reactionPath, "Expected an actor reaction object.", context);
+        if (!hasOwn(roster, reaction.actorId)) return failure("RLSHOCK-REFERENCE", fieldPath(reactionPath, "actorId"), "Reaction actor does not resolve to a declared actor.", context);
+        roster[reaction.actorId].reactionIds.push(reaction.reactionId);
+      }
+    }
+    if (Array.isArray(policyActions)) {
+      for (var policyIndex = 0; policyIndex < policyActions.length; policyIndex += 1) {
+        var policy = policyActions[policyIndex];
+        var policyPath = indexPath("$.policyActions", policyIndex);
+        if (!isPlainObject(policy) || typeof policy.ownerActorId !== "string" || typeof policy.policyActionId !== "string") return failure("RLSHOCK-TYPE", policyPath, "Expected a policy action object.", context);
+        if (!hasOwn(roster, policy.ownerActorId)) return failure("RLSHOCK-POLICY-AUTHORITY", fieldPath(policyPath, "ownerActorId"), "Policy owner does not resolve to a declared actor.", context);
+        roster[policy.ownerActorId].policyActionIds.push(policy.policyActionId);
+      }
+    }
+    return success({ actorIds: actorIds, roster: roster, institutionalRoleActorIds: institutionalRoleActorIds });
+  }
+
+  /* Scope 2 sub-pass 2: policy action publication and effect-layer independence
+     (design.md Section 8.7, Section 9's policy rules, and Section 12). An action
+     that has not advanced beyond announced cannot publish a current effect value --
+     an announcement is not implementation. Each effect dimension is independent;
+     no dimension may repeat inside one action, so one effect can never silently
+     stand in for another. */
+
+  function evaluatePolicyPublication(policyAction, context) {
+    var effectiveContext = context || policyAction;
+    if (!isPlainObject(policyAction) || !Array.isArray(policyAction.effects)) return failure("RLSHOCK-TYPE", "$", "Expected a policy action object.", effectiveContext);
+    var implemented = policyAction.lifecycleState === "implemented" || policyAction.lifecycleState === "effective" || policyAction.lifecycleState === "ineffective";
+    var effectivenessClaimed = policyAction.lifecycleState === "effective";
+    var effectsByDimension = Object.create(null);
+    for (var effectIndex = 0; effectIndex < policyAction.effects.length; effectIndex += 1) {
+      var effect = policyAction.effects[effectIndex];
+      var effectPath = indexPath("$.effects", effectIndex);
+      if (!isPlainObject(effect)) return failure("RLSHOCK-TYPE", effectPath, "Expected a policy effect object.", effectiveContext);
+      if (hasOwn(effectsByDimension, effect.dimension)) return failure("RLSHOCK-POLICY-AUTHORITY", fieldPath(effectPath, "dimension"), "Duplicate effect dimension; layers remain independent.", effectiveContext);
+      if (!implemented && effect.state !== "unavailable") {
+        return failure("RLSHOCK-LIFECYCLE", fieldPath(effectPath, "state"), "An announced policy action cannot publish an effectiveness claim; implementation evidence is required first.", effectiveContext);
+      }
+      effectsByDimension[effect.dimension] = { state: effect.state, quantity: effect.quantity };
+    }
+    return success({
+      policyActionId: policyAction.policyActionId,
+      implemented: implemented,
+      effectivenessClaimed: effectivenessClaimed,
+      policyLayer: policyAction.policyLayer,
+      effectsByDimension: effectsByDimension
+    });
+  }
+
+  function validatePolicyRestorationLayerAlignment(policyAction, restorationConditionsById, context) {
+    var effectiveContext = context || policyAction;
+    if (!isPlainObject(policyAction) || !Array.isArray(policyAction.restorationConditionIds)) return failure("RLSHOCK-TYPE", "$", "Expected a policy action object.", effectiveContext);
+    for (var index = 0; index < policyAction.restorationConditionIds.length; index += 1) {
+      var conditionId = policyAction.restorationConditionIds[index];
+      var conditionPath = indexPath("$.restorationConditionIds", index);
+      var condition = isPlainObject(restorationConditionsById) ? restorationConditionsById[conditionId] : null;
+      if (!condition) return failure("RLSHOCK-REFERENCE", conditionPath, "Restoration condition does not resolve.", effectiveContext);
+      if (condition.layer !== policyAction.policyLayer) {
+        return failure("RLSHOCK-POLICY-AUTHORITY", conditionPath, "One layer cannot inherit another layer's restoration state.", effectiveContext);
+      }
+    }
+    return success({ policyActionId: policyAction.policyActionId, alignedLayer: policyAction.policyLayer });
+  }
+
+  /* Scope 2 sub-pass 2: restoration evidence gating (design.md Section 8.7). The
+     action itself cannot set a restoration condition to met. Only an admitted
+     observation -- a typed, evidenced record distinct from the policy action --
+     may advance the condition, and only along an allowed lifecycle transition
+     (or as a same-state content revision). */
+
+  var RESTORATION_OBSERVATION_FIELDS = Object.freeze(["observationId", "admitted", "observedState", "evidenceRefs", "sourceRefs", "asOf", "limitations"]);
+
+  function applyRestorationObservation(condition, observation, context) {
+    var effectiveContext = context || condition;
+    var conditionShape = shapeFailure(condition, "$.condition", RESTORATION_FIELDS, RESTORATION_FIELDS, effectiveContext);
+    if (conditionShape) return conditionShape;
+    if (observation === null) {
+      return success(condition);
+    }
+    var observationShape = shapeFailure(observation, "$.observation", RESTORATION_OBSERVATION_FIELDS, RESTORATION_OBSERVATION_FIELDS, effectiveContext);
+    if (observationShape) return observationShape;
+    if (observation.admitted !== true) return failure("RLSHOCK-EVIDENCE", "$.observation.admitted", "Only an admitted observation can change a restoration condition.", effectiveContext);
+    var stateFailure = validateEnum(observation.observedState, RESTORATION_STATES, "$.observation.observedState", effectiveContext, "RLSHOCK-LIFECYCLE");
+    if (stateFailure) return stateFailure;
+    var evidenceFailure = validateStringList(observation.evidenceRefs, "$.observation.evidenceRefs", effectiveContext, true);
+    if (evidenceFailure) return evidenceFailure;
+    var sourceFailure = validateStringList(observation.sourceRefs, "$.observation.sourceRefs", effectiveContext, true);
+    if (sourceFailure) return sourceFailure;
+    var asOfFailure = validateInstant(observation.asOf, "$.observation.asOf", effectiveContext, false);
+    if (asOfFailure) return asOfFailure;
+    var limitationsFailure = validateStringList(observation.limitations, "$.observation.limitations", effectiveContext, false);
+    if (limitationsFailure) return limitationsFailure;
+    if (observation.observedState !== condition.state) {
+      var transitionCheck = validateLifecycleTransition("restoration", condition.state, observation.observedState, effectiveContext);
+      if (!transitionCheck.ok) return transitionCheck;
+    }
+    var next = cloneCanonical(condition);
+    next.predecessorVersionId = condition.versionId;
+    next.state = observation.observedState;
+    next.evidenceRefs = observation.evidenceRefs;
+    next.sourceRefs = observation.sourceRefs;
+    next.observedAt = observation.asOf;
+    next.limitations = observation.limitations;
+    delete next.versionId;
+    var body = cloneCanonical(next);
+    next.versionId = "restoration-version-" + digest(body).slice(7);
+    return success(next);
+  }
+
   function validateNode(value, path, horizonIds, context) {
     var shape = shapeFailure(value, path, NODE_FIELDS, NODE_FIELDS, context);
     if (shape) return shape;
@@ -1837,6 +2007,11 @@
     composeSnapshot: composeSnapshot,
     composeNetRange: composeNetRange,
     validateGraphStructure: validateGraphStructure,
+    validateLifecycleTransition: validateLifecycleTransition,
+    composeActorAuthorityRoster: composeActorAuthorityRoster,
+    evaluatePolicyPublication: evaluatePolicyPublication,
+    validatePolicyRestorationLayerAlignment: validatePolicyRestorationLayerAlignment,
+    applyRestorationObservation: applyRestorationObservation,
     validateSnapshot: validateSnapshot,
     projectClaimRows: projectClaimRows,
     projectEdgeRows: projectEdgeRows,

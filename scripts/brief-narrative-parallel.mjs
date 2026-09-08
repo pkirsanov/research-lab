@@ -55,6 +55,7 @@ if (!['copilot', 'omlx'].includes(narrativeProvider)) {
 const copilotBin = process.env.BRIEF_COPILOT_BIN || 'copilot';
 const model = process.env.BRIEF_MODEL || (narrativeProvider === 'omlx' ? 'Ternary-Bonsai-27B-mlx-2bit' : 'claude-opus-4.8');
 const omlxBaseUrl = process.env.BRIEF_NARRATIVE_OMLX_BASE_URL || '';
+const omlxMaxTokens = Math.min(4096, positiveInteger(process.env.BRIEF_OMLX_MAX_TOKENS, 4096));
 if (narrativeProvider === 'omlx' && !/^https?:\/\/[^/?#]+\/?$/.test(omlxBaseUrl)) {
     throw new Error('BRIEF_NARRATIVE_OMLX_BASE_URL must be an http(s) origin without a query or fragment');
 }
@@ -464,10 +465,9 @@ function laneInput(lane) {
    an authored fragment. */
 function boundedOmlxInput(value) {
     const plans = [
-        { stringCap: 1600, arrayCap: 24, objectCap: 48 },
-        { stringCap: 700, arrayCap: 12, objectCap: 32 },
-        { stringCap: 280, arrayCap: 6, objectCap: 20 },
-        { stringCap: 120, arrayCap: 3, objectCap: 12 }
+        { stringCap: 240, arrayCap: 6, objectCap: 20 },
+        { stringCap: 120, arrayCap: 3, objectCap: 12 },
+        { stringCap: 64, arrayCap: 2, objectCap: 8 }
     ];
     const compact = (entry, plan, depth = 0) => {
         if (typeof entry === 'string') return entry.length <= plan.stringCap ? entry : `${entry.slice(0, plan.stringCap)} [truncated]`;
@@ -480,9 +480,9 @@ function boundedOmlxInput(value) {
     };
     for (const plan of plans) {
         const candidate = JSON.stringify(compact(value, plan));
-        if (Buffer.byteLength(candidate) <= 72 * 1024) return candidate;
+        if (Buffer.byteLength(candidate) <= 12 * 1024) return candidate;
     }
-    throw new Error('OMLX lane input cannot be compacted below the 72 KiB transport limit');
+    throw new Error('OMLX lane input cannot be compacted below the 12 KiB local-memory limit');
 }
 
 async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, stdoutPath, stderrPath, startedAt }) {
@@ -503,7 +503,7 @@ async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, s
                 temperature: 0,
                 stream: false,
                 response_format: { type: 'json_object' },
-                max_tokens: Math.min(16384, Math.max(1024, Math.floor((lane.maxOutputBytes || 65536) / 4)))
+                max_tokens: Math.min(omlxMaxTokens, Math.max(1024, Math.floor((lane.maxOutputBytes || 65536) / 4)))
             })
         });
         const responseText = await response.text();
@@ -863,10 +863,12 @@ if (existsSync(RESEARCH_AGENDA_PATH)) {
 let succeeded = false;
 try {
     console.log(`[brief-parallel] starting ${lanes.length} write-disjoint lanes with maxConcurrency=${laneConcurrency} laneAttempts=${laneAttempts} exitGrace=${exitGraceSeconds}s`);
-    const [results, researchExecution] = await Promise.all([
-        runLanePool(lanes, laneConcurrency),
-        researchPreparation ? runResearchPipeline() : Promise.resolve(null)
-    ]);
+    const [results, researchExecution] = narrativeProvider === 'omlx'
+        ? [await runLanePool(lanes, 1), researchPreparation ? await runResearchPipeline() : null]
+        : await Promise.all([
+            runLanePool(lanes, laneConcurrency),
+            researchPreparation ? runResearchPipeline() : Promise.resolve(null)
+        ]);
     /* Lanes routinely finish by writing a complete fragment and then failing to exit, so the
        recovery path is load-bearing rather than exceptional. Report the per-run rate here so a
        trend is readable from the run log instead of re-derived by grepping per-lane lines. */

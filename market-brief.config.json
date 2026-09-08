@@ -893,9 +893,9 @@
             }
         },
         "adapters": {
-            "omlx-openai-compatible-qwen38": {
-                "adapterId": "omlx-openai-compatible-qwen38",
-                "profileId": "omlx-openai-compatible-qwen38",
+    "omlx-openai-compatible-bonsai27": {
+      "adapterId": "omlx-openai-compatible-bonsai27",
+      "profileId": "omlx-openai-compatible-bonsai27",
                 "providerId": "omlx",
                 "routeClass": "local",
                 "transportContract": "openai-compatible-chat/v1",
@@ -903,7 +903,7 @@
                 "baseUrlEnv": "BRIEF_OMLX_BASE_URL",
                 "modelBinding": {
                     "kind": "committed",
-                    "modelId": "Qwen3.8-27B-3bit-MLX"
+          "modelId": "Ternary-Bonsai-27B-mlx-2bit"
                 },
                 "usageMapping": {
                     "promptTokens": "usage.prompt_tokens",
@@ -931,7 +931,7 @@
             }
         },
         "shadowProfiles": [
-            "omlx-openai-compatible-qwen38",
+      "omlx-openai-compatible-bonsai27",
             "ollama-openai-compatible"
         ]
     },

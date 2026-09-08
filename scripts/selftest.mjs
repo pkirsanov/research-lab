@@ -30554,7 +30554,7 @@ try {
   const shadowRequire = createShadowRequire(import.meta.url);
   const RLBRIEFROUTE = shadowRequire('../rlbriefroute.js');
   const shadowPolicy = JSON.parse(read('market-brief.config.json'))['brief-generation-shadow/v1'];
-  const profileIds = ['omlx-openai-compatible-qwen38', 'ollama-openai-compatible'];
+  const profileIds = ['omlx-openai-compatible-bonsai27', 'ollama-openai-compatible'];
   const endpoint = ['http:', '', '127.0.0.1:1'].join('/');
   const environment = {
     BRIEF_SHADOW_PROFILE: profileIds[0],
@@ -30576,7 +30576,7 @@ try {
   assert(omlx.ok && ollama.ok
     && omlx.value.profileId === profileIds[0]
     && omlx.value.providerId === 'omlx'
-    && omlx.value.modelId === 'Qwen3.8-27B-3bit-MLX'
+    && omlx.value.modelId === 'Ternary-Bonsai-27B-mlx-2bit'
     && ollama.value.profileId === profileIds[1]
     && ollama.value.providerId === 'ollama'
     && ollama.value.modelId === 'ollama-selftest-model'

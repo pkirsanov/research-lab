@@ -28,7 +28,9 @@ function frozenCanaryRequest() {
     },
     includedFactIds: ['local-provider-canary'],
     omittedFacts: [],
-    maxOutputTokens: 128
+    // Bonsai writes a complete schema-fixed envelope rather than abbreviating the
+    // supplied candidate; leave enough headroom for the closing JSON delimiters.
+    maxOutputTokens: 512
   }, {
     providerId: 'shadow-route',
     modelId: 'selected-by-shadow-profile',
@@ -99,10 +101,10 @@ function assertCanaryResult(result, profileId) {
 }
 
 test('Regression E2E: SCN-030-002 OMLX returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state', async () => {
-  assert.equal(process.env.BRIEF_SHADOW_PROFILE, 'omlx-openai-compatible-qwen38');
+  assert.equal(process.env.BRIEF_SHADOW_PROFILE, 'omlx-openai-compatible-bonsai27');
   requiredEnvironment('BRIEF_OMLX_BASE_URL');
   const result = await runCanary();
-  assertCanaryResult(result, 'omlx-openai-compatible-qwen38');
+  assertCanaryResult(result, 'omlx-openai-compatible-bonsai27');
 });
 
 test('Regression E2E: SCN-030-002 Ollama returns the schema-fixed envelope, object payload, stop finish reason, and truthful usage state', async () => {

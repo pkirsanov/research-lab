@@ -8,8 +8,8 @@
 #      (Tier-A deterministic data — writes market-brief.snapshot.json + appends
 #      brief-history.jsonl; closed-market runs target the next session),
 #   2. builds and validates one registry-derived brief outcome for EVERY source tool,
-#   3. regenerates and contract-validates the Tier-B FINAL narrative (market-brief.payload.json) with the GitHub Copilot
-#      CLI (Opus 4.8 by default), locked to file edits only (shell + network denied),
+#   3. regenerates and contract-validates the Tier-B FINAL narrative (market-brief.payload.json) with the configured
+#      narrative provider (local OMLX Bonsai in the scheduled job; Copilot remains an explicit fallback),
 #      RETRYING (default 2 attempts) until the payload validates so each run fully generates,
 #   4. publishes the exact tool bundle + final graph and commits scoped files (never `git add -A`),
 #   5. ALWAYS git-pushes any local brief commit (including a prior run's unpushed commit) so
@@ -20,7 +20,9 @@
 # under launchd while you are logged in (no ssh-agent needed).
 #
 # Env knobs:
-#   BRIEF_MODEL              model slug for the narrative (default: claude-opus-4.8)
+#   BRIEF_NARRATIVE_PROVIDER copilot (default) or omlx
+#   BRIEF_NARRATIVE_OMLX_BASE_URL OpenAI-compatible local OMLX origin (required for omlx)
+#   BRIEF_MODEL              model slug for the narrative (Bonsai default for omlx; Opus default for Copilot)
 #   BRIEF_SKIP_NARRATIVE     set to 1 for a data-only run (skip the Copilot step)
 #   BRIEF_COPILOT_EXPECTED_PATH    pinned narrative-runtime path (default: /opt/homebrew/bin/copilot)
 #   BRIEF_COPILOT_EXPECTED_VERSION pinned narrative-runtime version as SELF-REPORTED by `copilot --version`
@@ -296,7 +298,13 @@ restore_owned_baseline() {
   fi
 }
 
-MODEL="${BRIEF_MODEL:-claude-opus-4.8}"
+NARRATIVE_PROVIDER="${BRIEF_NARRATIVE_PROVIDER:-copilot}"
+case "$NARRATIVE_PROVIDER" in copilot|omlx) ;; *) echo "[brief-timer] BRIEF_NARRATIVE_PROVIDER must be copilot or omlx"; exit 1 ;; esac
+if [ "$NARRATIVE_PROVIDER" = "omlx" ]; then
+  MODEL="${BRIEF_MODEL:-Ternary-Bonsai-27B-mlx-2bit}"
+else
+  MODEL="${BRIEF_MODEL:-claude-opus-4.8}"
+fi
 NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-1}"
 NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-1800}"
 FETCH_BARS_TIMEOUT="${BRIEF_FETCH_BARS_TIMEOUT:-1200}"
@@ -361,7 +369,21 @@ copilot_version_probe() {
 # from an unverified build changes reader-facing output with no record of the change.
 # An explicit BRIEF_COPILOT_BIN is an operator/test override and is reported, not measured.
 COPILOT_BINDING_DETAIL=""
-if [ -n "${BRIEF_COPILOT_BIN:-}" ]; then
+if [ "$NARRATIVE_PROVIDER" = "omlx" ]; then
+  if [ -z "${BRIEF_NARRATIVE_OMLX_BASE_URL:-}" ]; then
+    echo "[brief-timer] BRIEF_NARRATIVE_OMLX_BASE_URL is required for local OMLX narrative generation"
+    restore_owned_baseline || true
+    exit 1
+  fi
+  if ! "$NODE_BIN" -e 'const base=process.env.BRIEF_NARRATIVE_OMLX_BASE_URL; const model=process.env.BRIEF_MODEL; const c=new AbortController(); setTimeout(()=>c.abort(),5000); fetch(new URL("v1/models",base),{signal:c.signal}).then(r=>r.json()).then(j=>{if(!Array.isArray(j.data)||!j.data.some(x=>x&&x.id===model))process.exit(1)}).catch(()=>process.exit(1));' ; then
+    echo "[brief-timer] local OMLX is unavailable or does not advertise $MODEL"
+    restore_owned_baseline || true
+    exit 1
+  fi
+  echo "[brief-timer] regenerating narrative via local OMLX ($MODEL; no model web access; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s per lane)…"
+  COPILOT_BINDING="not-used"
+  COPILOT_BINDING_DETAIL="local OMLX provider"
+elif [ -n "${BRIEF_COPILOT_BIN:-}" ]; then
   COPILOT_BINDING="override"
   COPILOT_BINDING_DETAIL="explicit BRIEF_COPILOT_BIN=$COPILOT_BIN"
 elif [ -z "$COPILOT_BIN" ]; then
@@ -493,14 +515,14 @@ elif [ "${BRIEF_SKIP_NARRATIVE:-0}" = "1" ]; then
     exit 1
   fi
   echo "[brief-timer] BRIEF_SKIP_NARRATIVE=1 — data-only run, narrative not regenerated"
-elif [ -z "$COPILOT_BIN" ]; then
+elif [ "$NARRATIVE_PROVIDER" = "copilot" ] && [ -z "$COPILOT_BIN" ]; then
   if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
     echo "[brief-timer] copilot CLI not found — refusing because the final brief is required"
     restore_owned_baseline || true
     exit 1
   fi
   echo "[brief-timer] copilot CLI not found — data-only run (install: npm i -g @github/copilot)"
-elif [ "$COPILOT_BINDING" != "ok" ] && [ "$COPILOT_BINDING" != "override" ]; then
+elif [ "$NARRATIVE_PROVIDER" = "copilot" ] && [ "$COPILOT_BINDING" != "ok" ] && [ "$COPILOT_BINDING" != "override" ]; then
   if [ "$REQUIRE_COMPLETE_RUN" = "1" ]; then
     echo "[brief-timer] refusing: pinned narrative runtime failed its binding check ($COPILOT_BINDING: $COPILOT_BINDING_DETAIL)"
     echo "[brief-timer] publishing a narrative from an unverified Copilot build would change reader-facing output without review"
@@ -514,7 +536,7 @@ else
   WEB_STATE="curated-web-on"
   [ "${BRIEF_NO_WEB:-0}" = "1" ] && WEB_STATE="web-off"
   TODAY="$(TZ=America/New_York date '+%Y-%m-%d')"
-  echo "[brief-timer] regenerating narrative via 4 parallel Copilot lanes ($MODEL; $WEB_STATE, shell denied; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s per lane)…"
+  [ "$NARRATIVE_PROVIDER" = "omlx" ] || echo "[brief-timer] regenerating narrative via 4 parallel Copilot lanes ($MODEL; $WEB_STATE, shell denied; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s per lane)…"
   # The delegated launcher applies --allow-all-tools, --deny-tool=shell, and its per-lane web policy.
   # Retry until the payload passes the full contract validator, so each run FULLY generates a valid brief;
   # a failed/timed-out/invalid attempt reverts the payload before the next try (never commit a broken payload).
@@ -552,7 +574,9 @@ else
     # key would be lost) and it exits 0 even when it refuses a candidate, since
     # refusing one is a correct outcome, not a run failure. A genuine build
     # error exits non-zero and the && chain fails the attempt, which retries.
-    if BRIEF_COPILOT_BIN="$COPILOT_BIN" \
+    if BRIEF_NARRATIVE_PROVIDER="$NARRATIVE_PROVIDER" \
+          BRIEF_NARRATIVE_OMLX_BASE_URL="${BRIEF_NARRATIVE_OMLX_BASE_URL:-}" \
+          BRIEF_COPILOT_BIN="$COPILOT_BIN" \
           BRIEF_MODEL="$MODEL" \
           BRIEF_NARRATIVE_TIMEOUT="$NARRATIVE_TIMEOUT" \
           BRIEF_NARRATIVE_ATTEMPT="$attempt" \

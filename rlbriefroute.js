@@ -9,7 +9,7 @@
   var TRANSPORT_CONTRACT = "openai-compatible-chat/v1";
   var CAPABILITY_CONTRACT = "model-route-capability/v1";
   var RECEIPT_CONTRACT = "local-model-usage-receipt/v1";
-  var PROFILE_IDS = ["omlx-openai-compatible-qwen38", "ollama-openai-compatible"];
+  var PROFILE_IDS = ["omlx-openai-compatible-bonsai27", "ollama-openai-compatible"];
   var LIMITS = {
     modelListTimeoutMs: 5000,
     modelListMaxResponseBytes: 262144,
@@ -157,7 +157,7 @@
       if (adapter.providerId !== "omlx" || adapter.baseUrlEnv !== "BRIEF_OMLX_BASE_URL") return failure(ERRORS.POLICY, "omlx-binding", "adapters." + profileId);
       if (!exactKeys(adapter.modelBinding, ["kind", "modelId"])
         || adapter.modelBinding.kind !== "committed"
-        || adapter.modelBinding.modelId !== "Qwen3.8-27B-3bit-MLX") {
+        || adapter.modelBinding.modelId !== "Ternary-Bonsai-27B-mlx-2bit") {
         return failure(ERRORS.POLICY, "omlx-model-binding", "adapters." + profileId + ".modelBinding");
       }
     } else if (profileId === PROFILE_IDS[1]) {

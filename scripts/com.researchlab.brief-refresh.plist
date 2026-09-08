@@ -54,6 +54,12 @@
       <string>/opt/homebrew/bin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin</string>
       <key>BRIEF_PUBLICATION_LEAD_MINUTES</key>
       <string>30</string>
+      <key>BRIEF_NARRATIVE_PROVIDER</key>
+      <string>omlx</string>
+      <key>BRIEF_NARRATIVE_OMLX_BASE_URL</key>
+      <string>http://127.0.0.1:8000</string>
+      <key>BRIEF_MODEL</key>
+      <string>Ternary-Bonsai-27B-mlx-2bit</string>
     </dict>
 
     <key>RunAtLoad</key>

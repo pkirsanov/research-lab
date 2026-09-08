@@ -336,7 +336,7 @@ test('Security regression: SCN-030-003 retained request fingerprint mutation ref
       await readBody(request);
       return responseJson(response, 200, {
         object: 'list',
-        data: [{ id: 'Qwen3.8-27B-3bit-MLX', object: 'model' }]
+        data: [{ id: 'Ternary-Bonsai-27B-mlx-2bit', object: 'model' }]
       });
     }
     if (request.url === '/v1/chat/completions') {
@@ -353,7 +353,7 @@ test('Security regression: SCN-030-003 retained request fingerprint mutation ref
 
   const originalEnvironment = {};
   for (const key of PROFILE_KEYS) originalEnvironment[key] = process.env[key];
-  process.env.BRIEF_SHADOW_PROFILE = 'omlx-openai-compatible-qwen38';
+  process.env.BRIEF_SHADOW_PROFILE = 'omlx-openai-compatible-bonsai27';
   process.env.BRIEF_OMLX_BASE_URL = server.baseUrl;
   delete process.env.BRIEF_OLLAMA_BASE_URL;
   delete process.env.BRIEF_OLLAMA_MODEL;
@@ -469,7 +469,7 @@ test('Regression: SCN-030-001 explicit profile resolves once or refuses before H
     assert.notEqual(unknown.code, 0);
     assert.equal(safeJson(unknown.stderr)?.error?.code, 'B030-SHADOW-PROFILE');
 
-    const missingOmlxUrl = { ...base, BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-qwen38' };
+    const missingOmlxUrl = { ...base, BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-bonsai27' };
     delete missingOmlxUrl.BRIEF_OMLX_BASE_URL;
     const noOmlxUrl = await runShadowCli(missingOmlxUrl, frozenAuthorRequest());
     assert.notEqual(noOmlxUrl.code, 0);
@@ -483,7 +483,7 @@ test('Regression: SCN-030-001 explicit profile resolves once or refuses before H
 
     const unsafeUrl = await runShadowCli({
       ...base,
-      BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-qwen38',
+      BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-bonsai27',
       BRIEF_OMLX_BASE_URL: `${server.baseUrl}?credential=present`
     }, frozenAuthorRequest());
     assert.notEqual(unsafeUrl.code, 0);
@@ -491,7 +491,7 @@ test('Regression: SCN-030-001 explicit profile resolves once or refuses before H
 
     const omlx = resolveShadowRuntimeProfile({
       ...base,
-      BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-qwen38'
+      BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-bonsai27'
     });
     const ollama = resolveShadowRuntimeProfile({
       ...base,
@@ -499,8 +499,8 @@ test('Regression: SCN-030-001 explicit profile resolves once or refuses before H
     });
     assert.equal(omlx.ok, true, JSON.stringify(omlx.error || null));
     assert.equal(ollama.ok, true, JSON.stringify(ollama.error || null));
-    assert.equal(omlx.value.profileId, 'omlx-openai-compatible-qwen38');
-    assert.equal(omlx.value.modelId, 'Qwen3.8-27B-3bit-MLX');
+    assert.equal(omlx.value.profileId, 'omlx-openai-compatible-bonsai27');
+    assert.equal(omlx.value.modelId, 'Ternary-Bonsai-27B-mlx-2bit');
     assert.equal(ollama.value.profileId, 'ollama-openai-compatible');
     assert.equal(ollama.value.modelId, 'ollama-functional-model');
     assert.notEqual(omlx.value.providerId, ollama.value.providerId);
@@ -527,7 +527,7 @@ test('Regression: SCN-030-002 exact model preflight precedes one bounded dynamic
       if (state.failModels) return responseJson(response, 503, { error: { code: 'unavailable' } });
       return responseJson(response, 200, {
         object: 'list',
-        data: state.includeModel ? [{ id: 'Qwen3.8-27B-3bit-MLX', object: 'model' }] : []
+        data: state.includeModel ? [{ id: 'Ternary-Bonsai-27B-mlx-2bit', object: 'model' }] : []
       });
     }
     if (request.url === '/v1/chat/completions') {
@@ -543,7 +543,7 @@ test('Regression: SCN-030-002 exact model preflight precedes one bounded dynamic
 
   try {
     const environment = profileEnvironment({
-      BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-qwen38',
+      BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-bonsai27',
       BRIEF_OMLX_BASE_URL: server.baseUrl
     });
     const request = frozenAuthorRequest();
@@ -552,13 +552,13 @@ test('Regression: SCN-030-002 exact model preflight precedes one bounded dynamic
     const result = safeJson(completed.stdout);
     assert.equal(result?.contractVersion, 'brief-shadow-result/v1');
     assert.equal(result?.authoritative, false);
-    assert.equal(result?.profile?.profileId, 'omlx-openai-compatible-qwen38');
-    assert.equal(result?.profile?.modelId, 'Qwen3.8-27B-3bit-MLX');
+    assert.equal(result?.profile?.profileId, 'omlx-openai-compatible-bonsai27');
+    assert.equal(result?.profile?.modelId, 'Ternary-Bonsai-27B-mlx-2bit');
     assert.equal(result?.authorResponse?.requestFingerprint, request.requestFingerprint);
     assert.deepEqual(observed.map((entry) => entry.url), ['/v1/models', '/v1/chat/completions']);
 
     const chatRequest = JSON.parse(observed[1].body);
-    assert.equal(chatRequest.model, 'Qwen3.8-27B-3bit-MLX');
+    assert.equal(chatRequest.model, 'Ternary-Bonsai-27B-mlx-2bit');
     assert.equal(chatRequest.stream, false);
     assert.deepEqual(chatRequest.response_format, {
       type: 'json_schema',
@@ -715,7 +715,7 @@ test('Stress: SCN-030-002 finite byte deadline retry and concurrency limits refu
       state.modelRequests += 1;
       if (state.holdModels) return;
       return responseJson(response, state.modelStatus, state.modelBody || {
-        object: 'list', data: [{ id: 'Qwen3.8-27B-3bit-MLX' }]
+        object: 'list', data: [{ id: 'Ternary-Bonsai-27B-mlx-2bit' }]
       });
     }
     if (incoming.url === '/v1/chat/completions') {
@@ -734,7 +734,7 @@ test('Stress: SCN-030-002 finite byte deadline retry and concurrency limits refu
 
   try {
     const resolved = resolveShadowRuntimeProfile(profileEnvironment({
-      BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-qwen38',
+      BRIEF_SHADOW_PROFILE: 'omlx-openai-compatible-bonsai27',
       BRIEF_OMLX_BASE_URL: server.baseUrl
     }));
     assert.equal(resolved.ok, true, JSON.stringify(resolved.error || null));
@@ -766,7 +766,7 @@ test('Stress: SCN-030-002 finite byte deadline retry and concurrency limits refu
     assert.equal(overCapInvocation.error.code, 'B030-ADAPTER-CONFIG');
     assert.equal(state.chatRequests, chatsBeforeOverCap);
 
-    const modelAtCap = { object: 'list', data: [{ id: 'Qwen3.8-27B-3bit-MLX' }], padding: '' };
+    const modelAtCap = { object: 'list', data: [{ id: 'Ternary-Bonsai-27B-mlx-2bit' }], padding: '' };
     modelAtCap.padding = 'x'.repeat(limits.modelListMaxResponseBytes - Buffer.byteLength(JSON.stringify(modelAtCap)));
     assert.equal(Buffer.byteLength(JSON.stringify(modelAtCap)), limits.modelListMaxResponseBytes);
     state.modelBody = modelAtCap;

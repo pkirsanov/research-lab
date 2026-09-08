@@ -456,11 +456,40 @@ function laneInput(lane) {
     };
 }
 
+/* Copilot reads the full lane document from disk. OMLX receives the lane document
+   over HTTP, so preserve its shape while bounding the prompt below the route's
+   98 KiB request contract. This is deliberately structural rather than a raw
+   byte slice: a truncated JSON document would make the model invent missing
+   braces and the collector could not distinguish that transport failure from
+   an authored fragment. */
+function boundedOmlxInput(value) {
+    const plans = [
+        { stringCap: 1600, arrayCap: 24, objectCap: 48 },
+        { stringCap: 700, arrayCap: 12, objectCap: 32 },
+        { stringCap: 280, arrayCap: 6, objectCap: 20 },
+        { stringCap: 120, arrayCap: 3, objectCap: 12 }
+    ];
+    const compact = (entry, plan, depth = 0) => {
+        if (typeof entry === 'string') return entry.length <= plan.stringCap ? entry : `${entry.slice(0, plan.stringCap)} [truncated]`;
+        if (entry === null || typeof entry !== 'object') return entry;
+        if (Array.isArray(entry)) return entry.slice(0, plan.arrayCap).map((child) => compact(child, plan, depth + 1));
+        const keys = Object.keys(entry).slice(0, plan.objectCap);
+        const result = Object.fromEntries(keys.map((key) => [key, compact(entry[key], plan, depth + 1)]));
+        if (Object.keys(entry).length > keys.length) result._transportNote = 'additional fields omitted for bounded local-model context';
+        return result;
+    };
+    for (const plan of plans) {
+        const candidate = JSON.stringify(compact(value, plan));
+        if (Buffer.byteLength(candidate) <= 72 * 1024) return candidate;
+    }
+    throw new Error('OMLX lane input cannot be compacted below the 72 KiB transport limit');
+}
+
 async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, stdoutPath, stderrPath, startedAt }) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), (lane.timeoutSeconds || timeoutSeconds) * 1000);
     try {
-        const input = readFileSync(inputPath, 'utf8');
+        const input = boundedOmlxInput(JSON.parse(readFileSync(inputPath, 'utf8')));
         const response = await fetch(new URL('v1/chat/completions', omlxBaseUrl), {
             method: 'POST',
             headers: { 'content-type': 'application/json', accept: 'application/json' },

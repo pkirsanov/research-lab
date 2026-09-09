@@ -1,9 +1,9 @@
 {
-  "asOf": "2026-09-09T15:00:00.000Z",
+  "asOf": "2026-09-09T19:00:00.000Z",
   "attention": [
     {
       "contractVersion": "decision-attention/v1",
-      "decisionWindow": "morning",
+      "decisionWindow": "pre-close",
       "deepLink": "etf-momentum-lab.html",
       "disposition": "context",
       "escalationTrigger": "a daily close below its ~117.00 50-day",
@@ -37,7 +37,7 @@
       "gateId": null,
       "headline": "VGT still tops the momentum board yet is the book's most tech-concentrated name near a stretched high",
       "horizon": "swing",
-      "id": "attn-cd77ca356ddbca35",
+      "id": "attn-417da3d1b281a3d1",
       "imminence": "latent",
       "invalidation": "a daily close above its ~126.00 prior high",
       "lifecycle": [
@@ -64,7 +64,7 @@
         "breadth-market-structure"
       ],
       "verb": "monitor",
-      "windowBoundaryUtc": "2026-09-09T15:00:00.000Z",
+      "windowBoundaryUtc": "2026-09-09T19:00:00.000Z",
       "windowResolvedFrom": "session",
       "windowTradingDate": "2026-09-09"
     }
@@ -113,9 +113,9 @@
       "REAL ASSETS leadership is CRYPTO-led, consistent with risk-on/reflation, but the precious-metal bid stayed FADED this window (real-assets-lab, owner read): ETH-USD leads at 79.4/100 with BTC 70.8 next, while GLD reads 39.3 (below its 200-day) and SLV reads 19.4 - a cyclical/speculative tilt whose haven bid receded rather than firmed (deep-link: real-assets-lab.html).",
       "US EQUITY BREADTH thinned but stays above its line on this bar (market-heatmap-lab): 60.5% of 134 constituents are positive against a 60% broad-market threshold (margin +0.5), down from 67% on the 9/2 bar. Counting by distinct completed market-bar dates, the current 9/3 bar clears 60% at 60.5% and the prior 9/2 bar cleared at 67%, so two consecutive bars now clear, with the intervening 8/31 and 9/1 breadth not in this view, so three consecutive-bar persistence above 60% is not established in this view, and the beta add holds the released measured first increment while the remaining tranches stay paused until SPMO reclaims its 50-day (deep-link: market-heatmap-lab.html)."
     ],
-    "macroCycle": "Neutral",
-    "pricedIn": "Neutral",
-    "primaryTrend": "Neutral",
+    "macroCycle": "Stagnant growth",
+    "pricedIn": "No major moves",
+    "primaryTrend": "Flat",
     "structuralLevels": {
       "MSFT": {
         "ma200": 431.1,
@@ -181,11 +181,11 @@
           "200-day ~160.1 (+16.14% above)"
         ]
       },
-      "resistance": 450,
-      "support": 445
+      "resistance": 480,
+      "support": 440
     },
-    "trendEvidence": "No clear trend",
-    "whatWouldChangeIt": "Earnings data"
+    "trendEvidence": "No clear direction",
+    "whatWouldChangeIt": "Fed policy shift"
   },
   "budget": {
     "byField": [
@@ -198,7 +198,7 @@
         "path": "dataAsOf.labels.bars"
       },
       {
-        "chars": 13,
+        "chars": 19,
         "path": "dataAsOf.labels.macro"
       },
       {
@@ -269,8 +269,8 @@
         "path": "attention[0].rationale"
       }
     ],
-    "disclosedTotal": 107984,
-    "total": 943,
+    "disclosedTotal": 106705,
+    "total": 949,
     "violations": []
   },
   "changed": [
@@ -458,7 +458,7 @@
       "cur": {
         "asOf": "2026-09-08",
         "flags": {
-          "callOpen": true,
+          "callOpen": false,
           "earningsWithinWindow": false,
           "gammaFlipProximity": false,
           "persistenceGateMet": false
@@ -716,16 +716,16 @@
     ]
   },
   "dataAsOf": {
-    "bars": "2026-09-09",
-    "events": "Not applicable this window",
+    "bars": "Fresh: 2026-09-09",
+    "events": "Active: 2026-09-09",
     "labels": {
       "bars": "Fresh: 2026-09-09",
-      "events": "Not applicable this window",
-      "macro": "Neutral: 2.5%",
-      "options": "Coverage-only"
+      "events": "Active: 2026-09-09",
+      "macro": "Current: 2026-09-09",
+      "options": "Open: 2026-09-09"
     },
-    "macro": "2.5%",
-    "options": "Coverage-only"
+    "macro": "Current: 2026-09-09",
+    "options": "Open: 2026-09-09"
   },
   "events": [
     {
@@ -834,7 +834,7 @@
       "title": "Leadership is still being scored offshore and in real assets while US breadth barely holds the line: global rotation ranks EWS (Singapore) at 92.5/100 far ahead of the US-heavy ACWI and the real-assets composite leads with crypto and broad commodities (ETH-USD 79.4, DBC/PDBC 74.4) as gold stays weak (39.3) and silver weaker (19.4) — a where-is-the-bid migration that now coincides with a thinning domestic cushion but still resolves only to relative-strength scores, so no scoreable tactical call is published"
     }
   ],
-  "generatedAt": "2026-09-09T15:30:29.600Z",
+  "generatedAt": "2026-09-09T18:43:57.859Z",
   "groups": [
     {
       "breadth": {
@@ -1258,9 +1258,9 @@
   "psychology": {
     "contrarianSignal": "Price sits just under its highs on its 20>50>200 ma-distance bull-stack the swing tool now confirms, but breadth thinned to 60.5% of 134 (margin +0.5), so participation is narrowing even as the frame firms. Dealer gamma stays POSITIVE (signed net GEX +$4.51B) with SPY (options spot 772.79) above the 768.59 flip between the 765 put wall and the 775 call wall, so dealers pin range rather than amplify it and the front expected move narrowed to ~+/-2.61 (atmIV 9.11%). The cautions: swing-structure-lab still reads a Double top below its trigger, and SPMO 147.41 still sits just under its 50-day while QQQ 717.67 holds above its. The options tape stays bullish but eased: options-flow-feed-lab is call-heavy (callFraction 0.7159, down from 0.8649, call premium $3.71B over put premium $1.47B) with an NVDA 230 call the most-unusual print. So the crowd is constructive and leaning long into positive-gamma support, but doing so into a pin-to-maxpain tape near the highs with breadth thinning and the swing Double top still below its trigger. With headline vol calm at 14.32, the sizing model calm, and flow easing off its most one-sided lean, it is neither a fear washout nor yet a euphoria warning - a structurally-intact tape with firm near-term dealer support pinning near its highs on narrowing breadth - which argues for holding the core, holding the measured first beta increment while keeping the rest paused until SPMO reclaims its 50-day, and not chasing size into the pin.",
     "crowdState": "constructive on the multi-month frame and just under its highs on a bull-stack the swing tool now confirms, leaning long into a positive-gamma pocket but on thinning breadth: breadth thinned to 60.5% of 134 (market-heatmap-lab, margin +0.5, down from 67% on the 9/2 bar), dealer gamma POSITIVE (signed net GEX +$4.51B) with SPY (options spot 772.79) above the 768.59 flip and pinning between the 765 put wall and the 775 call wall, flow call-heavy but less one-sided (callFraction 0.7159) with an NVDA 230 call the most-unusual print, while swing-structure-lab firmed from Tangled to Bull-stacked though it still reads a Double top below its trigger and SPMO (147.41) still sits below its 50-day while QQQ (717.67) holds above its - with MSFT holding its clean bull-stack at 510.12 and VIX a still-calm 14.32. The settled session read a Trend day up auction (VWAP 771.62).",
-    "fear": "Moderate",
-    "greed": "Low",
-    "sentiment": "Cautious",
+    "fear": "Low",
+    "greed": "Moderate",
+    "sentiment": "Neutral",
     "sentimentReadout": "Headline vol is calm (VIX 14.32, band VIX 14.3) and the sizing model reads calm (volatility-sizing-lab conditional vol 10.7464%, throttle x1.4, percentile 2.5), so position-sizing conditions are benign; Fear & Greed was NOT fetched this run (snapshot.fearGreed null) so the deterministic composite of 1 is VIX-only, not a measured neutral. The premium lean is call-heavy but less one-sided than the prior window (options-flow-feed-lab callFraction 0.7159, down from 0.8649, call premium $3.71B over put premium $1.47B across 12 tickers) with the most-unusual print an NVDA 230 call ($55.7M on 6.9x its open interest) and 1975 contracts clearing the $250k premium bar, so the flow tape still leans bullish but eased - and dealers hold a POSITIVE gamma pocket (signed net GEX +$4.51B, flip 768.59 with SPY above it, walls 765/775) with the priced move a narrow ~+/-2.61 and a pin-to-maxpain playbook. The net read is benign headline sentiment with a still-bullish but easing flow lean into a positive-gamma, pin-to-maxpain tape near the highs - not euphoric, not fearful, with firm near-term dealer support and the swing tool now confirming the stack, but with breadth thinning to just above 60% and SPMO still just under its 50-day."
   },
   "recommendations": [
@@ -1317,7 +1317,7 @@
     "asymmetry": "Balanced",
     "bias": "bull",
     "crowdPsychology": "Cautious optimism",
-    "falsifiers": "Earnings miss",
+    "falsifiers": "Unexpected Fed hike",
     "levels": {
       "MSFT": "50-day ~441.2 (510.12, +15.61% ABOVE), 200-day ~431.1 (+18.33% above, the confirmation line on the close); 52-week high area (-5.89% below); maStack bull-stack, mom5 +1.0, mom21 +4.65, mom63 +19.17, mom252 +0.94 (softer). The repair holds with the stack intact - hold while daily closes hold above the 200-day (~431.1); a close back below ~431.1 re-opens the structural downside.",
       "QQQ": "50-day ~711.1 HELD (717.67, ma50Dist +0.93, mom5 -0.48, bull-stack on ma-distance); 200-day ~657.1 (+9.21%); 52-week high area (-3.82% below). QQQ holds the 50-day it reclaimed, keeping one beta-add release condition intact; a continued hold above ~711.1 keeps it restored, a close back below it re-opens the crack.",
@@ -1326,34 +1326,34 @@
       "XLC": "communication services, Improving and rotating IN this bar but slipped from Leading: rsMom 100.89 (quad I, rsRatio 99.99, accel +0.49). A leg to tilt toward alongside XLK; keep the tilt while XLC holds rsMom above 100.",
       "XLE": "50-day ~59.0 (64.62, +9.52% ABOVE, bull-stack); 200-day ~54.7 (+18.06%). XLE relative-strength leg is WEAKENING and rotating OUT this window (rsMom 98.91, quad W, accel -3.24) even as its price stays firm (mom5 +3.74, pctFrom52wHigh -0.74). Energy is a leg to fund from on relative strength, not tilt toward; a daily close below ~59.0 would flag price damage.",
       "XLK": "50-day ~182.6 (185.97, +1.87% ABOVE, bull-stack); relative-strength leg rsMom 101.06 IMPROVING and rotating IN this bar (quad I, accel +0.88), the tool's named rotate-into. XLK holds its price stack and its leadership improved back in; a daily close below ~182.6 would flag price damage.",
-      "resistance": 450,
-      "support": 445
+      "resistance": 480,
+      "support": 440
     },
-    "macroCycle": "Neutral",
+    "macroCycle": "Stagnant growth",
     "name": "Neutral",
-    "note": "No clear direction",
-    "pricedIn": "Neutral",
+    "note": "Market waiting for catalyst",
+    "pricedIn": "No major moves",
     "scoreNote": "Market in equilibrium",
-    "structuralTrend": "Neutral",
+    "structuralTrend": "Flat",
     "vix": {
       "delta": -0.23,
-      "falsifier": "VIX above 20",
+      "falsifier": "VIX above 20.0",
       "level": 14.32,
-      "regimeLabel": "Neutral"
+      "regimeLabel": "Low"
     }
   },
   "researchAgenda": {
     "contractVersion": "research-agenda-read/v1",
-    "generationId": "generation-c242607f353c182c6a89b6d59d04aa394291e5132677089acd9f3aaa8d6cf796",
-    "asOf": "2026-09-09T15:25:59.018Z",
+    "generationId": "generation-be5a05630a98a005dde4950cf59e4da60230adc50250ad284c4d7ac1cfe605f8",
+    "asOf": "2026-09-09T18:37:45.844Z",
     "topics": [
       {
         "topicId": "geopolitical-supply-shock",
         "mode": "every-generation",
         "state": "unavailable",
-        "reason": "search-query-accounting-invalid",
+        "reason": "author-failed",
         "selectionReason": "mode-required",
-        "reviewId": "review-4602cdc066e4a5c9a2267421c8939e330c793da54f5e87f6b7a9fcc18a130255",
+        "reviewId": "review-981d3f7d386eb439d29650b47dc863057db8abbb7e9ac30c21065ecc0b7b343e",
         "dossierId": null,
         "outcome": "unavailable",
         "changeAssessment": "insufficient-evidence",
@@ -1366,12 +1366,12 @@
       {
         "topicId": "defense-earnings-acceleration",
         "mode": "cadence",
-        "state": "unavailable",
-        "reason": "search-query-accounting-invalid",
-        "selectionReason": "cadence-elapsed",
-        "reviewId": "review-37d531874fa3f15dc9113465b40b06aa453ce7e97048f984e048a194ab664fb3",
+        "state": "not-due",
+        "reason": "cadence-not-elapsed",
+        "selectionReason": "cadence-not-elapsed",
+        "reviewId": null,
         "dossierId": null,
-        "outcome": "unavailable",
+        "outcome": "not-due",
         "changeAssessment": "insufficient-evidence",
         "newestEvidenceAgeHours": null,
         "modelState": "unavailable",
@@ -1382,12 +1382,12 @@
       {
         "topicId": "food-inputs-outlook",
         "mode": "cadence",
-        "state": "deferred",
-        "reason": "cadence-budget",
-        "selectionReason": "cadence-budget",
-        "reviewId": null,
+        "state": "unavailable",
+        "reason": "author-failed",
+        "selectionReason": "cadence-elapsed",
+        "reviewId": "review-c8dc4ee722cdf80396e302287777bdbe2dc525c3b79b6e61f6778254a523f197",
         "dossierId": null,
-        "outcome": "deferred",
+        "outcome": "unavailable",
         "changeAssessment": "insufficient-evidence",
         "newestEvidenceAgeHours": null,
         "modelState": "unavailable",
@@ -1396,7 +1396,7 @@
         "supersedesDossierId": null
       }
     ],
-    "readFingerprint": "sha256:ee9383e896c2d94dfc5047c2572f12e3a57ea9f4ff06cdd516645953bac08812"
+    "readFingerprint": "sha256:d4ff085be0265f938d0da6332df397e800cadd4edf4a7f34fbee8668fdadbc78"
   },
   "rollUp": {
     "baselineCount": 0,
@@ -1993,22 +1993,22 @@
       "source": "owning-tool-functions"
     },
     "fx-regime-relative-value-lab": {
-      "asOf": "2026-09-09T15:25:58.742Z",
+      "asOf": "2026-09-09T18:37:28.926Z",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "id": "fx-regime-relative-value-lab",
       "metrics": {
         "approvedSourceCount": 0,
         "broadDollarState": "Indeterminate",
         "declaredSourceCount": 8,
-        "evidenceIdentity": "fxe-v1-087ffc7e",
+        "evidenceIdentity": "fxe-v1-d2b975a1",
         "evidenceState": "Evidence incomplete for a current recommendation",
         "horizon": "swing",
         "objective": "foreign-currency-strength",
-        "ownerDecisionId": "fxo-v1-f4ef2294",
+        "ownerDecisionId": "fxo-v1-36ca64af",
         "projection": {
           "asOf": null,
           "availability": "unavailable",
-          "computedAt": "2026-09-09T15:25:58.742Z",
+          "computedAt": "2026-09-09T18:37:28.926Z",
           "contractVersion": "rl-tool-read/v1",
           "deepLink": "fx-regime-relative-value-lab.html#power",
           "freshUntil": null,
@@ -2031,14 +2031,14 @@
             "currencyStates": {},
             "educationalOnly": true,
             "evidenceCutoff": null,
-            "evidenceIdentity": "fxe-v1-087ffc7e",
+            "evidenceIdentity": "fxe-v1-d2b975a1",
             "executionAvailable": false,
             "freshUntil": null,
             "hedgeResearchState": "Indeterminate",
             "horizon": "swing",
             "invalidation": "No directional conclusion exists while minimum evidence is unavailable. Selection remains invalid until the exact rejected or unavailable criteria change under current evidence.",
             "objective": "foreign-currency-strength",
-            "ownerDecisionId": "fxo-v1-f4ef2294",
+            "ownerDecisionId": "fxo-v1-36ca64af",
             "recommendationOutcome": {
               "confidencePct": null,
               "contractVersion": "rlfx-recommendation-outcome/v1",
@@ -2049,7 +2049,7 @@
               "educationalOnly": true,
               "evaluability": "non-recommendation",
               "evidenceCutoff": null,
-              "evidenceIdentity": "fxe-v1-087ffc7e",
+              "evidenceIdentity": "fxe-v1-d2b975a1",
               "executionAvailable": false,
               "horizon": "swing",
               "objective": "foreign-currency-strength",
@@ -2277,13 +2277,13 @@
       "state": "unavailable"
     },
     "gamma-trading-lab": {
-      "asOf": "2026-09-09T11:09:15.000Z",
+      "asOf": "2026-09-09T14:20:22.000Z",
       "deepLink": "gamma-trading-lab.html",
       "id": "gamma-trading-lab",
       "metrics": {
         "callWall": 765,
         "conviction": "patient",
-        "flip": 767.53,
+        "flip": 768.52,
         "flipPresent": true,
         "hold": "same-session-fade",
         "opexWindow": null,
@@ -2291,10 +2291,10 @@
         "putWall": 760,
         "regime": "negative",
         "scenario": "range-break-watch",
-        "signedNetGEX": -6331534634.93,
+        "signedNetGEX": -6928764334.87,
         "symbol": "SPY"
       },
-      "read": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 767.53, walls 760/765.",
+      "read": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 768.52, walls 760/765.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
@@ -2309,7 +2309,7 @@
           "approximateLocalReturn": 0.14877101233446655,
           "asOf": "2026-09-03T00:00:00.000Z",
           "benchmarkReturnOnDecompositionDates": 0.04410055492406317,
-          "computedAt": "2026-09-09T15:25:58.487Z",
+          "computedAt": "2026-09-09T18:37:22.283Z",
           "contractVersion": "rlfx-global-decomposition/v1",
           "currency": "SGD",
           "freshUntil": null,
@@ -2836,13 +2836,13 @@
             ],
             "contractVersion": "rlfx-observation-set/v1",
             "coverage": {
-              "commonRowCount": 337,
+              "commonRowCount": 336,
               "duplicateDatesDropped": {
                 "benchmark": 0,
                 "etf": 0,
                 "fx": 0
               },
-              "earliestCommonDate": "2025-02-12",
+              "earliestCommonDate": "2025-02-13",
               "latestCommonDate": "2026-09-03",
               "requiredRowCount": 64,
               "unmatchedNewerDates": {
@@ -2885,7 +2885,7 @@
                 "observationId": "fx:SGD",
                 "orientation": "fx",
                 "subject": "SGD/USD",
-                "validDateCount": 402
+                "validDateCount": 401
               }
             ],
             "lineage": {
@@ -2897,7 +2897,7 @@
               "uniqueRelationshipIds": []
             },
             "purpose": "global-decomposition",
-            "setId": "set-v1-6ee1dcc4",
+            "setId": "set-v1-3ac8e308",
             "state": "aligned"
           },
           "relationship": "Joint Support",
@@ -2921,7 +2921,7 @@
         "projection": {
           "asOf": "2026-09-08T00:00:00.000Z",
           "availability": "current",
-          "computedAt": "2026-09-09T15:25:58.487Z",
+          "computedAt": "2026-09-09T18:37:22.283Z",
           "contractVersion": "rl-tool-read/v1",
           "deepLink": "global-rotation-lab.html#simple",
           "freshUntil": null,
@@ -2939,7 +2939,7 @@
                 "approximateLocalReturn": 0.14877101233446655,
                 "asOf": "2026-09-03T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.04410055492406317,
-                "computedAt": "2026-09-09T15:25:58.487Z",
+                "computedAt": "2026-09-09T18:37:22.283Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "SGD",
                 "freshUntil": null,
@@ -3466,13 +3466,13 @@
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 337,
+                    "commonRowCount": 336,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0,
                       "fx": 0
                     },
-                    "earliestCommonDate": "2025-02-12",
+                    "earliestCommonDate": "2025-02-13",
                     "latestCommonDate": "2026-09-03",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
@@ -3515,7 +3515,7 @@
                       "observationId": "fx:SGD",
                       "orientation": "fx",
                       "subject": "SGD/USD",
-                      "validDateCount": 402
+                      "validDateCount": 401
                     }
                   ],
                   "lineage": {
@@ -3527,7 +3527,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-6ee1dcc4",
+                  "setId": "set-v1-3ac8e308",
                   "state": "aligned"
                 },
                 "relationship": "Joint Support",
@@ -3541,7 +3541,7 @@
               "usdLeadership": {
                 "asOf": "2026-09-08T00:00:00.000Z",
                 "benchmarkReturn": 0.040085249078656515,
-                "computedAt": "2026-09-09T15:25:58.487Z",
+                "computedAt": "2026-09-09T18:37:22.283Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -4128,7 +4128,7 @@
         "usdLeadership": {
           "asOf": "2026-09-08T00:00:00.000Z",
           "benchmarkReturn": 0.040085249078656515,
-          "computedAt": "2026-09-09T15:25:58.487Z",
+          "computedAt": "2026-09-09T18:37:22.283Z",
           "contractVersion": "rlfx-global-usd-leadership/v1",
           "freshUntil": null,
           "horizonSessions": 63,
@@ -4637,12 +4637,12 @@
       "source": "owning-tool-functions"
     },
     "intraday-tape-lab": {
-      "asOf": "2026-09-09T15:25:58.000Z",
+      "asOf": "2026-09-09T18:37:39.000Z",
       "deepLink": "intraday-tape-lab.html",
       "id": "intraday-tape-lab",
       "metrics": {
-        "barsToday": 24,
-        "control": "Mixed",
+        "barsToday": 63,
+        "control": "Algo-controlled",
         "gapPct": -0.25,
         "poc": null,
         "sessionType": "Range day",
@@ -4650,14 +4650,14 @@
         "symbol": "SPY",
         "valueAreaHigh": null,
         "valueAreaLow": null,
-        "vwap": 763.3
+        "vwap": 762.85
       },
-      "read": "SPY's session is a Range day auction under Mixed control, with VWAP at 763.3.",
+      "read": "SPY's session is a Range day auction under Algo-controlled control, with VWAP at 762.85.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
     "market-heatmap-lab": {
-      "asOf": "2026-09-09T15:25:58.813Z",
+      "asOf": "2026-09-09T18:37:29.234Z",
       "deepLink": "market-heatmap-lab.html",
       "id": "market-heatmap-lab",
       "metrics": {
@@ -4704,83 +4704,83 @@
       "state": "ready"
     },
     "options-flow-feed-lab": {
-      "asOf": "2026-09-09T11:09:15.000Z",
+      "asOf": "2026-09-09T14:20:22.000Z",
       "deepLink": "options-flow-feed-lab.html",
       "id": "options-flow-feed-lab",
       "metrics": {
-        "callFraction": 0.6361,
-        "callPremium": 1350342160.5,
-        "clearedCount": 422,
-        "clearedFraction": 0.0298,
-        "consideredCount": 14160,
-        "contractsFlagged": 1173,
+        "callFraction": 0.6018,
+        "callPremium": 1977864029,
+        "clearedCount": 608,
+        "clearedFraction": 0.0429,
+        "consideredCount": 14186,
+        "contractsFlagged": 1722,
         "lean": "call-heavy (leaning bullish)",
-        "maxScore": 93,
+        "maxScore": 88,
         "netPremium": null,
         "premiumThreshold": 250000,
-        "putPremium": 772572622.5,
+        "putPremium": 1308470202,
         "tickers": 12,
         "top": [
           {
             "dte": 0,
-            "iv": 64.65,
-            "openInterest": 2767,
-            "premium": 38018610,
-            "score": 93,
-            "strike": 650,
-            "ticker": "META",
-            "type": "C",
-            "volOI": 16.5045,
-            "volume": 45668
+            "iv": 72.8,
+            "openInterest": 8800,
+            "premium": 10007088,
+            "score": 88,
+            "strike": 310,
+            "ticker": "AAPL",
+            "type": "P",
+            "volOI": 13.0709,
+            "volume": 115024
           },
           {
             "dte": 0,
-            "iv": 18.51,
+            "iv": 13.28,
             "openInterest": 4510,
-            "premium": 38377399.5,
-            "score": 90,
+            "premium": 45945081,
+            "score": 85,
             "strike": 717,
             "ticker": "QQQ",
             "type": "P",
-            "volOI": 54.3732,
-            "volume": 245223
+            "volOI": 87.0716,
+            "volume": 392693
           },
           {
             "dte": 0,
-            "iv": 13.23,
+            "iv": 10.84,
             "openInterest": 5018,
-            "premium": 33387252.5,
-            "score": 90,
+            "premium": 37521627,
+            "score": 85,
             "strike": 763,
             "ticker": "SPY",
             "type": "P",
-            "volOI": 54.3143,
-            "volume": 272549
+            "volOI": 100.3679,
+            "volume": 503646
           }
         ],
         "windowDays": 30
       },
-      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1173 contracts clear the $250k premium bar inside 30 days; the most unusual is META 650 calls at $38.0M on 16.5× its open interest.",
+      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 1722 contracts clear the $250k premium bar inside 30 days; the most unusual is AAPL 310 puts at $10.0M on 13.1× its open interest.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
     "options-structure-lab": {
-      "asOf": "2026-09-09T11:09:15.000Z",
+      "asOf": "2026-09-09T14:20:22.000Z",
       "deepLink": "options-structure-lab.html",
       "id": "options-structure-lab",
       "metrics": {
-        "atmIV": 0.1371,
+        "atmIV": 0.1094,
         "callWall": 765,
-        "expectedMove": 3.87,
+        "expectedMove": 3.09,
         "expiriesPriced": 3,
-        "flipLevel": 767.53,
+        "flipLevel": 768.52,
         "putWall": 760,
         "regime": "negative",
-        "signedNetGEX": -6331534634.9266,
-        "spot": 762.56,
+        "signedNetGEX": -6928764334.8692,
+        "spot": 762.6,
         "symbol": "SPY"
       },
-      "read": "SPY sits in negative dealer gamma with the flip near 767.53; call wall 765, put wall 760, front expected move ±3.87.",
+      "read": "SPY sits in negative dealer gamma with the flip near 768.52; call wall 765, put wall 760, front expected move ±3.09.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
@@ -4791,7 +4791,7 @@
       "metrics": {
         "drivers": {
           "breadth": 87.5,
-          "btc63": 23.920705908795004,
+          "btc63": 26.144854739373756,
           "dbc63": 9.942321957220646,
           "gld63": 0.616712128976582,
           "goldSilverRatio63": 4.362092447495725,
@@ -4904,6 +4904,37 @@
             "vol": 22.9
           },
           {
+            "asOf": "2026-09-09T00:00:00.000Z",
+            "confirmations": [
+              {
+                "detail": "Growth equities proxy broad speculative appetite.",
+                "label": "Equity risk appetite",
+                "score": 50.999368953070665,
+                "symbols": [
+                  "QQQ"
+                ]
+              },
+              {
+                "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used.",
+                "label": "Bitcoin confirmation",
+                "score": 87.34979248481966,
+                "symbols": [
+                  "BTC-USD"
+                ]
+              }
+            ],
+            "maxDrawdown": 33.95,
+            "model": "crypto",
+            "mom126": 5.83,
+            "mom21": 10.5,
+            "mom63": 42.76,
+            "riskPenalty": 7.24,
+            "score": 77.3,
+            "ticker": "ETH-USD",
+            "trend": "Uptrend",
+            "vol": 55.9
+          },
+          {
             "asOf": "2026-09-08T13:30:00.000Z",
             "confirmations": [
               {
@@ -4943,37 +4974,6 @@
             "ticker": "DBA",
             "trend": "Uptrend",
             "vol": 12.23
-          },
-          {
-            "asOf": "2026-09-08T00:00:00.000Z",
-            "confirmations": [
-              {
-                "detail": "Growth equities proxy broad speculative appetite.",
-                "label": "Equity risk appetite",
-                "score": 50.999368953070665,
-                "symbols": [
-                  "QQQ"
-                ]
-              },
-              {
-                "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used.",
-                "label": "Bitcoin confirmation",
-                "score": 84.17243701256429,
-                "symbols": [
-                  "BTC-USD"
-                ]
-              }
-            ],
-            "maxDrawdown": 33.95,
-            "model": "crypto",
-            "mom126": 5.24,
-            "mom21": 29.66,
-            "mom63": 40.51,
-            "riskPenalty": 7.24,
-            "score": 76.3,
-            "ticker": "ETH-USD",
-            "trend": "Uptrend",
-            "vol": 55.91
           },
           {
             "asOf": "2026-09-08T13:30:00.000Z",
@@ -5037,7 +5037,7 @@
         "scored": 14,
         "specific": {
           "BTC-USD": {
-            "asOf": "2026-09-08T00:00:00.000Z",
+            "asOf": "2026-09-09T00:00:00.000Z",
             "confirmations": [
               {
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
@@ -5056,14 +5056,14 @@
             ],
             "maxDrawdown": 28.71,
             "model": "bitcoin",
-            "mom126": -3.07,
-            "mom21": 21.27,
-            "mom63": 23.92,
+            "mom126": -3.55,
+            "mom21": 13.38,
+            "mom63": 26.14,
             "riskPenalty": 5.68,
-            "score": 71.3,
+            "score": 71.2,
             "ticker": "BTC-USD",
             "trend": "Uptrend",
-            "vol": 38.15
+            "vol": 38.14
           },
           "DBC": {
             "asOf": "2026-09-08T13:30:00.000Z",
@@ -5234,19 +5234,19 @@
           }
         }
       },
-      "read": "DBC leads real assets at 79.2/100; GLD 37.5, BTC 71.3, SLV 24.7.",
+      "read": "DBC leads real assets at 79.2/100; GLD 37.5, BTC 71.2, SLV 24.7.",
       "source": "owning-tool-functions"
     },
     "research-agenda-lab": {
-      "asOf": "2026-09-09T15:25:59.018Z",
+      "asOf": "2026-09-09T18:37:45.844Z",
       "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
       "id": "research-agenda-lab",
       "metrics": {
         "agendaRead": {
-          "asOf": "2026-09-09T15:25:59.018Z",
+          "asOf": "2026-09-09T18:37:45.844Z",
           "contractVersion": "research-agenda-read/v1",
-          "generationId": "generation-c242607f353c182c6a89b6d59d04aa394291e5132677089acd9f3aaa8d6cf796",
-          "readFingerprint": "sha256:ee9383e896c2d94dfc5047c2572f12e3a57ea9f4ff06cdd516645953bac08812",
+          "generationId": "generation-be5a05630a98a005dde4950cf59e4da60230adc50250ad284c4d7ac1cfe605f8",
+          "readFingerprint": "sha256:d4ff085be0265f938d0da6332df397e800cadd4edf4a7f34fbee8668fdadbc78",
           "topics": [
             {
               "changeAssessment": "insufficient-evidence",
@@ -5257,8 +5257,8 @@
               "newestEvidenceAgeHours": null,
               "outcome": "unavailable",
               "predecessorDossierId": null,
-              "reason": "search-query-accounting-invalid",
-              "reviewId": "review-4602cdc066e4a5c9a2267421c8939e330c793da54f5e87f6b7a9fcc18a130255",
+              "reason": "author-failed",
+              "reviewId": "review-981d3f7d386eb439d29650b47dc863057db8abbb7e9ac30c21065ecc0b7b343e",
               "selectionReason": "mode-required",
               "state": "unavailable",
               "supersedesDossierId": null,
@@ -5271,12 +5271,12 @@
               "mode": "cadence",
               "modelState": "unavailable",
               "newestEvidenceAgeHours": null,
-              "outcome": "unavailable",
+              "outcome": "not-due",
               "predecessorDossierId": null,
-              "reason": "search-query-accounting-invalid",
-              "reviewId": "review-37d531874fa3f15dc9113465b40b06aa453ce7e97048f984e048a194ab664fb3",
-              "selectionReason": "cadence-elapsed",
-              "state": "unavailable",
+              "reason": "cadence-not-elapsed",
+              "reviewId": null,
+              "selectionReason": "cadence-not-elapsed",
+              "state": "not-due",
               "supersedesDossierId": null,
               "topicId": "defense-earnings-acceleration"
             },
@@ -5287,12 +5287,12 @@
               "mode": "cadence",
               "modelState": "unavailable",
               "newestEvidenceAgeHours": null,
-              "outcome": "deferred",
+              "outcome": "unavailable",
               "predecessorDossierId": null,
-              "reason": "cadence-budget",
-              "reviewId": null,
-              "selectionReason": "cadence-budget",
-              "state": "deferred",
+              "reason": "author-failed",
+              "reviewId": "review-c8dc4ee722cdf80396e302287777bdbe2dc525c3b79b6e61f6778254a523f197",
+              "selectionReason": "cadence-elapsed",
+              "state": "unavailable",
               "supersedesDossierId": null,
               "topicId": "food-inputs-outlook"
             }
@@ -5300,17 +5300,17 @@
         },
         "contractVersion": "research-agenda-tool-read/v1",
         "deferredTopicCount": 1,
-        "generationId": "generation-c242607f353c182c6a89b6d59d04aa394291e5132677089acd9f3aaa8d6cf796",
-        "readFingerprint": "sha256:ee9383e896c2d94dfc5047c2572f12e3a57ea9f4ff06cdd516645953bac08812",
+        "generationId": "generation-be5a05630a98a005dde4950cf59e4da60230adc50250ad284c4d7ac1cfe605f8",
+        "readFingerprint": "sha256:d4ff085be0265f938d0da6332df397e800cadd4edf4a7f34fbee8668fdadbc78",
         "reviewedTopicCount": 0,
         "unavailableTopicCount": 2
       },
-      "read": "Geopolitical supply shock: the current outcome is unavailable. Defense earnings acceleration: the current outcome is unavailable. Food, grains and fertilizer: the topic was deferred by this generation's cadence budget.",
+      "read": "Geopolitical supply shock: the current outcome is unavailable. Defense earnings acceleration: the current outcome is not due. Food, grains and fertilizer: the current outcome is unavailable.",
       "source": "research-agenda-current",
       "state": "unavailable"
     },
     "sector-research-lab": {
-      "asOf": "2026-09-09T15:25:58.469Z",
+      "asOf": "2026-09-09T18:37:21.326Z",
       "deepLink": "sector-research-lab.html",
       "id": "sector-research-lab",
       "metrics": {
@@ -5418,6 +5418,15 @@
     }
   },
   "watchlistNotes": {
+    "AAPL": {
+      "status": "not applicable this window"
+    },
+    "AMZN": {
+      "status": "not applicable this window"
+    },
+    "BRK.B": {
+      "status": "not applicable this window"
+    },
     "FBTC": {
       "deepLink": "real-assets-lab.html",
       "status": "$71.21 (after-hours 2026-09-03 window; the 2026-09-03 regular session is the latest completed daily bar — intraday-tape-lab reads SPY a Trend day up auction under Mixed control (2026-09-03T20:00:00Z, VWAP ~771.62); snapshot asOf 2026-09-03T21:00:00.000Z) — firm above trend: +22.57% over its 50-day (~58.1) and +9.28% OVER its 200-day (~65.2), MA stack tangled, -34.93% off its 52-week high. mom5 +2.37 is a near-term green, mom21 +26.21 stays firm and mom63 +28.84 is a strong three-month green. real-assets-lab owning-tool read (asOf 2026-09-03): crypto leads the complex — ETH-USD is the overall real-assets leader (79.4/100 Uptrend) ahead of the commodity basket (DBC 74.4, PDBC 74.4 Uptrend), IBIT (73.1 Uptrend), BTC-USD (70.8 Uptrend) and GLD (39.3 Mixed), with SLV 19.4 the weakest. FBTC's OWN price structure holds above its 200-day this run. HOLD/constructive while it holds the 200-day; invalidated on a daily close below the 200-day (~65.2). (MA levels are ~ approximations; single distinct market-bar date, the 2026-09-03 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
@@ -5434,12 +5443,24 @@
       "deepLink": "real-assets-lab.html",
       "status": "$410.22 (after-hours 2026-09-03 window; the 2026-09-03 regular session is the latest completed daily bar — intraday-tape-lab reads SPY a Trend day up auction under Mixed control (2026-09-03T20:00:00Z, VWAP ~771.62); snapshot asOf 2026-09-03T21:00:00.000Z) — it holds its 50-day but sits BELOW its 200-day this run: +5.69% over its 50-day (~388.1) yet -1.21% UNDER its 200-day (~415.2), MA stack tangled, -17.28% off its 52-week high. mom5 -2.93 is a near-term red while mom21 +5.28 stays green and mom63 -0.26 is a fractional 3-month red. real-assets-lab owning-tool read (asOf 2026-09-03): the gold model scores GLD 39.3/100 Mixed — mid-to-low in a complex led by crypto (ETH-USD 79.4 Uptrend, BTC-USD 70.8 Uptrend) and commodities (DBC 74.4, PDBC 74.4 Uptrend), with SLV 19.4 the weakest. The read is soft: gold holds its 50-day as near-term support while the 200-day sits overhead. HOLD/constructive only while it holds its 50-day; invalidated on a daily close below its 50-day (~388.1). (MA levels are ~ approximations; single distinct market-bar date, the 2026-09-03 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
+    "GOOGL": {
+      "status": "not applicable this window"
+    },
     "IWM": {
+      "status": "not applicable this window"
+    },
+    "JPM": {
+      "status": "not applicable this window"
+    },
+    "META": {
       "status": "not applicable this window"
     },
     "MSFT": {
       "deepLink": "msft-july-print-model.html",
-      "status": "$510.12 (after-hours 2026-09-03 window; the 2026-09-03 regular session is the latest completed daily bar — intraday-tape-lab reads SPY a Trend day up auction under Mixed control (2026-09-03T20:00:00Z, VWAP ~771.62); snapshot asOf 2026-09-03T21:00:00.000Z) — price stays firm above both averages on a bull-stacked MA order: +15.61% over its 50-day (~441.2) and +18.33% over its 200-day (~431.1), -5.89% off its 52-week high. mom63 +19.17 is a firm 3-month green, mom21 +4.65 and mom5 +1.00 are green and mom252 +0.94 has healed back to a fractional green on the year — an intact structure with steady momentum. This cycle options-flow-feed-lab prints no unusual single-name MSFT flow — the feed is call-heavy (callFraction ~0.72) and its top prints are an NVDA 230 1-DTE call, an AAPL 330 1-DTE call and a GOOGL 345 1-DTE call. company-fundamentals-lab publishes only partial fundamentals for the print (statement 2026-03-31, model 2026-03-31, brief 2026-04-29T20:06:24Z; direction unresolved, with normalized and market-observation evidence still absent), so there is no fundamental call to lean on. The bespoke msft-july-print-model makes no call this cycle — deep-link only. Technology IS the rotation-IN sector this run (sector-research-lab rotates into Technology, out of Energy), a tailwind, so the read stands on price: HOLD, invalidated on a daily close below its 200-day (~431.1). (MA levels are ~ approximations; single distinct market-bar date, the 2026-09-03 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
+      "status": "not applicable this window"
+    },
+    "NVDA": {
+      "status": "not applicable this window"
     },
     "QQQ": {
       "deepLink": "etf-momentum-lab.html",
@@ -5458,6 +5479,15 @@
       "status": "$147.41 (after-hours 2026-09-03 window; the 2026-09-03 regular session is the latest completed daily bar — intraday-tape-lab reads SPY a Trend day up auction under Mixed control (2026-09-03T20:00:00Z, VWAP ~771.62); snapshot asOf 2026-09-03T21:00:00.000Z) — sitting just below its 50-day (-1.28%, ~149.3) but a firm +11.37% over the 200-day (~132.4); the MA stack is tangled, -8.81% off its high. mom5 -0.80 is a near-term red, mom21 -1.90 a one-month red and mom63 -3.55 a three-month red — a name below its 50-day with a soft medium-term trend. etf-momentum-lab owning-tool read (6M balanced ranking, asOf 2026-09-03T13:30:00Z; 13 funds) ranks SPMO fourth of the shown names by score (0.2798, signal 22.58%) behind VGT (0.3959), JMOM (0.3075) and QQQ (0.2806) — a mid-pack momentum-factor read. HOLD on the long-term structure above the 200-day (~132.4), with the 50-day (~149.3) the near-term reclaim line; invalidated on a daily close below the 200-day (~132.4). (MA levels are ~ approximations; single distinct market-bar date, the 2026-09-03 close; no multi-session persistence is claimed. Educational only — not investment advice.)"
     },
     "SPY": {
+      "status": "not applicable this window"
+    },
+    "TSLA": {
+      "status": "not applicable this window"
+    },
+    "UNP": {
+      "status": "not applicable this window"
+    },
+    "V": {
       "status": "not applicable this window"
     },
     "VGT": {
@@ -5479,5 +5509,5 @@
       "status": "not applicable this window"
     }
   },
-  "window": "morning"
+  "window": "pre-close"
 }

@@ -942,6 +942,12 @@ try {
     }
     payload.toolId = 'market-brief';
     payload.window = windowId;
+    // The next-session identity is Tier-A data, not model judgement. Preserve
+    // the compact model's actions while binding its session date to this run's
+    // refreshed snapshot so an older baseline cannot be republished.
+    if (payload.nextSession && typeof payload.nextSession === 'object') {
+        payload.nextSession.sessionDate = snapshot.nextSessionDate;
+    }
     /* The payload inherits the Tier-A window cutoff verbatim. It must never fall back to the run
        clock: the consumer refuses a payload dated past the window it declares, so a substituted
        wall-clock would publish a brief that cannot be composed rather than one that is honest

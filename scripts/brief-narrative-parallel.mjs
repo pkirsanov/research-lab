@@ -55,7 +55,7 @@ if (!['copilot', 'omlx'].includes(narrativeProvider)) {
 const copilotBin = process.env.BRIEF_COPILOT_BIN || 'copilot';
 const model = process.env.BRIEF_MODEL || (narrativeProvider === 'omlx' ? 'Ternary-Bonsai-27B-mlx-2bit' : 'claude-opus-4.8');
 const omlxBaseUrl = process.env.BRIEF_NARRATIVE_OMLX_BASE_URL || '';
-const omlxMaxTokens = Math.min(4096, positiveInteger(process.env.BRIEF_OMLX_MAX_TOKENS, 4096));
+const omlxMaxTokens = Math.min(3072, positiveInteger(process.env.BRIEF_OMLX_MAX_TOKENS, 3072));
 if (narrativeProvider === 'omlx' && !/^https?:\/\/[^/?#]+\/?$/.test(omlxBaseUrl)) {
     throw new Error('BRIEF_NARRATIVE_OMLX_BASE_URL must be an http(s) origin without a query or fragment');
 }
@@ -480,9 +480,9 @@ function boundedOmlxInput(value) {
     };
     for (const plan of plans) {
         const candidate = JSON.stringify(compact(value, plan));
-        if (Buffer.byteLength(candidate) <= 12 * 1024) return candidate;
+        if (Buffer.byteLength(candidate) <= 6 * 1024) return candidate;
     }
-    throw new Error('OMLX lane input cannot be compacted below the 12 KiB local-memory limit');
+    throw new Error('OMLX lane input cannot be compacted below the 6 KiB local-memory limit');
 }
 
 async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, stdoutPath, stderrPath, startedAt }) {
@@ -589,7 +589,7 @@ function runLane(lane, laneAttempt, priorGap = '') {
         ? `This is a retry. Your previous attempt was rejected because ${priorGap}. Fix exactly that and keep everything else you already had right.`
         : '';
     const localBudgetInstruction = narrativeProvider === 'omlx'
-        ? 'LOCAL OMLX RESPONSE BUDGET: finish the complete JSON object within 10,000 characters. Be concise: one short sentence per prose field, at most one action, two structural levels per instrument, and never repeat an object, key, sentence, or input evidence. Prefer a truthful omitted/insufficient statement over elaboration. The closing brace is mandatory.'
+        ? 'LOCAL OMLX RESPONSE BUDGET: finish the complete JSON object within 7,000 characters. Be concise: one short sentence per prose field, at most one action, two structural levels per instrument, and never repeat an object, key, sentence, or input evidence. Prefer a truthful omitted/insufficient statement over elaboration. The closing brace is mandatory.'
         : '';
     const prompt = lane.id === 'research-acquisition' || lane.kind === 'research'
         ? `You are the ${lane.id} side process for generation ${researchPreparation.generationId}. Read only .brief-work/${lane.id}.input.json. Do not edit any tracked file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${localBudgetInstruction} ${requiredLeafInstruction} ${retryInstruction} ${lane.instructions}`

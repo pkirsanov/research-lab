@@ -2050,7 +2050,7 @@ test('Regression: SCN-025-022 the outcome record shows the predecessor unmodifie
     const currentId = await record.getAttribute('data-version-id');
     const priorId = await record.getAttribute('data-prior-version-id');
     expect(currentId, 'this run carries its own dated version id').toMatch(/^company:msft:\d{4}-\d{2}-\d{2}$/);
-    expect(priorId, 'the committed predecessor is named').toMatch(/^company:msft:\d{4}-\d{2}-\d{2}$/);
+    expect(priorId, 'the committed predecessor is named').toMatch(/^company:msft:\d{4}-\d{2}-\d{2}(?::[a-z]+:[0-9a-f]{16})?$/);
     expect(priorId, 'the predecessor is a different version from this run').not.toBe(currentId);
 
     /* The predecessor renders as its own row carrying the fingerprint it shipped with. */
@@ -2467,7 +2467,19 @@ test('Stabilize: a version chain that points at itself terminates instead of loo
         horizons: []
     });
     const corrupted = await startStaticServer({
-        overrides: { 'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json': selfReferencing }
+        /* Point the chain at the corrupted record. The shipped pointer may be v2, but this
+           regression exercises the supported v1 baseline and ensures one repeated path is
+           served from the session cache rather than fetched once per recursive hop. */
+        overrides: {
+            'data/company-intelligence/company-msft/current.json': JSON.stringify({
+                contractVersion: 'company-version-pointer/v1',
+                subjectId: 'company:msft',
+                versionId: 'company:msft:2026-08-11',
+                priorVersionId: null,
+                contentFingerprint: 'sha256:' + '0'.repeat(64)
+            }),
+            'data/company-intelligence/company-msft/versions/company-msft-2026-08-11.json': selfReferencing
+        }
     });
     try {
         const versionRequests = [];
@@ -3289,5 +3301,4 @@ test('Regression: BUG-018 unavailable settlement remains publishable on the ordi
         await broken.close();
     }
 });
-
 

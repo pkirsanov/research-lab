@@ -37,6 +37,7 @@ const REAL_PAGE_PAYLOAD = JSON.parse(readFileSync(new URL('../market-brief.page.
 const INVENTORY = Object.freeze({
   'dark-legs': 'visible',
   headline: 'visible',
+  'tool-brief': 'visible',
   'decision-surface': 'visible',
   'cross-asset': 'visible',
   changed: 'visible',
@@ -146,6 +147,7 @@ function readBlocks(page) {
     ownControls: node.tagName.toLowerCase() === 'details'
       ? Array.from(node.children).filter((child) => child.tagName.toLowerCase() === 'summary').length
       : 0,
+    hidden: node.hidden,
     top: node.getBoundingClientRect().top + window.scrollY,
     order: window.getComputedStyle(node).order
   })));
@@ -395,7 +397,7 @@ test('the default view contains only the decision surface, the dark states, the 
     const visible = (await readBlocks(page)).filter((entry) => entry.declared === 'visible').map((entry) => entry.block);
     // The headline and the track-record line are the two the screen inventory adds to
     // FR-026-025's four; both are named there as visible and never collapsible.
-    expect(visible.sort()).toEqual(['changed', 'cross-asset', 'dark-legs', 'decision-surface', 'headline', 'track-record']);
+    expect(visible.sort()).toEqual(['changed', 'cross-asset', 'dark-legs', 'decision-surface', 'headline', 'tool-brief', 'track-record']);
 
     // Nothing else escaped a drawer: every remaining top-level child of the page shell is
     // either a classified block, the header, or the footer.
@@ -629,7 +631,7 @@ test('adversarial: focus order follows DOM order and no style rule reorders a vi
   const server = await startStaticServer({ overrides: { 'market-brief.page.json': cockpitPayload() } });
   try {
     await openCockpit(page, server);
-    const blocks = await readBlocks(page);
+    const blocks = (await readBlocks(page)).filter((entry) => !entry.hidden);
 
     // Painted order equals document order. `order` is the property that could silently break
     // this, so it is checked directly as well as through the resulting geometry.

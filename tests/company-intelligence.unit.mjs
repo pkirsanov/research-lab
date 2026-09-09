@@ -2750,7 +2750,6 @@ test('the public schedule source performs no network call and refuses a caller w
 const VERSION_DIR = join(ROOT, 'data', 'company-intelligence', 'company-msft');
 const PLAN_FILE_PATH = join(VERSION_DIR, 'plan-authored.json');
 const POINTER_FILE_PATH = join(VERSION_DIR, 'current.json');
-const PRIOR_VERSION_FILE_PATH = join(VERSION_DIR, 'versions', 'company-msft-2026-08-11.json');
 
 function readJson(path) {
     return JSON.parse(readFileSync(path, 'utf8'));
@@ -3156,22 +3155,25 @@ test('the committed MSFT research plan and version tree are authored, dated and 
     assert.deepEqual(plan.refusals, []);
 
     const pointer = readJson(POINTER_FILE_PATH);
-    assert.equal(pointer.contractVersion, 'company-version-pointer/v1');
+    assert.equal(pointer.contractVersion, 'company-version-pointer/v2');
     assert.equal(pointer.subjectId, 'company:msft');
+    assert.equal(pointer.versionRef.path, `data/company-intelligence/company-msft/versions/${pointer.versionId.replace(/:/g, '-')}.json`);
 
-    const prior = readJson(PRIOR_VERSION_FILE_PATH);
+    const prior = readJson(join(ROOT, pointer.versionRef.path));
     assert.equal(prior.versionId, pointer.versionId, 'the pointer names the committed version');
+    assert.equal(prior.contractVersion, 'company-read-version/v2');
     const body = Object.assign({}, prior);
     delete body.contentFingerprint;
-    assert.equal(CONTRACTS.contentSha256(body, 'company-read-version/v1'), prior.contentFingerprint,
+    assert.equal(CONTRACTS.contentSha256(body, 'company-read-version/v2'), prior.contentFingerprint,
         'the committed fingerprint really describes the committed bytes');
 
-    /* P13: tickers only. Neither committed file names money, size or a holding. The word
-       boundaries matter: `disposition` is a mandatory branch field and must not read as a
-       holding, while a bare `position` still fails. */
+    /* P13: tickers only. Neither committed file names money, size or a holding. The v2
+       dimension vocabulary includes the non-financial label "Trend and cycle position", so
+       the guard targets an actual holding expression rather than that explanatory label. */
     const text = JSON.stringify(authored) + JSON.stringify(prior) + JSON.stringify(pointer);
-    assert.ok(!/cost basis|\bpositions?\b|\bpnl\b|p&l|\bprofit\b|shares held|\bportfolio\b/i.test(text), 'no position language');
-    assert.ok(/\bpositions?\b/i.test('a 120 share position'), 'the position detector really fires');
+    const holdingLanguage = /cost basis|\bpnl\b|p&l|\bprofit\b|shares held|\bportfolio\b|\b(?:open|long|short)\s+positions?\b|\bposition\s+(?:size|value|cost)\b|\b\d+\s+shares?\s+position\b/i;
+    assert.ok(!holdingLanguage.test(text), 'no position language');
+    assert.ok(holdingLanguage.test('a 120 share position'), 'the position detector really fires');
     assert.ok(!/[$€£]\s*\d/.test(text), 'no currency amount');
 });
 

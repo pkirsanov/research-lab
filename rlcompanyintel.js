@@ -1950,7 +1950,8 @@
         var refusals = [];
         var versions = [];
         records.forEach(function (record, index) {
-            if (!isPlainObject(record) || record.contractVersion !== "company-read-version/v1" ||
+            if (!isPlainObject(record) ||
+                (record.contractVersion !== "company-read-version/v1" && record.contractVersion !== "company-read-version/v2") ||
                 !isNonEmptyString(record.versionId) || !isIsoInstant(record.composedAt)) {
                 refusals.push(makeError("C025-READ-CONTRACT",
                     "A committed version record fails the read-version contract, so it is not shown as history.",
@@ -1967,7 +1968,10 @@
             Object.keys(record).forEach(function (key) {
                 if (key !== "contentFingerprint") body[key] = record[key];
             });
-            var recomputed = fingerprintOf(body, "company-read-version/v1");
+            /* v2 extends the immutable v1 record. Hash each record with its declared
+               contract version so an acknowledged coupled-publication version remains
+               readable alongside the older local-composition history. */
+            var recomputed = fingerprintOf(body, record.contractVersion);
             if (record.contentFingerprint !== recomputed) {
                 refusals.push(makeError("C025-READ-CONTRACT",
                     "A committed version record no longer matches the fingerprint it shipped with.",
@@ -1985,7 +1989,9 @@
         var known = versions.map(function (entry) { return entry.versionId; });
         var currentVersionId = null;
         if (pointer !== null) {
-            if (pointer.contractVersion !== "company-version-pointer/v1" || pointer.subjectId !== subject.subjectId ||
+            if ((pointer.contractVersion !== "company-version-pointer/v1" &&
+                    pointer.contractVersion !== "company-version-pointer/v2") ||
+                pointer.subjectId !== subject.subjectId ||
                 !contains(known, pointer.versionId)) {
                 refusals.push(makeError("C025-READ-CONTRACT",
                     "The committed pointer does not name a readable version of this company, so no current version is claimed.",

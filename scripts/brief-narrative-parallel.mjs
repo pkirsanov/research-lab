@@ -488,7 +488,11 @@ function boundedOmlxInput(value) {
 }
 
 function mergeOmlxFragment(baseline, candidate) {
-    if (Array.isArray(baseline) || Array.isArray(candidate)) return candidate === undefined ? baseline : candidate;
+    // Arrays carry nested publication contracts (actions, recommendations,
+    // coverage rows). Bonsai's concise transport can omit a required member,
+    // so retain the already-validated array envelope for this compact path.
+    if (Array.isArray(baseline)) return baseline;
+    if (Array.isArray(candidate)) return candidate;
     if (baseline && candidate && typeof baseline === 'object' && typeof candidate === 'object') {
         const merged = { ...baseline };
         for (const [key, value] of Object.entries(candidate)) merged[key] = mergeOmlxFragment(baseline[key], value);

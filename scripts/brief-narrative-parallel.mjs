@@ -467,11 +467,13 @@ function boundedOmlxInput(value) {
     const plans = [
         { stringCap: 240, arrayCap: 6, objectCap: 20 },
         { stringCap: 120, arrayCap: 3, objectCap: 12 },
-        { stringCap: 64, arrayCap: 2, objectCap: 8 }
+        { stringCap: 64, arrayCap: 2, objectCap: 8 },
+        { stringCap: 24, arrayCap: 1, objectCap: 4, maxDepth: 4 }
     ];
     const compact = (entry, plan, depth = 0) => {
         if (typeof entry === 'string') return entry.length <= plan.stringCap ? entry : `${entry.slice(0, plan.stringCap)} [truncated]`;
         if (entry === null || typeof entry !== 'object') return entry;
+        if (plan.maxDepth && depth >= plan.maxDepth) return '[nested detail omitted for local-model memory]';
         if (Array.isArray(entry)) return entry.slice(0, plan.arrayCap).map((child) => compact(child, plan, depth + 1));
         const keys = Object.keys(entry).slice(0, plan.objectCap);
         const result = Object.fromEntries(keys.map((key) => [key, compact(entry[key], plan, depth + 1)]));

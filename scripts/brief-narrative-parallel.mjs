@@ -487,6 +487,16 @@ function boundedOmlxInput(value) {
     throw new Error('OMLX lane input cannot be compacted below the 6 KiB local-memory limit');
 }
 
+function mergeOmlxFragment(baseline, candidate) {
+    if (Array.isArray(baseline) || Array.isArray(candidate)) return candidate === undefined ? baseline : candidate;
+    if (baseline && candidate && typeof baseline === 'object' && typeof candidate === 'object') {
+        const merged = { ...baseline };
+        for (const [key, value] of Object.entries(candidate)) merged[key] = mergeOmlxFragment(baseline[key], value);
+        return merged;
+    }
+    return candidate === undefined ? baseline : candidate;
+}
+
 async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, stdoutPath, stderrPath, startedAt }) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), (lane.timeoutSeconds || timeoutSeconds) * 1000);
@@ -514,7 +524,10 @@ async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, s
         const completion = JSON.parse(responseText);
         const content = completion?.choices?.[0]?.message?.content;
         if (typeof content !== 'string') throw new Error('OMLX response has no text completion');
-        const fragment = JSON.parse(content.replace(/^```json\s*|\s*```$/g, '').trim());
+        const candidate = JSON.parse(content.replace(/^```json\s*|\s*```$/g, '').trim());
+        if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) throw new Error('OMLX response is not a JSON object');
+        const baseline = Object.fromEntries(lane.keys.map((key) => [key, payload[key]]));
+        const fragment = Object.fromEntries(lane.keys.map((key) => [key, mergeOmlxFragment(baseline[key], candidate[key])]));
         writeFileSync(outputPath, JSON.stringify(fragment) + '\n');
         return { ok: true, code: 0, signal: null, error: null, elapsedMs: Date.now() - startedAt };
     } catch (error) {

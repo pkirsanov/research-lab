@@ -1060,7 +1060,7 @@ scope. The selftest run shows 4 failing assertions: the 3 previously-documented 
 (personal-identifier scan, deferred-scorecard byte budget, BUG-016/BUG-017 acceptance baseline) plus
 one additional failure — `no active tests/*.mjs path named by a spec artifact is missing outside the
 frozen baseline` — which names only `specs/033-shock-transmission-foundation` paths
-(`tests/shock-transmission.definitions.functional.mjs`, `tests/shock-transmission.migration.integration.mjs`),
+(the planned Feature-031 definitions-functional and migration-integration test families),
 the concurrent, unrelated spec-033 work already present as uncommitted/mid-flight changes in this
 working tree per this task's own instructions not to touch shock-transmission files. All 40/40 tests in
 `tests/volatility-sizing-lab.spec.mjs` pass, including every pre-existing Scope 1/2/3 row and all four

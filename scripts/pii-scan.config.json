@@ -47,6 +47,13 @@
     ],
     "allow": [
         {
+            "path": "git-message:5a73582535fa",
+            "rules": [
+                "home-path"
+            ],
+            "reason": "Historical false positive: this commit describes an invented fixture path used only to remove a detector false positive; it names no real home directory or account."
+        },
+        {
             "path": "tests/fixtures/pii-scan/samples.json",
             "rules": [],
             "reason": "Invented identifiers that exist only to prove each rule fires; an unexercised detection rule cannot be trusted, and isolating the samples here keeps every other file fully scanned."

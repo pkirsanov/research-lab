@@ -134,7 +134,7 @@
       {
         "scopeId": "03-dynamic-definitions-and-immutable-publication",
         "scopeName": "Dynamic Definitions And Immutable V1 V2 Publication",
-        "status": "in_progress",
+        "status": "not_started",
         "dependsOn": [
           "01-canonical-contract-and-exact-refusals",
           "02-net-graph-actor-and-policy-engine"

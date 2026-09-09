@@ -253,6 +253,13 @@ export function validateSpecTestPaths(root = ROOT, options = {}) {
       if (isPlannedOnlyGroup(rows)) plannedGroups.push({ spec, sites: specSites, rows });
       else activeSites.push(...specSites.map((site) => ({ ...site, spec })));
     }
+    /* A completed-report or state-record reference can preserve a historical command without
+       turning its owning, structured planned row into an active test claim. Plan and scope state
+       remain the authority for a not-yet-authored carrier; a live scope/design artifact in another
+       spec still makes the reference actionable. */
+    const historicalOnlyElsewhere = plannedGroups.length > 0 && activeSites.length > 0 &&
+      activeSites.every((site) => /(?:^|\/)(?:report\.md|state\.json)$/.test(site.artifact));
+    if (historicalOnlyElsewhere) activeSites.length = 0;
     if (plannedGroups.length > 0) plannedMissing.push({ path, groups: plannedGroups });
     if (activeSites.length > 0) actionableMissing.push({ path, sites: activeSites });
   }

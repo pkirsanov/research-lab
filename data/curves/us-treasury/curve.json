@@ -1,6 +1,6 @@
 {
   "contractVersion": "official-curve-artifact/v1",
-  "generatedAt": "2026-09-03T20:30:29.140Z",
+  "generatedAt": "2026-09-09T15:24:46.183Z",
   "freshnessPolicy": {
     "policyId": "observed-cadence/v1",
     "cadenceWindowRows": 10,
@@ -16,7 +16,7 @@
         2025,
         2026
       ],
-      "observedAt": "2026-09-03",
+      "observedAt": "2026-09-08",
       "declaredPolicy": {
         "id": "us-treasury-nominal",
         "mode": "public-official-live",
@@ -3378,6 +3378,22 @@
           "y5": 4.52,
           "y10": 4.77,
           "y30": 5.25
+        },
+        {
+          "date": "2026-09-04",
+          "y3m": 3.91,
+          "y2": 4.37,
+          "y5": 4.54,
+          "y10": 4.78,
+          "y30": 5.24
+        },
+        {
+          "date": "2026-09-08",
+          "y3m": 3.94,
+          "y2": 4.39,
+          "y5": 4.57,
+          "y10": 4.8,
+          "y30": 5.25
         }
       ],
       "provenance": [
@@ -3403,7 +3419,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-09-03T20:30:29.140Z",
+          "retrievedAt": "2026-09-09T15:24:46.183Z",
           "contentSha256": "sha256:cf2fa3da7f160384b63d2ead698532b1d76cd9f789ce4911e2304db85b14e6d5",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -3431,8 +3447,8 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-09-03T20:30:29.140Z",
-          "contentSha256": "sha256:178e38432f52690226f3824c6ee4d68b7b1dd721cc6dba70054597b60fa50c87",
+          "retrievedAt": "2026-09-09T15:24:46.183Z",
+          "contentSha256": "sha256:6c26fbaba604a98dc315575f2e0c19ba9ddcef3fbc8376d3a2a0c45126eef0c4",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
           "diagnostics": []
@@ -3449,7 +3465,7 @@
         2025,
         2026
       ],
-      "observedAt": "2026-09-03",
+      "observedAt": "2026-09-08",
       "declaredPolicy": {
         "id": "us-treasury-real",
         "mode": "public-official-live",
@@ -6392,6 +6408,20 @@
           "y10": 2.42,
           "y20": 2.76,
           "y30": 2.96
+        },
+        {
+          "date": "2026-09-04",
+          "y5": 2.17,
+          "y10": 2.43,
+          "y20": 2.77,
+          "y30": 2.96
+        },
+        {
+          "date": "2026-09-08",
+          "y5": 2.17,
+          "y10": 2.43,
+          "y20": 2.77,
+          "y30": 2.96
         }
       ],
       "provenance": [
@@ -6417,7 +6447,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-09-03T20:30:29.140Z",
+          "retrievedAt": "2026-09-09T15:24:46.183Z",
           "contentSha256": "sha256:d3d3131c41e1f93f4661d227ce7079049d51888b395aaff863b6ad8e08838b64",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -6445,8 +6475,8 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-09-03T20:30:29.140Z",
-          "contentSha256": "sha256:0682b22428313968c767984640d83a6b27be6fff2c4ccd911d9e30199621743e",
+          "retrievedAt": "2026-09-09T15:24:46.183Z",
+          "contentSha256": "sha256:82ebc1df9786b9fc73ecf723d8bc5d82051d56846cee4522acd979f3b9a237ec",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
           "diagnostics": []

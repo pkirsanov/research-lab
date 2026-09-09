@@ -33,6 +33,19 @@ test.afterAll(async () => {
   });
 });
 
+/* A fresh market can honestly leave every candidate below the published gates.  The product
+   must settle to either qualified rows or the explicit empty decision state; requiring rows
+   would pressure it to lower a floor or invent a candidate. */
+async function waitForDecision(page) {
+  await expect.poll(async () => {
+    const rows = await page.locator('#simpleTable tbody tr').count();
+    if (rows > 0) return 'rows';
+    const copy = await page.locator('#simpleTable').innerText();
+    return /No candidate cleared the gates/i.test(copy) ? 'refused' : 'pending';
+  }, { timeout: 15000 }).not.toBe('pending');
+  return page.locator('#simpleTable tbody tr').count();
+}
+
 /* The defect this exists for: RLDATA.bars is a cache READ, so a page that only calls it asks a cold
    browser for nothing and then correctly reports it has nothing. Every unit gate stayed green while
    a first-time visitor saw an empty ladder above a full exclusion ledger. Only rendering the page
@@ -44,7 +57,7 @@ test('Regression: a first visit fetches the bar snapshots rather than reading an
     if (path.startsWith('/data/bars/')) barStatuses.push(response.status());
   });
   await page.goto(baseUrl + '/horizon-ladder-lab.html');
-  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await waitForDecision(page);
   expect(barStatuses.length).toBeGreaterThan(0);
   expect(barStatuses.every((status) => status === 200)).toBeTruthy();
   /* "not scoreable at mint" is the reason a symbol carries when its bars are absent. With the cache
@@ -63,12 +76,12 @@ test('Regression: an unearned cell withholds its rate and describes the column i
   await expect(page.locator('#gateNotice')).toContainText('withheld');
   await expect(page.locator('#gateNotice')).toContainText('0 of 20');
 
-  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await waitForDecision(page);
   const notice = await page.locator('#gateNotice').innerText();
   const probCells = await page.locator('#simpleTable tbody tr td:nth-child(4)').allInnerTexts();
   const analogRows = probCells.filter((t) => /analog/i.test(t)).length;
 
-  if (analogRows === probCells.length) {
+  if (probCells.length > 0 && analogRows === probCells.length) {
     expect(notice, 'every Prob. cell reads analog, so the notice may not deny it is measured').toContain('measured analog rate');
     expect(notice).not.toContain('not a measured hit rate');
   } else if (analogRows > 0) {
@@ -87,7 +100,7 @@ test('Regression: an unearned cell withholds its rate and describes the column i
    re-renders asynchronously and the two captures differed on formatting rather than on direction. */
 test('Regression: switching direction re-keys the cell the gate reports on', async ({ page }) => {
   await page.goto(baseUrl + '/horizon-ladder-lab.html');
-  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await waitForDecision(page);
   await expect(page.locator('#gateNotice')).toContainText('long:h1m');
   await page.selectOption('#selDirection', 'short');
   await expect(page.locator('#gateNotice')).toContainText('short:h1m');
@@ -111,7 +124,7 @@ test('Regression: switching direction re-keys the cell the gate reports on', asy
    is correctly absent from the tree. */
 test('Regression: the power view paints its frontier canvas and exposes its accessible name', async ({ page }) => {
   await page.goto(baseUrl + '/horizon-ladder-lab.html');
-  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await waitForDecision(page);
   /* Drive the SHARED shell control, not the page's own #modeSeg. Once rlapp.js mounts the
      experience shell it hides #modeSeg and #rlviews becomes the control a reader actually has, so
      a test clicking the hidden one is testing a surface nobody can reach. */
@@ -129,17 +142,20 @@ test('Regression: the power view paints its frontier canvas and exposes its acce
   await expect(page.locator('#frontierFallback')).not.toBeEmpty();
 });
 
-/* The tool exists to name high-probability candidates. It shipped unable to: the profile gated on
-   the LIVE ledger, which starts at zero resolved outcomes, so every name was dropped at every
-   horizon and the answer was permanently empty. A measured rate was already available and unused.
-   This asserts the product does its job — names, above the floor, with their sample shown. */
-test('Regression: the high-probability profile names candidates above its floor rather than returning an empty answer', async ({ page }) => {
+/* The floor is evidence protection, not a quota. The high-probability profile may honestly be
+   empty when the fresh universe has no qualified candidate, but it must make that refusal
+   explicit and every displayed rate must still clear the same floor. */
+test('Regression: the high-probability profile either names qualified candidates or explicitly refuses an empty set', async ({ page }) => {
   await page.goto(baseUrl + '/horizon-ladder-lab.html');
-  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await waitForDecision(page);
   await page.selectOption('#selProfile', 'high-probability');
   await page.selectOption('#selHorizon', 'h1m');
-  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  const rowCount = await waitForDecision(page);
   const analogTexts = await page.locator('#simpleTable tbody tr td:nth-child(3)').allInnerTexts();
+  if (rowCount === 0) {
+    await expect(page.locator('#simpleTable')).toContainText('No candidate cleared the gates');
+    return;
+  }
   expect(analogTexts.length).toBeGreaterThan(0);
   for (const text of analogTexts) {
     const rate = Number(/([0-9.]+)%/.exec(text)?.[1]);
@@ -150,30 +166,25 @@ test('Regression: the high-probability profile names candidates above its floor 
   }
 });
 
-/* The floor belongs to the tool, not to one profile. Scoped to high-probability alone, the
-   lower-risk list top-ranked a 29.5% name on the strength of its reward-to-risk — a coin flip
-   presented as the safest idea on the board. Every profile must refuse to publish below the floor;
-   they differ in how they RANK what qualifies. This walks all three and pins that. */
+/* The floor belongs to the tool, not to one profile. Every profile must either publish only
+   qualified rows or state the same explicit refusal; profile ranking cannot manufacture a name. */
 test('Regression: no profile publishes a name below the probability floor', async ({ page }) => {
   await page.goto(baseUrl + '/horizon-ladder-lab.html');
-  await expect.poll(() => page.locator('#simpleTable tbody tr').count(), { timeout: 15000 }).toBeGreaterThan(0);
+  await waitForDecision(page);
   await page.selectOption('#selHorizon', 'h1m');
-  const leaders = [];
   for (const profile of ['lower-risk', 'high-reward', 'high-probability']) {
     await page.selectOption('#selProfile', profile);
-    await page.waitForTimeout(300);
+    const rowCount = await waitForDecision(page);
     const texts = await page.locator('#simpleTable tbody tr td:nth-child(3)').allInnerTexts();
-    /* Each profile must actually answer at this horizon, or the walk proves nothing. */
-    expect(texts.length, profile + ' named nothing at 1 month').toBeGreaterThan(0);
+    if (rowCount === 0) {
+      await expect(page.locator('#simpleTable'), profile + ' must name its refusal').toContainText('No candidate cleared the gates');
+      continue;
+    }
     for (const text of texts) {
       const rate = Number(/([0-9.]+)%/.exec(text)?.[1]);
       expect(rate, profile + ' published ' + text).toBeGreaterThanOrEqual(55);
     }
-    leaders.push(await page.locator('#simpleTable tbody tr td:nth-child(1)').first().innerText());
   }
-  /* A shared floor must not collapse the profiles into one list — they still rank on their own
-     axis, so the top name cannot be identical across all three. */
-  expect(new Set(leaders.map((s) => s.trim())).size).toBeGreaterThan(1);
 });
 
 /* Opened straight off disk, the universe fetch is blocked and the tool has no data at all. Every

@@ -535,6 +535,23 @@ function runLane(lane, laneAttempt, priorGap = '') {
         return Promise.resolve({ ok: false, error: 'input-bytes-over-cap', lane, laneAttempt, outputPath, stdoutPath, stderrPath, elapsedMs: 0 });
     }
 
+    // Tier-A already owns registry coverage and its exact tool reads. Asking a
+    // small local model to restate the whole registry spends its output budget
+    // before it reaches the required keys; carry the validated owner output
+    // directly and reserve Bonsai for reader-facing interpretation.
+    if (narrativeProvider === 'omlx' && lane.id === 'coverage') {
+        const startedAt = Date.now();
+        const fragment = {
+            toolReads: snapshot.toolReads,
+            toolCoverage: payload.toolCoverage,
+            experimental: payload.experimental
+        };
+        writeFileSync(outputPath, JSON.stringify(fragment) + '\n');
+        writeFileSync(stdoutPath, 'deterministic Tier-A coverage lane\n');
+        console.log(`[brief-parallel] lane=${lane.id} completed deterministically from validated Tier-A coverage`);
+        return Promise.resolve({ ok: true, code: 0, signal: null, error: null, elapsedMs: Date.now() - startedAt, fragment, lane, laneAttempt, outputPath, stdoutPath, stderrPath, recovered: false, terminationReason: null });
+    }
+
     const bundleInstruction = toolBriefBundle
         ? 'Consume every toolBriefBundle.tools outcome; preserve explicit unavailable, not-applicable, and coverage-only states rather than inventing evidence.'
         : 'This legacy ad-hoc run has no pre-final tool bundle; use only the refreshed deterministic data and owning-tool reads supplied.';

@@ -1,11 +1,11 @@
 {
   "contractVersion": "research-agenda-current/v1",
-  "updatedAt": "2026-09-09T18:37:45.844Z",
+  "updatedAt": "2026-09-09T20:31:42.773Z",
   "generationRef": {
-    "path": "research/agenda/generations/generation-be5a05630a98a005dde4950cf59e4da60230adc50250ad284c4d7ac1cfe605f8.json",
-    "sha256": "sha256:fd903bb32d785e4428e56bd30181f73bdf524b99e82389f886e6161248a5cf41",
+    "path": "research/agenda/generations/generation-b4542d26232a2c7f07b28c1e87466fa94b2df545d13b40e4c8368a5bd719d05c.json",
+    "sha256": "sha256:e18ce978f01e262ad00e7653c157eaad55b3a7a31eaa9895149f630783904714",
     "contractVersion": "research-generation/v1",
-    "generationId": "generation-be5a05630a98a005dde4950cf59e4da60230adc50250ad284c4d7ac1cfe605f8",
+    "generationId": "generation-b4542d26232a2c7f07b28c1e87466fa94b2df545d13b40e4c8368a5bd719d05c",
     "topicId": null,
     "historicalOnly": false
   },
@@ -14,10 +14,10 @@
       "topicId": "geopolitical-supply-shock",
       "state": "unavailable",
       "reviewRef": {
-        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-be5a05630a98a005dde4950cf59e4da60230adc50250ad284c4d7ac1cfe605f8.json",
-        "sha256": "sha256:89dbb0a3ba7e0036f01cd1ac46b3e34f996fcf467ca9db4d90c355bec1221d92",
+        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-b4542d26232a2c7f07b28c1e87466fa94b2df545d13b40e4c8368a5bd719d05c.json",
+        "sha256": "sha256:547de6c09d390083b863a1cb138ca882d4d5370b1c19bdfeab98fa4ed95a46cd",
         "contractVersion": "research-review/v1",
-        "generationId": "generation-be5a05630a98a005dde4950cf59e4da60230adc50250ad284c4d7ac1cfe605f8",
+        "generationId": "generation-b4542d26232a2c7f07b28c1e87466fa94b2df545d13b40e4c8368a5bd719d05c",
         "topicId": "geopolitical-supply-shock",
         "historicalOnly": false
       },
@@ -31,15 +31,8 @@
     },
     {
       "topicId": "food-inputs-outlook",
-      "state": "unavailable",
-      "reviewRef": {
-        "path": "research/agenda/reviews/food-inputs-outlook/generation-be5a05630a98a005dde4950cf59e4da60230adc50250ad284c4d7ac1cfe605f8.json",
-        "sha256": "sha256:3a5cb8dcf6637e66b3a3d37315d714da7e9471c36bdac73b1c213a5575e52daa",
-        "contractVersion": "research-review/v1",
-        "generationId": "generation-be5a05630a98a005dde4950cf59e4da60230adc50250ad284c4d7ac1cfe605f8",
-        "topicId": "food-inputs-outlook",
-        "historicalOnly": false
-      },
+      "state": "not-due",
+      "reviewRef": null,
       "dossierRef": null
     }
   ]

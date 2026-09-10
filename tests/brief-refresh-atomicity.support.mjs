@@ -25,6 +25,7 @@ export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
    refresher, which only exists in the agendaAssets variant. Only the ENTRY points are listed;
    their transitive relative-import closure is derived, never restated — see copyModuleClosure. */
 export const FIXTURE_PUBLICATION_SCRIPTS = [
+  'scripts/brief-narrative-model-config.mjs',
   'scripts/brief-narrative-parallel.mjs',
   'scripts/research-agenda-generation.mjs',
   'scripts/web-evidence-acquire.mjs',
@@ -368,6 +369,10 @@ if (process.argv[1] && resolvePath(process.argv[1]) === SCRIPT_PATH) {
   }
   writeFileSync(fixturePayloadPath, JSON.stringify(conformedPayload, null, 2) + '\n');
   copyFileSync(resolve(ROOT, 'market-brief.config.json'), resolve(repoRoot, 'market-brief.config.json'));
+  // The scheduler and narrative worker resolve this shared profile before any
+  // provider-specific work. Include it in every fixture so the test executes
+  // the same model-selection boundary as production.
+  copyFileSync(resolve(ROOT, 'brief-narrative-models.json'), resolve(repoRoot, 'brief-narrative-models.json'));
   copyFileSync(resolve(ROOT, 'market-brief.scorecard.json'), resolve(repoRoot, 'market-brief.scorecard.json'));
   copyFileSync(resolve(ROOT, 'causal-rotation.snapshot.json'), resolve(repoRoot, 'causal-rotation.snapshot.json'));
   copyFileSync(resolve(ROOT, 'tools.json'), resolve(repoRoot, 'tools.json'));
@@ -632,6 +637,11 @@ export function runBriefRefreshFixture(fixture, env = {}) {
     env: {
       ...process.env,
       BRIEF_COPILOT_BIN: fixture.copilotPath || '',
+      // Atomicity scenarios use a local mock Copilot when they exercise a
+      // narrative transaction. Keep that provider explicit: production's
+      // default profile is OMLX and must never make an offline fixture call a
+      // real local-model server.
+      BRIEF_NARRATIVE_PROFILE: fixture.copilotPath ? 'copilot' : 'local-omlx',
       BRIEF_NARRATIVE_ATTEMPTS: '2',
       BRIEF_LANE_ATTEMPTS: '1',
       BRIEF_LANE_CONCURRENCY: '4',

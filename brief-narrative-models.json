@@ -1,0 +1,16 @@
+{
+  "contractVersion": "brief-narrative-models/v1",
+  "defaultProfile": "local-omlx",
+  "profiles": {
+    "local-omlx": {
+      "provider": "omlx",
+      "model": "Ternary-Bonsai-27B-mlx-2bit",
+      "omlxBaseUrl": "http://127.0.0.1:8000",
+      "omlxMaxTokens": 3072
+    },
+    "copilot": {
+      "provider": "copilot",
+      "model": "claude-opus-4.8"
+    }
+  }
+}

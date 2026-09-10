@@ -23867,9 +23867,9 @@ try {
   /* No sixth flag. The budget answers to none of the five and adds none. */
   const flagMatches26 = validatorSource26.match(/'--[a-z0-9-]+'/g) || [];
   const declaredFlags26 = [...new Set(flagMatches26)].sort();
-  assert(declaredFlags26.join(',') === "'--defer-page-parity','--drop-ineligible-causal','--drop-unscoreable','--enforce-d16','--require-narrative-fields'"
+  assert(declaredFlags26.join(',') === "'--defer-page-parity','--drop-ineligible-causal','--drop-unscoreable','--enforce-d16','--require-fresh-narrative','--require-narrative-fields'"
     && !/--(allow-over-budget|budget-advisory|skip-budget)/.test(validatorSource26),
-  'scripts/validate-brief-payload.mjs still declares exactly the five pre-existing CLI flags and the budget adds no sixth');
+  'scripts/validate-brief-payload.mjs declares the approved freshness flag without adding a budget bypass');
 
   /* byField is the reviewer re-derivation table: add the column and you get the total. */
   assert(overCapMeasure26.byField.length === 15
@@ -24302,10 +24302,10 @@ try {
     && validateBriefPayload(unstampedLegs26, registry26c, config26b, snapshot26c, agenda26c, page26c).length === 0,
   'the cross-asset checks fire only on a literal market-brief-payload/v2 stamp, so the committed unstamped payload is unaffected');
 
-  /* No sixth flag, still. The legs answer to none of the five and add none. */
+  /* Cross-asset legs add no flag; the approved freshness flag is shared with the local-model path. */
   const legFlags26 = [...new Set(read('scripts/validate-brief-payload.mjs').match(/'--[a-z0-9-]+'/g) || [])].sort();
-  assert(legFlags26.join(',') === "'--defer-page-parity','--drop-ineligible-causal','--drop-unscoreable','--enforce-d16','--require-narrative-fields'",
-  'scripts/validate-brief-payload.mjs still declares exactly the five pre-existing CLI flags and the cross-asset checks add no sixth');
+  assert(legFlags26.join(',') === "'--defer-page-parity','--drop-ineligible-causal','--drop-unscoreable','--enforce-d16','--require-fresh-narrative','--require-narrative-fields'",
+  'scripts/validate-brief-payload.mjs declares the approved freshness flag without adding a cross-asset bypass');
 
   /* TP-026-2.13 adversarial. ONE substitution — the guard expression becomes a coercion — and
      the same one-row fixture publishes a change of 0 instead of refusing to publish one. */
@@ -25363,9 +25363,9 @@ try {
   assert(payloadBase3.contractVersion === undefined
     && deltaErrors3(payloadBase3).length === 0
     && validateBriefPayload(payloadBase3, registry3, config3, snapshotBase3, agenda3, page3).length === 0
-    && deltaFlags3.length === 5
-    && deltaFlags3.join(',') === "'--defer-page-parity','--drop-ineligible-causal','--drop-unscoreable','--enforce-d16','--require-narrative-fields'",
-  'the delta checks fire only on a literal market-brief-payload/v2 stamp so the committed unstamped payload is unaffected, and scripts/validate-brief-payload.mjs still declares exactly the five pre-existing CLI flags');
+    && deltaFlags3.length === 6
+    && deltaFlags3.join(',') === "'--defer-page-parity','--drop-ineligible-causal','--drop-unscoreable','--enforce-d16','--require-fresh-narrative','--require-narrative-fields'",
+  'the delta checks fire only on a literal market-brief-payload/v2 stamp so the committed unstamped payload is unaffected, and the validator exposes the approved freshness flag');
 
   /* CANARY. The Scope 1 and Scope 2 groups and every pre-existing assertion survive this append. */
   const sitePlan3 = (await import('./build-pages-site.mjs')).planPagesSite(ROOT);

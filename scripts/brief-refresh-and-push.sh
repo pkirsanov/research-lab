@@ -20,9 +20,8 @@
 # under launchd while you are logged in (no ssh-agent needed).
 #
 # Env knobs:
-#   BRIEF_NARRATIVE_PROVIDER copilot (default) or omlx
-#   BRIEF_NARRATIVE_OMLX_BASE_URL OpenAI-compatible local OMLX origin (required for omlx)
-#   BRIEF_MODEL              model slug for the narrative (Bonsai default for omlx; Opus default for Copilot)
+#   BRIEF_NARRATIVE_PROFILE  profile in brief-narrative-models.json (repository default)
+#   BRIEF_NARRATIVE_PROVIDER, BRIEF_MODEL, BRIEF_NARRATIVE_OMLX_BASE_URL explicit one-run overrides
 #   BRIEF_SKIP_NARRATIVE     set to 1 for a data-only run (skip the Copilot step)
 #   BRIEF_COPILOT_EXPECTED_PATH    pinned narrative-runtime path (default: /opt/homebrew/bin/copilot)
 #   BRIEF_COPILOT_EXPECTED_VERSION pinned narrative-runtime version as SELF-REPORTED by `copilot --version`
@@ -298,12 +297,35 @@ restore_owned_baseline() {
   fi
 }
 
-NARRATIVE_PROVIDER="${BRIEF_NARRATIVE_PROVIDER:-copilot}"
-case "$NARRATIVE_PROVIDER" in copilot|omlx) ;; *) echo "[brief-timer] BRIEF_NARRATIVE_PROVIDER must be copilot or omlx"; exit 1 ;; esac
+MODEL_CONFIG_LINES="$($NODE_BIN scripts/brief-narrative-model-config.mjs --lines)" || exit 1
+NARRATIVE_PROFILE=""
+NARRATIVE_PROVIDER=""
+MODEL=""
+OMLX_BASE_URL=""
+OMLX_MAX_TOKENS=""
+while IFS='=' read -r config_key config_value; do
+  case "$config_key" in
+    profile) NARRATIVE_PROFILE="$config_value" ;;
+    provider) NARRATIVE_PROVIDER="$config_value" ;;
+    model) MODEL="$config_value" ;;
+    omlxBaseUrl) OMLX_BASE_URL="$config_value" ;;
+    omlxMaxTokens) OMLX_MAX_TOKENS="$config_value" ;;
+  esac
+done <<EOF
+$MODEL_CONFIG_LINES
+EOF
+case "$NARRATIVE_PROVIDER" in copilot|omlx) ;; *) echo "[brief-timer] resolved narrative provider is invalid"; exit 1 ;; esac
+export BRIEF_NARRATIVE_PROVIDER="$NARRATIVE_PROVIDER"
+export BRIEF_MODEL="$MODEL"
+export BRIEF_NARRATIVE_OMLX_BASE_URL="$OMLX_BASE_URL"
+export BRIEF_OMLX_MAX_TOKENS="$OMLX_MAX_TOKENS"
+FRESH_NARRATIVE_ARGS=()
+# The compact local-model path is the one that previously copied baseline
+# arrays. Copilot has its own transaction/contract checks; applying a
+# price-token check to its historical fixture/recovery path would change that
+# unrelated provider's publication semantics.
 if [ "$NARRATIVE_PROVIDER" = "omlx" ]; then
-  MODEL="${BRIEF_MODEL:-Ternary-Bonsai-27B-mlx-2bit}"
-else
-  MODEL="${BRIEF_MODEL:-claude-opus-4.8}"
+  FRESH_NARRATIVE_ARGS=(--require-fresh-narrative)
 fi
 NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-1}"
 NARRATIVE_TIMEOUT="${BRIEF_NARRATIVE_TIMEOUT:-1800}"
@@ -370,7 +392,7 @@ copilot_version_probe() {
 # An explicit BRIEF_COPILOT_BIN is an operator/test override and is reported, not measured.
 COPILOT_BINDING_DETAIL=""
 if [ "$NARRATIVE_PROVIDER" = "omlx" ]; then
-  if [ -z "${BRIEF_NARRATIVE_OMLX_BASE_URL:-}" ]; then
+  if [ -z "$OMLX_BASE_URL" ]; then
     echo "[brief-timer] BRIEF_NARRATIVE_OMLX_BASE_URL is required for local OMLX narrative generation"
     restore_owned_baseline || true
     exit 1
@@ -380,7 +402,7 @@ if [ "$NARRATIVE_PROVIDER" = "omlx" ]; then
     restore_owned_baseline || true
     exit 1
   fi
-  echo "[brief-timer] regenerating narrative via local OMLX ($MODEL; no model web access; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s per lane)…"
+  echo "[brief-timer] regenerating narrative via local OMLX (profile=$NARRATIVE_PROFILE model=$MODEL; no model web access; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s per lane)…"
   COPILOT_BINDING="not-used"
   COPILOT_BINDING_DETAIL="local OMLX provider"
 elif [ -n "${BRIEF_COPILOT_BIN:-}" ]; then
@@ -575,9 +597,11 @@ else
     # refusing one is a correct outcome, not a run failure. A genuine build
     # error exits non-zero and the && chain fails the attempt, which retries.
     if BRIEF_NARRATIVE_PROVIDER="$NARRATIVE_PROVIDER" \
-          BRIEF_NARRATIVE_OMLX_BASE_URL="${BRIEF_NARRATIVE_OMLX_BASE_URL:-}" \
+          BRIEF_NARRATIVE_PROFILE="$NARRATIVE_PROFILE" \
+          BRIEF_NARRATIVE_OMLX_BASE_URL="$OMLX_BASE_URL" \
           BRIEF_COPILOT_BIN="$COPILOT_BIN" \
           BRIEF_MODEL="$MODEL" \
+          BRIEF_OMLX_MAX_TOKENS="$OMLX_MAX_TOKENS" \
           BRIEF_NARRATIVE_TIMEOUT="$NARRATIVE_TIMEOUT" \
           BRIEF_NARRATIVE_ATTEMPT="$attempt" \
           BRIEF_WINDOW="$WINDOW" \
@@ -588,7 +612,7 @@ else
           BRIEF_RESEARCH_PAYLOAD_CANDIDATE="$RESEARCH_PAYLOAD_CANDIDATE" \
           "$NODE_BIN" scripts/brief-narrative-parallel.mjs \
        && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write --payload "$ATTENTION_PAYLOAD" \
-         && "$NODE_BIN" scripts/validate-brief-payload.mjs "$ATTENTION_PAYLOAD" --drop-unscoreable --drop-ineligible-causal --defer-page-parity --require-narrative-fields \
+         && "$NODE_BIN" scripts/validate-brief-payload.mjs "$ATTENTION_PAYLOAD" --drop-unscoreable --drop-ineligible-causal --defer-page-parity --require-narrative-fields "${FRESH_NARRATIVE_ARGS[@]}" \
          && promote_research_agenda_candidate \
          && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --defer-page-parity; then
       NARRATIVE_OK=1
@@ -698,7 +722,7 @@ else
     tool_bundle_args=(--tool-bundle "$TOOL_BRIEF_BUNDLE")
   fi
   if "$NODE_BIN" scripts/brief-distributed-publish.mjs --root . "${tool_bundle_args[@]}" \
-    && "$NODE_BIN" scripts/validate-distributed-briefs.mjs --root . --graph-only; then
+    && "$NODE_BIN" scripts/validate-distributed-briefs.mjs --root .; then
     DISTRIBUTED_OK=1
     echo "[brief-timer] distributed briefs/ graph generated + graph-validated — will ride the same commit"
   else

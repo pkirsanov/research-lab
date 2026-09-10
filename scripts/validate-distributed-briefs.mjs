@@ -102,9 +102,25 @@ export function validateCompatibilityProjection(root) {
   const runFingerprint = pointer.value.runFingerprint;
   for (const [name, file] of [['market-brief.payload.json', payload], ['market-brief.snapshot.json', snapshot]]) {
     if (!file.present) return fail('compat-projection-missing', name);
-    if (file.value.runId !== runId || file.value.runFingerprint !== runFingerprint) return fail('compat-projection-run-mismatch', name);
   }
-  return { ok: true, present: true, pointerBound: true, runId };
+  if (payload.value.runId === runId && payload.value.runFingerprint === runFingerprint
+      && snapshot.value.runId === runId && snapshot.value.runFingerprint === runFingerprint) {
+    return { ok: true, present: true, pointerBound: true, runId, binding: 'explicit-run-fields' };
+  }
+  // Root projections intentionally remain independent of the distributed graph's
+  // run fields. They are still bound when the current final object names this
+  // exact payload hash and agrees with the root Tier-A snapshot identity.
+  const final = readJson(root, pointer.value.finalRef.path);
+  if (!final.present) return fail('compat-final-missing', pointer.value.finalRef.path);
+  const narrativeRef = final.value?.narrativeRef;
+  if (narrativeRef?.payloadSha !== payload.sha256) return fail('compat-payload-hash-mismatch', 'market-brief.payload.json');
+  if (final.value?.asOf !== snapshot.value?.asOf || final.value?.window !== snapshot.value?.window) {
+    return fail('compat-snapshot-identity-mismatch', 'market-brief.snapshot.json');
+  }
+  if (narrativeRef?.asOf !== payload.value?.asOf || narrativeRef?.window !== payload.value?.window) {
+    return fail('compat-narrative-identity-mismatch', 'market-brief.payload.json');
+  }
+  return { ok: true, present: true, pointerBound: true, runId, binding: 'final-narrative-hash' };
 }
 
 function main(argv) {

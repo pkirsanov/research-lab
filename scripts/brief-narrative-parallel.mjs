@@ -21,6 +21,7 @@ import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction, briefRegi
 import { attentionAuthoredKeysInstruction, attentionCardBudgetInstruction, attentionExpiryFormatInstruction, attentionHeadlineCapInstruction, attentionRationaleBudgetInstruction, attentionSubjectMenuInstruction, attentionSubjectUniquenessInstruction, attentionVerbContractInstruction, briefFreshnessBadgeInstruction, recommendationConfidenceContractInstruction } from './build-attention-items.mjs';
 import { BRIEF_NARRATIVE_FIELDS_REQUIRED, briefBackdropKeysInstruction, matchesFieldPatterns, walkBriefStrings } from './reader-vocabulary.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
+import { resolveNarrativeModelConfig } from './brief-narrative-model-config.mjs';
 
 const ROOT = process.cwd();
 
@@ -48,17 +49,12 @@ let researchPreparation = null;
 let researchRuntime = null;
 let researchTreeBaseline = null;
 
-const narrativeProvider = process.env.BRIEF_NARRATIVE_PROVIDER || 'copilot';
-if (!['copilot', 'omlx'].includes(narrativeProvider)) {
-    throw new Error('BRIEF_NARRATIVE_PROVIDER must be copilot or omlx');
-}
+const narrativeModel = resolveNarrativeModelConfig({ root: ROOT });
+const narrativeProvider = narrativeModel.provider;
 const copilotBin = process.env.BRIEF_COPILOT_BIN || 'copilot';
-const model = process.env.BRIEF_MODEL || (narrativeProvider === 'omlx' ? 'Ternary-Bonsai-27B-mlx-2bit' : 'claude-opus-4.8');
-const omlxBaseUrl = process.env.BRIEF_NARRATIVE_OMLX_BASE_URL || '';
-const omlxMaxTokens = Math.min(3072, positiveInteger(process.env.BRIEF_OMLX_MAX_TOKENS, 3072));
-if (narrativeProvider === 'omlx' && !/^https?:\/\/[^/?#]+\/?$/.test(omlxBaseUrl)) {
-    throw new Error('BRIEF_NARRATIVE_OMLX_BASE_URL must be an http(s) origin without a query or fragment');
-}
+const model = narrativeModel.model;
+const omlxBaseUrl = narrativeModel.omlxBaseUrl;
+const omlxMaxTokens = narrativeModel.omlxMaxTokens;
 const timeoutSeconds = positiveInteger(process.env.BRIEF_NARRATIVE_TIMEOUT, 1800);
 const laneAttempts = Math.min(3, positiveInteger(process.env.BRIEF_LANE_ATTEMPTS, 1));
 const laneConcurrency = Math.min(4, positiveInteger(process.env.BRIEF_LANE_CONCURRENCY, 4));
@@ -75,7 +71,7 @@ const lanes = [
         id: 'core',
         keys: ['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology'],
         web: false,
-        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. ${briefFreshnessBadgeInstruction()} ${briefRegimeBiasInstruction()} Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()}`
+        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. Whenever an action names SPY or a snapshot.names ticker, include that instrument's exact current snapshot price in its prose; never carry a prior run's level, regime, date, event, or action wording. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. ${briefFreshnessBadgeInstruction()} ${briefRegimeBiasInstruction()} Set regime.vix.level to snapshot.regime.vix exactly. Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()}`
     },
     {
         id: 'signals',
@@ -409,6 +405,18 @@ function laneInput(lane) {
     if (lane.id === 'research-acquisition') return researchPreparation.acquisitionInput;
     if (lane.kind === 'research') return lane.input;
     const current = pick(payload, lane.keys);
+    // Old reader prose is useful as a schema example for a full-context provider,
+    // but it invites compact local completions to copy yesterday's arrays. OMLX
+    // receives only the shape; the refreshed snapshot is its market authority.
+    const schemaOnly = (value) => {
+        if (Array.isArray(value)) return value.length ? [schemaOnly(value[0])] : [];
+        if (value && typeof value === 'object') return Object.fromEntries(Object.keys(value).map((key) => [key, schemaOnly(value[key])]));
+        if (typeof value === 'string') return '<author fresh reader prose>';
+        if (typeof value === 'number') return 0;
+        if (typeof value === 'boolean') return false;
+        return null;
+    };
+    const currentForProvider = narrativeProvider === 'omlx' ? schemaOnly(current) : current;
     const meta = { lane: lane.id, ownedKeys: lane.keys, window: windowId, todayEt };
     const commonConfig = {
         thresholds: config.thresholds,
@@ -429,7 +437,7 @@ function laneInput(lane) {
             },
             recentHistory: history,
             config: commonConfig,
-            current
+            current: currentForProvider
         };
     }
     if (lane.id === 'groups') {
@@ -444,7 +452,7 @@ function laneInput(lane) {
             },
             config: { thresholds: config.thresholds, track: { groups: config.track?.groups || [] }, deepLinks: config.deepLinks },
             watchlist,
-            current
+            current: currentForProvider
         };
     }
     return {
@@ -453,7 +461,7 @@ function laneInput(lane) {
         snapshot: { ...baseSnapshot(), toolReads: snapshot.toolReads, toolCoverage: snapshot.toolCoverage },
         tools: (tools.tools || []).map((tool) => ({ id: tool.id, title: tool.title, file: tool.file, status: tool.status })),
         config: { deepLinks: config.deepLinks },
-        current: { toolCoverage: current.toolCoverage, experimental: current.experimental }
+        current: { toolCoverage: currentForProvider.toolCoverage, experimental: currentForProvider.experimental }
     };
 }
 
@@ -487,20 +495,6 @@ function boundedOmlxInput(value) {
     throw new Error('OMLX lane input cannot be compacted below the 6 KiB local-memory limit');
 }
 
-function mergeOmlxFragment(baseline, candidate) {
-    // Arrays carry nested publication contracts (actions, recommendations,
-    // coverage rows). Bonsai's concise transport can omit a required member,
-    // so retain the already-validated array envelope for this compact path.
-    if (Array.isArray(baseline)) return baseline;
-    if (Array.isArray(candidate)) return candidate;
-    if (baseline && candidate && typeof baseline === 'object' && typeof candidate === 'object') {
-        const merged = { ...baseline };
-        for (const [key, value] of Object.entries(candidate)) merged[key] = mergeOmlxFragment(baseline[key], value);
-        return merged;
-    }
-    return candidate === undefined ? baseline : candidate;
-}
-
 async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, stdoutPath, stderrPath, startedAt }) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), (lane.timeoutSeconds || timeoutSeconds) * 1000);
@@ -530,8 +524,11 @@ async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, s
         if (typeof content !== 'string') throw new Error('OMLX response has no text completion');
         const candidate = JSON.parse(content.replace(/^```json\s*|\s*```$/g, '').trim());
         if (!candidate || typeof candidate !== 'object' || Array.isArray(candidate)) throw new Error('OMLX response is not a JSON object');
-        const baseline = Object.fromEntries(lane.keys.map((key) => [key, payload[key]]));
-        const fragment = Object.fromEntries(lane.keys.map((key) => [key, mergeOmlxFragment(baseline[key], candidate[key])]));
+        // A local model must supply its complete owned fragment. Merging arrays
+        // from the old payload silently retained stale actions and catalysts.
+        // The contract gate retries incomplete output; it never repairs prose by
+        // reusing yesterday's reader-visible fields.
+        const fragment = Object.fromEntries(lane.keys.map((key) => [key, candidate[key]]));
         writeFileSync(outputPath, JSON.stringify(fragment) + '\n');
         return { ok: true, code: 0, signal: null, error: null, elapsedMs: Date.now() - startedAt };
     } catch (error) {
@@ -568,6 +565,26 @@ function runLane(lane, laneAttempt, priorGap = '') {
         writeFileSync(outputPath, JSON.stringify(fragment) + '\n');
         writeFileSync(stdoutPath, 'deterministic Tier-A coverage lane\n');
         console.log(`[brief-parallel] lane=${lane.id} completed deterministically from validated Tier-A coverage`);
+        return Promise.resolve({ ok: true, code: 0, signal: null, error: null, elapsedMs: Date.now() - startedAt, fragment, lane, laneAttempt, outputPath, stdoutPath, stderrPath, recovered: false, terminationReason: null });
+    }
+
+    // Group membership, breadth and watchlist status are deterministic Tier-A
+    // projections. They do not benefit from a compact model trying to repeat
+    // dozens of current prices, and treating them as a model lane previously
+    // made the scheduler preserve stale prose to keep their large envelopes.
+    if (narrativeProvider === 'omlx' && lane.id === 'groups') {
+        const startedAt = Date.now();
+        const watchlistNotes = Object.fromEntries((watchlist.items || []).map((item) => {
+            const state = snapshot.names?.[item.ticker];
+            const status = state && Number.isFinite(state.px)
+                ? `Current snapshot ${snapshot.asOf}: ${item.ticker} ${state.px}, ${state.maStack || 'structure unavailable'}.`
+                : `Current snapshot ${snapshot.asOf}: no observable Tier-A state for ${item.ticker}.`;
+            return [item.ticker, { status }];
+        }));
+        const fragment = { groups: snapshot.groups, watchlistNotes };
+        writeFileSync(outputPath, JSON.stringify(fragment) + '\n');
+        writeFileSync(stdoutPath, 'deterministic Tier-A groups and watchlist lane\n');
+        console.log(`[brief-parallel] lane=${lane.id} completed deterministically from current Tier-A groups and watchlist`);
         return Promise.resolve({ ok: true, code: 0, signal: null, error: null, elapsedMs: Date.now() - startedAt, fragment, lane, laneAttempt, outputPath, stdoutPath, stderrPath, recovered: false, terminationReason: null });
     }
 
@@ -928,6 +945,23 @@ try {
     }
 
     for (const result of results) Object.assign(payload, loadFragment(result));
+    if (narrativeProvider === 'omlx' && snapshot.asOf !== JSON.parse(payloadBaseline.toString('utf8')).asOf) {
+        const baseline = JSON.parse(payloadBaseline.toString('utf8'));
+        const freshCollections = [
+            ['nextSession.actions', payload.nextSession?.actions, baseline.nextSession?.actions],
+            ['recommendations', payload.recommendations, baseline.recommendations],
+            ['events', payload.events, baseline.events],
+            ['groups', payload.groups, baseline.groups],
+            ['watchlistNotes', payload.watchlistNotes, baseline.watchlistNotes]
+        ];
+        const carried = freshCollections
+            .filter(([, value, prior]) => JSON.stringify(value) === JSON.stringify(prior))
+            .map(([path]) => path);
+        if (carried.length) {
+            throw new Error(`OMLX freshness refusal: changed Tier-A evidence cannot carry forward unchanged reader content (${carried.join(', ')})`);
+        }
+        console.log(`[brief-parallel] OMLX freshness gate passed against changed Tier-A evidence (profile=${narrativeModel.profile} model=${model})`);
+    }
     /* BUG-010 §3.3 — the coverage lane owns toolCoverage and may rewrite the company reason in any
        wording it likes, so the two safety-bearing facts are restored here rather than requested of
        it. Re-assertion, not a prompt constraint: a constraint asks the model to comply, this makes

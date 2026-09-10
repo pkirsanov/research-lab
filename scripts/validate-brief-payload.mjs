@@ -922,7 +922,7 @@ function loadJsonIfPresent(path) {
 }
 
 const D16_FLAGS = new Set(['--enforce-d16', '--drop-unscoreable']);
-const CLI_FLAGS = new Set([...D16_FLAGS, '--drop-ineligible-causal', '--defer-page-parity', '--require-narrative-fields']);
+const CLI_FLAGS = new Set([...D16_FLAGS, '--drop-ineligible-causal', '--defer-page-parity', '--require-narrative-fields', '--require-fresh-narrative']);
 
 /*
  * `--require-narrative-fields` asserts every BRIEF_NARRATIVE_FIELDS_REQUIRED pattern resolves in the
@@ -943,6 +943,40 @@ function findMissingRequiredNarrativeFields(payload) {
   return BRIEF_NARRATIVE_FIELDS_REQUIRED.filter(
     (pattern) => !present.some((entry) => matchesFieldPatterns([pattern], entry.segments))
   );
+}
+
+/* Schema validity cannot prove a local model used current market evidence: a
+   complete action array from yesterday is still valid JSON. This publish-time
+   guard checks only deterministic identities the model has no discretion to
+   reinterpret. */
+export function findFreshNarrativeBreaches(payload, snapshot) {
+  const breaches = [];
+  if (!snapshot || typeof snapshot !== 'object') return ['current snapshot is unavailable'];
+  if (payload?.asOf !== snapshot.asOf) breaches.push('payload.asOf must equal the current snapshot.asOf');
+  const snapshotVix = snapshot?.regime?.vix;
+  const narrativeVix = payload?.regime?.vix?.level;
+  if (Number.isFinite(snapshotVix) && narrativeVix !== snapshotVix) {
+    breaches.push(`regime.vix.level ${String(narrativeVix)} must equal current snapshot VIX ${snapshotVix}`);
+  }
+  const nextSessionDate = snapshot.nextSessionDate || payload?.nextSession?.sessionDate;
+  for (const [index, event] of (Array.isArray(payload?.events) ? payload.events : []).entries()) {
+    const when = typeof event?.when === 'string' ? event.when.match(/\b\d{4}-\d{2}-\d{2}\b/)?.[0] : null;
+    if (when && nextSessionDate && when < nextSessionDate) breaches.push(`events[${index}].when ${when} predates next session ${nextSessionDate}`);
+  }
+  const prices = { SPY: snapshot?.bench?.px };
+  for (const [symbol, state] of Object.entries(snapshot?.names || {})) prices[symbol] = state?.px;
+  for (const [index, action] of (Array.isArray(payload?.nextSession?.actions) ? payload.nextSession.actions : []).entries()) {
+    const prose = ['subject', 'rationale', 'structuralAnchor', 'trigger', 'invalidation']
+      .map((field) => typeof action?.[field] === 'string' ? action[field] : '').join(' ');
+    const numericTokens = (prose.match(/(?:\d{1,5}(?:\.\d+)?)/g) || []).map(Number);
+    for (const [symbol, price] of Object.entries(prices)) {
+      if (!Number.isFinite(price) || !new RegExp(`\\b${symbol}\\b`).test(prose)) continue;
+      if (!numericTokens.some((value) => Math.abs(value - price) <= Math.max(0.02, price * 0.0002))) {
+        breaches.push(`nextSession.actions[${index}] names ${symbol} but does not carry its current snapshot price ${price}`);
+      }
+    }
+  }
+  return breaches;
 }
 
 /*
@@ -1004,6 +1038,7 @@ function main() {
   const repairCausal = flags.includes('--drop-ineligible-causal');
   const deferPageParity = flags.includes('--defer-page-parity');
   const requireNarrativeFields = flags.includes('--require-narrative-fields');
+  const requireFreshNarrative = flags.includes('--require-fresh-narrative');
 
   let payload = loadJson(payloadPath);
 
@@ -1057,6 +1092,15 @@ function main() {
       process.exit(1);
     }
     console.log('[brief-contract] every required narrative field is present in the generated payload: PASS');
+  }
+  if (requireFreshNarrative) {
+    const freshnessBreaches = findFreshNarrativeBreaches(payload, loadJson('market-brief.snapshot.json'));
+    if (freshnessBreaches.length) {
+      console.error('[brief-contract] FAIL: generated narrative is not anchored to the current snapshot');
+      freshnessBreaches.forEach((breach) => console.error('  - ' + breach));
+      process.exit(1);
+    }
+    console.log('[brief-contract] generated narrative is anchored to current snapshot identities, prices, and event horizon: PASS');
   }
 
   const unscoreable = findUnscoreableActions(payload, { root: ROOT });

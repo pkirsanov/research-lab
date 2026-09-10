@@ -30,6 +30,8 @@ export const AUTHOR_RESPONSE_CONTRACT = 'tool-author-response/v1';
    response); the tool-author path is byte-unchanged. */
 export const FINAL_AUTHOR_REQUEST_CONTRACT = 'final-author-request/v1';
 export const FINAL_AUTHOR_RESPONSE_CONTRACT = 'final-author-response/v1';
+export const COMPANY_PLAN_AUTHOR_REQUEST_CONTRACT = 'company-plan-author-request/v1';
+export const COMPANY_PLAN_AUTHOR_RESPONSE_CONTRACT = 'company-plan-author-response/v1';
 
 /* Closed, sanitized error taxonomy for the author boundary. No rejected narrative, prompt text,
    credential, or private field ever enters an error; only a code, a reason, and a field path. */
@@ -97,15 +99,67 @@ function requestFingerprint(request) {
   }))}`;
 }
 
+function companyRequestFingerprint(request) {
+  const body = Object.fromEntries(
+    Object.entries(request)
+      .filter(([key]) => key !== 'requestFingerprint')
+      .sort(([left], [right]) => left.localeCompare(right))
+  );
+  return `sha256:${sha256Hex(stableStringify(body))}`;
+}
+
 export function verifyAuthorRequestFingerprint(request) {
   if (!request || typeof request !== 'object' || Array.isArray(request)
     || typeof request.requestFingerprint !== 'string'
     || !/^sha256:[0-9a-f]{64}$/.test(request.requestFingerprint)) {
     return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-fingerprint-invalid', 'request.requestFingerprint');
   }
-  if (requestFingerprint(request) !== request.requestFingerprint) {
+  const expected = request.contractVersion === COMPANY_PLAN_AUTHOR_REQUEST_CONTRACT
+    ? companyRequestFingerprint(request)
+    : requestFingerprint(request);
+  if (expected !== request.requestFingerprint) {
     return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-fingerprint-mismatch', 'request.requestFingerprint');
   }
+  return { ok: true, request };
+}
+
+/* Company Intelligence uses the same powerless transport but needs an explicit
+   bounded research-plan envelope. Keep all decision inputs in the fingerprinted
+   request rather than relying on a parallel scheduler-side contract. */
+export function buildCompanyPlanAuthorRequest(input, identity) {
+  if (!input || typeof input !== 'object' || !identity || typeof identity !== 'object') {
+    return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'company-plan-input-or-identity-required', 'request');
+  }
+  for (const key of REQUIRED_IDENTITY) {
+    if (typeof identity[key] !== 'string' || !SAFE_ID.test(identity[key])) {
+      return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'identity-field-invalid', `identity.${key}`);
+    }
+  }
+  const required = ['generationId', 'subjectId', 'evidenceCutoff', 'baseCandidateFingerprint', 'sourceCatalogue', 'horizons'];
+  if (required.some((key) => input[key] === undefined) || !Array.isArray(input.sourceCatalogue) || !Array.isArray(input.horizons) ||
+      !Number.isInteger(input.maxBranches) || input.maxBranches < 1 || input.maxBranches > 5) {
+    return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'company-plan-input-invalid', 'input');
+  }
+  const request = {
+    contractVersion: COMPANY_PLAN_AUTHOR_REQUEST_CONTRACT,
+    instructions: 'Return one JSON company research plan. Use only source catalogue IDs and horizon target IDs supplied. Produce at most maxBranches branches.',
+    generationId: input.generationId,
+    subjectId: input.subjectId,
+    evidenceCutoff: input.evidenceCutoff,
+    maxBranches: input.maxBranches,
+    baseCandidateFingerprint: input.baseCandidateFingerprint,
+    sourceCatalogue: input.sourceCatalogue,
+    horizons: input.horizons,
+    provider: identity.providerId,
+    model: identity.modelId,
+    promptPolicy: identity.promptPolicyVersion,
+    schema: identity.schemaVersion,
+    validator: identity.validatorVersion,
+    maxOutputTokens: 1200
+  };
+  const unsafe = scanUnsafe(request, 'request');
+  if (unsafe) return authorFailure(AUTHOR_ERRORS.UNSAFE, unsafe.reason, unsafe.field);
+  request.requestFingerprint = companyRequestFingerprint(request);
   return { ok: true, request };
 }
 
@@ -236,11 +290,12 @@ export function validateAuthorEnvelope(envelope, request, options) {
   // Polymorphic on the dispatched request contract: a final request expects a final response whose payload
   // lives under `final`; every other (tool) request keeps the byte-unchanged tool-author-response path.
   const isFinal = request && typeof request === 'object' && request.contractVersion === FINAL_AUTHOR_REQUEST_CONTRACT;
+  const isCompanyPlan = request && typeof request === 'object' && request.contractVersion === COMPANY_PLAN_AUTHOR_REQUEST_CONTRACT;
   // Scope 11 — a v2 tool request expects the v2 response contract. The payload key stays
   // `brief`, so a v2 envelope travels the byte-unchanged tool path from here down.
   const isToolV2 = request && typeof request === 'object' && request.contractVersion === TOOL_AUTHOR_REQUEST_V2_CONTRACT;
-  const expectedResponse = isFinal ? FINAL_AUTHOR_RESPONSE_CONTRACT : (isToolV2 ? TOOL_AUTHOR_RESPONSE_V2_CONTRACT : AUTHOR_RESPONSE_CONTRACT);
-  const payloadKey = isFinal ? 'final' : 'brief';
+  const expectedResponse = isFinal ? FINAL_AUTHOR_RESPONSE_CONTRACT : (isCompanyPlan ? COMPANY_PLAN_AUTHOR_RESPONSE_CONTRACT : (isToolV2 ? TOOL_AUTHOR_RESPONSE_V2_CONTRACT : AUTHOR_RESPONSE_CONTRACT));
+  const payloadKey = isFinal ? 'final' : (isCompanyPlan ? 'plan' : 'brief');
   if (!envelope || typeof envelope !== 'object' || Array.isArray(envelope)) return authorFailure(AUTHOR_ERRORS.MALFORMED, 'envelope-not-object', 'envelope');
   const encoded = stableStringify(envelope);
   if (Buffer.byteLength(encoded, 'utf8') > maxBytes) return authorFailure(AUTHOR_ERRORS.OVERSIZE, 'envelope-exceeds-cap', 'envelope');
@@ -287,7 +342,7 @@ export async function invokeAuthor(request, options) {
   const settings = options || {};
   const maxBytes = Number.isInteger(settings.maxStdoutBytes) ? settings.maxStdoutBytes : DEFAULT_MAX_STDOUT_BYTES;
   const timeoutMs = Number.isInteger(settings.timeoutMs) ? settings.timeoutMs : 180000;
-  const dispatchable = [AUTHOR_REQUEST_CONTRACT, FINAL_AUTHOR_REQUEST_CONTRACT, TOOL_AUTHOR_REQUEST_V2_CONTRACT];
+  const dispatchable = [AUTHOR_REQUEST_CONTRACT, FINAL_AUTHOR_REQUEST_CONTRACT, COMPANY_PLAN_AUTHOR_REQUEST_CONTRACT, TOOL_AUTHOR_REQUEST_V2_CONTRACT];
   if (!request || typeof request !== 'object' || dispatchable.indexOf(request.contractVersion) === -1 || typeof request.requestFingerprint !== 'string') {
     return authorFailure(AUTHOR_ERRORS.REQUEST_INVALID, 'request-invalid', 'request');
   }

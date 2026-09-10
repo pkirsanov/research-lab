@@ -235,22 +235,18 @@ if [ "$COUPLED_MODE" = "1" ] && [ -n "$RUN_WINDOW" ]; then
   PRESERVE_PUBLISH_PARENT=1
   REQUESTED_AT="${BRIEF_SCHEDULE_REQUESTED_AT:-$STARTED_AT}"
   ET_SESSION_DATE="${BRIEF_SCHEDULE_ET_SESSION_DATE:-$(TZ=America/New_York date +%Y-%m-%d)}"
-  request_output="$("$NODE_BIN" "$SOURCE_ROOT/scripts/company-intelligence-publication.mjs" request \
-    --output "$REQUEST_FILE" \
-    --trigger "$TRIGGER_MODE" \
-    --window "$RUN_WINDOW" \
-    --et-session-date "$ET_SESSION_DATE" \
-    --requested-at "$REQUESTED_AT")" || {
-      request_exit=$?
-      printf '%s\n' "$request_output"
-      echo "[brief-scheduler] trigger identity persistence failed"
-      exit "$request_exit"
-    }
-  printf '%s\n' "$request_output"
-  RUN_KEY="$("$NODE_BIN" -e 'const fs=require("node:fs");const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(r.generationKey);' "$REQUEST_FILE")" || {
-    echo "[brief-scheduler] persisted trigger identity is unreadable"
-    exit 1
-  }
+  # The identity document is created only after the isolated checkout exists.
+  # Never import a generator from SOURCE_ROOT: that is an operator's editor
+  # checkout and may be dirty or behind the remote worker it is meant to
+  # launch. Its deterministic key is reserved here for status/lock handling
+  # and verified against the cloned generator below.
+  if [ "$TRIGGER_MODE" = "scheduled" ]; then
+    RUN_KEY="scheduled/$ET_SESSION_DATE/$RUN_WINDOW"
+  else
+    # The request owns the on-demand UUID; it is bound after the isolated
+    # checkout creates the request below.
+    RUN_KEY=""
+  fi
 elif [ -n "${BRIEF_SCHEDULE_RUN_KEY:-}" ]; then
   RUN_KEY="$BRIEF_SCHEDULE_RUN_KEY"
 elif [ -n "$RUN_WINDOW" ]; then
@@ -499,6 +495,30 @@ if [ "$COUPLED_MODE" = "1" ] &&
   PRESERVE_PUBLISH_PARENT=1
   echo "[brief-scheduler] pulled worker does not satisfy company-brief-eighteen-phase-v1"
   exit 1
+fi
+
+if [ "$COUPLED_MODE" = "1" ]; then
+  request_output="$("$NODE_BIN" "$CANDIDATE_ROOT/scripts/company-intelligence-publication.mjs" request \
+    --output "$REQUEST_FILE" \
+    --trigger "$TRIGGER_MODE" \
+    --window "$RUN_WINDOW" \
+    --et-session-date "$ET_SESSION_DATE" \
+    --requested-at "$REQUESTED_AT")" || {
+      request_exit=$?
+      printf '%s\n' "$request_output"
+      echo "[brief-scheduler] isolated trigger identity persistence failed"
+      exit "$request_exit"
+    }
+  printf '%s\n' "$request_output"
+  persisted_run_key="$("$NODE_BIN" -e 'const fs=require("node:fs");const r=JSON.parse(fs.readFileSync(process.argv[1],"utf8"));process.stdout.write(r.generationKey);' "$REQUEST_FILE")" || {
+    echo "[brief-scheduler] isolated trigger identity is unreadable"
+    exit 1
+  }
+  if [ -n "$RUN_KEY" ] && [ "$persisted_run_key" != "$RUN_KEY" ]; then
+    echo "[brief-scheduler] isolated trigger identity disagrees with the reserved run key"
+    exit 1
+  fi
+  RUN_KEY="$persisted_run_key"
 fi
 
 echo "[brief-scheduler] publisher checkout ready; developer worktree remains untouched"

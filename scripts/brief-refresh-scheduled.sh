@@ -233,7 +233,10 @@ if [ "$COUPLED_MODE" = "1" ] && [ -n "$RUN_WINDOW" ]; then
   # launcher is interrupted. Cleanup becomes safe only after this process has
   # confirmed dry-run restoration or a remotely acknowledged journal.
   PRESERVE_PUBLISH_PARENT=1
-  REQUESTED_AT="${BRIEF_SCHEDULE_REQUESTED_AT:-$STARTED_AT}"
+  # The coupled trigger contract requires a canonical ISO instant (including
+  # milliseconds); the human-readable scheduler status timestamp is not that
+  # wire format.
+  REQUESTED_AT="${BRIEF_SCHEDULE_REQUESTED_AT:-$($NODE_BIN -e 'process.stdout.write(new Date().toISOString())')}"
   ET_SESSION_DATE="${BRIEF_SCHEDULE_ET_SESSION_DATE:-$(TZ=America/New_York date +%Y-%m-%d)}"
   # The identity document is created only after the isolated checkout exists.
   # Never import a generator from SOURCE_ROOT: that is an operator's editor

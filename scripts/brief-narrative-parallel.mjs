@@ -549,23 +549,37 @@ function assertOmlxFactBinding(candidate, lane) {
     if (/https?:\/\//i.test(text)) {
         throw new Error('OMLX fact binding refused an invented URL (deepLink must be a local tool-page filename)');
     }
+    // "S&P 500" is ordinary financial prose, not a fabricated ticker — but "&" is a non-word
+    // character, so \b[A-Z]{1,5}\b tokenizes "S&P" into two separate matches, "S" and "P", and a
+    // live run was refused over exactly this: a fully correct, complete core-lane fragment
+    // discarded because its own thesis mentioned "S&P 500". The same shape recurs in other common
+    // financial shorthand this prose is likely to use — P&L, R&D, M&A, Q&A. None of these can be
+    // fixed by allowlisting the individual letters the way CPI/FOMC/etc. are allowlisted below,
+    // because several of them (C, D, O, T, V — see data/bars/) ARE real tickers tracked elsewhere
+    // in this repo's broader universe, so blanket-exempting bare single letters would reopen a real
+    // fabrication hole. Excising the specific two-single-letter "&" idiom before scanning fixes the
+    // reproduced failure without weakening detection of any actual multi-letter fabricated ticker.
+    const scanText = text.replace(/\b([A-Z])&([A-Z])\b/g, '$1and$2');
     const allowedTickers = new Set(Object.keys(fact.instruments || {}));
     // The 1-5 uppercase-letter scan cannot tell a real ticker from any other capitalized acronym
-    // that legitimately appears in this schema's prose or enum values — observed in practice: a
-    // correct, config-grounded events entry (type "CPI", copied verbatim from
-    // config.macroEvents[].type) was refused as an "unknown ticker". config.macroEvents is the
-    // authoritative source for which event-type codes the model is instructed to copy, so every
-    // type it declares is allowed here by construction, not guesswork; the remaining entries are
-    // the small set of macro/regulatory acronyms this schema's own vocabulary already uses
-    // (regime/backdrop prose, event scenarios) that are not, and never will be, stock tickers.
-    const macroEventTypes = Array.isArray(config.macroEvents) ? config.macroEvents.map((event) => event?.type).filter(Boolean) : [];
+    // that legitimately appears in this schema's prose or enum values. Hand-picking acronyms one
+    // refusal at a time does not scale: a live run was first refused over "CPI" (an event TYPE),
+    // then over "BLS" (the agency that releases it), then over "COOL" (an outcome label —
+    // "resolved COOL/in-line" — copied verbatim from a config.macroEvents note). All three, and
+    // anything shaped like them, are already sitting in config.macroEvents as exactly the
+    // vocabulary the lane is instructed to copy: scanning that JSON with the SAME ticker-shaped
+    // regex used against the model's own output turns "is this acronym legitimate" from a
+    // maintained guess into "does config already say this word", which is the authoritative
+    // source questioning whether the model invented it — and future config-authored acronyms are
+    // covered automatically, not one refusal later.
+    const configAcronyms = [...JSON.stringify(config.macroEvents || []).matchAll(/\b[A-Z]{1,5}\b/g)].map((match) => match[0]);
     const NON_TICKER_ACRONYMS = new Set([
         'SPY', 'QQQ', 'VIX',
-        ...macroEventTypes,
-        'CPI', 'PPI', 'PCE', 'GDP', 'PMI', 'NFP', 'ISM', 'FOMC', 'ECB', 'FED', 'BOJ', 'BOE', 'OPEC',
+        ...configAcronyms,
+        'FOMC', 'ECB', 'FED', 'BOJ', 'BOE', 'OPEC', 'BLS', 'BEA', 'DOL', 'SEC', 'OECD', 'IMF', 'CBO',
         'ATH', 'IPO', 'ETF', 'ET', 'EDT', 'EST', 'UTC', 'USD', 'EUR', 'JPY', 'GBP', 'YOY', 'QOQ', 'MOM'
     ]);
-    const mentioned = [...text.matchAll(/\b[A-Z]{1,5}\b/g)].map((match) => match[0]);
+    const mentioned = [...scanText.matchAll(/\b[A-Z]{1,5}\b/g)].map((match) => match[0]);
     const unknown = mentioned.find((ticker) => NON_TICKER_ACRONYMS.has(ticker) ? false : !allowedTickers.has(ticker));
     if (unknown) throw new Error(`OMLX fact binding refused unknown ticker ${unknown}`);
     for (const [ticker, state] of Object.entries(fact.instruments || {})) {

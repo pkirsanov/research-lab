@@ -74,7 +74,7 @@ const lanes = [
         id: 'core',
         keys: ['nextSession', 'dataAsOf', 'regime', 'backdrop', 'psychology'],
         web: false,
-        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. Whenever an action names SPY or a snapshot.names ticker, include that instrument's exact current snapshot price in its prose; never carry a prior run's level, regime, date, event, or action wording. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. ${briefFreshnessBadgeInstruction()} ${briefRegimeBiasInstruction()} Set regime.vix.level to snapshot.regime.vix exactly. Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()}`
+        instructions: `Own the posture and structural frame. Author nextSession FIRST for snapshot.nextSessionDate with at most config.thresholds.nextSessionMaxActions. Every action must use hold|trim|add|hedge|rotate and include subject, rationale, horizon, structuralAnchor, trigger, invalidation, confidence, and deepLink. Whenever an action names SPY or a snapshot.names ticker, include that instrument's exact current snapshot price in its prose; never carry a prior run's level, regime, date, event, or action wording. ${recommendationConfidenceContractInstruction()} dataAsOf must truthfully label bars, options, macro, and events, and dataAsOf.labels must carry the SAME four keys as condensed reader-facing versions of those four narratives — both are required reader copy and the publish path refuses a payload that omits either. ${briefFreshnessBadgeInstruction()} ${briefRegimeBiasInstruction()} Set regime.vix.level to snapshot.regime.vix exactly. Name the regime and crowd psychology, structural trend, macro cycle, priced-in view, asymmetry, levels, and falsifiers. ${briefBackdropKeysInstruction()} psychology is its OWN separate required top-level key, distinct from and IN ADDITION TO regime.crowdPsychology — regime.crowdPsychology is a short label, while the top-level psychology object is a full separate analysis with its own fields (for example fear, greed, uncertainty, sentiment, sentimentReadout, contrarianSignal, crowdState, riskOff): write it as a second, fuller pass over crowd behavior, not a repeat of the regime label. Do not stop before writing it — the JSON object is incomplete without it.`
     },
     {
         id: 'signals',
@@ -96,7 +96,7 @@ const lanes = [
            are decision-attention/v1 requirement NAMES, not payload key names, and the events key
            scan above must stay clean of them — so the transmission-path sentence says "declare"
            rather than "name", which is an enforced scenario key. */
-        instructions: `Own actionable changes and catalysts. attention must contain at most config.thresholds.attentionMaxCards ranked items. ${attentionSubjectMenuInstruction()} ${attentionSubjectUniquenessInstruction()} Every attention item must concern an instrument on the committed watchlist, and its headline must carry that instrument's exact ticker: the publication gate resolves the item's subject by matching a watchlist ticker in your authored text, and refuses anything outside the watchlist scope. An item about a benchmark such as SPY, or about a macro theme, cannot be published as an attention item no matter how well authored — put that read in recommendations instead, where no such scope applies. For every attention item author only the judgement: a headline, a rationale stating why the reader is being interrupted, the falsifiability triple of an escalation trigger, an invalidation and an expiry instant, and the four judgement enums — verb, horizon, severity and imminence. ${attentionHeadlineCapInstruction()} ${attentionAuthoredKeysInstruction()} ${attentionExpiryFormatInstruction()} ${attentionCardBudgetInstruction()} ${attentionRationaleBudgetInstruction()} ${attentionVerbContractInstruction()} Author no serialized envelope field for an attention item; the publish-time build step derives each of those from a committed contract, and an attention item missing any authored judgement field is refused by the publication gate rather than defaulted. recommendations must be concrete instruments with direction, levels or relative-strength triggers, invalidation, horizon, confidence, and deepLink. ${recommendationConfidenceContractInstruction()} A causal-rotation-lab read whose metrics.planEligible is not true belongs only in tool coverage: do not reference it or its candidate ids in attention or recommendations, because it may not consume an action slot until its owner marks it plan-eligible. events must be nearest-first and cover imminent catalysts through roughly the next 10 trading days; every scenario odds figure is a labeled estimate with its inputs shown, the scenario odds within each catalyst sum to 1, and stale or unverified facts are labeled. ${briefEventContractInstruction()}`
+        instructions: `Own actionable changes and catalysts. attention must contain at most config.thresholds.attentionMaxCards ranked items. ${attentionSubjectMenuInstruction()} ${attentionSubjectUniquenessInstruction()} Every attention item must concern an instrument on the committed watchlist, and its headline must carry that instrument's exact ticker: the publication gate resolves the item's subject by matching a watchlist ticker in your authored text, and refuses anything outside the watchlist scope. An item about a benchmark such as SPY, or about a macro theme, cannot be published as an attention item no matter how well authored — put that read in recommendations instead, where no such scope applies. For every attention item author only the judgement: a headline, a rationale stating why the reader is being interrupted, the falsifiability triple of an escalation trigger, an invalidation and an expiry instant, and the four judgement enums — verb, horizon, severity and imminence. ${attentionHeadlineCapInstruction()} ${attentionAuthoredKeysInstruction()} ${attentionExpiryFormatInstruction()} ${attentionCardBudgetInstruction()} ${attentionRationaleBudgetInstruction()} ${attentionVerbContractInstruction()} Author no serialized envelope field for an attention item; the publish-time build step derives each of those from a committed contract, and an attention item missing any authored judgement field is refused by the publication gate rather than defaulted. recommendations must be concrete instruments with direction, levels or relative-strength triggers, invalidation, horizon, confidence, and deepLink. levels is ONE PROSE STRING, in the same style as structuralAnchor, trigger and invalidation — never an array or object of numeric level entries — naming the concrete price levels and what they mean in a sentence (for example "SOXX spot ~517, add urgency on a daily close below ~510 toward the 200-day; invalidation is a daily close above ~525 that reclaims the 50-day"). ${recommendationConfidenceContractInstruction()} A causal-rotation-lab read whose metrics.planEligible is not true belongs only in tool coverage: do not reference it or its candidate ids in attention or recommendations, because it may not consume an action slot until its owner marks it plan-eligible. events must be nearest-first and cover imminent catalysts through roughly the next 10 trading days; every scenario odds figure is a labeled estimate with its inputs shown, the scenario odds within each catalyst sum to 1, and stale or unverified facts are labeled. ${briefEventContractInstruction()}`
     },
     {
         id: 'groups',
@@ -427,10 +427,26 @@ function laneInput(lane) {
         asOf: snapshot.asOf,
         nextSessionDate: snapshot.nextSessionDate,
         vix: snapshot.regime?.vix,
-        instruments: Object.fromEntries(Object.entries(snapshot.names || {}).map(([ticker, state]) => [ticker, {
-            price: state?.px ?? null,
-            maStack: state?.maStack ?? null
-        }]))
+        instruments: {
+            // SPY is not one of the watchlist names in snapshot.names — it is the
+            // separate benchmark object, snapshot.bench — but the core lane's own
+            // instructions explicitly invite "Whenever an action names SPY ... include
+            // that instrument's exact current snapshot price". Leaving SPY out of the
+            // one object this function's own comment calls "the local-model's only
+            // authority for market identifiers and numbers" meant a model asked to
+            // cite SPY had no ground truth to cite and no mechanical check verifying
+            // whatever it wrote — assertOmlxFactBinding's price-consistency loop below
+            // only checks tickers present in factCard.instruments, and SPY is
+            // hardcoded into its unknown-ticker ALLOWLIST, so a fabricated SPY price
+            // (observed: a real run wrote "452.10" against a real spot of ~758) passed
+            // through undetected. Folding bench in here under the SPY key closes both
+            // gaps at once: real data to cite, and a real check to catch a fabrication.
+            ...(snapshot.bench ? { SPY: { price: snapshot.bench.px ?? null, maStack: snapshot.bench.maStack ?? null } } : {}),
+            ...Object.fromEntries(Object.entries(snapshot.names || {}).map(([ticker, state]) => [ticker, {
+                price: state?.px ?? null,
+                maStack: state?.maStack ?? null
+            }]))
+        }
     } : undefined;
     const meta = { lane: lane.id, ownedKeys: lane.keys, window: windowId, todayEt };
     const commonConfig = {
@@ -524,12 +540,33 @@ function assertOmlxFactBinding(candidate, lane) {
     const fact = laneInput(lane).factCard;
     if (!fact) return;
     const text = JSON.stringify(candidate);
-    if (/https?:\/\/(?:www\.)?example\.com/i.test(text)) {
-        throw new Error('OMLX fact binding refused an invented example.com URL');
+    // Every deepLink in this schema is a local tool-page filename (e.g. "swing-structure-lab.html"),
+    // never a URL — the model is never given a real one to cite. The narrower example.com-only
+    // check let through any OTHER invented domain (observed in practice: a run wrote
+    // "https://example.com/spy" for a fabricated SPY action, which happened to match, but a
+    // fabricated "https://finance-data.io/spy" would have sailed through identically). No field in
+    // a lane that carries a factCard legitimately needs an http(s) URL, so refuse any of them.
+    if (/https?:\/\//i.test(text)) {
+        throw new Error('OMLX fact binding refused an invented URL (deepLink must be a local tool-page filename)');
     }
     const allowedTickers = new Set(Object.keys(fact.instruments || {}));
+    // The 1-5 uppercase-letter scan cannot tell a real ticker from any other capitalized acronym
+    // that legitimately appears in this schema's prose or enum values — observed in practice: a
+    // correct, config-grounded events entry (type "CPI", copied verbatim from
+    // config.macroEvents[].type) was refused as an "unknown ticker". config.macroEvents is the
+    // authoritative source for which event-type codes the model is instructed to copy, so every
+    // type it declares is allowed here by construction, not guesswork; the remaining entries are
+    // the small set of macro/regulatory acronyms this schema's own vocabulary already uses
+    // (regime/backdrop prose, event scenarios) that are not, and never will be, stock tickers.
+    const macroEventTypes = Array.isArray(config.macroEvents) ? config.macroEvents.map((event) => event?.type).filter(Boolean) : [];
+    const NON_TICKER_ACRONYMS = new Set([
+        'SPY', 'QQQ', 'VIX',
+        ...macroEventTypes,
+        'CPI', 'PPI', 'PCE', 'GDP', 'PMI', 'NFP', 'ISM', 'FOMC', 'ECB', 'FED', 'BOJ', 'BOE', 'OPEC',
+        'ATH', 'IPO', 'ETF', 'ET', 'EDT', 'EST', 'UTC', 'USD', 'EUR', 'JPY', 'GBP', 'YOY', 'QOQ', 'MOM'
+    ]);
     const mentioned = [...text.matchAll(/\b[A-Z]{1,5}\b/g)].map((match) => match[0]);
-    const unknown = mentioned.find((ticker) => ['SPY', 'QQQ', 'VIX'].includes(ticker) ? false : !allowedTickers.has(ticker));
+    const unknown = mentioned.find((ticker) => NON_TICKER_ACRONYMS.has(ticker) ? false : !allowedTickers.has(ticker));
     if (unknown) throw new Error(`OMLX fact binding refused unknown ticker ${unknown}`);
     for (const [ticker, state] of Object.entries(fact.instruments || {})) {
         const price = Number(state.price);
@@ -670,8 +707,20 @@ function runLane(lane, laneAttempt, priorGap = '') {
     const requiredLeafInstruction = requiredLeaves.length
         ? `Your fragment is REJECTED unless every one of these nested fields is present and non-empty: ${requiredLeaves.join(', ')}. Owning the top-level key is not the same as answering it.`
         : '';
+    /* "Keep everything else you already had right" presumes the model can see its own prior
+       output, which is true for Copilot's stateful CLI session but NOT for omlx: each OMLX call
+       is a fresh, stateless completion at temperature 0 with no conversation history, and the
+       retry prompt never re-sends the rejected candidate JSON — only a text description of what
+       was wrong with it. Telling a small local model to "keep what you already had" for content
+       it cannot see measurably made things worse in practice: three separate full pipeline runs
+       all showed the SAME pattern — the omlx core/signals lanes' first (no-retry) attempt got
+       closer to complete than every subsequent retry attempt, which regressed to missing every
+       top-level key. Framing the omlx retry as a plain restated requirement, with no reference to
+       a "previous attempt" the model cannot actually recall, is the fix. */
     const retryInstruction = priorGap
-        ? `This is a retry. Your previous attempt was rejected because ${priorGap}. Fix exactly that and keep everything else you already had right.`
+        ? (narrativeProvider === 'omlx'
+            ? `REQUIRED FIX: your JSON object must satisfy this exactly: ${priorGap}. Write the complete JSON object fresh, satisfying every other instruction below as well.`
+            : `This is a retry. Your previous attempt was rejected because ${priorGap}. Fix exactly that and keep everything else you already had right.`)
         : '';
     const localBudgetInstruction = narrativeProvider === 'omlx'
         ? 'LOCAL OMLX RESPONSE BUDGET: finish the complete JSON object within 7,000 characters. Be concise: one short sentence per prose field, at most one action, two structural levels per instrument, and never repeat an object, key, sentence, or input evidence. Prefer a truthful omitted/insufficient statement over elaboration. The closing brace is mandatory.'
@@ -692,7 +741,7 @@ function runLane(lane, laneAttempt, priorGap = '') {
        still exists, it just was not sent, so writing a specific replacement for it is not
        completing a gap, it is contradicting evidence the model was never shown. */
     const omlxIntegrityInstruction = narrativeProvider === 'omlx'
-        ? 'GROUNDING (local model, no live market access): every ticker, instrument, price level, date, percentage, or source you write must come literally from the frozen input JSON in this request. Never invent a ticker not present in it, a numeric level nobody supplied, or a source/event it does not name. A value marked "[truncated]" or "[nested detail omitted for local-model memory]" in the input means that fact was WITHHELD from you to fit local memory — treat it exactly like a fact you were never given, never as license to substitute a plausible-sounding replacement. When a required field has no supporting fact in the input, write a truthful, specific sentence naming what is missing (for example "insufficient evidence: no confirmed price level for MSFT in the supplied data") instead of a fabricated number, ticker, or source. A truthful gap statement satisfies the requirement that every nested field be non-empty; a fabricated fact does not — it is a WORSE failure than an honest one, because it is published as if verified.'
+        ? 'GROUNDING (local model, no live market access): every ticker, instrument, price level, date, percentage, or source you write must come literally from the frozen input JSON in this request. Never invent a ticker not present in it, a numeric level nobody supplied, or a source/event it does not name. A value marked "[truncated]" or "[nested detail omitted for local-model memory]" in the input means that fact was WITHHELD from you to fit local memory — treat it exactly like a fact you were never given, never as license to substitute a plausible-sounding replacement. When a required field has no supporting fact in the input, write a truthful, specific sentence naming what is missing (for example "insufficient evidence: no confirmed price level for MSFT in the supplied data") instead of a fabricated number, ticker, or source. A truthful gap statement satisfies the requirement that every nested field be non-empty; a fabricated fact does not — it is a WORSE failure than an honest one, because it is published as if verified. Every deepLink you write must be copied VERBATIM from one of the config.deepLinks values or an owning tool file name already present in the input (for example "swing-structure-lab.html" or "etf-momentum-lab.html") — it is a local page filename, NEVER a URL, and NEVER a domain such as example.com or any other website; if no input-supplied page name fits, reuse the single most relevant one already present rather than constructing a new address.'
         : '';
     const prompt = lane.id === 'research-acquisition' || lane.kind === 'research'
         ? `You are the ${lane.id} side process for generation ${researchPreparation.generationId}. Read only .brief-work/${lane.id}.input.json. Do not edit any tracked file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${localBudgetInstruction} ${omlxIntegrityInstruction} ${requiredLeafInstruction} ${retryInstruction} ${lane.instructions}`

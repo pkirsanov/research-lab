@@ -324,7 +324,7 @@ FRESH_NARRATIVE_ARGS=()
 # arrays. Copilot has its own transaction/contract checks; applying a
 # price-token check to its historical fixture/recovery path would change that
 # unrelated provider's publication semantics.
-if [ "$NARRATIVE_PROVIDER" = "omlx" ]; then
+if [ "$NARRATIVE_PROVIDER" = "omlx" ] && [ "${BRIEF_SKIP_NARRATIVE:-0}" != "1" ]; then
   FRESH_NARRATIVE_ARGS=(--require-fresh-narrative)
 fi
 NARRATIVE_ATTEMPTS="${BRIEF_NARRATIVE_ATTEMPTS:-1}"
@@ -405,7 +405,7 @@ if [ "$NARRATIVE_PROVIDER" = "omlx" ]; then
   echo "[brief-timer] regenerating narrative via local OMLX (profile=$NARRATIVE_PROFILE model=$MODEL; no model web access; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s per lane)…"
   COPILOT_BINDING="not-used"
   COPILOT_BINDING_DETAIL="local OMLX provider"
-elif [ -n "${BRIEF_COPILOT_BIN:-}" ]; then
+elif [ "$NARRATIVE_PROVIDER" = "copilot" ] && [ "${BRIEF_SKIP_NARRATIVE:-0}" != "1" ] && [ -n "${BRIEF_COPILOT_BIN:-}" ]; then
   COPILOT_BINDING="override"
   COPILOT_BINDING_DETAIL="explicit BRIEF_COPILOT_BIN=$COPILOT_BIN"
 elif [ -z "$COPILOT_BIN" ]; then
@@ -414,7 +414,7 @@ elif [ -z "$COPILOT_BIN" ]; then
 elif [ "$COPILOT_BIN" != "$COPILOT_EXPECTED_PATH" ]; then
   COPILOT_BINDING="path-mismatch"
   COPILOT_BINDING_DETAIL="resolved $COPILOT_BIN, expected $COPILOT_EXPECTED_PATH"
-else
+elif [ "${BRIEF_SKIP_NARRATIVE:-0}" != "1" ]; then
   # "GitHub Copilot CLI 1.0.80." -> 1.0.80; a trailing sentence period is not part of the version.
   copilot_version="$(copilot_version_probe "$COPILOT_BIN" \
     | awk 'NR==1{for(i=1;i<=NF;i++) if($i ~ /^[0-9]+\.[0-9]+\.[0-9]+\.?$/){sub(/\.$/,"",$i); print $i; exit}}')"

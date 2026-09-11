@@ -30,7 +30,13 @@ export function resolveNarrativeModelConfig(options = {}) {
   const provider = env.BRIEF_NARRATIVE_PROVIDER || profile.provider;
   const model = env.BRIEF_MODEL || profile.model;
   const omlxBaseUrl = env.BRIEF_NARRATIVE_OMLX_BASE_URL || profile.omlxBaseUrl || '';
-  const omlxMaxTokens = Math.min(4096, positiveInteger(env.BRIEF_OMLX_MAX_TOKENS || profile.omlxMaxTokens, 3072));
+  // No artificial ceiling: this runs against a local OMLX/Bonsai server on this machine, so there
+  // is no per-token cost to guard against, only the model's own real context/output budget (which
+  // the caller sizes per-lane against maxOutputBytes downstream). BRIEF_OMLX_MAX_TOKENS and the
+  // profile's own omlxMaxTokens remain simply-configured knobs; the fallback default is raised
+  // from the old 3072/4096 hard caps to 8192 so a full, honestly-grounded completion is not
+  // truncated mid-JSON-object before the model finishes reasoning.
+  const omlxMaxTokens = positiveInteger(env.BRIEF_OMLX_MAX_TOKENS || profile.omlxMaxTokens, 8192);
   if (!PROVIDERS.has(provider)) throw new Error(`narrative provider must be one of ${[...PROVIDERS].join(', ')}`);
   if (typeof model !== 'string' || !model.trim()) throw new Error('narrative model must be a non-empty string');
   if (provider === 'omlx' && !/^https?:\/\/[^/?#]+\/?$/.test(omlxBaseUrl)) {

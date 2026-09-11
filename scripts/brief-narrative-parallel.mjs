@@ -54,6 +54,9 @@ const narrativeProvider = narrativeModel.provider;
 const copilotBin = process.env.BRIEF_COPILOT_BIN || 'copilot';
 const model = narrativeModel.model;
 const omlxBaseUrl = narrativeModel.omlxBaseUrl;
+/* The token cap itself now lives in brief-narrative-model-config.mjs (resolveNarrativeModelConfig),
+   which both this worker and the scheduler preflight share. See that module for why the cap is a
+   generous, simply-configured knob rather than the old low hard ceiling. */
 const omlxMaxTokens = narrativeModel.omlxMaxTokens;
 const timeoutSeconds = positiveInteger(process.env.BRIEF_NARRATIVE_TIMEOUT, 1800);
 const laneAttempts = Math.min(3, positiveInteger(process.env.BRIEF_LANE_ATTEMPTS, 1));
@@ -510,6 +513,13 @@ function boundedOmlxInput(value) {
     throw new Error('OMLX lane input cannot be compacted below the 6 KiB local-memory limit');
 }
 
+/* Supersedes the earlier mergeOmlxFragment() approach (research-lab commit 04118aeb2, which
+   itself was fixing an even earlier bug where a validated baseline array always won over a fresh
+   candidate array and silently republished stale content). Merging arrays from the old payload
+   turned out to be the wrong mechanism entirely: runOmlxLane below now takes the model's fragment
+   as-is (no merge with `payload[key]`), so staleness cannot recur structurally, and this function
+   instead guards the OTHER half of the same "is this content trustworthy" question — fabrication —
+   by checking the model's claims against the frozen factCard it was actually given. */
 function assertOmlxFactBinding(candidate, lane) {
     const fact = laneInput(lane).factCard;
     if (!fact) return;
@@ -666,9 +676,27 @@ function runLane(lane, laneAttempt, priorGap = '') {
     const localBudgetInstruction = narrativeProvider === 'omlx'
         ? 'LOCAL OMLX RESPONSE BUDGET: finish the complete JSON object within 7,000 characters. Be concise: one short sentence per prose field, at most one action, two structural levels per instrument, and never repeat an object, key, sentence, or input evidence. Prefer a truthful omitted/insufficient statement over elaboration. The closing brace is mandatory.'
         : '';
+    /* Bonsai is a 27B locally-quantized model with no independent knowledge of what changed since
+       its training and no way to check a claim against the live market — every ticker, level,
+       date, or source it writes either traces to the frozen input JSON in THIS request or it is
+       inventing something the reader will act on. That risk is sharpest exactly where
+       requiredLeafInstruction is strictest: a model squeezed by localBudgetInstruction's character
+       cap AND told every nested leaf below MUST be non-empty has, when it genuinely lacks a fact,
+       exactly one way to satisfy both pressures — manufacture a plausible one. researchLane already
+       has an honest way out ("If evidence is insufficient, set completePass false and name gaps
+       rather than inventing a finding"); the four lanes above have no completePass field to fall
+       back on, so this instruction gives them the same honest option in prose instead. It also
+       names boundedOmlxInput's own truncation markers explicitly: a field cut down to
+       "[truncated]" or replaced with "[nested detail omitted for local-model memory]" is a fact
+       WITHHELD to fit local memory, not a blank the model is free to fill — the underlying number
+       still exists, it just was not sent, so writing a specific replacement for it is not
+       completing a gap, it is contradicting evidence the model was never shown. */
+    const omlxIntegrityInstruction = narrativeProvider === 'omlx'
+        ? 'GROUNDING (local model, no live market access): every ticker, instrument, price level, date, percentage, or source you write must come literally from the frozen input JSON in this request. Never invent a ticker not present in it, a numeric level nobody supplied, or a source/event it does not name. A value marked "[truncated]" or "[nested detail omitted for local-model memory]" in the input means that fact was WITHHELD from you to fit local memory — treat it exactly like a fact you were never given, never as license to substitute a plausible-sounding replacement. When a required field has no supporting fact in the input, write a truthful, specific sentence naming what is missing (for example "insufficient evidence: no confirmed price level for MSFT in the supplied data") instead of a fabricated number, ticker, or source. A truthful gap statement satisfies the requirement that every nested field be non-empty; a fabricated fact does not — it is a WORSE failure than an honest one, because it is published as if verified.'
+        : '';
     const prompt = lane.id === 'research-acquisition' || lane.kind === 'research'
-        ? `You are the ${lane.id} side process for generation ${researchPreparation.generationId}. Read only .brief-work/${lane.id}.input.json. Do not edit any tracked file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${localBudgetInstruction} ${requiredLeafInstruction} ${retryInstruction} ${lane.instructions}`
-        : `You are one parallel lane of the Actionable Market Brief for window=${windowId}, today ET=${todayEt}. All allowed repository evidence, current schema examples, and relevant recent history for this lane have already been compacted into .brief-work/${lane.id}.input.json. Read that one input file and no other repository file. The deterministic data and owning-tool reads are already refreshed. ${bundleInstruction} ${vocabularyInstruction} ${evaluabilityInstruction} Structure first, tactical noise last. Count persistence by distinct market-bar dates, not repeated intraday runs. Label estimates, proxies, carried data, and unavailable inputs honestly. Do not edit market-brief.payload.json, market-brief.config.json, the tool bundle, or any other repository file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${localBudgetInstruction} ${requiredLeafInstruction} ${retryInstruction} ${lane.instructions}`;
+        ? `You are the ${lane.id} side process for generation ${researchPreparation.generationId}. Read only .brief-work/${lane.id}.input.json. Do not edit any tracked file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${localBudgetInstruction} ${omlxIntegrityInstruction} ${requiredLeafInstruction} ${retryInstruction} ${lane.instructions}`
+        : `You are one parallel lane of the Actionable Market Brief for window=${windowId}, today ET=${todayEt}. All allowed repository evidence, current schema examples, and relevant recent history for this lane have already been compacted into .brief-work/${lane.id}.input.json. Read that one input file and no other repository file. The deterministic data and owning-tool reads are already refreshed. ${bundleInstruction} ${vocabularyInstruction} ${evaluabilityInstruction} Structure first, tactical noise last. Count persistence by distinct market-bar dates, not repeated intraday runs. Label estimates, proxies, carried data, and unavailable inputs honestly. Do not edit market-brief.payload.json, market-brief.config.json, the tool bundle, or any other repository file. Overwrite only .brief-work/${lane.id}.json with one strict JSON object, no markdown, containing exactly these top-level keys: ${lane.keys.join(', ')}. ${localBudgetInstruction} ${omlxIntegrityInstruction} ${requiredLeafInstruction} ${retryInstruction} ${lane.instructions}`;
 
     if (narrativeProvider === 'omlx') {
         const startedAt = Date.now();

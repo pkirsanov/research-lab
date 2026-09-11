@@ -21,7 +21,11 @@
 #
 # Env knobs:
 #   BRIEF_NARRATIVE_PROFILE  profile in brief-narrative-models.json (repository default)
-#   BRIEF_NARRATIVE_PROVIDER, BRIEF_MODEL, BRIEF_NARRATIVE_OMLX_BASE_URL explicit one-run overrides
+#   BRIEF_NARRATIVE_PROVIDER, BRIEF_MODEL, BRIEF_NARRATIVE_OMLX_BASE_URL, BRIEF_OMLX_MAX_TOKENS
+#                            explicit one-run overrides of the selected profile (see
+#                            scripts/brief-narrative-model-config.mjs). BRIEF_OMLX_MAX_TOKENS has no
+#                            artificial ceiling — this is a local model on this machine, so there is
+#                            no per-token cost to guard against, only the model's own context budget.
 #   BRIEF_SKIP_NARRATIVE     set to 1 for a data-only run (skip the Copilot step)
 #   BRIEF_COPILOT_EXPECTED_PATH    pinned narrative-runtime path (default: /opt/homebrew/bin/copilot)
 #   BRIEF_COPILOT_EXPECTED_VERSION pinned narrative-runtime version as SELF-REPORTED by `copilot --version`

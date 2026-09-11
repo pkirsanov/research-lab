@@ -6,7 +6,7 @@
       "provider": "omlx",
       "model": "Ternary-Bonsai-27B-mlx-2bit",
       "omlxBaseUrl": "http://127.0.0.1:8000",
-      "omlxMaxTokens": 3072
+      "omlxMaxTokens": 8192
     },
     "copilot": {
       "provider": "copilot",

@@ -113,7 +113,7 @@ after-hours = reactions/follow-through).
       current headless owner read gets that current read; static/local/off-theme or not-yet-headless tools
       get an explicit coverage/not-applicable/unavailable outcome, never fabricated market data. The exact
       bundle fingerprint is immutable for the rest of the run;
-    3. **regenerates the final Tier B brief through four write-disjoint GitHub Copilot CLI lanes in parallel**: core posture
+    3. **regenerates the final Tier B brief through four write-disjoint narrative lanes in parallel**: core posture
       (`nextSession`, regime, backdrop, psychology), actionable signals/events, groups/watchlist, and
       registry-wide tool coverage. Each lane may write only its private `.brief-work/<lane>.json` fragment;
       shell is denied, and web fetch is restricted to the curated finance/economics allowlist for the two research
@@ -121,7 +121,14 @@ after-hours = reactions/follow-through).
       scan the 500 KB history, 89 KB prior payload, registry, config, and runbook. `scripts/brief-narrative-parallel.mjs`
       gives every lane the complete frozen tool bundle, rejects missing/extra keys or protected-file edits,
       then acts as
-      the sole writer that deterministically collects the four fragments into `market-brief.payload.json`;
+      the sole writer that deterministically collects the four fragments into `market-brief.payload.json`.
+      The lane runtime is a `copilot` (default, GitHub Copilot CLI, Opus 4.8) or `omlx` (local OpenAI-compatible
+      server, Bonsai 27B) provider chosen by ONE env var, `BRIEF_NARRATIVE_PROVIDER`, read identically by the
+      timer wrapper and the lane runner — there is no separate code path per provider. **The scheduled launchd
+      job (`scripts/com.researchlab.brief-refresh.plist`) currently pins `BRIEF_NARRATIVE_PROVIDER=omlx` against
+      a local Bonsai server**, so this MacBook's unattended 4×/day narrative is Bonsai-authored, not Copilot; the
+      Copilot CLI remains available as an explicit provider choice, not a fallback the scheduler switches to on
+      its own. See "Knobs" below for the exact env vars and a one-line manual invocation of either provider;
     3b. **recomposes the decision-attention set from the authored judgement**, via
       `scripts/build-attention-items.mjs --recompose --write`, after the lanes have written the payload and
       *before* the payload gate runs. This step is what makes the attention set a structural guarantee rather
@@ -161,21 +168,57 @@ after-hours = reactions/follow-through).
   grace when the native Copilot binary hangs or aborts during shutdown. Exact owned-key parsing and the unchanged
   final payload validator still gate collection and publication. The outer default remains one narrative transaction
   attempt with 30 minutes per lane.
-  Knobs: `BRIEF_MODEL` (default
-  `claude-opus-4.8`), `BRIEF_NARRATIVE_ATTEMPTS`, and
-  `BRIEF_NARRATIVE_TIMEOUT`; lane controls are `BRIEF_LANE_ATTEMPTS`, `BRIEF_LANE_CONCURRENCY`,
-  `BRIEF_LANE_EXIT_GRACE`, and `BRIEF_LANE_TERMINATE_GRACE`. Install once: the Copilot CLI
-  (`npm i -g @github/copilot`, then `copilot` → `/login`), then
-  `cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/` (edit the wrapper path) and
+  Knobs (read by BOTH `scripts/brief-refresh-and-push.sh` and `scripts/brief-narrative-parallel.mjs`, so
+  setting them once in the environment that runs either script is sufficient — no per-provider fork to
+  keep in sync):
+  - `BRIEF_NARRATIVE_PROFILE` — selects a named profile from `brief-narrative-models.json` (repository
+    default: `local-omlx`); the profile supplies the provider/model/base-url/token-cap defaults that the
+    explicit env vars below override one at a time. See `scripts/brief-narrative-model-config.mjs`.
+  - `BRIEF_NARRATIVE_PROVIDER` — `copilot` (default) or `omlx`.
+  - `BRIEF_MODEL` — model slug (default `claude-opus-4.8` for `copilot`, `Ternary-Bonsai-27B-mlx-2bit` for `omlx`).
+  - `BRIEF_NARRATIVE_OMLX_BASE_URL` — the local OpenAI-compatible server origin, e.g. `http://127.0.0.1:8000`
+    (required, refused otherwise, when `BRIEF_NARRATIVE_PROVIDER=omlx`).
+  - `BRIEF_OMLX_MAX_TOKENS` — per-lane completion token cap for the `omlx` provider (default 8192). No
+    artificial ceiling: this is a local model on this machine, so there is no per-token cost to guard
+    against — raise it further if a lane needs more completion headroom, see
+    `scripts/brief-narrative-parallel.mjs`.
+  - `BRIEF_NARRATIVE_ATTEMPTS`, `BRIEF_NARRATIVE_TIMEOUT`; lane controls are `BRIEF_LANE_ATTEMPTS`,
+    `BRIEF_LANE_CONCURRENCY`, `BRIEF_LANE_EXIT_GRACE`, and `BRIEF_LANE_TERMINATE_GRACE`.
+
+  Manual one-off run on your own machine, either provider, from the repo root:
+
+  ```sh
+  # Copilot CLI (frontier model; needs `copilot` on PATH and `copilot /login` once)
+  BRIEF_NARRATIVE_PROVIDER=copilot bash scripts/brief-refresh-and-push.sh --dry-run
+
+  # Local OMLX Bonsai (needs the OMLX server already running at the given origin)
+  BRIEF_NARRATIVE_PROVIDER=omlx BRIEF_NARRATIVE_OMLX_BASE_URL=http://127.0.0.1:8000 \
+    BRIEF_MODEL=Ternary-Bonsai-27B-mlx-2bit bash scripts/brief-refresh-and-push.sh --dry-run
+  ```
+
+  Drop `--dry-run` to actually regenerate, commit, and push. This is the SAME entry point the scheduler's
+  isolated checkout calls (`scripts/brief-refresh-and-push.sh`, invoked from inside
+  `scripts/brief-refresh-scheduled.sh`) — a manual run is not a separate code path, just the same script run
+  directly against your working checkout instead of a disposable clone.
+
+  Install once: the Copilot CLI (`npm i -g @github/copilot`, then `copilot` → `/login`) if you intend to run
+  or fall back to that provider; for `omlx` have the local server serving the configured model at
+  `BRIEF_NARRATIVE_OMLX_BASE_URL`. Then
+  `cp scripts/com.researchlab.brief-refresh.plist ~/Library/LaunchAgents/` (edit the wrapper path — the
+  plist's own `EnvironmentVariables` dict is where the SCHEDULED provider/model/base-url are pinned; a
+  manual run instead sets them as shown above) and
   `launchctl load ~/Library/LaunchAgents/com.researchlab.brief-refresh.plist`. evo-x2 + a knb systemd timer
   is an equivalent always-on alternative host.
 - **On-demand narrative — macOS Copilot in VS Code.** `/market-brief-update window=<id>` runs the same
-  narrative authoring interactively — useful when you also want to build/update a tool alongside the brief.
-  The headless timer above covers the routine 4×/day regeneration; this is the manual override.
+  narrative authoring interactively, always via the Copilot CLI provider — useful when you also want to
+  build/update a tool alongside the brief. The headless timer above covers the routine 4×/day regeneration;
+  this is the manual override.
 
-On this setup **this MacBook owns the whole loop**: launchd fires the data refresh, the Copilot-CLI narrative
-regeneration (Opus 4.8), the commit, and the push — all four windows, unattended. (You can still author the
-narrative interactively in VS Code with `/market-brief-update` when you want to build tooling alongside it.)
+On this setup **this MacBook owns the whole loop**: launchd fires the data refresh, the narrative
+regeneration (Bonsai 27B via local OMLX, per the plist's pinned `BRIEF_NARRATIVE_PROVIDER=omlx` —
+Copilot/Opus 4.8 remains available as an explicit provider choice, see Knobs above), the commit, and the
+push — all four windows, unattended. (You can still author the narrative interactively in VS Code with
+`/market-brief-update`, which always uses Copilot, when you want to build tooling alongside it.)
 
 ---
 

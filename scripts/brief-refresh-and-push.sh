@@ -396,19 +396,27 @@ copilot_version_probe() {
 # An explicit BRIEF_COPILOT_BIN is an operator/test override and is reported, not measured.
 COPILOT_BINDING_DETAIL=""
 if [ "$NARRATIVE_PROVIDER" = "omlx" ]; then
-  if [ -z "$OMLX_BASE_URL" ]; then
-    echo "[brief-timer] BRIEF_NARRATIVE_OMLX_BASE_URL is required for local OMLX narrative generation"
-    restore_owned_baseline || true
-    exit 1
+  if [ "${BRIEF_SKIP_NARRATIVE:-0}" = "1" ]; then
+    # A data-only run never calls the model, so it must not refuse over an OMLX server that
+    # is unreachable or absent — that would make BRIEF_SKIP_NARRATIVE unusable on any machine
+    # (including CI) that isn't also running the local OMLX server, for a call this run never makes.
+    COPILOT_BINDING="not-used"
+    COPILOT_BINDING_DETAIL="local OMLX provider (narrative skipped this run)"
+  else
+    if [ -z "$OMLX_BASE_URL" ]; then
+      echo "[brief-timer] BRIEF_NARRATIVE_OMLX_BASE_URL is required for local OMLX narrative generation"
+      restore_owned_baseline || true
+      exit 1
+    fi
+    if ! "$NODE_BIN" -e 'const base=process.env.BRIEF_NARRATIVE_OMLX_BASE_URL; const model=process.env.BRIEF_MODEL; const c=new AbortController(); setTimeout(()=>c.abort(),5000); fetch(new URL("v1/models",base),{signal:c.signal}).then(r=>r.json()).then(j=>{if(!Array.isArray(j.data)||!j.data.some(x=>x&&x.id===model))process.exit(1)}).catch(()=>process.exit(1));' ; then
+      echo "[brief-timer] local OMLX is unavailable or does not advertise $MODEL"
+      restore_owned_baseline || true
+      exit 1
+    fi
+    echo "[brief-timer] regenerating narrative via local OMLX (profile=$NARRATIVE_PROFILE model=$MODEL; no model web access; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s per lane)…"
+    COPILOT_BINDING="not-used"
+    COPILOT_BINDING_DETAIL="local OMLX provider"
   fi
-  if ! "$NODE_BIN" -e 'const base=process.env.BRIEF_NARRATIVE_OMLX_BASE_URL; const model=process.env.BRIEF_MODEL; const c=new AbortController(); setTimeout(()=>c.abort(),5000); fetch(new URL("v1/models",base),{signal:c.signal}).then(r=>r.json()).then(j=>{if(!Array.isArray(j.data)||!j.data.some(x=>x&&x.id===model))process.exit(1)}).catch(()=>process.exit(1));' ; then
-    echo "[brief-timer] local OMLX is unavailable or does not advertise $MODEL"
-    restore_owned_baseline || true
-    exit 1
-  fi
-  echo "[brief-timer] regenerating narrative via local OMLX (profile=$NARRATIVE_PROFILE model=$MODEL; no model web access; up to ${NARRATIVE_ATTEMPTS}x @ ${NARRATIVE_TIMEOUT}s per lane)…"
-  COPILOT_BINDING="not-used"
-  COPILOT_BINDING_DETAIL="local OMLX provider"
 elif [ "$NARRATIVE_PROVIDER" = "copilot" ] && [ "${BRIEF_SKIP_NARRATIVE:-0}" != "1" ] && [ -n "${BRIEF_COPILOT_BIN:-}" ]; then
   COPILOT_BINDING="override"
   COPILOT_BINDING_DETAIL="explicit BRIEF_COPILOT_BIN=$COPILOT_BIN"

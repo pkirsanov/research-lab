@@ -397,6 +397,59 @@ function compactGroups(groups) {
     });
 }
 
+/* Mirrors rlbrief.js's notableMembers() exactly (same score/reason/sort/cap rules) so the
+   deterministic groups lane below and the in-browser renderer agree on which members are
+   "notable" and why. The renderer falls back to recomputing this from g.members only when
+   g.notable is absent; publishing it here from the source of truth (snapshot.groups[].members,
+   the same reads rlbrief.js's fallback would consume) makes the two paths structurally
+   identical rather than accidentally aligned. */
+function deterministicNotableMembers(members, opts) {
+    const minMove = Number.isFinite(opts?.minMovePct) ? opts.minMovePct : 3;
+    const max = Number.isFinite(opts?.max) ? opts.max : 4;
+    const scored = Object.entries(members || {}).map(([ticker, m], index) => {
+        const state = m || {};
+        const a21 = Number.isFinite(state.mom21) ? Math.abs(state.mom21) : 0;
+        const a5 = Number.isFinite(state.mom5) ? Math.abs(state.mom5) : 0;
+        const score = a21 > a5 ? a21 : a5;
+        const bear = state.maStack === 'bear-stack';
+        const below200 = Number.isFinite(state.ma200Dist) && state.ma200Dist < 0;
+        if (score < minMove && !bear && !below200) return null;
+        const reasons = [];
+        if (score >= minMove) reasons.push(Number.isFinite(state.mom21) && state.mom21 < 0 ? 'big decliner' : 'big mover');
+        if (bear) reasons.push('bear-stack'); else if (below200) reasons.push('below 200d');
+        return {
+            item: {
+                ticker,
+                mom5: Number.isFinite(state.mom5) ? state.mom5 : null,
+                mom21: Number.isFinite(state.mom21) ? state.mom21 : null,
+                maStack: state.maStack || null,
+                ma200Dist: Number.isFinite(state.ma200Dist) ? state.ma200Dist : null,
+                score: Math.round(score * 100) / 100,
+                reason: reasons.join(', ')
+            },
+            k: score, i: index
+        };
+    }).filter(Boolean);
+    scored.sort((a, b) => (b.k - a.k) || (a.i - b.i));
+    return scored.slice(0, max).map((s) => s.item);
+}
+
+/* A short, evidence-bound reader sentence per group, built only from the same deterministic
+   Tier-A read/breadth/notable data already in the fragment — never invented, and never a model
+   completion, so this stays fabrication-proof by construction. */
+function deterministicGroupNote(group, notable) {
+    const read = group.read || {};
+    const breadth = group.breadth || {};
+    const rotation = read.rrgState || 'unresolved rotation';
+    const stack = read.maStack || 'unresolved structure';
+    const breadthLabel = breadth.label || (Number.isFinite(breadth.n) ? `${breadth.bullStacked || 0}/${breadth.n} bull-stacked` : 'breadth unavailable');
+    const movers = (notable || []).slice(0, 2)
+        .map((m) => `${m.ticker} ${Number.isFinite(m.mom21) ? `${m.mom21 > 0 ? '+' : ''}${m.mom21}% 21d` : 'move unresolved'}${m.reason ? ` (${m.reason})` : ''}`)
+        .join('; ');
+    const base = `${group.label || group.id} reads ${rotation} with ${stack} structure and ${breadthLabel}.`;
+    return movers ? `${base} Notable this run: ${movers}.` : `${base} No member clears the notable-move bar this run.`;
+}
+
 function baseSnapshot() {
     return pick(snapshot, [
         'asOf', 'generatedAt', 'window', 'marketClosed', 'nextSessionDate',
@@ -645,7 +698,8 @@ function boundedOmlxInput(value) {
    instead guards the OTHER half of the same "is this content trustworthy" question — fabrication —
    by checking the model's claims against the frozen factCard it was actually given. */
 function assertOmlxFactBinding(candidate, lane) {
-    const fact = laneInput(lane).factCard;
+    const input = laneInput(lane);
+    const fact = input.factCard;
     if (!fact) return;
     const text = JSON.stringify(candidate);
     // Every deepLink in this schema is a local tool-page filename (e.g. "swing-structure-lab.html"),
@@ -673,17 +727,24 @@ function assertOmlxFactBinding(candidate, lane) {
     // that legitimately appears in this schema's prose or enum values. Hand-picking acronyms one
     // refusal at a time does not scale: a live run was first refused over "CPI" (an event TYPE),
     // then over "BLS" (the agency that releases it), then over "COOL" (an outcome label —
-    // "resolved COOL/in-line" — copied verbatim from a config.macroEvents note). All three, and
-    // anything shaped like them, are already sitting in config.macroEvents as exactly the
-    // vocabulary the lane is instructed to copy: scanning that JSON with the SAME ticker-shaped
-    // regex used against the model's own output turns "is this acronym legitimate" from a
-    // maintained guess into "does config already say this word", which is the authoritative
-    // source questioning whether the model invented it — and future config-authored acronyms are
-    // covered automatically, not one refusal later.
-    const configAcronyms = [...JSON.stringify(config.macroEvents || []).matchAll(/\b[A-Z]{1,5}\b/g)].map((match) => match[0]);
+    // "resolved COOL/in-line" — copied verbatim from a config.macroEvents note), then over "VWAP"
+    // (copied verbatim from an intraday-tape-lab tool-read sentence handed to the model in
+    // authoritativeToolReads, nowhere near config.macroEvents). Scoping the allowlist source to
+    // config.macroEvents fixed the first three refusals but was itself the wrong boundary — it
+    // scanned one object the model happened to also see, not "everything the model actually saw".
+    // The correct boundary is the frozen lane INPUT itself: this function's whole premise is that
+    // the model may state nothing not traceable to what it was given, so any capitalized token
+    // that already appears anywhere in that same frozen input (factCard, authoritativeToolReads,
+    // config, schema — the exact JSON serialized into the request body) is by definition not an
+    // invented fact, regardless of which sub-object it came from. Scanning the full lane input with
+    // the SAME ticker-shaped regex used against the model's own output turns "is this acronym
+    // legitimate" from a maintained per-acronym guess into "did we hand the model this word", which
+    // is the authoritative source questioning whether the model invented it — every present and
+    // future tool-read/config acronym is covered automatically, never one refusal later.
+    const inputAcronyms = [...JSON.stringify(input).matchAll(/\b[A-Z]{1,5}\b/g)].map((match) => match[0]);
     const NON_TICKER_ACRONYMS = new Set([
         'SPY', 'QQQ', 'VIX',
-        ...configAcronyms,
+        ...inputAcronyms,
         'FOMC', 'ECB', 'FED', 'BOJ', 'BOE', 'OPEC', 'BLS', 'BEA', 'DOL', 'SEC', 'OECD', 'IMF', 'CBO',
         'ATH', 'IPO', 'ETF', 'ET', 'EDT', 'EST', 'UTC', 'USD', 'EUR', 'JPY', 'GBP', 'YOY', 'QOQ', 'MOM'
     ]);
@@ -789,7 +850,19 @@ function runLane(lane, laneAttempt, priorGap = '') {
                 : `Current snapshot ${snapshot.asOf}: no observable Tier-A state for ${item.ticker}.`;
             return [item.ticker, { status }];
         }));
-        const fragment = { groups: snapshot.groups, watchlistNotes };
+        const notableOpts = { minMovePct: config.thresholds?.notableMemberMinMovePct, max: config.thresholds?.notableMemberMaxCount };
+        // groups.[].note and groups.[].notable.[].reason are required reader copy
+        // (reader-vocabulary.mjs). Raw snapshot.groups carries members/read/breadth but neither
+        // field — those were previously authored by the OMLX model, so converting this lane to a
+        // deterministic pass-through of Tier-A data silently dropped both, and every run since
+        // has failed brief-contract's reader-copy check the first time it got this far. Deriving
+        // them here with the SAME notableMembers algorithm rlbrief.js uses keeps the published
+        // payload and the in-browser renderer's own fallback in agreement.
+        const groups = (snapshot.groups || []).map((group) => {
+            const notable = deterministicNotableMembers(group.members, notableOpts);
+            return { ...group, notable, note: deterministicGroupNote(group, notable) };
+        });
+        const fragment = { groups, watchlistNotes };
         writeFileSync(outputPath, JSON.stringify(fragment) + '\n');
         writeFileSync(stdoutPath, 'deterministic Tier-A groups and watchlist lane\n');
         console.log(`[brief-parallel] lane=${lane.id} completed deterministically from current Tier-A groups and watchlist`);

@@ -21,7 +21,7 @@ test('Regression BUG-002: a failed rollover never serves prior-session actions b
   });
 
   try {
-    expect(result.status).toBe(0);
+    expect(result.status, `wrapper exited ${result.status} (signal ${result.signal}); stderr:\n${result.stderr}\nstdout:\n${result.stdout}`).toBe(0);
     await page.goto(`${server.baseUrl}/market-brief.html`);
 
     const nextSession = page.locator('#nextSession');

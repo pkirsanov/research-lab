@@ -23709,21 +23709,25 @@ try {
 
   /* TP-026-1.4 — SCN-026-004. Collapsing is not deleting: the disclosed figure is measured,
      reported beside the capped one, and subject to no cap of its own. */
+  const sumStrings26 = (node) => {
+    if (typeof node === 'string') return node.length;
+    if (Array.isArray(node)) return node.reduce((acc, item) => acc + sumStrings26(item), 0);
+    if (node && typeof node === 'object') return Object.keys(node).reduce((acc, key) => acc + sumStrings26(node[key]), 0);
+    return 0;
+  };
   const disclosedFixture26 = stamp26((candidate) => { candidate.headline = 'h'.repeat(120); });
   const disclosedMeasure26 = RLCOCKPIT.measureDefaultVisible(disclosedFixture26, budgetPolicy26);
-  const everyString26 = JSON.stringify(disclosedFixture26).length > 0
-    ? (function sumStrings(node) {
-      if (typeof node === 'string') return node.length;
-      if (Array.isArray(node)) return node.reduce((acc, item) => acc + sumStrings(item), 0);
-      if (node && typeof node === 'object') return Object.keys(node).reduce((acc, key) => acc + sumStrings(node[key]), 0);
-      return 0;
-    })(disclosedFixture26)
-    : 0;
+  const everyString26 = sumStrings26(disclosedFixture26);
   const disclosedHeadline26 = disclosedMeasure26.byField.filter((row) => row.path === 'headline')
     .reduce((sum, row) => sum + row.chars, 0);
+  /* The floor is tied to the mechanically-populated raw tool-read dump (toolReads), never to
+     authored narrative length: narrative prose is expected to shrink as grounding/anti-fabrication
+     rules trade flowery elaboration for terse, honest statements, but toolReads is a verbatim
+     tool-output capture that stays large regardless of how the narrative lanes are written. */
+  const mechanicalFloor26 = sumStrings26(committedPayload26.toolReads);
   assert(disclosedHeadline26 === 120
     && disclosedMeasure26.disclosedTotal === everyString26 - disclosedMeasure26.total
-    && disclosedMeasure26.disclosedTotal > 100000
+    && disclosedMeasure26.disclosedTotal > mechanicalFloor26
     && disclosedMeasure26.caps.headline === 140 && disclosedMeasure26.caps.decisionCard === 300 && disclosedMeasure26.caps.total === 3000
     && Object.keys(disclosedMeasure26.caps).indexOf('disclosed') < 0
     && disclosedMeasure26.violations.length === 0,

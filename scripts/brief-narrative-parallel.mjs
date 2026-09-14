@@ -488,7 +488,12 @@ function omlxOutputSeed(lane) {
     const ma200 = Number.isFinite(spy.ma200) ? spy.ma200.toFixed(2) : px;
     const vix = Number(snapshot.regime?.vix).toFixed(2);
     const link = config.deepLinks?.regime || 'swing-structure-lab.html';
-    const structure = `SPY ${px} is ${spy.maStack || 'structurally unresolved'}; its derived 50-day is ${ma50} and 200-day is ${ma200}.`;
+    /* Kept terse deliberately: this exact string is reused verbatim across up to 8 default-visible
+       payload fields (nextSession.thesis/structuralAnchor, regime.structuralTrend/levels.SPY,
+       backdrop.primaryTrend/trendEvidence/structuralLevels.SPY.note, recommendations[].structuralAnchor)
+       as the shared deterministic anchor, so its length is multiplied by every field that preserves it
+       — a verbose form here is what pushed the rendered default-visible total over its 3000-char cap. */
+    const structure = `SPY ${px} ${spy.maStack || 'structurally unresolved'} (50d ${ma50}, 200d ${ma200}).`;
     if (lane.id === 'core') {
         return {
             nextSession: {

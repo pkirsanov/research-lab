@@ -1,12 +1,12 @@
 {
   "asOf": "2026-09-14T11:30:00.000Z",
-  "generatedAt": "2026-09-14T04:13:45.400Z",
+  "generatedAt": "2026-09-14T11:02:22.253Z",
   "window": "pre-market",
   "marketClosed": false,
   "nextSessionDate": "2026-09-14",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-09-14T04:12:22.314Z",
+      "updated": "2026-09-14T11:01:04.101Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-09-11",
       "refreshDate": "2026-09-14",
@@ -16,7 +16,7 @@
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-09-14T04:12:27.344Z",
+      "updated": "2026-09-14T11:01:04.165Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-09-14",
@@ -27,9 +27,9 @@
     }
   },
   "regime": {
-    "band": "VIX 15.8",
+    "band": "VIX 17.7",
     "score": 0,
-    "vix": 15.84,
+    "vix": 17.68,
     "fearGreed": null
   },
   "bench": {
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-09-14T04:13:43.403Z",
+      "asOf": "2026-09-14T11:02:19.284Z",
       "read": "Rotate toward XLC as XLF weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.03504529369820597,
           "usdRelativeReturn": 0.13988949236796233,
           "asOf": "2026-09-11T00:00:00.000Z",
-          "computedAt": "2026-09-14T04:13:43.682Z",
+          "computedAt": "2026-09-14T11:02:19.498Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1351,7 +1351,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-f61ad719",
+            "setId": "set-v1-cbdee0d0",
             "purpose": "global-decomposition",
             "horizonSessions": 63,
             "legs": [
@@ -1377,10 +1377,50 @@
                 "subject": "SGD/USD",
                 "orientation": "fx",
                 "adjustment": "adjusted-close",
-                "validDateCount": 397
+                "validDateCount": 516
               }
             ],
             "alignedRows": [
+              {
+                "date": "2026-05-20",
+                "values": {
+                  "etf": 29.066211700439453,
+                  "benchmark": 154.09884643554688,
+                  "fx": 0.7825889745608915
+                }
+              },
+              {
+                "date": "2026-05-21",
+                "values": {
+                  "etf": 28.987627029418945,
+                  "benchmark": 154.68504333496094,
+                  "fx": 0.7826379667964625
+                }
+              },
+              {
+                "date": "2026-05-26",
+                "values": {
+                  "etf": 28.88939666748047,
+                  "benchmark": 156.82115173339844,
+                  "fx": 0.7832079977032046
+                }
+              },
+              {
+                "date": "2026-05-27",
+                "values": {
+                  "etf": 28.791166305541992,
+                  "benchmark": 156.62245178222656,
+                  "fx": 0.782521592877592
+                }
+              },
+              {
+                "date": "2026-05-28",
+                "values": {
+                  "etf": 28.909042358398438,
+                  "benchmark": 157.228515625,
+                  "fx": 0.7840062357063349
+                }
+              },
               {
                 "date": "2026-06-01",
                 "values": {
@@ -1507,6 +1547,14 @@
                   "etf": 29.56999969482422,
                   "benchmark": 154.6999969482422,
                   "fx": 0.7711229680088976
+                }
+              },
+              {
+                "date": "2026-06-29",
+                "values": {
+                  "etf": 29.829999923706055,
+                  "benchmark": 155.82000732421875,
+                  "fx": 0.7739339343772258
                 }
               },
               {
@@ -1662,14 +1710,6 @@
                 }
               },
               {
-                "date": "2026-07-31",
-                "values": {
-                  "etf": 32.279998779296875,
-                  "benchmark": 156.42999267578125,
-                  "fx": 0.7801954830253282
-                }
-              },
-              {
                 "date": "2026-08-03",
                 "values": {
                   "etf": 32.380001068115234,
@@ -1699,14 +1739,6 @@
                   "etf": 32.54999923706055,
                   "benchmark": 160.10000610351562,
                   "fx": 0.7791621010624835
-                }
-              },
-              {
-                "date": "2026-08-07",
-                "values": {
-                  "etf": 33.25,
-                  "benchmark": 161.44000244140625,
-                  "fx": 0.7820993164305964
                 }
               },
               {
@@ -1742,14 +1774,6 @@
                 }
               },
               {
-                "date": "2026-08-14",
-                "values": {
-                  "etf": 33.68000030517578,
-                  "benchmark": 162.2899932861328,
-                  "fx": 0.7816774954885345
-                }
-              },
-              {
                 "date": "2026-08-17",
                 "values": {
                   "etf": 33.91999816894531,
@@ -1782,14 +1806,6 @@
                 }
               },
               {
-                "date": "2026-08-21",
-                "values": {
-                  "etf": 33.77000045776367,
-                  "benchmark": 160.80999755859375,
-                  "fx": 0.7876869083210348
-                }
-              },
-              {
                 "date": "2026-08-24",
                 "values": {
                   "etf": 33.7400016784668,
@@ -1819,14 +1835,6 @@
                   "etf": 33.97999954223633,
                   "benchmark": 161.52999877929688,
                   "fx": 0.7869058894811309
-                }
-              },
-              {
-                "date": "2026-08-28",
-                "values": {
-                  "etf": 33.93000030517578,
-                  "benchmark": 161.08999633789062,
-                  "fx": 0.784504448055364
                 }
               },
               {
@@ -1884,26 +1892,21 @@
                   "benchmark": 158.7899932861328,
                   "fx": 0.7886124641751653
                 }
-              },
-              {
-                "date": "2026-09-11",
-                "values": {
-                  "etf": 33.619998931884766,
-                  "benchmark": 160.25,
-                  "fx": 0.789079138581433
-                }
               }
             ],
             "coverage": {
               "requiredRowCount": 64,
-              "commonRowCount": 332,
-              "earliestCommonDate": "2025-02-28",
-              "latestCommonDate": "2026-09-11",
+              "commonRowCount": 443,
+              "earliestCommonDate": "2024-09-16",
+              "latestCommonDate": "2026-09-10",
               "unmatchedNewerDates": {
-                "etf": [],
-                "benchmark": [],
+                "etf": [
+                  "2026-09-11"
+                ],
+                "benchmark": [
+                  "2026-09-11"
+                ],
                 "fx": [
-                  "2026-09-13",
                   "2026-09-14"
                 ]
               },
@@ -1923,17 +1926,17 @@
             },
             "state": "aligned"
           },
-          "usdReturnOnDecompositionDates": 0.15238546842884193,
-          "benchmarkReturnOnDecompositionDates": 0.01377193475267191,
-          "usdRelativeReturnOnDecompositionDates": 0.13861353367617002,
-          "fxReturn": 0.008687707314622761,
-          "approximateLocalReturn": 0.14246010937991738,
-          "approximateLocalRelativeReturn": 0.12868817462724547,
-          "translation": 0.009925359048924554,
-          "interaction": 0.001237651734301867,
+          "usdReturnOnDecompositionDates": 0.1480683921179946,
+          "benchmarkReturnOnDecompositionDates": 0.030442452744434023,
+          "usdRelativeReturnOnDecompositionDates": 0.11762593937356058,
+          "fxReturn": 0.007696875128676117,
+          "approximateLocalReturn": 0.13929934730758586,
+          "approximateLocalRelativeReturn": 0.10885689456315184,
+          "translation": 0.008769044810408744,
+          "interaction": 0.001072169681732574,
           "relationship": "Joint Support",
-          "asOf": "2026-09-11T00:00:00.000Z",
-          "computedAt": "2026-09-14T04:13:43.682Z",
+          "asOf": "2026-09-10T00:00:00.000Z",
+          "computedAt": "2026-09-14T11:02:19.498Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1957,7 +1960,7 @@
               "usdLeadership": {
                 "asOf": "2026-09-11T00:00:00.000Z",
                 "benchmarkReturn": 0.03504529369820597,
-                "computedAt": "2026-09-14T04:13:43.682Z",
+                "computedAt": "2026-09-14T11:02:19.498Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2462,22 +2465,62 @@
                 "usdRelativeReturn": 0.13988949236796233
               },
               "decomposition": {
-                "approximateLocalRelativeReturn": 0.12868817462724547,
-                "approximateLocalReturn": 0.14246010937991738,
-                "asOf": "2026-09-11T00:00:00.000Z",
-                "benchmarkReturnOnDecompositionDates": 0.01377193475267191,
-                "computedAt": "2026-09-14T04:13:43.682Z",
+                "approximateLocalRelativeReturn": 0.10885689456315184,
+                "approximateLocalReturn": 0.13929934730758586,
+                "asOf": "2026-09-10T00:00:00.000Z",
+                "benchmarkReturnOnDecompositionDates": 0.030442452744434023,
+                "computedAt": "2026-09-14T11:02:19.498Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "SGD",
                 "freshUntil": null,
-                "fxReturn": 0.008687707314622761,
+                "fxReturn": 0.007696875128676117,
                 "horizonSessions": 63,
-                "interaction": 0.001237651734301867,
+                "interaction": 0.001072169681732574,
                 "limitations": [
                   "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
                 ],
                 "observationSet": {
                   "alignedRows": [
+                    {
+                      "date": "2026-05-20",
+                      "values": {
+                        "benchmark": 154.09884643554688,
+                        "etf": 29.066211700439453,
+                        "fx": 0.7825889745608915
+                      }
+                    },
+                    {
+                      "date": "2026-05-21",
+                      "values": {
+                        "benchmark": 154.68504333496094,
+                        "etf": 28.987627029418945,
+                        "fx": 0.7826379667964625
+                      }
+                    },
+                    {
+                      "date": "2026-05-26",
+                      "values": {
+                        "benchmark": 156.82115173339844,
+                        "etf": 28.88939666748047,
+                        "fx": 0.7832079977032046
+                      }
+                    },
+                    {
+                      "date": "2026-05-27",
+                      "values": {
+                        "benchmark": 156.62245178222656,
+                        "etf": 28.791166305541992,
+                        "fx": 0.782521592877592
+                      }
+                    },
+                    {
+                      "date": "2026-05-28",
+                      "values": {
+                        "benchmark": 157.228515625,
+                        "etf": 28.909042358398438,
+                        "fx": 0.7840062357063349
+                      }
+                    },
                     {
                       "date": "2026-06-01",
                       "values": {
@@ -2604,6 +2647,14 @@
                         "benchmark": 154.6999969482422,
                         "etf": 29.56999969482422,
                         "fx": 0.7711229680088976
+                      }
+                    },
+                    {
+                      "date": "2026-06-29",
+                      "values": {
+                        "benchmark": 155.82000732421875,
+                        "etf": 29.829999923706055,
+                        "fx": 0.7739339343772258
                       }
                     },
                     {
@@ -2759,14 +2810,6 @@
                       }
                     },
                     {
-                      "date": "2026-07-31",
-                      "values": {
-                        "benchmark": 156.42999267578125,
-                        "etf": 32.279998779296875,
-                        "fx": 0.7801954830253282
-                      }
-                    },
-                    {
                       "date": "2026-08-03",
                       "values": {
                         "benchmark": 157.94000244140625,
@@ -2796,14 +2839,6 @@
                         "benchmark": 160.10000610351562,
                         "etf": 32.54999923706055,
                         "fx": 0.7791621010624835
-                      }
-                    },
-                    {
-                      "date": "2026-08-07",
-                      "values": {
-                        "benchmark": 161.44000244140625,
-                        "etf": 33.25,
-                        "fx": 0.7820993164305964
                       }
                     },
                     {
@@ -2839,14 +2874,6 @@
                       }
                     },
                     {
-                      "date": "2026-08-14",
-                      "values": {
-                        "benchmark": 162.2899932861328,
-                        "etf": 33.68000030517578,
-                        "fx": 0.7816774954885345
-                      }
-                    },
-                    {
                       "date": "2026-08-17",
                       "values": {
                         "benchmark": 161.8300018310547,
@@ -2879,14 +2906,6 @@
                       }
                     },
                     {
-                      "date": "2026-08-21",
-                      "values": {
-                        "benchmark": 160.80999755859375,
-                        "etf": 33.77000045776367,
-                        "fx": 0.7876869083210348
-                      }
-                    },
-                    {
                       "date": "2026-08-24",
                       "values": {
                         "benchmark": 160.1999969482422,
@@ -2916,14 +2935,6 @@
                         "benchmark": 161.52999877929688,
                         "etf": 33.97999954223633,
                         "fx": 0.7869058894811309
-                      }
-                    },
-                    {
-                      "date": "2026-08-28",
-                      "values": {
-                        "benchmark": 161.08999633789062,
-                        "etf": 33.93000030517578,
-                        "fx": 0.784504448055364
                       }
                     },
                     {
@@ -2981,32 +2992,27 @@
                         "etf": 33.369998931884766,
                         "fx": 0.7886124641751653
                       }
-                    },
-                    {
-                      "date": "2026-09-11",
-                      "values": {
-                        "benchmark": 160.25,
-                        "etf": 33.619998931884766,
-                        "fx": 0.789079138581433
-                      }
                     }
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 332,
+                    "commonRowCount": 443,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0,
                       "fx": 0
                     },
-                    "earliestCommonDate": "2025-02-28",
-                    "latestCommonDate": "2026-09-11",
+                    "earliestCommonDate": "2024-09-16",
+                    "latestCommonDate": "2026-09-10",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
-                      "benchmark": [],
-                      "etf": [],
+                      "benchmark": [
+                        "2026-09-11"
+                      ],
+                      "etf": [
+                        "2026-09-11"
+                      ],
                       "fx": [
-                        "2026-09-13",
                         "2026-09-14"
                       ]
                     }
@@ -3035,7 +3041,7 @@
                       "observationId": "fx:SGD",
                       "orientation": "fx",
                       "subject": "SGD/USD",
-                      "validDateCount": 397
+                      "validDateCount": 516
                     }
                   ],
                   "lineage": {
@@ -3047,21 +3053,21 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-f61ad719",
+                  "setId": "set-v1-cbdee0d0",
                   "state": "aligned"
                 },
                 "relationship": "Joint Support",
                 "state": "ready",
-                "translation": 0.009925359048924554,
-                "usdRelativeReturnOnDecompositionDates": 0.13861353367617002,
-                "usdReturnOnDecompositionDates": 0.15238546842884193
+                "translation": 0.008769044810408744,
+                "usdRelativeReturnOnDecompositionDates": 0.11762593937356058,
+                "usdReturnOnDecompositionDates": 0.1480683921179946
               }
             },
             "unavailableStates": [],
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-09-14T04:13:43.682Z",
+          "computedAt": "2026-09-14T11:02:19.498Z",
           "freshUntil": null
         }
       },
@@ -3071,7 +3077,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-09-11T13:30:00.000Z",
-      "read": "DBC leads real assets at 80.6/100; GLD 37.6, BTC 60.9, SLV 17.7.",
+      "read": "DBC leads real assets at 80.6/100; GLD 37.6, BTC 61.2, SLV 17.7.",
       "metrics": {
         "leader": {
           "ticker": "DBC",
@@ -3337,7 +3343,7 @@
                   "TLT",
                   "TIP"
                 ],
-                "score": 43.25753562682577,
+                "score": 43.25756091888892,
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series."
               }
             ],
@@ -3386,12 +3392,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 60.9,
+            "score": 61.2,
             "trend": "Uptrend",
-            "mom21": -1.8,
-            "mom63": 24.59,
-            "mom126": -5.12,
-            "vol": 38.13,
+            "mom21": -1.44,
+            "mom63": 25.04,
+            "mom126": -4.78,
+            "vol": 38.15,
             "maxDrawdown": 27.75,
             "riskPenalty": 5.46,
             "confirmations": [
@@ -3512,13 +3518,13 @@
         "horizon": "swing",
         "drivers": {
           "uup63": 0.4293342705159464,
-          "tlt63": -4.852372431244401,
-          "tip63": -1.7723748230896397,
+          "tlt63": -4.852363890443801,
+          "tip63": -1.7723678679224086,
           "qqq63": -0.20280501782660165,
           "xle63": 14.863048695142588,
           "xli63": -1.3450815679163175,
           "gld63": 3.222712117781801,
-          "btc63": 24.591414852558003,
+          "btc63": 25.042497700558243,
           "dbc63": 14.939339372455196,
           "goldSilverRatio63": 8.017987523710858,
           "breadth": 87.5
@@ -3931,15 +3937,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-09-14T04:13:45.054Z",
+      "asOf": "2026-09-14T11:02:21.884Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-36f537cd",
-        "evidenceIdentity": "fxe-v1-69c295d3",
+        "ownerDecisionId": "fxo-v1-979d6296",
+        "evidenceIdentity": "fxe-v1-59115463",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -4062,8 +4068,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-36f537cd",
-            "evidenceIdentity": "fxe-v1-69c295d3",
+            "ownerDecisionId": "fxo-v1-979d6296",
+            "evidenceIdentity": "fxe-v1-59115463",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4183,7 +4189,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-69c295d3",
+              "evidenceIdentity": "fxe-v1-59115463",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4208,7 +4214,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-09-14T04:13:45.054Z",
+          "computedAt": "2026-09-14T11:02:21.884Z",
           "freshUntil": null
         }
       }
@@ -4234,7 +4240,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-09-14T04:13:45.124Z",
+      "asOf": "2026-09-14T11:02:21.957Z",
       "read": "Leadership is broad — 70.21% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4422,7 +4428,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "DBC leads real assets at 80.6/100; GLD 37.6, BTC 60.9, SLV 17.7."
+      "reason": "DBC leads real assets at 80.6/100; GLD 37.6, BTC 61.2, SLV 17.7."
     },
     {
       "id": "bond-regime-lab",

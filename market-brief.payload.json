@@ -335,73 +335,6 @@
       "windowBoundaryUtc": "2026-09-14T11:30:00.000Z",
       "windowResolvedFrom": "session",
       "windowTradingDate": "2026-09-14"
-    },
-    {
-      "contractVersion": "decision-attention/v1",
-      "decisionWindow": "pre-market",
-      "deepLink": "etf-momentum-lab.html",
-      "disposition": "context",
-      "escalationTrigger": "FETH daily close below ~22.00",
-      "expiry": "2026-09-14T20:00:00Z",
-      "figures": [
-        {
-          "label": "distance from 200-day",
-          "provenance": {
-            "asOf": "2026-09-14T11:30:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "11.16%"
-        },
-        {
-          "label": "from 52-week high",
-          "provenance": {
-            "asOf": "2026-09-14T11:30:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "-46.43%"
-        },
-        {
-          "label": "moving-average stack",
-          "provenance": {
-            "asOf": "2026-09-14T11:30:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "tangled"
-        }
-      ],
-      "gateId": null,
-      "headline": "FETH spot ~25.29 tangled; 50-day ~20.51",
-      "horizon": "tactical",
-      "id": "attn-7004badde2f0badd",
-      "imminence": "latent",
-      "invalidation": "A daily FETH close above ~28.00 invalidates the hedge.",
-      "lifecycle": [
-        {
-          "at": "2026-09-14T11:30:00.000Z",
-          "condition": "observed",
-          "ref": null,
-          "to": "discovered"
-        }
-      ],
-      "marketConfirmation": {
-        "detail": null,
-        "state": "absent"
-      },
-      "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
-      "observedAt": "2026-09-14T11:30:00.000Z",
-      "rationale": "FETH spot ~25.29 sits tangled with a 50-day ~20.51 and a 200-day ~22.75; the 50-day distance is 23.28, signaling a fragile equilibrium that demands immediate monitoring.",
-      "severity": "moderate",
-      "state": "discovered",
-      "subject": "FETH",
-      "supersededBy": null,
-      "transmissionAbsenceNote": null,
-      "transmissionPath": [
-        "volatility-options"
-      ],
-      "verb": "monitor",
-      "windowBoundaryUtc": "2026-09-14T11:30:00.000Z",
-      "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-09-14"
     }
   ],
   "attentionExclusions": [
@@ -467,129 +400,121 @@
     "whatWouldChangeIt": "A daily SPY close below 758.60 would weaken the backdrop."
   },
   "budget": {
+    "contractVersion": "budget-measurement/v1",
+    "total": 1345,
     "byField": [
       {
-        "chars": 0,
-        "path": "headline"
+        "path": "headline",
+        "chars": 0
       },
       {
-        "chars": 31,
-        "path": "dataAsOf.labels.bars"
+        "path": "dataAsOf.labels.bars",
+        "chars": 31
       },
       {
-        "chars": 8,
-        "path": "dataAsOf.labels.macro"
+        "path": "dataAsOf.labels.macro",
+        "chars": 8
       },
       {
-        "chars": 251,
-        "path": "attention[].headline"
+        "path": "attention[].headline",
+        "chars": 212
       },
       {
-        "chars": 0,
-        "path": "attention[].what"
+        "path": "attention[].what",
+        "chars": 0
       },
       {
-        "chars": 175,
-        "path": "attention[].escalationTrigger"
+        "path": "attention[].escalationTrigger",
+        "chars": 146
       },
       {
-        "chars": 321,
-        "path": "attention[].invalidation"
+        "path": "attention[].invalidation",
+        "chars": 267
       },
       {
-        "chars": 17,
-        "path": "crossAsset.legs[].label"
+        "path": "crossAsset.legs[].label",
+        "chars": 17
       },
       {
-        "chars": 77,
-        "path": "crossAsset.legs[].withheld"
+        "path": "crossAsset.legs[].withheld",
+        "chars": 77
       },
       {
-        "chars": 295,
-        "path": "crossAsset.dark[].reason"
+        "path": "crossAsset.dark[].reason",
+        "chars": 295
       },
       {
-        "chars": 90,
-        "path": "crossAsset.dark[].withheld"
+        "path": "crossAsset.dark[].withheld",
+        "chars": 90
       },
       {
-        "chars": 107,
-        "path": "crossAsset.dark[].substitutionRefusal"
+        "path": "crossAsset.dark[].substitutionRefusal",
+        "chars": 107
       },
       {
-        "chars": 82,
-        "path": "changed[].line"
+        "path": "changed[].line",
+        "chars": 82
       },
       {
-        "chars": 13,
-        "path": "rollUp.line"
+        "path": "rollUp.line",
+        "chars": 13
       },
       {
-        "chars": 0,
-        "path": "trackRecord.line"
+        "path": "trackRecord.line",
+        "chars": 0
       }
     ],
+    "disclosedTotal": 52149,
     "caps": {
-      "decisionCard": 300,
-      "detail": 700,
       "headline": 140,
-      "total": 3000
+      "decisionCard": 300,
+      "total": 3000,
+      "detail": 700
     },
     "cards": [
       {
-        "chars": 126,
-        "path": "attention[0]"
+        "path": "attention[0]",
+        "chars": 126
       },
       {
-        "chars": 125,
-        "path": "attention[1]"
+        "path": "attention[1]",
+        "chars": 125
       },
       {
-        "chars": 125,
-        "path": "attention[2]"
+        "path": "attention[2]",
+        "chars": 125
       },
       {
-        "chars": 128,
-        "path": "attention[3]"
+        "path": "attention[3]",
+        "chars": 128
       },
       {
-        "chars": 121,
-        "path": "attention[4]"
-      },
-      {
-        "chars": 122,
-        "path": "attention[5]"
+        "path": "attention[4]",
+        "chars": 121
       }
     ],
-    "contractVersion": "budget-measurement/v1",
     "detail": [
       {
-        "chars": 172,
-        "path": "attention[0].rationale"
+        "path": "attention[0].rationale",
+        "chars": 172
       },
       {
-        "chars": 171,
-        "path": "attention[1].rationale"
+        "path": "attention[1].rationale",
+        "chars": 171
       },
       {
-        "chars": 175,
-        "path": "attention[2].rationale"
+        "path": "attention[2].rationale",
+        "chars": 175
       },
       {
-        "chars": 177,
-        "path": "attention[3].rationale"
+        "path": "attention[3].rationale",
+        "chars": 177
       },
       {
-        "chars": 172,
-        "path": "attention[4].rationale"
-      },
-      {
-        "chars": 169,
-        "path": "attention[5].rationale"
+        "path": "attention[4].rationale",
+        "chars": 172
       }
     ],
-    "disclosedTotal": 52891,
-    "total": 1467,
     "violations": []
   },
   "changed": [

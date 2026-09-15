@@ -278,7 +278,7 @@
       "stageReasons": [
         "independent-current-support:1",
         "blocking-contradictions:0",
-        "timing:weakening"
+        "timing:unavailable"
       ],
       "integrityCodes": [],
       "primaryCatalyst": {
@@ -330,14 +330,14 @@
           "owner": "causal-rotation-lab"
         },
         "marketConfirmation": {
-          "state": "contradictory",
-          "code": null,
+          "state": "unavailable",
+          "code": "CR-TIMING-UNAVAILABLE",
           "asOf": "2026-07-12T21:45:00Z",
           "freshUntil": "2099-01-01T00:00:00Z",
           "independentClusterIds": [],
           "observationIds": [],
           "missingRequirements": [],
-          "summary": "weakening",
+          "summary": "unavailable",
           "owner": "sector-research-lab"
         }
       },
@@ -513,7 +513,7 @@
         "causal-origin:origin:fomc-2026-06-statement",
         "causal-origin:origin:sloos-2026-04-survey"
       ],
-      "candidateDigest": "sha256:dd206d5700a817c8d712b3556d154b8a45ac9337bbd6761ab170a40609fc1d17"
+      "candidateDigest": "sha256:112436022aa737cd3d119811449cc701d3106d3c5b206022edf321dd64e0cf71"
     },
     {
       "contractVersion": "causal-candidate-read/v1",

@@ -337,7 +337,11 @@ FETCH_BARS_TIMEOUT="${BRIEF_FETCH_BARS_TIMEOUT:-1200}"
 FETCH_OPTIONS_TIMEOUT="${BRIEF_FETCH_OPTIONS_TIMEOUT:-900}"
 TIER_A_TIMEOUT="${BRIEF_TIER_A_TIMEOUT:-600}"
 PUSH_ATTEMPTS="${BRIEF_PUSH_ATTEMPTS:-5}"
-PUSH_RETRY_DELAY_SECONDS="${BRIEF_PUSH_RETRY_DELAY_SECONDS:-2}"
+# 2s was sized for a concurrent-main race (another push landing between fetch and retry), which
+# resolves instantly. A transient network/DNS outage (the machine's network not yet up when
+# launchd fires after sleep/wake, observed live) needs real seconds to clear, and 5 attempts at 2s
+# gave it only ~10s total before this run gave up and the scheduled window's commit sat unpushed.
+PUSH_RETRY_DELAY_SECONDS="${BRIEF_PUSH_RETRY_DELAY_SECONDS:-20}"
 COPILOT_EXPECTED_PATH="${BRIEF_COPILOT_EXPECTED_PATH:-/opt/homebrew/bin/copilot}"
 COPILOT_EXPECTED_VERSION="${BRIEF_COPILOT_EXPECTED_VERSION:-1.0.80}"
 
@@ -848,9 +852,19 @@ push_head() {
     if [ "$push_attempt" -ge "$PUSH_ATTEMPTS" ]; then break; fi
     echo "[brief-timer] push attempt $push_attempt/$PUSH_ATTEMPTS rejected — refreshing origin/$BR and rebasing before retry"
     if [ "$PUSH_RETRY_DELAY_SECONDS" -gt 0 ]; then sleep "$PUSH_RETRY_DELAY_SECONDS"; fi
+    # A pull --rebase failure here is not necessarily "the remote moved and rebase conflicted" —
+    # a transient network/DNS outage (observed live: launchd firing before the machine's network was
+    # up after sleep/wake) fails identically here on the FIRST retry, and this used to return 1
+    # immediately, discarding the remaining PUSH_ATTEMPTS budget after a single quick failure. A
+    # scheduler-run commit that never gets pushed sits invisible until the next scheduled window,
+    # which is exactly the "not deploying" symptom this exists to prevent. Aborting any partial
+    # rebase and continuing the loop (still bounded by PUSH_ATTEMPTS and PUSH_RETRY_DELAY_SECONDS)
+    # gives a transient outage the full retry budget to clear before this run gives up.
     if ! "$GIT_BIN" pull --rebase origin "$BR"; then
-      echo "[brief-timer] pull --rebase failed during push recovery"
-      return 1
+      "$GIT_BIN" rebase --abort >/dev/null 2>&1 || true
+      echo "[brief-timer] pull --rebase failed during push recovery (attempt $push_attempt/$PUSH_ATTEMPTS) — retrying"
+      push_attempt=$((push_attempt + 1))
+      continue
     fi
     push_attempt=$((push_attempt + 1))
   done

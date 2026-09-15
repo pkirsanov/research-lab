@@ -702,6 +702,28 @@ function boundedOmlxInput(value) {
    as-is (no merge with `payload[key]`), so staleness cannot recur structurally, and this function
    instead guards the OTHER half of the same "is this content trustworthy" question — fabrication —
    by checking the model's claims against the frozen factCard it was actually given. */
+let trackedTickerUniverseCache;
+// The 289-symbol universe this repo actually tracks (data/bars/index.json). A bare 1-5 uppercase-
+// letter token that is NOT one of these symbols cannot carry a fabricated price/level claim about a
+// real instrument — there is no tracked price data for it to contradict — so it poses none of the
+// fabrication risk this scanner exists to catch; it is ordinary technical-analysis shorthand (MA for
+// moving average, RSI, ATR, and so on — an unbounded vocabulary no fixed allowlist can ever fully
+// enumerate). Reproduced live: "MA" ("50-day MA") refused a run though "MA" is not itself tracked.
+// Loaded lazily and cached so a fixture/test tree without data/bars/index.json degrades safely
+// rather than throwing — in that case every bare acronym is still scanned exactly as before.
+function trackedTickerUniverse() {
+    if (trackedTickerUniverseCache !== undefined) return trackedTickerUniverseCache;
+    try {
+        const index = JSON.parse(readFileSync(resolve(process.cwd(), 'data/bars/index.json'), 'utf8'));
+        trackedTickerUniverseCache = Array.isArray(index.tickers)
+            ? new Set(index.tickers.map((entry) => (entry && typeof entry === 'object' ? entry.sym : entry)).filter(Boolean))
+            : null;
+    } catch {
+        trackedTickerUniverseCache = null;
+    }
+    return trackedTickerUniverseCache;
+}
+
 function assertOmlxFactBinding(candidate, lane) {
     const input = laneInput(lane);
     const fact = input.factCard;
@@ -726,7 +748,16 @@ function assertOmlxFactBinding(candidate, lane) {
     // in this repo's broader universe, so blanket-exempting bare single letters would reopen a real
     // fabrication hole. Excising the specific two-single-letter "&" idiom before scanning fixes the
     // reproduced failure without weakening detection of any actual multi-letter fabricated ticker.
-    const scanText = text.replace(/\b([A-Z])&([A-Z])\b/g, '$1and$2');
+    // "50-day MA" / "200-day MA" is the moving-average abbreviation this composer's own prompts and
+    // seed text use constantly ("derived 50-day", "200-day" are already everywhere in this file) —
+    // but MA is ALSO Mastercard's real tracked ticker (data/bars/index.json), so it cannot be
+    // blanket-exempted the way a non-tracked acronym can be. Reproduced live: a run was refused over
+    // "MA" from ordinary "50-day MA" phrasing. The "-day MA" idiom is unambiguous — nobody writes
+    // "50-day Mastercard" — so defusing only that specific adjacency (not bare "MA") closes this
+    // false positive without opening a hole for an actual fabricated claim about Mastercard itself.
+    const scanText = text
+        .replace(/\b([A-Z])&([A-Z])\b/g, '$1and$2')
+        .replace(/(-day|day)(\s+)MA\b/g, '$1$2ma');
     const allowedTickers = new Set(Object.keys(fact.instruments || {}));
     // The 1-5 uppercase-letter scan cannot tell a real ticker from any other capitalized acronym
     // that legitimately appears in this schema's prose or enum values. Hand-picking acronyms one
@@ -753,8 +784,15 @@ function assertOmlxFactBinding(candidate, lane) {
         'FOMC', 'ECB', 'FED', 'BOJ', 'BOE', 'OPEC', 'BLS', 'BEA', 'DOL', 'SEC', 'OECD', 'IMF', 'CBO',
         'ATH', 'IPO', 'ETF', 'ET', 'EDT', 'EST', 'UTC', 'USD', 'EUR', 'JPY', 'GBP', 'YOY', 'QOQ', 'MOM'
     ]);
+    const universe = trackedTickerUniverse();
     const mentioned = [...scanText.matchAll(/\b[A-Z]{1,5}\b/g)].map((match) => match[0]);
-    const unknown = mentioned.find((ticker) => NON_TICKER_ACRONYMS.has(ticker) ? false : !allowedTickers.has(ticker));
+    const unknown = mentioned.find((ticker) => {
+        if (NON_TICKER_ACRONYMS.has(ticker) || allowedTickers.has(ticker)) return false;
+        // Universe known: only a token that IS a real tracked symbol can carry a verifiable price
+        // claim, so only flag those. Universe unavailable (e.g. a fixture tree missing data/bars):
+        // fall back to the prior, stricter behavior rather than silently weakening the check.
+        return universe ? universe.has(ticker) : true;
+    });
     if (unknown) throw new Error(`OMLX fact binding refused unknown ticker ${unknown}`);
     for (const [ticker, state] of Object.entries(fact.instruments || {})) {
         const price = Number(state.price);

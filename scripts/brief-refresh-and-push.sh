@@ -770,6 +770,20 @@ elif [ "${SHARDED_HISTORY:-0}" = "1" ]; then
   # ride the commit when that optional publisher did not run.
   SELECTED_FILES+=(briefs/tier-a)
 fi
+# scripts/evaluate-recommendations.mjs (run unconditionally above, regardless of narrative outcome —
+# it is Tier-A scoring, never gated on Tier-B) writes its outcome ledger, history-current pointer and
+# index under briefs/, but until now those paths only rode the commit via the DISTRIBUTED_OK branch
+# above, which is itself gated on NARRATIVE_OK. Every run that fell back to raw-data-only (or matched
+# a retained narrative without a fresh distributed graph) silently evaluated and closed calls on disk,
+# published a market-brief.scorecard.json reflecting those closures, and then never committed the
+# ledger rows the scorecard claims to summarize — the two facts this repo's own self-test checks
+# ("the evaluator is idempotent against the committed ledger" and "the published scorecard matches the
+# committed ledger") caught diverging. Staging these specific evaluate-owned paths unconditionally
+# (harmless no-ops when DISTRIBUTED_OK already staged the whole briefs/ tree) closes that gap for
+# every selection path, not just the one where narrative happens to converge.
+[ -d briefs/history/recommendations ] && SELECTED_FILES+=(briefs/history/recommendations)
+[ -f briefs/history-current.json ] && SELECTED_FILES+=(briefs/history-current.json)
+[ -d briefs/indexes ] && SELECTED_FILES+=(briefs/indexes)
 if [ "${SHARDED_HISTORY:-0}" = "1" ]; then
   SELECTED_FILES+=(brief-history.recent.jsonl)
 fi

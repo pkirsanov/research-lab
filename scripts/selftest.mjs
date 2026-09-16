@@ -24225,7 +24225,7 @@ try {
   const standing26 = block26.standing;
   const bound26 = standing26.find((entry) => entry.boundTo === 'energy');
   assert(standing26.length === 1
-    && bound26 && bound26.date === '2026-07-14'
+    && bound26 && bound26.date === '2026-10-14'
     && bound26.unresolvedAspects.join(',') === 'transit,insurance'
     && byLeg26('energy').length === 1,
   'TP-026-2.6 the standing macroEvents instruction produces a bound energy outcome plus named unresolved transit and insurance aspects on every run');

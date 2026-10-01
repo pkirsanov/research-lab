@@ -646,10 +646,22 @@ else
   [ "$NARRATIVE_OK" = "1" ] || echo "[brief-timer] narrative did not converge after $NARRATIVE_ATTEMPTS attempts — evaluating retained payload against candidate Tier A"
 fi
 
+# Narrative non-convergence under REQUIRE_COMPLETE_RUN no longer refuses the whole scheduled run.
+# It used to: this is the ONE completeness dimension where "refuse everything" and "fall back to
+# raw-data-only" are both honest options, and refusing was the wrong default for a SCHEDULED run
+# specifically — every other REQUIRE_COMPLETE_RUN gate (data freshness, the tool-bundle barrier,
+# an attempted-but-failed distributed publish) still exits 1 exactly as before; only this one,
+# narrative-specific refusal is relaxed. Reproduced live: local-model narrative reliability varies
+# by model and by day (observed non-convergence streaks with both prior and current local models),
+# and under the old all-or-nothing policy a bad streak meant zero scheduled windows published
+# anything for hours — the exact "not deploying" symptom this exists to prevent. The selection
+# logic immediately below already has a fully-validated raw-data-only path (used today whenever
+# REQUIRE_COMPLETE_RUN=0), so a scheduled run now gets the same safe fallback instead of refusing
+# outright: the site keeps refreshing on every window even through a local-model bad patch, with
+# narrative prose simply retained from the last successful generation rather than the whole brief
+# going stale.
 if [ "$DRY_RUN" != "1" ] && [ "$REQUIRE_COMPLETE_RUN" = "1" ] && [ "$NARRATIVE_OK" != "1" ]; then
-  echo "[brief-timer] final brief generation failed — refusing the complete scheduled run"
-  restore_owned_baseline || true
-  exit 1
+  echo "[brief-timer] final brief generation failed — falling back to raw-data-only instead of refusing the scheduled run"
 fi
 
 # 3) Select one coherent publication transaction. A retained payload may use a

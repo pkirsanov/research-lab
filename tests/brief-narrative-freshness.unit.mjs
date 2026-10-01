@@ -48,7 +48,7 @@ test('model profile is repository-owned with explicit environment overrides', ()
   const declared = resolveNarrativeModelConfig({ root: ROOT, env: {} });
   assert.equal(declared.profile, 'local-omlx');
   assert.equal(declared.provider, 'omlx');
-  assert.equal(declared.model, 'Ternary-Bonsai-27B-mlx-2bit');
+  assert.equal(declared.model, 'Qwen3.8-Flash-Next-4bit-mtp');
 
   const overridden = resolveNarrativeModelConfig({ root: ROOT, env: { BRIEF_MODEL: 'next-local-model' } });
   assert.equal(overridden.profile, 'local-omlx');

@@ -24,6 +24,20 @@
   var VIEW_STATE_VERSION = "research-agenda-view-state/v1";
   var TOOL_READ_VERSION = "research-agenda-tool-read/v1";
   var MODEL_INPUT_VERSION = "research-model-input/v1";
+  /* Feature 031 Scope 3 sub-pass 2 — v1/v2 dual-read, definition-selected single-write parent
+     artifact contracts (design.md Section 6.1 "Parent Contract Matrix"). These constants and the
+     functions below validate only the PARENT envelope of each widened v2 contract. Deep foundation
+     validation of the nested `shockTransmission` capability member is RLSHOCK's own job
+     (RLSHOCK.validateDefinition / validateObservationSet / validateSnapshot, already delivered in
+     Scope 1/2) and is deliberately NOT duplicated here — rlagenda.js stays dependency-free, exactly
+     as it is today. None of this is `RLAGENDA.resolveAgendaConsumerState(request, dependencies)` or
+     any other version-dispatching resolver; Scope 4 owns that sole export and every dispatch call. */
+  var TOPIC_VERSION_V2 = "research-topic-definition/v2";
+  var REVIEW_VERSION_V2 = "research-review/v2";
+  var DOSSIER_VERSION_V2 = "research-dossier/v2";
+  var COMPOSITION_INPUT_VERSION = "shock-transmission/composition-input/v1";
+  var SHOCK_SNAPSHOT_VERSION = "shock-transmission/v1";
+  var CAPABILITY_ID = "shockTransmission";
   var ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
   var IMMUTABLE_ID_PATTERN = /^(?:generation|review|dossier|source|event)-[a-f0-9]{64}$/;
   var HASH_PATTERN = /^sha256:[a-f0-9]{64}$/;
@@ -96,6 +110,15 @@
     "contractVersion", "topicId", "definitionVersion", "declaredQuestionSha256", "analyticalSections",
     "evidencePolicy", "sourceRequirements", "triggers", "invalidations", "chartDefinitions", "modelFunctionIds"
   ]);
+  /* design.md Section 6.2: "research-topic-definition/v2 retains the current common definition
+     fields. It adds exactly one capabilities object." The legacy geopolitical model fields
+     (actors, scenarioTree, flowNetwork, transmissionModels, proxyDefinitions, calibrationRef) move
+     into the adapter-owned capability configuration and are exact unknown-member refusals for v2 —
+     "They do not remain parallel top-level model fields." modelFunctionIds is retained as a required
+     field but must be declared empty for a foundation-backed v2 definition. */
+  var DEFINITION_REQUIRED_FIELDS_V2 = Object.freeze(DEFINITION_REQUIRED_FIELDS.concat(["capabilities"]));
+  var DEFINITION_FIELDS_V2 = Object.freeze(DEFINITION_REQUIRED_FIELDS_V2.slice());
+  var CAPABILITY_FIELDS = Object.freeze([CAPABILITY_ID]);
   var SECTION_FIELDS = Object.freeze(["sectionId", "title", "kind", "required"]);
   var EVIDENCE_POLICY_FIELDS = Object.freeze([
     "contractVersion", "confidenceWeights", "provenanceWeights", "roleWeights",
@@ -157,6 +180,25 @@
     "declaredQuestionSha256", "sectionStates", "findings", "evidenceRecords", "sourceLedger", "modelInputs",
     "modelOutputs", "chartStates", "triggerStates", "invalidationStates", "predecessorDossierRef", "supersedesDossierRef"
   ]);
+  /* design.md Section 6.4: review v2 "replaces modelSnapshotRef with capabilitySnapshotRefs.shockTransmission."
+     Dossier v2 "replaces modelInputs and modelOutputs with exactly two capability members" and retains
+     "common publication, section, evidence, source, trigger, invalidation, and lineage fields." A migration
+     dossier may additionally name a v1 predecessor through migrationPredecessorRef; "That ref never becomes
+     the current computation input." */
+  var ACTIVE_REVIEW_FIELDS_V2 = Object.freeze(ACTIVE_REVIEW_FIELDS.map(function (field) {
+    return field === "modelSnapshotRef" ? "capabilitySnapshotRefs" : field;
+  }));
+  var CAPABILITY_SNAPSHOT_REFS_FIELDS = Object.freeze([CAPABILITY_ID]);
+  var CAPABILITY_SNAPSHOT_REF_FIELDS = Object.freeze([
+    "dossierRef", "snapshotId", "snapshotDigest", "definitionDigest", "compositionInputDigest", "observationSetDigest"
+  ]);
+  var ACTIVE_DOSSIER_FIELDS_V2 = Object.freeze(ACTIVE_DOSSIER_FIELDS
+    .filter(function (field) { return field !== "modelInputs" && field !== "modelOutputs"; })
+    .concat(["capabilityInputs", "capabilitySnapshots", "migrationPredecessorRef"]));
+  var CAPABILITY_INPUTS_FIELDS = Object.freeze([CAPABILITY_ID]);
+  var CAPABILITY_SNAPSHOTS_FIELDS = Object.freeze([CAPABILITY_ID]);
+  var COMPOSITION_INPUT_FIELDS = Object.freeze(["contractVersion", "observationSet", "ownerReads", "leverValues"]);
+  var OWNER_READ_FIELDS = Object.freeze(["ownerReadId", "contractVersion", "sourceRef", "valueDigest", "value"]);
   var DOSSIER_CHART_STATE_FIELDS = Object.freeze(["chartId", "state", "series", "annotations"]);
   var DOSSIER_TRIGGER_STATE_FIELDS = Object.freeze(["triggerId", "state", "observedAt", "evidenceRefs"]);
   var DOSSIER_INVALIDATION_STATE_FIELDS = Object.freeze(["invalidationId", "state", "observedAt", "evidenceRefs"]);

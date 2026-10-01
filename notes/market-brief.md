@@ -175,7 +175,7 @@ after-hours = reactions/follow-through).
     default: `local-omlx`); the profile supplies the provider/model/base-url/token-cap defaults that the
     explicit env vars below override one at a time. See `scripts/brief-narrative-model-config.mjs`.
   - `BRIEF_NARRATIVE_PROVIDER` — `copilot` (default) or `omlx`.
-  - `BRIEF_MODEL` — model slug (default `claude-opus-4.8` for `copilot`, `Ternary-Bonsai-27B-mlx-2bit` for `omlx`).
+  - `BRIEF_MODEL` — model slug (default `claude-opus-4.8` for `copilot`, `Qwen3.8-Flash-Next-4bit-mtp` for `omlx`).
   - `BRIEF_NARRATIVE_OMLX_BASE_URL` — the local OpenAI-compatible server origin, e.g. `http://127.0.0.1:8000`
     (required, refused otherwise, when `BRIEF_NARRATIVE_PROVIDER=omlx`).
   - `BRIEF_OMLX_MAX_TOKENS` — per-lane completion token cap for the `omlx` provider (default 8192). No
@@ -191,9 +191,9 @@ after-hours = reactions/follow-through).
   # Copilot CLI (frontier model; needs `copilot` on PATH and `copilot /login` once)
   BRIEF_NARRATIVE_PROVIDER=copilot bash scripts/brief-refresh-and-push.sh --dry-run
 
-  # Local OMLX Bonsai (needs the OMLX server already running at the given origin)
+  # Local OMLX (needs the OMLX server already running at the given origin)
   BRIEF_NARRATIVE_PROVIDER=omlx BRIEF_NARRATIVE_OMLX_BASE_URL=http://127.0.0.1:8000 \
-    BRIEF_MODEL=Ternary-Bonsai-27B-mlx-2bit bash scripts/brief-refresh-and-push.sh --dry-run
+    BRIEF_MODEL=Qwen3.8-Flash-Next-4bit-mtp bash scripts/brief-refresh-and-push.sh --dry-run
   ```
 
   Drop `--dry-run` to actually regenerate, commit, and push. This is the SAME entry point the scheduler's

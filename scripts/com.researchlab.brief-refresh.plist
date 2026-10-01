@@ -30,9 +30,6 @@
     <array>
       <string>/bin/bash</string>
       <string>/ABSOLUTE/PATH/TO/research-lab/scripts/brief-refresh-scheduled.sh</string>
-      <string>--trigger</string>
-      <string>scheduled</string>
-      <string>--due-only</string>
     </array>
 
     <key>StartCalendarInterval</key>
@@ -48,18 +45,21 @@
     <key>StartInterval</key>
     <integer>900</integer>
 
+    <!-- Provider + model are resolved from brief-narrative-models.json's "local-omlx" profile
+         (not hardcoded here), so swapping the local model only means editing that one file —
+         this plist, the scheduler preflight, and a manual run all read the same profile. -->
     <key>EnvironmentVariables</key>
     <dict>
       <key>PATH</key>
       <string>/opt/homebrew/bin:/opt/local/bin:/usr/local/bin:/usr/bin:/bin</string>
       <key>BRIEF_PUBLICATION_LEAD_MINUTES</key>
       <string>30</string>
-      <key>BRIEF_NARRATIVE_PROVIDER</key>
-      <string>omlx</string>
+      <key>BRIEF_NARRATIVE_PROFILE</key>
+      <string>local-omlx</string>
       <key>BRIEF_NARRATIVE_OMLX_BASE_URL</key>
       <string>http://127.0.0.1:8000</string>
-      <key>BRIEF_MODEL</key>
-      <string>Ternary-Bonsai-27B-mlx-2bit</string>
+      <key>BRIEF_SCHEDULE_DUE_ONLY</key>
+      <string>1</string>
     </dict>
 
     <key>RunAtLoad</key>

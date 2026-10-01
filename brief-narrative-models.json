@@ -4,7 +4,7 @@
   "profiles": {
     "local-omlx": {
       "provider": "omlx",
-      "model": "Ternary-Bonsai-27B-mlx-2bit",
+      "model": "Qwen3.8-Flash-Next-4bit-mtp",
       "omlxBaseUrl": "http://127.0.0.1:8000",
       "omlxMaxTokens": 8192
     },

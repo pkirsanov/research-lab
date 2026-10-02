@@ -1,11 +1,11 @@
 {
   "contractVersion": "research-agenda-current/v1",
-  "updatedAt": "2026-09-17T14:31:51.336Z",
+  "updatedAt": "2026-10-02T01:56:18.113Z",
   "generationRef": {
-    "path": "research/agenda/generations/generation-e94eacae81a2bfa6c0c8d26dc081e916e12b7dce14827988dfa288e8c96f8945.json",
-    "sha256": "sha256:39fac4029e67b557aff939b04518b0ed49f13fee5f6413ba393cc99c03d3c654",
+    "path": "research/agenda/generations/generation-fba7a8cb7105fd33a0ec3662e7c06c6ceae5791eb3817fa0198997b52cd38ede.json",
+    "sha256": "sha256:63feac01a037a1021826aacc059796c2d302ca61d5020cad4467b601d1f42978",
     "contractVersion": "research-generation/v1",
-    "generationId": "generation-e94eacae81a2bfa6c0c8d26dc081e916e12b7dce14827988dfa288e8c96f8945",
+    "generationId": "generation-fba7a8cb7105fd33a0ec3662e7c06c6ceae5791eb3817fa0198997b52cd38ede",
     "topicId": null,
     "historicalOnly": false
   },
@@ -14,10 +14,10 @@
       "topicId": "geopolitical-supply-shock",
       "state": "unavailable",
       "reviewRef": {
-        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-e94eacae81a2bfa6c0c8d26dc081e916e12b7dce14827988dfa288e8c96f8945.json",
-        "sha256": "sha256:a1d3115f5c8c5878d06c8d310007eccbc8f05380295b3453cdffd3eaf71138fe",
+        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-fba7a8cb7105fd33a0ec3662e7c06c6ceae5791eb3817fa0198997b52cd38ede.json",
+        "sha256": "sha256:812832a5708dab10e1215ce7ef68f4177dbbc5992881f74c478929aff561bb30",
         "contractVersion": "research-review/v1",
-        "generationId": "generation-e94eacae81a2bfa6c0c8d26dc081e916e12b7dce14827988dfa288e8c96f8945",
+        "generationId": "generation-fba7a8cb7105fd33a0ec3662e7c06c6ceae5791eb3817fa0198997b52cd38ede",
         "topicId": "geopolitical-supply-shock",
         "historicalOnly": false
       },
@@ -25,21 +25,21 @@
     },
     {
       "topicId": "defense-earnings-acceleration",
-      "state": "unavailable",
-      "reviewRef": {
-        "path": "research/agenda/reviews/defense-earnings-acceleration/generation-e94eacae81a2bfa6c0c8d26dc081e916e12b7dce14827988dfa288e8c96f8945.json",
-        "sha256": "sha256:eb196aa4be03feb187b413896f3f4def4069be4ffc2478df515b6bf04e0dc470",
-        "contractVersion": "research-review/v1",
-        "generationId": "generation-e94eacae81a2bfa6c0c8d26dc081e916e12b7dce14827988dfa288e8c96f8945",
-        "topicId": "defense-earnings-acceleration",
-        "historicalOnly": false
-      },
+      "state": "deferred",
+      "reviewRef": null,
       "dossierRef": null
     },
     {
       "topicId": "food-inputs-outlook",
-      "state": "deferred",
-      "reviewRef": null,
+      "state": "unavailable",
+      "reviewRef": {
+        "path": "research/agenda/reviews/food-inputs-outlook/generation-fba7a8cb7105fd33a0ec3662e7c06c6ceae5791eb3817fa0198997b52cd38ede.json",
+        "sha256": "sha256:ed6471f9259c277cf7701f88d6bc38940d90946844de34f86f1e5681fb6a6333",
+        "contractVersion": "research-review/v1",
+        "generationId": "generation-fba7a8cb7105fd33a0ec3662e7c06c6ceae5791eb3817fa0198997b52cd38ede",
+        "topicId": "food-inputs-outlook",
+        "historicalOnly": false
+      },
       "dossierRef": null
     }
   ]

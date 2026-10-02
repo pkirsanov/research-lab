@@ -21,6 +21,8 @@ import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction, briefRegi
 import { attentionAuthoredKeysInstruction, attentionCardBudgetInstruction, attentionExpiryFormatInstruction, attentionHeadlineCapInstruction, attentionRationaleBudgetInstruction, attentionSubjectMenuInstruction, attentionSubjectUniquenessInstruction, attentionVerbContractInstruction, briefFreshnessBadgeInstruction, recommendationConfidenceContractInstruction } from './build-attention-items.mjs';
 import { BRIEF_NARRATIVE_FIELDS_REQUIRED, briefBackdropKeysInstruction, matchesFieldPatterns, walkBriefStrings } from './reader-vocabulary.mjs';
 import { NARRATIVE_WEB_ALLOWLIST } from './web-evidence-policy.mjs';
+import { stripNonPriceNumerals } from './omlx-fact-binding-text.mjs';
+import { defuseMovingAverageAbbreviation } from './moving-average-abbreviation.mjs';
 import { resolveNarrativeModelConfig } from './brief-narrative-model-config.mjs';
 
 const ROOT = process.cwd();
@@ -671,7 +673,13 @@ function laneInput(lane) {
    byte slice: a truncated JSON document would make the model invent missing
    braces and the collector could not distinguish that transport failure from
    an authored fragment. */
-function boundedOmlxInput(value) {
+/* 24 KiB was sized for the Bonsai 2-bit model's memory. A research author lane declares its own
+   bound from the agenda policy (maxInputBytes); its inputs run 165-195 KB, so under the global
+   24 KiB ceiling every research author threw here before any request was sent and the brief
+   shipped with no research situations. */
+const DEFAULT_OMLX_INPUT_BYTES = 24 * 1024;
+
+function boundedOmlxInput(value, maxBytes = DEFAULT_OMLX_INPUT_BYTES) {
     const plans = [
         { stringCap: 480, arrayCap: 32, objectCap: 40 },
         { stringCap: 300, arrayCap: 24, objectCap: 32 },
@@ -690,9 +698,9 @@ function boundedOmlxInput(value) {
     };
     for (const plan of plans) {
         const candidate = JSON.stringify(compact(value, plan));
-        if (Buffer.byteLength(candidate) <= 24 * 1024) return candidate;
+        if (Buffer.byteLength(candidate) <= maxBytes) return candidate;
     }
-    throw new Error('OMLX lane input cannot be compacted below the 24 KiB local-memory limit');
+    throw new Error(`OMLX lane input cannot be compacted below the ${maxBytes}-byte local-memory limit`);
 }
 
 /* Supersedes the earlier mergeOmlxFragment() approach (research-lab commit 04118aeb2, which
@@ -755,9 +763,10 @@ function assertOmlxFactBinding(candidate, lane) {
     // "MA" from ordinary "50-day MA" phrasing. The "-day MA" idiom is unambiguous — nobody writes
     // "50-day Mastercard" — so defusing only that specific adjacency (not bare "MA") closes this
     // false positive without opening a hole for an actual fabricated claim about Mastercard itself.
-    const scanText = text
+    let scanText = text
         .replace(/\b([A-Z])&([A-Z])\b/g, '$1and$2')
         .replace(/(-day|day)(\s+)MA\b/g, '$1$2ma');
+    scanText = defuseMovingAverageAbbreviation(scanText);
     const allowedTickers = new Set(Object.keys(fact.instruments || {}));
     // The 1-5 uppercase-letter scan cannot tell a real ticker from any other capitalized acronym
     // that legitimately appears in this schema's prose or enum values. Hand-picking acronyms one
@@ -794,11 +803,12 @@ function assertOmlxFactBinding(candidate, lane) {
         return universe ? universe.has(ticker) : true;
     });
     if (unknown) throw new Error(`OMLX fact binding refused unknown ticker ${unknown}`);
+    const priceScanText = stripNonPriceNumerals(text);
     for (const [ticker, state] of Object.entries(fact.instruments || {})) {
         const price = Number(state.price);
         if (!Number.isFinite(price) || !new RegExp(`\\b${ticker}\\b`, 'i').test(text)) continue;
         const knownLevels = [state.price, state.ma50, state.ma200].map(Number).filter(Number.isFinite);
-        const priceTokens = [...text.matchAll(new RegExp(`\\b${ticker}\\b[^\\n]{0,180}?\\b(\\d+(?:\\.\\d+)?)`, 'gi'))]
+        const priceTokens = [...priceScanText.matchAll(new RegExp(`\\b${ticker}\\b[^\\n]{0,180}?\\b(\\d+(?:\\.\\d+)?)`, 'gi'))]
             .map((match) => Number(match[1])).filter((value) => value > 100 && value !== 200);
         if (priceTokens.some((value) => !knownLevels.some((known) => Math.abs(value - known) / known <= 0.15))) {
             throw new Error(`OMLX fact binding refused ${ticker} price/level inconsistent with current ${price}`);
@@ -806,11 +816,39 @@ function assertOmlxFactBinding(candidate, lane) {
     }
 }
 
+/* Loose json_object mode accepts any JSON object, and a model in thinking mode reliably emitted
+   its own input JSON back as the "answer". Replaying byte-exact captured lane requests at
+   temperature 0: every lane echoed under json_object; each lane passed once the top-level keys
+   were forced by a strict schema or thinking was disabled. Only the top-level keys and their
+   JSON types are constrained: the schema example for attention carries recomposed envelope
+   fields the lane is told not to author, so nested strictness would force exactly those. */
+function omlxLaneResponseFormat(lane, laneInputValue) {
+    const example = laneInputValue?.outputSchema || {};
+    const typeOf = (value) => Array.isArray(value) ? { type: 'array' }
+        : value && typeof value === 'object' ? { type: 'object' }
+            : typeof value === 'number' ? { type: 'number' }
+                : typeof value === 'string' ? { type: 'string' } : {};
+    return {
+        type: 'json_schema',
+        json_schema: {
+            name: `brief_lane_${lane.id.replace(/[^a-zA-Z0-9_]/g, '_')}`,
+            strict: true,
+            schema: {
+                type: 'object',
+                additionalProperties: false,
+                required: lane.keys,
+                properties: Object.fromEntries(lane.keys.map((key) => [key, typeOf(example[key])]))
+            }
+        }
+    };
+}
+
 async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, stdoutPath, stderrPath, startedAt }) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), (lane.timeoutSeconds || timeoutSeconds) * 1000);
     try {
-        const input = boundedOmlxInput(JSON.parse(readFileSync(inputPath, 'utf8')));
+        const laneInputValue = JSON.parse(readFileSync(inputPath, 'utf8'));
+        const input = boundedOmlxInput(laneInputValue, lane.maxInputBytes || DEFAULT_OMLX_INPUT_BYTES);
         const response = await fetch(new URL('v1/chat/completions', omlxBaseUrl), {
             method: 'POST',
             headers: { 'content-type': 'application/json', accept: 'application/json' },
@@ -823,7 +861,9 @@ async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, s
                 ],
                 temperature: 0,
                 stream: false,
-                response_format: { type: 'json_object' },
+                response_format: omlxLaneResponseFormat(lane, laneInputValue),
+                reasoning_effort: 'none',
+                chat_template_kwargs: { enable_thinking: false },
                 max_tokens: Math.min(omlxMaxTokens, Math.max(1024, Math.floor((lane.maxOutputBytes || 65536) / 4)))
             })
         });
@@ -1115,8 +1155,13 @@ async function runLaneWithRetries(lane) {
             return result;
         } catch (error) {
             lastError = error;
-            priorGap = describeFragmentGap(result.outputPath || resolve(WORK_DIR, `${lane.id}.json`), lane.keys, lane.maxOutputBytes);
-            if (priorGap) console.log(`[brief-parallel] lane=${lane.id} attempt=${attempt} rejected: ${priorGap}`);
+            // A fact-binding refusal writes no fragment, so describeFragmentGap alone reports a
+            // misleading "missing top-level key" for output the model actually authored. Hand the
+            // real refusal to the retry as the gap.
+            priorGap = typeof result.error === 'string' && result.error.startsWith('OMLX fact binding refused')
+                ? result.error
+                : describeFragmentGap(result.outputPath || resolve(WORK_DIR, `${lane.id}.json`), lane.keys, lane.maxOutputBytes);
+            if (priorGap) console.log(`[brief-parallel] lane=${lane.id} attempt=${attempt} rejected: ${priorGap}${result.error && !priorGap.includes(result.error) ? ` [cause: ${String(result.error).slice(0, 200)}]` : ''}`);
             if (attempt < attemptLimit) {
                 if (isTransientCopilotServiceFailure(result)) {
                     const backoffSeconds = transientBackoffSeconds * attempt;
@@ -1195,6 +1240,10 @@ async function runResearchPipeline() {
                     throw new Error(`lane ${lane.id} did not return exactly one matching research situation`);
                 }
                 return fragment.situations[0];
+            } catch (error) {
+                // The side pool records only a reason code ("author-failed"), so log the cause here.
+                console.log(`[brief-parallel] research lane=${lane.id} attempt=${authorContext.attempt} failed: ${String(laneResult?.error || error?.message || error).replace(/\s*\n\s*/g, ' | ').slice(0, 300)}`);
+                throw error;
             } finally {
                 rmSync(resolve(WORK_DIR, `${lane.id}.input.json`), { force: true });
                 rmSync(resolve(WORK_DIR, `${lane.id}.json`), { force: true });

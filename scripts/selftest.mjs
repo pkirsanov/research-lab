@@ -11054,6 +11054,30 @@ try {
     && /cached\.policyDigest !== researchPreparation\.policyDigest/.test(narrativeParallelSource)
     && /cached\.retryCacheIdentity !== researchPreparation\.retryCacheIdentity/.test(narrativeParallelSource),
   'TP-01-05: preparation scheduling live author controls and retry cache identity consume one explicit policy digest without a 900-second source literal');
+  const omlxLaneFormat = new Function(`${extractFn(narrativeParallelSource, 'omlxLaneResponseFormat')}\nreturn omlxLaneResponseFormat;`)();
+  const coreLaneFormat = omlxLaneFormat({ id: 'core', keys: ['nextSession', 'regime'] }, { outputSchema: { nextSession: {}, regime: {} } });
+  const signalsLaneFormat = omlxLaneFormat({ id: 'signals', keys: ['attention', 'events'] }, { outputSchema: { attention: [], events: [] } });
+  assert(coreLaneFormat.type === 'json_schema' && coreLaneFormat.json_schema.strict === true
+    && coreLaneFormat.json_schema.schema.additionalProperties === false
+    && JSON.stringify(coreLaneFormat.json_schema.schema.required) === '["nextSession","regime"]'
+    && coreLaneFormat.json_schema.schema.properties.regime.type === 'object'
+    && signalsLaneFormat.json_schema.schema.properties.attention.type === 'array'
+    && !('items' in signalsLaneFormat.json_schema.schema.properties.attention),
+  'OMLX lane responses are forced to exactly the lane keys by a strict top-level schema, typed from the schema example without constraining nested fields');
+  assert(/response_format:\s*omlxLaneResponseFormat\(lane, laneInputValue\)/.test(narrativeParallelSource)
+    && /chat_template_kwargs:\s*\{\s*enable_thinking:\s*false\s*\}/.test(narrativeParallelSource)
+    && !/response_format:\s*\{\s*type:\s*'json_object'\s*\}/.test(narrativeParallelSource),
+  'OMLX lane requests use the strict lane schema with thinking disabled, never loose json_object — under json_object every lane echoed its own input back as its answer');
+  const boundedOmlxInputFn = new Function(`const DEFAULT_OMLX_INPUT_BYTES = 24 * 1024;\n${extractFn(narrativeParallelSource, 'boundedOmlxInput')}\nreturn boundedOmlxInput;`)();
+  // ~254 KiB that no compaction plan can shrink (every array, object and string is within all caps).
+  const researchSizedInput = Object.fromEntries(Array.from({ length: 20 }, (_, key) => [`k${key}`,
+    Array.from({ length: 12 }, () => Object.fromEntries(Array.from({ length: 10 }, (_, field) => [`f${field}`, 'x'.repeat(100)])))]));
+  let defaultCapRefused = false;
+  try { boundedOmlxInputFn(researchSizedInput); } catch { defaultCapRefused = true; }
+  assert(defaultCapRefused
+    && Buffer.byteLength(boundedOmlxInputFn(researchSizedInput, 524288)) > 24 * 1024
+    && /boundedOmlxInput\(laneInputValue, lane\.maxInputBytes \|\| DEFAULT_OMLX_INPUT_BYTES\)/.test(narrativeParallelSource),
+  'a research author lane is bounded by its own declared maxInputBytes rather than the 24 KiB default, which refused every research author input before any request was sent');
   const owningModules = readdirSync(ROOT)
     .filter((file) => /^rl.*\.js$/.test(file))
     .filter((file) => /RLAGENDA-|computeEvidenceWeight|research-evidence-record\/v1/.test(read(file)));
@@ -29689,7 +29713,7 @@ try {
 
   assert(/function runLane\(lane, laneAttempt, priorGap = ''\)/.test(laneAcceptSrc)
     && /\$\{retryInstruction\}/.test(laneAcceptSrc)
-    && /priorGap = describeFragmentGap\(/.test(laneAcceptSrc)
+    && /priorGap = [\s\S]{0,260}describeFragmentGap\(/.test(laneAcceptSrc)
     && /runLane\(lane, attempt, priorGap\)/.test(laneAcceptSrc),
     'a retry is told why the previous attempt was rejected and the reason reaches the prompt — a retry that re-sends the identical input is the same attempt run twice');
 } catch (e) { failures++; console.log('  ✗ FAIL (narrative lane acceptance group threw): ' + e.message); }

@@ -1,0 +1,38 @@
+{
+  "contractVersion": "research-generation/v1",
+  "generationId": "generation-01315e86199034f8ca6a7baa9a89f1909faaa0e0aeb6261595b6dabb1fe86a08",
+  "generationCutoff": "2026-10-02T02:28:58.843Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "declaredTopicCount": 3,
+  "classifications": [
+    {
+      "dossierId": null,
+      "mode": "every-generation",
+      "reason": "situation-shape-invalid",
+      "reviewId": "review-3edb54e8d18e5dde72df5f4b956a2ed5daaac98189d1391ed6b7a0999820b7c5",
+      "selectionReason": "mode-required",
+      "state": "unavailable",
+      "topicId": "geopolitical-supply-shock"
+    },
+    {
+      "dossierId": null,
+      "mode": "cadence",
+      "reason": "situation-shape-invalid",
+      "reviewId": "review-3d5e1d029dee6b2a9e9fdf225e995570d0c65ae20883edce9eb35b699fd3542f",
+      "selectionReason": "cadence-elapsed",
+      "state": "unavailable",
+      "topicId": "defense-earnings-acceleration"
+    },
+    {
+      "dossierId": null,
+      "mode": "cadence",
+      "reason": "cadence-not-elapsed",
+      "reviewId": null,
+      "selectionReason": "cadence-not-elapsed",
+      "state": "not-due",
+      "topicId": "food-inputs-outlook"
+    }
+  ],
+  "candidateFingerprint": "sha256:a26d76c5f86759c558215cdd58d8943db3cb0c912c3bc6cb922b17a1845bc992"
+}

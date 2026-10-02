@@ -1,0 +1,67 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-3d5e1d029dee6b2a9e9fdf225e995570d0c65ae20883edce9eb35b699fd3542f",
+  "generationId": "generation-01315e86199034f8ca6a7baa9a89f1909faaa0e0aeb6261595b6dabb1fe86a08",
+  "topicId": "defense-earnings-acceleration",
+  "attemptedAt": "2026-10-02T02:28:58.843Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "cadence",
+  "selectionReason": "cadence-elapsed",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "situation-shape-invalid",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "consensus-revisions",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "revision-gap-ranking",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "funded-program-catalysts",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "production-capacity",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "backlog-conversion",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "",
+      "gaps": []
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

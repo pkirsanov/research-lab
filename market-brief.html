@@ -872,6 +872,18 @@
             font-weight: 700
         }
 
+        .attn-head-stale {
+            border-left: 3px solid var(--amber);
+            background: color-mix(in srgb, var(--amber) 8%, transparent);
+            border-radius: 6px;
+            padding: 8px 12px
+        }
+
+        .attn-head-stale [data-attn-field="generation"] {
+            color: var(--amber);
+            font-weight: 600
+        }
+
         .attn-empty {
             background: var(--panel);
             border: 1px solid var(--line);
@@ -1688,8 +1700,17 @@
 
                 var head = document.createElement("div");
                 head.className = "attn-head";
+                var staleReading = false;
+                try {
+                    var earlyFresh = (typeof RLBRIEF !== "undefined" && typeof RLBRIEF.narrativeFreshness === "function")
+                        ? RLBRIEF.narrativeFreshness({ generatedAt: generatedAt }, (CFG && CFG["freshness-policy/v1"]) || null, nowMs) : null;
+                    staleReading = !!(earlyFresh && earlyFresh.state === "stale");
+                } catch (e) { staleReading = false; }
+                if (staleReading) head.className += " attn-head-stale";
                 attnField(head, "span", "open-count",
-                    published.length === 1 ? "1 item is asking for a decision" : published.length + " items are asking for a decision",
+                    staleReading
+                        ? (published.length === 1 ? "1 item from an outdated reading \u2014 not a current decision" : published.length + " items from an outdated reading \u2014 none is a current decision")
+                        : (published.length === 1 ? "1 item is asking for a decision" : published.length + " items are asking for a decision"),
                     "How many items cleared the bar to interrupt you at all. Reading now: " + published.length + " shown"
                     + (held > 0
                         ? " and " + held + " held back by the ceiling of " + selection.cap + ", so the list is capped rather than complete."

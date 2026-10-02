@@ -601,4 +601,20 @@ else
   fi
 fi
 echo "[brief-scheduler] publisher finished with exit=$exit_code"
+
+# A raw-data-only fallback exits 0 while the published narrative silently ages, which is how the
+# brief went 14 days stale unnoticed. Check the narrative the remote actually serves against the
+# page's own freshness policy and raise a desktop notification when it is aging or stale. This is
+# advisory: it never changes the publisher's exit code.
+staleness_dir="$(mktemp -d "${TMPDIR:-/tmp}/research-lab-staleness.XXXXXX" 2>/dev/null || true)"
+if [ -n "$staleness_dir" ] && [ -n "$GIT_BIN" ] && [ -n "$NODE_BIN" ] \
+  && "$GIT_BIN" -C "$SOURCE_ROOT" fetch --quiet "$REMOTE_NAME" "$BRANCH" 2>/dev/null \
+  && "$GIT_BIN" -C "$SOURCE_ROOT" show "FETCH_HEAD:market-brief.payload.json" > "$staleness_dir/market-brief.payload.json" 2>/dev/null \
+  && "$GIT_BIN" -C "$SOURCE_ROOT" show "FETCH_HEAD:market-brief.config.json" > "$staleness_dir/market-brief.config.json" 2>/dev/null; then
+  "$NODE_BIN" "$SOURCE_ROOT/scripts/brief-staleness-check.mjs" --root "$staleness_dir" --notify || true
+else
+  echo "[brief-staleness] could not read the published payload from $REMOTE_NAME/$BRANCH; freshness unchecked"
+fi
+[ -n "$staleness_dir" ] && rm -rf "$staleness_dir"
+
 exit "$exit_code"

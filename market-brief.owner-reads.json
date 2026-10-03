@@ -1,6 +1,6 @@
 {
   "contractVersion": "public-owner-reads/v1",
-  "generatedAt": "2026-10-03T14:31:50.056Z",
+  "generatedAt": "2026-10-03T18:31:56.656Z",
   "asOf": "2026-10-03",
   "source": "committed same-origin snapshots via rlmetrics",
   "tickers": [
@@ -595,8 +595,8 @@
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "impliedVol": 0.10535,
-          "impliedMovePct": 0.9551,
+          "impliedVol": 0.10545,
+          "impliedMovePct": 0.956,
           "expiry": "2026-10-05",
           "daysToExpiry": 3,
           "atTheMoneyContracts": 4

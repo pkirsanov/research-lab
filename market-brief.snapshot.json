@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-10-03T15:00:00.000Z",
-  "generatedAt": "2026-10-03T14:31:50.007Z",
-  "window": "morning",
+  "asOf": "2026-10-03T19:00:00.000Z",
+  "generatedAt": "2026-10-03T18:31:56.605Z",
+  "window": "pre-close",
   "marketClosed": true,
   "nextSessionDate": "2026-10-05",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-10-03T14:30:28.336Z",
+      "updated": "2026-10-03T18:30:36.398Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-10-02",
       "refreshDate": "2026-10-03",
-      "refreshWindow": "morning",
+      "refreshWindow": "pre-close",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-10-03T14:30:31.204Z",
+      "updated": "2026-10-03T18:30:39.183Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-10-03",
-      "refreshWindow": "morning",
+      "refreshWindow": "pre-close",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-10-03T14:31:48.558Z",
+      "asOf": "2026-10-03T18:31:55.197Z",
       "read": "Rotate toward XLF as XLK weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.013420238658007122,
           "usdRelativeReturn": 0.07103958674997557,
           "asOf": "2026-10-02T00:00:00.000Z",
-          "computedAt": "2026-10-03T14:31:48.705Z",
+          "computedAt": "2026-10-03T18:31:55.336Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1930,7 +1930,7 @@
           "interaction": 0.00004168732082173317,
           "relationship": "Mixed",
           "asOf": "2026-10-02T00:00:00.000Z",
-          "computedAt": "2026-10-03T14:31:48.705Z",
+          "computedAt": "2026-10-03T18:31:55.336Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1954,7 +1954,7 @@
               "usdLeadership": {
                 "asOf": "2026-10-02T00:00:00.000Z",
                 "benchmarkReturn": 0.013420238658007122,
-                "computedAt": "2026-10-03T14:31:48.705Z",
+                "computedAt": "2026-10-03T18:31:55.336Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2463,7 +2463,7 @@
                 "approximateLocalReturn": 0.11044795271601116,
                 "asOf": "2026-10-02T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.037995206981032315,
-                "computedAt": "2026-10-03T14:31:48.705Z",
+                "computedAt": "2026-10-03T18:31:55.336Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "TWD",
                 "freshUntil": null,
@@ -3055,7 +3055,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-10-03T14:31:48.705Z",
+          "computedAt": "2026-10-03T18:31:55.336Z",
           "freshUntil": null
         }
       },
@@ -3065,17 +3065,17 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-10-03T00:00:00.000Z",
-      "read": "ETH-USD leads real assets at 87.8/100; GLD 27.4, BTC 81.6, SLV 16.2.",
+      "read": "ETH-USD leads real assets at 87.8/100; GLD 27.4, BTC 81.8, SLV 16.2.",
       "metrics": {
         "leader": {
           "ticker": "ETH-USD",
           "model": "crypto",
           "score": 87.8,
           "trend": "Uptrend",
-          "mom21": 6.14,
-          "mom63": 45.43,
-          "mom126": 32.75,
-          "vol": 57.15,
+          "mom21": 6.35,
+          "mom63": 45.73,
+          "mom126": 33.02,
+          "vol": 57.16,
           "maxDrawdown": 21.93,
           "riskPenalty": 4.97,
           "confirmations": [
@@ -3104,10 +3104,10 @@
             "model": "crypto",
             "score": 87.8,
             "trend": "Uptrend",
-            "mom21": 6.14,
-            "mom63": 45.43,
-            "mom126": 32.75,
-            "vol": 57.15,
+            "mom21": 6.35,
+            "mom63": 45.73,
+            "mom126": 33.02,
+            "vol": 57.16,
             "maxDrawdown": 21.93,
             "riskPenalty": 4.97,
             "confirmations": [
@@ -3126,6 +3126,35 @@
                 ],
                 "score": 100,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
+              }
+            ],
+            "asOf": "2026-10-03T00:00:00.000Z"
+          },
+          {
+            "ticker": "BTC-USD",
+            "model": "bitcoin",
+            "score": 81.8,
+            "trend": "Uptrend",
+            "mom21": 9.97,
+            "mom63": 35.39,
+            "mom126": 15.22,
+            "vol": 40.45,
+            "maxDrawdown": 20.41,
+            "riskPenalty": 3.78,
+            "confirmations": [
+              {
+                "label": "Equity risk appetite",
+                "symbols": [
+                  "QQQ"
+                ],
+                "score": 61.90694832006747,
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
+              },
+              {
+                "label": "Volatility / drawdown",
+                "symbols": [],
+                "score": 84.8987815081438,
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
             "asOf": "2026-10-03T00:00:00.000Z"
@@ -3162,35 +3191,6 @@
               }
             ],
             "asOf": "2026-10-02T13:30:00.000Z"
-          },
-          {
-            "ticker": "BTC-USD",
-            "model": "bitcoin",
-            "score": 81.6,
-            "trend": "Uptrend",
-            "mom21": 9.76,
-            "mom63": 35.13,
-            "mom126": 14.99,
-            "vol": 40.45,
-            "maxDrawdown": 20.41,
-            "riskPenalty": 3.78,
-            "confirmations": [
-              {
-                "label": "Equity risk appetite",
-                "symbols": [
-                  "QQQ"
-                ],
-                "score": 61.90694832006747,
-                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
-              },
-              {
-                "label": "Volatility / drawdown",
-                "symbols": [],
-                "score": 84.8987815081438,
-                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
-              }
-            ],
-            "asOf": "2026-10-03T00:00:00.000Z"
           },
           {
             "ticker": "IBIT",
@@ -3244,7 +3244,7 @@
               {
                 "label": "Volatility / drawdown",
                 "symbols": [],
-                "score": 77.32171916569351,
+                "score": 77.3217174817136,
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
@@ -3360,11 +3360,11 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 81.6,
+            "score": 81.8,
             "trend": "Uptrend",
-            "mom21": 9.76,
-            "mom63": 35.13,
-            "mom126": 14.99,
+            "mom21": 9.97,
+            "mom63": 35.39,
+            "mom126": 15.22,
             "vol": 40.45,
             "maxDrawdown": 20.41,
             "riskPenalty": 3.78,
@@ -3492,7 +3492,7 @@
           "xle63": 18.941096231654477,
           "xli63": -8.166222305187286,
           "gld63": -0.5207626223921569,
-          "btc63": 35.129706654650626,
+          "btc63": 35.3943666091797,
           "dbc63": 20.518521909360544,
           "goldSilverRatio63": 1.9689422510668741,
           "breadth": 87.5
@@ -3709,25 +3709,37 @@
     "options-flow-feed-lab": {
       "id": "options-flow-feed-lab",
       "asOf": "2026-10-02T16:00:00.000Z",
-      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 2072 contracts clear the $250k premium bar inside 30 days; the most unusual is IWM 282 puts at $5.2M on 33.4× its open interest.",
+      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 2121 contracts clear the $250k premium bar inside 30 days; the most unusual is QQQ 750 puts at $16.9M on 322.0× its open interest.",
       "deepLink": "options-flow-feed-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "tickers": 12,
-        "contractsFlagged": 2072,
+        "contractsFlagged": 2121,
         "windowDays": 30,
         "premiumThreshold": 250000,
         "lean": "call-heavy (leaning bullish)",
-        "callPremium": 2406892780.5,
-        "putPremium": 1274386754,
-        "callFraction": 0.6538,
+        "callPremium": 2337436827,
+        "putPremium": 1166207041,
+        "callFraction": 0.6671,
         "netPremium": null,
-        "consideredCount": 18566,
-        "clearedCount": 618,
-        "clearedFraction": 0.0333,
-        "maxScore": 89,
+        "consideredCount": 18684,
+        "clearedCount": 570,
+        "clearedFraction": 0.0305,
+        "maxScore": 90,
         "top": [
+          {
+            "ticker": "QQQ",
+            "type": "P",
+            "strike": 750,
+            "dte": 3,
+            "volume": 59252,
+            "openInterest": 184,
+            "volOI": 322.0217,
+            "premium": 16946072,
+            "iv": 10.48,
+            "score": 90
+          },
           {
             "ticker": "IWM",
             "type": "P",
@@ -3743,33 +3755,21 @@
           {
             "ticker": "QQQ",
             "type": "C",
-            "strike": 749,
-            "dte": 0,
-            "volume": 434304,
-            "openInterest": 5176,
-            "volOI": 83.9073,
-            "premium": 40390272,
-            "iv": 0,
-            "score": 81
-          },
-          {
-            "ticker": "NVDA",
-            "type": "P",
-            "strike": 235,
-            "dte": 0,
-            "volume": 359424,
-            "openInterest": 7573,
-            "volOI": 47.4612,
-            "premium": 36840960,
-            "iv": 32.48,
-            "score": 81
+            "strike": 750,
+            "dte": 3,
+            "volume": 53892,
+            "openInterest": 4039,
+            "volOI": 13.3429,
+            "premium": 15170598,
+            "iv": 10.41,
+            "score": 85
           }
         ]
       }
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-10-03T14:31:49.831Z",
+      "asOf": "2026-10-03T18:31:56.406Z",
       "read": "The AI-capex universe is dated 2026-06-30, 96 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
@@ -3848,15 +3848,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-10-03T14:31:49.842Z",
+      "asOf": "2026-10-03T18:31:56.417Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-290e49a6",
-        "evidenceIdentity": "fxe-v1-0cd1588d",
+        "ownerDecisionId": "fxo-v1-7be0675c",
+        "evidenceIdentity": "fxe-v1-7c1e5bd4",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -3979,8 +3979,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-290e49a6",
-            "evidenceIdentity": "fxe-v1-0cd1588d",
+            "ownerDecisionId": "fxo-v1-7be0675c",
+            "evidenceIdentity": "fxe-v1-7c1e5bd4",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4100,7 +4100,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-0cd1588d",
+              "evidenceIdentity": "fxe-v1-7c1e5bd4",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4125,7 +4125,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-10-03T14:31:49.842Z",
+          "computedAt": "2026-10-03T18:31:56.417Z",
           "freshUntil": null
         }
       }
@@ -4151,7 +4151,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-10-03T14:31:49.893Z",
+      "asOf": "2026-10-03T18:31:56.469Z",
       "read": "Leadership is broad — 70.17% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4297,7 +4297,7 @@
       "id": "options-flow-feed-lab",
       "deepLink": "options-flow-feed-lab.html",
       "status": "fresh-headless",
-      "reason": "Option flow is call-heavy (leaning bullish) across 12 tickers: 2072 contracts clear the $250k premium bar inside 30 days; the most unusual is IWM 282 puts at $5.2M on 33.4× its open interest."
+      "reason": "Option flow is call-heavy (leaning bullish) across 12 tickers: 2121 contracts clear the $250k premium bar inside 30 days; the most unusual is QQQ 750 puts at $16.9M on 322.0× its open interest."
     },
     {
       "id": "intraday-tape-lab",
@@ -4339,7 +4339,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "ETH-USD leads real assets at 87.8/100; GLD 27.4, BTC 81.6, SLV 16.2."
+      "reason": "ETH-USD leads real assets at 87.8/100; GLD 27.4, BTC 81.8, SLV 16.2."
     },
     {
       "id": "bond-regime-lab",

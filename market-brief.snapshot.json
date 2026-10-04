@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-10-03T21:00:00.000Z",
-  "generatedAt": "2026-10-03T20:31:46.901Z",
-  "window": "after-hours",
+  "asOf": "2026-10-04T11:30:00.000Z",
+  "generatedAt": "2026-10-04T11:01:54.160Z",
+  "window": "pre-market",
   "marketClosed": true,
   "nextSessionDate": "2026-10-05",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-10-03T20:30:30.689Z",
+      "updated": "2026-10-04T11:00:35.410Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-10-02",
-      "refreshDate": "2026-10-03",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-10-04",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-10-03T20:30:33.713Z",
+      "updated": "2026-10-04T11:00:38.237Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
-      "refreshDate": "2026-10-03",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-10-04",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-10-03T20:31:45.449Z",
+      "asOf": "2026-10-04T11:01:52.747Z",
       "read": "Rotate toward XLF as XLK weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.013420238658007122,
           "usdRelativeReturn": 0.07103958674997557,
           "asOf": "2026-10-02T00:00:00.000Z",
-          "computedAt": "2026-10-03T20:31:45.586Z",
+          "computedAt": "2026-10-04T11:01:52.887Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1930,7 +1930,7 @@
           "interaction": 0.00004168732082173317,
           "relationship": "Mixed",
           "asOf": "2026-10-02T00:00:00.000Z",
-          "computedAt": "2026-10-03T20:31:45.586Z",
+          "computedAt": "2026-10-04T11:01:52.887Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1954,7 +1954,7 @@
               "usdLeadership": {
                 "asOf": "2026-10-02T00:00:00.000Z",
                 "benchmarkReturn": 0.013420238658007122,
-                "computedAt": "2026-10-03T20:31:45.586Z",
+                "computedAt": "2026-10-04T11:01:52.887Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2463,7 +2463,7 @@
                 "approximateLocalReturn": 0.11044795271601116,
                 "asOf": "2026-10-02T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.037995206981032315,
-                "computedAt": "2026-10-03T20:31:45.586Z",
+                "computedAt": "2026-10-04T11:01:52.887Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "TWD",
                 "freshUntil": null,
@@ -3055,7 +3055,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-10-03T20:31:45.586Z",
+          "computedAt": "2026-10-04T11:01:52.887Z",
           "freshUntil": null
         }
       },
@@ -3064,20 +3064,20 @@
     },
     "real-assets-lab": {
       "id": "real-assets-lab",
-      "asOf": "2026-10-03T00:00:00.000Z",
-      "read": "ETH-USD leads real assets at 87.8/100; GLD 27.4, BTC 81.7, SLV 16.2.",
+      "asOf": "2026-10-04T00:00:00.000Z",
+      "read": "ETH-USD leads real assets at 87.6/100; GLD 27.4, BTC 82.6, SLV 16.2.",
       "metrics": {
         "leader": {
           "ticker": "ETH-USD",
           "model": "crypto",
-          "score": 87.8,
+          "score": 87.6,
           "trend": "Uptrend",
-          "mom21": 6.39,
-          "mom63": 45.78,
-          "mom126": 33.07,
-          "vol": 57.16,
-          "maxDrawdown": 21.93,
-          "riskPenalty": 4.97,
+          "mom21": 9.05,
+          "mom63": 43.49,
+          "mom126": 34.77,
+          "vol": 57.13,
+          "maxDrawdown": 21.88,
+          "riskPenalty": 4.95,
           "confirmations": [
             {
               "label": "Equity risk appetite",
@@ -3092,24 +3092,24 @@
               "symbols": [
                 "BTC-USD"
               ],
-              "score": 100,
+              "score": 99.00883039961835,
               "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
             }
           ],
-          "asOf": "2026-10-03T00:00:00.000Z"
+          "asOf": "2026-10-04T00:00:00.000Z"
         },
         "ranked": [
           {
             "ticker": "ETH-USD",
             "model": "crypto",
-            "score": 87.8,
+            "score": 87.6,
             "trend": "Uptrend",
-            "mom21": 6.39,
-            "mom63": 45.78,
-            "mom126": 33.07,
-            "vol": 57.16,
-            "maxDrawdown": 21.93,
-            "riskPenalty": 4.97,
+            "mom21": 9.05,
+            "mom63": 43.49,
+            "mom126": 34.77,
+            "vol": 57.13,
+            "maxDrawdown": 21.88,
+            "riskPenalty": 4.95,
             "confirmations": [
               {
                 "label": "Equity risk appetite",
@@ -3124,11 +3124,40 @@
                 "symbols": [
                   "BTC-USD"
                 ],
-                "score": 100,
+                "score": 99.00883039961835,
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
-            "asOf": "2026-10-03T00:00:00.000Z"
+            "asOf": "2026-10-04T00:00:00.000Z"
+          },
+          {
+            "ticker": "BTC-USD",
+            "model": "bitcoin",
+            "score": 82.6,
+            "trend": "Uptrend",
+            "mom21": 10.96,
+            "mom63": 34.31,
+            "mom126": 15.87,
+            "vol": 40.45,
+            "maxDrawdown": 17.89,
+            "riskPenalty": 3.2,
+            "confirmations": [
+              {
+                "label": "Equity risk appetite",
+                "symbols": [
+                  "QQQ"
+                ],
+                "score": 61.90694832006747,
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
+              },
+              {
+                "label": "Volatility / drawdown",
+                "symbols": [],
+                "score": 87.21886955657787,
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
+              }
+            ],
+            "asOf": "2026-10-04T00:00:00.000Z"
           },
           {
             "ticker": "BNO",
@@ -3162,35 +3191,6 @@
               }
             ],
             "asOf": "2026-10-02T13:30:00.000Z"
-          },
-          {
-            "ticker": "BTC-USD",
-            "model": "bitcoin",
-            "score": 81.7,
-            "trend": "Uptrend",
-            "mom21": 9.84,
-            "mom63": 35.23,
-            "mom126": 15.08,
-            "vol": 40.45,
-            "maxDrawdown": 20.41,
-            "riskPenalty": 3.78,
-            "confirmations": [
-              {
-                "label": "Equity risk appetite",
-                "symbols": [
-                  "QQQ"
-                ],
-                "score": 61.90694832006747,
-                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used."
-              },
-              {
-                "label": "Volatility / drawdown",
-                "symbols": [],
-                "score": 84.8987815081438,
-                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
-              }
-            ],
-            "asOf": "2026-10-03T00:00:00.000Z"
           },
           {
             "ticker": "IBIT",
@@ -3244,7 +3244,7 @@
               {
                 "label": "Volatility / drawdown",
                 "symbols": [],
-                "score": 77.32171185393115,
+                "score": 77.32171579773402,
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
@@ -3360,14 +3360,14 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 81.7,
+            "score": 82.6,
             "trend": "Uptrend",
-            "mom21": 9.84,
-            "mom63": 35.23,
-            "mom126": 15.08,
+            "mom21": 10.96,
+            "mom63": 34.31,
+            "mom126": 15.87,
             "vol": 40.45,
-            "maxDrawdown": 20.41,
-            "riskPenalty": 3.78,
+            "maxDrawdown": 17.89,
+            "riskPenalty": 3.2,
             "confirmations": [
               {
                 "label": "Equity risk appetite",
@@ -3380,11 +3380,11 @@
               {
                 "label": "Volatility / drawdown",
                 "symbols": [],
-                "score": 84.8987815081438,
+                "score": 87.21886955657787,
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-10-03T00:00:00.000Z"
+            "asOf": "2026-10-04T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -3492,7 +3492,7 @@
           "xle63": 18.941096231654477,
           "xli63": -8.166222305187286,
           "gld63": -0.5207626223921569,
-          "btc63": 35.229610746224814,
+          "btc63": 34.30618127973284,
           "dbc63": 20.518521909360544,
           "goldSilverRatio63": 1.9689422510668741,
           "breadth": 87.5
@@ -3667,7 +3667,7 @@
     "options-structure-lab": {
       "id": "options-structure-lab",
       "asOf": "2026-10-02T16:00:00.000Z",
-      "read": "SPY sits in positive dealer gamma with the flip near 766.89; call wall 770, put wall 760, front expected move ±4.04.",
+      "read": "SPY sits in positive dealer gamma with the flip near 766.96; call wall 770, put wall 760, front expected move ±4.03.",
       "deepLink": "options-structure-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3675,19 +3675,19 @@
         "symbol": "SPY",
         "spot": 769.64,
         "regime": "positive",
-        "flipLevel": 766.89,
-        "signedNetGEX": 772179936.5011,
+        "flipLevel": 766.96,
+        "signedNetGEX": 759898324.0954,
         "callWall": 770,
         "putWall": 760,
-        "expectedMove": 4.04,
-        "atmIV": 0.071,
+        "expectedMove": 4.03,
+        "atmIV": 0.0707,
         "expiriesPriced": 3
       }
     },
     "gamma-trading-lab": {
       "id": "gamma-trading-lab",
       "asOf": "2026-10-02T16:00:00.000Z",
-      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 766.89, walls 760/770.",
+      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 766.96, walls 760/770.",
       "deepLink": "gamma-trading-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3697,9 +3697,9 @@
         "scenario": "pin-to-maxpain",
         "conviction": "patient",
         "hold": "same-session-fade",
-        "signedNetGEX": 772179936.5,
+        "signedNetGEX": 759898324.1,
         "flipPresent": true,
-        "flip": 766.89,
+        "flip": 766.96,
         "callWall": 770,
         "putWall": 760,
         "oviState": "unavailable",
@@ -3719,13 +3719,13 @@
         "windowDays": 30,
         "premiumThreshold": 250000,
         "lean": "call-heavy (leaning bullish)",
-        "callPremium": 1550731851.5,
-        "putPremium": 898984844,
+        "callPremium": 1550733233.5,
+        "putPremium": 898985980,
         "callFraction": 0.633,
         "netPremium": null,
         "consideredCount": 17208,
-        "clearedCount": 377,
-        "clearedFraction": 0.0219,
+        "clearedCount": 372,
+        "clearedFraction": 0.0216,
         "maxScore": 91,
         "top": [
           {
@@ -3737,7 +3737,7 @@
             "openInterest": 2169,
             "volOI": 3.5025,
             "premium": 9306325,
-            "iv": 42.03,
+            "iv": 42.01,
             "score": 91
           },
           {
@@ -3761,7 +3761,7 @@
             "openInterest": 19594,
             "volOI": 5.8902,
             "premium": 13964852,
-            "iv": 25.42,
+            "iv": 25.55,
             "score": 90
           }
         ]
@@ -3769,7 +3769,7 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-10-03T20:31:46.710Z",
+      "asOf": "2026-10-04T11:01:53.936Z",
       "read": "The AI-capex universe is dated 2026-06-30, 96 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
@@ -3801,7 +3801,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-10-02",
-            "elapsedDays": 1,
+            "elapsedDays": 2,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           },
@@ -3809,7 +3809,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-10-02",
-            "elapsedDays": 1,
+            "elapsedDays": 2,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           }
@@ -3848,15 +3848,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-10-03T20:31:46.721Z",
+      "asOf": "2026-10-04T11:01:53.948Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-100e31b2",
-        "evidenceIdentity": "fxe-v1-0df46b85",
+        "ownerDecisionId": "fxo-v1-1f3027c1",
+        "evidenceIdentity": "fxe-v1-f81e67dd",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -3979,8 +3979,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-100e31b2",
-            "evidenceIdentity": "fxe-v1-0df46b85",
+            "ownerDecisionId": "fxo-v1-1f3027c1",
+            "evidenceIdentity": "fxe-v1-f81e67dd",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4100,7 +4100,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-0df46b85",
+              "evidenceIdentity": "fxe-v1-f81e67dd",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4125,7 +4125,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-10-03T20:31:46.721Z",
+          "computedAt": "2026-10-04T11:01:53.948Z",
           "freshUntil": null
         }
       }
@@ -4151,7 +4151,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-10-03T20:31:46.776Z",
+      "asOf": "2026-10-04T11:01:54.014Z",
       "read": "Leadership is broad — 70.17% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4315,13 +4315,13 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY sits in positive dealer gamma with the flip near 766.89; call wall 770, put wall 760, front expected move ±4.04."
+      "reason": "SPY sits in positive dealer gamma with the flip near 766.96; call wall 770, put wall 760, front expected move ±4.03."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 766.89, walls 760/770."
+      "reason": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 766.96, walls 760/770."
     },
     {
       "id": "sector-research-lab",
@@ -4339,7 +4339,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "ETH-USD leads real assets at 87.8/100; GLD 27.4, BTC 81.7, SLV 16.2."
+      "reason": "ETH-USD leads real assets at 87.6/100; GLD 27.4, BTC 82.6, SLV 16.2."
     },
     {
       "id": "bond-regime-lab",

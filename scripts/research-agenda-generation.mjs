@@ -506,6 +506,71 @@ export function validateResearchSituation(situation, { generationId, topic, defi
   return success(clone(situation));
 }
 
+// Bounds every open-ended array in the response schema. Unbounded, a constrained decoder is free to
+// keep appending records until the token ceiling, which ran one research author to the lane timeout.
+const OPEN_ARRAY_MAX_ITEMS = 24;
+
+/* JSON Schema for a research-situation-set response, built from the same constants
+   validateResearchSituation enforces so a constrained-decoding provider cannot return a shape the
+   validator will refuse. Only the shape the validator checks structurally is pinned here (exact
+   keys, section states, object-typed model inputs); evidence records and findings stay open arrays
+   because their per-field vocabularies are validated downstream, and an empty array with
+   completePass false is a valid, honest answer when no evidence was acquired. */
+export function researchSituationSetResponseSchema({ generationId = null, topicId = null, sectionIds = null, allowEvidence = true } = {}) {
+  // With no acquired source there is nothing an evidence record, finding or ledger entry could cite,
+  // and a local model asked for one invents a source (hash, URL) or writes records without end.
+  const arrayMax = allowEvidence ? OPEN_ARRAY_MAX_ITEMS : 0;
+  const stringList = { type: 'array', maxItems: arrayMax, items: { type: 'string' } };
+  const openList = { type: 'array', maxItems: arrayMax, items: { type: 'object' } };
+  const exactSections = Array.isArray(sectionIds) && sectionIds.length > 0;
+  const situationProperties = {
+    contractVersion: { type: 'string', enum: [RESEARCH_AGENDA_CONTRACTS.situation] },
+    generationId: generationId ? { type: 'string', enum: [generationId] } : { type: 'string' },
+    topicId: topicId ? { type: 'string', enum: [topicId] } : { type: 'string' },
+    authoredAt: { type: 'string' },
+    completePass: { type: 'boolean' },
+    evidenceRecords: openList,
+    sectionInterpretations: {
+      type: 'array',
+      ...(exactSections ? { minItems: sectionIds.length, maxItems: sectionIds.length } : {}),
+      items: {
+        type: 'object',
+        additionalProperties: false,
+        required: [...SECTION_INTERPRETATION_FIELDS],
+        properties: {
+          sectionId: exactSections ? { type: 'string', enum: [...sectionIds] } : { type: 'string' },
+          status: { type: 'string', enum: [...SECTION_STATES] },
+          interpretation: { type: 'string' },
+          gaps: { type: 'array', maxItems: OPEN_ARRAY_MAX_ITEMS, items: { type: 'string' } }
+        }
+      }
+    },
+    findings: openList,
+    sourceLedger: openList,
+    newEvidenceIds: stringList,
+    modelInputs: {
+      type: 'object',
+      additionalProperties: false,
+      required: [...MODEL_INPUT_FIELDS],
+      properties: Object.fromEntries(MODEL_INPUT_FIELDS.map((field) => [field, { type: 'object' }]))
+    }
+  };
+  return {
+    type: 'object',
+    additionalProperties: false,
+    required: ['contractVersion', 'generationId', 'situations'],
+    properties: {
+      contractVersion: { type: 'string', enum: [RESEARCH_AGENDA_CONTRACTS.situationSet] },
+      generationId: generationId ? { type: 'string', enum: [generationId] } : { type: 'string' },
+      situations: {
+        type: 'array',
+        ...(topicId ? { minItems: 1, maxItems: 1 } : {}),
+        items: { type: 'object', additionalProperties: false, required: [...SITUATION_FIELDS], properties: situationProperties }
+      }
+    }
+  };
+}
+
 function resolveSidePoolPolicy(agendaPolicy, policyDigest) {
   const resolved = RLAGENDA.resolveAgendaPolicy(agendaPolicy);
   if (!resolved.ok || resolved.digest !== policyDigest) return null;

@@ -12051,6 +12051,45 @@ try {
   }
 } catch (e) { failures++; console.log('  ✗ FAIL (Feature 019 Scope 03 offline plan group threw): ' + e.message); }
 
+/* ---------- OMLX research author response schema ---------- */
+try {
+  const schemaModule = await import('./research-agenda-generation.mjs');
+  const researchSchema = schemaModule.researchSituationSetResponseSchema();
+  const situationSchema = researchSchema.properties.situations.items;
+  const sectionSchema = situationSchema.properties.sectionInterpretations.items;
+  const generationSourceText = read('scripts/research-agenda-generation.mjs');
+  const declaredSituationFields = generationSourceText.match(/const SITUATION_FIELDS = Object\.freeze\(\[([\s\S]*?)\]\);/)[1].match(/'([^']+)'/g).map((field) => field.slice(1, -1));
+  assert(researchSchema.additionalProperties === false
+    && JSON.stringify(researchSchema.required) === '["contractVersion","generationId","situations"]'
+    && situationSchema.additionalProperties === false
+    && JSON.stringify([...situationSchema.required].sort()) === JSON.stringify([...declaredSituationFields].sort())
+    && Object.keys(situationSchema.properties).every((field) => declaredSituationFields.includes(field))
+    && JSON.stringify(sectionSchema.properties.status.enum) === '["changed","unchanged","stale","unavailable"]'
+    && sectionSchema.additionalProperties === false
+    && JSON.stringify(situationSchema.properties.modelInputs.required) === '["chokepointState","inventoryGapByChannel","levers"]',
+  'the OMLX research author response schema is derived from the validator constants: exact situation keys, exact section keys and states, exact model-input keys — so the model cannot return its own invented shape');
+  const boundedSchema = schemaModule.researchSituationSetResponseSchema({ generationId: 'generation-x', topicId: 'topic-x', sectionIds: ['s1', 's2', 's3'] });
+  const boundedSituation = boundedSchema.properties.situations.items;
+  assert(JSON.stringify(boundedSchema.properties.generationId.enum) === '["generation-x"]'
+    && boundedSchema.properties.situations.minItems === 1 && boundedSchema.properties.situations.maxItems === 1
+    && JSON.stringify(boundedSituation.properties.topicId.enum) === '["topic-x"]'
+    && boundedSituation.properties.sectionInterpretations.minItems === 3
+    && boundedSituation.properties.sectionInterpretations.maxItems === 3
+    && JSON.stringify(boundedSituation.properties.sectionInterpretations.items.properties.sectionId.enum) === '["s1","s2","s3"]'
+    && ['evidenceRecords', 'findings', 'sourceLedger', 'newEvidenceIds'].every((field) => Number.isInteger(boundedSituation.properties[field].maxItems)),
+  'the research author schema pins the generation, topic and exactly the topic\'s own section ids, and caps every open array — unbounded, one author ran to the 900s lane timeout');
+  const noSourceSchema = schemaModule.researchSituationSetResponseSchema({ allowEvidence: false }).properties.situations.items.properties;
+  assert(['evidenceRecords', 'findings', 'sourceLedger', 'newEvidenceIds'].every((field) => noSourceSchema[field].maxItems === 0)
+    && noSourceSchema.sectionInterpretations.items.properties.gaps.maxItems > 0
+    && /allowEvidence:\s*Number\(selected\?\.acquisition\?\.bundle\?\.sources\?\.length/.test(read('scripts/brief-narrative-parallel.mjs')),
+  'with no acquired source the research author schema forbids evidence records, findings and ledger entries, so the model writes only section interpretations and gaps instead of inventing sources or running to the token ceiling');
+  const composerForSchema = read('scripts/brief-narrative-parallel.mjs');
+  assert(/lane\.kind === 'research'[\s\S]{0,500}researchSituationSetResponseSchema\(\{/.test(composerForSchema)
+    && /Math\.min\(16384, Math\.max\(omlxMaxTokens/.test(composerForSchema)
+    && /researchSituationSetResponseSchema\(\{[\s\S]{0,200}sectionIds:/.test(composerForSchema),
+  'research author lanes request the research situation schema and a token ceiling above the 8192 default, which truncated one topic mid-string');
+} catch (e) { failures++; console.log('  ✗ FAIL (OMLX research schema group threw): ' + e.message); }
+
 /* ---------- Feature 019 Scope 04: candidate outcomes before publication ---------- */
 try {
   const generationModule = await import('./research-agenda-generation.mjs');

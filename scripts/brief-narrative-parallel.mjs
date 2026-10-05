@@ -16,7 +16,7 @@ import {
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { distinctRowsBy, reassertCompanyOwnerReadDisclosure, reassertSnapshotOwnerRead, trackedAsOfReader } from './brief-refresh.mjs';
-import { RESEARCH_AGENDA_CONTRACTS, runResearchSidePool } from './research-agenda-generation.mjs';
+import { RESEARCH_AGENDA_CONTRACTS, researchSituationSetResponseSchema, runResearchSidePool } from './research-agenda-generation.mjs';
 import { BRIEF_PAYLOAD_BUDGET_CONTRACT, briefEventContractInstruction, briefRegimeBiasInstruction } from './validate-brief-payload.mjs';
 import { attentionAuthoredKeysInstruction, attentionCardBudgetInstruction, attentionExpiryFormatInstruction, attentionHeadlineCapInstruction, attentionRationaleBudgetInstruction, attentionSubjectMenuInstruction, attentionSubjectUniquenessInstruction, attentionVerbContractInstruction, briefFreshnessBadgeInstruction, recommendationConfidenceContractInstruction } from './build-attention-items.mjs';
 import { BRIEF_NARRATIVE_FIELDS_REQUIRED, briefBackdropKeysInstruction, matchesFieldPatterns, walkBriefStrings } from './reader-vocabulary.mjs';
@@ -823,6 +823,24 @@ function assertOmlxFactBinding(candidate, lane) {
    JSON types are constrained: the schema example for attention carries recomposed envelope
    fields the lane is told not to author, so nested strictness would force exactly those. */
 function omlxLaneResponseFormat(lane, laneInputValue) {
+    // A research author lane has a contract far deeper than its top-level keys, and left open the
+    // model invented its own shape (title/sections/gaps) that the situation validator refused.
+    if (lane.kind === 'research') {
+        const selected = laneInputValue?.selectedTopics?.[0];
+        return {
+            type: 'json_schema',
+            json_schema: {
+                name: 'research_situation_set',
+                strict: true,
+                schema: researchSituationSetResponseSchema({
+                    generationId: laneInputValue?.generationId,
+                    topicId: selected?.topic?.topicId,
+                    sectionIds: selected?.definition?.analyticalSections?.map((section) => section.sectionId),
+                    allowEvidence: Number(selected?.acquisition?.bundle?.sources?.length || 0) > 0
+                })
+            }
+        };
+    }
     const example = laneInputValue?.outputSchema || {};
     const typeOf = (value) => Array.isArray(value) ? { type: 'array' }
         : value && typeof value === 'object' ? { type: 'object' }
@@ -864,7 +882,11 @@ async function runOmlxLane({ lane, laneAttempt, prompt, inputPath, outputPath, s
                 response_format: omlxLaneResponseFormat(lane, laneInputValue),
                 reasoning_effort: 'none',
                 chat_template_kwargs: { enable_thinking: false },
-                max_tokens: Math.min(omlxMaxTokens, Math.max(1024, Math.floor((lane.maxOutputBytes || 65536) / 4)))
+                max_tokens: lane.kind === 'research'
+                    // Research situations legitimately run past the 8192 default (one topic's JSON was cut
+                    // off mid-string at that cap); the lane's own declared output bound sets the ceiling.
+                    ? Math.min(16384, Math.max(omlxMaxTokens, Math.floor((lane.maxOutputBytes || 65536) / 4)))
+                    : Math.min(omlxMaxTokens, Math.max(1024, Math.floor((lane.maxOutputBytes || 65536) / 4)))
             })
         });
         const responseText = await response.text();

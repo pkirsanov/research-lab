@@ -1928,6 +1928,12 @@
                 return output;
             }
 
+            /* Owner state is terminal and readable once hydration ends. State that fact so a direct-open
+               Simple view requalifies by itself instead of waiting for a Power-then-Simple toggle (BUG-004). */
+            function requestSimpleRefresh() {
+                if (window.RLEXPERIENCE && typeof RLEXPERIENCE.requestSimpleRefresh === "function") RLEXPERIENCE.requestSimpleRefresh({ toolId: "global-rotation-lab" });
+            }
+
             function hydrate(force) {
                 if (!window.RLDATA || !RLDATA.ensureBars || hydration.active) { render(); return Promise.resolve(); }
                 var symbols = uniqueSymbols(), cursor = 0, workers = [], concurrency = 5;
@@ -1946,7 +1952,7 @@
                     });
                 }
                 for (var i = 0; i < Math.min(concurrency, symbols.length); i++) workers.push(worker());
-                return Promise.all(workers).then(function () { hydration.active = false; byId("refreshBtn").disabled = false; render(); }, function () { hydration.active = false; byId("refreshBtn").disabled = false; render(); });
+                return Promise.all(workers).then(function () { hydration.active = false; byId("refreshBtn").disabled = false; render(); requestSimpleRefresh(); }, function () { hydration.active = false; byId("refreshBtn").disabled = false; render(); requestSimpleRefresh(); });
             }
 
             function validUniverse(candidate) {

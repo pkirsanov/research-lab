@@ -473,7 +473,19 @@
       },
       projectOwnerEvidence: function (output) {
         var summary = output.values.summary;
-        return {
+        /* The flagged contracts the model ranked, by premium: shows WHICH strikes lit up and how
+           concentrated the money is. Restates numbers the model already computed. */
+        var top = (summary.contracts && summary.contracts.top || []).filter(function (row) { return isFiniteNumber(row.premium); });
+        var chart = top.length ? {
+          kind: "bars",
+          title: "Largest flagged contracts by premium",
+          unit: "$ millions",
+          items: top.slice().sort(function (left, right) { return right.premium - left.premium; }).map(function (row) {
+            return { label: row.ticker + " " + (row.type === "put" || row.type === "P" ? "P" : "C") + " " + row.strike + " · " + row.dte + "d", value: roundTo(row.premium / 1e6, 2) };
+          }),
+          reference: null
+        } : null;
+        var projected = {
           ok: true,
           value: {
             contractVersion: "owner-evidence-projection/v1",
@@ -486,6 +498,8 @@
             sourceRefs: ["owner-evidence"]
           }
         };
+        if (chart) projected.value.chart = chart;
+        return projected;
       }
     };
   }

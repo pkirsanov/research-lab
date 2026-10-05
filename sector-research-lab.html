@@ -3306,11 +3306,16 @@
         RLDATA.putBars(sharedKeyFor(ticker), '1d', rows, 'sector-research-lab');
       });
     }
+    /* Owner state is terminal and readable once the shared-cache hydration finishes. State that fact so a
+       direct-open Simple view requalifies by itself instead of waiting for a Power-then-Simple toggle (BUG-004). */
+    function requestSimpleRefreshOnce() {
+      if (window.RLEXPERIENCE && typeof RLEXPERIENCE.requestSimpleRefresh === 'function') RLEXPERIENCE.requestSimpleRefresh({ toolId: 'sector-research-lab' });
+    }
     function hydrateSharedBars() {
       if (state._autoHydrating || typeof RLDATA === 'undefined' || !RLDATA.ensureBars) return;
       var queue = neededTickers().slice(), index = 0; state._autoHydrating = true;
       function next() {
-        if (index >= queue.length) { state._autoHydrating = false; importSharedBars(); render(); setStatus('shared cache refreshed · ' + Object.keys(state.series).length + ' tickers cached', 'ok'); return; }
+        if (index >= queue.length) { state._autoHydrating = false; importSharedBars(); render(); requestSimpleRefreshOnce(); setStatus('shared cache refreshed · ' + Object.keys(state.series).length + ' tickers cached', 'ok'); return; }
         var ticker = queue[index++];
         RLDATA.ensureBars(sharedKeyFor(ticker), '1d', 12, '5y').catch(function () { return null; }).then(function () { if (index % 3 === 0) { importSharedBars(); render(); } return next(); });
       }

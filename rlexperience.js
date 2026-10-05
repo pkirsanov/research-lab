@@ -1568,13 +1568,20 @@
      alternative, so nothing depends on color alone. */
   function renderSimpleChartInternal(host, chart) {
     var doc = host.ownerDocument, NS = "http://www.w3.org/2000/svg";
-    var rowH = 22, labelW = 150, valueW = 54, plotW = 360, top = 18, height = top + chart.items.length * rowH + 8;
+    var longest = chart.items.reduce(function (m, item) { return Math.max(m, item.label.length); }, 0);
+    /* The label column grows to the longest label (about 7px per character at 12px) so a long
+       label is never clipped at the left edge of the viewBox. */
+    var rowH = 22, labelW = Math.max(150, longest * 7 + 16), valueW = 54, plotW = 360, top = 18, height = top + chart.items.length * rowH + 8;
     var max = chart.items.reduce(function (m, item) { return Math.max(m, item.value); }, chart.reference ? chart.reference.value : 0);
     var min = Math.min(0, chart.items.reduce(function (m, item) { return Math.min(m, item.value); }, 0));
     var span = (max - min) || 1;
     function x(value) { return labelW + ((value - min) / span) * plotW; }
     var figure = doc.createElement("figure");
     figure.setAttribute("data-simple-chart", chart.kind);
+    /* The shared ticker linkifier (rlticker.js) replaces a ticker text node with an HTML link, and an
+       HTML element inside an SVG <text> does not render, which silently dropped the ticker from every
+       label. The figure is already complete; mark it so the linkifier skips it. */
+    figure.setAttribute("data-rlk-done", "1");
     figure.style.margin = "14px 0 4px";
     var caption = doc.createElement("figcaption");
     caption.textContent = chart.title + " (" + chart.unit + ")";

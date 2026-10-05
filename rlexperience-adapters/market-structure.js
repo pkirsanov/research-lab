@@ -496,7 +496,7 @@
       },
       projectOwnerEvidence: function (output) {
         var summary = output.values.summary;
-        return {
+        var projected = {
           ok: true,
           value: {
             contractVersion: "owner-evidence-projection/v1",
@@ -507,9 +507,25 @@
             summary: summary.leadership.state === "broad"
               ? "Breadth " + summary.breadth.pct + "% clears the " + summary.leadership.threshold + "% threshold: broad leadership."
               : "Breadth " + summary.breadth.pct + "% is below the " + summary.leadership.threshold + "% threshold: narrow leadership.",
-            sourceRefs: ["owner-evidence"]
+            sourceRefs: ["owner-evidence"],
+            /* Per-group breadth against the threshold: shows WHERE the breadth is, which the single
+               headline percentage cannot. Restates numbers the model already computed. */
+            chart: (function () {
+              var groups = (summary.groups || []).filter(function (group) { return typeof group.breadthPct === "number" && isFinite(group.breadthPct); })
+                .slice().sort(function (left, right) { return right.breadthPct - left.breadthPct; }).slice(0, 24);
+              if (!groups.length) return null;
+              return {
+                kind: "bars",
+                title: "Share of each group rising",
+                unit: "percent",
+                items: groups.map(function (group) { return { label: group.group, value: group.breadthPct }; }),
+                reference: { label: "Broad threshold", value: summary.leadership.threshold }
+              };
+            })()
           }
         };
+        if (projected.value.chart === null) delete projected.value.chart;
+        return projected;
       }
     };
   }

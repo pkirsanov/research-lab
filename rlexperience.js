@@ -1075,6 +1075,7 @@
       limitations: cloneCanonical(options.limitations),
       uncertainty: cloneCanonical(options.uncertainty),
       deepLinks: isPlainObject(options.deepLinks) ? cloneCanonical(options.deepLinks) : {},
+      chart: state === "ready" && isPlainObject(options.chart) ? cloneCanonical(options.chart) : null,
       noExecution: true
     });
   }
@@ -1128,13 +1129,37 @@
     return deepFreeze(cloneCanonical(output));
   }
 
+  /* An owner may attach one small chart to its Simple projection: horizontal bars with an
+     optional reference line. The shape is deliberately tiny and closed so a chart can only
+     restate numbers the owner model already computed; it carries no formula and no styling. */
+  function validateSimpleChart(chart, toolId) {
+    var path = "$.ownerProjection.chart", code = "E012-SIMPLE-INPUT", contract = "owner-evidence-projection/v1";
+    exactKeys(chart, ["kind", "title", "unit", "items", "reference"], path, code, "simple-projection", contract, toolId);
+    if (chart.kind !== "bars") reject(code, "simple-projection", contract, path + ".kind", "only the bars chart kind is declared", toolId);
+    requireString(chart.title, path + ".title", code, "simple-projection", contract, toolId);
+    requireString(chart.unit, path + ".unit", code, "simple-projection", contract, toolId);
+    if (!Array.isArray(chart.items) || chart.items.length < 1 || chart.items.length > 24) reject(code, "simple-projection", contract, path + ".items", "between 1 and 24 chart items required", toolId);
+    chart.items.forEach(function (item, index) {
+      exactKeys(item, ["label", "value"], path + ".items[" + index + "]", code, "simple-projection", contract, toolId);
+      requireString(item.label, path + ".items[" + index + "].label", code, "simple-projection", contract, toolId);
+      if (!Number.isFinite(item.value)) reject(code, "simple-projection", contract, path + ".items[" + index + "].value", "finite chart value required", toolId);
+    });
+    if (chart.reference !== null) {
+      exactKeys(chart.reference, ["label", "value"], path + ".reference", code, "simple-projection", contract, toolId);
+      requireString(chart.reference.label, path + ".reference.label", code, "simple-projection", contract, toolId);
+      if (!Number.isFinite(chart.reference.value)) reject(code, "simple-projection", contract, path + ".reference.value", "finite reference value required", toolId);
+    }
+  }
+
   function validateOwnerProjection(definition, output, projection) {
-    exactKeys(projection, ["contractVersion", "state", "valueText", "numericValue", "unit", "summary", "sourceRefs"], "$.ownerProjection", "E012-SIMPLE-INPUT", "simple-projection", "owner-evidence-projection/v1", definition.toolId);
+    var hasChart = isPlainObject(projection) && Object.prototype.hasOwnProperty.call(projection, "chart");
+    exactKeys(projection, ["contractVersion", "state", "valueText", "numericValue", "unit", "summary", "sourceRefs"].concat(hasChart ? ["chart"] : []), "$.ownerProjection", "E012-SIMPLE-INPUT", "simple-projection", "owner-evidence-projection/v1", definition.toolId);
     requireVersion(projection.contractVersion, "owner-evidence-projection/v1", "$.ownerProjection.contractVersion", "simple-projection", definition.toolId);
     if (projection.state !== output.state) reject("E012-SIMPLE-INPUT", "simple-projection", projection.contractVersion, "$.ownerProjection.state", "owner projection state mismatch", definition.toolId);
     ["valueText", "unit", "summary"].forEach(function (key) { requireString(projection[key], "$.ownerProjection." + key, "E012-SIMPLE-INPUT", "simple-projection", projection.contractVersion, definition.toolId); });
     if (projection.numericValue !== null && !Number.isFinite(projection.numericValue)) reject("E012-SIMPLE-INPUT", "simple-projection", projection.contractVersion, "$.ownerProjection.numericValue", "finite owner value or null required", definition.toolId);
     requireStringArray(projection.sourceRefs, "$.ownerProjection.sourceRefs", "E012-SIMPLE-INPUT", "simple-projection", projection.contractVersion, 1, definition.toolId);
+    if (hasChart) validateSimpleChart(projection.chart, definition.toolId);
     return deepFreeze(cloneCanonical(projection));
   }
 
@@ -1339,6 +1364,7 @@
         valueText: computation.ownerProjection.valueText,
         numericValue: computation.ownerProjection.numericValue,
         unit: computation.ownerProjection.unit,
+        chart: computation.ownerProjection.chart,
         requiredEvidence: definition.inputRequirements.filter(function (requirement) { return requirement.required; }).map(function (requirement) { return requirement.requirementId; }),
         observedEvidence: computation.input.evidenceRefs.map(function (reference) { return reference.requirementId; }),
         lastValidRun: run,
@@ -1535,6 +1561,54 @@
     return value.toFixed(digits);
   }
 
+  /* Horizontal bar chart in inline SVG: no dependency, scales with its container, and inherits the
+     page's own colors through CSS variables with fallbacks. A bar at or above the reference is drawn
+     in the accent color and one below it in the caution color, so the verdict is visible without
+     reading a number. Every bar also prints its value, and the whole figure carries a text
+     alternative, so nothing depends on color alone. */
+  function renderSimpleChartInternal(host, chart) {
+    var doc = host.ownerDocument, NS = "http://www.w3.org/2000/svg";
+    var rowH = 22, labelW = 150, valueW = 54, plotW = 360, top = 18, height = top + chart.items.length * rowH + 8;
+    var max = chart.items.reduce(function (m, item) { return Math.max(m, item.value); }, chart.reference ? chart.reference.value : 0);
+    var min = Math.min(0, chart.items.reduce(function (m, item) { return Math.min(m, item.value); }, 0));
+    var span = (max - min) || 1;
+    function x(value) { return labelW + ((value - min) / span) * plotW; }
+    var figure = doc.createElement("figure");
+    figure.setAttribute("data-simple-chart", chart.kind);
+    figure.style.margin = "14px 0 4px";
+    var caption = doc.createElement("figcaption");
+    caption.textContent = chart.title + " (" + chart.unit + ")";
+    caption.style.cssText = "font-size:12px;opacity:.75;margin-bottom:4px";
+    figure.appendChild(caption);
+    var svg = doc.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + (labelW + plotW + valueW) + " " + height);
+    svg.setAttribute("width", "100%");
+    svg.setAttribute("role", "img");
+    svg.setAttribute("aria-label", chart.title + ": " + chart.items.map(function (item) { return item.label + " " + item.value; }).join(", ")
+      + (chart.reference ? ". " + chart.reference.label + " " + chart.reference.value : ""));
+    function add(tag, attrs, text) {
+      var node = doc.createElementNS(NS, tag);
+      Object.keys(attrs).forEach(function (key) { node.setAttribute(key, attrs[key]); });
+      if (text !== undefined) node.textContent = text;
+      svg.appendChild(node);
+      return node;
+    }
+    chart.items.forEach(function (item, index) {
+      var y = top + index * rowH, below = chart.reference && item.value < chart.reference.value;
+      var x0 = x(Math.min(0, item.value)), x1 = x(Math.max(0, item.value));
+      add("text", { x: labelW - 8, y: y + 14, "text-anchor": "end", "font-size": "12", fill: "currentColor" }, item.label);
+      add("rect", { x: x0, y: y + 3, width: Math.max(1, x1 - x0), height: rowH - 8, rx: 2, fill: below ? "var(--amber, #f5b942)" : "var(--teal, #2dd4bf)" });
+      add("text", { x: labelW + plotW + 6, y: y + 14, "font-size": "12", fill: "currentColor" }, String(item.value));
+    });
+    if (chart.reference) {
+      var rx = x(chart.reference.value);
+      add("line", { x1: rx, x2: rx, y1: top - 4, y2: height - 4, stroke: "currentColor", "stroke-dasharray": "4 3", opacity: ".7" });
+      add("text", { x: rx, y: 11, "text-anchor": "middle", "font-size": "11", fill: "currentColor", opacity: ".8" }, chart.reference.label + " " + chart.reference.value);
+    }
+    figure.appendChild(svg);
+    host.appendChild(figure);
+  }
+
   function renderSimpleProjectionInternal(host, projection) {
     if (!host || typeof host.appendChild !== "function" || !host.ownerDocument) reject("E012-SIMPLE-INPUT", "simple-projection", "simple-projection/v1", "$.host", "DOM host required", projection && projection.toolId);
     var documentRef = host.ownerDocument;
@@ -1560,6 +1634,12 @@
       var unitText = readableSimpleUnit(projection.unit);
       value.textContent = projection.readableValueText || ((readable || projection.valueText) + (unitText ? " " + unitText : ""));
       host.appendChild(value);
+    }
+    /* The chart is an enhancement over the verdict above it: a host without SVG support, or any
+       drawing failure, must leave the verdict and controls intact rather than turn a ready model
+       into an unavailable panel. */
+    if (projection.state === "ready" && projection.chart && typeof documentRef.createElementNS === "function") {
+      try { renderSimpleChartInternal(host, projection.chart); } catch (chartError) { /* verdict stays; chart omitted */ }
     }
     /* The preserved-run compute identity is provenance, not a reader fact. It stays on the
        projection for the Power evidence disclosure and no longer prints a sha256 here. */

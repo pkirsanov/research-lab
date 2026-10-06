@@ -1,0 +1,1628 @@
+{
+  "schemaVersion": 2,
+  "spec": "specs/034-ai-opportunity-intelligence-lab",
+  "generatedAt": "2026-10-01T14:38:00Z",
+  "scenarios": [
+    {
+      "id": "SCN-034-001",
+      "scopeRef": "01-preserving-universe-foundation",
+      "title": "The complete corpus imports without historical mutation",
+      "gherkin": {
+        "given": "the source archive contains its preservation manifest and historical artifacts",
+        "when": "the initial AI opportunity generation is created",
+        "then": "all 23 industries, 230 memberships, 196 original companies, and 197 assessments are accounted for; and every preserved artifact retains its source fingerprint"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-import.functional.mjs",
+          "title": "preserved seed imports with exact universe counts and historical hashes",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Preserve the complete seed corpus"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "mutable-state"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-import.functional.mjs#preserved seed imports with exact universe counts and historical hashes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-002",
+      "scopeRef": "01-preserving-universe-foundation",
+      "title": "A changed archive refuses import",
+      "gherkin": {
+        "given": "a preserved historical artifact differs from its recorded fingerprint",
+        "when": "the import is validated",
+        "then": "the import is refused with the exact artifact identity; and no current generation pointer advances"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-import.e2e.mjs",
+          "title": "Regression: changed archive refuses the initial generation and leaves current unchanged",
+          "type": "e2e-api"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Reject unexplained historical mutation"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "mutable-state",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-import.e2e.mjs#Regression: changed archive refuses the initial generation and leaves current unchanged"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-import.e2e.mjs#Regression: changed archive refuses the initial generation and leaves current unchanged"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-003",
+      "scopeRef": "03-keyed-refresh-generation",
+      "title": "A partial refresh preserves the full universe",
+      "gherkin": {
+        "given": "a current full-universe generation exists; and three companies are selected for refresh",
+        "when": "the next generation publishes",
+        "then": "refreshed records replace only those three current assessments; and every other company remains present with its prior review date"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-refresh.integration.mjs",
+          "title": "three-entity refresh retains full universe and distinct clocks",
+          "type": "integration"
+        },
+        {
+          "path": "tests/ai-opportunity-publication.integration.mjs",
+          "title": "scheduled publication overlays selected records without shrinking the universe",
+          "type": "integration"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Overlay selected refreshes by stable identity"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "mutable-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-refresh.integration.mjs#three-entity refresh retains full universe and distinct clocks",
+            "planned:tests/ai-opportunity-publication.integration.mjs#scheduled publication overlays selected records without shrinking the universe"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Declared dependency-path state plus a live boundary assertion.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-refresh.integration.mjs#three-entity refresh retains full universe and distinct clocks",
+            "planned:tests/ai-opportunity-publication.integration.mjs#scheduled publication overlays selected records without shrinking the universe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-004",
+      "scopeRef": "03-keyed-refresh-generation",
+      "title": "One source failure does not become no change",
+      "gherkin": {
+        "given": "a selected company source cannot be retrieved",
+        "when": "the refresh generation is composed",
+        "then": "the company remains in its industries; and its acquisition state is failed with a named reason; and its prior assessment is not labeled current"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-refresh.e2e.mjs",
+          "title": "Regression: one failed acquisition publishes an honest full-universe candidate and retry collision refuses",
+          "type": "e2e-api"
+        },
+        {
+          "path": "tests/ai-opportunity-publication.e2e.mjs",
+          "title": "Regression: failed selected source remains visible and preserves full-universe history",
+          "type": "e2e-api"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Preserve identity through acquisition failure"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "mutable-state",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-refresh.e2e.mjs#Regression: one failed acquisition publishes an honest full-universe candidate and retry collision refuses",
+            "planned:tests/ai-opportunity-publication.e2e.mjs#Regression: failed selected source remains visible and preserves full-universe history"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-refresh.e2e.mjs#Regression: one failed acquisition publishes an honest full-universe candidate and retry collision refuses",
+            "planned:tests/ai-opportunity-publication.e2e.mjs#Regression: failed selected source remains visible and preserves full-universe history"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Declared dependency-path state plus a live boundary assertion.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-refresh.e2e.mjs#Regression: one failed acquisition publishes an honest full-universe candidate and retry collision refuses",
+            "planned:tests/ai-opportunity-publication.e2e.mjs#Regression: failed selected source remains visible and preserves full-universe history"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-005",
+      "scopeRef": "02-evidence-critical-path-dossier",
+      "title": "Duplicate reporting counts once",
+      "gherkin": {
+        "given": "several articles repeat one original company release",
+        "when": "corroboration is assessed",
+        "then": "the records share one origin cluster; and they do not satisfy independent corroboration by repetition"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-evidence.unit.mjs",
+          "title": "correlated reports form one origin cluster",
+          "type": "unit"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Correlated sources form one evidence cluster"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-evidence.unit.mjs#correlated reports form one origin cluster"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-006",
+      "scopeRef": "02-evidence-critical-path-dossier",
+      "title": "Conflicting evidence stays visible",
+      "gherkin": {
+        "given": "operating evidence supports realization; and another compatible source contradicts the measured benefit",
+        "when": "the signal is reviewed",
+        "then": "both evidence records remain visible; and realization alert promotion is refused until the conflict resolves"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-evidence.functional.mjs",
+          "title": "compatible contradiction remains visible and blocks promotion",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "A contradiction blocks promotion"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "mutable-state",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-evidence.functional.mjs#compatible contradiction remains visible and blocks promotion"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-evidence.functional.mjs#compatible contradiction remains visible and blocks promotion"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-007",
+      "scopeRef": "02-evidence-critical-path-dossier",
+      "title": "A proxy does not become realized use",
+      "gherkin": {
+        "given": "a public record increases a site's water allocation",
+        "when": "the infrastructure milestone is assessed",
+        "then": "the allocation ratio may be calculated; and water consumption, IT load, billable capacity, revenue, and productivity remain unresolved"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-evidence.unit.mjs",
+          "title": "water allowance never becomes consumption or realized output",
+          "type": "unit"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Water allocation remains an allowance"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-evidence.unit.mjs#water allowance never becomes consumption or realized output"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-evidence.unit.mjs#water allowance never becomes consumption or realized output"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-008",
+      "scopeRef": "02-evidence-critical-path-dossier",
+      "title": "A job listing does not become headcount",
+      "gherkin": {
+        "given": "a company posts one requisition with several training dates",
+        "when": "workforce evidence is added",
+        "then": "the system records one requisition and its planned dates; and actual hires, training completions, accepted work, and billable utilization remain unknown"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-evidence.unit.mjs",
+          "title": "requisition plans never become hires or billable utilization",
+          "type": "unit"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Recruitment stages remain distinct"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-evidence.unit.mjs#requisition plans never become hires or billable utilization"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-evidence.unit.mjs#requisition plans never become hires or billable utilization"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-009",
+      "scopeRef": "02-evidence-critical-path-dossier",
+      "title": "An operational milestone creates a bounded window",
+      "gherkin": {
+        "given": "commissioning, customer acceptance, and recognition lag have supported date ranges",
+        "when": "the critical path is composed",
+        "then": "the assessment publishes earliest and latest realization dates; and it names the gate that controls each boundary"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-critical-path.functional.mjs",
+          "title": "dated gates publish bounded realization dates",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Inflection timing follows dated gates"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-critical-path.functional.mjs#dated gates publish bounded realization dates"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-010",
+      "scopeRef": "02-evidence-critical-path-dossier",
+      "title": "Missing acceptance blocks revenue timing",
+      "gherkin": {
+        "given": "an asset is installed but customer acceptance is unavailable",
+        "when": "the earnings period is assessed",
+        "then": "installed capacity remains observed; and billable output and revenue timing remain unresolved"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-critical-path.integration.mjs",
+          "title": "missing acceptance withholds billable output and revenue timing",
+          "type": "integration"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Installed capacity is not billable capacity"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "mutable-state",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-critical-path.integration.mjs#missing acceptance withholds billable output and revenue timing"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-critical-path.integration.mjs#missing acceptance withholds billable output and revenue timing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-011",
+      "scopeRef": "04-scoped-economic-models",
+      "title": "Workflow productivity stays scoped",
+      "gherkin": {
+        "given": "one workflow has measured adoption and efficiency evidence; and company-wide coverage weights are unavailable",
+        "when": "the productivity bridge runs",
+        "then": "the workflow result is published with its denominator; and the company-wide productivity multiplier is unavailable"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-models.unit.mjs",
+          "title": "workflow productivity retains its measured denominator",
+          "type": "unit"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Local productivity does not become company productivity"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-models.unit.mjs#workflow productivity retains its measured denominator"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-models.unit.mjs#workflow productivity retains its measured denominator"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-012",
+      "scopeRef": "04-scoped-economic-models",
+      "title": "Redeployed time is not cash savings",
+      "gherkin": {
+        "given": "AI reduces task time but spending and hiring remain unchanged",
+        "when": "the economic bridge runs",
+        "then": "the result records added capacity; and retained cash savings remain zero or unavailable according to the sourced spending evidence"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-models.functional.mjs",
+          "title": "redeployed time remains capacity without sourced cash capture",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Capacity benefit remains separate from cost savings"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-models.functional.mjs#redeployed time remains capacity without sourced cash capture"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-models.functional.mjs#redeployed time remains capacity without sourced cash capture"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-013",
+      "scopeRef": "04-scoped-economic-models",
+      "title": "Customer demand and automation reconcile",
+      "gherkin": {
+        "given": "customer order volume and contacts per order share a matched period and cohort",
+        "when": "the outsourcing contribution bridge runs",
+        "then": "billed contacts reconcile from both inputs; and customer savings remain separate from outsourcing-provider contribution"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-models.integration.mjs",
+          "title": "matched orders and contacts reconcile provider contribution",
+          "type": "integration"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Contact deflection uses matched cohorts"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-models.integration.mjs#matched orders and contacts reconcile provider contribution"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-014",
+      "scopeRef": "04-scoped-economic-models",
+      "title": "Mismatched demand data produces sensitivity only",
+      "gherkin": {
+        "given": "customer revenue grew but order growth and average selling price are unavailable",
+        "when": "contact volume is assessed",
+        "then": "a demand threshold may be shown as a conditional sensitivity; and no contact-volume prediction is published"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-models.functional.mjs",
+          "title": "revenue-only demand evidence yields sensitivity without prediction",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Revenue growth cannot substitute for order growth"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-models.functional.mjs#revenue-only demand evidence yields sensitivity without prediction"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-models.functional.mjs#revenue-only demand evidence yields sensitivity without prediction"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-015",
+      "scopeRef": "05-earnings-signals-and-market-gates",
+      "title": "Three conclusions remain independent",
+      "gherkin": {
+        "given": "live deployment supports approaching earnings realization; and comparable market expectations are unavailable",
+        "when": "the company assessment publishes",
+        "then": "earnings realization may be approaching-realization; and the expectations gap remains unresolved; and no stock-surprise alert is emitted"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-signals.unit.mjs",
+          "title": "operational gain leaves expectations unresolved without comparable baseline",
+          "type": "unit"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Operational gains do not imply a stock surprise"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-signals.unit.mjs#operational gain leaves expectations unresolved without comparable baseline"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-signals.unit.mjs#operational gain leaves expectations unresolved without comparable baseline"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-016",
+      "scopeRef": "05-earnings-signals-and-market-gates",
+      "title": "A losing company needs common-basis evidence",
+      "gherkin": {
+        "given": "one peer reports a benefit on a different geography and denominator",
+        "when": "the peer comparison runs",
+        "then": "no winner or loser ranking is published; and the missing common comparison basis is named"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-peers.functional.mjs",
+          "title": "incomparable peer evidence refuses winner and loser ranking",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Refuse an unsupported loser label"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-peers.functional.mjs#incomparable peer evidence refuses winner and loser ranking"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-peers.functional.mjs#incomparable peer evidence refuses winner and loser ranking"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-017",
+      "scopeRef": "07-static-owner-experience",
+      "title": "The next event receives priority",
+      "gherkin": {
+        "given": "a company has next-event, six-month, and twelve-month records",
+        "when": "the Brief renders",
+        "then": "the next-earnings assessment appears first; and the longer horizons remain separately labeled"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "title": "Regression: Brief places next earnings before six-month and twelve-month horizons",
+          "type": "e2e-ui"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Brief orders its horizons correctly"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible or accessibility-tree assertion on the current production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Brief places next earnings before six-month and twelve-month horizons"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-018",
+      "scopeRef": "05-earnings-signals-and-market-gates",
+      "title": "A qualified realization alert reaches the reader",
+      "gherkin": {
+        "given": "live adoption, scope, quality, recognition lag, retained economics, and counterevidence are reviewed; and the effect belongs to a named reporting period",
+        "when": "the signal gate evaluates the assessment",
+        "then": "a realization alert appears in the in-tool notification lane and Brief; and it carries its falsifier and next evidence check"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-signals.e2e.mjs",
+          "title": "Regression: qualified realization alert preserves period countercase falsifier and next check",
+          "type": "e2e-api"
+        },
+        {
+          "path": "tests/ai-opportunity-notice-publication.e2e.mjs",
+          "title": "Regression: owner read and Brief publish the same qualified realization notice",
+          "type": "e2e-api"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Publish a supported pre-earnings realization alert"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "user-visible-ui"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible or accessibility-tree assertion on the current production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-signals.e2e.mjs#Regression: qualified realization alert preserves period countercase falsifier and next check",
+            "planned:tests/ai-opportunity-notice-publication.e2e.mjs#Regression: owner read and Brief publish the same qualified realization notice"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-019",
+      "scopeRef": "05-earnings-signals-and-market-gates",
+      "title": "An early watch preserves missing economics",
+      "gherkin": {
+        "given": "a dated deployment has a plausible economic mechanism; and retained benefit or recognition timing is incomplete",
+        "when": "the signal gate evaluates the assessment",
+        "then": "an early watch appears with the missing bridge inputs; and no realization or surprise alert is implied"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-signals.functional.mjs",
+          "title": "incomplete retained economics remain an early watch",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Warn early without claiming imminent earnings"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible or accessibility-tree assertion on the current production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-signals.functional.mjs#incomplete retained economics remain an early watch"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-signals.functional.mjs#incomplete retained economics remain an early watch"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-020",
+      "scopeRef": "05-earnings-signals-and-market-gates",
+      "title": "A destination refusal is visible",
+      "gherkin": {
+        "given": "a valid research signal exists; and the destination capability rejects publication",
+        "when": "routing is attempted",
+        "then": "the signal remains visible in its owner tool; and the destination refusal code and reason are recorded"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-routing.integration.mjs",
+          "title": "destination refusal preserves the owner signal and reason",
+          "type": "integration"
+        },
+        {
+          "path": "tests/ai-opportunity-registry.functional.mjs",
+          "title": "destination refusal remains visible while shared registry canaries pass",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "External routing cannot swallow a qualified signal"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible or accessibility-tree assertion on the current production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-routing.integration.mjs#destination refusal preserves the owner signal and reason",
+            "planned:tests/ai-opportunity-registry.functional.mjs#destination refusal remains visible while shared registry canaries pass"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-routing.integration.mjs#destination refusal preserves the owner signal and reason",
+            "planned:tests/ai-opportunity-registry.functional.mjs#destination refusal remains visible while shared registry canaries pass"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Declared dependency-path state plus a live boundary assertion.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-routing.integration.mjs#destination refusal preserves the owner signal and reason",
+            "planned:tests/ai-opportunity-registry.functional.mjs#destination refusal remains visible while shared registry canaries pass"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-021",
+      "scopeRef": "06-frozen-event-accountability",
+      "title": "A completed event leaves the approaching queue",
+      "gherkin": {
+        "given": "a previously approaching event has completed",
+        "when": "the next generation publishes",
+        "then": "the event appears in completed-event accountability; and it no longer appears as the company's next earnings event; and no new option contract is selected against it"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-outcomes.functional.mjs",
+          "title": "completed event leaves the approaching queue and option selection",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Retire a completed earnings event"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "mutable-state"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-outcomes.functional.mjs#completed event leaves the approaching queue and option selection"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-022",
+      "scopeRef": "06-frozen-event-accountability",
+      "title": "An unverified next date stays unknown",
+      "gherkin": {
+        "given": "the last event completed; and the following report date is unverified",
+        "when": "the company calendar publishes",
+        "then": "the next date is unavailable with a reason; and the completed date remains only in event history"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-outcomes.integration.mjs",
+          "title": "unverified successor date remains unavailable while history is retained",
+          "type": "integration"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Do not retain an expired event date"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "mutable-state",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "mutable-state",
+          "requiredProof": "Write, read, and persistence round trip.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-outcomes.integration.mjs#unverified successor date remains unavailable while history is retained"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-outcomes.integration.mjs#unverified successor date remains unavailable while history is retained"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-023",
+      "scopeRef": "05-earnings-signals-and-market-gates",
+      "title": "Vendor zero IV becomes unavailable",
+      "gherkin": {
+        "given": "a provider returns raw IV30 equal to zero; and the observation fails the usable-volatility check",
+        "when": "the options record is normalized",
+        "then": "raw IV30 remains zero; and normalized IV30 is unavailable with the failure reason"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-market.functional.mjs",
+          "title": "invalid vendor zero IV remains raw and normalizes to unavailable",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Normalize an invalid zero volatility observation"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-market.functional.mjs#invalid vendor zero IV remains raw and normalizes to unavailable"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-market.functional.mjs#invalid vendor zero IV remains raw and normalizes to unavailable"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-024",
+      "scopeRef": "05-earnings-signals-and-market-gates",
+      "title": "Wide unsynchronized quotes block event isolation",
+      "gherkin": {
+        "given": "option quotes have wide spreads or incompatible observation times",
+        "when": "the event magnitude is assessed",
+        "then": "total-expiration premium may appear with its exact label; and the earnings-only implied move remains unavailable"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-market.functional.mjs",
+          "title": "wide unsynchronized quotes suppress event-only magnitude",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Suppress an unsupported event-only move"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-market.functional.mjs#wide unsynchronized quotes suppress event-only magnitude"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-market.functional.mjs#wide unsynchronized quotes suppress event-only magnitude"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-025",
+      "scopeRef": "06-frozen-event-accountability",
+      "title": "The declared event window controls scoring",
+      "gherkin": {
+        "given": "a frozen forecast declares regular close-to-close return; and the completed event has opposite opening-gap and closing-return signs",
+        "when": "forecast error is scored",
+        "then": "the close-to-close observation controls the score; and the opening gap remains a separate outcome observation"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-outcomes.unit.mjs",
+          "title": "frozen declared window controls scoring while opening gap stays separate",
+          "type": "unit"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Opening and closing reactions cannot be selected after the fact"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-outcomes.unit.mjs#frozen declared window controls scoring while opening gap stays separate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-026",
+      "scopeRef": "06-frozen-event-accountability",
+      "title": "Abstention is not a forecast hit",
+      "gherkin": {
+        "given": "a pre-event record contains no eligible numerical return forecast",
+        "when": "the event completes",
+        "then": "forecast error remains unavailable; and the record increments abstention coverage; and it receives no hit credit"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-outcomes.e2e.mjs",
+          "title": "Regression: numerical abstention receives neither error nor hit credit",
+          "type": "e2e-api"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Ineligible numerical predictions remain abstentions"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-outcomes.e2e.mjs#Regression: numerical abstention receives neither error nor hit credit"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-outcomes.e2e.mjs#Regression: numerical abstention receives neither error nor hit credit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-027",
+      "scopeRef": "02-evidence-critical-path-dossier",
+      "title": "A dataset hash change needs a row change",
+      "gherkin": {
+        "given": "a dataset response hash changes; and the relevant company rows remain identical",
+        "when": "the evidence diff runs",
+        "then": "the retrieval change is recorded; and no company milestone is promoted"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-dossier.e2e.mjs",
+          "title": "Regression: changed response with unchanged relevant rows never promotes a milestone",
+          "type": "e2e-api"
+        },
+        {
+          "path": "tests/ai-opportunity-refresh.functional.mjs",
+          "title": "changed response with unchanged relevant rows records no progress",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Response changes do not invent operational progress"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation",
+        "degraded-state",
+        "dependency-path"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-dossier.e2e.mjs#Regression: changed response with unchanged relevant rows never promotes a milestone",
+            "planned:tests/ai-opportunity-refresh.functional.mjs#changed response with unchanged relevant rows records no progress"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-dossier.e2e.mjs#Regression: changed response with unchanged relevant rows never promotes a milestone",
+            "planned:tests/ai-opportunity-refresh.functional.mjs#changed response with unchanged relevant rows records no progress"
+          ]
+        },
+        {
+          "trait": "dependency-path",
+          "requiredProof": "Declared dependency-path state plus a live boundary assertion.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-dossier.e2e.mjs#Regression: changed response with unchanged relevant rows never promotes a milestone",
+            "planned:tests/ai-opportunity-refresh.functional.mjs#changed response with unchanged relevant rows records no progress"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-028",
+      "scopeRef": "04-scoped-economic-models",
+      "title": "A user assumption stays distinct",
+      "gherkin": {
+        "given": "a model exposes a declared unpriced-fraction assumption",
+        "when": "the operator changes that value",
+        "then": "affected outputs identify the user assumption; and the result is labeled a conditional scenario; and the evidence-derived baseline remains unchanged"
+      },
+      "behaviorClass": "api",
+      "changeType": "new",
+      "requiredTestType": "e2e-api",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-models.e2e.mjs",
+          "title": "Regression: local user assumption changes a conditional scenario without changing baseline",
+          "type": "e2e-api"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Explore a conditional valuation case"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "pure-calculation"
+      ],
+      "obligations": [
+        {
+          "trait": "pure-calculation",
+          "requiredProof": "Production-unit assertion over transformed output.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-models.e2e.mjs#Regression: local user assumption changes a conditional scenario without changing baseline"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-029",
+      "scopeRef": "07-static-owner-experience",
+      "title": "Simple explains one causal chain",
+      "gherkin": {
+        "given": "a current company assessment exists",
+        "when": "the operator opens Simple",
+        "then": "the view shows what changed, why it matters, the next gate, the critical dependency, and the falsifier; and it names the largest missing input"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "title": "Regression: Simple shows one bounded causal chain and largest missing input",
+          "type": "e2e-ui"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Simple remains concise and falsifiable"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "responsive-accessible"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible or accessibility-tree assertion on the current production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Simple shows one bounded causal chain and largest missing input"
+          ]
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "Required viewport and accessibility behavior on the production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Simple shows one bounded causal chain and largest missing input"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-030",
+      "scopeRef": "07-static-owner-experience",
+      "title": "Power exposes the complete derivation",
+      "gherkin": {
+        "given": "a signal appears in Simple or Brief",
+        "when": "the operator follows it into Power",
+        "then": "the evidence, milestones, dependencies, models, assumptions, conflicts, and generation diff are visible; and every displayed conclusion resolves to its source records"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "title": "Regression: Power reconstructs the selected signal from source records",
+          "type": "e2e-ui"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Power reconstructs the assessment"
+      ],
+      "riskTier": "medium",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "responsive-accessible"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible or accessibility-tree assertion on the current production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Power reconstructs the selected signal from source records"
+          ]
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "Required viewport and accessibility behavior on the production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Power reconstructs the selected signal from source records"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-031",
+      "scopeRef": "07-static-owner-experience",
+      "title": "Every Brief section has an honest empty state",
+      "gherkin": {
+        "given": "no company qualifies for a realization alert in one horizon",
+        "when": "the Brief publishes",
+        "then": "that section states that no signal qualified; and coverage failures and abstentions remain visible"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "title": "Regression: Brief preserves explicit empty states coverage failures and abstentions",
+          "type": "e2e-ui"
+        },
+        {
+          "path": "tests/ai-opportunity-publication.functional.mjs",
+          "title": "validated Brief publishes named empty horizon with coverage and abstentions",
+          "type": "functional"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Missing qualified signals remain visible"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "responsive-accessible",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible or accessibility-tree assertion on the current production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Brief preserves explicit empty states coverage failures and abstentions",
+            "planned:tests/ai-opportunity-publication.functional.mjs#validated Brief publishes named empty horizon with coverage and abstentions"
+          ]
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "Required viewport and accessibility behavior on the production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Brief preserves explicit empty states coverage failures and abstentions",
+            "planned:tests/ai-opportunity-publication.functional.mjs#validated Brief publishes named empty horizon with coverage and abstentions"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Brief preserves explicit empty states coverage failures and abstentions",
+            "planned:tests/ai-opportunity-publication.functional.mjs#validated Brief publishes named empty horizon with coverage and abstentions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "SCN-034-032",
+      "scopeRef": "08-atomic-regeneration-and-public-integration",
+      "title": "One generation binds every view",
+      "gherkin": {
+        "given": "Simple, Power, Brief, and Journey are open for one company",
+        "when": "their generation identities are compared",
+        "then": "all four identify the same current generation; and a stale view refuses to present itself as current"
+      },
+      "behaviorClass": "ui",
+      "changeType": "new",
+      "requiredTestType": "e2e-ui",
+      "regressionRequired": true,
+      "lockdown": false,
+      "linkedTests": [],
+      "plannedTests": [
+        {
+          "path": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "title": "Regression: Simple Power Brief and Journey refuse mixed generations",
+          "type": "e2e-ui"
+        },
+        {
+          "path": "tests/ai-opportunity-publication.spec.mjs",
+          "title": "Regression: published Simple Power Brief and Journey share one current generation and stale views refuse",
+          "type": "e2e-ui"
+        }
+      ],
+      "evidenceRefs": [],
+      "replacedBy": null,
+      "invalidatedBy": null,
+      "tags": [
+        "Views cannot mix research generations"
+      ],
+      "riskTier": "high",
+      "behaviorTraits": [
+        "user-visible-ui",
+        "responsive-accessible",
+        "degraded-state"
+      ],
+      "obligations": [
+        {
+          "trait": "user-visible-ui",
+          "requiredProof": "Visible or accessibility-tree assertion on the current production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Simple Power Brief and Journey refuse mixed generations",
+            "planned:tests/ai-opportunity-publication.spec.mjs#Regression: published Simple Power Brief and Journey share one current generation and stale views refuse"
+          ]
+        },
+        {
+          "trait": "responsive-accessible",
+          "requiredProof": "Required viewport and accessibility behavior on the production route.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Simple Power Brief and Journey refuse mixed generations",
+            "planned:tests/ai-opportunity-publication.spec.mjs#Regression: published Simple Power Brief and Journey share one current generation and stale views refuse"
+          ]
+        },
+        {
+          "trait": "degraded-state",
+          "requiredProof": "Named negative-path assertion with no plausible default.",
+          "satisfiedBy": [
+            "planned:tests/ai-opportunity-intelligence-lab.spec.mjs#Regression: Simple Power Brief and Journey refuse mixed generations",
+            "planned:tests/ai-opportunity-publication.spec.mjs#Regression: published Simple Power Brief and Journey share one current generation and stale views refuse"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,239 @@
+{
+  "version": 3,
+  "featureDir": "specs/034-ai-opportunity-intelligence-lab",
+  "featureName": "AI Opportunity Intelligence Lab",
+  "status": "not_started",
+  "workflowMode": "product-to-planning",
+  "linkedImplementationSpec": null,
+  "linkedPlanningPacket": null,
+  "planningOnly": true,
+  "planningOnlyJustification": "The authorized product-to-planning workflow creates implementation-ready artifacts without product implementation.",
+  "specDependsOn": [
+    "specs/019-custom-recurring-research-agenda",
+    "specs/025-company-multi-horizon-intelligence-lab"
+  ],
+  "workBoundary": {
+    "repositoryRoots": [
+      "research-lab"
+    ],
+    "specTargets": [
+      "specs/034-ai-opportunity-intelligence-lab"
+    ],
+    "allowedPaths": [
+      "specs/034-ai-opportunity-intelligence-lab/**",
+      "AI_Opportunity_Intelligence_Lab_Proposal.md"
+    ],
+    "crossRepoPolicy": "forbidden"
+  },
+  "certifiedAt": null,
+  "requiresRevalidation": false,
+  "execution": {
+    "goalContractRef": {
+      "goalId": "gc:ai-opportunity-034-final-20260930:1",
+      "revision": 1,
+      "sourceRequestDigest": "sha256:7217c7bb6901d8cc7e45c77ca0541073b7cf2edfd3336b4ae5887a1499c1f345"
+    },
+    "activeAgent": "bubbles.plan",
+    "currentPhase": "plan",
+    "currentScope": null,
+    "runStartedAt": "2026-10-01T14:30:00Z",
+    "completedPhaseClaims": [],
+    "pendingTransitionRequests": [],
+    "audit": {
+      "schemaVersion": "audit-run/v1",
+      "runId": null,
+      "currentAttemptId": null,
+      "attempts": []
+    }
+  },
+  "certification": {
+    "status": "not_started",
+    "completedScopes": [],
+    "certifiedCompletedPhases": [],
+    "scopeProgress": [
+      {
+        "scope": 1,
+        "scopeId": "01-preserving-universe-foundation",
+        "name": "Preserving universe foundation",
+        "status": "not_started",
+        "dependsOn": [],
+        "scopeDir": "scopes/01-preserving-universe-foundation",
+        "evidenceFile": "scopes/01-preserving-universe-foundation/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 2,
+        "scopeId": "02-evidence-critical-path-dossier",
+        "name": "Evidence and critical-path dossier",
+        "status": "not_started",
+        "dependsOn": [
+          "01-preserving-universe-foundation"
+        ],
+        "scopeDir": "scopes/02-evidence-critical-path-dossier",
+        "evidenceFile": "scopes/02-evidence-critical-path-dossier/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 3,
+        "scopeId": "03-keyed-refresh-generation",
+        "name": "Keyed refresh generation",
+        "status": "not_started",
+        "dependsOn": [
+          "02-evidence-critical-path-dossier"
+        ],
+        "scopeDir": "scopes/03-keyed-refresh-generation",
+        "evidenceFile": "scopes/03-keyed-refresh-generation/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 4,
+        "scopeId": "04-scoped-economic-models",
+        "name": "Scoped economic models",
+        "status": "not_started",
+        "dependsOn": [
+          "03-keyed-refresh-generation"
+        ],
+        "scopeDir": "scopes/04-scoped-economic-models",
+        "evidenceFile": "scopes/04-scoped-economic-models/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 5,
+        "scopeId": "05-earnings-signals-and-market-gates",
+        "name": "Earnings signals and market gates",
+        "status": "not_started",
+        "dependsOn": [
+          "04-scoped-economic-models"
+        ],
+        "scopeDir": "scopes/05-earnings-signals-and-market-gates",
+        "evidenceFile": "scopes/05-earnings-signals-and-market-gates/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 6,
+        "scopeId": "06-frozen-event-accountability",
+        "name": "Frozen event accountability",
+        "status": "not_started",
+        "dependsOn": [
+          "05-earnings-signals-and-market-gates"
+        ],
+        "scopeDir": "scopes/06-frozen-event-accountability",
+        "evidenceFile": "scopes/06-frozen-event-accountability/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 7,
+        "scopeId": "07-static-owner-experience",
+        "name": "Static owner experience",
+        "status": "not_started",
+        "dependsOn": [
+          "06-frozen-event-accountability"
+        ],
+        "scopeDir": "scopes/07-static-owner-experience",
+        "evidenceFile": "scopes/07-static-owner-experience/report.md",
+        "certifiedAt": null
+      },
+      {
+        "scope": 8,
+        "scopeId": "08-atomic-regeneration-and-public-integration",
+        "name": "Atomic regeneration and public integration",
+        "status": "not_started",
+        "dependsOn": [
+          "07-static-owner-experience"
+        ],
+        "scopeDir": "scopes/08-atomic-regeneration-and-public-integration",
+        "evidenceFile": "scopes/08-atomic-regeneration-and-public-integration/report.md",
+        "certifiedAt": null
+      }
+    ],
+    "lockdownState": {
+      "active": false,
+      "lockedScenarioIds": []
+    }
+  },
+  "policySnapshot": {
+    "grill": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "tdd": {
+      "mode": "scenario-first",
+      "source": "repo-default"
+    },
+    "autoCommit": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "lockdown": {
+      "mode": "off",
+      "source": "repo-default"
+    },
+    "regression": {
+      "mode": "protected-scenarios",
+      "source": "repo-default"
+    },
+    "validation": {
+      "mode": "certification-required",
+      "source": "repo-default"
+    }
+  },
+  "transitionRequests": [],
+  "reworkQueue": [],
+  "executionHistory": [
+    {
+      "agent": "bubbles.plan",
+      "phasesExecuted": [
+        "plan"
+      ],
+      "startedAt": "2026-10-01T14:30:00Z",
+      "completedAt": "2026-10-01T14:38:00Z",
+      "summary": "Reconciled planning-only scope inventory, scenario-to-test handoffs, and unchecked runtime DoD requirements. No implementation, test execution, certification, or human acceptance is claimed."
+    }
+  ],
+  "activeBugs": [],
+  "resolvedBugs": [],
+  "failures": [],
+  "lastUpdatedAt": "2026-10-05T23:57:47Z",
+  "scopeLayout": "per-scope-directory",
+  "artifacts": {
+    "spec": "spec.md",
+    "design": "design.md",
+    "scopes": "scopes/_index.md",
+    "report": "scopes/NN-name/report.md",
+    "uservalidation": "uservalidation.md",
+    "scenarioManifest": "scenario-manifest.json",
+    "lockdownApprovals": "lockdown-approvals.json",
+    "invalidationLedger": "invalidation-ledger.json",
+    "transitionRequests": "transition-requests.json",
+    "reworkQueue": "rework-queue.json"
+  },
+  "statusDiscipline": {
+    "validStatuses": [
+      "not_started",
+      "in_progress",
+      "blocked",
+      "specs_hardened",
+      "docs_updated",
+      "validated",
+      "done"
+    ],
+    "scopePickupRule": "All dependsOn scopes must be Done. Pick the lowest-numbered eligible scope.",
+    "scopeDoneGates": [
+      "G020",
+      "G021",
+      "G022",
+      "G023",
+      "G024",
+      "G025",
+      "G055",
+      "G056",
+      "G057",
+      "G058",
+      "G059",
+      "G060",
+      "G061"
+    ],
+    "specDoneRequires": "All scopes done. certification.completedScopes contains all scope IDs and bubbles.validate has certified promotion."
+  },
+  "notes": "Planning artifacts are reconciled for eight not-started scopes. Feature 032 is not a hard implementation dependency; its unfinished company-specific registration remains an explicit shared-surface coordination boundary for Scope 8. Product implementation, test execution, certification, and human acceptance have not occurred."
+}

@@ -1,0 +1,446 @@
+{
+  "version": 1,
+  "specId": "034",
+  "generatedBy": "bubbles.plan",
+  "generatedAt": "2026-10-01T14:38:00Z",
+  "scopes": [
+    {
+      "scopeId": "01-preserving-universe-foundation",
+      "scopeName": "Preserving universe foundation",
+      "tests": [
+        {
+          "id": "TP-01-01",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-import.functional.mjs",
+          "scenarioId": "SCN-034-001",
+          "description": "preserved seed imports with exact universe counts and historical hashes",
+          "command": "node --test tests/ai-opportunity-import.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-01-02",
+          "type": "e2e-api",
+          "category": "e2e-api",
+          "file": "tests/ai-opportunity-import.e2e.mjs",
+          "scenarioId": "SCN-034-002",
+          "description": "Regression: changed archive refuses the initial generation and leaves current unchanged",
+          "command": "node --test tests/ai-opportunity-import.e2e.mjs",
+          "liveSystem": true
+        }
+      ]
+    },
+    {
+      "scopeId": "02-evidence-critical-path-dossier",
+      "scopeName": "Evidence and critical-path dossier",
+      "tests": [
+        {
+          "id": "TP-02-01",
+          "type": "unit",
+          "category": "unit",
+          "file": "tests/ai-opportunity-evidence.unit.mjs",
+          "scenarioId": "SCN-034-005",
+          "description": "correlated reports form one origin cluster",
+          "command": "node --test tests/ai-opportunity-evidence.unit.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-02-02",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-evidence.functional.mjs",
+          "scenarioId": "SCN-034-006",
+          "description": "compatible contradiction remains visible and blocks promotion",
+          "command": "node --test tests/ai-opportunity-evidence.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-02-03",
+          "type": "unit",
+          "category": "unit",
+          "file": "tests/ai-opportunity-evidence.unit.mjs",
+          "scenarioId": "SCN-034-007",
+          "description": "water allowance never becomes consumption or realized output",
+          "command": "node --test tests/ai-opportunity-evidence.unit.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-02-04",
+          "type": "unit",
+          "category": "unit",
+          "file": "tests/ai-opportunity-evidence.unit.mjs",
+          "scenarioId": "SCN-034-008",
+          "description": "requisition plans never become hires or billable utilization",
+          "command": "node --test tests/ai-opportunity-evidence.unit.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-02-05",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-critical-path.functional.mjs",
+          "scenarioId": "SCN-034-009",
+          "description": "dated gates publish bounded realization dates",
+          "command": "node --test tests/ai-opportunity-critical-path.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-02-06",
+          "type": "integration",
+          "category": "integration",
+          "file": "tests/ai-opportunity-critical-path.integration.mjs",
+          "scenarioId": "SCN-034-010",
+          "description": "missing acceptance withholds billable output and revenue timing",
+          "command": "node --test tests/ai-opportunity-critical-path.integration.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-02-07",
+          "type": "e2e-api",
+          "category": "e2e-api",
+          "file": "tests/ai-opportunity-dossier.e2e.mjs",
+          "scenarioId": "SCN-034-027",
+          "description": "Regression: changed response with unchanged relevant rows never promotes a milestone",
+          "command": "node --test tests/ai-opportunity-dossier.e2e.mjs",
+          "liveSystem": true
+        }
+      ]
+    },
+    {
+      "scopeId": "03-keyed-refresh-generation",
+      "scopeName": "Keyed refresh generation",
+      "tests": [
+        {
+          "id": "TP-03-01",
+          "type": "integration",
+          "category": "integration",
+          "file": "tests/ai-opportunity-refresh.integration.mjs",
+          "scenarioId": "SCN-034-003",
+          "description": "three-entity refresh retains full universe and distinct clocks",
+          "command": "node --test tests/ai-opportunity-refresh.integration.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-03-02",
+          "type": "e2e-api",
+          "category": "e2e-api",
+          "file": "tests/ai-opportunity-refresh.e2e.mjs",
+          "scenarioId": "SCN-034-004",
+          "description": "Regression: one failed acquisition publishes an honest full-universe candidate and retry collision refuses",
+          "command": "node --test tests/ai-opportunity-refresh.e2e.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-03-03",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-refresh.functional.mjs",
+          "scenarioId": "SCN-034-027",
+          "description": "changed response with unchanged relevant rows records no progress",
+          "command": "node --test tests/ai-opportunity-refresh.functional.mjs",
+          "liveSystem": true
+        }
+      ]
+    },
+    {
+      "scopeId": "04-scoped-economic-models",
+      "scopeName": "Scoped economic models",
+      "tests": [
+        {
+          "id": "TP-04-01",
+          "type": "unit",
+          "category": "unit",
+          "file": "tests/ai-opportunity-models.unit.mjs",
+          "scenarioId": "SCN-034-011",
+          "description": "workflow productivity retains its measured denominator",
+          "command": "node --test tests/ai-opportunity-models.unit.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-04-02",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-models.functional.mjs",
+          "scenarioId": "SCN-034-012",
+          "description": "redeployed time remains capacity without sourced cash capture",
+          "command": "node --test tests/ai-opportunity-models.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-04-03",
+          "type": "integration",
+          "category": "integration",
+          "file": "tests/ai-opportunity-models.integration.mjs",
+          "scenarioId": "SCN-034-013",
+          "description": "matched orders and contacts reconcile provider contribution",
+          "command": "node --test tests/ai-opportunity-models.integration.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-04-04",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-models.functional.mjs",
+          "scenarioId": "SCN-034-014",
+          "description": "revenue-only demand evidence yields sensitivity without prediction",
+          "command": "node --test tests/ai-opportunity-models.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-04-05",
+          "type": "e2e-api",
+          "category": "e2e-api",
+          "file": "tests/ai-opportunity-models.e2e.mjs",
+          "scenarioId": "SCN-034-028",
+          "description": "Regression: local user assumption changes a conditional scenario without changing baseline",
+          "command": "node --test tests/ai-opportunity-models.e2e.mjs",
+          "liveSystem": true
+        }
+      ]
+    },
+    {
+      "scopeId": "05-earnings-signals-and-market-gates",
+      "scopeName": "Earnings signals and market gates",
+      "tests": [
+        {
+          "id": "TP-05-01",
+          "type": "unit",
+          "category": "unit",
+          "file": "tests/ai-opportunity-signals.unit.mjs",
+          "scenarioId": "SCN-034-015",
+          "description": "operational gain leaves expectations unresolved without comparable baseline",
+          "command": "node --test tests/ai-opportunity-signals.unit.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-05-02",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-peers.functional.mjs",
+          "scenarioId": "SCN-034-016",
+          "description": "incomparable peer evidence refuses winner and loser ranking",
+          "command": "node --test tests/ai-opportunity-peers.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-05-03",
+          "type": "e2e-api",
+          "category": "e2e-api",
+          "file": "tests/ai-opportunity-signals.e2e.mjs",
+          "scenarioId": "SCN-034-018",
+          "description": "Regression: qualified realization alert preserves period countercase falsifier and next check",
+          "command": "node --test tests/ai-opportunity-signals.e2e.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-05-04",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-signals.functional.mjs",
+          "scenarioId": "SCN-034-019",
+          "description": "incomplete retained economics remain an early watch",
+          "command": "node --test tests/ai-opportunity-signals.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-05-05",
+          "type": "integration",
+          "category": "integration",
+          "file": "tests/ai-opportunity-routing.integration.mjs",
+          "scenarioId": "SCN-034-020",
+          "description": "destination refusal preserves the owner signal and reason",
+          "command": "node --test tests/ai-opportunity-routing.integration.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-05-06",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-market.functional.mjs",
+          "scenarioId": "SCN-034-023",
+          "description": "invalid vendor zero IV remains raw and normalizes to unavailable",
+          "command": "node --test tests/ai-opportunity-market.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-05-07",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-market.functional.mjs",
+          "scenarioId": "SCN-034-024",
+          "description": "wide unsynchronized quotes suppress event-only magnitude",
+          "command": "node --test tests/ai-opportunity-market.functional.mjs",
+          "liveSystem": true
+        }
+      ]
+    },
+    {
+      "scopeId": "06-frozen-event-accountability",
+      "scopeName": "Frozen event accountability",
+      "tests": [
+        {
+          "id": "TP-06-01",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-outcomes.functional.mjs",
+          "scenarioId": "SCN-034-021",
+          "description": "completed event leaves the approaching queue and option selection",
+          "command": "node --test tests/ai-opportunity-outcomes.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-06-02",
+          "type": "integration",
+          "category": "integration",
+          "file": "tests/ai-opportunity-outcomes.integration.mjs",
+          "scenarioId": "SCN-034-022",
+          "description": "unverified successor date remains unavailable while history is retained",
+          "command": "node --test tests/ai-opportunity-outcomes.integration.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-06-03",
+          "type": "unit",
+          "category": "unit",
+          "file": "tests/ai-opportunity-outcomes.unit.mjs",
+          "scenarioId": "SCN-034-025",
+          "description": "frozen declared window controls scoring while opening gap stays separate",
+          "command": "node --test tests/ai-opportunity-outcomes.unit.mjs",
+          "liveSystem": false
+        },
+        {
+          "id": "TP-06-04",
+          "type": "e2e-api",
+          "category": "e2e-api",
+          "file": "tests/ai-opportunity-outcomes.e2e.mjs",
+          "scenarioId": "SCN-034-026",
+          "description": "Regression: numerical abstention receives neither error nor hit credit",
+          "command": "node --test tests/ai-opportunity-outcomes.e2e.mjs",
+          "liveSystem": true
+        }
+      ]
+    },
+    {
+      "scopeId": "07-static-owner-experience",
+      "scopeName": "Static owner experience",
+      "tests": [
+        {
+          "id": "TP-07-01",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-034-029",
+          "description": "Regression: Simple shows one bounded causal chain and largest missing input",
+          "command": "npx --no-install playwright test tests/ai-opportunity-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-07-02",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-034-030",
+          "description": "Regression: Power reconstructs the selected signal from source records",
+          "command": "npx --no-install playwright test tests/ai-opportunity-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-07-03",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-034-017",
+          "description": "Regression: Brief places next earnings before six-month and twelve-month horizons",
+          "command": "npx --no-install playwright test tests/ai-opportunity-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-07-04",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-034-031",
+          "description": "Regression: Brief preserves explicit empty states coverage failures and abstentions",
+          "command": "npx --no-install playwright test tests/ai-opportunity-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-07-05",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/ai-opportunity-intelligence-lab.spec.mjs",
+          "scenarioId": "SCN-034-032",
+          "description": "Regression: Simple Power Brief and Journey refuse mixed generations",
+          "command": "npx --no-install playwright test tests/ai-opportunity-intelligence-lab.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true
+        }
+      ]
+    },
+    {
+      "scopeId": "08-atomic-regeneration-and-public-integration",
+      "scopeName": "Atomic regeneration and public integration",
+      "tests": [
+        {
+          "id": "TP-08-01",
+          "type": "integration",
+          "category": "integration",
+          "file": "tests/ai-opportunity-publication.integration.mjs",
+          "scenarioId": "SCN-034-003",
+          "description": "scheduled publication overlays selected records without shrinking the universe",
+          "command": "node --test tests/ai-opportunity-publication.integration.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-08-02",
+          "type": "e2e-api",
+          "category": "e2e-api",
+          "file": "tests/ai-opportunity-publication.e2e.mjs",
+          "scenarioId": "SCN-034-004",
+          "description": "Regression: failed selected source remains visible and preserves full-universe history",
+          "command": "node --test tests/ai-opportunity-publication.e2e.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-08-03",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-publication.functional.mjs",
+          "scenarioId": "SCN-034-031",
+          "description": "validated Brief publishes named empty horizon with coverage and abstentions",
+          "command": "node --test tests/ai-opportunity-publication.functional.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-08-04",
+          "type": "e2e-ui",
+          "category": "e2e-ui",
+          "file": "tests/ai-opportunity-publication.spec.mjs",
+          "scenarioId": "SCN-034-032",
+          "description": "Regression: published Simple Power Brief and Journey share one current generation and stale views refuse",
+          "command": "npx --no-install playwright test tests/ai-opportunity-publication.spec.mjs --config=playwright.config.mjs --project=system-chrome --reporter=list",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-08-05",
+          "type": "e2e-api",
+          "category": "e2e-api",
+          "file": "tests/ai-opportunity-notice-publication.e2e.mjs",
+          "scenarioId": "SCN-034-018",
+          "description": "Regression: owner read and Brief publish the same qualified realization notice",
+          "command": "node --test tests/ai-opportunity-notice-publication.e2e.mjs",
+          "liveSystem": true
+        },
+        {
+          "id": "TP-08-06",
+          "type": "functional",
+          "category": "functional",
+          "file": "tests/ai-opportunity-registry.functional.mjs",
+          "scenarioId": "SCN-034-020",
+          "description": "destination refusal remains visible while shared registry canaries pass",
+          "command": "node --test tests/ai-opportunity-registry.functional.mjs",
+          "liveSystem": true
+        }
+      ]
+    }
+  ]
+}

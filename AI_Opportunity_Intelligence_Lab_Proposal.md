@@ -14,7 +14,7 @@ The existing AIOpportunities corpus remains the preserved seed and historical re
 
 The relocated corpus lives at:
 
-`/Users/pkirsanov/Projects/AIOpportunities/research/ai-industry/`
+`~/Projects/<private-sibling>/research/ai-industry/`
 
 It currently contains:
 
@@ -91,7 +91,7 @@ The current pointer may move to a validated generation; historic records must re
 
 ## Refresh Architecture
 
-Research-lab should not rely on a sibling-project absolute path at runtime. A static deployment cannot read `/Users/.../AIOpportunities`.
+Research-lab should not rely on a sibling-project absolute path at runtime. A static deployment cannot read an absolute personal home path such as `~/Projects/<private-sibling>/AIOpportunities`.
 
 Use a versioned import pipeline:
 

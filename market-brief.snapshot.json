@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-10-11T15:00:00.000Z",
-  "generatedAt": "2026-10-11T14:31:52.003Z",
-  "window": "morning",
+  "asOf": "2026-10-11T19:00:00.000Z",
+  "generatedAt": "2026-10-11T18:36:59.034Z",
+  "window": "pre-close",
   "marketClosed": true,
   "nextSessionDate": "2026-10-12",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-10-11T14:30:29.856Z",
+      "updated": "2026-10-11T18:35:37.002Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-10-09",
       "refreshDate": "2026-10-11",
-      "refreshWindow": "morning",
+      "refreshWindow": "pre-close",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-10-11T14:30:33.960Z",
+      "updated": "2026-10-11T18:35:40.262Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-10-11",
-      "refreshWindow": "morning",
+      "refreshWindow": "pre-close",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-10-11T14:31:50.271Z",
+      "asOf": "2026-10-11T18:36:57.433Z",
       "read": "Rotate toward XLF as XLK weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": 0.03180705000272033,
           "usdRelativeReturn": 0.19848403975250517,
           "asOf": "2026-10-09T00:00:00.000Z",
-          "computedAt": "2026-10-11T14:31:50.441Z",
+          "computedAt": "2026-10-11T18:36:57.602Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1351,7 +1351,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-0bd16ed6",
+            "setId": "set-v1-d8bcc249",
             "purpose": "global-decomposition",
             "horizonSessions": 63,
             "legs": [
@@ -1377,7 +1377,7 @@
                 "subject": "BRL/USD",
                 "orientation": "fx",
                 "adjustment": "adjusted-close",
-                "validDateCount": 392
+                "validDateCount": 391
               }
             ],
             "alignedRows": [
@@ -1896,8 +1896,8 @@
             ],
             "coverage": {
               "requiredRowCount": 64,
-              "commonRowCount": 323,
-              "earliestCommonDate": "2025-04-28",
+              "commonRowCount": 322,
+              "earliestCommonDate": "2025-04-29",
               "latestCommonDate": "2026-10-09",
               "unmatchedNewerDates": {
                 "etf": [],
@@ -1933,7 +1933,7 @@
           "interaction": 0.009959005046393547,
           "relationship": "Joint Support",
           "asOf": "2026-10-09T00:00:00.000Z",
-          "computedAt": "2026-10-11T14:31:50.441Z",
+          "computedAt": "2026-10-11T18:36:57.602Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1957,7 +1957,7 @@
               "usdLeadership": {
                 "asOf": "2026-10-09T00:00:00.000Z",
                 "benchmarkReturn": 0.03180705000272033,
-                "computedAt": "2026-10-11T14:31:50.441Z",
+                "computedAt": "2026-10-11T18:36:57.602Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2466,7 +2466,7 @@
                 "approximateLocalReturn": 0.20638022324614624,
                 "asOf": "2026-10-09T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.030419469648835795,
-                "computedAt": "2026-10-11T14:31:50.441Z",
+                "computedAt": "2026-10-11T18:36:57.602Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "BRL",
                 "freshUntil": null,
@@ -2993,13 +2993,13 @@
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 323,
+                    "commonRowCount": 322,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0,
                       "fx": 0
                     },
-                    "earliestCommonDate": "2025-04-28",
+                    "earliestCommonDate": "2025-04-29",
                     "latestCommonDate": "2026-10-09",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
@@ -3035,7 +3035,7 @@
                       "observationId": "fx:BRL",
                       "orientation": "fx",
                       "subject": "BRL/USD",
-                      "validDateCount": 392
+                      "validDateCount": 391
                     }
                   ],
                   "lineage": {
@@ -3047,7 +3047,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-0bd16ed6",
+                  "setId": "set-v1-d8bcc249",
                   "state": "aligned"
                 },
                 "relationship": "Joint Support",
@@ -3061,7 +3061,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-10-11T14:31:50.441Z",
+          "computedAt": "2026-10-11T18:36:57.602Z",
           "freshUntil": null
         }
       },
@@ -3071,17 +3071,17 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-10-11T00:00:00.000Z",
-      "read": "BTC-USD leads real assets at 84/100; GLD 32.9, BTC 84, SLV 27.1.",
+      "read": "BTC-USD leads real assets at 85.1/100; GLD 32.9, BTC 85.1, SLV 27.1.",
       "metrics": {
         "leader": {
           "ticker": "BTC-USD",
           "model": "bitcoin",
-          "score": 84,
+          "score": 85.1,
           "trend": "Uptrend",
-          "mom21": 2.3,
-          "mom63": 28.01,
-          "mom126": 31.26,
-          "vol": 37.01,
+          "mom21": 3.24,
+          "mom63": 29.18,
+          "mom126": 32.46,
+          "vol": 37.04,
           "maxDrawdown": 11.66,
           "riskPenalty": 1.76,
           "confirmations": [
@@ -3106,12 +3106,12 @@
           {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 84,
+            "score": 85.1,
             "trend": "Uptrend",
-            "mom21": 2.3,
-            "mom63": 28.01,
-            "mom126": 31.26,
-            "vol": 37.01,
+            "mom21": 3.24,
+            "mom63": 29.18,
+            "mom126": 32.46,
+            "vol": 37.04,
             "maxDrawdown": 11.66,
             "riskPenalty": 1.76,
             "confirmations": [
@@ -3128,6 +3128,37 @@
                 "symbols": [],
                 "score": 92.95101671456264,
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
+              }
+            ],
+            "asOf": "2026-10-11T00:00:00.000Z"
+          },
+          {
+            "ticker": "ETH-USD",
+            "model": "crypto",
+            "score": 80.5,
+            "trend": "Uptrend",
+            "mom21": -3.95,
+            "mom63": 33,
+            "mom126": 50.53,
+            "vol": 51.79,
+            "maxDrawdown": 12.82,
+            "riskPenalty": 2.03,
+            "confirmations": [
+              {
+                "label": "Equity risk appetite",
+                "symbols": [
+                  "QQQ"
+                ],
+                "score": 67.69997666754314,
+                "detail": "Growth equities proxy broad speculative appetite."
+              },
+              {
+                "label": "Bitcoin confirmation",
+                "symbols": [
+                  "BTC-USD"
+                ],
+                "score": 91.6887442343201,
+                "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
               }
             ],
             "asOf": "2026-10-11T00:00:00.000Z"
@@ -3164,37 +3195,6 @@
               }
             ],
             "asOf": "2026-10-09T13:30:00.000Z"
-          },
-          {
-            "ticker": "ETH-USD",
-            "model": "crypto",
-            "score": 79.2,
-            "trend": "Uptrend",
-            "mom21": -5.29,
-            "mom63": 31.15,
-            "mom126": 48.43,
-            "vol": 51.76,
-            "maxDrawdown": 12.82,
-            "riskPenalty": 2.03,
-            "confirmations": [
-              {
-                "label": "Equity risk appetite",
-                "symbols": [
-                  "QQQ"
-                ],
-                "score": 67.69997666754314,
-                "detail": "Growth equities proxy broad speculative appetite."
-              },
-              {
-                "label": "Bitcoin confirmation",
-                "symbols": [
-                  "BTC-USD"
-                ],
-                "score": 90.00818849673004,
-                "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used."
-              }
-            ],
-            "asOf": "2026-10-11T00:00:00.000Z"
           },
           {
             "ticker": "IBIT",
@@ -3248,7 +3248,7 @@
               {
                 "label": "Volatility / drawdown",
                 "symbols": [],
-                "score": 77.32171353791041,
+                "score": 77.32171916569351,
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
@@ -3364,12 +3364,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 84,
+            "score": 85.1,
             "trend": "Uptrend",
-            "mom21": 2.3,
-            "mom63": 28.01,
-            "mom126": 31.26,
-            "vol": 37.01,
+            "mom21": 3.24,
+            "mom63": 29.18,
+            "mom126": 32.46,
+            "vol": 37.04,
             "maxDrawdown": 11.66,
             "riskPenalty": 1.76,
             "confirmations": [
@@ -3496,7 +3496,7 @@
           "xle63": 15.380394182073754,
           "xli63": -5.9129057379806005,
           "gld63": 4.753079687677153,
-          "btc63": 28.005731947711034,
+          "btc63": 29.18212096402406,
           "dbc63": 16.343096269803723,
           "goldSilverRatio63": -0.2570145622168063,
           "breadth": 100
@@ -3773,7 +3773,7 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-10-11T14:31:51.637Z",
+      "asOf": "2026-10-11T18:36:58.841Z",
       "read": "The AI-capex universe is dated 2026-06-30, 104 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
@@ -3852,15 +3852,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-10-11T14:31:51.648Z",
+      "asOf": "2026-10-11T18:36:58.855Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-fa176164",
-        "evidenceIdentity": "fxe-v1-32e5a0f2",
+        "ownerDecisionId": "fxo-v1-ade9aa9e",
+        "evidenceIdentity": "fxe-v1-2584a578",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -3983,8 +3983,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-fa176164",
-            "evidenceIdentity": "fxe-v1-32e5a0f2",
+            "ownerDecisionId": "fxo-v1-ade9aa9e",
+            "evidenceIdentity": "fxe-v1-2584a578",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4104,7 +4104,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-32e5a0f2",
+              "evidenceIdentity": "fxe-v1-2584a578",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4129,7 +4129,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-10-11T14:31:51.648Z",
+          "computedAt": "2026-10-11T18:36:58.855Z",
           "freshUntil": null
         }
       }
@@ -4155,7 +4155,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-10-11T14:31:51.700Z",
+      "asOf": "2026-10-11T18:36:58.913Z",
       "read": "Leadership is broad — 71.02% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4343,7 +4343,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "BTC-USD leads real assets at 84/100; GLD 32.9, BTC 84, SLV 27.1."
+      "reason": "BTC-USD leads real assets at 85.1/100; GLD 32.9, BTC 85.1, SLV 27.1."
     },
     {
       "id": "bond-regime-lab",

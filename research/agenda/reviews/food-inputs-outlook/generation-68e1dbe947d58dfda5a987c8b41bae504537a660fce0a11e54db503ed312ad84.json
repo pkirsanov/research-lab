@@ -1,0 +1,89 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-dd87aec2c574179591b45a4a7cb11c0a1b1f15f668cb2874ccf5bd27e13f2385",
+  "generationId": "generation-68e1dbe947d58dfda5a987c8b41bae504537a660fce0a11e54db503ed312ad84",
+  "topicId": "food-inputs-outlook",
+  "attemptedAt": "2026-10-11T14:31:52.003Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "cadence",
+  "selectionReason": "cadence-elapsed",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "topic-model-not-applicable",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "grains-outlook",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no public grains production, inventory, or trade observations are present in the supplied data.",
+      "gaps": [
+        "Missing public crop and input observations for grains."
+      ]
+    },
+    {
+      "sectionId": "fertilizer-inputs",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no nitrogen, phosphate, potash, or ammonia price data is present in the supplied data.",
+      "gaps": [
+        "Missing fertilizer cost and energy input observations."
+      ]
+    },
+    {
+      "sectionId": "input-cost-transmission",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no natural gas feedstock cost or export restriction data is present to assess transmission.",
+      "gaps": [
+        "Missing feedstock cost and restriction data."
+      ]
+    },
+    {
+      "sectionId": "declared-catalysts",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no specific catalyst events or dates are named in the supplied data.",
+      "gaps": [
+        "Missing catalyst event details."
+      ]
+    },
+    {
+      "sectionId": "move-ranges",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no committed public bars for agriculture or materials proxies are present.",
+      "gaps": [
+        "Missing committed public bars."
+      ]
+    },
+    {
+      "sectionId": "invalidations",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no prior crop or fertilizer input observations exist to be superseded.",
+      "gaps": [
+        "Missing prior input observations."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: the source ledger is empty with zero retained sources.",
+      "gaps": [
+        "Empty source ledger."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no predecessor dossier or change assessment data is present.",
+      "gaps": [
+        "Missing predecessor data."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

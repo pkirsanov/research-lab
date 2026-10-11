@@ -336,7 +336,7 @@ test('Security regression: SCN-030-003 retained request fingerprint mutation ref
       await readBody(request);
       return responseJson(response, 200, {
         object: 'list',
-        data: [{ id: 'Ternary-Bonsai-27B-mlx-2bit', object: 'model' }]
+        data: [{ id: 'Qwen3.8-Flash-Next-4bit-mtp', object: 'model' }]
       });
     }
     if (request.url === '/v1/chat/completions') {
@@ -500,7 +500,7 @@ test('Regression: SCN-030-001 explicit profile resolves once or refuses before H
     assert.equal(omlx.ok, true, JSON.stringify(omlx.error || null));
     assert.equal(ollama.ok, true, JSON.stringify(ollama.error || null));
     assert.equal(omlx.value.profileId, 'omlx-openai-compatible-bonsai27');
-    assert.equal(omlx.value.modelId, 'Ternary-Bonsai-27B-mlx-2bit');
+    assert.equal(omlx.value.modelId, 'Qwen3.8-Flash-Next-4bit-mtp');
     assert.equal(ollama.value.profileId, 'ollama-openai-compatible');
     assert.equal(ollama.value.modelId, 'ollama-functional-model');
     assert.notEqual(omlx.value.providerId, ollama.value.providerId);
@@ -527,7 +527,7 @@ test('Regression: SCN-030-002 exact model preflight precedes one bounded dynamic
       if (state.failModels) return responseJson(response, 503, { error: { code: 'unavailable' } });
       return responseJson(response, 200, {
         object: 'list',
-        data: state.includeModel ? [{ id: 'Ternary-Bonsai-27B-mlx-2bit', object: 'model' }] : []
+        data: state.includeModel ? [{ id: 'Qwen3.8-Flash-Next-4bit-mtp', object: 'model' }] : []
       });
     }
     if (request.url === '/v1/chat/completions') {
@@ -553,12 +553,12 @@ test('Regression: SCN-030-002 exact model preflight precedes one bounded dynamic
     assert.equal(result?.contractVersion, 'brief-shadow-result/v1');
     assert.equal(result?.authoritative, false);
     assert.equal(result?.profile?.profileId, 'omlx-openai-compatible-bonsai27');
-    assert.equal(result?.profile?.modelId, 'Ternary-Bonsai-27B-mlx-2bit');
+    assert.equal(result?.profile?.modelId, 'Qwen3.8-Flash-Next-4bit-mtp');
     assert.equal(result?.authorResponse?.requestFingerprint, request.requestFingerprint);
     assert.deepEqual(observed.map((entry) => entry.url), ['/v1/models', '/v1/chat/completions']);
 
     const chatRequest = JSON.parse(observed[1].body);
-    assert.equal(chatRequest.model, 'Ternary-Bonsai-27B-mlx-2bit');
+    assert.equal(chatRequest.model, 'Qwen3.8-Flash-Next-4bit-mtp');
     assert.equal(chatRequest.stream, false);
     assert.deepEqual(chatRequest.response_format, {
       type: 'json_schema',
@@ -715,7 +715,7 @@ test('Stress: SCN-030-002 finite byte deadline retry and concurrency limits refu
       state.modelRequests += 1;
       if (state.holdModels) return;
       return responseJson(response, state.modelStatus, state.modelBody || {
-        object: 'list', data: [{ id: 'Ternary-Bonsai-27B-mlx-2bit' }]
+        object: 'list', data: [{ id: 'Qwen3.8-Flash-Next-4bit-mtp' }]
       });
     }
     if (incoming.url === '/v1/chat/completions') {
@@ -766,7 +766,7 @@ test('Stress: SCN-030-002 finite byte deadline retry and concurrency limits refu
     assert.equal(overCapInvocation.error.code, 'B030-ADAPTER-CONFIG');
     assert.equal(state.chatRequests, chatsBeforeOverCap);
 
-    const modelAtCap = { object: 'list', data: [{ id: 'Ternary-Bonsai-27B-mlx-2bit' }], padding: '' };
+    const modelAtCap = { object: 'list', data: [{ id: 'Qwen3.8-Flash-Next-4bit-mtp' }], padding: '' };
     modelAtCap.padding = 'x'.repeat(limits.modelListMaxResponseBytes - Buffer.byteLength(JSON.stringify(modelAtCap)));
     assert.equal(Buffer.byteLength(JSON.stringify(modelAtCap)), limits.modelListMaxResponseBytes);
     state.modelBody = modelAtCap;

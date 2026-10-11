@@ -890,7 +890,7 @@
                 "baseUrlEnv": "BRIEF_OMLX_BASE_URL",
                 "modelBinding": {
                     "kind": "committed",
-          "modelId": "Ternary-Bonsai-27B-mlx-2bit"
+          "modelId": "Qwen3.8-Flash-Next-4bit-mtp"
                 },
                 "usageMapping": {
                     "promptTokens": "usage.prompt_tokens",

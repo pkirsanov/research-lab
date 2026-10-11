@@ -157,7 +157,7 @@
       if (adapter.providerId !== "omlx" || adapter.baseUrlEnv !== "BRIEF_OMLX_BASE_URL") return failure(ERRORS.POLICY, "omlx-binding", "adapters." + profileId);
       if (!exactKeys(adapter.modelBinding, ["kind", "modelId"])
         || adapter.modelBinding.kind !== "committed"
-        || adapter.modelBinding.modelId !== "Ternary-Bonsai-27B-mlx-2bit") {
+        || adapter.modelBinding.modelId !== "Qwen3.8-Flash-Next-4bit-mtp") {
         return failure(ERRORS.POLICY, "omlx-model-binding", "adapters." + profileId + ".modelBinding");
       }
     } else if (profileId === PROFILE_IDS[1]) {

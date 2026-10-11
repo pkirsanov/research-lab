@@ -30640,7 +30640,7 @@ try {
   assert(omlx.ok && ollama.ok
     && omlx.value.profileId === profileIds[0]
     && omlx.value.providerId === 'omlx'
-    && omlx.value.modelId === 'Ternary-Bonsai-27B-mlx-2bit'
+    && omlx.value.modelId === 'Qwen3.8-Flash-Next-4bit-mtp'
     && ollama.value.profileId === profileIds[1]
     && ollama.value.providerId === 'ollama'
     && ollama.value.modelId === 'ollama-selftest-model'

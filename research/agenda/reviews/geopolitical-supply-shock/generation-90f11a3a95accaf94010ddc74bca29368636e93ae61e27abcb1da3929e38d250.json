@@ -1,0 +1,89 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-1aa90e60c5da76108076a8fdb462264fa4f6552c3c265a32a95832ee837e6eaf",
+  "generationId": "generation-90f11a3a95accaf94010ddc74bca29368636e93ae61e27abcb1da3929e38d250",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-10-12T14:31:44.509Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-UNKNOWN-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No official policy or verified statements for US, Iran, or other actors are present in the input to assess reaction functions.",
+      "gaps": [
+        "No official policy or verified statements for US, Iran, or other actors are present in the input to assess reaction functions."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No measured maritime flow or insured capacity data is present to determine current escalation state or probabilities.",
+      "gaps": [
+        "No measured maritime flow or insured capacity data is present to determine current escalation state or probabilities."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured transit loadings, delay, or insured capacity data is present to assess physical and insured flow state.",
+      "gaps": [
+        "No measured transit loadings, delay, or insured capacity data is present to assess physical and insured flow state."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No energy or input balance data is present to assess transmission through oil, refined products, LNG, fertilizer, or aluminum channels.",
+      "gaps": [
+        "No energy or input balance data is present to assess transmission through oil, refined products, LNG, fertilizer, or aluminum channels."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "No committed public bars for proxies like BNO, USO, XLE, or others are present to calibrate sensitivity.",
+      "gaps": [
+        "No committed public bars for proxies like BNO, USO, XLE, or others are present to calibrate sensitivity."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No current state-change or threshold observations are present to trigger or invalidate defined scenarios.",
+      "gaps": [
+        "No current state-change or threshold observations are present to trigger or invalidate defined scenarios."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "No source ledger entries are present in the input to track evidence provenance or freshness.",
+      "gaps": [
+        "No source ledger entries are present in the input to track evidence provenance or freshness."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No predecessor dossier or change assessment data is present to evaluate changes from prior states.",
+      "gaps": [
+        "No predecessor dossier or change assessment data is present to evaluate changes from prior states."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

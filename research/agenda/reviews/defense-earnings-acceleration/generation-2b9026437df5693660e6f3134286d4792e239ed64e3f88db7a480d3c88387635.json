@@ -1,0 +1,82 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-cd5e0c76bcd5b3c421e50e6e2d54d55b42eb0a4302b75af75c6d213d29211bb7",
+  "generationId": "generation-2b9026437df5693660e6f3134286d4792e239ed64e3f88db7a480d3c88387635",
+  "topicId": "defense-earnings-acceleration",
+  "attemptedAt": "2026-10-12T11:01:48.494Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "cadence",
+  "selectionReason": "cadence-elapsed",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "topic-model-not-applicable",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "consensus-revisions",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no confirmed price level or consensus revision data for any defense manufacturer in the supplied data.",
+      "gaps": [
+        "No company-filings-and-guidance records acquired.",
+        "No consensus estimates for defense manufacturers."
+      ]
+    },
+    {
+      "sectionId": "revision-gap-ranking",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no revision gap ranking can be constructed without consensus estimate deltas.",
+      "gaps": [
+        "No consensus estimate deltas available."
+      ]
+    },
+    {
+      "sectionId": "funded-program-catalysts",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no funded program catalysts or award data for defense manufacturers in the supplied data.",
+      "gaps": [
+        "No funded program catalysts identified."
+      ]
+    },
+    {
+      "sectionId": "production-capacity",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no production capacity data for defense manufacturers in the supplied data.",
+      "gaps": [
+        "No production capacity data available."
+      ]
+    },
+    {
+      "sectionId": "backlog-conversion",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no backlog conversion data for defense manufacturers in the supplied data.",
+      "gaps": [
+        "No backlog conversion data available."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no source ledger entries for defense manufacturers in the supplied data.",
+      "gaps": [
+        "No source ledger entries available."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no predecessor change assessment data for defense manufacturers in the supplied data.",
+      "gaps": [
+        "No predecessor change assessment data available."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

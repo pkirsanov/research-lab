@@ -262,12 +262,15 @@ const TOOLS = {
     wiredInProduction: true
   },
   'global-rotation-lab': {
-    title: 'Regression: global rotation Simple controls recompute owner country queue with FX and session truth',
+    title: 'Regression: global rotation Simple controls recompute owner country queue with volatility and session truth',
     html: 'global-rotation-lab.html',
     moduleGlobal: 'RLMACROROTATION',
     moduleFile: 'rlexperience-adapters/macro-rotation.js',
     owner: () => countryOwnerFixture(),
-    changes: () => [['fx-weight', 0.5], ['local-close-max-age', 6]],
+    // FX is display evidence in the Global route, not a model input (design 004: FX control+use
+    // removed from the country-rotation model in one change). volatility-penalty subverts the queue
+    // score directly, so the pair still proves visible sensitivity on BOTH output paths.
+    changes: () => [['volatility-penalty', 0.5], ['local-close-max-age', 6]],
     adapterId: 'simple-adapter/country-rotation/v1',
     // Wired into its production page (global-rotation-lab.html registers a real owner-state provider,
     // __rlOwnerStateProvider['global-rotation-lab'], consumed by the production Simple bridge in

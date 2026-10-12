@@ -269,8 +269,8 @@
      The adapter is a DIFFERENT Simple question over the SAME frozen owner facts the page computes:
      a horizon-weighted research QUEUE (which country to rotate toward) plus a local-close FRESHNESS
      gate. It consumes the page's already-computed owner facts (benchmark-relative rel21/rel63/rel126,
-     FX confirmation score, realized volatility, and the local-close age) and re-derives a queue under
-     the adapter's own controls. The pairwise-correlation owner formula is single-sourced here so the
+     realized volatility, and the local-close age) and re-derives a queue under the adapter's own
+     controls; the FX score rides along only as displayed evidence and never weights the score. The pairwise-correlation owner formula is single-sourced here so the
      page's Power path and this Simple adapter share ONE correlation source (page carries no inline
      copy). Everything else is a frozen owner fact — the adapter fabricates nothing and defaults
      nothing for missing evidence. */
@@ -342,14 +342,14 @@
   }
 
   /* Compute the full country-rotation summary from frozen owner state + current parameters. The
-     queue score derives from the single-source horizon momentum, the frozen FX/volatility facts, and
-     the single-source correlation; freshness derives from the frozen local-close age. Nothing is
-     fabricated and missing evidence never becomes a default. */
+     queue score derives from the single-source horizon momentum, the frozen volatility fact, and the
+     single-source correlation; the FX score is carried as display evidence only and never weights
+     the score. Freshness derives from the frozen local-close age. Nothing is fabricated and missing
+     evidence never becomes a default. */
   function computeCountryRotationSummary(ownerState, params) {
     var shortW = params["short-horizon-weight"];
     var medW = params["medium-horizon-weight"];
     var longW = params["long-horizon-weight"];
-    var fxW = params["fx-weight"];
     var volPen = params["volatility-penalty"];
     var divW = params["diversification-weight"];
     var maxAge = params["local-close-max-age"];
@@ -364,7 +364,6 @@
       var priced = isFiniteNumber(momentum);
       var raw = priced
         ? momentum
-          + (fx == null ? 0 : fxW * fx)
           - (volComp == null ? 0 : volPen * volComp)
           + (divComp == null ? 0 : divW * divComp)
         : null;
@@ -407,7 +406,6 @@
       shortHorizonWeight: shortW,
       mediumHorizonWeight: medW,
       longHorizonWeight: longW,
-      fxWeight: fxW,
       volatilityPenalty: volPen,
       diversificationWeight: divW,
       localCloseMaxAge: maxAge,
@@ -703,7 +701,7 @@
       }],
       parameterValues: {},
       assumptions: [
-        "Country rotation uses only the frozen owner relative-momentum, FX, volatility, and local-close facts currently captured."
+        "Country rotation weights only the frozen owner relative-momentum, volatility, and local-close facts currently captured; FX rides along as display evidence only."
       ],
       limitations: [
         "The queue describes the selected owner window and does not establish persistence or an allocation."
@@ -738,7 +736,7 @@
       uncertainty: {
         state: uncertaintyState,
         rangeOrBand: leader ? ("Queue leader " + leader) : "No priced country",
-        reason: "Queue and freshness use the exact frozen owner relative-momentum, FX, volatility, correlation, and local-close facts currently captured."
+        reason: "Queue and freshness use the exact frozen owner relative-momentum, volatility, correlation, and local-close facts currently captured."
       },
       assumptions: [
         "Countries without a complete relative-momentum window are excluded from the priced queue."
@@ -758,7 +756,6 @@
     "short-horizon-weight": ["summary.queue"],
     "medium-horizon-weight": ["summary.queue"],
     "long-horizon-weight": ["summary.queue"],
-    "fx-weight": ["summary.queue"],
     "local-close-max-age": ["summary.freshness"],
     "volatility-penalty": ["summary.queue"],
     "diversification-weight": ["summary.queue"]

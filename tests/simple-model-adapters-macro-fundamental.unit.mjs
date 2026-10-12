@@ -409,7 +409,6 @@ test('TP-06-01 each enabled country-rotation parameter changes its declared outp
     ['short-horizon-weight', 0.5, 'summary.queue'],
     ['medium-horizon-weight', 0.6, 'summary.queue'],
     ['long-horizon-weight', 0.5, 'summary.queue'],
-    ['fx-weight', 0.5, 'summary.queue'],
     ['local-close-max-age', 6, 'summary.freshness'],
     ['volatility-penalty', 0.5, 'summary.queue'],
     ['diversification-weight', 0.5, 'summary.queue']

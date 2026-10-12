@@ -1667,25 +1667,6 @@
           "identityBearing": true
         },
         {
-          "parameterId": "fx-weight",
-          "label": "FX confirmation weight",
-          "kind": "number",
-          "unit": "weight",
-          "domain": {
-            "min": 0,
-            "max": 1,
-            "step": 0.05
-          },
-          "defaultValue": 0.2,
-          "defaultSource": "registry",
-          "interpretation": "Weights FX confirmation in the country score.",
-          "affectsOutputPaths": [
-            "summary.queue"
-          ],
-          "disabledWhen": [],
-          "identityBearing": true
-        },
-        {
           "parameterId": "local-close-max-age",
           "label": "Local close maximum age",
           "kind": "integer",

@@ -1035,7 +1035,6 @@ function makeScope6Descriptors(mr, fm) {
         ['short-horizon-weight', 0.5],
         ['medium-horizon-weight', 0.6],
         ['long-horizon-weight', 0.5],
-        ['fx-weight', 0.5],
         ['local-close-max-age', 6],
         ['volatility-penalty', 0.5],
         ['diversification-weight', 0.5]

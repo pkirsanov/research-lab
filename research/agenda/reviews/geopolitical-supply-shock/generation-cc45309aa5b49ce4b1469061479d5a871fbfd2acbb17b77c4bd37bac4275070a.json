@@ -1,0 +1,89 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-1394a51f13829c085f3d9655237f0fd8896c332dc1964b4bd90931137b6661b2",
+  "generationId": "generation-cc45309aa5b49ce4b1469061479d5a871fbfd2acbb17b77c4bd37bac4275070a",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-10-13T14:31:51.421Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-SHAPE",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No official policy or verified statement for United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers, or OPEC buffer producers is present in the supplied data.",
+      "gaps": [
+        "No official-policy-and-statements source within the 24-hour freshness window."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No measured maritime-flow observation supports any scenario entry trigger for Hormuz, Bab el-Mandeb, or Red Sea.",
+      "gaps": [
+        "No measured-maritime-flow source within the 24-hour freshness window."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured transit, loadings, delay, or insured capacity data is supplied for any declared route or shipping-insurer target.",
+      "gaps": [
+        "No measured-maritime-flow source within the 24-hour freshness window."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No energy or input balance observation is supplied for oil, refined-products, lng, fertilizer, aluminum, or shipping channels.",
+      "gaps": [
+        "No energy-and-input-balances source within the 72-hour freshness window."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "Committed public bars for BNO, USO, XLE, XOM, CVX, COP, MPC, PSX, DBA, DBC, XLB, and XLI are present but no channel shock range or proxy sensitivity calibration is supplied.",
+      "gaps": [
+        "No channel shock range or proxy range model output is supplied."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No trigger or invalidation condition can be evaluated because no physicalPassFraction, insuredPassFraction, or policyResponse observation is supplied.",
+      "gaps": [
+        "No measured-maritime-flow or energy-and-input-balances source to evaluate trigger conditions."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "Three material claims (actor-state, physical-flow/insured-flow, transmission-input) are all unsupported and uncorroborated with zero retained sources.",
+      "gaps": [
+        "No official, maritime-observation, or industry-data source is present in the evidence bundle."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No predecessor dossier is supplied, so no change assessment can be authored.",
+      "gaps": [
+        "No prior-dossier or change-assessment input is present."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

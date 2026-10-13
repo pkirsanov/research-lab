@@ -1,48 +1,48 @@
 {
-  "asOf": "2026-10-12T21:00:00.000Z",
+  "asOf": "2026-10-13T15:00:00.000Z",
   "attention": [
     {
       "contractVersion": "decision-attention/v1",
-      "decisionWindow": "after-hours",
+      "decisionWindow": "morning",
       "deepLink": "etf-momentum-lab.html",
       "disposition": "context",
-      "escalationTrigger": "A daily close below 501.99 (50-day MA) would signal trend failure.",
-      "expiry": "2026-10-19T21:00:00Z",
+      "escalationTrigger": "A daily close below 530.00.",
+      "expiry": "2026-10-20T20:00:00Z",
       "figures": [
         {
           "label": "distance from 200-day",
           "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
+            "asOf": "2026-10-13T15:00:00.000Z",
             "sourceId": "etf-momentum-lab"
           },
-          "value": "24.61%"
+          "value": "15.34%"
         },
         {
           "label": "from 52-week high",
           "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
+            "asOf": "2026-10-13T15:00:00.000Z",
             "sourceId": "etf-momentum-lab"
           },
-          "value": "-0.17%"
+          "value": "-18.22%"
         },
         {
           "label": "moving-average stack",
           "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
+            "asOf": "2026-10-13T15:00:00.000Z",
             "sourceId": "etf-momentum-lab"
           },
           "value": "bull-stack"
         }
       ],
       "gateId": null,
-      "headline": "MSFT (severe): Price 541.15 near 52w high; momentum strong but watch for mean reversion.",
+      "headline": "SOXX trades below its 50-day average at 538.50, signaling momentum decay.",
       "horizon": "swing",
-      "id": "attn-f211c41bf9f5c41b",
+      "id": "attn-52d00219b4fc0219",
       "imminence": "latent",
-      "invalidation": "A daily close below 501.99 invalidates the bullish structure.",
+      "invalidation": "A daily close above 540.00.",
       "lifecycle": [
         {
-          "at": "2026-10-12T21:00:00.000Z",
+          "at": "2026-10-13T15:00:00.000Z",
           "condition": "observed",
           "ref": null,
           "to": "discovered"
@@ -53,343 +53,8 @@
         "state": "absent"
       },
       "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
-      "observedAt": "2026-10-12T21:00:00.000Z",
-      "rationale": "MSFT trades at 541.15, just 0.17% from its 52-week high, with a 252-day momentum of 3.59% and 63-day momentum of 40.58%. The severe severity flag reflects the risk of mean reversion from elevated levels despite the bullish MA stack.",
-      "severity": "severe",
-      "state": "discovered",
-      "subject": "MSFT",
-      "supersededBy": null,
-      "transmissionAbsenceNote": null,
-      "transmissionPath": [
-        "breadth-market-structure"
-      ],
-      "verb": "monitor",
-      "windowBoundaryUtc": "2026-10-13T21:00:00.000Z",
-      "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-10-13"
-    },
-    {
-      "contractVersion": "decision-attention/v1",
-      "decisionWindow": "after-hours",
-      "deepLink": "etf-momentum-lab.html",
-      "disposition": "context",
-      "escalationTrigger": "A daily close below 725.65 (50-day MA) would confirm a deeper correction.",
-      "expiry": "2026-10-19T21:00:00Z",
-      "figures": [
-        {
-          "label": "distance from 200-day",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "10.89%"
-        },
-        {
-          "label": "from 52-week high",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "-1.79%"
-        },
-        {
-          "label": "moving-average stack",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "bull-stack"
-        }
-      ],
-      "gateId": null,
-      "headline": "QQQ (moderate): Price 746.04; 5-day momentum -1.34% suggests short-term cooling in tech.",
-      "horizon": "swing",
-      "id": "attn-75811985cc8d1985",
-      "imminence": "latent",
-      "invalidation": "A daily close below 725.65 invalidates the current bullish bias.",
-      "lifecycle": [
-        {
-          "at": "2026-10-12T21:00:00.000Z",
-          "condition": "observed",
-          "ref": null,
-          "to": "discovered"
-        }
-      ],
-      "marketConfirmation": {
-        "detail": null,
-        "state": "absent"
-      },
-      "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
-      "observedAt": "2026-10-12T21:00:00.000Z",
-      "rationale": "QQQ is at 746.04, 1.79% from its 52-week high. While the long-term trend is bullish, the negative 5-day momentum (-1.34%) and moderate severity flag indicate a potential pause or pullback in the tech-heavy index.",
-      "severity": "moderate",
-      "state": "discovered",
-      "subject": "QQQ",
-      "supersededBy": null,
-      "transmissionAbsenceNote": null,
-      "transmissionPath": [
-        "breadth-market-structure"
-      ],
-      "verb": "monitor",
-      "windowBoundaryUtc": "2026-10-13T21:00:00.000Z",
-      "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-10-13"
-    },
-    {
-      "contractVersion": "decision-attention/v1",
-      "decisionWindow": "after-hours",
-      "deepLink": "etf-momentum-lab.html",
-      "disposition": "context",
-      "escalationTrigger": "A daily close below 136.45 (200-day MA) would signal a structural break.",
-      "expiry": "2026-10-19T21:00:00Z",
-      "figures": [
-        {
-          "label": "distance from 200-day",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "9.46%"
-        },
-        {
-          "label": "from 52-week high",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "-7.61%"
-        },
-        {
-          "label": "moving-average stack",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "bull-stack"
-        }
-      ],
-      "gateId": null,
-      "headline": "SPMO (moderate): Price 149.36; 5-day momentum -2.48% and 63-day -2.29% show weakness.",
-      "horizon": "swing",
-      "id": "attn-83876f9bc8b36f9b",
-      "imminence": "latent",
-      "invalidation": "A daily close below 136.45 invalidates the long-term uptrend.",
-      "lifecycle": [
-        {
-          "at": "2026-10-12T21:00:00.000Z",
-          "condition": "observed",
-          "ref": null,
-          "to": "discovered"
-        }
-      ],
-      "marketConfirmation": {
-        "detail": null,
-        "state": "absent"
-      },
-      "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
-      "observedAt": "2026-10-12T21:00:00.000Z",
-      "rationale": "SPMO is trading at 149.36, below its 50-day MA of 149.61. The negative momentum across 5, 21, and 63-day periods suggests a loss of momentum in the S&P 500 momentum factor, warranting caution.",
-      "severity": "moderate",
-      "state": "discovered",
-      "subject": "SPMO",
-      "supersededBy": null,
-      "transmissionAbsenceNote": null,
-      "transmissionPath": [
-        "breadth-market-structure"
-      ],
-      "verb": "monitor",
-      "windowBoundaryUtc": "2026-10-13T21:00:00.000Z",
-      "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-10-13"
-    },
-    {
-      "contractVersion": "decision-attention/v1",
-      "decisionWindow": "after-hours",
-      "deepLink": "etf-momentum-lab.html",
-      "disposition": "context",
-      "escalationTrigger": "A daily close below 189.46 (50-day MA) would indicate a trend change.",
-      "expiry": "2026-10-19T21:00:00Z",
-      "figures": [
-        {
-          "label": "distance from 200-day",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "17.84%"
-        },
-        {
-          "label": "from 52-week high",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "-2.79%"
-        },
-        {
-          "label": "moving-average stack",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "bull-stack"
-        }
-      ],
-      "gateId": null,
-      "headline": "XLK (severe): Price 196.36; 5-day momentum -2.27% despite bullish stack.",
-      "horizon": "swing",
-      "id": "attn-dfa665e61bb265e6",
-      "imminence": "latent",
-      "invalidation": "A daily close below 189.46 invalidates the bullish structure.",
-      "lifecycle": [
-        {
-          "at": "2026-10-12T21:00:00.000Z",
-          "condition": "observed",
-          "ref": null,
-          "to": "discovered"
-        }
-      ],
-      "marketConfirmation": {
-        "detail": null,
-        "state": "absent"
-      },
-      "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
-      "observedAt": "2026-10-12T21:00:00.000Z",
-      "rationale": "XLK is at 196.36, 2.79% from its 52-week high. The severe severity flag is triggered by the negative 5-day momentum (-2.27%) and the proximity to the 50-day MA (189.46), suggesting potential volatility in the tech sector.",
-      "severity": "severe",
-      "state": "discovered",
-      "subject": "XLK",
-      "supersededBy": null,
-      "transmissionAbsenceNote": null,
-      "transmissionPath": [
-        "breadth-market-structure"
-      ],
-      "verb": "monitor",
-      "windowBoundaryUtc": "2026-10-13T21:00:00.000Z",
-      "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-10-13"
-    },
-    {
-      "contractVersion": "decision-attention/v1",
-      "decisionWindow": "after-hours",
-      "deepLink": "etf-momentum-lab.html",
-      "disposition": "context",
-      "escalationTrigger": "A daily close below 122.18 (50-day MA) would signal a pullback.",
-      "expiry": "2026-10-19T21:00:00Z",
-      "figures": [
-        {
-          "label": "distance from 200-day",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "17.62%"
-        },
-        {
-          "label": "from 52-week high",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "-2.53%"
-        },
-        {
-          "label": "moving-average stack",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "bull-stack"
-        }
-      ],
-      "gateId": null,
-      "headline": "VGT (severe): Price 126.51; 5-day momentum -2.08% and 63-day 8.03% show mixed signals.",
-      "horizon": "swing",
-      "id": "attn-6a67cbdaaf93cbda",
-      "imminence": "latent",
-      "invalidation": "A daily close below 122.18 invalidates the bullish bias.",
-      "lifecycle": [
-        {
-          "at": "2026-10-12T21:00:00.000Z",
-          "condition": "observed",
-          "ref": null,
-          "to": "discovered"
-        }
-      ],
-      "marketConfirmation": {
-        "detail": null,
-        "state": "absent"
-      },
-      "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
-      "observedAt": "2026-10-12T21:00:00.000Z",
-      "rationale": "VGT is at 126.51, 2.53% from its 52-week high. The severe severity flag reflects the mixed momentum signals (negative 5-day, positive 63-day) and the need to monitor the 50-day MA (122.18) for support.",
-      "severity": "severe",
-      "state": "discovered",
-      "subject": "VGT",
-      "supersededBy": null,
-      "transmissionAbsenceNote": null,
-      "transmissionPath": [
-        "breadth-market-structure"
-      ],
-      "verb": "monitor",
-      "windowBoundaryUtc": "2026-10-13T21:00:00.000Z",
-      "windowResolvedFrom": "session",
-      "windowTradingDate": "2026-10-13"
-    },
-    {
-      "contractVersion": "decision-attention/v1",
-      "decisionWindow": "after-hours",
-      "deepLink": "etf-momentum-lab.html",
-      "disposition": "context",
-      "escalationTrigger": "A daily close below 538.18 (50-day MA) would confirm a downtrend.",
-      "expiry": "2026-10-19T21:00:00Z",
-      "figures": [
-        {
-          "label": "distance from 200-day",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "17.58%"
-        },
-        {
-          "label": "from 52-week high",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "-16.82%"
-        },
-        {
-          "label": "moving-average stack",
-          "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
-            "sourceId": "etf-momentum-lab"
-          },
-          "value": "bull-stack"
-        }
-      ],
-      "gateId": null,
-      "headline": "SOXX (severe): Price 544.85; 5-day momentum -7.58% indicates sharp short-term decline.",
-      "horizon": "swing",
-      "id": "attn-20e3e6900527e690",
-      "imminence": "latent",
-      "invalidation": "A daily close below 538.18 invalidates the bullish structure.",
-      "lifecycle": [
-        {
-          "at": "2026-10-12T21:00:00.000Z",
-          "condition": "observed",
-          "ref": null,
-          "to": "discovered"
-        }
-      ],
-      "marketConfirmation": {
-        "detail": null,
-        "state": "absent"
-      },
-      "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
-      "observedAt": "2026-10-12T21:00:00.000Z",
-      "rationale": "SOXX is at 544.85, 16.82% from its 52-week high. The severe severity flag is due to the significant negative 5-day momentum (-7.58%) and the need to watch the 50-day MA (538.18) for support.",
+      "observedAt": "2026-10-13T15:00:00.000Z",
+      "rationale": "SOXX price of 535.32 is below the 50-day MA of 538.50, with a -9.18% 5-day momentum drop. This break suggests weakening sector strength.",
       "severity": "severe",
       "state": "discovered",
       "subject": "SOXX",
@@ -399,52 +64,52 @@
         "breadth-market-structure"
       ],
       "verb": "monitor",
-      "windowBoundaryUtc": "2026-10-13T21:00:00.000Z",
+      "windowBoundaryUtc": "2026-10-13T15:00:00.000Z",
       "windowResolvedFrom": "session",
       "windowTradingDate": "2026-10-13"
     },
     {
       "contractVersion": "decision-attention/v1",
-      "decisionWindow": "after-hours",
+      "decisionWindow": "morning",
       "deepLink": "etf-momentum-lab.html",
       "disposition": "context",
-      "escalationTrigger": "A daily close below 66.5 (50-day MA) would signal a trend failure.",
-      "expiry": "2026-10-19T21:00:00Z",
+      "escalationTrigger": "A daily close below 375.00.",
+      "expiry": "2026-10-20T20:00:00Z",
       "figures": [
         {
           "label": "distance from 200-day",
           "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
+            "asOf": "2026-10-13T15:00:00.000Z",
             "sourceId": "etf-momentum-lab"
           },
-          "value": "11.96%"
+          "value": "-8.04%"
         },
         {
           "label": "from 52-week high",
           "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
+            "asOf": "2026-10-13T15:00:00.000Z",
             "sourceId": "etf-momentum-lab"
           },
-          "value": "-29.23%"
+          "value": "-22.98%"
         },
         {
           "label": "moving-average stack",
           "provenance": {
-            "asOf": "2026-10-12T21:00:00.000Z",
+            "asOf": "2026-10-13T15:00:00.000Z",
             "sourceId": "etf-momentum-lab"
           },
-          "value": "bull-stack"
+          "value": "bear-stack"
         }
       ],
       "gateId": null,
-      "headline": "FBTC (moderate): Price 71.99; 5-day momentum -3.43% and 252-day -31.8% show weakness.",
+      "headline": "GLD remains in a bear-stack with price 381.94 below the 50-day MA of 397.44.",
       "horizon": "swing",
-      "id": "attn-b305b30df831b30d",
+      "id": "attn-2954821c6560821c",
       "imminence": "latent",
-      "invalidation": "A daily close below 66.5 invalidates the bullish bias.",
+      "invalidation": "A daily close above 390.00.",
       "lifecycle": [
         {
-          "at": "2026-10-12T21:00:00.000Z",
+          "at": "2026-10-13T15:00:00.000Z",
           "condition": "observed",
           "ref": null,
           "to": "discovered"
@@ -455,18 +120,18 @@
         "state": "absent"
       },
       "marketConfirmationNote": "the Tier-A persistence gate is NOT met, so this reading has not persisted and is reported unconfirmed",
-      "observedAt": "2026-10-12T21:00:00.000Z",
-      "rationale": "FBTC is at 71.99, 29.23% from its 52-week high. The moderate severity flag reflects the negative long-term momentum and the need to monitor the 50-day MA (66.5) for support.",
+      "observedAt": "2026-10-13T15:00:00.000Z",
+      "rationale": "GLD price of 381.94 is below the 50-day MA of 397.44 and 200-day MA of 415.33. The -22.98% distance from 52-week high indicates sustained weakness.",
       "severity": "moderate",
       "state": "discovered",
-      "subject": "FBTC",
+      "subject": "GLD",
       "supersededBy": null,
       "transmissionAbsenceNote": null,
       "transmissionPath": [
-        "volatility-options"
+        "commodities-energy"
       ],
       "verb": "monitor",
-      "windowBoundaryUtc": "2026-10-13T21:00:00.000Z",
+      "windowBoundaryUtc": "2026-10-13T15:00:00.000Z",
       "windowResolvedFrom": "session",
       "windowTradingDate": "2026-10-13"
     }
@@ -516,29 +181,29 @@
     }
   ],
   "backdrop": {
-    "asymmetry": "SPY support is 768.19, with structural support at 723.41.",
+    "asymmetry": "SPY support is 767.37, with structural support at 720.58.",
     "globalBackdrop": [
       "Use only the current owner reads supplied with this request."
     ],
     "macroCycle": "Macro-cycle direction is unverified in this run.",
     "pricedIn": "No priced-in macro outcome is quantified by the supplied evidence.",
-    "primaryTrend": "SPY 778.10 bull-stack (50d 768.19, 200d 723.41).",
+    "primaryTrend": "SPY 777.58 bull-stack (50d 767.37, 200d 720.58).",
     "structuralLevels": {
       "SPY": {
-        "ma200": 723.41,
-        "ma50": 768.19,
-        "note": "SPY 778.10 bull-stack (50d 768.19, 200d 723.41).",
+        "ma200": 720.58,
+        "ma50": 767.37,
+        "note": "SPY 777.58 bull-stack (50d 767.37, 200d 720.58).",
         "resistance": [
-          "current price 778.10"
+          "current price 777.58"
         ],
         "support": [
-          "50-day 768.19",
-          "200-day 723.41"
+          "50-day 767.37",
+          "200-day 720.58"
         ]
       }
     },
-    "trendEvidence": "SPY 778.10 bull-stack (50d 768.19, 200d 723.41).",
-    "whatWouldChangeIt": "A daily SPY close below 768.19 would weaken the backdrop."
+    "trendEvidence": "SPY 777.58 bull-stack (50d 767.37, 200d 720.58).",
+    "whatWouldChangeIt": "A daily SPY close below 767.37 would weaken the backdrop."
   },
   "budget": {
     "byField": [
@@ -555,7 +220,7 @@
         "path": "dataAsOf.labels.macro"
       },
       {
-        "chars": 590,
+        "chars": 149,
         "path": "attention[].headline"
       },
       {
@@ -563,11 +228,11 @@
         "path": "attention[].what"
       },
       {
-        "chars": 474,
+        "chars": 54,
         "path": "attention[].escalationTrigger"
       },
       {
-        "chars": 418,
+        "chars": 54,
         "path": "attention[].invalidation"
       },
       {
@@ -591,11 +256,11 @@
         "path": "crossAsset.dark[].substitutionRefusal"
       },
       {
-        "chars": 34,
+        "chars": 84,
         "path": "changed[].line"
       },
       {
-        "chars": 14,
+        "chars": 13,
         "path": "rollUp.line"
       },
       {
@@ -611,72 +276,54 @@
     },
     "cards": [
       {
-        "chars": 215,
+        "chars": 127,
         "path": "attention[0]"
       },
       {
-        "chars": 225,
+        "chars": 130,
         "path": "attention[1]"
-      },
-      {
-        "chars": 218,
-        "path": "attention[2]"
-      },
-      {
-        "chars": 202,
-        "path": "attention[3]"
-      },
-      {
-        "chars": 205,
-        "path": "attention[4]"
-      },
-      {
-        "chars": 212,
-        "path": "attention[5]"
-      },
-      {
-        "chars": 205,
-        "path": "attention[6]"
       }
     ],
     "contractVersion": "budget-measurement/v1",
     "detail": [
       {
-        "chars": 232,
+        "chars": 136,
         "path": "attention[0].rationale"
       },
       {
-        "chars": 212,
+        "chars": 147,
         "path": "attention[1].rationale"
-      },
-      {
-        "chars": 192,
-        "path": "attention[2].rationale"
-      },
-      {
-        "chars": 221,
-        "path": "attention[3].rationale"
-      },
-      {
-        "chars": 201,
-        "path": "attention[4].rationale"
-      },
-      {
-        "chars": 190,
-        "path": "attention[5].rationale"
-      },
-      {
-        "chars": 173,
-        "path": "attention[6].rationale"
       }
     ],
-    "disclosedTotal": 53402,
-    "total": 2155,
+    "disclosedTotal": 46951,
+    "total": 979,
     "violations": []
   },
   "changed": [
     {
       "cur": {
+        "asOf": "2026-10-13",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 101.05,
+          "low52w": 51.05,
+          "ma20": 72.37,
+          "ma200": 64.28,
+          "ma50": 66.84
+        },
+        "ma200Dist": 13.08,
+        "maStack": "bull-stack",
+        "px": 72.69,
+        "rrgState": "Weakening ↓"
+      },
+      "kind": "levelCrossed",
+      "line": "FBTC levelCrossed",
+      "prev": {
         "asOf": "2026-10-12",
         "flags": {
           "callOpen": false,
@@ -685,21 +332,67 @@
           "persistenceGateMet": false
         },
         "levels": {
-          "high52w": 655.01,
-          "low52w": 268.1,
-          "ma20": 559.05,
-          "ma200": 463.39,
-          "ma50": 538.16
+          "high52w": 101.73,
+          "low52w": 51.05,
+          "ma20": 72.04,
+          "ma200": 64.3,
+          "ma50": 66.49
         },
-        "ma200Dist": 17.58,
+        "ma200Dist": 11.96,
         "maStack": "bull-stack",
-        "px": 544.85,
-        "rrgState": "Lagging"
+        "px": 71.99,
+        "rrgState": "Weakening ↓"
       },
-      "kind": "levelCrossed",
-      "line": "SOXX levelCrossed",
+      "symbol": "FBTC"
+    },
+    {
+      "cur": {
+        "asOf": "2026-10-13",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 548.85,
+          "low52w": 352.17,
+          "ma20": 514.47,
+          "ma200": 433.31,
+          "ma50": 502.98
+        },
+        "ma200Dist": 26.66,
+        "maStack": "bull-stack",
+        "px": 548.85,
+        "rrgState": "Leading"
+      },
+      "kind": "stateFlipped",
+      "line": "MSFT stateFlipped",
       "prev": {
-        "asOf": "2026-10-09",
+        "asOf": "2026-10-12",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 541.15,
+          "low52w": 352.17,
+          "ma20": 511.89,
+          "ma200": 432.99,
+          "ma50": 501.73
+        },
+        "ma200Dist": 24.98,
+        "maStack": "bull-stack",
+        "px": 541.15,
+        "rrgState": "Weakening ↓"
+      },
+      "symbol": "MSFT"
+    },
+    {
+      "cur": {
+        "asOf": "2026-10-13",
         "flags": {
           "callOpen": false,
           "earningsWithinWindow": false,
@@ -709,61 +402,128 @@
         "levels": {
           "high52w": 654.58,
           "low52w": 267.24,
-          "ma20": 556.67,
-          "ma200": 461.75,
-          "ma50": 537.15
+          "ma20": 560.88,
+          "ma200": 464.1,
+          "ma50": 538.52
         },
-        "ma200Dist": 21.15,
+        "ma200Dist": 15.34,
         "maStack": "bull-stack",
-        "px": 559.4,
-        "rrgState": "Weakening ↓"
+        "px": 535.32,
+        "rrgState": "Lagging"
+      },
+      "kind": "levelCrossed",
+      "line": "SOXX levelCrossed",
+      "prev": {
+        "asOf": "2026-10-12",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 654.58,
+          "low52w": 267.24,
+          "ma20": 559.05,
+          "ma200": 462.95,
+          "ma50": 537.96
+        },
+        "ma200Dist": 17.69,
+        "maStack": "bull-stack",
+        "px": 544.85,
+        "rrgState": "Lagging"
       },
       "symbol": "SOXX"
     },
     {
       "cur": {
+        "asOf": "2026-10-13",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 211.39,
+          "low52w": 108.27,
+          "ma20": 155.82,
+          "ma200": null,
+          "ma50": 146.18
+        },
+        "ma200Dist": null,
+        "maStack": "n/a",
+        "px": 156.56,
+        "rrgState": "Weakening ↓"
+      },
+      "kind": "stateFlipped",
+      "line": "SPCX stateFlipped",
+      "prev": {
         "asOf": "2026-10-12",
         "flags": {
-          "callOpen": true,
+          "callOpen": false,
           "earningsWithinWindow": false,
           "gammaFlipProximity": false,
           "persistenceGateMet": false
         },
         "levels": {
-          "high52w": 161.66,
-          "low52w": 107.84,
-          "ma20": 150.8,
-          "ma200": 136.45,
-          "ma50": 149.62
+          "high52w": 211.39,
+          "low52w": 108.27,
+          "ma20": 155.17,
+          "ma200": null,
+          "ma50": 145.34
         },
-        "ma200Dist": 9.46,
+        "ma200Dist": null,
+        "maStack": "n/a",
+        "px": 163.42,
+        "rrgState": "Leading"
+      },
+      "symbol": "SPCX"
+    },
+    {
+      "cur": {
+        "asOf": "2026-10-13",
+        "flags": {
+          "callOpen": false,
+          "earningsWithinWindow": false,
+          "gammaFlipProximity": false,
+          "persistenceGateMet": false
+        },
+        "levels": {
+          "high52w": 202,
+          "low52w": 127.2,
+          "ma20": 195.68,
+          "ma200": 166.54,
+          "ma50": 189.68
+        },
+        "ma200Dist": 17.45,
         "maStack": "bull-stack",
-        "px": 149.36,
-        "rrgState": "Lagging"
+        "px": 195.6,
+        "rrgState": "Weakening ↓"
       },
       "kind": "levelCrossed",
-      "line": "SPMO levelCrossed",
+      "line": "XLK levelCrossed",
       "prev": {
-        "asOf": "2026-10-09",
+        "asOf": "2026-10-12",
         "flags": {
-          "callOpen": true,
+          "callOpen": false,
           "earningsWithinWindow": false,
           "gammaFlipProximity": false,
           "persistenceGateMet": false
         },
         "levels": {
-          "high52w": 161.4,
-          "low52w": 107.5,
-          "ma20": 150.49,
-          "ma200": 135.89,
-          "ma50": 149.34
+          "high52w": 202,
+          "low52w": 127.2,
+          "ma20": 195.08,
+          "ma200": 166.29,
+          "ma50": 189.32
         },
-        "ma200Dist": 11.24,
+        "ma200Dist": 18.08,
         "maStack": "bull-stack",
-        "px": 151.16,
-        "rrgState": "Lagging"
+        "px": 196.36,
+        "rrgState": "Weakening ↓"
       },
-      "symbol": "SPMO"
+      "symbol": "XLK"
     }
   ],
   "contractVersion": "market-brief-payload/v2",
@@ -781,8 +541,8 @@
     ],
     "legs": [
       {
-        "asOf": "2026-10-12T13:30:00.000Z",
-        "changePct": 1.22,
+        "asOf": "2026-10-13T13:30:00.000Z",
+        "changePct": 1.43,
         "claim": "the TLT price",
         "confirmation": null,
         "contractVersion": "cross-asset-reading/v1",
@@ -790,7 +550,7 @@
         "driver": "TLT",
         "label": "Rates",
         "leg": "rates",
-        "long63Pct": -7.17,
+        "long63Pct": -5.84,
         "provenance": "Observed",
         "sessions": 5,
         "shape": "measured",
@@ -798,8 +558,8 @@
         "withheld": null
       },
       {
-        "asOf": "2026-10-12T13:30:00.000Z",
-        "changePct": 4.89,
+        "asOf": "2026-10-13T13:30:00.000Z",
+        "changePct": 4.52,
         "claim": "the USO price",
         "confirmation": null,
         "contractVersion": "cross-asset-reading/v1",
@@ -807,7 +567,7 @@
         "driver": "USO",
         "label": "Energy",
         "leg": "energy",
-        "long63Pct": 25.68,
+        "long63Pct": 24.78,
         "provenance": "Observed",
         "sessions": 5,
         "shape": "measured",
@@ -847,56 +607,36 @@
     ]
   },
   "dataAsOf": {
-    "bars": "Bars refreshed through the 2026-10-12T21:00:00.000Z after-hours cutoff.",
+    "bars": "Bars refreshed through the 2026-10-13T15:00:00.000Z after-hours cutoff.",
     "events": "No current forward event is authorized by the supplied Tier-A snapshot.",
     "labels": {
-      "bars": "Fresh: 2026-10-12T21:00:00.000Z",
+      "bars": "Fresh: 2026-10-13T15:00:00.000Z",
       "events": "No verified event",
       "macro": "VIX-only",
-      "options": "Fresh: 2026-10-12T21:00:00.000Z"
+      "options": "Fresh: 2026-10-13T15:00:00.000Z"
     },
-    "macro": "No independent macro release was verified in this run; VIX 15.21 is the observed regime input.",
-    "options": "Options refreshed for this 2026-10-12T21:00:00.000Z run."
+    "macro": "No independent macro release was verified in this run; VIX 15.23 is the observed regime input.",
+    "options": "Options refreshed for this 2026-10-13T15:00:00.000Z run."
   },
   "events": [
     {
-      "consensus": "SPY sits in positive dealer gamma with the flip near 775.88; call wall 780, put wall 778, front expected move ±1.66.",
-      "event": "SPY Options Expiry",
-      "impliedMovePct": 1.66,
-      "psychologyNote": "Dealer gamma positioning suggests a tendency for price to pin near the max pain level, reducing volatility unless a significant catalyst occurs.",
+      "consensus": "SPY sits in positive dealer gamma with the flip near 776.34.",
+      "event": "SPY Gamma Flip Watch",
+      "impliedMovePct": 3.04,
+      "psychologyNote": "Dealers are long gamma, encouraging mean reversion and dampening volatility unless the flip level is breached.",
       "scenarios": [
         {
-          "expectedEffect": "SPY may pin near 778-780 due to dealer gamma positioning.",
-          "name": "Pin to Max Pain",
-          "prob": 0.6
-        },
-        {
-          "expectedEffect": "SPY may break out of the 778-780 range if gamma flip is breached.",
-          "name": "Breakout",
+          "expectedEffect": "Increased volatility if SPY closes below 776.34.",
+          "name": "Gamma Flip",
           "prob": 0.4
-        }
-      ],
-      "type": "options",
-      "when": "2026-10-16"
-    },
-    {
-      "consensus": "VGT leads the default 6M balanced ETF ranking at 33.47% momentum; 13 funds scored.",
-      "event": "Tech Sector Momentum Check",
-      "impliedMovePct": 0,
-      "psychologyNote": "The market is watching for signs of momentum reversal in the tech sector, which could lead to rotation into other sectors.",
-      "scenarios": [
-        {
-          "expectedEffect": "Tech sector may continue to lead if momentum persists.",
-          "name": "Momentum Continuation",
-          "prob": 0.5
         },
         {
-          "expectedEffect": "Tech sector may underperform if momentum reverses.",
-          "name": "Momentum Reversal",
-          "prob": 0.5
+          "expectedEffect": "Price pinning near 777-778 walls.",
+          "name": "Pin",
+          "prob": 0.6
         }
       ],
-      "type": "sector",
+      "type": "market-structure",
       "when": "2026-10-13"
     }
   ],
@@ -930,14 +670,14 @@
       "title": "Leadership is still being scored offshore and in real assets while US breadth barely holds the line: global rotation ranks EWS (Singapore) at 92.5/100 far ahead of the US-heavy ACWI and the real-assets composite leads with crypto and broad commodities (ETH-USD 79.4, DBC/PDBC 74.4) as gold stays weak (39.3) and silver weaker (19.4) — a where-is-the-bid migration that now coincides with a thinning domestic cushion but still resolves only to relative-strength scores, so no scoreable tactical call is published"
     }
   ],
-  "generatedAt": "2026-10-12T20:35:24.257Z",
+  "generatedAt": "2026-10-13T14:34:10.318Z",
   "groups": [
     {
       "breadth": {
         "above200": 6,
         "above50": 7,
-        "bullStacked": 4,
-        "label": "4/7 bull-stacked",
+        "bullStacked": 5,
+        "label": "5/7 bull-stacked",
         "n": 7,
         "upMom": 7
       },
@@ -947,153 +687,153 @@
       "label": "Magnificent 7",
       "members": {
         "AAPL": {
-          "ma200Dist": 17.14,
-          "ma50Dist": 5.55,
+          "ma200Dist": 19.03,
+          "ma50Dist": 7,
           "maStack": "bull-stack",
-          "mom126": 31.55,
-          "mom21": 2.62,
-          "mom252": 34.22,
-          "mom5": 2.43,
-          "mom63": 8.29,
-          "pctFrom52wHigh": -0.03,
-          "px": 340.97
+          "mom126": 34.12,
+          "mom21": 4.04,
+          "mom252": 41.81,
+          "mom5": 3.87,
+          "mom63": 5.9,
+          "pctFrom52wHigh": 0,
+          "px": 346.53
         },
         "AMZN": {
-          "ma200Dist": 7.12,
-          "ma50Dist": 0.26,
+          "ma200Dist": 7.76,
+          "ma50Dist": 1.11,
           "maStack": "tangled",
-          "mom126": 8.19,
-          "mom21": 1.07,
-          "mom252": 13.96,
-          "mom5": 3.23,
-          "mom63": 4.86,
-          "pctFrom52wHigh": -8.62,
-          "px": 259.53
+          "mom126": 4.91,
+          "mom21": 3.04,
+          "mom252": 20.74,
+          "mom5": 1.94,
+          "mom63": 2.47,
+          "pctFrom52wHigh": -8.02,
+          "px": 261.26
         },
         "GOOGL": {
-          "ma200Dist": 3.67,
-          "ma50Dist": 1.89,
-          "maStack": "tangled",
-          "mom126": 9.78,
-          "mom21": 4.2,
-          "mom252": 46.04,
-          "mom5": 1.8,
-          "mom63": -1.89,
-          "pctFrom52wHigh": -12.39,
-          "px": 352.72
+          "ma200Dist": 3.97,
+          "ma50Dist": 2.28,
+          "maStack": "bull-stack",
+          "mom126": 6.33,
+          "mom21": 1.19,
+          "mom252": 49.84,
+          "mom5": 1.69,
+          "mom63": -4.62,
+          "pctFrom52wHigh": -12.08,
+          "px": 353.55
         },
         "META": {
-          "ma200Dist": 17.83,
-          "ma50Dist": 15.46,
+          "ma200Dist": 22.16,
+          "ma50Dist": 19.01,
           "maStack": "bull-stack",
-          "mom126": 17.09,
-          "mom21": 14.65,
-          "mom252": 1.29,
-          "mom5": 0.14,
-          "mom63": 12.39,
-          "pctFrom52wHigh": -4.45,
-          "px": 742.96
+          "mom126": 16.38,
+          "mom21": 15.73,
+          "mom252": 9.5,
+          "mom5": 4.17,
+          "mom63": 13.06,
+          "pctFrom52wHigh": -1.01,
+          "px": 769.7
         },
         "MSFT": {
-          "ma200Dist": 24.61,
-          "ma50Dist": 7.8,
+          "ma200Dist": 26.66,
+          "ma50Dist": 9.12,
           "maStack": "bull-stack",
-          "mom126": 40.79,
-          "mom21": 9.18,
-          "mom252": 3.59,
-          "mom5": 3.04,
-          "mom63": 40.58,
-          "pctFrom52wHigh": -0.17,
-          "px": 541.15
+          "mom126": 40.18,
+          "mom21": 8.59,
+          "mom252": 8.3,
+          "mom5": 3.69,
+          "mom63": 38.99,
+          "pctFrom52wHigh": 0,
+          "px": 548.85
         },
         "NVDA": {
-          "ma200Dist": 11.85,
-          "ma50Dist": 1.68,
+          "ma200Dist": 11.54,
+          "ma50Dist": 1.21,
           "maStack": "bull-stack",
-          "mom126": 19.55,
-          "mom21": 3.68,
-          "mom252": 17.53,
-          "mom5": -5.27,
-          "mom63": 6.86,
-          "pctFrom52wHigh": -5.4,
-          "px": 226.32
+          "mom126": 15.03,
+          "mom21": 6.91,
+          "mom252": 23.43,
+          "mom5": -5.73,
+          "mom63": 6.25,
+          "pctFrom52wHigh": -5.73,
+          "px": 225.53
         },
         "TSLA": {
-          "ma200Dist": -3.09,
-          "ma50Dist": 6.16,
+          "ma200Dist": -3.87,
+          "ma50Dist": 4.85,
           "maStack": "tangled",
-          "mom126": 7.27,
-          "mom21": 3.45,
-          "mom252": -13.2,
-          "mom5": -0.18,
-          "mom63": -4.58,
-          "pctFrom52wHigh": -22.83,
-          "px": 378.03
+          "mom126": 2.81,
+          "mom21": 4.31,
+          "mom252": -9.44,
+          "mom5": -1.64,
+          "mom63": -5.07,
+          "pctFrom52wHigh": -23.56,
+          "px": 374.45
         }
       },
       "notable": [
         {
-          "ma200Dist": 17.83,
+          "ma200Dist": 22.16,
           "maStack": "bull-stack",
-          "mom21": 14.65,
-          "mom5": 0.14,
+          "mom21": 15.73,
+          "mom5": 4.17,
           "reason": "big mover",
-          "score": 14.65,
+          "score": 15.73,
           "ticker": "META"
         },
         {
-          "ma200Dist": 24.61,
+          "ma200Dist": 26.66,
           "maStack": "bull-stack",
-          "mom21": 9.18,
-          "mom5": 3.04,
+          "mom21": 8.59,
+          "mom5": 3.69,
           "reason": "big mover",
-          "score": 9.18,
+          "score": 8.59,
           "ticker": "MSFT"
         },
         {
-          "ma200Dist": 11.85,
+          "ma200Dist": 11.54,
           "maStack": "bull-stack",
-          "mom21": 3.68,
-          "mom5": -5.27,
+          "mom21": 6.91,
+          "mom5": -5.73,
           "reason": "big mover",
-          "score": 5.27,
+          "score": 6.91,
           "ticker": "NVDA"
         },
         {
-          "ma200Dist": 3.67,
+          "ma200Dist": -3.87,
           "maStack": "tangled",
-          "mom21": 4.2,
-          "mom5": 1.8,
-          "reason": "big mover",
-          "score": 4.2,
-          "ticker": "GOOGL"
+          "mom21": 4.31,
+          "mom5": -1.64,
+          "reason": "big mover, below 200d",
+          "score": 4.31,
+          "ticker": "TSLA"
         }
       ],
-      "note": "Magnificent 7 reads Weakening ↓ with bull-stack structure and 4/7 bull-stacked. Notable this run: META +14.65% 21d (big mover); MSFT +9.18% 21d (big mover).",
+      "note": "Magnificent 7 reads Weakening ↓ with bull-stack structure and 5/7 bull-stacked. Notable this run: META +15.73% 21d (big mover); MSFT +8.59% 21d (big mover).",
       "read": {
-        "accel": 0.51,
+        "accel": 0.8,
         "etf": "MAGS",
-        "ma200Dist": 12.13,
+        "ma200Dist": 13.05,
         "maStack": "bull-stack",
-        "px": 73.98,
+        "px": 74.61,
         "quad": "W",
         "rotation": "out",
         "rrgState": "Weakening ↓",
-        "rsMom": 99.48,
-        "rsMom1m": 4.05,
-        "rsMom3m": 6.2,
-        "rsMom6m": 6.38,
-        "rsRatio": 101.64
+        "rsMom": 99.87,
+        "rsMom1m": 3.99,
+        "rsMom3m": 4.83,
+        "rsMom6m": 4.76,
+        "rsRatio": 101.87
       }
     },
     {
       "breadth": {
         "above200": 11,
-        "above50": 10,
-        "bullStacked": 10,
-        "label": "10/12 bull-stacked",
+        "above50": 7,
+        "bullStacked": 11,
+        "label": "11/12 bull-stacked",
         "n": 12,
-        "upMom": 10
+        "upMom": 11
       },
       "deepLink": "sector-research-lab.html",
       "etf": "SOXX",
@@ -1101,203 +841,203 @@
       "label": "Semiconductors",
       "members": {
         "ADI": {
-          "ma200Dist": 11.72,
-          "ma50Dist": 6.65,
+          "ma200Dist": 11.42,
+          "ma50Dist": 5.96,
           "maStack": "bull-stack",
-          "mom126": 16.07,
-          "mom21": 7.25,
-          "mom252": 70.78,
-          "mom5": -3.07,
-          "mom63": 3.44,
-          "pctFrom52wHigh": -8.81,
-          "px": 406.24
+          "mom126": 16.57,
+          "mom21": 11.91,
+          "mom252": 81.55,
+          "mom5": -3.93,
+          "mom63": 3.65,
+          "pctFrom52wHigh": -9.03,
+          "px": 404.01
         },
         "AMAT": {
-          "ma200Dist": 14.24,
-          "ma50Dist": 1.59,
-          "maStack": "tangled",
-          "mom126": 25.72,
-          "mom21": 8.99,
-          "mom252": 125.84,
-          "mom5": -8.25,
-          "mom63": -16.48,
-          "pctFrom52wHigh": -31.19,
-          "px": 497.53
+          "ma200Dist": 9.14,
+          "ma50Dist": -2.66,
+          "maStack": "bull-stack",
+          "mom126": 20.53,
+          "mom21": 12.15,
+          "mom252": 127.86,
+          "mom5": -10.28,
+          "mom63": -17.8,
+          "pctFrom52wHigh": -34.12,
+          "px": 475.77
         },
         "AMD": {
-          "ma200Dist": 53.46,
-          "ma50Dist": 11.85,
+          "ma200Dist": 51,
+          "ma50Dist": 10.16,
           "maStack": "bull-stack",
-          "mom126": 140.75,
-          "mom21": 15.13,
-          "mom252": 155.16,
-          "mom5": -5.94,
-          "mom63": 8.41,
-          "pctFrom52wHigh": -8.5,
-          "px": 594.24
+          "mom126": 130.34,
+          "mom21": 19.07,
+          "mom252": 173.39,
+          "mom5": -9.53,
+          "mom63": 11.03,
+          "pctFrom52wHigh": -9.53,
+          "px": 587.52
         },
         "AVGO": {
-          "ma200Dist": -3.69,
-          "ma50Dist": -4.43,
+          "ma200Dist": -3.07,
+          "ma50Dist": -3.81,
           "maStack": "tangled",
-          "mom126": -6.59,
-          "mom21": -2.01,
-          "mom252": 2.81,
-          "mom5": -2.15,
-          "mom63": -8.84,
-          "pctFrom52wHigh": -26.34,
-          "px": 354.73
+          "mom126": -6.21,
+          "mom21": 3.44,
+          "mom252": 10.45,
+          "mom5": -5.29,
+          "mom63": -9.56,
+          "pctFrom52wHigh": -25.84,
+          "px": 355.92
         },
         "KLAC": {
-          "ma200Dist": 5.6,
-          "ma50Dist": 1.06,
+          "ma200Dist": 3.29,
+          "ma50Dist": -1.17,
           "maStack": "bull-stack",
-          "mom126": 7.49,
-          "mom21": 5.25,
-          "mom252": 80.47,
-          "mom5": -8.09,
-          "mom63": -17.47,
-          "pctFrom52wHigh": -36.99,
-          "px": 190.12
+          "mom126": 3.79,
+          "mom21": 9.97,
+          "mom252": 90.23,
+          "mom5": -5.83,
+          "mom63": -17.08,
+          "pctFrom52wHigh": -38.3,
+          "px": 185.95
         },
         "LRCX": {
-          "ma200Dist": 10.62,
-          "ma50Dist": -0.47,
+          "ma200Dist": 7.56,
+          "ma50Dist": -3.13,
           "maStack": "bull-stack",
-          "mom126": 15.8,
-          "mom21": 3.8,
-          "mom252": 119.55,
-          "mom5": -10.48,
-          "mom63": -10.56,
-          "pctFrom52wHigh": -28.56,
-          "px": 309.56
+          "mom126": 10.76,
+          "mom21": 10.24,
+          "mom252": 130.32,
+          "mom5": -9.8,
+          "mom63": -10.12,
+          "pctFrom52wHigh": -30.42,
+          "px": 301.18
         },
         "MRVL": {
-          "ma200Dist": 53.97,
-          "ma50Dist": 11.68,
+          "ma200Dist": 49.89,
+          "ma50Dist": 8.63,
           "maStack": "bull-stack",
-          "mom126": 102.48,
-          "mom21": 12.6,
-          "mom252": 193.18,
-          "mom5": -1.99,
-          "mom63": 19.52,
-          "pctFrom52wHigh": -15.98,
-          "px": 265.86
+          "mom126": 94.37,
+          "mom21": 18.85,
+          "mom252": 204.21,
+          "mom5": -9.39,
+          "mom63": 26.08,
+          "pctFrom52wHigh": -17.8,
+          "px": 260
         },
         "MU": {
-          "ma200Dist": 40.24,
-          "ma50Dist": 0.97,
+          "ma200Dist": 33.41,
+          "ma50Dist": -3.74,
           "maStack": "bull-stack",
-          "mom126": 131.86,
-          "mom21": 1.41,
-          "mom252": 414.24,
-          "mom5": -7.04,
-          "mom63": 0.6,
-          "pctFrom52wHigh": -18.5,
-          "px": 989.04
+          "mom126": 102.99,
+          "mom21": 2.28,
+          "mom252": 420.94,
+          "mom5": -9.61,
+          "mom63": 4.52,
+          "pctFrom52wHigh": -22.11,
+          "px": 945.11
         },
         "NVDA": {
-          "ma200Dist": 11.85,
-          "ma50Dist": 1.68,
+          "ma200Dist": 11.54,
+          "ma50Dist": 1.21,
           "maStack": "bull-stack",
-          "mom126": 19.55,
-          "mom21": 3.68,
-          "mom252": 17.53,
-          "mom5": -5.27,
-          "mom63": 6.86,
-          "pctFrom52wHigh": -5.4,
-          "px": 226.32
+          "mom126": 15.03,
+          "mom21": 6.91,
+          "mom252": 23.43,
+          "mom5": -5.73,
+          "mom63": 6.25,
+          "pctFrom52wHigh": -5.73,
+          "px": 225.53
         },
         "QCOM": {
-          "ma200Dist": 3,
-          "ma50Dist": 0.45,
+          "ma200Dist": 5.21,
+          "ma50Dist": 1.75,
           "maStack": "bull-stack",
-          "mom126": 32.91,
-          "mom21": -4.14,
-          "mom252": 5.29,
-          "mom5": -3.52,
-          "mom63": -2.06,
-          "pctFrom52wHigh": -30.51,
-          "px": 174.43
+          "mom126": 34.31,
+          "mom21": -1.86,
+          "mom252": 17.51,
+          "mom5": -2.34,
+          "mom63": -0.12,
+          "pctFrom52wHigh": -28.92,
+          "px": 176.8
         },
         "TSM": {
-          "ma200Dist": 13.21,
-          "ma50Dist": 2.56,
+          "ma200Dist": 13,
+          "ma50Dist": 2.1,
           "maStack": "bull-stack",
-          "mom126": 20.23,
-          "mom21": 2.56,
-          "mom252": 48.18,
-          "mom5": -8.53,
-          "mom63": 5.7,
-          "pctFrom52wHigh": -8.53,
-          "px": 444.35
+          "mom126": 17.05,
+          "mom21": 6.13,
+          "mom252": 59.31,
+          "mom5": -8.26,
+          "mom63": 5.76,
+          "pctFrom52wHigh": -8.93,
+          "px": 442.44
         },
         "TXN": {
-          "ma200Dist": 11.72,
-          "ma50Dist": 3.58,
+          "ma200Dist": 11.57,
+          "ma50Dist": 2.94,
           "maStack": "bull-stack",
-          "mom126": 30.01,
-          "mom21": 4.85,
-          "mom252": 57.43,
-          "mom5": -4.46,
-          "mom63": -7.79,
-          "pctFrom52wHigh": -15.21,
-          "px": 281.74
+          "mom126": 29.34,
+          "mom21": 6.38,
+          "mom252": 67.44,
+          "mom5": -5.72,
+          "mom63": -6.48,
+          "pctFrom52wHigh": -15.23,
+          "px": 280.23
         }
       },
       "notable": [
         {
-          "ma200Dist": 53.46,
+          "ma200Dist": 51,
           "maStack": "bull-stack",
-          "mom21": 15.13,
-          "mom5": -5.94,
+          "mom21": 19.07,
+          "mom5": -9.53,
           "reason": "big mover",
-          "score": 15.13,
+          "score": 19.07,
           "ticker": "AMD"
         },
         {
-          "ma200Dist": 53.97,
+          "ma200Dist": 49.89,
           "maStack": "bull-stack",
-          "mom21": 12.6,
-          "mom5": -1.99,
+          "mom21": 18.85,
+          "mom5": -9.39,
           "reason": "big mover",
-          "score": 12.6,
+          "score": 18.85,
           "ticker": "MRVL"
         },
         {
-          "ma200Dist": 10.62,
+          "ma200Dist": 9.14,
           "maStack": "bull-stack",
-          "mom21": 3.8,
-          "mom5": -10.48,
+          "mom21": 12.15,
+          "mom5": -10.28,
           "reason": "big mover",
-          "score": 10.48,
-          "ticker": "LRCX"
+          "score": 12.15,
+          "ticker": "AMAT"
         },
         {
-          "ma200Dist": 14.24,
-          "maStack": "tangled",
-          "mom21": 8.99,
-          "mom5": -8.25,
+          "ma200Dist": 11.42,
+          "maStack": "bull-stack",
+          "mom21": 11.91,
+          "mom5": -3.93,
           "reason": "big mover",
-          "score": 8.99,
-          "ticker": "AMAT"
+          "score": 11.91,
+          "ticker": "ADI"
         }
       ],
-      "note": "Semiconductors reads Lagging with bull-stack structure and 10/12 bull-stacked. Notable this run: AMD +15.13% 21d (big mover); MRVL +12.6% 21d (big mover).",
+      "note": "Semiconductors reads Lagging with bull-stack structure and 11/12 bull-stacked. Notable this run: AMD +19.07% 21d (big mover); MRVL +18.85% 21d (big mover).",
       "read": {
-        "accel": -3.1,
+        "accel": -4,
         "etf": "SOXX",
-        "ma200Dist": 17.58,
+        "ma200Dist": 15.34,
         "maStack": "bull-stack",
-        "px": 544.85,
+        "px": 535.32,
         "quad": "A",
         "rotation": "neutral",
         "rrgState": "Lagging",
-        "rsMom": 99.25,
-        "rsMom1m": 1.57,
-        "rsMom3m": -7.56,
-        "rsMom6m": 25.11,
-        "rsRatio": 99.97
+        "rsMom": 98.48,
+        "rsMom1m": 5.24,
+        "rsMom3m": -6.8,
+        "rsMom6m": 21.03,
+        "rsRatio": 99.6
       }
     }
   ],
@@ -1308,24 +1048,24 @@
         "confidence": 55,
         "deepLink": "swing-structure-lab.html",
         "horizon": "swing",
-        "invalidation": "A daily SPY close below 768.19 would invalidate the hold.",
-        "rationale": "SPY is 7.56% above its derived 200-day 723.41, while VIX is 15.21.",
-        "structuralAnchor": "SPY 778.10 bull-stack (50d 768.19, 200d 723.41).",
-        "subject": "Hold SPY at 778.10 while the current bull-stack structure remains intact.",
-        "trigger": "Maintain the hold while SPY remains above its derived 50-day 768.19."
+        "invalidation": "A daily SPY close below 767.37 would invalidate the hold.",
+        "rationale": "SPY is 7.91% above its derived 200-day 720.58, while VIX is 15.23.",
+        "structuralAnchor": "SPY 777.58 bull-stack (50d 767.37, 200d 720.58).",
+        "subject": "Hold SPY at 777.58 while the current bull-stack structure remains intact.",
+        "trigger": "Maintain the hold while SPY remains above its derived 50-day 767.37."
       }
     ],
     "sessionDate": "2026-10-13",
-    "thesis": "SPY 778.10 bull-stack (50d 768.19, 200d 723.41). VIX is 15.21; keep risk measured into 2026-10-13."
+    "thesis": "SPY 777.58 bull-stack (50d 767.37, 200d 720.58). VIX is 15.23; keep risk measured into 2026-10-13."
   },
   "psychology": {
     "contrarianSignal": "No independent contrarian signal is established.",
     "crowdState": "Measured participation.",
-    "fear": "VIX is 15.21; no separate fear score was available.",
+    "fear": "VIX is 15.23; no separate fear score was available.",
     "greed": "No separate greed score was available.",
-    "riskOff": "A SPY break below 768.19 with rising VIX would mark risk-off confirmation.",
+    "riskOff": "A SPY break below 767.37 with rising VIX would mark risk-off confirmation.",
     "sentiment": "Calm but evidence-limited.",
-    "sentimentReadout": "VIX 15.21 is calm relative to the supplied structural frame.",
+    "sentimentReadout": "VIX 15.23 is calm relative to the supplied structural frame.",
     "uncertainty": "Macro and event inputs are unverified, so conviction is capped."
   },
   "recommendations": [
@@ -1335,129 +1075,57 @@
       "direction": "hold",
       "horizon": "swing",
       "instrument": "SPY",
-      "invalidation": "A daily SPY close below 768.19 invalidates the hold.",
-      "levels": "SPY 778.10; derived 50-day 768.19; derived 200-day 723.41.",
-      "rationale": "SPY 778.10 remains above its derived 50-day 768.19 and 200-day 723.41; VIX is 15.21.",
-      "structuralAnchor": "SPY 778.10 bull-stack (50d 768.19, 200d 723.41).",
-      "trigger": "Hold while SPY remains above 768.19."
+      "invalidation": "A daily SPY close below 767.37 invalidates the hold.",
+      "levels": "SPY 777.58; derived 50-day 767.37; derived 200-day 720.58.",
+      "rationale": "SPY 777.58 remains above its derived 50-day 767.37 and 200-day 720.58; VIX is 15.23.",
+      "structuralAnchor": "SPY 777.58 bull-stack (50d 767.37, 200d 720.58).",
+      "trigger": "Hold while SPY remains above 767.37."
     },
     {
       "confidence": 52,
-      "deepLink": "swing-structure-lab.html",
-      "direction": "hold",
-      "horizon": "swing",
-      "instrument": "MSFT",
-      "invalidation": "A daily MSFT close below 501.99 invalidates the hold.",
-      "levels": "MSFT 541.15; derived 50-day 501.99; derived 200-day 434.27.",
-      "rationale": "MSFT 541.15 is near its 52-week high with strong momentum, but the severe severity flag suggests caution due to mean reversion risk.",
-      "structuralAnchor": "MSFT 541.15 bull-stack (50d 501.99, 200d 434.27).",
-      "trigger": "Hold while MSFT remains above 501.99."
-    },
-    {
-      "confidence": 51,
-      "deepLink": "swing-structure-lab.html",
-      "direction": "hold",
-      "horizon": "swing",
-      "instrument": "QQQ",
-      "invalidation": "A daily QQQ close below 725.65 invalidates the hold.",
-      "levels": "QQQ 746.04; derived 50-day 725.65; derived 200-day 672.77.",
-      "rationale": "QQQ 746.04 shows cooling short-term momentum (-1.34% 5-day) but remains in a bullish structure above its 50-day MA.",
-      "structuralAnchor": "QQQ 746.04 bull-stack (50d 725.65, 200d 672.77).",
-      "trigger": "Hold while QQQ remains above 725.65."
-    },
-    {
-      "confidence": 50,
-      "deepLink": "swing-structure-lab.html",
-      "direction": "trim",
-      "horizon": "swing",
-      "instrument": "SPMO",
-      "invalidation": "A daily SPMO close above 149.61 invalidates the trim call.",
-      "levels": "SPMO 149.36; derived 50-day 149.61; derived 200-day 136.45.",
-      "rationale": "SPMO 149.36 is below its 50-day MA (149.61) with negative momentum across multiple timeframes, suggesting a loss of momentum.",
-      "structuralAnchor": "SPMO 149.36 below 50-day MA (149.61).",
-      "trigger": "Trim if SPMO fails to reclaim 149.61."
-    },
-    {
-      "confidence": 53,
-      "deepLink": "swing-structure-lab.html",
-      "direction": "hold",
-      "horizon": "swing",
-      "instrument": "XLK",
-      "invalidation": "A daily XLK close below 189.46 invalidates the hold.",
-      "levels": "XLK 196.36; derived 50-day 189.46; derived 200-day 166.63.",
-      "rationale": "XLK 196.36 is in a bullish stack but shows negative 5-day momentum (-2.27%), warranting a hold with caution.",
-      "structuralAnchor": "XLK 196.36 bull-stack (50d 189.46, 200d 166.63).",
-      "trigger": "Hold while XLK remains above 189.46."
-    },
-    {
-      "confidence": 52,
-      "deepLink": "swing-structure-lab.html",
-      "direction": "hold",
-      "horizon": "swing",
-      "instrument": "VGT",
-      "invalidation": "A daily VGT close below 122.18 invalidates the hold.",
-      "levels": "VGT 126.51; derived 50-day 122.18; derived 200-day 107.56.",
-      "rationale": "VGT 126.51 shows mixed momentum signals with negative 5-day (-2.08%) but positive 63-day (8.03%) momentum.",
-      "structuralAnchor": "VGT 126.51 bull-stack (50d 122.18, 200d 107.56).",
-      "trigger": "Hold while VGT remains above 122.18."
-    },
-    {
-      "confidence": 51,
-      "deepLink": "swing-structure-lab.html",
+      "deepLink": "etf-momentum-lab.html",
       "direction": "trim",
       "horizon": "swing",
       "instrument": "SOXX",
-      "invalidation": "A daily SOXX close above 538.18 invalidates the trim call.",
-      "levels": "SOXX 544.85; derived 50-day 538.18; derived 200-day 463.39.",
-      "rationale": "SOXX 544.85 has a sharp 5-day decline (-7.58%) and is 16.82% from its 52-week high, suggesting a potential pullback.",
-      "structuralAnchor": "SOXX 544.85 near 50-day MA (538.18).",
-      "trigger": "Trim if SOXX fails to hold above 538.18."
-    },
-    {
-      "confidence": 50,
-      "deepLink": "swing-structure-lab.html",
-      "direction": "trim",
-      "horizon": "swing",
-      "instrument": "FBTC",
-      "invalidation": "A daily FBTC close above 66.5 invalidates the trim call.",
-      "levels": "FBTC 71.99; derived 50-day 66.5; derived 200-day 64.3.",
-      "rationale": "FBTC 71.99 shows negative long-term momentum (-31.8% 252-day) and is 29.23% from its 52-week high.",
-      "structuralAnchor": "FBTC 71.99 above 50-day MA (66.5) but weak long-term trend.",
-      "trigger": "Trim if FBTC fails to hold above 66.5."
+      "invalidation": "A daily close above 540.00.",
+      "levels": "SOXX spot ~535.32, trim urgency on a daily close below ~530.00 toward the 200-day.",
+      "rationale": "SOXX momentum decayed to -9.18% over 5 days, breaking below the 50-day MA.",
+      "structuralAnchor": "SOXX 535.32 below 50-day MA 538.50.",
+      "trigger": "Trim on a daily close below 530.00."
     }
   ],
   "regime": {
-    "asymmetry": "Support is the derived 50-day 768.19; structural support is the 200-day 723.41.",
+    "asymmetry": "Support is the derived 50-day 767.37; structural support is the 200-day 720.58.",
     "bias": "bull",
     "crowdPsychology": "Calm volatility with measured participation; no independent sentiment score was available.",
-    "falsifiers": "A daily SPY close below 768.19 would weaken the current structure.",
+    "falsifiers": "A daily SPY close below 767.37 would weaken the current structure.",
     "levels": {
-      "SPY": "SPY 778.10 bull-stack (50d 768.19, 200d 723.41)."
+      "SPY": "SPY 777.58 bull-stack (50d 767.37, 200d 720.58)."
     },
     "macroCycle": "Macro-cycle direction is unverified in this run.",
     "name": "VIX 15.2",
-    "note": "Use the current SPY 778.10 and VIX 15.21; do not infer an unverified catalyst.",
+    "note": "Use the current SPY 777.58 and VIX 15.23; do not infer an unverified catalyst.",
     "pricedIn": "The supplied data does not quantify a priced-in macro outcome.",
-    "scoreNote": "Deterministic regime score 0; VIX 15.21.",
-    "structuralTrend": "SPY 778.10 bull-stack (50d 768.19, 200d 723.41).",
+    "scoreNote": "Deterministic regime score 0; VIX 15.23.",
+    "structuralTrend": "SPY 777.58 bull-stack (50d 767.37, 200d 720.58).",
     "vix": {
       "falsifier": "A material VIX rise accompanied by a SPY break below supplied support would change the regime.",
-      "level": 15.21,
+      "level": 15.23,
       "regimeLabel": "VIX 15.2"
     }
   },
   "researchAgenda": {
     "contractVersion": "research-agenda-read/v1",
-    "generationId": "generation-f8bc3e4cc7af0d49b944daea5b7fdf10b723b18956d3c89b77491d22b1ac1ba9",
-    "asOf": "2026-10-12T20:31:43.886Z",
+    "generationId": "generation-cc45309aa5b49ce4b1469061479d5a871fbfd2acbb17b77c4bd37bac4275070a",
+    "asOf": "2026-10-13T14:31:51.421Z",
     "topics": [
       {
         "topicId": "geopolitical-supply-shock",
         "mode": "every-generation",
         "state": "unavailable",
-        "reason": "RLAGENDA-CONTRACT-UNKNOWN-MEMBER",
+        "reason": "RLAGENDA-CONTRACT-SHAPE",
         "selectionReason": "mode-required",
-        "reviewId": "review-d8a385e4036540c65b096f113495fc164d88f34770238757d088c73d4db76c82",
+        "reviewId": "review-1394a51f13829c085f3d9655237f0fd8896c332dc1964b4bd90931137b6661b2",
         "dossierId": null,
         "outcome": "unavailable",
         "changeAssessment": "insufficient-evidence",
@@ -1500,17 +1168,13 @@
         "supersedesDossierId": null
       }
     ],
-    "readFingerprint": "sha256:9d1e8a3d2f7c710d2e7f79bb62c8d6f186a2b0c7026f391a0268a4498c3d5c46"
+    "readFingerprint": "sha256:375a162b8d6ee5f478351a9fd752a8d7dc3b8f0e63fb7b847225f3f17a682cc9"
   },
   "rollUp": {
     "baselineCount": 0,
-    "count": 10,
-    "line": "= 10 unchanged",
+    "count": 7,
+    "line": "= 7 unchanged",
     "members": [
-      {
-        "state": "bull-stack",
-        "symbol": "FBTC"
-      },
       {
         "state": "bull-stack",
         "symbol": "FETH"
@@ -1525,15 +1189,11 @@
       },
       {
         "state": "bull-stack",
-        "symbol": "MSFT"
-      },
-      {
-        "state": "bull-stack",
         "symbol": "QQQ"
       },
       {
-        "state": "n/a",
-        "symbol": "SPCX"
+        "state": "bull-stack",
+        "symbol": "SPMO"
       },
       {
         "state": "bull-stack",
@@ -1542,10 +1202,6 @@
       {
         "state": "bull-stack",
         "symbol": "XLE"
-      },
-      {
-        "state": "bull-stack",
-        "symbol": "XLK"
       }
     ]
   },
@@ -1728,14 +1384,14 @@
   "toolId": "market-brief",
   "toolReads": {
     "ai-capex-strategy-lab": {
-      "asOf": "2026-10-12T20:31:43.716Z",
+      "asOf": "2026-10-13T14:31:51.229Z",
       "deepLink": "ai-capex-strategy-lab.html",
       "id": "ai-capex-strategy-lab",
       "metrics": {
-        "reason": "The AI-capex universe is dated 2026-06-30, 105 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
+        "reason": "The AI-capex universe is dated 2026-06-30, 106 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
         "state": "unavailable"
       },
-      "read": "The AI-capex universe is dated 2026-06-30, 105 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
+      "read": "The AI-capex universe is dated 2026-06-30, 106 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "source": "owning-tool-functions",
       "state": "unavailable"
     },
@@ -1752,7 +1408,7 @@
         "curveAdmission": {
           "nominal": {
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d",
-            "elapsedDays": 3,
+            "elapsedDays": 4,
             "errorCode": null,
             "lastGoodObservedAt": "2026-10-09",
             "verdict": "current",
@@ -1760,7 +1416,7 @@
           },
           "real": {
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d",
-            "elapsedDays": 3,
+            "elapsedDays": 4,
             "errorCode": null,
             "lastGoodObservedAt": "2026-10-09",
             "verdict": "current",
@@ -1998,7 +1654,7 @@
       "toolId": "company-fundamentals-lab"
     },
     "etf-momentum-lab": {
-      "asOf": "2026-10-12T13:30:00.000Z",
+      "asOf": "2026-10-13T13:30:00.000Z",
       "deepLink": "etf-momentum-lab.html",
       "id": "etf-momentum-lab",
       "metrics": {
@@ -2006,80 +1662,80 @@
         "leader": "VGT",
         "ranked": [
           {
-            "annVol": 24.54,
-            "asOf": "2026-10-12T13:30:00.000Z",
-            "score": 0.3805,
-            "sharpeArithmetic": 1.149,
-            "sharpeGeometric": 1.214,
-            "signal": 33.47,
+            "annVol": 24.48,
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "score": 0.3681,
+            "sharpeArithmetic": 1.157,
+            "sharpeGeometric": 1.226,
+            "signal": 31.48,
             "ticker": "VGT",
-            "volatilityDrag": 3.01
+            "volatilityDrag": 2.99
           },
           {
-            "annVol": 17.17,
-            "asOf": "2026-10-09T13:30:00.000Z",
-            "score": 0.3105,
-            "sharpeArithmetic": 1.15,
-            "sharpeGeometric": 1.218,
-            "signal": 18.63,
-            "ticker": "JMOM",
-            "volatilityDrag": 1.47
-          },
-          {
-            "annVol": 19.56,
+            "annVol": 16.97,
             "asOf": "2026-10-12T13:30:00.000Z",
-            "score": 0.2941,
-            "sharpeArithmetic": 0.984,
-            "sharpeGeometric": 1.008,
-            "signal": 20.84,
+            "score": 0.2918,
+            "sharpeArithmetic": 1.157,
+            "sharpeGeometric": 1.225,
+            "signal": 15.73,
+            "ticker": "JMOM",
+            "volatilityDrag": 1.44
+          },
+          {
+            "annVol": 19.55,
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "score": 0.2768,
+            "sharpeArithmetic": 0.98,
+            "sharpeGeometric": 1.006,
+            "signal": 18.39,
             "ticker": "QQQ",
             "volatilityDrag": 1.91
           },
           {
-            "annVol": 24.66,
-            "asOf": "2026-10-12T13:30:00.000Z",
-            "score": 0.2407,
-            "sharpeArithmetic": 0.804,
-            "sharpeGeometric": 0.773,
-            "signal": 19.88,
+            "annVol": 24.68,
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "score": 0.2166,
+            "sharpeArithmetic": 0.783,
+            "sharpeGeometric": 0.747,
+            "signal": 16.8,
             "ticker": "SPMO",
-            "volatilityDrag": 3.04
+            "volatilityDrag": 3.05
           },
           {
             "annVol": 26.51,
-            "asOf": "2026-10-12T13:30:00.000Z",
-            "score": 0.2184,
-            "sharpeArithmetic": 0.779,
-            "sharpeGeometric": 0.735,
-            "signal": 18.43,
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "score": 0.193,
+            "sharpeArithmetic": 0.749,
+            "sharpeGeometric": 0.699,
+            "signal": 15.32,
             "ticker": "MTUM",
             "volatilityDrag": 3.52
           }
         ],
         "risk": "balanced",
         "scored": 13,
-        "signal": 33.47
+        "signal": 31.48
       },
-      "read": "VGT leads the default 6M balanced ETF ranking at 33.47% momentum; 13 funds scored.",
+      "read": "VGT leads the default 6M balanced ETF ranking at 31.48% momentum; 13 funds scored.",
       "source": "owning-tool-functions"
     },
     "fx-regime-relative-value-lab": {
-      "asOf": "2026-10-12T20:31:43.727Z",
+      "asOf": "2026-10-13T14:31:51.240Z",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "id": "fx-regime-relative-value-lab",
       "metrics": {
         "approvedSourceCount": 0,
         "broadDollarState": "Indeterminate",
         "declaredSourceCount": 8,
-        "evidenceIdentity": "fxe-v1-789ed647",
+        "evidenceIdentity": "fxe-v1-c3bfeaa8",
         "evidenceState": "Evidence incomplete for a current recommendation",
         "horizon": "swing",
         "objective": "foreign-currency-strength",
-        "ownerDecisionId": "fxo-v1-f0731c25",
+        "ownerDecisionId": "fxo-v1-5a68d445",
         "projection": {
           "asOf": null,
           "availability": "unavailable",
-          "computedAt": "2026-10-12T20:31:43.727Z",
+          "computedAt": "2026-10-13T14:31:51.240Z",
           "contractVersion": "rl-tool-read/v1",
           "deepLink": "fx-regime-relative-value-lab.html#power",
           "freshUntil": null,
@@ -2102,14 +1758,14 @@
             "currencyStates": {},
             "educationalOnly": true,
             "evidenceCutoff": null,
-            "evidenceIdentity": "fxe-v1-789ed647",
+            "evidenceIdentity": "fxe-v1-c3bfeaa8",
             "executionAvailable": false,
             "freshUntil": null,
             "hedgeResearchState": "Indeterminate",
             "horizon": "swing",
             "invalidation": "No directional conclusion exists while minimum evidence is unavailable. Selection remains invalid until the exact rejected or unavailable criteria change under current evidence.",
             "objective": "foreign-currency-strength",
-            "ownerDecisionId": "fxo-v1-f0731c25",
+            "ownerDecisionId": "fxo-v1-5a68d445",
             "recommendationOutcome": {
               "confidencePct": null,
               "contractVersion": "rlfx-recommendation-outcome/v1",
@@ -2120,7 +1776,7 @@
               "educationalOnly": true,
               "evaluability": "non-recommendation",
               "evidenceCutoff": null,
-              "evidenceIdentity": "fxe-v1-789ed647",
+              "evidenceIdentity": "fxe-v1-c3bfeaa8",
               "executionAvailable": false,
               "horizon": "swing",
               "objective": "foreign-currency-strength",
@@ -2348,58 +2004,50 @@
       "state": "unavailable"
     },
     "gamma-trading-lab": {
-      "asOf": "2026-10-12T16:00:00.000Z",
+      "asOf": "2026-10-13T10:14:51.000Z",
       "deepLink": "gamma-trading-lab.html",
       "id": "gamma-trading-lab",
       "metrics": {
-        "callWall": 780,
+        "callWall": 778,
         "conviction": "patient",
-        "flip": 775.88,
+        "flip": 776.34,
         "flipPresent": true,
         "hold": "same-session-fade",
         "opexWindow": null,
         "oviState": "unavailable",
-        "putWall": 778,
+        "putWall": 777,
         "regime": "positive",
         "scenario": "pin-to-maxpain",
-        "signedNetGEX": 1085849870.6,
+        "signedNetGEX": 1389826418.92,
         "symbol": "SPY"
       },
-      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 775.88, walls 778/780.",
+      "read": "SPY dealers are positive gamma — playbook pin-to-maxpain, conviction patient; flip 776.34, walls 777/778.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
     "global-rotation-lab": {
-      "asOf": "2026-10-12T13:30:00.000Z",
+      "asOf": "2026-10-13T13:30:00.000Z",
       "deepLink": "global-rotation-lab.html",
       "id": "global-rotation-lab",
       "metrics": {
         "benchmark": "ACWI",
         "decomposition": {
-          "approximateLocalRelativeReturn": 0.1908382030391269,
-          "approximateLocalReturn": 0.2076768663394648,
-          "asOf": "2026-10-12T00:00:00.000Z",
-          "benchmarkReturnOnDecompositionDates": 0.016838663300337897,
-          "computedAt": "2026-10-12T20:31:43.423Z",
+          "approximateLocalRelativeReturn": 0.17526973837820137,
+          "approximateLocalReturn": 0.2006435450480064,
+          "asOf": "2026-10-13T00:00:00.000Z",
+          "benchmarkReturnOnDecompositionDates": 0.025373806669805044,
+          "computedAt": "2026-10-13T14:31:50.109Z",
           "contractVersion": "rlfx-global-decomposition/v1",
           "currency": "BRL",
           "freshUntil": null,
-          "fxReturn": 0.03243679586478221,
+          "fxReturn": 0.03269294445340121,
           "horizonSessions": 63,
-          "interaction": 0.006736372119290879,
+          "interaction": 0.006559628273187976,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
           ],
           "observationSet": {
             "alignedRows": [
-              {
-                "date": "2026-07-06",
-                "values": {
-                  "benchmark": 157.97000122070312,
-                  "etf": 34.91999816894531,
-                  "fx": 0.1944163625712681
-                }
-              },
               {
                 "date": "2026-07-07",
                 "values": {
@@ -2903,18 +2551,26 @@
                   "etf": 43.540000915527344,
                   "fx": 0.20072260643676582
                 }
+              },
+              {
+                "date": "2026-10-13",
+                "values": {
+                  "benchmark": 160.42999267578125,
+                  "etf": 42.95000076293945,
+                  "fx": 0.19971242352649435
+                }
               }
             ],
             "contractVersion": "rlfx-observation-set/v1",
             "coverage": {
-              "commonRowCount": 320,
+              "commonRowCount": 319,
               "duplicateDatesDropped": {
                 "benchmark": 0,
                 "etf": 0,
                 "fx": 0
               },
-              "earliestCommonDate": "2025-05-05",
-              "latestCommonDate": "2026-10-12",
+              "earliestCommonDate": "2025-05-07",
+              "latestCommonDate": "2026-10-13",
               "requiredRowCount": 64,
               "unmatchedNewerDates": {
                 "benchmark": [],
@@ -2930,7 +2586,7 @@
                 "observationId": "EWZ",
                 "orientation": "etf",
                 "subject": "EWZ",
-                "validDateCount": 520
+                "validDateCount": 501
               },
               {
                 "adjustment": "adjusted-close",
@@ -2938,7 +2594,7 @@
                 "observationId": "ACWI",
                 "orientation": "benchmark",
                 "subject": "ACWI",
-                "validDateCount": 520
+                "validDateCount": 501
               },
               {
                 "adjustment": "adjusted-close",
@@ -2946,7 +2602,7 @@
                 "observationId": "fx:BRL",
                 "orientation": "fx",
                 "subject": "BRL/USD",
-                "validDateCount": 388
+                "validDateCount": 387
               }
             ],
             "lineage": {
@@ -2958,31 +2614,31 @@
               "uniqueRelationshipIds": []
             },
             "purpose": "global-decomposition",
-            "setId": "set-v1-007c5d86",
+            "setId": "set-v1-953cba88",
             "state": "aligned"
           },
           "relationship": "Joint Support",
           "state": "ready",
-          "translation": 0.039173167984073,
-          "usdRelativeReturnOnDecompositionDates": 0.2300113710231999,
-          "usdReturnOnDecompositionDates": 0.2468500343235378
+          "translation": 0.03925257272658911,
+          "usdRelativeReturnOnDecompositionDates": 0.21452231110479048,
+          "usdReturnOnDecompositionDates": 0.23989611777459552
         },
         "leader": {
-          "asOf": "2026-10-12T13:30:00.000Z",
+          "asOf": "2026-10-13T13:30:00.000Z",
           "country": "Brazil",
           "maxDrawdown": 19.27,
-          "rel126": -4.85,
-          "rel21": 13.77,
-          "rel63": 18.49,
-          "score": 84.1,
+          "rel126": -5.12,
+          "rel21": 12.94,
+          "rel63": 17.86,
+          "score": 84,
           "ticker": "EWZ",
           "trend": "Strong uptrend",
-          "vol": 32.28
+          "vol": 32.43
         },
         "projection": {
-          "asOf": "2026-10-12T00:00:00.000Z",
+          "asOf": "2026-10-13T00:00:00.000Z",
           "availability": "current",
-          "computedAt": "2026-10-12T20:31:43.423Z",
+          "computedAt": "2026-10-13T14:31:50.109Z",
           "contractVersion": "rl-tool-read/v1",
           "deepLink": "global-rotation-lab.html#simple",
           "freshUntil": null,
@@ -2996,30 +2652,22 @@
               "country": "Brazil",
               "currency": "BRL",
               "decomposition": {
-                "approximateLocalRelativeReturn": 0.1908382030391269,
-                "approximateLocalReturn": 0.2076768663394648,
-                "asOf": "2026-10-12T00:00:00.000Z",
-                "benchmarkReturnOnDecompositionDates": 0.016838663300337897,
-                "computedAt": "2026-10-12T20:31:43.423Z",
+                "approximateLocalRelativeReturn": 0.17526973837820137,
+                "approximateLocalReturn": 0.2006435450480064,
+                "asOf": "2026-10-13T00:00:00.000Z",
+                "benchmarkReturnOnDecompositionDates": 0.025373806669805044,
+                "computedAt": "2026-10-13T14:31:50.109Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "BRL",
                 "freshUntil": null,
-                "fxReturn": 0.03243679586478221,
+                "fxReturn": 0.03269294445340121,
                 "horizonSessions": 63,
-                "interaction": 0.006736372119290879,
+                "interaction": 0.006559628273187976,
                 "limitations": [
                   "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
                 ],
                 "observationSet": {
                   "alignedRows": [
-                    {
-                      "date": "2026-07-06",
-                      "values": {
-                        "benchmark": 157.97000122070312,
-                        "etf": 34.91999816894531,
-                        "fx": 0.1944163625712681
-                      }
-                    },
                     {
                       "date": "2026-07-07",
                       "values": {
@@ -3523,18 +3171,26 @@
                         "etf": 43.540000915527344,
                         "fx": 0.20072260643676582
                       }
+                    },
+                    {
+                      "date": "2026-10-13",
+                      "values": {
+                        "benchmark": 160.42999267578125,
+                        "etf": 42.95000076293945,
+                        "fx": 0.19971242352649435
+                      }
                     }
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 320,
+                    "commonRowCount": 319,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0,
                       "fx": 0
                     },
-                    "earliestCommonDate": "2025-05-05",
-                    "latestCommonDate": "2026-10-12",
+                    "earliestCommonDate": "2025-05-07",
+                    "latestCommonDate": "2026-10-13",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
                       "benchmark": [],
@@ -3550,7 +3206,7 @@
                       "observationId": "EWZ",
                       "orientation": "etf",
                       "subject": "EWZ",
-                      "validDateCount": 520
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -3558,7 +3214,7 @@
                       "observationId": "ACWI",
                       "orientation": "benchmark",
                       "subject": "ACWI",
-                      "validDateCount": 520
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -3566,7 +3222,7 @@
                       "observationId": "fx:BRL",
                       "orientation": "fx",
                       "subject": "BRL/USD",
-                      "validDateCount": 388
+                      "validDateCount": 387
                     }
                   ],
                   "lineage": {
@@ -3578,33 +3234,26 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-007c5d86",
+                  "setId": "set-v1-953cba88",
                   "state": "aligned"
                 },
                 "relationship": "Joint Support",
                 "state": "ready",
-                "translation": 0.039173167984073,
-                "usdRelativeReturnOnDecompositionDates": 0.2300113710231999,
-                "usdReturnOnDecompositionDates": 0.2468500343235378
+                "translation": 0.03925257272658911,
+                "usdRelativeReturnOnDecompositionDates": 0.21452231110479048,
+                "usdReturnOnDecompositionDates": 0.23989611777459552
               },
-              "score": 84.08788213495282,
+              "score": 83.97854118468868,
               "ticker": "EWZ",
               "usdLeadership": {
-                "asOf": "2026-10-12T00:00:00.000Z",
-                "benchmarkReturn": 0.023512185446689537,
-                "computedAt": "2026-10-12T20:31:43.423Z",
+                "asOf": "2026-10-13T00:00:00.000Z",
+                "benchmarkReturn": 0.018473770469729978,
+                "computedAt": "2026-10-13T14:31:50.109Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
                 "observationSet": {
                   "alignedRows": [
-                    {
-                      "date": "2026-07-14",
-                      "values": {
-                        "benchmark": 156.94000244140625,
-                        "etf": 36.029998779296875
-                      }
-                    },
                     {
                       "date": "2026-07-15",
                       "values": {
@@ -4045,17 +3694,24 @@
                         "benchmark": 160.6300048828125,
                         "etf": 43.540000915527344
                       }
+                    },
+                    {
+                      "date": "2026-10-13",
+                      "values": {
+                        "benchmark": 160.42999267578125,
+                        "etf": 42.95000076293945
+                      }
                     }
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 520,
+                    "commonRowCount": 501,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0
                     },
-                    "earliestCommonDate": "2024-09-16",
-                    "latestCommonDate": "2026-10-12",
+                    "earliestCommonDate": "2024-10-14",
+                    "latestCommonDate": "2026-10-13",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
                       "benchmark": [],
@@ -4070,7 +3726,7 @@
                       "observationId": "EWZ",
                       "orientation": "etf",
                       "subject": "EWZ",
-                      "validDateCount": 520
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -4078,7 +3734,7 @@
                       "observationId": "ACWI",
                       "orientation": "benchmark",
                       "subject": "ACWI",
-                      "validDateCount": 520
+                      "validDateCount": 501
                     }
                   ],
                   "lineage": {
@@ -4089,12 +3745,12 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-usd-leadership",
-                  "setId": "set-v1-710fa817",
+                  "setId": "set-v1-e47bc54b",
                   "state": "aligned"
                 },
                 "state": "ready",
-                "usdEtfReturn": 0.20843747961894943,
-                "usdRelativeReturn": 0.1849252941722599
+                "usdEtfReturn": 0.19704569354394397,
+                "usdRelativeReturn": 0.178571923074214
               }
             },
             "unavailableStates": []
@@ -4103,95 +3759,88 @@
         },
         "ranked": [
           {
-            "asOf": "2026-10-12T13:30:00.000Z",
+            "asOf": "2026-10-13T13:30:00.000Z",
             "country": "Brazil",
             "maxDrawdown": 19.27,
-            "rel126": -4.85,
-            "rel21": 13.77,
-            "rel63": 18.49,
-            "score": 84.1,
+            "rel126": -5.12,
+            "rel21": 12.94,
+            "rel63": 17.86,
+            "score": 84,
             "ticker": "EWZ",
             "trend": "Strong uptrend",
-            "vol": 32.28
+            "vol": 32.43
           },
           {
-            "asOf": "2026-10-12T13:30:00.000Z",
+            "asOf": "2026-10-13T13:30:00.000Z",
             "country": "Taiwan",
             "maxDrawdown": 19.83,
-            "rel126": 36.3,
-            "rel21": 2.79,
-            "rel63": 9.81,
-            "score": 83.1,
+            "rel126": 31.96,
+            "rel21": 4.56,
+            "rel63": 8.49,
+            "score": 76.7,
             "ticker": "EWT",
-            "trend": "Strong uptrend",
-            "vol": 31.77
+            "trend": "Constructive",
+            "vol": 31.85
           },
           {
-            "asOf": "2026-10-12T13:30:00.000Z",
+            "asOf": "2026-10-13T13:30:00.000Z",
             "country": "Japan",
             "maxDrawdown": 13.59,
-            "rel126": 0.44,
-            "rel21": -1.5,
-            "rel63": 1.3,
-            "score": 62.1,
+            "rel126": 0.21,
+            "rel21": -1.38,
+            "rel63": 2.05,
+            "score": 63,
             "ticker": "EWJ",
             "trend": "Constructive",
-            "vol": 19.36
+            "vol": 19.34
           },
           {
-            "asOf": "2026-10-09T13:30:00.000Z",
+            "asOf": "2026-10-12T13:30:00.000Z",
             "country": "Canada",
             "maxDrawdown": 8.51,
-            "rel126": -5.71,
-            "rel21": -2.33,
-            "rel63": -1.84,
-            "score": 47.7,
+            "rel126": -5.2,
+            "rel21": -2.79,
+            "rel63": -1.39,
+            "score": 54.2,
             "ticker": "EWC",
             "trend": "Mixed",
-            "vol": 12.8
+            "vol": 12.79
           },
           {
-            "asOf": "2026-10-12T13:30:00.000Z",
-            "country": "Singapore",
-            "maxDrawdown": 8.74,
-            "rel126": -1.81,
-            "rel21": -6.39,
-            "rel63": -2.6,
-            "score": 44,
-            "ticker": "EWS",
-            "trend": "Mixed",
-            "vol": 16.03
-          },
-          {
-            "asOf": "2026-10-12T13:30:00.000Z",
+            "asOf": "2026-10-13T13:30:00.000Z",
             "country": "Australia",
             "maxDrawdown": 10.01,
-            "rel126": -14.62,
-            "rel21": -2.29,
-            "rel63": -2.49,
-            "score": 43.3,
+            "rel126": -12.3,
+            "rel21": -1.86,
+            "rel63": -1.89,
+            "score": 51.2,
             "ticker": "EWA",
             "trend": "Mixed",
-            "vol": 16.2
+            "vol": 16.21
+          },
+          {
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "country": "United Kingdom",
+            "maxDrawdown": 9.92,
+            "rel126": -10.2,
+            "rel21": -3.17,
+            "rel63": -1.71,
+            "score": 46,
+            "ticker": "EWU",
+            "trend": "Mixed",
+            "vol": 10.98
           }
         ],
         "scored": 13,
         "usdLeadership": {
-          "asOf": "2026-10-12T00:00:00.000Z",
-          "benchmarkReturn": 0.023512185446689537,
-          "computedAt": "2026-10-12T20:31:43.423Z",
+          "asOf": "2026-10-13T00:00:00.000Z",
+          "benchmarkReturn": 0.018473770469729978,
+          "computedAt": "2026-10-13T14:31:50.109Z",
           "contractVersion": "rlfx-global-usd-leadership/v1",
           "freshUntil": null,
           "horizonSessions": 63,
           "observationSet": {
             "alignedRows": [
-              {
-                "date": "2026-07-14",
-                "values": {
-                  "benchmark": 156.94000244140625,
-                  "etf": 36.029998779296875
-                }
-              },
               {
                 "date": "2026-07-15",
                 "values": {
@@ -4632,17 +4281,24 @@
                   "benchmark": 160.6300048828125,
                   "etf": 43.540000915527344
                 }
+              },
+              {
+                "date": "2026-10-13",
+                "values": {
+                  "benchmark": 160.42999267578125,
+                  "etf": 42.95000076293945
+                }
               }
             ],
             "contractVersion": "rlfx-observation-set/v1",
             "coverage": {
-              "commonRowCount": 520,
+              "commonRowCount": 501,
               "duplicateDatesDropped": {
                 "benchmark": 0,
                 "etf": 0
               },
-              "earliestCommonDate": "2024-09-16",
-              "latestCommonDate": "2026-10-12",
+              "earliestCommonDate": "2024-10-14",
+              "latestCommonDate": "2026-10-13",
               "requiredRowCount": 64,
               "unmatchedNewerDates": {
                 "benchmark": [],
@@ -4657,7 +4313,7 @@
                 "observationId": "EWZ",
                 "orientation": "etf",
                 "subject": "EWZ",
-                "validDateCount": 520
+                "validDateCount": 501
               },
               {
                 "adjustment": "adjusted-close",
@@ -4665,7 +4321,7 @@
                 "observationId": "ACWI",
                 "orientation": "benchmark",
                 "subject": "ACWI",
-                "validDateCount": 520
+                "validDateCount": 501
               }
             ],
             "lineage": {
@@ -4676,48 +4332,48 @@
               "uniqueRelationshipIds": []
             },
             "purpose": "global-usd-leadership",
-            "setId": "set-v1-710fa817",
+            "setId": "set-v1-e47bc54b",
             "state": "aligned"
           },
           "state": "ready",
-          "usdEtfReturn": 0.20843747961894943,
-          "usdRelativeReturn": 0.1849252941722599
+          "usdEtfReturn": 0.19704569354394397,
+          "usdRelativeReturn": 0.178571923074214
         }
       },
-      "read": "EWZ (Brazil) leads global rotation at 84.1/100 versus ACWI; EWT is next.",
+      "read": "EWZ (Brazil) leads global rotation at 84/100 versus ACWI; EWT is next.",
       "source": "owning-tool-functions"
     },
     "intraday-tape-lab": {
-      "asOf": "2026-10-12T20:00:00.000Z",
+      "asOf": "2026-10-13T14:31:50.000Z",
       "deepLink": "intraday-tape-lab.html",
       "id": "intraday-tape-lab",
       "metrics": {
-        "barsToday": 79,
+        "barsToday": 14,
         "control": "Mixed",
-        "gapPct": 0.03,
+        "gapPct": -0.09,
         "poc": null,
-        "sessionType": "Mixed / developing",
+        "sessionType": "Reversal risk",
         "sessions": 5,
         "symbol": "SPY",
         "valueAreaHigh": null,
         "valueAreaLow": null,
-        "vwap": 778.19
+        "vwap": 777.98
       },
-      "read": "SPY's session is a Mixed / developing auction under Mixed control, with VWAP at 778.19.",
+      "read": "SPY's session is a Reversal risk auction under Mixed control, with VWAP at 777.98.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
     "market-heatmap-lab": {
-      "asOf": "2026-10-12T20:31:43.779Z",
+      "asOf": "2026-10-13T14:31:51.294Z",
       "deepLink": "market-heatmap-lab.html",
       "id": "market-heatmap-lab",
       "metrics": {
-        "breadthPct": 74.08,
+        "breadthPct": 73.64,
         "constituents": 134,
         "covered": 134,
         "grouping": "sector",
         "leadership": "broad",
-        "margin": 14.08,
+        "margin": 13.64,
         "priced": 134,
         "strongest": [
           {
@@ -4750,117 +4406,117 @@
         ],
         "window": "1d"
       },
-      "read": "Leadership is broad — 74.08% of 134 constituents are positive against a 60% broad-market threshold.",
+      "read": "Leadership is broad — 73.64% of 134 constituents are positive against a 60% broad-market threshold.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
     "options-flow-feed-lab": {
-      "asOf": "2026-10-12T16:00:00.000Z",
+      "asOf": "2026-10-13T10:15:04.000Z",
       "deepLink": "options-flow-feed-lab.html",
       "id": "options-flow-feed-lab",
       "metrics": {
-        "callFraction": 0.5683,
-        "callPremium": 1406029096,
-        "clearedCount": 997,
-        "clearedFraction": 0.0552,
-        "consideredCount": 18048,
-        "contractsFlagged": 1826,
-        "lean": "balanced",
-        "maxScore": 84,
+        "callFraction": 0.6903,
+        "callPremium": 693077718.5,
+        "clearedCount": 336,
+        "clearedFraction": 0.019,
+        "consideredCount": 17682,
+        "contractsFlagged": 788,
+        "lean": "call-heavy (leaning bullish)",
+        "maxScore": 91,
         "netPremium": null,
         "premiumThreshold": 250000,
-        "putPremium": 1068191160.5,
+        "putPremium": 310991343.5,
         "tickers": 12,
         "top": [
           {
-            "dte": 0,
-            "iv": 86.7,
-            "openInterest": 26,
-            "premium": 9789110,
-            "score": 84,
-            "strike": 590,
-            "ticker": "AMD",
+            "dte": 1,
+            "iv": 38.83,
+            "openInterest": 1460,
+            "premium": 5458240,
+            "score": 91,
+            "strike": 375,
+            "ticker": "TSLA",
             "type": "C",
-            "volOI": 846.0769,
-            "volume": 21998
+            "volOI": 12.6301,
+            "volume": 18440
           },
           {
-            "dte": 0,
-            "iv": 0,
-            "openInterest": 8514,
-            "premium": 11299779,
-            "score": 80,
-            "strike": 340,
-            "ticker": "AAPL",
+            "dte": 1,
+            "iv": 37.9,
+            "openInterest": 10953,
+            "premium": 7111780,
+            "score": 89,
+            "strike": 225,
+            "ticker": "NVDA",
             "type": "C",
-            "volOI": 13.1406,
-            "volume": 111879
+            "volOI": 2.4973,
+            "volume": 27353
           },
           {
-            "dte": 0,
-            "iv": 42.41,
-            "openInterest": 4769,
-            "premium": 23690843,
-            "score": 78,
-            "strike": 380,
+            "dte": 1,
+            "iv": 38.6,
+            "openInterest": 1444,
+            "premium": 4860427,
+            "score": 88,
+            "strike": 372.5,
             "ticker": "TSLA",
             "type": "P",
-            "volOI": 26.5651,
-            "volume": 126689
+            "volOI": 12.6302,
+            "volume": 18238
           }
         ],
         "windowDays": 30
       },
-      "read": "Option flow is balanced across 12 tickers: 1826 contracts clear the $250k premium bar inside 30 days; the most unusual is AMD 590 calls at $9.8M on 846.1× its open interest.",
+      "read": "Option flow is call-heavy (leaning bullish) across 12 tickers: 788 contracts clear the $250k premium bar inside 30 days; the most unusual is TSLA 375 calls at $5.5M on 12.6× its open interest.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
     "options-structure-lab": {
-      "asOf": "2026-10-12T16:00:00.000Z",
+      "asOf": "2026-10-13T10:14:51.000Z",
       "deepLink": "options-structure-lab.html",
       "id": "options-structure-lab",
       "metrics": {
-        "atmIV": 0.0576,
-        "callWall": 780,
-        "expectedMove": 1.66,
+        "atmIV": 0.1057,
+        "callWall": 778,
+        "expectedMove": 3.04,
         "expiriesPriced": 3,
-        "flipLevel": 775.88,
-        "putWall": 778,
+        "flipLevel": 776.34,
+        "putWall": 777,
         "regime": "positive",
-        "signedNetGEX": 1085849870.603,
-        "spot": 778.02,
+        "signedNetGEX": 1389826418.9177,
+        "spot": 777.43,
         "symbol": "SPY"
       },
-      "read": "SPY sits in positive dealer gamma with the flip near 775.88; call wall 780, put wall 778, front expected move ±1.66.",
+      "read": "SPY sits in positive dealer gamma with the flip near 776.34; call wall 778, put wall 777, front expected move ±3.04.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
     "real-assets-lab": {
-      "asOf": "2026-10-12T13:30:00.000Z",
+      "asOf": "2026-10-13T13:30:00.000Z",
       "deepLink": "real-assets-lab.html",
       "id": "real-assets-lab",
       "metrics": {
         "drivers": {
-          "breadth": 100,
-          "btc63": 29.847779276589414,
-          "dbc63": 16.41635629779823,
-          "gld63": 2.687088583637487,
-          "goldSilverRatio63": 0.45763505524409887,
-          "qqq63": 3.661295209958504,
-          "tip63": -3.2497010154702077,
-          "tlt63": -7.171739590840154,
-          "uup63": 2.6065508525089376,
-          "xle63": 15.908694033217397,
-          "xli63": -6.262124268696412
+          "breadth": 87.5,
+          "btc63": 31.487121741097333,
+          "dbc63": 15.977764250921478,
+          "gld63": 2.5755327462582356,
+          "goldSilverRatio63": -0.34483990503235695,
+          "qqq63": 3.5768319816507965,
+          "tip63": -2.5438262750706375,
+          "tlt63": -5.836363301430881,
+          "uup63": 2.8141595621024695,
+          "xle63": 18.745908784104557,
+          "xli63": -6.597360712433964
         },
         "horizon": "swing",
         "leader": {
-          "asOf": "2026-10-12T13:30:00.000Z",
+          "asOf": "2026-10-13T13:30:00.000Z",
           "confirmations": [
             {
               "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend.",
               "label": "Energy equities",
-              "score": 94.19081675893722,
+              "score": 100,
               "symbols": [
                 "XLE"
               ]
@@ -4868,7 +4524,7 @@
             {
               "detail": "Share of commodity vehicles with positive medium-term trends.",
               "label": "Commodity breadth",
-              "score": 100,
+              "score": 87.5,
               "symbols": [
                 "DBC",
                 "CPER",
@@ -4878,23 +4534,23 @@
           ],
           "maxDrawdown": 34.46,
           "model": "energy",
-          "mom126": 32.71,
-          "mom21": 6.11,
-          "mom63": 37.7,
-          "riskPenalty": 14.39,
-          "score": 82.5,
+          "mom126": 36.62,
+          "mom21": 4.42,
+          "mom63": 36.39,
+          "riskPenalty": 14.3,
+          "score": 82.9,
           "ticker": "BNO",
           "trend": "Uptrend",
-          "vol": 50.89
+          "vol": 50.66
         },
         "ranked": [
           {
-            "asOf": "2026-10-12T13:30:00.000Z",
+            "asOf": "2026-10-13T13:30:00.000Z",
             "confirmations": [
               {
                 "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend.",
                 "label": "Energy equities",
-                "score": 94.19081675893722,
+                "score": 100,
                 "symbols": [
                   "XLE"
                 ]
@@ -4902,7 +4558,7 @@
               {
                 "detail": "Share of commodity vehicles with positive medium-term trends.",
                 "label": "Commodity breadth",
-                "score": 100,
+                "score": 87.5,
                 "symbols": [
                   "DBC",
                   "CPER",
@@ -4912,22 +4568,22 @@
             ],
             "maxDrawdown": 34.46,
             "model": "energy",
-            "mom126": 32.71,
-            "mom21": 6.11,
-            "mom63": 37.7,
-            "riskPenalty": 14.39,
-            "score": 82.5,
+            "mom126": 36.62,
+            "mom21": 4.42,
+            "mom63": 36.39,
+            "riskPenalty": 14.3,
+            "score": 82.9,
             "ticker": "BNO",
             "trend": "Uptrend",
-            "vol": 50.89
+            "vol": 50.66
           },
           {
-            "asOf": "2026-10-12T00:00:00.000Z",
+            "asOf": "2026-10-13T00:00:00.000Z",
             "confirmations": [
               {
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
                 "label": "Equity risk appetite",
-                "score": 61.44154753112032,
+                "score": 61.17759994265874,
                 "symbols": [
                   "QQQ"
                 ]
@@ -4941,51 +4597,22 @@
             ],
             "maxDrawdown": 11.66,
             "model": "bitcoin",
-            "mom126": 31.54,
-            "mom21": -4.18,
-            "mom63": 29.85,
+            "mom126": 35.56,
+            "mom21": -3.03,
+            "mom63": 31.49,
             "riskPenalty": 1.76,
-            "score": 76.9,
+            "score": 78.4,
             "ticker": "BTC-USD",
             "trend": "Uptrend",
-            "vol": 37.07
+            "vol": 37.17
           },
           {
-            "asOf": "2026-10-12T13:30:00.000Z",
-            "confirmations": [
-              {
-                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
-                "label": "Equity risk appetite",
-                "score": 61.44154753112032,
-                "symbols": [
-                  "QQQ"
-                ]
-              },
-              {
-                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly.",
-                "label": "Volatility / drawdown",
-                "score": 77.5866064939986,
-                "symbols": []
-              }
-            ],
-            "maxDrawdown": 28.36,
-            "model": "bitcoin",
-            "mom126": 12.67,
-            "mom21": 7.06,
-            "mom63": 28.1,
-            "riskPenalty": 5.6,
-            "score": 76.8,
-            "ticker": "IBIT",
-            "trend": "Uptrend",
-            "vol": 38
-          },
-          {
-            "asOf": "2026-10-12T00:00:00.000Z",
+            "asOf": "2026-10-13T00:00:00.000Z",
             "confirmations": [
               {
                 "detail": "Growth equities proxy broad speculative appetite.",
                 "label": "Equity risk appetite",
-                "score": 61.44154753112032,
+                "score": 61.17759994265874,
                 "symbols": [
                   "QQQ"
                 ]
@@ -4993,7 +4620,7 @@
               {
                 "detail": "Bitcoin price direction confirms or contradicts the wider crypto price trend; no on-chain input is used.",
                 "label": "Bitcoin confirmation",
-                "score": 92.63968468084202,
+                "score": 94.9816024872819,
                 "symbols": [
                   "BTC-USD"
                 ]
@@ -5001,181 +4628,22 @@
             ],
             "maxDrawdown": 12.82,
             "model": "crypto",
-            "mom126": 49.18,
-            "mom21": -9.19,
-            "mom63": 34.74,
+            "mom126": 53.82,
+            "mom21": -8.48,
+            "mom63": 33.9,
             "riskPenalty": 2.03,
-            "score": 76.3,
+            "score": 77.4,
             "ticker": "ETH-USD",
             "trend": "Uptrend",
-            "vol": 51.8
+            "vol": 52.08
           },
           {
-            "asOf": "2026-10-12T13:30:00.000Z",
+            "asOf": "2026-10-13T13:30:00.000Z",
             "confirmations": [
               {
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
                 "label": "Equity risk appetite",
-                "score": 61.44154753112032,
-                "symbols": [
-                  "QQQ"
-                ]
-              },
-              {
-                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly.",
-                "label": "Volatility / drawdown",
-                "score": 77.23000127298494,
-                "symbols": []
-              }
-            ],
-            "maxDrawdown": 28.75,
-            "model": "bitcoin",
-            "mom126": 9.83,
-            "mom21": 6.65,
-            "mom63": 26.4,
-            "riskPenalty": 5.69,
-            "score": 75.5,
-            "ticker": "BITO",
-            "trend": "Uptrend",
-            "vol": 37.44
-          },
-          {
-            "asOf": "2026-10-12T13:30:00.000Z",
-            "confirmations": [
-              {
-                "detail": "Share of commodity vehicles with positive medium-term trends.",
-                "label": "Commodity breadth",
-                "score": 100,
-                "symbols": [
-                  "DBC",
-                  "CPER",
-                  "DBA"
-                ]
-              },
-              {
-                "detail": "A weaker dollar supports a broad basket at the margin.",
-                "label": "Inverse USD",
-                "score": 31.381779624936158,
-                "symbols": [
-                  "UUP"
-                ]
-              }
-            ],
-            "maxDrawdown": 16.54,
-            "model": "broad",
-            "mom126": 15.09,
-            "mom21": 0.51,
-            "mom63": 16.42,
-            "riskPenalty": 2.88,
-            "score": 74.6,
-            "ticker": "DBC",
-            "trend": "Uptrend",
-            "vol": 21.18
-          }
-        ],
-        "scored": 14,
-        "specific": {
-          "BTC-USD": {
-            "asOf": "2026-10-12T00:00:00.000Z",
-            "confirmations": [
-              {
-                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
-                "label": "Equity risk appetite",
-                "score": 61.44154753112032,
-                "symbols": [
-                  "QQQ"
-                ]
-              },
-              {
-                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly.",
-                "label": "Volatility / drawdown",
-                "score": 92.95101671456264,
-                "symbols": []
-              }
-            ],
-            "maxDrawdown": 11.66,
-            "model": "bitcoin",
-            "mom126": 31.54,
-            "mom21": -4.18,
-            "mom63": 29.85,
-            "riskPenalty": 1.76,
-            "score": 76.9,
-            "ticker": "BTC-USD",
-            "trend": "Uptrend",
-            "vol": 37.07
-          },
-          "DBC": {
-            "asOf": "2026-10-12T13:30:00.000Z",
-            "confirmations": [
-              {
-                "detail": "Share of commodity vehicles with positive medium-term trends.",
-                "label": "Commodity breadth",
-                "score": 100,
-                "symbols": [
-                  "DBC",
-                  "CPER",
-                  "DBA"
-                ]
-              },
-              {
-                "detail": "A weaker dollar supports a broad basket at the margin.",
-                "label": "Inverse USD",
-                "score": 31.381779624936158,
-                "symbols": [
-                  "UUP"
-                ]
-              }
-            ],
-            "maxDrawdown": 16.54,
-            "model": "broad",
-            "mom126": 15.09,
-            "mom21": 0.51,
-            "mom63": 16.42,
-            "riskPenalty": 2.88,
-            "score": 74.6,
-            "ticker": "DBC",
-            "trend": "Uptrend",
-            "vol": 21.18
-          },
-          "GLD": {
-            "asOf": "2026-10-12T13:30:00.000Z",
-            "confirmations": [
-              {
-                "detail": "A weaker dollar is the modeled gold tailwind.",
-                "label": "Inverse USD",
-                "score": 31.381779624936158,
-                "symbols": [
-                  "UUP"
-                ]
-              },
-              {
-                "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series.",
-                "label": "Duration / real-rate proxy",
-                "score": 37.829186491316484,
-                "symbols": [
-                  "TLT",
-                  "TIP"
-                ]
-              }
-            ],
-            "maxDrawdown": 18.16,
-            "model": "gold",
-            "mom126": -12.22,
-            "mom21": -4.17,
-            "mom63": 2.69,
-            "riskPenalty": 5.71,
-            "score": 29,
-            "ticker": "GLD",
-            "trend": "Mixed",
-            "vol": 24.27
-          },
-          "IBIT": {
-            "asOf": "2026-10-12T13:30:00.000Z",
-            "confirmations": [
-              {
-                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
-                "label": "Equity risk appetite",
-                "score": 61.44154753112032,
+                "score": 61.17759994265874,
                 "symbols": [
                   "QQQ"
                 ]
@@ -5189,62 +4657,51 @@
             ],
             "maxDrawdown": 28.36,
             "model": "bitcoin",
-            "mom126": 12.67,
-            "mom21": 7.06,
-            "mom63": 28.1,
+            "mom126": 12.28,
+            "mom21": 5.73,
+            "mom63": 28.51,
             "riskPenalty": 5.6,
-            "score": 76.8,
+            "score": 75.5,
             "ticker": "IBIT",
             "trend": "Uptrend",
-            "vol": 38
+            "vol": 37.98
           },
-          "SLV": {
-            "asOf": "2026-10-12T13:30:00.000Z",
+          {
+            "asOf": "2026-10-13T13:30:00.000Z",
             "confirmations": [
               {
-                "detail": "A falling ETF-price ratio means silver is outperforming gold; it is a directional proxy, not the physical ounce ratio.",
-                "label": "Gold/silver ratio direction",
-                "score": 47.45758302642167,
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
+                "label": "Equity risk appetite",
+                "score": 61.17759994265874,
                 "symbols": [
-                  "GLD",
-                  "SLV"
+                  "QQQ"
                 ]
               },
               {
-                "detail": "Gold strength confirms the monetary-metal side of silver.",
-                "label": "Gold confirmation",
-                "score": 58.95696194545829,
-                "symbols": [
-                  "GLD"
-                ]
-              },
-              {
-                "detail": "Industrials proxy the cyclical-demand side of silver.",
-                "label": "Industrial confirmation",
-                "score": 29.126252437678627,
-                "symbols": [
-                  "XLI"
-                ]
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly.",
+                "label": "Volatility / drawdown",
+                "score": 77.32170791012828,
+                "symbols": []
               }
             ],
-            "maxDrawdown": 36.5,
-            "model": "silver",
-            "mom126": -20.4,
-            "mom21": -6.49,
-            "mom63": 2.22,
-            "riskPenalty": 14.22,
-            "score": 22.6,
-            "ticker": "SLV",
-            "trend": "Downtrend",
-            "vol": 45.27
+            "maxDrawdown": 28.65,
+            "model": "bitcoin",
+            "mom126": 10.58,
+            "mom21": 5.47,
+            "mom63": 27.51,
+            "riskPenalty": 5.67,
+            "score": 74.7,
+            "ticker": "BITO",
+            "trend": "Uptrend",
+            "vol": 37.45
           },
-          "USO": {
-            "asOf": "2026-10-12T13:30:00.000Z",
+          {
+            "asOf": "2026-10-13T13:30:00.000Z",
             "confirmations": [
               {
                 "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend.",
                 "label": "Energy equities",
-                "score": 94.19081675893722,
+                "score": 100,
                 "symbols": [
                   "XLE"
                 ]
@@ -5252,7 +4709,7 @@
               {
                 "detail": "Share of commodity vehicles with positive medium-term trends.",
                 "label": "Commodity breadth",
-                "score": 100,
+                "score": 87.5,
                 "symbols": [
                   "DBC",
                   "CPER",
@@ -5262,30 +4719,229 @@
             ],
             "maxDrawdown": 32.49,
             "model": "energy",
-            "mom126": 17.56,
-            "mom21": -2.5,
-            "mom63": 25.68,
-            "riskPenalty": 14.26,
-            "score": 72.9,
+            "mom126": 22.29,
+            "mom21": -3.32,
+            "mom63": 24.78,
+            "riskPenalty": 14.15,
+            "score": 74,
             "ticker": "USO",
             "trend": "Uptrend",
-            "vol": 51.71
+            "vol": 51.43
+          }
+        ],
+        "scored": 14,
+        "specific": {
+          "BTC-USD": {
+            "asOf": "2026-10-13T00:00:00.000Z",
+            "confirmations": [
+              {
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
+                "label": "Equity risk appetite",
+                "score": 61.17759994265874,
+                "symbols": [
+                  "QQQ"
+                ]
+              },
+              {
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly.",
+                "label": "Volatility / drawdown",
+                "score": 92.95101671456264,
+                "symbols": []
+              }
+            ],
+            "maxDrawdown": 11.66,
+            "model": "bitcoin",
+            "mom126": 35.56,
+            "mom21": -3.03,
+            "mom63": 31.49,
+            "riskPenalty": 1.76,
+            "score": 78.4,
+            "ticker": "BTC-USD",
+            "trend": "Uptrend",
+            "vol": 37.17
+          },
+          "DBC": {
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "confirmations": [
+              {
+                "detail": "Share of commodity vehicles with positive medium-term trends.",
+                "label": "Commodity breadth",
+                "score": 87.5,
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ]
+              },
+              {
+                "detail": "A weaker dollar supports a broad basket at the margin.",
+                "label": "Inverse USD",
+                "score": 29.898860270696645,
+                "symbols": [
+                  "UUP"
+                ]
+              }
+            ],
+            "maxDrawdown": 16.54,
+            "model": "broad",
+            "mom126": 15.78,
+            "mom21": 0.72,
+            "mom63": 15.98,
+            "riskPenalty": 2.88,
+            "score": 72,
+            "ticker": "DBC",
+            "trend": "Uptrend",
+            "vol": 21.16
+          },
+          "GLD": {
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "confirmations": [
+              {
+                "detail": "A weaker dollar is the modeled gold tailwind.",
+                "label": "Inverse USD",
+                "score": 29.898860270696645,
+                "symbols": [
+                  "UUP"
+                ]
+              },
+              {
+                "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series.",
+                "label": "Duration / real-rate proxy",
+                "score": 40.44812322598267,
+                "symbols": [
+                  "TLT",
+                  "TIP"
+                ]
+              }
+            ],
+            "maxDrawdown": 18.16,
+            "model": "gold",
+            "mom126": -14.19,
+            "mom21": -2.77,
+            "mom63": 2.58,
+            "riskPenalty": 5.62,
+            "score": 29.6,
+            "ticker": "GLD",
+            "trend": "Mixed",
+            "vol": 24.04
+          },
+          "IBIT": {
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "confirmations": [
+              {
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
+                "label": "Equity risk appetite",
+                "score": 61.17759994265874,
+                "symbols": [
+                  "QQQ"
+                ]
+              },
+              {
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly.",
+                "label": "Volatility / drawdown",
+                "score": 77.5866064939986,
+                "symbols": []
+              }
+            ],
+            "maxDrawdown": 28.36,
+            "model": "bitcoin",
+            "mom126": 12.28,
+            "mom21": 5.73,
+            "mom63": 28.51,
+            "riskPenalty": 5.6,
+            "score": 75.5,
+            "ticker": "IBIT",
+            "trend": "Uptrend",
+            "vol": 37.98
+          },
+          "SLV": {
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "confirmations": [
+              {
+                "detail": "A falling ETF-price ratio means silver is outperforming gold; it is a directional proxy, not the physical ounce ratio.",
+                "label": "Gold/silver ratio direction",
+                "score": 51.91577725017976,
+                "symbols": [
+                  "GLD",
+                  "SLV"
+                ]
+              },
+              {
+                "detail": "Gold strength confirms the monetary-metal side of silver.",
+                "label": "Gold confirmation",
+                "score": 58.58510915419412,
+                "symbols": [
+                  "GLD"
+                ]
+              },
+              {
+                "detail": "Industrials proxy the cyclical-demand side of silver.",
+                "label": "Industrial confirmation",
+                "score": 28.00879762522012,
+                "symbols": [
+                  "XLI"
+                ]
+              }
+            ],
+            "maxDrawdown": 36.5,
+            "model": "silver",
+            "mom126": -25.4,
+            "mom21": -5.45,
+            "mom63": 2.93,
+            "riskPenalty": 13.95,
+            "score": 23.4,
+            "ticker": "SLV",
+            "trend": "Downtrend",
+            "vol": 44.56
+          },
+          "USO": {
+            "asOf": "2026-10-13T13:30:00.000Z",
+            "confirmations": [
+              {
+                "detail": "Energy-equity direction confirms or diverges from the oil-linked price trend.",
+                "label": "Energy equities",
+                "score": 100,
+                "symbols": [
+                  "XLE"
+                ]
+              },
+              {
+                "detail": "Share of commodity vehicles with positive medium-term trends.",
+                "label": "Commodity breadth",
+                "score": 87.5,
+                "symbols": [
+                  "DBC",
+                  "CPER",
+                  "DBA"
+                ]
+              }
+            ],
+            "maxDrawdown": 32.49,
+            "model": "energy",
+            "mom126": 22.29,
+            "mom21": -3.32,
+            "mom63": 24.78,
+            "riskPenalty": 14.15,
+            "score": 74,
+            "ticker": "USO",
+            "trend": "Uptrend",
+            "vol": 51.43
           }
         }
       },
-      "read": "BNO leads real assets at 82.5/100; GLD 29, BTC 76.9, SLV 22.6.",
+      "read": "BNO leads real assets at 82.9/100; GLD 29.6, BTC 78.4, SLV 23.4.",
       "source": "owning-tool-functions"
     },
     "research-agenda-lab": {
-      "asOf": "2026-10-12T20:31:43.886Z",
+      "asOf": "2026-10-13T14:31:51.421Z",
       "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
       "id": "research-agenda-lab",
       "metrics": {
         "agendaRead": {
-          "asOf": "2026-10-12T20:31:43.886Z",
+          "asOf": "2026-10-13T14:31:51.421Z",
           "contractVersion": "research-agenda-read/v1",
-          "generationId": "generation-f8bc3e4cc7af0d49b944daea5b7fdf10b723b18956d3c89b77491d22b1ac1ba9",
-          "readFingerprint": "sha256:9d1e8a3d2f7c710d2e7f79bb62c8d6f186a2b0c7026f391a0268a4498c3d5c46",
+          "generationId": "generation-cc45309aa5b49ce4b1469061479d5a871fbfd2acbb17b77c4bd37bac4275070a",
+          "readFingerprint": "sha256:375a162b8d6ee5f478351a9fd752a8d7dc3b8f0e63fb7b847225f3f17a682cc9",
           "topics": [
             {
               "changeAssessment": "insufficient-evidence",
@@ -5296,8 +4952,8 @@
               "newestEvidenceAgeHours": null,
               "outcome": "unavailable",
               "predecessorDossierId": null,
-              "reason": "RLAGENDA-CONTRACT-UNKNOWN-MEMBER",
-              "reviewId": "review-d8a385e4036540c65b096f113495fc164d88f34770238757d088c73d4db76c82",
+              "reason": "RLAGENDA-CONTRACT-SHAPE",
+              "reviewId": "review-1394a51f13829c085f3d9655237f0fd8896c332dc1964b4bd90931137b6661b2",
               "selectionReason": "mode-required",
               "state": "unavailable",
               "supersedesDossierId": null,
@@ -5339,8 +4995,8 @@
         },
         "contractVersion": "research-agenda-tool-read/v1",
         "deferredTopicCount": 2,
-        "generationId": "generation-f8bc3e4cc7af0d49b944daea5b7fdf10b723b18956d3c89b77491d22b1ac1ba9",
-        "readFingerprint": "sha256:9d1e8a3d2f7c710d2e7f79bb62c8d6f186a2b0c7026f391a0268a4498c3d5c46",
+        "generationId": "generation-cc45309aa5b49ce4b1469061479d5a871fbfd2acbb17b77c4bd37bac4275070a",
+        "readFingerprint": "sha256:375a162b8d6ee5f478351a9fd752a8d7dc3b8f0e63fb7b847225f3f17a682cc9",
         "reviewedTopicCount": 0,
         "unavailableTopicCount": 1
       },
@@ -5349,52 +5005,52 @@
       "state": "unavailable"
     },
     "sector-research-lab": {
-      "asOf": "2026-10-12T20:31:43.409Z",
+      "asOf": "2026-10-13T14:31:49.962Z",
       "deepLink": "sector-research-lab.html",
       "id": "sector-research-lab",
       "metrics": {
         "benchmark": "SPY",
         "count": 11,
         "into": {
-          "accel": 3.59,
-          "ma200Dist": 2.53,
+          "accel": 3.57,
+          "ma200Dist": 3.2,
           "maStack": "tangled",
           "quad": "I",
           "rotation": "into",
           "rrgState": "Improving ↑",
-          "rsMom": 101.48,
-          "rsMom1m": -5.65,
-          "rsMom3m": -5.51,
-          "rsMom6m": -6.85,
-          "rsRatio": 98.57,
+          "rsMom": 101.55,
+          "rsMom1m": -5.61,
+          "rsMom3m": -5.62,
+          "rsMom6m": -5.5,
+          "rsRatio": 98.64,
           "ticker": "XLF"
         },
         "leader": {
-          "accel": 1.82,
-          "ma200Dist": 15.48,
+          "accel": 2.59,
+          "ma200Dist": 17.77,
           "maStack": "bull-stack",
           "quad": "L",
           "rotation": "into",
           "rrgState": "Leading",
-          "rsMom": 100.51,
-          "rsMom1m": -0.47,
-          "rsMom3m": 12.41,
-          "rsMom6m": 2.17,
-          "rsRatio": 101.24,
+          "rsMom": 100.88,
+          "rsMom1m": 1.52,
+          "rsMom3m": 15.47,
+          "rsMom6m": 8.24,
+          "rsRatio": 101.58,
           "ticker": "XLE"
         },
         "out": {
-          "accel": -3.3,
-          "ma200Dist": 17.84,
+          "accel": -3.39,
+          "ma200Dist": 17.45,
           "maStack": "bull-stack",
           "quad": "W",
           "rotation": "out",
           "rrgState": "Weakening ↓",
-          "rsMom": 98.82,
-          "rsMom1m": 2.82,
-          "rsMom3m": 3.44,
-          "rsMom6m": 21.44,
-          "rsRatio": 101.02,
+          "rsMom": 98.61,
+          "rsMom1m": 3.82,
+          "rsMom3m": 4.57,
+          "rsMom6m": 19.99,
+          "rsRatio": 100.87,
           "ticker": "XLK"
         }
       },
@@ -5458,41 +5114,41 @@
   },
   "watchlistNotes": {
     "FBTC": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: FBTC 71.99, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: FBTC 72.69, bull-stack."
     },
     "FETH": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: FETH 25.06, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: FETH 25.09, bull-stack."
     },
     "FMTM": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: FMTM 40.54, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: FMTM 40.34, bull-stack."
     },
     "GLD": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: GLD 382.15, bear-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: GLD 381.94, bear-stack."
     },
     "MSFT": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: MSFT 541.15, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: MSFT 548.85, bull-stack."
     },
     "QQQ": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: QQQ 746.04, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: QQQ 742.64, bull-stack."
     },
     "SOXX": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: SOXX 544.85, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: SOXX 535.32, bull-stack."
     },
     "SPCX": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: SPCX 163.42, n/a."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: SPCX 156.56, n/a."
     },
     "SPMO": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: SPMO 149.36, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: SPMO 147.46, bull-stack."
     },
     "VGT": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: VGT 126.51, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: VGT 126.26, bull-stack."
     },
     "XLE": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: XLE 66.01, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: XLE 66.69, bull-stack."
     },
     "XLK": {
-      "status": "Current snapshot 2026-10-12T21:00:00.000Z: XLK 196.36, bull-stack."
+      "status": "Current snapshot 2026-10-13T15:00:00.000Z: XLK 195.6, bull-stack."
     }
   },
-  "window": "after-hours"
+  "window": "morning"
 }

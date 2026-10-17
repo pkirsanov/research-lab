@@ -1,7 +1,7 @@
 {
   "contractVersion": "public-owner-reads/v1",
-  "generatedAt": "2026-10-16T20:32:08.433Z",
-  "asOf": "2026-10-16",
+  "generatedAt": "2026-10-17T11:01:46.960Z",
+  "asOf": "2026-10-17",
   "source": "committed same-origin snapshots via rlmetrics",
   "tickers": [
     "MSFT",
@@ -379,74 +379,194 @@
     },
     "etf-momentum-lab": {
       "MSFT": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "28.7pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": 28.6582,
+          "subjectReturn": 0.315096,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "QQQ": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "0.9pp behind SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": -0.8774,
+          "subjectReturn": 0.01974,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "SPMO": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "5.4pp behind SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": -5.3632,
+          "subjectReturn": -0.025118,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "FMTM": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "2.2pp behind SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": -2.1677,
+          "subjectReturn": 0.006837,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "XLK": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "1.6pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": 1.565,
+          "subjectReturn": 0.044164,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "VGT": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "2.1pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": 2.0943,
+          "subjectReturn": 0.049457,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "SOXX": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "8.7pp behind SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": -8.7182,
+          "subjectReturn": -0.058668,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "SPCX": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "19.0pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": 18.9926,
+          "subjectReturn": 0.21844,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "FBTC": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "22.1pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": 22.1265,
+          "subjectReturn": 0.24978,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "FETH": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "24.1pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": 24.0656,
+          "subjectReturn": 0.26917,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "GLD": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "1.1pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": 1.0686,
+          "subjectReturn": 0.0392,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       },
       "XLE": {
-        "state": "unavailable",
-        "gapReason": "benchmark SPY unusable: latest session is quarantined, not observed",
+        "state": "current",
+        "read": "14.9pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-10-16T00:00:00.000Z",
+        "provenance": "same-origin-snapshot",
+        "gapReason": null,
+        "metrics": {
+          "relativeReturnPoints": 14.9256,
+          "subjectReturn": 0.17777,
+          "benchmarkReturn": 0.028514,
+          "benchmark": "SPY",
+          "window": 63
+        },
         "domainId": "macro-rotation",
         "ownerDeepLink": "etf-momentum-lab.html#power"
       }
@@ -454,15 +574,15 @@
     "options-structure-lab": {
       "MSFT": {
         "state": "current",
-        "read": "Options imply a 1.4% move by 2026-10-16.",
+        "read": "Options imply a 1.8% move by 2026-10-19.",
         "asOf": "2026-10-16T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "impliedVol": 0.2629,
-          "impliedMovePct": 1.3761,
-          "expiry": "2026-10-16",
-          "daysToExpiry": 1,
+          "impliedVol": 0.19515,
+          "impliedMovePct": 1.7692,
+          "expiry": "2026-10-19",
+          "daysToExpiry": 3,
           "atTheMoneyContracts": 4
         },
         "domainId": "options",
@@ -470,15 +590,15 @@
       },
       "QQQ": {
         "state": "current",
-        "read": "Options imply a 1.1% move by 2026-10-16.",
+        "read": "Options imply a 1.8% move by 2026-10-19.",
         "asOf": "2026-10-16T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "impliedVol": 0.208875,
-          "impliedMovePct": 1.0933,
-          "expiry": "2026-10-16",
-          "daysToExpiry": 1,
+          "impliedVol": 0.202125,
+          "impliedMovePct": 1.8325,
+          "expiry": "2026-10-19",
+          "daysToExpiry": 3,
           "atTheMoneyContracts": 4
         },
         "domainId": "options",

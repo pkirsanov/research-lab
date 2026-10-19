@@ -1,0 +1,89 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-bb418743dfd17128dd78d91294ccbba9ed3bb830cb3464299e9af2ebc5087bc1",
+  "generationId": "generation-3753da0c8f97903cfc20fece76fab9cab43e8077f202f6a3fabec50b84e1a773",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-10-19T14:31:57.058Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-UNKNOWN-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "No official policy or verified statement for United States, Iran, Oman mediators, Gulf exporters, Houthis, shipping insurers, or OPEC buffer producers is present in the supplied data.",
+      "gaps": [
+        "No official-policy-and-statements source within the 24h freshness window."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "No measured maritime-flow observation supports any node in the scenario tree (staged-reopening, managed-coercion, escalation, single-route-disruption, dual-route-or-infrastructure-shock).",
+      "gaps": [
+        "No measured-maritime-flow source within the 24h freshness window."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "No measured transit, loadings, delay, or insured capacity data for Hormuz, Bab el-Mandeb, or Red Sea routes is present in the supplied data.",
+      "gaps": [
+        "No measured-maritime-flow source within the 24h freshness window."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "No energy-and-input-balance data for oil, refined-products, lng, fertilizer, aluminum, or shipping channels is present in the supplied data.",
+      "gaps": [
+        "No energy-and-input-balances source within the 72h freshness window."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "No committed daily bars for BNO, USO, XLE, XOM, CVX, COP, MPC, PSX, DBA, DBC, XLB, or XLI are present in the supplied data.",
+      "gaps": [
+        "No committed-public-bars source within the 48h freshness window."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "No trigger or invalidation condition (transit-restriction-observed, insured-capacity-tightens, inventory-response-confirmed, transit-normalizes, insurance-normalizes, evidence-stales) can be evaluated without measured flow or policy-response data.",
+      "gaps": [
+        "No measured-maritime-flow or official-policy-and-statements source within the 24h freshness window."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "The acquisition bundle contains zero sources, zero retained source bytes, and zero corroborated material claims; all four requirement records are missing-or-stale.",
+      "gaps": [
+        "No source of any class (official, maritime-observation, industry-data, committed-bar) is present in the supplied data."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "No predecessor dossier is supplied, so no change assessment can be authored.",
+      "gaps": [
+        "No predecessor dossier or prior snapshot is present in the supplied data."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

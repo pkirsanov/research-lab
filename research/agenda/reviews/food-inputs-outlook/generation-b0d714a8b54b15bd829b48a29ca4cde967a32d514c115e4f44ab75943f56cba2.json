@@ -1,0 +1,89 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-ba68f96645e210a02d087b8e32b1d31648266f0aa43525279b86242e746d3698",
+  "generationId": "generation-b0d714a8b54b15bd829b48a29ca4cde967a32d514c115e4f44ab75943f56cba2",
+  "topicId": "food-inputs-outlook",
+  "attemptedAt": "2026-10-19T11:01:54.499Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "cadence",
+  "selectionReason": "cadence-elapsed",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "topic-model-not-applicable",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "grains-outlook",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no confirmed price level or inventory data for grains in the supplied data.",
+      "gaps": [
+        "Missing public grains production and inventory observations."
+      ]
+    },
+    {
+      "sectionId": "fertilizer-inputs",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no confirmed nitrogen, phosphate, or potash price data in the supplied data.",
+      "gaps": [
+        "Missing fertilizer cost and energy input observations."
+      ]
+    },
+    {
+      "sectionId": "input-cost-transmission",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no data linking input costs to crop economics in the supplied data.",
+      "gaps": [
+        "Missing transmission analysis inputs."
+      ]
+    },
+    {
+      "sectionId": "declared-catalysts",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no specific weather or trade catalysts identified in the supplied data.",
+      "gaps": [
+        "Missing catalyst analysis."
+      ]
+    },
+    {
+      "sectionId": "move-ranges",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no commodity range or proxy range data supplied.",
+      "gaps": [
+        "Missing range analysis."
+      ]
+    },
+    {
+      "sectionId": "invalidations",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no invalidation conditions defined due to lack of prior data.",
+      "gaps": [
+        "Missing invalidation analysis."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no sources provided in the input bundle.",
+      "gaps": [
+        "Empty source ledger."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no predecessor dossier or change assessment data supplied.",
+      "gaps": [
+        "Missing change assessment."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

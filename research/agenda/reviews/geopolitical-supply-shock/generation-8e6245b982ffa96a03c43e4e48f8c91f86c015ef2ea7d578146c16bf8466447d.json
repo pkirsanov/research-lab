@@ -1,0 +1,89 @@
+{
+  "contractVersion": "research-review/v1",
+  "reviewId": "review-07ac797a27f25a27226e51b36fa494b4c3fe1ad28815ad9c2a4fd8b1c7ca55c8",
+  "generationId": "generation-8e6245b982ffa96a03c43e4e48f8c91f86c015ef2ea7d578146c16bf8466447d",
+  "topicId": "geopolitical-supply-shock",
+  "attemptedAt": "2026-10-23T18:32:00.012Z",
+  "validationState": "validated",
+  "historicalOnly": false,
+  "mode": "every-generation",
+  "selectionReason": "mode-required",
+  "completePass": false,
+  "outcome": "unavailable",
+  "reason": "RLAGENDA-CONTRACT-UNKNOWN-MEMBER",
+  "newestEvidenceAgeHours": null,
+  "changeAssessment": "insufficient-evidence",
+  "sectionStates": [
+    {
+      "sectionId": "actor-reaction-functions",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no confirmed actor-state policy or verified statement for United States, Iran, or Oman mediators in the supplied data.",
+      "gaps": [
+        "No official policy or statement source within 24h freshness window."
+      ]
+    },
+    {
+      "sectionId": "escalation-scenario-tree",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no measured transit or insured capacity data to update scenario probabilities for Hormuz, Bab el-Mandeb, or Red Sea.",
+      "gaps": [
+        "No maritime observation source within 24h freshness window."
+      ]
+    },
+    {
+      "sectionId": "physical-and-insured-flow-state",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no measured physical flow or insured capacity data for Gulf crude, refined products, LNG, fertilizer, or aluminum channels.",
+      "gaps": [
+        "No measured maritime flow source within 24h freshness window."
+      ]
+    },
+    {
+      "sectionId": "channel-transmission",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no confirmed inventory or policy response data to assess transmission through oil, refined-products, LNG, fertilizer, or aluminum channels.",
+      "gaps": [
+        "No energy or input balance source within 72h freshness window."
+      ]
+    },
+    {
+      "sectionId": "us-listed-proxy-sensitivity",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no committed public bars for BNO, USO, XLE, MPC, PSX, XOM, CVX, COP, DBA, DBC, XLB, or XLI to calibrate proxy sensitivity.",
+      "gaps": [
+        "Committed public bars source is reused but lacks specific ticker-level price data for calibration."
+      ]
+    },
+    {
+      "sectionId": "triggers-and-invalidations",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no observed state-change or threshold breach for transit-restriction, insured-capacity, or inventory-response triggers.",
+      "gaps": [
+        "No trigger-eligible observation within freshness windows."
+      ]
+    },
+    {
+      "sectionId": "source-ledger",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no new source records acquired; only a reused committed-public-bars source is present with no new material claims.",
+      "gaps": [
+        "No new official, maritime, or industry-data sources acquired."
+      ]
+    },
+    {
+      "sectionId": "predecessor-change-assessment",
+      "status": "unavailable",
+      "interpretation": "Insufficient evidence: no predecessor dossier or change assessment data supplied for comparison.",
+      "gaps": [
+        "No prior situation state to compare against."
+      ]
+    }
+  ],
+  "evidenceIds": [],
+  "modelSnapshotRef": null,
+  "chartState": "unavailable",
+  "triggerStates": "unavailable",
+  "invalidationStates": "unavailable",
+  "dossierRef": null,
+  "predecessorDossierRef": null
+}

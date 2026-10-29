@@ -6,7 +6,7 @@
       "provider": "omlx",
       "model": "Muse-Glimmer-30B-8bit",
       "omlxBaseUrl": "http://127.0.0.1:8001",
-      "omlxMaxTokens": 2048
+      "omlxMaxTokens": 4096
     },
     "copilot": {
       "provider": "copilot",

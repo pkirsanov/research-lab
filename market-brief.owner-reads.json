@@ -1,7 +1,7 @@
 {
   "contractVersion": "public-owner-reads/v1",
-  "generatedAt": "2026-10-28T20:32:04.206Z",
-  "asOf": "2026-10-28",
+  "generatedAt": "2026-10-29T11:04:27.948Z",
+  "asOf": "2026-10-29",
   "source": "committed same-origin snapshots via rlmetrics",
   "tickers": [
     "MSFT",
@@ -574,15 +574,15 @@
     "options-structure-lab": {
       "MSFT": {
         "state": "current",
-        "read": "Options imply a 7.4% move by 2026-10-30.",
+        "read": "Options imply a 6.2% move by 2026-10-30.",
         "asOf": "2026-10-28T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "impliedVol": 0.8199,
-          "impliedMovePct": 7.4332,
+          "impliedVol": 0.841875,
+          "impliedMovePct": 6.2318,
           "expiry": "2026-10-30",
-          "daysToExpiry": 3,
+          "daysToExpiry": 2,
           "atTheMoneyContracts": 4
         },
         "domainId": "options",
@@ -590,14 +590,14 @@
       },
       "QQQ": {
         "state": "current",
-        "read": "Options imply a 3.0% move by 2026-10-28.",
+        "read": "Options imply a 1.5% move by 2026-10-29.",
         "asOf": "2026-10-28T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "impliedVol": 0.5656,
-          "impliedMovePct": 2.9605,
-          "expiry": "2026-10-28",
+          "impliedVol": 0.28485,
+          "impliedMovePct": 1.491,
+          "expiry": "2026-10-29",
           "daysToExpiry": 1,
           "atTheMoneyContracts": 4
         },

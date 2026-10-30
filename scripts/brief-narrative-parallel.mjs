@@ -460,11 +460,22 @@ function baseSnapshot() {
     ]);
 }
 
+// A level within the level-sanity validator's own tolerance of price is "already true" the
+// moment it is published and is refused outright (see omlx-level-sanity.mjs TOLERANCE). A
+// ticker whose 50-day/200-day distance has genuinely collapsed to ~0% (price sitting right on
+// its moving average) is a normal market condition, not an error — but handing that coincident
+// value to the model as "the derived level" seeds a self-rejecting invalidation every time, and
+// the retry (same prompt, same market data) reproduces the identical doomed number. Treat that
+// level as unusable here, at the source, so neither the seed nor the factCard ever offers it.
+const LEVEL_SANITY_TOLERANCE = 0.0005; // keep in sync with omlx-level-sanity.mjs TOLERANCE
+
 function movingAverageLevel(state, distanceKey) {
     const price = Number(state?.px);
     const distance = Number(state?.[distanceKey]);
     if (!Number.isFinite(price) || !Number.isFinite(distance) || distance <= -99.9) return null;
-    return Number((price / (1 + distance / 100)).toFixed(2));
+    const level = Number((price / (1 + distance / 100)).toFixed(2));
+    if (Math.abs(level - price) / price <= LEVEL_SANITY_TOLERANCE) return null;
+    return level;
 }
 
 function omlxInstrumentFacts(state) {
@@ -487,8 +498,13 @@ function omlxInstrumentFacts(state) {
 function omlxOutputSeed(lane) {
     const spy = omlxInstrumentFacts({ ...snapshot.bench, mom5: snapshot.bench?.mom5, mom21: snapshot.bench?.mom21 });
     const px = Number(spy.price).toFixed(2);
-    const ma50 = Number.isFinite(spy.ma50) ? spy.ma50.toFixed(2) : px;
-    const ma200 = Number.isFinite(spy.ma200) ? spy.ma200.toFixed(2) : px;
+    // Falling back to px itself here is exactly the degenerate level the level-sanity validator
+    // exists to refuse: an invalidation/trigger equal to the current price is already true and
+    // can never falsify the call. movingAverageLevel() already nulls out a coincident MA, so the
+    // only remaining fallback must stay provably off price rather than collapsing onto it.
+    const offPriceLevel = (pct) => (Number(px) * pct).toFixed(2);
+    const ma50 = Number.isFinite(spy.ma50) ? spy.ma50.toFixed(2) : offPriceLevel(0.99);
+    const ma200 = Number.isFinite(spy.ma200) ? spy.ma200.toFixed(2) : offPriceLevel(0.97);
     const vix = Number(snapshot.regime?.vix).toFixed(2);
     const link = config.deepLinks?.regime || 'swing-structure-lab.html';
     /* Kept terse deliberately: this exact string is reused verbatim across up to 8 default-visible

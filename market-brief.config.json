@@ -228,6 +228,48 @@
             "type": "FOMC",
             "importance": "high",
             "note": "FOMC decision (Oct 27-28 meeting), announcement 2:00pm ET. Not a Summary of Economic Projections meeting."
+        },
+        {
+            "date": "2026-11-06",
+            "type": "NFP",
+            "importance": "high",
+            "note": "October 2026 Employment Situation (nonfarm payrolls), 8:30am ET (BLS)."
+        },
+        {
+            "date": "2026-11-10",
+            "type": "CPI",
+            "importance": "high",
+            "note": "October 2026 CPI, 8:30am ET (BLS)."
+        },
+        {
+            "date": "2026-11-20",
+            "type": "OPEX",
+            "importance": "high",
+            "note": "Monthly options expiration (third Friday of November)."
+        },
+        {
+            "date": "2026-12-04",
+            "type": "NFP",
+            "importance": "high",
+            "note": "November 2026 Employment Situation (nonfarm payrolls), 8:30am ET (BLS)."
+        },
+        {
+            "date": "2026-12-09",
+            "type": "FOMC",
+            "importance": "high",
+            "note": "FOMC decision (Dec 8-9 meeting), announcement 2:00pm ET, press conference 2:30pm. A Summary of Economic Projections and dot plot ARE released at this meeting (SEP quarters are March/June/September/December). Rate-path expectations and market reaction are NOT verified this run and must not be asserted as fact without a live source."
+        },
+        {
+            "date": "2026-12-10",
+            "type": "CPI",
+            "importance": "high",
+            "note": "November 2026 CPI, 8:30am ET (BLS)."
+        },
+        {
+            "date": "2026-12-18",
+            "type": "OPEX",
+            "importance": "high",
+            "note": "Quarterly options/futures expiration — quadruple witching (third Friday of December)."
         }
     ],
     "globalBackdrop": [

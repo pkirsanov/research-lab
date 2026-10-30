@@ -631,6 +631,13 @@ function laneInput(lane) {
     };
     if (lane.id === 'core' || lane.id === 'signals') {
         if (narrativeProvider === 'omlx') {
+            // The signals lane's own instructions tell the model to "date every catalyst on or
+            // after factCard.nextSessionDate" and name macroEvents as the source for those
+            // catalysts, but this branch's config omitted macroEvents entirely — the local model
+            // was never handed a single calendar entry to author events from, so events.[] was
+            // guaranteed empty on every run regardless of calendar freshness. commonConfig
+            // (used by the non-omlx/Copilot branch below) already carries macroEvents; this
+            // branch just needs the same field.
             return {
                 meta,
                 factCard,
@@ -638,7 +645,7 @@ function laneInput(lane) {
                 authoritativeToolReads: Object.values(snapshot.toolReads || {}).map((read) => ({
                     id: read.id, asOf: read.asOf, read: read.read, deepLink: read.deepLink
                 })),
-                config: { thresholds: config.thresholds, deepLinks: config.deepLinks }
+                config: { thresholds: config.thresholds, deepLinks: config.deepLinks, macroEvents: config.macroEvents }
             };
         }
         return {

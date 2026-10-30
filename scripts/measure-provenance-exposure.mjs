@@ -32,7 +32,7 @@ import { isCoherentBar } from './validate-bars-coherence.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BARS_DIR = join(ROOT, 'data', 'bars');
-const NON_SYMBOL_FILES = new Set(['index.json']);
+const NON_SYMBOL_FILES = new Set(['index.json', 'live.json']);
 
 const LIMIT = (() => {
   const arg = process.argv.find((a) => a.startsWith('--limit='));

@@ -47,7 +47,7 @@ const BARS_DIR_REL = 'data/bars';
 /* `index.json` is the run manifest, not a bar file: it carries per-symbol summaries under
    `tickers`, never `rows`. Scanning it would neither find violations nor cost anything, but naming
    it here keeps the file count honest — 293 symbol files, not 294 entries. */
-const NON_SYMBOL_FILES = new Set(['index.json']);
+const NON_SYMBOL_FILES = new Set(['index.json', 'live.json']);
 
 /* --------------------------------------------------------------- the predicate */
 

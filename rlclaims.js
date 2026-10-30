@@ -240,6 +240,7 @@
     var BARS_DIR = "data/bars";
     /* The refresh manifest, not a price series — excluded so a claim can never resolve to it. */
     var BARS_MANIFEST_FILENAME = "index.json";
+    var BARS_LIVE_FILENAME = "live.json";
     var SERIES_INTERVAL = "1d";
 
     /* ── brief-recommendation-resolution/v1 ─────────────────────────────────────────────────
@@ -547,7 +548,7 @@
         for (var i = 0; i < fileNames.length; i += 1) {
             var name = fileNames[i];
             if (typeof name !== "string") continue;
-            if (name === BARS_MANIFEST_FILENAME) continue;
+            if (name === BARS_MANIFEST_FILENAME || name === BARS_LIVE_FILENAME) continue;
             if (name.slice(-5) !== ".json") continue;
             symbols.push(name.slice(0, -5));
         }

@@ -52,7 +52,7 @@ import { partitionCoherentBars } from './validate-bars-coherence.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const BARS_DIR_REL = 'data/bars';
-const NON_SYMBOL_FILES = new Set(['index.json']);
+const NON_SYMBOL_FILES = new Set(['index.json', 'live.json']);
 
 /* Session lists that describe a ROW rather than the file. Each names sessions the record claims are
    present and characterised — reconstructed from intraday, thin, or observed with zero trades. A

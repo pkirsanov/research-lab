@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-30T15:00:00.000Z",
+  "asOf": "2026-10-30T19:00:00.000Z",
   "attention": [],
   "attentionExclusions": [
     {
@@ -74,29 +74,29 @@
     }
   ],
   "backdrop": {
-    "asymmetry": "SPY support is 766.73, with structural support at 725.97.",
+    "asymmetry": "SPY support is 766.66, with structural support at 725.99.",
     "globalBackdrop": [
       "Use only the current owner reads supplied with this request."
     ],
     "macroCycle": "Macro-cycle direction is unverified in this run.",
     "pricedIn": "No priced-in macro outcome is quantified by the supplied evidence.",
-    "primaryTrend": "SPY 755.23 bull-stack (50d 766.73, 200d 725.97).",
+    "primaryTrend": "SPY 751.25 bull-stack (50d 766.66, 200d 725.99).",
     "structuralLevels": {
       "SPY": {
-        "ma200": 725.97,
-        "ma50": 766.73,
-        "note": "SPY 755.23 bull-stack (50d 766.73, 200d 725.97).",
+        "ma200": 725.99,
+        "ma50": 766.66,
+        "note": "SPY 751.25 bull-stack (50d 766.66, 200d 725.99).",
         "resistance": [
-          "current price 755.23"
+          "current price 751.25"
         ],
         "support": [
-          "50-day 766.73",
-          "200-day 725.97"
+          "50-day 766.66",
+          "200-day 725.99"
         ]
       }
     },
-    "trendEvidence": "SPY 755.23 bull-stack (50d 766.73, 200d 725.97).",
-    "whatWouldChangeIt": "A daily SPY close below 766.73 would weaken the backdrop."
+    "trendEvidence": "SPY 751.25 bull-stack (50d 766.66, 200d 725.99).",
+    "whatWouldChangeIt": "A daily SPY close below 766.66 would weaken the backdrop."
   },
   "budget": {
     "byField": [
@@ -170,7 +170,7 @@
     "cards": [],
     "contractVersion": "budget-measurement/v1",
     "detail": [],
-    "disclosedTotal": 45497,
+    "disclosedTotal": 45559,
     "total": 706,
     "violations": []
   },
@@ -187,13 +187,13 @@
         "levels": {
           "high52w": 43.64,
           "low52w": 29.36,
-          "ma20": 39.78,
+          "ma20": 39.77,
           "ma200": 38.49,
           "ma50": 39.19
         },
-        "ma200Dist": -0.81,
+        "ma200Dist": -0.98,
         "maStack": "bull-stack",
-        "px": 38.18,
+        "px": 38.12,
         "rrgState": "Improving ↑"
       },
       "kind": "levelCrossed",
@@ -232,13 +232,13 @@
         "levels": {
           "high52w": 543.45,
           "low52w": 352.17,
-          "ma20": 530.95,
-          "ma200": 436.85,
-          "ma50": 512.9
+          "ma20": 530.84,
+          "ma200": 436.84,
+          "ma50": 512.85
         },
-        "ma200Dist": 19.34,
+        "ma200Dist": 18.83,
         "maStack": "bull-stack",
-        "px": 521.33,
+        "px": 519.09,
         "rrgState": "Leading"
       },
       "kind": "stateFlipped",
@@ -277,13 +277,13 @@
         "levels": {
           "high52w": 654.58,
           "low52w": 267.24,
-          "ma20": 523.54,
-          "ma200": 475.94,
-          "ma50": 528.88
+          "ma20": 523.34,
+          "ma200": 475.92,
+          "ma50": 528.8
         },
-        "ma200Dist": -2.27,
+        "ma200Dist": -3.08,
         "maStack": "tangled",
-        "px": 465.13,
+        "px": 461.24,
         "rrgState": "Basing ↑"
       },
       "kind": "levelCrossed",
@@ -322,13 +322,13 @@
         "levels": {
           "high52w": 161.4,
           "low52w": 107.5,
-          "ma20": 144.98,
+          "ma20": 144.94,
           "ma200": 137.61,
-          "ma50": 147.25
+          "ma50": 147.23
         },
-        "ma200Dist": -1.32,
+        "ma200Dist": -1.94,
         "maStack": "tangled",
-        "px": 135.8,
+        "px": 134.93,
         "rrgState": "Improving ↑"
       },
       "kind": "levelCrossed",
@@ -372,7 +372,7 @@
     "legs": [
       {
         "asOf": "2026-10-30T13:30:00.000Z",
-        "changePct": 0.24,
+        "changePct": 0.49,
         "claim": "the TLT price",
         "confirmation": null,
         "contractVersion": "cross-asset-reading/v1",
@@ -380,7 +380,7 @@
         "driver": "TLT",
         "label": "Rates",
         "leg": "rates",
-        "long63Pct": -0.02,
+        "long63Pct": 0.24,
         "provenance": "Observed",
         "sessions": 5,
         "shape": "measured",
@@ -389,7 +389,7 @@
       },
       {
         "asOf": "2026-10-30T13:30:00.000Z",
-        "changePct": 1.2,
+        "changePct": 0.4,
         "claim": "the USO price",
         "confirmation": null,
         "contractVersion": "cross-asset-reading/v1",
@@ -397,7 +397,7 @@
         "driver": "USO",
         "label": "Energy",
         "leg": "energy",
-        "long63Pct": 40.49,
+        "long63Pct": 39.37,
         "provenance": "Observed",
         "sessions": 5,
         "shape": "measured",
@@ -437,16 +437,16 @@
     ]
   },
   "dataAsOf": {
-    "bars": "Bars refreshed through the 2026-10-30T15:00:00.000Z after-hours cutoff.",
+    "bars": "Bars refreshed through the 2026-10-30T19:00:00.000Z after-hours cutoff.",
     "events": "No current forward event is authorized by the supplied Tier-A snapshot.",
     "labels": {
-      "bars": "Fresh: 2026-10-30T15:00:00.000Z",
+      "bars": "Fresh: 2026-10-30T19:00:00.000Z",
       "events": "No verified event",
       "macro": "VIX-only",
-      "options": "Fresh: 2026-10-30T15:00:00.000Z"
+      "options": "Fresh: 2026-10-30T19:00:00.000Z"
     },
-    "macro": "No independent macro release was verified in this run; VIX 20.82 is the observed regime input.",
-    "options": "Options refreshed for this 2026-10-30T15:00:00.000Z run."
+    "macro": "No independent macro release was verified in this run; VIX 22.46 is the observed regime input.",
+    "options": "Options refreshed for this 2026-10-30T19:00:00.000Z run."
   },
   "events": [
     {
@@ -456,12 +456,12 @@
       "psychologyNote": "Positioning into NFP on 2026-11-06 is not independently verified this run.",
       "scenarios": [
         {
-          "expectedEffect": "Limited reaction; SPY holds near 755.23 with VIX 20.82.",
+          "expectedEffect": "Limited reaction; SPY holds near 751.25 with VIX 22.46.",
           "name": "In line",
           "prob": 0.6
         },
         {
-          "expectedEffect": "A volatility pickup that pressures SPY toward 766.73.",
+          "expectedEffect": "A volatility pickup that pressures SPY toward 766.66.",
           "name": "Surprise",
           "prob": 0.4
         }
@@ -500,7 +500,7 @@
       "title": "Leadership is still being scored offshore and in real assets while US breadth barely holds the line: global rotation ranks EWS (Singapore) at 92.5/100 far ahead of the US-heavy ACWI and the real-assets composite leads with crypto and broad commodities (ETH-USD 79.4, DBC/PDBC 74.4) as gold stays weak (39.3) and silver weaker (19.4) — a where-is-the-bid migration that now coincides with a thinning domestic cushion but still resolves only to relative-strength scores, so no scoreable tactical call is published"
     }
   ],
-  "generatedAt": "2026-10-30T17:19:14.096Z",
+  "generatedAt": "2026-10-30T18:35:01.281Z",
   "groups": [
     {
       "breadth": {
@@ -517,143 +517,143 @@
       "label": "Magnificent 7",
       "members": {
         "AAPL": {
-          "ma200Dist": 17.14,
-          "ma50Dist": 4.19,
+          "ma200Dist": 15.81,
+          "ma50Dist": 3.03,
           "maStack": "bull-stack",
-          "mom126": 24.11,
-          "mom21": 5.06,
-          "mom252": 29.16,
-          "mom5": -0.2,
-          "mom63": 14.48,
-          "pctFrom52wHigh": -0.53,
-          "px": 347.05
+          "mom126": 22.69,
+          "mom21": 3.87,
+          "mom252": 27.69,
+          "mom5": -1.33,
+          "mom63": 13.18,
+          "pctFrom52wHigh": -1.67,
+          "px": 343.1
         },
         "AMZN": {
-          "ma200Dist": -2.1,
-          "ma50Dist": -6.28,
+          "ma200Dist": -2.38,
+          "ma50Dist": -6.54,
           "maStack": "bull-stack",
-          "mom126": -11.18,
-          "mom21": -4.01,
-          "mom252": 3.47,
-          "mom5": -3.92,
-          "mom63": -16.1,
-          "pctFrom52wHigh": -16.1,
-          "px": 238.28
+          "mom126": -11.43,
+          "mom21": -4.29,
+          "mom252": 3.16,
+          "mom5": -4.2,
+          "mom63": -16.35,
+          "pctFrom52wHigh": -16.35,
+          "px": 237.59
         },
         "GOOGL": {
-          "ma200Dist": -18.05,
-          "ma50Dist": -17.73,
+          "ma200Dist": -18.31,
+          "ma50Dist": -17.99,
           "maStack": "bear-stack",
-          "mom126": -27.6,
-          "mom21": -17.54,
-          "mom252": 1.84,
-          "mom5": -12.9,
-          "mom63": -25.28,
-          "pctFrom52wHigh": -30.64,
-          "px": 278.91
+          "mom126": -27.83,
+          "mom21": -17.8,
+          "mom252": 1.52,
+          "mom5": -13.18,
+          "mom63": -25.52,
+          "pctFrom52wHigh": -30.86,
+          "px": 278.02
         },
         "META": {
-          "ma200Dist": -1.8,
-          "ma50Dist": -7.46,
+          "ma200Dist": -2.82,
+          "ma50Dist": -8.41,
           "maStack": "bull-stack",
-          "mom126": 2.01,
-          "mom21": -14.6,
-          "mom252": -17.25,
-          "mom5": -3.53,
-          "mom63": 5.11,
-          "pctFrom52wHigh": -20.27,
-          "px": 619.93
+          "mom126": 0.95,
+          "mom21": -15.49,
+          "mom252": -18.11,
+          "mom5": -4.54,
+          "mom63": 4.02,
+          "pctFrom52wHigh": -21.11,
+          "px": 613.46
         },
         "MSFT": {
-          "ma200Dist": 19.34,
-          "ma50Dist": 1.64,
+          "ma200Dist": 18.83,
+          "ma50Dist": 1.22,
           "maStack": "bull-stack",
-          "mom126": 26.3,
-          "mom21": 1.66,
-          "mom252": -2.94,
-          "mom5": -0.61,
-          "mom63": 7.11,
-          "pctFrom52wHigh": -4.07,
-          "px": 521.33
+          "mom126": 25.76,
+          "mom21": 1.23,
+          "mom252": -3.36,
+          "mom5": -1.03,
+          "mom63": 6.65,
+          "pctFrom52wHigh": -4.48,
+          "px": 519.09
         },
         "NVDA": {
-          "ma200Dist": -0.4,
-          "ma50Dist": -8.3,
+          "ma200Dist": -1.28,
+          "ma50Dist": -9.09,
           "maStack": "tangled",
-          "mom126": 2.66,
-          "mom21": -11.95,
-          "mom252": -1.59,
-          "mom5": -3.65,
-          "mom63": -1.52,
-          "pctFrom52wHigh": -15.04,
-          "px": 203.27
+          "mom126": 1.75,
+          "mom21": -12.73,
+          "mom252": -2.46,
+          "mom5": -4.5,
+          "mom63": -2.39,
+          "pctFrom52wHigh": -15.79,
+          "px": 201.47
         },
         "TSLA": {
-          "ma200Dist": 3.23,
-          "ma50Dist": 7.62,
+          "ma200Dist": 2.47,
+          "ma50Dist": 6.84,
           "maStack": "tangled",
-          "mom126": 1.77,
-          "mom21": 12.32,
-          "mom252": -13.82,
-          "mom5": 6.86,
-          "mom63": 23.49,
-          "pctFrom52wHigh": -18.81,
-          "px": 397.74
+          "mom126": 1.01,
+          "mom21": 11.49,
+          "mom252": -14.46,
+          "mom5": 6.06,
+          "mom63": 22.57,
+          "pctFrom52wHigh": -19.41,
+          "px": 394.79
         }
       },
       "notable": [
         {
-          "ma200Dist": -18.05,
+          "ma200Dist": -18.31,
           "maStack": "bear-stack",
-          "mom21": -17.54,
-          "mom5": -12.9,
+          "mom21": -17.8,
+          "mom5": -13.18,
           "reason": "big decliner, bear-stack",
-          "score": 17.54,
+          "score": 17.8,
           "ticker": "GOOGL"
         },
         {
-          "ma200Dist": -1.8,
+          "ma200Dist": -2.82,
           "maStack": "bull-stack",
-          "mom21": -14.6,
-          "mom5": -3.53,
+          "mom21": -15.49,
+          "mom5": -4.54,
           "reason": "big decliner, below 200d",
-          "score": 14.6,
+          "score": 15.49,
           "ticker": "META"
         },
         {
-          "ma200Dist": 3.23,
+          "ma200Dist": -1.28,
           "maStack": "tangled",
-          "mom21": 12.32,
-          "mom5": 6.86,
-          "reason": "big mover",
-          "score": 12.32,
-          "ticker": "TSLA"
+          "mom21": -12.73,
+          "mom5": -4.5,
+          "reason": "big decliner, below 200d",
+          "score": 12.73,
+          "ticker": "NVDA"
         },
         {
-          "ma200Dist": -0.4,
+          "ma200Dist": 2.47,
           "maStack": "tangled",
-          "mom21": -11.95,
-          "mom5": -3.65,
-          "reason": "big decliner, below 200d",
-          "score": 11.95,
-          "ticker": "NVDA"
+          "mom21": 11.49,
+          "mom5": 6.06,
+          "reason": "big mover",
+          "score": 11.49,
+          "ticker": "TSLA"
         }
       ],
-      "note": "Magnificent 7 reads Lagging with bull-stack structure and 4/7 bull-stacked. Notable this run: GOOGL -17.54% 21d (big decliner, bear-stack); META -14.6% 21d (big decliner, below 200d).",
+      "note": "Magnificent 7 reads Lagging with bull-stack structure and 4/7 bull-stacked. Notable this run: GOOGL -17.8% 21d (big decliner, bear-stack); META -15.49% 21d (big decliner, below 200d).",
       "read": {
-        "accel": -0.25,
+        "accel": -0.31,
         "etf": "MAGS",
-        "ma200Dist": 3.17,
+        "ma200Dist": 2.45,
         "maStack": "bull-stack",
-        "px": 68.44,
+        "px": 67.96,
         "quad": "A",
         "rotation": "neutral",
         "rrgState": "Lagging",
-        "rsMom": 98.4,
-        "rsMom1m": -3.05,
-        "rsMom3m": 0.17,
-        "rsMom6m": -2.97,
-        "rsRatio": 99.58
+        "rsMom": 98.34,
+        "rsMom1m": -3.2,
+        "rsMom3m": -0.01,
+        "rsMom6m": -3.14,
+        "rsRatio": 99.52
       }
     },
     {
@@ -671,203 +671,203 @@
       "label": "Semiconductors",
       "members": {
         "ADI": {
-          "ma200Dist": 10.31,
-          "ma50Dist": 5.3,
+          "ma200Dist": 9.58,
+          "ma50Dist": 4.62,
           "maStack": "bull-stack",
-          "mom126": 3.39,
-          "mom21": 1.04,
-          "mom252": 76.11,
-          "mom5": 4.53,
-          "mom63": 13.31,
-          "pctFrom52wHigh": -7.95,
-          "px": 408.8
+          "mom126": 2.7,
+          "mom21": 0.37,
+          "mom252": 74.94,
+          "mom5": 3.84,
+          "mom63": 12.56,
+          "pctFrom52wHigh": -8.56,
+          "px": 406.09
         },
         "AMAT": {
-          "ma200Dist": -12.73,
-          "ma50Dist": -15.34,
+          "ma200Dist": -13.49,
+          "ma50Dist": -16.07,
           "maStack": "tangled",
-          "mom126": -0.2,
-          "mom21": -26.81,
-          "mom252": 65.24,
-          "mom5": 2.7,
-          "mom63": -25.16,
-          "pctFrom52wHigh": -46.36,
-          "px": 387.41
+          "mom126": -1.07,
+          "mom21": -27.45,
+          "mom252": 63.79,
+          "mom5": 1.8,
+          "mom63": -25.82,
+          "pctFrom52wHigh": -46.83,
+          "px": 384.02
         },
         "AMD": {
-          "ma200Dist": 21.39,
-          "ma50Dist": -9.11,
+          "ma200Dist": 20.55,
+          "ma50Dist": -9.73,
           "maStack": "bull-stack",
-          "mom126": 38.19,
-          "mom21": -19.08,
-          "mom252": 88.49,
-          "mom5": -3.59,
-          "mom63": 2.81,
-          "pctFrom52wHigh": -23.28,
-          "px": 498.24
+          "mom126": 37.23,
+          "mom21": -19.64,
+          "mom252": 87.18,
+          "mom5": -4.26,
+          "mom63": 2.09,
+          "pctFrom52wHigh": -23.81,
+          "px": 494.77
         },
         "AVGO": {
-          "ma200Dist": -11.77,
-          "ma50Dist": -8.24,
+          "ma200Dist": -12.67,
+          "ma50Dist": -9.16,
           "maStack": "bear-stack",
-          "mom126": -22.96,
-          "mom21": -5.87,
-          "mom252": -15.57,
-          "mom5": 0.55,
-          "mom63": -17.38,
-          "pctFrom52wHigh": -32.6,
-          "px": 323.46
+          "mom126": -23.75,
+          "mom21": -6.84,
+          "mom252": -16.44,
+          "mom5": -0.48,
+          "mom63": -18.23,
+          "pctFrom52wHigh": -33.29,
+          "px": 320.15
         },
         "KLAC": {
-          "ma200Dist": -12.73,
-          "ma50Dist": -11.18,
+          "ma200Dist": -13.84,
+          "ma50Dist": -12.29,
           "maStack": "bear-stack",
-          "mom126": -7.87,
-          "mom21": -20.8,
-          "mom252": 29.13,
-          "mom5": 8.96,
-          "mom63": -13.08,
-          "pctFrom52wHigh": -47.35,
-          "px": 158.66
+          "mom126": -9.04,
+          "mom21": -21.81,
+          "mom252": 27.49,
+          "mom5": 7.58,
+          "mom63": -14.19,
+          "pctFrom52wHigh": -48.02,
+          "px": 156.64
         },
         "LRCX": {
-          "ma200Dist": -16.76,
-          "ma50Dist": -19.71,
+          "ma200Dist": -17.68,
+          "ma50Dist": -20.59,
           "maStack": "tangled",
-          "mom126": -7.8,
-          "mom21": -30.53,
-          "mom252": 47.73,
-          "mom5": 2.68,
-          "mom63": -19.72,
-          "pctFrom52wHigh": -45.42,
-          "px": 236.27
+          "mom126": -8.83,
+          "mom21": -31.31,
+          "mom252": 46.08,
+          "mom5": 1.53,
+          "mom63": -20.61,
+          "pctFrom52wHigh": -46.03,
+          "px": 233.63
         },
         "MRVL": {
-          "ma200Dist": 5.64,
-          "ma50Dist": -20.24,
+          "ma200Dist": 4.26,
+          "ma50Dist": -21.27,
           "maStack": "bull-stack",
-          "mom126": 17.32,
-          "mom21": -27.83,
-          "mom252": 114.93,
-          "mom5": -15.35,
-          "mom63": -0.16,
-          "pctFrom52wHigh": -38.84,
-          "px": 193.43
+          "mom126": 15.79,
+          "mom21": -28.77,
+          "mom252": 112.12,
+          "mom5": -16.46,
+          "mom63": -1.46,
+          "pctFrom52wHigh": -39.64,
+          "px": 190.9
         },
         "MU": {
-          "ma200Dist": 17.27,
-          "ma50Dist": -10.52,
+          "ma200Dist": 15.89,
+          "ma50Dist": -11.55,
           "maStack": "tangled",
-          "mom126": 61.52,
-          "mom21": -20.21,
-          "mom252": 286.75,
-          "mom5": -0.23,
-          "mom63": 5.56,
-          "pctFrom52wHigh": -27.83,
-          "px": 875.5
+          "mom126": 59.62,
+          "mom21": -21.15,
+          "mom252": 282.19,
+          "mom5": -1.41,
+          "mom63": 4.32,
+          "pctFrom52wHigh": -28.68,
+          "px": 865.18
         },
         "NVDA": {
-          "ma200Dist": -0.4,
-          "ma50Dist": -8.3,
+          "ma200Dist": -1.28,
+          "ma50Dist": -9.09,
           "maStack": "tangled",
-          "mom126": 2.66,
-          "mom21": -11.95,
-          "mom252": -1.59,
-          "mom5": -3.65,
-          "mom63": -1.52,
-          "pctFrom52wHigh": -15.04,
-          "px": 203.27
+          "mom126": 1.75,
+          "mom21": -12.73,
+          "mom252": -2.46,
+          "mom5": -4.5,
+          "mom63": -2.39,
+          "pctFrom52wHigh": -15.79,
+          "px": 201.47
         },
         "QCOM": {
-          "ma200Dist": -2.8,
-          "ma50Dist": -7.88,
+          "ma200Dist": -3.59,
+          "ma50Dist": -8.62,
           "maStack": "tangled",
-          "mom126": -6.7,
-          "mom21": -10.12,
-          "mom252": -6.49,
-          "mom5": -6.96,
-          "mom63": 8.56,
-          "pctFrom52wHigh": -34.21,
-          "px": 163.66
+          "mom126": -7.46,
+          "mom21": -10.86,
+          "mom252": -7.26,
+          "mom5": -7.73,
+          "mom63": 7.68,
+          "pctFrom52wHigh": -34.74,
+          "px": 162.32
         },
         "TSM": {
-          "ma200Dist": 1.39,
-          "ma50Dist": -6.98,
+          "ma200Dist": 0.66,
+          "ma50Dist": -7.64,
           "maStack": "bull-stack",
-          "mom126": 2.15,
-          "mom21": -11.98,
-          "mom252": 33.88,
-          "mom5": -3.43,
-          "mom63": -0.21,
-          "pctFrom52wHigh": -16.8,
-          "px": 404.17
+          "mom126": 1.41,
+          "mom21": -12.62,
+          "mom252": 32.92,
+          "mom5": -4.12,
+          "mom63": -0.93,
+          "pctFrom52wHigh": -17.4,
+          "px": 401.27
         },
         "TXN": {
-          "ma200Dist": 14.88,
-          "ma50Dist": 7.68,
+          "ma200Dist": 14.28,
+          "ma50Dist": 7.12,
           "maStack": "bull-stack",
-          "mom126": 6.67,
-          "mom21": 5.48,
-          "mom252": 89.95,
-          "mom5": 4.23,
-          "mom63": 10.29,
-          "pctFrom52wHigh": -10.24,
-          "px": 296.73
+          "mom126": 6.11,
+          "mom21": 4.93,
+          "mom252": 88.96,
+          "mom5": 3.68,
+          "mom63": 9.72,
+          "pctFrom52wHigh": -10.71,
+          "px": 295.18
         }
       },
       "notable": [
         {
-          "ma200Dist": -16.76,
+          "ma200Dist": -17.68,
           "maStack": "tangled",
-          "mom21": -30.53,
-          "mom5": 2.68,
+          "mom21": -31.31,
+          "mom5": 1.53,
           "reason": "big decliner, below 200d",
-          "score": 30.53,
+          "score": 31.31,
           "ticker": "LRCX"
         },
         {
-          "ma200Dist": 5.64,
+          "ma200Dist": 4.26,
           "maStack": "bull-stack",
-          "mom21": -27.83,
-          "mom5": -15.35,
+          "mom21": -28.77,
+          "mom5": -16.46,
           "reason": "big decliner",
-          "score": 27.83,
+          "score": 28.77,
           "ticker": "MRVL"
         },
         {
-          "ma200Dist": -12.73,
+          "ma200Dist": -13.49,
           "maStack": "tangled",
-          "mom21": -26.81,
-          "mom5": 2.7,
+          "mom21": -27.45,
+          "mom5": 1.8,
           "reason": "big decliner, below 200d",
-          "score": 26.81,
+          "score": 27.45,
           "ticker": "AMAT"
         },
         {
-          "ma200Dist": -12.73,
+          "ma200Dist": -13.84,
           "maStack": "bear-stack",
-          "mom21": -20.8,
-          "mom5": 8.96,
+          "mom21": -21.81,
+          "mom5": 7.58,
           "reason": "big decliner, bear-stack",
-          "score": 20.8,
+          "score": 21.81,
           "ticker": "KLAC"
         }
       ],
-      "note": "Semiconductors reads Basing ↑ with tangled structure and 5/12 bull-stacked. Notable this run: LRCX -30.53% 21d (big decliner, below 200d); MRVL -27.83% 21d (big decliner).",
+      "note": "Semiconductors reads Basing ↑ with tangled structure and 5/12 bull-stacked. Notable this run: LRCX -31.31% 21d (big decliner, below 200d); MRVL -28.77% 21d (big decliner).",
       "read": {
-        "accel": 2.73,
+        "accel": 2.7,
         "etf": "SOXX",
-        "ma200Dist": -2.27,
+        "ma200Dist": -3.08,
         "maStack": "tangled",
-        "px": 465.13,
+        "px": 461.24,
         "quad": "A",
         "rotation": "into",
         "rrgState": "Basing ↑",
-        "rsMom": 99.69,
-        "rsMom1m": -18.15,
-        "rsMom3m": -8.25,
-        "rsMom6m": -5.35,
-        "rsRatio": 97.89
+        "rsMom": 99.65,
+        "rsMom1m": -18.3,
+        "rsMom3m": -8.49,
+        "rsMom6m": -5.63,
+        "rsRatio": 97.84
       }
     }
   ],
@@ -878,24 +878,24 @@
         "confidence": 55,
         "deepLink": "swing-structure-lab.html",
         "horizon": "swing",
-        "invalidation": "A daily SPY close below 766.73 would invalidate the hold.",
-        "rationale": "SPY is 4.03% above its derived 200-day 725.97, while VIX is 20.82.",
-        "structuralAnchor": "SPY 755.23 bull-stack (50d 766.73, 200d 725.97).",
-        "subject": "Hold SPY at 755.23 while the current bull-stack structure remains intact.",
-        "trigger": "Maintain the hold while SPY remains above its derived 50-day 766.73."
+        "invalidation": "A daily SPY close below 766.66 would invalidate the hold.",
+        "rationale": "SPY is 3.48% above its derived 200-day 725.99, while VIX is 22.46.",
+        "structuralAnchor": "SPY 751.25 bull-stack (50d 766.66, 200d 725.99).",
+        "subject": "Hold SPY at 751.25 while the current bull-stack structure remains intact.",
+        "trigger": "Maintain the hold while SPY remains above its derived 50-day 766.66."
       }
     ],
     "sessionDate": "2026-10-30",
-    "thesis": "SPY 755.23 bull-stack (50d 766.73, 200d 725.97). VIX is 20.82; keep risk measured into 2026-10-30."
+    "thesis": "SPY 751.25 bull-stack (50d 766.66, 200d 725.99). VIX is 22.46; keep risk measured into 2026-10-30."
   },
   "psychology": {
     "contrarianSignal": "No independent contrarian signal is established.",
     "crowdState": "Measured participation.",
-    "fear": "VIX is 20.82; no separate fear score was available.",
+    "fear": "VIX is 22.46; no separate fear score was available.",
     "greed": "No separate greed score was available.",
-    "riskOff": "A SPY break below 766.73 with rising VIX would mark risk-off confirmation.",
+    "riskOff": "A SPY break below 766.66 with rising VIX would mark risk-off confirmation.",
     "sentiment": "Calm but evidence-limited.",
-    "sentimentReadout": "VIX 20.82 is calm relative to the supplied structural frame.",
+    "sentimentReadout": "VIX 22.46 is calm relative to the supplied structural frame.",
     "uncertainty": "Macro and event inputs are unverified, so conviction is capped."
   },
   "recommendations": [
@@ -905,37 +905,37 @@
       "direction": "hold",
       "horizon": "swing",
       "instrument": "SPY",
-      "invalidation": "A daily SPY close below 766.73 invalidates the hold.",
-      "levels": "SPY 755.23; derived 50-day 766.73; derived 200-day 725.97.",
-      "rationale": "SPY 755.23 remains above its derived 50-day 766.73 and 200-day 725.97; VIX is 20.82.",
-      "structuralAnchor": "SPY 755.23 bull-stack (50d 766.73, 200d 725.97).",
-      "trigger": "Hold while SPY remains above 766.73."
+      "invalidation": "A daily SPY close below 766.66 invalidates the hold.",
+      "levels": "SPY 751.25; derived 50-day 766.66; derived 200-day 725.99.",
+      "rationale": "SPY 751.25 remains above its derived 50-day 766.66 and 200-day 725.99; VIX is 22.46.",
+      "structuralAnchor": "SPY 751.25 bull-stack (50d 766.66, 200d 725.99).",
+      "trigger": "Hold while SPY remains above 766.66."
     }
   ],
   "regime": {
-    "asymmetry": "Support is the derived 50-day 766.73; structural support is the 200-day 725.97.",
+    "asymmetry": "Support is the derived 50-day 766.66; structural support is the 200-day 725.99.",
     "bias": "bull",
     "crowdPsychology": "Calm volatility with measured participation; no independent sentiment score was available.",
-    "falsifiers": "A daily SPY close below 766.73 would weaken the current structure.",
+    "falsifiers": "A daily SPY close below 766.66 would weaken the current structure.",
     "levels": {
-      "SPY": "SPY 755.23 bull-stack (50d 766.73, 200d 725.97)."
+      "SPY": "SPY 751.25 bull-stack (50d 766.66, 200d 725.99)."
     },
     "macroCycle": "Macro-cycle direction is unverified in this run.",
-    "name": "VIX 20.8",
-    "note": "Use the current SPY 755.23 and VIX 20.82; do not infer an unverified catalyst.",
+    "name": "VIX 22.5",
+    "note": "Use the current SPY 751.25 and VIX 22.46; do not infer an unverified catalyst.",
     "pricedIn": "The supplied data does not quantify a priced-in macro outcome.",
-    "scoreNote": "Deterministic regime score 0; VIX 20.82.",
-    "structuralTrend": "SPY 755.23 bull-stack (50d 766.73, 200d 725.97).",
+    "scoreNote": "Deterministic regime score 0; VIX 22.46.",
+    "structuralTrend": "SPY 751.25 bull-stack (50d 766.66, 200d 725.99).",
     "vix": {
       "falsifier": "A material VIX rise accompanied by a SPY break below supplied support would change the regime.",
-      "level": 20.82,
-      "regimeLabel": "VIX 20.8"
+      "level": 22.46,
+      "regimeLabel": "VIX 22.5"
     }
   },
   "researchAgenda": {
     "contractVersion": "research-agenda-read/v1",
-    "generationId": "generation-9749a88306dda7a318170615ff4147dff3c04fa90dfbf91b55336234650b975b",
-    "asOf": "2026-10-30T17:16:36.380Z",
+    "generationId": "generation-17ac81b4a2ab2729ea4e4e3f70abe6a73bf207dc7b2bbe609bd4dffbd989747f",
+    "asOf": "2026-10-30T18:31:53.515Z",
     "topics": [
       {
         "topicId": "geopolitical-supply-shock",
@@ -943,7 +943,7 @@
         "state": "unavailable",
         "reason": "search-fragment-invalid",
         "selectionReason": "mode-required",
-        "reviewId": "review-65041111385e752cb4be7e0b79eb81a63940c1d47fdee8715f455307e88731d2",
+        "reviewId": "review-2b3071e890bf0b867f3bd1202c795bb81f1ab978b6a4653d0b6853a0c225d445",
         "dossierId": null,
         "outcome": "unavailable",
         "changeAssessment": "insufficient-evidence",
@@ -986,7 +986,7 @@
         "supersedesDossierId": null
       }
     ],
-    "readFingerprint": "sha256:c8193f7f0fa26e19f9359bfec274822e30ad70bee6c9ee095d6e9b099dec2b16"
+    "readFingerprint": "sha256:42f6b505a9d80d46c3de355fff065d9516be6b49a11dbebb0e44d6cdf5b7ba6e"
   },
   "rollUp": {
     "baselineCount": 0,
@@ -1206,7 +1206,7 @@
   "toolId": "market-brief",
   "toolReads": {
     "ai-capex-strategy-lab": {
-      "asOf": "2026-10-30T17:16:36.118Z",
+      "asOf": "2026-10-30T18:31:53.273Z",
       "deepLink": "ai-capex-strategy-lab.html",
       "id": "ai-capex-strategy-lab",
       "metrics": {
@@ -1484,80 +1484,80 @@
         "leader": "JMOM",
         "ranked": [
           {
-            "annVol": 17.76,
+            "annVol": 17.88,
             "asOf": "2026-10-30T13:30:00.000Z",
-            "score": 0.155,
-            "sharpeArithmetic": 0.724,
-            "sharpeGeometric": 0.704,
-            "signal": 4.15,
+            "score": 0.1462,
+            "sharpeArithmetic": 0.688,
+            "sharpeGeometric": 0.662,
+            "signal": 3.56,
             "ticker": "JMOM",
-            "volatilityDrag": 1.58
+            "volatilityDrag": 1.6
           },
           {
-            "annVol": 25.41,
+            "annVol": 25.55,
             "asOf": "2026-10-30T13:30:00.000Z",
-            "score": 0.1536,
-            "sharpeArithmetic": 0.617,
-            "sharpeGeometric": 0.545,
-            "signal": 11.17,
+            "score": 0.1438,
+            "sharpeArithmetic": 0.587,
+            "sharpeGeometric": 0.509,
+            "signal": 10.38,
             "ticker": "VGT",
-            "volatilityDrag": 3.23
+            "volatilityDrag": 3.27
           },
           {
-            "annVol": 20.28,
+            "annVol": 20.4,
             "asOf": "2026-10-30T13:30:00.000Z",
-            "score": 0.0919,
-            "sharpeArithmetic": 0.386,
-            "sharpeGeometric": 0.309,
-            "signal": 2.41,
+            "score": 0.0834,
+            "sharpeArithmetic": 0.355,
+            "sharpeGeometric": 0.273,
+            "signal": 1.77,
             "ticker": "QQQ",
-            "volatilityDrag": 2.06
+            "volatilityDrag": 2.08
           },
           {
-            "annVol": 25.51,
+            "annVol": 25.63,
             "asOf": "2026-10-30T13:30:00.000Z",
-            "score": 0.0618,
-            "sharpeArithmetic": 0.421,
-            "sharpeGeometric": 0.319,
-            "signal": 1.35,
+            "score": 0.0538,
+            "sharpeArithmetic": 0.395,
+            "sharpeGeometric": 0.29,
+            "signal": 0.7,
             "ticker": "SPMO",
-            "volatilityDrag": 3.26
+            "volatilityDrag": 3.29
           },
           {
-            "annVol": 19.82,
+            "annVol": 19.9,
             "asOf": "2026-10-30T13:30:00.000Z",
-            "score": 0.0563,
-            "sharpeArithmetic": 0.22,
-            "sharpeGeometric": 0.132,
-            "signal": -0.45,
+            "score": 0.0496,
+            "sharpeArithmetic": 0.195,
+            "sharpeGeometric": 0.104,
+            "signal": -0.96,
             "ticker": "FDMO",
-            "volatilityDrag": 1.96
+            "volatilityDrag": 1.98
           }
         ],
         "risk": "balanced",
         "scored": 13,
-        "signal": 4.15
+        "signal": 3.56
       },
-      "read": "JMOM leads the default 6M balanced ETF ranking at 4.15% momentum; 13 funds scored.",
+      "read": "JMOM leads the default 6M balanced ETF ranking at 3.56% momentum; 13 funds scored.",
       "source": "owning-tool-functions"
     },
     "fx-regime-relative-value-lab": {
-      "asOf": "2026-10-30T17:16:36.131Z",
+      "asOf": "2026-10-30T18:31:53.289Z",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "id": "fx-regime-relative-value-lab",
       "metrics": {
         "approvedSourceCount": 0,
         "broadDollarState": "Indeterminate",
         "declaredSourceCount": 8,
-        "evidenceIdentity": "fxe-v1-c6f0184b",
+        "evidenceIdentity": "fxe-v1-d3eb3df3",
         "evidenceState": "Evidence incomplete for a current recommendation",
         "horizon": "swing",
         "objective": "foreign-currency-strength",
-        "ownerDecisionId": "fxo-v1-fed24a57",
+        "ownerDecisionId": "fxo-v1-f547946e",
         "projection": {
           "asOf": null,
           "availability": "unavailable",
-          "computedAt": "2026-10-30T17:16:36.131Z",
+          "computedAt": "2026-10-30T18:31:53.289Z",
           "contractVersion": "rl-tool-read/v1",
           "deepLink": "fx-regime-relative-value-lab.html#power",
           "freshUntil": null,
@@ -1580,14 +1580,14 @@
             "currencyStates": {},
             "educationalOnly": true,
             "evidenceCutoff": null,
-            "evidenceIdentity": "fxe-v1-c6f0184b",
+            "evidenceIdentity": "fxe-v1-d3eb3df3",
             "executionAvailable": false,
             "freshUntil": null,
             "hedgeResearchState": "Indeterminate",
             "horizon": "swing",
             "invalidation": "No directional conclusion exists while minimum evidence is unavailable. Selection remains invalid until the exact rejected or unavailable criteria change under current evidence.",
             "objective": "foreign-currency-strength",
-            "ownerDecisionId": "fxo-v1-fed24a57",
+            "ownerDecisionId": "fxo-v1-f547946e",
             "recommendationOutcome": {
               "confidencePct": null,
               "contractVersion": "rlfx-recommendation-outcome/v1",
@@ -1598,7 +1598,7 @@
               "educationalOnly": true,
               "evaluability": "non-recommendation",
               "evidenceCutoff": null,
-              "evidenceIdentity": "fxe-v1-c6f0184b",
+              "evidenceIdentity": "fxe-v1-d3eb3df3",
               "executionAvailable": false,
               "horizon": "swing",
               "objective": "foreign-currency-strength",
@@ -1826,24 +1826,24 @@
       "state": "unavailable"
     },
     "gamma-trading-lab": {
-      "asOf": "2026-10-30T10:15:17.000Z",
+      "asOf": "2026-10-30T14:14:25.000Z",
       "deepLink": "gamma-trading-lab.html",
       "id": "gamma-trading-lab",
       "metrics": {
         "callWall": 770,
         "conviction": "patient",
-        "flip": 767.71,
+        "flip": 768.46,
         "flipPresent": true,
         "hold": "same-session-fade",
         "opexWindow": null,
         "oviState": "unavailable",
-        "putWall": 755,
+        "putWall": 750,
         "regime": "negative",
         "scenario": "range-break-watch",
-        "signedNetGEX": -8221327006.84,
+        "signedNetGEX": -8746070828.95,
         "symbol": "SPY"
       },
-      "read": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 767.71, walls 755/770.",
+      "read": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 768.46, walls 750/770.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
@@ -1854,544 +1854,544 @@
       "metrics": {
         "benchmark": "ACWI",
         "decomposition": {
-          "approximateLocalRelativeReturn": -0.007297677790068846,
-          "approximateLocalReturn": 0.015231328119897247,
+          "approximateLocalRelativeReturn": -0.00913962069597929,
+          "approximateLocalReturn": -0.004998301830619445,
           "asOf": "2026-10-30T00:00:00.000Z",
-          "benchmarkReturnOnDecompositionDates": 0.022529005909966093,
-          "computedAt": "2026-10-30T17:16:34.904Z",
+          "benchmarkReturnOnDecompositionDates": 0.004141318865359844,
+          "computedAt": "2026-10-30T18:31:51.704Z",
           "contractVersion": "rlfx-global-decomposition/v1",
-          "currency": "CAD",
+          "currency": "AUD",
           "freshUntil": null,
-          "fxReturn": 0.00493304831693675,
+          "fxReturn": 0.008279837766934195,
           "horizonSessions": 63,
-          "interaction": 0.0000751368775465705,
+          "interaction": -0.0000413851282676992,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
           ],
           "observationSet": {
             "alignedRows": [
               {
+                "date": "2026-07-28",
+                "values": {
+                  "benchmark": 154.5399932861328,
+                  "etf": 29.31999969482422,
+                  "fx": 0.6974599957466125
+                }
+              },
+              {
                 "date": "2026-07-29",
                 "values": {
                   "benchmark": 152.47000122070312,
-                  "etf": 59.290000915527344,
-                  "fx": 0.7124638676713819
+                  "etf": 29.110000610351562,
+                  "fx": 0.695928156375885
                 }
               },
               {
                 "date": "2026-07-30",
                 "values": {
                   "benchmark": 155.66000366210938,
-                  "etf": 59.790000915527344,
-                  "fx": 0.7137147692685192
+                  "etf": 29.81999969482422,
+                  "fx": 0.7025185227394104
                 }
               },
               {
                 "date": "2026-07-31",
                 "values": {
                   "benchmark": 156.42999267578125,
-                  "etf": 59.38999938964844,
-                  "fx": 0.713455026376276
+                  "etf": 29.34000015258789,
+                  "fx": 0.704026997089386
                 }
               },
               {
                 "date": "2026-08-03",
                 "values": {
                   "benchmark": 157.94000244140625,
-                  "etf": 59.650001525878906,
-                  "fx": 0.7119312834117946
+                  "etf": 29.399999618530273,
+                  "fx": 0.6997601389884949
                 }
               },
               {
                 "date": "2026-08-04",
                 "values": {
                   "benchmark": 160.6300048828125,
-                  "etf": 60,
-                  "fx": 0.7109594146010886
+                  "etf": 30.1200008392334,
+                  "fx": 0.7046700119972229
                 }
               },
               {
                 "date": "2026-08-05",
                 "values": {
                   "benchmark": 160.5,
-                  "etf": 60.779998779296875,
-                  "fx": 0.7137656595029801
+                  "etf": 30.139999389648438,
+                  "fx": 0.7057301998138428
                 }
               },
               {
                 "date": "2026-08-06",
                 "values": {
                   "benchmark": 160.10000610351562,
-                  "etf": 60.70000076293945,
-                  "fx": 0.7135873933184207
+                  "etf": 30.15999984741211,
+                  "fx": 0.7033402323722839
                 }
               },
               {
                 "date": "2026-08-07",
                 "values": {
                   "benchmark": 161.44000244140625,
-                  "etf": 61.29999923706055,
-                  "fx": 0.7171543313178722
+                  "etf": 30.40999984741211,
+                  "fx": 0.706813633441925
                 }
               },
               {
                 "date": "2026-08-10",
                 "values": {
                   "benchmark": 161.10000610351562,
-                  "etf": 61.5,
-                  "fx": 0.7176896039484099
+                  "etf": 30.049999237060547,
+                  "fx": 0.7055301070213318
                 }
               },
               {
                 "date": "2026-08-11",
                 "values": {
                   "benchmark": 160.88999938964844,
-                  "etf": 61.5099983215332,
-                  "fx": 0.7184424460798264
+                  "etf": 29.950000762939453,
+                  "fx": 0.7063997387886047
                 }
               },
               {
                 "date": "2026-08-12",
                 "values": {
                   "benchmark": 161.64999389648438,
-                  "etf": 61.77000045776367,
-                  "fx": 0.7173292317069719
+                  "etf": 29.889999389648438,
+                  "fx": 0.7063897848129272
                 }
               },
               {
                 "date": "2026-08-13",
                 "values": {
                   "benchmark": 162.47999572753906,
-                  "etf": 62.099998474121094,
-                  "fx": 0.7180245860230912
+                  "etf": 29.739999771118164,
+                  "fx": 0.7063698172569275
                 }
               },
               {
                 "date": "2026-08-14",
                 "values": {
                   "benchmark": 162.2899932861328,
-                  "etf": 62.22999954223633,
-                  "fx": 0.7207986640241589
+                  "etf": 29.649999618530273,
+                  "fx": 0.7086167335510254
                 }
               },
               {
                 "date": "2026-08-17",
                 "values": {
                   "benchmark": 161.8300018310547,
-                  "etf": 62.18000030517578,
-                  "fx": 0.7209961058030651
+                  "etf": 29.549999237060547,
+                  "fx": 0.7108199596405029
                 }
               },
               {
                 "date": "2026-08-18",
                 "values": {
                   "benchmark": 160.0800018310547,
-                  "etf": 61.58000183105469,
-                  "fx": 0.719533136782702
+                  "etf": 29.610000610351562,
+                  "fx": 0.7081500887870789
                 }
               },
               {
                 "date": "2026-08-19",
                 "values": {
                   "benchmark": 160.6999969482422,
-                  "etf": 61.83000183105469,
-                  "fx": 0.7240920006667241
+                  "etf": 29.969999313354492,
+                  "fx": 0.7125044465065002
                 }
               },
               {
                 "date": "2026-08-20",
                 "values": {
                   "benchmark": 159.97000122070312,
-                  "etf": 61.77000045776367,
-                  "fx": 0.7251631887924246
+                  "etf": 29.75,
+                  "fx": 0.7114399671554565
                 }
               },
               {
                 "date": "2026-08-21",
                 "values": {
                   "benchmark": 160.80999755859375,
-                  "etf": 62.36000061035156,
-                  "fx": 0.7264696282274482
+                  "etf": 30.139999389648438,
+                  "fx": 0.7174630165100098
                 }
               },
               {
                 "date": "2026-08-24",
                 "values": {
                   "benchmark": 160.1999969482422,
-                  "etf": 62.119998931884766,
-                  "fx": 0.7225015621628861
+                  "etf": 30.059999465942383,
+                  "fx": 0.7154815793037415
                 }
               },
               {
                 "date": "2026-08-25",
                 "values": {
                   "benchmark": 161.0800018310547,
-                  "etf": 62.63999938964844,
-                  "fx": 0.7227417808727862
+                  "etf": 30.43000030517578,
+                  "fx": 0.7165325880050659
                 }
               },
               {
                 "date": "2026-08-26",
                 "values": {
                   "benchmark": 160.89999389648438,
-                  "etf": 62.22999954223633,
-                  "fx": 0.7207206959519705
+                  "etf": 30.149999618530273,
+                  "fx": 0.7181498408317566
                 }
               },
               {
                 "date": "2026-08-27",
                 "values": {
                   "benchmark": 161.52999877929688,
-                  "etf": 62.2599983215332,
-                  "fx": 0.7219434948896164
+                  "etf": 30.110000610351562,
+                  "fx": 0.7195098996162415
                 }
               },
               {
                 "date": "2026-08-28",
                 "values": {
                   "benchmark": 161.08999633789062,
-                  "etf": 61.72999954223633,
-                  "fx": 0.7193416768518854
+                  "etf": 30,
+                  "fx": 0.7163323760032654
                 }
               },
               {
                 "date": "2026-08-31",
                 "values": {
                   "benchmark": 160.67999267578125,
-                  "etf": 61.43000030517578,
-                  "fx": 0.7219695292072225
+                  "etf": 30.020000457763672,
+                  "fx": 0.7172999382019043
                 }
               },
               {
                 "date": "2026-09-01",
                 "values": {
                   "benchmark": 159.4199981689453,
-                  "etf": 60.599998474121094,
-                  "fx": 0.7197299475187762
+                  "etf": 29.68000030517578,
+                  "fx": 0.7147099375724792
                 }
               },
               {
                 "date": "2026-09-02",
                 "values": {
                   "benchmark": 160.16000366210938,
-                  "etf": 61.27000045776367,
-                  "fx": 0.7222876225337405
+                  "etf": 30.030000686645508,
+                  "fx": 0.7163600921630859
                 }
               },
               {
                 "date": "2026-09-03",
                 "values": {
                   "benchmark": 161.94000244140625,
-                  "etf": 62.470001220703125,
-                  "fx": 0.7251894558456209
+                  "etf": 30.3700008392334,
+                  "fx": 0.7201300859451294
                 }
               },
               {
                 "date": "2026-09-08",
                 "values": {
                   "benchmark": 161.1300048828125,
-                  "etf": 61.4900016784668,
-                  "fx": 0.7258210645036667
+                  "etf": 30,
+                  "fx": 0.7220399379730225
                 }
               },
               {
                 "date": "2026-09-09",
                 "values": {
                   "benchmark": 160.14999389648438,
-                  "etf": 60.9900016784668,
-                  "fx": 0.724385694125872
+                  "etf": 29.6200008392334,
+                  "fx": 0.722089946269989
                 }
               },
               {
                 "date": "2026-09-10",
                 "values": {
                   "benchmark": 158.7899932861328,
-                  "etf": 60.290000915527344,
-                  "fx": 0.7227887975167094
+                  "etf": 29.079999923706055,
+                  "fx": 0.7155998945236206
                 }
               },
               {
                 "date": "2026-09-11",
                 "values": {
                   "benchmark": 160.25,
-                  "etf": 60.58000183105469,
-                  "fx": 0.721230115485609
+                  "etf": 29.270000457763672,
+                  "fx": 0.7174115777015686
                 }
               },
               {
                 "date": "2026-09-14",
                 "values": {
                   "benchmark": 158.9600067138672,
-                  "etf": 60.5,
-                  "fx": 0.7194400164049252
+                  "etf": 29.059999465942383,
+                  "fx": 0.71378093957901
                 }
               },
               {
                 "date": "2026-09-15",
                 "values": {
                   "benchmark": 158.1999969482422,
-                  "etf": 60.290000915527344,
-                  "fx": 0.718184416185272
+                  "etf": 28.889999389648438,
+                  "fx": 0.712550163269043
                 }
               },
               {
                 "date": "2026-09-16",
                 "values": {
                   "benchmark": 157.61000061035156,
-                  "etf": 59.86000061035156,
-                  "fx": 0.7148882411879238
+                  "etf": 28.489999771118164,
+                  "fx": 0.7088101506233215
                 }
               },
               {
                 "date": "2026-09-17",
                 "values": {
                   "benchmark": 159.57000732421875,
-                  "etf": 60.40999984741211,
-                  "fx": 0.7147809706172011
+                  "etf": 29.1299991607666,
+                  "fx": 0.7115498185157776
                 }
               },
               {
                 "date": "2026-09-21",
                 "values": {
                   "benchmark": 161.85000610351562,
-                  "etf": 60.43000030517578,
-                  "fx": 0.7126161463988734
+                  "etf": 29.040000915527344,
+                  "fx": 0.7118998169898987
                 }
               },
               {
                 "date": "2026-09-22",
                 "values": {
                   "benchmark": 162.1999969482422,
-                  "etf": 60.7599983215332,
-                  "fx": 0.7109493520049387
+                  "etf": 29.09000015258789,
+                  "fx": 0.7112102508544922
                 }
               },
               {
                 "date": "2026-09-23",
                 "values": {
                   "benchmark": 160.22000122070312,
-                  "etf": 59.650001525878906,
-                  "fx": 0.7089784924971037
+                  "etf": 28.360000610351562,
+                  "fx": 0.7034080028533936
                 }
               },
               {
                 "date": "2026-09-24",
                 "values": {
                   "benchmark": 160.0800018310547,
-                  "etf": 59.439998626708984,
-                  "fx": 0.7069136078169472
+                  "etf": 28.309999465942383,
+                  "fx": 0.700799822807312
                 }
               },
               {
                 "date": "2026-09-28",
                 "values": {
                   "benchmark": 159.67999267578125,
-                  "etf": 59.06999969482422,
-                  "fx": 0.705362900482846
+                  "etf": 28.5,
+                  "fx": 0.7016401290893555
                 }
               },
               {
                 "date": "2026-09-29",
                 "values": {
                   "benchmark": 159.4600067138672,
-                  "etf": 58.93000030517578,
-                  "fx": 0.7046570946761841
+                  "etf": 28.3700008392334,
+                  "fx": 0.6988999247550964
                 }
               },
               {
                 "date": "2026-09-30",
                 "values": {
                   "benchmark": 158.77000427246094,
-                  "etf": 58.380001068115234,
-                  "fx": 0.7024592918420559
+                  "etf": 28.309999465942383,
+                  "fx": 0.6945698857307434
                 }
               },
               {
                 "date": "2026-10-01",
                 "values": {
                   "benchmark": 158.74000549316406,
-                  "etf": 58.279998779296875,
-                  "fx": 0.7032151065275226
+                  "etf": 27.989999771118164,
+                  "fx": 0.6928700804710388
                 }
               },
               {
                 "date": "2026-10-02",
                 "values": {
                   "benchmark": 160.08999633789062,
-                  "etf": 58.720001220703125,
-                  "fx": 0.7016805067325246
+                  "etf": 28.31999969482422,
+                  "fx": 0.6959910988807678
                 }
               },
               {
                 "date": "2026-10-05",
                 "values": {
                   "benchmark": 161.11000061035156,
-                  "etf": 58.779998779296875,
-                  "fx": 0.7010803527111281
+                  "etf": 28.43000030517578,
+                  "fx": 0.6967300772666931
                 }
               },
               {
                 "date": "2026-10-06",
                 "values": {
                   "benchmark": 161.83999633789062,
-                  "etf": 59.18000030517578,
-                  "fx": 0.7036208600579581
+                  "etf": 28.549999237060547,
+                  "fx": 0.6981801986694336
                 }
               },
               {
                 "date": "2026-10-07",
                 "values": {
                   "benchmark": 160.7100067138672,
-                  "etf": 57.939998626708984,
-                  "fx": 0.7013704494281503
+                  "etf": 28.229999542236328,
+                  "fx": 0.6964001655578613
                 }
               },
               {
                 "date": "2026-10-08",
                 "values": {
                   "benchmark": 159.7899932861328,
-                  "etf": 58.31999969482422,
-                  "fx": 0.703051969777326
+                  "etf": 28.229999542236328,
+                  "fx": 0.695900022983551
                 }
               },
               {
                 "date": "2026-10-09",
                 "values": {
                   "benchmark": 160.89999389648438,
-                  "etf": 59.029998779296875,
-                  "fx": 0.7012032437577959
+                  "etf": 28.6200008392334,
+                  "fx": 0.6989585757255554
                 }
               },
               {
                 "date": "2026-10-12",
                 "values": {
                   "benchmark": 160.6300048828125,
-                  "etf": 59.45000076293945,
-                  "fx": 0.7002653937029434
+                  "etf": 28.670000076293945,
+                  "fx": 0.6956100463867188
                 }
               },
               {
                 "date": "2026-10-13",
                 "values": {
                   "benchmark": 160.69000244140625,
-                  "etf": 59.90999984741211,
-                  "fx": 0.7033931817061264
+                  "etf": 28.770000457763672,
+                  "fx": 0.6985191702842712
                 }
               },
               {
                 "date": "2026-10-14",
                 "values": {
                   "benchmark": 158.75,
-                  "etf": 59.2599983215332,
-                  "fx": 0.7035911160362275
+                  "etf": 28.540000915527344,
+                  "fx": 0.6978298425674438
                 }
               },
               {
                 "date": "2026-10-15",
                 "values": {
                   "benchmark": 159.22999572753906,
-                  "etf": 60.33000183105469,
-                  "fx": 0.7045528131482132
+                  "etf": 28.809999465942383,
+                  "fx": 0.6921373009681702
                 }
               },
               {
                 "date": "2026-10-16",
                 "values": {
                   "benchmark": 157.74000549316406,
-                  "etf": 60.58000183105469,
-                  "fx": 0.707363663385748
+                  "etf": 28.729999542236328,
+                  "fx": 0.6948304176330566
                 }
               },
               {
                 "date": "2026-10-19",
                 "values": {
                   "benchmark": 158.1199951171875,
-                  "etf": 60.279998779296875,
-                  "fx": 0.7087573944999241
-                }
-              },
-              {
-                "date": "2026-10-20",
-                "values": {
-                  "benchmark": 158.77000427246094,
-                  "etf": 60.869998931884766,
-                  "fx": 0.7109240461358638
+                  "etf": 28.829999923706055,
+                  "fx": 0.6982800960540771
                 }
               },
               {
                 "date": "2026-10-21",
                 "values": {
                   "benchmark": 159.55999755859375,
-                  "etf": 61.31999969482422,
-                  "fx": 0.7121492878641256
+                  "etf": 29.229999542236328,
+                  "fx": 0.7029299139976501
                 }
               },
               {
                 "date": "2026-10-22",
                 "values": {
                   "benchmark": 157.41000366210938,
-                  "etf": 60.939998626708984,
-                  "fx": 0.7141531003303868
+                  "etf": 28.969999313354492,
+                  "fx": 0.7019800543785095
                 }
               },
               {
                 "date": "2026-10-23",
                 "values": {
                   "benchmark": 156.8000030517578,
-                  "etf": 60.689998626708984,
-                  "fx": 0.7139797451443874
+                  "etf": 29.1200008392334,
+                  "fx": 0.7037792801856995
                 }
               },
               {
                 "date": "2026-10-26",
                 "values": {
                   "benchmark": 157.57000732421875,
-                  "etf": 60.86000061035156,
-                  "fx": 0.7134041804257885
+                  "etf": 29.170000076293945,
+                  "fx": 0.7027407288551331
                 }
               },
               {
                 "date": "2026-10-27",
                 "values": {
                   "benchmark": 158.61000061035156,
-                  "etf": 61.04999923706055,
-                  "fx": 0.7136434258492894
+                  "etf": 29.479999542236328,
+                  "fx": 0.7019400596618652
                 }
               },
               {
                 "date": "2026-10-28",
                 "values": {
                   "benchmark": 159.22000122070312,
-                  "etf": 61.5099983215332,
-                  "fx": 0.7117336415365748
+                  "etf": 29.59000015258789,
+                  "fx": 0.7030400633811951
                 }
               },
               {
                 "date": "2026-10-29",
                 "values": {
                   "benchmark": 158.80999755859375,
-                  "etf": 61.529998779296875,
-                  "fx": 0.7149547151459695
+                  "etf": 29.6299991607666,
+                  "fx": 0.7057999968528748
                 }
               },
               {
                 "date": "2026-10-30",
                 "values": {
-                  "benchmark": 155.90499877929688,
-                  "etf": 60.4900016784668,
-                  "fx": 0.7159784863546764
+                  "benchmark": 155.17999267578125,
+                  "etf": 29.415000915527344,
+                  "fx": 0.703234851360321
                 }
               }
             ],
             "contractVersion": "rlfx-observation-set/v1",
             "coverage": {
-              "commonRowCount": 273,
+              "commonRowCount": 269,
               "duplicateDatesDropped": {
                 "benchmark": 0,
                 "etf": 0,
                 "fx": 0
               },
-              "earliestCommonDate": "2025-08-13",
+              "earliestCommonDate": "2025-08-11",
               "latestCommonDate": "2026-10-30",
               "requiredRowCount": 64,
               "unmatchedNewerDates": {
@@ -2405,9 +2405,9 @@
               {
                 "adjustment": "adjusted-close",
                 "legId": "etf",
-                "observationId": "EWC",
+                "observationId": "EWA",
                 "orientation": "etf",
-                "subject": "EWC",
+                "subject": "EWA",
                 "validDateCount": 502
               },
               {
@@ -2421,46 +2421,46 @@
               {
                 "adjustment": "adjusted-close",
                 "legId": "fx",
-                "observationId": "fx:CAD",
+                "observationId": "fx:AUD",
                 "orientation": "fx",
-                "subject": "CAD/USD",
-                "validDateCount": 328
+                "subject": "AUD/USD",
+                "validDateCount": 324
               }
             ],
             "lineage": {
               "sourceObservationIds": [
-                "EWC",
+                "EWA",
                 "ACWI",
-                "fx:CAD"
+                "fx:AUD"
               ],
               "uniqueRelationshipIds": []
             },
             "purpose": "global-decomposition",
-            "setId": "set-v1-f5734db9",
+            "setId": "set-v1-87cff174",
             "state": "aligned"
           },
           "relationship": "FX-Led Translation",
           "state": "ready",
-          "translation": 0.005008185194483428,
-          "usdRelativeReturnOnDecompositionDates": -0.0022894925955854184,
-          "usdReturnOnDecompositionDates": 0.020239513314380675
+          "translation": 0.008238452638666516,
+          "usdRelativeReturnOnDecompositionDates": -0.0009011680573127734,
+          "usdReturnOnDecompositionDates": 0.003240150808047071
         },
         "leader": {
           "asOf": "2026-10-30T13:30:00.000Z",
-          "country": "Canada",
-          "maxDrawdown": 8.51,
-          "rel126": 0.6,
-          "rel21": 5.58,
-          "rel63": 2.7,
-          "score": 74.3,
-          "ticker": "EWC",
+          "country": "Australia",
+          "maxDrawdown": 10.01,
+          "rel126": -1.08,
+          "rel21": 7.33,
+          "rel63": 1.8,
+          "score": 73.6,
+          "ticker": "EWA",
           "trend": "Constructive",
-          "vol": 13.45
+          "vol": 14.92
         },
         "projection": {
           "asOf": "2026-10-30T00:00:00.000Z",
           "availability": "current",
-          "computedAt": "2026-10-30T17:16:34.904Z",
+          "computedAt": "2026-10-30T18:31:51.704Z",
           "contractVersion": "rl-tool-read/v1",
           "deepLink": "global-rotation-lab.html#simple",
           "freshUntil": null,
@@ -2471,547 +2471,547 @@
             "educationalOnly": true,
             "horizonSessions": 63,
             "leader": {
-              "country": "Canada",
-              "currency": "CAD",
+              "country": "Australia",
+              "currency": "AUD",
               "decomposition": {
-                "approximateLocalRelativeReturn": -0.007297677790068846,
-                "approximateLocalReturn": 0.015231328119897247,
+                "approximateLocalRelativeReturn": -0.00913962069597929,
+                "approximateLocalReturn": -0.004998301830619445,
                 "asOf": "2026-10-30T00:00:00.000Z",
-                "benchmarkReturnOnDecompositionDates": 0.022529005909966093,
-                "computedAt": "2026-10-30T17:16:34.904Z",
+                "benchmarkReturnOnDecompositionDates": 0.004141318865359844,
+                "computedAt": "2026-10-30T18:31:51.704Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
-                "currency": "CAD",
+                "currency": "AUD",
                 "freshUntil": null,
-                "fxReturn": 0.00493304831693675,
+                "fxReturn": 0.008279837766934195,
                 "horizonSessions": 63,
-                "interaction": 0.0000751368775465705,
+                "interaction": -0.0000413851282676992,
                 "limitations": [
                   "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
                 ],
                 "observationSet": {
                   "alignedRows": [
                     {
+                      "date": "2026-07-28",
+                      "values": {
+                        "benchmark": 154.5399932861328,
+                        "etf": 29.31999969482422,
+                        "fx": 0.6974599957466125
+                      }
+                    },
+                    {
                       "date": "2026-07-29",
                       "values": {
                         "benchmark": 152.47000122070312,
-                        "etf": 59.290000915527344,
-                        "fx": 0.7124638676713819
+                        "etf": 29.110000610351562,
+                        "fx": 0.695928156375885
                       }
                     },
                     {
                       "date": "2026-07-30",
                       "values": {
                         "benchmark": 155.66000366210938,
-                        "etf": 59.790000915527344,
-                        "fx": 0.7137147692685192
+                        "etf": 29.81999969482422,
+                        "fx": 0.7025185227394104
                       }
                     },
                     {
                       "date": "2026-07-31",
                       "values": {
                         "benchmark": 156.42999267578125,
-                        "etf": 59.38999938964844,
-                        "fx": 0.713455026376276
+                        "etf": 29.34000015258789,
+                        "fx": 0.704026997089386
                       }
                     },
                     {
                       "date": "2026-08-03",
                       "values": {
                         "benchmark": 157.94000244140625,
-                        "etf": 59.650001525878906,
-                        "fx": 0.7119312834117946
+                        "etf": 29.399999618530273,
+                        "fx": 0.6997601389884949
                       }
                     },
                     {
                       "date": "2026-08-04",
                       "values": {
                         "benchmark": 160.6300048828125,
-                        "etf": 60,
-                        "fx": 0.7109594146010886
+                        "etf": 30.1200008392334,
+                        "fx": 0.7046700119972229
                       }
                     },
                     {
                       "date": "2026-08-05",
                       "values": {
                         "benchmark": 160.5,
-                        "etf": 60.779998779296875,
-                        "fx": 0.7137656595029801
+                        "etf": 30.139999389648438,
+                        "fx": 0.7057301998138428
                       }
                     },
                     {
                       "date": "2026-08-06",
                       "values": {
                         "benchmark": 160.10000610351562,
-                        "etf": 60.70000076293945,
-                        "fx": 0.7135873933184207
+                        "etf": 30.15999984741211,
+                        "fx": 0.7033402323722839
                       }
                     },
                     {
                       "date": "2026-08-07",
                       "values": {
                         "benchmark": 161.44000244140625,
-                        "etf": 61.29999923706055,
-                        "fx": 0.7171543313178722
+                        "etf": 30.40999984741211,
+                        "fx": 0.706813633441925
                       }
                     },
                     {
                       "date": "2026-08-10",
                       "values": {
                         "benchmark": 161.10000610351562,
-                        "etf": 61.5,
-                        "fx": 0.7176896039484099
+                        "etf": 30.049999237060547,
+                        "fx": 0.7055301070213318
                       }
                     },
                     {
                       "date": "2026-08-11",
                       "values": {
                         "benchmark": 160.88999938964844,
-                        "etf": 61.5099983215332,
-                        "fx": 0.7184424460798264
+                        "etf": 29.950000762939453,
+                        "fx": 0.7063997387886047
                       }
                     },
                     {
                       "date": "2026-08-12",
                       "values": {
                         "benchmark": 161.64999389648438,
-                        "etf": 61.77000045776367,
-                        "fx": 0.7173292317069719
+                        "etf": 29.889999389648438,
+                        "fx": 0.7063897848129272
                       }
                     },
                     {
                       "date": "2026-08-13",
                       "values": {
                         "benchmark": 162.47999572753906,
-                        "etf": 62.099998474121094,
-                        "fx": 0.7180245860230912
+                        "etf": 29.739999771118164,
+                        "fx": 0.7063698172569275
                       }
                     },
                     {
                       "date": "2026-08-14",
                       "values": {
                         "benchmark": 162.2899932861328,
-                        "etf": 62.22999954223633,
-                        "fx": 0.7207986640241589
+                        "etf": 29.649999618530273,
+                        "fx": 0.7086167335510254
                       }
                     },
                     {
                       "date": "2026-08-17",
                       "values": {
                         "benchmark": 161.8300018310547,
-                        "etf": 62.18000030517578,
-                        "fx": 0.7209961058030651
+                        "etf": 29.549999237060547,
+                        "fx": 0.7108199596405029
                       }
                     },
                     {
                       "date": "2026-08-18",
                       "values": {
                         "benchmark": 160.0800018310547,
-                        "etf": 61.58000183105469,
-                        "fx": 0.719533136782702
+                        "etf": 29.610000610351562,
+                        "fx": 0.7081500887870789
                       }
                     },
                     {
                       "date": "2026-08-19",
                       "values": {
                         "benchmark": 160.6999969482422,
-                        "etf": 61.83000183105469,
-                        "fx": 0.7240920006667241
+                        "etf": 29.969999313354492,
+                        "fx": 0.7125044465065002
                       }
                     },
                     {
                       "date": "2026-08-20",
                       "values": {
                         "benchmark": 159.97000122070312,
-                        "etf": 61.77000045776367,
-                        "fx": 0.7251631887924246
+                        "etf": 29.75,
+                        "fx": 0.7114399671554565
                       }
                     },
                     {
                       "date": "2026-08-21",
                       "values": {
                         "benchmark": 160.80999755859375,
-                        "etf": 62.36000061035156,
-                        "fx": 0.7264696282274482
+                        "etf": 30.139999389648438,
+                        "fx": 0.7174630165100098
                       }
                     },
                     {
                       "date": "2026-08-24",
                       "values": {
                         "benchmark": 160.1999969482422,
-                        "etf": 62.119998931884766,
-                        "fx": 0.7225015621628861
+                        "etf": 30.059999465942383,
+                        "fx": 0.7154815793037415
                       }
                     },
                     {
                       "date": "2026-08-25",
                       "values": {
                         "benchmark": 161.0800018310547,
-                        "etf": 62.63999938964844,
-                        "fx": 0.7227417808727862
+                        "etf": 30.43000030517578,
+                        "fx": 0.7165325880050659
                       }
                     },
                     {
                       "date": "2026-08-26",
                       "values": {
                         "benchmark": 160.89999389648438,
-                        "etf": 62.22999954223633,
-                        "fx": 0.7207206959519705
+                        "etf": 30.149999618530273,
+                        "fx": 0.7181498408317566
                       }
                     },
                     {
                       "date": "2026-08-27",
                       "values": {
                         "benchmark": 161.52999877929688,
-                        "etf": 62.2599983215332,
-                        "fx": 0.7219434948896164
+                        "etf": 30.110000610351562,
+                        "fx": 0.7195098996162415
                       }
                     },
                     {
                       "date": "2026-08-28",
                       "values": {
                         "benchmark": 161.08999633789062,
-                        "etf": 61.72999954223633,
-                        "fx": 0.7193416768518854
+                        "etf": 30,
+                        "fx": 0.7163323760032654
                       }
                     },
                     {
                       "date": "2026-08-31",
                       "values": {
                         "benchmark": 160.67999267578125,
-                        "etf": 61.43000030517578,
-                        "fx": 0.7219695292072225
+                        "etf": 30.020000457763672,
+                        "fx": 0.7172999382019043
                       }
                     },
                     {
                       "date": "2026-09-01",
                       "values": {
                         "benchmark": 159.4199981689453,
-                        "etf": 60.599998474121094,
-                        "fx": 0.7197299475187762
+                        "etf": 29.68000030517578,
+                        "fx": 0.7147099375724792
                       }
                     },
                     {
                       "date": "2026-09-02",
                       "values": {
                         "benchmark": 160.16000366210938,
-                        "etf": 61.27000045776367,
-                        "fx": 0.7222876225337405
+                        "etf": 30.030000686645508,
+                        "fx": 0.7163600921630859
                       }
                     },
                     {
                       "date": "2026-09-03",
                       "values": {
                         "benchmark": 161.94000244140625,
-                        "etf": 62.470001220703125,
-                        "fx": 0.7251894558456209
+                        "etf": 30.3700008392334,
+                        "fx": 0.7201300859451294
                       }
                     },
                     {
                       "date": "2026-09-08",
                       "values": {
                         "benchmark": 161.1300048828125,
-                        "etf": 61.4900016784668,
-                        "fx": 0.7258210645036667
+                        "etf": 30,
+                        "fx": 0.7220399379730225
                       }
                     },
                     {
                       "date": "2026-09-09",
                       "values": {
                         "benchmark": 160.14999389648438,
-                        "etf": 60.9900016784668,
-                        "fx": 0.724385694125872
+                        "etf": 29.6200008392334,
+                        "fx": 0.722089946269989
                       }
                     },
                     {
                       "date": "2026-09-10",
                       "values": {
                         "benchmark": 158.7899932861328,
-                        "etf": 60.290000915527344,
-                        "fx": 0.7227887975167094
+                        "etf": 29.079999923706055,
+                        "fx": 0.7155998945236206
                       }
                     },
                     {
                       "date": "2026-09-11",
                       "values": {
                         "benchmark": 160.25,
-                        "etf": 60.58000183105469,
-                        "fx": 0.721230115485609
+                        "etf": 29.270000457763672,
+                        "fx": 0.7174115777015686
                       }
                     },
                     {
                       "date": "2026-09-14",
                       "values": {
                         "benchmark": 158.9600067138672,
-                        "etf": 60.5,
-                        "fx": 0.7194400164049252
+                        "etf": 29.059999465942383,
+                        "fx": 0.71378093957901
                       }
                     },
                     {
                       "date": "2026-09-15",
                       "values": {
                         "benchmark": 158.1999969482422,
-                        "etf": 60.290000915527344,
-                        "fx": 0.718184416185272
+                        "etf": 28.889999389648438,
+                        "fx": 0.712550163269043
                       }
                     },
                     {
                       "date": "2026-09-16",
                       "values": {
                         "benchmark": 157.61000061035156,
-                        "etf": 59.86000061035156,
-                        "fx": 0.7148882411879238
+                        "etf": 28.489999771118164,
+                        "fx": 0.7088101506233215
                       }
                     },
                     {
                       "date": "2026-09-17",
                       "values": {
                         "benchmark": 159.57000732421875,
-                        "etf": 60.40999984741211,
-                        "fx": 0.7147809706172011
+                        "etf": 29.1299991607666,
+                        "fx": 0.7115498185157776
                       }
                     },
                     {
                       "date": "2026-09-21",
                       "values": {
                         "benchmark": 161.85000610351562,
-                        "etf": 60.43000030517578,
-                        "fx": 0.7126161463988734
+                        "etf": 29.040000915527344,
+                        "fx": 0.7118998169898987
                       }
                     },
                     {
                       "date": "2026-09-22",
                       "values": {
                         "benchmark": 162.1999969482422,
-                        "etf": 60.7599983215332,
-                        "fx": 0.7109493520049387
+                        "etf": 29.09000015258789,
+                        "fx": 0.7112102508544922
                       }
                     },
                     {
                       "date": "2026-09-23",
                       "values": {
                         "benchmark": 160.22000122070312,
-                        "etf": 59.650001525878906,
-                        "fx": 0.7089784924971037
+                        "etf": 28.360000610351562,
+                        "fx": 0.7034080028533936
                       }
                     },
                     {
                       "date": "2026-09-24",
                       "values": {
                         "benchmark": 160.0800018310547,
-                        "etf": 59.439998626708984,
-                        "fx": 0.7069136078169472
+                        "etf": 28.309999465942383,
+                        "fx": 0.700799822807312
                       }
                     },
                     {
                       "date": "2026-09-28",
                       "values": {
                         "benchmark": 159.67999267578125,
-                        "etf": 59.06999969482422,
-                        "fx": 0.705362900482846
+                        "etf": 28.5,
+                        "fx": 0.7016401290893555
                       }
                     },
                     {
                       "date": "2026-09-29",
                       "values": {
                         "benchmark": 159.4600067138672,
-                        "etf": 58.93000030517578,
-                        "fx": 0.7046570946761841
+                        "etf": 28.3700008392334,
+                        "fx": 0.6988999247550964
                       }
                     },
                     {
                       "date": "2026-09-30",
                       "values": {
                         "benchmark": 158.77000427246094,
-                        "etf": 58.380001068115234,
-                        "fx": 0.7024592918420559
+                        "etf": 28.309999465942383,
+                        "fx": 0.6945698857307434
                       }
                     },
                     {
                       "date": "2026-10-01",
                       "values": {
                         "benchmark": 158.74000549316406,
-                        "etf": 58.279998779296875,
-                        "fx": 0.7032151065275226
+                        "etf": 27.989999771118164,
+                        "fx": 0.6928700804710388
                       }
                     },
                     {
                       "date": "2026-10-02",
                       "values": {
                         "benchmark": 160.08999633789062,
-                        "etf": 58.720001220703125,
-                        "fx": 0.7016805067325246
+                        "etf": 28.31999969482422,
+                        "fx": 0.6959910988807678
                       }
                     },
                     {
                       "date": "2026-10-05",
                       "values": {
                         "benchmark": 161.11000061035156,
-                        "etf": 58.779998779296875,
-                        "fx": 0.7010803527111281
+                        "etf": 28.43000030517578,
+                        "fx": 0.6967300772666931
                       }
                     },
                     {
                       "date": "2026-10-06",
                       "values": {
                         "benchmark": 161.83999633789062,
-                        "etf": 59.18000030517578,
-                        "fx": 0.7036208600579581
+                        "etf": 28.549999237060547,
+                        "fx": 0.6981801986694336
                       }
                     },
                     {
                       "date": "2026-10-07",
                       "values": {
                         "benchmark": 160.7100067138672,
-                        "etf": 57.939998626708984,
-                        "fx": 0.7013704494281503
+                        "etf": 28.229999542236328,
+                        "fx": 0.6964001655578613
                       }
                     },
                     {
                       "date": "2026-10-08",
                       "values": {
                         "benchmark": 159.7899932861328,
-                        "etf": 58.31999969482422,
-                        "fx": 0.703051969777326
+                        "etf": 28.229999542236328,
+                        "fx": 0.695900022983551
                       }
                     },
                     {
                       "date": "2026-10-09",
                       "values": {
                         "benchmark": 160.89999389648438,
-                        "etf": 59.029998779296875,
-                        "fx": 0.7012032437577959
+                        "etf": 28.6200008392334,
+                        "fx": 0.6989585757255554
                       }
                     },
                     {
                       "date": "2026-10-12",
                       "values": {
                         "benchmark": 160.6300048828125,
-                        "etf": 59.45000076293945,
-                        "fx": 0.7002653937029434
+                        "etf": 28.670000076293945,
+                        "fx": 0.6956100463867188
                       }
                     },
                     {
                       "date": "2026-10-13",
                       "values": {
                         "benchmark": 160.69000244140625,
-                        "etf": 59.90999984741211,
-                        "fx": 0.7033931817061264
+                        "etf": 28.770000457763672,
+                        "fx": 0.6985191702842712
                       }
                     },
                     {
                       "date": "2026-10-14",
                       "values": {
                         "benchmark": 158.75,
-                        "etf": 59.2599983215332,
-                        "fx": 0.7035911160362275
+                        "etf": 28.540000915527344,
+                        "fx": 0.6978298425674438
                       }
                     },
                     {
                       "date": "2026-10-15",
                       "values": {
                         "benchmark": 159.22999572753906,
-                        "etf": 60.33000183105469,
-                        "fx": 0.7045528131482132
+                        "etf": 28.809999465942383,
+                        "fx": 0.6921373009681702
                       }
                     },
                     {
                       "date": "2026-10-16",
                       "values": {
                         "benchmark": 157.74000549316406,
-                        "etf": 60.58000183105469,
-                        "fx": 0.707363663385748
+                        "etf": 28.729999542236328,
+                        "fx": 0.6948304176330566
                       }
                     },
                     {
                       "date": "2026-10-19",
                       "values": {
                         "benchmark": 158.1199951171875,
-                        "etf": 60.279998779296875,
-                        "fx": 0.7087573944999241
-                      }
-                    },
-                    {
-                      "date": "2026-10-20",
-                      "values": {
-                        "benchmark": 158.77000427246094,
-                        "etf": 60.869998931884766,
-                        "fx": 0.7109240461358638
+                        "etf": 28.829999923706055,
+                        "fx": 0.6982800960540771
                       }
                     },
                     {
                       "date": "2026-10-21",
                       "values": {
                         "benchmark": 159.55999755859375,
-                        "etf": 61.31999969482422,
-                        "fx": 0.7121492878641256
+                        "etf": 29.229999542236328,
+                        "fx": 0.7029299139976501
                       }
                     },
                     {
                       "date": "2026-10-22",
                       "values": {
                         "benchmark": 157.41000366210938,
-                        "etf": 60.939998626708984,
-                        "fx": 0.7141531003303868
+                        "etf": 28.969999313354492,
+                        "fx": 0.7019800543785095
                       }
                     },
                     {
                       "date": "2026-10-23",
                       "values": {
                         "benchmark": 156.8000030517578,
-                        "etf": 60.689998626708984,
-                        "fx": 0.7139797451443874
+                        "etf": 29.1200008392334,
+                        "fx": 0.7037792801856995
                       }
                     },
                     {
                       "date": "2026-10-26",
                       "values": {
                         "benchmark": 157.57000732421875,
-                        "etf": 60.86000061035156,
-                        "fx": 0.7134041804257885
+                        "etf": 29.170000076293945,
+                        "fx": 0.7027407288551331
                       }
                     },
                     {
                       "date": "2026-10-27",
                       "values": {
                         "benchmark": 158.61000061035156,
-                        "etf": 61.04999923706055,
-                        "fx": 0.7136434258492894
+                        "etf": 29.479999542236328,
+                        "fx": 0.7019400596618652
                       }
                     },
                     {
                       "date": "2026-10-28",
                       "values": {
                         "benchmark": 159.22000122070312,
-                        "etf": 61.5099983215332,
-                        "fx": 0.7117336415365748
+                        "etf": 29.59000015258789,
+                        "fx": 0.7030400633811951
                       }
                     },
                     {
                       "date": "2026-10-29",
                       "values": {
                         "benchmark": 158.80999755859375,
-                        "etf": 61.529998779296875,
-                        "fx": 0.7149547151459695
+                        "etf": 29.6299991607666,
+                        "fx": 0.7057999968528748
                       }
                     },
                     {
                       "date": "2026-10-30",
                       "values": {
-                        "benchmark": 155.90499877929688,
-                        "etf": 60.4900016784668,
-                        "fx": 0.7159784863546764
+                        "benchmark": 155.17999267578125,
+                        "etf": 29.415000915527344,
+                        "fx": 0.703234851360321
                       }
                     }
                   ],
                   "contractVersion": "rlfx-observation-set/v1",
                   "coverage": {
-                    "commonRowCount": 273,
+                    "commonRowCount": 269,
                     "duplicateDatesDropped": {
                       "benchmark": 0,
                       "etf": 0,
                       "fx": 0
                     },
-                    "earliestCommonDate": "2025-08-13",
+                    "earliestCommonDate": "2025-08-11",
                     "latestCommonDate": "2026-10-30",
                     "requiredRowCount": 64,
                     "unmatchedNewerDates": {
@@ -3025,9 +3025,9 @@
                     {
                       "adjustment": "adjusted-close",
                       "legId": "etf",
-                      "observationId": "EWC",
+                      "observationId": "EWA",
                       "orientation": "etf",
-                      "subject": "EWC",
+                      "subject": "EWA",
                       "validDateCount": 502
                     },
                     {
@@ -3041,36 +3041,36 @@
                     {
                       "adjustment": "adjusted-close",
                       "legId": "fx",
-                      "observationId": "fx:CAD",
+                      "observationId": "fx:AUD",
                       "orientation": "fx",
-                      "subject": "CAD/USD",
-                      "validDateCount": 328
+                      "subject": "AUD/USD",
+                      "validDateCount": 324
                     }
                   ],
                   "lineage": {
                     "sourceObservationIds": [
-                      "EWC",
+                      "EWA",
                       "ACWI",
-                      "fx:CAD"
+                      "fx:AUD"
                     ],
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-f5734db9",
+                  "setId": "set-v1-87cff174",
                   "state": "aligned"
                 },
                 "relationship": "FX-Led Translation",
                 "state": "ready",
-                "translation": 0.005008185194483428,
-                "usdRelativeReturnOnDecompositionDates": -0.0022894925955854184,
-                "usdReturnOnDecompositionDates": 0.020239513314380675
+                "translation": 0.008238452638666516,
+                "usdRelativeReturnOnDecompositionDates": -0.0009011680573127734,
+                "usdReturnOnDecompositionDates": 0.003240150808047071
               },
-              "score": 74.32448515299274,
-              "ticker": "EWC",
+              "score": 73.57008491451387,
+              "ticker": "EWA",
               "usdLeadership": {
                 "asOf": "2026-10-30T00:00:00.000Z",
-                "benchmarkReturn": -0.012884662724152673,
-                "computedAt": "2026-10-30T17:16:34.904Z",
+                "benchmarkReturn": -0.017475052063829932,
+                "computedAt": "2026-10-30T18:31:51.704Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -3080,448 +3080,448 @@
                       "date": "2026-08-03",
                       "values": {
                         "benchmark": 157.94000244140625,
-                        "etf": 59.650001525878906
+                        "etf": 29.399999618530273
                       }
                     },
                     {
                       "date": "2026-08-04",
                       "values": {
                         "benchmark": 160.6300048828125,
-                        "etf": 60
+                        "etf": 30.1200008392334
                       }
                     },
                     {
                       "date": "2026-08-05",
                       "values": {
                         "benchmark": 160.5,
-                        "etf": 60.779998779296875
+                        "etf": 30.139999389648438
                       }
                     },
                     {
                       "date": "2026-08-06",
                       "values": {
                         "benchmark": 160.10000610351562,
-                        "etf": 60.70000076293945
+                        "etf": 30.15999984741211
                       }
                     },
                     {
                       "date": "2026-08-07",
                       "values": {
                         "benchmark": 161.44000244140625,
-                        "etf": 61.29999923706055
+                        "etf": 30.40999984741211
                       }
                     },
                     {
                       "date": "2026-08-10",
                       "values": {
                         "benchmark": 161.10000610351562,
-                        "etf": 61.5
+                        "etf": 30.049999237060547
                       }
                     },
                     {
                       "date": "2026-08-11",
                       "values": {
                         "benchmark": 160.88999938964844,
-                        "etf": 61.5099983215332
+                        "etf": 29.950000762939453
                       }
                     },
                     {
                       "date": "2026-08-12",
                       "values": {
                         "benchmark": 161.64999389648438,
-                        "etf": 61.77000045776367
+                        "etf": 29.889999389648438
                       }
                     },
                     {
                       "date": "2026-08-13",
                       "values": {
                         "benchmark": 162.47999572753906,
-                        "etf": 62.099998474121094
+                        "etf": 29.739999771118164
                       }
                     },
                     {
                       "date": "2026-08-14",
                       "values": {
                         "benchmark": 162.2899932861328,
-                        "etf": 62.22999954223633
+                        "etf": 29.649999618530273
                       }
                     },
                     {
                       "date": "2026-08-17",
                       "values": {
                         "benchmark": 161.8300018310547,
-                        "etf": 62.18000030517578
+                        "etf": 29.549999237060547
                       }
                     },
                     {
                       "date": "2026-08-18",
                       "values": {
                         "benchmark": 160.0800018310547,
-                        "etf": 61.58000183105469
+                        "etf": 29.610000610351562
                       }
                     },
                     {
                       "date": "2026-08-19",
                       "values": {
                         "benchmark": 160.6999969482422,
-                        "etf": 61.83000183105469
+                        "etf": 29.969999313354492
                       }
                     },
                     {
                       "date": "2026-08-20",
                       "values": {
                         "benchmark": 159.97000122070312,
-                        "etf": 61.77000045776367
+                        "etf": 29.75
                       }
                     },
                     {
                       "date": "2026-08-21",
                       "values": {
                         "benchmark": 160.80999755859375,
-                        "etf": 62.36000061035156
+                        "etf": 30.139999389648438
                       }
                     },
                     {
                       "date": "2026-08-24",
                       "values": {
                         "benchmark": 160.1999969482422,
-                        "etf": 62.119998931884766
+                        "etf": 30.059999465942383
                       }
                     },
                     {
                       "date": "2026-08-25",
                       "values": {
                         "benchmark": 161.0800018310547,
-                        "etf": 62.63999938964844
+                        "etf": 30.43000030517578
                       }
                     },
                     {
                       "date": "2026-08-26",
                       "values": {
                         "benchmark": 160.89999389648438,
-                        "etf": 62.22999954223633
+                        "etf": 30.149999618530273
                       }
                     },
                     {
                       "date": "2026-08-27",
                       "values": {
                         "benchmark": 161.52999877929688,
-                        "etf": 62.2599983215332
+                        "etf": 30.110000610351562
                       }
                     },
                     {
                       "date": "2026-08-28",
                       "values": {
                         "benchmark": 161.08999633789062,
-                        "etf": 61.72999954223633
+                        "etf": 30
                       }
                     },
                     {
                       "date": "2026-08-31",
                       "values": {
                         "benchmark": 160.67999267578125,
-                        "etf": 61.43000030517578
+                        "etf": 30.020000457763672
                       }
                     },
                     {
                       "date": "2026-09-01",
                       "values": {
                         "benchmark": 159.4199981689453,
-                        "etf": 60.599998474121094
+                        "etf": 29.68000030517578
                       }
                     },
                     {
                       "date": "2026-09-02",
                       "values": {
                         "benchmark": 160.16000366210938,
-                        "etf": 61.27000045776367
+                        "etf": 30.030000686645508
                       }
                     },
                     {
                       "date": "2026-09-03",
                       "values": {
                         "benchmark": 161.94000244140625,
-                        "etf": 62.470001220703125
+                        "etf": 30.3700008392334
                       }
                     },
                     {
                       "date": "2026-09-04",
                       "values": {
                         "benchmark": 161.88999938964844,
-                        "etf": 62.040000915527344
+                        "etf": 30.229999542236328
                       }
                     },
                     {
                       "date": "2026-09-08",
                       "values": {
                         "benchmark": 161.1300048828125,
-                        "etf": 61.4900016784668
+                        "etf": 30
                       }
                     },
                     {
                       "date": "2026-09-09",
                       "values": {
                         "benchmark": 160.14999389648438,
-                        "etf": 60.9900016784668
+                        "etf": 29.6200008392334
                       }
                     },
                     {
                       "date": "2026-09-10",
                       "values": {
                         "benchmark": 158.7899932861328,
-                        "etf": 60.290000915527344
+                        "etf": 29.079999923706055
                       }
                     },
                     {
                       "date": "2026-09-11",
                       "values": {
                         "benchmark": 160.25,
-                        "etf": 60.58000183105469
+                        "etf": 29.270000457763672
                       }
                     },
                     {
                       "date": "2026-09-14",
                       "values": {
                         "benchmark": 158.9600067138672,
-                        "etf": 60.5
+                        "etf": 29.059999465942383
                       }
                     },
                     {
                       "date": "2026-09-15",
                       "values": {
                         "benchmark": 158.1999969482422,
-                        "etf": 60.290000915527344
+                        "etf": 28.889999389648438
                       }
                     },
                     {
                       "date": "2026-09-16",
                       "values": {
                         "benchmark": 157.61000061035156,
-                        "etf": 59.86000061035156
+                        "etf": 28.489999771118164
                       }
                     },
                     {
                       "date": "2026-09-17",
                       "values": {
                         "benchmark": 159.57000732421875,
-                        "etf": 60.40999984741211
+                        "etf": 29.1299991607666
                       }
                     },
                     {
                       "date": "2026-09-18",
                       "values": {
                         "benchmark": 159.2899932861328,
-                        "etf": 60.220001220703125
+                        "etf": 28.75
                       }
                     },
                     {
                       "date": "2026-09-21",
                       "values": {
                         "benchmark": 161.85000610351562,
-                        "etf": 60.43000030517578
+                        "etf": 29.040000915527344
                       }
                     },
                     {
                       "date": "2026-09-22",
                       "values": {
                         "benchmark": 162.1999969482422,
-                        "etf": 60.7599983215332
+                        "etf": 29.09000015258789
                       }
                     },
                     {
                       "date": "2026-09-23",
                       "values": {
                         "benchmark": 160.22000122070312,
-                        "etf": 59.650001525878906
+                        "etf": 28.360000610351562
                       }
                     },
                     {
                       "date": "2026-09-24",
                       "values": {
                         "benchmark": 160.0800018310547,
-                        "etf": 59.439998626708984
+                        "etf": 28.309999465942383
                       }
                     },
                     {
                       "date": "2026-09-25",
                       "values": {
                         "benchmark": 161.0500030517578,
-                        "etf": 59.59000015258789
+                        "etf": 28.43000030517578
                       }
                     },
                     {
                       "date": "2026-09-28",
                       "values": {
                         "benchmark": 159.67999267578125,
-                        "etf": 59.06999969482422
+                        "etf": 28.5
                       }
                     },
                     {
                       "date": "2026-09-29",
                       "values": {
                         "benchmark": 159.4600067138672,
-                        "etf": 58.93000030517578
+                        "etf": 28.3700008392334
                       }
                     },
                     {
                       "date": "2026-09-30",
                       "values": {
                         "benchmark": 158.77000427246094,
-                        "etf": 58.380001068115234
+                        "etf": 28.309999465942383
                       }
                     },
                     {
                       "date": "2026-10-01",
                       "values": {
                         "benchmark": 158.74000549316406,
-                        "etf": 58.279998779296875
+                        "etf": 27.989999771118164
                       }
                     },
                     {
                       "date": "2026-10-02",
                       "values": {
                         "benchmark": 160.08999633789062,
-                        "etf": 58.720001220703125
+                        "etf": 28.31999969482422
                       }
                     },
                     {
                       "date": "2026-10-05",
                       "values": {
                         "benchmark": 161.11000061035156,
-                        "etf": 58.779998779296875
+                        "etf": 28.43000030517578
                       }
                     },
                     {
                       "date": "2026-10-06",
                       "values": {
                         "benchmark": 161.83999633789062,
-                        "etf": 59.18000030517578
+                        "etf": 28.549999237060547
                       }
                     },
                     {
                       "date": "2026-10-07",
                       "values": {
                         "benchmark": 160.7100067138672,
-                        "etf": 57.939998626708984
+                        "etf": 28.229999542236328
                       }
                     },
                     {
                       "date": "2026-10-08",
                       "values": {
                         "benchmark": 159.7899932861328,
-                        "etf": 58.31999969482422
+                        "etf": 28.229999542236328
                       }
                     },
                     {
                       "date": "2026-10-09",
                       "values": {
                         "benchmark": 160.89999389648438,
-                        "etf": 59.029998779296875
+                        "etf": 28.6200008392334
                       }
                     },
                     {
                       "date": "2026-10-12",
                       "values": {
                         "benchmark": 160.6300048828125,
-                        "etf": 59.45000076293945
+                        "etf": 28.670000076293945
                       }
                     },
                     {
                       "date": "2026-10-13",
                       "values": {
                         "benchmark": 160.69000244140625,
-                        "etf": 59.90999984741211
+                        "etf": 28.770000457763672
                       }
                     },
                     {
                       "date": "2026-10-14",
                       "values": {
                         "benchmark": 158.75,
-                        "etf": 59.2599983215332
+                        "etf": 28.540000915527344
                       }
                     },
                     {
                       "date": "2026-10-15",
                       "values": {
                         "benchmark": 159.22999572753906,
-                        "etf": 60.33000183105469
+                        "etf": 28.809999465942383
                       }
                     },
                     {
                       "date": "2026-10-16",
                       "values": {
                         "benchmark": 157.74000549316406,
-                        "etf": 60.58000183105469
+                        "etf": 28.729999542236328
                       }
                     },
                     {
                       "date": "2026-10-19",
                       "values": {
                         "benchmark": 158.1199951171875,
-                        "etf": 60.279998779296875
+                        "etf": 28.829999923706055
                       }
                     },
                     {
                       "date": "2026-10-20",
                       "values": {
                         "benchmark": 158.77000427246094,
-                        "etf": 60.869998931884766
+                        "etf": 29.149999618530273
                       }
                     },
                     {
                       "date": "2026-10-21",
                       "values": {
                         "benchmark": 159.55999755859375,
-                        "etf": 61.31999969482422
+                        "etf": 29.229999542236328
                       }
                     },
                     {
                       "date": "2026-10-22",
                       "values": {
                         "benchmark": 157.41000366210938,
-                        "etf": 60.939998626708984
+                        "etf": 28.969999313354492
                       }
                     },
                     {
                       "date": "2026-10-23",
                       "values": {
                         "benchmark": 156.8000030517578,
-                        "etf": 60.689998626708984
+                        "etf": 29.1200008392334
                       }
                     },
                     {
                       "date": "2026-10-26",
                       "values": {
                         "benchmark": 157.57000732421875,
-                        "etf": 60.86000061035156
+                        "etf": 29.170000076293945
                       }
                     },
                     {
                       "date": "2026-10-27",
                       "values": {
                         "benchmark": 158.61000061035156,
-                        "etf": 61.04999923706055
+                        "etf": 29.479999542236328
                       }
                     },
                     {
                       "date": "2026-10-28",
                       "values": {
                         "benchmark": 159.22000122070312,
-                        "etf": 61.5099983215332
+                        "etf": 29.59000015258789
                       }
                     },
                     {
                       "date": "2026-10-29",
                       "values": {
                         "benchmark": 158.80999755859375,
-                        "etf": 61.529998779296875
+                        "etf": 29.6299991607666
                       }
                     },
                     {
                       "date": "2026-10-30",
                       "values": {
-                        "benchmark": 155.90499877929688,
-                        "etf": 60.4900016784668
+                        "benchmark": 155.17999267578125,
+                        "etf": 29.415000915527344
                       }
                     }
                   ],
@@ -3545,9 +3545,9 @@
                     {
                       "adjustment": "adjusted-close",
                       "legId": "etf",
-                      "observationId": "EWC",
+                      "observationId": "EWA",
                       "orientation": "etf",
-                      "subject": "EWC",
+                      "subject": "EWA",
                       "validDateCount": 502
                     },
                     {
@@ -3561,7 +3561,7 @@
                   ],
                   "lineage": {
                     "sourceObservationIds": [
-                      "EWC",
+                      "EWA",
                       "ACWI"
                     ],
                     "uniqueRelationshipIds": []
@@ -3571,71 +3571,71 @@
                   "state": "aligned"
                 },
                 "state": "ready",
-                "usdEtfReturn": 0.014082148048620846,
-                "usdRelativeReturn": 0.02696681077277352
+                "usdEtfReturn": 0.0005102482037997458,
+                "usdRelativeReturn": 0.017985300267629678
               }
             },
             "unavailableStates": []
           },
-          "read": "Canada leads the equity-only research queue"
+          "read": "Australia leads the equity-only research queue"
         },
         "ranked": [
           {
             "asOf": "2026-10-30T13:30:00.000Z",
-            "country": "Canada",
-            "maxDrawdown": 8.51,
-            "rel126": 0.6,
-            "rel21": 5.58,
-            "rel63": 2.7,
-            "score": 74.3,
-            "ticker": "EWC",
-            "trend": "Constructive",
-            "vol": 13.45
-          },
-          {
-            "asOf": "2026-10-30T13:30:00.000Z",
             "country": "Australia",
             "maxDrawdown": 10.01,
-            "rel126": -1.28,
-            "rel21": 7.16,
-            "rel63": 1.61,
-            "score": 73.2,
+            "rel126": -1.08,
+            "rel21": 7.33,
+            "rel63": 1.8,
+            "score": 73.6,
             "ticker": "EWA",
             "trend": "Constructive",
-            "vol": 14.88
+            "vol": 14.92
           },
           {
             "asOf": "2026-10-30T13:30:00.000Z",
             "country": "United Kingdom",
             "maxDrawdown": 9.92,
-            "rel126": -0.45,
-            "rel21": 5.85,
-            "rel63": 0.3,
-            "score": 71.9,
+            "rel126": -0.27,
+            "rel21": 6,
+            "rel63": 0.47,
+            "score": 72.3,
             "ticker": "EWU",
             "trend": "Constructive",
             "vol": 10.71
           },
           {
             "asOf": "2026-10-30T13:30:00.000Z",
+            "country": "Canada",
+            "maxDrawdown": 8.51,
+            "rel126": 0.56,
+            "rel21": 5.51,
+            "rel63": 2.64,
+            "score": 66.6,
+            "ticker": "EWC",
+            "trend": "Mixed",
+            "vol": 13.75
+          },
+          {
+            "asOf": "2026-10-30T13:30:00.000Z",
             "country": "Germany",
             "maxDrawdown": 14.54,
-            "rel126": -2.68,
-            "rel21": 4.25,
-            "rel63": -2.3,
-            "score": 58,
+            "rel126": -2.35,
+            "rel21": 4.55,
+            "rel63": -1.99,
+            "score": 52.4,
             "ticker": "EWG",
             "trend": "Mixed",
-            "vol": 13.22
+            "vol": 13.29
           },
           {
             "asOf": "2026-10-30T13:30:00.000Z",
             "country": "Mexico",
             "maxDrawdown": 13.98,
-            "rel126": -4.74,
-            "rel21": 8.69,
-            "rel63": -1.27,
-            "score": 57.4,
+            "rel126": -4.69,
+            "rel21": 8.68,
+            "rel63": -1.24,
+            "score": 51.2,
             "ticker": "EWW",
             "trend": "Mixed",
             "vol": 15.88
@@ -3644,20 +3644,20 @@
             "asOf": "2026-10-30T13:30:00.000Z",
             "country": "Japan",
             "maxDrawdown": 13.59,
-            "rel126": 1.78,
-            "rel21": -3.29,
-            "rel63": 0.78,
-            "score": 49.9,
+            "rel126": 1.92,
+            "rel21": -3.15,
+            "rel63": 0.91,
+            "score": 50.2,
             "ticker": "EWJ",
             "trend": "Mixed",
-            "vol": 16.65
+            "vol": 16.87
           }
         ],
         "scored": 13,
         "usdLeadership": {
           "asOf": "2026-10-30T00:00:00.000Z",
-          "benchmarkReturn": -0.012884662724152673,
-          "computedAt": "2026-10-30T17:16:34.904Z",
+          "benchmarkReturn": -0.017475052063829932,
+          "computedAt": "2026-10-30T18:31:51.704Z",
           "contractVersion": "rlfx-global-usd-leadership/v1",
           "freshUntil": null,
           "horizonSessions": 63,
@@ -3667,448 +3667,448 @@
                 "date": "2026-08-03",
                 "values": {
                   "benchmark": 157.94000244140625,
-                  "etf": 59.650001525878906
+                  "etf": 29.399999618530273
                 }
               },
               {
                 "date": "2026-08-04",
                 "values": {
                   "benchmark": 160.6300048828125,
-                  "etf": 60
+                  "etf": 30.1200008392334
                 }
               },
               {
                 "date": "2026-08-05",
                 "values": {
                   "benchmark": 160.5,
-                  "etf": 60.779998779296875
+                  "etf": 30.139999389648438
                 }
               },
               {
                 "date": "2026-08-06",
                 "values": {
                   "benchmark": 160.10000610351562,
-                  "etf": 60.70000076293945
+                  "etf": 30.15999984741211
                 }
               },
               {
                 "date": "2026-08-07",
                 "values": {
                   "benchmark": 161.44000244140625,
-                  "etf": 61.29999923706055
+                  "etf": 30.40999984741211
                 }
               },
               {
                 "date": "2026-08-10",
                 "values": {
                   "benchmark": 161.10000610351562,
-                  "etf": 61.5
+                  "etf": 30.049999237060547
                 }
               },
               {
                 "date": "2026-08-11",
                 "values": {
                   "benchmark": 160.88999938964844,
-                  "etf": 61.5099983215332
+                  "etf": 29.950000762939453
                 }
               },
               {
                 "date": "2026-08-12",
                 "values": {
                   "benchmark": 161.64999389648438,
-                  "etf": 61.77000045776367
+                  "etf": 29.889999389648438
                 }
               },
               {
                 "date": "2026-08-13",
                 "values": {
                   "benchmark": 162.47999572753906,
-                  "etf": 62.099998474121094
+                  "etf": 29.739999771118164
                 }
               },
               {
                 "date": "2026-08-14",
                 "values": {
                   "benchmark": 162.2899932861328,
-                  "etf": 62.22999954223633
+                  "etf": 29.649999618530273
                 }
               },
               {
                 "date": "2026-08-17",
                 "values": {
                   "benchmark": 161.8300018310547,
-                  "etf": 62.18000030517578
+                  "etf": 29.549999237060547
                 }
               },
               {
                 "date": "2026-08-18",
                 "values": {
                   "benchmark": 160.0800018310547,
-                  "etf": 61.58000183105469
+                  "etf": 29.610000610351562
                 }
               },
               {
                 "date": "2026-08-19",
                 "values": {
                   "benchmark": 160.6999969482422,
-                  "etf": 61.83000183105469
+                  "etf": 29.969999313354492
                 }
               },
               {
                 "date": "2026-08-20",
                 "values": {
                   "benchmark": 159.97000122070312,
-                  "etf": 61.77000045776367
+                  "etf": 29.75
                 }
               },
               {
                 "date": "2026-08-21",
                 "values": {
                   "benchmark": 160.80999755859375,
-                  "etf": 62.36000061035156
+                  "etf": 30.139999389648438
                 }
               },
               {
                 "date": "2026-08-24",
                 "values": {
                   "benchmark": 160.1999969482422,
-                  "etf": 62.119998931884766
+                  "etf": 30.059999465942383
                 }
               },
               {
                 "date": "2026-08-25",
                 "values": {
                   "benchmark": 161.0800018310547,
-                  "etf": 62.63999938964844
+                  "etf": 30.43000030517578
                 }
               },
               {
                 "date": "2026-08-26",
                 "values": {
                   "benchmark": 160.89999389648438,
-                  "etf": 62.22999954223633
+                  "etf": 30.149999618530273
                 }
               },
               {
                 "date": "2026-08-27",
                 "values": {
                   "benchmark": 161.52999877929688,
-                  "etf": 62.2599983215332
+                  "etf": 30.110000610351562
                 }
               },
               {
                 "date": "2026-08-28",
                 "values": {
                   "benchmark": 161.08999633789062,
-                  "etf": 61.72999954223633
+                  "etf": 30
                 }
               },
               {
                 "date": "2026-08-31",
                 "values": {
                   "benchmark": 160.67999267578125,
-                  "etf": 61.43000030517578
+                  "etf": 30.020000457763672
                 }
               },
               {
                 "date": "2026-09-01",
                 "values": {
                   "benchmark": 159.4199981689453,
-                  "etf": 60.599998474121094
+                  "etf": 29.68000030517578
                 }
               },
               {
                 "date": "2026-09-02",
                 "values": {
                   "benchmark": 160.16000366210938,
-                  "etf": 61.27000045776367
+                  "etf": 30.030000686645508
                 }
               },
               {
                 "date": "2026-09-03",
                 "values": {
                   "benchmark": 161.94000244140625,
-                  "etf": 62.470001220703125
+                  "etf": 30.3700008392334
                 }
               },
               {
                 "date": "2026-09-04",
                 "values": {
                   "benchmark": 161.88999938964844,
-                  "etf": 62.040000915527344
+                  "etf": 30.229999542236328
                 }
               },
               {
                 "date": "2026-09-08",
                 "values": {
                   "benchmark": 161.1300048828125,
-                  "etf": 61.4900016784668
+                  "etf": 30
                 }
               },
               {
                 "date": "2026-09-09",
                 "values": {
                   "benchmark": 160.14999389648438,
-                  "etf": 60.9900016784668
+                  "etf": 29.6200008392334
                 }
               },
               {
                 "date": "2026-09-10",
                 "values": {
                   "benchmark": 158.7899932861328,
-                  "etf": 60.290000915527344
+                  "etf": 29.079999923706055
                 }
               },
               {
                 "date": "2026-09-11",
                 "values": {
                   "benchmark": 160.25,
-                  "etf": 60.58000183105469
+                  "etf": 29.270000457763672
                 }
               },
               {
                 "date": "2026-09-14",
                 "values": {
                   "benchmark": 158.9600067138672,
-                  "etf": 60.5
+                  "etf": 29.059999465942383
                 }
               },
               {
                 "date": "2026-09-15",
                 "values": {
                   "benchmark": 158.1999969482422,
-                  "etf": 60.290000915527344
+                  "etf": 28.889999389648438
                 }
               },
               {
                 "date": "2026-09-16",
                 "values": {
                   "benchmark": 157.61000061035156,
-                  "etf": 59.86000061035156
+                  "etf": 28.489999771118164
                 }
               },
               {
                 "date": "2026-09-17",
                 "values": {
                   "benchmark": 159.57000732421875,
-                  "etf": 60.40999984741211
+                  "etf": 29.1299991607666
                 }
               },
               {
                 "date": "2026-09-18",
                 "values": {
                   "benchmark": 159.2899932861328,
-                  "etf": 60.220001220703125
+                  "etf": 28.75
                 }
               },
               {
                 "date": "2026-09-21",
                 "values": {
                   "benchmark": 161.85000610351562,
-                  "etf": 60.43000030517578
+                  "etf": 29.040000915527344
                 }
               },
               {
                 "date": "2026-09-22",
                 "values": {
                   "benchmark": 162.1999969482422,
-                  "etf": 60.7599983215332
+                  "etf": 29.09000015258789
                 }
               },
               {
                 "date": "2026-09-23",
                 "values": {
                   "benchmark": 160.22000122070312,
-                  "etf": 59.650001525878906
+                  "etf": 28.360000610351562
                 }
               },
               {
                 "date": "2026-09-24",
                 "values": {
                   "benchmark": 160.0800018310547,
-                  "etf": 59.439998626708984
+                  "etf": 28.309999465942383
                 }
               },
               {
                 "date": "2026-09-25",
                 "values": {
                   "benchmark": 161.0500030517578,
-                  "etf": 59.59000015258789
+                  "etf": 28.43000030517578
                 }
               },
               {
                 "date": "2026-09-28",
                 "values": {
                   "benchmark": 159.67999267578125,
-                  "etf": 59.06999969482422
+                  "etf": 28.5
                 }
               },
               {
                 "date": "2026-09-29",
                 "values": {
                   "benchmark": 159.4600067138672,
-                  "etf": 58.93000030517578
+                  "etf": 28.3700008392334
                 }
               },
               {
                 "date": "2026-09-30",
                 "values": {
                   "benchmark": 158.77000427246094,
-                  "etf": 58.380001068115234
+                  "etf": 28.309999465942383
                 }
               },
               {
                 "date": "2026-10-01",
                 "values": {
                   "benchmark": 158.74000549316406,
-                  "etf": 58.279998779296875
+                  "etf": 27.989999771118164
                 }
               },
               {
                 "date": "2026-10-02",
                 "values": {
                   "benchmark": 160.08999633789062,
-                  "etf": 58.720001220703125
+                  "etf": 28.31999969482422
                 }
               },
               {
                 "date": "2026-10-05",
                 "values": {
                   "benchmark": 161.11000061035156,
-                  "etf": 58.779998779296875
+                  "etf": 28.43000030517578
                 }
               },
               {
                 "date": "2026-10-06",
                 "values": {
                   "benchmark": 161.83999633789062,
-                  "etf": 59.18000030517578
+                  "etf": 28.549999237060547
                 }
               },
               {
                 "date": "2026-10-07",
                 "values": {
                   "benchmark": 160.7100067138672,
-                  "etf": 57.939998626708984
+                  "etf": 28.229999542236328
                 }
               },
               {
                 "date": "2026-10-08",
                 "values": {
                   "benchmark": 159.7899932861328,
-                  "etf": 58.31999969482422
+                  "etf": 28.229999542236328
                 }
               },
               {
                 "date": "2026-10-09",
                 "values": {
                   "benchmark": 160.89999389648438,
-                  "etf": 59.029998779296875
+                  "etf": 28.6200008392334
                 }
               },
               {
                 "date": "2026-10-12",
                 "values": {
                   "benchmark": 160.6300048828125,
-                  "etf": 59.45000076293945
+                  "etf": 28.670000076293945
                 }
               },
               {
                 "date": "2026-10-13",
                 "values": {
                   "benchmark": 160.69000244140625,
-                  "etf": 59.90999984741211
+                  "etf": 28.770000457763672
                 }
               },
               {
                 "date": "2026-10-14",
                 "values": {
                   "benchmark": 158.75,
-                  "etf": 59.2599983215332
+                  "etf": 28.540000915527344
                 }
               },
               {
                 "date": "2026-10-15",
                 "values": {
                   "benchmark": 159.22999572753906,
-                  "etf": 60.33000183105469
+                  "etf": 28.809999465942383
                 }
               },
               {
                 "date": "2026-10-16",
                 "values": {
                   "benchmark": 157.74000549316406,
-                  "etf": 60.58000183105469
+                  "etf": 28.729999542236328
                 }
               },
               {
                 "date": "2026-10-19",
                 "values": {
                   "benchmark": 158.1199951171875,
-                  "etf": 60.279998779296875
+                  "etf": 28.829999923706055
                 }
               },
               {
                 "date": "2026-10-20",
                 "values": {
                   "benchmark": 158.77000427246094,
-                  "etf": 60.869998931884766
+                  "etf": 29.149999618530273
                 }
               },
               {
                 "date": "2026-10-21",
                 "values": {
                   "benchmark": 159.55999755859375,
-                  "etf": 61.31999969482422
+                  "etf": 29.229999542236328
                 }
               },
               {
                 "date": "2026-10-22",
                 "values": {
                   "benchmark": 157.41000366210938,
-                  "etf": 60.939998626708984
+                  "etf": 28.969999313354492
                 }
               },
               {
                 "date": "2026-10-23",
                 "values": {
                   "benchmark": 156.8000030517578,
-                  "etf": 60.689998626708984
+                  "etf": 29.1200008392334
                 }
               },
               {
                 "date": "2026-10-26",
                 "values": {
                   "benchmark": 157.57000732421875,
-                  "etf": 60.86000061035156
+                  "etf": 29.170000076293945
                 }
               },
               {
                 "date": "2026-10-27",
                 "values": {
                   "benchmark": 158.61000061035156,
-                  "etf": 61.04999923706055
+                  "etf": 29.479999542236328
                 }
               },
               {
                 "date": "2026-10-28",
                 "values": {
                   "benchmark": 159.22000122070312,
-                  "etf": 61.5099983215332
+                  "etf": 29.59000015258789
                 }
               },
               {
                 "date": "2026-10-29",
                 "values": {
                   "benchmark": 158.80999755859375,
-                  "etf": 61.529998779296875
+                  "etf": 29.6299991607666
                 }
               },
               {
                 "date": "2026-10-30",
                 "values": {
-                  "benchmark": 155.90499877929688,
-                  "etf": 60.4900016784668
+                  "benchmark": 155.17999267578125,
+                  "etf": 29.415000915527344
                 }
               }
             ],
@@ -4132,9 +4132,9 @@
               {
                 "adjustment": "adjusted-close",
                 "legId": "etf",
-                "observationId": "EWC",
+                "observationId": "EWA",
                 "orientation": "etf",
-                "subject": "EWC",
+                "subject": "EWA",
                 "validDateCount": 502
               },
               {
@@ -4148,7 +4148,7 @@
             ],
             "lineage": {
               "sourceObservationIds": [
-                "EWC",
+                "EWA",
                 "ACWI"
               ],
               "uniqueRelationshipIds": []
@@ -4158,19 +4158,19 @@
             "state": "aligned"
           },
           "state": "ready",
-          "usdEtfReturn": 0.014082148048620846,
-          "usdRelativeReturn": 0.02696681077277352
+          "usdEtfReturn": 0.0005102482037997458,
+          "usdRelativeReturn": 0.017985300267629678
         }
       },
-      "read": "EWC (Canada) leads global rotation at 74.3/100 versus ACWI; EWA is next.",
+      "read": "EWA (Australia) leads global rotation at 73.6/100 versus ACWI; EWU is next.",
       "source": "owning-tool-functions"
     },
     "intraday-tape-lab": {
-      "asOf": "2026-10-30T17:16:35.000Z",
+      "asOf": "2026-10-30T18:31:52.000Z",
       "deepLink": "intraday-tape-lab.html",
       "id": "intraday-tape-lab",
       "metrics": {
-        "barsToday": 47,
+        "barsToday": 62,
         "control": "Retail-driven",
         "gapPct": -1.06,
         "poc": null,
@@ -4179,14 +4179,14 @@
         "symbol": "SPY",
         "valueAreaHigh": null,
         "valueAreaLow": null,
-        "vwap": 757.18
+        "vwap": 756.5
       },
-      "read": "SPY's session is a Trend day · down auction under Retail-driven control, with VWAP at 757.18.",
+      "read": "SPY's session is a Trend day · down auction under Retail-driven control, with VWAP at 756.5.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
     "market-heatmap-lab": {
-      "asOf": "2026-10-30T17:16:36.187Z",
+      "asOf": "2026-10-30T18:31:53.356Z",
       "deepLink": "market-heatmap-lab.html",
       "id": "market-heatmap-lab",
       "metrics": {
@@ -4233,83 +4233,83 @@
       "state": "ready"
     },
     "options-flow-feed-lab": {
-      "asOf": "2026-10-30T10:15:35.000Z",
+      "asOf": "2026-10-30T14:15:21.000Z",
       "deepLink": "options-flow-feed-lab.html",
       "id": "options-flow-feed-lab",
       "metrics": {
-        "callFraction": 0.4082,
-        "callPremium": 437354888,
-        "clearedCount": 354,
-        "clearedFraction": 0.0213,
-        "consideredCount": 16626,
-        "contractsFlagged": 880,
-        "lean": "balanced",
+        "callFraction": 0.198,
+        "callPremium": 1167730541.5,
+        "clearedCount": 1088,
+        "clearedFraction": 0.066,
+        "consideredCount": 16476,
+        "contractsFlagged": 2300,
+        "lean": "put-heavy (leaning bearish / hedged)",
         "maxScore": 92,
         "netPremium": null,
         "premiumThreshold": 250000,
-        "putPremium": 633965772,
+        "putPremium": 4728425379,
         "tickers": 12,
         "top": [
           {
             "dte": 0,
-            "iv": 55.05,
-            "openInterest": 1926,
-            "premium": 2701512,
+            "iv": 66.59,
+            "openInterest": 19790,
+            "premium": 45276714,
             "score": 92,
-            "strike": 620,
-            "ticker": "META",
-            "type": "C",
-            "volOI": 5.3131,
-            "volume": 10233
-          },
-          {
-            "dte": 0,
-            "iv": 21.34,
-            "openInterest": 38844,
-            "premium": 29041758,
-            "score": 90,
-            "strike": 760,
-            "ticker": "SPY",
+            "strike": 205,
+            "ticker": "NVDA",
             "type": "P",
-            "volOI": 3.0704,
-            "volume": 119268
+            "volOI": 8.7657,
+            "volume": 173474
           },
           {
             "dte": 0,
-            "iv": 56.7,
-            "openInterest": 10390,
-            "premium": 18458125,
-            "score": 90,
-            "strike": 395,
-            "ticker": "TSLA",
+            "iv": 91.66,
+            "openInterest": 2838,
+            "premium": 9955590,
+            "score": 91,
+            "strike": 500,
+            "ticker": "AMD",
+            "type": "P",
+            "volOI": 9.481,
+            "volume": 26907
+          },
+          {
+            "dte": 0,
+            "iv": 69.08,
+            "openInterest": 1715,
+            "premium": 7151437.5,
+            "score": 91,
+            "strike": 240,
+            "ticker": "AMZN",
             "type": "C",
-            "volOI": 5.6849,
-            "volume": 59066
+            "volOI": 64.6501,
+            "volume": 110875
           }
         ],
         "windowDays": 30
       },
-      "read": "Option flow is balanced across 12 tickers: 880 contracts clear the $250k premium bar inside 30 days; the most unusual is META 620 calls at $2.7M on 5.3× its open interest.",
+      "read": "Option flow is put-heavy (leaning bearish / hedged) across 12 tickers: 2300 contracts clear the $250k premium bar inside 30 days; the most unusual is NVDA 205 puts at $45.3M on 8.8× its open interest.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
     "options-structure-lab": {
-      "asOf": "2026-10-30T10:15:17.000Z",
+      "asOf": "2026-10-30T14:14:25.000Z",
       "deepLink": "options-structure-lab.html",
       "id": "options-structure-lab",
       "metrics": {
-        "atmIV": 0.2192,
+        "atmIV": 0.2799,
         "callWall": 770,
-        "expectedMove": 6.16,
+        "expectedMove": 7.8,
         "expiriesPriced": 3,
-        "flipLevel": 767.71,
-        "putWall": 755,
+        "flipLevel": 768.46,
+        "putWall": 750,
         "regime": "negative",
-        "signedNetGEX": -8221327006.8361,
-        "spot": 758.73,
+        "signedNetGEX": -8746070828.9517,
+        "spot": 753.13,
         "symbol": "SPY"
       },
-      "read": "SPY sits in negative dealer gamma with the flip near 767.71; call wall 770, put wall 755, front expected move ±6.16.",
+      "read": "SPY sits in negative dealer gamma with the flip near 768.46; call wall 770, put wall 750, front expected move ±7.8.",
       "source": "owning-tool-functions",
       "state": "ready"
     },
@@ -4320,16 +4320,16 @@
       "metrics": {
         "drivers": {
           "breadth": 50,
-          "btc63": -1.4421100718239432,
-          "dbc63": 17.27873648980609,
-          "gld63": -4.09189739440089,
-          "goldSilverRatio63": 13.510183604779268,
-          "qqq63": -1.491594350431591,
-          "tip63": -0.16488944945987072,
-          "tlt63": -0.01572698184062471,
-          "uup63": 2.9996425667942805,
-          "xle63": 19.53606114626001,
-          "xli63": -8.008504269216987
+          "btc63": -1.3889595721941927,
+          "dbc63": 16.74169367147913,
+          "gld63": -4.366301913278381,
+          "goldSilverRatio63": 13.685811652966894,
+          "qqq63": -2.102311326715778,
+          "tip63": -0.13569555645959186,
+          "tlt63": 0.2356521229039732,
+          "uup63": 2.9627278890593356,
+          "xle63": 18.92862194484588,
+          "xli63": -8.65447722525997
         },
         "horizon": "swing",
         "leader": {
@@ -4356,14 +4356,14 @@
           ],
           "maxDrawdown": 32.49,
           "model": "energy",
-          "mom126": 20.14,
-          "mom21": 14.36,
-          "mom63": 40.49,
-          "riskPenalty": 12.69,
+          "mom126": 19.19,
+          "mom21": 13.45,
+          "mom63": 39.37,
+          "riskPenalty": 12.68,
           "score": 81.1,
           "ticker": "USO",
           "trend": "Uptrend",
-          "vol": 47.71
+          "vol": 47.66
         },
         "ranked": [
           {
@@ -4390,14 +4390,14 @@
             ],
             "maxDrawdown": 32.49,
             "model": "energy",
-            "mom126": 20.14,
-            "mom21": 14.36,
-            "mom63": 40.49,
-            "riskPenalty": 12.69,
+            "mom126": 19.19,
+            "mom21": 13.45,
+            "mom63": 39.37,
+            "riskPenalty": 12.68,
             "score": 81.1,
             "ticker": "USO",
             "trend": "Uptrend",
-            "vol": 47.71
+            "vol": 47.66
           },
           {
             "asOf": "2026-10-30T13:30:00.000Z",
@@ -4423,14 +4423,14 @@
             ],
             "maxDrawdown": 34.46,
             "model": "energy",
-            "mom126": 26.44,
-            "mom21": 15.03,
-            "mom63": 51.39,
-            "riskPenalty": 13.04,
+            "mom126": 25.51,
+            "mom21": 14.19,
+            "mom63": 50.28,
+            "riskPenalty": 13.02,
             "score": 80.8,
             "ticker": "BNO",
             "trend": "Uptrend",
-            "vol": 47.44
+            "vol": 47.39
           },
           {
             "asOf": "2026-10-30T13:30:00.000Z",
@@ -4448,7 +4448,7 @@
               {
                 "detail": "A weaker dollar supports a broad basket at the margin.",
                 "label": "Inverse USD",
-                "score": 28.57398166575514,
+                "score": 28.83765793529045,
                 "symbols": [
                   "UUP"
                 ]
@@ -4456,14 +4456,14 @@
             ],
             "maxDrawdown": 16.54,
             "model": "broad",
-            "mom126": 9.93,
-            "mom21": 3.42,
-            "mom63": 17.28,
+            "mom126": 9.43,
+            "mom21": 2.95,
+            "mom63": 16.74,
             "riskPenalty": 2.88,
-            "score": 65.5,
+            "score": 64.7,
             "ticker": "DBC",
             "trend": "Uptrend",
-            "vol": 20.34
+            "vol": 20.33
           },
           {
             "asOf": "2026-10-30T13:30:00.000Z",
@@ -4481,7 +4481,7 @@
               {
                 "detail": "A weaker dollar supports a broad basket at the margin.",
                 "label": "Inverse USD",
-                "score": 28.57398166575514,
+                "score": 28.83765793529045,
                 "symbols": [
                   "UUP"
                 ]
@@ -4489,14 +4489,43 @@
             ],
             "maxDrawdown": 16.55,
             "model": "broad",
-            "mom126": 9.93,
-            "mom21": 3.25,
-            "mom63": 17.07,
+            "mom126": 9.44,
+            "mom21": 2.79,
+            "mom63": 16.55,
             "riskPenalty": 2.89,
-            "score": 65.3,
+            "score": 64.5,
             "ticker": "PDBC",
             "trend": "Uptrend",
             "vol": 20.17
+          },
+          {
+            "asOf": "2026-10-30T00:00:00.000Z",
+            "confirmations": [
+              {
+                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
+                "label": "Equity risk appetite",
+                "score": 43.43027710401319,
+                "symbols": [
+                  "QQQ"
+                ]
+              },
+              {
+                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly.",
+                "label": "Volatility / drawdown",
+                "score": 93.21226476483497,
+                "symbols": []
+              }
+            ],
+            "maxDrawdown": 11.38,
+            "model": "bitcoin",
+            "mom126": 27.88,
+            "mom21": -7.02,
+            "mom63": -1.39,
+            "riskPenalty": 1.7,
+            "score": 47.9,
+            "ticker": "BTC-USD",
+            "trend": "Mixed",
+            "vol": 36.85
           },
           {
             "asOf": "2026-10-30T13:30:00.000Z",
@@ -4504,7 +4533,7 @@
               {
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
                 "label": "Equity risk appetite",
-                "score": 45.338767654901275,
+                "score": 43.43027710401319,
                 "symbols": [
                   "QQQ"
                 ]
@@ -4518,43 +4547,14 @@
             ],
             "maxDrawdown": 28.36,
             "model": "bitcoin",
-            "mom126": -2.04,
-            "mom21": -9.16,
-            "mom63": 20.48,
+            "mom126": -2.53,
+            "mom21": -9.62,
+            "mom63": 19.87,
             "riskPenalty": 5.6,
-            "score": 48.8,
+            "score": 47.3,
             "ticker": "IBIT",
             "trend": "Mixed",
-            "vol": 37.92
-          },
-          {
-            "asOf": "2026-10-30T00:00:00.000Z",
-            "confirmations": [
-              {
-                "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
-                "label": "Equity risk appetite",
-                "score": 45.338767654901275,
-                "symbols": [
-                  "QQQ"
-                ]
-              },
-              {
-                "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly.",
-                "label": "Volatility / drawdown",
-                "score": 93.16831957787217,
-                "symbols": []
-              }
-            ],
-            "maxDrawdown": 11.43,
-            "model": "bitcoin",
-            "mom126": 27.81,
-            "mom21": -7.07,
-            "mom63": -1.44,
-            "riskPenalty": 1.71,
-            "score": 48.4,
-            "ticker": "BTC-USD",
-            "trend": "Mixed",
-            "vol": 36.86
+            "vol": 38.05
           }
         ],
         "scored": 14,
@@ -4565,7 +4565,7 @@
               {
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
                 "label": "Equity risk appetite",
-                "score": 45.338767654901275,
+                "score": 43.43027710401319,
                 "symbols": [
                   "QQQ"
                 ]
@@ -4573,20 +4573,20 @@
               {
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly.",
                 "label": "Volatility / drawdown",
-                "score": 93.16831957787217,
+                "score": 93.21226476483497,
                 "symbols": []
               }
             ],
-            "maxDrawdown": 11.43,
+            "maxDrawdown": 11.38,
             "model": "bitcoin",
-            "mom126": 27.81,
-            "mom21": -7.07,
-            "mom63": -1.44,
-            "riskPenalty": 1.71,
-            "score": 48.4,
+            "mom126": 27.88,
+            "mom21": -7.02,
+            "mom63": -1.39,
+            "riskPenalty": 1.7,
+            "score": 47.9,
             "ticker": "BTC-USD",
             "trend": "Mixed",
-            "vol": 36.86
+            "vol": 36.85
           },
           "DBC": {
             "asOf": "2026-10-30T13:30:00.000Z",
@@ -4604,7 +4604,7 @@
               {
                 "detail": "A weaker dollar supports a broad basket at the margin.",
                 "label": "Inverse USD",
-                "score": 28.57398166575514,
+                "score": 28.83765793529045,
                 "symbols": [
                   "UUP"
                 ]
@@ -4612,14 +4612,14 @@
             ],
             "maxDrawdown": 16.54,
             "model": "broad",
-            "mom126": 9.93,
-            "mom21": 3.42,
-            "mom63": 17.28,
+            "mom126": 9.43,
+            "mom21": 2.95,
+            "mom63": 16.74,
             "riskPenalty": 2.88,
-            "score": 65.5,
+            "score": 64.7,
             "ticker": "DBC",
             "trend": "Uptrend",
-            "vol": 20.34
+            "vol": 20.33
           },
           "GLD": {
             "asOf": "2026-10-30T13:30:00.000Z",
@@ -4627,7 +4627,7 @@
               {
                 "detail": "A weaker dollar is the modeled gold tailwind.",
                 "label": "Inverse USD",
-                "score": 28.57398166575514,
+                "score": 28.83765793529045,
                 "symbols": [
                   "UUP"
                 ]
@@ -4635,23 +4635,23 @@
               {
                 "detail": "TLT direction plus TIP-vs-TLT is a rough rate mix, not a direct real-yield series.",
                 "label": "Duration / real-rate proxy",
-                "score": 49.421139484463716,
+                "score": 49.55124912160298,
                 "symbols": [
                   "TLT",
                   "TIP"
                 ]
               }
             ],
-            "maxDrawdown": 17.98,
+            "maxDrawdown": 18.21,
             "model": "gold",
-            "mom126": -15.76,
-            "mom21": -6.86,
-            "mom63": -4.09,
-            "riskPenalty": 5.66,
-            "score": 24.2,
+            "mom126": -16,
+            "mom21": -7.13,
+            "mom63": -4.37,
+            "riskPenalty": 5.75,
+            "score": 23.9,
             "ticker": "GLD",
             "trend": "Downtrend",
-            "vol": 24.26
+            "vol": 24.34
           },
           "IBIT": {
             "asOf": "2026-10-30T13:30:00.000Z",
@@ -4659,7 +4659,7 @@
               {
                 "detail": "Growth-equity direction is a liquid risk-appetite proxy; no on-chain input is used.",
                 "label": "Equity risk appetite",
-                "score": 45.338767654901275,
+                "score": 43.43027710401319,
                 "symbols": [
                   "QQQ"
                 ]
@@ -4673,14 +4673,14 @@
             ],
             "maxDrawdown": 28.36,
             "model": "bitcoin",
-            "mom126": -2.04,
-            "mom21": -9.16,
-            "mom63": 20.48,
+            "mom126": -2.53,
+            "mom21": -9.62,
+            "mom63": 19.87,
             "riskPenalty": 5.6,
-            "score": 48.8,
+            "score": 47.3,
             "ticker": "IBIT",
             "trend": "Mixed",
-            "vol": 37.92
+            "vol": 38.05
           },
           "SLV": {
             "asOf": "2026-10-30T13:30:00.000Z",
@@ -4697,7 +4697,7 @@
               {
                 "detail": "Gold strength confirms the monetary-metal side of silver.",
                 "label": "Gold confirmation",
-                "score": 36.3603420186637,
+                "score": 35.445660289072066,
                 "symbols": [
                   "GLD"
                 ]
@@ -4705,22 +4705,22 @@
               {
                 "detail": "Industrials proxy the cyclical-demand side of silver.",
                 "label": "Industrial confirmation",
-                "score": 23.30498576927671,
+                "score": 21.151742582466763,
                 "symbols": [
                   "XLI"
                 ]
               }
             ],
-            "maxDrawdown": 44.14,
+            "maxDrawdown": 44.39,
             "model": "silver",
-            "mom126": -35.09,
-            "mom21": -19.44,
-            "mom63": -15.51,
-            "riskPenalty": 16.11,
+            "mom126": -35.38,
+            "mom21": -19.79,
+            "mom63": -15.88,
+            "riskPenalty": 16.21,
             "score": 0,
             "ticker": "SLV",
             "trend": "Downtrend",
-            "vol": 45.58
+            "vol": 45.69
           },
           "USO": {
             "asOf": "2026-10-30T13:30:00.000Z",
@@ -4746,30 +4746,30 @@
             ],
             "maxDrawdown": 32.49,
             "model": "energy",
-            "mom126": 20.14,
-            "mom21": 14.36,
-            "mom63": 40.49,
-            "riskPenalty": 12.69,
+            "mom126": 19.19,
+            "mom21": 13.45,
+            "mom63": 39.37,
+            "riskPenalty": 12.68,
             "score": 81.1,
             "ticker": "USO",
             "trend": "Uptrend",
-            "vol": 47.71
+            "vol": 47.66
           }
         }
       },
-      "read": "USO leads real assets at 81.1/100; GLD 24.2, BTC 48.4, SLV 0.",
+      "read": "USO leads real assets at 81.1/100; GLD 23.9, BTC 47.9, SLV 0.",
       "source": "owning-tool-functions"
     },
     "research-agenda-lab": {
-      "asOf": "2026-10-30T17:16:36.380Z",
+      "asOf": "2026-10-30T18:31:53.515Z",
       "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
       "id": "research-agenda-lab",
       "metrics": {
         "agendaRead": {
-          "asOf": "2026-10-30T17:16:36.380Z",
+          "asOf": "2026-10-30T18:31:53.515Z",
           "contractVersion": "research-agenda-read/v1",
-          "generationId": "generation-9749a88306dda7a318170615ff4147dff3c04fa90dfbf91b55336234650b975b",
-          "readFingerprint": "sha256:c8193f7f0fa26e19f9359bfec274822e30ad70bee6c9ee095d6e9b099dec2b16",
+          "generationId": "generation-17ac81b4a2ab2729ea4e4e3f70abe6a73bf207dc7b2bbe609bd4dffbd989747f",
+          "readFingerprint": "sha256:42f6b505a9d80d46c3de355fff065d9516be6b49a11dbebb0e44d6cdf5b7ba6e",
           "topics": [
             {
               "changeAssessment": "insufficient-evidence",
@@ -4781,7 +4781,7 @@
               "outcome": "unavailable",
               "predecessorDossierId": null,
               "reason": "search-fragment-invalid",
-              "reviewId": "review-65041111385e752cb4be7e0b79eb81a63940c1d47fdee8715f455307e88731d2",
+              "reviewId": "review-2b3071e890bf0b867f3bd1202c795bb81f1ab978b6a4653d0b6853a0c225d445",
               "selectionReason": "mode-required",
               "state": "unavailable",
               "supersedesDossierId": null,
@@ -4823,8 +4823,8 @@
         },
         "contractVersion": "research-agenda-tool-read/v1",
         "deferredTopicCount": 2,
-        "generationId": "generation-9749a88306dda7a318170615ff4147dff3c04fa90dfbf91b55336234650b975b",
-        "readFingerprint": "sha256:c8193f7f0fa26e19f9359bfec274822e30ad70bee6c9ee095d6e9b099dec2b16",
+        "generationId": "generation-17ac81b4a2ab2729ea4e4e3f70abe6a73bf207dc7b2bbe609bd4dffbd989747f",
+        "readFingerprint": "sha256:42f6b505a9d80d46c3de355fff065d9516be6b49a11dbebb0e44d6cdf5b7ba6e",
         "reviewedTopicCount": 0,
         "unavailableTopicCount": 1
       },
@@ -4833,52 +4833,52 @@
       "state": "unavailable"
     },
     "sector-research-lab": {
-      "asOf": "2026-10-30T17:16:34.736Z",
+      "asOf": "2026-10-30T18:31:51.566Z",
       "deepLink": "sector-research-lab.html",
       "id": "sector-research-lab",
       "metrics": {
         "benchmark": "SPY",
         "count": 11,
         "into": {
-          "accel": 2.13,
-          "ma200Dist": 5.5,
+          "accel": 2.08,
+          "ma200Dist": 4.71,
           "maStack": "bull-stack",
           "quad": "A",
           "rotation": "into",
           "rrgState": "Basing ↑",
-          "rsMom": 99.33,
-          "rsMom1m": -8.6,
-          "rsMom3m": 0.47,
-          "rsMom6m": 5.23,
-          "rsRatio": 98.45,
+          "rsMom": 99.27,
+          "rsMom1m": -8.75,
+          "rsMom3m": 0.25,
+          "rsMom6m": 4.95,
+          "rsRatio": 98.37,
           "ticker": "XLK"
         },
         "leader": {
           "accel": -1.78,
-          "ma200Dist": 20.14,
+          "ma200Dist": 19.53,
           "maStack": "bull-stack",
           "quad": "W",
           "rotation": "out",
           "rrgState": "Weakening ↓",
           "rsMom": 99.69,
-          "rsMom1m": 12.57,
-          "rsMom3m": 19.61,
-          "rsMom6m": 14.95,
-          "rsRatio": 102.28,
+          "rsMom1m": 12.52,
+          "rsMom3m": 19.53,
+          "rsMom6m": 14.89,
+          "rsRatio": 102.29,
           "ticker": "XLE"
         },
         "out": {
-          "accel": -2.85,
-          "ma200Dist": 17.69,
+          "accel": -2.75,
+          "ma200Dist": 17.64,
           "maStack": "bull-stack",
           "quad": "L",
           "rotation": "out",
           "rrgState": "Peaking ⚠",
-          "rsMom": 100.54,
-          "rsMom1m": 12.8,
-          "rsMom3m": 14.89,
-          "rsMom6m": 23.56,
-          "rsRatio": 103.21,
+          "rsMom": 100.64,
+          "rsMom1m": 13.27,
+          "rsMom3m": 15.37,
+          "rsMom6m": 24.06,
+          "rsRatio": 103.34,
           "ticker": "XLV"
         }
       },
@@ -4942,41 +4942,41 @@
   },
   "watchlistNotes": {
     "FBTC": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: FBTC 66.99, bull-stack."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: FBTC 66.68, bull-stack."
     },
     "FETH": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: FETH 22.27, tangled."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: FETH 22.12, tangled."
     },
     "FMTM": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: FMTM 38.18, bull-stack."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: FMTM 38.12, bull-stack."
     },
     "GLD": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: GLD 356.5, bear-stack."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: GLD 355.48, bear-stack."
     },
     "MSFT": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: MSFT 521.33, bull-stack."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: MSFT 519.09, bull-stack."
     },
     "QQQ": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: QQQ 688.91, bull-stack."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: QQQ 684.64, bull-stack."
     },
     "SOXX": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: SOXX 465.13, tangled."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: SOXX 461.24, tangled."
     },
     "SPCX": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: SPCX 136.92, n/a."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: SPCX 135.68, n/a."
     },
     "SPMO": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: SPMO 135.8, tangled."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: SPMO 134.93, tangled."
     },
     "VGT": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: VGT 116.29, bull-stack."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: VGT 115.46, bull-stack."
     },
     "XLE": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: XLE 69.86, bull-stack."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: XLE 69.5, bull-stack."
     },
     "XLK": {
-      "status": "Current snapshot 2026-10-30T15:00:00.000Z: XLK 178.54, bull-stack."
+      "status": "Current snapshot 2026-10-30T19:00:00.000Z: XLK 177.2, bull-stack."
     }
   },
-  "window": "morning"
+  "window": "pre-close"
 }

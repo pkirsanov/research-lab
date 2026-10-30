@@ -6398,6 +6398,11 @@
                     windows: state.briefWindows,
                     windowId: state.briefWindowId,
                     publishedAt: state.briefPublishedAt,
+                    // The session's actual trading day, not the wall-clock publication instant:
+                    // an after-hours ET window routinely publishes after midnight UTC, and the
+                    // cutoff must stay anchored to the session it bounds, not to whichever UTC
+                    // calendar day publication happened to land on.
+                    windowTradingDate: state.genericWindow.windowTradingDate,
                     composedAt: behaviorCutoffAt,
                     /* The revision's stable identity IS its content fingerprint (`portfolioId`),
                        assigned in rlportfolio.js. Using it means a brief identity changes whenever

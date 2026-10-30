@@ -751,10 +751,19 @@
   /* The cutoff is the window's exact ET time on the evidence date. ET is UTC-4 during the
      daylight-saving period the market calendar uses for these windows; the offset is taken from
      the caller when supplied so this stays correct rather than assuming one half of the year. */
-  function cutoffFor(window, referenceIso, etOffsetMinutes) {
+  /* `tradingDate`, when given, is the window's actual session/trading day — the correct source
+     for the cutoff's calendar day. Publication is a real-world wall-clock event that can land
+     after midnight UTC relative to the session it reports on (an after-hours ET window routinely
+     publishes at 23:xx ET, i.e. 03:xx UTC the NEXT day): deriving the cutoff's day from
+     `referenceIso` (publishedAt) in that case silently shifts the cutoff a full day later than
+     the session it is supposed to bound, so evidence genuinely after cutoff is miscounted as
+     before it (observed: SCN-008-006's excludedAfterCutoff assertion failing with 0 against an
+     intentionally after-cutoff fixture). `referenceIso` remains the fallback so callers that
+     never carried a trading date (pre-existing unit-test fixtures) see no behavior change. */
+  function cutoffFor(window, referenceIso, etOffsetMinutes, tradingDate) {
     var parts = String(window.etTime || "").split(":");
     if (parts.length !== 2) return null;
-    var day = referenceIso.slice(0, 10);
+    var day = (typeof tradingDate === "string" && tradingDate) ? tradingDate : referenceIso.slice(0, 10);
     var offset = isFinite(etOffsetMinutes) ? etOffsetMinutes : -240;
     var utcMs = Date.parse(day + "T" + parts[0] + ":" + parts[1] + ":00.000Z") - offset * 60000;
     return isFinite(utcMs) ? new Date(utcMs).toISOString() : null;
@@ -801,7 +810,7 @@
     }
     if (!window) return err("P008-BRIEF-WINDOW-ID", "window-not-in-generic-contract", "windowId");
 
-    var evidenceCutoffAt = cutoffFor(window, input.publishedAt, input.etOffsetMinutes);
+    var evidenceCutoffAt = cutoffFor(window, input.publishedAt, input.etOffsetMinutes, input.windowTradingDate);
     if (!evidenceCutoffAt) return err("P008-BRIEF-CUTOFF", "window-et-time-unparseable", "windows");
 
     // INVARIANT 1. Split rather than filter, so the exclusion can be reported as a number.

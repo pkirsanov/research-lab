@@ -564,6 +564,30 @@ function omlxOutputSeed(lane) {
         };
     }
     if (lane.id === 'signals') {
+        // The signals lane's own instructions require a populated events[] (nearest-first,
+        // each with event/consensus/psychologyNote/scenarios[].name/expectedEffect), but a
+        // literal `events: []` here taught the model that empty is an acceptable answer — the
+        // local model does not compose from factCard.instruments the way it does for the SPY
+        // recommendation above; it echoes this seed close to verbatim. An empty seed produced an
+        // empty answer on every run, independent of whether config.macroEvents actually had a
+        // future catalyst on file. Seed one real upcoming event (nearest on/after
+        // nextSessionDate) so the model has a concrete shape to adapt instead of a shape that
+        // teaches it to skip the field.
+        const upcoming = (config.macroEvents || [])
+            .filter((event) => typeof event?.date === 'string' && event.date >= snapshot.nextSessionDate)
+            .sort((a, b) => a.date.localeCompare(b.date))[0];
+        const seededEvent = upcoming ? [{
+            event: `${upcoming.type} ${upcoming.date}`,
+            when: upcoming.date,
+            type: upcoming.type,
+            consensus: upcoming.note || `${upcoming.type} on ${upcoming.date}; consensus is not verified this run.`,
+            impliedMovePct: 'Not verified this run.',
+            scenarios: [
+                { name: 'In line', prob: 0.6, expectedEffect: `Limited reaction; SPY holds near ${px} with VIX ${vix}.` },
+                { name: 'Surprise', prob: 0.4, expectedEffect: `A volatility pickup that pressures SPY toward ${ma50}.` }
+            ],
+            psychologyNote: `Positioning into ${upcoming.type} on ${upcoming.date} is not independently verified this run.`
+        }] : [];
         return {
             attention: [],
             recommendations: [{
@@ -574,7 +598,7 @@ function omlxOutputSeed(lane) {
                 trigger: `Hold while SPY remains above ${ma50}.`,
                 invalidation: `A daily SPY close below ${ma50} invalidates the hold.`
             }],
-            events: []
+            events: seededEvent
         };
     }
     return null;

@@ -598,6 +598,29 @@
                Single-sourced to RLMARKETSTRUCTURE.pctOverWindow (owner formula; no inline copy). */
             function pctOver(rows, win) { return RLMARKETSTRUCTURE.pctOverWindow(rows, win); }
 
+            /* live (current-session) quote for a ticker, from data/bars/live.json — populated by
+               fetch-bars.mjs out of the same Yahoo response used for daily bars (no extra fetch).
+               Only trusted for the "1d" window: longer windows are inherently close-to-close. */
+            function liveQuoteFor(ticker) {
+                var q = window.LIVE && window.LIVE.quotes && window.LIVE.quotes[ticker];
+                return (q && Number.isFinite(q.pct)) ? q : null;
+            }
+            /* resolves a cell's return for the current window, preferring a genuine current-session
+               live quote over the last completed daily bar when one is available and newer. */
+            function cellReturn(ticker, rows, win) {
+                if (win === "1d") {
+                    var q = liveQuoteFor(ticker);
+                    var lastBarDate = rows && rows.length ? sessionDateOf(rows[rows.length - 1]) : null;
+                    if (q && (!lastBarDate || q.sessionDate > lastBarDate)) {
+                        return { pct: q.pct, live: true, asOf: q.asOf };
+                    }
+                }
+                return { pct: rows ? pctOver(rows, win) : null, live: false, asOf: null };
+            }
+            function sessionDateOf(bar) {
+                return bar && Number.isFinite(bar.t) ? new Date(bar.t).toISOString().slice(0, 10) : null;
+            }
+
             /* dollar-volume of the last bar (price × volume). */
             function dollarVol(rows) {
                 if (!Array.isArray(rows) || !rows.length) return 0;
@@ -684,6 +707,7 @@
             function heatPointId(cell) { return String(cell.ticker || "unavailable").replace(/[^A-Za-z0-9:._-]+/g, "-"); }
             function heatRowId(cell) { return "heatmap-row-" + heatPointId(cell); }
             function heatObservedAsOf(cell) {
+                if (cell && cell.live && cell.liveAsOf) return cell.liveAsOf;
                 var rows = window.RLDATA && RLDATA.bars(cell.ticker, "1d");
                 var latest = rows && rows.length ? rows[rows.length - 1] : null;
                 return latest && Number.isFinite(latest.t) ? new Date(latest.t).toISOString() : "unavailable";
@@ -692,8 +716,12 @@
                 var available = Number.isFinite(cell.pct);
                 var valueText = available ? (cell.pct >= 0 ? "+" : "") + cell.pct.toFixed(2) + "%" : "Unavailable";
                 var zText = Number.isFinite(cell.z) ? (cell.z >= 0 ? "+" : "") + cell.z.toFixed(2) + " standard deviations" : "unavailable sector deviation";
+                /* "current" means a live current-session quote; a value from the last completed
+                   daily bar is truthfully "stale" even though a number is displayed. */
+                var truthState = !available ? "unavailable" : (cell.live ? "current" : "stale");
                 var interpretation = available
                     ? cell.ticker + " moved " + valueText + " over " + state.win + " and is " + zText + " versus its " + cell.sector + " peers."
+                        + (truthState === "stale" ? " This reflects the last completed session, not live intraday trading." : "")
                     : "No current return interpretation is available because the shared cache has no complete price window for " + cell.ticker + ".";
                 var context = {
                     contractVersion: "contextual-tooltip/v1",
@@ -701,7 +729,7 @@
                     triggerKind: "chart-point",
                     label: cell.ticker + " " + state.win + " return",
                     definition: "The close-to-close percentage return over the selected heatmap window, compared with the owning sector distribution.",
-                    displayed: { valueText: valueText, numericValue: available ? cell.pct : null, unit: "percent", truthState: available ? "current" : "unavailable" },
+                    displayed: { valueText: valueText, numericValue: available ? cell.pct : null, unit: "percent", truthState: truthState },
                     interpretation: {
                         text: interpretation,
                         direction: "threshold-dependent",
@@ -716,7 +744,7 @@
                         sourceRefs: ["rlData:bars:" + cell.ticker + ":1d"],
                         observedAsOf: heatObservedAsOf(cell),
                         retrievedOrPublishedAt: heatObservedAsOf(cell),
-                        freshness: available ? "cache-current-for-render" : "unavailable",
+                        freshness: !available ? "unavailable" : (cell.live ? "live-current-session" : "cache-current-for-render"),
                         dataTier: "shared cache snapshot"
                     },
                     uncertainty: {
@@ -728,7 +756,7 @@
                     triggerCondition: "The selected " + state.win + " return remains available from the shared cache.",
                     invalidationCondition: "The cache window changes, becomes incomplete, or a later observation replaces the current endpoint.",
                     links: { owner: "market-heatmap-lab.html#power", citation: "", sameDataTable: "#" + heatRowId(cell), ticker: window.RLTKR ? RLTKR.href(cell.ticker) : "https://finance.yahoo.com/quote/" + encodeURIComponent(cell.ticker) },
-                    accessibility: { conciseLabel: cell.ticker + " return " + valueText + ", " + (available ? "current" : "unavailable"), longDescriptionId: "rlcontext-heatmap-" + heatPointId(cell) + "-" + state.win },
+                    accessibility: { conciseLabel: cell.ticker + " return " + valueText + ", " + truthState, longDescriptionId: "rlcontext-heatmap-" + heatPointId(cell) + "-" + state.win },
                     contextFingerprint: null
                 };
                 var result = window.RLCTX && RLCTX.validateContext(context);
@@ -792,7 +820,8 @@
                         } else {
                             if (!e.ticker) continue;   /* guard: skip malformed single-ticker entries (no undefined tile) */
                             var rows = (window.RLDATA && RLDATA.bars(e.ticker, "1d")) || null;
-                            cells.push({ ticker: e.ticker, label: e.label || e.ticker, sector: e.label || e.ticker, sectorId: e.id, pct: rows ? pctOver(rows, win) : null, size: state.size === "dvol" ? sizeOf(rows) : 1 });
+                            var ret = cellReturn(e.ticker, rows, win);
+                            cells.push({ ticker: e.ticker, label: e.label || e.ticker, sector: e.label || e.ticker, sectorId: e.id, pct: ret.pct, live: ret.live, liveAsOf: ret.asOf, size: state.size === "dvol" ? sizeOf(rows) : 1 });
                         }
                     }
                 } else {
@@ -800,7 +829,8 @@
                         cs = UNI.sectorMap[s].constituents || [];
                         for (j = 0; j < cs.length; j++) {
                             var c = cs[j], rws = (window.RLDATA && RLDATA.bars(c.ticker, "1d")) || null;
-                            cells.push({ ticker: c.ticker, label: c.name || c.ticker, sector: UNI.sectorMap[s].label || s, sectorId: s, pct: rws ? pctOver(rws, win) : null, size: sizeOf(rws, c.weight) });
+                            var cret = cellReturn(c.ticker, rws, win);
+                            cells.push({ ticker: c.ticker, label: c.name || c.ticker, sector: UNI.sectorMap[s].label || s, sectorId: s, pct: cret.pct, live: cret.live, liveAsOf: cret.asOf, size: sizeOf(rws, c.weight) });
                         }
                     }
                 }
@@ -1097,6 +1127,15 @@
                 }).catch(function () { }).then(function () { return window.AVAIL; });
             }
 
+            /* Current-session live quotes (data/bars/live.json), written by fetch-bars.mjs from the
+               same Yahoo response used for daily bars whenever the market is open. Best-effort: a
+               missing/unreachable artifact just means every cell falls back to the last daily bar. */
+            function loadLiveQuotes() {
+                return fetch("data/bars/live.json").then(function (r) { return r.ok ? r.json() : null; }).then(function (j) {
+                    window.LIVE = (j && j.quotes) ? j : null;
+                }).catch(function () { window.LIVE = null; }).then(function () { return window.LIVE; });
+            }
+
             function boot() {
                 document.body.setAttribute("data-heatmap-hydration", "loading");
                 loadState();
@@ -1104,7 +1143,7 @@
                 syncSeg("sizeSeg", "data-s", state.size); syncSeg("grpSeg", "data-g", state.grp);
                 document.body.classList.toggle("power", state.mode === "power");
                 wire();
-                loadUniverse().then(loadBarsIndex).then(function () {
+                loadUniverse().then(loadBarsIndex).then(loadLiveQuotes).then(function () {
                     /* cache-first paint is best-effort: a bad/stale cache must never wedge boot before the fresh fetch */
                     try { hydrateFromCache(); }
                     catch (e) { try { localStorage.removeItem("rlData"); } catch (_) { } }

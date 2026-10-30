@@ -293,6 +293,41 @@ const coherenceRejections = [];
  * symbol in the run summary, counted in index.json, and recorded in each symbol's own file. */
 const coherenceQuarantines = [];
 
+/* Current-session (intraday, still-forming) quote, captured separately from the authoritative
+ * daily bars below. `trimBars` deliberately drops any row dated after the latest COMPLETED
+ * session — a provisional intraday point must never be written into a historical daily bar, or a
+ * later run would see the session "change" after it already looked settled. That rule is correct
+ * for the committed bar corpus, but it also means every daily-bar consumer (Market Heatmap chief
+ * among them, per the file header) had no way to show a current-session move at all: during market
+ * hours the latest available bar was always yesterday's close, labeled no differently from a bar
+ * fetched at 2am with nothing new to report. This captures exactly the row `trimBars` is about to
+ * discard — the vendor's own still-forming point — as a side artifact that is explicit about what
+ * it is (intraday, not yet a settled session), so a reader can show "current" without it quietly
+ * becoming tomorrow's permanent historical close. */
+const liveQuotes = {};
+function captureLiveQuote(sym, daily, priorClose, priorSessionDate, cutoffDate) {
+  try {
+    const result = daily && daily.chart && daily.chart.result && daily.chart.result[0];
+    const timestamps = result && result.timestamp;
+    if (!Array.isArray(timestamps) || !timestamps.length) return;
+    const quote = (result.indicators && result.indicators.quote && result.indicators.quote[0]) || {};
+    const lastIndex = timestamps.length - 1;
+    const t = timestamps[lastIndex] * 1000;
+    const sessionDate = sessionDateFromMs(t);
+    // Only a row strictly after the last completed session is "current" — one at or before the
+    // cutoff is already in the authoritative bars and carries no new information here.
+    if (!cutoffDate || !sessionDate || sessionDate <= cutoffDate) return;
+    const price = quote.close && Number.isFinite(quote.close[lastIndex]) ? quote.close[lastIndex] : null;
+    if (!Number.isFinite(price)) return;
+    const pct = Number.isFinite(priorClose) && priorClose !== 0 ? ((price / priorClose) - 1) * 100 : null;
+    liveQuotes[sym] = {
+      price, asOf: new Date(t).toISOString(), sessionDate,
+      priorClose: Number.isFinite(priorClose) ? priorClose : null, priorSessionDate: priorSessionDate || null,
+      pct: Number.isFinite(pct) ? Math.round(pct * 100) / 100 : null
+    };
+  } catch { /* best-effort side channel; never affects the authoritative bar write */ }
+}
+
 async function refreshSymbol(sym) {
   const existingFile = OUT_DIR + '/' + sym + '.json';
   const existing = readJSON(existingFile, null), existingRows = existing && existing.rows;
@@ -323,6 +358,9 @@ async function refreshSymbol(sym) {
     const daily = await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=' + RANGE + '&includeAdjustedClose=true&events=div%2Csplits');
     const parsed = trimBars(daily, enforceSession ? EXPECTED_SESSION_DATE : null);
     if (!parsed) throw new Error('no daily bars');
+    if (enforceSession && parsed.rows.length) {
+      captureLiveQuote(sym, daily, parsed.rows[parsed.rows.length - 1].c, EXPECTED_SESSION_DATE, EXPECTED_SESSION_DATE);
+    }
     /* In a repair run an existing row written on the old mixed basis must not survive the merge. A
        row whose timestamp the widened pull returns is replaced anyway; one it does not return is
        unrepairable — its raw close no longer exists anywhere — so it is dropped and COUNTED. A
@@ -431,6 +469,20 @@ async function main() {
   if (COMPLETE_RUN && !EXPECTED_SESSION_DATE) throw new Error('cannot resolve the latest completed XNYS session');
   mkdirSync(OUT_DIR, { recursive: true });
   const syms = REPAIR_COHERENCE ? repairUniverse() : universe();
+  // Seed from the previous run's live quotes so a symbol that hits the cache-reuse short-circuit
+  // in refreshSymbol (no fresh vendor fetch this run) keeps its last-captured current-session
+  // value instead of silently vanishing from the artifact. A genuinely fresh capture below
+  // overwrites it; one still dated at or before EXPECTED_SESSION_DATE is now stale by definition
+  // (the session it described has since completed and is in the authoritative bars) and is
+  // dropped rather than carried forward as a false "current" reading.
+  const previousLive = readJSON(OUT_DIR + '/live.json', null);
+  if (previousLive && previousLive.quotes && typeof previousLive.quotes === 'object') {
+    for (const [sym, quote] of Object.entries(previousLive.quotes)) {
+      if (quote && syms.includes(sym) && (!EXPECTED_SESSION_DATE || quote.sessionDate > EXPECTED_SESSION_DATE)) {
+        liveQuotes[sym] = quote;
+      }
+    }
+  }
   console.log('refreshing ' + syms.length + ' canonical ticker histories with concurrency=' + FETCH_CONCURRENCY + (REPAIR_COHERENCE ? '  (coherence repair: range=' + RANGE + ', cache reuse bypassed, corpus files included)' : ''));
   const idx = (await mapConcurrent(syms, FETCH_CONCURRENCY, refreshSymbol)).filter(Boolean);
   const returned = new Set(idx.map((row) => row.sym));
@@ -452,6 +504,9 @@ async function main() {
     coherenceRejectedCount: coherenceRejections.length,
     coherenceRejectedSymbols: coherenceRejections.map((entry) => entry.sym),
     droppedUnrepairableCount, missing, tickers: idx
+  }));
+  writeFileSync(OUT_DIR + '/live.json', JSON.stringify({
+    updated: new Date().toISOString(), expectedSessionDate: EXPECTED_SESSION_DATE, quotes: liveQuotes
   }));
   console.log('\nwrote ' + idx.length + '/' + syms.length + ' bar snapshots to ' + OUT_DIR);
   if (droppedUnrepairableCount) console.log('dropped ' + droppedUnrepairableCount + ' unrepairable row(s) whose raw close the vendor no longer returns');

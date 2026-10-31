@@ -1,12 +1,12 @@
 {
   "asOf": "2026-10-31T15:00:00.000Z",
-  "generatedAt": "2026-10-31T14:31:42.133Z",
+  "generatedAt": "2026-10-31T18:28:18.061Z",
   "window": "morning",
   "marketClosed": true,
   "nextSessionDate": "2026-11-02",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-10-31T14:30:23.608Z",
+      "updated": "2026-10-31T18:26:54.081Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-10-30",
       "refreshDate": "2026-10-31",
@@ -16,7 +16,7 @@
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-10-31T14:30:26.452Z",
+      "updated": "2026-10-31T18:26:54.140Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-10-31",
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-10-31T14:31:40.771Z",
+      "asOf": "2026-10-31T18:28:16.487Z",
       "read": "Rotate toward XLK as XLV weakens.",
       "metrics": {
         "into": {
@@ -747,16 +747,16 @@
     "global-rotation-lab": {
       "id": "global-rotation-lab",
       "asOf": "2026-10-30T13:30:00.000Z",
-      "read": "EWC (Canada) leads global rotation at 74.5/100 versus ACWI; EWA is next.",
+      "read": "EWC (Canada) leads global rotation at 74.6/100 versus ACWI; EWA is next.",
       "metrics": {
         "benchmark": "ACWI",
         "leader": {
           "ticker": "EWC",
           "country": "Canada",
-          "score": 74.5,
+          "score": 74.6,
           "rel21": 5.72,
           "rel63": 2.83,
-          "rel126": 0.24,
+          "rel126": 0.73,
           "trend": "Constructive",
           "vol": 13.34,
           "maxDrawdown": 8.51,
@@ -766,10 +766,10 @@
           {
             "ticker": "EWC",
             "country": "Canada",
-            "score": 74.5,
+            "score": 74.6,
             "rel21": 5.72,
             "rel63": 2.83,
-            "rel126": 0.24,
+            "rel126": 0.73,
             "trend": "Constructive",
             "vol": 13.34,
             "maxDrawdown": 8.51,
@@ -843,7 +843,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-f913970b",
+            "setId": "set-v1-56c23171",
             "purpose": "global-usd-leadership",
             "horizonSessions": 63,
             "legs": [
@@ -853,7 +853,7 @@
                 "subject": "EWC",
                 "orientation": "etf",
                 "adjustment": "adjusted-close",
-                "validDateCount": 520
+                "validDateCount": 501
               },
               {
                 "legId": "benchmark",
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": -0.012029942547191697,
           "usdRelativeReturn": 0.028291424210105554,
           "asOf": "2026-10-30T00:00:00.000Z",
-          "computedAt": "2026-10-31T14:31:40.931Z",
+          "computedAt": "2026-10-31T18:28:16.627Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1351,7 +1351,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-fcf7727d",
+            "setId": "set-v1-baa88a67",
             "purpose": "global-decomposition",
             "horizonSessions": 63,
             "legs": [
@@ -1361,7 +1361,7 @@
                 "subject": "EWC",
                 "orientation": "etf",
                 "adjustment": "adjusted-close",
-                "validDateCount": 520
+                "validDateCount": 501
               },
               {
                 "legId": "benchmark",
@@ -1936,7 +1936,7 @@
           "interaction": 0.00016663606436495662,
           "relationship": "FX-Led Translation",
           "asOf": "2026-10-29T00:00:00.000Z",
-          "computedAt": "2026-10-31T14:31:40.931Z",
+          "computedAt": "2026-10-31T18:28:16.627Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1956,11 +1956,11 @@
               "ticker": "EWC",
               "country": "Canada",
               "currency": "CAD",
-              "score": 74.50125866879085,
+              "score": 74.64102744938221,
               "usdLeadership": {
                 "asOf": "2026-10-30T00:00:00.000Z",
                 "benchmarkReturn": -0.012029942547191697,
-                "computedAt": "2026-10-31T14:31:40.931Z",
+                "computedAt": "2026-10-31T18:28:16.627Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2438,7 +2438,7 @@
                       "observationId": "EWC",
                       "orientation": "etf",
                       "subject": "EWC",
-                      "validDateCount": 520
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -2457,7 +2457,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-usd-leadership",
-                  "setId": "set-v1-f913970b",
+                  "setId": "set-v1-56c23171",
                   "state": "aligned"
                 },
                 "state": "ready",
@@ -2469,7 +2469,7 @@
                 "approximateLocalReturn": 0.019553076992459673,
                 "asOf": "2026-10-29T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.027630415801526365,
-                "computedAt": "2026-10-31T14:31:40.931Z",
+                "computedAt": "2026-10-31T18:28:16.627Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "CAD",
                 "freshUntil": null,
@@ -3025,7 +3025,7 @@
                       "observationId": "EWC",
                       "orientation": "etf",
                       "subject": "EWC",
-                      "validDateCount": 520
+                      "validDateCount": 501
                     },
                     {
                       "adjustment": "adjusted-close",
@@ -3053,7 +3053,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-fcf7727d",
+                  "setId": "set-v1-baa88a67",
                   "state": "aligned"
                 },
                 "relationship": "FX-Led Translation",
@@ -3067,7 +3067,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-10-31T14:31:40.931Z",
+          "computedAt": "2026-10-31T18:28:16.627Z",
           "freshUntil": null
         }
       },
@@ -3789,7 +3789,7 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-10-31T14:31:41.943Z",
+      "asOf": "2026-10-31T18:28:17.821Z",
       "read": "The AI-capex universe is dated 2026-06-30, 124 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
@@ -3868,15 +3868,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-10-31T14:31:41.954Z",
+      "asOf": "2026-10-31T18:28:17.834Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-a097f24a",
-        "evidenceIdentity": "fxe-v1-2a1124e3",
+        "ownerDecisionId": "fxo-v1-20422c8e",
+        "evidenceIdentity": "fxe-v1-be02c2e5",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -3999,8 +3999,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-a097f24a",
-            "evidenceIdentity": "fxe-v1-2a1124e3",
+            "ownerDecisionId": "fxo-v1-20422c8e",
+            "evidenceIdentity": "fxe-v1-be02c2e5",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4120,7 +4120,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-2a1124e3",
+              "evidenceIdentity": "fxe-v1-be02c2e5",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4145,7 +4145,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-10-31T14:31:41.954Z",
+          "computedAt": "2026-10-31T18:28:17.834Z",
           "freshUntil": null
         }
       }
@@ -4171,7 +4171,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-10-31T14:31:42.005Z",
+      "asOf": "2026-10-31T18:28:17.897Z",
       "read": "Leadership is narrow — 53.73% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4353,7 +4353,7 @@
       "id": "global-rotation-lab",
       "deepLink": "global-rotation-lab.html",
       "status": "fresh-headless",
-      "reason": "EWC (Canada) leads global rotation at 74.5/100 versus ACWI; EWA is next."
+      "reason": "EWC (Canada) leads global rotation at 74.6/100 versus ACWI; EWA is next."
     },
     {
       "id": "real-assets-lab",

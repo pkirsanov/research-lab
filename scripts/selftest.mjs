@@ -30836,6 +30836,94 @@ try {
   'Feature 031 exports one frozen CommonJS foundation API for contract and reader validation');
 } catch (e) { failures++; console.log('  \u2717 FAIL (Feature 031 shock-transmission foundation threw): ' + e.message); }
 /* ---------- Feature 031 shock-transmission foundation (END) ---------- */
+
+/* ---------- Overreaction snap-back scanner (rloverreaction.js) (START) ---------- */
+try {
+  group('Overreaction snap-back scanner — K1 detection, K2 verdict, K3 plan, confidence caps, evidence contract');
+  const { createRequire: createOrRequire } = await import('node:module');
+  const OR = createOrRequire(import.meta.url)('../rloverreaction.js');
+  const { buildOverreactionFixture } = await import('../tests/overreaction-fixture.support.mjs');
+  const fx = buildOverreactionFixture();
+  const closedAt = Date.parse(fx.lastDate + 'T21:00:00Z');
+  const scan = (extra = {}) => OR.scanUniverse({ sectorMap: fx.sectorMap, rowsFor: (s) => fx.bars[s] || null, benchSym: 'SPY', nowMs: closedAt, sessionLive: false, evidence: fx.evidence, ...extra });
+  const evidenceWith = (patch) => ({ ...fx.evidence, events: [{ ...fx.evidenceEvent, ...patch }] });
+
+  const base = scan(), hit = base.results[0];
+  assert(Object.isFrozen(OR) && base.scanned === 4 && base.results.length === 1 && hit.candidate.symbol === 'OVRA' && hit.candidate.shockDate === fx.shockDate,
+    'detects only the stock whose sector-adjusted drop clears max(3 sigma, 5%) on at least 2x volume — calm peers are not flagged');
+  assert(hit.candidate.shock.refSym === 'XFIX' && Math.abs(hit.candidate.shock.residual) < Math.abs(hit.candidate.shock.move) && hit.candidate.shock.rvol > 5,
+    'the drop is market-adjusted against the sector ETF with a regression beta, and RVOL is measured against the 20-session average');
+  assert(hit.evaluation.verdict === 'overblown' && hit.evaluation.show === true && hit.evaluation.confidence === 7 && hit.candidate.post.state === 'ready',
+    'no-news drop, estimates barely cut, credit unmoved, calm peers and a held day-1 low -> overblown, shown, capped at 7 because unearned');
+  assert(hit.evaluation.steps.some((s) => /Clipped/.test(s.label)) && hit.evaluation.caps.some((c) => c.cap === 7 && /unearned/.test(c.why)),
+    'the confidence arithmetic is recorded step by step, including the clip and the unearned cap');
+  const p = hit.candidate.post;
+  assert(p.stop < p.day1Low && p.target > p.entry && Math.abs(p.target - (p.day1Low + 0.5 * (p.preShockClose - p.day1Low))) < 1e-9 && p.rewardRisk >= 2,
+    'plan: stop below the drop-day low, target = half the drop retraced, reward at least 2x risk');
+
+  const noEvidence = scan({ evidence: null }).results[0].evaluation;
+  assert(noEvidence.verdict === 'unclear' && noEvidence.show === false && noEvidence.needsEvidence === true,
+    'without a sourced cause/revisions/credit record the verdict is unclear and nothing is shown, however strong the tape looks');
+  const broken = scan({ evidence: evidenceWith({ thesisBreaking: true }) }).results[0].evaluation;
+  assert(broken.verdict === 'thesis-breaking' && broken.show === false, 'a thesis-breaking event is never called overblown');
+  const fundamental = scan({ evidence: evidenceWith({ cause: { class: 'fundamental-news', summary: 'Fixture: guidance cut by 15% for next year.', publishedAt: fx.shockDate + 'T12:00:00Z' }, revisions: { pctChange: -9, asOf: fx.lastDate + 'T20:00:00Z' }, credit: { confirms: true, note: 'wider' }, justifiedMovePct: -8 }) }).results[0].evaluation;
+  assert(fundamental.show === false && fundamental.verdict !== 'overblown', 'a drop justified by real fundamental news with confirming credit and revisions is not shown');
+  const ctxBlock = scan({ evidence: evidenceWith({ contextBlocks: ['IR1'] }) }).results[0].evaluation;
+  assert(ctxBlock.verdict === 'unclear' && ctxBlock.show === false, 'a refinancing-in-a-late-cycle context rule (IR1) blocks the overblown call');
+  const earnings = scan({ evidence: evidenceWith({ nextEarnings: fx.lastDate }) }).results[0].evaluation;
+  assert(earnings.show === false && /earnings/.test(earnings.firstFailure), 'earnings inside the holding window blocks the setup');
+
+  const liveOpen = scan({ sessionLive: true }).results[0].evaluation;
+  assert(liveOpen.show === false && liveOpen.confidence === 6 && liveOpen.caps.some((c) => /prior close/.test(c.why)),
+    'during a live session a setup priced off the prior close is capped at 6 and hidden — latest quotes are required');
+  const nextDay = new Date(Date.parse(fx.lastDate + 'T12:00:00Z') + 3 * 86400000).toISOString().slice(0, 10);
+  const quote = (asOfMs, price) => ({ price, open: price, high: price * 1.003, low: price * 0.997, volume: 4e5, asOf: new Date(asOfMs).toISOString(), sessionDate: nextDay });
+  const liveAt = Date.parse(nextDay + 'T15:00:00Z');
+  const freshPrice = fx.bars.OVRA.at(-1).c * 1.002;
+  const freshScan = scan({ sessionLive: true, nowMs: liveAt + 5 * 60000, quoteFor: (s) => (s === 'OVRA' ? quote(liveAt, freshPrice) : null), progressFor: () => 0.3 }).results[0];
+  assert(freshScan.evaluation.show === true && freshScan.candidate.post.entryLive === true && Math.abs(freshScan.candidate.post.entry - freshPrice) < 1e-9,
+    'a 5-minute-old current-session quote becomes the entry price and the setup stays shown');
+  const staleScan = scan({ sessionLive: true, nowMs: liveAt + 45 * 60000, quoteFor: (s) => (s === 'OVRA' ? quote(liveAt, freshPrice) : null), progressFor: () => 0.3 }).results[0].evaluation;
+  assert(staleScan.show === false && staleScan.caps.some((c) => /min old/.test(c.why)), 'a 45-minute-old quote during the session caps confidence at 6 and hides the card');
+  const brokeLow = scan({ sessionLive: true, nowMs: liveAt + 60000, quoteFor: (s) => (s === 'OVRA' ? quote(liveAt, hit.candidate.post.day1Low * 0.99) : null), progressFor: () => 0.3 }).results[0];
+  assert(brokeLow.evaluation.show === false && brokeLow.candidate.post.state === 'below-day1-low', 'a live price under the drop-day low hides the setup before any close confirms it');
+  const chased = scan({ sessionLive: true, nowMs: liveAt + 60000, quoteFor: (s) => (s === 'OVRA' ? quote(liveAt, hit.candidate.post.target * 1.001) : null), progressFor: () => 0.3 }).results[0];
+  assert(chased.candidate.post.state === 'missed' && chased.evaluation.show === false, 'once price is past the target the setup is missed and never chased');
+
+  const closedBelow = fx.bars.OVRA.concat([{ t: Date.parse(nextDay + 'T13:30:00Z'), o: p.day1Low, h: p.day1Low * 1.01, l: p.day1Low * 0.97, c: p.day1Low * 0.98, v: 3e6 }]);
+  const invalid = OR.scanUniverse({ sectorMap: fx.sectorMap, rowsFor: (s) => (s === 'OVRA' ? closedBelow : fx.bars[s] || null), benchSym: 'SPY', nowMs: closedAt, evidence: fx.evidence }).results[0];
+  assert(invalid.candidate.post.state === 'invalidated' && invalid.evaluation.show === false, 'a completed close below the drop-day low invalidates the setup');
+  assert(OR.scanUniverse({ sectorMap: fx.sectorMap, rowsFor: (s) => (s === 'OVRA' ? fx.bars.OVRA.slice(0, -3) : fx.bars[s] || null), benchSym: 'SPY', evidence: fx.evidence }).results.length === 0,
+    'an ordinary uptrend without a shock produces no candidate');
+
+  const classes = OR.scanUniverse({ sectorMap: { XFIX: { constituents: ['GOOGL', 'GOOG', 'PEERB', 'PEERC', 'PEERD'].map((ticker) => ({ ticker })) } }, rowsFor: (s) => (s === 'GOOGL' || s === 'GOOG' ? fx.bars.OVRA : fx.bars[s] || null), benchSym: 'SPY', nowMs: closedAt, evidence: null });
+  assert(classes.results.length === 1 && classes.results[0].candidate.symbol === 'GOOGL' && classes.results[0].candidate.mechanical.peerCount === 3,
+    'two share classes of one issuer yield one candidate (the primary class), and neither counts as the other\'s peer');
+
+  const rows = fx.bars.OVRA, last = OR.sessionDate(rows.at(-1).t);
+  assert(OR.mergeLive(rows, { price: 1, sessionDate: last, asOf: last + 'T15:00:00Z' }).length === rows.length
+    && OR.mergeLive(rows, { price: 1, sessionDate: nextDay, asOf: nextDay + 'T15:00:00Z' }).at(-1).partial === true,
+    'mergeLive ignores a quote for a session already completed and marks a price-only quote partial (it can never be a shock bar)');
+
+  const ok = OR.validateEvidence(fx.evidence);
+  const noSource = OR.validateEvidence(evidenceWith({ sources: [] }));
+  const hindsight = OR.validateEvidence(evidenceWith({ cause: { class: 'analyst-only', summary: 'Fixture: a downgrade published later.', publishedAt: fx.lastDate + 'T23:00:00Z' } }));
+  const badClass = OR.validateEvidence(evidenceWith({ cause: { class: 'vibes', summary: 'Fixture: not a class.', publishedAt: null } }));
+  assert(ok.ok && !noSource.ok && /sources/.test(noSource.errors.join()) && !hindsight.ok && /precede/.test(hindsight.errors.join()) && !badClass.ok,
+    'evidence contract: sources required, a cause published after the drop is refused (anti-hindsight), cause class is a closed list');
+  const committed = OR.validateEvidence(JSON.parse(read('data/overreaction/evidence.json')));
+  assert(committed.ok, 'the committed data/overreaction/evidence.json satisfies the evidence contract' + (committed.ok ? '' : ': ' + committed.errors.join('; ')));
+  const br = base.baseRate;
+  assert(typeof br.n === 'number' && br.cohort.includes('cause not checked') && (br.n >= 30) === br.sufficient,
+    'the price-only base rate reports its sample and claims sufficiency only at 30+ analogs');
+
+  const page = read('swing-structure-lab.html');
+  assert(/<script src="rloverreaction\.js"><\/script>/.test(page) && /RLOVERREACTION\.scanUniverse\(/.test(page) && !/residual\s*<=\s*-/.test(page),
+    'swing-structure-lab.html loads the module and delegates the scan to it (no inline copy of the detection rule)');
+  assert(/data\/bars\/live\.json/.test(page) && /data\/overreaction\/evidence\.json/.test(page) && /No high-confidence overreaction this run\./.test(page),
+    'the page reads current-session quotes and the evidence file, and says so plainly when nothing qualifies');
+} catch (e) { failures++; console.log('  ✗ FAIL (overreaction scanner group threw): ' + e.message); }
+/* ---------- Overreaction snap-back scanner (rloverreaction.js) (END) ---------- */
 /* ---------- summary ---------- */
 console.log('\n' + '='.repeat(48));
 console.log('Research-Lab self-test: ' + passes + ' passed, ' + failures + ' failed');

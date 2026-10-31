@@ -1,0 +1,6 @@
+{
+  "contractVersion": "overreaction-evidence/v1",
+  "updated": "2026-10-30T00:00:00.000Z",
+  "note": "Sourced cause, estimate-revision and credit checks for large one-day drops found by rloverreaction.js. One event per symbol + shockDate. Every event needs at least one https source with a retrieval time, and a cause published no later than the shock session. A missing field is null, never a guess. Validate with: node scripts/overreaction-scan.mjs --validate",
+  "events": []
+}

@@ -27,6 +27,7 @@ function run(script, logName, extraEnv = {}) {
 try {
     mkdirSync(resolve(fixture, 'scripts'), { recursive: true });
     copyFileSync(resolve(ROOT, 'scripts/fetch-bars.mjs'), resolve(fixture, 'scripts/fetch-bars.mjs'));
+    copyFileSync(resolve(ROOT, 'scripts/validate-bars-coherence.mjs'), resolve(fixture, 'scripts/validate-bars-coherence.mjs'));
     copyFileSync(resolve(ROOT, 'scripts/fetch-options.mjs'), resolve(fixture, 'scripts/fetch-options.mjs'));
     copyFileSync(resolve(ROOT, 'scripts/validate-brief-cache.mjs'), resolve(fixture, 'scripts/validate-brief-cache.mjs'));
 
@@ -64,6 +65,12 @@ globalThis.fetch = async function mockFetch(url) {
         const intradayTimestamps = Array.from({ length: intradayCount }, (_, index) => start + index * 300);
         const values = intradayTimestamps.map((_, index) => process.env.MOCK_INTRADAY_ZERO === '1' ? null : 125 + index / 100);
         return { ok: true, status: 200, json: async () => ({ chart: { result: [{ meta: { tradingPeriods: [[{ start, end }]] }, timestamp: intradayTimestamps, indicators: { quote: [{ open: values, high: values.map((value) => value + 0.1), low: values.map((value) => value - 0.1), close: values, volume: intradayTimestamps.map(() => 100) }] }, events: {} }] } }) };
+    }
+    if (target.includes('range=5d') && process.env.MOCK_LIVE_ROW === '1') {
+        const liveStart = Date.parse(process.env.BAR_LIVE_SESSION_START_UTC) / 1000;
+        const recent = timestamps.slice(-4).concat([liveStart]);
+        const closes = recent.map((_, index) => index === recent.length - 1 ? 120 : 125.9);
+        return { ok: true, status: 200, json: async () => ({ chart: { result: [{ meta: { regularMarketTime: liveStart + 5400 }, timestamp: recent, indicators: { quote: [{ open: recent.map((_, index) => index === recent.length - 1 ? 123 : 125.9), high: recent.map((_, index) => index === recent.length - 1 ? 124 : 125.9), low: recent.map((_, index) => index === recent.length - 1 ? 118 : 125.9), close: closes, volume: recent.map((_, index) => index === recent.length - 1 ? 4321 : 1000) }], adjclose: [{ adjclose: closes }] }, events: {} }] } }) };
     }
   const values = timestamps.map((_, index) => 100 + index / 10);
     const dailyValues = process.env.MOCK_DAILY_GAP === '1' ? values.map((value, index) => index === values.length - 1 ? null : value) : values;
@@ -150,6 +157,29 @@ process.on('exit', () => writeFileSync(process.env.MOCK_FETCH_LOG, JSON.stringif
     const reusedIndex = JSON.parse(readFileSync(resolve(fixture, 'data/bars/index.json'), 'utf8'));
     assert.equal(reusedIndex.sessionReuseCount, 9);
     assert.equal(reusedIndex.tickers.every((row) => row.sessionCached === true && row.asof === expectedSessionDate), true);
+    const reusedLive = JSON.parse(readFileSync(resolve(fixture, 'data/bars/live.json'), 'utf8'));
+    assert.deepEqual(reusedLive.quotes, {}, 'with no XNYS session in progress a reused run captures no live quote');
+
+    /* Regression: during market hours every symbol already holds the last completed session and hit
+       the reuse short-circuit, so no in-session run ever captured a live quote. */
+    const liveSessionDate = '2025-09-18';
+    const liveEnv = { ...strictEnv, BRIEF_WINDOW: 'morning', MOCK_DAILY_GAP: '0', MOCK_LIVE_ROW: '1', BAR_LIVE_SESSION_DATE: liveSessionDate, BAR_LIVE_SESSION_START_UTC: liveSessionDate + 'T13:30:00.000Z', BAR_LIVE_SESSION_END_UTC: liveSessionDate + 'T20:00:00.000Z' };
+    const liveBars = run('fetch-bars.mjs', 'live-session-bars.json', liveEnv);
+    assert.equal(liveBars.log.calls.length, 9, 'an in-session reused run makes exactly one live-quote request per session-bound series');
+    assert.equal(liveBars.log.calls.every((url) => url.includes('range=5d')), true, 'the live-quote request is the small 5-session pull, never a full history refetch');
+    const live = JSON.parse(readFileSync(resolve(fixture, 'data/bars/live.json'), 'utf8'));
+    const liveSpy = live.quotes.SPY;
+    assert.equal(Object.keys(live.quotes).length, 9, 'every reused series gets a current-session quote');
+    assert.equal(liveSpy.sessionDate, liveSessionDate);
+    assert.equal(liveSpy.price, 120);
+    assert.equal(liveSpy.open, 123);
+    assert.equal(liveSpy.high, 124);
+    assert.equal(liveSpy.low, 118);
+    assert.equal(liveSpy.volume, 4321);
+    assert.equal(liveSpy.priorSessionDate, expectedSessionDate);
+    assert.equal(liveSpy.asOf, liveSessionDate + 'T15:00:00.000Z', 'asOf is the vendor regularMarketTime, not the candle open');
+    const spyAfterLive = JSON.parse(readFileSync(resolve(fixture, 'data/bars/SPY.json'), 'utf8'));
+    assert.equal(spyAfterLive.asof, expectedSessionDate, 'the forming session is never written into the authoritative bars');
 
     const staleIndex = JSON.parse(readFileSync(resolve(fixture, 'data/bars/index.json'), 'utf8'));
     staleIndex.tickers.find((row) => row.sym === 'SPY').asof = '2025-09-16';

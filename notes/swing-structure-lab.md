@@ -471,6 +471,103 @@ in-tool, not buried:
 
 ---
 
+## Overreaction snap-back scanner (added 2026-10-30)
+
+**Question it answers:** which stocks just fell hard on news that does not damage
+the business, so that a partial reversal is likely, and is the evidence strong
+enough to act on? Example: a stock in a long-term uptrend drops 10% in one
+session on heavy volume while its sector and peers barely move, analysts barely
+cut estimates, and its bonds do not move. Half of that drop retraced is about a
+4–5% bounce from the low.
+
+**Where it lives.** Every rule is in [`rloverreaction.js`](../rloverreaction.js)
+(UMD, browser global `RLOVERREACTION`). The swing lab's *Overreaction snap-back*
+panel and [`scripts/overreaction-scan.mjs`](../scripts/overreaction-scan.mjs)
+both call `RLOVERREACTION.scanUniverse`, so the page and the CLI give the same
+answer. Rules follow the market-agent cheatsheet K1 (detection), K2 (flags and
+verdict) and K3 (acting on it), plus the CS7 confidence rubric and CS8 caps.
+
+**Pipeline**
+
+1. *Universe:* every constituent in `sector-universe.json`. Secondary share
+   classes (GOOG, FOX, NWS, BRK-A) are skipped in favour of the primary class.
+2. *Prices:* daily bars from the shared cache (same-origin `data/bars/<SYM>.json`
+   first), plus the current-session quote from `data/bars/live.json`. During a
+   live session the page also refreshes the detected names and SPY once from
+   Finnhub (real-time price, no volume) or Twelve Data, if access is set up on the
+   landing page. A provider quote without volume keeps the `live.json` volume
+   with *its* timestamp.
+3. *Detection (K1):* within the last 10 sessions, a one-day residual drop (move
+   minus sector-ETF beta times the ETF move) of at least max(3σ, 5%) on at least
+   2× the 20-day volume. A forming bar's volume is scaled by the share of the
+   session elapsed. Downside only: genuine good news drifts, so upside fades
+   are out of scope.
+4. *Anchor:* a rising 200-day average and positive 12-1 month momentum before
+   the drop. A stock already below its 200-day in a correction still qualifies.
+   Being above the 200-day counts as an extra evidence family.
+5. *Computed K2 flags:* 5 capitulation (RVOL ≥ 3 and a close in the upper half of
+   the range), 6 peers (median same-sector move under half the stock's move), and
+   8 held level (the 200-day or the 6-month value-area low touched and held on
+   closing basis).
+6. *Sourced K2 flags* from `data/overreaction/evidence.json`: 1 move vs justified
+   move, 2 cause class, 3 credit did not confirm, 4 revisions under half the
+   move. Thesis-breaking events and context rules IR1/IR2/IR3/IR7 block the call.
+7. *Verdict (K2.3):* overblown = at least 3 flags including 3 or 4. **With no
+   evidence record the verdict is always "unclear"**, because a missing input
+   never counts as support.
+8. *Plan (K3):* trigger = two completed sessions with lows above the drop-day
+   low, or a close back above the gap midpoint. Entry is the latest price, stop
+   is the drop-day low minus 0.25 ATR, and the target is half the drop retraced
+   (touch). Reward must be at least 2× risk. The setup is invalidated by a close
+   below the drop-day low, marked missed once price passes the target (never
+   chased), and expires 10 sessions after the drop.
+9. *Confidence (CS7 §1.2):* start 5; +1 per independent family beyond the first
+   (max +3); +1 [E] mechanism when the cause is non-fundamental; +1 market
+   confirmation (trigger met and SPY above its 50-day); +1 when every channel was
+   checked. Caps: 7 unearned (no ledger yet); 6 if VIX > 30; 6 during a live
+   session when the price is the prior close or a quote older than 20 minutes;
+   5 if 30+ price-only analogs hit the target less often than breakeven.
+10. *Shown:* only overblown setups at confidence ≥ 7 with every gate passed, in
+    state ready or armed, at most 7 cards. Everything else is in the Power audit
+    table, which is labelled as not recommendations.
+
+**Evidence workflow (the only path to a card).** Run
+`node scripts/overreaction-scan.mjs`. Drops marked `NEEDS EVIDENCE — passes every
+price gate` are the ones worth researching. For each one, add an event to
+`data/overreaction/evidence.json` (one per symbol + shock date) containing:
+
+- `cause.class`: one of `fundamental-news`, `no-news`, `sympathy`, `mechanical`,
+  `analyst-only`, `thesis-breaking`;
+- `cause.summary` and `cause.publishedAt`, which must be no later than the shock
+  session;
+- `revisions.pctChange`: the change in next-12-month consensus EPS since the
+  drop, in percent, or `null`;
+- `justifiedMovePct` (or `null`);
+- `credit.confirms`: true, false or null;
+- `contextBlocks`;
+- `nextEarnings`;
+- at least one `https` source with `retrievedAt`.
+
+Unknown is `null`, never a guess. Validate the file with
+`node scripts/overreaction-scan.mjs --validate`; `scripts/selftest.mjs` also
+validates the committed file.
+
+**Known limits.**
+
+- Peers are sector constituents, a proxy for "direct exposure".
+- Spread and slippage are not modelled.
+- Expiry dates skip weekends but not holidays.
+- The price-only base rate uses the committed 2-year corpus. With the 260-bar
+  warm-up that leaves about one year of history (32,452 stock-days). On
+  2026-10-30 it found 88 qualifying drops, of which 49 had the trend anchor, 13
+  held the drop-day low for two sessions, and 2 also cleared 2:1; neither of
+  those 2 reached the target before the stop. That sample is too small for any
+  rate (minimum 30), so none is claimed. Most large drops kept falling over the
+  next two sessions, which fits the drift-after-news evidence and is why the
+  cause check matters.
+
+---
+
 ## Version history
 
 - **v0 (2026-07-03)** — Proposed. Swing sibling to the intraday tool; composite
@@ -478,3 +575,6 @@ in-tool, not buried:
   probabilities, accumulation/distribution, a regime engine (F&G-7 + VIX term +
   breadth), shared options positioning, and a one-line positioning verdict.
   Depends on the shared data layer.
+- **v1.1 (2026-10-30)** — Overreaction snap-back scanner (`rloverreaction.js`,
+  evidence file `data/overreaction/evidence.json`, CLI `scripts/overreaction-scan.mjs`),
+  plus in-session live quotes with open/high/low/volume from `fetch-bars.mjs`.

@@ -305,27 +305,70 @@ const coherenceQuarantines = [];
  * it is (intraday, not yet a settled session), so a reader can show "current" without it quietly
  * becoming tomorrow's permanent historical close. */
 const liveQuotes = {};
+function finiteAt(series, index) {
+  return Array.isArray(series) && Number.isFinite(series[index]) ? series[index] : null;
+}
 function captureLiveQuote(sym, daily, priorClose, priorSessionDate, cutoffDate) {
   try {
     const result = daily && daily.chart && daily.chart.result && daily.chart.result[0];
     const timestamps = result && result.timestamp;
-    if (!Array.isArray(timestamps) || !timestamps.length) return;
+    if (!Array.isArray(timestamps) || !timestamps.length) return false;
     const quote = (result.indicators && result.indicators.quote && result.indicators.quote[0]) || {};
     const lastIndex = timestamps.length - 1;
     const t = timestamps[lastIndex] * 1000;
     const sessionDate = sessionDateFromMs(t);
     // Only a row strictly after the last completed session is "current" — one at or before the
     // cutoff is already in the authoritative bars and carries no new information here.
-    if (!cutoffDate || !sessionDate || sessionDate <= cutoffDate) return;
-    const price = quote.close && Number.isFinite(quote.close[lastIndex]) ? quote.close[lastIndex] : null;
-    if (!Number.isFinite(price)) return;
+    if (!cutoffDate || !sessionDate || sessionDate <= cutoffDate) return false;
+    const price = finiteAt(quote.close, lastIndex);
+    if (!Number.isFinite(price)) return false;
     const pct = Number.isFinite(priorClose) && priorClose !== 0 ? ((price / priorClose) - 1) * 100 : null;
+    // The candle timestamp of a still-forming daily row can be the session open rather than the
+    // last trade, so the vendor's own regularMarketTime is the honest "as of" when it names the
+    // same session. Open/high/low/volume are the forming session's partial OHLCV — what an
+    // intraday consumer needs to judge today's range and participation, and nothing more.
+    const meta = result.meta || {};
+    const marketMs = Number.isFinite(meta.regularMarketTime) ? meta.regularMarketTime * 1000 : null;
+    const asOfMs = marketMs && sessionDateFromMs(marketMs) === sessionDate ? marketMs : t;
     liveQuotes[sym] = {
-      price, asOf: new Date(t).toISOString(), sessionDate,
+      price, asOf: new Date(asOfMs).toISOString(), sessionDate,
+      open: finiteAt(quote.open, lastIndex), high: finiteAt(quote.high, lastIndex),
+      low: finiteAt(quote.low, lastIndex), volume: finiteAt(quote.volume, lastIndex),
       priorClose: Number.isFinite(priorClose) ? priorClose : null, priorSessionDate: priorSessionDate || null,
       pct: Number.isFinite(pct) ? Math.round(pct * 100) / 100 : null
     };
-  } catch { /* best-effort side channel; never affects the authoritative bar write */ }
+    return true;
+  } catch { return false; /* best-effort side channel; never affects the authoritative bar write */ }
+}
+
+/* The reuse short-circuit in refreshSymbol skips every symbol whose file already holds the last
+ * completed session — which during market hours is every symbol, so no run between the open and
+ * the close ever reached captureLiveQuote and live.json stayed empty all session. When an XNYS
+ * session is in progress, a reused symbol still gets one small 5-session request used ONLY for
+ * the forming quote; its rows are never merged into the authoritative bars. */
+const LIVE_SESSION = resolveLiveSession();
+function resolveLiveSession() {
+  const overrideDate = process.env.BAR_LIVE_SESSION_DATE || null;
+  const overrideStart = process.env.BAR_LIVE_SESSION_START_UTC || null;
+  const overrideEnd = process.env.BAR_LIVE_SESSION_END_UTC || null;
+  if (overrideDate && overrideStart && overrideEnd) return { tradingDate: overrideDate, regular: { startUtc: overrideStart, endUtc: overrideEnd } };
+  if (overrideDate === 'none') return null;
+  const calendar = readJSON(XNYS_CALENDAR, null);
+  const rows = calendar && Array.isArray(calendar.rows) ? calendar.rows : [];
+  const now = Date.now();
+  return rows.find((row) =>
+    (row.dateState === 'regular' || row.dateState === 'early-close')
+    && row.regular
+    && Date.parse(row.regular.startUtc) <= now
+    && now < Date.parse(row.regular.endUtc)
+  ) || null;
+}
+async function captureLiveOnly(sym, priorClose) {
+  if (!LIVE_SESSION || !EXPECTED_SESSION_DATE || LIVE_SESSION.tradingDate <= EXPECTED_SESSION_DATE) return;
+  try {
+    const daily = await getJSON('https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=5d&includeAdjustedClose=true');
+    captureLiveQuote(sym, daily, priorClose, EXPECTED_SESSION_DATE, EXPECTED_SESSION_DATE);
+  } catch { /* a missed live quote leaves the symbol on its last completed close; it never fails the run */ }
 }
 
 async function refreshSymbol(sym) {
@@ -345,6 +388,7 @@ async function refreshSymbol(sym) {
     const reuseReason = sameWindow ? CACHE_DATE + '/' + CACHE_WINDOW : 'completed session ' + EXPECTED_SESSION_DATE;
     console.log('reuse ' + sym + '  bars=' + existingRows.length + ' (git cache ' + reuseReason + ')');
     const cachedSessionState = existingZeroObserved ? 'zero-observed' : existingThinObserved ? 'thin-observed' : 'observed';
+    if (enforceSession) await captureLiveOnly(sym, existingRows[existingRows.length - 1].c);
     return { sym, n: existingRows.length, last: existingRows[existingRows.length - 1].c, asof: existing.asof, sessionDate: enforceSession ? EXPECTED_SESSION_DATE : existing.asof, sessionState: cachedSessionState, zeroObserved: existingZeroObserved, thinObserved: existingThinObserved, quarantined: Array.isArray(existing.quarantinedSessions) && existing.quarantinedSessions.length > 0, cached: true, sessionCached: !sameWindow && sameCompletedSession, reconstructed: Array.isArray(existing.reconstructedSessions) && existing.reconstructedSessions.length > 0 };
   }
   if (!REPAIR_COHERENCE && MISSING_ONLY && existsSync(existingFile)) {

@@ -1010,6 +1010,19 @@
             }
         }
 
+        /* overreaction snap-back scanner */
+        .or-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 10px }
+        .or-card { border: 1px solid var(--line); border-radius: 10px; padding: 11px 13px; background: rgba(57, 217, 138, .04) }
+        .or-card h3 { margin: 0 0 6px; font-size: 14px; display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap }
+        .or-card h3 .conf { margin-left: auto; font-size: 11.5px; color: var(--dim); font-weight: 500 }
+        .or-card dl { margin: 0; display: grid; grid-template-columns: 92px 1fr; gap: 3px 8px; font-size: 12px; line-height: 1.45 }
+        .or-card dt { color: var(--dim) }
+        .or-card dd { margin: 0 }
+        .or-card .or-open { margin-top: 8px; padding: 3px 10px; font-size: 11.5px }
+        .or-empty { font-size: 13px; padding: 4px 0 }
+        table.or-audit { width: 100%; border-collapse: collapse; font-size: 11.5px; margin-top: 10px }
+        table.or-audit th, table.or-audit td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top }
+        table.or-audit th { color: var(--dim); font-weight: 600 }
         .note {
             color: var(--dim);
             font-size: 11.5px;
@@ -1118,6 +1131,18 @@
         <!-- SIMPLE: the digested, plain-English read (simple mode only) -->
         <div id="simpleView"></div>
 
+        <!-- Overreaction snap-back scanner (both modes; the audit table is Power-only) -->
+        <div class="panel" id="orPanel">
+            <h2
+                title="Large one-day drops (at least 3 sigma and 5% after adjusting for the sector) on heavy volume, in stocks whose long-term trend was up, read through the overreaction rules (cause, estimate revisions, credit, peers, capitulation volume, a held level). Only setups at confidence 7 or higher are shown as cards; everything else stays in the Power audit.">
+                Overreaction snap-back <span class="hint" id="orHint">big drops likely to partly reverse · high confidence only</span>
+                <button class="btn" id="orScan" style="margin-left:auto;padding:4px 10px;font-size:12px"
+                    title="Re-read live quotes and the evidence file, then rescan the sector universe">↻ Rescan</button></h2>
+            <div id="orMeta" class="note">Scanning the sector universe after the daily bars load…</div>
+            <div id="orCards" class="or-cards" data-tkr-auto></div>
+            <div id="orAudit" class="pw" data-tkr-auto></div>
+        </div>
+
         <!-- POWER headline: verdict + key levels (power mode only) -->
         <div class="grid2 pw g">
             <div style="margin-top:0">
@@ -1209,6 +1234,7 @@
 
     <script src="rldata.js?v=20260712-4"></script>
     <script src="rlexperience-adapters/market-structure.js"></script>
+    <script src="rloverreaction.js"></script>
     <script>
         (function () {
             'use strict';
@@ -2038,6 +2064,8 @@
                 el('ticker').addEventListener('keydown', function (e) { if (e.key === 'Enter') doFetch(false); });
                 el('prov').addEventListener('change', function () { state.provider = el('prov').value; saveState(); });
                 var of = el('optFetch'); if (of) of.addEventListener('click', manualOptions);
+                var ors = el('orScan'); if (ors) ors.addEventListener('click', function () { orStart(true); });
+                var orc = el('orPanel'); if (orc) orc.addEventListener('click', function (e) { var b = e.target && e.target.closest ? e.target.closest('[data-or-open]') : null; if (!b) return; el('ticker').value = b.getAttribute('data-or-open'); doFetch(false); window.scrollTo({ top: 0, behavior: 'smooth' }); });
                 el('win').addEventListener('change', function () { state.win = +el('win').value || 126; saveState(); if (state.full.length) { state.view = state.full.slice(-state.win); render(); } });
                 var seg = el('modeSeg').getElementsByTagName('button'); for (var i = 0; i < seg.length; i++) seg[i].addEventListener('click', function () { setMode(this.getAttribute('data-m')); });
                 el('simpleView').addEventListener('input', function (e) { var id = e.target && e.target.id; if (id !== 'acctIn' && id !== 'riskIn') return; if (id === 'acctIn') state.acct = Math.max(0, +e.target.value || 0); else state.riskPct = clamp(+e.target.value || 0, 0, 100); saveState(); var ps = el('planSize'); if (ps && state._plan) ps.innerHTML = planSizeText(state._plan); });
@@ -2057,6 +2085,141 @@
                 notice.textContent = 'The link named a company this tool could not accept, so it is showing ' + state.ticker + '.';
                 notice.hidden = false;
             }
+            /* ═══════ Overreaction snap-back scanner ═══════
+               Every rule (detection, flags, verdict, confidence, plan) lives in rloverreaction.js; this
+               page only acquires inputs and renders. Inputs: the sector universe's daily bars from the
+               shared cache (same-origin snapshots first), the current-session quotes in
+               data/bars/live.json, a fresher provider quote for the few detected names when access is
+               configured on the landing page, and the sourced evidence file. Cards show ONLY setups the
+               module marks show:true (overblown, confidence >= 7, every gate passed); the Power audit
+               lists every detection with its first failing gate. */
+            var OR = { busy: false, uni: null, live: null, evidence: null, evidenceCheck: null, session: null, baseRate: null, out: null, fresh: {}, freshTried: false, hydrated: false };
+            function orJSON(path) { return fetch(path, { cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+            function etDate(ms) { return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(ms)); }
+            function etTime(iso) { var ms = Date.parse(iso || ''); return isNum(ms) ? new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }).format(new Date(ms)) + ' ET' : '—'; }
+            function orSymbols() { var out = { SPY: 1 }, sm = (OR.uni && OR.uni.sectorMap) || {}; Object.keys(sm).forEach(function (k) { out[k] = 1; (sm[k].constituents || []).forEach(function (c) { if (c && c.ticker) out[c.ticker] = 1; }); }); return Object.keys(out); }
+            function orLiveSession(cal) { var now = Date.now(), rows = (cal && cal.rows) || []; for (var i = 0; i < rows.length; i++) { var r = rows[i]; if (r.regular && Date.parse(r.regular.startUtc) <= now && now < Date.parse(r.regular.endUtc)) return r; } return null; }
+            function orProgress(q) { if (!q || !OR.session || q.sessionDate !== OR.session.tradingDate) return null; return RLOVERREACTION.sessionProgress(Date.parse(q.volumeAsOf || q.asOf), Date.parse(OR.session.regular.startUtc), Date.parse(OR.session.regular.endUtc)); }
+            /* Best current-session quote: a fresher provider quote beats live.json; when the provider gives
+               no volume, the live.json volume is kept with ITS timestamp so time-of-day RVOL stays honest. */
+            function orQuote(sym) {
+                var lq = (OR.live && OR.live.quotes && OR.live.quotes[sym]) || null, fq = OR.fresh[sym] || null;
+                if (fq && (!lq || fq.sessionDate > lq.sessionDate || (fq.sessionDate === lq.sessionDate && Date.parse(fq.asOf) > Date.parse(lq.asOf)))) {
+                    var out = Object.assign({}, fq);
+                    if (!isNum(out.volume) && lq && lq.sessionDate === fq.sessionDate && isNum(lq.volume)) { out.volume = lq.volume; out.volumeAsOf = lq.asOf; }
+                    return out;
+                }
+                return lq ? Object.assign({ src: 'live.json' }, lq) : null;
+            }
+            function orProviderUsable(id) { var s = window.RLDATA && RLDATA.providerStatus ? RLDATA.providerStatus(id) : null; return !!(s && s.ok && s.state !== 'unconfigured'); }
+            function orFetchFresh(sym) {
+                var p = null;
+                if (orProviderUsable('finnhub')) p = RLDATA.providerFetch('finnhub', 'api/v1/quote?symbol=' + encodeURIComponent(sym)).then(function (j) {
+                    if (!j || !(j.c > 0) || !isNum(j.t)) return null; var ms = j.t * 1000;
+                    return { price: j.c, open: j.o > 0 ? j.o : null, high: j.h > 0 ? j.h : null, low: j.l > 0 ? j.l : null, volume: null, asOf: new Date(ms).toISOString(), sessionDate: etDate(ms), src: 'finnhub' };
+                });
+                else if (orProviderUsable('twelvedata')) p = RLDATA.providerFetch('twelvedata', 'quote?symbol=' + encodeURIComponent(sym)).then(function (j) {
+                    var c = j ? +j.close : NaN, ts = j ? +(j.last_quote_at || j.timestamp) : NaN; if (!(c > 0) || !isNum(ts)) return null; var ms = ts * 1000;
+                    var n = function (x) { var v = +x; return isNum(v) && v > 0 ? v : null; };
+                    return { price: c, open: n(j.open), high: n(j.high), low: n(j.low), volume: isNum(+j.volume) ? +j.volume : null, asOf: new Date(ms).toISOString(), sessionDate: etDate(ms), src: 'twelvedata' };
+                });
+                return p ? p.catch(function () { return null; }) : Promise.resolve(null);
+            }
+            function orHydrate() {
+                var syms = orSymbols(), i = 0, done = 0;
+                function worker() {
+                    if (i >= syms.length) return Promise.resolve();
+                    var s = syms[i++];
+                    return RLDATA.ensureBars(s, '1d', 12, '2y').catch(function () { }).then(function () { done++; if (done % 10 === 0) orMeta('loading daily bars ' + done + '/' + syms.length + '…'); return worker(); });
+                }
+                var run = function () { var w = []; for (var k = 0; k < Math.min(2, syms.length); k++) w.push(worker()); return Promise.all(w); };
+                return (RLDATA.withPersistenceBatch ? RLDATA.withPersistenceBatch(run) : run()).then(function () { OR.hydrated = true; });
+            }
+            function orMeta(txt) { var e = el('orMeta'); if (e) e.textContent = txt; }
+            function orRun() {
+                if (!window.RLOVERREACTION || !OR.uni) return;
+                OR.out = RLOVERREACTION.scanUniverse({
+                    sectorMap: OR.uni.sectorMap, rowsFor: function (s) { return RLDATA.bars(s, '1d') || null; }, quoteFor: orQuote, progressFor: orProgress,
+                    benchSym: 'SPY', nowMs: Date.now(), sessionLive: !!OR.session, vix: state.macro && isNum(state.macro.vix) ? state.macro.vix : null,
+                    evidence: OR.evidenceCheck && OR.evidenceCheck.ok ? OR.evidence : null, baseRate: OR.baseRate
+                });
+                OR.baseRate = OR.out.baseRate;
+                renderOverreaction();
+            }
+            /* During a live session, refresh the detected names (and SPY) once from a provider, then rescan. */
+            function orFreshen() {
+                if (OR.freshTried || !OR.session || !OR.out) return Promise.resolve();
+                OR.freshTried = true;
+                var syms = { SPY: 1 }; OR.out.results.forEach(function (r) { syms[r.candidate.symbol] = 1; });
+                return Promise.all(Object.keys(syms).map(function (s) { return orFetchFresh(s).then(function (q) { if (q) OR.fresh[s] = q; }); })).then(function () { if (Object.keys(OR.fresh).length) orRun(); });
+            }
+            function orStart(force) {
+                if (OR.busy || !window.RLOVERREACTION) return;
+                OR.busy = true; if (force) { OR.fresh = {}; OR.freshTried = false; }
+                if (window.RLAPP) RLAPP.report('scan:overreaction', 'refreshing', { label: 'Overreaction scan inputs' });
+                Promise.all([OR.uni ? Promise.resolve(OR.uni) : orJSON('sector-universe.json'), orJSON('data/bars/live.json'), orJSON('data/overreaction/evidence.json'), orJSON('data/calendars/xnys/calendar.json')]).then(function (a) {
+                    OR.uni = a[0]; OR.live = a[1]; OR.evidence = a[2]; OR.session = orLiveSession(a[3]);
+                    OR.evidenceCheck = OR.evidence ? RLOVERREACTION.validateEvidence(OR.evidence) : { ok: false, errors: ['evidence file unavailable'] };
+                    if (!OR.uni || !OR.uni.sectorMap) { orMeta('Sector universe unavailable — the scanner has nothing to scan.'); return null; }
+                    return OR.hydrated && !force ? null : orHydrate();
+                }).then(function () { if (OR.uni) { orRun(); return orFreshen(); } }).then(function () {
+                    OR.busy = false; if (window.RLAPP) RLAPP.report('scan:overreaction', OR.out ? 'ready' : 'error', { label: 'Overreaction scan inputs' });
+                }).catch(function (e) { OR.busy = false; orMeta('Scan error: ' + (e && e.message ? e.message : e)); if (window.RLAPP) RLAPP.report('scan:overreaction', 'error', { label: 'Overreaction scan inputs' }); });
+            }
+            function orAddSessions(day, n) { var t = Date.parse(day + 'T00:00:00Z'), k = 0; while (k < n) { t += 864e5; var w = new Date(t).getUTCDay(); if (w && w !== 6) k++; } return new Date(t).toISOString().slice(0, 10); }
+            function orCard(r) {
+                var c = r.candidate, e = r.evaluation, ev = r.evidence, p = c.post, sh = c.shock, P = RLOVERREACTION.POLICY;
+                var priceNote = p.entryLive ? 'current-session quote ' + etTime(p.entryAsOf) : 'close ' + p.entryAsOf;
+                var doTxt = p.state === 'ready'
+                    ? 'Buy near ' + usd(p.entry) + ' (' + priceNote + ') with one-third of intended size'
+                    : 'Wait. Buy only once the trigger below completes; latest ' + usd(p.entry) + ' (' + priceNote + ')';
+                var trig = p.state === 'ready' ? 'Met: ' + p.trigger
+                    : 'Two completed sessions with lows above the drop-day low ' + usd(p.day1Low) + (isNum(p.gapMidpoint) ? ', or a close back above the gap midpoint ' + usd(p.gapMidpoint) : '') + ' (' + p.holds + ' of ' + P.holdSessions + ' so far)';
+                var ctx = OR.out.context, reg = state._regime;
+                var mkt = 'S&P 500 ' + (ctx.spyAbove50 === true ? 'above' : ctx.spyAbove50 === false ? 'below' : 'unknown vs') + ' its 50-day' + (isNum(ctx.vix) ? ' · VIX ' + fmt(ctx.vix, 1) : '') + (reg && reg.band && !/unknown/i.test(reg.band) ? ' · regime ' + reg.band : '');
+                var src = (ev.sources || []).map(function (s) { return '<a href="' + esc(s.url) + '" target="_blank" rel="noopener" title="' + esc(s.publisher + ' · retrieved ' + etTime(s.retrievedAt)) + '">' + esc(s.publisher) + '</a>'; }).join(', ');
+                var on = e.flags.filter(function (f) { return f.on; }).map(function (f) { return f.name; });
+                var steps = e.steps.map(function (s) { return s.delta ? (s.delta > 0 ? '+' : '') + s.delta + ' ' + s.label : 'start 5'; }).join(' · ');
+                var capTxt = e.caps.length ? ' → capped at ' + e.confidence + ' (' + e.caps.filter(function (k) { return k.cap === e.confidence; }).map(function (k) { return k.why; })[0] + ')' : '';
+                var br = OR.baseRate, brTxt = !br || !br.n ? 'No price-only analogs in the scanned history' : br.hits + ' of ' + br.n + ' price-only analogs reached the target before the stop' + (br.sufficient ? ' (' + Math.round(br.rate * 100) + '% vs breakeven ' + Math.round(br.breakeven * 100) + '%)' : ' — fewer than ' + P.analogMinSample + ', so no rate is claimed');
+                var stopAtr = isNum(c.mechanical.atr) && isNum(p.stop) ? (p.entry - p.stop) / c.mechanical.atr : null;
+                var tip = function (t) { return ' title="' + esc(t) + '"'; };
+                return '<div class="or-card">'
+                    + '<h3>' + RLTKR.tag(c.symbol) + ' snap-back after a ' + pct(sh.move) + ' drop <span class="conf"' + tip('Confidence measures evidence quality on a 1–10 scale. It is not a win probability. Unearned setups are capped at 7.') + '>confidence ' + e.confidence + '/10 · ' + (p.state === 'ready' ? 'active' : 'ready, waiting for trigger') + '</span></h3><dl>'
+                    + '<dt>Do</dt><dd>' + esc(doTxt) + '</dd>'
+                    + '<dt>Signal</dt><dd' + tip('Drop on ' + c.shockDate + ' measured against the prior close; residual removes the sector ETF move times beta; RVOL compares volume with the 20-day average' + (sh.rvolTimeAdjusted ? ', adjusted for the share of the session elapsed' : '') + '.') + '>' + esc(c.shockDate + ': ' + pct(sh.move) + ' (' + pct(sh.residual) + ' vs ' + (sh.refSym || 'market') + ', ' + fmt(Math.abs(sh.residual) / sh.sigma, 1) + ' sigma) on ' + fmt(sh.rvol, 1) + '× volume') + '</dd>'
+                    + '<dt>Trigger</dt><dd>' + esc(trig) + '</dd>'
+                    + '<dt>Market</dt><dd>' + esc(mkt) + '</dd>'
+                    + '<dt>Catalyst</dt><dd>' + esc(ev.cause.class + ' — ' + ev.cause.summary) + (src ? ' · ' + src : '') + '</dd>'
+                    + '<dt>Why</dt><dd' + tip(steps + capTxt) + '>' + esc(on.join('; ')) + '</dd>'
+                    + '<dt>Costs</dt><dd>' + esc('Spread and slippage are not modelled' + (isNum(stopAtr) ? '; the stop is ' + fmt(stopAtr, 1) + ' ATR below the entry, so check the spread against that distance' : '')) + '</dd>'
+                    + '<dt>Wrong if</dt><dd>' + esc('a close below the drop-day low ' + usd(p.day1Low) + '; hard stop ' + usd(p.stop)) + '</dd>'
+                    + '<dt>Target</dt><dd>' + esc(usd(p.target) + ' (half the drop retraced, touch) · reward ' + fmt(p.rewardRisk, 1) + '× risk · expires about ' + orAddSessions(c.shockDate, P.expirySessions) + ' (' + P.expirySessions + ' sessions after the drop)') + '</dd>'
+                    + '<dt>Track record</dt><dd>' + esc('Unearned (0 of 20 resolved outcomes). ' + brTxt + '.') + '</dd>'
+                    + '</dl><button class="btn or-open" data-or-open="' + esc(c.symbol) + '">Open ' + esc(c.symbol) + ' in the structure view</button></div>';
+            }
+            function renderOverreaction() {
+                var out = OR.out; if (!out) return;
+                var shown = out.results.filter(function (r) { return r.evaluation.show; }).slice(0, 7);
+                var cards = el('orCards'); if (cards) cards.innerHTML = shown.length ? shown.map(orCard).join('') : '<div class="or-empty">No high-confidence overreaction this run.</div>';
+                var lq = OR.live && OR.live.quotes ? Object.keys(OR.live.quotes).length : 0, fresh = Object.keys(OR.fresh).length;
+                var waiting = out.results.filter(function (r) { return r.evaluation.needsEvidence; }).length;
+                var br = out.baseRate;
+                var meta = 'Scanned ' + out.scanned + ' stocks · ' + (OR.session ? 'market open · ' + lq + ' current-session quotes (file ' + etTime(OR.live && OR.live.updated) + ')' + (fresh ? ', ' + fresh + ' refreshed from ' + (OR.fresh[Object.keys(OR.fresh)[0]].src) : orProviderUsable('finnhub') || orProviderUsable('twelvedata') ? '' : ' — set up Finnhub or Twelve Data on the landing page for fresher prices') : 'market closed · prices are the last completed closes')
+                    + ' · ' + out.results.length + ' drop' + (out.results.length === 1 ? '' : 's') + ' detected in the last ' + RLOVERREACTION.POLICY.lookbackSessions + ' sessions'
+                    + (waiting ? ', ' + waiting + ' pass every price gate and await a sourced cause check' : '')
+                    + ' · evidence file ' + (OR.evidenceCheck && OR.evidenceCheck.ok ? (OR.evidence.events.length + ' event' + (OR.evidence.events.length === 1 ? '' : 's')) : 'invalid or missing (' + esc((OR.evidenceCheck && OR.evidenceCheck.errors[0]) || '—') + ')')
+                    + ' · price-only base rate ' + (br && br.n ? br.hits + '/' + br.n + (br.sufficient ? '' : ' (below 30, not used)') : 'n=0');
+                orMeta(meta);
+                var audit = el('orAudit'); if (!audit) return;
+                if (!out.results.length) { audit.innerHTML = '<div class="note" style="margin-top:8px">Audit: no drop in the scanned universe met the size and volume test.</div>'; return; }
+                audit.innerHTML = '<table class="or-audit" title="Detection audit for research — these rows are NOT recommendations. Only cards above are setups."><thead><tr><th>Ticker</th><th>Drop day</th><th>Move</th><th>Residual</th><th>RVOL</th><th>State</th><th>Verdict</th><th>Confidence</th><th>Evidence</th><th>First failing gate</th></tr></thead><tbody>'
+                    + out.results.map(function (r) {
+                        var c = r.candidate, e = r.evaluation;
+                        return '<tr><td>' + RLTKR.tag(c.symbol) + '</td><td>' + esc(c.shockDate) + (c.shockLive ? ' (live)' : '') + '</td><td>' + pct(c.shock.move) + '</td><td title="vs ' + esc(c.shock.refSym || 'market') + ', beta ' + fmt(c.shock.beta, 2) + '">' + pct(c.shock.residual) + '</td><td>' + fmt(c.shock.rvol, 1) + '×</td><td>' + esc(c.post.state) + '</td><td>' + esc(e.verdict) + '</td><td title="' + esc(e.steps.map(function (s) { return s.label + ' → ' + s.total; }).join('; ')) + '">' + e.confidence + '</td><td>' + (r.evidence ? 'on file' : 'needed') + '</td><td>' + esc(e.firstFailure || '—') + '</td></tr>';
+                    }).join('') + '</tbody></table>';
+            }
+
             function boot() {
                 var st = loadState(); if (st) { state.provider = st.provider || 'auto'; state.ticker = st.ticker || 'SPY'; state.win = st.win || 126; state.mode = st.mode || 'simple'; if (isNum(st.acct)) state.acct = st.acct; if (isNum(st.riskPct)) state.riskPct = st.riskPct; if (st.svStance) state.svStance = st.svStance; if (st.svAggr) state.svAggr = st.svAggr; if (st.svHz) state.svHz = st.svHz; }
                 rlDataBridge();
@@ -2066,6 +2229,7 @@
                 if (handoff.status === 'accepted') { state.ticker = handoff.subject; el('ticker').value = state.ticker; }
                 showLinkNotice(handoff);
                 doFetch(false, true); /* cache-first; automatically fetch only when the six-hour daily TTL is stale/missing */
+                orStart(false); /* the overreaction scan hydrates its own universe from the shared cache, then rescans */
             }
             /* Deferred so the deferred rlticker.js has run: boot reads the linked subject through
                RLTKR, which does not exist while this inline script is still parsing. */

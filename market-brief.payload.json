@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-10-31T15:00:00.000Z",
+  "asOf": "2026-10-31T19:00:00.000Z",
   "attention": [],
   "attentionExclusions": [
     {
@@ -170,7 +170,7 @@
     "cards": [],
     "contractVersion": "budget-measurement/v1",
     "detail": [],
-    "disclosedTotal": 45554,
+    "disclosedTotal": 45556,
     "total": 706,
     "violations": []
   },
@@ -437,16 +437,16 @@
     ]
   },
   "dataAsOf": {
-    "bars": "Bars refreshed through the 2026-10-31T15:00:00.000Z after-hours cutoff.",
+    "bars": "Bars refreshed through the 2026-10-31T19:00:00.000Z after-hours cutoff.",
     "events": "No current forward event is authorized by the supplied Tier-A snapshot.",
     "labels": {
-      "bars": "Fresh: 2026-10-31T15:00:00.000Z",
+      "bars": "Fresh: 2026-10-31T19:00:00.000Z",
       "events": "No verified event",
       "macro": "VIX-only",
-      "options": "Fresh: 2026-10-31T15:00:00.000Z"
+      "options": "Fresh: 2026-10-31T19:00:00.000Z"
     },
     "macro": "No independent macro release was verified in this run; VIX 19.42 is the observed regime input.",
-    "options": "Options refreshed for this 2026-10-31T15:00:00.000Z run."
+    "options": "Options refreshed for this 2026-10-31T19:00:00.000Z run."
   },
   "events": [
     {
@@ -500,7 +500,7 @@
       "title": "Leadership is still being scored offshore and in real assets while US breadth barely holds the line: global rotation ranks EWS (Singapore) at 92.5/100 far ahead of the US-heavy ACWI and the real-assets composite leads with crypto and broad commodities (ETH-USD 79.4, DBC/PDBC 74.4) as gold stays weak (39.3) and silver weaker (19.4) — a where-is-the-bid migration that now coincides with a thinning domestic cushion but still resolves only to relative-strength scores, so no scoreable tactical call is published"
     }
   ],
-  "generatedAt": "2026-10-31T18:30:12.558Z",
+  "generatedAt": "2026-10-31T18:33:55.445Z",
   "groups": [
     {
       "breadth": {
@@ -934,8 +934,8 @@
   },
   "researchAgenda": {
     "contractVersion": "research-agenda-read/v1",
-    "generationId": "generation-29ca683dc209d00f3bf4cb866ed6ab3a4b2f70a58a568cc838eca56f83fe46dd",
-    "asOf": "2026-10-31T18:28:18.061Z",
+    "generationId": "generation-82881fb852ce25d0cb82e8113f4f83ca3a11512c91899f635b6c8e6cb4db7e85",
+    "asOf": "2026-10-31T18:31:51.391Z",
     "topics": [
       {
         "topicId": "geopolitical-supply-shock",
@@ -943,7 +943,7 @@
         "state": "unavailable",
         "reason": "search-fragment-invalid",
         "selectionReason": "mode-required",
-        "reviewId": "review-0827536aec3ce3c0c615df26d2226d82ceddb026f64ee27d5f09e57b7a05ced4",
+        "reviewId": "review-27f44702af83b3badf673d147216bf264747b41919e5718175d30a947939c6ec",
         "dossierId": null,
         "outcome": "unavailable",
         "changeAssessment": "insufficient-evidence",
@@ -986,7 +986,7 @@
         "supersedesDossierId": null
       }
     ],
-    "readFingerprint": "sha256:22a20854b38297be9fb3e6f85d1eb3fddff02faee157ef1c96dce40a5127bf52"
+    "readFingerprint": "sha256:bd9f86263bd50ffb07d832e36c939f6527c45f9dfdb2921dbb0ba7962b207238"
   },
   "rollUp": {
     "baselineCount": 0,
@@ -1206,7 +1206,7 @@
   "toolId": "market-brief",
   "toolReads": {
     "ai-capex-strategy-lab": {
-      "asOf": "2026-10-31T18:28:17.821Z",
+      "asOf": "2026-10-31T18:31:51.149Z",
       "deepLink": "ai-capex-strategy-lab.html",
       "id": "ai-capex-strategy-lab",
       "metrics": {
@@ -1542,22 +1542,22 @@
       "source": "owning-tool-functions"
     },
     "fx-regime-relative-value-lab": {
-      "asOf": "2026-10-31T18:28:17.834Z",
+      "asOf": "2026-10-31T18:31:51.167Z",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "id": "fx-regime-relative-value-lab",
       "metrics": {
         "approvedSourceCount": 0,
         "broadDollarState": "Indeterminate",
         "declaredSourceCount": 8,
-        "evidenceIdentity": "fxe-v1-be02c2e5",
+        "evidenceIdentity": "fxe-v1-1e48e722",
         "evidenceState": "Evidence incomplete for a current recommendation",
         "horizon": "swing",
         "objective": "foreign-currency-strength",
-        "ownerDecisionId": "fxo-v1-20422c8e",
+        "ownerDecisionId": "fxo-v1-94e55587",
         "projection": {
           "asOf": null,
           "availability": "unavailable",
-          "computedAt": "2026-10-31T18:28:17.834Z",
+          "computedAt": "2026-10-31T18:31:51.167Z",
           "contractVersion": "rl-tool-read/v1",
           "deepLink": "fx-regime-relative-value-lab.html#power",
           "freshUntil": null,
@@ -1580,14 +1580,14 @@
             "currencyStates": {},
             "educationalOnly": true,
             "evidenceCutoff": null,
-            "evidenceIdentity": "fxe-v1-be02c2e5",
+            "evidenceIdentity": "fxe-v1-1e48e722",
             "executionAvailable": false,
             "freshUntil": null,
             "hedgeResearchState": "Indeterminate",
             "horizon": "swing",
             "invalidation": "No directional conclusion exists while minimum evidence is unavailable. Selection remains invalid until the exact rejected or unavailable criteria change under current evidence.",
             "objective": "foreign-currency-strength",
-            "ownerDecisionId": "fxo-v1-20422c8e",
+            "ownerDecisionId": "fxo-v1-94e55587",
             "recommendationOutcome": {
               "confidencePct": null,
               "contractVersion": "rlfx-recommendation-outcome/v1",
@@ -1598,7 +1598,7 @@
               "educationalOnly": true,
               "evaluability": "non-recommendation",
               "evidenceCutoff": null,
-              "evidenceIdentity": "fxe-v1-be02c2e5",
+              "evidenceIdentity": "fxe-v1-1e48e722",
               "executionAvailable": false,
               "horizon": "swing",
               "objective": "foreign-currency-strength",
@@ -1858,7 +1858,7 @@
           "approximateLocalReturn": 0.019553076992459673,
           "asOf": "2026-10-29T00:00:00.000Z",
           "benchmarkReturnOnDecompositionDates": 0.027630415801526365,
-          "computedAt": "2026-10-31T18:28:16.627Z",
+          "computedAt": "2026-10-31T18:31:49.925Z",
           "contractVersion": "rlfx-global-decomposition/v1",
           "currency": "CAD",
           "freshUntil": null,
@@ -2466,7 +2466,7 @@
         "projection": {
           "asOf": "2026-10-30T00:00:00.000Z",
           "availability": "current",
-          "computedAt": "2026-10-31T18:28:16.627Z",
+          "computedAt": "2026-10-31T18:31:49.925Z",
           "contractVersion": "rl-tool-read/v1",
           "deepLink": "global-rotation-lab.html#simple",
           "freshUntil": null,
@@ -2484,7 +2484,7 @@
                 "approximateLocalReturn": 0.019553076992459673,
                 "asOf": "2026-10-29T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.027630415801526365,
-                "computedAt": "2026-10-31T18:28:16.627Z",
+                "computedAt": "2026-10-31T18:31:49.925Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "CAD",
                 "freshUntil": null,
@@ -3082,7 +3082,7 @@
               "usdLeadership": {
                 "asOf": "2026-10-30T00:00:00.000Z",
                 "benchmarkReturn": -0.012029942547191697,
-                "computedAt": "2026-10-31T18:28:16.627Z",
+                "computedAt": "2026-10-31T18:31:49.925Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -3669,7 +3669,7 @@
         "usdLeadership": {
           "asOf": "2026-10-30T00:00:00.000Z",
           "benchmarkReturn": -0.012029942547191697,
-          "computedAt": "2026-10-31T18:28:16.627Z",
+          "computedAt": "2026-10-31T18:31:49.925Z",
           "contractVersion": "rlfx-global-usd-leadership/v1",
           "freshUntil": null,
           "horizonSessions": 63,
@@ -4198,7 +4198,7 @@
       "state": "ready"
     },
     "market-heatmap-lab": {
-      "asOf": "2026-10-31T18:28:17.897Z",
+      "asOf": "2026-10-31T18:31:51.233Z",
       "deepLink": "market-heatmap-lab.html",
       "id": "market-heatmap-lab",
       "metrics": {
@@ -4251,15 +4251,15 @@
       "metrics": {
         "callFraction": 0.5074,
         "callPremium": 3059797360,
-        "clearedCount": 1362,
-        "clearedFraction": 0.0821,
+        "clearedCount": 1363,
+        "clearedFraction": 0.0822,
         "consideredCount": 16586,
         "contractsFlagged": 2740,
         "lean": "balanced",
         "maxScore": 88,
         "netPremium": null,
         "premiumThreshold": 250000,
-        "putPremium": 2970375047,
+        "putPremium": 2970377227,
         "tickers": 12,
         "top": [
           {
@@ -4332,7 +4332,7 @@
       "metrics": {
         "drivers": {
           "breadth": 50,
-          "btc63": -1.1991057029409724,
+          "btc63": -0.8568948977301538,
           "dbc63": 16.378121838766035,
           "gld63": -4.285597116564577,
           "goldSilverRatio63": 12.582458731458935,
@@ -4530,11 +4530,11 @@
             ],
             "maxDrawdown": 10.86,
             "model": "bitcoin",
-            "mom126": 28.97,
-            "mom21": -6.76,
-            "mom63": -1.2,
+            "mom126": 29.42,
+            "mom21": -6.44,
+            "mom63": -0.86,
             "riskPenalty": 1.58,
-            "score": 49.5,
+            "score": 50.1,
             "ticker": "BTC-USD",
             "trend": "Mixed",
             "vol": 36.79
@@ -4591,11 +4591,11 @@
             ],
             "maxDrawdown": 10.86,
             "model": "bitcoin",
-            "mom126": 28.97,
-            "mom21": -6.76,
-            "mom63": -1.2,
+            "mom126": 29.42,
+            "mom21": -6.44,
+            "mom63": -0.86,
             "riskPenalty": 1.58,
-            "score": 49.5,
+            "score": 50.1,
             "ticker": "BTC-USD",
             "trend": "Mixed",
             "vol": 36.79
@@ -4769,19 +4769,19 @@
           }
         }
       },
-      "read": "USO leads real assets at 81.2/100; GLD 24, BTC 49.5, SLV 0.",
+      "read": "USO leads real assets at 81.2/100; GLD 24, BTC 50.1, SLV 0.",
       "source": "owning-tool-functions"
     },
     "research-agenda-lab": {
-      "asOf": "2026-10-31T18:28:18.061Z",
+      "asOf": "2026-10-31T18:31:51.391Z",
       "deepLink": "research-agenda-lab.html#power/geopolitical-supply-shock",
       "id": "research-agenda-lab",
       "metrics": {
         "agendaRead": {
-          "asOf": "2026-10-31T18:28:18.061Z",
+          "asOf": "2026-10-31T18:31:51.391Z",
           "contractVersion": "research-agenda-read/v1",
-          "generationId": "generation-29ca683dc209d00f3bf4cb866ed6ab3a4b2f70a58a568cc838eca56f83fe46dd",
-          "readFingerprint": "sha256:22a20854b38297be9fb3e6f85d1eb3fddff02faee157ef1c96dce40a5127bf52",
+          "generationId": "generation-82881fb852ce25d0cb82e8113f4f83ca3a11512c91899f635b6c8e6cb4db7e85",
+          "readFingerprint": "sha256:bd9f86263bd50ffb07d832e36c939f6527c45f9dfdb2921dbb0ba7962b207238",
           "topics": [
             {
               "changeAssessment": "insufficient-evidence",
@@ -4793,7 +4793,7 @@
               "outcome": "unavailable",
               "predecessorDossierId": null,
               "reason": "search-fragment-invalid",
-              "reviewId": "review-0827536aec3ce3c0c615df26d2226d82ceddb026f64ee27d5f09e57b7a05ced4",
+              "reviewId": "review-27f44702af83b3badf673d147216bf264747b41919e5718175d30a947939c6ec",
               "selectionReason": "mode-required",
               "state": "unavailable",
               "supersedesDossierId": null,
@@ -4835,8 +4835,8 @@
         },
         "contractVersion": "research-agenda-tool-read/v1",
         "deferredTopicCount": 2,
-        "generationId": "generation-29ca683dc209d00f3bf4cb866ed6ab3a4b2f70a58a568cc838eca56f83fe46dd",
-        "readFingerprint": "sha256:22a20854b38297be9fb3e6f85d1eb3fddff02faee157ef1c96dce40a5127bf52",
+        "generationId": "generation-82881fb852ce25d0cb82e8113f4f83ca3a11512c91899f635b6c8e6cb4db7e85",
+        "readFingerprint": "sha256:bd9f86263bd50ffb07d832e36c939f6527c45f9dfdb2921dbb0ba7962b207238",
         "reviewedTopicCount": 0,
         "unavailableTopicCount": 1
       },
@@ -4845,7 +4845,7 @@
       "state": "unavailable"
     },
     "sector-research-lab": {
-      "asOf": "2026-10-31T18:28:16.487Z",
+      "asOf": "2026-10-31T18:31:49.768Z",
       "deepLink": "sector-research-lab.html",
       "id": "sector-research-lab",
       "metrics": {
@@ -4954,41 +4954,41 @@
   },
   "watchlistNotes": {
     "FBTC": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: FBTC 66.71, bull-stack."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: FBTC 66.71, bull-stack."
     },
     "FETH": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: FETH 22.23, tangled."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: FETH 22.23, tangled."
     },
     "FMTM": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: FMTM 38.6, bull-stack."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: FMTM 38.6, bull-stack."
     },
     "GLD": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: GLD 355.78, bear-stack."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: GLD 355.78, bear-stack."
     },
     "MSFT": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: MSFT 521.91, bull-stack."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: MSFT 521.91, bull-stack."
     },
     "QQQ": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: QQQ 690.49, bull-stack."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: QQQ 690.49, bull-stack."
     },
     "SOXX": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: SOXX 471.51, tangled."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: SOXX 471.51, tangled."
     },
     "SPCX": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: SPCX 134.72, n/a."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: SPCX 134.72, n/a."
     },
     "SPMO": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: SPMO 136.27, tangled."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: SPMO 136.27, tangled."
     },
     "VGT": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: VGT 116.96, bull-stack."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: VGT 116.96, bull-stack."
     },
     "XLE": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: XLE 70.02, bull-stack."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: XLE 70.02, bull-stack."
     },
     "XLK": {
-      "status": "Current snapshot 2026-10-31T15:00:00.000Z: XLK 179.51, bull-stack."
+      "status": "Current snapshot 2026-10-31T19:00:00.000Z: XLK 179.51, bull-stack."
     }
   },
-  "window": "morning"
+  "window": "pre-close"
 }

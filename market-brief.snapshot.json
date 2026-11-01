@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-10-31T21:00:00.000Z",
-  "generatedAt": "2026-10-31T20:31:50.976Z",
-  "window": "after-hours",
+  "asOf": "2026-11-01T12:30:00.000Z",
+  "generatedAt": "2026-11-01T12:01:47.284Z",
+  "window": "pre-market",
   "marketClosed": true,
   "nextSessionDate": "2026-11-02",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-10-31T20:30:29.595Z",
+      "updated": "2026-11-01T12:00:27.645Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-10-30",
-      "refreshDate": "2026-10-31",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-11-01",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-10-31T20:30:32.597Z",
+      "updated": "2026-11-01T12:00:31.012Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
-      "refreshDate": "2026-10-31",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-11-01",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-10-31T20:31:49.360Z",
+      "asOf": "2026-11-01T12:01:45.785Z",
       "read": "Rotate toward XLK as XLV weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": -0.012029942547191697,
           "usdRelativeReturn": 0.028291424210105554,
           "asOf": "2026-10-30T00:00:00.000Z",
-          "computedAt": "2026-10-31T20:31:49.531Z",
+          "computedAt": "2026-11-01T12:01:45.956Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1351,7 +1351,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-5604eafb",
+            "setId": "set-v1-bb2c54f5",
             "purpose": "global-decomposition",
             "horizonSessions": 63,
             "legs": [
@@ -1907,7 +1907,8 @@
                   "2026-10-30"
                 ],
                 "fx": [
-                  "2026-10-31"
+                  "2026-10-31",
+                  "2026-11-01"
                 ]
               },
               "duplicateDatesDropped": {
@@ -1936,7 +1937,7 @@
           "interaction": 0.00016663606436495662,
           "relationship": "FX-Led Translation",
           "asOf": "2026-10-29T00:00:00.000Z",
-          "computedAt": "2026-10-31T20:31:49.531Z",
+          "computedAt": "2026-11-01T12:01:45.956Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1960,7 +1961,7 @@
               "usdLeadership": {
                 "asOf": "2026-10-30T00:00:00.000Z",
                 "benchmarkReturn": -0.012029942547191697,
-                "computedAt": "2026-10-31T20:31:49.531Z",
+                "computedAt": "2026-11-01T12:01:45.956Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2469,7 +2470,7 @@
                 "approximateLocalReturn": 0.019553076992459673,
                 "asOf": "2026-10-29T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": 0.027630415801526365,
-                "computedAt": "2026-10-31T20:31:49.531Z",
+                "computedAt": "2026-11-01T12:01:45.956Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "CAD",
                 "freshUntil": null,
@@ -3013,7 +3014,8 @@
                         "2026-10-30"
                       ],
                       "fx": [
-                        "2026-10-31"
+                        "2026-10-31",
+                        "2026-11-01"
                       ]
                     }
                   },
@@ -3053,7 +3055,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-5604eafb",
+                  "setId": "set-v1-bb2c54f5",
                   "state": "aligned"
                 },
                 "relationship": "FX-Led Translation",
@@ -3067,7 +3069,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-10-31T20:31:49.531Z",
+          "computedAt": "2026-11-01T12:01:45.956Z",
           "freshUntil": null
         }
       },
@@ -3077,7 +3079,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-10-30T13:30:00.000Z",
-      "read": "USO leads real assets at 81.2/100; GLD 24, BTC 49.8, SLV 0.",
+      "read": "USO leads real assets at 81.2/100; GLD 24, BTC 50.8, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "USO",
@@ -3248,12 +3250,12 @@
           {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 49.8,
+            "score": 50.8,
             "trend": "Mixed",
-            "mom21": -6.61,
-            "mom63": -1.04,
-            "mom126": 29.19,
-            "vol": 36.79,
+            "mom21": -6.96,
+            "mom63": 0.24,
+            "mom126": 30.77,
+            "vol": 36.76,
             "maxDrawdown": 10.86,
             "riskPenalty": 1.58,
             "confirmations": [
@@ -3272,7 +3274,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-10-31T00:00:00.000Z"
+            "asOf": "2026-11-01T00:00:00.000Z"
           },
           {
             "ticker": "IBIT",
@@ -3380,12 +3382,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 49.8,
+            "score": 50.8,
             "trend": "Mixed",
-            "mom21": -6.61,
-            "mom63": -1.04,
-            "mom126": 29.19,
-            "vol": 36.79,
+            "mom21": -6.96,
+            "mom63": 0.24,
+            "mom126": 30.77,
+            "vol": 36.76,
             "maxDrawdown": 10.86,
             "riskPenalty": 1.58,
             "confirmations": [
@@ -3404,7 +3406,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-10-31T00:00:00.000Z"
+            "asOf": "2026-11-01T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -3512,7 +3514,7 @@
           "xle63": 19.809827183801755,
           "xli63": -8.358864323209003,
           "gld63": -4.285597116564577,
-          "btc63": -1.0374257248590757,
+          "btc63": 0.23843606701599018,
           "dbc63": 16.378121838766035,
           "goldSilverRatio63": 12.582458731458935,
           "breadth": 50
@@ -3743,9 +3745,9 @@
         "putPremium": 2101877426,
         "callFraction": 0.4787,
         "netPremium": null,
-        "consideredCount": 14900,
+        "consideredCount": 14928,
         "clearedCount": 1090,
-        "clearedFraction": 0.0732,
+        "clearedFraction": 0.073,
         "maxScore": 85,
         "top": [
           {
@@ -3789,11 +3791,11 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-10-31T20:31:50.679Z",
-      "read": "The AI-capex universe is dated 2026-06-30, 124 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
+      "asOf": "2026-11-01T12:01:47.079Z",
+      "read": "The AI-capex universe is dated 2026-06-30, 125 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
-        "reason": "The AI-capex universe is dated 2026-06-30, 124 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
+        "reason": "The AI-capex universe is dated 2026-06-30, 125 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
       },
       "deepLink": "ai-capex-strategy-lab.html",
       "source": "owning-tool-functions",
@@ -3821,7 +3823,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-10-30",
-            "elapsedDays": 1,
+            "elapsedDays": 2,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           },
@@ -3829,7 +3831,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-10-30",
-            "elapsedDays": 1,
+            "elapsedDays": 2,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           }
@@ -3868,15 +3870,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-10-31T20:31:50.699Z",
+      "asOf": "2026-11-01T12:01:47.091Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-38a678c8",
-        "evidenceIdentity": "fxe-v1-9e3ecaed",
+        "ownerDecisionId": "fxo-v1-74950ca7",
+        "evidenceIdentity": "fxe-v1-449dae19",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -3999,8 +4001,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-38a678c8",
-            "evidenceIdentity": "fxe-v1-9e3ecaed",
+            "ownerDecisionId": "fxo-v1-74950ca7",
+            "evidenceIdentity": "fxe-v1-449dae19",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4120,7 +4122,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-9e3ecaed",
+              "evidenceIdentity": "fxe-v1-449dae19",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4145,7 +4147,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-10-31T20:31:50.699Z",
+          "computedAt": "2026-11-01T12:01:47.091Z",
           "freshUntil": null
         }
       }
@@ -4171,7 +4173,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-10-31T20:31:50.790Z",
+      "asOf": "2026-11-01T12:01:47.142Z",
       "read": "Leadership is narrow — 53.73% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4359,7 +4361,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "USO leads real assets at 81.2/100; GLD 24, BTC 49.8, SLV 0."
+      "reason": "USO leads real assets at 81.2/100; GLD 24, BTC 50.8, SLV 0."
     },
     {
       "id": "bond-regime-lab",
@@ -4371,7 +4373,7 @@
       "id": "ai-capex-strategy-lab",
       "deepLink": "ai-capex-strategy-lab.html",
       "status": "unavailable",
-      "reason": "The AI-capex universe is dated 2026-06-30, 124 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
+      "reason": "The AI-capex universe is dated 2026-06-30, 125 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
     },
     {
       "id": "msft-july-print-model",

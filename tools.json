@@ -1,7 +1,7 @@
 {
   "site": "Research Lab",
-  "description": "Interactive single-file research tools for the AI-datacenter capex cycle and quant strategy modeling. Educational only — not investment advice.",
-  "updated": "2026-07-12",
+  "description": "Interactive single-file research tools for the AI-datacenter capex cycle and quant strategy modeling. Educational only \u2014 not investment advice.",
+  "updated": "2026-11-04",
   "tools": [
     {
       "id": "market-brief",
@@ -9,14 +9,14 @@
       "title": "Market Action Center",
       "nav": {
         "label": "Market Action Center",
-        "icon": "🛰️"
+        "icon": "\ud83d\udef0\ufe0f"
       },
       "file": "market-brief.html",
       "notes": "notes/market-brief.md",
       "data": "market-brief.config.json",
       "status": "live",
       "updated": "2026-07-06",
-      "blurb": "One clean, low-noise cockpit: what changed that you should act on, and what's coming. Regime, sector rotation (leading->lagging flips), momentum changes, gamma flip and call/put walls, events with option-implied moves and scenario probabilities, and a watchlist roll-up — each deep-linking the tool that owns the detail. A live layer computed in-browser from the shared rlData cache (no refetch) plus an agent layer refreshed 4x/day. Estimates, not facts — educational only, not investment advice.",
+      "blurb": "One clean, low-noise cockpit: what changed that you should act on, and what's coming. Regime, sector rotation (leading->lagging flips), momentum changes, gamma flip and call/put walls, events with option-implied moves and scenario probabilities, and a watchlist roll-up \u2014 each deep-linking the tool that owns the detail. A live layer computed in-browser from the shared rlData cache (no refetch) plus an agent layer refreshed 4x/day. Estimates, not facts \u2014 educational only, not investment advice.",
       "tags": [
         "market brief",
         "attention feed",
@@ -80,14 +80,14 @@
       "title": "Market Heatmap Lab",
       "nav": {
         "label": "Market Heatmap",
-        "icon": "🗺️"
+        "icon": "\ud83d\uddfa\ufe0f"
       },
       "file": "market-heatmap-lab.html",
       "notes": "notes/market-heatmap-lab.md",
       "data": "sector-universe.json",
       "status": "live",
       "updated": "2026-07-08",
-      "blurb": "Whole-market treemap — where the money is, at a glance. Constituents grouped by sector (or the 11 sector ETFs), sized by index weight, dollar-volume or equal, colored by return over 1 day / 1 week / 1 month. A Simple cockpit (one breadth verdict + leaders/laggards; steer the color window / size metric / grouping) with a Power drill-down (per-sector breadth, a sortable constituent table, and sigma-vs-sector outliers). Cache-first from the shared rlData store — reused across tools, never refetched. Educational only — not investment advice.",
+      "blurb": "Whole-market treemap \u2014 where the money is, at a glance. Constituents grouped by sector (or the 11 sector ETFs), sized by index weight, dollar-volume or equal, colored by return over 1 day / 1 week / 1 month. A Simple cockpit (one breadth verdict + leaders/laggards; steer the color window / size metric / grouping) with a Power drill-down (per-sector breadth, a sortable constituent table, and sigma-vs-sector outliers). Cache-first from the shared rlData store \u2014 reused across tools, never refetched. Educational only \u2014 not investment advice.",
       "tags": [
         "heatmap",
         "treemap",
@@ -145,14 +145,14 @@
       "title": "Unusual Options Activity Lab",
       "nav": {
         "label": "Unusual Options",
-        "icon": "🐋"
+        "icon": "\ud83d\udc0b"
       },
       "file": "options-flow-feed-lab.html",
       "notes": "notes/options-flow-feed-lab.md",
       "data": "options-structure-universe.json",
       "status": "live",
       "updated": "2026-07-08",
-      "blurb": "Which option strikes lit up today, relative to their own normal — an honest EOD positioning proxy, NOT a real-time trade tape (there is no free live options feed). Scans liquid names' chains for anomalous volume, vol/OI, premium notional and IV, ranks the standouts, and reads the net call-vs-put premium lean. Simple feed + Power table. Chains fetched best-effort (Yahoo + proxies), cached and reused on reload. Never infers buy/sell side. Educational only — not investment advice.",
+      "blurb": "Which option strikes lit up today, relative to their own normal \u2014 an honest EOD positioning proxy, NOT a real-time trade tape (there is no free live options feed). Scans liquid names' chains for anomalous volume, vol/OI, premium notional and IV, ranks the standouts, and reads the net call-vs-put premium lean. Simple feed + Power table. Chains fetched best-effort (Yahoo + proxies), cached and reused on reload. Never infers buy/sell side. Educational only \u2014 not investment advice.",
       "tags": [
         "unusual options activity",
         "vol/OI",
@@ -207,7 +207,7 @@
       "title": "Intraday Tape & Volume-Profile Lab",
       "nav": {
         "label": "Intraday Tape",
-        "icon": "🎯"
+        "icon": "\ud83c\udfaf"
       },
       "file": "intraday-tape-lab.html",
       "notes": "notes/intraday-tape-lab.md",
@@ -284,7 +284,7 @@
       "title": "Swing Structure & Market-Regime Lab",
       "nav": {
         "label": "Swing Structure",
-        "icon": "🌊"
+        "icon": "\ud83c\udf0a"
       },
       "file": "swing-structure-lab.html",
       "notes": "notes/swing-structure-lab.md",
@@ -362,7 +362,7 @@
       "title": "Options Structure & Momentum Research Lab",
       "nav": {
         "label": "Options Structure",
-        "icon": "🧱"
+        "icon": "\ud83e\uddf1"
       },
       "file": "options-structure-lab.html",
       "notes": "notes/options-structure-lab.md",
@@ -445,14 +445,14 @@
       "title": "Gamma Trading & Dealer-Flow Playbook Lab",
       "nav": {
         "label": "Gamma Trading",
-        "icon": "🧨"
+        "icon": "\ud83e\udde8"
       },
       "file": "gamma-trading-lab.html",
       "notes": "notes/gamma-trading-lab.md",
       "data": "gamma-trading-universe.json",
       "status": "live",
       "updated": "2026-07-03",
-      "blurb": "Turn the dealer-gamma regime into a playbook — the trading sibling of the Options Structure Lab. Read whether dealers are long gamma (pinning) or short gamma (trending), then run the three classic plays: the JEX / gamma-flip waterfall (first negative-gamma close after an extended rally → opening-drive short + afternoon roll), an in-browser Option Volume Imbalance (OVI) model that weights option volume by gamma and ranks it as a percentile against your own rolling snapshots (open interest is a day old; only volume is real-time), and the gamma-vs-time expiration cycle (OPEX pin, 14/30-day windows, Thu/Fri overextension capitulation). Days-in-regime + OVI history accrue in localStorage. One interactive Simple model steered by stance/aggressiveness/horizon levers, plus a full Power dashboard (net-GEX-by-strike, OVI percentile history, OPEX ladder, dealer-sign toggle). Reuses the Options Lab's cached snapshot and the shared Research-Lab keys — nothing is re-fetched.",
+      "blurb": "Turn the dealer-gamma regime into a playbook \u2014 the trading sibling of the Options Structure Lab. Read whether dealers are long gamma (pinning) or short gamma (trending), then run the three classic plays: the JEX / gamma-flip waterfall (first negative-gamma close after an extended rally \u2192 opening-drive short + afternoon roll), an in-browser Option Volume Imbalance (OVI) model that weights option volume by gamma and ranks it as a percentile against your own rolling snapshots (open interest is a day old; only volume is real-time), and the gamma-vs-time expiration cycle (OPEX pin, 14/30-day windows, Thu/Fri overextension capitulation). Days-in-regime + OVI history accrue in localStorage. One interactive Simple model steered by stance/aggressiveness/horizon levers, plus a full Power dashboard (net-GEX-by-strike, OVI percentile history, OPEX ladder, dealer-sign toggle). Reuses the Options Lab's cached snapshot and the shared Research-Lab keys \u2014 nothing is re-fetched.",
       "tags": [
         "gamma",
         "dealer positioning",
@@ -525,14 +525,14 @@
       "title": "Sector Rotation & Momentum Research Lab",
       "nav": {
         "label": "Sector Rotation",
-        "icon": "🧭"
+        "icon": "\ud83e\udded"
       },
       "file": "sector-research-lab.html",
       "notes": "notes/sector-research-lab.md",
       "data": "sector-universe.json",
       "status": "live",
       "updated": "2026-07-05",
-      "blurb": "Two modes — a Simple, steerable one-line rotation call (guided tape → rotate-into with two-clock entry timing → rotate-out → invalidation) and a full Power dashboard. Pull live Yahoo / Twelve Data price history for the 11 GICS sectors, major indexes, custom equal-weight stock groups (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power — plus your own, built at runtime), and cross-assets (BTC, ETH, GLD, TLT…), then read momentum and its underlying forces: a Relative Rotation Graph (RS-Ratio vs RS-Momentum with trajectory tails), a momentum-acceleration ranking that flags Basing/Peaking turns earlier than price, an ETF-first rotation-suggestions panel (names the sector/group ETF to rotate into/out of; individual stocks only on an extreme concentrated-leadership case), an excess-return heatmap, relative-strength lines, on-balance-volume / money-flow, member breadth for the groups, a rotation-intensity gauge, a correlation matrix plus a rolling pair-correlation divergence monitor (software-vs-BTC, GLD-vs-BTC…), and per-entry risk flags. Then drill into a chosen sector: a company-by-sector momentum heatmap (top constituents coloured by 1M/3M/6M/12M excess, a blend, a risk-adjusted (blend÷vol) read or absolute return, with new-high ▲ and RSI overbought/oversold badges and per-sector leader + dispersion) and a sector-ETF selector that ranks each sector's prominent ETFs on ten parameters — size (AUM), liquidity (21-day dollar ADV), cost (expense), coverage (holdings/segment), concentration (top-10 weight), sector-tracking (daily-return correlation to the SPDR), tracking-error (annualised drift vs the SPDR), max drawdown, distribution yield and Sharpe-like risk-adjusted momentum (over a 3M/6M/12M lookback) — into one reweightable Fit score (adjustable weight sliders + presets, plus β and information-ratio reads and a CSV export) so you can pick the best vehicle when you rotate. Editable external universe (incl. a sectorMap catalog of per-sector constituents + candidate ETFs with size/cost/coverage/concentration/yield reference fields); Yahoo ticker links with detail tooltips; everything computed in-browser.",
+      "blurb": "Two modes \u2014 a Simple, steerable one-line rotation call (guided tape \u2192 rotate-into with two-clock entry timing \u2192 rotate-out \u2192 invalidation) and a full Power dashboard. Pull live Yahoo / Twelve Data price history for the 11 GICS sectors, major indexes, custom equal-weight stock groups (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power \u2014 plus your own, built at runtime), and cross-assets (BTC, ETH, GLD, TLT\u2026), then read momentum and its underlying forces: a Relative Rotation Graph (RS-Ratio vs RS-Momentum with trajectory tails), a momentum-acceleration ranking that flags Basing/Peaking turns earlier than price, an ETF-first rotation-suggestions panel (names the sector/group ETF to rotate into/out of; individual stocks only on an extreme concentrated-leadership case), an excess-return heatmap, relative-strength lines, on-balance-volume / money-flow, member breadth for the groups, a rotation-intensity gauge, a correlation matrix plus a rolling pair-correlation divergence monitor (software-vs-BTC, GLD-vs-BTC\u2026), and per-entry risk flags. Then drill into a chosen sector: a company-by-sector momentum heatmap (top constituents coloured by 1M/3M/6M/12M excess, a blend, a risk-adjusted (blend\u00f7vol) read or absolute return, with new-high \u25b2 and RSI overbought/oversold badges and per-sector leader + dispersion) and a sector-ETF selector that ranks each sector's prominent ETFs on ten parameters \u2014 size (AUM), liquidity (21-day dollar ADV), cost (expense), coverage (holdings/segment), concentration (top-10 weight), sector-tracking (daily-return correlation to the SPDR), tracking-error (annualised drift vs the SPDR), max drawdown, distribution yield and Sharpe-like risk-adjusted momentum (over a 3M/6M/12M lookback) \u2014 into one reweightable Fit score (adjustable weight sliders + presets, plus \u03b2 and information-ratio reads and a CSV export) so you can pick the best vehicle when you rotate. Editable external universe (incl. a sectorMap catalog of per-sector constituents + candidate ETFs with size/cost/coverage/concentration/yield reference fields); Yahoo ticker links with detail tooltips; everything computed in-browser.",
       "tags": [
         "sectors",
         "rotation",
@@ -634,7 +634,7 @@
       "title": "Global Rotation Lab",
       "nav": {
         "label": "Global Rotation",
-        "icon": "🌐"
+        "icon": "\ud83c\udf10"
       },
       "file": "global-rotation-lab.html",
       "notes": "notes/global-rotation-lab.md",
@@ -697,7 +697,7 @@
       "title": "Real Assets Lab",
       "nav": {
         "label": "Real Assets",
-        "icon": "🪙"
+        "icon": "\ud83e\ude99"
       },
       "file": "real-assets-lab.html",
       "notes": "notes/real-assets-lab.md",
@@ -762,7 +762,7 @@
       "title": "Bond Regime & Fixed-Income Scenario Lab",
       "nav": {
         "label": "Bond Regime",
-        "icon": "📉"
+        "icon": "\ud83d\udcc9"
       },
       "file": "bond-regime-lab.html",
       "notes": "notes/bond-regime-lab.md",
@@ -825,7 +825,7 @@
       "title": "AI Capex Strategy Lab",
       "nav": {
         "label": "AI Capex Strategy",
-        "icon": "⚡"
+        "icon": "\u26a1"
       },
       "file": "ai-capex-strategy-lab.html",
       "notes": "notes/ai-capex-strategy-lab.md",
@@ -892,7 +892,7 @@
       "title": "MSFT July-Print Margin & EPS Model",
       "nav": {
         "label": "MSFT July Print",
-        "icon": "📊"
+        "icon": "\ud83d\udcca"
       },
       "file": "msft-july-print-model.html",
       "notes": "notes/msft-july-print-model.md",
@@ -962,7 +962,7 @@
       "title": "Company Fundamentals & Adaptive Brief Lab",
       "nav": {
         "label": "Company Fundamentals",
-        "icon": "🏢"
+        "icon": "\ud83c\udfe2"
       },
       "file": "company-fundamentals-lab.html",
       "notes": "notes/company-fundamentals-lab.md",
@@ -1026,7 +1026,7 @@
       "title": "ETF Momentum Research Lab",
       "nav": {
         "label": "ETF Momentum",
-        "icon": "📈"
+        "icon": "\ud83d\udcc8"
       },
       "file": "etf-momentum-lab.html",
       "notes": "notes/etf-momentum-lab.md",
@@ -1099,14 +1099,14 @@
       "title": "Strategy Self-Improvement & Walk-Forward Lab",
       "nav": {
         "label": "Strategy Self-Improve",
-        "icon": "🔬"
+        "icon": "\ud83d\udd2c"
       },
       "file": "strategy-self-improvement-lab.html",
       "notes": "notes/strategy-self-improvement-lab.md",
       "data": "strategy-self-improvement-universe.json",
       "status": "live",
       "updated": "2026-07-05",
-      "blurb": "The viral self-improving trading agent loop, done honestly: set an explicit numeric goal (target CAGR, Sharpe floor, max-drawdown ceiling), run a transparent trend/momentum rule, then let a scientific-method search change ONE variable at a time and keep only the changes that survive out-of-sample walk-forward scoring — with an overfitting / multiple-testing discount so you trust the out-of-sample column, not the in-sample fit. Fully in-browser on deterministic, seed-reproducible synthetic paths (no live data); accepted single-variable improvements accrue in a per-scenario localStorage ledger. Educational only.",
+      "blurb": "The viral self-improving trading agent loop, done honestly: set an explicit numeric goal (target CAGR, Sharpe floor, max-drawdown ceiling), run a transparent trend/momentum rule, then let a scientific-method search change ONE variable at a time and keep only the changes that survive out-of-sample walk-forward scoring \u2014 with an overfitting / multiple-testing discount so you trust the out-of-sample column, not the in-sample fit. Fully in-browser on deterministic, seed-reproducible synthetic paths (no live data); accepted single-variable improvements accrue in a per-scenario localStorage ledger. Educational only.",
       "tags": [
         "self-improving",
         "scientific method",
@@ -1175,14 +1175,14 @@
       "title": "Strategy Validation & Real-Data Walk-Forward Lab",
       "nav": {
         "label": "Strategy Validate",
-        "icon": "🧪"
+        "icon": "\ud83e\uddea"
       },
       "file": "strategy-validation-lab.html",
       "notes": "notes/strategy-validation-lab.md",
       "data": "strategy-validation-universe.json",
       "status": "live",
       "updated": "2026-07-05",
-      "blurb": "The real-data sibling of the Strategy Self-Improvement Lab: validate a mechanical rule on live Yahoo / Twelve Data history the honest way — out-of-sample walk-forward scoring with embargoed folds (no leakage), cross-instrument robustness (held k/N tickers — an edge that works on only one ticker is luck), and a Deflated Sharpe Ratio that discounts for how many variants you tried. Answers what the signal tools can't: is this edge real, or curve-fit? In-browser; a clearly-labelled synthetic-demo path when live data is blocked. Educational only.",
+      "blurb": "The real-data sibling of the Strategy Self-Improvement Lab: validate a mechanical rule on live Yahoo / Twelve Data history the honest way \u2014 out-of-sample walk-forward scoring with embargoed folds (no leakage), cross-instrument robustness (held k/N tickers \u2014 an edge that works on only one ticker is luck), and a Deflated Sharpe Ratio that discounts for how many variants you tried. Answers what the signal tools can't: is this edge real, or curve-fit? In-browser; a clearly-labelled synthetic-demo path when live data is blocked. Educational only.",
       "tags": [
         "strategy validation",
         "real data",
@@ -1250,7 +1250,7 @@
       "title": "Smart-Money & Congressional-Flow Lab",
       "nav": {
         "label": "Smart-Money Flow",
-        "icon": "🏛️"
+        "icon": "\ud83c\udfdb\ufe0f"
       },
       "file": "smart-money-flow-lab.html",
       "notes": "notes/smart-money-flow-lab.md",
@@ -1315,10 +1315,10 @@
     {
       "id": "waterfront-polo-lab",
       "group": "Place-based",
-      "title": "Waterfront Market × Club-Proximity Screener",
+      "title": "Waterfront Market \u00d7 Club-Proximity Screener",
       "nav": {
         "label": "Waterfront Screener",
-        "icon": "🤽"
+        "icon": "\ud83e\udd3d"
       },
       "file": "waterfront-polo-lab.html",
       "data": "waterfront-polo-universe.json",
@@ -1393,14 +1393,14 @@
       "title": "Volatility Regime & Vol-Targeting Sizing Lab",
       "nav": {
         "label": "Vol Sizing",
-        "icon": "🌪️"
+        "icon": "\ud83c\udf2a\ufe0f"
       },
       "file": "volatility-sizing-lab.html",
       "notes": "notes/volatility-sizing-lab.md",
       "data": "volatility-sizing-universe.json",
       "status": "live",
       "updated": "2026-07-17",
-      "blurb": "Forecast an asset's conditional volatility and turn it into a capped, conditional position-sizing throttle — magnitude only, never a direction. A Simple storm-gauge cockpit reads the current annualized volatility forecast and its regime as a percentile against a declared trailing window ('rougher than X% of the past N observations'), plus a one-line vol-targeting sizing suggestion. Power adds the forecast term structure, the persistence / half-life decomposition, an EWMA-vs-GARCH comparison, and a sizing card (min(cap, targetVol/max(floor, forecastVol))) with a worked cash example. EWMA / RiskMetrics is the default estimator; the optional GARCH(1,1) is a labeled lightweight in-browser optimizer, never institutional MLE. The 'does vol-targeting make money' question deep-links to the Strategy Validation Lab — no in-tool backtest. Cache-first from the shared rlData store. Educational only — not investment advice.",
+      "blurb": "Forecast an asset's conditional volatility and turn it into a capped, conditional position-sizing throttle \u2014 magnitude only, never a direction. A Simple storm-gauge cockpit reads the current annualized volatility forecast and its regime as a percentile against a declared trailing window ('rougher than X% of the past N observations'), plus a one-line vol-targeting sizing suggestion. Power adds the forecast term structure, the persistence / half-life decomposition, an EWMA-vs-GARCH comparison, and a sizing card (min(cap, targetVol/max(floor, forecastVol))) with a worked cash example. EWMA / RiskMetrics is the default estimator; the optional GARCH(1,1) is a labeled lightweight in-browser optimizer, never institutional MLE. The 'does vol-targeting make money' question deep-links to the Strategy Validation Lab \u2014 no in-tool backtest. Cache-first from the shared rlData store. Educational only \u2014 not investment advice.",
       "tags": [
         "conditional volatility",
         "volatility forecast",
@@ -1463,13 +1463,13 @@
       "title": "Palm Springs Rental Market Lab",
       "nav": {
         "label": "Palm Springs Rentals",
-        "icon": "🌴"
+        "icon": "\ud83c\udf34"
       },
       "file": "palm-springs-rental-market-lab.html",
       "data": "palm-springs-rental-market.payload.json",
       "status": "live",
       "updated": "2026-07-18",
-      "blurb": "Source-qualified short-term-rental market research for Palm Springs, California. Two pair-local segments — the whole market and large-luxury (5+ bedroom) homes — each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city vacation-rental registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and the tool cross-links to its Ocean Shores sibling. Built on the shared rlrental.js place-based engine. Educational only — not investment advice.",
+      "blurb": "Source-qualified short-term-rental market research for Palm Springs, California. Two pair-local segments \u2014 the whole market and large-luxury (5+ bedroom) homes \u2014 each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city vacation-rental registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and the tool cross-links to its Ocean Shores sibling. Built on the shared rlrental.js place-based engine. Educational only \u2014 not investment advice.",
       "tags": [
         "short-term rental",
         "STR market research",
@@ -1531,13 +1531,13 @@
       "title": "Ocean Shores Rental Market Lab",
       "nav": {
         "label": "Ocean Shores Rentals",
-        "icon": "🏖️"
+        "icon": "\ud83c\udfd6\ufe0f"
       },
       "file": "ocean-shores-rental-market-lab.html",
       "data": "ocean-shores-rental-market.payload.json",
       "status": "live",
       "updated": "2026-07-18",
-      "blurb": "Source-qualified short-term-rental market research for Ocean Shores, Washington. Two pair-local segments — the whole market and large-luxury (5+ bedroom) homes — each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city / county registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and the tool cross-links to its Palm Springs sibling. Built on the shared rlrental.js place-based engine. Educational only — not investment advice.",
+      "blurb": "Source-qualified short-term-rental market research for Ocean Shores, Washington. Two pair-local segments \u2014 the whole market and large-luxury (5+ bedroom) homes \u2014 each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city / county registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and the tool cross-links to its Palm Springs sibling. Built on the shared rlrental.js place-based engine. Educational only \u2014 not investment advice.",
       "tags": [
         "short-term rental",
         "STR market research",
@@ -1599,7 +1599,7 @@
       "title": "Technical Analysis Decision Lab",
       "nav": {
         "label": "TA Decision",
-        "icon": "📐"
+        "icon": "\ud83d\udcd0"
       },
       "file": "technical-analysis-decision-lab.html",
       "notes": "notes/technical-analysis-decision-lab.md",
@@ -1664,7 +1664,7 @@
       "title": "FX Regime & Currency Vehicle Lab",
       "nav": {
         "label": "FX Regime",
-        "icon": "💱"
+        "icon": "\ud83d\udcb1"
       },
       "file": "fx-regime-relative-value-lab.html",
       "notes": "notes/fx-regime-relative-value-lab.md",
@@ -1732,7 +1732,7 @@
       "title": "Trend, Dynamics & Cycle Lab",
       "nav": {
         "label": "Trend Dynamics",
-        "icon": "📉"
+        "icon": "\ud83d\udcc9"
       },
       "file": "trend-dynamics-cycle-lab.html",
       "notes": "notes/trend-dynamics-cycle-lab.md",
@@ -1800,7 +1800,7 @@
       "title": "Portfolio Survival & Allocation Lab",
       "nav": {
         "label": "Portfolio Survival",
-        "icon": "🧭"
+        "icon": "\ud83e\udded"
       },
       "file": "portfolio-survival-allocation-lab.html",
       "notes": "notes/portfolio-survival-allocation-lab.md",
@@ -1866,7 +1866,7 @@
       "title": "Research Agenda Lab",
       "nav": {
         "label": "Research Agenda",
-        "icon": "🧭"
+        "icon": "\ud83e\udded"
       },
       "file": "research-agenda-lab.html",
       "notes": "notes/research-agenda-lab.md",
@@ -1936,7 +1936,7 @@
       "title": "Causal Rotation Lab",
       "nav": {
         "label": "Causal Rotation",
-        "icon": "🔗"
+        "icon": "\ud83d\udd17"
       },
       "file": "causal-rotation-lab.html",
       "notes": "notes/causal-rotation-lab.md",
@@ -1998,14 +1998,14 @@
       "title": "Long/Short Horizon Ladder Lab",
       "nav": {
         "label": "Horizon Ladder",
-        "icon": "🪜"
+        "icon": "\ud83e\ude9c"
       },
       "file": "horizon-ladder-lab.html",
       "notes": "notes/horizon-ladder-lab.md",
       "data": "horizon-ladder-universe.json",
       "status": "live",
       "updated": "2026-08-22",
-      "blurb": "Ranked long and short candidates across six horizons — 1 week, 2 weeks, 1 month, 3 months, 6 months and 1 year — behind an earned-rate gate. A probability is shown only once that direction-and-horizon cell has reached its minimum resolved sample; otherwise the rate is withheld and the resolved count is shown, never imputed as zero or fifty. Every candidate must be machine-checkable at mint or it is refused by field path rather than published and later marked not-evaluable. Expected move is horizon sigma, targets and invalidation are declared in sigma, and the frontier makes explicit that probability and move size pull against each other. Educational only — not investment advice.",
+      "blurb": "Ranked long and short candidates across six horizons \u2014 1 week, 2 weeks, 1 month, 3 months, 6 months and 1 year \u2014 behind an earned-rate gate. A probability is shown only once that direction-and-horizon cell has reached its minimum resolved sample; otherwise the rate is withheld and the resolved count is shown, never imputed as zero or fifty. Every candidate must be machine-checkable at mint or it is refused by field path rather than published and later marked not-evaluable. Expected move is horizon sigma, targets and invalidation are declared in sigma, and the frontier makes explicit that probability and move size pull against each other. Educational only \u2014 not investment advice.",
       "tags": [
         "long and short",
         "six horizons",

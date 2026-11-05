@@ -1,0 +1,60 @@
+name: tools-refresh
+on:
+  schedule:
+    - cron: "0 0 * * *"
+    - cron: "0 6 * * *"
+    - cron: "0 12 * * *"
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+    inputs:
+      window:
+        description: "Brief window"
+        required: false
+        default: "morning"
+        type: choice
+        options:
+          - pre-market
+          - morning
+          - pre-close
+          - after-hours
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+      - name: Refresh brief data
+        run: |
+          WINDOW="${{ github.event.inputs.window || 'morning' }}"
+          node scripts/brief-refresh.mjs --window "$WINDOW" || true
+      - name: Build pages site
+        run: node scripts/build-pages-site.mjs
+      - name: Update tools manifest
+        run: |
+          python3 -c "import json, os, datetime; d=json.load(open('tools.json')); d['updated']=datetime.date.today().isoformat(); 
+          for t in d['tools']:
+              f=t.get('file')
+              if f and os.path.exists(f):
+                  mtime=os.path.getmtime(f)
+                  mt=datetime.datetime.fromtimestamp(mtime).date().isoformat()
+                  t['updated']=mt
+          json.dump(d, open('tools.json','w'), indent=2)"
+      - name: Commit and push
+        run: |
+          git config user.name "research-lab-bot"
+          git config user.email "bot@research-lab.local"
+          git add -A
+          git diff --cached --quiet || git commit -m "tools-refresh: scheduled update $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+          git push

@@ -1,6 +1,6 @@
 {
   "contractVersion": "public-owner-reads/v1",
-  "generatedAt": "2026-11-05T05:31:38.830Z",
+  "generatedAt": "2026-11-05T12:02:13.406Z",
   "asOf": "2026-11-05",
   "source": "committed same-origin snapshots via rlmetrics",
   "tickers": [
@@ -579,8 +579,8 @@
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "impliedVol": 0.342375,
-          "impliedMovePct": 2.5344,
+          "impliedVol": 0.340575,
+          "impliedMovePct": 2.521,
           "expiry": "2026-11-06",
           "daysToExpiry": 2,
           "atTheMoneyContracts": 4
@@ -595,8 +595,8 @@
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "impliedVol": 0.257925,
-          "impliedMovePct": 1.35,
+          "impliedVol": 0.274325,
+          "impliedMovePct": 1.4359,
           "expiry": "2026-11-05",
           "daysToExpiry": 1,
           "atTheMoneyContracts": 4

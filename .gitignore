@@ -32,3 +32,4 @@ __pycache__/
 # SCN-008-053 adversarial mutation carrier. Ignored so an interrupted run
 # cannot leave the working tree dirty.
 .scn-008-053-reduced-lab.html
+.claude/sessions/

@@ -1,11 +1,11 @@
 {
   "contractVersion": "research-agenda-current/v1",
-  "updatedAt": "2026-11-06T15:31:59.970Z",
+  "updatedAt": "2026-11-06T19:32:13.962Z",
   "generationRef": {
-    "path": "research/agenda/generations/generation-846ef55817d352381e64fe2e81158f7ae587146c571a1dd8eaf1e83d048abb4d.json",
-    "sha256": "sha256:68e41f59e5d2d59ec8cf2645581064cfc37a5c9eea558f0038aab2e9d58d204f",
+    "path": "research/agenda/generations/generation-b0a34596a64c5736b4c7f2b63a31a512f91153bb9f552e1c772fd39832e27c1e.json",
+    "sha256": "sha256:774f596adf6e85b792ca97dfb0c0b86bb4bee4b706f3064cd99a9e3f58dada6a",
     "contractVersion": "research-generation/v1",
-    "generationId": "generation-846ef55817d352381e64fe2e81158f7ae587146c571a1dd8eaf1e83d048abb4d",
+    "generationId": "generation-b0a34596a64c5736b4c7f2b63a31a512f91153bb9f552e1c772fd39832e27c1e",
     "topicId": null,
     "historicalOnly": false
   },
@@ -14,10 +14,10 @@
       "topicId": "geopolitical-supply-shock",
       "state": "unavailable",
       "reviewRef": {
-        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-846ef55817d352381e64fe2e81158f7ae587146c571a1dd8eaf1e83d048abb4d.json",
-        "sha256": "sha256:b2b7da9301005267c34f32600de0f356f925e994e4a415e4d87cddbfd00e8a1a",
+        "path": "research/agenda/reviews/geopolitical-supply-shock/generation-b0a34596a64c5736b4c7f2b63a31a512f91153bb9f552e1c772fd39832e27c1e.json",
+        "sha256": "sha256:05f6f90721e0ce8ee244b8254ddd2ed8a95f4d0ce750dc97230c3258f7976896",
         "contractVersion": "research-review/v1",
-        "generationId": "generation-846ef55817d352381e64fe2e81158f7ae587146c571a1dd8eaf1e83d048abb4d",
+        "generationId": "generation-b0a34596a64c5736b4c7f2b63a31a512f91153bb9f552e1c772fd39832e27c1e",
         "topicId": "geopolitical-supply-shock",
         "historicalOnly": false
       },
@@ -25,15 +25,8 @@
     },
     {
       "topicId": "defense-earnings-acceleration",
-      "state": "unavailable",
-      "reviewRef": {
-        "path": "research/agenda/reviews/defense-earnings-acceleration/generation-846ef55817d352381e64fe2e81158f7ae587146c571a1dd8eaf1e83d048abb4d.json",
-        "sha256": "sha256:3dc9a7c19b9c759ba9567bbafb6f10fe33a06a975d2274e29c0c80e524d39401",
-        "contractVersion": "research-review/v1",
-        "generationId": "generation-846ef55817d352381e64fe2e81158f7ae587146c571a1dd8eaf1e83d048abb4d",
-        "topicId": "defense-earnings-acceleration",
-        "historicalOnly": false
-      },
+      "state": "not-due",
+      "reviewRef": null,
       "dossierRef": null
     },
     {

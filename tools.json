@@ -1,7 +1,7 @@
 {
   "site": "Research Lab",
   "description": "Interactive single-file research tools for the AI-datacenter capex cycle and quant strategy modeling. Educational only \u2014 not investment advice.",
-  "updated": "2026-11-06",
+  "updated": "2026-11-05",
   "tools": [
     {
       "id": "market-brief",
@@ -15,7 +15,7 @@
       "notes": "notes/market-brief.md",
       "data": "market-brief.config.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-10-01",
       "blurb": "One clean, low-noise cockpit: what changed that you should act on, and what's coming. Regime, sector rotation (leading->lagging flips), momentum changes, gamma flip and call/put walls, events with option-implied moves and scenario probabilities, and a watchlist roll-up \u2014 each deep-linking the tool that owns the detail. A live layer computed in-browser from the shared rlData cache (no refetch) plus an agent layer refreshed 4x/day. Estimates, not facts \u2014 educational only, not investment advice.",
       "tags": [
         "market brief",
@@ -86,7 +86,7 @@
       "notes": "notes/market-heatmap-lab.md",
       "data": "sector-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-10-30",
       "blurb": "Whole-market treemap \u2014 where the money is, at a glance. Constituents grouped by sector (or the 11 sector ETFs), sized by index weight, dollar-volume or equal, colored by return over 1 day / 1 week / 1 month. A Simple cockpit (one breadth verdict + leaders/laggards; steer the color window / size metric / grouping) with a Power drill-down (per-sector breadth, a sortable constituent table, and sigma-vs-sector outliers). Cache-first from the shared rlData store \u2014 reused across tools, never refetched. Educational only \u2014 not investment advice.",
       "tags": [
         "heatmap",
@@ -151,7 +151,7 @@
       "notes": "notes/options-flow-feed-lab.md",
       "data": "options-structure-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-10-05",
       "blurb": "Which option strikes lit up today, relative to their own normal \u2014 an honest EOD positioning proxy, NOT a real-time trade tape (there is no free live options feed). Scans liquid names' chains for anomalous volume, vol/OI, premium notional and IV, ranks the standouts, and reads the net call-vs-put premium lean. Simple feed + Power table. Chains fetched best-effort (Yahoo + proxies), cached and reused on reload. Never infers buy/sell side. Educational only \u2014 not investment advice.",
       "tags": [
         "unusual options activity",
@@ -213,7 +213,7 @@
       "notes": "notes/intraday-tape-lab.md",
       "data": "intraday-tape-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-24",
       "blurb": "Intraday technical-analysis lab: read who controls the session (trend-following algos pinned to VWAP vs emotional retail flow) and where support/resistance is. Session VWAP with sigma bands, a session volume profile with a buy/sell delta (an up/down-volume proxy, not real order flow), the opening range vs the prior day's value area, an algo-vs-retail control read, recent-session analogs, and the 0DTE gamma walls reused from the Options Structure Lab via a shared browser cache (no refetch). One Simple verdict plus a Power view; everything computed in-browser; editable watchlist.",
       "tags": [
         "intraday",
@@ -290,7 +290,7 @@
       "notes": "notes/swing-structure-lab.md",
       "data": "swing-structure-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-10-31",
       "blurb": "Swing technical-analysis lab (days-to-weeks): the 20/50/200-day moving-average stack, a composite volume profile with durable HVN/LVN shelves, market-structure and chart-pattern detection with descriptive analog odds, an accumulation/distribution read, an in-browser Fear-and-Greed + VIX regime engine, and the monthly option magnets reused from the Options Structure Lab via a shared browser cache. One positioning verdict plus a Power view; everything computed in-browser; editable watchlist.",
       "tags": [
         "swing",
@@ -368,7 +368,7 @@
       "notes": "notes/options-structure-lab.md",
       "data": "options-structure-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-24",
       "blurb": "Map option-implied support/resistance: call/put walls, the gamma-flip regime (net GEX) that says whether dealers pin price or let it trend, max pain, the cash volume-profile POC, per-expiry expected-move cones, IV smile/term/skew/VRP, short interest and a bounded squeeze read. Black-Scholes greeks (delta/gamma/vega/theta + vanna/charm) computed in-browser from the fetched Yahoo option chain; the dealer-gamma sign is a documented toggle; day-over-day OI and wall migration accrue in localStorage with no paid history API; every ticker links to Yahoo with a rich tooltip. Multi-provider price layer (Yahoo no-key + Twelve Data / Alpha Vantage / Finnhub keys shared across the Research Lab). Editable optionable-underlyings watchlist.",
       "tags": [
         "options",
@@ -451,7 +451,7 @@
       "notes": "notes/gamma-trading-lab.md",
       "data": "gamma-trading-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-22",
       "blurb": "Turn the dealer-gamma regime into a playbook \u2014 the trading sibling of the Options Structure Lab. Read whether dealers are long gamma (pinning) or short gamma (trending), then run the three classic plays: the JEX / gamma-flip waterfall (first negative-gamma close after an extended rally \u2192 opening-drive short + afternoon roll), an in-browser Option Volume Imbalance (OVI) model that weights option volume by gamma and ranks it as a percentile against your own rolling snapshots (open interest is a day old; only volume is real-time), and the gamma-vs-time expiration cycle (OPEX pin, 14/30-day windows, Thu/Fri overextension capitulation). Days-in-regime + OVI history accrue in localStorage. One interactive Simple model steered by stance/aggressiveness/horizon levers, plus a full Power dashboard (net-GEX-by-strike, OVI percentile history, OPEX ladder, dealer-sign toggle). Reuses the Options Lab's cached snapshot and the shared Research-Lab keys \u2014 nothing is re-fetched.",
       "tags": [
         "gamma",
@@ -531,7 +531,7 @@
       "notes": "notes/sector-research-lab.md",
       "data": "sector-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-10-05",
       "blurb": "Two modes \u2014 a Simple, steerable one-line rotation call (guided tape \u2192 rotate-into with two-clock entry timing \u2192 rotate-out \u2192 invalidation) and a full Power dashboard. Pull live Yahoo / Twelve Data price history for the 11 GICS sectors, major indexes, custom equal-weight stock groups (Mag 7, semis, memory, software, AI-infra, banks, homebuilders, nuclear/power \u2014 plus your own, built at runtime), and cross-assets (BTC, ETH, GLD, TLT\u2026), then read momentum and its underlying forces: a Relative Rotation Graph (RS-Ratio vs RS-Momentum with trajectory tails), a momentum-acceleration ranking that flags Basing/Peaking turns earlier than price, an ETF-first rotation-suggestions panel (names the sector/group ETF to rotate into/out of; individual stocks only on an extreme concentrated-leadership case), an excess-return heatmap, relative-strength lines, on-balance-volume / money-flow, member breadth for the groups, a rotation-intensity gauge, a correlation matrix plus a rolling pair-correlation divergence monitor (software-vs-BTC, GLD-vs-BTC\u2026), and per-entry risk flags. Then drill into a chosen sector: a company-by-sector momentum heatmap (top constituents coloured by 1M/3M/6M/12M excess, a blend, a risk-adjusted (blend\u00f7vol) read or absolute return, with new-high \u25b2 and RSI overbought/oversold badges and per-sector leader + dispersion) and a sector-ETF selector that ranks each sector's prominent ETFs on ten parameters \u2014 size (AUM), liquidity (21-day dollar ADV), cost (expense), coverage (holdings/segment), concentration (top-10 weight), sector-tracking (daily-return correlation to the SPDR), tracking-error (annualised drift vs the SPDR), max drawdown, distribution yield and Sharpe-like risk-adjusted momentum (over a 3M/6M/12M lookback) \u2014 into one reweightable Fit score (adjustable weight sliders + presets, plus \u03b2 and information-ratio reads and a CSV export) so you can pick the best vehicle when you rotate. Editable external universe (incl. a sectorMap catalog of per-sector constituents + candidate ETFs with size/cost/coverage/concentration/yield reference fields); Yahoo ticker links with detail tooltips; everything computed in-browser.",
       "tags": [
         "sectors",
@@ -640,7 +640,7 @@
       "notes": "notes/global-rotation-lab.md",
       "data": "global-rotation-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-10-25",
       "blurb": "FX- and session-aware country ETF rotation across South Korea, Singapore, Philippines, Germany, Japan, Taiwan, India, China, the UK, Australia, Canada, Brazil and Mexico. Simple mode gives a steerable country-allocation queue; Power exposes 21/63/126-day relative momentum, 20/50/200 trend, realized risk, FX confirmation, local-close timing and diversification. Cache-first and auto-hydrated.",
       "tags": [
         "international ETFs",
@@ -703,7 +703,7 @@
       "notes": "notes/real-assets-lab.md",
       "data": "real-assets-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-17",
       "blurb": "Distinct transparent models for gold, silver, bitcoin/crypto, energy, broad commodities, copper, agriculture and platinum. Gold uses USD/rate proxies; bitcoin uses risk appetite plus a stronger volatility/drawdown penalty; silver combines monetary- and industrial-metal confirmation. Simple mode is steerable; Power exposes every score, driver and risk input.",
       "tags": [
         "GLD",
@@ -768,7 +768,7 @@
       "notes": "notes/bond-regime-lab.md",
       "data": "bond-regime-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-17",
       "blurb": "Decision-first fixed-income workspace separating aligned credit ratios, duration confounds, independent confirmation, curve level and impulse, real yields and breakevens. Simple and Power share one model; seven generic sleeves use transparent carry, rate, spread and convexity scenarios with stale, finite and source-rights guards.",
       "tags": [
         "fixed income",
@@ -830,7 +830,7 @@
       "file": "ai-capex-strategy-lab.html",
       "notes": "notes/ai-capex-strategy-lab.md",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-01",
       "blurb": "Model US/CAD supplier-beneficiary equities and ETF-proxy strategies across the AI-datacenter supply chain with per-horizon playbooks (1M/3M/6M/1Y), 80 assets across 13 themes, ETF risk dampers, networking/server/buildout/design-IP presets, a 5-objective optimizer, theme-aware correlation, crowding friction, and a lognormal risk model.",
       "tags": [
         "1M",
@@ -897,7 +897,7 @@
       "file": "msft-july-print-model.html",
       "notes": "notes/msft-july-print-model.md",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-02",
       "blurb": "Reconcile the late-July Microsoft FY26 Q4 print and FY27E margins against reported Q1-Q3 actuals: an operating-margin bridge, dual Q4 anchors (consensus vs seasonality), depreciation / price-mix / FX levers, a P/E ladder, an OM heatmap, and a verified memory-shortage cost-cycle overlay. Now adds the options-implied post-earnings move (ATM straddle computed live from the option chain: expected range, 1-sigma/2-sigma cones, the isolated earnings-day jump, and implied vs realized reactions) plus a macro brief (Fed week, Mag-7 peers, USD/JPY, SOXX, rates/dollar) regenerated on each refresh. The static 2026-07-06 model still reads a cache-first delayed quote and daily technicals from separate same-origin snapshots on their own clocks, with a Simple/Power view over one accepted state; the FY26 Q4 print stays a scenario.",
       "tags": [
         "MSFT",
@@ -968,7 +968,7 @@
       "notes": "notes/company-fundamentals-lab.md",
       "data": "company-fundamentals.config.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-01",
       "blurb": "Audit a hash-validated Microsoft company publication across one Simple/Detailed state: exact SEC identity and filing periods, explicit evidence gaps, a user-owned linked scenario, source trace, contextual diagnostics, peers, export, and a change-aware company brief. Statement, model, brief, market, and retrieval clocks remain separate; the current brief is honestly partial because no retained SEC Company Facts response supplies source-qualified statement values. Feature 002 consumes the committed owner read without recomputing company facts or fabricating a recommendation.",
       "tags": [
         "company fundamentals",
@@ -1032,7 +1032,7 @@
       "notes": "notes/etf-momentum-lab.md",
       "data": "etf-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-04",
       "blurb": "Pull live Yahoo / Twelve Data price history for a momentum-ETF universe (the etfdb High-Momentum list by AUM, plus QQQ and VGT) and compute performance, risk, drawdowns, correlation, CAPM betas, regime-conditional return estimates and Monte-Carlo projections. 27 ETFs from an editable external JSON, live full holdings + sector weights (Alpha Vantage), 11 hand-drawn charts, a sortable leaderboard, an AUM/equal-weighted basket, and add/remove-any-ticker.",
       "tags": [
         "ETF",
@@ -1105,7 +1105,7 @@
       "notes": "notes/strategy-self-improvement-lab.md",
       "data": "strategy-self-improvement-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-01",
       "blurb": "The viral self-improving trading agent loop, done honestly: set an explicit numeric goal (target CAGR, Sharpe floor, max-drawdown ceiling), run a transparent trend/momentum rule, then let a scientific-method search change ONE variable at a time and keep only the changes that survive out-of-sample walk-forward scoring \u2014 with an overfitting / multiple-testing discount so you trust the out-of-sample column, not the in-sample fit. Fully in-browser on deterministic, seed-reproducible synthetic paths (no live data); accepted single-variable improvements accrue in a per-scenario localStorage ledger. Educational only.",
       "tags": [
         "self-improving",
@@ -1181,7 +1181,7 @@
       "notes": "notes/strategy-validation-lab.md",
       "data": "strategy-validation-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-01",
       "blurb": "The real-data sibling of the Strategy Self-Improvement Lab: validate a mechanical rule on live Yahoo / Twelve Data history the honest way \u2014 out-of-sample walk-forward scoring with embargoed folds (no leakage), cross-instrument robustness (held k/N tickers \u2014 an edge that works on only one ticker is luck), and a Deflated Sharpe Ratio that discounts for how many variants you tried. Answers what the signal tools can't: is this edge real, or curve-fit? In-browser; a clearly-labelled synthetic-demo path when live data is blocked. Educational only.",
       "tags": [
         "strategy validation",
@@ -1255,7 +1255,7 @@
       "file": "smart-money-flow-lab.html",
       "notes": "notes/smart-money-flow-lab.md",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-01",
       "blurb": "Read disclosed insider (Form 4), congressional (STOCK Act) and institutional (13F) buying, score cluster-consensus conviction, then apply the disclosure-lag haircut the hype videos skip to see how much edge survives by the time you can legally copy the trade. One reality-check verdict plus a Power ledger; everything computed in-browser on editable, illustrative (synthetic) filing data. Educational only, not investment advice.",
       "tags": [
         "insider",
@@ -1323,7 +1323,7 @@
       "file": "waterfront-polo-lab.html",
       "data": "waterfront-polo-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-14",
       "blurb": "Screen Florida WATERFRONT markets (lake / river / intracoastal / canal) against a configurable affordability, size and land/privacy brief, gated by whether they sit within a ~40-minute drive of an adult water-polo practice placed on a Florida map. Each market is annotated with insurance, flood and storm-surge risk. Drive-time is an approximate straight-line estimate (not a routed isochrone) and the club layer is a seed to verify. In-browser on an editable waterfront-polo-universe.json. Research screen, not advice.",
       "tags": [
         "waterfront",
@@ -1399,7 +1399,7 @@
       "notes": "notes/volatility-sizing-lab.md",
       "data": "volatility-sizing-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-09-06",
       "blurb": "Forecast an asset's conditional volatility and turn it into a capped, conditional position-sizing throttle \u2014 magnitude only, never a direction. A Simple storm-gauge cockpit reads the current annualized volatility forecast and its regime as a percentile against a declared trailing window ('rougher than X% of the past N observations'), plus a one-line vol-targeting sizing suggestion. Power adds the forecast term structure, the persistence / half-life decomposition, an EWMA-vs-GARCH comparison, and a sizing card (min(cap, targetVol/max(floor, forecastVol))) with a worked cash example. EWMA / RiskMetrics is the default estimator; the optional GARCH(1,1) is a labeled lightweight in-browser optimizer, never institutional MLE. The 'does vol-targeting make money' question deep-links to the Strategy Validation Lab \u2014 no in-tool backtest. Cache-first from the shared rlData store. Educational only \u2014 not investment advice.",
       "tags": [
         "conditional volatility",
@@ -1468,7 +1468,7 @@
       "file": "palm-springs-rental-market-lab.html",
       "data": "palm-springs-rental-market.payload.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-01",
       "blurb": "Source-qualified short-term-rental market research for Palm Springs, California. Two pair-local segments \u2014 the whole market and large-luxury (5+ bedroom) homes \u2014 each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city vacation-rental registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and the tool cross-links to its Ocean Shores sibling. Built on the shared rlrental.js place-based engine. Educational only \u2014 not investment advice.",
       "tags": [
         "short-term rental",
@@ -1536,7 +1536,7 @@
       "file": "ocean-shores-rental-market-lab.html",
       "data": "ocean-shores-rental-market.payload.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-01",
       "blurb": "Source-qualified short-term-rental market research for Ocean Shores, Washington. Two pair-local segments \u2014 the whole market and large-luxury (5+ bedroom) homes \u2014 each independently cover nine research categories with source-qualified claims (AirDNA, Key Data, city / county registries), falsifiable remaining-2026 and 2027 scenario matrices, and (for luxury) an acquisition / financing baseline. Missing property-level economics stay explicitly incomplete, never zero-filled; unknown luxury performance stays unknown. Simple and Power share one deterministic model, and the tool cross-links to its Palm Springs sibling. Built on the shared rlrental.js place-based engine. Educational only \u2014 not investment advice.",
       "tags": [
         "short-term rental",
@@ -1605,7 +1605,7 @@
       "notes": "notes/technical-analysis-decision-lab.md",
       "data": "technical-analysis-decision-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-15",
       "blurb": "One coherent technical-analysis decision framework: for a source-qualified stock it moves primary context -> regime -> location -> trigger -> expectancy and returns a plain-language setup state (NO EDGE / WATCH / ARMED / TRIGGERED / INVALIDATED / EXPIRED, plus first-class MIXED / UNAVAILABLE). A five-gate workflow (context, location, confirmation, validation, risk) never lets a setup trigger by averaging indicator votes; SMA/EMA/MACD/RSI/stochastic/Bollinger cluster by mathematical family so correlated indicators cannot manufacture confidence. Specialist models (structure, trend, price-volume/Wyckoff, auction/value, patterns, mean-reversion, relative strength, options positioning, psychology/risk) each expose supporting/contradicting/unstable/unavailable evidence. Confidence is evidence quality, never a win probability; wicks are not proven manipulation; volume splits are OHLCV proxies; dealer gamma is a convention-dependent scenario. Simple and Power share one result. Educational only - not investment advice.",
       "tags": [
         "technical analysis",
@@ -1670,7 +1670,7 @@
       "notes": "notes/fx-regime-relative-value-lab.md",
       "data": "fx-regime-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-16",
       "blurb": "ETF-first currency workspace that maps a currency view to an eligible listed vehicle, or refuses. Separate dollar slots, cohort boards that never pool, and pair reads that infer no orientation from ticker spelling. Every vehicle carries a settled disposition with exact reason codes; direction mismatch, basket mismatch, daily-reset boundaries, and an unexplained tracking residual are all visible, and no constraint is relaxed to manufacture a recommendation.",
       "tags": [
         "currency",
@@ -1738,7 +1738,7 @@
       "notes": "notes/trend-dynamics-cycle-lab.md",
       "data": "trend-dynamics-cycle-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-17",
       "blurb": "Source-qualified trend workspace that separates direction, strength, dynamics, and turning points instead of collapsing them into one score. Every method declares its own eligibility and fails closed with an exact reason, so an insufficient history reads as unavailable rather than as a weak signal. A turn is reported with the observation where it became effective and the later observation where it became detectable, so the confirmation lag is visible rather than implied, and source freshness is kept separate from analytical truth.",
       "tags": [
         "trend",
@@ -1805,7 +1805,7 @@
       "file": "portfolio-survival-allocation-lab.html",
       "notes": "notes/portfolio-survival-allocation-lab.md",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-10-30",
       "blurb": "A six-tab local workspace that asks whether a portfolio survives what its owner actually needs it to survive: a mandate with real dates and real cash needs. Risk X-Ray, bootstrap path survival, stress-conditional dependence, six allocation methods on one frozen basis with sensitivity ranges and an explicit Black-Litterman editor, and a research dossier that keeps in-sample, walk-forward and cost-adjusted results as three separate figures. Every analytic declares its own eligibility and fails closed with a named reason. Holdings, mandate, scenarios and dossiers never leave this browser, and the tool publishes a permanent local-only, no-data read to the public brief.",
       "tags": [
         "portfolio",
@@ -1872,7 +1872,7 @@
       "notes": "notes/research-agenda-lab.md",
       "data": "research-agenda.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-09-06",
       "blurb": "Recurring public-market research with immutable current reviews, honest unavailable and stale states, durable actor/flow/transmission models, dated history, explicit local assumptions, and falsifiable reversal conditions. Simple answers what changed and what would reverse it; Power exposes the full evidence, source, model, comparison, and version record without promoting history to current.",
       "tags": [
         "standing research",
@@ -1942,7 +1942,7 @@
       "notes": "notes/causal-rotation-lab.md",
       "data": "causal-rotation-observations.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-17",
       "blurb": "Separates a sourced causal mechanism from a coincident price move, and reports how strong the evidence is rather than what to do about it.",
       "tags": [
         "rotation",
@@ -2004,7 +2004,7 @@
       "notes": "notes/horizon-ladder-lab.md",
       "data": "horizon-ladder-universe.json",
       "status": "live",
-      "updated": "2026-11-06",
+      "updated": "2026-08-24",
       "blurb": "Ranked long and short candidates across six horizons \u2014 1 week, 2 weeks, 1 month, 3 months, 6 months and 1 year \u2014 behind an earned-rate gate. A probability is shown only once that direction-and-horizon cell has reached its minimum resolved sample; otherwise the rate is withheld and the resolved count is shown, never imputed as zero or fifty. Every candidate must be machine-checkable at mint or it is refused by field path rather than published and later marked not-evaluable. Expected move is horizon sigma, targets and invalidation are declared in sigma, and the frontier makes explicit that probability and move size pull against each other. Educational only \u2014 not investment advice.",
       "tags": [
         "long and short",

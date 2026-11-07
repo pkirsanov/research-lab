@@ -51,6 +51,8 @@ jobs:
                   mt=datetime.datetime.fromtimestamp(mtime).date().isoformat()
                   t['updated']=mt
           json.dump(d, open('tools.json','w'), indent=2)"
+      - name: Sync inline tool dates
+        run: node scripts/sync-inline-tool-dates.mjs
       - name: Commit and push
         run: |
           git config user.name "research-lab-bot"

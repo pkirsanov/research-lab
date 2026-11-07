@@ -53,6 +53,10 @@ jobs:
           json.dump(d, open('tools.json','w'), indent=2)"
       - name: Sync inline tool dates
         run: node scripts/sync-inline-tool-dates.mjs
+      - name: Shard brief history
+        run: node scripts/shard-brief-history.mjs
+      - name: Rebuild compact page artifacts
+        run: node scripts/build-brief-page-artifacts.mjs
       - name: Commit and push
         run: |
           git config user.name "research-lab-bot"

@@ -1,9 +1,9 @@
 {
   "asOf": "2026-11-06T16:00:00.000Z",
-  "generatedAt": "2026-11-06T22:38:14.515Z",
+  "generatedAt": "2026-11-07T00:02:55.818Z",
   "window": "morning",
   "marketClosed": false,
-  "nextSessionDate": "2026-11-06",
+  "nextSessionDate": "2026-11-09",
   "dataFreshness": {
     "bars": {
       "updated": "2026-11-06T21:30:35.798Z",
@@ -196,7 +196,7 @@
       "rsMom": 98.69,
       "quad": "A",
       "accel": 0.16,
-      "rrgState": "Basing ↑",
+      "rrgState": "Basing \u2191",
       "rotation": "into",
       "maStack": "tangled",
       "ma200Dist": -3.21
@@ -209,7 +209,7 @@
       "rsMom": 101.89,
       "quad": "I",
       "accel": 2.61,
-      "rrgState": "Improving ↑",
+      "rrgState": "Improving \u2191",
       "rotation": "into",
       "maStack": "bear-stack",
       "ma200Dist": -6.94
@@ -235,7 +235,7 @@
       "rsMom": 100.34,
       "quad": "L",
       "accel": -1.27,
-      "rrgState": "Peaking ⚠",
+      "rrgState": "Peaking \u26a0",
       "rotation": "out",
       "maStack": "bull-stack",
       "ma200Dist": 6.39
@@ -261,7 +261,7 @@
       "rsMom": 101.24,
       "quad": "L",
       "accel": -0.26,
-      "rrgState": "Peaking ⚠",
+      "rrgState": "Peaking \u26a0",
       "rotation": "out",
       "maStack": "bull-stack",
       "ma200Dist": 6.21
@@ -274,7 +274,7 @@
       "rsMom": 100.06,
       "quad": "L",
       "accel": -1.83,
-      "rrgState": "Peaking ⚠",
+      "rrgState": "Peaking \u26a0",
       "rotation": "out",
       "maStack": "bull-stack",
       "ma200Dist": 15.94
@@ -287,7 +287,7 @@
       "rsMom": 100.96,
       "quad": "I",
       "accel": 0.3,
-      "rrgState": "Improving ↑",
+      "rrgState": "Improving \u2191",
       "rotation": "into",
       "maStack": "bear-stack",
       "ma200Dist": -6.16
@@ -300,7 +300,7 @@
       "rsMom": 100.78,
       "quad": "L",
       "accel": -0.72,
-      "rrgState": "Peaking ⚠",
+      "rrgState": "Peaking \u26a0",
       "rotation": "out",
       "maStack": "tangled",
       "ma200Dist": 1.51
@@ -348,7 +348,7 @@
         "rsMom": 99.61,
         "quad": "W",
         "accel": 1.26,
-        "rrgState": "Weakening ↓",
+        "rrgState": "Weakening \u2193",
         "rotation": "out",
         "maStack": "tangled",
         "ma200Dist": 1.64
@@ -463,7 +463,7 @@
         "rsMom": 99.43,
         "quad": "A",
         "accel": 1.04,
-        "rrgState": "Basing ↑",
+        "rrgState": "Basing \u2191",
         "rotation": "into",
         "maStack": "tangled",
         "ma200Dist": -14.43
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-11-06T22:38:13.457Z",
+      "asOf": "2026-11-07T00:02:55.204Z",
       "read": "Rotate toward XLC as XLV weakens.",
       "metrics": {
         "into": {
@@ -639,7 +639,7 @@
           "rsMom": 101.89,
           "quad": "I",
           "accel": 2.61,
-          "rrgState": "Improving ↑",
+          "rrgState": "Improving \u2191",
           "rotation": "into",
           "maStack": "bear-stack",
           "ma200Dist": -6.94
@@ -653,7 +653,7 @@
           "rsMom": 100.06,
           "quad": "L",
           "accel": -1.83,
-          "rrgState": "Peaking ⚠",
+          "rrgState": "Peaking \u26a0",
           "rotation": "out",
           "maStack": "bull-stack",
           "ma200Dist": 15.94
@@ -667,7 +667,7 @@
           "rsMom": 100.06,
           "quad": "L",
           "accel": -1.83,
-          "rrgState": "Peaking ⚠",
+          "rrgState": "Peaking \u26a0",
           "rotation": "out",
           "maStack": "bull-stack",
           "ma200Dist": 15.94
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": -0.05419001027671355,
           "usdRelativeReturn": 0.02490551167076016,
           "asOf": "2026-11-06T00:00:00.000Z",
-          "computedAt": "2026-11-06T22:38:13.469Z",
+          "computedAt": "2026-11-07T00:02:55.223Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1930,7 +1930,7 @@
           "interaction": 0.00015320664631635007,
           "relationship": "Local-Equity-Led With FX Drag",
           "asOf": "2026-11-06T00:00:00.000Z",
-          "computedAt": "2026-11-06T22:38:13.469Z",
+          "computedAt": "2026-11-07T00:02:55.223Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1954,7 +1954,7 @@
               "usdLeadership": {
                 "asOf": "2026-11-06T00:00:00.000Z",
                 "benchmarkReturn": -0.05419001027671355,
-                "computedAt": "2026-11-06T22:38:13.469Z",
+                "computedAt": "2026-11-07T00:02:55.223Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2463,7 +2463,7 @@
                 "approximateLocalReturn": -0.005951587428999261,
                 "asOf": "2026-11-06T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": -0.05142258304512337,
-                "computedAt": "2026-11-06T22:38:13.469Z",
+                "computedAt": "2026-11-07T00:02:55.223Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "AUD",
                 "freshUntil": null,
@@ -3055,7 +3055,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-11-06T22:38:13.469Z",
+          "computedAt": "2026-11-07T00:02:55.223Z",
           "freshUntil": null
         }
       },
@@ -3675,7 +3675,7 @@
     "options-structure-lab": {
       "id": "options-structure-lab",
       "asOf": "2026-11-06T16:00:00.000Z",
-      "read": "SPY sits in negative dealer gamma with the flip near 738.64; call wall 740, put wall 735, front expected move ±5.71.",
+      "read": "SPY sits in negative dealer gamma with the flip near 738.64; call wall 740, put wall 735, front expected move \u00b15.71.",
       "deepLink": "options-structure-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3695,7 +3695,7 @@
     "gamma-trading-lab": {
       "id": "gamma-trading-lab",
       "asOf": "2026-11-06T16:00:00.000Z",
-      "read": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 738.64, walls 735/740.",
+      "read": "SPY dealers are negative gamma \u2014 playbook range-break-watch, conviction patient; flip 738.64, walls 735/740.",
       "deepLink": "gamma-trading-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3717,7 +3717,7 @@
     "options-flow-feed-lab": {
       "id": "options-flow-feed-lab",
       "asOf": "2026-11-06T16:00:00.000Z",
-      "read": "Option flow is put-heavy (leaning bearish / hedged) across 12 tickers: 2550 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 738 puts at $89.4M on 79.4× its open interest.",
+      "read": "Option flow is put-heavy (leaning bearish / hedged) across 12 tickers: 2550 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 738 puts at $89.4M on 79.4\u00d7 its open interest.",
       "deepLink": "options-flow-feed-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3777,7 +3777,7 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-11-06T22:38:13.909Z",
+      "asOf": "2026-11-07T00:02:55.496Z",
       "read": "The AI-capex universe is dated 2026-06-30, 130 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
@@ -3809,7 +3809,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-11-06",
-            "elapsedDays": 0,
+            "elapsedDays": 1,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           },
@@ -3817,7 +3817,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-11-06",
-            "elapsedDays": 0,
+            "elapsedDays": 1,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           }
@@ -3856,15 +3856,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-11-06T22:38:13.942Z",
+      "asOf": "2026-11-07T00:02:55.514Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-540f015c",
-        "evidenceIdentity": "fxe-v1-3ef8f942",
+        "ownerDecisionId": "fxo-v1-c1728b7c",
+        "evidenceIdentity": "fxe-v1-e630a425",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -3987,8 +3987,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-540f015c",
-            "evidenceIdentity": "fxe-v1-3ef8f942",
+            "ownerDecisionId": "fxo-v1-c1728b7c",
+            "evidenceIdentity": "fxe-v1-e630a425",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4108,7 +4108,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-3ef8f942",
+              "evidenceIdentity": "fxe-v1-e630a425",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4133,7 +4133,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-11-06T22:38:13.942Z",
+          "computedAt": "2026-11-07T00:02:55.514Z",
           "freshUntil": null
         }
       }
@@ -4159,8 +4159,8 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-11-06T22:38:14.130Z",
-      "read": "Leadership is narrow — 32.26% of 134 constituents are positive against a 60% broad-market threshold.",
+      "asOf": "2026-11-07T00:02:55.581Z",
+      "read": "Leadership is narrow \u2014 32.26% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -4207,7 +4207,7 @@
     "volatility-sizing-lab": {
       "id": "volatility-sizing-lab",
       "asOf": "2026-11-06",
-      "read": "SPY conditional volatility forecasts 20.8224% in a storm regime; the capped vol-target throttle sizes to ×0.72.",
+      "read": "SPY conditional volatility forecasts 20.8224% in a storm regime; the capped vol-target throttle sizes to \u00d70.72.",
       "deepLink": "volatility-sizing-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -4299,13 +4299,13 @@
       "id": "market-heatmap-lab",
       "deepLink": "market-heatmap-lab.html",
       "status": "fresh-headless",
-      "reason": "Leadership is narrow — 32.26% of 134 constituents are positive against a 60% broad-market threshold."
+      "reason": "Leadership is narrow \u2014 32.26% of 134 constituents are positive against a 60% broad-market threshold."
     },
     {
       "id": "options-flow-feed-lab",
       "deepLink": "options-flow-feed-lab.html",
       "status": "fresh-headless",
-      "reason": "Option flow is put-heavy (leaning bearish / hedged) across 12 tickers: 2550 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 738 puts at $89.4M on 79.4× its open interest."
+      "reason": "Option flow is put-heavy (leaning bearish / hedged) across 12 tickers: 2550 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 738 puts at $89.4M on 79.4\u00d7 its open interest."
     },
     {
       "id": "intraday-tape-lab",
@@ -4323,13 +4323,13 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY sits in negative dealer gamma with the flip near 738.64; call wall 740, put wall 735, front expected move ±5.71."
+      "reason": "SPY sits in negative dealer gamma with the flip near 738.64; call wall 740, put wall 735, front expected move \u00b15.71."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 738.64, walls 735/740."
+      "reason": "SPY dealers are negative gamma \u2014 playbook range-break-watch, conviction patient; flip 738.64, walls 735/740."
     },
     {
       "id": "sector-research-lab",
@@ -4407,7 +4407,7 @@
       "id": "volatility-sizing-lab",
       "deepLink": "volatility-sizing-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY conditional volatility forecasts 20.8224% in a storm regime; the capped vol-target throttle sizes to ×0.72."
+      "reason": "SPY conditional volatility forecasts 20.8224% in a storm regime; the capped vol-target throttle sizes to \u00d70.72."
     },
     {
       "id": "palm-springs-rental-market-lab",
@@ -4470,7 +4470,7 @@
       "px": 65.9,
       "maStack": "tangled",
       "ma200Dist": 3.94,
-      "rrgState": "Weakening ↓",
+      "rrgState": "Weakening \u2193",
       "levels": {
         "high52w": 92.43,
         "low52w": 51.05,
@@ -4530,7 +4530,7 @@
       "px": 372.52,
       "maStack": "bear-stack",
       "ma200Dist": -9.42,
-      "rrgState": "Improving ↑",
+      "rrgState": "Improving \u2191",
       "levels": {
         "high52w": 495.9,
         "low52w": 355.78,
@@ -4570,7 +4570,7 @@
       "px": 656.1,
       "maStack": "tangled",
       "ma200Dist": -3.64,
-      "rrgState": "Basing ↑",
+      "rrgState": "Basing \u2191",
       "levels": {
         "high52w": 759.66,
         "low52w": 558.28,
@@ -4590,7 +4590,7 @@
       "px": 136.53,
       "maStack": "tangled",
       "ma200Dist": -14.43,
-      "rrgState": "Basing ↑",
+      "rrgState": "Basing \u2191",
       "levels": {
         "high52w": 218.34,
         "low52w": 89.37,
@@ -4610,7 +4610,7 @@
       "px": 134.27,
       "maStack": "n/a",
       "ma200Dist": null,
-      "rrgState": "Basing ↑",
+      "rrgState": "Basing \u2191",
       "levels": {
         "high52w": 211.39,
         "low52w": 108.27,
@@ -4630,7 +4630,7 @@
       "px": 124.41,
       "maStack": "tangled",
       "ma200Dist": -10.01,
-      "rrgState": "Basing ↑",
+      "rrgState": "Basing \u2191",
       "levels": {
         "high52w": 161.66,
         "low52w": 107.84,
@@ -4690,7 +4690,7 @@
       "px": 164.74,
       "maStack": "tangled",
       "ma200Dist": -3.21,
-      "rrgState": "Basing ↑",
+      "rrgState": "Basing \u2191",
       "levels": {
         "high52w": 202,
         "low52w": 127.5,

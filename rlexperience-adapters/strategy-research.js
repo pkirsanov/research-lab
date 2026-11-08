@@ -1723,6 +1723,156 @@
     };
   }
 
+  /* ═══════════ study-guide adapter ═══════════
+     The model is a lookup: which saved thinkorswim study sets match a chosen scope and direction. It
+     reads the owner's published guide data and computes nothing else. It is not a signal and carries
+     no market evidence, so it never feeds a recommendation. */
+
+  var STUDY_GUIDE_OUTPUT_PATHS = {
+    "scope": ["summary.matches"],
+    "direction": ["summary.matches"]
+  };
+
+  function studyGuideSummaryPath(summary, path) {
+    return path === "summary.matches" ? summary.matches : null;
+  }
+
+  function computeStudyGuideSummary(ownerState, values) {
+    var scope = String(values["scope"] || "Day");
+    var direction = String(values["direction"] || "either");
+    var matches = (ownerState.sets || []).filter(function (set) {
+      if (set.scope !== scope) return false;
+      return direction === "either" || set.direction === "either" || set.direction === direction;
+    }).map(function (set) { return set.name; });
+    return { scope: scope, direction: direction, count: matches.length, matches: matches };
+  }
+
+  function studyGuideEvidenceState(ownerState) {
+    var hasSets = ownerState && Array.isArray(ownerState.sets) && ownerState.sets.length > 0;
+    var stamp = ownerState && ownerState.asOf;
+    return (hasSets && typeof stamp === "string" && stamp.length >= 8) ? "ready" : "unavailable";
+  }
+
+  function buildStudyGuideEvidence(api, ownerState) {
+    var state = studyGuideEvidenceState(ownerState);
+    var cutoff = String(ownerState.asOf || "unavailable");
+    var evidence = {
+      contractVersion: "simple-evidence-snapshot/v1",
+      toolId: "tos-study-guide",
+      state: state,
+      evidenceCutoff: cutoff,
+      evidenceRefs: [{
+        requirementId: "owner-evidence",
+        evidenceRef: "owner:tos-study-guide:sets:" + cutoff,
+        semanticFingerprint: ownerStateFingerprint(api, ownerState),
+        sourceClass: "observed-fact",
+        observedAsOf: cutoff,
+        retrievedOrPublishedAt: cutoff,
+        freshness: "static-reference",
+        dataTier: "published study-set catalog",
+        valueState: state === "ready" ? "ready" : "unavailable"
+      }],
+      parameterValues: {},
+      assumptions: ["The catalog describes the study sets saved in the owner's thinkorswim install on the stated date."],
+      limitations: ["A matching set is a way to display signals, not a signal, a forecast or advice."],
+      invalidationConditions: ["A study set is added, renamed or removed, or its study contents change."],
+      evidenceIdentity: null
+    };
+    evidence.evidenceIdentity = evidenceIdentityOf(api, evidence);
+    return evidence;
+  }
+
+  function studyGuideOutput(input, summary) {
+    var scenarioValues = { summary: summary };
+    return {
+      contractVersion: "simple-model-output/v1",
+      state: "ready",
+      values: scenarioValues,
+      scenarios: input.scenarios.map(function (scenario) {
+        return { scenarioId: scenario.scenarioId, state: "ready", values: scenarioValues };
+      }),
+      calibration: { state: "not-applicable", reason: "A catalog lookup has no fitted parameters to calibrate." },
+      provenance: { classes: ["observed-fact"], evidenceIdentity: input.evidenceIdentity },
+      uncertainty: { state: "not-applicable", rangeOrBand: "exact lookup", reason: "The result is a list filter over a published catalog." },
+      assumptions: ["Sets marked either match both directions."],
+      limitations: ["Choosing a set does not say whether a trade is advisable."],
+      invalidationConditions: ["The published catalog changes."],
+      flatRegionProofs: []
+    };
+  }
+
+  function createStudyGuideAdapter(api, definition, ownerByIdentity) {
+    return {
+      contractVersion: "simple-model-adapter/v1",
+      adapterId: definition.adapterId,
+      supportedDefinitionIds: [definition.definitionId],
+      validateDefinition: function (candidate) { return { ok: true, value: candidate }; },
+      captureEvidence: function (ownerContext) {
+        var ownerState = ownerContext && ownerContext.ownerState;
+        if (!ownerState || !Array.isArray(ownerState.sets)) return { ok: false, error: { reason: "study guide catalog required" } };
+        var frozen = deepFreeze(JSON.parse(JSON.stringify(ownerState)));
+        var evidence = buildStudyGuideEvidence(api, frozen);
+        ownerByIdentity.set(evidence.evidenceIdentity, frozen);
+        return { ok: true, value: evidence };
+      },
+      normalizeInputs: function (candidate, evidence, parameterValues, seed, scenarioIds) {
+        return api.normalizeSimpleInput(candidate, evidence, parameterValues, seed, scenarioIds);
+      },
+      compute: function (input) {
+        var ownerState = ownerByIdentity.get(input.evidenceIdentity);
+        if (!ownerState) return { ok: false, error: { reason: "frozen owner state is unavailable for this evidence identity" } };
+        return { ok: true, value: studyGuideOutput(input, computeStudyGuideSummary(ownerState, paramMap(input))) };
+      },
+      compareSensitivity: function (baselineInput, currentInput, sharedRandomness) {
+        var ownerState = ownerByIdentity.get(currentInput.evidenceIdentity);
+        if (!ownerState) return { ok: false, error: { reason: "frozen owner state is unavailable for sensitivity" } };
+        var baselineValues = paramMap(baselineInput);
+        var currentValues = paramMap(currentInput);
+        var baselineSummary = computeStudyGuideSummary(ownerState, baselineValues);
+        var currentSummary = computeStudyGuideSummary(ownerState, currentValues);
+        var effects = [];
+        Object.keys(currentValues).forEach(function (parameterId) {
+          if (baselineValues[parameterId] === currentValues[parameterId]) return;
+          var paths = STUDY_GUIDE_OUTPUT_PATHS[parameterId] || [];
+          var changed = paths.some(function (path) {
+            return fingerprintOf(api, studyGuideSummaryPath(baselineSummary, path)) !== fingerprintOf(api, studyGuideSummaryPath(currentSummary, path));
+          });
+          effects.push({
+            parameterId: parameterId,
+            oldValue: baselineValues[parameterId],
+            newValue: currentValues[parameterId],
+            direction: "changed",
+            magnitude: 1,
+            nonlinear: false,
+            resultPaths: paths,
+            outputChanged: changed,
+            flatRegionProof: changed ? null : {
+              parameterId: parameterId,
+              resultPaths: paths,
+              reason: "Every set in the chosen scope is marked for both directions, so the matching list does not change."
+            }
+          });
+        });
+        return { ok: true, value: { contractVersion: "simple-sensitivity/v1", sharedRandomness: sharedRandomness, seedChanged: baselineInput.seed !== currentInput.seed, effects: effects } };
+      },
+      projectOwnerEvidence: function (output) {
+        var summary = output.values.summary;
+        return {
+          ok: true,
+          value: {
+            contractVersion: "owner-evidence-projection/v1",
+            state: output.state,
+            valueText: summary.count + " matching set" + (summary.count === 1 ? "" : "s"),
+            numericValue: summary.count,
+            unit: "sets",
+            summary: summary.count + " saved study set" + (summary.count === 1 ? "" : "s") + " match the " + summary.scope + " scope and the " + summary.direction + " direction.",
+            sourceRefs: ["owner-evidence"]
+          }
+        };
+      }
+    };
+  }
+
   /* ═══════════ registration ═══════════
      Build every implemented strategy adapter for the supplied definitions. A tool whose owner seam is not
      yet extracted is simply absent, so the shared runtime renders the explicit unavailable state for it. */
@@ -1750,6 +1900,10 @@
       var horizonLadderDefinition = byToolId["horizon-ladder-lab"];
       adapters[horizonLadderDefinition.adapterId] = createHorizonLadderAdapter(api, horizonLadderDefinition, ownerByIdentity);
     }
+    if (byToolId["tos-study-guide"]) {
+      var studyGuideDefinition = byToolId["tos-study-guide"];
+      adapters[studyGuideDefinition.adapterId] = createStudyGuideAdapter(api, studyGuideDefinition, ownerByIdentity);
+    }
     return adapters;
   }
 
@@ -1767,7 +1921,7 @@
   return {
     contractVersion: "strategy-research-adapters/v1",
     module: "rlexperience-adapters/strategy-research.js",
-    supportedAdapterIds: ["simple-adapter/strategy-evolution/v1", "simple-adapter/disclosure-decay/v1", "simple-adapter/walk-forward-validation/v1", "simple-adapter/horizon-ladder/v1"],
+    supportedAdapterIds: ["simple-adapter/strategy-evolution/v1", "simple-adapter/disclosure-decay/v1", "simple-adapter/walk-forward-validation/v1", "simple-adapter/horizon-ladder/v1", "simple-adapter/tos-study-guide/v1"],
     mulberry32: mulberry32,
     gauss: gauss,
     genSeries: genSeries,

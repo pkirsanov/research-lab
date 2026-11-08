@@ -12,7 +12,8 @@
     "index.html": 1,
     "strategy-self-improvement-lab.html": 1,
     "smart-money-flow-lab.html": 1,
-    "waterfront-polo-lab.html": 1
+    "waterfront-polo-lab.html": 1,
+    "tos-study-guide.html": 1
   };
   var localResources = {}, shell, shellButton, shellPanel, shellSummary, shellDetail;
 

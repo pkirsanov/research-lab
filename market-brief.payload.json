@@ -170,7 +170,7 @@
     "cards": [],
     "contractVersion": "budget-measurement/v1",
     "detail": [],
-    "disclosedTotal": 45625,
+    "disclosedTotal": 45863,
     "total": 720,
     "violations": []
   },
@@ -1241,6 +1241,12 @@
       "deepLink": "horizon-ladder-lab.html",
       "id": "horizon-ladder-lab",
       "reason": "Long/short horizon-ladder tool with no deterministic owner adapter and no current browser read on file, so it publishes no owning-tool call this cycle; its per-horizon hit-rate arithmetic is device-published and must be opened directly before any horizon rate is cited.",
+      "status": "not-relevant"
+    },
+    {
+      "deepLink": "tos-study-guide.html",
+      "id": "tos-study-guide",
+      "reason": "This is a reference manual for choosing and reading thinkorswim study sets. It carries no market data and no view on direction, so it sits outside the brief and is not applicable this window.",
       "status": "not-relevant"
     }
   ],

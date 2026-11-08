@@ -5298,6 +5298,146 @@
       "limitations": ["The probability reported for a target distance is arithmetic under a declared zero drift, never a measured hit rate. A rate is published only once the selected cell reaches its minimum resolved sample, and no long or short cell has resolved a single outcome yet."],
       "deepLinkTargets": {"power":"horizon-ladder-lab.html#power","journey":"horizon-ladder-lab.html#journey"},
       "definitionFingerprint": null
+    },
+    {
+      "contractVersion": "simple-model-definition/v1",
+      "definitionId": "simple-model/tos-study-guide/v1",
+      "toolId": "tos-study-guide",
+      "modelId": "tos-study-guide",
+      "modelVersion": "v1",
+      "researchQuestion": "List the saved thinkorswim study sets that match a chosen scope and direction",
+      "resultSchemaId": "simple-model-output/generic-scenario/v1",
+      "adapterId": "simple-adapter/tos-study-guide/v1",
+      "adapterModule": "rlexperience-adapters/strategy-research.js",
+      "inputRequirements": [
+        {
+          "requirementId": "owner-evidence",
+          "sourceClass": "owner-evidence",
+          "required": true,
+          "stalePolicy": "reject"
+        }
+      ],
+      "parameterDefinitions": [
+        {
+          "parameterId": "scope",
+          "label": "Scope",
+          "kind": "enum",
+          "unit": "scope",
+          "domain": {
+            "options": [
+              {
+                "value": "Day",
+                "label": "Intraday"
+              },
+              {
+                "value": "Swing",
+                "label": "Days to weeks"
+              },
+              {
+                "value": "Invest",
+                "label": "Months to years"
+              },
+              {
+                "value": "Options",
+                "label": "Option positioning"
+              },
+              {
+                "value": "Any",
+                "label": "Exits and reversals"
+              },
+              {
+                "value": "Help",
+                "label": "Learn"
+              }
+            ]
+          },
+          "defaultValue": "Day",
+          "defaultSource": "registry",
+          "interpretation": "Selects the time horizon, which is the first word of every saved set name.",
+          "affectsOutputPaths": [
+            "summary.matches"
+          ],
+          "disabledWhen": [],
+          "identityBearing": true
+        },
+        {
+          "parameterId": "direction",
+          "label": "Direction",
+          "kind": "enum",
+          "unit": "direction",
+          "domain": {
+            "options": [
+              {
+                "value": "either",
+                "label": "Either"
+              },
+              {
+                "value": "long",
+                "label": "Long"
+              },
+              {
+                "value": "short",
+                "label": "Short"
+              }
+            ]
+          },
+          "defaultValue": "either",
+          "defaultSource": "registry",
+          "interpretation": "Narrows the list to sets built for long or short ideas. Sets marked either always match.",
+          "affectsOutputPaths": [
+            "summary.matches"
+          ],
+          "disabledWhen": [],
+          "identityBearing": true
+        }
+      ],
+      "scenarioDefinitions": [
+        {
+          "scenarioId": "baseline",
+          "label": "Baseline",
+          "parameterOverrides": {}
+        }
+      ],
+      "seedPolicy": {
+        "required": false,
+        "defaultSeed": null,
+        "defaultSource": null,
+        "randomnessClass": "none",
+        "commonRandomNumbersForSensitivity": false
+      },
+      "sensitivityPolicy": {
+        "method": "one-at-a-time",
+        "requireOutputEffect": true,
+        "flatRegionPolicy": "explicit-proof"
+      },
+      "calibrationPolicy": {
+        "class": "owner-evidence-relative",
+        "requiredFields": [
+          "state",
+          "reason"
+        ]
+      },
+      "provenancePolicy": {
+        "allowedClasses": [
+          "observed-fact",
+          "user-assumption",
+          "model-estimate",
+          "unavailable"
+        ],
+        "requireEvidenceCutoff": true
+      },
+      "performancePolicy": {
+        "maxComputeMs": 250,
+        "deterministic": true
+      },
+      "limitations": [
+        "A matching set is a way to display signals. It is not a signal, a forecast or advice, and it carries no market data."
+      ],
+      "deepLinkTargets": {
+        "power": "tos-study-guide.html#power",
+        "journey": "tos-study-guide.html#journey"
+      },
+      "definitionFingerprint": null
     }
   ]
 }

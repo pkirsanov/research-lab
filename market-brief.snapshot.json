@@ -4468,6 +4468,12 @@
       "deepLink": "horizon-ladder-lab.html",
       "status": "browser-or-agent-read",
       "reason": "No deterministic Tier-A adapter; consume its latest browser toolRead when present and otherwise inspect the owning tool before authoring."
+    },
+    {
+      "id": "tos-study-guide",
+      "deepLink": "tos-study-guide.html",
+      "status": "browser-or-agent-read",
+      "reason": "No deterministic Tier-A adapter; the guide is a static reference page that reads its own catalog and carries no market data."
     }
   ],
   "tracked": {

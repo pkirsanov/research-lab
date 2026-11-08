@@ -2060,6 +2060,76 @@
         "reason": "The page owns its native Simple and Power projections: render() builds one candidate set from the frozen universe and the shared cache, and every table, badge and chart draws from that single value. Registering the generic provider would create a second Simple truth surface over the same gate evaluation.",
         "decisionRef": "horizon-ladder-lab.html:1072"
       }
+    },
+    {
+      "id": "tos-study-guide",
+      "group": "Strategy & Validation",
+      "title": "thinkorswim Study Guide",
+      "nav": {
+        "label": "TOS Study Guide",
+        "icon": "\ud83d\udcd6"
+      },
+      "file": "tos-study-guide.html",
+      "data": "tos-study-guide.json",
+      "status": "live",
+      "updated": "2026-11-08",
+      "blurb": "Pick a thinkorswim study set by goal: choose a horizon, direction and market condition, get the exact saved set name to load, what is on the chart, the entry signal, how to read it, what to avoid and how it differs from nearby sets. Also lists every custom study, 13 standard thinkorswim studies and the naming convention. A reference manual, not a signal source and not investment advice.",
+      "tags": [
+        "thinkorswim",
+        "study sets",
+        "manual",
+        "quick reference",
+        "how to read",
+        "volume",
+        "momentum",
+        "order flow",
+        "day trading",
+        "swing",
+        "long-term",
+        "options exposure",
+        "Simple + Power"
+      ],
+      "briefing": {
+        "role": "source",
+        "profile": "off-theme",
+        "readAdapter": "tos-study-guide-off-theme-v1",
+        "readContractVersion": "tool-model-read/v1",
+        "freshnessPolicy": "off-theme-not-applicable-v1",
+        "recommendationPolicy": "domain-next-step-v1",
+        "budgetPolicy": "off-theme-v1"
+      },
+      "experience": {
+        "contractVersion": "tool-experience/v1",
+        "kind": "ordinary",
+        "viewSetId": "ordinary-four-view/v1",
+        "viewIds": [
+          "simple",
+          "power",
+          "brief",
+          "journey"
+        ],
+        "simpleModelDefinitionId": "simple-model/tos-study-guide/v1",
+        "simpleAdapterId": "simple-adapter/tos-study-guide/v1",
+        "simpleAdapterModule": "rlexperience-adapters/strategy-research.js",
+        "powerAdapterId": "power-adapter/existing-owner-page/v1",
+        "briefPolicyId": "web-evidence-policy/off-theme/v1",
+        "journeyDefinitionIds": [
+          "journey/tos-study-guide/pick-a-set/v1",
+          "journey/tos-study-guide/read-a-signal/v1"
+        ],
+        "contextPolicyId": "contextual-tooltip/v1",
+        "matrixDomains": [
+          "technical"
+        ],
+        "publicAliases": []
+      },
+      "notes": "notes/tos-study-guide.md",
+      "simpleWiring": {
+        "contractVersion": "simple-wiring/v1",
+        "state": "declared-unwired",
+        "reason": "The page owns its native Simple and Power projections: one catalog is read once and every card, table and chip draws from it. Registering the generic provider would create a second Simple truth surface over the same catalog filter.",
+        "decisionRef": "tos-study-guide.html:1"
+      }
     }
   ]
 }

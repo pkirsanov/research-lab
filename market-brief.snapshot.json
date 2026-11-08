@@ -1,7 +1,7 @@
 {
-  "asOf": "2026-11-08T20:00:00.000Z",
-  "generatedAt": "2026-11-08T19:32:18.456Z",
-  "window": "pre-close",
+  "asOf": "2026-11-08T16:00:00.000Z",
+  "generatedAt": "2026-11-08T20:17:19.748Z",
+  "window": "morning",
   "marketClosed": true,
   "nextSessionDate": "2026-11-09",
   "dataFreshness": {
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-11-08T19:32:16.946Z",
+      "asOf": "2026-11-08T20:17:17.318Z",
       "read": "Rotate toward XLC as XLV weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": -0.05419001027671355,
           "usdRelativeReturn": 0.02490551167076016,
           "asOf": "2026-11-06T00:00:00.000Z",
-          "computedAt": "2026-11-08T19:32:17.103Z",
+          "computedAt": "2026-11-08T20:17:17.549Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1933,7 +1933,7 @@
           "interaction": 0.00025244001936523694,
           "relationship": "Local-Equity-Led With FX Drag",
           "asOf": "2026-11-06T00:00:00.000Z",
-          "computedAt": "2026-11-08T19:32:17.103Z",
+          "computedAt": "2026-11-08T20:17:17.549Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1957,7 +1957,7 @@
               "usdLeadership": {
                 "asOf": "2026-11-06T00:00:00.000Z",
                 "benchmarkReturn": -0.05419001027671355,
-                "computedAt": "2026-11-08T19:32:17.103Z",
+                "computedAt": "2026-11-08T20:17:17.549Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2466,7 +2466,7 @@
                 "approximateLocalReturn": -0.015388348771197546,
                 "asOf": "2026-11-06T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": -0.05142258304512337,
-                "computedAt": "2026-11-08T19:32:17.103Z",
+                "computedAt": "2026-11-08T20:17:17.549Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "AUD",
                 "freshUntil": null,
@@ -3061,7 +3061,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-11-08T19:32:17.103Z",
+          "computedAt": "2026-11-08T20:17:17.549Z",
           "freshUntil": null
         }
       },
@@ -3291,7 +3291,7 @@
               {
                 "label": "Volatility / drawdown",
                 "symbols": [],
-                "score": 77.32171916569351,
+                "score": 77.32170791012828,
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
@@ -3783,7 +3783,7 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-11-08T19:32:18.236Z",
+      "asOf": "2026-11-08T20:17:19.180Z",
       "read": "The AI-capex universe is dated 2026-06-30, 132 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
@@ -3862,15 +3862,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-11-08T19:32:18.249Z",
+      "asOf": "2026-11-08T20:17:19.211Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-90739c0b",
-        "evidenceIdentity": "fxe-v1-377692e6",
+        "ownerDecisionId": "fxo-v1-6803339e",
+        "evidenceIdentity": "fxe-v1-e3ed7d22",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -3993,8 +3993,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-90739c0b",
-            "evidenceIdentity": "fxe-v1-377692e6",
+            "ownerDecisionId": "fxo-v1-6803339e",
+            "evidenceIdentity": "fxe-v1-e3ed7d22",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4114,7 +4114,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-377692e6",
+              "evidenceIdentity": "fxe-v1-e3ed7d22",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4139,7 +4139,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-11-08T19:32:18.249Z",
+          "computedAt": "2026-11-08T20:17:19.211Z",
           "freshUntil": null
         }
       }
@@ -4165,7 +4165,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-11-08T19:32:18.316Z",
+      "asOf": "2026-11-08T20:17:19.398Z",
       "read": "Leadership is narrow — 33.36% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4248,15 +4248,15 @@
     "intraday-tape-lab": {
       "id": "intraday-tape-lab",
       "asOf": "2026-11-06T21:00:00.000Z",
-      "read": "SPY's session is a Mixed / developing auction under Algo-controlled control, with VWAP at 737.96.",
+      "read": "SPY's session is a Range day auction under Algo-controlled control, with VWAP at 737.67.",
       "deepLink": "intraday-tape-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "sessionType": "Mixed / developing",
+        "sessionType": "Range day",
         "control": "Algo-controlled",
-        "vwap": 737.96,
+        "vwap": 737.67,
         "poc": null,
         "valueAreaHigh": null,
         "valueAreaLow": null,
@@ -4317,7 +4317,7 @@
       "id": "intraday-tape-lab",
       "deepLink": "intraday-tape-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY's session is a Mixed / developing auction under Algo-controlled control, with VWAP at 737.96."
+      "reason": "SPY's session is a Range day auction under Algo-controlled control, with VWAP at 737.67."
     },
     {
       "id": "swing-structure-lab",

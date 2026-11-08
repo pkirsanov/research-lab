@@ -1,26 +1,26 @@
 {
-  "asOf": "2026-11-08T12:30:00.000Z",
-  "generatedAt": "2026-11-08T12:02:23.632Z",
-  "window": "pre-market",
+  "asOf": "2026-11-08T16:00:00.000Z",
+  "generatedAt": "2026-11-08T15:31:52.862Z",
+  "window": "morning",
   "marketClosed": true,
   "nextSessionDate": "2026-11-09",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-11-08T12:01:01.554Z",
+      "updated": "2026-11-08T15:30:34.678Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-11-06",
       "refreshDate": "2026-11-08",
-      "refreshWindow": "pre-market",
+      "refreshWindow": "morning",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-11-08T12:01:04.091Z",
+      "updated": "2026-11-08T15:30:37.399Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
       "refreshDate": "2026-11-08",
-      "refreshWindow": "pre-market",
+      "refreshWindow": "morning",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-11-08T12:02:21.815Z",
+      "asOf": "2026-11-08T15:31:51.341Z",
       "read": "Rotate toward XLC as XLV weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": -0.05419001027671355,
           "usdRelativeReturn": 0.02490551167076016,
           "asOf": "2026-11-06T00:00:00.000Z",
-          "computedAt": "2026-11-08T12:02:22.030Z",
+          "computedAt": "2026-11-08T15:31:51.490Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1933,7 +1933,7 @@
           "interaction": 0.00025244001936523694,
           "relationship": "Local-Equity-Led With FX Drag",
           "asOf": "2026-11-06T00:00:00.000Z",
-          "computedAt": "2026-11-08T12:02:22.030Z",
+          "computedAt": "2026-11-08T15:31:51.490Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1957,7 +1957,7 @@
               "usdLeadership": {
                 "asOf": "2026-11-06T00:00:00.000Z",
                 "benchmarkReturn": -0.05419001027671355,
-                "computedAt": "2026-11-08T12:02:22.030Z",
+                "computedAt": "2026-11-08T15:31:51.490Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2466,7 +2466,7 @@
                 "approximateLocalReturn": -0.015388348771197546,
                 "asOf": "2026-11-06T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": -0.05142258304512337,
-                "computedAt": "2026-11-08T12:02:22.030Z",
+                "computedAt": "2026-11-08T15:31:51.490Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "AUD",
                 "freshUntil": null,
@@ -3061,7 +3061,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-11-08T12:02:22.030Z",
+          "computedAt": "2026-11-08T15:31:51.490Z",
           "freshUntil": null
         }
       },
@@ -3071,7 +3071,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-11-06T14:30:00.000Z",
-      "read": "BNO leads real assets at 56.5/100; GLD 25, BTC 35.4, SLV 0.",
+      "read": "BNO leads real assets at 56.5/100; GLD 25, BTC 35.6, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "BNO",
@@ -3291,7 +3291,7 @@
               {
                 "label": "Volatility / drawdown",
                 "symbols": [],
-                "score": 77.32171185393115,
+                "score": 77.32170791012828,
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
@@ -3374,11 +3374,11 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 35.4,
+            "score": 35.6,
             "trend": "Mixed",
-            "mom21": -7.49,
-            "mom63": -5.57,
-            "mom126": 19.39,
+            "mom21": -7.39,
+            "mom63": -5.47,
+            "mom126": 19.53,
             "vol": 37.98,
             "maxDrawdown": 12.54,
             "riskPenalty": 1.96,
@@ -3506,7 +3506,7 @@
           "xle63": 3.0014459329723797,
           "xli63": -11.642906670065889,
           "gld63": -7.457648654543581,
-          "btc63": -5.57205454337204,
+          "btc63": -5.4666660703177055,
           "dbc63": 5.37922016015866,
           "goldSilverRatio63": 17.301924570187687,
           "breadth": 50
@@ -3783,7 +3783,7 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-11-08T12:02:23.337Z",
+      "asOf": "2026-11-08T15:31:52.587Z",
       "read": "The AI-capex universe is dated 2026-06-30, 132 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
@@ -3862,15 +3862,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-11-08T12:02:23.357Z",
+      "asOf": "2026-11-08T15:31:52.603Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-4ae795be",
-        "evidenceIdentity": "fxe-v1-fdfc00c7",
+        "ownerDecisionId": "fxo-v1-9bfda35e",
+        "evidenceIdentity": "fxe-v1-5c46028f",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -3993,8 +3993,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-4ae795be",
-            "evidenceIdentity": "fxe-v1-fdfc00c7",
+            "ownerDecisionId": "fxo-v1-9bfda35e",
+            "evidenceIdentity": "fxe-v1-5c46028f",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4114,7 +4114,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-fdfc00c7",
+              "evidenceIdentity": "fxe-v1-5c46028f",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4139,7 +4139,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-11-08T12:02:23.357Z",
+          "computedAt": "2026-11-08T15:31:52.603Z",
           "freshUntil": null
         }
       }
@@ -4165,7 +4165,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-11-08T12:02:23.444Z",
+      "asOf": "2026-11-08T15:31:52.677Z",
       "read": "Leadership is narrow — 33.36% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4353,7 +4353,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "BNO leads real assets at 56.5/100; GLD 25, BTC 35.4, SLV 0."
+      "reason": "BNO leads real assets at 56.5/100; GLD 25, BTC 35.6, SLV 0."
     },
     {
       "id": "bond-regime-lab",

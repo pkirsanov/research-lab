@@ -37,8 +37,15 @@ jobs:
         run: npm ci --ignore-scripts
       - name: Refresh brief data
         run: |
-          WINDOW="${{ github.event.inputs.window || 'morning' }}"
-          node scripts/brief-refresh.mjs --window "$WINDOW" || true
+          # No default window: with no input the script derives the window from the New York clock.
+          # A hard-coded 'morning' republished an 11:00 snapshot after the after-hours narrative, which the
+          # Portfolio Brief contract refuses (payload asOf later than the snapshot window cutoff).
+          WINDOW="${{ github.event.inputs.window }}"
+          if [ -n "$WINDOW" ]; then
+            node scripts/brief-refresh.mjs --window "$WINDOW" || true
+          else
+            node scripts/brief-refresh.mjs || true
+          fi
       - name: Build pages site
         run: node scripts/build-pages-site.mjs
       - name: Update tools manifest

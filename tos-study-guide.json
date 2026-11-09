@@ -1,1734 +1,1806 @@
 {
- "version": 1,
- "updated": "2026-11-08",
- "repo": "QuantitativeFinance, branch trading-studies, folder trading-studies/",
- "naming": {
-  "sets": "<Scope> <Purpose>, up to 35 characters. Scope first so the Load study set menu groups sets together.",
-  "studies": "<Scope>_<What>. JBravo_ marks the J Bravo method.",
-  "scopes": [
-   {
-    "scope": "Day",
-    "chart": "1 to 15 minute",
-    "holding": "minutes to hours"
-   },
-   {
-    "scope": "Swing",
-    "chart": "daily (1h, 4h for JBravo)",
-    "holding": "days to weeks"
-   },
-   {
-    "scope": "Invest",
-    "chart": "daily or weekly",
-    "holding": "months to years"
-   },
-   {
-    "scope": "Options",
-    "chart": "daily or intraday, optionable symbol",
-    "holding": "context for option trades"
-   },
-   {
-    "scope": "Any",
-    "chart": "any timeframe",
-    "holding": "any"
-   },
-   {
-    "scope": "Help",
-    "chart": "any",
-    "holding": "reading material"
-   }
-  ]
- },
- "horizons": [
-  {
-   "id": "Day",
-   "label": "Intraday",
-   "blurb": "Minutes to hours, flat by the close."
+  "version": 1,
+  "updated": "2026-11-09",
+  "repo": "QuantitativeFinance, branch trading-studies, folder trading-studies/",
+  "naming": {
+    "sets": "<Scope> <Purpose>, up to 35 characters. Scope first so the Load study set menu groups sets together.",
+    "studies": "<Scope>_<What>. JBravo_ marks the J Bravo method.",
+    "scopes": [
+      {
+        "scope": "Day",
+        "chart": "1 to 15 minute",
+        "holding": "minutes to hours"
+      },
+      {
+        "scope": "Swing",
+        "chart": "daily (1h, 4h for JBravo)",
+        "holding": "days to weeks"
+      },
+      {
+        "scope": "Invest",
+        "chart": "daily or weekly",
+        "holding": "months to years"
+      },
+      {
+        "scope": "Options",
+        "chart": "daily or intraday, optionable symbol",
+        "holding": "context for option trades"
+      },
+      {
+        "scope": "Any",
+        "chart": "any timeframe",
+        "holding": "any"
+      },
+      {
+        "scope": "Help",
+        "chart": "any",
+        "holding": "reading material"
+      }
+    ]
   },
-  {
-   "id": "Swing",
-   "label": "Days to weeks",
-   "blurb": "Daily charts."
-  },
-  {
-   "id": "Invest",
-   "label": "Months to years",
-   "blurb": "Weekly review."
-  },
-  {
-   "id": "Options",
-   "label": "Option positioning",
-   "blurb": "Context, not triggers."
-  },
-  {
-   "id": "Any",
-   "label": "Exits and reversals",
-   "blurb": "Take profit or spot a bounce."
-  },
-  {
-   "id": "Help",
-   "label": "Learn",
-   "blurb": "What the signals mean."
+  "horizons": [
+    {
+      "id": "Day",
+      "label": "Intraday",
+      "blurb": "Minutes to hours, flat by the close."
+    },
+    {
+      "id": "Swing",
+      "label": "Days to weeks",
+      "blurb": "Daily charts."
+    },
+    {
+      "id": "Invest",
+      "label": "Months to years",
+      "blurb": "Weekly review."
+    },
+    {
+      "id": "Options",
+      "label": "Option positioning",
+      "blurb": "Context, not triggers."
+    },
+    {
+      "id": "Any",
+      "label": "Exits and reversals",
+      "blurb": "Take profit or spot a bounce."
+    },
+    {
+      "id": "Help",
+      "label": "Learn",
+      "blurb": "What the signals mean."
+    }
+  ],
+  "sets": [
+    {
+      "id": "day-orb",
+      "name": "Day Opening Range Breakout",
+      "scope": "Day",
+      "chart": "5 min, regular session; at least 2 days loaded",
+      "goal": "Trade the opening range breakout",
+      "condition": "breakout",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Day_Setup_Signals",
+          "setup": "I01_ORB_VWAP"
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "The first 30 minutes (09:30 to 10:00 ET) have set a range and you want to trade the break.",
+      "signal": "After 10:00 and before 15:30, the first close of the day above the opening-range high while above VWAP, in a daily uptrend, with time-of-day relative volume above 1.5 and SPY above its 20-day average. Short is the mirror. Stop at the middle of the range, target 2R, flat by the close.",
+      "read": [
+        "Before 10:00 the label stays gray: the range is still forming.",
+        "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
+        "An arrow marks the trigger bar. Enter only after that bar closes.",
+        "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
+        "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
+      ],
+      "avoid": "Pre-market breaks, thin symbols, wicks that never close beyond the range, and a daily trend pointing the other way.",
+      "differs": "Time-boxed to the open. Prior Day High-Low Break uses yesterday's range and can fire any time of day.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "day-pdhl",
+      "name": "Day Prior Day High-Low Break",
+      "scope": "Day",
+      "chart": "5 min; at least 2 days loaded",
+      "goal": "Trade a break of yesterday's high or low",
+      "condition": "breakout",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Day_Setup_Signals",
+          "setup": "I06_PRIOR_DAY_BREAK"
+        },
+        {
+          "study": "Day_Volume_Profile",
+          "setup": null
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "Price pushes through yesterday's regular-session high or low.",
+      "signal": "The first close of the day beyond the prior-day extreme during regular hours, on the right side of VWAP, in a matching daily trend, with time-of-day relative volume above 1.5. Stop one ATR back through the level, target 2R.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
+        "An arrow marks the trigger bar. Enter only after that bar closes.",
+        "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
+        "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading.",
+        "Day_Volume_Profile draws today's profile at the right edge and yesterday's POC (yellow) and value area (dashed). A break that also leaves yesterday's value area is stronger."
+      ],
+      "avoid": "Gaps already far beyond the level, low-volume first tests, closes back inside yesterday's range.",
+      "differs": "Uses a level every trader sees. Opening Range Breakout is limited to the first 30 minutes.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "day-pullback",
+      "name": "Day Trend Pullback to VWAP",
+      "scope": "Day",
+      "chart": "5 or 15 min",
+      "goal": "Buy a dip (or sell a bounce) inside an intraday trend",
+      "condition": "trend",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Day_Setup_Signals",
+          "setup": "I02_VWAP_PULLBACK"
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "A clean intraday trend is running and you want to enter on a pullback instead of chasing.",
+      "signal": "A bullish 9/20/50 EMA stack, ADX above 20, DMI and money flow agree, price above VWAP, a test near the 20 EMA, then a reclaim of the 9 EMA. Short is the mirror.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
+        "An arrow marks the trigger bar. Enter only after that bar closes.",
+        "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
+        "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
+      ],
+      "avoid": "ADX below 20, repeated VWAP crossings, money flow disagreeing with the trend.",
+      "differs": "The only trend entry that waits for a pullback. The breakout sets enter as price extends.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "day-squeeze",
+      "name": "Day Squeeze Breakout",
+      "scope": "Day",
+      "chart": "5 or 15 min",
+      "goal": "Trade a breakout from a quiet, tight range",
+      "condition": "breakout",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Day_Setup_Signals",
+          "setup": "I04_SQUEEZE_EXPANSION"
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "The market went quiet and tight (Bollinger Bands inside Keltner Channels) and is now expanding.",
+      "signal": "Within 5 bars after the squeeze releases, a close above the prior 20-bar high with MACD positive and the bar's volume above 1.5 times the same bar on recent days. Short is the mirror. Target 2R.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
+        "An arrow marks the trigger bar. Enter only after that bar closes.",
+        "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
+        "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
+      ],
+      "avoid": "An unreleased squeeze, a breakout with no participation, chasing more than a few ATRs past the trigger.",
+      "differs": "Needs a prior squeeze. Volume Spike Breakout needs none but is rarer and faster.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "day-volspike",
+      "name": "Day Volume Spike Breakout",
+      "scope": "Day",
+      "chart": "5 min",
+      "goal": "Catch a move on a sudden burst of volume",
+      "condition": "breakout",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Day_Setup_Signals",
+          "setup": "I08_RELATIVE_VOLUME_BURST"
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "A news bar or sudden volume surge is breaking out of the last 10 bars.",
+      "signal": "Bar volume more than 3 times the same bar on recent days, range above 1.2 ATR, a close near the bar's extreme, above VWAP and above the 10-bar high. Target 2R.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
+        "An arrow marks the trigger bar. Enter only after that bar closes.",
+        "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
+        "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
+      ],
+      "avoid": "Halts, opening-auction distortions, one-off news bars with no follow-through. Volume alone does not give direction.",
+      "differs": "The fastest and riskiest breakout set: late entries are common. Wait for follow-through on very large bars.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "day-fade",
+      "name": "Day Fade Back to VWAP",
+      "scope": "Day",
+      "chart": "2 or 5 min, liquid products",
+      "goal": "Fade an overextended move back to VWAP",
+      "condition": "range",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Day_Setup_Signals",
+          "setup": "I03_VWAP_MEAN_REVERSION"
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "A range-bound day (ADX below 18) and price has stretched far from VWAP.",
+      "signal": "After 10:00 on a range day, price was outside the 2 standard deviation VWAP band and closes back inside while RSI is stretched. Only when the band is at least 1.5 bar ATRs from VWAP. Target is VWAP.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
+        "An arrow marks the trigger bar. Enter only after that bar closes.",
+        "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
+        "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
+      ],
+      "avoid": "ADX at or above 18, news shocks, trend days, and treating a band touch alone as a signal.",
+      "differs": "The only counter-trend set. Stop using it as soon as the day starts to trend.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "day-value",
+      "name": "Day Value Area Rejection",
+      "scope": "Day",
+      "chart": "5 or 15 min, liquid products",
+      "goal": "Trade rejections at the edge of value",
+      "condition": "reversal",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Day_Setup_Signals",
+          "setup": "I07_PROFILE_VALUE_REJECTION"
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "Price probes the edge of today's value area (where 70% of volume traded) and fails.",
+      "signal": "Price trades at or below the prior session's value area low and closes back above it with a positive candle and positive money flow, while still below the prior POC. Mirror at the value area high. Target the prior POC. Fixed levels, so it does not repaint.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
+        "An arrow marks the trigger bar. Enter only after that bar closes.",
+        "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
+        "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading.",
+        "Today's profile is drawn at the right edge. Leave 25 or more bars of empty space on the right."
+      ],
+      "avoid": "Assuming the POC predicts direction, unreliable volume feeds, trading before the session profile has matured (the first 1 to 2 hours).",
+      "differs": "Targets the POC and works best on balanced days. The profile moves until the session closes, so earlier arrows can revise.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "day-flow",
+      "name": "Day Order Flow Turning Points",
+      "scope": "Day",
+      "chart": "1 to 5 min",
+      "goal": "Find turning points from volume and order flow",
+      "condition": "reversal",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "VWAP",
+          "setup": null
+        },
+        {
+          "study": "Day_Volume_Profile",
+          "setup": null
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "You have a trade idea and want volume and order flow to time it, or you want to catch a reversal early.",
+      "signal": "Yellow dot = early turn (price at a 20-bar extreme while momentum and flow disagree). Cyan or orange dot = early turn at VWAP or yesterday's POC or value area edge. Arrow = confirmed turn when momentum crosses zero.",
+      "read": [
+        "Bars are a volume-weighted MACD. Bright = building, dark = fading.",
+        "The line is estimated order flow (buying minus selling volume over 14 bars). Above zero = net buying. Cyan = improving, magenta = worsening.",
+        "A dot is a warning, not an entry. Enter on the arrow, or on a break of the dot bar's high or low while flow agrees.",
+        "Labels show FLOW, MOM and RSI, where price is vs VWAP and yesterday's value, and WATCH LONG or WATCH SHORT while a dot waits for confirmation."
+      ],
+      "avoid": "Dots against a strong trend (histogram and flow both pinned to one side): the turn is usually a pause. Flow is estimated from where each bar closes, not real tape data.",
+      "differs": "A reading tool, not a rules-based setup. It is also the lower pane of every other Day set.",
+      "manual": "Flow_Momentum_Manual.md"
+    },
+    {
+      "id": "day-gamma",
+      "name": "Day Options Gamma Levels",
+      "scope": "Day",
+      "chart": "5 or 15 min; options-liquid symbols (SPY, QQQ, large caps)",
+      "goal": "Use option strikes as intraday levels",
+      "condition": "trend",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Day_Setup_Signals",
+          "setup": "I10_OPTIONS_GAMMA_CONTEXT"
+        },
+        {
+          "study": "Options_Gamma_OI_Walls",
+          "setup": null
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "Large optionable names, where dealer hedging can pin price or add to moves.",
+      "signal": "A directional entry from the daily trend, VWAP, DMI and relative volume. The call wall, put wall and gamma flip are context and do not trigger the arrow.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
+        "An arrow marks the trigger bar. Enter only after that bar closes.",
+        "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
+        "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading.",
+        "Options_Gamma_OI_Walls draws the call wall, put wall and gamma flip for the next monthly expiration. Look for price stalling at a wall or accepting beyond it."
+      ],
+      "avoid": "Treating the walls as certain support or resistance: they come from one expiration and 15 sampled strikes with an assumed sign.",
+      "differs": "Adds option levels to a trend entry. The levels never trigger anything.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "day-short",
+      "name": "Day Short Setups",
+      "scope": "Day",
+      "chart": "5 min",
+      "goal": "Look for short setups intraday",
+      "condition": "reversal",
+      "direction": "short",
+      "studies": [
+        {
+          "study": "Any_Short_Setup_Signals",
+          "setup": "O07_FAILED_BREAKOUT_SHORT"
+        },
+        {
+          "study": "Day_Flow_Momentum",
+          "setup": null
+        }
+      ],
+      "use": "Price pokes above a recent high and closes back below it.",
+      "signal": "Price trades above the prior 20-bar high but closes back below it, below its open, on volume above normal, in the lower 35% of the bar. A red arrow needs the input borrowConfirmed set to yes.",
+      "read": [
+        "An orange wedge means setup only: the pattern is there but borrow is not confirmed.",
+        "Red arrows appear only when borrowConfirmed is yes and no squeeze risk is flagged.",
+        "The cover level is the broken 20-bar high plus about half an ATR.",
+        "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
+      ],
+      "avoid": "Hard-to-borrow shares, news, halts, acquisition risk, high short interest. Short-stock loss is unlimited.",
+      "differs": "To use other short setups, open the gear and change setup (O05 breakdown, O06 pullback, O09 gap fade).",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "day-jbravo",
+      "name": "Day JBravo Trend",
+      "scope": "Day",
+      "chart": "5 to 15 min",
+      "goal": "Follow the J Bravo method intraday",
+      "condition": "trend",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "JBravo_Bands",
+          "setup": null
+        },
+        {
+          "study": "VWAP",
+          "setup": null
+        },
+        {
+          "study": "JBravo_Trend_MAs",
+          "setup": null
+        },
+        {
+          "study": "JBravo_9_Count",
+          "setup": null
+        },
+        {
+          "study": "JBravo_Checklist",
+          "setup": null
+        },
+        {
+          "study": "MACD",
+          "setup": null
+        }
+      ],
+      "use": "You follow the J Bravo moving-average method on a short timeframe.",
+      "signal": "A green BUY arrow on the first full candle body above the 9 SMA, with price not in a purple band.",
+      "read": [
+        "Trade only in the direction of VWAP: long above it.",
+        "GoGo Juice (VWAP crossing the 20 EMA) starts the intraday move.",
+        "Take profit when a 9 prints or price reaches the purple band. Exit on a close below the 20 EMA.",
+        "The checklist labels should be mostly green before you enter."
+      ],
+      "avoid": "Sideways days: rules whipsaw on 1-minute charts.",
+      "differs": "A different method (moving averages and the 9 count) from the setup-signal sets.",
+      "manual": "JBravo_Manual.md"
+    },
+    {
+      "id": "swing-pullback",
+      "name": "Swing Trend Pullback",
+      "scope": "Swing",
+      "chart": "Daily",
+      "goal": "Buy pullbacks in a daily uptrend",
+      "condition": "trend",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Swing_Setup_Signals",
+          "setup": "D01_EMA_PULLBACK"
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        }
+      ],
+      "use": "A stock is in a long uptrend and has dipped to its 20-day average.",
+      "signal": "20 > 50 > 200 EMA, price above the 50, RSI between 40 and 70, positive money flow, then a close back above the 20 EMA after touching near it. Short is the mirror. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
+        "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
+        "A red dashed line is the invalidation guide.",
+        "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
+      ],
+      "avoid": "A flat 200-day average, money flow disagreeing, buying a gap far above the 20 EMA.",
+      "differs": "The default swing set: lower risk than a breakout but fewer signals.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "swing-breakout",
+      "name": "Swing Breakout",
+      "scope": "Swing",
+      "chart": "Daily",
+      "goal": "Trade a 20-day breakout",
+      "condition": "breakout",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Swing_Setup_Signals",
+          "setup": "D02_DONCHIAN_20_BREAKOUT"
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        }
+      ],
+      "use": "Price closes at a new 20-day high or low.",
+      "signal": "A close beyond the previous 20-day high or low, 50-day slope in agreement, ADX above 18 and relative volume above 1.2. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
+        "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
+        "A red dashed line is the invalidation guide.",
+        "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
+      ],
+      "avoid": "Intraday-only breaks, low-volume breaks, choppy ranges (many small losses).",
+      "differs": "A shorter channel than the 55-day trend breakout (setup D03): more signals, more false breaks.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "swing-squeeze",
+      "name": "Swing Squeeze Breakout",
+      "scope": "Swing",
+      "chart": "Daily",
+      "goal": "Trade a breakout after a volatility squeeze",
+      "condition": "breakout",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Swing_Setup_Signals",
+          "setup": "D04_DAILY_SQUEEZE"
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        }
+      ],
+      "use": "Volatility has compressed and is releasing.",
+      "signal": "A closing 20-day breakout within 5 sessions after the squeeze releases, with the 50/200 regime, MACD and volume confirming. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
+        "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
+        "A red dashed line is the invalidation guide.",
+        "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
+      ],
+      "avoid": "Trading while compression is still active, or treating volatility expansion as bullish by itself.",
+      "differs": "Needs a recent squeeze. The plain breakout set does not.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "swing-oversold",
+      "name": "Swing Oversold Bounce",
+      "scope": "Swing",
+      "chart": "Daily",
+      "goal": "Buy a short-term oversold dip in an uptrend",
+      "condition": "reversal",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "Swing_Setup_Signals",
+          "setup": "D05_RSI2_MEAN_REVERSION"
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        }
+      ],
+      "use": "A strong stock has dropped hard for a few days while its 200-day trend is still up.",
+      "signal": "RSI(2) was below 10 in an uptrend, then a close above the prior day's high. Exit on a close above the 5-day EMA or after 10 days. No entry within 5 days of earnings.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
+        "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
+        "A red dashed line is the invalidation guide.",
+        "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
+      ],
+      "avoid": "Using it against the 200-day trend, treating oversold as a bottom, holding through unbounded event risk.",
+      "differs": "The only mean-reversion swing set: it trades against the short-term move but with the long-term trend.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "swing-momentum",
+      "name": "Swing Momentum Continuation",
+      "scope": "Swing",
+      "chart": "Daily",
+      "goal": "Ride a trend with momentum and money flow",
+      "condition": "trend",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Swing_Setup_Signals",
+          "setup": "D06_MACD_CMF_CONTINUATION"
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        }
+      ],
+      "use": "An established trend with improving momentum and money flow.",
+      "signal": "The 50/200 regime is bullish, MACD crosses above its signal, money flow is positive and on-balance volume confirms. Short is the mirror. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
+        "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
+        "A red dashed line is the invalidation guide.",
+        "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
+      ],
+      "avoid": "Range-bound MACD whipsaws, counting MACD and moving averages as independent evidence.",
+      "differs": "Needs three confirmations, so it fires later than the pullback set.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "swing-rs",
+      "name": "Swing Relative Strength Leaders",
+      "scope": "Swing",
+      "chart": "Daily; benchmark defaults to SPY",
+      "goal": "Find stocks stronger than the market",
+      "condition": "trend",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "Swing_Setup_Signals",
+          "setup": "D08_RELATIVE_STRENGTH_LEADER"
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        }
+      ],
+      "use": "You are screening a watchlist for the strongest names.",
+      "signal": "Price is in a bull regime, the stock's ratio to the benchmark is above its 50-day average, and price makes a 20-day breakout on normal or better volume. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
+        "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
+        "A red dashed line is the invalidation guide.",
+        "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance.",
+        "Change the benchmark input when SPY is not the right comparison."
+      ],
+      "avoid": "Reading underperformance as a short thesis. It is a tactical signal, not a fundamental one.",
+      "differs": "Compares the stock to the market, not to its own history. Load it across a watchlist.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "swing-iv",
+      "name": "Swing Trend with IV Risk Check",
+      "scope": "Swing",
+      "chart": "Daily; optionable symbols",
+      "goal": "Swing trade with a check on option pricing",
+      "condition": "trend",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Swing_Setup_Signals",
+          "setup": "D09_IV_HV_RISK_TREND"
+        },
+        {
+          "study": "Options_Gamma_OI_Walls",
+          "setup": null
+        }
+      ],
+      "use": "You plan to use options or want to avoid event risk.",
+      "signal": "A trend and money-flow entry on a 20 EMA reclaim, blocked when implied volatility is above 1.3 times 20-day historical volatility. Missing IV does not block. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
+      "read": [
+        "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
+        "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
+        "A red dashed line is the invalidation guide.",
+        "The gamma walls show where option positions cluster. An IV/HV ratio above 1.5 means options price an event: not bearish, but expensive."
+      ],
+      "avoid": "Choosing direction from implied volatility. Stale or missing IV is not confirmation.",
+      "differs": "The IV gate is what separates it from the plain pullback set.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "swing-short",
+      "name": "Swing Short Setups",
+      "scope": "Swing",
+      "chart": "Daily",
+      "goal": "Look for short setups on daily charts",
+      "condition": "trend",
+      "direction": "short",
+      "studies": [
+        {
+          "study": "Any_Short_Setup_Signals",
+          "setup": "O05_SHORT_BREAKDOWN"
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        }
+      ],
+      "use": "Price breaks below a falling 50/200 average with volume.",
+      "signal": "Below a falling 50/200 regime, a close below the prior 20-bar low, relative volume above 1.2 and negative money flow. Red arrows need borrowConfirmed set to yes.",
+      "read": [
+        "An orange wedge means setup only; red needs borrow confirmed and no squeeze risk.",
+        "The invalidation is the prior 10-bar low plus about one ATR.",
+        "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
+      ],
+      "avoid": "Hard-to-borrow shares, news, halts, high short interest. Short-stock loss is unlimited.",
+      "differs": "Open the gear and change setup for O06 (failed bounce) or O08 (distribution).",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "swing-jbravo",
+      "name": "Swing JBravo Trend",
+      "scope": "Swing",
+      "chart": "1 hour, 4 hour, daily",
+      "goal": "Follow the J Bravo method over days to weeks",
+      "condition": "trend",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "JBravo_LongTerm_MAs",
+          "setup": null
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        },
+        {
+          "study": "JBravo_Trend_MAs",
+          "setup": null
+        },
+        {
+          "study": "JBravo_Checklist",
+          "setup": null
+        },
+        {
+          "study": "MACD",
+          "setup": null
+        }
+      ],
+      "use": "You hold positions for days to weeks using the J Bravo rules.",
+      "signal": "A green BUY arrow (first full candle above the 9 SMA) with price above the 200 and 9 > 20 > 180.",
+      "read": [
+        "Trend: price above the white 200 with 9 > 20 > 180.",
+        "Entry: the BUY arrow, better just above support with MACD above its signal.",
+        "Stop under the entry candle or the nearest blue support.",
+        "Exit on a red SELL arrow (close below the 20 EMA) or at purple resistance."
+      ],
+      "avoid": "Intraday timeframes under 5 minutes.",
+      "differs": "Moving-average rules plus the 100-week and 200-week lines.",
+      "manual": "JBravo_Manual.md"
+    },
+    {
+      "id": "invest-regime",
+      "name": "Invest Trend Regime",
+      "scope": "Invest",
+      "chart": "Daily or weekly; load on SPY first",
+      "goal": "Know whether the long-term trend is up",
+      "condition": "trend",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "Invest_Setup_Signals",
+          "setup": "L01_50_200_REGIME"
+        },
+        {
+          "study": "JBravo_LongTerm_MAs",
+          "setup": null
+        }
+      ],
+      "use": "You decide whether to hold or reduce a position.",
+      "signal": "Hold while price is above a rising 200-day, the 50-day is above the 200-day and money flow is positive. A reclaim of the 50-day is the entry trigger. Reduce on a close below the 200-day.",
+      "read": [
+        "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
+        "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
+        "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
+        "Position size, valuation and portfolio risk are not in the study."
+      ],
+      "avoid": "Treating a golden cross as a guaranteed entry, and ignoring valuation and concentration.",
+      "differs": "The simplest filter. Momentum adds a monthly return rule.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "invest-momentum",
+      "name": "Invest Momentum",
+      "scope": "Invest",
+      "chart": "Daily or weekly",
+      "goal": "Hold only what has 12-month momentum",
+      "condition": "trend",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "Invest_Setup_Signals",
+          "setup": "L02_12M_TIME_SERIES_MOMENTUM"
+        },
+        {
+          "study": "JBravo_LongTerm_MAs",
+          "setup": null
+        }
+      ],
+      "use": "You want a monthly rule: own what has risen over the last 12 months.",
+      "signal": "Hold when the 252-day return is positive, price is above the 200-day and SPY is in an uptrend. Checked on the first bar of each month; an arrow appears only when the position changes.",
+      "read": [
+        "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
+        "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
+        "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
+        "Position size, valuation and portfolio risk are not in the study."
+      ],
+      "avoid": "Treating historical evidence as a forecast: trend following whipsaws after reversals.",
+      "differs": "The strongest academic backing and the slowest signal.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "invest-pullback",
+      "name": "Invest Buy the Pullback",
+      "scope": "Invest",
+      "chart": "Daily",
+      "goal": "Add to a long-term winner on a dip",
+      "condition": "trend",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "Invest_Setup_Signals",
+          "setup": "L04_40W_PULLBACK"
+        },
+        {
+          "study": "JBravo_LongTerm_MAs",
+          "setup": null
+        }
+      ],
+      "use": "A long-term winner is retreating toward its 50-day average.",
+      "signal": "A close back above the 50-day after testing it, in an uptrend with RSI between 40 and 65 and positive money flow.",
+      "read": [
+        "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
+        "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
+        "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
+        "Position size, valuation and portfolio risk are not in the study."
+      ],
+      "avoid": "Averaging into a falling 200-day trend, assuming every touch of the 50-day is support.",
+      "differs": "Entry timing only. Pair it with Market Leaders to choose the stock.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "invest-leaders",
+      "name": "Invest Market Leaders",
+      "scope": "Invest",
+      "chart": "Daily or weekly; benchmark defaults to SPY",
+      "goal": "Pick market leaders to own",
+      "condition": "trend",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "Invest_Setup_Signals",
+          "setup": "L05_RELATIVE_STRENGTH_LEADERSHIP"
+        },
+        {
+          "study": "JBravo_LongTerm_MAs",
+          "setup": null
+        }
+      ],
+      "use": "You are choosing which stocks to own.",
+      "signal": "Price and the benchmark are both in uptrends, the stock's ratio to SPY is above its 100-day average, then the ratio makes a new 252-day high.",
+      "read": [
+        "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
+        "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
+        "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
+        "Position size, valuation and portfolio risk are not in the study.",
+        "Change the benchmark for a sector or country comparison."
+      ],
+      "avoid": "Mistaking relative outperformance for a positive absolute return.",
+      "differs": "Compares a stock to the market. Quality and Growth adds company fundamentals.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "invest-quality",
+      "name": "Invest Quality and Growth",
+      "scope": "Invest",
+      "chart": "Daily or weekly; company stocks, not ETFs",
+      "goal": "Screen for quality and growth",
+      "condition": "trend",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "Invest_Setup_Signals",
+          "setup": "L06_QUALITY_TREND"
+        },
+        {
+          "study": "JBravo_LongTerm_MAs",
+          "setup": null
+        }
+      ],
+      "use": "You want an uptrend backed by company fundamentals.",
+      "signal": "Positive free cash flow per share, return on equity, gross margin and earnings, then a close above the prior 126-day high. Shows FUNDAMENTALS N/A when data is missing.",
+      "read": [
+        "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
+        "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
+        "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
+        "Position size, valuation and portfolio risk are not in the study."
+      ],
+      "avoid": "ETFs or symbols with missing fundamentals; accounting data is delayed and varies by sector.",
+      "differs": "The only long-term set that uses fundamentals.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "invest-accum",
+      "name": "Invest Accumulation",
+      "scope": "Invest",
+      "chart": "Daily",
+      "goal": "Spot accumulation before a breakout",
+      "condition": "breakout",
+      "direction": "long",
+      "studies": [
+        {
+          "study": "Invest_Setup_Signals",
+          "setup": "L08_VOLUME_ACCUMULATION"
+        },
+        {
+          "study": "JBravo_LongTerm_MAs",
+          "setup": null
+        }
+      ],
+      "use": "You want volume to confirm a breakout in an uptrend.",
+      "signal": "Volume flow, on-balance volume and money flow all positive, then a close above the prior 126-day high.",
+      "read": [
+        "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
+        "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
+        "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
+        "Position size, valuation and portfolio risk are not in the study."
+      ],
+      "avoid": "Reading the proxies as proof of institutional buying.",
+      "differs": "A price-volume confirmation, not an early warning.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "opt-dealer",
+      "name": "Options Dealer Exposure",
+      "scope": "Options",
+      "chart": "Daily or intraday; optionable symbol",
+      "goal": "See dealer positioning and gamma levels",
+      "condition": "context",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Options_Greeks_Exposure",
+          "setup": "X01_GEX_DEX"
+        },
+        {
+          "study": "Options_Gamma_OI_Walls",
+          "setup": null
+        }
+      ],
+      "use": "You want the big picture of option positioning for a symbol.",
+      "signal": "Not a trade trigger. Positive net gamma suggests price pinning, negative suggests larger moves. Walls mark likely stalls.",
+      "read": [
+        "GEX is the modeled change in hedging for a 1% move; DEX is the delta of the sampled open interest.",
+        "Walls and the gamma flip are drawn on the chart for the next monthly expiration.",
+        "Treat everything as conditional context."
+      ],
+      "avoid": "Reading it as actual dealer inventory. It uses one expiration and 15 sampled strikes with an assumed call-positive, put-negative sign.",
+      "differs": "The overview set. The other Options sets are narrower.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "opt-0dte",
+      "name": "Options 0DTE Exposure",
+      "scope": "Options",
+      "chart": "Intraday; symbols with same-day expiry",
+      "goal": "Read same-day (0DTE) option exposure",
+      "condition": "context",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Options_Greeks_Exposure",
+          "setup": "X03_0DTE_EXPOSURE"
+        },
+        {
+          "study": "Options_Gamma_OI_Walls",
+          "setup": null
+        }
+      ],
+      "use": "You trade intraday on days with same-day expiration.",
+      "signal": "Not a trade trigger. Shows today's open-interest exposure and gross gamma turnover from same-day volume.",
+      "read": [
+        "Open-interest exposure uses the latest daily snapshot, so it misses contracts opened and closed today.",
+        "Gross turnover is unsigned activity, not net market-maker exposure."
+      ],
+      "avoid": "Believing high 0DTE volume means high net risk: call and put volume have no buy/sell or open/close side.",
+      "differs": "Same layout as Dealer Exposure but for today's expiration.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "opt-oi",
+      "name": "Options Open Interest Change",
+      "scope": "Options",
+      "chart": "Daily",
+      "goal": "See where option positions are growing",
+      "condition": "context",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Options_Greeks_Exposure",
+          "setup": "X06_OPEN_INTEREST_CHANGE"
+        }
+      ],
+      "use": "You want to see whether positions are being opened or closed.",
+      "signal": "Not a trade trigger. Price up with open interest up suggests new positions; price up with open interest down suggests covering.",
+      "read": [
+        "Shows sampled call, put and total open-interest change from the previous daily snapshot.",
+        "Every contract has one buyer and one seller, so open interest alone cannot say who is buying."
+      ],
+      "avoid": "Calling an increase bullish or bearish on its own.",
+      "differs": "Positioning change over a day; the other options sets show level and exposure.",
+      "manual": "Setups_and_Options_Manual.md"
+    },
+    {
+      "id": "any-reversal",
+      "name": "Any JBravo Reversal Watch",
+      "scope": "Any",
+      "chart": "Any timeframe",
+      "goal": "Take profits or spot a bounce on any timeframe",
+      "condition": "reversal",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "JBravo_Bands",
+          "setup": null
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        },
+        {
+          "study": "JBravo_Trend_MAs",
+          "setup": null
+        },
+        {
+          "study": "JBravo_9_Count",
+          "setup": null
+        },
+        {
+          "study": "JBravo_MVP_Oscillator",
+          "setup": null
+        }
+      ],
+      "use": "You hold a position and want to know when to take profit, or you are looking for a bounce.",
+      "signal": "Top risk: a 9 count up, purple candles, price in the purple band, price at purple resistance, MVP turning down from its high band. Bounce is the mirror in blue.",
+      "read": [
+        "Two or three signals together justify taking profit or watching for an entry.",
+        "One signal alone is not enough.",
+        "Never trade a reversal against a strong trend wedge on one signal."
+      ],
+      "avoid": "Trading a reversal against a strong trend.",
+      "differs": "A combination view for exits and bounces. The Day and Swing JBravo sets are for entries.",
+      "manual": "JBravo_Manual.md"
+    },
+    {
+      "id": "any-full",
+      "name": "Any JBravo Full Toolkit",
+      "scope": "Any",
+      "chart": "Daily",
+      "goal": "Review everything J Bravo teaches",
+      "condition": "trend",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "JBravo_Bands",
+          "setup": null
+        },
+        {
+          "study": "JBravo_SR_Levels",
+          "setup": null
+        },
+        {
+          "study": "JBravo_LongTerm_MAs",
+          "setup": null
+        },
+        {
+          "study": "JBravo_Trend_MAs",
+          "setup": null
+        },
+        {
+          "study": "JBravo_9_Count",
+          "setup": null
+        },
+        {
+          "study": "JBravo_Checklist",
+          "setup": null
+        },
+        {
+          "study": "JBravo_MVP_Oscillator",
+          "setup": null
+        },
+        {
+          "study": "MACD",
+          "setup": null
+        }
+      ],
+      "use": "You are learning the method or reviewing a chart in depth.",
+      "signal": "All J Bravo signals together. Busy on small charts.",
+      "read": [
+        "Start with the checklist: enter only when most items are green.",
+        "Then use the Day or Swing JBravo sets for actual trading."
+      ],
+      "avoid": "Using it on small charts: it is crowded.",
+      "differs": "Everything in the other JBravo sets at once.",
+      "manual": "JBravo_Manual.md"
+    },
+    {
+      "id": "any-trend",
+      "name": "Any Trend Levels Context",
+      "scope": "Any",
+      "chart": "daily, or intraday with about a year loaded",
+      "goal": "See the trend across daily, weekly and monthly averages",
+      "condition": "context",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Any_Trend_Levels",
+          "setup": null
+        }
+      ],
+      "use": "Before any trade, or when you want to know how strong a trend is and where it may stall.",
+      "signal": "Not a trade trigger. A score out of 5 counts how many of the daily 20/50/200, 20-week and 20-month averages price is above. Dots mark a close through the 200-day, 20-week or 20-month average.",
+      "read": [
+        "Score 5 = full uptrend, 0 = full downtrend, in between = mixed.",
+        "A first touch of a major average often holds; a close through it often starts a move that way.",
+        "Distances are in daily ATRs: more than 6 ATRs from the 200-day is stretched."
+      ],
+      "avoid": "Treating a dot as an entry. Confirm with a signal set.",
+      "differs": "Context only, no entries. Uses fixed daily, weekly and monthly averages on any chart.",
+      "manual": "Study_Sets_Guide.md"
+    },
+    {
+      "id": "any-trend-gamma",
+      "name": "Any Trend and Gamma Context",
+      "scope": "Any",
+      "chart": "daily, or intraday with about a year loaded",
+      "goal": "See trend levels and the option gamma regime together",
+      "condition": "context",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Any_Trend_Levels",
+          "setup": null
+        },
+        {
+          "study": "Options_Gamma_OI_Walls",
+          "setup": null
+        }
+      ],
+      "use": "On optionable symbols, to judge whether moves are likely to extend or revert.",
+      "signal": "Not a trade trigger. Adds the call wall, put wall and gamma flip. Positive net gamma suggests mean reversion and pinning; negative suggests moves extend.",
+      "read": [
+        "Score 5 = full uptrend, 0 = full downtrend, in between = mixed.",
+        "A first touch of a major average often holds; a close through it often starts a move that way.",
+        "Distances are in daily ATRs: more than 6 ATRs from the 200-day is stretched.",
+        "Price above the gamma flip with positive gamma: expect smaller, reverting moves. Below it: expect larger moves."
+      ],
+      "avoid": "Treating a dot as an entry. Confirm with a signal set.",
+      "differs": "Adds the option regime to the trend levels. Needs an optionable symbol.",
+      "manual": "Study_Sets_Guide.md"
+    },
+    {
+      "id": "help-manual",
+      "name": "Help Setups Manual",
+      "scope": "Help",
+      "chart": "Any",
+      "goal": "Learn what the signals mean and their limits",
+      "condition": "context",
+      "direction": "either",
+      "studies": [
+        {
+          "study": "Help_Setups_Manual",
+          "setup": "M00_START_HERE"
+        }
+      ],
+      "use": "You want the explanations on the chart.",
+      "signal": "No signals. Labels explain the setups, the data limits and how to read open interest and short positions.",
+      "read": [
+        "Click the study gear and change setup (M00 to M06) to switch pages."
+      ],
+      "avoid": "Nothing: it draws labels only.",
+      "differs": "Reading material, not a trading set.",
+      "manual": "Setups_and_Options_Manual.md"
+    }
+  ],
+  "studies": [
+    {
+      "name": "Day_Setup_Signals",
+      "scope": "Day",
+      "pane": "price",
+      "what": "Signal study. Ten intraday entry setups behind one setup input.",
+      "legend": [
+        "Cyan label = the selected setup.",
+        "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
+        "Green and red arrows = the trigger bar. Wait for the bar to close.",
+        "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
+        "A gray LINES: label names every colored line."
+      ],
+      "modes": [
+        {
+          "code": "I01",
+          "name": "Opening range breakout"
+        },
+        {
+          "code": "I02",
+          "name": "VWAP pullback"
+        },
+        {
+          "code": "I03",
+          "name": "VWAP mean reversion"
+        },
+        {
+          "code": "I04",
+          "name": "Squeeze expansion"
+        },
+        {
+          "code": "I05",
+          "name": "EMA momentum stack"
+        },
+        {
+          "code": "I06",
+          "name": "Prior day break"
+        },
+        {
+          "code": "I07",
+          "name": "Profile value rejection"
+        },
+        {
+          "code": "I08",
+          "name": "Relative volume burst"
+        },
+        {
+          "code": "I09",
+          "name": "Climax reversal"
+        },
+        {
+          "code": "I10",
+          "name": "Options gamma context"
+        }
+      ],
+      "file": "thinkorswim/day/Day_Setup_Signals.ts"
+    },
+    {
+      "name": "Day_Flow_Momentum",
+      "scope": "Day",
+      "pane": "lower",
+      "what": "Context study. Volume-weighted MACD, estimated order flow, and early and confirmed turning points.",
+      "legend": [
+        "Bars: bright = momentum building, dark = fading.",
+        "Line: estimated buying minus selling volume over 14 bars, scaled -3 to +3. Cyan = improving, magenta = worsening.",
+        "Dots: early turn. Yellow = in open space, cyan or orange = at VWAP or yesterday's POC or value area edge.",
+        "Arrows: confirmed turn (momentum crosses zero within 10 bars of a dot).",
+        "Labels: FLOW, MOM with RSI, location vs VWAP and prior value, WATCH LONG or SHORT."
+      ],
+      "modes": [],
+      "file": "thinkorswim/day/Day_Flow_Momentum.ts"
+    },
+    {
+      "name": "Day_Volume_Profile",
+      "scope": "Day",
+      "pane": "price",
+      "what": "Context study. Today's volume profile at the right edge, plus yesterday's POC and value area.",
+      "legend": [
+        "Histogram at the right edge = today's volume by price. Needs 25+ bars of empty space (Chart Settings, Time axis, Expansion area).",
+        "Yellow line = yesterday's POC (price with the most volume). Dashed lines = yesterday's value area high and low (70% of volume).",
+        "Label: price above prior value (buyers accepted higher prices), below (sellers in control) or inside (balance, fade the edges).",
+        "On daily charts: one profile of the visible range."
+      ],
+      "modes": [],
+      "file": "thinkorswim/day/Day_Volume_Profile.ts"
+    },
+    {
+      "name": "Swing_Setup_Signals",
+      "scope": "Swing",
+      "pane": "price",
+      "what": "Signal study. Ten daily entry setups.",
+      "legend": [
+        "Cyan label = the selected setup.",
+        "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
+        "Green and red arrows = the trigger bar. Wait for the bar to close.",
+        "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
+        "A gray LINES: label names every colored line."
+      ],
+      "modes": [
+        {
+          "code": "D01",
+          "name": "EMA pullback"
+        },
+        {
+          "code": "D02",
+          "name": "Donchian 20 breakout"
+        },
+        {
+          "code": "D03",
+          "name": "Donchian 55 trend"
+        },
+        {
+          "code": "D04",
+          "name": "Daily squeeze"
+        },
+        {
+          "code": "D05",
+          "name": "RSI2 mean reversion"
+        },
+        {
+          "code": "D06",
+          "name": "MACD and money flow continuation"
+        },
+        {
+          "code": "D07",
+          "name": "Ichimoku trend"
+        },
+        {
+          "code": "D08",
+          "name": "Relative strength leader"
+        },
+        {
+          "code": "D09",
+          "name": "IV/HV risk trend"
+        },
+        {
+          "code": "D10",
+          "name": "Volatility contraction"
+        }
+      ],
+      "file": "thinkorswim/swing/Swing_Setup_Signals.ts"
+    },
+    {
+      "name": "Invest_Setup_Signals",
+      "scope": "Invest",
+      "pane": "price",
+      "what": "Signal study. Ten long-horizon setups. Red arrow = first bar where a reduce rule applies.",
+      "legend": [
+        "Cyan label = the selected setup.",
+        "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
+        "Green and red arrows = the trigger bar. Wait for the bar to close.",
+        "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
+        "A gray LINES: label names every colored line.",
+        "L02 and L10 change only on the first bar of a month."
+      ],
+      "modes": [
+        {
+          "code": "L01",
+          "name": "50/200 regime"
+        },
+        {
+          "code": "L02",
+          "name": "12-month momentum"
+        },
+        {
+          "code": "L03",
+          "name": "52-week breakout"
+        },
+        {
+          "code": "L04",
+          "name": "Pullback to the 50-day"
+        },
+        {
+          "code": "L05",
+          "name": "Relative strength leadership"
+        },
+        {
+          "code": "L06",
+          "name": "Quality trend (fundamentals)"
+        },
+        {
+          "code": "L07",
+          "name": "Earnings growth trend"
+        },
+        {
+          "code": "L08",
+          "name": "Volume accumulation"
+        },
+        {
+          "code": "L09",
+          "name": "Adaptive secular trend"
+        },
+        {
+          "code": "L10",
+          "name": "Breadth and volatility-scaled trend"
+        }
+      ],
+      "file": "thinkorswim/invest/Invest_Setup_Signals.ts"
+    },
+    {
+      "name": "Any_Short_Setup_Signals",
+      "scope": "Any",
+      "pane": "price",
+      "what": "Signal study. Short setups, order-flow context and squeeze risk.",
+      "legend": [
+        "Cyan label = the selected setup.",
+        "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
+        "Green and red arrows = the trigger bar. Wait for the bar to close.",
+        "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
+        "A gray LINES: label names every colored line.",
+        "Orange wedge = setup only (borrow not confirmed). Red arrows need borrowConfirmed = yes and no squeeze risk."
+      ],
+      "modes": [
+        {
+          "code": "O01",
+          "name": "Tape and profile context"
+        },
+        {
+          "code": "O02",
+          "name": "Value acceptance breakdown"
+        },
+        {
+          "code": "O03",
+          "name": "Value high rejection"
+        },
+        {
+          "code": "O04",
+          "name": "Open interest and price"
+        },
+        {
+          "code": "O05",
+          "name": "Short breakdown"
+        },
+        {
+          "code": "O06",
+          "name": "Short pullback"
+        },
+        {
+          "code": "O07",
+          "name": "Failed breakout short"
+        },
+        {
+          "code": "O08",
+          "name": "Distribution short"
+        },
+        {
+          "code": "O09",
+          "name": "Gap fade short"
+        },
+        {
+          "code": "O10",
+          "name": "Short squeeze risk"
+        }
+      ],
+      "file": "thinkorswim/any/Any_Short_Setup_Signals.ts"
+    },
+    {
+      "name": "Options_Greeks_Exposure",
+      "scope": "Options",
+      "pane": "price",
+      "what": "Context study. Dealer exposure pages built from the option chain: GEX, DEX, zero levels, 0DTE, vanna and charm, vega/theta/rho, open-interest change.",
+      "legend": [
+        "Labels show the numbers for the selected page.",
+        "Levels (when shown) are model estimates from one expiration and sampled strikes.",
+        "The expiration defaults to the next monthly (third Friday) and rolls automatically."
+      ],
+      "modes": [
+        {
+          "code": "X01",
+          "name": "GEX and DEX"
+        },
+        {
+          "code": "X02",
+          "name": "Zero levels"
+        },
+        {
+          "code": "X03",
+          "name": "0DTE exposure"
+        },
+        {
+          "code": "X04",
+          "name": "Vanna and charm"
+        },
+        {
+          "code": "X05",
+          "name": "Vega, theta, rho"
+        },
+        {
+          "code": "X06",
+          "name": "Open-interest change"
+        }
+      ],
+      "file": "thinkorswim/options/Options_Greeks_Exposure.ts"
+    },
+    {
+      "name": "Options_Gamma_OI_Walls",
+      "scope": "Options",
+      "pane": "price",
+      "what": "Context study. Call wall, put wall and gamma flip on the price chart.",
+      "legend": [
+        "Call wall = strike with the largest modeled call gamma or open interest: likely resistance or pin.",
+        "Put wall = the same for puts: likely support.",
+        "Gamma flip = where modeled net gamma changes sign: above it price tends to pin, below it moves can extend.",
+        "Single expiration and 15 sampled strikes under a call-positive, put-negative convention: an estimate."
+      ],
+      "modes": [],
+      "file": "thinkorswim/options/Options_Gamma_OI_Walls.ts"
+    },
+    {
+      "name": "Any_Trend_Levels",
+      "scope": "Any",
+      "pane": "price",
+      "what": "Context study. Daily 20/50/200, 20-week and 20-month averages with a trend score and dots where a major level breaks.",
+      "legend": [
+        "Green 20D, yellow 50D, white 200D, cyan dash 20W, magenta dash 20M.",
+        "Cyan dot = close up through 200D/20W/20M. Orange dot = close down through one.",
+        "Score label: how many of the 5 averages price is above."
+      ],
+      "modes": [],
+      "file": "thinkorswim/any/Any_Trend_Levels.ts"
+    },
+    {
+      "name": "Day_Strategy, Swing_Strategy, Invest_Strategy",
+      "scope": "Any",
+      "pane": "price (Strategies tab)",
+      "what": "Backtest versions of the signal studies, generated from the same code. Add one, pick the same setup, then right-click a trade marker and choose Show report.",
+      "legend": [
+        "Green LE / red SE = simulated entries; white LX / SX = exits.",
+        "Entries fill at the next bar's open; stops and targets at their level. No commission or slippage.",
+        "Keep a setup only with 30+ trades over several symbols and profit factor above 1.3."
+      ],
+      "modes": [],
+      "file": "thinkorswim/strategies/"
+    },
+    {
+      "name": "Help_Setups_Manual",
+      "scope": "Help",
+      "pane": "price",
+      "what": "On-chart explanations of the signals and data limits.",
+      "legend": [
+        "Change the setup input (M00 to M06) to switch pages."
+      ],
+      "modes": [
+        {
+          "code": "M00",
+          "name": "Start here"
+        },
+        {
+          "code": "M01",
+          "name": "Signals and sets"
+        },
+        {
+          "code": "M02",
+          "name": "GEX, DEX and 0DTE"
+        },
+        {
+          "code": "M03",
+          "name": "Order flow"
+        },
+        {
+          "code": "M04",
+          "name": "Open interest"
+        },
+        {
+          "code": "M05",
+          "name": "Short positions"
+        },
+        {
+          "code": "M06",
+          "name": "Limitations"
+        }
+      ],
+      "file": "thinkorswim/help/Help_Setups_Manual.ts"
+    },
+    {
+      "name": "JBravo_Checklist",
+      "scope": "JBravo",
+      "pane": "price (labels)",
+      "what": "Six live green or red checks and an exit reminder.",
+      "legend": [
+        "Enter only when most items are green."
+      ],
+      "modes": [],
+      "file": "thinkorswim/jbravo/JBravo_Checklist.ts"
+    },
+    {
+      "name": "JBravo_Trend_MAs",
+      "scope": "JBravo",
+      "pane": "price",
+      "what": "9 SMA, 20 EMA, 180 SMA, 200 SMA with BUY and SELL arrows and strong-trend wedges.",
+      "legend": [
+        "BUY = first full candle body above the 9. SELL = close below the 20 EMA.",
+        "Lime or magenta wedge = start of a strong trend (9 > 20 > 180, all rising, or the mirror).",
+        "Cyan or yellow dots = GoGo Juice (VWAP crossing the 20 EMA), intraday only."
+      ],
+      "modes": [],
+      "file": "thinkorswim/jbravo/JBravo_Trend_MAs.ts"
+    },
+    {
+      "name": "JBravo_9_Count",
+      "scope": "JBravo",
+      "pane": "price",
+      "what": "A 9 count, and purple candles when price is stretched.",
+      "legend": [
+        "A 9 means the move is tired.",
+        "Purple candles mean stretched: do not chase, consider taking profit."
+      ],
+      "modes": [],
+      "file": "thinkorswim/jbravo/JBravo_9_Count.ts"
+    },
+    {
+      "name": "JBravo_Bands",
+      "scope": "JBravo",
+      "pane": "price",
+      "what": "Purple cloud above price, blue cloud below.",
+      "legend": [
+        "Price in the purple cloud: a drop may come. In the blue cloud: a bounce may come."
+      ],
+      "modes": [],
+      "file": "thinkorswim/jbravo/JBravo_Bands.ts"
+    },
+    {
+      "name": "JBravo_LongTerm_MAs",
+      "scope": "JBravo",
+      "pane": "price",
+      "what": "100-week (blue) and 200-week (cyan) lines.",
+      "legend": [
+        "The big-picture floor or ceiling. Shown on daily and weekly charts only."
+      ],
+      "modes": [],
+      "file": "thinkorswim/jbravo/JBravo_LongTerm_MAs.ts"
+    },
+    {
+      "name": "JBravo_SR_Levels",
+      "scope": "JBravo",
+      "pane": "price",
+      "what": "Support and resistance from confirmed swing pivots.",
+      "legend": [
+        "Blue = support, purple = resistance. Solid = newest, dashed = previous.",
+        "A level disappears once price closes through it."
+      ],
+      "modes": [],
+      "file": "thinkorswim/jbravo/JBravo_SR_Levels.ts"
+    },
+    {
+      "name": "JBravo_MVP_Oscillator",
+      "scope": "JBravo",
+      "pane": "lower",
+      "what": "RSI with standard-deviation reversal bands and arrows.",
+      "legend": [
+        "Green arrow = turning up out of the low band. Magenta = turning down from the high band.",
+        "Use as confirmation only."
+      ],
+      "modes": [],
+      "file": "thinkorswim/jbravo/JBravo_MVP_Oscillator.ts"
+    }
+  ],
+  "standard": [
+    {
+      "name": "VWAP",
+      "tos": "VWAP",
+      "answers": "Where is the average price paid today, and who is in control?",
+      "read": "Above VWAP buyers control, below sellers. The +/-2 SD bands mark stretched prices. Resets each day.",
+      "pair": "Day_Flow_Momentum, Day_Setup_Signals",
+      "caution": "Meaningless on daily charts and in the first minutes of the session."
+    },
+    {
+      "name": "AnchoredVWAP",
+      "tos": "AnchoredVWAP",
+      "answers": "What is the average price paid since an event (earnings, a low, a breakout)?",
+      "read": "Anchor it at the event. Price above = holders since then are in profit.",
+      "pair": "Swing_Setup_Signals",
+      "caution": "The result depends entirely on the anchor date."
+    },
+    {
+      "name": "Moving averages (20, 50, 200)",
+      "tos": "MovAvgExponential / SimpleMovingAvg",
+      "answers": "What is the trend, and where might a pullback end?",
+      "read": "Price above a rising 200 = uptrend. 20 > 50 > 200 = aligned. Pullbacks often stall near the 20 or 50.",
+      "pair": "Swing_Setup_Signals, Invest_Setup_Signals",
+      "caution": "Lagging. Whipsaws in ranges."
+    },
+    {
+      "name": "MACD",
+      "tos": "MACD",
+      "answers": "Is momentum building or fading?",
+      "read": "The histogram above zero with the MACD above its signal is bullish momentum. A fading histogram warns before a cross.",
+      "pair": "Any setup study as a lower-pane check",
+      "caution": "Moves with RSI: they count as one vote, not two."
+    },
+    {
+      "name": "RSI",
+      "tos": "RSIWilder",
+      "answers": "Is the move stretched?",
+      "read": "Above 70 stretched up, below 30 stretched down. In strong trends it stays pinned; use 40 to 60 as the pullback zone.",
+      "pair": "Day_Flow_Momentum (uses RSI as a filter)",
+      "caution": "Overbought is not a sell signal by itself."
+    },
+    {
+      "name": "Bollinger Bands",
+      "tos": "BollingerBands",
+      "answers": "Is volatility expanding or contracting?",
+      "read": "Narrow bands = quiet. Closes outside a band usually continue first.",
+      "pair": "Squeeze setups (with Keltner Channels)",
+      "caution": "A band touch is not a reversal signal."
+    },
+    {
+      "name": "Keltner Channels",
+      "tos": "KeltnerChannels",
+      "answers": "How far is price from its average in ATR terms?",
+      "read": "Bollinger Bands inside Keltner Channels = squeeze. The release is the signal to watch.",
+      "pair": "Day Squeeze Breakout, Swing Squeeze Breakout",
+      "caution": "Needs a breakout to confirm direction."
+    },
+    {
+      "name": "ATR",
+      "tos": "AverageTrueRange",
+      "answers": "How big is a normal move? Where does a stop belong?",
+      "read": "Size stops and targets in ATR. Rising ATR = volatility expanding.",
+      "pair": "All setup studies (invalidation guides use ATR)",
+      "caution": "Measures size, not direction."
+    },
+    {
+      "name": "ADX and DMI",
+      "tos": "DMI",
+      "answers": "Is there a trend, and which side is stronger?",
+      "read": "ADX above 20 = trending, below 18 = range. +DI above -DI = buyers stronger.",
+      "pair": "Day Trend Pullback to VWAP, Day Fade Back to VWAP",
+      "caution": "ADX gives strength, not direction."
+    },
+    {
+      "name": "Volume Profile",
+      "tos": "VolumeProfile",
+      "answers": "At which prices did the volume trade?",
+      "read": "POC = most volume. Value area = 70% of volume. Price above value = acceptance higher; rejection back into value is a fade setup.",
+      "pair": "Day_Volume_Profile",
+      "caution": "The built-in default draws on top of the last bars if there is no empty space on the right."
+    },
+    {
+      "name": "Relative Volume",
+      "tos": "RelativeVolumeStDev",
+      "answers": "Is volume unusual right now?",
+      "read": "Above 2 standard deviations = a burst. Above about 1.2 times normal supports a breakout.",
+      "pair": "Day Volume Spike Breakout",
+      "caution": "High volume alone does not say direction."
+    },
+    {
+      "name": "Chaikin Money Flow",
+      "tos": "ChaikinMoneyFlow",
+      "answers": "Is volume accumulating or distributing?",
+      "read": "Positive = buying pressure over the lookback. Used as a filter in most setups.",
+      "pair": "Swing_Setup_Signals, Invest_Setup_Signals",
+      "caution": "A proxy based on where bars close, not real order flow."
+    },
+    {
+      "name": "On-Balance Volume",
+      "tos": "OnBalanceVolume",
+      "answers": "Does volume confirm the price trend?",
+      "read": "OBV rising with price confirms. OBV falling while price rises is a divergence.",
+      "pair": "Invest Accumulation, D06",
+      "caution": "Divergences can last a long time."
+    }
+  ],
+  "sources": [
+    {
+      "label": "Study sets guide",
+      "path": "trading-studies/manuals/Study_Sets_Guide.md"
+    },
+    {
+      "label": "Setups and options manual",
+      "path": "trading-studies/manuals/Setups_and_Options_Manual.md"
+    },
+    {
+      "label": "JBravo manual",
+      "path": "trading-studies/manuals/JBravo_Manual.md"
+    },
+    {
+      "label": "Flow momentum manual",
+      "path": "trading-studies/manuals/Flow_Momentum_Manual.md"
+    },
+    {
+      "label": "Workflow guide (scans, workspace, horizons)",
+      "path": "trading-studies/manuals/TOS_Workflow_Guide.md"
+    },
+    {
+      "label": "Paper trading program (rules, strategies, ledger, journal, learnings)",
+      "path": "trading-studies/paper-trading/README.md"
+    }
+  ],
+  "disclaimer": "Educational only, not investment advice. Rules use only past data and have not been backtested for profit. Order flow is estimated from bar data, not real bid/ask volume.",
+  "workflow": {
+    "intro": "One loop for every horizon: scan, watchlist, chart with a study set, alert, trade, review. Scans are saved Stock Hacker queries (Scan > Stock Hacker > list icon > Load scan query > Personal).",
+    "scans": [
+      {
+        "name": "Swing Quality Big Movers",
+        "horizon": "Swing",
+        "what": "Market cap of at least $5B, net margin 5+, ROE 8+, positive free cash flow per share and EPS, and a day range of at least 1.5x ATR and 3% of the prior close."
+      },
+      {
+        "name": "Swing Quality Movers - <Sector>",
+        "horizon": "Swing",
+        "what": "The same filters for one sector (11 saved queries). Financials and Utilities drop margin and free cash flow; Real Estate also drops ROE, because those measures mislead there."
+      },
+      {
+        "name": "Day Big Movers Liquid",
+        "horizon": "Intraday",
+        "what": "Market cap of at least $2B and the big-swing study, no fundamentals. Run in the first 30 minutes after the open."
+      },
+      {
+        "name": "Position Quality Universe",
+        "horizon": "Position",
+        "what": "The quality fundamentals only, without the swing study: the weekly pool for long-term review."
+      }
+    ],
+    "notes": [
+      "TOS has no sector filter row; sector scans use Scan in: By industry > Select All <Sector>.",
+      "Fundamentals work only in the native Fundamental filter rows, not inside a custom study filter.",
+      "Results keep listing a stock after the move because the study tests the current daily bar.",
+      "Weekend data has empty high and low values; run scans on a trading day."
+    ],
+    "workspace": "The layout is saved as the TOS workspace \"Trading Workflow\" (Setup > Save Workspace as).",
+    "paper": {
+      "title": "Paper trading",
+      "what": "Signals are tested with virtual trades only. Nothing is ever sent to a broker. Virtual account of $100,000, $500 risk per trade, 0.02% slippage each way.",
+      "strategies": [
+        {
+          "id": "MR1",
+          "name": "Morning Reversal Fade",
+          "status": "candidate",
+          "idea": "Fade the morning extreme back toward VWAP after exhaustion shows."
+        },
+        {
+          "id": "ORB1",
+          "name": "Opening Range Breakout",
+          "status": "candidate",
+          "idea": "Control bet: the opposite of MR1."
+        },
+        {
+          "id": "OVR1",
+          "name": "Overreaction Rebound",
+          "status": "candidate",
+          "idea": "Quality large caps that gap down hard on news and hold above the day low."
+        },
+        {
+          "id": "JB1",
+          "name": "J Bravo Trend",
+          "status": "candidate",
+          "idea": "Buy arrow above VWAP with 9 > 20 > 180; exit below the 20 EMA."
+        }
+      ],
+      "review": "A strategy is reviewed after 20 trades, 5 losing days or a 6% drawdown. It counts as proven only after 30 or more trades with positive results after costs.",
+      "path": "trading-studies/paper-trading/"
+    }
   }
- ],
- "sets": [
-  {
-   "id": "day-orb",
-   "name": "Day Opening Range Breakout",
-   "scope": "Day",
-   "chart": "5 min, regular session; at least 2 days loaded",
-   "goal": "Trade the opening range breakout",
-   "condition": "breakout",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Day_Setup_Signals",
-     "setup": "I01_ORB_VWAP"
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "The first 30 minutes (09:30 to 10:00 ET) have set a range and you want to trade the break.",
-   "signal": "After 10:00 and before 15:30, the first close of the day above the opening-range high while above VWAP, in a daily uptrend, with time-of-day relative volume above 1.5 and SPY above its 20-day average. Short is the mirror. Stop at the middle of the range, target 2R, flat by the close.",
-   "read": [
-    "Before 10:00 the label stays gray: the range is still forming.",
-    "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
-    "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
-    "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
-   ],
-   "avoid": "Pre-market breaks, thin symbols, wicks that never close beyond the range, and a daily trend pointing the other way.",
-   "differs": "Time-boxed to the open. Prior Day High-Low Break uses yesterday's range and can fire any time of day.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "day-pdhl",
-   "name": "Day Prior Day High-Low Break",
-   "scope": "Day",
-   "chart": "5 min; at least 2 days loaded",
-   "goal": "Trade a break of yesterday's high or low",
-   "condition": "breakout",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Day_Setup_Signals",
-     "setup": "I06_PRIOR_DAY_BREAK"
-    },
-    {
-     "study": "Day_Volume_Profile",
-     "setup": null
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "Price pushes through yesterday's regular-session high or low.",
-   "signal": "The first close of the day beyond the prior-day extreme during regular hours, on the right side of VWAP, in a matching daily trend, with time-of-day relative volume above 1.5. Stop one ATR back through the level, target 2R.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
-    "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
-    "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading.",
-    "Day_Volume_Profile draws today's profile at the right edge and yesterday's POC (yellow) and value area (dashed). A break that also leaves yesterday's value area is stronger."
-   ],
-   "avoid": "Gaps already far beyond the level, low-volume first tests, closes back inside yesterday's range.",
-   "differs": "Uses a level every trader sees. Opening Range Breakout is limited to the first 30 minutes.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "day-pullback",
-   "name": "Day Trend Pullback to VWAP",
-   "scope": "Day",
-   "chart": "5 or 15 min",
-   "goal": "Buy a dip (or sell a bounce) inside an intraday trend",
-   "condition": "trend",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Day_Setup_Signals",
-     "setup": "I02_VWAP_PULLBACK"
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "A clean intraday trend is running and you want to enter on a pullback instead of chasing.",
-   "signal": "A bullish 9/20/50 EMA stack, ADX above 20, DMI and money flow agree, price above VWAP, a test near the 20 EMA, then a reclaim of the 9 EMA. Short is the mirror.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
-    "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
-    "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
-   ],
-   "avoid": "ADX below 20, repeated VWAP crossings, money flow disagreeing with the trend.",
-   "differs": "The only trend entry that waits for a pullback. The breakout sets enter as price extends.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "day-squeeze",
-   "name": "Day Squeeze Breakout",
-   "scope": "Day",
-   "chart": "5 or 15 min",
-   "goal": "Trade a breakout from a quiet, tight range",
-   "condition": "breakout",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Day_Setup_Signals",
-     "setup": "I04_SQUEEZE_EXPANSION"
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "The market went quiet and tight (Bollinger Bands inside Keltner Channels) and is now expanding.",
-   "signal": "Within 5 bars after the squeeze releases, a close above the prior 20-bar high with MACD positive and the bar's volume above 1.5 times the same bar on recent days. Short is the mirror. Target 2R.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
-    "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
-    "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
-   ],
-   "avoid": "An unreleased squeeze, a breakout with no participation, chasing more than a few ATRs past the trigger.",
-   "differs": "Needs a prior squeeze. Volume Spike Breakout needs none but is rarer and faster.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "day-volspike",
-   "name": "Day Volume Spike Breakout",
-   "scope": "Day",
-   "chart": "5 min",
-   "goal": "Catch a move on a sudden burst of volume",
-   "condition": "breakout",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Day_Setup_Signals",
-     "setup": "I08_RELATIVE_VOLUME_BURST"
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "A news bar or sudden volume surge is breaking out of the last 10 bars.",
-   "signal": "Bar volume more than 3 times the same bar on recent days, range above 1.2 ATR, a close near the bar's extreme, above VWAP and above the 10-bar high. Target 2R.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
-    "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
-    "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
-   ],
-   "avoid": "Halts, opening-auction distortions, one-off news bars with no follow-through. Volume alone does not give direction.",
-   "differs": "The fastest and riskiest breakout set: late entries are common. Wait for follow-through on very large bars.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "day-fade",
-   "name": "Day Fade Back to VWAP",
-   "scope": "Day",
-   "chart": "2 or 5 min, liquid products",
-   "goal": "Fade an overextended move back to VWAP",
-   "condition": "range",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Day_Setup_Signals",
-     "setup": "I03_VWAP_MEAN_REVERSION"
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "A range-bound day (ADX below 18) and price has stretched far from VWAP.",
-   "signal": "After 10:00 on a range day, price was outside the 2 standard deviation VWAP band and closes back inside while RSI is stretched. Only when the band is at least 1.5 bar ATRs from VWAP. Target is VWAP.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
-    "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
-    "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
-   ],
-   "avoid": "ADX at or above 18, news shocks, trend days, and treating a band touch alone as a signal.",
-   "differs": "The only counter-trend set. Stop using it as soon as the day starts to trend.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "day-value",
-   "name": "Day Value Area Rejection",
-   "scope": "Day",
-   "chart": "5 or 15 min, liquid products",
-   "goal": "Trade rejections at the edge of value",
-   "condition": "reversal",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Day_Setup_Signals",
-     "setup": "I07_PROFILE_VALUE_REJECTION"
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "Price probes the edge of today's value area (where 70% of volume traded) and fails.",
-   "signal": "Price trades at or below the prior session's value area low and closes back above it with a positive candle and positive money flow, while still below the prior POC. Mirror at the value area high. Target the prior POC. Fixed levels, so it does not repaint.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
-    "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
-    "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading.",
-    "Today's profile is drawn at the right edge. Leave 25 or more bars of empty space on the right."
-   ],
-   "avoid": "Assuming the POC predicts direction, unreliable volume feeds, trading before the session profile has matured (the first 1 to 2 hours).",
-   "differs": "Targets the POC and works best on balanced days. The profile moves until the session closes, so earlier arrows can revise.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "day-flow",
-   "name": "Day Order Flow Turning Points",
-   "scope": "Day",
-   "chart": "1 to 5 min",
-   "goal": "Find turning points from volume and order flow",
-   "condition": "reversal",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "VWAP",
-     "setup": null
-    },
-    {
-     "study": "Day_Volume_Profile",
-     "setup": null
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "You have a trade idea and want volume and order flow to time it, or you want to catch a reversal early.",
-   "signal": "Yellow dot = early turn (price at a 20-bar extreme while momentum and flow disagree). Cyan or orange dot = early turn at VWAP or yesterday's POC or value area edge. Arrow = confirmed turn when momentum crosses zero.",
-   "read": [
-    "Bars are a volume-weighted MACD. Bright = building, dark = fading.",
-    "The line is estimated order flow (buying minus selling volume over 14 bars). Above zero = net buying. Cyan = improving, magenta = worsening.",
-    "A dot is a warning, not an entry. Enter on the arrow, or on a break of the dot bar's high or low while flow agrees.",
-    "Labels show FLOW, MOM and RSI, where price is vs VWAP and yesterday's value, and WATCH LONG or WATCH SHORT while a dot waits for confirmation."
-   ],
-   "avoid": "Dots against a strong trend (histogram and flow both pinned to one side): the turn is usually a pause. Flow is estimated from where each bar closes, not real tape data.",
-   "differs": "A reading tool, not a rules-based setup. It is also the lower pane of every other Day set.",
-   "manual": "Flow_Momentum_Manual.md"
-  },
-  {
-   "id": "day-gamma",
-   "name": "Day Options Gamma Levels",
-   "scope": "Day",
-   "chart": "5 or 15 min; options-liquid symbols (SPY, QQQ, large caps)",
-   "goal": "Use option strikes as intraday levels",
-   "condition": "trend",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Day_Setup_Signals",
-     "setup": "I10_OPTIONS_GAMMA_CONTEXT"
-    },
-    {
-     "study": "Options_Gamma_OI_Walls",
-     "setup": null
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "Large optionable names, where dealer hedging can pin price or add to moves.",
-   "signal": "A directional entry from the daily trend, VWAP, DMI and relative volume. The call wall, put wall and gamma flip are context and do not trigger the arrow.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
-    "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
-    "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading.",
-    "Options_Gamma_OI_Walls draws the call wall, put wall and gamma flip for the next monthly expiration. Look for price stalling at a wall or accepting beyond it."
-   ],
-   "avoid": "Treating the walls as certain support or resistance: they come from one expiration and 15 sampled strikes with an assumed sign.",
-   "differs": "Adds option levels to a trend entry. The levels never trigger anything.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "day-short",
-   "name": "Day Short Setups",
-   "scope": "Day",
-   "chart": "5 min",
-   "goal": "Look for short setups intraday",
-   "condition": "reversal",
-   "direction": "short",
-   "studies": [
-    {
-     "study": "Any_Short_Setup_Signals",
-     "setup": "O07_FAILED_BREAKOUT_SHORT"
-    },
-    {
-     "study": "Day_Flow_Momentum",
-     "setup": null
-    }
-   ],
-   "use": "Price pokes above a recent high and closes back below it.",
-   "signal": "Price trades above the prior 20-bar high but closes back below it, below its open, on volume above normal, in the lower 35% of the bar. A red arrow needs the input borrowConfirmed set to yes.",
-   "read": [
-    "An orange wedge means setup only: the pattern is there but borrow is not confirmed.",
-    "Red arrows appear only when borrowConfirmed is yes and no squeeze risk is flagged.",
-    "The cover level is the broken 20-bar high plus about half an ATR.",
-    "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
-   ],
-   "avoid": "Hard-to-borrow shares, news, halts, acquisition risk, high short interest. Short-stock loss is unlimited.",
-   "differs": "To use other short setups, open the gear and change setup (O05 breakdown, O06 pullback, O09 gap fade).",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "day-jbravo",
-   "name": "Day JBravo Trend",
-   "scope": "Day",
-   "chart": "5 to 15 min",
-   "goal": "Follow the J Bravo method intraday",
-   "condition": "trend",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "JBravo_Bands",
-     "setup": null
-    },
-    {
-     "study": "VWAP",
-     "setup": null
-    },
-    {
-     "study": "JBravo_Trend_MAs",
-     "setup": null
-    },
-    {
-     "study": "JBravo_9_Count",
-     "setup": null
-    },
-    {
-     "study": "JBravo_Checklist",
-     "setup": null
-    },
-    {
-     "study": "MACD",
-     "setup": null
-    }
-   ],
-   "use": "You follow the J Bravo moving-average method on a short timeframe.",
-   "signal": "A green BUY arrow on the first full candle body above the 9 SMA, with price not in a purple band.",
-   "read": [
-    "Trade only in the direction of VWAP: long above it.",
-    "GoGo Juice (VWAP crossing the 20 EMA) starts the intraday move.",
-    "Take profit when a 9 prints or price reaches the purple band. Exit on a close below the 20 EMA.",
-    "The checklist labels should be mostly green before you enter."
-   ],
-   "avoid": "Sideways days: rules whipsaw on 1-minute charts.",
-   "differs": "A different method (moving averages and the 9 count) from the setup-signal sets.",
-   "manual": "JBravo_Manual.md"
-  },
-  {
-   "id": "swing-pullback",
-   "name": "Swing Trend Pullback",
-   "scope": "Swing",
-   "chart": "Daily",
-   "goal": "Buy pullbacks in a daily uptrend",
-   "condition": "trend",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Swing_Setup_Signals",
-     "setup": "D01_EMA_PULLBACK"
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    }
-   ],
-   "use": "A stock is in a long uptrend and has dipped to its 20-day average.",
-   "signal": "20 > 50 > 200 EMA, price above the 50, RSI between 40 and 70, positive money flow, then a close back above the 20 EMA after touching near it. Short is the mirror. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
-    "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
-    "A red dashed line is the invalidation guide.",
-    "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
-   ],
-   "avoid": "A flat 200-day average, money flow disagreeing, buying a gap far above the 20 EMA.",
-   "differs": "The default swing set: lower risk than a breakout but fewer signals.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "swing-breakout",
-   "name": "Swing Breakout",
-   "scope": "Swing",
-   "chart": "Daily",
-   "goal": "Trade a 20-day breakout",
-   "condition": "breakout",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Swing_Setup_Signals",
-     "setup": "D02_DONCHIAN_20_BREAKOUT"
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    }
-   ],
-   "use": "Price closes at a new 20-day high or low.",
-   "signal": "A close beyond the previous 20-day high or low, 50-day slope in agreement, ADX above 18 and relative volume above 1.2. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
-    "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
-    "A red dashed line is the invalidation guide.",
-    "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
-   ],
-   "avoid": "Intraday-only breaks, low-volume breaks, choppy ranges (many small losses).",
-   "differs": "A shorter channel than the 55-day trend breakout (setup D03): more signals, more false breaks.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "swing-squeeze",
-   "name": "Swing Squeeze Breakout",
-   "scope": "Swing",
-   "chart": "Daily",
-   "goal": "Trade a breakout after a volatility squeeze",
-   "condition": "breakout",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Swing_Setup_Signals",
-     "setup": "D04_DAILY_SQUEEZE"
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    }
-   ],
-   "use": "Volatility has compressed and is releasing.",
-   "signal": "A closing 20-day breakout within 5 sessions after the squeeze releases, with the 50/200 regime, MACD and volume confirming. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
-    "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
-    "A red dashed line is the invalidation guide.",
-    "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
-   ],
-   "avoid": "Trading while compression is still active, or treating volatility expansion as bullish by itself.",
-   "differs": "Needs a recent squeeze. The plain breakout set does not.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "swing-oversold",
-   "name": "Swing Oversold Bounce",
-   "scope": "Swing",
-   "chart": "Daily",
-   "goal": "Buy a short-term oversold dip in an uptrend",
-   "condition": "reversal",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "Swing_Setup_Signals",
-     "setup": "D05_RSI2_MEAN_REVERSION"
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    }
-   ],
-   "use": "A strong stock has dropped hard for a few days while its 200-day trend is still up.",
-   "signal": "RSI(2) was below 10 in an uptrend, then a close above the prior day's high. Exit on a close above the 5-day EMA or after 10 days. No entry within 5 days of earnings.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
-    "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
-    "A red dashed line is the invalidation guide.",
-    "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
-   ],
-   "avoid": "Using it against the 200-day trend, treating oversold as a bottom, holding through unbounded event risk.",
-   "differs": "The only mean-reversion swing set: it trades against the short-term move but with the long-term trend.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "swing-momentum",
-   "name": "Swing Momentum Continuation",
-   "scope": "Swing",
-   "chart": "Daily",
-   "goal": "Ride a trend with momentum and money flow",
-   "condition": "trend",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Swing_Setup_Signals",
-     "setup": "D06_MACD_CMF_CONTINUATION"
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    }
-   ],
-   "use": "An established trend with improving momentum and money flow.",
-   "signal": "The 50/200 regime is bullish, MACD crosses above its signal, money flow is positive and on-balance volume confirms. Short is the mirror. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
-    "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
-    "A red dashed line is the invalidation guide.",
-    "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
-   ],
-   "avoid": "Range-bound MACD whipsaws, counting MACD and moving averages as independent evidence.",
-   "differs": "Needs three confirmations, so it fires later than the pullback set.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "swing-rs",
-   "name": "Swing Relative Strength Leaders",
-   "scope": "Swing",
-   "chart": "Daily; benchmark defaults to SPY",
-   "goal": "Find stocks stronger than the market",
-   "condition": "trend",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "Swing_Setup_Signals",
-     "setup": "D08_RELATIVE_STRENGTH_LEADER"
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    }
-   ],
-   "use": "You are screening a watchlist for the strongest names.",
-   "signal": "Price is in a bull regime, the stock's ratio to the benchmark is above its 50-day average, and price makes a 20-day breakout on normal or better volume. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
-    "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
-    "A red dashed line is the invalidation guide.",
-    "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance.",
-    "Change the benchmark input when SPY is not the right comparison."
-   ],
-   "avoid": "Reading underperformance as a short thesis. It is a tactical signal, not a fundamental one.",
-   "differs": "Compares the stock to the market, not to its own history. Load it across a watchlist.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "swing-iv",
-   "name": "Swing Trend with IV Risk Check",
-   "scope": "Swing",
-   "chart": "Daily; optionable symbols",
-   "goal": "Swing trade with a check on option pricing",
-   "condition": "trend",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Swing_Setup_Signals",
-     "setup": "D09_IV_HV_RISK_TREND"
-    },
-    {
-     "study": "Options_Gamma_OI_Walls",
-     "setup": null
-    }
-   ],
-   "use": "You plan to use options or want to avoid event risk.",
-   "signal": "A trend and money-flow entry on a 20 EMA reclaim, blocked when implied volatility is above 1.3 times 20-day historical volatility. Missing IV does not block. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
-   "read": [
-    "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
-    "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
-    "A red dashed line is the invalidation guide.",
-    "The gamma walls show where option positions cluster. An IV/HV ratio above 1.5 means options price an event: not bearish, but expensive."
-   ],
-   "avoid": "Choosing direction from implied volatility. Stale or missing IV is not confirmation.",
-   "differs": "The IV gate is what separates it from the plain pullback set.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "swing-short",
-   "name": "Swing Short Setups",
-   "scope": "Swing",
-   "chart": "Daily",
-   "goal": "Look for short setups on daily charts",
-   "condition": "trend",
-   "direction": "short",
-   "studies": [
-    {
-     "study": "Any_Short_Setup_Signals",
-     "setup": "O05_SHORT_BREAKDOWN"
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    }
-   ],
-   "use": "Price breaks below a falling 50/200 average with volume.",
-   "signal": "Below a falling 50/200 regime, a close below the prior 20-bar low, relative volume above 1.2 and negative money flow. Red arrows need borrowConfirmed set to yes.",
-   "read": [
-    "An orange wedge means setup only; red needs borrow confirmed and no squeeze risk.",
-    "The invalidation is the prior 10-bar low plus about one ATR.",
-    "JBravo_SR_Levels draws blue support and purple resistance from confirmed swing pivots. Prefer entries just above support; be careful just under resistance."
-   ],
-   "avoid": "Hard-to-borrow shares, news, halts, high short interest. Short-stock loss is unlimited.",
-   "differs": "Open the gear and change setup for O06 (failed bounce) or O08 (distribution).",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "swing-jbravo",
-   "name": "Swing JBravo Trend",
-   "scope": "Swing",
-   "chart": "1 hour, 4 hour, daily",
-   "goal": "Follow the J Bravo method over days to weeks",
-   "condition": "trend",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "JBravo_LongTerm_MAs",
-     "setup": null
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    },
-    {
-     "study": "JBravo_Trend_MAs",
-     "setup": null
-    },
-    {
-     "study": "JBravo_Checklist",
-     "setup": null
-    },
-    {
-     "study": "MACD",
-     "setup": null
-    }
-   ],
-   "use": "You hold positions for days to weeks using the J Bravo rules.",
-   "signal": "A green BUY arrow (first full candle above the 9 SMA) with price above the 200 and 9 > 20 > 180.",
-   "read": [
-    "Trend: price above the white 200 with 9 > 20 > 180.",
-    "Entry: the BUY arrow, better just above support with MACD above its signal.",
-    "Stop under the entry candle or the nearest blue support.",
-    "Exit on a red SELL arrow (close below the 20 EMA) or at purple resistance."
-   ],
-   "avoid": "Intraday timeframes under 5 minutes.",
-   "differs": "Moving-average rules plus the 100-week and 200-week lines.",
-   "manual": "JBravo_Manual.md"
-  },
-  {
-   "id": "invest-regime",
-   "name": "Invest Trend Regime",
-   "scope": "Invest",
-   "chart": "Daily or weekly; load on SPY first",
-   "goal": "Know whether the long-term trend is up",
-   "condition": "trend",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "Invest_Setup_Signals",
-     "setup": "L01_50_200_REGIME"
-    },
-    {
-     "study": "JBravo_LongTerm_MAs",
-     "setup": null
-    }
-   ],
-   "use": "You decide whether to hold or reduce a position.",
-   "signal": "Hold while price is above a rising 200-day, the 50-day is above the 200-day and money flow is positive. A reclaim of the 50-day is the entry trigger. Reduce on a close below the 200-day.",
-   "read": [
-    "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
-    "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
-    "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
-    "Position size, valuation and portfolio risk are not in the study."
-   ],
-   "avoid": "Treating a golden cross as a guaranteed entry, and ignoring valuation and concentration.",
-   "differs": "The simplest filter. Momentum adds a monthly return rule.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "invest-momentum",
-   "name": "Invest Momentum",
-   "scope": "Invest",
-   "chart": "Daily or weekly",
-   "goal": "Hold only what has 12-month momentum",
-   "condition": "trend",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "Invest_Setup_Signals",
-     "setup": "L02_12M_TIME_SERIES_MOMENTUM"
-    },
-    {
-     "study": "JBravo_LongTerm_MAs",
-     "setup": null
-    }
-   ],
-   "use": "You want a monthly rule: own what has risen over the last 12 months.",
-   "signal": "Hold when the 252-day return is positive, price is above the 200-day and SPY is in an uptrend. Checked on the first bar of each month; an arrow appears only when the position changes.",
-   "read": [
-    "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
-    "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
-    "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
-    "Position size, valuation and portfolio risk are not in the study."
-   ],
-   "avoid": "Treating historical evidence as a forecast: trend following whipsaws after reversals.",
-   "differs": "The strongest academic backing and the slowest signal.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "invest-pullback",
-   "name": "Invest Buy the Pullback",
-   "scope": "Invest",
-   "chart": "Daily",
-   "goal": "Add to a long-term winner on a dip",
-   "condition": "trend",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "Invest_Setup_Signals",
-     "setup": "L04_40W_PULLBACK"
-    },
-    {
-     "study": "JBravo_LongTerm_MAs",
-     "setup": null
-    }
-   ],
-   "use": "A long-term winner is retreating toward its 50-day average.",
-   "signal": "A close back above the 50-day after testing it, in an uptrend with RSI between 40 and 65 and positive money flow.",
-   "read": [
-    "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
-    "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
-    "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
-    "Position size, valuation and portfolio risk are not in the study."
-   ],
-   "avoid": "Averaging into a falling 200-day trend, assuming every touch of the 50-day is support.",
-   "differs": "Entry timing only. Pair it with Market Leaders to choose the stock.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "invest-leaders",
-   "name": "Invest Market Leaders",
-   "scope": "Invest",
-   "chart": "Daily or weekly; benchmark defaults to SPY",
-   "goal": "Pick market leaders to own",
-   "condition": "trend",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "Invest_Setup_Signals",
-     "setup": "L05_RELATIVE_STRENGTH_LEADERSHIP"
-    },
-    {
-     "study": "JBravo_LongTerm_MAs",
-     "setup": null
-    }
-   ],
-   "use": "You are choosing which stocks to own.",
-   "signal": "Price and the benchmark are both in uptrends, the stock's ratio to SPY is above its 100-day average, then the ratio makes a new 252-day high.",
-   "read": [
-    "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
-    "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
-    "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
-    "Position size, valuation and portfolio risk are not in the study.",
-    "Change the benchmark for a sector or country comparison."
-   ],
-   "avoid": "Mistaking relative outperformance for a positive absolute return.",
-   "differs": "Compares a stock to the market. Quality and Growth adds company fundamentals.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "invest-quality",
-   "name": "Invest Quality and Growth",
-   "scope": "Invest",
-   "chart": "Daily or weekly; company stocks, not ETFs",
-   "goal": "Screen for quality and growth",
-   "condition": "trend",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "Invest_Setup_Signals",
-     "setup": "L06_QUALITY_TREND"
-    },
-    {
-     "study": "JBravo_LongTerm_MAs",
-     "setup": null
-    }
-   ],
-   "use": "You want an uptrend backed by company fundamentals.",
-   "signal": "Positive free cash flow per share, return on equity, gross margin and earnings, then a close above the prior 126-day high. Shows FUNDAMENTALS N/A when data is missing.",
-   "read": [
-    "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
-    "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
-    "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
-    "Position size, valuation and portfolio risk are not in the study."
-   ],
-   "avoid": "ETFs or symbols with missing fundamentals; accounting data is delayed and varies by sector.",
-   "differs": "The only long-term set that uses fundamentals.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "invest-accum",
-   "name": "Invest Accumulation",
-   "scope": "Invest",
-   "chart": "Daily",
-   "goal": "Spot accumulation before a breakout",
-   "condition": "breakout",
-   "direction": "long",
-   "studies": [
-    {
-     "study": "Invest_Setup_Signals",
-     "setup": "L08_VOLUME_ACCUMULATION"
-    },
-    {
-     "study": "JBravo_LongTerm_MAs",
-     "setup": null
-    }
-   ],
-   "use": "You want volume to confirm a breakout in an uptrend.",
-   "signal": "Volume flow, on-balance volume and money flow all positive, then a close above the prior 126-day high.",
-   "read": [
-    "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
-    "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
-    "JBravo_LongTerm_MAs draws the 100-week and 200-week lines: the big-picture floor or ceiling.",
-    "Position size, valuation and portfolio risk are not in the study."
-   ],
-   "avoid": "Reading the proxies as proof of institutional buying.",
-   "differs": "A price-volume confirmation, not an early warning.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "opt-dealer",
-   "name": "Options Dealer Exposure",
-   "scope": "Options",
-   "chart": "Daily or intraday; optionable symbol",
-   "goal": "See dealer positioning and gamma levels",
-   "condition": "context",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Options_Greeks_Exposure",
-     "setup": "X01_GEX_DEX"
-    },
-    {
-     "study": "Options_Gamma_OI_Walls",
-     "setup": null
-    }
-   ],
-   "use": "You want the big picture of option positioning for a symbol.",
-   "signal": "Not a trade trigger. Positive net gamma suggests price pinning, negative suggests larger moves. Walls mark likely stalls.",
-   "read": [
-    "GEX is the modeled change in hedging for a 1% move; DEX is the delta of the sampled open interest.",
-    "Walls and the gamma flip are drawn on the chart for the next monthly expiration.",
-    "Treat everything as conditional context."
-   ],
-   "avoid": "Reading it as actual dealer inventory. It uses one expiration and 15 sampled strikes with an assumed call-positive, put-negative sign.",
-   "differs": "The overview set. The other Options sets are narrower.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "opt-0dte",
-   "name": "Options 0DTE Exposure",
-   "scope": "Options",
-   "chart": "Intraday; symbols with same-day expiry",
-   "goal": "Read same-day (0DTE) option exposure",
-   "condition": "context",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Options_Greeks_Exposure",
-     "setup": "X03_0DTE_EXPOSURE"
-    },
-    {
-     "study": "Options_Gamma_OI_Walls",
-     "setup": null
-    }
-   ],
-   "use": "You trade intraday on days with same-day expiration.",
-   "signal": "Not a trade trigger. Shows today's open-interest exposure and gross gamma turnover from same-day volume.",
-   "read": [
-    "Open-interest exposure uses the latest daily snapshot, so it misses contracts opened and closed today.",
-    "Gross turnover is unsigned activity, not net market-maker exposure."
-   ],
-   "avoid": "Believing high 0DTE volume means high net risk: call and put volume have no buy/sell or open/close side.",
-   "differs": "Same layout as Dealer Exposure but for today's expiration.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "opt-oi",
-   "name": "Options Open Interest Change",
-   "scope": "Options",
-   "chart": "Daily",
-   "goal": "See where option positions are growing",
-   "condition": "context",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Options_Greeks_Exposure",
-     "setup": "X06_OPEN_INTEREST_CHANGE"
-    }
-   ],
-   "use": "You want to see whether positions are being opened or closed.",
-   "signal": "Not a trade trigger. Price up with open interest up suggests new positions; price up with open interest down suggests covering.",
-   "read": [
-    "Shows sampled call, put and total open-interest change from the previous daily snapshot.",
-    "Every contract has one buyer and one seller, so open interest alone cannot say who is buying."
-   ],
-   "avoid": "Calling an increase bullish or bearish on its own.",
-   "differs": "Positioning change over a day; the other options sets show level and exposure.",
-   "manual": "Setups_and_Options_Manual.md"
-  },
-  {
-   "id": "any-reversal",
-   "name": "Any JBravo Reversal Watch",
-   "scope": "Any",
-   "chart": "Any timeframe",
-   "goal": "Take profits or spot a bounce on any timeframe",
-   "condition": "reversal",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "JBravo_Bands",
-     "setup": null
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    },
-    {
-     "study": "JBravo_Trend_MAs",
-     "setup": null
-    },
-    {
-     "study": "JBravo_9_Count",
-     "setup": null
-    },
-    {
-     "study": "JBravo_MVP_Oscillator",
-     "setup": null
-    }
-   ],
-   "use": "You hold a position and want to know when to take profit, or you are looking for a bounce.",
-   "signal": "Top risk: a 9 count up, purple candles, price in the purple band, price at purple resistance, MVP turning down from its high band. Bounce is the mirror in blue.",
-   "read": [
-    "Two or three signals together justify taking profit or watching for an entry.",
-    "One signal alone is not enough.",
-    "Never trade a reversal against a strong trend wedge on one signal."
-   ],
-   "avoid": "Trading a reversal against a strong trend.",
-   "differs": "A combination view for exits and bounces. The Day and Swing JBravo sets are for entries.",
-   "manual": "JBravo_Manual.md"
-  },
-  {
-   "id": "any-full",
-   "name": "Any JBravo Full Toolkit",
-   "scope": "Any",
-   "chart": "Daily",
-   "goal": "Review everything J Bravo teaches",
-   "condition": "trend",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "JBravo_Bands",
-     "setup": null
-    },
-    {
-     "study": "JBravo_SR_Levels",
-     "setup": null
-    },
-    {
-     "study": "JBravo_LongTerm_MAs",
-     "setup": null
-    },
-    {
-     "study": "JBravo_Trend_MAs",
-     "setup": null
-    },
-    {
-     "study": "JBravo_9_Count",
-     "setup": null
-    },
-    {
-     "study": "JBravo_Checklist",
-     "setup": null
-    },
-    {
-     "study": "JBravo_MVP_Oscillator",
-     "setup": null
-    },
-    {
-     "study": "MACD",
-     "setup": null
-    }
-   ],
-   "use": "You are learning the method or reviewing a chart in depth.",
-   "signal": "All J Bravo signals together. Busy on small charts.",
-   "read": [
-    "Start with the checklist: enter only when most items are green.",
-    "Then use the Day or Swing JBravo sets for actual trading."
-   ],
-   "avoid": "Using it on small charts: it is crowded.",
-   "differs": "Everything in the other JBravo sets at once.",
-   "manual": "JBravo_Manual.md"
-  },
-  {
-   "id": "any-trend",
-   "name": "Any Trend Levels Context",
-   "scope": "Any",
-   "chart": "daily, or intraday with about a year loaded",
-   "goal": "See the trend across daily, weekly and monthly averages",
-   "condition": "context",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Any_Trend_Levels",
-     "setup": null
-    }
-   ],
-   "use": "Before any trade, or when you want to know how strong a trend is and where it may stall.",
-   "signal": "Not a trade trigger. A score out of 5 counts how many of the daily 20/50/200, 20-week and 20-month averages price is above. Dots mark a close through the 200-day, 20-week or 20-month average.",
-   "read": [
-    "Score 5 = full uptrend, 0 = full downtrend, in between = mixed.",
-    "A first touch of a major average often holds; a close through it often starts a move that way.",
-    "Distances are in daily ATRs: more than 6 ATRs from the 200-day is stretched."
-   ],
-   "avoid": "Treating a dot as an entry. Confirm with a signal set.",
-   "differs": "Context only, no entries. Uses fixed daily, weekly and monthly averages on any chart.",
-   "manual": "Study_Sets_Guide.md"
-  },
-  {
-   "id": "any-trend-gamma",
-   "name": "Any Trend and Gamma Context",
-   "scope": "Any",
-   "chart": "daily, or intraday with about a year loaded",
-   "goal": "See trend levels and the option gamma regime together",
-   "condition": "context",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Any_Trend_Levels",
-     "setup": null
-    },
-    {
-     "study": "Options_Gamma_OI_Walls",
-     "setup": null
-    }
-   ],
-   "use": "On optionable symbols, to judge whether moves are likely to extend or revert.",
-   "signal": "Not a trade trigger. Adds the call wall, put wall and gamma flip. Positive net gamma suggests mean reversion and pinning; negative suggests moves extend.",
-   "read": [
-    "Score 5 = full uptrend, 0 = full downtrend, in between = mixed.",
-    "A first touch of a major average often holds; a close through it often starts a move that way.",
-    "Distances are in daily ATRs: more than 6 ATRs from the 200-day is stretched.",
-    "Price above the gamma flip with positive gamma: expect smaller, reverting moves. Below it: expect larger moves."
-   ],
-   "avoid": "Treating a dot as an entry. Confirm with a signal set.",
-   "differs": "Adds the option regime to the trend levels. Needs an optionable symbol.",
-   "manual": "Study_Sets_Guide.md"
-  },
-  {
-   "id": "help-manual",
-   "name": "Help Setups Manual",
-   "scope": "Help",
-   "chart": "Any",
-   "goal": "Learn what the signals mean and their limits",
-   "condition": "context",
-   "direction": "either",
-   "studies": [
-    {
-     "study": "Help_Setups_Manual",
-     "setup": "M00_START_HERE"
-    }
-   ],
-   "use": "You want the explanations on the chart.",
-   "signal": "No signals. Labels explain the setups, the data limits and how to read open interest and short positions.",
-   "read": [
-    "Click the study gear and change setup (M00 to M06) to switch pages."
-   ],
-   "avoid": "Nothing: it draws labels only.",
-   "differs": "Reading material, not a trading set.",
-   "manual": "Setups_and_Options_Manual.md"
-  }
- ],
- "studies": [
-  {
-   "name": "Day_Setup_Signals",
-   "scope": "Day",
-   "pane": "price",
-   "what": "Signal study. Ten intraday entry setups behind one setup input.",
-   "legend": [
-    "Cyan label = the selected setup.",
-    "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
-    "Green and red arrows = the trigger bar. Wait for the bar to close.",
-    "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
-    "A gray LINES: label names every colored line."
-   ],
-   "modes": [
-    {
-     "code": "I01",
-     "name": "Opening range breakout"
-    },
-    {
-     "code": "I02",
-     "name": "VWAP pullback"
-    },
-    {
-     "code": "I03",
-     "name": "VWAP mean reversion"
-    },
-    {
-     "code": "I04",
-     "name": "Squeeze expansion"
-    },
-    {
-     "code": "I05",
-     "name": "EMA momentum stack"
-    },
-    {
-     "code": "I06",
-     "name": "Prior day break"
-    },
-    {
-     "code": "I07",
-     "name": "Profile value rejection"
-    },
-    {
-     "code": "I08",
-     "name": "Relative volume burst"
-    },
-    {
-     "code": "I09",
-     "name": "Climax reversal"
-    },
-    {
-     "code": "I10",
-     "name": "Options gamma context"
-    }
-   ],
-   "file": "thinkorswim/day/Day_Setup_Signals.ts"
-  },
-  {
-   "name": "Day_Flow_Momentum",
-   "scope": "Day",
-   "pane": "lower",
-   "what": "Context study. Volume-weighted MACD, estimated order flow, and early and confirmed turning points.",
-   "legend": [
-    "Bars: bright = momentum building, dark = fading.",
-    "Line: estimated buying minus selling volume over 14 bars, scaled -3 to +3. Cyan = improving, magenta = worsening.",
-    "Dots: early turn. Yellow = in open space, cyan or orange = at VWAP or yesterday's POC or value area edge.",
-    "Arrows: confirmed turn (momentum crosses zero within 10 bars of a dot).",
-    "Labels: FLOW, MOM with RSI, location vs VWAP and prior value, WATCH LONG or SHORT."
-   ],
-   "modes": [],
-   "file": "thinkorswim/day/Day_Flow_Momentum.ts"
-  },
-  {
-   "name": "Day_Volume_Profile",
-   "scope": "Day",
-   "pane": "price",
-   "what": "Context study. Today's volume profile at the right edge, plus yesterday's POC and value area.",
-   "legend": [
-    "Histogram at the right edge = today's volume by price. Needs 25+ bars of empty space (Chart Settings, Time axis, Expansion area).",
-    "Yellow line = yesterday's POC (price with the most volume). Dashed lines = yesterday's value area high and low (70% of volume).",
-    "Label: price above prior value (buyers accepted higher prices), below (sellers in control) or inside (balance, fade the edges).",
-    "On daily charts: one profile of the visible range."
-   ],
-   "modes": [],
-   "file": "thinkorswim/day/Day_Volume_Profile.ts"
-  },
-  {
-   "name": "Swing_Setup_Signals",
-   "scope": "Swing",
-   "pane": "price",
-   "what": "Signal study. Ten daily entry setups.",
-   "legend": [
-    "Cyan label = the selected setup.",
-    "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
-    "Green and red arrows = the trigger bar. Wait for the bar to close.",
-    "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
-    "A gray LINES: label names every colored line."
-   ],
-   "modes": [
-    {
-     "code": "D01",
-     "name": "EMA pullback"
-    },
-    {
-     "code": "D02",
-     "name": "Donchian 20 breakout"
-    },
-    {
-     "code": "D03",
-     "name": "Donchian 55 trend"
-    },
-    {
-     "code": "D04",
-     "name": "Daily squeeze"
-    },
-    {
-     "code": "D05",
-     "name": "RSI2 mean reversion"
-    },
-    {
-     "code": "D06",
-     "name": "MACD and money flow continuation"
-    },
-    {
-     "code": "D07",
-     "name": "Ichimoku trend"
-    },
-    {
-     "code": "D08",
-     "name": "Relative strength leader"
-    },
-    {
-     "code": "D09",
-     "name": "IV/HV risk trend"
-    },
-    {
-     "code": "D10",
-     "name": "Volatility contraction"
-    }
-   ],
-   "file": "thinkorswim/swing/Swing_Setup_Signals.ts"
-  },
-  {
-   "name": "Invest_Setup_Signals",
-   "scope": "Invest",
-   "pane": "price",
-   "what": "Signal study. Ten long-horizon setups. Red arrow = first bar where a reduce rule applies.",
-   "legend": [
-    "Cyan label = the selected setup.",
-    "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
-    "Green and red arrows = the trigger bar. Wait for the bar to close.",
-    "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
-    "A gray LINES: label names every colored line.",
-    "L02 and L10 change only on the first bar of a month."
-   ],
-   "modes": [
-    {
-     "code": "L01",
-     "name": "50/200 regime"
-    },
-    {
-     "code": "L02",
-     "name": "12-month momentum"
-    },
-    {
-     "code": "L03",
-     "name": "52-week breakout"
-    },
-    {
-     "code": "L04",
-     "name": "Pullback to the 50-day"
-    },
-    {
-     "code": "L05",
-     "name": "Relative strength leadership"
-    },
-    {
-     "code": "L06",
-     "name": "Quality trend (fundamentals)"
-    },
-    {
-     "code": "L07",
-     "name": "Earnings growth trend"
-    },
-    {
-     "code": "L08",
-     "name": "Volume accumulation"
-    },
-    {
-     "code": "L09",
-     "name": "Adaptive secular trend"
-    },
-    {
-     "code": "L10",
-     "name": "Breadth and volatility-scaled trend"
-    }
-   ],
-   "file": "thinkorswim/invest/Invest_Setup_Signals.ts"
-  },
-  {
-   "name": "Any_Short_Setup_Signals",
-   "scope": "Any",
-   "pane": "price",
-   "what": "Signal study. Short setups, order-flow context and squeeze risk.",
-   "legend": [
-    "Cyan label = the selected setup.",
-    "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
-    "Green and red arrows = the trigger bar. Wait for the bar to close.",
-    "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
-    "A gray LINES: label names every colored line.",
-    "Orange wedge = setup only (borrow not confirmed). Red arrows need borrowConfirmed = yes and no squeeze risk."
-   ],
-   "modes": [
-    {
-     "code": "O01",
-     "name": "Tape and profile context"
-    },
-    {
-     "code": "O02",
-     "name": "Value acceptance breakdown"
-    },
-    {
-     "code": "O03",
-     "name": "Value high rejection"
-    },
-    {
-     "code": "O04",
-     "name": "Open interest and price"
-    },
-    {
-     "code": "O05",
-     "name": "Short breakdown"
-    },
-    {
-     "code": "O06",
-     "name": "Short pullback"
-    },
-    {
-     "code": "O07",
-     "name": "Failed breakout short"
-    },
-    {
-     "code": "O08",
-     "name": "Distribution short"
-    },
-    {
-     "code": "O09",
-     "name": "Gap fade short"
-    },
-    {
-     "code": "O10",
-     "name": "Short squeeze risk"
-    }
-   ],
-   "file": "thinkorswim/any/Any_Short_Setup_Signals.ts"
-  },
-  {
-   "name": "Options_Greeks_Exposure",
-   "scope": "Options",
-   "pane": "price",
-   "what": "Context study. Dealer exposure pages built from the option chain: GEX, DEX, zero levels, 0DTE, vanna and charm, vega/theta/rho, open-interest change.",
-   "legend": [
-    "Labels show the numbers for the selected page.",
-    "Levels (when shown) are model estimates from one expiration and sampled strikes.",
-    "The expiration defaults to the next monthly (third Friday) and rolls automatically."
-   ],
-   "modes": [
-    {
-     "code": "X01",
-     "name": "GEX and DEX"
-    },
-    {
-     "code": "X02",
-     "name": "Zero levels"
-    },
-    {
-     "code": "X03",
-     "name": "0DTE exposure"
-    },
-    {
-     "code": "X04",
-     "name": "Vanna and charm"
-    },
-    {
-     "code": "X05",
-     "name": "Vega, theta, rho"
-    },
-    {
-     "code": "X06",
-     "name": "Open-interest change"
-    }
-   ],
-   "file": "thinkorswim/options/Options_Greeks_Exposure.ts"
-  },
-  {
-   "name": "Options_Gamma_OI_Walls",
-   "scope": "Options",
-   "pane": "price",
-   "what": "Context study. Call wall, put wall and gamma flip on the price chart.",
-   "legend": [
-    "Call wall = strike with the largest modeled call gamma or open interest: likely resistance or pin.",
-    "Put wall = the same for puts: likely support.",
-    "Gamma flip = where modeled net gamma changes sign: above it price tends to pin, below it moves can extend.",
-    "Single expiration and 15 sampled strikes under a call-positive, put-negative convention: an estimate."
-   ],
-   "modes": [],
-   "file": "thinkorswim/options/Options_Gamma_OI_Walls.ts"
-  },
-  {
-   "name": "Any_Trend_Levels",
-   "scope": "Any",
-   "pane": "price",
-   "what": "Context study. Daily 20/50/200, 20-week and 20-month averages with a trend score and dots where a major level breaks.",
-   "legend": [
-    "Green 20D, yellow 50D, white 200D, cyan dash 20W, magenta dash 20M.",
-    "Cyan dot = close up through 200D/20W/20M. Orange dot = close down through one.",
-    "Score label: how many of the 5 averages price is above."
-   ],
-   "modes": [],
-   "file": "thinkorswim/any/Any_Trend_Levels.ts"
-  },
-  {
-   "name": "Day_Strategy, Swing_Strategy, Invest_Strategy",
-   "scope": "Any",
-   "pane": "price (Strategies tab)",
-   "what": "Backtest versions of the signal studies, generated from the same code. Add one, pick the same setup, then right-click a trade marker and choose Show report.",
-   "legend": [
-    "Green LE / red SE = simulated entries; white LX / SX = exits.",
-    "Entries fill at the next bar's open; stops and targets at their level. No commission or slippage.",
-    "Keep a setup only with 30+ trades over several symbols and profit factor above 1.3."
-   ],
-   "modes": [],
-   "file": "thinkorswim/strategies/"
-  },
-  {
-   "name": "Help_Setups_Manual",
-   "scope": "Help",
-   "pane": "price",
-   "what": "On-chart explanations of the signals and data limits.",
-   "legend": [
-    "Change the setup input (M00 to M06) to switch pages."
-   ],
-   "modes": [
-    {
-     "code": "M00",
-     "name": "Start here"
-    },
-    {
-     "code": "M01",
-     "name": "Signals and sets"
-    },
-    {
-     "code": "M02",
-     "name": "GEX, DEX and 0DTE"
-    },
-    {
-     "code": "M03",
-     "name": "Order flow"
-    },
-    {
-     "code": "M04",
-     "name": "Open interest"
-    },
-    {
-     "code": "M05",
-     "name": "Short positions"
-    },
-    {
-     "code": "M06",
-     "name": "Limitations"
-    }
-   ],
-   "file": "thinkorswim/help/Help_Setups_Manual.ts"
-  },
-  {
-   "name": "JBravo_Checklist",
-   "scope": "JBravo",
-   "pane": "price (labels)",
-   "what": "Six live green or red checks and an exit reminder.",
-   "legend": [
-    "Enter only when most items are green."
-   ],
-   "modes": [],
-   "file": "thinkorswim/jbravo/JBravo_Checklist.ts"
-  },
-  {
-   "name": "JBravo_Trend_MAs",
-   "scope": "JBravo",
-   "pane": "price",
-   "what": "9 SMA, 20 EMA, 180 SMA, 200 SMA with BUY and SELL arrows and strong-trend wedges.",
-   "legend": [
-    "BUY = first full candle body above the 9. SELL = close below the 20 EMA.",
-    "Lime or magenta wedge = start of a strong trend (9 > 20 > 180, all rising, or the mirror).",
-    "Cyan or yellow dots = GoGo Juice (VWAP crossing the 20 EMA), intraday only."
-   ],
-   "modes": [],
-   "file": "thinkorswim/jbravo/JBravo_Trend_MAs.ts"
-  },
-  {
-   "name": "JBravo_9_Count",
-   "scope": "JBravo",
-   "pane": "price",
-   "what": "A 9 count, and purple candles when price is stretched.",
-   "legend": [
-    "A 9 means the move is tired.",
-    "Purple candles mean stretched: do not chase, consider taking profit."
-   ],
-   "modes": [],
-   "file": "thinkorswim/jbravo/JBravo_9_Count.ts"
-  },
-  {
-   "name": "JBravo_Bands",
-   "scope": "JBravo",
-   "pane": "price",
-   "what": "Purple cloud above price, blue cloud below.",
-   "legend": [
-    "Price in the purple cloud: a drop may come. In the blue cloud: a bounce may come."
-   ],
-   "modes": [],
-   "file": "thinkorswim/jbravo/JBravo_Bands.ts"
-  },
-  {
-   "name": "JBravo_LongTerm_MAs",
-   "scope": "JBravo",
-   "pane": "price",
-   "what": "100-week (blue) and 200-week (cyan) lines.",
-   "legend": [
-    "The big-picture floor or ceiling. Shown on daily and weekly charts only."
-   ],
-   "modes": [],
-   "file": "thinkorswim/jbravo/JBravo_LongTerm_MAs.ts"
-  },
-  {
-   "name": "JBravo_SR_Levels",
-   "scope": "JBravo",
-   "pane": "price",
-   "what": "Support and resistance from confirmed swing pivots.",
-   "legend": [
-    "Blue = support, purple = resistance. Solid = newest, dashed = previous.",
-    "A level disappears once price closes through it."
-   ],
-   "modes": [],
-   "file": "thinkorswim/jbravo/JBravo_SR_Levels.ts"
-  },
-  {
-   "name": "JBravo_MVP_Oscillator",
-   "scope": "JBravo",
-   "pane": "lower",
-   "what": "RSI with standard-deviation reversal bands and arrows.",
-   "legend": [
-    "Green arrow = turning up out of the low band. Magenta = turning down from the high band.",
-    "Use as confirmation only."
-   ],
-   "modes": [],
-   "file": "thinkorswim/jbravo/JBravo_MVP_Oscillator.ts"
-  }
- ],
- "standard": [
-  {
-   "name": "VWAP",
-   "tos": "VWAP",
-   "answers": "Where is the average price paid today, and who is in control?",
-   "read": "Above VWAP buyers control, below sellers. The +/-2 SD bands mark stretched prices. Resets each day.",
-   "pair": "Day_Flow_Momentum, Day_Setup_Signals",
-   "caution": "Meaningless on daily charts and in the first minutes of the session."
-  },
-  {
-   "name": "AnchoredVWAP",
-   "tos": "AnchoredVWAP",
-   "answers": "What is the average price paid since an event (earnings, a low, a breakout)?",
-   "read": "Anchor it at the event. Price above = holders since then are in profit.",
-   "pair": "Swing_Setup_Signals",
-   "caution": "The result depends entirely on the anchor date."
-  },
-  {
-   "name": "Moving averages (20, 50, 200)",
-   "tos": "MovAvgExponential / SimpleMovingAvg",
-   "answers": "What is the trend, and where might a pullback end?",
-   "read": "Price above a rising 200 = uptrend. 20 > 50 > 200 = aligned. Pullbacks often stall near the 20 or 50.",
-   "pair": "Swing_Setup_Signals, Invest_Setup_Signals",
-   "caution": "Lagging. Whipsaws in ranges."
-  },
-  {
-   "name": "MACD",
-   "tos": "MACD",
-   "answers": "Is momentum building or fading?",
-   "read": "The histogram above zero with the MACD above its signal is bullish momentum. A fading histogram warns before a cross.",
-   "pair": "Any setup study as a lower-pane check",
-   "caution": "Moves with RSI: they count as one vote, not two."
-  },
-  {
-   "name": "RSI",
-   "tos": "RSIWilder",
-   "answers": "Is the move stretched?",
-   "read": "Above 70 stretched up, below 30 stretched down. In strong trends it stays pinned; use 40 to 60 as the pullback zone.",
-   "pair": "Day_Flow_Momentum (uses RSI as a filter)",
-   "caution": "Overbought is not a sell signal by itself."
-  },
-  {
-   "name": "Bollinger Bands",
-   "tos": "BollingerBands",
-   "answers": "Is volatility expanding or contracting?",
-   "read": "Narrow bands = quiet. Closes outside a band usually continue first.",
-   "pair": "Squeeze setups (with Keltner Channels)",
-   "caution": "A band touch is not a reversal signal."
-  },
-  {
-   "name": "Keltner Channels",
-   "tos": "KeltnerChannels",
-   "answers": "How far is price from its average in ATR terms?",
-   "read": "Bollinger Bands inside Keltner Channels = squeeze. The release is the signal to watch.",
-   "pair": "Day Squeeze Breakout, Swing Squeeze Breakout",
-   "caution": "Needs a breakout to confirm direction."
-  },
-  {
-   "name": "ATR",
-   "tos": "AverageTrueRange",
-   "answers": "How big is a normal move? Where does a stop belong?",
-   "read": "Size stops and targets in ATR. Rising ATR = volatility expanding.",
-   "pair": "All setup studies (invalidation guides use ATR)",
-   "caution": "Measures size, not direction."
-  },
-  {
-   "name": "ADX and DMI",
-   "tos": "DMI",
-   "answers": "Is there a trend, and which side is stronger?",
-   "read": "ADX above 20 = trending, below 18 = range. +DI above -DI = buyers stronger.",
-   "pair": "Day Trend Pullback to VWAP, Day Fade Back to VWAP",
-   "caution": "ADX gives strength, not direction."
-  },
-  {
-   "name": "Volume Profile",
-   "tos": "VolumeProfile",
-   "answers": "At which prices did the volume trade?",
-   "read": "POC = most volume. Value area = 70% of volume. Price above value = acceptance higher; rejection back into value is a fade setup.",
-   "pair": "Day_Volume_Profile",
-   "caution": "The built-in default draws on top of the last bars if there is no empty space on the right."
-  },
-  {
-   "name": "Relative Volume",
-   "tos": "RelativeVolumeStDev",
-   "answers": "Is volume unusual right now?",
-   "read": "Above 2 standard deviations = a burst. Above about 1.2 times normal supports a breakout.",
-   "pair": "Day Volume Spike Breakout",
-   "caution": "High volume alone does not say direction."
-  },
-  {
-   "name": "Chaikin Money Flow",
-   "tos": "ChaikinMoneyFlow",
-   "answers": "Is volume accumulating or distributing?",
-   "read": "Positive = buying pressure over the lookback. Used as a filter in most setups.",
-   "pair": "Swing_Setup_Signals, Invest_Setup_Signals",
-   "caution": "A proxy based on where bars close, not real order flow."
-  },
-  {
-   "name": "On-Balance Volume",
-   "tos": "OnBalanceVolume",
-   "answers": "Does volume confirm the price trend?",
-   "read": "OBV rising with price confirms. OBV falling while price rises is a divergence.",
-   "pair": "Invest Accumulation, D06",
-   "caution": "Divergences can last a long time."
-  }
- ],
- "sources": [
-  {
-   "label": "Study sets guide",
-   "path": "trading-studies/manuals/Study_Sets_Guide.md"
-  },
-  {
-   "label": "Setups and options manual",
-   "path": "trading-studies/manuals/Setups_and_Options_Manual.md"
-  },
-  {
-   "label": "JBravo manual",
-   "path": "trading-studies/manuals/JBravo_Manual.md"
-  },
-  {
-   "label": "Flow momentum manual",
-   "path": "trading-studies/manuals/Flow_Momentum_Manual.md"
-  }
- ],
- "disclaimer": "Educational only, not investment advice. Rules use only past data and have not been backtested for profit. Order flow is estimated from bar data, not real bid/ask volume."
 }

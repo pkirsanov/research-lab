@@ -165,6 +165,7 @@
         <p class="kv">The custom studies are built from these. Use them on their own when you do not need a full set.</p>
         <div class="tablewrap"><table id="stdTable"></table></div>
       </div>
+      <div class="panel" id="workflow"></div>
       <div class="panel" id="naming"></div>
       <div class="panel" id="sources"></div>
     </section>
@@ -332,6 +333,22 @@
           sb.appendChild(h("tr", null, [h("td", null, [h("strong", { text: x.name }), h("div", { class: "kv", text: "Search: " + x.tos })]), h("td", { text: x.answers }), h("td", { text: x.read }), h("td", { text: x.pair }), h("td", { class: "warn", text: x.caution })]));
         });
         st.appendChild(sb);
+
+        var wf = $("workflow"); clear(wf);
+        if (D.workflow) {
+          wf.appendChild(h("h2", { text: "Scans, workspace and paper trading" }));
+          wf.appendChild(h("div", { text: D.workflow.intro }));
+          var wt = h("table"); wt.appendChild(h("thead", null, [h("tr", null, ["Saved scan", "Horizon", "What it finds"].map(function (x) { return h("th", { text: x }); }))]));
+          var wb = h("tbody"); D.workflow.scans.forEach(function (r) { wb.appendChild(h("tr", null, [h("td", { text: r.name }), h("td", { text: r.horizon }), h("td", { text: r.what })])); });
+          wt.appendChild(wb); wf.appendChild(h("div", { class: "tablewrap" }, [wt]));
+          wf.appendChild(h("ul", null, D.workflow.notes.map(function (x) { return h("li", { text: x }); })));
+          wf.appendChild(h("div", { text: D.workflow.workspace }));
+          var pp = D.workflow.paper;
+          wf.appendChild(h("h3", { text: pp.title }));
+          wf.appendChild(h("div", { text: pp.what }));
+          wf.appendChild(h("ul", null, pp.strategies.map(function (s) { return h("li", { text: s.id + " " + s.name + " (" + s.status + "): " + s.idea }); })));
+          wf.appendChild(h("div", { class: "kv", text: pp.review + " Records: " + pp.path }));
+        }
 
         var n = $("naming"); clear(n);
         n.appendChild(h("h2", { text: "Naming convention" }));

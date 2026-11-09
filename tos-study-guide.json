@@ -90,12 +90,12 @@
     }
    ],
    "use": "The first 30 minutes (09:30 to 10:00 ET) have set a range and you want to trade the break.",
-   "signal": "After 10:00, a close above the opening-range high while above VWAP, in a daily uptrend, with relative volume above 1.2. Short is the mirror below the range low.",
+   "signal": "After 10:00 and before 15:30, the first close of the day above the opening-range high while above VWAP, in a daily uptrend, with time-of-day relative volume above 1.5 and SPY above its 20-day average. Short is the mirror. Stop at the middle of the range, target 2R, flat by the close.",
    "read": [
     "Before 10:00 the label stays gray: the range is still forming.",
     "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
     "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "A red dashed line is the invalidation guide, not a guaranteed stop price.",
+    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
     "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
    ],
    "avoid": "Pre-market breaks, thin symbols, wicks that never close beyond the range, and a daily trend pointing the other way.",
@@ -125,11 +125,11 @@
     }
    ],
    "use": "Price pushes through yesterday's regular-session high or low.",
-   "signal": "A close beyond the prior-day extreme, on the right side of VWAP, in a matching daily trend, with relative volume above 1.2.",
+   "signal": "The first close of the day beyond the prior-day extreme during regular hours, on the right side of VWAP, in a matching daily trend, with time-of-day relative volume above 1.5. Stop one ATR back through the level, target 2R.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
     "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "A red dashed line is the invalidation guide, not a guaranteed stop price.",
+    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
     "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading.",
     "Day_Volume_Profile draws today's profile at the right edge and yesterday's POC (yellow) and value area (dashed). A break that also leaves yesterday's value area is stronger."
    ],
@@ -160,7 +160,7 @@
    "read": [
     "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
     "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "A red dashed line is the invalidation guide, not a guaranteed stop price.",
+    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
     "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
    ],
    "avoid": "ADX below 20, repeated VWAP crossings, money flow disagreeing with the trend.",
@@ -186,11 +186,11 @@
     }
    ],
    "use": "The market went quiet and tight (Bollinger Bands inside Keltner Channels) and is now expanding.",
-   "signal": "Within 5 bars after the squeeze releases, a close above the prior 20-bar high with MACD positive and relative volume above 1.2. Short is the mirror.",
+   "signal": "Within 5 bars after the squeeze releases, a close above the prior 20-bar high with MACD positive and the bar's volume above 1.5 times the same bar on recent days. Short is the mirror. Target 2R.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
     "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "A red dashed line is the invalidation guide, not a guaranteed stop price.",
+    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
     "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
    ],
    "avoid": "An unreleased squeeze, a breakout with no participation, chasing more than a few ATRs past the trigger.",
@@ -216,11 +216,11 @@
     }
    ],
    "use": "A news bar or sudden volume surge is breaking out of the last 10 bars.",
-   "signal": "Volume more than 2 standard deviations above normal, range above 1.2 ATR, a close near the bar's extreme, above VWAP and above the 10-bar high.",
+   "signal": "Bar volume more than 3 times the same bar on recent days, range above 1.2 ATR, a close near the bar's extreme, above VWAP and above the 10-bar high. Target 2R.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
     "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "A red dashed line is the invalidation guide, not a guaranteed stop price.",
+    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
     "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
    ],
    "avoid": "Halts, opening-auction distortions, one-off news bars with no follow-through. Volume alone does not give direction.",
@@ -246,11 +246,11 @@
     }
    ],
    "use": "A range-bound day (ADX below 18) and price has stretched far from VWAP.",
-   "signal": "Price was outside the 2 standard deviation VWAP band and closes back inside while RSI is stretched. VWAP is the first target.",
+   "signal": "After 10:00 on a range day, price was outside the 2 standard deviation VWAP band and closes back inside while RSI is stretched. Only when the band is at least 1.5 bar ATRs from VWAP. Target is VWAP.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
     "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "A red dashed line is the invalidation guide, not a guaranteed stop price.",
+    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
     "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading."
    ],
    "avoid": "ADX at or above 18, news shocks, trend days, and treating a band touch alone as a signal.",
@@ -276,11 +276,11 @@
     }
    ],
    "use": "Price probes the edge of today's value area (where 70% of volume traded) and fails.",
-   "signal": "Price trades at or below the value area low and closes back above it with a positive candle and positive money flow, while still below the POC. Mirror at the high.",
+   "signal": "Price trades at or below the prior session's value area low and closes back above it with a positive candle and positive money flow, while still below the prior POC. Mirror at the value area high. Target the prior POC. Fixed levels, so it does not repaint.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
     "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "A red dashed line is the invalidation guide, not a guaranteed stop price.",
+    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
     "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading.",
     "Today's profile is drawn at the right edge. Leave 25 or more bars of empty space on the right."
    ],
@@ -349,7 +349,7 @@
    "read": [
     "The setup study prints a cyan label naming the setup. Green = long conditions align, red = short, gray = wait (a valid answer).",
     "An arrow marks the trigger bar. Enter only after that bar closes.",
-    "A red dashed line is the invalidation guide, not a guaranteed stop price.",
+    "Red dash = stop, green dash = target, white square = exit. The size label gives shares for your riskPerTrade.",
     "In the lower pane, you want bright bars and a rising cyan flow line in the trade direction. Dark bars mean momentum is fading.",
     "Options_Gamma_OI_Walls draws the call wall, put wall and gamma flip for the next monthly expiration. Look for price stalling at a wall or accepting beyond it."
    ],
@@ -452,7 +452,7 @@
     }
    ],
    "use": "A stock is in a long uptrend and has dipped to its 20-day average.",
-   "signal": "20 > 50 > 200 EMA, price above the 50, RSI between 40 and 70, positive money flow, then a close back above the 20 EMA after touching near it. Short is the mirror.",
+   "signal": "20 > 50 > 200 EMA, price above the 50, RSI between 40 and 70, positive money flow, then a close back above the 20 EMA after touching near it. Short is the mirror. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
     "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
@@ -482,7 +482,7 @@
     }
    ],
    "use": "Price closes at a new 20-day high or low.",
-   "signal": "A close beyond the previous 20-day high or low, 50-day slope in agreement, ADX above 18 and relative volume above 1.2.",
+   "signal": "A close beyond the previous 20-day high or low, 50-day slope in agreement, ADX above 18 and relative volume above 1.2. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
     "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
@@ -512,7 +512,7 @@
     }
    ],
    "use": "Volatility has compressed and is releasing.",
-   "signal": "A closing 20-day breakout within 5 sessions after the squeeze releases, with the 50/200 regime, MACD and volume confirming.",
+   "signal": "A closing 20-day breakout within 5 sessions after the squeeze releases, with the 50/200 regime, MACD and volume confirming. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
     "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
@@ -542,7 +542,7 @@
     }
    ],
    "use": "A strong stock has dropped hard for a few days while its 200-day trend is still up.",
-   "signal": "RSI(2) was below 10 in an uptrend, then a close above the prior day's high. Hold about 2 to 10 sessions; the 5 or 10 EMA is a practical target.",
+   "signal": "RSI(2) was below 10 in an uptrend, then a close above the prior day's high. Exit on a close above the 5-day EMA or after 10 days. No entry within 5 days of earnings.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
     "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
@@ -572,7 +572,7 @@
     }
    ],
    "use": "An established trend with improving momentum and money flow.",
-   "signal": "The 50/200 regime is bullish, MACD crosses above its signal, money flow is positive and on-balance volume confirms. Short is the mirror.",
+   "signal": "The 50/200 regime is bullish, MACD crosses above its signal, money flow is positive and on-balance volume confirms. Short is the mirror. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
     "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
@@ -602,7 +602,7 @@
     }
    ],
    "use": "You are screening a watchlist for the strongest names.",
-   "signal": "Price is in a bull regime, the stock's ratio to the benchmark is above its 50-day average, and price makes a 20-day breakout on normal or better volume.",
+   "signal": "Price is in a bull regime, the stock's ratio to the benchmark is above its 50-day average, and price makes a 20-day breakout on normal or better volume. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
     "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
@@ -633,7 +633,7 @@
     }
    ],
    "use": "You plan to use options or want to avoid event risk.",
-   "signal": "A trend and money-flow entry on a 20 EMA reclaim, blocked when implied volatility is above 1.3 times 20-day historical volatility. Missing IV does not block.",
+   "signal": "A trend and money-flow entry on a 20 EMA reclaim, blocked when implied volatility is above 1.3 times 20-day historical volatility. Missing IV does not block. Exits: stop (max 3 ATRs), 3R target or a close below the prior 10-day low. No entry within 5 days of earnings or when SPY is below its 50-day.",
    "read": [
     "The setup study prints a cyan label naming the setup. Green = conditions align, red = they do not, gray = wait.",
     "Arrows mark the trigger bar. Act on the daily close, not the live bar.",
@@ -764,7 +764,7 @@
     }
    ],
    "use": "You want a monthly rule: own what has risen over the last 12 months.",
-   "signal": "Hold when the 252-day return is positive, price is above the 200-day and SPY is in an uptrend. The signal changes only on the first bar of a month.",
+   "signal": "Hold when the 252-day return is positive, price is above the 200-day and SPY is in an uptrend. Checked on the first bar of each month; an arrow appears only when the position changes.",
    "read": [
     "Reviewed weekly or monthly, not daily. A green label means hold or accumulate, red means reduce, gray means wait.",
     "The arrow marks the first completed bar where the rule changed. Monthly rules (L02, L10) change only on the first bar of a month.",
@@ -1071,6 +1071,61 @@
    "manual": "JBravo_Manual.md"
   },
   {
+   "id": "any-trend",
+   "name": "Any Trend Levels Context",
+   "scope": "Any",
+   "chart": "daily, or intraday with about a year loaded",
+   "goal": "See the trend across daily, weekly and monthly averages",
+   "condition": "context",
+   "direction": "either",
+   "studies": [
+    {
+     "study": "Any_Trend_Levels",
+     "setup": null
+    }
+   ],
+   "use": "Before any trade, or when you want to know how strong a trend is and where it may stall.",
+   "signal": "Not a trade trigger. A score out of 5 counts how many of the daily 20/50/200, 20-week and 20-month averages price is above. Dots mark a close through the 200-day, 20-week or 20-month average.",
+   "read": [
+    "Score 5 = full uptrend, 0 = full downtrend, in between = mixed.",
+    "A first touch of a major average often holds; a close through it often starts a move that way.",
+    "Distances are in daily ATRs: more than 6 ATRs from the 200-day is stretched."
+   ],
+   "avoid": "Treating a dot as an entry. Confirm with a signal set.",
+   "differs": "Context only, no entries. Uses fixed daily, weekly and monthly averages on any chart.",
+   "manual": "Study_Sets_Guide.md"
+  },
+  {
+   "id": "any-trend-gamma",
+   "name": "Any Trend and Gamma Context",
+   "scope": "Any",
+   "chart": "daily, or intraday with about a year loaded",
+   "goal": "See trend levels and the option gamma regime together",
+   "condition": "context",
+   "direction": "either",
+   "studies": [
+    {
+     "study": "Any_Trend_Levels",
+     "setup": null
+    },
+    {
+     "study": "Options_Gamma_OI_Walls",
+     "setup": null
+    }
+   ],
+   "use": "On optionable symbols, to judge whether moves are likely to extend or revert.",
+   "signal": "Not a trade trigger. Adds the call wall, put wall and gamma flip. Positive net gamma suggests mean reversion and pinning; negative suggests moves extend.",
+   "read": [
+    "Score 5 = full uptrend, 0 = full downtrend, in between = mixed.",
+    "A first touch of a major average often holds; a close through it often starts a move that way.",
+    "Distances are in daily ATRs: more than 6 ATRs from the 200-day is stretched.",
+    "Price above the gamma flip with positive gamma: expect smaller, reverting moves. Below it: expect larger moves."
+   ],
+   "avoid": "Treating a dot as an entry. Confirm with a signal set.",
+   "differs": "Adds the option regime to the trend levels. Needs an optionable symbol.",
+   "manual": "Study_Sets_Guide.md"
+  },
+  {
    "id": "help-manual",
    "name": "Help Setups Manual",
    "scope": "Help",
@@ -1099,12 +1154,12 @@
    "name": "Day_Setup_Signals",
    "scope": "Day",
    "pane": "price",
-   "what": "Ten intraday entry setups behind one setup input.",
+   "what": "Signal study. Ten intraday entry setups behind one setup input.",
    "legend": [
     "Cyan label = the selected setup.",
     "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
     "Green and red arrows = the trigger bar. Wait for the bar to close.",
-    "Red dashed line = invalidation guide, not a guaranteed stop.",
+    "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
     "A gray LINES: label names every colored line."
    ],
    "modes": [
@@ -1155,7 +1210,7 @@
    "name": "Day_Flow_Momentum",
    "scope": "Day",
    "pane": "lower",
-   "what": "Volume-weighted MACD, estimated order flow, and early and confirmed turning points.",
+   "what": "Context study. Volume-weighted MACD, estimated order flow, and early and confirmed turning points.",
    "legend": [
     "Bars: bright = momentum building, dark = fading.",
     "Line: estimated buying minus selling volume over 14 bars, scaled -3 to +3. Cyan = improving, magenta = worsening.",
@@ -1170,7 +1225,7 @@
    "name": "Day_Volume_Profile",
    "scope": "Day",
    "pane": "price",
-   "what": "Today's volume profile at the right edge, plus yesterday's POC and value area.",
+   "what": "Context study. Today's volume profile at the right edge, plus yesterday's POC and value area.",
    "legend": [
     "Histogram at the right edge = today's volume by price. Needs 25+ bars of empty space (Chart Settings, Time axis, Expansion area).",
     "Yellow line = yesterday's POC (price with the most volume). Dashed lines = yesterday's value area high and low (70% of volume).",
@@ -1184,12 +1239,12 @@
    "name": "Swing_Setup_Signals",
    "scope": "Swing",
    "pane": "price",
-   "what": "Ten daily entry setups.",
+   "what": "Signal study. Ten daily entry setups.",
    "legend": [
     "Cyan label = the selected setup.",
     "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
     "Green and red arrows = the trigger bar. Wait for the bar to close.",
-    "Red dashed line = invalidation guide, not a guaranteed stop.",
+    "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
     "A gray LINES: label names every colored line."
    ],
    "modes": [
@@ -1240,12 +1295,12 @@
    "name": "Invest_Setup_Signals",
    "scope": "Invest",
    "pane": "price",
-   "what": "Ten long-horizon setups. Red arrow = first bar where a reduce rule applies.",
+   "what": "Signal study. Ten long-horizon setups. Red arrow = first bar where a reduce rule applies.",
    "legend": [
     "Cyan label = the selected setup.",
     "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
     "Green and red arrows = the trigger bar. Wait for the bar to close.",
-    "Red dashed line = invalidation guide, not a guaranteed stop.",
+    "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
     "A gray LINES: label names every colored line.",
     "L02 and L10 change only on the first bar of a month."
    ],
@@ -1297,12 +1352,12 @@
    "name": "Any_Short_Setup_Signals",
    "scope": "Any",
    "pane": "price",
-   "what": "Short setups, order-flow context and squeeze risk.",
+   "what": "Signal study. Short setups, order-flow context and squeeze risk.",
    "legend": [
     "Cyan label = the selected setup.",
     "Green = long (or accumulate) conditions align. Red = short or reduce. Gray = conditions incomplete: a valid answer.",
     "Green and red arrows = the trigger bar. Wait for the bar to close.",
-    "Red dashed line = invalidation guide, not a guaranteed stop.",
+    "Red dash = stop, green dash = target, white square = exit, gray dot = signal blocked (earnings or market filter). The size label gives shares for riskPerTrade dollars.",
     "A gray LINES: label names every colored line.",
     "Orange wedge = setup only (borrow not confirmed). Red arrows need borrowConfirmed = yes and no squeeze risk."
    ],
@@ -1354,7 +1409,7 @@
    "name": "Options_Greeks_Exposure",
    "scope": "Options",
    "pane": "price",
-   "what": "Dealer exposure pages built from the option chain: GEX, DEX, zero levels, 0DTE, vanna and charm, vega/theta/rho, open-interest change.",
+   "what": "Context study. Dealer exposure pages built from the option chain: GEX, DEX, zero levels, 0DTE, vanna and charm, vega/theta/rho, open-interest change.",
    "legend": [
     "Labels show the numbers for the selected page.",
     "Levels (when shown) are model estimates from one expiration and sampled strikes.",
@@ -1392,7 +1447,7 @@
    "name": "Options_Gamma_OI_Walls",
    "scope": "Options",
    "pane": "price",
-   "what": "Call wall, put wall and gamma flip on the price chart.",
+   "what": "Context study. Call wall, put wall and gamma flip on the price chart.",
    "legend": [
     "Call wall = strike with the largest modeled call gamma or open interest: likely resistance or pin.",
     "Put wall = the same for puts: likely support.",
@@ -1401,6 +1456,32 @@
    ],
    "modes": [],
    "file": "thinkorswim/options/Options_Gamma_OI_Walls.ts"
+  },
+  {
+   "name": "Any_Trend_Levels",
+   "scope": "Any",
+   "pane": "price",
+   "what": "Context study. Daily 20/50/200, 20-week and 20-month averages with a trend score and dots where a major level breaks.",
+   "legend": [
+    "Green 20D, yellow 50D, white 200D, cyan dash 20W, magenta dash 20M.",
+    "Cyan dot = close up through 200D/20W/20M. Orange dot = close down through one.",
+    "Score label: how many of the 5 averages price is above."
+   ],
+   "modes": [],
+   "file": "thinkorswim/any/Any_Trend_Levels.ts"
+  },
+  {
+   "name": "Day_Strategy, Swing_Strategy, Invest_Strategy",
+   "scope": "Any",
+   "pane": "price (Strategies tab)",
+   "what": "Backtest versions of the signal studies, generated from the same code. Add one, pick the same setup, then right-click a trade marker and choose Show report.",
+   "legend": [
+    "Green LE / red SE = simulated entries; white LX / SX = exits.",
+    "Entries fill at the next bar's open; stops and targets at their level. No commission or slippage.",
+    "Keep a setup only with 30+ trades over several symbols and profit factor above 1.3."
+   ],
+   "modes": [],
+   "file": "thinkorswim/strategies/"
   },
   {
    "name": "Help_Setups_Manual",

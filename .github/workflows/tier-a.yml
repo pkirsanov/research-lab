@@ -106,6 +106,14 @@ jobs:
       if: steps.window.outputs.run == 'true'
       run: node scripts/brief-refresh.mjs --window "${{ steps.window.outputs.window }}" ${{ inputs['dry-run'] && '--dry-run' || '' }}
 
+    # Sync the payload's Tier-A fields to match the just-refreshed snapshot. The Tier-B narrative
+    # writer is operator-hosted and does not run in CI, so without this step the committed payload
+    # retains a stale nextSession.sessionDate and the publish gate refuses the pair.
+    # See scripts/sync-payload-session-date.mjs for the contract.
+    - name: Sync payload session date
+      if: steps.window.outputs.run == 'true' && inputs['dry-run'] != true
+      run: node scripts/sync-payload-session-date.mjs
+
     # Score any recommendation whose horizon has now elapsed. This is the feedback loop: it is
     # what turns published calls into a measured error rate, and it must not depend on a human
     # remembering to run it.
@@ -148,6 +156,7 @@ jobs:
         git config user.email "research-lab-tier-a[bot]@users.noreply.github.com"
         # Named paths only. A scheduled job must never sweep in unrelated working-tree changes.
         git add -- \
+          market-brief.payload.json \
           market-brief.snapshot.json \
           market-brief.scorecard.json \
           market-brief.page.json \

@@ -46,6 +46,8 @@ jobs:
           else
             node scripts/brief-refresh.mjs || true
           fi
+      - name: Sync payload session date
+        run: node scripts/sync-payload-session-date.mjs
       - name: Build pages site
         run: node scripts/build-pages-site.mjs
       - name: Update tools manifest

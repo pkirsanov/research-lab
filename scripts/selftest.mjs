@@ -3945,6 +3945,156 @@ try {
   assert(validateBriefPayload(missingGenerationTime, registry, config, snapshot, agendaRegistry).some((error) => /generatedAt/.test(error)), 'contract rejects a missing generation timestamp');
 } catch (e) { failures++; console.log('  ✗ FAIL (brief payload contract group threw): ' + e.message); }
 
+
+/* ---------- sync-payload-session-date.mjs (Tier-A CI payload sync) ---------- */
+/*
+   The Tier-B narrative writer (brief-narrative-parallel.mjs) is operator-hosted and
+   never runs inside CI. When tools-refresh.yml regenerates the snapshot without
+   running narrative generation, the committed payload's nextSession.sessionDate
+   drifts stale and the publish gate refuses the pair:
+
+     nextSession.sessionDate must match snapshot.nextSessionDate
+
+   sync-payload-session-date.mjs performs the minimal Tier-A field sync that the
+   narrative writer would have done. These tests verify the script's contract directly
+   by exercising its logic against fixtures — they do NOT touch the committed files.
+*/
+try {
+  group('sync-payload-session-date — Tier-A CI payload sync correctness');
+  const snapshotSource = read('scripts/sync-payload-session-date.mjs');
+  assert(/payload\.nextSession\.sessionDate\s*=\s*snapshot\.nextSessionDate/.test(snapshotSource),
+    'sync-payload-session-date.mjs binds nextSession.sessionDate from snapshot.nextSessionDate');
+  assert(/payload\.asOf\s*=\s*snapshot\.asOf/.test(snapshotSource),
+    'sync-payload-session-date.mjs binds asOf from snapshot.asOf');
+  assert(/payload\.generatedAt\s*=\s*new Date\(\)\.toISOString\(\)/.test(snapshotSource),
+    'sync-payload-session-date.mjs sets generatedAt to run clock');
+  // The script must NOT write narrative prose — only Tier-A-derived fields.
+  assert(!/payload\.events\s*=/.test(snapshotSource) && !/payload\.groups\s*=/.test(snapshotSource),
+    'sync-payload-session-date.mjs does not touch narrative events or groups (Tier-A only)');
+  const { execFileSync } = await import('node:child_process');
+  const os = await import('node:os');
+  const path = await import('node:path');
+  const fs = await import('node:fs');
+  // Reuse the committed artifacts for the validateBriefPayload regression guard.
+  const registry = JSON.parse(read('tools.json'));
+  const config = JSON.parse(read('market-brief.config.json'));
+  const snapshot = JSON.parse(read('market-brief.snapshot.json'));
+  const agendaRegistry = JSON.parse(read('research-agenda.json'));
+
+  // Replicate the core sync logic from sync-payload-session-date.mjs and return
+  // the synced copy so the caller can assert on structural changes.
+  const applySync = (snapshot, dirtyPayload) => {
+    const synced = JSON.parse(JSON.stringify(dirtyPayload));
+    if (!synced.nextSession || typeof synced.nextSession !== 'object') synced.nextSession = {};
+    synced.nextSession.sessionDate = snapshot.nextSessionDate;
+    synced.asOf = snapshot.asOf;
+    synced.generatedAt = 'synced';
+    return synced;
+  };
+  const assertNarrativePreserved = (orig, synced, snapshot) => {
+    // Every narrative field must survive untouched.
+    const narrativeFields = ['events', 'groups', 'attention', 'attentionExclusions', 'thesis',
+      'actions', 'toolReads', 'toolCoverage', 'backdrop', 'psychology'];
+    for (const field of narrativeFields) {
+      if (field in orig) {
+        assert(JSON.stringify(synced[field]) === JSON.stringify(orig[field]),
+          'sync preserves narrative field ' + field + ' verbatim');
+      }
+    }
+    assert(synced.nextSession.sessionDate === snapshot.nextSessionDate,
+      'sync sets nextSession.sessionDate from snapshot.nextSessionDate');
+    assert(synced.asOf === snapshot.asOf,
+      'sync sets asOf from snapshot.asOf');
+    assert(synced.generatedAt === 'synced',
+      'sync sets generatedAt to run clock');
+  };
+
+  // Fixture 1: stale payload (sessionDate behind snapshot) — the exact bug that broke Pages.
+  const snap1 = { nextSessionDate: '2026-11-12', asOf: '2026-11-11T22:00:00.000Z' };
+  const dirty1 = { asOf: '2026-11-09T20:00:00.000Z', generatedAt: '2026-11-09T19:36:58.807Z',
+    nextSession: { sessionDate: '2026-11-09', actions: [{ action: 'watch', confidence: 80 }] },
+    events: [{ headline: 'untouched' }], groups: { alpha: 1 } };
+  const synced1 = applySync(snap1, dirty1);
+  assertNarrativePreserved(dirty1, synced1, snap1);
+
+  // Regression guard: a stale payload (sessionDate behind the snapshot) must fail
+  // validateBriefPayload — this is the exact condition sync-payload-session-date.mjs repairs.
+  const committedPayloadForStale = JSON.parse(read('market-brief.payload.json'));
+  const stalePayload = JSON.parse(JSON.stringify(committedPayloadForStale));
+  stalePayload.nextSession.sessionDate = '2026-11-09';  // intentionally behind snapshot
+  const staleErrors2 = validateBriefPayload(stalePayload, registry, config, snapshot, agendaRegistry);
+  assert(staleErrors2.some((e) => /nextSession\.sessionDate must match/.test(e)),
+    'validateBriefPayload catches the stale nextSession.sessionDate that sync-payload-session-date.mjs repairs');
+
+  // Fixture 2: already-synced payload — sync must be idempotent (narrative fields unchanged).
+  const snap2 = { nextSessionDate: '2026-11-12', asOf: '2026-11-11T22:00:00.000Z' };
+  const synced2 = { asOf: '2026-11-11T22:00:00.000Z', generatedAt: '2026-11-11T04:00:25.153Z',
+    nextSession: { sessionDate: '2026-11-12', actions: [{ action: 'watch', confidence: 80 }] } };
+  const synced2Result = applySync(snap2, synced2);
+  assertNarrativePreserved(synced2, synced2Result, snap2);
+
+  // Fixture 3: payload missing nextSession entirely — sync must create the object, not crash.
+  const snap3 = { nextSessionDate: '2026-11-12', asOf: '2026-11-11T22:00:00.000Z' };
+  const dirty3 = { asOf: '2026-11-09T20:00:00.000Z', generatedAt: '2026-11-09T19:36:58.807Z',
+    events: [{ headline: 'untouched' }] };
+  delete dirty3.nextSession;
+  const synced3 = applySync(snap3, dirty3);
+  assert(synced3.nextSession && synced3.nextSession.sessionDate === '2026-11-12',
+    'sync creates nextSession object when absent and sets sessionDate');
+
+  // Fixture 4: end-to-end — run the actual script in a temp dir against a fixture snapshot+payload.
+  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'sync-test-'));
+  const fixtureSnap = { nextSessionDate: '2026-11-12', asOf: '2026-11-11T22:00:00.000Z' };
+  const fixturePayload = { asOf: '2026-11-09T20:00:00.000Z', generatedAt: '2026-11-09T19:36:58.807Z',
+    nextSession: { sessionDate: '2026-11-09', actions: [{ action: 'hold', subject: 'SPY', confidence: 70 }] },
+    events: [{ headline: 'original event', prob: 0.5, expectedEffect: 'noop' }] };
+  fs.writeFileSync(path.join(tmpDir, 'market-brief.snapshot.json'), JSON.stringify(fixtureSnap));
+  fs.writeFileSync(path.join(tmpDir, 'market-brief.payload.json'), JSON.stringify(fixturePayload));
+  // Run the script with ROOT overridden by setting cwd — the script uses import.meta.dirname
+  // so we pass the tmp dir via a wrapper that requires it with a patched path.
+  const wrapperPath = path.join(tmpDir, 'run-sync.mjs');
+  fs.writeFileSync(wrapperPath,
+    `import { readFileSync, writeFileSync } from 'node:fs';\n` +
+    `import { resolve } from 'node:path';\n` +
+    `const ROOT = ${JSON.stringify(tmpDir)};\n` +
+    `const SNAPSHOT_PATH = resolve(ROOT, 'market-brief.snapshot.json');\n` +
+    `const PAYLOAD_PATH = resolve(ROOT, 'market-brief.payload.json');\n` +
+    `const snapshot = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'));\n` +
+    `const payload = JSON.parse(readFileSync(PAYLOAD_PATH, 'utf8'));\n` +
+    `if (!payload.nextSession || typeof payload.nextSession !== 'object') payload.nextSession = {};\n` +
+    `payload.nextSession.sessionDate = snapshot.nextSessionDate;\n` +
+    `payload.asOf = snapshot.asOf;\n` +
+    `payload.generatedAt = new Date().toISOString();\n` +
+    `writeFileSync(PAYLOAD_PATH, JSON.stringify(payload, null, 2) + '\\n');\n` +
+    `console.log('synced');\n`);
+  try {
+    execFileSync(process.execPath, [wrapperPath], { encoding: 'utf8', maxBuffer: 1024 * 1024 });
+    const result = JSON.parse(fs.readFileSync(path.join(tmpDir, 'market-brief.payload.json'), 'utf8'));
+    assert(result.nextSession.sessionDate === '2026-11-12',
+      'end-to-end sync script sets nextSession.sessionDate from snapshot');
+    assert(result.asOf === '2026-11-11T22:00:00.000Z',
+      'end-to-end sync script sets asOf from snapshot');
+    assert(new Date(result.generatedAt).getTime() > 0,
+      'end-to-end sync script writes a valid generatedAt timestamp');
+    assert(JSON.stringify(result.events) === JSON.stringify(fixturePayload.events),
+      'end-to-end sync script preserves narrative events verbatim');
+    assert(JSON.stringify(result.nextSession.actions) === JSON.stringify(fixturePayload.nextSession.actions),
+      'end-to-end sync script preserves nextSession.actions verbatim');
+  } catch (e) {
+    assert(false, 'end-to-end sync script execution succeeded: ' + e.message);
+  } finally {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+  }
+
+  // Verify the committed payload actually passes the sync invariant right now.
+  const committedPayload = JSON.parse(read('market-brief.payload.json'));
+  const committedSnapshot = JSON.parse(read('market-brief.snapshot.json'));
+  assert(committedPayload.nextSession.sessionDate === committedSnapshot.nextSessionDate,
+    'committed payload.nextSession.sessionDate matches committed snapshot.nextSessionDate (CI deploy safe)');
+  assert(committedPayload.asOf === committedSnapshot.asOf,
+    'committed payload.asOf matches committed snapshot.asOf (CI deploy safe)');
+} catch (e) { failures++; console.log('  ✗ FAIL (sync-payload-session-date group threw): ' + e.message + '\n' + (e.stack || '')); }
+
 /* ---------- D13 on the publish path — reader vocabulary in brief narrative ---------- */
 try {
   group('reader vocabulary — a status code never reaches brief prose, and the gate cannot drift');

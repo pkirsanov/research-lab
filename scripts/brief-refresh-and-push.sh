@@ -480,6 +480,17 @@ else
   run_with_timeout "$TIER_A_TIMEOUT" env BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
 fi
 
+# 1b) Sync the payload's Tier-A fields to match the just-refreshed snapshot. When the narrative
+# writer does not run in this transaction (Tier-A data-only refresh or retained-pair fallback),
+# the committed payload would otherwise retain the previous window's nextSession.sessionDate and
+# asOf, causing validate-brief-payload to reject the pair at publish time.
+# See scripts/sync-payload-session-date.mjs for the contract.
+"$NODE_BIN" scripts/sync-payload-session-date.mjs || {
+  echo "[brief-timer] sync-payload-session-date failed — restoring owned baseline"
+  restore_owned_baseline || true
+  exit 1
+}
+
 # 1b-i) Per-ticker owner reads for the public watchlist matrix. This runs INSIDE the publication
 # transaction, immediately after the Tier-A refresh that produced the bars and chains it reads, and
 # `market-brief.owner-reads.json` is an owned path — so it is staged, validated and rolled back with

@@ -1,5 +1,5 @@
 {
-  "asOf": "2026-11-12T20:00:00.000Z",
+  "asOf": "2026-11-12T22:00:00.000Z",
   "attention": [],
   "attentionExclusions": [
     {
@@ -635,7 +635,7 @@
       "title": "Leadership is still being scored offshore and in real assets while US breadth barely holds the line: global rotation ranks EWS (Singapore) at 92.5/100 far ahead of the US-heavy ACWI and the real-assets composite leads with crypto and broad commodities (ETH-USD 79.4, DBC/PDBC 74.4) as gold stays weak (39.3) and silver weaker (19.4) — a where-is-the-bid migration that now coincides with a thinning domestic cushion but still resolves only to relative-strength scores, so no scoreable tactical call is published"
     }
   ],
-  "generatedAt": "2026-11-12T20:11:36.482Z",
+  "generatedAt": "2026-11-12T22:08:39.597Z",
   "groups": [
     {
       "breadth": {
@@ -1020,7 +1020,7 @@
         "trigger": "Maintain the hold while SPY remains above its derived 50-day 764.83."
       }
     ],
-    "sessionDate": "2026-11-12",
+    "sessionDate": "2026-11-13",
     "thesis": "SPY 751.90 tangled (50d 764.83, 200d 728.02). VIX is 20.15; keep risk measured into 2026-11-09."
   },
   "psychology": {

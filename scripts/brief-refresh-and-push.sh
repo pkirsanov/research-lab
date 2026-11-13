@@ -480,17 +480,6 @@ else
   run_with_timeout "$TIER_A_TIMEOUT" env BRIEF_WINDOW="$WINDOW" "$NODE_BIN" scripts/brief-refresh.mjs --window "$WINDOW" || echo "[brief-timer] refresh returned non-zero (soft) — continuing"
 fi
 
-# 1b) Sync the payload's Tier-A fields to match the just-refreshed snapshot. When the narrative
-# writer does not run in this transaction (Tier-A data-only refresh or retained-pair fallback),
-# the committed payload would otherwise retain the previous window's nextSession.sessionDate and
-# asOf, causing validate-brief-payload to reject the pair at publish time.
-# See scripts/sync-payload-session-date.mjs for the contract.
-"$NODE_BIN" scripts/sync-payload-session-date.mjs || {
-  echo "[brief-timer] sync-payload-session-date failed — restoring owned baseline"
-  restore_owned_baseline || true
-  exit 1
-}
-
 # 1b-i) Per-ticker owner reads for the public watchlist matrix. This runs INSIDE the publication
 # transaction, immediately after the Tier-A refresh that produced the bars and chains it reads, and
 # `market-brief.owner-reads.json` is an owned path — so it is staged, validated and rolled back with
@@ -697,6 +686,20 @@ if [ "$NARRATIVE_OK" != "1" ]; then
   fi
 fi
 
+# Sync the payload's Tier-A fields to match the just-refreshed snapshot. This runs AFTER
+# narrative restoration so it sees the final snapshot state — restore_narrative_baseline and
+# restore_pair_baseline may have reverted snapshot or payload from an earlier checkpoint, and
+# the sync must bind to whatever snapshot survived the cut. When the narrative did not converge
+# (raw-data-only path), the committed payload would otherwise retain the previous window's
+# nextSession.sessionDate and asOf, causing validate-brief-payload to reject the pair at publish
+# time. This is a no-op when the narrative DID converge and already synced these fields.
+# See scripts/sync-payload-session-date.mjs for the contract.
+"$NODE_BIN" scripts/sync-payload-session-date.mjs || {
+  echo "[brief-timer] sync-payload-session-date failed — restoring owned baseline"
+  restore_owned_baseline || true
+  exit 1
+}
+
 # The attention scorecard and deterministic causal snapshot ride every selection. Neither carries
 # brief-pair parity, and both are written before the final narrative outcome is known.
 if [ "$NARRATIVE_OK" = "1" ]; then
@@ -714,7 +717,12 @@ else
   # made THIS SAME dirty check refuse the very next invocation with no narrative attempted at all.
   # Bonsai/OMLX runs are exactly the ones most likely to land here on a given cycle, so this bug
   # was silently bricking the local narrative path after any single non-convergent attempt.
-  SELECTED_FILES=(market-brief.owner-reads.json market-brief.attention-scorecard.json causal-rotation.snapshot.json data)
+  #
+  # $PAYLOAD IS included: the sync-payload-session-date step above already bound it to the
+  # surviving snapshot, so committing it is safe and necessary — otherwise the raw-data-only
+  # publish leaves the committed payload pointing at the previous window, failing the next
+  # validate-brief-payload gate.
+  SELECTED_FILES=("$PAYLOAD" market-brief.owner-reads.json market-brief.attention-scorecard.json causal-rotation.snapshot.json data)
   SELECTION="raw-data-only"
 fi
 
@@ -725,16 +733,16 @@ if ! "$NODE_BIN" scripts/validate-brief-cache.mjs; then
   restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
   exit 1
 fi
-if [ "$SELECTION" != "raw-data-only" ]; then
-  if ! "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --defer-page-parity; then
-    echo "[brief-timer] selected publication pair failed final validation — restoring owned baseline"
-    restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
-    exit 1
-  fi
-  echo "[brief-timer] selected transaction=$SELECTION; cache + final pair validation passed"
-else
-  echo "[brief-timer] selected transaction=raw-data-only; cache validation passed; published brief pair left unchanged"
+# Validate the payload against the snapshot for all selection paths. In raw-data-only
+# mode the payload was synced (not generated) by sync-payload-session-date.mjs, so
+# it must still pass the same pair-consistency gate — otherwise we would commit a
+# stale payload that fails on the next window.
+if ! "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --defer-page-parity; then
+  echo "[brief-timer] selected publication pair failed final validation — restoring owned baseline"
+  restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restoration failed"
+  exit 1
 fi
+echo "[brief-timer] selected transaction=$SELECTION; cache + final pair validation passed"
 
 # 3a) Re-shard only the SELECTED append-only history. This must run after any retained-pair
 # restoration; sharding the rejected candidate first would publish a recent/monthly projection that

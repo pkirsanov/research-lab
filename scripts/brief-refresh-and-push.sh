@@ -708,7 +708,10 @@ if [ "$NARRATIVE_OK" = "1" ]; then
   [ -d "$AGENDA_DIR" ] && SELECTED_FILES+=("$AGENDA_DIR")
   SELECTION="matching-pair"
 elif [ "$RETAINED_TIER_B_OK" = "1" ]; then
-  SELECTED_FILES=("${DATA_FILES[@]}" market-brief.owner-reads.json market-brief.attention-scorecard.json causal-rotation.snapshot.json data)
+  # $PAYLOAD is included because the sync-payload-session-date step above already bound
+  # the retained narrative to the fresh snapshot — without committing the payload, the
+  # sync changes stay on disk but are never pushed, leaving the committed payload stale.
+  SELECTED_FILES=("${DATA_FILES[@]}" "$PAYLOAD" market-brief.owner-reads.json market-brief.attention-scorecard.json causal-rotation.snapshot.json data)
   SELECTION="same-target-data-only"
 else
   # market-brief.owner-reads.json is a DERIVED_FILES / OWNED_PATHS member (see the pre-fetch dirty

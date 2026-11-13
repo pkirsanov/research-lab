@@ -677,22 +677,23 @@ if [ "$NARRATIVE_OK" != "1" ]; then
     RETAINED_TIER_B_OK=1
     echo "[brief-timer] retained narrative matches candidate Tier A — same-target data-only publication selected"
   else
-    echo "[brief-timer] retained narrative rejects candidate Tier A — restoring prior snapshot/history and selecting raw data only"
-    if ! restore_pair_baseline; then
-      echo "[brief-timer] cannot restore snapshot/history baseline"
-      restore_owned_baseline || true
-      exit 1
-    fi
+    echo "[brief-timer] retained narrative rejects candidate Tier A — selecting raw-data-only with the fresh Tier-A snapshot"
+    # Do NOT restore_pair_baseline here: the snapshot and brief-history.jsonl are Tier-A
+    # outputs from brief-refresh.mjs and carry the fresh data the site needs to publish.
+    # restore_narrative_baseline (above) already reverted the payload to its last valid
+    # narrative state; the sync-payload-session-date step below will bind that narrative
+    # to the surviving (fresh) snapshot.
   fi
 fi
 
 # Sync the payload's Tier-A fields to match the just-refreshed snapshot. This runs AFTER
-# narrative restoration so it sees the final snapshot state — restore_narrative_baseline and
-# restore_pair_baseline may have reverted snapshot or payload from an earlier checkpoint, and
-# the sync must bind to whatever snapshot survived the cut. When the narrative did not converge
+# narrative restoration so it sees the final snapshot state — restore_narrative_baseline
+# may have reverted the payload to its last valid narrative state, and the sync must bind
+# that narrative to the surviving (fresh) snapshot. When the narrative did not converge
 # (raw-data-only path), the committed payload would otherwise retain the previous window's
-# nextSession.sessionDate and asOf, causing validate-brief-payload to reject the pair at publish
-# time. This is a no-op when the narrative DID converge and already synced these fields.
+# nextSession.sessionDate and asOf, causing validate-brief-payload to reject the pair at
+# publish time. This is a no-op when the narrative DID converge and already synced these
+# fields.
 # See scripts/sync-payload-session-date.mjs for the contract.
 "$NODE_BIN" scripts/sync-payload-session-date.mjs || {
   echo "[brief-timer] sync-payload-session-date failed — restoring owned baseline"

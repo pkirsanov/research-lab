@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "updated": "2026-11-09",
+  "updated": "2026-11-14",
   "repo": "QuantitativeFinance, branch trading-studies, folder trading-studies/",
   "naming": {
     "sets": "<Scope> <Purpose>, up to 35 characters. Scope first so the Load study set menu groups sets together.",
@@ -1777,25 +1777,25 @@
         {
           "id": "MR1",
           "name": "Morning Reversal Fade",
-          "status": "candidate",
+          "status": "candidate (live 2 trades, -0.77 R; v0.2 no target from 2026-11-16)",
           "idea": "Fade the morning extreme back toward VWAP after exhaustion shows."
         },
         {
           "id": "ORB1",
           "name": "Opening Range Breakout",
-          "status": "candidate",
+          "status": "candidate (live 19 trades +0.09 R; backtest: index ETFs -0.16 R, stocks +0.01 R; v0.2 no target from 2026-11-16; v0.3 stocks-only proposed)",
           "idea": "Control bet: the opposite of MR1."
         },
         {
           "id": "OVR1",
           "name": "Overreaction Rebound",
-          "status": "candidate",
+          "status": "candidate (live 1 open trade)",
           "idea": "Quality large caps that gap down hard on news and hold above the day low."
         },
         {
           "id": "JB1",
           "name": "J Bravo Trend",
-          "status": "candidate",
+          "status": "candidate (superseded by JBS1/JBA/JBB swing candidates, no live fills yet)",
           "idea": "Buy arrow above VWAP with 9 > 20 > 180; exit below the 20 EMA."
         }
       ],

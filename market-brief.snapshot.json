@@ -1,35 +1,35 @@
 {
-  "asOf": "2026-11-15T22:00:00.000Z",
-  "generatedAt": "2026-11-16T01:29:08.473Z",
-  "window": "after-hours",
-  "marketClosed": true,
+  "asOf": "2026-11-16T12:30:00.000Z",
+  "generatedAt": "2026-11-16T12:03:32.073Z",
+  "window": "pre-market",
+  "marketClosed": false,
   "nextSessionDate": "2026-11-16",
   "dataFreshness": {
     "bars": {
-      "updated": "2026-11-15T21:30:36.651Z",
+      "updated": "2026-11-16T12:02:05.235Z",
       "symbolCount": 289,
       "expectedSessionDate": "2026-11-13",
-      "refreshDate": "2026-11-15",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-11-16",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 289,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     },
     "options": {
-      "updated": "2026-11-15T21:30:39.485Z",
+      "updated": "2026-11-16T12:02:08.781Z",
       "symbolCount": 22,
       "expectedSessionDate": null,
-      "refreshDate": "2026-11-15",
-      "refreshWindow": "after-hours",
+      "refreshDate": "2026-11-16",
+      "refreshWindow": "pre-market",
       "freshSymbolCount": 22,
       "carriedSymbolCount": 0,
       "missingSymbolCount": 0
     }
   },
   "regime": {
-    "band": "VIX 19.3",
+    "band": "VIX 20.0",
     "score": 0,
-    "vix": 19.3,
+    "vix": 20.04,
     "fearGreed": null
   },
   "bench": {
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-11-16T01:29:05.564Z",
+      "asOf": "2026-11-16T12:03:27.270Z",
       "read": "Rotate toward XLC as XLU weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": -0.035407499615065174,
           "usdRelativeReturn": 0.07312429797777675,
           "asOf": "2026-11-13T00:00:00.000Z",
-          "computedAt": "2026-11-16T01:29:05.827Z",
+          "computedAt": "2026-11-16T12:03:27.454Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1351,7 +1351,7 @@
           "horizonSessions": 63,
           "observationSet": {
             "contractVersion": "rlfx-observation-set/v1",
-            "setId": "set-v1-b390567c",
+            "setId": "set-v1-dc069762",
             "purpose": "global-decomposition",
             "horizonSessions": 63,
             "legs": [
@@ -1904,7 +1904,8 @@
                 "benchmark": [],
                 "fx": [
                   "2026-11-14",
-                  "2026-11-15"
+                  "2026-11-15",
+                  "2026-11-16"
                 ]
               },
               "duplicateDatesDropped": {
@@ -1933,7 +1934,7 @@
           "interaction": 0.00018115599063544486,
           "relationship": "Joint Support",
           "asOf": "2026-11-13T00:00:00.000Z",
-          "computedAt": "2026-11-16T01:29:05.827Z",
+          "computedAt": "2026-11-16T12:03:27.454Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1957,7 +1958,7 @@
               "usdLeadership": {
                 "asOf": "2026-11-13T00:00:00.000Z",
                 "benchmarkReturn": -0.035407499615065174,
-                "computedAt": "2026-11-16T01:29:05.827Z",
+                "computedAt": "2026-11-16T12:03:27.454Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2466,7 +2467,7 @@
                 "approximateLocalReturn": 0.012654919933958952,
                 "asOf": "2026-11-13T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": -0.029771852223905215,
-                "computedAt": "2026-11-16T01:29:05.827Z",
+                "computedAt": "2026-11-16T12:03:27.454Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "INR",
                 "freshUntil": null,
@@ -3007,7 +3008,8 @@
                       "etf": [],
                       "fx": [
                         "2026-11-14",
-                        "2026-11-15"
+                        "2026-11-15",
+                        "2026-11-16"
                       ]
                     }
                   },
@@ -3047,7 +3049,7 @@
                     "uniqueRelationshipIds": []
                   },
                   "purpose": "global-decomposition",
-                  "setId": "set-v1-b390567c",
+                  "setId": "set-v1-dc069762",
                   "state": "aligned"
                 },
                 "relationship": "Joint Support",
@@ -3061,7 +3063,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-11-16T01:29:05.827Z",
+          "computedAt": "2026-11-16T12:03:27.454Z",
           "freshUntil": null
         }
       },
@@ -3071,7 +3073,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-11-13T14:30:00.000Z",
-      "read": "BNO leads real assets at 48.5/100; GLD 14.9, BTC 15.6, SLV 0.",
+      "read": "BNO leads real assets at 48.5/100; GLD 14.9, BTC 14.6, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "BNO",
@@ -3386,12 +3388,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 15.6,
+            "score": 14.6,
             "trend": "Downtrend",
-            "mom21": -18.89,
-            "mom63": -15.53,
-            "mom126": 1.8,
-            "vol": 40.6,
+            "mom21": -19.61,
+            "mom63": -17.71,
+            "mom126": 3.34,
+            "vol": 40.54,
             "maxDrawdown": 25.95,
             "riskPenalty": 5.05,
             "confirmations": [
@@ -3410,7 +3412,7 @@
                 "detail": "Bitcoin's own realized volatility and drawdown reduce the score directly."
               }
             ],
-            "asOf": "2026-11-15T00:00:00.000Z"
+            "asOf": "2026-11-16T00:00:00.000Z"
           },
           "IBIT": {
             "ticker": "IBIT",
@@ -3518,7 +3520,7 @@
           "xle63": 4.420133459348907,
           "xli63": -9.17045233766176,
           "gld63": -12.340619801347108,
-          "btc63": -15.530588643906974,
+          "btc63": -17.71459182103833,
           "dbc63": 0.7526225576060197,
           "goldSilverRatio63": 18.3292346542709,
           "breadth": 50
@@ -3693,27 +3695,27 @@
     "options-structure-lab": {
       "id": "options-structure-lab",
       "asOf": "2026-11-13T16:00:00.000Z",
-      "read": "SPY sits in negative dealer gamma with the flip near 761.74; call wall 760, put wall 750, front expected move ±6.43.",
+      "read": "SPY sits in negative dealer gamma with the flip near 751.72; call wall 753, put wall 750, front expected move ±6.85.",
       "deepLink": "options-structure-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "spot": 754.37,
+        "spot": 751.43,
         "regime": "negative",
-        "flipLevel": 761.74,
-        "signedNetGEX": -785968367.8951,
-        "callWall": 760,
+        "flipLevel": 751.72,
+        "signedNetGEX": -106199923.2732,
+        "callWall": 753,
         "putWall": 750,
-        "expectedMove": 6.43,
-        "atmIV": 0.1151,
+        "expectedMove": 6.85,
+        "atmIV": 0.1232,
         "expiriesPriced": 3
       }
     },
     "gamma-trading-lab": {
       "id": "gamma-trading-lab",
       "asOf": "2026-11-13T16:00:00.000Z",
-      "read": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 761.74, walls 750/760.",
+      "read": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 751.72, walls 750/753.",
       "deepLink": "gamma-trading-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
@@ -3723,10 +3725,10 @@
         "scenario": "range-break-watch",
         "conviction": "patient",
         "hold": "same-session-fade",
-        "signedNetGEX": -785968367.9,
+        "signedNetGEX": -106199923.27,
         "flipPresent": true,
-        "flip": 761.74,
-        "callWall": 760,
+        "flip": 751.72,
+        "callWall": 753,
         "putWall": 750,
         "oviState": "unavailable",
         "opexWindow": null
@@ -3735,23 +3737,23 @@
     "options-flow-feed-lab": {
       "id": "options-flow-feed-lab",
       "asOf": "2026-11-13T16:00:00.000Z",
-      "read": "Option flow is balanced across 12 tickers: 2023 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 745 calls at $98.2M on 133.6× its open interest.",
+      "read": "Option flow is balanced across 12 tickers: 2010 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 745 calls at $96.6M on 6.5× its open interest.",
       "deepLink": "options-flow-feed-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "tickers": 12,
-        "contractsFlagged": 2023,
+        "contractsFlagged": 2010,
         "windowDays": 30,
         "premiumThreshold": 250000,
         "lean": "balanced",
-        "callPremium": 1653066910.5,
-        "putPremium": 1608903396.5,
-        "callFraction": 0.5068,
+        "callPremium": 1648630898,
+        "putPremium": 1605263330,
+        "callFraction": 0.5067,
         "netPremium": null,
-        "consideredCount": 18574,
-        "clearedCount": 1088,
-        "clearedFraction": 0.0586,
+        "consideredCount": 19068,
+        "clearedCount": 550,
+        "clearedFraction": 0.0288,
         "maxScore": 90,
         "top": [
           {
@@ -3760,22 +3762,10 @@
             "strike": 745,
             "dte": 3,
             "volume": 111322,
-            "openInterest": 833,
-            "volOI": 133.6399,
-            "premium": 98186004,
+            "openInterest": 17113,
+            "volOI": 6.5051,
+            "premium": 96627496,
             "iv": 13.98,
-            "score": 90
-          },
-          {
-            "ticker": "AMZN",
-            "type": "C",
-            "strike": 267.5,
-            "dte": 7,
-            "volume": 12137,
-            "openInterest": 2759,
-            "volOI": 4.3991,
-            "premium": 5825760,
-            "iv": 34.84,
             "score": 90
           },
           {
@@ -3784,10 +3774,22 @@
             "strike": 160,
             "dte": 3,
             "volume": 84468,
-            "openInterest": 3631,
-            "volOI": 23.263,
-            "premium": 38644110,
+            "openInterest": 11271,
+            "volOI": 7.4943,
+            "premium": 38010600,
             "iv": 50.04,
+            "score": 83
+          },
+          {
+            "ticker": "NVDA",
+            "type": "P",
+            "strike": 160,
+            "dte": 3,
+            "volume": 120724,
+            "openInterest": 23946,
+            "volOI": 5.0415,
+            "premium": 21368148,
+            "iv": 50.74,
             "score": 83
           }
         ]
@@ -3795,11 +3797,11 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-11-16T01:29:07.888Z",
-      "read": "The AI-capex universe is dated 2026-06-30, 139 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
+      "asOf": "2026-11-16T12:03:29.753Z",
+      "read": "The AI-capex universe is dated 2026-06-30, 140 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
-        "reason": "The AI-capex universe is dated 2026-06-30, 139 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
+        "reason": "The AI-capex universe is dated 2026-06-30, 140 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
       },
       "deepLink": "ai-capex-strategy-lab.html",
       "source": "owning-tool-functions",
@@ -3874,15 +3876,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-11-16T01:29:07.919Z",
+      "asOf": "2026-11-16T12:03:29.966Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-a328631e",
-        "evidenceIdentity": "fxe-v1-3e2649b0",
+        "ownerDecisionId": "fxo-v1-254083cd",
+        "evidenceIdentity": "fxe-v1-0d033bed",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -4005,8 +4007,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-a328631e",
-            "evidenceIdentity": "fxe-v1-3e2649b0",
+            "ownerDecisionId": "fxo-v1-254083cd",
+            "evidenceIdentity": "fxe-v1-0d033bed",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4126,7 +4128,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-3e2649b0",
+              "evidenceIdentity": "fxe-v1-0d033bed",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4151,7 +4153,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-11-16T01:29:07.919Z",
+          "computedAt": "2026-11-16T12:03:29.966Z",
           "freshUntil": null
         }
       }
@@ -4177,7 +4179,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-11-16T01:29:08.102Z",
+      "asOf": "2026-11-16T12:03:30.746Z",
       "read": "Leadership is broad — 63.57% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4272,7 +4274,7 @@
         "poc": null,
         "valueAreaHigh": null,
         "valueAreaLow": null,
-        "gapPct": 0.23,
+        "gapPct": 0.38,
         "sessions": 5,
         "barsToday": 79
       }
@@ -4323,7 +4325,7 @@
       "id": "options-flow-feed-lab",
       "deepLink": "options-flow-feed-lab.html",
       "status": "fresh-headless",
-      "reason": "Option flow is balanced across 12 tickers: 2023 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 745 calls at $98.2M on 133.6× its open interest."
+      "reason": "Option flow is balanced across 12 tickers: 2010 contracts clear the $250k premium bar inside 30 days; the most unusual is SPY 745 calls at $96.6M on 6.5× its open interest."
     },
     {
       "id": "intraday-tape-lab",
@@ -4341,13 +4343,13 @@
       "id": "options-structure-lab",
       "deepLink": "options-structure-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY sits in negative dealer gamma with the flip near 761.74; call wall 760, put wall 750, front expected move ±6.43."
+      "reason": "SPY sits in negative dealer gamma with the flip near 751.72; call wall 753, put wall 750, front expected move ±6.85."
     },
     {
       "id": "gamma-trading-lab",
       "deepLink": "gamma-trading-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 761.74, walls 750/760."
+      "reason": "SPY dealers are negative gamma — playbook range-break-watch, conviction patient; flip 751.72, walls 750/753."
     },
     {
       "id": "sector-research-lab",
@@ -4365,7 +4367,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "BNO leads real assets at 48.5/100; GLD 14.9, BTC 15.6, SLV 0."
+      "reason": "BNO leads real assets at 48.5/100; GLD 14.9, BTC 14.6, SLV 0."
     },
     {
       "id": "bond-regime-lab",
@@ -4377,7 +4379,7 @@
       "id": "ai-capex-strategy-lab",
       "deepLink": "ai-capex-strategy-lab.html",
       "status": "unavailable",
-      "reason": "The AI-capex universe is dated 2026-06-30, 139 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
+      "reason": "The AI-capex universe is dated 2026-06-30, 140 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
     },
     {
       "id": "msft-july-print-model",

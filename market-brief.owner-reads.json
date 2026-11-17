@@ -1,6 +1,6 @@
 {
   "contractVersion": "public-owner-reads/v1",
-  "generatedAt": "2026-11-17T19:32:13.416Z",
+  "generatedAt": "2026-11-17T21:31:46.210Z",
   "asOf": "2026-11-17",
   "source": "committed same-origin snapshots via rlmetrics",
   "tickers": [
@@ -27,12 +27,12 @@
     "volatility-sizing-lab": {
       "MSFT": {
         "state": "current",
-        "read": "Realized 63-session volatility 26.9% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Realized 63-session volatility 27.3% annualized.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.268858,
+          "annualizedVol": 0.272877,
           "window": 63
         },
         "domainId": "volatility",
@@ -40,12 +40,12 @@
       },
       "QQQ": {
         "state": "current",
-        "read": "Realized 63-session volatility 23.7% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Realized 63-session volatility 23.8% annualized.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.237345,
+          "annualizedVol": 0.237648,
           "window": 63
         },
         "domainId": "volatility",
@@ -53,12 +53,12 @@
       },
       "SPMO": {
         "state": "current",
-        "read": "Realized 63-session volatility 28.2% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Realized 63-session volatility 28.0% annualized.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.281623,
+          "annualizedVol": 0.280212,
           "window": 63
         },
         "domainId": "volatility",
@@ -66,12 +66,12 @@
       },
       "FMTM": {
         "state": "current",
-        "read": "Realized 63-session volatility 22.7% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Realized 63-session volatility 22.5% annualized.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.226667,
+          "annualizedVol": 0.225039,
           "window": 63
         },
         "domainId": "volatility",
@@ -80,11 +80,11 @@
       "XLK": {
         "state": "current",
         "read": "Realized 63-session volatility 30.6% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.306367,
+          "annualizedVol": 0.306199,
           "window": 63
         },
         "domainId": "volatility",
@@ -93,11 +93,11 @@
       "VGT": {
         "state": "current",
         "read": "Realized 63-session volatility 28.3% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.283296,
+          "annualizedVol": 0.28341,
           "window": 63
         },
         "domainId": "volatility",
@@ -105,12 +105,12 @@
       },
       "SOXX": {
         "state": "current",
-        "read": "Realized 63-session volatility 52.4% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Realized 63-session volatility 52.3% annualized.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.5239,
+          "annualizedVol": 0.522568,
           "window": 63
         },
         "domainId": "volatility",
@@ -118,12 +118,12 @@
       },
       "SPCX": {
         "state": "current",
-        "read": "Realized 63-session volatility 56.6% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Realized 63-session volatility 56.7% annualized.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.565897,
+          "annualizedVol": 0.566915,
           "window": 63
         },
         "domainId": "volatility",
@@ -131,12 +131,12 @@
       },
       "FBTC": {
         "state": "current",
-        "read": "Realized 63-session volatility 42.9% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Realized 63-session volatility 41.4% annualized.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.429449,
+          "annualizedVol": 0.413625,
           "window": 63
         },
         "domainId": "volatility",
@@ -144,12 +144,12 @@
       },
       "FETH": {
         "state": "current",
-        "read": "Realized 63-session volatility 54.0% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Realized 63-session volatility 50.3% annualized.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.539976,
+          "annualizedVol": 0.502677,
           "window": 63
         },
         "domainId": "volatility",
@@ -157,12 +157,12 @@
       },
       "GLD": {
         "state": "current",
-        "read": "Realized 63-session volatility 24.9% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Realized 63-session volatility 23.5% annualized.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.248954,
+          "annualizedVol": 0.235426,
           "window": 63
         },
         "domainId": "volatility",
@@ -171,11 +171,11 @@
       "XLE": {
         "state": "current",
         "read": "Realized 63-session volatility 24.1% annualized.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "annualizedVol": 0.240541,
+          "annualizedVol": 0.240749,
           "window": 63
         },
         "domainId": "volatility",
@@ -185,16 +185,16 @@
     "swing-structure-lab": {
       "MSFT": {
         "state": "current",
-        "read": "Bull-stacked (20>50>200); last close 17.2% above its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Bull-stacked (20>50>200); last close 14.5% above its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 517.99,
-          "ma20": 528.6095,
-          "ma50": 519.363,
-          "ma200": 441.8579,
-          "percentVs200": 17.23,
+          "lastClose": 506.24,
+          "ma20": 527.328,
+          "ma50": 519.6088,
+          "ma200": 442.2722,
+          "percentVs200": 14.4634,
           "structure": "bull"
         },
         "domainId": "technical",
@@ -202,16 +202,16 @@
       },
       "QQQ": {
         "state": "current",
-        "read": "Mixed stack; last close 3.0% below its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Mixed stack; last close 3.8% below its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 661.75,
-          "ma20": 692.618,
-          "ma50": 716.723,
-          "ma200": 682.4383,
-          "percentVs200": -3.0315,
+          "lastClose": 656.95,
+          "ma20": 689.584,
+          "ma50": 715.4948,
+          "ma200": 682.5924,
+          "percentVs200": -3.7566,
           "structure": "mixed"
         },
         "domainId": "technical",
@@ -219,16 +219,16 @@
       },
       "SPMO": {
         "state": "current",
-        "read": "Mixed stack; last close 7.6% below its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Mixed stack; last close 8.2% below its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 128.06,
-          "ma20": 135.1265,
-          "ma50": 143.5932,
-          "ma200": 138.6088,
-          "percentVs200": -7.6105,
+          "lastClose": 127.29,
+          "ma20": 134.3935,
+          "ma50": 143.1296,
+          "ma200": 138.6439,
+          "percentVs200": -8.1893,
           "structure": "mixed"
         },
         "domainId": "technical",
@@ -236,16 +236,16 @@
       },
       "FMTM": {
         "state": "current",
-        "read": "Mixed stack; last close 3.4% below its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Mixed stack; last close 4.8% below its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 37.3,
-          "ma20": 38.5692,
-          "ma50": 38.8866,
-          "ma200": 38.6153,
-          "percentVs200": -3.4061,
+          "lastClose": 36.76,
+          "ma20": 38.4502,
+          "ma50": 38.8562,
+          "ma200": 38.6201,
+          "percentVs200": -4.8164,
           "structure": "mixed"
         },
         "domainId": "technical",
@@ -253,16 +253,16 @@
       },
       "XLK": {
         "state": "current",
-        "read": "Mixed stack; last close 3.6% below its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Mixed stack; last close 4.5% below its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 164.76,
-          "ma20": 177.596,
-          "ma50": 186.6514,
-          "ma200": 170.92,
-          "percentVs200": -3.604,
+          "lastClose": 163.26,
+          "ma20": 176.487,
+          "ma50": 186.1592,
+          "ma200": 171.01,
+          "percentVs200": -4.5319,
           "structure": "mixed"
         },
         "domainId": "technical",
@@ -270,16 +270,16 @@
       },
       "VGT": {
         "state": "current",
-        "read": "Mixed stack; last close 2.3% below its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Mixed stack; last close 3.2% below its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 107.82,
-          "ma20": 115.765,
-          "ma50": 120.7886,
-          "ma200": 110.3227,
-          "percentVs200": -2.2685,
+          "lastClose": 106.81,
+          "ma20": 115.0955,
+          "ma50": 120.5038,
+          "ma200": 110.3861,
+          "percentVs200": -3.2396,
           "structure": "mixed"
         },
         "domainId": "technical",
@@ -287,16 +287,16 @@
       },
       "SOXX": {
         "state": "current",
-        "read": "Mixed stack; last close 12.0% below its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Mixed stack; last close 11.9% below its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 141.22,
-          "ma20": 155.5265,
-          "ma50": 171.2555,
-          "ma200": 160.5164,
-          "percentVs200": -12.0215,
+          "lastClose": 141.46,
+          "ma20": 154.266,
+          "ma50": 170.562,
+          "ma200": 160.6359,
+          "percentVs200": -11.9375,
           "structure": "mixed"
         },
         "domainId": "technical",
@@ -304,22 +304,22 @@
       },
       "SPCX": {
         "state": "unavailable",
-        "gapReason": "only 109 sessions on file; 201 needed",
+        "gapReason": "only 110 sessions on file; 201 needed",
         "domainId": "technical",
         "ownerDeepLink": "swing-structure-lab.html#power"
       },
       "FBTC": {
         "state": "current",
-        "read": "Mixed stack; last close 10.3% below its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Mixed stack; last close 11.7% below its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 56.5,
-          "ma20": 67.1125,
-          "ma50": 69.5858,
-          "ma200": 62.9866,
-          "percentVs200": -10.2984,
+          "lastClose": 55.55,
+          "ma20": 66.304,
+          "ma50": 69.3324,
+          "ma200": 62.9249,
+          "percentVs200": -11.7202,
           "structure": "mixed"
         },
         "domainId": "technical",
@@ -327,16 +327,16 @@
       },
       "FETH": {
         "state": "current",
-        "read": "Mixed stack; last close 15.1% below its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Mixed stack; last close 16.0% below its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 18.12,
-          "ma20": 22.291,
-          "ma50": 24.248,
-          "ma200": 21.3469,
-          "percentVs200": -15.1167,
+          "lastClose": 17.9,
+          "ma20": 21.974,
+          "ma50": 24.1114,
+          "ma200": 21.3207,
+          "percentVs200": -16.0442,
           "structure": "mixed"
         },
         "domainId": "technical",
@@ -345,15 +345,15 @@
       "GLD": {
         "state": "current",
         "read": "Bear-stacked (20<50<200); last close 13.5% below its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 352.93,
-          "ma20": 367.4455,
-          "ma50": 379.8292,
-          "ma200": 407.9566,
-          "percentVs200": -13.4883,
+          "lastClose": 352.48,
+          "ma20": 366.187,
+          "ma50": 378.8844,
+          "ma200": 407.5833,
+          "percentVs200": -13.5195,
           "structure": "bear"
         },
         "domainId": "technical",
@@ -361,16 +361,16 @@
       },
       "XLE": {
         "state": "current",
-        "read": "Bull-stacked (20>50>200); last close 7.0% above its 200-session average.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "Bull-stacked (20>50>200); last close 6.3% above its 200-session average.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "lastClose": 63.69,
-          "ma20": 65.963,
-          "ma50": 64.9784,
-          "ma200": 59.5374,
-          "percentVs200": 6.9747,
+          "lastClose": 63.36,
+          "ma20": 65.7325,
+          "ma50": 64.9502,
+          "ma200": 59.604,
+          "percentVs200": 6.3016,
           "structure": "bull"
         },
         "domainId": "technical",
@@ -380,14 +380,14 @@
     "etf-momentum-lab": {
       "MSFT": {
         "state": "current",
-        "read": "11.1pp ahead of SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "9.3pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": 11.1327,
-          "subjectReturn": 0.075494,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": 9.2897,
+          "subjectReturn": 0.045281,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -396,14 +396,14 @@
       },
       "QQQ": {
         "state": "current",
-        "read": "4.2pp behind SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "3.5pp behind SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": -4.188,
-          "subjectReturn": -0.077713,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": -3.4958,
+          "subjectReturn": -0.082575,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -412,14 +412,14 @@
       },
       "SPMO": {
         "state": "current",
-        "read": "11.6pp behind SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "9.4pp behind SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": -11.5526,
-          "subjectReturn": -0.151358,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": -9.4345,
+          "subjectReturn": -0.141962,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -428,14 +428,14 @@
       },
       "FMTM": {
         "state": "current",
-        "read": "1.5pp behind SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "0.2pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": -1.5058,
-          "subjectReturn": -0.050891,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": 0.2099,
+          "subjectReturn": -0.045517,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -444,14 +444,14 @@
       },
       "XLK": {
         "state": "current",
-        "read": "7.7pp behind SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "6.3pp behind SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": -7.6547,
-          "subjectReturn": -0.11238,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": -6.3361,
+          "subjectReturn": -0.110978,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -460,14 +460,14 @@
       },
       "VGT": {
         "state": "current",
-        "read": "6.4pp behind SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "5.3pp behind SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": -6.4092,
-          "subjectReturn": -0.099925,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": -5.3309,
+          "subjectReturn": -0.100926,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -476,14 +476,14 @@
       },
       "SOXX": {
         "state": "current",
-        "read": "16.7pp behind SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "13.6pp behind SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": -16.69,
-          "subjectReturn": -0.202732,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": -13.575,
+          "subjectReturn": -0.183366,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -492,14 +492,14 @@
       },
       "SPCX": {
         "state": "current",
-        "read": "0.6pp behind SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "6.2pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": -0.5886,
-          "subjectReturn": -0.041719,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": 6.2296,
+          "subjectReturn": 0.01468,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -508,14 +508,14 @@
       },
       "FBTC": {
         "state": "current",
-        "read": "4.1pp ahead of SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "2.0pp behind SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": 4.0635,
-          "subjectReturn": 0.004802,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": -2.0336,
+          "subjectReturn": -0.067953,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -524,14 +524,14 @@
       },
       "FETH": {
         "state": "current",
-        "read": "1.3pp behind SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "9.7pp behind SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": -1.3485,
-          "subjectReturn": -0.049318,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": -9.7152,
+          "subjectReturn": -0.144768,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -540,14 +540,14 @@
       },
       "GLD": {
         "state": "current",
-        "read": "7.9pp behind SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "10.1pp behind SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": -7.8632,
-          "subjectReturn": -0.114465,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": -10.0653,
+          "subjectReturn": -0.14827,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -556,14 +556,14 @@
       },
       "XLE": {
         "state": "current",
-        "read": "3.6pp ahead of SPY over 63 sessions.",
-        "asOf": "2026-11-16T00:00:00.000Z",
+        "read": "4.4pp ahead of SPY over 63 sessions.",
+        "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "relativeReturnPoints": 3.599,
-          "subjectReturn": 0.000157,
-          "benchmarkReturn": -0.035833,
+          "relativeReturnPoints": 4.4156,
+          "subjectReturn": -0.00346,
+          "benchmarkReturn": -0.047617,
           "benchmark": "SPY",
           "window": 63
         },
@@ -579,8 +579,8 @@
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "impliedVol": 0.602875,
-          "impliedMovePct": 4.4627,
+          "impliedVol": 0.60605,
+          "impliedMovePct": 4.4862,
           "expiry": "2026-11-18",
           "daysToExpiry": 2,
           "atTheMoneyContracts": 4
@@ -590,13 +590,13 @@
       },
       "QQQ": {
         "state": "current",
-        "read": "Options imply a 2.9% move by 2026-11-17.",
+        "read": "Options imply a 6.1% move by 2026-11-17.",
         "asOf": "2026-11-17T00:00:00.000Z",
         "provenance": "same-origin-snapshot",
         "gapReason": null,
         "metrics": {
-          "impliedVol": 0.5457,
-          "impliedMovePct": 2.8563,
+          "impliedVol": 1.17215,
+          "impliedMovePct": 6.1353,
           "expiry": "2026-11-17",
           "daysToExpiry": 1,
           "atTheMoneyContracts": 4

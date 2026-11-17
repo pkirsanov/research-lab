@@ -12,7 +12,8 @@ import {
   readPublicationState,
   resolveModuleClosure,
   runBriefRefreshFixture,
-  runFixtureValidator
+  runFixtureValidator,
+  seedAgendaLedgerText
 } from './brief-refresh-atomicity.support.mjs';
 import {
   buildResearchAgendaTransaction,
@@ -306,7 +307,12 @@ if (process.env.NODE_TEST_CONTEXT) {
       priorDossiersByTopicId: { [topic.topicId]: historical }
     });
     assert.equal(candidate.ok, true, JSON.stringify(candidate));
-    const baselineHistory = readFileSync(new URL('../research/agenda/history.jsonl', import.meta.url), 'utf8');
+    const productionHistory = readFileSync(new URL('../research/agenda/history.jsonl', import.meta.url), 'utf8');
+    /* The production ledger crossed the E019 artifact-budget cap on 2026-11-09, so appending one
+       row to a verbatim copy of it is refused before the write-order boundary this test proves.
+       Seed the minimal deterministic per-topic baseline instead; the production content stays
+       under test at the rollback check below, where it must survive untouched. */
+    const baselineHistory = seedAgendaLedgerText(registry, '2026-08-12T12:00:00.000Z');
     const baselineCurrent = readFileSync(new URL('../research/agenda/current.json', import.meta.url), 'utf8');
     const baselinePayload = readFileSync(new URL('../market-brief.payload.json', import.meta.url), 'utf8');
     const pageInputs = {
@@ -327,7 +333,7 @@ if (process.env.NODE_TEST_CONTEXT) {
         ok: false,
         error: { code: 'E019-AGENDA-TRANSACTION', reason: 'transaction-input-invalid', field: 'registry', topicId: null }
       });
-      assert.equal(readFileSync(new URL('../research/agenda/history.jsonl', import.meta.url), 'utf8'), baselineHistory);
+      assert.equal(readFileSync(new URL('../research/agenda/history.jsonl', import.meta.url), 'utf8'), productionHistory);
       assert.equal(readFileSync(new URL('../research/agenda/current.json', import.meta.url), 'utf8'), baselineCurrent);
     }
     const transaction = buildResearchAgendaTransaction({ ...transactionInput, registry: oneTopicRegistry });
@@ -809,20 +815,46 @@ if (process.env.NODE_TEST_CONTEXT) {
     assert.equal(publication.staged, '', 'wrapper leaves no owned staged paths');
   });
 
-  test('same-target retained Tier B publishes candidate Tier A with visible payload staleness', (context) => {
+  test('same-target retained Tier B syncs the payload to the candidate snapshot and retains the narrative verbatim', (context) => {
     const fixture = createBriefRefreshFixture({ candidateDate: '2026-07-15' });
     context.after(() => fixture.cleanup());
     const result = runBriefRefreshFixture(fixture);
     const publication = readPublicationState(fixture);
 
     assert.equal(result.status, 0, `wrapper failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
-    assert.match(result.stdout, /selected transaction=same-target-data-only/);
+    assert.match(result.stdout, /selected transaction=same-target-data-only; cache \+ final pair validation passed/);
     assert.equal(publication.snapshotDate, fixture.baselineDate);
     assert.equal(publication.payloadDate, fixture.baselineDate);
     assert.ok(!publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']));
     assert.ok(!publication.historyBytes.equals(fixture.baseline['brief-history.jsonl']));
-    assert.ok(publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']));
-    assert.deepEqual(new Set(publication.lastCommitPaths), new Set(['brief-history.jsonl', 'brief-history.recent.jsonl', 'briefs/tier-a/2026-07.jsonl', 'causal-rotation.snapshot.json', 'data/raw-refresh.json', 'market-brief.attention-scorecard.json', 'market-brief.owner-reads.json', 'market-brief.scorecard.json', 'market-brief.snapshot.json', 'market-brief.snapshot.page.json']));
+    /* Post-sync-era contract: the committed payload is the retained Tier B narrative with its
+       Tier-A-derived fields rebound to the candidate snapshot (asOf, generatedAt execution
+       clock, nextSession.sessionDate). Byte identity with the baseline is therefore WRONG by
+       design — the sync rewrites those fields on every run — so the contract is pinned
+       field-by-field instead: the three synced fields match the candidate snapshot, and every
+       other field is retained verbatim. */
+    const syncedPayload = JSON.parse(publication.payloadBytes.toString('utf8'));
+    const retainedPayload = JSON.parse(fixture.baseline['market-brief.payload.json'].toString('utf8'));
+    const candidateSnapshot = JSON.parse(publication.snapshotBytes.toString('utf8'));
+    assert.equal(syncedPayload.nextSession.sessionDate, candidateSnapshot.nextSessionDate, 'the retained payload rebinds nextSession.sessionDate to the candidate snapshot');
+    assert.equal(syncedPayload.asOf, candidateSnapshot.asOf, 'the retained payload rebinds the analyzed-window asOf to the candidate snapshot');
+    assert.ok(!Number.isNaN(Date.parse(syncedPayload.generatedAt)), 'the synced generatedAt is a parseable instant');
+    assert.notEqual(syncedPayload.generatedAt, retainedPayload.generatedAt, 'the sync stamps a fresh generatedAt execution clock');
+    const stripSyncedFields = (payload) => {
+      const clone = JSON.parse(JSON.stringify(payload));
+      delete clone.asOf;
+      delete clone.generatedAt;
+      clone.nextSession = { ...clone.nextSession, sessionDate: null };
+      return clone;
+    };
+    assert.deepEqual(stripSyncedFields(syncedPayload), stripSyncedFields(retainedPayload), 'every Tier B field is retained verbatim from the last coherent pair');
+    assert.ok(!publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']), 'the committed payload carries the synced Tier A fields');
+    /* The sync-era wrapper also commits the rebuilt page projections: page.json and
+       experimental.json embed the payload (fresh generatedAt on every run) and payload.json
+       itself carries the synced asOf, so all three always differ from baseline and enter the
+       same-target transaction. config/tools page files are static for this fixture and stay
+       out of the commit. */
+    assert.deepEqual(new Set(publication.lastCommitPaths), new Set(['brief-history.jsonl', 'brief-history.recent.jsonl', 'briefs/tier-a/2026-07.jsonl', 'causal-rotation.snapshot.json', 'data/raw-refresh.json', 'market-brief.attention-scorecard.json', 'market-brief.experimental.json', 'market-brief.owner-reads.json', 'market-brief.page.json', 'market-brief.payload.json', 'market-brief.scorecard.json', 'market-brief.snapshot.json', 'market-brief.snapshot.page.json']));
   });
 
   test('matching generated Tier B advances snapshot payload and history together', (context) => {
@@ -1747,11 +1779,40 @@ process.exit(count < 3 ? 1 : 0);
     const publication = readPublicationState(fixture);
 
     assert.equal(result.status, 0, `cache publication failed\nstdout:\n${result.stdout}\nstderr:\n${result.stderr}`);
-    assert.match(result.stdout, /selected transaction=raw-data-only; cache validation passed; published brief pair left unchanged/);
+    assert.match(result.stdout, /selected transaction=raw-data-only; cache \+ final pair validation passed/);
     assert.match(result.stdout, /committed: market-data: cache refresh/);
-    assert.ok(publication.snapshotBytes.equals(invalidSnapshotBytes));
-    assert.ok(publication.payloadBytes.equals(payloadBytes));
-    assert.deepEqual(publication.lastCommitPaths, ['causal-rotation.snapshot.json', 'data/raw-refresh.json', 'market-brief.attention-scorecard.json', 'market-brief.scorecard.json', 'market-brief.snapshot.page.json']);
+    /* Post-sync-era raw-data-only contract: DATA_FILES stay out of the commit — the committed
+       snapshot is still the invalid baseline — while the committed payload is the retained
+       narrative with its synced fields rebound to the freshly built candidate snapshot, so the
+       session date advances coherently even though the narrative prose did not. The working
+       tree may hold freshly built, uncommitted page/snapshot bytes; the publication contract
+       is the committed pair. JSON comparison keeps this independent of the trailing-newline
+       trim runGit applies to git show output. */
+    const committedSnapshot = JSON.parse(gitFixture(fixture, ['show', 'HEAD:market-brief.snapshot.json']));
+    assert.deepEqual(committedSnapshot, invalidSnapshot, 'the committed snapshot stays at the invalid baseline under raw-data-only');
+    assert.ok(!publication.lastCommitPaths.includes('market-brief.snapshot.json'), 'raw-data-only never commits DATA_FILES');
+    const committedPayload = JSON.parse(publication.payloadBytes.toString('utf8'));
+    const retainedPayload = JSON.parse(payloadBytes.toString('utf8'));
+    const candidateSnapshot = JSON.parse(publication.snapshotBytes.toString('utf8'));
+    assert.equal(committedPayload.nextSession.sessionDate, candidateSnapshot.nextSessionDate, 'raw-data-only advances the payload session date with the built candidate snapshot');
+    assert.equal(committedPayload.asOf, candidateSnapshot.asOf, 'raw-data-only rebinds the payload asOf to the built candidate snapshot');
+    assert.ok(!Number.isNaN(Date.parse(committedPayload.generatedAt)), 'the synced generatedAt is a parseable instant');
+    assert.notEqual(committedPayload.generatedAt, retainedPayload.generatedAt, 'the sync stamps a fresh generatedAt execution clock');
+    const stripRawSyncedFields = (p) => {
+      const clone = JSON.parse(JSON.stringify(p));
+      delete clone.asOf;
+      delete clone.generatedAt;
+      clone.nextSession = { ...clone.nextSession, sessionDate: null };
+      return clone;
+    };
+    assert.deepEqual(stripRawSyncedFields(committedPayload), stripRawSyncedFields(retainedPayload), 'every Tier B field is retained verbatim under raw-data-only');
+    assert.ok(!publication.payloadBytes.equals(payloadBytes), 'the committed payload carries the synced Tier A fields');
+    /* The committed set is the raw-data-only selection minus the byte-identical files: the
+       synced payload, the rebuilt data cache, the tier-a shard and recent rows that record the
+       new candidate, the freshly built owner-reads (absent from the fixture baseline), the
+       derived scorecards, and the page projections that embed the payload or the rebuilt
+       snapshot. Config and tools page files are static for this fixture and stay out. */
+    assert.deepEqual(new Set(publication.lastCommitPaths), new Set(['brief-history.recent.jsonl', 'briefs/tier-a/2026-07.jsonl', 'causal-rotation.snapshot.json', 'data/raw-refresh.json', 'market-brief.attention-scorecard.json', 'market-brief.experimental.json', 'market-brief.owner-reads.json', 'market-brief.page.json', 'market-brief.payload.json', 'market-brief.scorecard.json', 'market-brief.snapshot.page.json']));
     assert.notEqual(publication.head, invalidHead);
     assert.equal(gitFixture(fixture, ['rev-parse', 'origin/main']), publication.head);
   });

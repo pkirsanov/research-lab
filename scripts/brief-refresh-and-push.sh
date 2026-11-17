@@ -628,7 +628,7 @@ else
           BRIEF_RESEARCH_PAYLOAD_CANDIDATE="$RESEARCH_PAYLOAD_CANDIDATE" \
           "$NODE_BIN" scripts/brief-narrative-parallel.mjs \
        && "$NODE_BIN" scripts/build-attention-items.mjs --recompose --write --payload "$ATTENTION_PAYLOAD" \
-         && "$NODE_BIN" scripts/validate-brief-payload.mjs "$ATTENTION_PAYLOAD" --drop-unscoreable --drop-ineligible-causal --defer-page-parity --require-narrative-fields "${FRESH_NARRATIVE_ARGS[@]}" \
+         && "$NODE_BIN" scripts/validate-brief-payload.mjs "$ATTENTION_PAYLOAD" --drop-unscoreable --drop-ineligible-causal --defer-page-parity --require-narrative-fields "${FRESH_NARRATIVE_ARGS[@]+"${FRESH_NARRATIVE_ARGS[@]}"}" \
          && promote_research_agenda_candidate \
          && "$NODE_BIN" scripts/validate-brief-payload.mjs "$PAYLOAD" --defer-page-parity; then
       NARRATIVE_OK=1
@@ -779,7 +779,7 @@ else
   if [ "$TOOL_BRIEF_BUNDLE_READY" = "1" ]; then
     tool_bundle_args=(--tool-bundle "$TOOL_BRIEF_BUNDLE")
   fi
-  if "$NODE_BIN" scripts/brief-distributed-publish.mjs --root . "${tool_bundle_args[@]}" \
+  if "$NODE_BIN" scripts/brief-distributed-publish.mjs --root . "${tool_bundle_args[@]+"${tool_bundle_args[@]}"}" \
     && "$NODE_BIN" scripts/validate-distributed-briefs.mjs --root .; then
     DISTRIBUTED_OK=1
     echo "[brief-timer] distributed briefs/ graph generated + graph-validated — will ride the same commit"

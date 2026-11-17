@@ -21,6 +21,47 @@ import { conformantNarrativePayload } from './required-narrative-fields.support.
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
+/* rlagenda is CommonJS; this ESM support module loads it through createRequire. */
+const requireFromSupport = createRequire(import.meta.url);
+const RLAGENDA = requireFromSupport(resolve(ROOT, 'rlagenda.js'));
+
+/* Build the minimal deterministic agenda ledger a fixture seeds its copied research/agenda
+   tree with: one lifecycle event per registry topic, each transitioning from null (no prior
+   baseline) to the topic's current production lifecycle state. The transaction under test
+   plans its lifecycle events from the ledger's latest event per topic, so this seed makes the
+   plan a no-op for any candidate date.
+   A verbatim copy of the production ledger is no longer usable as a seed: it crossed the
+   E019 artifact-budget cap (262144 bytes) on 2026-11-09, so any append is refused before the
+   publication boundary the tests exercise. The seed stays under budget and reference-closed
+   by construction: each event is appended through appendHistoryEvents, which re-validates the
+   whole ledger on every step. */
+export function seedAgendaLedgerText(registry, occurredAt) {
+  const generationId = 'generation-' + RLAGENDA.sha256Text('agenda-baseline-seed:' + occurredAt).replace(/^sha256:/, '').slice(0, 64);
+  let text = '';
+  for (const topic of registry.topics) {
+    const built = RLAGENDA.buildHistoryEvent({
+      contractVersion: 'research-history-event/v1',
+      eventType: 'lifecycle',
+      occurredAt,
+      topicId: topic.topicId,
+      generationId,
+      reviewId: null,
+      dossierId: null,
+      correctsEventId: null,
+      supersedesEventId: null,
+      artifactRef: null,
+      fromState: null,
+      toState: topic.lifecycleState,
+      registryTopicSha256: RLAGENDA.agendaDigest(topic)
+    });
+    if (!built.ok) throw new Error(`seedAgendaLedgerText: ${topic.topicId} -> ${built.code}`);
+    const appended = RLAGENDA.appendHistoryEvents(text, [built.event]);
+    if (!appended.ok) throw new Error(`seedAgendaLedgerText: append ${topic.topicId} -> ${appended.code}`);
+    text = appended.candidateText;
+  }
+  return text;
+}
+
 /* Every script scripts/brief-refresh-and-push.sh actually invokes, MINUS the three the fixture
    deliberately replaces with stubs (fetch-bars, fetch-options, brief-refresh) and the agenda
    refresher, which only exists in the agendaAssets variant. Only the ENTRY points are listed;
@@ -283,6 +324,19 @@ export function createBriefRefreshFixture(options = {}) {
     copyFileSync(resolve(ROOT, 'research-agenda-lab.html'), resolve(repoRoot, 'research-agenda-lab.html'));
     mkdirSync(resolve(repoRoot, 'research'), { recursive: true });
     cpSync(resolve(ROOT, 'research/agenda'), resolve(repoRoot, 'research/agenda'), { recursive: true });
+    /* The copied production ledger outgrew the E019 artifact budget on 2026-11-09, so a run
+       that must append an agenda row would be refused before the boundary under test.
+       Re-seed it with the deterministic per-topic baseline at the fixture baseline date;
+       current.json is left as the production pointer because no step in the wrapper
+       cross-validates current.json against ledger contents (dossier refs resolve to files
+       that are copied with the tree). */
+    writeFileSync(
+      resolve(repoRoot, 'research/agenda/history.jsonl'),
+      seedAgendaLedgerText(
+        JSON.parse(readFileSync(resolve(repoRoot, 'research-agenda.json'), 'utf8')),
+        `${baselineDate}T12:00:00.000Z`
+      )
+    );
     mkdirSync(resolve(repoRoot, 'rlexperience-adapters'), { recursive: true });
     copyFileSync(resolve(ROOT, 'rlexperience-adapters/research-agenda.js'), resolve(repoRoot, 'rlexperience-adapters/research-agenda.js'));
     mkdirSync(resolve(repoRoot, 'notes'), { recursive: true });

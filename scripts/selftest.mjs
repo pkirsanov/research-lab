@@ -9377,6 +9377,63 @@ try {
   // Idempotency is what makes the recovery safe to re-run in a scheduled pipeline.
   assert(backfill.planBackfill(ROOT).stats.newRows === 0,
     'the backfill is idempotent against the committed ledger — a re-run proposes zero further rows');
+
+  // Working-tree mode is the other half of the pages-gate invariant: the refresh pipeline runs the
+  // backfill BEFORE the commit exists, deriving this run's rows from the on-disk payload so they ship
+  // in the SAME commit. A scratch repo proves the full contract end to end: a committed payload with
+  // no ledger is recovered as exactly one row; a fresh asOf proposed pre-commit is exactly one more;
+  // and the later git-history pass of the committed payload dedupes against that working-tree row
+  // (cross-writer (key, occurredAt) guard) — the exact chain whose absence left every fallback commit
+  // one payload behind and froze the live site at 2026-11-09.
+  {
+    const { mkdtempSync, mkdirSync, writeFileSync: wtWrite, rmSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const { execFileSync: wtGitExec } = await import('node:child_process');
+    const wtRoot = mkdtempSync(join(tmpdir(), 'backfill-wt-'));
+    try {
+      mkdirSync(join(wtRoot, 'data', 'bars'), { recursive: true });
+      wtWrite(join(wtRoot, 'data', 'bars', 'SPY.json'), JSON.stringify({ rows: [] }));
+      const wtAction = {
+        subject: 'SPY core', action: 'hold', horizon: 'swing',
+        trigger: 'hold above the 200-day (~432.3)', invalidation: 'a break below the 740.09 flip', confidence: 60
+      };
+      const wtPayload = (asOf) => JSON.stringify({ asOf, nextSession: { actions: [wtAction] } });
+      const wtGit = (...gargs) => wtGitExec('git', ['-c', 'user.email=wt@test', '-c', 'user.name=wt', ...gargs], { cwd: wtRoot, encoding: 'utf8' });
+      wtGit('init');
+      wtWrite(join(wtRoot, 'market-brief.payload.json'), wtPayload('2026-11-15T12:00:00Z'));
+      wtGit('add', 'market-brief.payload.json');
+      wtGit('commit', '-m', 'payload A1');
+
+      const a1Plan = backfill.planBackfill(wtRoot);
+      assert(a1Plan.stats.newRows === 1 && a1Plan.stats.proposed === 1,
+        'a committed payload absent from the ledger is recovered as exactly one proposed row');
+      assert(backfill.runBackfill(wtRoot, {}).added === 1, 'the recovered row lands in the scratch ledger');
+      assert(backfill.planBackfill(wtRoot).stats.newRows === 0,
+        'the git-history backfill is idempotent on the scratch repo');
+
+      // The refresh mints a fresh asOf for the same call; the commit has not happened yet.
+      wtWrite(join(wtRoot, 'market-brief.payload.json'), wtPayload('2026-11-16T12:00:00Z'));
+      const wtPlan = backfill.planBackfill(wtRoot, { includeWorkingTree: true });
+      assert(wtPlan.stats.newRows === 1 && wtPlan.stats.proposed === 1,
+        'working-tree mode proposes the pre-commit row the git-history scan cannot see yet');
+      const wtRows = wtPlan.byMonth.get('2026-11');
+      assert(wtRows && wtRows.length === 1 && wtRows[0].runId === 'working-tree' && wtRows[0].sourceCommit === null && wtRows[0].bodySource === 'backfill:working-tree',
+        'working-tree rows are honestly provenanced — no commit hash exists pre-commit');
+      assert(backfill.runBackfill(wtRoot, { includeWorkingTree: true }).added === 1,
+        'the pre-commit row is appended');
+      assert(backfill.planBackfill(wtRoot, { includeWorkingTree: true }).stats.newRows === 0,
+        'working-tree mode is idempotent against the uncommitted payload');
+
+      wtGit('add', 'market-brief.payload.json');
+      wtGit('commit', '-m', 'payload A2');
+      assert(backfill.planBackfill(wtRoot).stats.newRows === 0,
+        'the git-history pass of the committed payload dedupes against the working-tree row — the ledger is complete the moment the commit lands');
+      assert(backfill.planBackfill(wtRoot, { includeWorkingTree: true }).stats.newRows === 0,
+        'a later full re-run proposes nothing more, from either writer');
+    } finally {
+      rmSync(wtRoot, { recursive: true, force: true });
+    }
+  }
 } catch (e) { failures++; console.log('  \u2717 FAIL (recommendation ledger group threw): ' + e.message); }
 
 /* ---------- recommendation outcomes — the ledger scores itself against its own terms ---------- */

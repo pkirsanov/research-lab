@@ -832,6 +832,45 @@ else
   echo "[brief-timer] scorecard build returned non-zero (soft) — publishing without a refreshed track record"
 fi
 
+# 3c-bis) Recommendation-ledger completeness — runs on EVERY selection path, before publish.
+#
+# The pages verify job runs the full self-test, which asserts planBackfill proposes ZERO rows
+# against the committed history — i.e. every recommendation in every committed payload must also
+# sit in the ledger. The live publisher is the only row writer and it runs only when the narrative
+# converges (NARRATIVE_OK). Every fallback that committed a payload — matching a retained narrative
+# without a fresh distributed graph, same-target data-only, raw-data-only — therefore left a
+# one-commit gap. Since 2026-11-09 the narrative could not converge, so every push red-lined
+# verify on that one assertion, deploy was skipped, and the live site served a six-day-old brief.
+# Nothing in the pipeline re-ran the recovery tool, so the gap could only grow.
+#
+# The fix pins the ledger to the payload being committed: --working-tree derives this run's rows
+# from the on-disk payload (event identity by asOf, not commit hash, which does not exist yet), so
+# the rows land in the SAME commit as the payload and every committed state is ledger-complete the
+# moment it lands. It is a hard gate before publish: a payload we already know would red the pages
+# gate must not ship. After new rows are in, re-score and re-scorecard so the committed scorecard
+# matches the committed ledger (both are clean no-ops when nothing closed).
+if [ "$DRY_RUN" = "1" ]; then
+  run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/backfill-recommendations.mjs --dry-run --working-tree \
+    || echo "[brief-timer] backfill dry-run returned non-zero (soft, no mutation) — continuing"
+else
+  BACKFILL_OUT="$(run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/backfill-recommendations.mjs --working-tree 2>&1)" \
+    && BACKFILL_RC=0 || BACKFILL_RC=$?
+  [ "$BACKFILL_RC" -eq 0 ] || {
+    echo "[brief-timer] recommendation backfill FAILED (rc=$BACKFILL_RC) — refusing to publish a payload that would red the pages gate:"
+    echo "$BACKFILL_OUT"
+    restore_owned_baseline || echo "[brief-timer] ERROR: owned baseline restore failed"
+    exit 1
+  }
+  echo "$BACKFILL_OUT" | sed 's/^/[brief-timer] /'
+  run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/evaluate-recommendations.mjs \
+    || echo "[brief-timer] post-backfill scoring returned non-zero (soft) — continuing"
+  if run_with_timeout "$TIER_A_TIMEOUT" "$NODE_BIN" scripts/build-scorecard.mjs; then
+    : # market-brief.scorecard.json is already staged above; idempotent re-run
+  else
+    echo "[brief-timer] post-backfill scorecard build returned non-zero (soft) — continuing"
+  fi
+fi
+
 # 3d) Build the page-specific projections AFTER payload, snapshot, scorecard, and registry are final.
 # The full artifacts remain the immutable research/audit records; the page consumes only the fields
 # it renders on first paint, while hidden experimental prose is fetched on demand. A stale projection

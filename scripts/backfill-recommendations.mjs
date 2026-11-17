@@ -18,7 +18,16 @@
  *   - HONEST. Rows are marked `bodySource: "backfill:git"` with their source commit. A call whose own
  *     prose names no instrument or no level is recorded `not-evaluable`, never given a plausible one.
  *
- *   CLI: node scripts/backfill-recommendations.mjs [--dry-run] [--root <path>]
+ *   CLI: node scripts/backfill-recommendations.mjs [--dry-run] [--working-tree] [--root <path>]
+ *
+ *   --working-tree: ALSO derive rows from the on-disk payload, not just committed history. The
+ *   refresh pipeline runs this BEFORE committing, so the ledger rows for the payload that ships in
+ *   this very commit land in that same commit. Without it, fallback publication paths (which commit a
+ *   payload but skip the live publisher) leave every new commit one payload behind, and the self-test
+ *   invariant "planBackfill proposes zero rows against the committed history" fails on the next CI
+ *   push. Working-tree rows use the v2 eventId contract (asOf, recommendationKey, index) — a commit
+ *   hash is not available pre-commit — and the (key, occurredAt) presence guard keeps them from ever
+ *   doubling a row the live publisher or a later git-history pass already holds.
  */
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
@@ -72,6 +81,48 @@ function backfillEventId(commit, recommendationKey, index) {
 }
 
 /**
+ * Working-tree rows have no commit hash yet, so identity is (asOf, recommendationKey, index). asOf is
+ * unique per run (each refresh mints a fresh snapshot asOf and re-syncs the retained payload to it),
+ * so the same key re-proposed in two different runs still gets two distinct ids.
+ */
+function workingTreeEventId(asOf, recommendationKey, index) {
+  return stableSha({ contractVersion: 'brief-recommendation-backfill-eventid/v2', asOf, recommendationKey, index });
+}
+
+/**
+ * Shared candidate accounting for one derived row, identical for git-history and working-tree scans.
+ * The (key, occurredAt) guard is what keeps the whole ledger complete-and-unique regardless of which
+ * writer — live publisher, git-history backfill, or working-tree backfill — recorded the event.
+ */
+function considerCandidateRow(row, { byMonth, stats, knownEventIds, liveByKeyTime, restoredEventIds, month, runId, sourceCommit, bodySource }) {
+  stats.candidateRows += 1;
+  if (knownEventIds.has(row.eventId)) { stats.alreadyPresent += 1; return; }
+  const liveEntry = liveByKeyTime.get(`${row.recommendationKey}|${row.occurredAt}`) || null;
+  // Restore a body ONLY onto an event that lacks one; a complete row needs no enrichment.
+  const restoresEventId = liveEntry && liveEntry.bodiless ? liveEntry.eventId : null;
+  if (liveEntry && !liveEntry.bodiless) { stats.alreadyPresent += 1; return; }
+  // One restoration per original event: a key re-proposed in the same instant is still one event.
+  if (restoresEventId && restoredEventIds.has(restoresEventId)) { stats.alreadyPresent += 1; return; }
+  knownEventIds.add(row.eventId);
+  if (restoresEventId) restoredEventIds.add(restoresEventId);
+  stats.newRows += 1;
+  stats.distinctKeys.add(row.recommendationKey);
+  if (restoresEventId) stats.bodyRestored += 1; else stats.proposed += 1;
+  if (row.evaluability === 'machine-checkable') stats.machineCheckable += 1; else stats.notEvaluable += 1;
+  if (month && !byMonth.has(month)) byMonth.set(month, []);
+  if (month) byMonth.get(month).push({
+    contractVersion: ROW_CONTRACT_V2,
+    runId,
+    canonicalMonth: month,
+    sourceCommit,
+    ...row,
+    eventType: restoresEventId ? 'body-restored' : 'proposed',
+    restoresEventId,
+    bodySource
+  });
+}
+
+/**
  * planBackfill(root) — pure: what WOULD be appended, without touching disk. Returns rows grouped by
  * canonical month plus the counters the CLI reports.
  *
@@ -82,7 +133,8 @@ function backfillEventId(commit, recommendationKey, index) {
  *   - `proposed` records a call the ledger never captured at all — a payload that shipped to the live
  *     site before (or outside) distributed publication.
  */
-export function planBackfill(root) {
+export function planBackfill(root, options) {
+  const includeWorkingTree = Boolean(options && options.includeWorkingTree);
   const universe = loadInstrumentUniverse(root);
   const partitions = readHistoryPartitions(root);
   const knownEventIds = new Set();
@@ -125,31 +177,36 @@ export function planBackfill(root) {
     });
 
     for (const row of rows) {
-      stats.candidateRows += 1;
-      if (knownEventIds.has(row.eventId)) { stats.alreadyPresent += 1; continue; }
-      const liveEntry = liveByKeyTime.get(`${row.recommendationKey}|${row.occurredAt}`) || null;
-      // Restore a body ONLY onto an event that lacks one; a complete row needs no enrichment.
-      const restoresEventId = liveEntry && liveEntry.bodiless ? liveEntry.eventId : null;
-      if (liveEntry && !liveEntry.bodiless) { stats.alreadyPresent += 1; continue; }
-      // One restoration per original event: a key re-proposed in the same instant is still one event.
-      if (restoresEventId && restoredEventIds.has(restoresEventId)) { stats.alreadyPresent += 1; continue; }
-      knownEventIds.add(row.eventId);
-      if (restoresEventId) restoredEventIds.add(restoresEventId);
-      stats.newRows += 1;
-      stats.distinctKeys.add(row.recommendationKey);
-      if (restoresEventId) stats.bodyRestored += 1; else stats.proposed += 1;
-      if (row.evaluability === 'machine-checkable') stats.machineCheckable += 1; else stats.notEvaluable += 1;
-      if (!byMonth.has(month)) byMonth.set(month, []);
-      byMonth.get(month).push({
-        contractVersion: ROW_CONTRACT_V2,
-        runId: `backfill-${commit.slice(0, 12)}`,
-        canonicalMonth: month,
-        sourceCommit: commit,
-        ...row,
-        eventType: restoresEventId ? 'body-restored' : 'proposed',
-        restoresEventId,
-        bodySource: 'backfill:git'
+      considerCandidateRow(row, {
+        byMonth, stats, knownEventIds, liveByKeyTime, restoredEventIds, month,
+        runId: `backfill-${commit.slice(0, 12)}`, sourceCommit: commit, bodySource: 'backfill:git'
       });
+    }
+  }
+
+  // The on-disk payload: the run about to commit. Deriving its rows here — before the commit exists —
+  // lets the refresh pipeline ship the ledger rows for a payload in the SAME commit as the payload,
+  // so every committed state is ledger-complete the moment it lands and the CI self-test invariant
+  // (planBackfill proposes zero rows against the committed history) holds at every commit.
+  if (includeWorkingTree) {
+    let payload = null;
+    try { payload = JSON.parse(readFileSync(path.join(root, PAYLOAD_PATH), 'utf8')); } catch { payload = null; }
+    const occurredAt = payload && typeof payload.asOf === 'string' && payload.asOf
+      ? payload.asOf
+      : (payload && typeof payload.generatedAt === 'string' ? payload.generatedAt : null);
+    let month = null;
+    if (occurredAt) { try { month = canonicalMonthFromEtRunDate(occurredAt); } catch { month = null; } }
+    if (payload && occurredAt && month) {
+      const rows = recommendationRowsFromPayload(payload, {
+        universe, occurredAt,
+        eventIdFor: (recommendationKey, index) => workingTreeEventId(occurredAt, recommendationKey, index)
+      });
+      for (const row of rows) {
+        considerCandidateRow(row, {
+          byMonth, stats, knownEventIds, liveByKeyTime, restoredEventIds, month,
+          runId: 'working-tree', sourceCommit: null, bodySource: 'backfill:working-tree'
+        });
+      }
     }
   }
 
@@ -176,7 +233,7 @@ function jsonlBytes(rows) {
 export function runBackfill(root, options) {
   const opts = options || {};
   const log = opts.log || (() => { });
-  const plan = planBackfill(root);
+  const plan = planBackfill(root, { includeWorkingTree: Boolean(opts.includeWorkingTree) });
   const { byMonth, partitions, stats } = plan;
 
   log(`[backfill] scanned ${stats.commits} payload commits (${stats.commitsWithPayload} readable)`);
@@ -240,10 +297,11 @@ function canonicalBytes(value) {
 function mainCli(argv) {
   const args = argv.slice(2);
   const dryRun = args.includes('--dry-run');
+  const includeWorkingTree = args.includes('--working-tree');
   const rootIdx = args.indexOf('--root');
   const rootArg = args.find((a) => a.startsWith('--root='));
   const root = path.resolve(rootArg ? rootArg.slice('--root='.length) : (rootIdx >= 0 ? args[rootIdx + 1] : '.'));
-  const result = runBackfill(root, { dryRun, log: (line) => console.log(line) });
+  const result = runBackfill(root, { dryRun, includeWorkingTree, log: (line) => console.log(line) });
   return result.ok ? 0 : 1;
 }
 

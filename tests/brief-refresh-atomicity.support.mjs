@@ -16,6 +16,7 @@ import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, extname, normalize, relative, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 import { conformantNarrativePayload } from './required-narrative-fields.support.mjs';
 
 export const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -43,6 +44,8 @@ export const FIXTURE_PUBLICATION_SCRIPTS = [
   'scripts/validate-distributed-briefs.mjs',
   'scripts/validate-brief-cache.mjs',
   'scripts/validate-brief-payload.mjs',
+  'scripts/sync-payload-session-date.mjs',
+  'scripts/backfill-recommendations.mjs',
   'scripts/reader-vocabulary.mjs'
 ];
 

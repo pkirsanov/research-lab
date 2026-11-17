@@ -772,7 +772,7 @@ if (process.env.NODE_TEST_CONTEXT) {
   });
 
   // Regression: specs/_bugs/BUG-002-market-brief-session-date-drift/
-  test('Regression BUG-002: target-date rollover retains the last coherent pair when Tier B fails', (context) => {
+  test('Regression BUG-002: a non-converged narrative run rolls the session forward with a coherent, date-synced pair', (context) => {
     const fixture = createBriefRefreshFixture();
     context.after(() => fixture.cleanup());
 
@@ -792,12 +792,19 @@ if (process.env.NODE_TEST_CONTEXT) {
     console.log('[bug002-atomicity] stdout=' + JSON.stringify(result.stdout.trim().split('\n')));
     console.log('[bug002-atomicity] stderr=' + JSON.stringify(result.stderr.trim().split('\n')));
 
-    assert.equal(result.status, 0, 'the scheduled wrapper completes its soft-failure path');
-    assert.equal(publication.payloadDate, fixture.baselineDate, 'failed Tier B retains the prior payload target');
-    assert.equal(publication.snapshotDate, fixture.baselineDate, 'failed rollover retains the prior snapshot target');
-    assert.ok(publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']), 'failed rollover retains exact snapshot bytes');
-    assert.ok(publication.historyBytes.equals(fixture.baseline['brief-history.jsonl']), 'failed rollover retains exact published history bytes');
-    assert.ok(publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']), 'failed rollover retains exact payload bytes');
+    assert.equal(result.status, 0, 'the scheduled wrapper completes the non-converged-narrative path');
+    // Contract revision 2026-11-13 (commits 72a2b8aa7/2af03de69, see the BUG-002 design.md
+    // addendum): a non-converged narrative no longer rolls the pair back to the prior session.
+    // The run publishes the fresh Tier-A snapshot/history, retains the last coherent narrative
+    // prose, and syncs the payload's Tier-A date fields to the snapshot so the pair stays
+    // coherent. The old byte-rollback assertions below are exactly the frozen-brief behavior
+    // the revision removed: keeping them would have kept the live site on one session forever.
+    assert.equal(publication.payloadDate, fixture.candidateDate, 'the retained payload is date-synced to the advanced session');
+    assert.equal(publication.snapshotDate, fixture.candidateDate, 'the rollover advances the snapshot to the candidate');
+    assert.ok(!publication.snapshotBytes.equals(fixture.baseline['market-brief.snapshot.json']), 'the published snapshot is the advanced candidate bytes');
+    assert.ok(publication.historyBytes.toString('utf8').startsWith(fixture.baseline['brief-history.jsonl'].toString('utf8')), 'history is append-only over the baseline rows');
+    assert.ok(!publication.historyBytes.equals(fixture.baseline['brief-history.jsonl']), 'the history gains the candidate boundary row');
+    assert.ok(!publication.payloadBytes.equals(fixture.baseline['market-brief.payload.json']), 'the payload bytes carry the synced session fields');
     assert.equal(publication.snapshotDate, publication.payloadDate, 'published pair remains coherent');
     assert.equal(publication.staged, '', 'wrapper leaves no owned staged paths');
   });
@@ -1194,6 +1201,7 @@ process.exit(1);
         BRIEF_SCHEDULE_LOCK_DIR: lockDir,
         BRIEF_SCHEDULE_STATUS_FILE: statusFile,
         BRIEF_COPILOT_BIN: fixture.copilotPath,
+        BRIEF_NARRATIVE_PROFILE: 'copilot',
         BUG002_BOUNDARY_LOG: fixture.boundaryLog,
         BUG002_CANDIDATE_DATE: fixture.candidateDate,
         BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
@@ -1281,6 +1289,7 @@ process.exit(1);
           BRIEF_SCHEDULE_LOCK_DIR: lockDir,
           BRIEF_SCHEDULE_STATUS_FILE: statusFile,
           BRIEF_COPILOT_BIN: fixture.copilotPath,
+          BRIEF_NARRATIVE_PROFILE: 'copilot',
           BUG002_BOUNDARY_LOG: fixture.boundaryLog,
           BUG002_CANDIDATE_DATE: fixture.candidateDate,
           BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
@@ -1331,6 +1340,7 @@ process.exit(1);
       BRIEF_SCHEDULE_DUE_ONLY: '1',
       BRIEF_SCHEDULE_RUN_KEY: runKey,
       BRIEF_COPILOT_BIN: fixture.copilotPath,
+      BRIEF_NARRATIVE_PROFILE: 'copilot',
       BUG002_BOUNDARY_LOG: fixture.boundaryLog,
       BUG002_CANDIDATE_DATE: fixture.candidateDate,
       BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
@@ -1384,6 +1394,7 @@ process.exit(1);
         BRIEF_SCHEDULE_STATUS_FILE: statusFile,
         BRIEF_SCHEDULE_RUN_KEY: runKey,
         BRIEF_COPILOT_BIN: fixture.copilotPath,
+        BRIEF_NARRATIVE_PROFILE: 'copilot',
         BUG002_BOUNDARY_LOG: fixture.boundaryLog,
         BUG002_CANDIDATE_DATE: fixture.candidateDate,
         BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
@@ -1419,6 +1430,7 @@ process.exit(1);
       BRIEF_SCHEDULE_DUE_ONLY: '1',
       BRIEF_SCHEDULE_RUN_KEY: runKey,
       BRIEF_COPILOT_BIN: fixture.copilotPath,
+      BRIEF_NARRATIVE_PROFILE: 'copilot',
       BUG002_BOUNDARY_LOG: fixture.boundaryLog,
       BUG002_CANDIDATE_DATE: fixture.candidateDate,
       BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
@@ -1490,6 +1502,7 @@ process.exit(1);
         BRIEF_SCHEDULE_LOCK_DIR: lockDir,
         BRIEF_SCHEDULE_STATUS_FILE: statusFile,
         BRIEF_COPILOT_BIN: fixture.copilotPath,
+        BRIEF_NARRATIVE_PROFILE: 'copilot',
         BUG002_BOUNDARY_LOG: fixture.boundaryLog,
         BUG002_CANDIDATE_DATE: fixture.candidateDate,
         BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
@@ -1520,6 +1533,7 @@ process.exit(1);
         BRIEF_SCHEDULE_LOCK_DIR: lockDir,
         BRIEF_SCHEDULE_STATUS_FILE: statusFile,
         BRIEF_COPILOT_BIN: fixture.copilotPath,
+        BRIEF_NARRATIVE_PROFILE: 'copilot',
         BUG002_BOUNDARY_LOG: fixture.boundaryLog,
         BUG002_CANDIDATE_DATE: fixture.candidateDate,
         BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
@@ -1594,6 +1608,7 @@ process.exit(1);
         BRIEF_SCHEDULE_SOURCE_ROOT: fixture.repoRoot,
         BRIEF_SCHEDULE_LOCK_DIR: lockDir,
         BRIEF_COPILOT_BIN: fixture.copilotPath,
+        BRIEF_NARRATIVE_PROFILE: 'copilot',
         BUG002_BOUNDARY_LOG: fixture.boundaryLog,
         BUG002_CANDIDATE_DATE: fixture.candidateDate,
         BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,
@@ -1637,6 +1652,7 @@ process.exit(count < 3 ? 1 : 0);
         BRIEF_SCHEDULE_LOCK_DIR: lockDir,
         BRIEF_SCHEDULE_STATUS_FILE: statusFile,
         BRIEF_COPILOT_BIN: fixture.copilotPath,
+        BRIEF_NARRATIVE_PROFILE: 'copilot',
         BRIEF_PUSH_RETRY_DELAY_SECONDS: '0',
         BUG002_BOUNDARY_LOG: fixture.boundaryLog,
         BUG002_CANDIDATE_DATE: fixture.candidateDate,
@@ -1784,6 +1800,7 @@ process.exit(count < 3 ? 1 : 0);
         BRIEF_SCHEDULE_SOURCE_ROOT: fixture.repoRoot,
         BRIEF_SCHEDULE_LOCK_DIR: lockDir,
         BRIEF_COPILOT_BIN: fixture.copilotPath,
+        BRIEF_NARRATIVE_PROFILE: 'copilot',
         BUG002_BOUNDARY_LOG: fixture.boundaryLog,
         BUG002_CANDIDATE_DATE: fixture.candidateDate,
         BUG002_COPILOT_ATTEMPT_FILE: fixture.copilotAttemptFile,

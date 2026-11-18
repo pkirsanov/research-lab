@@ -1179,6 +1179,13 @@ async function openRegisteredRoute(page) {
   await page.goto(site.baseUrl + '/fx-regime-relative-value-lab.html');
   await expect(page.locator('body')).toHaveAttribute('data-fx-ready', '1');
   await expect(page.locator('[data-rlbrief-mount][data-tool-id]')).toHaveAttribute('data-rlexperience-state', 'registered');
+  // The shared switcher is mounted only by the dynamically loaded rlviews.js (defer-injected by
+  // rlnav.js). fx-ready and the registered state are set by independent paths that do not imply it
+  // has landed: rlapp.js writes __rlviewsRegistration before the script load, so a transient
+  // hiccup on that one fetch leaves everything above settled while the switcher is absent. Wait
+  // for it explicitly — the same gate bond-regime-lab.spec.mjs uses — instead of sampling the DOM
+  // at an instant the waits above do not guarantee (2026-11-18 CI flake, run 44337487300).
+  await expect(page.locator('#rlviews[data-rlexperience-shell="ready"]')).toBeVisible();
   return requests;
 }
 

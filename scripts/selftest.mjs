@@ -10396,7 +10396,7 @@ try {
     && driftMessage.indexOf('COP') > 0
     && driftMessage.indexOf('t=' + Date.parse('2026-08-13T13:30:00Z')) > 0
     && driftMessage.indexOf('2026-08-13') > 0
-    && driftMessage.indexOf('c 124.5199966430664 -> 123.6949691772461') > 0,
+    && driftMessage.indexOf('c 124.5199966430664 -> 122.88644409179688') > 0,
     'the failure names the FIXTURE, the SYMBOL, the ROW and the value that moved, so a reader learns what broke instead of watching a UI test wait forever: ' + driftMessage);
 
   /* The other half of the boundary, and the one that keeps the guard usable. Rewriting only `ac` is

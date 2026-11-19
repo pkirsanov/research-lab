@@ -1,6 +1,6 @@
 {
   "contractVersion": "official-curve-artifact/v1",
-  "generatedAt": "2026-11-19T18:57:00.976Z",
+  "generatedAt": "2026-11-19T19:30:50.407Z",
   "freshnessPolicy": {
     "policyId": "observed-cadence/v1",
     "cadenceWindowRows": 10,
@@ -3811,7 +3811,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-11-19T18:57:00.976Z",
+          "retrievedAt": "2026-11-19T19:30:50.407Z",
           "contentSha256": "sha256:cf2fa3da7f160384b63d2ead698532b1d76cd9f789ce4911e2304db85b14e6d5",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -3839,7 +3839,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-11-19T18:57:00.976Z",
+          "retrievedAt": "2026-11-19T19:30:50.407Z",
           "contentSha256": "sha256:0707733bdc20fce9a21a1063c5b99dbfd3456acabb216f73e6d6b798f511243d",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -7182,7 +7182,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-11-19T18:57:00.976Z",
+          "retrievedAt": "2026-11-19T19:30:50.407Z",
           "contentSha256": "sha256:d3d3131c41e1f93f4661d227ce7079049d51888b395aaff863b6ad8e08838b64",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",
@@ -7210,7 +7210,7 @@
             }
           },
           "sourcePublishedAt": null,
-          "retrievedAt": "2026-11-19T18:57:00.976Z",
+          "retrievedAt": "2026-11-19T19:30:50.407Z",
           "contentSha256": "sha256:7a53ecfc8e852b2cfd4fa6a42cbfc016ff2c06e5e1c613ecf8c4972150bd01c8",
           "retentionMode": "normalized-facts-and-hash",
           "freshnessState": "current",

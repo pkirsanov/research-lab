@@ -1,6 +1,6 @@
 {
   "asOf": "2026-11-19T22:00:00.000Z",
-  "generatedAt": "2026-11-19T22:58:02.628Z",
+  "generatedAt": "2026-11-20T01:36:07.495Z",
   "window": "after-hours",
   "marketClosed": false,
   "nextSessionDate": "2026-11-20",
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-11-19T22:58:01.742Z",
+      "asOf": "2026-11-20T01:36:06.823Z",
       "read": "Rotate toward XLK as XLY weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": -0.08127599193991297,
           "usdRelativeReturn": 0.12901972604598122,
           "asOf": "2026-11-19T00:00:00.000Z",
-          "computedAt": "2026-11-19T22:58:01.753Z",
+          "computedAt": "2026-11-20T01:36:06.831Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1930,7 +1930,7 @@
           "interaction": 0.0004903806107986092,
           "relationship": "Joint Support",
           "asOf": "2026-11-19T00:00:00.000Z",
-          "computedAt": "2026-11-19T22:58:01.753Z",
+          "computedAt": "2026-11-20T01:36:06.831Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1954,7 +1954,7 @@
               "usdLeadership": {
                 "asOf": "2026-11-19T00:00:00.000Z",
                 "benchmarkReturn": -0.08127599193991297,
-                "computedAt": "2026-11-19T22:58:01.753Z",
+                "computedAt": "2026-11-20T01:36:06.831Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2463,7 +2463,7 @@
                 "approximateLocalReturn": 0.021528285943698267,
                 "asOf": "2026-11-19T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": -0.08965425100064994,
-                "computedAt": "2026-11-19T22:58:01.753Z",
+                "computedAt": "2026-11-20T01:36:06.831Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "INR",
                 "freshUntil": null,
@@ -3055,7 +3055,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-11-19T22:58:01.753Z",
+          "computedAt": "2026-11-20T01:36:06.831Z",
           "freshUntil": null
         }
       },
@@ -3785,7 +3785,7 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-11-19T22:58:02.110Z",
+      "asOf": "2026-11-20T01:36:07.150Z",
       "read": "The AI-capex universe is dated 2026-06-30, 143 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
@@ -3817,7 +3817,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-11-19",
-            "elapsedDays": 0,
+            "elapsedDays": 1,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           },
@@ -3825,7 +3825,7 @@
             "verdict": "current",
             "errorCode": null,
             "lastGoodObservedAt": "2026-11-19",
-            "elapsedDays": 0,
+            "elapsedDays": 1,
             "windowDays": 4,
             "basis": "observed-gap-max-3d-over-9-gaps-plus-lag-1d"
           }
@@ -3864,15 +3864,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-11-19T22:58:02.142Z",
+      "asOf": "2026-11-20T01:36:07.171Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-b35a61e5",
-        "evidenceIdentity": "fxe-v1-e700b2d3",
+        "ownerDecisionId": "fxo-v1-557401d6",
+        "evidenceIdentity": "fxe-v1-16afc04a",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -3995,8 +3995,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-b35a61e5",
-            "evidenceIdentity": "fxe-v1-e700b2d3",
+            "ownerDecisionId": "fxo-v1-557401d6",
+            "evidenceIdentity": "fxe-v1-16afc04a",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4116,7 +4116,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-e700b2d3",
+              "evidenceIdentity": "fxe-v1-16afc04a",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4141,7 +4141,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-11-19T22:58:02.142Z",
+          "computedAt": "2026-11-20T01:36:07.171Z",
           "freshUntil": null
         }
       }
@@ -4167,7 +4167,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-11-19T22:58:02.309Z",
+      "asOf": "2026-11-20T01:36:07.272Z",
       "read": "Leadership is narrow — 5.12% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",

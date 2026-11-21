@@ -16,6 +16,9 @@ async function serveFixture(page, evidence) {
     const path = new URL(route.request().url()).pathname;
     const json = (body) => route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(body) });
     if (path.endsWith('/sector-universe.json')) return json({ entries: [], sectorMap: fx.sectorMap });
+    /* The macro regime the scanner's K3 filter reads (pagesMacro in rldata.js) comes from the brief
+       snapshot; pin it at a sub-stress VIX so the rules under test, not live market data, decide. */
+    if (path.endsWith('/market-brief.snapshot.json')) return json({ asOf: fx.lastDate + 'T20:00:00.000Z', generatedAt: fx.lastDate + 'T20:00:00.000Z', regime: { band: 'VIX 28.4', score: -1, vix: 28.44, fearGreed: null } });
     if (path.endsWith('/data/bars/live.json')) return json({ updated: fx.lastDate + 'T20:00:00.000Z', expectedSessionDate: fx.lastDate, quotes: {} });
     if (path.endsWith('/data/overreaction/evidence.json')) return json(evidence);
     if (path.endsWith('/data/calendars/xnys/calendar.json')) return json({ rows: [] });

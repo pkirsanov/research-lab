@@ -2,17 +2,65 @@ name: pages
 on:
   push:
     branches: [ "main" ]
+  # Catch-up for the lost-push gap: GitHub does not fire `push` for commits pushed by the CI
+  # bot, so band data commits land on main with no pages run attached. This schedule run is
+  # mostly a no-op — the gate job below compares the freshly built site against the deployed
+  # live site and only then does a schedule run pay for the full verify+deploy pipeline.
+  schedule:
+    - cron: "*/30 * * * *"
   workflow_dispatch: {}
 permissions: {}
 concurrency:
   group: "pages"
   cancel-in-progress: false
 jobs:
+  # ── SCHEDULE-ONLY CATCH-UP GATE. Runs only on schedule events and never blocks anything:
+  #    it decides by content whether the built site already equals the deployed live site.
+  #    Any uncertainty (network error, HTTP error, missing file, even a bug in this script)
+  #    resolves to deploy, so the gate can never hide a stale site. Push and manual runs skip
+  #    this job entirely and deploy exactly as before.
+  gate:
+    if: github.event_name == 'schedule'
+    permissions:
+      contents: read
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      deploy: ${{ steps.decide.outputs.deploy }}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: "20"
+    - name: Build registered Pages artifact
+      run: node scripts/build-pages-site.mjs
+    - name: Gate — built site vs live site
+      id: decide
+      env:
+        GATE_OUTPUT: ${{ runner.output }}
+      run: |
+        set -euo pipefail
+        out="$(node scripts/pages-deploy-gate.mjs --site-dir _site --live-base "https://pkirsanov.github.io/research-lab")"
+        echo "$out"
+        case "$out" in
+          "GATE deploy=false"*) echo "deploy=false" >> "$GATE_OUTPUT" ;;
+          "GATE deploy=true"*)  echo "deploy=true"  >> "$GATE_OUTPUT" ;;
+          *) echo "deploy=true" >> "$GATE_OUTPUT" ;;  # unexpected shape: fail open
+        esac
+
   # ── BLOCKING. Deploy waits on this. Everything here is deterministic and offline: it reads
   #    committed data only, so a red result means THIS COMMIT is broken — never that a third-party
   #    market-data API was slow. A gate that goes red for reasons unrelated to the change is a gate
   #    people learn to ignore, and an ignored gate is worse than no gate.
   verify:
+    needs: gate
+    # A schedule run deploys only when the gate found new content; every other event type
+    # (push, manual) deploys unconditionally, exactly as before the gate existed.
+    if: github.event_name != 'schedule' || needs.gate.outputs.deploy == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest

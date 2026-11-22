@@ -14,13 +14,14 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 jobs:
-  # ── SCHEDULE-ONLY CATCH-UP GATE. Runs only on schedule events and never blocks anything:
-  #    it decides by content whether the built site already equals the deployed live site.
-  #    Any uncertainty (network error, HTTP error, missing file, even a bug in this script)
-  #    resolves to deploy, so the gate can never hide a stale site. Push and manual runs skip
-  #    this job entirely and deploy exactly as before.
+  # ── DEPLOY GATE. Runs on EVERY event so its output is always defined (a job that needs a
+  #    SKIPPED job does not reliably honor an if that references that job's outputs — proven
+  #    by run 45074955520, where this whole pipeline was skipped on a push event). On schedule
+  #    events it decides by content: freshly built site vs deployed live site. On push and
+  #    manual events it deploys unconditionally, exactly as before the gate existed.
+  #    Any uncertainty (network error, HTTP error, missing file, even a bug in the script)
+  #    resolves to deploy, so the gate can never hide a stale site.
   gate:
-    if: github.event_name == 'schedule'
     permissions:
       contents: read
     runs-on: ubuntu-latest
@@ -28,28 +29,35 @@ jobs:
     outputs:
       deploy: ${{ steps.decide.outputs.deploy }}
     steps:
-    - name: Checkout
+    - name: Checkout (schedule only)
+      if: github.event_name == 'schedule'
       uses: actions/checkout@v4
       with:
         fetch-depth: 1
-    - name: Setup Node
+    - name: Setup Node (schedule only)
+      if: github.event_name == 'schedule'
       uses: actions/setup-node@v4
       with:
         node-version: "20"
-    - name: Build registered Pages artifact
+    - name: Build registered Pages artifact (schedule only)
+      if: github.event_name == 'schedule'
       run: node scripts/build-pages-site.mjs
-    - name: Gate — built site vs live site
+    - name: Decide
       id: decide
       env:
-        GATE_OUTPUT: ${{ runner.output }}
+        EVENT: ${{ github.event_name }}
       run: |
         set -euo pipefail
+        if [ "$EVENT" != "schedule" ]; then
+          echo "GATE deploy=true :: non-schedule event — always deploy"
+          echo "deploy=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
         out="$(node scripts/pages-deploy-gate.mjs --site-dir _site --live-base "https://pkirsanov.github.io/research-lab")"
         echo "$out"
         case "$out" in
-          "GATE deploy=false"*) echo "deploy=false" >> "$GATE_OUTPUT" ;;
-          "GATE deploy=true"*)  echo "deploy=true"  >> "$GATE_OUTPUT" ;;
-          *) echo "deploy=true" >> "$GATE_OUTPUT" ;;  # unexpected shape: fail open
+          "GATE deploy=false"*) echo "deploy=false" >> "$GITHUB_OUTPUT" ;;
+          *) echo "deploy=true" >> "$GITHUB_OUTPUT" ;;  # unexpected shape: fail open
         esac
 
   # ── BLOCKING. Deploy waits on this. Everything here is deterministic and offline: it reads
@@ -58,9 +66,9 @@ jobs:
   #    people learn to ignore, and an ignored gate is worse than no gate.
   verify:
     needs: gate
-    # A schedule run deploys only when the gate found new content; every other event type
-    # (push, manual) deploys unconditionally, exactly as before the gate existed.
-    if: github.event_name != 'schedule' || needs.gate.outputs.deploy == 'true'
+    # The gate runs on every event, so this is the plain outputs pattern: schedule no-ops
+    # (built site == live site) skip here; everything else deploys.
+    if: needs.gate.outputs.deploy == 'true'
     permissions:
       contents: read
     runs-on: ubuntu-latest

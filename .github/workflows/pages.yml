@@ -9,6 +9,13 @@ on:
   schedule:
     - cron: "*/30 * * * *"
   workflow_dispatch: {}
+  # Event-driven catch-up for the same lost-push gap: the moment a tools-refresh run
+  # completes, run the pipeline right away (its bot commit is already on main) instead of
+  # waiting for the sparse */30 schedule. The gate deploys on a successful upstream run and
+  # no-ops on failure/cancelled, so a red refresh can never trigger a deploy.
+  workflow_run:
+    workflows: ["tools-refresh"]
+    types: [completed]
 permissions: {}
 concurrency:
   group: "pages"
@@ -46,8 +53,21 @@ jobs:
       id: decide
       env:
         EVENT: ${{ github.event_name }}
+        CONCLUSION: ${{ github.event.workflow_run.conclusion }}
       run: |
         set -euo pipefail
+        if [ "$EVENT" = "workflow_run" ]; then
+          # Lost-push catch-up: tools-refresh bot commits never fire the push trigger.
+          # Deploy immediately after a successful refresh; never on a failed/cancelled one.
+          if [ "$CONCLUSION" = "success" ]; then
+            echo "GATE deploy=true :: tools-refresh success — deploy"
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "GATE deploy=false :: tools-refresh ${CONCLUSION} — no-op"
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+          exit 0
+        fi
         if [ "$EVENT" != "schedule" ]; then
           echo "GATE deploy=true :: non-schedule event — always deploy"
           echo "deploy=true" >> "$GITHUB_OUTPUT"

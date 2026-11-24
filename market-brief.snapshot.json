@@ -1,9 +1,9 @@
 {
-  "asOf": "2026-11-24T22:00:00.000Z",
-  "generatedAt": "2026-11-24T05:40:14.839Z",
-  "window": "after-hours",
+  "asOf": "2026-11-24T16:00:00.000Z",
+  "generatedAt": "2026-11-24T13:31:33.684Z",
+  "window": "morning",
   "marketClosed": false,
-  "nextSessionDate": "2026-11-25",
+  "nextSessionDate": "2026-11-24",
   "dataFreshness": {
     "bars": {
       "updated": "2026-11-19T21:31:04.723Z",
@@ -27,9 +27,9 @@
     }
   },
   "regime": {
-    "band": "VIX 26.6",
+    "band": "VIX 30.0",
     "score": -1,
-    "vix": 26.62,
+    "vix": 30,
     "fearGreed": null
   },
   "bench": {
@@ -627,7 +627,7 @@
   "toolReads": {
     "sector-research-lab": {
       "id": "sector-research-lab",
-      "asOf": "2026-11-24T05:40:11.063Z",
+      "asOf": "2026-11-24T13:31:29.205Z",
       "read": "Rotate toward XLE as XLY weakens.",
       "metrics": {
         "into": {
@@ -1341,7 +1341,7 @@
           "benchmarkReturn": -0.07536627298018794,
           "usdRelativeReturn": 0.11339135489973018,
           "asOf": "2026-11-23T00:00:00.000Z",
-          "computedAt": "2026-11-24T05:40:11.373Z",
+          "computedAt": "2026-11-24T13:31:29.514Z",
           "freshUntil": null
         },
         "decomposition": {
@@ -1932,7 +1932,7 @@
           "interaction": 0.00029972770740545676,
           "relationship": "Joint Support",
           "asOf": "2026-11-23T00:00:00.000Z",
-          "computedAt": "2026-11-24T05:40:11.373Z",
+          "computedAt": "2026-11-24T13:31:29.514Z",
           "freshUntil": null,
           "limitations": [
             "Approximate local return excludes fees, withholding, tracking, and close-timing differences."
@@ -1956,7 +1956,7 @@
               "usdLeadership": {
                 "asOf": "2026-11-23T00:00:00.000Z",
                 "benchmarkReturn": -0.07536627298018794,
-                "computedAt": "2026-11-24T05:40:11.373Z",
+                "computedAt": "2026-11-24T13:31:29.514Z",
                 "contractVersion": "rlfx-global-usd-leadership/v1",
                 "freshUntil": null,
                 "horizonSessions": 63,
@@ -2465,7 +2465,7 @@
                 "approximateLocalReturn": 0.010198131116670117,
                 "asOf": "2026-11-23T00:00:00.000Z",
                 "benchmarkReturnOnDecompositionDates": -0.07548108753202598,
-                "computedAt": "2026-11-24T05:40:11.373Z",
+                "computedAt": "2026-11-24T13:31:29.514Z",
                 "contractVersion": "rlfx-global-decomposition/v1",
                 "currency": "INR",
                 "freshUntil": null,
@@ -3059,7 +3059,7 @@
             "educationalOnly": true
           },
           "deepLink": "global-rotation-lab.html#simple",
-          "computedAt": "2026-11-24T05:40:11.373Z",
+          "computedAt": "2026-11-24T13:31:29.514Z",
           "freshUntil": null
         }
       },
@@ -3069,7 +3069,7 @@
     "real-assets-lab": {
       "id": "real-assets-lab",
       "asOf": "2026-11-23T14:30:00.000Z",
-      "read": "BNO leads real assets at 36.6/100; GLD 2.2, BTC 5.8, SLV 0.",
+      "read": "BNO leads real assets at 36.6/100; GLD 2.2, BTC 5.1, SLV 0.",
       "metrics": {
         "leader": {
           "ticker": "BNO",
@@ -3388,12 +3388,12 @@
           "BTC-USD": {
             "ticker": "BTC-USD",
             "model": "bitcoin",
-            "score": 5.8,
+            "score": 5.1,
             "trend": "Downtrend",
-            "mom21": -20.93,
-            "mom63": -29.99,
-            "mom126": -7.05,
-            "vol": 41.25,
+            "mom21": -22.37,
+            "mom63": -30.32,
+            "mom126": -9.71,
+            "vol": 41.21,
             "maxDrawdown": 32.11,
             "riskPenalty": 6.46,
             "confirmations": [
@@ -3520,7 +3520,7 @@
           "xle63": -2.955419397352066,
           "xli63": -8.684608368029457,
           "gld63": -22.20431627636933,
-          "btc63": -29.990555853300616,
+          "btc63": -30.319993051710004,
           "dbc63": -4.33782346889987,
           "goldSilverRatio63": 24.601053840347408,
           "breadth": 25
@@ -3797,11 +3797,11 @@
     },
     "ai-capex-strategy-lab": {
       "id": "ai-capex-strategy-lab",
-      "asOf": "2026-11-24T05:40:14.379Z",
-      "read": "The AI-capex universe is dated 2026-06-30, 147 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
+      "asOf": "2026-11-24T13:31:33.114Z",
+      "read": "The AI-capex universe is dated 2026-06-30, 148 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view.",
       "metrics": {
         "state": "unavailable",
-        "reason": "The AI-capex universe is dated 2026-06-30, 147 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
+        "reason": "The AI-capex universe is dated 2026-06-30, 148 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
       },
       "deepLink": "ai-capex-strategy-lab.html",
       "source": "owning-tool-functions",
@@ -3876,15 +3876,15 @@
     },
     "fx-regime-relative-value-lab": {
       "id": "fx-regime-relative-value-lab",
-      "asOf": "2026-11-24T05:40:14.405Z",
+      "asOf": "2026-11-24T13:31:33.145Z",
       "read": "The available evidence does not support a complete attributable recommendation. No FX evidence source is approved for use, so the broad-dollar, event, forward-carry, policy-rate-proxy, positioning, reer-value, spot families are all withheld and no currency regime or listed vehicle is published.",
       "deepLink": "fx-regime-relative-value-lab.html#power",
       "source": "owning-tool-functions",
       "state": "unavailable",
       "metrics": {
         "state": "unavailable",
-        "ownerDecisionId": "fxo-v1-33708da6",
-        "evidenceIdentity": "fxe-v1-55478764",
+        "ownerDecisionId": "fxo-v1-94146230",
+        "evidenceIdentity": "fxe-v1-371585db",
         "objective": "foreign-currency-strength",
         "subjectId": "JPY",
         "horizon": "swing",
@@ -4007,8 +4007,8 @@
           "read": "The available evidence does not support a complete attributable recommendation.",
           "metrics": {
             "contractVersion": "rlfx-tool-read/v2",
-            "ownerDecisionId": "fxo-v1-33708da6",
-            "evidenceIdentity": "fxe-v1-55478764",
+            "ownerDecisionId": "fxo-v1-94146230",
+            "evidenceIdentity": "fxe-v1-371585db",
             "state": "unavailable",
             "objective": "foreign-currency-strength",
             "subjectId": "JPY",
@@ -4128,7 +4128,7 @@
                 "REQUIRED_FACT_MISSING",
                 "TRACKING_EVIDENCE_INCOMPLETE"
               ],
-              "evidenceIdentity": "fxe-v1-55478764",
+              "evidenceIdentity": "fxe-v1-371585db",
               "evidenceCutoff": null,
               "provenance": [],
               "ownerDeepLink": "fx-regime-relative-value-lab.html#power",
@@ -4153,7 +4153,7 @@
             "executionAvailable": false
           },
           "deepLink": "fx-regime-relative-value-lab.html#power",
-          "computedAt": "2026-11-24T05:40:14.405Z",
+          "computedAt": "2026-11-24T13:31:33.145Z",
           "freshUntil": null
         }
       }
@@ -4179,7 +4179,7 @@
     },
     "market-heatmap-lab": {
       "id": "market-heatmap-lab",
-      "asOf": "2026-11-24T05:40:14.545Z",
+      "asOf": "2026-11-24T13:31:33.317Z",
       "read": "Leadership is narrow — 5.12% of 134 constituents are positive against a 60% broad-market threshold.",
       "deepLink": "market-heatmap-lab.html",
       "source": "owning-tool-functions",
@@ -4262,15 +4262,15 @@
     "intraday-tape-lab": {
       "id": "intraday-tape-lab",
       "asOf": "2026-11-23T21:00:00.000Z",
-      "read": "SPY's session is a Reversal risk auction under Mixed control, with VWAP at 722.72.",
+      "read": "SPY's session is a Range day auction under Mixed control, with VWAP at 722.19.",
       "deepLink": "intraday-tape-lab.html",
       "source": "owning-tool-functions",
       "state": "ready",
       "metrics": {
         "symbol": "SPY",
-        "sessionType": "Reversal risk",
+        "sessionType": "Range day",
         "control": "Mixed",
-        "vwap": 722.72,
+        "vwap": 722.19,
         "poc": null,
         "valueAreaHigh": null,
         "valueAreaLow": null,
@@ -4331,7 +4331,7 @@
       "id": "intraday-tape-lab",
       "deepLink": "intraday-tape-lab.html",
       "status": "fresh-headless",
-      "reason": "SPY's session is a Reversal risk auction under Mixed control, with VWAP at 722.72."
+      "reason": "SPY's session is a Range day auction under Mixed control, with VWAP at 722.19."
     },
     {
       "id": "swing-structure-lab",
@@ -4367,7 +4367,7 @@
       "id": "real-assets-lab",
       "deepLink": "real-assets-lab.html",
       "status": "fresh-headless",
-      "reason": "BNO leads real assets at 36.6/100; GLD 2.2, BTC 5.8, SLV 0."
+      "reason": "BNO leads real assets at 36.6/100; GLD 2.2, BTC 5.1, SLV 0."
     },
     {
       "id": "bond-regime-lab",
@@ -4379,7 +4379,7 @@
       "id": "ai-capex-strategy-lab",
       "deepLink": "ai-capex-strategy-lab.html",
       "status": "unavailable",
-      "reason": "The AI-capex universe is dated 2026-06-30, 147 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
+      "reason": "The AI-capex universe is dated 2026-06-30, 148 days old and past its quarterly refresh; a superseded set of supplier assumptions is not shown as a current view."
     },
     {
       "id": "msft-july-print-model",
